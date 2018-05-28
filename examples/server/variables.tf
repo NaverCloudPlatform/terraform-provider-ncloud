@@ -1,5 +1,12 @@
+variable "access_key" {}
+variable "secret_key" {}
+
 variable "region" {
   default = "KR"
+}
+
+variable "server_name" {
+  default = "terraform-test"
 }
 
 variable "server_image_product_code" {
