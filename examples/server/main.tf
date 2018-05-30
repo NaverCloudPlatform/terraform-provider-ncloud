@@ -4,7 +4,8 @@ provider "ncloud" {
   region     = "${var.region}"
 }
 
-data "ncloud_regions" "all" {}
+data "ncloud_regions" "regions" {}
+data "ncloud_server_images" "server_images" {}
 
 resource "ncloud_instance" "terraform-test" {
   "server_name"               = "${var.server_name}"

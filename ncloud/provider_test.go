@@ -5,11 +5,19 @@ import (
 	"github.com/hashicorp/terraform/terraform"
 	"log"
 	"os"
+	"strings"
 	"testing"
 )
 
 var testAccProviders map[string]terraform.ResourceProvider
 var testAccProvider *schema.Provider
+
+var credsEnvVars = []string{
+	"NCLOUD_ACCESS_KEY",
+	"NCLOUD_SECRET_KEY",
+}
+
+var regionEnvVar = "NCLOUD_REGION"
 
 func init() {
 	testAccProvider = Provider().(*schema.Provider)
@@ -29,18 +37,13 @@ func TestProvider_impl(t *testing.T) {
 }
 
 func testAccPreCheck(t *testing.T) {
-	if v := os.Getenv("NCLOUD_PROFILE"); v == "" {
-		if v := os.Getenv("NCLOUD_ACCESS_KEY"); v == "" {
-			t.Fatal("NCLOUD_ACCESS_KEY must be set for acceptance tests")
-		}
-		if v := os.Getenv("NCLOUD_SECRET_KEY"); v == "" {
-			t.Fatal("NCLOUD_SECRET_KEY must be set for acceptance tests")
-		}
+	if v := multiEnvSearch(credsEnvVars); v == "" {
+		t.Fatalf("One of %s must be set for acceptance tests", strings.Join(credsEnvVars, ", "))
 	}
 
 	region := testAccGetRegion()
 	log.Printf("[INFO] Test: Using %s as test region", region)
-	os.Setenv("NCLOUD_DEFAULT_REGION", region)
+	os.Setenv(regionEnvVar, region)
 
 	err := testAccProvider.Configure(terraform.NewResourceConfig(nil))
 	if err != nil {
@@ -49,9 +52,18 @@ func testAccPreCheck(t *testing.T) {
 }
 
 func testAccGetRegion() string {
-	v := os.Getenv("NCLOUD_DEFAULT_REGION")
+	v := os.Getenv(regionEnvVar)
 	if v == "" {
 		return "KR"
 	}
 	return v
+}
+
+func multiEnvSearch(ks []string) string {
+	for _, k := range ks {
+		if v := os.Getenv(k); v != "" {
+			return v
+		}
+	}
+	return ""
 }
