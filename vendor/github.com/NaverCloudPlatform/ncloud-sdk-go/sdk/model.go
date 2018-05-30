@@ -180,6 +180,11 @@ type RequestCreatePublicIPInstance struct {
 	RegionNo             string
 }
 
+type RequestAssociatePublicIP struct {
+	ServerInstanceNo   string
+	PublicIPInstanceNo string
+}
+
 type RequestPublicIPInstanceList struct {
 	IsAssociated           bool
 	PublicIPInstanceNoList []string
@@ -237,12 +242,21 @@ type RequestStopServerInstances struct {
 	ServerInstanceNoList []string
 }
 
+type RequestStartServerInstances struct {
+	ServerInstanceNoList []string
+}
+
 type RequestTerminateServerInstances struct {
 	ServerInstanceNoList []string
 }
 
 type RequestRebootServerInstances struct {
 	ServerInstanceNoList []string
+}
+
+type RequestChangeServerInstanceSpec struct {
+	ServerInstanceNo  string
+	ServerProductCode string
 }
 
 // RequestGetRootPassword : Request to get root password of the server
