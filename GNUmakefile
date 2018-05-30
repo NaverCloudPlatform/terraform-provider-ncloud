@@ -34,13 +34,6 @@ fmtcheck:
 errcheck:
 	@sh -c "'$(CURDIR)/scripts/errcheck.sh'"
 
-deps:
-	@go get -u github.com/kardianos/govendor
-	@govendor fetch +out
-
-updatedeps:
-	@govendor update +vendor
-
 vendor-status:
 	@govendor status
 

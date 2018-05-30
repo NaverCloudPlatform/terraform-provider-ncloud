@@ -4,15 +4,19 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/NaverCloudPlatform/ncloud-sdk-go/common"
+	"github.com/hashicorp/terraform/helper/schema"
 	"log"
 )
 
-func convertToStringList(configured []interface{}) []string {
-	vs := make([]string, 0, len(configured))
-	for _, v := range configured {
-		vs = append(vs, v.(string))
-	}
-	return vs
+var commonCodeSchemaResource = &schema.Resource{
+	Schema: map[string]*schema.Schema{
+		"code": {
+			Type: schema.TypeString,
+		},
+		"code_name": {
+			Type: schema.TypeString,
+		},
+	},
 }
 
 func logCommonResponse(tag string, err error, args interface{}, resp common.CommonResponse) {

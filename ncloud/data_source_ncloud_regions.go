@@ -24,15 +24,15 @@ func dataSourceNcloudRegions() *schema.Resource {
 					Schema: map[string]*schema.Schema{
 						"region_no": {
 							Type:     schema.TypeString,
-							Optional: true,
+							Computed: true,
 						},
 						"region_code": {
 							Type:     schema.TypeString,
-							Optional: true,
+							Computed: true,
 						},
 						"region_name": {
 							Type:     schema.TypeString,
-							Optional: true,
+							Computed: true,
 						},
 					},
 				},
@@ -72,21 +72,21 @@ func dataSourceNcloudRegionsRead(d *schema.ResourceData, meta interface{}) error
 	}
 
 	if len(filterRegions) < 1 {
-		return fmt.Errorf("returned no results. Please change regionCode and try again.")
+		return fmt.Errorf("no results. please change search criteria and try again")
 	}
 
-	return regionsDescriptionAttributes(d, filterRegions)
+	return regionsAttributes(d, filterRegions)
 }
 
-func regionsDescriptionAttributes(d *schema.ResourceData, regions []common.Region) error {
+func regionsAttributes(d *schema.ResourceData, regions []common.Region) error {
 
 	var ids []string
 	var s []map[string]interface{}
 	for _, region := range regions {
 		mapping := map[string]interface{}{
+			"region_no":   region.RegionNo,
 			"region_code": region.RegionCode,
 			"region_name": region.RegionName,
-			"region_no":   region.RegionNo,
 		}
 
 		log.Printf("[DEBUG] ncloud_regions - adding region mapping: %v", mapping)
