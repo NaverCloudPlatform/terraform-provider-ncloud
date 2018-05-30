@@ -2,7 +2,7 @@ package main
 
 import (
 	"github.com/hashicorp/terraform/plugin"
-	"terraform-provider-ncloud/ncloud"
+	"oss.navercorp.com/ncloud-paas/terraform-provider-ncloud/ncloud"
 )
 
 func main() {
