@@ -1,9 +1,10 @@
 package ncloud
 
 import (
+	"os"
+
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/terraform"
-	"os"
 )
 
 func Provider() terraform.ResourceProvider {
@@ -31,7 +32,9 @@ func Provider() terraform.ResourceProvider {
 		DataSourcesMap: map[string]*schema.Resource{
 			"ncloud_regions":       dataSourceNcloudRegions(),
 			"ncloud_server_images": dataSourceNcloudServerImages(),
+			"ncloud_zone":          dataSourceNcloudZones(),
 			//"ncloud_instances":     dataSourceNcloudInstances(),
+
 		},
 		ResourcesMap: map[string]*schema.Resource{
 			"ncloud_instance": resourceNcloudInstance(),
