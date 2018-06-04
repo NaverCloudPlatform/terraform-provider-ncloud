@@ -12,3 +12,9 @@ resource "ncloud_instance" "instance" {
   "server_image_product_code" = "${var.server_image_product_code}"
   "server_product_code"       = "${var.server_product_code}"
 }
+
+resource "ncloud_block_storage" "storage" {
+  "server_instance_no" = "${ncloud_instance.instance.id}"
+  "block_storage_name" = "${var.block_storage_name}"
+  "block_storage_size_gb" = "10"
+}

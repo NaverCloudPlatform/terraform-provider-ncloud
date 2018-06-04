@@ -1,6 +1,13 @@
 package ncloud
 
-import "encoding/base64"
+import (
+	"encoding/base64"
+	"strconv"
+)
+
+func String(n int) string {
+	return strconv.Itoa(n)
+}
 
 func StringList(configured []interface{}) []string {
 	vs := make([]string, 0, len(configured))
