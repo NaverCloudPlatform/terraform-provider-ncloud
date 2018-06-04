@@ -11,12 +11,12 @@ import (
 )
 
 func TestAccNcloudInstance_basic(t *testing.T) {
-	var instance sdk.ServerInstance
+	var serverInstance sdk.ServerInstance
 	testServerName := getTestServerName()
 
 	testCheck := func() func(*terraform.State) error {
 		return func(*terraform.State) error {
-			if instance.ServerName != testServerName {
+			if serverInstance.ServerName != testServerName {
 				return fmt.Errorf("not found: %s", testServerName)
 			}
 			return nil
@@ -33,7 +33,7 @@ func TestAccNcloudInstance_basic(t *testing.T) {
 				Config: testAccInstanceConfig(testServerName),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckInstanceExists(
-						"ncloud_instance.instance", &instance),
+						"ncloud_instance.instance", &serverInstance),
 					testCheck(),
 					resource.TestCheckResourceAttr(
 						"ncloud_instance.instance",
@@ -82,7 +82,7 @@ func TestAccNcloudInstance_changeServerInstanceSpec(t *testing.T) {
 
 func getTestServerName() string {
 	rInt := acctest.RandIntRange(1, 9999)
-	testServerName := fmt.Sprintf("terraform-test-%d", rInt)
+	testServerName := fmt.Sprintf("tf-test-vm-%d", rInt)
 	return testServerName
 }
 
@@ -113,7 +113,7 @@ func testAccCheckInstanceExistsWithProvider(n string, i *sdk.ServerInstance, pro
 			return nil
 		}
 
-		return fmt.Errorf("instance not found")
+		return fmt.Errorf("server instance not found")
 	}
 }
 
@@ -140,17 +140,18 @@ func testAccCheckInstanceDestroyWithProvider(s *terraform.State, provider *schem
 		}
 
 		instance, err := getServerInstance(conn, rs.Primary.ID)
-		if err == nil {
-			if instance != nil && instance.ServerInstanceStatusName != "stopped" {
-				return fmt.Errorf("found unstopped instance: %s", instance.ServerInstanceNo)
-			}
+
+		if err != nil {
+			return err
 		}
 
 		if instance == nil {
 			continue
 		}
 
-		return err
+		if instance.ServerInstanceStatusName != "terminating" {
+			return fmt.Errorf("found unterminated instance: %s", instance.ServerInstanceNo)
+		}
 	}
 
 	return nil
@@ -159,9 +160,9 @@ func testAccCheckInstanceDestroyWithProvider(s *terraform.State, provider *schem
 func testAccInstanceConfig(testServerName string) string {
 	return fmt.Sprintf(`
 resource "ncloud_instance" "instance" {
-"server_name" = "%s"
-"server_image_product_code" = "SPSW0LINUX000032"
-"server_product_code" = "SPSVRSTAND000004"
+	"server_name" = "%s"
+	"server_image_product_code" = "SPSW0LINUX000032"
+	"server_product_code" = "SPSVRSTAND000004"
 }
 `, testServerName)
 }
@@ -169,9 +170,9 @@ resource "ncloud_instance" "instance" {
 func testAccInstanceChangeSpecConfig(testServerName string) string {
 	return fmt.Sprintf(`
 resource "ncloud_instance" "instance" {
-"server_name" = "%s"
-"server_image_product_code" = "SPSW0LINUX000032"
-"server_product_code" = "SPSVRSTAND000056"
+	"server_name" = "%s"
+	"server_image_product_code" = "SPSW0LINUX000032"
+	"server_product_code" = "SPSVRSTAND000056"
 }
 `, testServerName)
 }

@@ -24,68 +24,86 @@ func resourceNcloudInstance() *schema.Resource {
 		},
 		Schema: map[string]*schema.Schema{
 			"server_image_product_code": {
-				Type:     schema.TypeString,
-				Optional: true,
+				Type:        schema.TypeString,
+				Optional:    true,
+				Description: "Server image product code to determine which server image to create. It can be obtained through getServerImageProductList. You are required to select one among two parameters: server image product code (server_image_product_code) and member server image number(member_server_image_no).",
 			},
 			"server_product_code": {
-				Type:     schema.TypeString,
-				Optional: true,
+				Type:        schema.TypeString,
+				Optional:    true,
+				Description: "Server product code to determine the server specification to create. It can be obtained through the getServerProductList action. Default : Selected as minimum specification. The minimum standards are 1. memory 2. CPU 3. basic block storage size 4. disk type (NET,LOCAL)",
 			},
 			"member_server_image_no": {
-				Type:     schema.TypeString,
-				Optional: true,
+				Type:        schema.TypeString,
+				Optional:    true,
+				Description: "Required value when creating a server from a manually created server image. It can be obtained through the getMemberServerImageList action.",
 			},
 			"server_name": {
 				Type:         schema.TypeString,
 				Optional:     true,
 				ValidateFunc: validateServerName,
+				Description:  "Server name to create. default: Assigned by NCloud",
 			},
 			"server_description": {
-				Type:     schema.TypeString,
-				Optional: true,
+				Type:        schema.TypeString,
+				Optional:    true,
+				Description: "Server description to create",
 			},
 			"login_key_name": {
-				Type:     schema.TypeString,
-				Optional: true,
+				Type:        schema.TypeString,
+				Optional:    true,
+				Description: "The login key name to encrypt with the public key. Default : Uses the most recently created login key name",
 			},
 			"is_protect_server_termination": {
-				Type:     schema.TypeBool,
-				Optional: true,
-				Default:  false,
+				Type:        schema.TypeBool,
+				Optional:    true,
+				Default:     false,
+				Description: "You can set whether or not to protect return when creating. default : false",
 			},
 			"server_create_count": {
-				Type:     schema.TypeInt,
-				Optional: true,
-				Default:  1,
+				Type:        schema.TypeInt,
+				Optional:    true,
+				Default:     1,
+				Description: "Number of servers that can be created at a time, and not more than 20 servers can be created at a time. default: 1",
 			},
 			"server_create_start_no": {
-				Type:     schema.TypeInt,
-				Optional: true,
+				Type:        schema.TypeInt,
+				Optional:    true,
+				Description: "If you create multiple servers at once, the server name will be serialized. You can set the starting number of the serial numbers. The total number of servers created and server starting number cannot exceed 1000. Default : If number of servers created(serverCreateCount) is greater than 1, and if there is no corresponding parameter value, the default will start from 001",
 			},
 			"internet_line_type_code": {
 				Type:         schema.TypeString,
 				Optional:     true,
 				ValidateFunc: validateInternetLineTypeCode,
+				Description:  "Internet line identification code. PUBLC(Public), GLBL(Global). default : PUBLC(Public)",
 			},
 			"fee_system_type_code": {
-				Type:     schema.TypeString,
-				Optional: true,
+				Type:        schema.TypeString,
+				Optional:    true,
+				Description: "A rate system identification code. There are time plan(MTRAT) and flat rate (FXSUM). Default : Time plan(MTRAT)",
 			},
 			"zone_no": {
-				Type:     schema.TypeString,
-				Optional: true,
+				Type:        schema.TypeString,
+				Optional:    true,
+				Description: "You can determine the ZONE where the server will be created. It can be obtained through the getZoneList action. Default : Assigned by NAVER Cloud Platform.",
 			},
 			"access_control_group_configuration_no_list": {
-				Type:     schema.TypeList,
-				Optional: true,
-				Elem:     &schema.Schema{Type: schema.TypeString},
-				MinItems: 1,
+				Type:        schema.TypeList,
+				Optional:    true,
+				Elem:        &schema.Schema{Type: schema.TypeString},
+				MinItems:    1,
+				Description: "You can set the ACG created when creating the server. ACG setting number can be obtained through the getAccessControlGroupList action. Default : Default ACG number",
 			},
 			"user_data": {
-				Type:     schema.TypeString,
-				Optional: true,
+				Type:        schema.TypeString,
+				Optional:    true,
+				Description: "The server will execute the user data script set by the user at first boot. To view the column, it is returned only when viewing the server instance. You must need base64 Encoding, URL Encoding before put in value of userData. If you don't URL Encoding again it occurs signature invalid error.",
 			},
 
+			"server_instance_no": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
 			"cpu_count": {
 				Type:     schema.TypeInt,
 				Computed: true,
@@ -207,6 +225,7 @@ func resourceNcloudInstance() *schema.Resource {
 }
 
 func resourceNcloudInstanceCreate(d *schema.ResourceData, meta interface{}) error {
+	log.Println("[DEBUG] resourceNcloudInstanceCreate")
 	conn := meta.(*NcloudSdk).conn
 
 	reqParams := buildCreateServerInstanceReqParams(d)
@@ -220,13 +239,14 @@ func resourceNcloudInstanceCreate(d *schema.ResourceData, meta interface{}) erro
 	serverInstance := &resp.ServerInstanceList[0]
 	d.SetId(serverInstance.ServerInstanceNo)
 
-	if err := WaitForInstance(conn, serverInstance.ServerInstanceNo, "RUN", DefaultCreateTimeout); err != nil {
+	if err := waitForInstance(conn, serverInstance.ServerInstanceNo, "RUN", DefaultCreateTimeout); err != nil {
 		return err
 	}
 	return resourceNcloudInstanceRead(d, meta)
 }
 
 func resourceNcloudInstanceRead(d *schema.ResourceData, meta interface{}) error {
+	log.Println("[DEBUG] resourceNcloudInstanceRead")
 	conn := meta.(*NcloudSdk).conn
 
 	instance, err := getServerInstance(conn, d.Id())
@@ -287,11 +307,8 @@ func resourceNcloudInstanceRead(d *schema.ResourceData, meta interface{}) error 
 			"code_name": instance.InternetLineType.CodeName,
 		})
 
-		if d.Get("user_data").(string) != "" {
-			if err != nil {
-				log.Printf("[ERROR] DescribeUserData for instance got error: %#v", err)
-			}
-			d.Set("user_data", Base64Decode(d.Get("user_data").(string)))
+		if userData, ok := d.GetOk("user_data"); ok {
+			d.Set("user_data", Base64Decode(userData.(string)))
 		}
 	}
 
@@ -299,6 +316,7 @@ func resourceNcloudInstanceRead(d *schema.ResourceData, meta interface{}) error 
 }
 
 func resourceNcloudInstanceDelete(d *schema.ResourceData, meta interface{}) error {
+	log.Println("[DEBUG] resourceNcloudInstanceDelete")
 	conn := meta.(*NcloudSdk).conn
 	serverInstance, err := getServerInstance(conn, d.Id())
 	if err != nil {
@@ -309,15 +327,19 @@ func resourceNcloudInstanceDelete(d *schema.ResourceData, meta interface{}) erro
 		if err := stopServerInstance(conn, d.Id()); err != nil {
 			return err
 		}
-		if err := WaitForInstance(conn, serverInstance.ServerInstanceNo, "NSTOP", DefaultStopTimeout); err != nil {
+		if err := waitForInstance(conn, serverInstance.ServerInstanceNo, "NSTOP", DefaultStopTimeout); err != nil {
 			return err
 		}
 	}
+
+	err = deleteBlockStorageByServerInstanceNo(conn, d.Id())
+	log.Printf("[WARN] deleteBlockStorageByServerInstanceNo err: %s", err)
 
 	return terminateServerInstance(conn, d.Id())
 }
 
 func resourceNcloudInstanceUpdate(d *schema.ResourceData, meta interface{}) error {
+	log.Println("[DEBUG] resourceNcloudInstanceUpdate")
 	conn := meta.(*NcloudSdk).conn
 
 	if d.HasChange("serTestAccDataSourceServerImages_basicver_product_code") {
@@ -409,7 +431,7 @@ func terminateServerInstance(conn *sdk.Conn, serverInstanceNo string) error {
 	return nil
 }
 
-func WaitForInstance(conn *sdk.Conn, instanceId string, status string, timeout int) error {
+func waitForInstance(conn *sdk.Conn, instanceId string, status string, timeout int) error {
 	if timeout <= 0 {
 		timeout = DefaultWaitForInterval
 	}
@@ -418,7 +440,7 @@ func WaitForInstance(conn *sdk.Conn, instanceId string, status string, timeout i
 		if err != nil {
 			return err
 		}
-		if instance.ServerInstanceStatus.Code == status {
+		if instance == nil || instance.ServerInstanceStatus.Code == status {
 			//TODO
 			//Sleep one more time for timing issues
 			//time.Sleep(DefaultWaitForInterval * time.Second)
