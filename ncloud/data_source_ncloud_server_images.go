@@ -101,11 +101,12 @@ func dataSourceNcloudServerImagesRead(d *schema.ResourceData, meta interface{}) 
 	reqParams := new(sdk.RequestGetServerImageProductList)
 	// TODO: reqParams
 	resp, err := conn.GetServerImageProductList(reqParams)
-	logCommonResponse("GetServerImageProductList", err, reqParams, resp.CommonResponse)
-	// log.Printf("[DEBUG] GetServerImageProductList: %v", resp.Product)
 	if err != nil {
+		logErrorResponse("GetServerImageProductList", err, reqParams)
 		return err
 	}
+	logCommonResponse("GetServerImageProductList", reqParams, resp.CommonResponse)
+	// log.Printf("[DEBUG] GetServerImageProductList: %v", resp.Product)
 
 	allServerImages := resp.Product
 	var filteredServerImages []sdk.Product

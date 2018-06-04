@@ -6,47 +6,48 @@ import (
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/terraform"
+	"testing"
 )
 
-//func TestAccNcloudBlockStorage_basic(t *testing.T) {
-//	var storageInstance sdk.BlockStorageInstance
-//	prefix := getTestPrefix()
-//	testServerInstanceName := prefix + "-vm"
-//	testBlockStorageName := prefix + "-storage"
-//	testCheck := func() func(*terraform.State) error {
-//		return func(*terraform.State) error {
-//			if storageInstance.BlockStorageName != testBlockStorageName {
-//				return fmt.Errorf("not found: %s", testBlockStorageName)
-//			}
-//			return nil
-//		}
-//	}
-//
-//	resource.Test(t, resource.TestCase{
-//		PreCheck:      func() { testAccPreCheck(t) },
-//		IDRefreshName: "ncloud_block_storage.storage",
-//		Providers:     testAccProviders,
-//		CheckDestroy:  testAccCheckBlockStorageDestroy,
-//		Steps: []resource.TestStep{
-//			{
-//				Config: testAccBlockStorageConfig(testServerInstanceName, testBlockStorageName),
-//				Check: resource.ComposeTestCheckFunc(
-//					testAccCheckBlockStorageExists(
-//						"ncloud_block_storage.storage", &storageInstance),
-//					testCheck(),
-//					resource.TestCheckResourceAttr(
-//						"ncloud_block_storage.storage",
-//						"block_storage_name",
-//						testBlockStorageName),
-//					resource.TestCheckResourceAttr(
-//						"ncloud_block_storage.storage",
-//						"block_storage_instance_status.code",
-//						"ATTAC"),
-//				),
-//			},
-//		},
-//	})
-//}
+func TestAccNcloudBlockStorage_basic(t *testing.T) {
+	var storageInstance sdk.BlockStorageInstance
+	prefix := getTestPrefix()
+	testServerInstanceName := prefix + "-vm"
+	testBlockStorageName := prefix + "-storage"
+	testCheck := func() func(*terraform.State) error {
+		return func(*terraform.State) error {
+			if storageInstance.BlockStorageName != testBlockStorageName {
+				return fmt.Errorf("not found: %s", testBlockStorageName)
+			}
+			return nil
+		}
+	}
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:      func() { testAccPreCheck(t) },
+		IDRefreshName: "ncloud_block_storage.storage",
+		Providers:     testAccProviders,
+		CheckDestroy:  testAccCheckBlockStorageDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccBlockStorageConfig(testServerInstanceName, testBlockStorageName),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckBlockStorageExists(
+						"ncloud_block_storage.storage", &storageInstance),
+					testCheck(),
+					resource.TestCheckResourceAttr(
+						"ncloud_block_storage.storage",
+						"block_storage_name",
+						testBlockStorageName),
+					resource.TestCheckResourceAttr(
+						"ncloud_block_storage.storage",
+						"block_storage_instance_status.code",
+						"ATTAC"),
+				),
+			},
+		},
+	})
+}
 
 func testAccCheckBlockStorageExists(n string, i *sdk.BlockStorageInstance) resource.TestCheckFunc {
 	return testAccCheckBlockStorageExistsWithProvider(n, i, func() *schema.Provider { return testAccProvider })

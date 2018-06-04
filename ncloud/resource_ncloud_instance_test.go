@@ -11,75 +11,75 @@ import (
 	"testing"
 )
 
-//func TestAccNcloudInstance_basic(t *testing.T) {
-//	var serverInstance sdk.ServerInstance
-//	testServerName := getTestServerName()
-//
-//	testCheck := func() func(*terraform.State) error {
-//		return func(*terraform.State) error {
-//			if serverInstance.ServerName != testServerName {
-//				return fmt.Errorf("not found: %s", testServerName)
-//			}
-//			return nil
-//		}
-//	}
-//
-//	resource.Test(t, resource.TestCase{
-//		PreCheck:      func() { testAccPreCheck(t) },
-//		IDRefreshName: "ncloud_instance.instance",
-//		Providers:     testAccProviders,
-//		CheckDestroy:  testAccCheckInstanceDestroy,
-//		Steps: []resource.TestStep{
-//			{
-//				Config: testAccInstanceConfig(testServerName),
-//				Check: resource.ComposeTestCheckFunc(
-//					testAccCheckInstanceExists(
-//						"ncloud_instance.instance", &serverInstance),
-//					testCheck(),
-//					resource.TestCheckResourceAttr(
-//						"ncloud_instance.instance",
-//						"server_image_product_code",
-//						"SPSW0LINUX000032"),
-//					resource.TestCheckResourceAttr(
-//						"ncloud_instance.instance",
-//						"server_product_code",
-//						"SPSVRSTAND000004"),
-//				),
-//			},
-//		},
-//	})
-//}
-//
-//func TestAccNcloudInstance_changeServerInstanceSpec(t *testing.T) {
-//	var before sdk.ServerInstance
-//	var after sdk.ServerInstance
-//	testServerName := getTestServerName()
-//
-//	resource.Test(t, resource.TestCase{
-//		PreCheck:      func() { testAccPreCheck(t) },
-//		IDRefreshName: "ncloud_instance.instance",
-//		Providers:     testAccProviders,
-//		CheckDestroy:  testAccCheckInstanceDestroy,
-//		Steps: []resource.TestStep{
-//			{
-//				Config: testAccInstanceConfig(testServerName),
-//				Check: resource.ComposeTestCheckFunc(
-//					testAccCheckInstanceExists(
-//						"ncloud_instance.instance", &before),
-//				),
-//			},
-//			{
-//				Config: testAccInstanceChangeSpecConfig(testServerName),
-//				Check: resource.ComposeTestCheckFunc(
-//					testAccCheckInstanceExists(
-//						"ncloud_instance.instance", &after),
-//					testAccCheckInstanceNotRecreated(
-//						t, &before, &after),
-//				),
-//			},
-//		},
-//	})
-//}
+func TestAccNcloudInstance_basic(t *testing.T) {
+	var serverInstance sdk.ServerInstance
+	testServerName := getTestServerName()
+
+	testCheck := func() func(*terraform.State) error {
+		return func(*terraform.State) error {
+			if serverInstance.ServerName != testServerName {
+				return fmt.Errorf("not found: %s", testServerName)
+			}
+			return nil
+		}
+	}
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:      func() { testAccPreCheck(t) },
+		IDRefreshName: "ncloud_instance.instance",
+		Providers:     testAccProviders,
+		CheckDestroy:  testAccCheckInstanceDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccInstanceConfig(testServerName),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckInstanceExists(
+						"ncloud_instance.instance", &serverInstance),
+					testCheck(),
+					resource.TestCheckResourceAttr(
+						"ncloud_instance.instance",
+						"server_image_product_code",
+						"SPSW0LINUX000032"),
+					resource.TestCheckResourceAttr(
+						"ncloud_instance.instance",
+						"server_product_code",
+						"SPSVRSTAND000004"),
+				),
+			},
+		},
+	})
+}
+
+func TestAccNcloudInstance_changeServerInstanceSpec(t *testing.T) {
+	var before sdk.ServerInstance
+	var after sdk.ServerInstance
+	testServerName := getTestServerName()
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:      func() { testAccPreCheck(t) },
+		IDRefreshName: "ncloud_instance.instance",
+		Providers:     testAccProviders,
+		CheckDestroy:  testAccCheckInstanceDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccInstanceConfig(testServerName),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckInstanceExists(
+						"ncloud_instance.instance", &before),
+				),
+			},
+			{
+				Config: testAccInstanceChangeSpecConfig(testServerName),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckInstanceExists(
+						"ncloud_instance.instance", &after),
+					testAccCheckInstanceNotRecreated(
+						t, &before, &after),
+				),
+			},
+		},
+	})
+}
 
 func testAccCheckInstanceExists(n string, i *sdk.ServerInstance) resource.TestCheckFunc {
 	return testAccCheckInstanceExistsWithProvider(n, i, func() *schema.Provider { return testAccProvider })
