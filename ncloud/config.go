@@ -1,6 +1,8 @@
 package ncloud
 
-import "github.com/NaverCloudPlatform/ncloud-sdk-go/sdk"
+import (
+	"github.com/NaverCloudPlatform/ncloud-sdk-go/sdk"
+)
 
 // Interval for checking status in WaitForXXX method
 const DefaultWaitForInterval = 10
