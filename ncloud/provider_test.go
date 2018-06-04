@@ -1,6 +1,8 @@
 package ncloud
 
 import (
+	"fmt"
+	"github.com/hashicorp/terraform/helper/acctest"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/terraform"
 	"log"
@@ -66,4 +68,9 @@ func multiEnvSearch(ks []string) string {
 		}
 	}
 	return ""
+}
+
+func getTestPrefix() string {
+	rInt := acctest.RandIntRange(1, 9999)
+	return fmt.Sprintf("tf-%d", rInt)
 }

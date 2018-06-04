@@ -33,12 +33,13 @@ func Provider() terraform.ResourceProvider {
 			"ncloud_regions":       dataSourceNcloudRegions(),
 			"ncloud_server_images": dataSourceNcloudServerImages(),
 			"ncloud_zone":          dataSourceNcloudZones(),
+			"ncloud_root_password": dataSourceNcloudRootPassword(),
 			//"ncloud_instances":     dataSourceNcloudInstances(),
-
 		},
 		ResourcesMap: map[string]*schema.Resource{
 			"ncloud_instance":      resourceNcloudInstance(),
 			"ncloud_block_storage": resourceNcloudBlockStorage(),
+			"ncloud_login_key":     resourceNcloudLoginKey(),
 		},
 		ConfigureFunc: providerConfigure,
 	}

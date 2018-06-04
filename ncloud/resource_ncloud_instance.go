@@ -230,11 +230,11 @@ func resourceNcloudInstanceCreate(d *schema.ResourceData, meta interface{}) erro
 
 	reqParams := buildCreateServerInstanceReqParams(d)
 	resp, err := conn.CreateServerInstances(reqParams)
-	logCommonResponse("CreateServerInstances", err, reqParams, resp.CommonResponse)
-
 	if err != nil {
+		logErrorResponse("CreateServerInstances", err, reqParams)
 		return err
 	}
+	logCommonResponse("CreateServerInstances", reqParams, resp.CommonResponse)
 
 	serverInstance := &resp.ServerInstanceList[0]
 	d.SetId(serverInstance.ServerInstanceNo)
@@ -349,11 +349,11 @@ func resourceNcloudInstanceUpdate(d *schema.ResourceData, meta interface{}) erro
 		}
 
 		resp, err := conn.ChangeServerInstanceSpec(reqParams)
-		logCommonResponse("ChangeServerInstanceSpec", err, reqParams, resp.CommonResponse)
-
 		if err != nil {
+			logErrorResponse("ChangeServerInstanceSpec", err, reqParams)
 			return err
 		}
+		logCommonResponse("ChangeServerInstanceSpec", reqParams, resp.CommonResponse)
 	}
 
 	return resourceNcloudInstanceRead(d, meta)
@@ -386,14 +386,16 @@ func buildCreateServerInstanceReqParams(d *schema.ResourceData) *sdk.RequestCrea
 }
 
 func getServerInstance(conn *sdk.Conn, serverInstanceNo string) (*sdk.ServerInstance, error) {
+	fmt.Printf("[DEBUG] getServerInstance")
 	reqParams := new(sdk.RequestGetServerInstanceList)
 	reqParams.ServerInstanceNoList = []string{serverInstanceNo}
 	resp, err := conn.GetServerInstanceList(reqParams)
 
 	if err != nil {
+		logErrorResponse("GetServerInstanceList", err, reqParams)
 		return nil, err
 	}
-	logCommonResponse("GetServerInstanceList", err, reqParams, resp.CommonResponse)
+	logCommonResponse("GetServerInstanceList", reqParams, resp.CommonResponse)
 	if len(resp.ServerInstanceList) > 0 {
 		inst := &resp.ServerInstanceList[0]
 		log.Printf("[DEBUG] %s ServerName: %s, Status: %s", "GetServerInstanceList", inst.ServerName, inst.ServerInstanceStatusName)
@@ -407,11 +409,11 @@ func stopServerInstance(conn *sdk.Conn, serverInstanceNo string) error {
 		ServerInstanceNoList: []string{serverInstanceNo},
 	}
 	resp, err := conn.StopServerInstances(reqParams)
-	logCommonResponse("StopServerInstances", err, reqParams, resp.CommonResponse)
-
 	if err != nil {
+		logErrorResponse("StopServerInstances", err, reqParams)
 		return err
 	}
+	logCommonResponse("StopServerInstances", reqParams, resp.CommonResponse)
 
 	return nil
 }
@@ -421,13 +423,13 @@ func terminateServerInstance(conn *sdk.Conn, serverInstanceNo string) error {
 		ServerInstanceNoList: []string{serverInstanceNo},
 	}
 	resp, err := conn.TerminateServerInstances(reqParams)
-	logCommonResponse("TerminateServerInstances", err, reqParams, resp.CommonResponse)
-
 	if err != nil {
+		logErrorResponse("TerminateServerInstances", err, reqParams)
 		// TODO: check 502 Bad Gateway error
 		// return err
 		return nil
 	}
+	logCommonResponse("TerminateServerInstances", reqParams, resp.CommonResponse)
 	return nil
 }
 
