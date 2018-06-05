@@ -335,7 +335,8 @@ func resourceNcloudInstanceDelete(d *schema.ResourceData, meta interface{}) erro
 
 	err = deleteBlockStorageByServerInstanceNo(conn, d.Id())
 	if err != nil {
-		log.Printf("[WARN] deleteBlockStorageByServerInstanceNo err: %s", err)
+		log.Printf("[ERROR] deleteBlockStorageByServerInstanceNo err: %s", err)
+		return err
 	}
 
 	return terminateServerInstance(conn, d.Id())

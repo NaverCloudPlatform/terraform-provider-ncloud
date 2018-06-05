@@ -21,7 +21,7 @@ var commonCodeSchemaResource = &schema.Resource{
 
 func logErrorResponse(tag string, err error, args interface{}) {
 	param, _ := json.Marshal(args)
-	log.Printf("[DEBUG] %s error params=%s, err=%s", tag, param, err)
+	log.Printf("[ERROR] %s error params=%s, err=%s", tag, param, err)
 }
 
 func logCommonResponse(tag string, args interface{}, commonResponse common.CommonResponse) {
