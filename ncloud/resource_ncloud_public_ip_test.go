@@ -12,7 +12,7 @@ import (
 
 func TestAccNcloudPublicIPInstance_basic(t *testing.T) {
 	var publicIPInstance sdk.PublicIPInstance
-	testServerInstanceName := getTestName()
+	testServerInstanceName := getTestServerName()
 
 	testCheck := func() func(*terraform.State) error {
 		return func(*terraform.State) error {
