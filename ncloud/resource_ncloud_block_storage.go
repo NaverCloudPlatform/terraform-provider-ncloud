@@ -116,10 +116,11 @@ func resourceNcloudBlockStorageCreate(d *schema.ResourceData, meta interface{}) 
 
 	reqParams := buildRequestBlockStorageInstance(d)
 	resp, err := conn.CreateBlockStorageInstance(reqParams)
-	logCommonResponse("CreateBlockStorageInstance", err, reqParams, resp.CommonResponse)
 	if err != nil {
+		logErrorResponse("CreateBlockStorageInstance", err, reqParams)
 		return err
 	}
+	logCommonResponse("CreateBlockStorageInstance", reqParams, resp.CommonResponse)
 
 	blockStorageInstance := &resp.BlockStorageInstance[0]
 	d.SetId(blockStorageInstance.BlockStorageInstanceNo)
@@ -203,9 +204,10 @@ func getBlockStorageInstanceList(conn *sdk.Conn, serverInstanceNo string) ([]sdk
 	}
 	resp, err := conn.GetBlockStorageInstance(reqParams)
 	if err != nil {
+		logErrorResponse("GetBlockStorageInstanceList", err, reqParams)
 		return nil, err
 	}
-	logCommonResponse("GetBlockStorageInstanceList", err, reqParams, resp.CommonResponse)
+	logCommonResponse("GetBlockStorageInstanceList", reqParams, resp.CommonResponse)
 	return resp.BlockStorageInstance, nil
 }
 
@@ -215,9 +217,11 @@ func getBlockStorageInstance(conn *sdk.Conn, blockStorageInstanceNo string) (*sd
 	}
 	resp, err := conn.GetBlockStorageInstance(reqParams)
 	if err != nil {
+		logErrorResponse("GetBlockStorageInstance", err, reqParams)
 		return nil, err
 	}
-	logCommonResponse("GetBlockStorageInstance", err, reqParams, resp.CommonResponse)
+	logCommonResponse("GetBlockStorageInstance", reqParams, resp.CommonResponse)
+
 	log.Printf("[DEBUG] GetBlockStorageInstance TotalRows: %d, BlockStorageInstance: %#v", resp.TotalRows, resp.BlockStorageInstance)
 	if len(resp.BlockStorageInstance) > 0 {
 		inst := &resp.BlockStorageInstance[0]
@@ -230,7 +234,11 @@ func getBlockStorageInstance(conn *sdk.Conn, blockStorageInstanceNo string) (*sd
 func deleteBlockStorage(conn *sdk.Conn, blockStorageIds []string) error {
 	for _, blockStorageId := range blockStorageIds {
 		resp, err := conn.DeleteBlockStorageInstances([]string{blockStorageId})
-		logCommonResponse("DeleteBlockStorageInstances", err, blockStorageIds, getCommonResponse(resp))
+		if err != nil {
+			logErrorResponse("DeleteBlockStorageInstances", err, []string{blockStorageId})
+			return err
+		}
+		logCommonResponse("DeleteBlockStorageInstances", blockStorageIds, getCommonResponse(resp))
 
 		if err := waitForBlockStorageInstance(conn, blockStorageId, "CREAT", DefaultTimeout); err != nil {
 			return err

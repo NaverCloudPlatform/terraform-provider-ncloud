@@ -3,7 +3,6 @@ package ncloud
 import (
 	"fmt"
 	"github.com/NaverCloudPlatform/ncloud-sdk-go/sdk"
-	"github.com/hashicorp/terraform/helper/acctest"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/terraform"
@@ -12,9 +11,9 @@ import (
 
 func TestAccNcloudBlockStorage_basic(t *testing.T) {
 	var storageInstance sdk.BlockStorageInstance
-	testName := getTestName()
-	testServerInstanceName := testName + "-vm"
-	testBlockStorageName := testName + "-storage"
+	prefix := getTestPrefix()
+	testServerInstanceName := prefix + "-vm"
+	testBlockStorageName := prefix + "-storage"
 	testCheck := func() func(*terraform.State) error {
 		return func(*terraform.State) error {
 			if storageInstance.BlockStorageName != testBlockStorageName {
@@ -48,11 +47,6 @@ func TestAccNcloudBlockStorage_basic(t *testing.T) {
 			},
 		},
 	})
-}
-
-func getTestName() string {
-	rInt := acctest.RandIntRange(1, 9999)
-	return fmt.Sprintf("tf-test-%d", rInt)
 }
 
 func testAccCheckBlockStorageExists(n string, i *sdk.BlockStorageInstance) resource.TestCheckFunc {

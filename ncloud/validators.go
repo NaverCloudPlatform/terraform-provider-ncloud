@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"regexp"
 	"strings"
+
+	"github.com/hashicorp/terraform/helper/schema"
 )
 
 func validateInternetLineTypeCode(v interface{}, k string) (ws []string, errors []error) {
@@ -18,6 +20,7 @@ var serverNamePattern = regexp.MustCompile(`[(A-Z|a-z|0-9|\\-|\\*)]+`)
 
 func validateServerName(v interface{}, k string) (ws []string, errors []error) {
 	value := v.(string)
+	validateStringLengthInRange(3, 30)
 	if len(value) < 3 || len(value) > 30 {
 		errors = append(errors, fmt.Errorf("must be a valid %q characters between 1 and 30", k))
 	}
@@ -29,11 +32,27 @@ func validateServerName(v interface{}, k string) (ws []string, errors []error) {
 	return
 }
 
-func validatePublicIPDescription(v interface{}, k string) (ws []string, errors []error) {
-	value := v.(string)
-	if len(value) < 1 || len(value) > 1000 {
-		errors = append(errors, fmt.Errorf("must be a valid %q characters between 1 and 10000", k))
+func validateStringLengthInRange(min, max int) schema.SchemaValidateFunc {
+	return func(v interface{}, k string) (ws []string, errors []error) {
+		value := v.(string)
+		if len(value) < min || len(value) > max {
+			errors = append(errors, fmt.Errorf("must be a valid %q characters between %d and %d", k, min, max))
+		}
+		return
 	}
+}
 
-	return
+func validateIntegerInRange(min, max int) schema.SchemaValidateFunc {
+	return func(v interface{}, k string) (ws []string, errors []error) {
+		value := v.(int)
+		if value < min {
+			errors = append(errors, fmt.Errorf(
+				"%q cannot be lower than %d: %d", k, min, value))
+		}
+		if value > max {
+			errors = append(errors, fmt.Errorf(
+				"%q cannot be higher than %d: %d", k, max, value))
+		}
+		return
+	}
 }

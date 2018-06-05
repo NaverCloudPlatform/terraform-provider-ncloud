@@ -19,13 +19,13 @@ var commonCodeSchemaResource = &schema.Resource{
 	},
 }
 
-func logCommonResponse(tag string, err error, args interface{}, commonResponse common.CommonResponse) {
+func logErrorResponse(tag string, err error, args interface{}) {
 	param, _ := json.Marshal(args)
+	log.Printf("[ERROR] %s error params=%s, err=%s", tag, param, err)
+}
 
-	if err != nil {
-		log.Printf("[DEBUG] %s error params=%s, err=%s", tag, param, err)
-	} else {
-		result := fmt.Sprintf("RequestID: %s, ReturnCode: %d, ReturnMessage: %s", commonResponse.RequestID, commonResponse.ReturnCode, commonResponse.ReturnMessage)
-		log.Printf("[DEBUG] %s success params=%s, response=%s", tag, param, result)
-	}
+func logCommonResponse(tag string, args interface{}, commonResponse common.CommonResponse) {
+	param, _ := json.Marshal(args)
+	result := fmt.Sprintf("RequestID: %s, ReturnCode: %d, ReturnMessage: %s", commonResponse.RequestID, commonResponse.ReturnCode, commonResponse.ReturnMessage)
+	log.Printf("[DEBUG] %s success params=%s, response=%s", tag, param, result)
 }

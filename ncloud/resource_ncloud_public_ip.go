@@ -27,7 +27,7 @@ func resourceNcloudPublicIPInstance() *schema.Resource {
 			"public_ip_description": {
 				Type:         schema.TypeString,
 				Optional:     true,
-				ValidateFunc: validatePublicIPDescription,
+				ValidateFunc: validateStringLengthInRange(1, 10000),
 			},
 			"internet_line_type_code": {
 				Type:         schema.TypeString,
@@ -89,9 +89,10 @@ func resourceNcloudPublicIPCreate(d *schema.ResourceData, meta interface{}) erro
 
 	reqParams := buildCreatePublicIPInstanceReqParams(d)
 	resp, err := conn.CreatePublicIPInstance(reqParams)
-	logCommonResponse("Create Public IP Instance", err, reqParams, resp.CommonResponse)
+	logCommonResponse("Create Public IP Instance", reqParams, resp.CommonResponse)
 
 	if err != nil {
+		logErrorResponse("Create Public IP Instance", err, reqParams)
 		return err
 	}
 
@@ -110,6 +111,7 @@ func resourceNcloudPublicIPRead(d *schema.ResourceData, meta interface{}) error 
 
 	instance, err := getPublicIPInstance(conn, d.Id())
 	if err != nil {
+		logErrorResponse("Create Public IP Instance", err, d.Id())
 		return err
 	}
 
@@ -156,7 +158,7 @@ func resourceNcloudPublicIPDelete(d *schema.ResourceData, meta interface{}) erro
 		PublicIPInstanceNoList: []string{d.Id()},
 	}
 	resp, err := conn.DeletePublicIPInstances(reqParams)
-	logCommonResponse("Delete Public IP Instance", err, reqParams, resp.CommonResponse)
+	logCommonResponse("Delete Public IP Instance", reqParams, resp.CommonResponse)
 
 	waitDeletePublicIPInstance(conn, d.Id())
 
@@ -184,9 +186,10 @@ func getPublicIPInstance(conn *sdk.Conn, publicIPInstanceNo string) (*sdk.Public
 	resp, err := conn.GetPublicIPInstanceList(reqParams)
 
 	if err != nil {
+		logErrorResponse("Get Public IP Instance", err, reqParams)
 		return nil, err
 	}
-	logCommonResponse("GetPublicIPInstanceList", err, reqParams, resp.CommonResponse)
+	logCommonResponse("Get Public IP Instance", reqParams, resp.CommonResponse)
 	if len(resp.PublicIPInstanceList) > 0 {
 		inst := &resp.PublicIPInstanceList[0]
 		return inst, nil
@@ -201,10 +204,11 @@ func checkAssociatedPublicIP(conn *sdk.Conn, publicIPInstanceNo string) (bool, e
 	resp, err := conn.GetPublicIPInstanceList(reqParams)
 
 	if err != nil {
+		logErrorResponse("Check Associated Public IP Instance", err, reqParams)
 		return false, err
 	}
 
-	logCommonResponse("checkAssociatedPublicIP", err, reqParams, resp.CommonResponse)
+	logCommonResponse("Check Associated Public IP Instance", reqParams, resp.CommonResponse)
 
 	if resp.TotalRows == 0 {
 		return false, nil
@@ -217,10 +221,11 @@ func disassocatedPublicIP(conn *sdk.Conn, publicIPInstanceNo string) error {
 	resp, err := conn.DisassociatePublicIP(publicIPInstanceNo)
 
 	if err != nil {
+		logErrorResponse("Dissociated Public IP Instance", err, publicIPInstanceNo)
 		return err
 	}
 
-	logCommonResponse("disassocatedPublicIP", err, publicIPInstanceNo, resp.CommonResponse)
+	logCommonResponse("Dissociated Public IP Instance", publicIPInstanceNo, resp.CommonResponse)
 
 	return waitDissociatePublicIP(conn, publicIPInstanceNo)
 }
