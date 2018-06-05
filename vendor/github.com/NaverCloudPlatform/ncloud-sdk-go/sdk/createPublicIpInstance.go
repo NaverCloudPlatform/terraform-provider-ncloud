@@ -34,6 +34,10 @@ func processCreatePublicIPInstanceParams(reqParams *RequestCreatePublicIPInstanc
 		params["regionNo"] = reqParams.RegionNo
 	}
 
+	if reqParams.ZoneNo != "" {
+		params["zoneNo"] = reqParams.ZoneNo
+	}
+
 	return params, nil
 }
 

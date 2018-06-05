@@ -28,3 +28,12 @@ func validateServerName(v interface{}, k string) (ws []string, errors []error) {
 	}
 	return
 }
+
+func validatePublicIPDescription(v interface{}, k string) (ws []string, errors []error) {
+	value := v.(string)
+	if len(value) < 1 || len(value) > 1000 {
+		errors = append(errors, fmt.Errorf("must be a valid %q characters between 1 and 10000", k))
+	}
+
+	return
+}

@@ -178,6 +178,7 @@ type RequestCreatePublicIPInstance struct {
 	PublicIPDescription  string
 	InternetLineTypeCode string
 	RegionNo             string
+	ZoneNo               string
 }
 
 type RequestAssociatePublicIP struct {
@@ -193,6 +194,7 @@ type RequestPublicIPInstanceList struct {
 	SearchFilterValue      string
 	InternetLineTypeCode   string
 	RegionNo               string
+	ZoneNo                 string
 	PageNo                 int
 	PageSize               int
 	SortedBy               string
@@ -216,6 +218,7 @@ type PublicIPInstance struct {
 	PublicIPInstanceOperation  common.CommonCode `xml:"publicIpInstanceOperation"`
 	PublicIPKindType           common.CommonCode `xml:"publicIpKindType"`
 	ServerInstance             ServerInstance    `xml:"serverInstanceAssociatedWithPublicIp"`
+	Zone                       common.Zone       `xml:"zone"`
 }
 
 type RequestDeletePublicIPInstances struct {
@@ -232,6 +235,7 @@ type RequestGetServerInstanceList struct {
 	ServerInstanceStatusCode           string
 	InternetLineTypeCode               string
 	RegionNo                           string
+	ZoneNo                             string
 	BaseBlockStorageDiskTypeCode       string
 	BaseBlockStorageDiskDetailTypeCode string
 	SortedBy                           string
@@ -311,6 +315,7 @@ type RequestBlockStorageInstanceList struct {
 	DiskTypeCode                   string
 	DiskDetailTypeCode             string
 	RegionNo                       string
+	ZoneNo                         string
 	SortedBy                       string
 	SortingOrder                   string
 }
@@ -337,6 +342,7 @@ type BlockStorageInstance struct {
 	BlockStorageInstanceDescription string            `xml:"blockStorageInstanceDescription"`
 	DiskType                        common.CommonCode `xml:"diskType"`
 	DiskDetailType                  common.CommonCode `xml:"diskDetailType"`
+	Zone                            common.Zone       `xml:"zone"`
 }
 
 // RequestGetServerProductList : Request to get server product list

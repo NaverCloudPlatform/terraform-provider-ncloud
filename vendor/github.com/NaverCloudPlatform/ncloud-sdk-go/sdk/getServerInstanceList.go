@@ -65,6 +65,10 @@ func processGetServerInstanceListParams(reqParams *RequestGetServerInstanceList)
 		params["regionNo"] = reqParams.RegionNo
 	}
 
+	if reqParams.ZoneNo != "" {
+		params["zoneNo"] = reqParams.ZoneNo
+	}
+
 	if reqParams.BaseBlockStorageDiskTypeCode != "" {
 		if reqParams.BaseBlockStorageDiskTypeCode != "NET" && reqParams.BaseBlockStorageDiskTypeCode != "LOCAL" {
 			return nil, errors.New("BaseBlockStorageDiskTypeCode should be NET or LOCAL")

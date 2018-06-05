@@ -59,6 +59,10 @@ func processGetPublicIPInstanceListParams(reqParams *RequestPublicIPInstanceList
 		params["regionNo"] = reqParams.RegionNo
 	}
 
+	if reqParams.ZoneNo != "" {
+		params["zoneNo"] = reqParams.ZoneNo
+	}
+
 	if reqParams.PageNo != 0 {
 		if reqParams.PageNo > 2147483647 {
 			return nil, errors.New("PageNo must be up to 2147483647")

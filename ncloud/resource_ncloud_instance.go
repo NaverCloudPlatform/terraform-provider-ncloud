@@ -2,10 +2,11 @@ package ncloud
 
 import (
 	"fmt"
-	"github.com/NaverCloudPlatform/ncloud-sdk-go/sdk"
-	"github.com/hashicorp/terraform/helper/schema"
 	"log"
 	"time"
+
+	"github.com/NaverCloudPlatform/ncloud-sdk-go/sdk"
+	"github.com/hashicorp/terraform/helper/schema"
 )
 
 func resourceNcloudInstance() *schema.Resource {

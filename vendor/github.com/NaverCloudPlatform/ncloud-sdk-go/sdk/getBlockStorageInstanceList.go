@@ -89,6 +89,10 @@ func processGetBlockStorageInstanceListParams(reqParams *RequestBlockStorageInst
 		params["regionNo"] = reqParams.RegionNo
 	}
 
+	if reqParams.ZoneNo != "" {
+		params["zoneNo"] = reqParams.ZoneNo
+	}
+
 	if reqParams.SortedBy != "" {
 		if strings.EqualFold(reqParams.SortedBy, "blockStorageName") || strings.EqualFold(reqParams.SortedBy, "blockStorageInstanceNo") {
 			params["sortedBy"] = reqParams.SortedBy
