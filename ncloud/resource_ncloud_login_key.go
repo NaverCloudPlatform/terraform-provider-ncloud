@@ -1,10 +1,12 @@
 package ncloud
 
 import (
+	"fmt"
 	"github.com/NaverCloudPlatform/ncloud-sdk-go/sdk"
 	"github.com/hashicorp/terraform/helper/schema"
 	"log"
 	"strings"
+	"time"
 )
 
 func resourceNcloudLoginKey() *schema.Resource {
@@ -97,14 +99,27 @@ func resourceNcloudLoginKeyDelete(d *schema.ResourceData, meta interface{}) erro
 	conn := meta.(*NcloudSdk).conn
 
 	keyName := d.Get("key_name").(string)
+	return waitForDeleteLoginKey(conn, keyName, DefaultStopTimeout)
+}
 
-	resp, err := conn.DeleteLoginKey(keyName)
-	if err != nil {
-		logErrorResponse("DeleteLoginKey", err, keyName)
-		return err
+func waitForDeleteLoginKey(conn *sdk.Conn, keyName string, timeout int) error {
+	if timeout <= 0 {
+		timeout = DefaultWaitForInterval
 	}
-	logCommonResponse("DeleteLoginKey", keyName, *resp)
+	for {
+		resp, err := conn.DeleteLoginKey(keyName)
+		if err == nil || resp.ReturnCode == 200 {
+			break
+		}
+		// resp.ReturnCode == 10407
+		logCommonResponse("DeleteLoginKey", keyName, *resp)
 
+		timeout = timeout - DefaultWaitForInterval
+		if timeout <= 0 {
+			return fmt.Errorf("error: Timeout: %d", timeout)
+		}
+		time.Sleep(DefaultWaitForInterval * time.Second)
+	}
 	return nil
 }
 

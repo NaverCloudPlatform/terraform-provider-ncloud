@@ -255,6 +255,7 @@ func resourceNcloudInstanceRead(d *schema.ResourceData, meta interface{}) error 
 	}
 
 	if instance != nil {
+		d.Set("server_instance_no", instance.ServerInstanceNo)
 		d.Set("server_name", instance.ServerName)
 		d.Set("server_image_product_code", instance.ServerImageProductCode)
 		d.Set("server_instance_status", map[string]interface{}{
@@ -333,7 +334,9 @@ func resourceNcloudInstanceDelete(d *schema.ResourceData, meta interface{}) erro
 	}
 
 	err = deleteBlockStorageByServerInstanceNo(conn, d.Id())
-	log.Printf("[WARN] deleteBlockStorageByServerInstanceNo err: %s", err)
+	if err != nil {
+		log.Printf("[WARN] deleteBlockStorageByServerInstanceNo err: %s", err)
+	}
 
 	return terminateServerInstance(conn, d.Id())
 }
