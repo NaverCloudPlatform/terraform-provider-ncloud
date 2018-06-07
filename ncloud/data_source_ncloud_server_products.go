@@ -8,9 +8,9 @@ import (
 	"regexp"
 )
 
-func dataSourceNcloudServerImages() *schema.Resource {
+func dataSourceNcloudServerProducts() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceNcloudServerImagesRead,
+		Read: dataSourceNcloudServerProductsRead,
 
 		Schema: map[string]*schema.Schema{
 			"product_name_regex": {
@@ -20,30 +20,37 @@ func dataSourceNcloudServerImages() *schema.Resource {
 				ValidateFunc: validateRegexp,
 			},
 			"exclusion_product_code": {
-				Type:     schema.TypeString,
-				Optional: true,
-				Computed: true,
+				Type:        schema.TypeString,
+				Optional:    true,
+				Computed:    true,
+				Description: "Product code to exclude",
 			},
 			"product_code": {
-				Type:     schema.TypeString,
-				Optional: true,
-				Computed: true,
+				Type:        schema.TypeString,
+				Optional:    true,
+				Computed:    true,
+				Description: "Product code to search",
 			},
-			"platform_type_code_list": {
-				Type:     schema.TypeList,
-				Optional: true,
-				Computed: true,
-				Elem:     &schema.Schema{Type: schema.TypeString},
-			},
-			"block_storage_size": {
-				Type:     schema.TypeInt,
-				Optional: true,
+			"server_image_product_code": {
+				Type:        schema.TypeString,
+				Required:    true,
+				Description: "Server image product code",
 			},
 			"region_no": {
 				Type:     schema.TypeString,
 				Optional: true,
 			},
-			"server_images": {
+			"zone_no": {
+				Type:     schema.TypeString,
+				Optional: true,
+			},
+			"internet_line_type_code": {
+				Type:         schema.TypeString,
+				Optional:     true,
+				ValidateFunc: validateInternetLineTypeCode,
+				Description:  "Internet line identification code. PUBLC(Public), GLBL(Global). default : PUBLC(Public)",
+			},
+			"server_products": {
 				Type:     schema.TypeList,
 				Optional: true,
 				Elem: &schema.Resource{
@@ -102,47 +109,49 @@ func dataSourceNcloudServerImages() *schema.Resource {
 	}
 }
 
-func dataSourceNcloudServerImagesRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceNcloudServerProductsRead(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*NcloudSdk).conn
 
-	reqParams := &sdk.RequestGetServerImageProductList{
-		ExclusionProductCode: d.Get("exclusion_product_code").(string),
-		ProductCode:          d.Get("product_code").(string),
-		PlatformTypeCodeList: StringList(d.Get("platform_type_code_list").([]interface{})),
-		RegionNo:             d.Get("region_no").(string),
+	reqParams := &sdk.RequestGetServerProductList{
+		ExclusionProductCode:   d.Get("exclusion_product_code").(string),
+		ProductCode:            d.Get("product_code").(string),
+		ServerImageProductCode: d.Get("server_image_product_code").(string),
+		RegionNo:               d.Get("region_no").(string),
+		//ZoneNo:                 d.Get("zone_no").(string),
+		//InternetLineTypeCode:   d.Get("internet_line_type_code").(string),
 	}
 
-	resp, err := conn.GetServerImageProductList(reqParams)
+	resp, err := conn.GetServerProductList(reqParams)
 	if err != nil {
-		logErrorResponse("GetServerImageProductList", err, reqParams)
+		logErrorResponse("GetServerProductList", err, reqParams)
 		return err
 	}
-	logCommonResponse("GetServerImageProductList", reqParams, resp.CommonResponse)
+	logCommonResponse("GetServerProductList", reqParams, resp.CommonResponse)
 
-	allServerImages := resp.Product
-	var filteredServerImages []sdk.Product
+	allServerProducts := resp.Product
+	var filteredServerProducts []sdk.Product
 	nameRegex, nameRegexOk := d.GetOk("product_name_regex")
 	if nameRegexOk {
 		r := regexp.MustCompile(nameRegex.(string))
-		for _, serverImage := range allServerImages {
-			if r.MatchString(serverImage.ProductName) {
-				filteredServerImages = append(filteredServerImages, serverImage)
+		for _, serverProduct := range allServerProducts {
+			if r.MatchString(serverProduct.ProductName) {
+				filteredServerProducts = append(filteredServerProducts, serverProduct)
 			}
 		}
 	} else {
-		filteredServerImages = allServerImages[:]
+		filteredServerProducts = allServerProducts[:]
 	}
 
-	if len(filteredServerImages) < 1 {
+	if len(filteredServerProducts) < 1 {
 		return fmt.Errorf("no results. please change search criteria and try again")
 	}
 
-	log.Printf("[DEBUG] ncloud_server_images - Server Images found: %#v", allServerImages)
+	log.Printf("[DEBUG] ncloud_server_products - Server Products found: %#v", allServerProducts)
 
-	return serverImagesAttributes(d, filteredServerImages)
+	return serverProductsAttributes(d, filteredServerProducts)
 }
 
-func serverImagesAttributes(d *schema.ResourceData, serverImages []sdk.Product) error {
+func serverProductsAttributes(d *schema.ResourceData, serverImages []sdk.Product) error {
 	var ids []string
 	var s []map[string]interface{}
 	for _, product := range serverImages {
@@ -174,7 +183,7 @@ func serverImagesAttributes(d *schema.ResourceData, serverImages []sdk.Product) 
 	}
 
 	d.SetId(dataResourceIdHash(ids))
-	if err := d.Set("server_images", s); err != nil {
+	if err := d.Set("server_products", s); err != nil {
 		return err
 	}
 

@@ -9,9 +9,9 @@ func String(n int) string {
 	return strconv.Itoa(n)
 }
 
-func StringList(configured []interface{}) []string {
-	vs := make([]string, 0, len(configured))
-	for _, v := range configured {
+func StringList(input []interface{}) []string {
+	vs := make([]string, 0, len(input))
+	for _, v := range input {
 		vs = append(vs, v.(string))
 	}
 	return vs

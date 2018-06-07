@@ -56,3 +56,10 @@ func validateIntegerInRange(min, max int) schema.SchemaValidateFunc {
 		return
 	}
 }
+
+func validateRegexp(v interface{}, k string) (ws []string, errors []error) {
+	if _, err := regexp.Compile(v.(string)); err != nil {
+		errors = append(errors, fmt.Errorf("%q: %s", k, err))
+	}
+	return
+}
