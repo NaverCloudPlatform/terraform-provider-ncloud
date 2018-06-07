@@ -147,8 +147,8 @@ func resourceNcloudPublicIPDelete(d *schema.ResourceData, meta interface{}) erro
 
 	// Check associated public ip
 	if associated, err := checkAssociatedPublicIP(conn, d.Id()); associated {
-		// if associated public ip, disassocated the public ip
-		disassocatedPublicIP(conn, d.Id())
+		// if associated public ip, disassociated the public ip
+		disassociatedPublicIP(conn, d.Id())
 	} else if err != nil {
 		return err
 	}
@@ -217,7 +217,7 @@ func checkAssociatedPublicIP(conn *sdk.Conn, publicIPInstanceNo string) (bool, e
 	return true, nil
 }
 
-func disassocatedPublicIP(conn *sdk.Conn, publicIPInstanceNo string) error {
+func disassociatedPublicIP(conn *sdk.Conn, publicIPInstanceNo string) error {
 	resp, err := conn.DisassociatePublicIP(publicIPInstanceNo)
 
 	if err != nil {
@@ -227,10 +227,10 @@ func disassocatedPublicIP(conn *sdk.Conn, publicIPInstanceNo string) error {
 
 	logCommonResponse("Dissociated Public IP Instance", publicIPInstanceNo, resp.CommonResponse)
 
-	return waitDissociatePublicIP(conn, publicIPInstanceNo)
+	return waitDiassociatePublicIP(conn, publicIPInstanceNo)
 }
 
-func waitDissociatePublicIP(conn *sdk.Conn, publicIPInstanceNo string) error {
+func waitDiassociatePublicIP(conn *sdk.Conn, publicIPInstanceNo string) error {
 	reqParams := new(sdk.RequestPublicIPInstanceList)
 	reqParams.PublicIPInstanceNoList = []string{publicIPInstanceNo}
 
