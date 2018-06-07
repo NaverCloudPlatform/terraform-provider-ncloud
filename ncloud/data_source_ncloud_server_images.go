@@ -5,6 +5,7 @@ import (
 	"github.com/NaverCloudPlatform/ncloud-sdk-go/sdk"
 	"github.com/hashicorp/terraform/helper/schema"
 	"log"
+	"regexp"
 )
 
 func dataSourceNcloudServerImages() *schema.Resource {
@@ -12,6 +13,12 @@ func dataSourceNcloudServerImages() *schema.Resource {
 		Read: dataSourceNcloudServerImagesRead,
 
 		Schema: map[string]*schema.Schema{
+			"product_name_regex": {
+				Type:         schema.TypeString,
+				Optional:     true,
+				ForceNew:     true,
+				ValidateFunc: validateRegexp,
+			},
 			"exclusion_product_code": {
 				Type:     schema.TypeString,
 				Optional: true,
@@ -98,23 +105,32 @@ func dataSourceNcloudServerImages() *schema.Resource {
 func dataSourceNcloudServerImagesRead(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*NcloudSdk).conn
 
-	reqParams := new(sdk.RequestGetServerImageProductList)
-	// TODO: reqParams
+	reqParams := &sdk.RequestGetServerImageProductList{
+		ExclusionProductCode: d.Get("exclusion_product_code").(string),
+		ProductCode:          d.Get("product_code").(string),
+		PlatformTypeCodeList: StringList(d.Get("platform_type_code_list").([]interface{})),
+		RegionNo:             d.Get("region_no").(string),
+	}
+
 	resp, err := conn.GetServerImageProductList(reqParams)
 	if err != nil {
 		logErrorResponse("GetServerImageProductList", err, reqParams)
 		return err
 	}
 	logCommonResponse("GetServerImageProductList", reqParams, resp.CommonResponse)
-	// log.Printf("[DEBUG] GetServerImageProductList: %v", resp.Product)
 
 	allServerImages := resp.Product
 	var filteredServerImages []sdk.Product
-	for _, serverImage := range allServerImages {
-		if v, ok := d.GetOk("product_code"); ok && v.(string) != "" && serverImage.ProductCode != v.(string) {
-			continue
+	nameRegex, nameRegexOk := d.GetOk("product_name_regex")
+	if nameRegexOk {
+		r := regexp.MustCompile(nameRegex.(string))
+		for _, serverImage := range allServerImages {
+			if r.MatchString(serverImage.ProductName) {
+				filteredServerImages = append(filteredServerImages, serverImage)
+			}
 		}
-		filteredServerImages = append(filteredServerImages, serverImage)
+	} else {
+		filteredServerImages = allServerImages[:]
 	}
 
 	if len(filteredServerImages) < 1 {
