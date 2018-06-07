@@ -39,6 +39,7 @@ func Provider() terraform.ResourceProvider {
 		ResourcesMap: map[string]*schema.Resource{
 			"ncloud_instance":      resourceNcloudInstance(),
 			"ncloud_block_storage": resourceNcloudBlockStorage(),
+			"ncloud_public_ip":     resourceNcloudPublicIPInstance(),
 			"ncloud_login_key":     resourceNcloudLoginKey(),
 		},
 		ConfigureFunc: providerConfigure,

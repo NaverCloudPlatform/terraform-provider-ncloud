@@ -2,9 +2,10 @@ package ncloud
 
 import (
 	"fmt"
-	"github.com/hashicorp/terraform/helper/schema"
 	"regexp"
 	"strings"
+
+	"github.com/hashicorp/terraform/helper/schema"
 )
 
 func validateInternetLineTypeCode(v interface{}, k string) (ws []string, errors []error) {
@@ -35,7 +36,7 @@ func validateStringLengthInRange(min, max int) schema.SchemaValidateFunc {
 	return func(v interface{}, k string) (ws []string, errors []error) {
 		value := v.(string)
 		if len(value) < min || len(value) > max {
-			errors = append(errors, fmt.Errorf("must be a valid %q characters between 1 and 30", k))
+			errors = append(errors, fmt.Errorf("must be a valid %q characters between %d and %d", k, min, max))
 		}
 		return
 	}
