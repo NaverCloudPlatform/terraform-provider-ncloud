@@ -93,7 +93,7 @@ type RequestCreateServerInstance struct {
 	ServerName                            string
 	ServerDescription                     string
 	LoginKeyName                          string
-	IsProtectServerTermination            bool
+	IsProtectServerTermination            string
 	ServerCreateCount                     int
 	ServerCreateStartNo                   int
 	InternetLineTypeCode                  string
@@ -138,6 +138,7 @@ type ServerInstance struct {
 	BaseBlockStorageDiskType       common.CommonCode    `xml:"baseBlockStorageDiskType"`
 	BaseBlockStroageDiskDetailType common.CommonCode    `xml:"baseBlockStroageDiskDetailType"`
 	InternetLineType               common.CommonCode    `xml:"internetLineType"`
+	ServerInstanceType             common.CommonCode    `xml:"serverInstanceType"`
 	UserData                       string               `xml:"userData"`
 	AccessControlGroupList         []AccessControlGroup `xml:"accessControlGroupList>accessControlGroup"`
 }
@@ -187,7 +188,7 @@ type RequestAssociatePublicIP struct {
 }
 
 type RequestPublicIPInstanceList struct {
-	IsAssociated           bool
+	IsAssociated           string
 	PublicIPInstanceNoList []string
 	PublicIPList           []string
 	SearchFilterName       string
@@ -355,7 +356,7 @@ type RequestGetServerProductList struct {
 
 type RequestAccessControlGroupList struct {
 	AccessControlGroupConfigurationNoList []string
-	IsDefault                             bool
+	IsDefault                             string
 	AccessControlGroupName                string
 	PageNo                                int
 	PageSize                              int
@@ -381,4 +382,181 @@ type AccessControlRule struct {
 	ProtocolType                           common.CommonCode `xml:"protocolType"`
 	SourceIP                               string            `xml:"sourceIp"`
 	DestinationPort                        string            `xml:"destinationPort"`
+}
+
+type RequestCreateNasVolumeInstance struct {
+	VolumeName                      string
+	VolumeSize                      int
+	VolumeAllotmentProtocolTypeCode string
+	ServerInstanceNoList            []string
+	CustomIpList                    []string
+	CifsUserName                    string
+	CifsUserPassword                string
+	NasVolumeDescription            string
+	RegionNo                        string
+	ZoneNo                          string
+}
+
+type NasVolumeInstance struct {
+	NasVolumeInstanceNo              string            `xml:"nasVolumeInstanceNo"`
+	NasVolumeInstanceStatus          common.CommonCode `xml:"nasVolumeInstanceStatus"`
+	NasVolumeInstanceOperation       common.CommonCode `xml:"nasVolumeInstanceOperation"`
+	NasVolumeInstanceStatusName      string            `xml:"nasVolumeInstanceStatusName"`
+	CreateDate                       string            `xml:"createDate"`
+	NasVolumeInstanceDescription     string            `xml:"nasVolumeInstanceDescription"`
+	MountInformation                 string            `xml:"mountInformation"`
+	VolumeAllotmentProtocolType      common.CommonCode `xml:"volumeAllotmentProtocolType"`
+	VolumeName                       string            `xml:"volumeName"`
+	VolumeTotalSize                  int               `xml:"volumeTotalSize"`
+	VolumeSize                       int               `xml:"volumeSize"`
+	VolumeUseSize                    int               `xml:"volumeUseSize"`
+	VolumeUseRatio                   float32           `xml:"volumeUseRatio"`
+	SnapshotVolumeConfigurationRatio float32           `xml:"snapshotVolumeConfigurationRatio"`
+	SnapshotVolumeSize               int               `xml:"snapshotVolumeSize"`
+	SnapshotVolumeUseSize            int               `xml:"snapshotVolumeUseSize"`
+	SnapshotVolumeUseRatio           float32           `xml:"snapshotVolumeUseRatio"`
+	IsSnapshotConfiguration          bool              `xml:"isSnapshotConfiguration"`
+	IsEventConfiguration             bool              `xml:"isEventConfiguration"`
+	Zone                             common.Zone       `xml:"zone"`
+	Region                           common.Region     `xml:"region"`
+	NasVolumeInstanceCustomIpList    []string          `xml:"nasVolumeInstanceCustomIpList"`
+	NasVolumeServerInstanceList      []string          `xml:"nasVolumeServerInstanceList"`
+}
+
+type NasVolumeInstanceList struct {
+	common.CommonResponse
+	TotalRows             int                 `xml:"totalRows"`
+	NasVolumeInstanceList []NasVolumeInstance `xml:"nasVolumeInstanceList>nasVolumeInstance,omitempty"`
+}
+
+type RequestGetNasVolumeInstanceList struct {
+	VolumeAllotmentProtocolTypeCode string
+	IsEventConfiguration            string
+	IsSnapshotConfiguration         string
+	NasVolumeInstanceNoList         []string
+	RegionNo                        string
+	ZoneNo                          string
+}
+
+type PortForwardingRule struct {
+	ServerInstanceNo           string `xml:"serverInstanceNo"`
+	PortForwardingExternalPort string `xml:"portForwardingExternalPort"`
+	PortForwardingInternalPort string `xml:"portForwardingInternalPort"`
+}
+
+type RequestAddPortForwardingRules struct {
+	PortForwardingConfigurationNo string
+	PortForwardingRuleList        []PortForwardingRule
+}
+
+type RequestDeletePortForwardingRules struct {
+	PortForwardingConfigurationNo string
+	PortForwardingRuleList        []PortForwardingRule
+}
+
+type PortForwardingRuleList struct {
+	common.CommonResponse
+	PortForwardingConfigurationNo int                  `xml:"portForwardingConfigurationNo"`
+	PortForwardingPublicIp        string               `xml:"portForwardingPublicIp"`
+	TotalRows                     int                  `xml:"totalRows"`
+	PortForwardingRuleList        []PortForwardingRule `xml:"portForwardingRuleList>portForwardingRule,omitempty"`
+}
+
+type RequestPortForwardingRuleList struct {
+	InternetLineTypeCode string
+	RegionNo             string
+	ZoneNo               string
+}
+
+// RequestLoadBalancerInstanceList is request type to get load balancer instance list
+type RequestLoadBalancerInstanceList struct {
+	LoadBalancerInstanceNoList []string
+	InternetLineTypeCode       string
+	NetworkUsageTypeCode       string
+	RegionNo                   string
+	PageNo                     int
+	PageSize                   int
+	SortedBy                   string
+	SortingOrder               string
+}
+
+// LoadBalancerInstanceList is response type to return load balancer instance list
+type LoadBalancerInstanceList struct {
+	common.CommonResponse
+	LoadBalancerInstanceList []LoadBalancerInstance `xml:"loadBalancerInstanceList>loadBalancerInstance,omitempty"`
+	TotalRows                int                    `xml:"totalRows"`
+}
+
+// LoadBalancerInstance is struct for load balancer instance
+type LoadBalancerInstance struct {
+	LoadBalancerInstanceNo         string                       `xml:"loadBalancerInstanceNo"`
+	VirtualIP                      string                       `xml:"virtualIp"`
+	LoadBalancerName               string                       `xml:"loadBalancerName"`
+	LoadBalancerAlgorithmType      common.CommonCode            `xml:"loadBalancerAlgorithmType"`
+	LoadBalancerDescription        string                       `xml:"loadBalancerDescription"`
+	CreateDate                     string                       `xml:"createDate"`
+	DomainName                     string                       `xml:"domainName"`
+	InternetLineType               common.CommonCode            `xml:"internetLineType"`
+	LoadBalancerInstanceStatusName string                       `xml:"loadBalancerInstanceStatusName"`
+	LoadBalancerInstanceStatus     common.CommonCode            `xml:"loadBalancerInstanceStatus"`
+	LoadBalancerInstanceOperation  common.CommonCode            `xml:"loadBalancerInstanceOperation"`
+	NetworkUsageType               common.CommonCode            `xml:"networkUsageType"`
+	IsHTTPKeepAlive                bool                         `xml:"isHttpKeepAlive"`
+	ConnectionTimeout              int                          `xml:"connectionTimeout"`
+	CertificateName                string                       `xml:"certificateName"`
+	LoadBalancerRuleList           []LoadBalancerRule           `xml:"loadBalancerRuleList>loadBalancerRule,omitempty"`
+	LoadBalancedServerInstanceList []LoadBalancedServerInstance `xml:"loadBalancedServerInstanceList>loadBalancedServerInstance,omitempty"`
+}
+
+// LoadBalancerRule is struct for load balancer rule
+type LoadBalancerRule struct {
+	ProtocolType       common.CommonCode `xml:"protocolType"`
+	LoadBalancerPort   int               `xml:"loadBalancerPort"`
+	ServerPort         int               `xml:"serverPort"`
+	L7HealthCheckPath  string            `xml:"l7HealthCheckPath"`
+	CertificateName    string            `xml:"certificateName"`
+	ProxyProtocolUseYn string            `xml:"proxyProtocolUseYn"`
+}
+
+// LoadBalancedServerInstance is struct for load balanced server instance
+type LoadBalancedServerInstance struct {
+	ServerInstanceList          []ServerInstance          `xml:"serverInstance,omitempty"`
+	ServerHealthCheckStatusList []ServerHealthCheckStatus `xml:"serverHealthCheckStatusList>serverHealthCheckStatus,omitempty"`
+}
+
+// ServerHealthCheckStatus is struct for server health check status
+type ServerHealthCheckStatus struct {
+	ProtocolType       common.CommonCode `xml:"protocolType"`
+	LoadBalancerPort   int               `xml:"loadBalancerPort"`
+	ServerPort         int               `xml:"serverPort"`
+	L7HealthCheckPath  string            `xml:"l7HealthCheckPath"`
+	ProxyProtocolUseYn string            `xml:"proxyProtocolUseYn"`
+	ServerStatus       bool              `xml:"serverStatus"`
+}
+
+// RequestCreateLoadBalancerInstance is request type to create load balancer instance
+type RequestCreateLoadBalancerInstance struct {
+	LoadBalancerName              string
+	LoadBalancerAlgorithmTypeCode string
+	LoadBalancerDescription       string
+	LoadBalancerRuleList          []RequestLoadBalancerRule
+	ServerInstanceNoList          []string
+	InternetLineTypeCode          string
+	NetworkUsageTypeCode          string
+	RegionNo                      string
+}
+
+// RequestLoadBalancerRule is request type to create load balancer rule
+type RequestLoadBalancerRule struct {
+	ProtocolTypeCode   string
+	LoadBalancerPort   int
+	ServerPort         int
+	L7HealthCheckPath  string
+	CertificateName    string
+	ProxyProtocolUseYn string
+}
+
+// RequestDeleteLoadBalancerInstances is request type to delete load balancer instances
+type RequestDeleteLoadBalancerInstances struct {
+	LoadBalancerInstanceNoList []string
 }

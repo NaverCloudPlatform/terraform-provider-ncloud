@@ -4,6 +4,7 @@ import (
 	"encoding/xml"
 	"errors"
 	"fmt"
+	"net/http"
 	"strconv"
 	"strings"
 
@@ -126,7 +127,7 @@ func (s *Conn) GetBlockStorageInstance(reqParams *RequestBlockStorageInstanceLis
 		return nil, err
 	}
 
-	if resp.StatusCode != 200 {
+	if resp.StatusCode != http.StatusOK {
 		responseError, err := common.ParseErrorResponse(bytes)
 		if err != nil {
 			return nil, err
