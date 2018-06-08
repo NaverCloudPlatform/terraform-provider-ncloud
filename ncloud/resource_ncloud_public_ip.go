@@ -199,7 +199,7 @@ func getPublicIPInstance(conn *sdk.Conn, publicIPInstanceNo string) (*sdk.Public
 
 func checkAssociatedPublicIP(conn *sdk.Conn, publicIPInstanceNo string) (bool, error) {
 	reqParams := new(sdk.RequestPublicIPInstanceList)
-	reqParams.IsAssociated = true
+	reqParams.IsAssociated = "true"
 	reqParams.PublicIPInstanceNoList = []string{publicIPInstanceNo}
 	resp, err := conn.GetPublicIPInstanceList(reqParams)
 
