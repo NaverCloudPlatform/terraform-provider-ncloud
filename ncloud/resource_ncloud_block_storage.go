@@ -238,7 +238,11 @@ func deleteBlockStorage(conn *sdk.Conn, blockStorageIds []string) error {
 			logErrorResponse("DeleteBlockStorageInstances", err, []string{blockStorageId})
 			return err
 		}
-		logCommonResponse("DeleteBlockStorageInstances", blockStorageIds, getCommonResponse(resp))
+		var commonResponse = common.CommonResponse{}
+		if resp != nil {
+			commonResponse = resp.CommonResponse
+		}
+		logCommonResponse("DeleteBlockStorageInstances", blockStorageIds, commonResponse)
 
 		if err := waitForBlockStorageInstance(conn, blockStorageId, "CREAT", DefaultTimeout); err != nil {
 			return err
@@ -260,16 +264,6 @@ func deleteBlockStorageByServerInstanceNo(conn *sdk.Conn, serverInstanceNo strin
 		}
 	}
 	return deleteBlockStorage(conn, ids)
-}
-
-func getCommonResponse(resp *sdk.BlockStorageInstanceList) common.CommonResponse {
-	var commonResponse common.CommonResponse
-	if resp != nil {
-		commonResponse = resp.CommonResponse
-	} else {
-		commonResponse = common.CommonResponse{}
-	}
-	return commonResponse
 }
 
 func waitForBlockStorageInstance(conn *sdk.Conn, id string, status string, timeout int) error {

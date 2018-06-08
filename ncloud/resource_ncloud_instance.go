@@ -56,10 +56,10 @@ func resourceNcloudInstance() *schema.Resource {
 				Description: "The login key name to encrypt with the public key. Default : Uses the most recently created login key name",
 			},
 			"is_protect_server_termination": {
-				Type:        schema.TypeBool,
-				Optional:    true,
-				Default:     false,
-				Description: "You can set whether or not to protect return when creating. default : false",
+				Type:         schema.TypeString,
+				Optional:     true,
+				ValidateFunc: validateBoolValue,
+				Description:  "You can set whether or not to protect return when creating. default : false",
 			},
 			"server_create_count": {
 				Type:        schema.TypeInt,
@@ -368,7 +368,7 @@ func buildCreateServerInstanceReqParams(d *schema.ResourceData) *sdk.RequestCrea
 
 	var paramAccessControlGroupConfigurationNoList []string
 	if param, ok := d.GetOk("access_control_group_configuration_no_list"); ok {
-		paramAccessControlGroupConfigurationNoList = StringList(param.(*schema.Set).List())
+		paramAccessControlGroupConfigurationNoList = StringList(param.([]interface{}))
 	}
 
 	reqParams := &sdk.RequestCreateServerInstance{
@@ -378,7 +378,7 @@ func buildCreateServerInstanceReqParams(d *schema.ResourceData) *sdk.RequestCrea
 		ServerName:                 d.Get("server_name").(string),
 		ServerDescription:          d.Get("server_description").(string),
 		LoginKeyName:               d.Get("login_key_name").(string),
-		IsProtectServerTermination: d.Get("is_protect_server_termination").(bool),
+		IsProtectServerTermination: d.Get("is_protect_server_termination").(string),
 		ServerCreateCount:          d.Get("server_create_count").(int),
 		ServerCreateStartNo:        d.Get("server_create_start_no").(int),
 		InternetLineTypeCode:       d.Get("internet_line_type_code").(string),
