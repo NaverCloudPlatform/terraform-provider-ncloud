@@ -72,5 +72,5 @@ func multiEnvSearch(ks []string) string {
 
 func getTestPrefix() string {
 	rInt := acctest.RandIntRange(1, 9999)
-	return fmt.Sprintf("tf-%d", rInt)
+	return fmt.Sprintf("tf%d", rInt)
 }

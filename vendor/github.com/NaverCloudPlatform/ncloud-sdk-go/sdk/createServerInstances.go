@@ -5,6 +5,7 @@ import (
 	"encoding/xml"
 	"errors"
 	"fmt"
+	"net/http"
 	"strconv"
 
 	common "github.com/NaverCloudPlatform/ncloud-sdk-go/common"
@@ -57,8 +58,11 @@ func processCreateServerInstancesParams(reqParams *RequestCreateServerInstance) 
 		params["loginKeyName"] = reqParams.LoginKeyName
 	}
 
-	if reqParams.IsProtectServerTermination == true {
-		params["isProtectServerTermination"] = "true"
+	if reqParams.IsProtectServerTermination != "" {
+		if err := validateBoolValue("IsProtectServerTermination", reqParams.IsProtectServerTermination); err != nil {
+			return nil, err
+		}
+		params["IsProtectServerTermination"] = reqParams.IsProtectServerTermination
 	}
 
 	if reqParams.ServerCreateCount > 0 {
@@ -125,7 +129,7 @@ func (s *Conn) CreateServerInstances(reqParams *RequestCreateServerInstance) (*S
 		return nil, err
 	}
 
-	if resp.StatusCode != 200 {
+	if resp.StatusCode != http.StatusOK {
 		responseError, err := common.ParseErrorResponse(bytes)
 		if err != nil {
 			return nil, err

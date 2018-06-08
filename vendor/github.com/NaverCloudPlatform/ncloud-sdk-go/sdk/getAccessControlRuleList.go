@@ -4,6 +4,7 @@ import (
 	"encoding/xml"
 	"errors"
 	"fmt"
+	"net/http"
 	"strconv"
 
 	common "github.com/NaverCloudPlatform/ncloud-sdk-go/common"
@@ -39,7 +40,7 @@ func (s *Conn) GetAccessControlRuleList(accessControlGroupConfigurationNo string
 		return nil, err
 	}
 
-	if resp.StatusCode != 200 {
+	if resp.StatusCode != http.StatusOK {
 		responseError, err := common.ParseErrorResponse(bytes)
 		if err != nil {
 			return nil, err

@@ -4,6 +4,7 @@ import (
 	"encoding/xml"
 	"errors"
 	"fmt"
+	"net/http"
 	"strconv"
 	"strings"
 
@@ -18,8 +19,11 @@ func processGetPublicIPInstanceListParams(reqParams *RequestPublicIPInstanceList
 		return params, nil
 	}
 
-	if reqParams.IsAssociated {
-		params["isAssociated"] = "true"
+	if reqParams.IsAssociated != "" {
+		if err := validateBoolValue("IsAssociated", reqParams.IsAssociated); err != nil {
+			return nil, err
+		}
+		params["IsAssociated"] = reqParams.IsAssociated
 	}
 
 	if len(reqParams.PublicIPInstanceNoList) > 0 {
@@ -112,7 +116,7 @@ func (s *Conn) GetPublicIPInstanceList(reqParams *RequestPublicIPInstanceList) (
 		return nil, err
 	}
 
-	if resp.StatusCode != 200 {
+	if resp.StatusCode != http.StatusOK {
 		responseError, err := common.ParseErrorResponse(bytes)
 		if err != nil {
 			return nil, err
