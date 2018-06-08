@@ -42,6 +42,7 @@ func Provider() terraform.ResourceProvider {
 			"ncloud_block_storage": resourceNcloudBlockStorage(),
 			"ncloud_public_ip":     resourceNcloudPublicIPInstance(),
 			"ncloud_login_key":     resourceNcloudLoginKey(),
+			"ncloud_nas_volume":    resourceNcloudNasVolume(),
 		},
 		ConfigureFunc: providerConfigure,
 	}

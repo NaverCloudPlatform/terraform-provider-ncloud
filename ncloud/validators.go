@@ -8,6 +8,19 @@ import (
 	"github.com/hashicorp/terraform/helper/schema"
 )
 
+var boolValueStrings = []string{"true", "false"}
+
+func validateBoolValue(v interface{}, k string) (ws []string, errors []error) {
+	value := v.(string)
+	for _, included := range boolValueStrings {
+		if value == included {
+			return
+		}
+	}
+	errors = append(errors, fmt.Errorf("%s should be %s", k, strings.Join(boolValueStrings, " or ")))
+	return
+}
+
 func validateInternetLineTypeCode(v interface{}, k string) (ws []string, errors []error) {
 	value := v.(string)
 	if value != "PUBLC" && value != "GLBL" {
