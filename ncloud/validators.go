@@ -76,3 +76,17 @@ func validateRegexp(v interface{}, k string) (ws []string, errors []error) {
 	}
 	return
 }
+
+func validateIncludeValues(includeValues []string) schema.SchemaValidateFunc {
+	return func(v interface{}, k string) (ws []string, errors []error) {
+		value := v.(string)
+
+		for _, included := range includeValues {
+			if value == included {
+				return nil, nil
+			}
+		}
+		errors = append(errors, fmt.Errorf("%s should be %s", k, strings.Join(includeValues, " or ")))
+		return
+	}
+}

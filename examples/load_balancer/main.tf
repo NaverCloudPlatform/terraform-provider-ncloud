@@ -1,0 +1,38 @@
+provider "ncloud" {
+  access_key = "${var.access_key}"
+  secret_key = "${var.secret_key}"
+  region     = "${var.region}"
+}
+
+resource "ncloud_instance" "instance" {
+  "server_name"               = "${var.server_name}"
+  "server_image_product_code" = "${var.server_image_product_code}"
+  "server_product_code"       = "${var.server_product_code}"
+}
+
+resource "ncloud_load_balancer" "lb" {
+  "load_balancer_name"                = "tftest_lb"
+  "load_balancer_algorithm_type_code" = "SIPHS"
+  "load_balancer_description"         = "tftest_lb description"
+
+  "load_balancer_rule_list" = [
+    {
+      "protocol_type_code"   = "HTTP"
+      "load_balancer_port"   = 80
+      "server_port"          = 80
+      "l7_health_check_path" = "/monitor/l7check"
+    },
+    {
+      "protocol_type_code"   = "HTTPS"
+      "load_balancer_port"   = 443
+      "server_port"          = 443
+      "l7_health_check_path" = "/monitor/l7check"
+      "certificate_name"     = "aaa"
+    },
+  ]
+
+  "server_instance_no_list" = ["${ncloud_instance.instance.id}"]
+  "internet_line_type_code" = "PUBLC"
+  "network_usage_type_code" = "PBLIP"
+  "region_no"               = "1"
+}
