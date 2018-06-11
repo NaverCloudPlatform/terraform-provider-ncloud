@@ -59,17 +59,17 @@ func testAccCheckPortForwardingRuleExistsWithProvider(n string, i *sdk.PortForwa
 
 		provider := providerF()
 		conn := provider.Meta().(*NcloudSdk).conn
-		nasVolumeInstance, err := getPortForwardingRule(conn, rs.Primary.ID)
+		portForwardingRule, err := getPortForwardingRule(conn, rs.Primary.ID)
 		if err != nil {
 			return nil
 		}
 
-		if nasVolumeInstance != nil {
-			*i = *nasVolumeInstance
+		if portForwardingRule != nil {
+			*i = *portForwardingRule
 			return nil
 		}
 
-		return fmt.Errorf("nas volume instance not found")
+		return fmt.Errorf("port forwarding rule not found")
 	}
 }
 
@@ -81,7 +81,7 @@ func testAccCheckPortForwardingRuleDestroyWithProvider(s *terraform.State, provi
 	conn := provider.Meta().(*NcloudSdk).conn
 
 	for _, rs := range s.RootModule().Resources {
-		if rs.Type != "ncloud_nas_volume" {
+		if rs.Type != "ncloud_port_forwarding_rule" {
 			continue
 		}
 		rule, err := getPortForwardingRule(conn, rs.Primary.ID)
