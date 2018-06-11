@@ -35,7 +35,6 @@ func Provider() terraform.ResourceProvider {
 			"ncloud_zones":           dataSourceNcloudZones(),
 			"ncloud_root_password":   dataSourceNcloudRootPassword(),
 			"ncloud_server_products": dataSourceNcloudServerProducts(),
-			//"ncloud_instances":     dataSourceNcloudInstances(),
 		},
 		ResourcesMap: map[string]*schema.Resource{
 			"ncloud_instance":      resourceNcloudInstance(),
@@ -43,6 +42,7 @@ func Provider() terraform.ResourceProvider {
 			"ncloud_public_ip":     resourceNcloudPublicIPInstance(),
 			"ncloud_login_key":     resourceNcloudLoginKey(),
 			"ncloud_nas_volume":    resourceNcloudNasVolume(),
+			"ncloud_load_balancer": resourceNcloudLoadBalancer(),
 		},
 		ConfigureFunc: providerConfigure,
 	}
