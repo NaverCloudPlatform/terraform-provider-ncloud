@@ -6,11 +6,11 @@ variable "region" {
 }
 
 variable "login_key_name" {
-  default = "tf-test-key"
+  default = "tf-ansibletest-key"
 }
 
 variable "server_name" {
-  default = "tf-test-vm"
+  default = "tf-ansibletest-vm"
 }
 
 variable "server_image_product_code" {
@@ -22,5 +22,5 @@ variable "server_product_code" {
 }
 
 variable "port_forwarding_external_port" {
-  default = "6088"
+  default = "5088"
 }
