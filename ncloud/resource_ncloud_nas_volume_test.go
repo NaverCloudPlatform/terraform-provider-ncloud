@@ -11,7 +11,7 @@ import (
 	"testing"
 )
 
-func TestAccNcloudNasVolume_basic(t *testing.T) {
+func TestAccResourceNcloudNasVolumeBasic(t *testing.T) {
 	var volumeInstance sdk.NasVolumeInstance
 	prefix := getTestPrefix()
 	testVolumeName := prefix + "_vol"

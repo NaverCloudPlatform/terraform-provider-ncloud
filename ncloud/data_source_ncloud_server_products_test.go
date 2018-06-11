@@ -7,7 +7,7 @@ import (
 	"testing"
 )
 
-func TestAccDataSourceServerProducts_basic(t *testing.T) {
+func TestAccDataSourceNcloudServerProductsBasic(t *testing.T) {
 	t.Parallel()
 
 	resource.Test(t, resource.TestCase{
