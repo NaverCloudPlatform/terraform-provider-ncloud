@@ -20,3 +20,7 @@ variable "server_image_product_code" {
 variable "server_product_code" {
   default = "SPSVRSTAND000004" #SPSVRSTAND000056
 }
+
+variable "port_forwarding_external_port" {
+  default = "6088"
+}
