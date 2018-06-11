@@ -24,3 +24,20 @@ func Base64Decode(sEncData string) string {
 	}
 	return string(v)
 }
+
+func Int(v interface{}) (int, error) {
+	var value int
+	switch v.(type) {
+	case int:
+		value = v.(int)
+	case string:
+		converted, err := strconv.Atoi(v.(string))
+		if err != nil {
+			return 0, err
+		}
+		value = converted
+	}
+
+	return value, nil
+
+}
