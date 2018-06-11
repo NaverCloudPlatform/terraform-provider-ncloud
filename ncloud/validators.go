@@ -86,6 +86,7 @@ func validateIncludeValues(includeValues []string) schema.SchemaValidateFunc {
 			}
 		}
 		errors = append(errors, fmt.Errorf("%s should be %s", k, strings.Join(includeValues, " or ")))
+		return
 	}
 
 }
