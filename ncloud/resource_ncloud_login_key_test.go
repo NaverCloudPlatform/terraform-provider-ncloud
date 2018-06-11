@@ -10,7 +10,7 @@ import (
 	"testing"
 )
 
-func TestAccNcloudLoginKey_basic(t *testing.T) {
+func TestAccResourceNcloudLoginKeyBasic(t *testing.T) {
 	var loginKey sdk.LoginKey
 	prefix := getTestPrefix()
 	testKeyName := prefix + "-key"

@@ -11,7 +11,7 @@ import (
 	"testing"
 )
 
-func TestAccNcloudInstance_basic(t *testing.T) {
+func TestAccResourceNcloudInstanceBasic(t *testing.T) {
 	var serverInstance sdk.ServerInstance
 	testServerName := getTestServerName()
 
@@ -50,7 +50,7 @@ func TestAccNcloudInstance_basic(t *testing.T) {
 	})
 }
 
-func TestAccNcloudInstance_changeServerInstanceSpec(t *testing.T) {
+func TestAccResourceInstanceChangeServerInstanceSpec(t *testing.T) {
 	var before sdk.ServerInstance
 	var after sdk.ServerInstance
 	testServerName := getTestServerName()

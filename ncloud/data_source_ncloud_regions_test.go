@@ -7,8 +7,8 @@ import (
 	"testing"
 )
 
-func TestAccDataSourceRegions_basic(t *testing.T) {
-	//t.Parallel()
+func TestAccDataSourceNcloudRegionsBasic(t *testing.T) {
+	t.Parallel()
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:  func() { testAccPreCheck(t) },

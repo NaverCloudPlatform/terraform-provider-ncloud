@@ -10,7 +10,7 @@ import (
 	"github.com/hashicorp/terraform/terraform"
 )
 
-func TestAccNcloudPublicIPInstance_basic(t *testing.T) {
+func TestAccResourceNcloudPublicIPInstanceBasic(t *testing.T) {
 	var publicIPInstance sdk.PublicIPInstance
 	testServerInstanceName := getTestServerName()
 	testPublicIPDescription := "acceptanceTest"

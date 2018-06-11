@@ -9,7 +9,7 @@ import (
 	"testing"
 )
 
-func TestAccNcloudBlockStorage_basic(t *testing.T) {
+func TestAccResourceNcloudBlockStorageBasic(t *testing.T) {
 	var storageInstance sdk.BlockStorageInstance
 	prefix := getTestPrefix()
 	testServerInstanceName := prefix + "-vm"
