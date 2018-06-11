@@ -50,7 +50,6 @@ includes_Darwin='
 #include <sys/mount.h>
 #include <sys/utsname.h>
 #include <sys/wait.h>
-#include <sys/xattr.h>
 #include <net/bpf.h>
 #include <net/if.h>
 #include <net/if_types.h>
@@ -173,7 +172,6 @@ struct ltchars {
 #include <linux/fs.h>
 #include <linux/keyctl.h>
 #include <linux/magic.h>
-#include <linux/netfilter/nfnetlink.h>
 #include <linux/netlink.h>
 #include <linux/perf_event.h>
 #include <linux/random.h>
@@ -439,11 +437,10 @@ ccflags="$@"
 		$2 ~ /^GENL_/ ||
 		$2 ~ /^STATX_/ ||
 		$2 ~ /^UTIME_/ ||
-		$2 ~ /^XATTR_(CREATE|REPLACE|NO(DEFAULT|FOLLOW|SECURITY)|SHOWCOMPRESSION)/ ||
+		$2 ~ /^XATTR_(CREATE|REPLACE)/ ||
 		$2 ~ /^ATTR_(BIT_MAP_COUNT|(CMN|VOL|FILE)_)/ ||
 		$2 ~ /^FSOPT_/ ||
 		$2 ~ /^WDIOC_/ ||
-		$2 ~ /^NFN/ ||
 		$2 ~ /^(HDIO|WIN|SMART)_/ ||
 		$2 !~ "WMESGLEN" &&
 		$2 ~ /^W[A-Z0-9]+$/ ||

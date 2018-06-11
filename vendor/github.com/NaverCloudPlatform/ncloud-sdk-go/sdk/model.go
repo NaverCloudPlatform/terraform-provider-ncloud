@@ -439,7 +439,7 @@ type RequestGetNasVolumeInstanceList struct {
 }
 
 type PortForwardingRule struct {
-	ServerInstanceNo           string `xml:"serverInstanceNo"`
+	ServerInstanceNo           string `xml:"serverInstance>serverInstanceNo"`
 	PortForwardingExternalPort string `xml:"portForwardingExternalPort"`
 	PortForwardingInternalPort string `xml:"portForwardingInternalPort"`
 }
@@ -559,4 +559,48 @@ type RequestLoadBalancerRule struct {
 // RequestDeleteLoadBalancerInstances is request type to delete load balancer instances
 type RequestDeleteLoadBalancerInstances struct {
 	LoadBalancerInstanceNoList []string
+}
+
+// RequestChangeLoadBalancerInstanceConfiguration is request type to change load balancer instance configuration
+type RequestChangeLoadBalancerInstanceConfiguration struct {
+	LoadBalancerInstanceNo        string
+	LoadBalancerAlgorithmTypeCode string
+	LoadBalancerDescription       string
+	LoadBalancerRuleList          []RequestLoadBalancerRule
+}
+
+// RequestChangeLoadBalancedServerInstances is request type to change load balanced server instances
+type RequestChangeLoadBalancedServerInstances struct {
+	LoadBalancerInstanceNo string
+	ServerInstanceNoList   []string
+}
+
+// RequestGetLoadBalancerTargetServerInstanceList is request type to get load balancer target server instance list
+type RequestGetLoadBalancerTargetServerInstanceList struct {
+	InternetLineTypeCode string
+	NetworkUsageTypeCode string
+	RegionNo             string
+}
+
+// SslCertificateList is response type to return SSL Certificate list
+type SslCertificateList struct {
+	common.CommonResponse
+	SslCertificateList []SslCertificate `xml:"sslCertificateList>sslCertificate,omitempty"`
+	TotalRows          int              `xml:"totalRows"`
+}
+
+// SslCertificate is struct for SSL Certificate
+type SslCertificate struct {
+	CertificateName      string `xml:"certificateName"`
+	PrivateKey           string `xml:"privateKey"`
+	PublicKeyCertificate string `xml:"publicKeyCertificate"`
+	CertificateChain     string `xml:"certificateChain"`
+}
+
+// RequestAddSslCertificate is response type to add SSL Certificate
+type RequestAddSslCertificate struct {
+	CertificateName      string
+	PrivateKey           string
+	PublicKeyCertificate string
+	CertificateChain     string
 }
