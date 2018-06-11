@@ -6,11 +6,11 @@ variable "region" {
 }
 
 variable "login_key_name" {
-  default = "tf-test-key"
+  default = "tf-sshtest-key"
 }
 
 variable "server_name" {
-  default = "tf-test-vm"
+  default = "tf-sshtest-vm"
 }
 
 variable "server_image_product_code" {

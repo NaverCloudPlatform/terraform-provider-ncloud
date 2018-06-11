@@ -101,15 +101,23 @@ func resourceNcloudPortForwardingRuleRead(d *schema.ResourceData, meta interface
 	conn := meta.(*NcloudSdk).conn
 	portForwardingExternalPort := d.Get("port_forwarding_external_port").(string)
 
-	rule, err := getPortForwardingRule(conn, portForwardingExternalPort)
+	resp, err := getPortForwardingRuleList(conn)
 	if err != nil {
 		return err
 	}
 
-	if rule != nil {
-		d.Set("server_instance_no", rule.ServerInstanceNo)
-		d.Set("port_forwarding_external_port", rule.PortForwardingExternalPort)
-		d.Set("port_forwarding_internal_port", rule.PortForwardingInternalPort)
+	var portForwardingRule *sdk.PortForwardingRule
+	for _, rule := range resp.PortForwardingRuleList {
+		if rule.PortForwardingExternalPort == portForwardingExternalPort {
+			portForwardingRule = &rule
+			break
+		}
+	}
+	if portForwardingRule != nil {
+		d.Set("port_forwarding_public_ip", resp.PortForwardingPublicIp)
+		d.Set("server_instance_no", portForwardingRule.ServerInstanceNo)
+		d.Set("port_forwarding_external_port", portForwardingRule.PortForwardingExternalPort)
+		d.Set("port_forwarding_internal_port", portForwardingRule.PortForwardingInternalPort)
 	}
 	return nil
 }
