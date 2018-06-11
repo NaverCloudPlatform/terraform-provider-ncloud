@@ -30,23 +30,18 @@ resource "ncloud_port_forwarding_rule" "forwarding" {
 }
 
 resource "null_resource" "ssh" {
-  connection {
-    type = "ssh"
-    user = "root"
-    host = "${ncloud_port_forwarding_rule.forwarding.port_forwarding_public_ip}"
-    port = "${ncloud_port_forwarding_rule.forwarding.port_forwarding_external_port}"
-    password = "${data.ncloud_root_password.rootpwd.root_password}"
+
+  provisioner "local-exec" {
+    command = <<EOF
+      echo "[demo]" > inventory
+      echo "${ncloud_port_forwarding_rule.forwarding.port_forwarding_public_ip} ansible_ssh_user=root ansible_ssh_pass='${data.ncloud_root_password.rootpwd.root_password}'"
+    EOF
   }
 
-  # Copies the file as the root user using SSH
-  provisioner "file" {
-    source = "myapp.conf"
-    destination = "/etc/myapp.conf"
-  }
-
-  provisioner "remote-exec" {
-    inline = [
-      "echo 'hello'"
-    ]
+  provisioner "local-exec" {
+    command = <<EOF
+      ANSIBLE_HOST_KEY_CHECKING=False \
+      ansible-playbook -i inventory playbook.yml
+    EOF
   }
 }
