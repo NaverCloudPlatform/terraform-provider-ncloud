@@ -44,6 +44,7 @@ func Provider() terraform.ResourceProvider {
 			"ncloud_login_key":            resourceNcloudLoginKey(),
 			"ncloud_nas_volume":           resourceNcloudNasVolume(),
 			"ncloud_port_forwarding_rule": resourceNcloudPortForwadingRule(),
+			"ncloud_load_balancer":        resourceNcloudLoadBalancer(),
 		},
 		ConfigureFunc: providerConfigure,
 	}

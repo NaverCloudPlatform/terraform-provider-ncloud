@@ -57,13 +57,7 @@ func validateStringLengthInRange(min, max int) schema.SchemaValidateFunc {
 
 func validateIntegerInRange(min, max int) schema.SchemaValidateFunc {
 	return func(v interface{}, k string) (ws []string, errors []error) {
-
-		value, err := Int(v)
-		if err != nil {
-			errors = append(errors, err)
-			return
-		}
-
+		value := v.(int)
 		if value < min {
 			errors = append(errors, fmt.Errorf(
 				"%q cannot be lower than %d: %d", k, min, value))
@@ -86,13 +80,13 @@ func validateRegexp(v interface{}, k string) (ws []string, errors []error) {
 func validateIncludeValues(includeValues []string) schema.SchemaValidateFunc {
 	return func(v interface{}, k string) (ws []string, errors []error) {
 		value := v.(string)
+
 		for _, included := range includeValues {
 			if value == included {
-				return
+				return nil, nil
 			}
 		}
 		errors = append(errors, fmt.Errorf("%s should be %s", k, strings.Join(includeValues, " or ")))
 		return
 	}
-
 }
