@@ -76,7 +76,7 @@ func processGetLoadBalancerInstanceListParams(reqParams *RequestLoadBalancerInst
 	return params, nil
 }
 
-// GetLoadBalancerInstanceList get public ip instance list
+// GetLoadBalancerInstanceList get load balancer instance list
 func (s *Conn) GetLoadBalancerInstanceList(reqParams *RequestLoadBalancerInstanceList) (*LoadBalancerInstanceList, error) {
 	params, err := processGetLoadBalancerInstanceListParams(reqParams)
 	if err != nil {

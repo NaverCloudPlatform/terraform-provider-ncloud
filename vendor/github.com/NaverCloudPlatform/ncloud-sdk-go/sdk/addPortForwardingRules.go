@@ -12,18 +12,21 @@ import (
 
 func processAddPortForwardingRules(reqParams *RequestAddPortForwardingRules) (map[string]string, error) {
 	params := make(map[string]string)
-
-	if reqParams == nil || len(reqParams.PortForwardingConfigurationNo) == 0 {
-		return params, errors.New("portForwardingConfigurationNo is required")
+	if reqParams == nil {
+		return nil, fmt.Errorf("PortForwardingConfigurationNo field is required")
 	}
+	if err := validateRequiredField("PortForwardingConfigurationNo", reqParams.PortForwardingConfigurationNo); err != nil {
+		return nil, err
+	}
+	params["portForwardingConfigurationNo"] = reqParams.PortForwardingConfigurationNo
+
 	if len(reqParams.PortForwardingRuleList) == 0 {
-		return nil, errors.New("portForwardingRuleList is required")
-	} else {
-		for k, v := range reqParams.PortForwardingRuleList {
-			params[fmt.Sprintf("portForwardingRuleList.%d.serverInstanceNo", k+1)] = v.ServerInstanceNo
-			params[fmt.Sprintf("portForwardingRuleList.%d.portForwardingInternalPort", k+1)] = v.PortForwardingInternalPort
-			params[fmt.Sprintf("portForwardingRuleList.%d.portForwardingExternalPort", k+1)] = v.PortForwardingExternalPort
-		}
+		return nil, errors.New("PortForwardingRuleList is required")
+	}
+	for k, v := range reqParams.PortForwardingRuleList {
+		params[fmt.Sprintf("portForwardingRuleList.%d.serverInstanceNo", k+1)] = v.ServerInstanceNo
+		params[fmt.Sprintf("portForwardingRuleList.%d.portForwardingInternalPort", k+1)] = v.PortForwardingInternalPort
+		params[fmt.Sprintf("portForwardingRuleList.%d.portForwardingExternalPort", k+1)] = v.PortForwardingExternalPort
 	}
 	return params, nil
 }
