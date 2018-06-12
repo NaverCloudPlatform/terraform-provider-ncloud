@@ -5,6 +5,7 @@ import (
 	"github.com/NaverCloudPlatform/ncloud-sdk-go/sdk"
 	"github.com/hashicorp/terraform/helper/schema"
 	"regexp"
+	"time"
 )
 
 func dataSourceNcloudAccessControlRules() *schema.Resource {
@@ -23,7 +24,7 @@ func dataSourceNcloudAccessControlRules() *schema.Resource {
 				ForceNew:     true,
 				ValidateFunc: validateRegexp,
 			},
-			"access_control_rule_list": {
+			"access_control_rules": {
 				Type:     schema.TypeList,
 				Computed: true,
 				Elem: &schema.Resource{
@@ -70,6 +71,8 @@ func dataSourceNcloudAccessControlRules() *schema.Resource {
 
 func dataSourceNcloudAccessControlRulesRead(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*NcloudSdk).conn
+
+	d.SetId(time.Now().UTC().String())
 
 	id := d.Get("access_control_group_configuration_no").(string)
 	resp, err := conn.GetAccessControlRuleList(id)
@@ -121,7 +124,7 @@ func accessControlRulesAttributes(d *schema.ResourceData, accessControlRules []s
 	}
 
 	d.SetId(dataResourceIdHash(ids))
-	if err := d.Set("access_control_rule_list", s); err != nil {
+	if err := d.Set("access_control_rules", s); err != nil {
 		return err
 	}
 
