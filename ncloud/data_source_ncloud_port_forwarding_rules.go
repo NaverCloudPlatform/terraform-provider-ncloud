@@ -57,6 +57,10 @@ func dataSourceNcloudPortForwardingRules() *schema.Resource {
 					},
 				},
 			},
+			"output_file": {
+				Type:     schema.TypeString,
+				Optional: true,
+			},
 		},
 	}
 }
