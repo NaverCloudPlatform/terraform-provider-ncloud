@@ -5,12 +5,16 @@ variable "region" {
   default = "KR"
 }
 
+variable "login_key_name" {
+  default = "tf-bstest-key"
+}
+
 variable "server_name" {
-  default = "tf-test-vm"
+  default = "tf-bstest-vm"
 }
 
 variable "block_storage_name" {
-  default = "tf-test-storage"
+  default = "tf-bstest-storage"
 }
 
 variable "server_image_product_code" {
@@ -18,5 +22,9 @@ variable "server_image_product_code" {
 }
 
 variable "server_product_code" {
-  default = "SPSVRSTAND000004" #SPSVRSTAND000056
+  default = "SPSVRSTAND000004"
+}
+
+variable "port_forwarding_external_port" {
+  default = "4088"
 }
