@@ -8,8 +8,8 @@ import (
 	"github.com/hashicorp/terraform/terraform"
 )
 
-func TestAccDataSourceZones_basic(t *testing.T) {
-	//t.Parallel()
+func TestAccDataSourceNcloudZonesBasic(t *testing.T) {
+	t.Parallel()
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:  func() { testAccPreCheck(t) },

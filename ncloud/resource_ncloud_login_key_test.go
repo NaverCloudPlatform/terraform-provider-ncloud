@@ -6,15 +6,13 @@ import (
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/terraform"
-	"log"
 	"testing"
 )
 
-func TestAccNcloudLoginKey_basic(t *testing.T) {
+func TestAccResourceNcloudLoginKeyBasic(t *testing.T) {
 	var loginKey sdk.LoginKey
 	prefix := getTestPrefix()
 	testKeyName := prefix + "-key"
-	log.Printf("[DEBUG] TestKeyName: %s", testKeyName)
 
 	testCheck := func() func(*terraform.State) error {
 		return func(*terraform.State) error {

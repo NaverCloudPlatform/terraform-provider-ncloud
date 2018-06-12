@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"github.com/NaverCloudPlatform/ncloud-sdk-go/sdk"
 	"github.com/hashicorp/terraform/helper/schema"
-	"log"
 	"regexp"
 )
 
@@ -105,6 +104,10 @@ func dataSourceNcloudServerProducts() *schema.Resource {
 					},
 				},
 			},
+			"output_file": {
+				Type:     schema.TypeString,
+				Optional: true,
+			},
 		},
 	}
 }
@@ -145,8 +148,6 @@ func dataSourceNcloudServerProductsRead(d *schema.ResourceData, meta interface{}
 	if len(filteredServerProducts) < 1 {
 		return fmt.Errorf("no results. please change search criteria and try again")
 	}
-
-	log.Printf("[DEBUG] ncloud_server_products - Server Products found: %#v", allServerProducts)
 
 	return serverProductsAttributes(d, filteredServerProducts)
 }

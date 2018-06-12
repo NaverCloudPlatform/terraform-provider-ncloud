@@ -6,7 +6,7 @@ import (
 	"testing"
 )
 
-func TestAccDataSourceRootPassword_basic(t *testing.T) {
+func TestAccDataSourceNcloudRootPasswordBasic(t *testing.T) {
 
 	resourceName := "data.ncloud_root_password.default"
 

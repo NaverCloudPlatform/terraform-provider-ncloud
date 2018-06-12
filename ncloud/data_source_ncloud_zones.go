@@ -2,7 +2,6 @@ package ncloud
 
 import (
 	"fmt"
-	"log"
 	"time"
 
 	"github.com/NaverCloudPlatform/ncloud-sdk-go/common"
@@ -47,6 +46,10 @@ func dataSourceNcloudZones() *schema.Resource {
 					},
 				},
 			},
+			"output_file": {
+				Type:     schema.TypeString,
+				Optional: true,
+			},
 		},
 	}
 }
@@ -54,7 +57,6 @@ func dataSourceNcloudZones() *schema.Resource {
 func dataSourceNcloudZonesRead(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*NcloudSdk).conn
 
-	log.Printf("[DEBUG] Get Zone List")
 	d.SetId(time.Now().UTC().String())
 
 	regionNo, _ := d.GetOk("region_no")
@@ -92,7 +94,6 @@ func zonesAttributes(d *schema.ResourceData, zones []common.Zone) error {
 			"zone_description": zone.ZoneDescription,
 		}
 
-		log.Printf("[DEBUG] ncloud_regions - adding region mapping: %v", mapping)
 		ids = append(ids, string(zone.ZoneNo))
 		s = append(s, mapping)
 	}
