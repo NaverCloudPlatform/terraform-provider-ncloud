@@ -241,6 +241,20 @@ func resourceNcloudNasVolumeDelete(d *schema.ResourceData, meta interface{}) err
 
 func resourceNcloudNasVolumeUpdate(d *schema.ResourceData, meta interface{}) error {
 	log.Println("[DEBUG] resourceNcloudNasVolumeUpdate")
+	conn := meta.(*NcloudSdk).conn
+
+	if d.HasChange("volume_size_gb") {
+		reqParams := new(sdk.RequestChangeNasVolumeSize)
+		reqParams.NasVolumeInstanceNo = d.Id()
+		reqParams.VolumeSize = d.Get("volume_size_gb").(int)
+		resp, err := conn.ChangeNasVolumeSize(reqParams)
+		if err != nil {
+			logErrorResponse("ChangeNasVolumeSize", err, reqParams)
+			return err
+		}
+		logCommonResponse("ChangeNasVolumeSize", reqParams, resp.CommonResponse)
+	}
+
 	return resourceNcloudNasVolumeRead(d, meta)
 }
 

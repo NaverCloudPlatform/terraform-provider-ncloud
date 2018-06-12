@@ -604,3 +604,8 @@ type RequestAddSslCertificate struct {
 	PublicKeyCertificate string
 	CertificateChain     string
 }
+
+type RequestChangeNasVolumeSize struct {
+	NasVolumeInstanceNo string
+	VolumeSize          int
+}

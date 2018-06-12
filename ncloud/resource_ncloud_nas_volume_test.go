@@ -52,6 +52,36 @@ func TestAccResourceNcloudNasVolumeBasic(t *testing.T) {
 	})
 }
 
+func TestAccResourceNcloudNasVolumeResize(t *testing.T) {
+	var before sdk.NasVolumeInstance
+	var after sdk.NasVolumeInstance
+	prefix := getTestPrefix()
+	testVolumeName := prefix + "_vol"
+	log.Printf("[DEBUG] testVolumeName: %s", testVolumeName)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:      func() { testAccPreCheck(t) },
+		IDRefreshName: "ncloud_nas_volume.test",
+		Providers:     testAccProviders,
+		CheckDestroy:  testAccCheckNasVolumeDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccNasVolumeConfig(testVolumeName),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckNasVolumeExists("ncloud_nas_volume.test", &before),
+				),
+			},
+			{
+				Config: testAccNasVolumeResizeConfig(testVolumeName),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckNasVolumeExists("ncloud_nas_volume.test", &after),
+					testAccCheckNasVolumeNotRecreated(t, &before, &after),
+				),
+			},
+		},
+	})
+}
+
 func testAccCheckNasVolumeExists(n string, i *sdk.NasVolumeInstance) resource.TestCheckFunc {
 	return testAccCheckNasVolumeExistsWithProvider(n, i, func() *schema.Provider { return testAccProvider })
 }
@@ -110,11 +140,30 @@ func testAccCheckNasVolumeDestroyWithProvider(s *terraform.State, provider *sche
 	return nil
 }
 
+func testAccCheckNasVolumeNotRecreated(t *testing.T,
+	before, after *sdk.NasVolumeInstance) resource.TestCheckFunc {
+	return func(s *terraform.State) error {
+		if before.NasVolumeInstanceNo != after.NasVolumeInstanceNo {
+			t.Fatalf("Ncloud NasVolumeInstanceNo have changed. Before %s. After %s", before.NasVolumeInstanceNo, after.NasVolumeInstanceNo)
+		}
+		return nil
+	}
+}
+
 func testAccNasVolumeConfig(volumeNamePostfix string) string {
 	return fmt.Sprintf(`
 resource "ncloud_nas_volume" "test" {
 	"volume_name_postfix" = "%s"
 	"volume_size_gb" = "500"
+	"volume_allotment_protocol_type_code" = "NFS"
+}`, volumeNamePostfix)
+}
+
+func testAccNasVolumeResizeConfig(volumeNamePostfix string) string {
+	return fmt.Sprintf(`
+resource "ncloud_nas_volume" "test" {
+	"volume_name_postfix" = "%s"
+	"volume_size_gb" = "600"
 	"volume_allotment_protocol_type_code" = "NFS"
 }`, volumeNamePostfix)
 }
