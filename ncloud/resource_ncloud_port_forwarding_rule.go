@@ -83,19 +83,6 @@ func resourceNcloudPortForwardingRuleCreate(d *schema.ResourceData, meta interfa
 	return resourceNcloudPortForwardingRuleRead(d, meta)
 }
 
-func getPortForwardingConfigurationNo(d *schema.ResourceData, meta interface{}) (string, error) {
-	conn := meta.(*NcloudSdk).conn
-	portForwardingConfigurationNo, ok := d.GetOk("port_forwarding_configuration_no")
-	if !ok {
-		getRuleRes, err := getPortForwardingRuleList(conn)
-		if err != nil {
-			return "", err
-		}
-		portForwardingConfigurationNo = getRuleRes.PortForwardingConfigurationNo
-	}
-	return portForwardingConfigurationNo.(string), nil
-}
-
 func resourceNcloudPortForwardingRuleRead(d *schema.ResourceData, meta interface{}) error {
 	log.Println("[DEBUG] resourceNcloudPortForwardingRuleRead")
 	conn := meta.(*NcloudSdk).conn
@@ -129,17 +116,6 @@ func resourceNcloudPortForwardingRuleExists(d *schema.ResourceData, meta interfa
 	portForwardingExternalPort := d.Get("port_forwarding_external_port").(string)
 
 	return hasPortForwardingRule(conn, portForwardingExternalPort)
-}
-func hasPortForwardingRule(conn *sdk.Conn, portForwardingExternalPort string) (bool, error) {
-	rule, err := getPortForwardingRule(conn, portForwardingExternalPort)
-	if err != nil {
-		return false, err
-	}
-
-	if rule != nil {
-		return true, nil
-	}
-	return false, nil
 }
 
 func resourceNcloudPortForwardingRuleUpdate(d *schema.ResourceData, meta interface{}) error {
@@ -175,6 +151,19 @@ func resourceNcloudPortForwardingRuleDelete(d *schema.ResourceData, meta interfa
 	return nil
 }
 
+func getPortForwardingConfigurationNo(d *schema.ResourceData, meta interface{}) (string, error) {
+	conn := meta.(*NcloudSdk).conn
+	portForwardingConfigurationNo, ok := d.GetOk("port_forwarding_configuration_no")
+	if !ok {
+		getRuleRes, err := getPortForwardingRuleList(conn)
+		if err != nil {
+			return "", err
+		}
+		portForwardingConfigurationNo = getRuleRes.PortForwardingConfigurationNo
+	}
+	return portForwardingConfigurationNo.(string), nil
+}
+
 func getPortForwardingRuleList(conn *sdk.Conn) (*sdk.PortForwardingRuleList, error) {
 	reqParams := &sdk.RequestPortForwardingRuleList{}
 	resp, err := conn.GetPortForwardingRuleList(reqParams)
@@ -198,4 +187,16 @@ func getPortForwardingRule(conn *sdk.Conn, portForwardingExternalPort string) (*
 		}
 	}
 	return nil, fmt.Errorf("resource not found (portForwardingExternalPort) : %s", portForwardingExternalPort)
+}
+
+func hasPortForwardingRule(conn *sdk.Conn, portForwardingExternalPort string) (bool, error) {
+	rule, err := getPortForwardingRule(conn, portForwardingExternalPort)
+	if err != nil {
+		return false, err
+	}
+
+	if rule != nil {
+		return true, nil
+	}
+	return false, nil
 }

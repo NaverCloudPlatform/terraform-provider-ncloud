@@ -125,7 +125,7 @@ func resourceNcloudBlockStorageCreate(d *schema.ResourceData, meta interface{}) 
 	blockStorageInstance := &resp.BlockStorageInstance[0]
 	d.SetId(blockStorageInstance.BlockStorageInstanceNo)
 
-	if err := waitForBlockStorageInstance(conn, blockStorageInstance.BlockStorageInstanceNo, "ATTAC", DefaultCreateTimeout); err != nil {
+	if err := waitForBlockStorageInstance(conn, blockStorageInstance.BlockStorageInstanceNo, "ATTAC"); err != nil {
 		return err
 	}
 	return resourceNcloudBlockStorageRead(d, meta)
@@ -244,7 +244,7 @@ func deleteBlockStorage(conn *sdk.Conn, blockStorageIds []string) error {
 		}
 		logCommonResponse("DeleteBlockStorageInstances", blockStorageIds, commonResponse)
 
-		if err := waitForBlockStorageInstance(conn, blockStorageId, "CREAT", DefaultTimeout); err != nil {
+		if err := waitForBlockStorageInstance(conn, blockStorageId, "CREAT"); err != nil {
 			return err
 		}
 	}
@@ -266,23 +266,32 @@ func deleteBlockStorageByServerInstanceNo(conn *sdk.Conn, serverInstanceNo strin
 	return deleteBlockStorage(conn, ids)
 }
 
-func waitForBlockStorageInstance(conn *sdk.Conn, id string, status string, timeout int) error {
-	if timeout <= 0 {
-		timeout = DefaultWaitForInterval
+func waitForBlockStorageInstance(conn *sdk.Conn, id string, status string) error {
+
+	c1 := make(chan error, 1)
+
+	go func() {
+		for {
+			instance, err := getBlockStorageInstance(conn, id)
+
+			if err != nil {
+				c1 <- err
+				return
+			}
+			if instance == nil || instance.BlockStorageInstanceStatus.Code == status {
+				c1 <- nil
+				return
+			}
+			log.Printf("[DEBUG] Wait to block storage instance (%s)", id)
+			time.Sleep(time.Second * 1)
+		}
+	}()
+
+	select {
+	case res := <-c1:
+		return res
+	case <-time.After(time.Second * DefaultTimeout):
+		return fmt.Errorf("TIMEOUT : Wait to block storage instance  (%s)", id)
+
 	}
-	for {
-		instance, err := getBlockStorageInstance(conn, id)
-		if err != nil {
-			return err
-		}
-		if instance == nil || instance.BlockStorageInstanceStatus.Code == status {
-			break
-		}
-		timeout = timeout - DefaultWaitForInterval
-		if timeout <= 0 {
-			return fmt.Errorf("error: Timeout: %d", timeout)
-		}
-		time.Sleep(DefaultWaitForInterval * time.Second)
-	}
-	return nil
 }

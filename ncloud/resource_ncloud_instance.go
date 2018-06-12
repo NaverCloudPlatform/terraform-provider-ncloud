@@ -240,7 +240,7 @@ func resourceNcloudInstanceCreate(d *schema.ResourceData, meta interface{}) erro
 	serverInstance := &resp.ServerInstanceList[0]
 	d.SetId(serverInstance.ServerInstanceNo)
 
-	if err := waitForInstance(conn, serverInstance.ServerInstanceNo, "RUN", DefaultCreateTimeout); err != nil {
+	if err := waitForServerInstance(conn, serverInstance.ServerInstanceNo, "RUN"); err != nil {
 		return err
 	}
 	return resourceNcloudInstanceRead(d, meta)
@@ -329,7 +329,7 @@ func resourceNcloudInstanceDelete(d *schema.ResourceData, meta interface{}) erro
 		if err := stopServerInstance(conn, d.Id()); err != nil {
 			return err
 		}
-		if err := waitForInstance(conn, serverInstance.ServerInstanceNo, "NSTOP", DefaultStopTimeout); err != nil {
+		if err := waitForServerInstance(conn, serverInstance.ServerInstanceNo, "NSTOP"); err != nil {
 			return err
 		}
 	}
@@ -438,26 +438,32 @@ func terminateServerInstance(conn *sdk.Conn, serverInstanceNo string) error {
 	return nil
 }
 
-func waitForInstance(conn *sdk.Conn, instanceId string, status string, timeout int) error {
-	if timeout <= 0 {
-		timeout = DefaultWaitForInterval
+func waitForServerInstance(conn *sdk.Conn, instanceId string, status string) error {
+
+	c1 := make(chan error, 1)
+
+	go func() {
+		for {
+			instance, err := getServerInstance(conn, instanceId)
+
+			if err != nil {
+				c1 <- err
+				return
+			}
+			if instance == nil || instance.ServerInstanceStatus.Code == status {
+				c1 <- nil
+				return
+			}
+			log.Printf("[DEBUG] Wait to server instance (%s)", instanceId)
+			time.Sleep(time.Second * 1)
+		}
+	}()
+
+	select {
+	case res := <-c1:
+		return res
+	case <-time.After(time.Second * DefaultTimeout):
+		return fmt.Errorf("TIMEOUT : Wait to server instance  (%s)", instanceId)
 	}
-	for {
-		instance, err := getServerInstance(conn, instanceId)
-		if err != nil {
-			return err
-		}
-		if instance == nil || instance.ServerInstanceStatus.Code == status {
-			//TODO
-			//Sleep one more time for timing issues
-			//time.Sleep(DefaultWaitForInterval * time.Second)
-			break
-		}
-		timeout = timeout - DefaultWaitForInterval
-		if timeout <= 0 {
-			return fmt.Errorf("error: Timeout: %d", timeout)
-		}
-		time.Sleep(DefaultWaitForInterval * time.Second)
-	}
-	return nil
+
 }
