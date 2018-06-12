@@ -146,7 +146,7 @@ func parseRegionNoParameter(conn *sdk.Conn, d *schema.ResourceData) string {
 		return paramRegionNo.(string)
 	} else {
 		// provider region
-		if regionCode := os.Getenv("NCLOUD_REGION_CODE"); regionCode != "" {
+		if regionCode := os.Getenv("NCLOUD_REGION"); regionCode != "" {
 			regionNo := regionCache[regionCode]
 			if regionNo != "" {
 				return regionNo

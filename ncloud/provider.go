@@ -57,7 +57,10 @@ func providerConfigure(d *schema.ResourceData) (interface{}, error) {
 		SecretKey: d.Get("secret_key").(string),
 	}
 
-	os.Setenv("NCLOUD_REGION_CODE", d.Get("region").(string))
+	if region, ok := d.GetOk("region"); ok && os.Getenv("NCLOUD_REGION") == "" {
+		os.Setenv("NCLOUD_REGION", region.(string))
+	}
+
 	sdk, err := config.Client()
 	if err != nil {
 		return nil, err
