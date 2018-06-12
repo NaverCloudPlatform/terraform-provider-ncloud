@@ -112,6 +112,10 @@ func resourceNcloudNasVolume() *schema.Resource {
 				Type:     schema.TypeInt,
 				Computed: true,
 			},
+			"snapshot_volume_use_size": {
+				Type:     schema.TypeInt,
+				Computed: true,
+			},
 			"snapshot_volume_use_ratio": {
 				Type:     schema.TypeFloat,
 				Computed: true,
