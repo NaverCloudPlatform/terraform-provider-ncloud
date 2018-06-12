@@ -6,5 +6,5 @@ provider "ncloud" {
 
 data "ncloud_server_products" "all" {
   "server_image_product_code" = "SPSW0LINUX000032"
-  "output_file" = "server_products.txt"
+  "output_file" = "server_products.json"
 }
