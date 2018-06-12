@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"github.com/hashicorp/terraform/helper/hashcode"
 	"io/ioutil"
+	"log"
 	"os"
 )
 
@@ -21,9 +22,9 @@ func dataResourceIdHash(ids []string) string {
 }
 
 func writeToFile(filePath string, data interface{}) {
-	err := os.Remove(filePath)
-	if err != nil {
-		return
+	log.Printf("[INFO] WriteToFile FilaPath: %s", filePath)
+	if err := os.Remove(filePath); err != nil {
+		// ignore
 	}
 
 	if bs, err := json.MarshalIndent(data, "", "\t"); err == nil {
