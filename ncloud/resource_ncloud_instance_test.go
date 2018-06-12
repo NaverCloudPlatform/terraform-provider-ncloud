@@ -7,7 +7,6 @@ import (
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/terraform"
-	"log"
 	"testing"
 )
 
@@ -86,7 +85,6 @@ func testAccCheckInstanceExists(n string, i *sdk.ServerInstance) resource.TestCh
 }
 
 func testAccCheckInstanceExistsWithProvider(n string, i *sdk.ServerInstance, providerF func() *schema.Provider) resource.TestCheckFunc {
-	log.Printf("[DEBUG] testAccCheckInstanceExistsWithProvider")
 	return func(s *terraform.State) error {
 		rs, ok := s.RootModule().Resources[n]
 		if !ok {
@@ -128,7 +126,6 @@ func testAccCheckInstanceDestroy(s *terraform.State) error {
 }
 
 func testAccCheckInstanceDestroyWithProvider(s *terraform.State, provider *schema.Provider) error {
-	log.Printf("[DEBUG] testAccCheckInstanceDestroyWithProvider")
 	conn := provider.Meta().(*NcloudSdk).conn
 
 	for _, rs := range s.RootModule().Resources {

@@ -168,7 +168,6 @@ func resourceNcloudNasVolume() *schema.Resource {
 }
 
 func resourceNcloudNasVolumeCreate(d *schema.ResourceData, meta interface{}) error {
-	log.Println("[DEBUG] resourceNcloudNasVolumeCreate")
 	conn := meta.(*NcloudSdk).conn
 
 	reqParams := buildCreateNasVolumeInstanceParams(d)
@@ -182,14 +181,13 @@ func resourceNcloudNasVolumeCreate(d *schema.ResourceData, meta interface{}) err
 	nasVolumeInstance := &resp.NasVolumeInstanceList[0]
 	d.SetId(nasVolumeInstance.NasVolumeInstanceNo)
 
-	if err := waitForNasVolumeInstance(conn, nasVolumeInstance.NasVolumeInstanceNo, "CREAT", DefaultCreateTimeout); err != nil {
+	if err := waitForNasVolumeInstance(conn, nasVolumeInstance.NasVolumeInstanceNo, "CREAT"); err != nil {
 		return err
 	}
 	return resourceNcloudNasVolumeRead(d, meta)
 }
 
 func resourceNcloudNasVolumeRead(d *schema.ResourceData, meta interface{}) error {
-	log.Println("[DEBUG] resourceNcloudNasVolumeRead")
 	conn := meta.(*NcloudSdk).conn
 
 	nasVolume, err := getNasVolumeInstance(conn, d.Id())
@@ -234,13 +232,11 @@ func resourceNcloudNasVolumeRead(d *schema.ResourceData, meta interface{}) error
 }
 
 func resourceNcloudNasVolumeDelete(d *schema.ResourceData, meta interface{}) error {
-	log.Println("[DEBUG] resourceNcloudNasVolumeDelete")
 	conn := meta.(*NcloudSdk).conn
 	return deleteNasVolumeInstance(conn, d.Id())
 }
 
 func resourceNcloudNasVolumeUpdate(d *schema.ResourceData, meta interface{}) error {
-	log.Println("[DEBUG] resourceNcloudNasVolumeUpdate")
 	conn := meta.(*NcloudSdk).conn
 
 	if d.HasChange("volume_size_gb") {
@@ -285,7 +281,6 @@ func getNasVolumeInstance(conn *sdk.Conn, nasVolumeInstanceNo string) (*sdk.NasV
 
 	for _, inst := range resp.NasVolumeInstanceList {
 		if nasVolumeInstanceNo == inst.NasVolumeInstanceNo {
-			log.Printf("[DEBUG] %s NasVolumeInstanceNo: %s, VolumeName: %s", "GetNasVolumeInstanceList", inst.NasVolumeInstanceNo, inst.VolumeName)
 			return &inst, nil
 		}
 	}
@@ -304,30 +299,38 @@ func deleteNasVolumeInstance(conn *sdk.Conn, nasVolumeInstanceNo string) error {
 	}
 	logCommonResponse("DeleteNasVolumeInstance", nasVolumeInstanceNo, commonResponse)
 
-	if err := waitForNasVolumeInstance(conn, nasVolumeInstanceNo, "TERMT", DefaultTimeout); err != nil {
+	if err := waitForNasVolumeInstance(conn, nasVolumeInstanceNo, "TERMT"); err != nil {
 		return err
 	}
 
 	return nil
 }
 
-func waitForNasVolumeInstance(conn *sdk.Conn, id string, status string, timeout int) error {
-	if timeout <= 0 {
-		timeout = DefaultWaitForInterval
+func waitForNasVolumeInstance(conn *sdk.Conn, id string, status string) error {
+
+	c1 := make(chan error, 1)
+
+	go func() {
+		for {
+			instance, err := getNasVolumeInstance(conn, id)
+
+			if err != nil {
+				c1 <- err
+				return
+			}
+			if instance == nil || instance.NasVolumeInstanceStatus.Code == status {
+				c1 <- nil
+				return
+			}
+			log.Printf("[DEBUG] Wait to nas volume instance (%s)", id)
+			time.Sleep(time.Second * 1)
+		}
+	}()
+
+	select {
+	case res := <-c1:
+		return res
+	case <-time.After(time.Second * DefaultTimeout):
+		return fmt.Errorf("TIMEOUT : Wait to nas volume instance (%s)", id)
 	}
-	for {
-		instance, err := getNasVolumeInstance(conn, id)
-		if err != nil {
-			return err
-		}
-		if instance == nil || instance.NasVolumeInstanceStatus.Code == status {
-			break
-		}
-		timeout = timeout - DefaultWaitForInterval
-		if timeout <= 0 {
-			return fmt.Errorf("error: Timeout: %d", timeout)
-		}
-		time.Sleep(DefaultWaitForInterval * time.Second)
-	}
-	return nil
 }

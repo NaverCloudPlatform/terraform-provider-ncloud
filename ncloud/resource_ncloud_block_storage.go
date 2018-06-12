@@ -5,7 +5,6 @@ import (
 	"github.com/NaverCloudPlatform/ncloud-sdk-go/common"
 	"github.com/NaverCloudPlatform/ncloud-sdk-go/sdk"
 	"github.com/hashicorp/terraform/helper/schema"
-	"log"
 	"time"
 )
 
@@ -111,7 +110,6 @@ func resourceNcloudBlockStorage() *schema.Resource {
 }
 
 func resourceNcloudBlockStorageCreate(d *schema.ResourceData, meta interface{}) error {
-	log.Println("[DEBUG] resourceNcloudBlockStorageCreate")
 	conn := meta.(*NcloudSdk).conn
 
 	reqParams := buildRequestBlockStorageInstance(d)
@@ -125,14 +123,13 @@ func resourceNcloudBlockStorageCreate(d *schema.ResourceData, meta interface{}) 
 	blockStorageInstance := &resp.BlockStorageInstance[0]
 	d.SetId(blockStorageInstance.BlockStorageInstanceNo)
 
-	if err := waitForBlockStorageInstance(conn, blockStorageInstance.BlockStorageInstanceNo, "ATTAC", DefaultCreateTimeout); err != nil {
+	if err := waitForBlockStorageInstance(conn, blockStorageInstance.BlockStorageInstanceNo, "ATTAC"); err != nil {
 		return err
 	}
 	return resourceNcloudBlockStorageRead(d, meta)
 }
 
 func resourceNcloudBlockStorageRead(d *schema.ResourceData, meta interface{}) error {
-	log.Println("[DEBUG] resourceNcloudBlockStorageRead")
 	conn := meta.(*NcloudSdk).conn
 	storage, err := getBlockStorageInstance(conn, d.Id())
 	if err != nil {
@@ -178,7 +175,6 @@ func resourceNcloudBlockStorageRead(d *schema.ResourceData, meta interface{}) er
 }
 
 func resourceNcloudBlockStorageDelete(d *schema.ResourceData, meta interface{}) error {
-	log.Println("[DEBUG] resourceNcloudBlockStorageDelete")
 	conn := meta.(*NcloudSdk).conn
 	blockStorageInstanceNo := d.Get("block_storage_instance_no").(string)
 	return deleteBlockStorage(conn, []string{blockStorageInstanceNo})
@@ -222,10 +218,8 @@ func getBlockStorageInstance(conn *sdk.Conn, blockStorageInstanceNo string) (*sd
 	}
 	logCommonResponse("GetBlockStorageInstance", reqParams, resp.CommonResponse)
 
-	log.Printf("[DEBUG] GetBlockStorageInstance TotalRows: %d, BlockStorageInstance: %#v", resp.TotalRows, resp.BlockStorageInstance)
 	if len(resp.BlockStorageInstance) > 0 {
 		inst := &resp.BlockStorageInstance[0]
-		log.Printf("[DEBUG] %s BlockStorageName: %s, Status: %s", "GetBlockStorageInstance", inst.BlockStorageName, inst.BlockStorageInstanceStatusName)
 		return inst, nil
 	}
 	return nil, nil
@@ -244,7 +238,7 @@ func deleteBlockStorage(conn *sdk.Conn, blockStorageIds []string) error {
 		}
 		logCommonResponse("DeleteBlockStorageInstances", blockStorageIds, commonResponse)
 
-		if err := waitForBlockStorageInstance(conn, blockStorageId, "CREAT", DefaultTimeout); err != nil {
+		if err := waitForBlockStorageInstance(conn, blockStorageId, "CREAT"); err != nil {
 			return err
 		}
 	}
@@ -259,30 +253,37 @@ func deleteBlockStorageByServerInstanceNo(conn *sdk.Conn, serverInstanceNo strin
 	var ids []string
 	for _, bs := range blockStorageInstanceList {
 		if bs.BlockStorageType.Code != "BASIC" { // ignore basic storage
-			log.Printf("[DEBUG] deleteBlockStorageByServerInstanceNo blockStorageInstance: %#v", bs)
 			ids = append(ids, bs.BlockStorageInstanceNo)
 		}
 	}
 	return deleteBlockStorage(conn, ids)
 }
 
-func waitForBlockStorageInstance(conn *sdk.Conn, id string, status string, timeout int) error {
-	if timeout <= 0 {
-		timeout = DefaultWaitForInterval
+func waitForBlockStorageInstance(conn *sdk.Conn, id string, status string) error {
+
+	c1 := make(chan error, 1)
+
+	go func() {
+		for {
+			instance, err := getBlockStorageInstance(conn, id)
+
+			if err != nil {
+				c1 <- err
+				return
+			}
+			if instance == nil || instance.BlockStorageInstanceStatus.Code == status {
+				c1 <- nil
+				return
+			}
+			time.Sleep(time.Second * 1)
+		}
+	}()
+
+	select {
+	case res := <-c1:
+		return res
+	case <-time.After(time.Second * DefaultTimeout):
+		return fmt.Errorf("TIMEOUT : Wait to block storage instance  (%s)", id)
+
 	}
-	for {
-		instance, err := getBlockStorageInstance(conn, id)
-		if err != nil {
-			return err
-		}
-		if instance == nil || instance.BlockStorageInstanceStatus.Code == status {
-			break
-		}
-		timeout = timeout - DefaultWaitForInterval
-		if timeout <= 0 {
-			return fmt.Errorf("error: Timeout: %d", timeout)
-		}
-		time.Sleep(DefaultWaitForInterval * time.Second)
-	}
-	return nil
 }

@@ -57,7 +57,6 @@ func resourceNcloudLoginKey() *schema.Resource {
 }
 
 func resourceNcloudLoginKeyRead(d *schema.ResourceData, meta interface{}) error {
-	log.Println("[DEBUG] resourceNcloudLoginKeyRead")
 	conn := meta.(*NcloudSdk).conn
 
 	keyName := d.Get("key_name").(string)
@@ -76,7 +75,6 @@ func resourceNcloudLoginKeyRead(d *schema.ResourceData, meta interface{}) error 
 }
 
 func resourceNcloudLoginKeyCreate(d *schema.ResourceData, meta interface{}) error {
-	log.Println("[DEBUG] resourceNcloudLoginKeyCreate")
 	conn := meta.(*NcloudSdk).conn
 
 	keyName := d.Get("key_name").(string)
@@ -95,36 +93,13 @@ func resourceNcloudLoginKeyCreate(d *schema.ResourceData, meta interface{}) erro
 }
 
 func resourceNcloudLoginKeyDelete(d *schema.ResourceData, meta interface{}) error {
-	log.Println("[DEBUG] resourceNcloudLoginKeyDelete")
 	conn := meta.(*NcloudSdk).conn
 
 	keyName := d.Get("key_name").(string)
-	return waitForDeleteLoginKey(conn, keyName, DefaultStopTimeout)
-}
-
-func waitForDeleteLoginKey(conn *sdk.Conn, keyName string, timeout int) error {
-	if timeout <= 0 {
-		timeout = DefaultWaitForInterval
-	}
-	for {
-		resp, err := conn.DeleteLoginKey(keyName)
-		if err == nil || resp.ReturnCode == 200 {
-			break
-		}
-		// resp.ReturnCode == 10407
-		logCommonResponse("DeleteLoginKey", keyName, *resp)
-
-		timeout = timeout - DefaultWaitForInterval
-		if timeout <= 0 {
-			return fmt.Errorf("error: Timeout: %d", timeout)
-		}
-		time.Sleep(DefaultWaitForInterval * time.Second)
-	}
-	return nil
+	return waitForDeleteLoginKey(conn, keyName)
 }
 
 func getLoginKey(conn *sdk.Conn, keyName string) (*sdk.LoginKey, error) {
-	log.Println("[DEBUG] getLoginKey")
 	reqParams := &sdk.RequestGetLoginKeyList{
 		KeyName: keyName,
 	}
@@ -140,4 +115,32 @@ func getLoginKey(conn *sdk.Conn, keyName string) (*sdk.LoginKey, error) {
 	}
 
 	return nil, err
+}
+
+func waitForDeleteLoginKey(conn *sdk.Conn, keyName string) error {
+
+	c1 := make(chan error, 1)
+
+	go func() {
+		for {
+			resp, err := conn.DeleteLoginKey(keyName)
+
+			if err == nil || resp.ReturnCode == 200 {
+				c1 <- nil
+				return
+			}
+			// ignore resp.ReturnCode == 10407
+			logCommonResponse("DeleteLoginKey", keyName, *resp)
+
+			log.Printf("[DEBUG] Wait to delete login key (%s)", keyName)
+			time.Sleep(time.Second * 1)
+		}
+	}()
+
+	select {
+	case res := <-c1:
+		return res
+	case <-time.After(time.Second * DefaultTimeout):
+		return fmt.Errorf("TIMEOUT : Wait to delete login key (%s)", keyName)
+	}
 }

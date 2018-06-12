@@ -2,7 +2,6 @@ package ncloud
 
 import (
 	"fmt"
-	"log"
 	"testing"
 
 	"github.com/NaverCloudPlatform/ncloud-sdk-go/sdk"
@@ -15,7 +14,6 @@ func TestAccNcloudLoadBalancer_basic(t *testing.T) {
 	var loadBalancerInstance sdk.LoadBalancerInstance
 	prefix := getTestPrefix()
 	testLoadBalancerName := prefix + "_lb"
-	log.Printf("[DEBUG] testLoadBalancerName: %s", testLoadBalancerName)
 
 	testCheck := func() func(*terraform.State) error {
 		return func(*terraform.State) error {
@@ -93,7 +91,6 @@ func testAccCheckLoadBalancerDestroyWithProvider(s *terraform.State, provider *s
 			continue
 		}
 		loadBalancerInstance, err := getLoadBalancerInstance(conn, rs.Primary.ID)
-		log.Printf("[DEBUG] testAccCheckLoadBalancerDestroyWithProvider loadBalancerInstance: %#v", loadBalancerInstance)
 		if loadBalancerInstance == nil {
 			return nil
 		}

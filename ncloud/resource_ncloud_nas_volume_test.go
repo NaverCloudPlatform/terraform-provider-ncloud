@@ -6,7 +6,6 @@ import (
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/terraform"
-	"log"
 	"strings"
 	"testing"
 )
@@ -15,7 +14,6 @@ func TestAccResourceNcloudNasVolumeBasic(t *testing.T) {
 	var volumeInstance sdk.NasVolumeInstance
 	prefix := getTestPrefix()
 	testVolumeName := prefix + "_vol"
-	log.Printf("[DEBUG] testVolumeName: %s", testVolumeName)
 
 	testCheck := func() func(*terraform.State) error {
 		return func(*terraform.State) error {
@@ -57,7 +55,6 @@ func TestAccResourceNcloudNasVolumeResize(t *testing.T) {
 	var after sdk.NasVolumeInstance
 	prefix := getTestPrefix()
 	testVolumeName := prefix + "_vol"
-	log.Printf("[DEBUG] testVolumeName: %s", testVolumeName)
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:      func() { testAccPreCheck(t) },
@@ -125,7 +122,6 @@ func testAccCheckNasVolumeDestroyWithProvider(s *terraform.State, provider *sche
 			continue
 		}
 		volumeInstance, err := getNasVolumeInstance(conn, rs.Primary.ID)
-		log.Printf("[DEBUG] testAccCheckNasVolumeDestroyWithProvider volumeInstance: %#v", volumeInstance)
 		if volumeInstance == nil {
 			return nil
 		}
