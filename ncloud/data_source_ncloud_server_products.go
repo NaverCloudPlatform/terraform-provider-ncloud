@@ -119,7 +119,7 @@ func dataSourceNcloudServerProductsRead(d *schema.ResourceData, meta interface{}
 		ExclusionProductCode:   d.Get("exclusion_product_code").(string),
 		ProductCode:            d.Get("product_code").(string),
 		ServerImageProductCode: d.Get("server_image_product_code").(string),
-		RegionNo:               d.Get("region_no").(string),
+		RegionNo:               parseRegionNoParameter(conn, d),
 		//ZoneNo:                 d.Get("zone_no").(string),
 		//InternetLineTypeCode:   d.Get("internet_line_type_code").(string),
 	}

@@ -142,7 +142,7 @@ func resourceNcloudLoadBalancer() *schema.Resource {
 func resourceNcloudLoadBalancerCreate(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*NcloudSdk).conn
 
-	reqParams := buildCreateLoadBalancerInstanceParams(d)
+	reqParams := buildCreateLoadBalancerInstanceParams(conn, d)
 	resp, err := conn.CreateLoadBalancerInstance(reqParams)
 	if err != nil {
 		logErrorResponse("CreateLoadBalancerInstance", err, reqParams)
@@ -253,7 +253,7 @@ func resourceNcloudLoadBalancerUpdate(d *schema.ResourceData, meta interface{}) 
 	return resourceNcloudLoadBalancerRead(d, meta)
 }
 
-func buildCreateLoadBalancerInstanceParams(d *schema.ResourceData) *sdk.RequestCreateLoadBalancerInstance {
+func buildCreateLoadBalancerInstanceParams(conn *sdk.Conn, d *schema.ResourceData) *sdk.RequestCreateLoadBalancerInstance {
 	lbRuleList := make([]sdk.RequestLoadBalancerRule, 0, len(d.Get("load_balancer_rule_list").([]interface{})))
 
 	for _, v := range d.Get("load_balancer_rule_list").([]interface{}) {
@@ -285,7 +285,7 @@ func buildCreateLoadBalancerInstanceParams(d *schema.ResourceData) *sdk.RequestC
 		ServerInstanceNoList:          StringList(d.Get("server_instance_no_list").([]interface{})),
 		InternetLineTypeCode:          d.Get("internet_line_type_code").(string),
 		NetworkUsageTypeCode:          d.Get("network_usage_type_code").(string),
-		RegionNo:                      d.Get("region_no").(string),
+		RegionNo:                      parseRegionNoParameter(conn, d),
 	}
 	return reqParams
 }

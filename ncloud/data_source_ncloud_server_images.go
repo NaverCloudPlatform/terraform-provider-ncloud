@@ -112,7 +112,7 @@ func dataSourceNcloudServerImagesRead(d *schema.ResourceData, meta interface{}) 
 		ExclusionProductCode: d.Get("exclusion_product_code").(string),
 		ProductCode:          d.Get("product_code").(string),
 		PlatformTypeCodeList: StringList(d.Get("platform_type_code_list").([]interface{})),
-		RegionNo:             d.Get("region_no").(string),
+		RegionNo:             parseRegionNoParameter(conn, d),
 	}
 
 	resp, err := conn.GetServerImageProductList(reqParams)

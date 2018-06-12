@@ -3,7 +3,9 @@ package ncloud
 import (
 	"fmt"
 	"github.com/NaverCloudPlatform/ncloud-sdk-go/common"
+	"github.com/NaverCloudPlatform/ncloud-sdk-go/sdk"
 	"github.com/hashicorp/terraform/helper/schema"
+	"os"
 	"time"
 )
 
@@ -46,38 +48,30 @@ func dataSourceNcloudRegions() *schema.Resource {
 
 func dataSourceNcloudRegionsRead(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*NcloudSdk).conn
-
 	d.SetId(time.Now().UTC().String())
 
-	resp, err := conn.GetRegionList()
+	regionList, err := getRegions(conn)
 	if err != nil {
 		return err
 	}
 
-	if resp == nil {
-		return fmt.Errorf("no matching regions found")
-	}
-
 	code, codeOk := d.GetOk("code")
 
-	var filterRegions []common.Region
-
-	for _, region := range resp.RegionList {
-		if codeOk {
-			if code == region.RegionCode {
-				filterRegions = append(filterRegions, region)
-				break
-			}
-			continue
+	var filteredRegions []common.Region
+	if codeOk {
+		if filtered, err := getRegionByCode(conn, code.(string)); err != nil {
+			filteredRegions = []common.Region{*filtered}
+			return err
 		}
-		filterRegions = append(filterRegions, region)
+	} else {
+		filteredRegions = regionList
 	}
 
-	if len(filterRegions) < 1 {
+	if len(filteredRegions) < 1 {
 		return fmt.Errorf("no results. please change search criteria and try again")
 	}
 
-	return regionsAttributes(d, filterRegions)
+	return regionsAttributes(d, filteredRegions)
 }
 
 func regionsAttributes(d *schema.ResourceData, regions []common.Region) error {
@@ -106,4 +100,62 @@ func regionsAttributes(d *schema.ResourceData, regions []common.Region) error {
 	}
 
 	return nil
+}
+
+func getRegions(conn *sdk.Conn) ([]common.Region, error) {
+	resp, err := conn.GetRegionList()
+	if err != nil {
+		return nil, err
+	}
+
+	if resp == nil {
+		return nil, fmt.Errorf("no matching regions found")
+	}
+
+	return resp.RegionList, nil
+}
+
+func getRegionByCode(conn *sdk.Conn, code string) (*common.Region, error) {
+	regionList, err := getRegions(conn)
+	if err != nil {
+		return nil, err
+	}
+
+	var filteredRegion common.Region
+	for _, region := range regionList {
+		if code == region.RegionCode {
+			filteredRegion = region
+			break
+		}
+	}
+	return &filteredRegion, nil
+}
+
+func getRegionNoByCode(conn *sdk.Conn, name string) string {
+	region, err := getRegionByCode(conn, name)
+	if err != nil {
+		return ""
+	}
+	return region.RegionNo
+}
+
+var regionCache = make(map[string]string)
+
+func parseRegionNoParameter(conn *sdk.Conn, d *schema.ResourceData) string {
+	if paramRegionNo, regionNoOk := d.GetOk("region_no"); regionNoOk {
+		return paramRegionNo.(string)
+	} else {
+		// provider region
+		if regionCode := os.Getenv("NCLOUD_REGION_CODE"); regionCode != "" {
+			regionNo := regionCache[regionCode]
+			if regionNo != "" {
+				return regionNo
+			}
+			regionNo = getRegionNoByCode(conn, regionCode)
+			if regionNo != "" {
+				regionCache[regionCode] = regionNo
+			}
+		}
+	}
+	return ""
 }

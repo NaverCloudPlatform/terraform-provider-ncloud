@@ -87,7 +87,7 @@ func resourceNcloudPublicIPInstance() *schema.Resource {
 func resourceNcloudPublicIPCreate(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*NcloudSdk).conn
 
-	reqParams := buildCreatePublicIPInstanceReqParams(d)
+	reqParams := buildCreatePublicIPInstanceReqParams(conn, d)
 	resp, err := conn.CreatePublicIPInstance(reqParams)
 	logCommonResponse("Create Public IP Instance", reqParams, resp.CommonResponse)
 
@@ -169,12 +169,12 @@ func resourceNcloudPublicIPUpdate(d *schema.ResourceData, meta interface{}) erro
 	return resourceNcloudPublicIPRead(d, meta)
 }
 
-func buildCreatePublicIPInstanceReqParams(d *schema.ResourceData) *sdk.RequestCreatePublicIPInstance {
+func buildCreatePublicIPInstanceReqParams(conn *sdk.Conn, d *schema.ResourceData) *sdk.RequestCreatePublicIPInstance {
 	reqParams := &sdk.RequestCreatePublicIPInstance{
 		ServerInstanceNo:     d.Get("server_instance_no").(string),
 		PublicIPDescription:  d.Get("public_ip_description").(string),
 		InternetLineTypeCode: d.Get("internet_line_type_code").(string),
-		RegionNo:             d.Get("region_no").(string),
+		RegionNo:             parseRegionNoParameter(conn, d),
 		ZoneNo:               d.Get("zone_no").(string),
 	}
 	return reqParams
