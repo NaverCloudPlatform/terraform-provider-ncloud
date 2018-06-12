@@ -140,7 +140,6 @@ func resourceNcloudLoadBalancer() *schema.Resource {
 }
 
 func resourceNcloudLoadBalancerCreate(d *schema.ResourceData, meta interface{}) error {
-	log.Println("[DEBUG] resourceNcloudLoadBalancerCreate")
 	conn := meta.(*NcloudSdk).conn
 
 	reqParams := buildCreateLoadBalancerInstanceParams(d)
@@ -161,7 +160,6 @@ func resourceNcloudLoadBalancerCreate(d *schema.ResourceData, meta interface{}) 
 }
 
 func resourceNcloudLoadBalancerRead(d *schema.ResourceData, meta interface{}) error {
-	log.Println("[DEBUG] resourceNcloudLoadBalancerRead")
 	conn := meta.(*NcloudSdk).conn
 
 	lb, err := getLoadBalancerInstance(conn, d.Id())
@@ -247,13 +245,11 @@ func getLoadBalancedServerInstanceList(loadBalancedServerInstanceList []sdk.Load
 }
 
 func resourceNcloudLoadBalancerDelete(d *schema.ResourceData, meta interface{}) error {
-	log.Println("[DEBUG] resourceNcloudLoadBalancerDelete")
 	conn := meta.(*NcloudSdk).conn
 	return deleteLoadBalancerInstance(conn, d.Id())
 }
 
 func resourceNcloudLoadBalancerUpdate(d *schema.ResourceData, meta interface{}) error {
-	log.Println("[DEBUG] resourceNcloudLoadBalancerUpdate")
 	return resourceNcloudLoadBalancerRead(d, meta)
 }
 
@@ -307,7 +303,6 @@ func getLoadBalancerInstance(conn *sdk.Conn, LoadBalancerInstanceNo string) (*sd
 
 	for _, inst := range resp.LoadBalancerInstanceList {
 		if LoadBalancerInstanceNo == inst.LoadBalancerInstanceNo {
-			log.Printf("[DEBUG] %s LoadBalancerInstanceNo: %s,", "GetLoadBalancerInstanceList", inst.LoadBalancerInstanceNo)
 			return &inst, nil
 		}
 	}

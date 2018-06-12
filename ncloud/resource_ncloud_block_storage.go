@@ -5,7 +5,6 @@ import (
 	"github.com/NaverCloudPlatform/ncloud-sdk-go/common"
 	"github.com/NaverCloudPlatform/ncloud-sdk-go/sdk"
 	"github.com/hashicorp/terraform/helper/schema"
-	"log"
 	"time"
 )
 
@@ -111,7 +110,6 @@ func resourceNcloudBlockStorage() *schema.Resource {
 }
 
 func resourceNcloudBlockStorageCreate(d *schema.ResourceData, meta interface{}) error {
-	log.Println("[DEBUG] resourceNcloudBlockStorageCreate")
 	conn := meta.(*NcloudSdk).conn
 
 	reqParams := buildRequestBlockStorageInstance(d)
@@ -132,7 +130,6 @@ func resourceNcloudBlockStorageCreate(d *schema.ResourceData, meta interface{}) 
 }
 
 func resourceNcloudBlockStorageRead(d *schema.ResourceData, meta interface{}) error {
-	log.Println("[DEBUG] resourceNcloudBlockStorageRead")
 	conn := meta.(*NcloudSdk).conn
 	storage, err := getBlockStorageInstance(conn, d.Id())
 	if err != nil {
@@ -178,7 +175,6 @@ func resourceNcloudBlockStorageRead(d *schema.ResourceData, meta interface{}) er
 }
 
 func resourceNcloudBlockStorageDelete(d *schema.ResourceData, meta interface{}) error {
-	log.Println("[DEBUG] resourceNcloudBlockStorageDelete")
 	conn := meta.(*NcloudSdk).conn
 	blockStorageInstanceNo := d.Get("block_storage_instance_no").(string)
 	return deleteBlockStorage(conn, []string{blockStorageInstanceNo})
@@ -222,10 +218,8 @@ func getBlockStorageInstance(conn *sdk.Conn, blockStorageInstanceNo string) (*sd
 	}
 	logCommonResponse("GetBlockStorageInstance", reqParams, resp.CommonResponse)
 
-	log.Printf("[DEBUG] GetBlockStorageInstance TotalRows: %d, BlockStorageInstance: %#v", resp.TotalRows, resp.BlockStorageInstance)
 	if len(resp.BlockStorageInstance) > 0 {
 		inst := &resp.BlockStorageInstance[0]
-		log.Printf("[DEBUG] %s BlockStorageName: %s, Status: %s", "GetBlockStorageInstance", inst.BlockStorageName, inst.BlockStorageInstanceStatusName)
 		return inst, nil
 	}
 	return nil, nil
@@ -259,7 +253,6 @@ func deleteBlockStorageByServerInstanceNo(conn *sdk.Conn, serverInstanceNo strin
 	var ids []string
 	for _, bs := range blockStorageInstanceList {
 		if bs.BlockStorageType.Code != "BASIC" { // ignore basic storage
-			log.Printf("[DEBUG] deleteBlockStorageByServerInstanceNo blockStorageInstance: %#v", bs)
 			ids = append(ids, bs.BlockStorageInstanceNo)
 		}
 	}
@@ -282,7 +275,6 @@ func waitForBlockStorageInstance(conn *sdk.Conn, id string, status string) error
 				c1 <- nil
 				return
 			}
-			log.Printf("[DEBUG] Wait to block storage instance (%s)", id)
 			time.Sleep(time.Second * 1)
 		}
 	}()

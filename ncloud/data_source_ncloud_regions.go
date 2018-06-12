@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"github.com/NaverCloudPlatform/ncloud-sdk-go/common"
 	"github.com/hashicorp/terraform/helper/schema"
-	"log"
 	"time"
 )
 
@@ -44,7 +43,6 @@ func dataSourceNcloudRegions() *schema.Resource {
 func dataSourceNcloudRegionsRead(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*NcloudSdk).conn
 
-	log.Printf("[DEBUG] Get Region List")
 	d.SetId(time.Now().UTC().String())
 
 	resp, err := conn.GetRegionList()
@@ -89,7 +87,6 @@ func regionsAttributes(d *schema.ResourceData, regions []common.Region) error {
 			"region_name": region.RegionName,
 		}
 
-		log.Printf("[DEBUG] ncloud_regions - adding region mapping: %v", mapping)
 		ids = append(ids, string(region.RegionNo))
 		s = append(s, mapping)
 	}

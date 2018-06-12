@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"github.com/NaverCloudPlatform/ncloud-sdk-go/sdk"
 	"github.com/hashicorp/terraform/helper/schema"
-	"log"
 )
 
 func resourceNcloudPortForwadingRule() *schema.Resource {
@@ -52,7 +51,6 @@ func resourceNcloudPortForwadingRule() *schema.Resource {
 }
 
 func resourceNcloudPortForwardingRuleCreate(d *schema.ResourceData, meta interface{}) error {
-	log.Println("[DEBUG] resourceNcloudPortForwardingRuleCreate")
 	conn := meta.(*NcloudSdk).conn
 
 	portForwardingConfigurationNo, err := getPortForwardingConfigurationNo(d, meta)
@@ -84,7 +82,6 @@ func resourceNcloudPortForwardingRuleCreate(d *schema.ResourceData, meta interfa
 }
 
 func resourceNcloudPortForwardingRuleRead(d *schema.ResourceData, meta interface{}) error {
-	log.Println("[DEBUG] resourceNcloudPortForwardingRuleRead")
 	conn := meta.(*NcloudSdk).conn
 	portForwardingExternalPort := d.Get("port_forwarding_external_port").(string)
 
@@ -110,7 +107,6 @@ func resourceNcloudPortForwardingRuleRead(d *schema.ResourceData, meta interface
 }
 
 func resourceNcloudPortForwardingRuleExists(d *schema.ResourceData, meta interface{}) (bool, error) {
-	log.Println("[DEBUG] resourceNcloudPortForwardingRuleExists")
 	conn := meta.(*NcloudSdk).conn
 
 	portForwardingExternalPort := d.Get("port_forwarding_external_port").(string)
@@ -119,12 +115,10 @@ func resourceNcloudPortForwardingRuleExists(d *schema.ResourceData, meta interfa
 }
 
 func resourceNcloudPortForwardingRuleUpdate(d *schema.ResourceData, meta interface{}) error {
-	log.Println("[DEBUG] resourceNcloudPortForwardingRuleUpdate")
 	return resourceNcloudPortForwardingRuleRead(d, meta)
 }
 
 func resourceNcloudPortForwardingRuleDelete(d *schema.ResourceData, meta interface{}) error {
-	log.Println("[DEBUG] resourceNcloudPortForwardingRuleDelete")
 	conn := meta.(*NcloudSdk).conn
 
 	portForwardingConfigurationNo, err := getPortForwardingConfigurationNo(d, meta)

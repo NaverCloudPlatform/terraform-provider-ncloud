@@ -57,7 +57,6 @@ func resourceNcloudLoginKey() *schema.Resource {
 }
 
 func resourceNcloudLoginKeyRead(d *schema.ResourceData, meta interface{}) error {
-	log.Println("[DEBUG] resourceNcloudLoginKeyRead")
 	conn := meta.(*NcloudSdk).conn
 
 	keyName := d.Get("key_name").(string)
@@ -76,7 +75,6 @@ func resourceNcloudLoginKeyRead(d *schema.ResourceData, meta interface{}) error 
 }
 
 func resourceNcloudLoginKeyCreate(d *schema.ResourceData, meta interface{}) error {
-	log.Println("[DEBUG] resourceNcloudLoginKeyCreate")
 	conn := meta.(*NcloudSdk).conn
 
 	keyName := d.Get("key_name").(string)
@@ -95,7 +93,6 @@ func resourceNcloudLoginKeyCreate(d *schema.ResourceData, meta interface{}) erro
 }
 
 func resourceNcloudLoginKeyDelete(d *schema.ResourceData, meta interface{}) error {
-	log.Println("[DEBUG] resourceNcloudLoginKeyDelete")
 	conn := meta.(*NcloudSdk).conn
 
 	keyName := d.Get("key_name").(string)
@@ -103,7 +100,6 @@ func resourceNcloudLoginKeyDelete(d *schema.ResourceData, meta interface{}) erro
 }
 
 func getLoginKey(conn *sdk.Conn, keyName string) (*sdk.LoginKey, error) {
-	log.Println("[DEBUG] getLoginKey")
 	reqParams := &sdk.RequestGetLoginKeyList{
 		KeyName: keyName,
 	}

@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"github.com/NaverCloudPlatform/ncloud-sdk-go/sdk"
 	"github.com/hashicorp/terraform/helper/schema"
-	"log"
 	"regexp"
 )
 
@@ -136,8 +135,6 @@ func dataSourceNcloudServerImagesRead(d *schema.ResourceData, meta interface{}) 
 	if len(filteredServerImages) < 1 {
 		return fmt.Errorf("no results. please change search criteria and try again")
 	}
-
-	log.Printf("[DEBUG] ncloud_server_images - Server Images found: %#v", allServerImages)
 
 	return serverImagesAttributes(d, filteredServerImages)
 }

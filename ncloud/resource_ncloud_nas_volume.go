@@ -168,7 +168,6 @@ func resourceNcloudNasVolume() *schema.Resource {
 }
 
 func resourceNcloudNasVolumeCreate(d *schema.ResourceData, meta interface{}) error {
-	log.Println("[DEBUG] resourceNcloudNasVolumeCreate")
 	conn := meta.(*NcloudSdk).conn
 
 	reqParams := buildCreateNasVolumeInstanceParams(d)
@@ -189,7 +188,6 @@ func resourceNcloudNasVolumeCreate(d *schema.ResourceData, meta interface{}) err
 }
 
 func resourceNcloudNasVolumeRead(d *schema.ResourceData, meta interface{}) error {
-	log.Println("[DEBUG] resourceNcloudNasVolumeRead")
 	conn := meta.(*NcloudSdk).conn
 
 	nasVolume, err := getNasVolumeInstance(conn, d.Id())
@@ -234,13 +232,11 @@ func resourceNcloudNasVolumeRead(d *schema.ResourceData, meta interface{}) error
 }
 
 func resourceNcloudNasVolumeDelete(d *schema.ResourceData, meta interface{}) error {
-	log.Println("[DEBUG] resourceNcloudNasVolumeDelete")
 	conn := meta.(*NcloudSdk).conn
 	return deleteNasVolumeInstance(conn, d.Id())
 }
 
 func resourceNcloudNasVolumeUpdate(d *schema.ResourceData, meta interface{}) error {
-	log.Println("[DEBUG] resourceNcloudNasVolumeUpdate")
 	conn := meta.(*NcloudSdk).conn
 
 	if d.HasChange("volume_size_gb") {
@@ -285,7 +281,6 @@ func getNasVolumeInstance(conn *sdk.Conn, nasVolumeInstanceNo string) (*sdk.NasV
 
 	for _, inst := range resp.NasVolumeInstanceList {
 		if nasVolumeInstanceNo == inst.NasVolumeInstanceNo {
-			log.Printf("[DEBUG] %s NasVolumeInstanceNo: %s, VolumeName: %s", "GetNasVolumeInstanceList", inst.NasVolumeInstanceNo, inst.VolumeName)
 			return &inst, nil
 		}
 	}
