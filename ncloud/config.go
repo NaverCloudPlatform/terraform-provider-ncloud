@@ -1,6 +1,8 @@
 package ncloud
 
 import (
+	"time"
+
 	"github.com/NaverCloudPlatform/ncloud-sdk-go/sdk"
 )
 
@@ -8,9 +10,10 @@ import (
 const DefaultWaitForInterval = 10
 
 // Default timeout
-const DefaultTimeout = 60
-const DefaultCreateTimeout = 30 * 60
-const DefaultStopTimeout = 5 * 60
+const DefaultTimeout = 1 * time.Minute
+const DefaultCreateTimeout = 1 * time.Hour
+const DefaultUpdateTimeout = 10 * time.Minute
+const DefaultStopTimeout = 5 * time.Minute
 
 type Config struct {
 	AccessKey string

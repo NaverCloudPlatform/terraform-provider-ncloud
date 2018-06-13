@@ -456,7 +456,7 @@ func waitForServerInstance(conn *sdk.Conn, instanceId string, status string) err
 	select {
 	case res := <-c1:
 		return res
-	case <-time.After(time.Second * DefaultTimeout):
+	case <-time.After(DefaultCreateTimeout):
 		return fmt.Errorf("TIMEOUT : Wait to server instance  (%s)", instanceId)
 	}
 

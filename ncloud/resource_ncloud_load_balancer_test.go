@@ -49,6 +49,37 @@ func TestAccNcloudLoadBalancerBasic(t *testing.T) {
 	})
 }
 
+func TestAccNcloudLoadBalancerChangeConfiguration(t *testing.T) {
+	var before sdk.LoadBalancerInstance
+	var after sdk.LoadBalancerInstance
+	prefix := getTestPrefix()
+	testLoadBalancerName := prefix + "_lb"
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:      func() { testAccPreCheck(t) },
+		IDRefreshName: "ncloud_load_balancer.lb",
+		Providers:     testAccProviders,
+		CheckDestroy:  testAccCheckLoadBalancerDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccLoadBalancerConfig(testLoadBalancerName),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckLoadBalancerExists("ncloud_load_balancer.lb", &before),
+				),
+			},
+			{
+				Config: testAccLoadBalancerChangedConfig(testLoadBalancerName),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckLoadBalancerExists("ncloud_load_balancer.lb", &after),
+					resource.TestCheckResourceAttr(
+						"ncloud_load_balancer.lb",
+						"load_balancer_description",
+						"tftest_lb change port")),
+			},
+		},
+	})
+}
+
 func testAccCheckLoadBalancerExists(n string, i *sdk.LoadBalancerInstance) resource.TestCheckFunc {
 	return testAccCheckLoadBalancerExistsWithProvider(n, i, func() *schema.Provider { return testAccProvider })
 }
@@ -118,12 +149,28 @@ func testAccLoadBalancerConfig(lbName string) string {
 					"server_port"          = 80
 					"l7_health_check_path" = "/monitor/l7check"
 				},
+			]
+
+			"internet_line_type_code" = "PUBLC"
+			"network_usage_type_code" = "PBLIP"
+			"region_no"               = "1"
+		}
+		`, lbName)
+}
+
+func testAccLoadBalancerChangedConfig(lbName string) string {
+	return fmt.Sprintf(`
+		resource "ncloud_load_balancer" "lb" {
+			"load_balancer_name"                = "%s"
+			"load_balancer_algorithm_type_code" = "SIPHS"
+			"load_balancer_description"         = "tftest_lb change port"
+
+			"load_balancer_rule_list" = [
 				{
-					"protocol_type_code"   = "HTTPS"
-					"load_balancer_port"   = 443
-					"server_port"          = 443
+					"protocol_type_code"   = "HTTP"
+					"load_balancer_port"   = 8080
+					"server_port"          = 8080
 					"l7_health_check_path" = "/monitor/l7check"
-					"certificate_name"     = "aaa"
 				},
 			]
 

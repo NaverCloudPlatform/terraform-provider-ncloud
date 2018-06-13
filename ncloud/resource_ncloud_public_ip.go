@@ -258,7 +258,7 @@ func waitDiassociatePublicIP(conn *sdk.Conn, publicIPInstanceNo string) error {
 	select {
 	case res := <-c1:
 		return res
-	case <-time.After(time.Second * DefaultTimeout):
+	case <-time.After(DefaultTimeout):
 		return fmt.Errorf("TIMEOUT : diassociation public ip[%s] ", publicIPInstanceNo)
 	}
 }
@@ -291,7 +291,7 @@ func waitPublicIPInstance(conn *sdk.Conn, publicIPInstanceNo string, status stri
 	select {
 	case res := <-c1:
 		return res
-	case <-time.After(time.Second * DefaultTimeout):
+	case <-time.After(DefaultTimeout):
 		return fmt.Errorf("TIMEOUT : Wait public ip(%s) status(%s)", publicIPInstanceNo, status)
 	}
 }
@@ -324,7 +324,7 @@ func waitDeletePublicIPInstance(conn *sdk.Conn, publicIPInstanceNo string) error
 	select {
 	case res := <-c1:
 		return res
-	case <-time.After(time.Second * DefaultTimeout):
+	case <-time.After(DefaultTimeout):
 		return fmt.Errorf("TIMEOUT : Wait to delete public ip(%s)", publicIPInstanceNo)
 	}
 }
