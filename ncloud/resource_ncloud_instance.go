@@ -343,7 +343,7 @@ func resourceNcloudInstanceDelete(d *schema.ResourceData, meta interface{}) erro
 func resourceNcloudInstanceUpdate(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*NcloudSdk).conn
 
-	if d.HasChange("serTestAccDataSourceServerImages_basicver_product_code") {
+	if d.HasChange("server_product_code") {
 		reqParams := &sdk.RequestChangeServerInstanceSpec{
 			ServerInstanceNo:  d.Get("server_instance_no").(string),
 			ServerProductCode: d.Get("server_product_code").(string),

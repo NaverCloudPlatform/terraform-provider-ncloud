@@ -10,7 +10,7 @@ import (
 	"github.com/hashicorp/terraform/terraform"
 )
 
-func TestAccNcloudLoadBalancer_basic(t *testing.T) {
+func TestAccNcloudLoadBalancerBasic(t *testing.T) {
 	var loadBalancerInstance sdk.LoadBalancerInstance
 	prefix := getTestPrefix()
 	testLoadBalancerName := prefix + "_lb"
