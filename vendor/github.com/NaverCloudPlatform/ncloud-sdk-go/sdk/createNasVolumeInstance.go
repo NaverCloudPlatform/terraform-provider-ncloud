@@ -5,9 +5,10 @@ import (
 	"fmt"
 	"net/http"
 
+	"strconv"
+
 	"github.com/NaverCloudPlatform/ncloud-sdk-go/common"
 	"github.com/NaverCloudPlatform/ncloud-sdk-go/request"
-	"strconv"
 )
 
 func processCreateNasVolumeInstance(reqParams *RequestCreateNasVolumeInstance) (map[string]string, error) {
@@ -79,7 +80,7 @@ func (s *Conn) CreateNasVolumeInstance(reqParams *RequestCreateNasVolumeInstance
 
 	params["action"] = "createNasVolumeInstance"
 
-	bytes, resp, err := request.NewRequest(s.accessKey, s.secretKey, "GET", s.apiURL+"server/", params)
+	bytes, resp, err := request.NewRequest(s.accessKey, s.secretKey, "POST", s.apiURL+"server/", params)
 	if err != nil {
 		return nil, err
 	}

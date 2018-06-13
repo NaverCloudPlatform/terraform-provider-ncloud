@@ -28,7 +28,7 @@ func (s *Conn) DeleteNasVolumeInstance(nasVolumeInstanceNo string) (*NasVolumeIn
 
 	params["action"] = "deleteNasVolumeInstance"
 
-	bytes, resp, err := request.NewRequest(s.accessKey, s.secretKey, "GET", s.apiURL+"server/", params)
+	bytes, resp, err := request.NewRequest(s.accessKey, s.secretKey, "POST", s.apiURL+"server/", params)
 	if err != nil {
 		return nil, err
 	}

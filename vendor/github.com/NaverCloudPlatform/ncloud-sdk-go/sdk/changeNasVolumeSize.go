@@ -6,9 +6,10 @@ import (
 	"fmt"
 	"net/http"
 
+	"strconv"
+
 	common "github.com/NaverCloudPlatform/ncloud-sdk-go/common"
 	request "github.com/NaverCloudPlatform/ncloud-sdk-go/request"
-	"strconv"
 )
 
 func processChangeNasVolumeSizeParams(reqParams *RequestChangeNasVolumeSize) (map[string]string, error) {
@@ -39,7 +40,7 @@ func (s *Conn) ChangeNasVolumeSize(reqParams *RequestChangeNasVolumeSize) (*NasV
 
 	params["action"] = "changeNasVolumeSize"
 
-	bytes, resp, err := request.NewRequest(s.accessKey, s.secretKey, "GET", s.apiURL+"server/", params)
+	bytes, resp, err := request.NewRequest(s.accessKey, s.secretKey, "POST", s.apiURL+"server/", params)
 	if err != nil {
 		return nil, err
 	}

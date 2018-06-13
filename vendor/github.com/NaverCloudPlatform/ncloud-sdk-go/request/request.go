@@ -15,14 +15,18 @@ func NewRequest(accessKey string, secretKey string, method string, url string, p
 		c.AdditionalParams[k] = v
 	}
 
-	reqURL, err := c.GetRequestUrl()
+	reqURL, body, err := c.GetRequest()
 	if err != nil {
 		return nil, nil, err
 	}
 
-	req, err := http.NewRequest(method, reqURL, nil)
+	req, err := http.NewRequest(method, reqURL, body)
 	if err != nil {
 		return nil, nil, err
+	}
+
+	if method == "POST" {
+		req.Header.Set("Content-Type", "application/x-www-form-urlencoded; param=value")
 	}
 
 	client := &http.Client{}
