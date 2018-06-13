@@ -59,9 +59,7 @@ func dataSourceNcloudZonesRead(d *schema.ResourceData, meta interface{}) error {
 
 	d.SetId(time.Now().UTC().String())
 
-	regionNo, _ := d.GetOk("region_no")
-
-	resp, err := conn.GetZoneList(regionNo.(string))
+	resp, err := conn.GetZoneList(parseRegionNoParameter(conn, d))
 	if err != nil {
 		return err
 	}

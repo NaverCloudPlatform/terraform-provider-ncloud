@@ -174,7 +174,7 @@ func resourceNcloudNasVolume() *schema.Resource {
 func resourceNcloudNasVolumeCreate(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*NcloudSdk).conn
 
-	reqParams := buildCreateNasVolumeInstanceParams(d)
+	reqParams := buildCreateNasVolumeInstanceParams(conn, d)
 	resp, err := conn.CreateNasVolumeInstance(reqParams)
 	if err != nil {
 		logErrorResponse("CreateNasVolumeInstance", err, reqParams)
@@ -258,7 +258,7 @@ func resourceNcloudNasVolumeUpdate(d *schema.ResourceData, meta interface{}) err
 	return resourceNcloudNasVolumeRead(d, meta)
 }
 
-func buildCreateNasVolumeInstanceParams(d *schema.ResourceData) *sdk.RequestCreateNasVolumeInstance {
+func buildCreateNasVolumeInstanceParams(conn *sdk.Conn, d *schema.ResourceData) *sdk.RequestCreateNasVolumeInstance {
 	reqParams := &sdk.RequestCreateNasVolumeInstance{
 		VolumeName:                      d.Get("volume_name_postfix").(string),
 		VolumeSize:                      d.Get("volume_size_gb").(int),
@@ -268,7 +268,7 @@ func buildCreateNasVolumeInstanceParams(d *schema.ResourceData) *sdk.RequestCrea
 		CifsUserName:                    d.Get("cifs_user_name").(string),
 		CifsUserPassword:                d.Get("cifs_user_password").(string),
 		NasVolumeDescription:            d.Get("nas_volume_description").(string),
-		RegionNo:                        d.Get("region_no").(string),
+		RegionNo:                        parseRegionNoParameter(conn, d),
 		ZoneNo:                          d.Get("zone_no").(string),
 	}
 	return reqParams

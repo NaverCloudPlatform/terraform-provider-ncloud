@@ -70,7 +70,7 @@ func dataSourceNcloudPortForwardingRulesRead(d *schema.ResourceData, meta interf
 
 	reqParams := &sdk.RequestPortForwardingRuleList{
 		InternetLineTypeCode: d.Get("internet_line_type_code").(string),
-		RegionNo:             d.Get("region_no").(string),
+		RegionNo:             parseRegionNoParameter(conn, d),
 		ZoneNo:               d.Get("zone_no").(string),
 	}
 
@@ -85,7 +85,6 @@ func dataSourceNcloudPortForwardingRulesRead(d *schema.ResourceData, meta interf
 	if len(portForwardingRules) < 1 {
 		return fmt.Errorf("no results. please change search criteria and try again")
 	}
-
 	return portForwardingRulesAttributes(d, resp)
 }
 

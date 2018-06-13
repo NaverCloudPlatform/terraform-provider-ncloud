@@ -7,7 +7,7 @@ import (
 	"testing"
 )
 
-func TestAccDataSourceNcloudPortForwardingRules_basic(t *testing.T) {
+func TestAccDataSourceNcloudPortForwardingRulesBasic(t *testing.T) {
 	t.Parallel()
 
 	resource.Test(t, resource.TestCase{
