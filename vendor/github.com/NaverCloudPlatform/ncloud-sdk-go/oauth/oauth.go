@@ -6,11 +6,12 @@ import (
 	_ "crypto/sha1"
 	"encoding/base64"
 	"fmt"
+	"io"
 	"math/rand"
 	"net/url"
-	"os"
 	"sort"
 	"strconv"
+	"strings"
 	"sync"
 	"time"
 )
@@ -204,11 +205,7 @@ func (c *Consumer) Debug(enabled bool) {
 	c.signer.Debug(enabled)
 }
 
-func (c *Consumer) GetRequestUrl() (loginUrl string, err error) {
-	if os.Getenv("GO_ENV") == "development" {
-		c.AdditionalParams["approachKey"] = c.consumerKey
-		c.AdditionalParams["secretKey"] = c.consumerSecret
-	}
+func (c *Consumer) GetRequest() (string, io.Reader, error) {
 	c.AdditionalParams["responseFormatType"] = "xml"
 
 	params := c.baseParams(c.consumerKey, c.AdditionalParams)
@@ -225,10 +222,11 @@ func (c *Consumer) GetRequestUrl() (loginUrl string, err error) {
 
 	signature, err := c.signRequest(req)
 	if err != nil {
-		return "", err
+		return "", nil, err
 	}
 
-	result := req.url + "?"
+	result := ""
+
 	for pos, key := range req.oauthParams.Keys() {
 		for innerPos, value := range req.oauthParams.Get(key) {
 			if pos+innerPos != 0 {
@@ -244,7 +242,13 @@ func (c *Consumer) GetRequestUrl() (loginUrl string, err error) {
 		fmt.Println("req: ", result)
 	}
 
-	return result, nil
+	if req.method == "GET" {
+		return req.url + "?" + result, nil, nil
+	} else if req.method == "POST" {
+		return req.url, strings.NewReader(result), nil
+	} else {
+		return "", nil, fmt.Errorf("Not supported method %s", req.method)
+	}
 }
 
 func (c *Consumer) baseParams(consumerKey string, additionalParams map[string]string) *OrderedParams {

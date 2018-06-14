@@ -2,10 +2,11 @@ package ncloud
 
 import (
 	"fmt"
+	"time"
+
 	"github.com/NaverCloudPlatform/ncloud-sdk-go/common"
 	"github.com/NaverCloudPlatform/ncloud-sdk-go/sdk"
 	"github.com/hashicorp/terraform/helper/schema"
-	"time"
 )
 
 func resourceNcloudBlockStorage() *schema.Resource {
@@ -282,7 +283,7 @@ func waitForBlockStorageInstance(conn *sdk.Conn, id string, status string) error
 	select {
 	case res := <-c1:
 		return res
-	case <-time.After(time.Second * DefaultTimeout):
+	case <-time.After(DefaultTimeout):
 		return fmt.Errorf("TIMEOUT : Wait to block storage instance  (%s)", id)
 
 	}

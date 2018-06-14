@@ -28,7 +28,7 @@ func (s *Conn) DisassociatePublicIP(PublicIPInstanceNo string) (*PublicIPInstanc
 	params["publicIpInstanceNo"] = PublicIPInstanceNo
 	params["action"] = "disassociatePublicIpFromServerInstance"
 
-	bytes, resp, err := request.NewRequest(s.accessKey, s.secretKey, "GET", s.apiURL+"server/", params)
+	bytes, resp, err := request.NewRequest(s.accessKey, s.secretKey, "POST", s.apiURL+"server/", params)
 	if err != nil {
 		return nil, err
 	}

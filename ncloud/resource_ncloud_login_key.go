@@ -2,11 +2,12 @@ package ncloud
 
 import (
 	"fmt"
-	"github.com/NaverCloudPlatform/ncloud-sdk-go/sdk"
-	"github.com/hashicorp/terraform/helper/schema"
 	"log"
 	"strings"
 	"time"
+
+	"github.com/NaverCloudPlatform/ncloud-sdk-go/sdk"
+	"github.com/hashicorp/terraform/helper/schema"
 )
 
 func resourceNcloudLoginKey() *schema.Resource {
@@ -140,7 +141,7 @@ func waitForDeleteLoginKey(conn *sdk.Conn, keyName string) error {
 	select {
 	case res := <-c1:
 		return res
-	case <-time.After(time.Second * DefaultTimeout):
+	case <-time.After(DefaultTimeout):
 		return fmt.Errorf("TIMEOUT : Wait to delete login key (%s)", keyName)
 	}
 }

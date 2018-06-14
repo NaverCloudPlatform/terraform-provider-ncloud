@@ -343,7 +343,7 @@ func resourceNcloudInstanceDelete(d *schema.ResourceData, meta interface{}) erro
 func resourceNcloudInstanceUpdate(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*NcloudSdk).conn
 
-	if d.HasChange("serTestAccDataSourceServerImages_basicver_product_code") {
+	if d.HasChange("server_product_code") {
 		reqParams := &sdk.RequestChangeServerInstanceSpec{
 			ServerInstanceNo:  d.Get("server_instance_no").(string),
 			ServerProductCode: d.Get("server_product_code").(string),
@@ -456,7 +456,7 @@ func waitForServerInstance(conn *sdk.Conn, instanceId string, status string) err
 	select {
 	case res := <-c1:
 		return res
-	case <-time.After(time.Second * DefaultTimeout):
+	case <-time.After(DefaultCreateTimeout):
 		return fmt.Errorf("TIMEOUT : Wait to server instance  (%s)", instanceId)
 	}
 

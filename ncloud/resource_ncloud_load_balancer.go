@@ -22,6 +22,7 @@ func resourceNcloudLoadBalancer() *schema.Resource {
 
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(DefaultCreateTimeout),
+			Update: schema.DefaultTimeout(DefaultUpdateTimeout),
 			Delete: schema.DefaultTimeout(DefaultTimeout),
 		},
 
@@ -250,10 +251,35 @@ func resourceNcloudLoadBalancerDelete(d *schema.ResourceData, meta interface{}) 
 }
 
 func resourceNcloudLoadBalancerUpdate(d *schema.ResourceData, meta interface{}) error {
+	conn := meta.(*NcloudSdk).conn
+
+	reqParams := &sdk.RequestChangeLoadBalancerInstanceConfiguration{
+		LoadBalancerInstanceNo:        d.Id(),
+		LoadBalancerAlgorithmTypeCode: d.Get("load_balancer_algorithm_type_code").(string),
+		LoadBalancerRuleList:          buildLoadBalancerRuleParams(d),
+	}
+
+	if d.HasChange("load_balancer_description") {
+		reqParams.LoadBalancerDescription = d.Get("load_balancer_description").(string)
+	}
+
+	if d.HasChange("load_balancer_algorithm_type_code") || d.HasChange("load_balancer_description") || d.HasChange("load_balancer_rule_list") {
+		resp, err := conn.ChangeLoadBalancerInstanceConfiguration(reqParams)
+		if err != nil {
+			logErrorResponse("ChangeLoadBalancerInstanceConfiguration", err, reqParams)
+			return err
+		}
+		logCommonResponse("ChangeLoadBalancerInstanceConfiguration", reqParams, resp.CommonResponse)
+
+		if err := waitForLoadBalancerInstance(conn, d.Id(), "USED", DefaultUpdateTimeout); err != nil {
+			return err
+		}
+	}
+
 	return resourceNcloudLoadBalancerRead(d, meta)
 }
 
-func buildCreateLoadBalancerInstanceParams(conn *sdk.Conn, d *schema.ResourceData) *sdk.RequestCreateLoadBalancerInstance {
+func buildLoadBalancerRuleParams(d *schema.ResourceData) []sdk.RequestLoadBalancerRule {
 	lbRuleList := make([]sdk.RequestLoadBalancerRule, 0, len(d.Get("load_balancer_rule_list").([]interface{})))
 
 	for _, v := range d.Get("load_balancer_rule_list").([]interface{}) {
@@ -277,11 +303,15 @@ func buildCreateLoadBalancerInstanceParams(conn *sdk.Conn, d *schema.ResourceDat
 		lbRuleList = append(lbRuleList, *lbRule)
 	}
 
+	return lbRuleList
+}
+
+func buildCreateLoadBalancerInstanceParams(conn *sdk.Conn, d *schema.ResourceData) *sdk.RequestCreateLoadBalancerInstance {
 	reqParams := &sdk.RequestCreateLoadBalancerInstance{
 		LoadBalancerName:              d.Get("load_balancer_name").(string),
 		LoadBalancerAlgorithmTypeCode: d.Get("load_balancer_algorithm_type_code").(string),
 		LoadBalancerDescription:       d.Get("load_balancer_description").(string),
-		LoadBalancerRuleList:          lbRuleList,
+		LoadBalancerRuleList:          buildLoadBalancerRuleParams(d),
 		ServerInstanceNoList:          StringList(d.Get("server_instance_no_list").([]interface{})),
 		InternetLineTypeCode:          d.Get("internet_line_type_code").(string),
 		NetworkUsageTypeCode:          d.Get("network_usage_type_code").(string),
@@ -339,7 +369,7 @@ func waitForLoadBalancerInstance(conn *sdk.Conn, id string, status string, timeo
 				return
 			}
 
-			if instance == nil || instance.LoadBalancerInstanceStatus.Code == status {
+			if instance == nil || (instance.LoadBalancerInstanceStatus.Code == status && instance.LoadBalancerInstanceOperation.Code == "NULL") {
 				c1 <- nil
 				return
 			}
@@ -352,7 +382,7 @@ func waitForLoadBalancerInstance(conn *sdk.Conn, id string, status string, timeo
 	select {
 	case res := <-c1:
 		return res
-	case <-time.After(time.Second * timeout):
+	case <-time.After(timeout):
 		return fmt.Errorf("TIMEOUT : delete load balancer instance [%s] ", id)
 	}
 }
@@ -382,7 +412,7 @@ func waitForDeleteLoadBalancerInstance(conn *sdk.Conn, id string) error {
 	select {
 	case res := <-c1:
 		return res
-	case <-time.After(time.Second * DefaultTimeout):
+	case <-time.After(DefaultTimeout):
 		return fmt.Errorf("TIMEOUT : delete load balancer instance [%s] ", id)
 	}
 }

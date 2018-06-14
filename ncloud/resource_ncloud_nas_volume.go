@@ -2,11 +2,12 @@ package ncloud
 
 import (
 	"fmt"
+	"log"
+	"time"
+
 	"github.com/NaverCloudPlatform/ncloud-sdk-go/common"
 	"github.com/NaverCloudPlatform/ncloud-sdk-go/sdk"
 	"github.com/hashicorp/terraform/helper/schema"
-	"log"
-	"time"
 )
 
 func resourceNcloudNasVolume() *schema.Resource {
@@ -334,7 +335,7 @@ func waitForNasVolumeInstance(conn *sdk.Conn, id string, status string) error {
 	select {
 	case res := <-c1:
 		return res
-	case <-time.After(time.Second * DefaultTimeout):
+	case <-time.After(DefaultTimeout):
 		return fmt.Errorf("TIMEOUT : Wait to nas volume instance (%s)", id)
 	}
 }
