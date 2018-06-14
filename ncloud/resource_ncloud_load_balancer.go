@@ -208,12 +208,9 @@ func getLoadBalancerRuleList(lbRuleList []sdk.LoadBalancerRule) []interface{} {
 			"certificate_name":      r.CertificateName,
 			"proxy_protocol_use_yn": r.ProxyProtocolUseYn,
 		}
-		log.Printf("%#v", rule)
 		list = append(list, rule)
-		for key, value := range rule {
-			log.Printf("%#v %#v", key, value)
-		}
 	}
+
 	return list
 }
 
@@ -234,6 +231,13 @@ func resourceNcloudLoadBalancerDelete(d *schema.ResourceData, meta interface{}) 
 
 func resourceNcloudLoadBalancerUpdate(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*NcloudSdk).conn
+
+	// Change Load Balanced Server Instances
+	if d.HasChange("server_instance_no_list") {
+		if err := changeLoadBalancedServerInstances(conn, d); err != nil {
+			return err
+		}
+	}
 
 	reqParams := &sdk.RequestChangeLoadBalancerInstanceConfiguration{
 		LoadBalancerInstanceNo:        d.Id(),
@@ -259,6 +263,26 @@ func resourceNcloudLoadBalancerUpdate(d *schema.ResourceData, meta interface{}) 
 	}
 
 	return resourceNcloudLoadBalancerRead(d, meta)
+}
+
+func changeLoadBalancedServerInstances(conn *sdk.Conn, d *schema.ResourceData) error {
+	reqParams := &sdk.RequestChangeLoadBalancedServerInstances{
+		LoadBalancerInstanceNo: d.Id(),
+		ServerInstanceNoList:   StringList(d.Get("server_instance_no_list").([]interface{})),
+	}
+
+	resp, err := conn.ChangeLoadBalancedServerInstances(reqParams)
+	if err != nil {
+		logErrorResponse("ChangeLoadBalancedServerInstances", err, reqParams)
+		return err
+	}
+	logCommonResponse("ChangeLoadBalancedServerInstances", reqParams, resp.CommonResponse)
+
+	if err := waitForLoadBalancerInstance(conn, d.Id(), "USED", DefaultUpdateTimeout); err != nil {
+		return err
+	}
+
+	return nil
 }
 
 func buildLoadBalancerRuleParams(d *schema.ResourceData) []sdk.RequestLoadBalancerRule {
