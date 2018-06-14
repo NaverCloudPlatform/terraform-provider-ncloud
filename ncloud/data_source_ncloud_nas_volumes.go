@@ -2,6 +2,7 @@ package ncloud
 
 import (
 	"fmt"
+
 	"github.com/NaverCloudPlatform/ncloud-sdk-go/sdk"
 	"github.com/hashicorp/terraform/helper/schema"
 )
@@ -134,19 +135,7 @@ func dataSourceNcloudNasVolumes() *schema.Resource {
 						"region": {
 							Type:     schema.TypeMap,
 							Computed: true,
-							Elem: &schema.Resource{
-								Schema: map[string]*schema.Schema{
-									"region_no": {
-										Type: schema.TypeString,
-									},
-									"region_code": {
-										Type: schema.TypeString,
-									},
-									"region_name": {
-										Type: schema.TypeString,
-									},
-								},
-							},
+							Elem:     regionSchemaResource,
 						},
 					},
 				},

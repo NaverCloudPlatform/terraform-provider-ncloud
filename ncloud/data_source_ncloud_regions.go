@@ -2,11 +2,12 @@ package ncloud
 
 import (
 	"fmt"
+	"os"
+	"time"
+
 	"github.com/NaverCloudPlatform/ncloud-sdk-go/common"
 	"github.com/NaverCloudPlatform/ncloud-sdk-go/sdk"
 	"github.com/hashicorp/terraform/helper/schema"
-	"os"
-	"time"
 )
 
 func dataSourceNcloudRegions() *schema.Resource {
@@ -21,22 +22,7 @@ func dataSourceNcloudRegions() *schema.Resource {
 			"regions": {
 				Type:     schema.TypeList,
 				Optional: true,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
-						"region_no": {
-							Type:     schema.TypeString,
-							Computed: true,
-						},
-						"region_code": {
-							Type:     schema.TypeString,
-							Computed: true,
-						},
-						"region_name": {
-							Type:     schema.TypeString,
-							Computed: true,
-						},
-					},
-				},
+				Elem:     regionSchemaResource,
 			},
 			"output_file": {
 				Type:     schema.TypeString,
@@ -128,6 +114,7 @@ func getRegionByCode(conn *sdk.Conn, code string) (*common.Region, error) {
 			break
 		}
 	}
+
 	return &filteredRegion, nil
 }
 
@@ -136,6 +123,7 @@ func getRegionNoByCode(conn *sdk.Conn, name string) string {
 	if err != nil {
 		return ""
 	}
+
 	return region.RegionNo
 }
 
@@ -144,18 +132,19 @@ var regionCache = make(map[string]string)
 func parseRegionNoParameter(conn *sdk.Conn, d *schema.ResourceData) string {
 	if paramRegionNo, regionNoOk := d.GetOk("region_no"); regionNoOk {
 		return paramRegionNo.(string)
-	} else {
-		// provider region
-		if regionCode := os.Getenv("NCLOUD_REGION"); regionCode != "" {
-			regionNo := regionCache[regionCode]
-			if regionNo != "" {
-				return regionNo
-			}
-			regionNo = getRegionNoByCode(conn, regionCode)
-			if regionNo != "" {
-				regionCache[regionCode] = regionNo
-			}
+	}
+
+	// provider region
+	if regionCode := os.Getenv("NCLOUD_REGION"); regionCode != "" {
+		regionNo := regionCache[regionCode]
+		if regionNo != "" {
+			return regionNo
+		}
+		regionNo = getRegionNoByCode(conn, regionCode)
+		if regionNo != "" {
+			regionCache[regionCode] = regionNo
 		}
 	}
+
 	return ""
 }

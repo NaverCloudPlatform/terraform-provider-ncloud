@@ -20,31 +20,8 @@ func dataSourceNcloudZones() *schema.Resource {
 			},
 			"zones": {
 				Type:     schema.TypeList,
-				Optional: true,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
-						"zone_no": {
-							Type:     schema.TypeString,
-							Computed: true,
-						},
-						"zone_code": {
-							Type:     schema.TypeString,
-							Computed: true,
-						},
-						"zone_name": {
-							Type:     schema.TypeString,
-							Computed: true,
-						},
-						"zone_description": {
-							Type:     schema.TypeString,
-							Computed: true,
-						},
-						"region_no": {
-							Type:     schema.TypeString,
-							Computed: true,
-						},
-					},
-				},
+				Computed: true,
+				Elem:     zoneSchemaResource,
 			},
 			"output_file": {
 				Type:     schema.TypeString,

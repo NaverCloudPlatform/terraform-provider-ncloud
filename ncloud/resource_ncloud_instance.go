@@ -175,36 +175,12 @@ func resourceNcloudInstance() *schema.Resource {
 			"zone": {
 				Type:     schema.TypeMap,
 				Computed: true,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
-						"zone_no": {
-							Type: schema.TypeString,
-						},
-						"zone_name": {
-							Type: schema.TypeString,
-						},
-						"zone_description": {
-							Type: schema.TypeString,
-						},
-					},
-				},
+				Elem:     zoneSchemaResource,
 			},
 			"region": {
 				Type:     schema.TypeMap,
 				Computed: true,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
-						"region_no": {
-							Type: schema.TypeString,
-						},
-						"region_code": {
-							Type: schema.TypeString,
-						},
-						"region_name": {
-							Type: schema.TypeString,
-						},
-					},
-				},
+				Elem:     regionSchemaResource,
 			},
 			"base_block_storage_disk_type": {
 				Type:     schema.TypeMap,
