@@ -72,3 +72,32 @@ var regionSchemaResource = &schema.Resource{
 		},
 	},
 }
+
+func setCommonCode(cc common.CommonCode) map[string]interface{} {
+	m := map[string]interface{}{
+		"code":      cc.Code,
+		"code_name": cc.CodeName,
+	}
+
+	return m
+}
+
+func setZone(zone common.Zone) map[string]interface{} {
+	m := map[string]interface{}{
+		"zone_no":          zone.ZoneNo,
+		"zone_name":        zone.ZoneName,
+		"zone_description": zone.ZoneDescription,
+	}
+
+	return m
+}
+
+func setRegion(region common.Region) map[string]interface{} {
+	m := map[string]interface{}{
+		"region_no":   region.RegionNo,
+		"region_code": region.RegionCode,
+		"region_name": region.RegionName,
+	}
+
+	return m
+}

@@ -170,30 +170,15 @@ func resourceNcloudLoadBalancerRead(d *schema.ResourceData, meta interface{}) er
 	if lb != nil {
 		d.Set("virtual_ip", lb.VirtualIP)
 		d.Set("load_balancer_name", lb.LoadBalancerName)
-		d.Set("load_balancer_algorithm_type", map[string]interface{}{
-			"code":      lb.LoadBalancerAlgorithmType.Code,
-			"code_name": lb.LoadBalancerAlgorithmType.CodeName,
-		})
+		d.Set("load_balancer_algorithm_type", setCommonCode(lb.LoadBalancerAlgorithmType))
 		d.Set("load_balancer_description", lb.LoadBalancerDescription)
 		d.Set("create_date", lb.CreateDate)
 		d.Set("domain_name", lb.DomainName)
-		d.Set("internet_line_type", map[string]interface{}{
-			"code":      lb.InternetLineType.Code,
-			"code_name": lb.InternetLineType.CodeName,
-		})
+		d.Set("internet_line_type", setCommonCode(lb.InternetLineType))
 		d.Set("load_balancer_instance_status_name", lb.LoadBalancerInstanceStatusName)
-		d.Set("load_balancer_instance_status", map[string]interface{}{
-			"code":      lb.LoadBalancerInstanceStatus.Code,
-			"code_name": lb.LoadBalancerInstanceStatus.CodeName,
-		})
-		d.Set("load_balancer_instance_operation", map[string]interface{}{
-			"code":      lb.LoadBalancerInstanceOperation.Code,
-			"code_name": lb.LoadBalancerInstanceOperation.CodeName,
-		})
-		d.Set("network_usage_type", map[string]interface{}{
-			"code":      lb.NetworkUsageType.Code,
-			"code_name": lb.NetworkUsageType.CodeName,
-		})
+		d.Set("load_balancer_instance_status", setCommonCode(lb.LoadBalancerInstanceStatus))
+		d.Set("load_balancer_instance_operation", setCommonCode(lb.LoadBalancerInstanceOperation))
+		d.Set("network_usage_type", setCommonCode(lb.NetworkUsageType))
 		d.Set("is_http_keep_alive", lb.IsHTTPKeepAlive)
 		d.Set("connection_timeout", lb.ConnectionTimeout)
 		d.Set("certificate_name", lb.CertificateName)
@@ -216,10 +201,7 @@ func getLoadBalancerRuleList(lbRuleList []sdk.LoadBalancerRule) []interface{} {
 
 	for _, r := range lbRuleList {
 		rule := map[string]interface{}{
-			"protocol_type_code": map[string]interface{}{
-				"code":      r.ProtocolType.Code,
-				"code_name": r.ProtocolType.CodeName,
-			},
+			"protocol_type_code":    setCommonCode(r.ProtocolType),
 			"load_balancer_port":    r.LoadBalancerPort,
 			"server_port":           r.ServerPort,
 			"l7_health_check_path":  r.L7HealthCheckPath,

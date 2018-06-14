@@ -63,12 +63,7 @@ func zonesAttributes(d *schema.ResourceData, zones []common.Zone) error {
 	var ids []string
 	var s []map[string]interface{}
 	for _, zone := range zones {
-		mapping := map[string]interface{}{
-			"zone_no":          zone.ZoneNo,
-			"zone_name":        zone.ZoneName,
-			"zone_description": zone.ZoneDescription,
-		}
-
+		mapping := setZone(zone)
 		ids = append(ids, string(zone.ZoneNo))
 		s = append(s, mapping)
 	}

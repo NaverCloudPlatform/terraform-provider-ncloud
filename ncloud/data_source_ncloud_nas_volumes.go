@@ -118,19 +118,7 @@ func dataSourceNcloudNasVolumes() *schema.Resource {
 						"zone": {
 							Type:     schema.TypeMap,
 							Computed: true,
-							Elem: &schema.Resource{
-								Schema: map[string]*schema.Schema{
-									"zone_no": {
-										Type: schema.TypeString,
-									},
-									"zone_name": {
-										Type: schema.TypeString,
-									},
-									"zone_description": {
-										Type: schema.TypeString,
-									},
-								},
-							},
+							Elem:     zoneSchemaResource,
 						},
 						"region": {
 							Type:     schema.TypeMap,
@@ -179,17 +167,11 @@ func nasVolumeInstancesAttributes(d *schema.ResourceData, nasVolumeInstances []s
 
 	for _, nasVolume := range nasVolumeInstances {
 		mapping := map[string]interface{}{
-			"nas_volume_instance_no": nasVolume.NasVolumeInstanceNo,
-			"nas_volume_instance_status": map[string]interface{}{
-				"code":      nasVolume.NasVolumeInstanceStatus.Code,
-				"code_name": nasVolume.NasVolumeInstanceStatus.CodeName,
-			},
-			"create_date":            nasVolume.CreateDate,
-			"nas_volume_description": nasVolume.NasVolumeInstanceDescription,
-			"volume_allotment_protocol_type": map[string]interface{}{
-				"code":      nasVolume.VolumeAllotmentProtocolType.Code,
-				"code_name": nasVolume.VolumeAllotmentProtocolType.CodeName,
-			},
+			"nas_volume_instance_no":             nasVolume.NasVolumeInstanceNo,
+			"nas_volume_instance_status":         setCommonCode(nasVolume.NasVolumeInstanceStatus),
+			"create_date":                        nasVolume.CreateDate,
+			"nas_volume_description":             nasVolume.NasVolumeInstanceDescription,
+			"volume_allotment_protocol_type":     setCommonCode(nasVolume.VolumeAllotmentProtocolType),
 			"volume_name":                        nasVolume.VolumeName,
 			"volume_total_size":                  nasVolume.VolumeTotalSize,
 			"volume_size":                        nasVolume.VolumeSize,
@@ -201,16 +183,8 @@ func nasVolumeInstancesAttributes(d *schema.ResourceData, nasVolumeInstances []s
 			"is_snapshot_configuration":          nasVolume.IsSnapshotConfiguration,
 			"is_event_configuration":             nasVolume.IsEventConfiguration,
 			"nas_volume_instance_custom_ip_list": nasVolume.NasVolumeInstanceCustomIpList,
-			"zone": map[string]interface{}{
-				"zone_no":          nasVolume.Zone.ZoneNo,
-				"zone_name":        nasVolume.Zone.ZoneName,
-				"zone_description": nasVolume.Zone.ZoneDescription,
-			},
-			"region": map[string]interface{}{
-				"region_no":   nasVolume.Region.RegionNo,
-				"region_code": nasVolume.Region.RegionCode,
-				"region_name": nasVolume.Region.RegionName,
-			},
+			"zone":   setZone(nasVolume.Zone),
+			"region": setRegion(nasVolume.Region),
 		}
 
 		ids = append(ids, nasVolume.NasVolumeInstanceNo)

@@ -145,31 +145,16 @@ func resourceNcloudBlockStorageRead(d *schema.ResourceData, meta interface{}) er
 		d.Set("disk_detail_type_code", storage.DiskDetailType)
 		d.Set("server_name", storage.ServerName)
 		d.Set("block_storage_type", storage.BlockStorageType)
-		d.Set("block_storage_type", map[string]interface{}{
-			"code":      storage.BlockStorageType.Code,
-			"code_name": storage.BlockStorageType.CodeName,
-		})
+		d.Set("block_storage_type", setCommonCode(storage.BlockStorageType))
 		d.Set("device_name", storage.DeviceName)
 		d.Set("block_storage_product_code", storage.BlockStorageProductCode)
-		d.Set("block_storage_instance_status", map[string]interface{}{
-			"code":      storage.BlockStorageInstanceStatus.Code,
-			"code_name": storage.BlockStorageInstanceStatus.CodeName,
-		})
-		d.Set("block_storage_instance_operation", map[string]interface{}{
-			"code":      storage.BlockStorageInstanceOperation.Code,
-			"code_name": storage.BlockStorageInstanceOperation.CodeName,
-		})
+		d.Set("block_storage_instance_status", setCommonCode(storage.BlockStorageInstanceStatus))
+		d.Set("block_storage_instance_operation", setCommonCode(storage.BlockStorageInstanceOperation))
 		d.Set("block_storage_instance_status_name", storage.BlockStorageInstanceStatusName)
 		d.Set("create_date", storage.CreateDate)
 		d.Set("block_storage_description", storage.BlockStorageInstanceDescription)
-		d.Set("disk_type", map[string]interface{}{
-			"code":      storage.DiskType.Code,
-			"code_name": storage.DiskType.CodeName,
-		})
-		d.Set("disk_detail_type", map[string]interface{}{
-			"code":      storage.DiskDetailType.Code,
-			"code_name": storage.DiskDetailType.CodeName,
-		})
+		d.Set("disk_type", setCommonCode(storage.DiskType))
+		d.Set("disk_detail_type", setCommonCode(storage.DiskDetailType))
 	}
 
 	return nil
