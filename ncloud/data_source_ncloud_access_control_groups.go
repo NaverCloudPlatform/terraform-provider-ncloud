@@ -2,9 +2,10 @@ package ncloud
 
 import (
 	"fmt"
+	"time"
+
 	"github.com/NaverCloudPlatform/ncloud-sdk-go/sdk"
 	"github.com/hashicorp/terraform/helper/schema"
-	"time"
 )
 
 func dataSourceNcloudAccessControlGroups() *schema.Resource {

@@ -20,31 +20,8 @@ func dataSourceNcloudZones() *schema.Resource {
 			},
 			"zones": {
 				Type:     schema.TypeList,
-				Optional: true,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
-						"zone_no": {
-							Type:     schema.TypeString,
-							Computed: true,
-						},
-						"zone_code": {
-							Type:     schema.TypeString,
-							Computed: true,
-						},
-						"zone_name": {
-							Type:     schema.TypeString,
-							Computed: true,
-						},
-						"zone_description": {
-							Type:     schema.TypeString,
-							Computed: true,
-						},
-						"region_no": {
-							Type:     schema.TypeString,
-							Computed: true,
-						},
-					},
-				},
+				Computed: true,
+				Elem:     zoneSchemaResource,
 			},
 			"output_file": {
 				Type:     schema.TypeString,
@@ -86,12 +63,7 @@ func zonesAttributes(d *schema.ResourceData, zones []common.Zone) error {
 	var ids []string
 	var s []map[string]interface{}
 	for _, zone := range zones {
-		mapping := map[string]interface{}{
-			"zone_no":          zone.ZoneNo,
-			"zone_name":        zone.ZoneName,
-			"zone_description": zone.ZoneDescription,
-		}
-
+		mapping := setZone(zone)
 		ids = append(ids, string(zone.ZoneNo))
 		s = append(s, mapping)
 	}

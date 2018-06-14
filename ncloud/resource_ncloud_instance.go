@@ -175,36 +175,12 @@ func resourceNcloudInstance() *schema.Resource {
 			"zone": {
 				Type:     schema.TypeMap,
 				Computed: true,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
-						"zone_no": {
-							Type: schema.TypeString,
-						},
-						"zone_name": {
-							Type: schema.TypeString,
-						},
-						"zone_description": {
-							Type: schema.TypeString,
-						},
-					},
-				},
+				Elem:     zoneSchemaResource,
 			},
 			"region": {
 				Type:     schema.TypeMap,
 				Computed: true,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
-						"region_no": {
-							Type: schema.TypeString,
-						},
-						"region_code": {
-							Type: schema.TypeString,
-						},
-						"region_name": {
-							Type: schema.TypeString,
-						},
-					},
-				},
+				Elem:     regionSchemaResource,
 			},
 			"base_block_storage_disk_type": {
 				Type:     schema.TypeMap,
@@ -257,10 +233,7 @@ func resourceNcloudInstanceRead(d *schema.ResourceData, meta interface{}) error 
 		d.Set("server_instance_no", instance.ServerInstanceNo)
 		d.Set("server_name", instance.ServerName)
 		d.Set("server_image_product_code", instance.ServerImageProductCode)
-		d.Set("server_instance_status", map[string]interface{}{
-			"code":      instance.PlatformType.Code,
-			"code_name": instance.PlatformType.CodeName,
-		})
+		d.Set("server_instance_status", setCommonCode(instance.ServerInstanceStatus))
 		d.Set("server_instance_status_name", instance.ServerInstanceStatusName)
 		d.Set("uptime", instance.Uptime)
 		d.Set("server_image_name", instance.ServerImageName)
@@ -268,44 +241,21 @@ func resourceNcloudInstanceRead(d *schema.ResourceData, meta interface{}) error 
 		d.Set("cpu_count", instance.CPUCount)
 		d.Set("memory_size", instance.MemorySize)
 		d.Set("base_block_storage_size", instance.BaseBlockStorageSize)
-		d.Set("platform_type", map[string]interface{}{
-			"code":      instance.PlatformType.Code,
-			"code_name": instance.PlatformType.CodeName,
-		})
+		d.Set("platform_type", setCommonCode(instance.PlatformType))
 		d.Set("is_fee_charging_monitoring", instance.IsFeeChargingMonitoring)
 		d.Set("public_ip", instance.PublicIP)
 		d.Set("private_ip", instance.PrivateIP)
-		d.Set("server_instance_operation", map[string]interface{}{
-			"code":      instance.ServerInstanceOperation.Code,
-			"code_name": instance.ServerInstanceOperation.CodeName,
-		})
+		d.Set("server_instance_operation", setCommonCode(instance.ServerInstanceOperation))
 		d.Set("create_date", instance.CreateDate)
 		d.Set("uptime", instance.Uptime)
 		d.Set("port_forwarding_public_ip", instance.PortForwardingPublicIP)
 		d.Set("port_forwarding_external_port", instance.PortForwardingExternalPort)
 		d.Set("port_forwarding_internal_port", instance.PortForwardingInternalPort)
-		d.Set("zone", map[string]interface{}{
-			"zone_no":          instance.Zone.ZoneNo,
-			"zone_name":        instance.Zone.ZoneName,
-			"zone_description": instance.Zone.ZoneDescription,
-		})
-		d.Set("region", map[string]interface{}{
-			"region_no":   instance.Region.RegionNo,
-			"region_code": instance.Region.RegionCode,
-			"region_name": instance.Region.RegionName,
-		})
-		d.Set("base_block_storage_disk_type", map[string]interface{}{
-			"code":      instance.BaseBlockStorageDiskType.Code,
-			"code_name": instance.BaseBlockStorageDiskType.CodeName,
-		})
-		d.Set("base_block_storage_disk_detail_type", map[string]interface{}{
-			"code":      instance.BaseBlockStroageDiskDetailType.Code,
-			"code_name": instance.BaseBlockStroageDiskDetailType.CodeName,
-		})
-		d.Set("internet_line_type", map[string]interface{}{
-			"code":      instance.InternetLineType.Code,
-			"code_name": instance.InternetLineType.CodeName,
-		})
+		d.Set("zone", setZone(instance.Zone))
+		d.Set("region", setRegion(instance.Region))
+		d.Set("base_block_storage_disk_type", setCommonCode(instance.BaseBlockStorageDiskType))
+		d.Set("base_block_storage_disk_detail_type", setCommonCode(instance.BaseBlockStroageDiskDetailType))
+		d.Set("internet_line_type", setCommonCode(instance.InternetLineType))
 
 		if userData, ok := d.GetOk("user_data"); ok {
 			d.Set("user_data", Base64Decode(userData.(string)))

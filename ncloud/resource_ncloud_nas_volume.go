@@ -137,36 +137,12 @@ func resourceNcloudNasVolume() *schema.Resource {
 			"zone": {
 				Type:     schema.TypeMap,
 				Computed: true,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
-						"zone_no": {
-							Type: schema.TypeString,
-						},
-						"zone_name": {
-							Type: schema.TypeString,
-						},
-						"zone_description": {
-							Type: schema.TypeString,
-						},
-					},
-				},
+				Elem:     zoneSchemaResource,
 			},
 			"region": {
 				Type:     schema.TypeMap,
 				Computed: true,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
-						"region_no": {
-							Type: schema.TypeString,
-						},
-						"region_code": {
-							Type: schema.TypeString,
-						},
-						"region_name": {
-							Type: schema.TypeString,
-						},
-					},
-				},
+				Elem:     regionSchemaResource,
 			},
 		},
 	}
@@ -200,16 +176,10 @@ func resourceNcloudNasVolumeRead(d *schema.ResourceData, meta interface{}) error
 		return err
 	}
 	if nasVolume != nil {
-		d.Set("nas_volume_instance_status", map[string]interface{}{
-			"code":      nasVolume.NasVolumeInstanceStatus.Code,
-			"code_name": nasVolume.NasVolumeInstanceStatus.CodeName,
-		})
+		d.Set("nas_volume_instance_status", setCommonCode(nasVolume.NasVolumeInstanceStatus))
 		d.Set("create_date", nasVolume.CreateDate)
 		d.Set("nas_volume_description", nasVolume.NasVolumeInstanceDescription)
-		d.Set("volume_allotment_protocol_type", map[string]interface{}{
-			"code":      nasVolume.VolumeAllotmentProtocolType.Code,
-			"code_name": nasVolume.VolumeAllotmentProtocolType.CodeName,
-		})
+		d.Set("volume_allotment_protocol_type", setCommonCode(nasVolume.VolumeAllotmentProtocolType))
 		d.Set("volume_name", nasVolume.VolumeName)
 		d.Set("volume_total_size", nasVolume.VolumeTotalSize)
 		d.Set("volume_size", nasVolume.VolumeSize)
@@ -221,16 +191,8 @@ func resourceNcloudNasVolumeRead(d *schema.ResourceData, meta interface{}) error
 		d.Set("is_snapshot_configuration", nasVolume.IsSnapshotConfiguration)
 		d.Set("is_event_configuration", nasVolume.IsEventConfiguration)
 		d.Set("nas_volume_instance_custom_ip_list", nasVolume.NasVolumeInstanceCustomIpList)
-		d.Set("zone", map[string]interface{}{
-			"zone_no":          nasVolume.Zone.ZoneNo,
-			"zone_name":        nasVolume.Zone.ZoneName,
-			"zone_description": nasVolume.Zone.ZoneDescription,
-		})
-		d.Set("region", map[string]interface{}{
-			"region_no":   nasVolume.Region.RegionNo,
-			"region_code": nasVolume.Region.RegionCode,
-			"region_name": nasVolume.Region.RegionName,
-		})
+		d.Set("zone", setZone(nasVolume.Zone))
+		d.Set("region", setRegion(nasVolume.Region))
 	}
 
 	return nil

@@ -120,23 +120,11 @@ func resourceNcloudPublicIPRead(d *schema.ResourceData, meta interface{}) error 
 		d.Set("public_ip", instance.PublicIP)
 		d.Set("public_ip_description", instance.PublicIPDescription)
 		d.Set("create_date", instance.CreateDate)
-		d.Set("internet_line_type", map[string]interface{}{
-			"code":      instance.InternetLineType.Code,
-			"code_name": instance.InternetLineType.CodeName,
-		})
+		d.Set("internet_line_type", setCommonCode(instance.InternetLineType))
 		d.Set("public_ip_instance_status_name", instance.PublicIPInstanceStatusName)
-		d.Set("public_ip_instance_status", map[string]interface{}{
-			"code":      instance.PublicIPInstanceStatus.Code,
-			"code_name": instance.PublicIPInstanceStatus.CodeName,
-		})
-		d.Set("public_ip_instance_operation", map[string]interface{}{
-			"code":      instance.PublicIPInstanceOperation.Code,
-			"code_name": instance.PublicIPInstanceOperation.CodeName,
-		})
-		d.Set("public_ip_kind_type", map[string]interface{}{
-			"code":      instance.PublicIPKindType.Code,
-			"code_name": instance.PublicIPKindType.CodeName,
-		})
+		d.Set("public_ip_instance_status", setCommonCode(instance.PublicIPInstanceStatus))
+		d.Set("public_ip_instance_operation", setCommonCode(instance.PublicIPInstanceOperation))
+		d.Set("public_ip_kind_type", setCommonCode(instance.PublicIPKindType))
 	}
 
 	return nil

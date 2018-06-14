@@ -2,9 +2,10 @@ package ncloud
 
 import (
 	"fmt"
+	"regexp"
+
 	"github.com/NaverCloudPlatform/ncloud-sdk-go/sdk"
 	"github.com/hashicorp/terraform/helper/schema"
-	"regexp"
 )
 
 func dataSourceNcloudServerImages() *schema.Resource {
@@ -148,26 +149,17 @@ func serverImagesAttributes(d *schema.ResourceData, serverImages []sdk.Product) 
 	var s []map[string]interface{}
 	for _, product := range serverImages {
 		mapping := map[string]interface{}{
-			"product_code": product.ProductCode,
-			"product_name": product.ProductName,
-			"product_type": map[string]interface{}{
-				"code":      product.ProductType.Code,
-				"code_name": product.ProductType.CodeName,
-			},
-			"product_description": product.ProductDescription,
-			"infra_resource_type": map[string]interface{}{
-				"code":      product.InfraResourceType.Code,
-				"code_name": product.InfraResourceType.CodeName,
-			},
+			"product_code":            product.ProductCode,
+			"product_name":            product.ProductName,
+			"product_type":            setCommonCode(product.ProductType),
+			"product_description":     product.ProductDescription,
+			"infra_resource_type":     setCommonCode(product.InfraResourceType),
 			"cpu_count":               product.CPUCount,
 			"memory_size":             product.MemorySize,
 			"base_block_storage_size": product.BaseBlockStorageSize,
-			"platform_type": map[string]interface{}{
-				"code":      product.PlatformType.Code,
-				"code_name": product.PlatformType.CodeName,
-			},
-			"os_information":         product.OsInformation,
-			"add_block_storage_size": product.AddBlockStroageSize,
+			"platform_type":           setCommonCode(product.PlatformType),
+			"os_information":          product.OsInformation,
+			"add_block_storage_size":  product.AddBlockStroageSize,
 		}
 
 		ids = append(ids, product.ProductCode)
