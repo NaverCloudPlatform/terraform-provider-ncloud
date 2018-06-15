@@ -190,7 +190,7 @@ func resourceNcloudNasVolumeRead(d *schema.ResourceData, meta interface{}) error
 		d.Set("snapshot_volume_use_ratio", nasVolume.SnapshotVolumeUseRatio)
 		d.Set("is_snapshot_configuration", nasVolume.IsSnapshotConfiguration)
 		d.Set("is_event_configuration", nasVolume.IsEventConfiguration)
-		d.Set("nas_volume_instance_custom_ip_list", nasVolume.NasVolumeInstanceCustomIpList)
+		d.Set("nas_volume_instance_custom_ip_list", nasVolume.NasVolumeInstanceCustomIPList)
 		d.Set("zone", setZone(nasVolume.Zone))
 		d.Set("region", setRegion(nasVolume.Region))
 	}
@@ -216,6 +216,21 @@ func resourceNcloudNasVolumeUpdate(d *schema.ResourceData, meta interface{}) err
 			return err
 		}
 		logCommonResponse("ChangeNasVolumeSize", reqParams, resp.CommonResponse)
+	}
+
+	if d.HasChange("server_instance_no_list") || d.HasChange("custom_ip_list") {
+		reqParams := &sdk.RequestNasVolumeAccessControl{
+			NasVolumeInstanceNo:  d.Id(),
+			ServerInstanceNoList: StringList(d.Get("server_instance_no_list").([]interface{})),
+			CustomIPList:         StringList(d.Get("custom_ip_list").([]interface{})),
+		}
+
+		resp, err := conn.SetNasVolumeAccessControl(reqParams)
+		if err != nil {
+			logErrorResponse("SetNasVolumeAccessControl", err, reqParams)
+			return err
+		}
+		logCommonResponse("SetNasVolumeAccessControl", reqParams, resp.CommonResponse)
 	}
 
 	return resourceNcloudNasVolumeRead(d, meta)

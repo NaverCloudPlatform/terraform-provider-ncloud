@@ -2,12 +2,13 @@ package ncloud
 
 import (
 	"fmt"
+	"strings"
+	"testing"
+
 	"github.com/NaverCloudPlatform/ncloud-sdk-go/sdk"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/terraform"
-	"strings"
-	"testing"
 )
 
 func TestAccResourceNcloudNasVolumeBasic(t *testing.T) {
@@ -70,6 +71,35 @@ func TestAccResourceNcloudNasVolumeResize(t *testing.T) {
 			},
 			{
 				Config: testAccNasVolumeResizeConfig(testVolumeName),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckNasVolumeExists("ncloud_nas_volume.test", &after),
+					testAccCheckNasVolumeNotRecreated(t, &before, &after),
+				),
+			},
+		},
+	})
+}
+
+func TestAccResourceNcloudNasVolumeChangeAccessControl(t *testing.T) {
+	var before sdk.NasVolumeInstance
+	var after sdk.NasVolumeInstance
+	prefix := getTestPrefix()
+	testVolumeName := prefix + "_vol"
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:      func() { testAccPreCheck(t) },
+		IDRefreshName: "ncloud_nas_volume.test",
+		Providers:     testAccProviders,
+		CheckDestroy:  testAccCheckNasVolumeDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccNasVolumeConfig(testVolumeName),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckNasVolumeExists("ncloud_nas_volume.test", &before),
+				),
+			},
+			{
+				Config: testAccNasVolumeChangeAccessControl(testVolumeName),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckNasVolumeExists("ncloud_nas_volume.test", &after),
 					testAccCheckNasVolumeNotRecreated(t, &before, &after),
@@ -161,5 +191,15 @@ resource "ncloud_nas_volume" "test" {
 	"volume_name_postfix" = "%s"
 	"volume_size_gb" = "600"
 	"volume_allotment_protocol_type_code" = "NFS"
+}`, volumeNamePostfix)
+}
+
+func testAccNasVolumeChangeAccessControl(volumeNamePostfix string) string {
+	return fmt.Sprintf(`
+resource "ncloud_nas_volume" "test" {
+	"volume_name_postfix" = "%s"
+	"volume_size_gb" = "600"
+	"volume_allotment_protocol_type_code" = "NFS"
+	"custom_ip_list" = ["10.10.10.1", "10.10.10.2"]
 }`, volumeNamePostfix)
 }

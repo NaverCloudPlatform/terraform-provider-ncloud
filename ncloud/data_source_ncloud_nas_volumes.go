@@ -182,7 +182,7 @@ func nasVolumeInstancesAttributes(d *schema.ResourceData, nasVolumeInstances []s
 			"snapshot_volume_use_ratio":          nasVolume.SnapshotVolumeUseRatio,
 			"is_snapshot_configuration":          nasVolume.IsSnapshotConfiguration,
 			"is_event_configuration":             nasVolume.IsEventConfiguration,
-			"nas_volume_instance_custom_ip_list": nasVolume.NasVolumeInstanceCustomIpList,
+			"nas_volume_instance_custom_ip_list": nasVolume.NasVolumeInstanceCustomIPList,
 			"zone":   setZone(nasVolume.Zone),
 			"region": setRegion(nasVolume.Region),
 		}
