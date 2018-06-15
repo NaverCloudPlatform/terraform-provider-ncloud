@@ -398,35 +398,39 @@ type RequestCreateNasVolumeInstance struct {
 }
 
 type NasVolumeInstance struct {
-	NasVolumeInstanceNo              string            `xml:"nasVolumeInstanceNo"`
-	NasVolumeInstanceStatus          common.CommonCode `xml:"nasVolumeInstanceStatus"`
-	NasVolumeInstanceOperation       common.CommonCode `xml:"nasVolumeInstanceOperation"`
-	NasVolumeInstanceStatusName      string            `xml:"nasVolumeInstanceStatusName"`
-	CreateDate                       string            `xml:"createDate"`
-	NasVolumeInstanceDescription     string            `xml:"nasVolumeInstanceDescription"`
-	MountInformation                 string            `xml:"mountInformation"`
-	VolumeAllotmentProtocolType      common.CommonCode `xml:"volumeAllotmentProtocolType"`
-	VolumeName                       string            `xml:"volumeName"`
-	VolumeTotalSize                  int               `xml:"volumeTotalSize"`
-	VolumeSize                       int               `xml:"volumeSize"`
-	VolumeUseSize                    int               `xml:"volumeUseSize"`
-	VolumeUseRatio                   float32           `xml:"volumeUseRatio"`
-	SnapshotVolumeConfigurationRatio float32           `xml:"snapshotVolumeConfigurationRatio"`
-	SnapshotVolumeSize               int               `xml:"snapshotVolumeSize"`
-	SnapshotVolumeUseSize            int               `xml:"snapshotVolumeUseSize"`
-	SnapshotVolumeUseRatio           float32           `xml:"snapshotVolumeUseRatio"`
-	IsSnapshotConfiguration          bool              `xml:"isSnapshotConfiguration"`
-	IsEventConfiguration             bool              `xml:"isEventConfiguration"`
-	Zone                             common.Zone       `xml:"zone"`
-	Region                           common.Region     `xml:"region"`
-	NasVolumeInstanceCustomIpList    []string          `xml:"nasVolumeInstanceCustomIpList"`
-	NasVolumeServerInstanceList      []string          `xml:"nasVolumeServerInstanceList"`
+	NasVolumeInstanceNo              string                      `xml:"nasVolumeInstanceNo"`
+	NasVolumeInstanceStatus          common.CommonCode           `xml:"nasVolumeInstanceStatus"`
+	NasVolumeInstanceOperation       common.CommonCode           `xml:"nasVolumeInstanceOperation"`
+	NasVolumeInstanceStatusName      string                      `xml:"nasVolumeInstanceStatusName"`
+	CreateDate                       string                      `xml:"createDate"`
+	NasVolumeInstanceDescription     string                      `xml:"nasVolumeInstanceDescription"`
+	MountInformation                 string                      `xml:"mountInformation"`
+	VolumeAllotmentProtocolType      common.CommonCode           `xml:"volumeAllotmentProtocolType"`
+	VolumeName                       string                      `xml:"volumeName"`
+	VolumeTotalSize                  int                         `xml:"volumeTotalSize"`
+	VolumeSize                       int                         `xml:"volumeSize"`
+	VolumeUseSize                    int                         `xml:"volumeUseSize"`
+	VolumeUseRatio                   float32                     `xml:"volumeUseRatio"`
+	SnapshotVolumeConfigurationRatio float32                     `xml:"snapshotVolumeConfigurationRatio"`
+	SnapshotVolumeSize               int                         `xml:"snapshotVolumeSize"`
+	SnapshotVolumeUseSize            int                         `xml:"snapshotVolumeUseSize"`
+	SnapshotVolumeUseRatio           float32                     `xml:"snapshotVolumeUseRatio"`
+	IsSnapshotConfiguration          bool                        `xml:"isSnapshotConfiguration"`
+	IsEventConfiguration             bool                        `xml:"isEventConfiguration"`
+	Zone                             common.Zone                 `xml:"zone"`
+	Region                           common.Region               `xml:"region"`
+	NasVolumeInstanceCustomIPList    []NasVolumeInstanceCustomIp `xml:"nasVolumeInstanceCustomIpList>nasVolumeInstanceCustomIp,omitempty"`
+	NasVolumeServerInstanceList      []ServerInstance            `xml:"nasVolumeServerInstanceList>serverInstance,omitempty"`
 }
 
 type NasVolumeInstanceList struct {
 	common.CommonResponse
 	TotalRows             int                 `xml:"totalRows"`
 	NasVolumeInstanceList []NasVolumeInstance `xml:"nasVolumeInstanceList>nasVolumeInstance,omitempty"`
+}
+
+type NasVolumeInstanceCustomIp struct {
+	CustomIP string `xml:"customIP"`
 }
 
 type RequestGetNasVolumeInstanceList struct {
@@ -597,7 +601,7 @@ type SslCertificate struct {
 	CertificateChain     string `xml:"certificateChain"`
 }
 
-// RequestAddSslCertificate is response type to add SSL Certificate
+// RequestAddSslCertificate is request type to add SSL Certificate
 type RequestAddSslCertificate struct {
 	CertificateName      string
 	PrivateKey           string
@@ -608,4 +612,11 @@ type RequestAddSslCertificate struct {
 type RequestChangeNasVolumeSize struct {
 	NasVolumeInstanceNo string
 	VolumeSize          int
+}
+
+// RequestNasVolumeAccessControl is request type for nas volume access control operations
+type RequestNasVolumeAccessControl struct {
+	NasVolumeInstanceNo  string
+	ServerInstanceNoList []string
+	CustomIPList         []string
 }
