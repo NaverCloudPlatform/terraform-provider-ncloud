@@ -14,11 +14,11 @@ func processDeleteLoadBalancerInstancesParams(reqParams *RequestDeleteLoadBalanc
 	params := make(map[string]string)
 
 	if reqParams == nil {
-		return nil, errors.New("LoadBalancerInstanceNoList is required")
+		return nil, errors.New("LoadBalancerInstanceNoList is required field")
 	}
 
 	if len(reqParams.LoadBalancerInstanceNoList) == 0 {
-		return nil, errors.New("LoadBalancerInstanceNoList is required")
+		return nil, errors.New("LoadBalancerInstanceNoList is required field")
 	}
 
 	for k, v := range reqParams.LoadBalancerInstanceNoList {

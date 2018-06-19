@@ -13,7 +13,7 @@ import (
 
 func checkGetAccessControlRuleListParams(accessControlGroupConfigurationNo string) error {
 	if accessControlGroupConfigurationNo == "" {
-		return errors.New("accessControlGroupConfigurationNo is required")
+		return errors.New("accessControlGroupConfigurationNo is required field")
 	}
 
 	if no, err := strconv.Atoi(accessControlGroupConfigurationNo); err != nil {

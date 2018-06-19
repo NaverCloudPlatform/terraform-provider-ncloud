@@ -14,7 +14,7 @@ func processSetNasVolumeAccessControlParams(reqParams *RequestNasVolumeAccessCon
 	params := make(map[string]string)
 
 	if reqParams == nil {
-		return nil, errors.New("NasVolumeInstanceNo is required")
+		return nil, errors.New("NasVolumeInstanceNo is required field")
 	}
 
 	if err := validateRequiredField("NasVolumeInstanceNo", reqParams.NasVolumeInstanceNo); err != nil {

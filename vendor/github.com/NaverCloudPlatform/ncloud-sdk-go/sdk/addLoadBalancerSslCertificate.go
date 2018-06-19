@@ -14,7 +14,7 @@ func processAddSslCertificateParams(reqParams *RequestAddSslCertificate) (map[st
 	params := make(map[string]string)
 
 	if reqParams == nil {
-		return nil, errors.New("CertificateName, PrivateKey and PublicKeyCertificate is required")
+		return nil, errors.New("CertificateName, PrivateKey and PublicKeyCertificate are required fields")
 	}
 
 	if err := validateRequiredField("CertificateName", reqParams.CertificateName); err != nil {

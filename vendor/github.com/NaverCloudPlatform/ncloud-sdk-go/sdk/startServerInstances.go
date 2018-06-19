@@ -14,7 +14,7 @@ func processStartServerInstancesParams(reqParams *RequestStartServerInstances) (
 	params := make(map[string]string)
 
 	if reqParams == nil || len(reqParams.ServerInstanceNoList) == 0 {
-		return params, errors.New("serverInstanceNoList is required")
+		return params, errors.New("serverInstanceNoList is required field")
 	}
 
 	if len(reqParams.ServerInstanceNoList) > 0 {

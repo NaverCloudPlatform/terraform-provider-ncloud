@@ -14,7 +14,7 @@ func processGetServerProductListParams(reqParams *RequestGetServerProductList) (
 	params := make(map[string]string)
 
 	if reqParams == nil || reqParams.ServerImageProductCode == "" {
-		return params, errors.New("ServerImageProductCode field is required")
+		return params, errors.New("ServerImageProductCode is required field")
 	}
 
 	if len(reqParams.ServerImageProductCode) > 20 {
@@ -35,6 +35,17 @@ func processGetServerProductListParams(reqParams *RequestGetServerProductList) (
 			return params, errors.New("Length of productCode should be max 20")
 		}
 		params["productCode"] = reqParams.ProductCode
+	}
+
+	if reqParams.InternetLineTypeCode != "" {
+		if err := validateIncludeValues("InternetLineTypeCode", reqParams.InternetLineTypeCode, []string{"PUBLC", "GLBL"}); err != nil {
+			return nil, err
+		}
+		params["internetLineTypeCode"] = reqParams.InternetLineTypeCode
+	}
+
+	if reqParams.ZoneNo != "" {
+		params["zoneNo"] = reqParams.ZoneNo
 	}
 
 	if reqParams.RegionNo != "" {

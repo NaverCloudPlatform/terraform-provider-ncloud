@@ -3,7 +3,6 @@ package sdk
 import (
 	"encoding/base64"
 	"encoding/xml"
-	"errors"
 	"fmt"
 	"net/http"
 	"strconv"
@@ -20,15 +19,15 @@ func processCreateServerInstancesParams(reqParams *RequestCreateServerInstance) 
 	}
 
 	if reqParams.ServerImageProductCode != "" {
-		if len := len(reqParams.ServerImageProductCode); len > 20 {
-			return nil, errors.New("Length of ServerImageProductCode should be min 1 or max 20")
+		if err := validateStringMaxLen("ServerImageProductCode", reqParams.ServerImageProductCode, 20); err != nil {
+			return nil, err
 		}
 		params["serverImageProductCode"] = reqParams.ServerImageProductCode
 	}
 
 	if reqParams.ServerProductCode != "" {
-		if len := len(reqParams.ServerProductCode); len > 20 {
-			return nil, errors.New("Length of ServerProductCode should be min 1 or max 20")
+		if err := validateStringMaxLen("ServerProductCode", reqParams.ServerProductCode, 20); err != nil {
+			return nil, err
 		}
 		params["serverProductCode"] = reqParams.ServerProductCode
 	}
@@ -38,22 +37,22 @@ func processCreateServerInstancesParams(reqParams *RequestCreateServerInstance) 
 	}
 
 	if reqParams.ServerName != "" {
-		if len := len(reqParams.ServerName); len < 3 || len > 30 {
-			return nil, errors.New("Length of ServerName should be min 3 or max 30")
+		if err := validateStringLenBetween("ServerName", reqParams.ServerName, 3, 30); err != nil {
+			return nil, err
 		}
 		params["serverName"] = reqParams.ServerName
 	}
 
 	if reqParams.ServerDescription != "" {
-		if len := len(reqParams.ServerDescription); len > 1000 {
-			return nil, errors.New("Length of ServerDescription should be min 1 or max 1000")
+		if err := validateStringMaxLen("ServerDescription", reqParams.ServerDescription, 1000); err != nil {
+			return nil, err
 		}
 		params["serverDescription"] = reqParams.ServerDescription
 	}
 
 	if reqParams.LoginKeyName != "" {
-		if len := len(reqParams.LoginKeyName); len < 3 || len > 30 {
-			return nil, errors.New("Length of LoginKeyName should be min 3 or max 30")
+		if err := validateStringLenBetween("LoginKeyName", reqParams.LoginKeyName, 3, 30); err != nil {
+			return nil, err
 		}
 		params["loginKeyName"] = reqParams.LoginKeyName
 	}
@@ -66,38 +65,37 @@ func processCreateServerInstancesParams(reqParams *RequestCreateServerInstance) 
 	}
 
 	if reqParams.ServerCreateCount > 0 {
-		if reqParams.ServerCreateCount > 20 {
-			return nil, errors.New("ServerCreateCount should be min 1 or max 20")
-
+		if err := validateIntegerInRange("ServerCreateCount", reqParams.ServerCreateCount, 1, 20); err != nil {
+			return nil, err
 		}
 		params["serverCreateCount"] = strconv.Itoa(reqParams.ServerCreateCount)
 	}
 
 	if reqParams.ServerCreateStartNo > 0 {
-		if reqParams.ServerCreateCount+reqParams.ServerCreateStartNo > 1000 {
-			return nil, errors.New("Sum of ServerCreateCount and ServerCreateStartNo should be less than 1000")
-
+		if err := validateIntegerInRange("Sum of ServerCreateCount and ServerCreateStartNo", reqParams.ServerCreateCount+reqParams.ServerCreateStartNo, 0, 1000); err != nil {
+			return nil, err
 		}
+
 		params["serverCreateStartNo"] = strconv.Itoa(reqParams.ServerCreateStartNo)
 	}
 
 	if reqParams.InternetLineTypeCode != "" {
-		if reqParams.InternetLineTypeCode != "PUBLC" && reqParams.InternetLineTypeCode != "GLBL" {
-			return nil, errors.New("InternetLineTypeCode should be PUBLC or GLBL")
+		if err := validateIncludeValues("InternetLineTypeCode", reqParams.InternetLineTypeCode, []string{"PUBLC", "GLBL"}); err != nil {
+			return nil, err
 		}
 		params["internetLineTypeCode"] = reqParams.InternetLineTypeCode
 	}
 
 	if reqParams.FeeSystemTypeCode != "" {
-		if reqParams.FeeSystemTypeCode != "FXSUM" && reqParams.FeeSystemTypeCode != "MTRAT" {
-			return nil, errors.New("FeeSystemTypeCode should be FXSUM or MTRAT")
+		if err := validateIncludeValues("FeeSystemTypeCode", reqParams.FeeSystemTypeCode, []string{"FXSUM", "MTRAT"}); err != nil {
+			return nil, err
 		}
 		params["feeSystemTypeCode"] = reqParams.FeeSystemTypeCode
 	}
 
 	if reqParams.UserData != "" {
-		if len := len(reqParams.UserData); len > 21847 {
-			return nil, errors.New("Length of UserData should be min 1 or max 21847")
+		if err := validateStringMaxLen("UserData", reqParams.UserData, 21847); err != nil {
+			return nil, err
 		}
 		params["userData"] = base64.StdEncoding.EncodeToString([]byte(reqParams.UserData))
 	}
@@ -110,6 +108,10 @@ func processCreateServerInstancesParams(reqParams *RequestCreateServerInstance) 
 		for k, v := range reqParams.AccessControlGroupConfigurationNoList {
 			params[fmt.Sprintf("accessControlGroupConfigurationNoList.%d", k+1)] = v
 		}
+	}
+
+	if reqParams.RaidTypeName != "" {
+		params["raidTypeName"] = reqParams.RaidTypeName
 	}
 
 	return params, nil
