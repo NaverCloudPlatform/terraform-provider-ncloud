@@ -14,7 +14,7 @@ func processDeletePortForwardingRules(reqParams *RequestDeletePortForwardingRule
 	params := make(map[string]string)
 
 	if reqParams == nil {
-		return nil, fmt.Errorf("PortForwardingConfigurationNo field is required")
+		return nil, fmt.Errorf("PortForwardingConfigurationNo is required field")
 	}
 	if err := validateRequiredField("PortForwardingConfigurationNo", reqParams.PortForwardingConfigurationNo); err != nil {
 		return nil, err

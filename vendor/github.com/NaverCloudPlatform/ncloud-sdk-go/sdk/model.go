@@ -56,11 +56,12 @@ type RequestCreateServerImage struct {
 }
 
 type RequestGetServerImageProductList struct {
-	ExclusionProductCode string
-	ProductCode          string
-	PlatformTypeCodeList []string
-	BlockStorageSize     int
-	RegionNo             string
+	ExclusionProductCode        string
+	ProductCode                 string
+	PlatformTypeCodeList        []string
+	InfraResourceDetailTypeCode string
+	BlockStorageSize            int
+	RegionNo                    string
 }
 
 // ProductList : Response of server product list
@@ -101,6 +102,7 @@ type RequestCreateServerInstance struct {
 	UserData                              string
 	ZoneNo                                string
 	AccessControlGroupConfigurationNoList []string
+	RaidTypeName                          string
 }
 
 type ServerInstanceList struct {
@@ -241,6 +243,7 @@ type RequestGetServerInstanceList struct {
 	BaseBlockStorageDiskDetailTypeCode string
 	SortedBy                           string
 	SortingOrder                       string
+	ServerInstanceTypeCodeList         []string
 }
 
 type RequestStopServerInstances struct {
@@ -346,11 +349,24 @@ type BlockStorageInstance struct {
 	Zone                            common.Zone       `xml:"zone"`
 }
 
+// RequestAttachBlockStorageInstance is request type to attach server instance
+type RequestAttachBlockStorageInstance struct {
+	ServerInstanceNo       string
+	BlockStorageInstanceNo string
+}
+
+// RequestDetachBlockStorageInstance is request type to detach block storage instance from server instance
+type RequestDetachBlockStorageInstance struct {
+	BlockStorageInstanceNoList []string
+}
+
 // RequestGetServerProductList : Request to get server product list
 type RequestGetServerProductList struct {
 	ExclusionProductCode   string
 	ProductCode            string
 	ServerImageProductCode string
+	ZoneNo                 string
+	InternetLineTypeCode   string
 	RegionNo               string
 }
 
@@ -619,4 +635,10 @@ type RequestNasVolumeAccessControl struct {
 	NasVolumeInstanceNo  string
 	ServerInstanceNoList []string
 	CustomIPList         []string
+}
+
+type RequestRecreateServerInstance struct {
+	ServerInstanceNo             string
+	ServerInstanceName           string
+	ChangeServerImageProductCode string
 }

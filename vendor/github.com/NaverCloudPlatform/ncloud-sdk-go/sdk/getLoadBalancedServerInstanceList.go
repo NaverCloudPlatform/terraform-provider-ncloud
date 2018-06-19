@@ -14,7 +14,7 @@ func (s *Conn) GetLoadBalancedServerInstanceList(loadBalancerInstanceNo string) 
 	params := make(map[string]string)
 
 	if loadBalancerInstanceNo == "" {
-		return nil, fmt.Errorf("LoadBalancerInstanceNo field is required")
+		return nil, fmt.Errorf("LoadBalancerInstanceNo is required field")
 	}
 
 	params["loadBalancerInstanceNo"] = loadBalancerInstanceNo

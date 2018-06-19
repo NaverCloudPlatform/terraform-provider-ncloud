@@ -14,7 +14,7 @@ func processDeleteBlockStorageInstancesParams(blockStorageInstanceNoList []strin
 	params := make(map[string]string)
 
 	if len(blockStorageInstanceNoList) == 0 {
-		return params, errors.New("BlockStorageInstanceNoList field is Required")
+		return params, errors.New("BlockStorageInstanceNoList is required field")
 	}
 
 	for k, v := range blockStorageInstanceNoList {

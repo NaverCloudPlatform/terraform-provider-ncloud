@@ -14,7 +14,7 @@ func (s *Conn) DeleteLoadBalancerSslCertificate(certificateName string) (*SslCer
 	params := make(map[string]string)
 
 	if certificateName == "" {
-		return nil, fmt.Errorf("certificateName field is required")
+		return nil, fmt.Errorf("CertificateName is required field")
 	}
 
 	params["certificateName"] = certificateName

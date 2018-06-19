@@ -38,6 +38,10 @@ func processGetServerImageProductListParams(reqParams *RequestGetServerImageProd
 		}
 	}
 
+	if reqParams.InfraResourceDetailTypeCode != "" {
+		params["infraResourceDetailTypeCode"] = reqParams.InfraResourceDetailTypeCode
+	}
+
 	if reqParams.BlockStorageSize > 0 {
 		if reqParams.BlockStorageSize != 50 && reqParams.BlockStorageSize != 100 {
 			return nil, errors.New("blockStorageSize should be null, 50 or 100")

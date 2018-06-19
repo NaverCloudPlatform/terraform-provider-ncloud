@@ -98,6 +98,15 @@ func processGetServerInstanceListParams(reqParams *RequestGetServerInstanceList)
 		params["sortingOrder"] = reqParams.SortingOrder
 	}
 
+	if len(reqParams.ServerInstanceTypeCodeList) > 0 {
+		for k, v := range reqParams.ServerInstanceTypeCodeList {
+			if err := validateIncludeValues("ServerInstanceTypeCodeList", v, []string{"MICRO", "COMPT", "STAND", "HIMEM", "GPU", "VDS", "BM"}); err != nil {
+				return nil, err
+			}
+			params[fmt.Sprintf("serverInstanceTypeCodeList.%d", k+1)] = v
+		}
+	}
+
 	return params, nil
 }
 
