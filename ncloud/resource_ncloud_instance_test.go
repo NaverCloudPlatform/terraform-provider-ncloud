@@ -80,6 +80,41 @@ func TestAccResourceInstanceChangeServerInstanceSpec(t *testing.T) {
 	})
 }
 
+func TestAccResourceRecreateServerInstance(t *testing.T) {
+	var before sdk.ServerInstance
+	var after sdk.ServerInstance
+	testServerName := getTestServerName()
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:      func() { testAccPreCheck(t) },
+		IDRefreshName: "ncloud_instance.instance",
+		Providers:     testAccProviders,
+		CheckDestroy:  testAccCheckInstanceDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccRecreateServerInstanceBeforeConfig(testServerName),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckInstanceExists(
+						"ncloud_instance.instance", &before),
+				),
+			},
+			{
+				Config: testAccRecreateServerInstanceAfterConfig(testServerName),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckInstanceExists(
+						"ncloud_instance.instance", &after),
+					testAccCheckInstanceNotRecreated(
+						t, &before, &after),
+					resource.TestCheckResourceAttr(
+						"ncloud_instance.instance",
+						"server_image_product_code",
+						"SPSWBMLINUX00002"),
+				),
+			},
+		},
+	})
+}
+
 func testAccCheckInstanceExists(n string, i *sdk.ServerInstance) resource.TestCheckFunc {
 	return testAccCheckInstanceExistsWithProvider(n, i, func() *schema.Provider { return testAccProvider })
 }
@@ -172,6 +207,26 @@ resource "ncloud_instance" "instance" {
 	"server_name" = "%s"
 	"server_image_product_code" = "SPSW0LINUX000032"
 	"server_product_code" = "SPSVRSTAND000056"
+}
+`, testServerName)
+}
+
+func testAccRecreateServerInstanceBeforeConfig(testServerName string) string {
+	return fmt.Sprintf(`
+resource "ncloud_instance" "instance" {
+	"server_name" = "%s"
+	"server_image_product_code" = "SPSWBMLINUX00001"
+	"server_product_code" = "SPSVRBM000000001"
+}
+`, testServerName)
+}
+
+func testAccRecreateServerInstanceAfterConfig(testServerName string) string {
+	return fmt.Sprintf(`
+resource "ncloud_instance" "instance" {
+	"server_name" = "%s"
+	"server_image_product_code" = "SPSWBMLINUX00002"
+	"server_product_code" = "SPSVRBM000000001"
 }
 `, testServerName)
 }
