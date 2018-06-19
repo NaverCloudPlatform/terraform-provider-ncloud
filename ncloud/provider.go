@@ -32,6 +32,7 @@ func Provider() terraform.ResourceProvider {
 		DataSourcesMap: map[string]*schema.Resource{
 			"ncloud_regions":               dataSourceNcloudRegions(),
 			"ncloud_server_images":         dataSourceNcloudServerImages(),
+			"ncloud_member_server_images":  dataSourceNcloudMemberServerImages(),
 			"ncloud_zones":                 dataSourceNcloudZones(),
 			"ncloud_root_password":         dataSourceNcloudRootPassword(),
 			"ncloud_server_products":       dataSourceNcloudServerProducts(),
