@@ -136,6 +136,7 @@ func dataSourceNcloudServerImagesRead(d *schema.ResourceData, meta interface{}) 
 		for _, serverImage := range allServerImages {
 			if r.MatchString(serverImage.ProductName) {
 				filteredServerImages = append(filteredServerImages, serverImage)
+				break
 			}
 		}
 	} else {

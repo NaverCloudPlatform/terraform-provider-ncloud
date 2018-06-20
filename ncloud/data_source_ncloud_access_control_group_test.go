@@ -57,7 +57,8 @@ func testAccDataSourceNcloudAccessControlGroupDataSourceID(n string) resource.Te
 
 var testAccDataSourceNcloudAccessControlGroupConfig = `
 data "ncloud_access_control_group" "test" {
-	"access_control_group_name" = "Default"
+	//"access_control_group_name" = "Default"
+	"access_control_group_name" = "winrm-acg"
 }
 `
 
