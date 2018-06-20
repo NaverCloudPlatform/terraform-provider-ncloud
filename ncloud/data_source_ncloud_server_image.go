@@ -29,14 +29,6 @@ func dataSourceNcloudServerImage() *schema.Resource {
 				Optional: true,
 				Computed: true,
 			},
-			"cpu_count": {
-				Type:     schema.TypeInt,
-				Optional: true,
-			},
-			"memory_size": {
-				Type:     schema.TypeInt,
-				Optional: true,
-			},
 			"product_type_code": {
 				Type:     schema.TypeString,
 				Optional: true,
@@ -118,8 +110,6 @@ func dataSourceNcloudServerImageRead(d *schema.ResourceData, meta interface{}) e
 	var filteredServerImages []sdk.Product
 
 	nameRegex, nameRegexOk := d.GetOk("product_name_regex")
-	cpuCount, cpuCountOk := d.GetOk("cpu_count")
-	memorySize, memorySizeOk := d.GetOk("memory_size")
 	productTypeCode, productTypeCodeOk := d.GetOk("product_type_code")
 
 	var r *regexp.Regexp
@@ -127,18 +117,16 @@ func dataSourceNcloudServerImageRead(d *schema.ResourceData, meta interface{}) e
 		r = regexp.MustCompile(nameRegex.(string))
 	}
 
-	if !nameRegexOk && !cpuCountOk && !memorySizeOk && !productTypeCodeOk {
+	if !nameRegexOk && !productTypeCodeOk {
 		filteredServerImages = allServerImages[:]
 	} else {
 		for _, serverImage := range allServerImages {
 			if nameRegexOk && r.MatchString(serverImage.ProductName) {
 				filteredServerImages = append(filteredServerImages, serverImage)
-			} else if cpuCountOk && cpuCount == serverImage.CPUCount {
-				filteredServerImages = append(filteredServerImages, serverImage)
-			} else if memorySizeOk && memorySize == serverImage.MemorySize {
-				filteredServerImages = append(filteredServerImages, serverImage)
+				break
 			} else if productTypeCodeOk && productTypeCode == serverImage.ProductType.Code {
 				filteredServerImages = append(filteredServerImages, serverImage)
+				break
 			}
 		}
 	}
