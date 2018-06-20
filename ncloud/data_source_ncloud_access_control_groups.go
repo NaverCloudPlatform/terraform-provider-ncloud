@@ -88,8 +88,10 @@ func dataSourceNcloudAccessControlGroupsRead(d *schema.ResourceData, meta interf
 
 	resp, err := conn.GetAccessControlGroupList(reqParams)
 	if err != nil {
+		logErrorResponse("GetAccessControlGroupList", err, reqParams)
 		return err
 	}
+	logCommonResponse("GetAccessControlGroupList", reqParams, resp.CommonResponse)
 
 	var accessControlGroups []sdk.AccessControlGroup
 
