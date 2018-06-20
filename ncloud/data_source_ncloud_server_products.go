@@ -36,6 +36,10 @@ func dataSourceNcloudServerProducts() *schema.Resource {
 				Required:    true,
 				Description: "Server image product code",
 			},
+			"cpu_count": {
+				Type:     schema.TypeInt,
+				Optional: true,
+			},
 			"region_no": {
 				Type:     schema.TypeString,
 				Optional: true,

@@ -26,6 +26,10 @@ func dataSourceNcloudPortForwardingRules() *schema.Resource {
 				Type:     schema.TypeString,
 				Optional: true,
 			},
+			"port_forwarding_internal_port": {
+				Type:     schema.TypeString,
+				Optional: true,
+			},
 
 			"port_forwarding_configuration_no": {
 				Type:        schema.TypeString,
@@ -81,21 +85,34 @@ func dataSourceNcloudPortForwardingRulesRead(d *schema.ResourceData, meta interf
 	}
 	logCommonResponse("GetPortForwardingRuleList", reqParams, resp.CommonResponse)
 
-	portForwardingRules := resp.PortForwardingRuleList
-	if len(portForwardingRules) < 1 {
+	allPortForwardingRules := resp.PortForwardingRuleList
+	var filteredPortForwardingRuleList []sdk.PortForwardingRule
+
+	filterInternalPort, filterInternalPortOk := d.GetOk("port_forwarding_internal_port")
+	if filterInternalPortOk {
+		for _, portForwardingRule := range allPortForwardingRules {
+			if portForwardingRule.PortForwardingInternalPort == filterInternalPort {
+				filteredPortForwardingRuleList = append(filteredPortForwardingRuleList, portForwardingRule)
+			}
+		}
+	} else {
+		filteredPortForwardingRuleList = allPortForwardingRules[:]
+	}
+
+	if len(filteredPortForwardingRuleList) < 1 {
 		return fmt.Errorf("no results. please change search criteria and try again")
 	}
-	return portForwardingRulesAttributes(d, resp)
+	return portForwardingRulesAttributes(d, resp.PortForwardingConfigurationNo, resp.PortForwardingPublicIp, filteredPortForwardingRuleList)
 }
 
-func portForwardingRulesAttributes(d *schema.ResourceData, resp *sdk.PortForwardingRuleList) error {
+func portForwardingRulesAttributes(d *schema.ResourceData, portForwardingConfigurationNo int, portForwardingPublicIp string, portForwardingRuleList []sdk.PortForwardingRule) error {
 	var s []map[string]interface{}
 
-	d.SetId(strconv.Itoa(resp.PortForwardingConfigurationNo))
-	d.Set("port_forwarding_configuration_no", resp.PortForwardingConfigurationNo)
-	d.Set("port_forwarding_public_ip", resp.PortForwardingPublicIp)
+	d.SetId(strconv.Itoa(portForwardingConfigurationNo))
+	d.Set("port_forwarding_configuration_no", portForwardingConfigurationNo)
+	d.Set("port_forwarding_public_ip", portForwardingPublicIp)
 
-	for _, rule := range resp.PortForwardingRuleList {
+	for _, rule := range portForwardingRuleList {
 		mapping := map[string]interface{}{
 			"server_instance_no":            rule.ServerInstanceNo,
 			"port_forwarding_external_port": rule.PortForwardingExternalPort,
