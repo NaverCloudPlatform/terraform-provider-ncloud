@@ -7,7 +7,7 @@ import (
 	"testing"
 )
 
-func TestAccDataSourceNcloudAccessControlGroupsBasic(t *testing.T) {
+func TestAccDataSourceNcloudAccessControlGroupBasic(t *testing.T) {
 	t.Parallel()
 
 	resource.Test(t, resource.TestCase{
@@ -15,16 +15,16 @@ func TestAccDataSourceNcloudAccessControlGroupsBasic(t *testing.T) {
 		Providers: testAccProviders,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccDataSourceNcloudAccessControlGroupsConfig,
+				Config: testAccDataSourceNcloudAccessControlGroupConfig,
 				Check: resource.ComposeTestCheckFunc(
-					testAccDataSourceNcloudAccessControlGroupsDataSourceID("data.ncloud_access_control_groups.test"),
+					testAccDataSourceNcloudAccessControlGroupDataSourceID("data.ncloud_access_control_group.test"),
 				),
 			},
 		},
 	})
 }
 
-func TestAccDataSourceNcloudAccessControlGroupsDefault(t *testing.T) {
+func TestAccDataSourceNcloudAccessControlGroupMostRecent(t *testing.T) {
 	t.Parallel()
 
 	resource.Test(t, resource.TestCase{
@@ -32,16 +32,16 @@ func TestAccDataSourceNcloudAccessControlGroupsDefault(t *testing.T) {
 		Providers: testAccProviders,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccDataSourceNcloudAccessControlGroupsDefaultConfig,
+				Config: testAccDataSourceNcloudAccessControlGroupMostRecentConfig,
 				Check: resource.ComposeTestCheckFunc(
-					testAccDataSourceNcloudAccessControlGroupsDataSourceID("data.ncloud_access_control_groups.default"),
+					testAccDataSourceNcloudAccessControlGroupDataSourceID("data.ncloud_access_control_group.test"),
 				),
 			},
 		},
 	})
 }
 
-func testAccDataSourceNcloudAccessControlGroupsDataSourceID(n string) resource.TestCheckFunc {
+func testAccDataSourceNcloudAccessControlGroupDataSourceID(n string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		rs, ok := s.RootModule().Resources[n]
 		if !ok {
@@ -55,12 +55,14 @@ func testAccDataSourceNcloudAccessControlGroupsDataSourceID(n string) resource.T
 	}
 }
 
-var testAccDataSourceNcloudAccessControlGroupsConfig = `
-data "ncloud_access_control_groups" "test" {}
+var testAccDataSourceNcloudAccessControlGroupConfig = `
+data "ncloud_access_control_group" "test" {
+	"access_control_group_name" = "Default"
+}
 `
 
-var testAccDataSourceNcloudAccessControlGroupsDefaultConfig = `
-data "ncloud_access_control_groups" "default" {
-  "is_default_group" = "true"
+var testAccDataSourceNcloudAccessControlGroupMostRecentConfig = `
+data "ncloud_access_control_group" "test" {
+	"most_recent" = "true"
 }
 `

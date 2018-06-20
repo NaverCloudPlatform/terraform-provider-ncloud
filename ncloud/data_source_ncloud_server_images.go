@@ -43,6 +43,10 @@ func dataSourceNcloudServerImages() *schema.Resource {
 				Type:     schema.TypeString,
 				Optional: true,
 			},
+			"infra_resource_detail_type_code": {
+				Type:     schema.TypeString,
+				Optional: true,
+			},
 			"server_images": {
 				Type:     schema.TypeList,
 				Optional: true,
@@ -110,10 +114,11 @@ func dataSourceNcloudServerImagesRead(d *schema.ResourceData, meta interface{}) 
 	conn := meta.(*NcloudSdk).conn
 
 	reqParams := &sdk.RequestGetServerImageProductList{
-		ExclusionProductCode: d.Get("exclusion_product_code").(string),
-		ProductCode:          d.Get("product_code").(string),
-		PlatformTypeCodeList: StringList(d.Get("platform_type_code_list").([]interface{})),
-		RegionNo:             parseRegionNoParameter(conn, d),
+		ExclusionProductCode:        d.Get("exclusion_product_code").(string),
+		ProductCode:                 d.Get("product_code").(string),
+		PlatformTypeCodeList:        StringList(d.Get("platform_type_code_list").([]interface{})),
+		RegionNo:                    parseRegionNoParameter(conn, d),
+		InfraResourceDetailTypeCode: d.Get("infra_resource_detail_type_code").(string),
 	}
 
 	resp, err := conn.GetServerImageProductList(reqParams)

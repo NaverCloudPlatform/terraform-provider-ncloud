@@ -7,9 +7,9 @@ import (
 	"strconv"
 )
 
-func dataSourceNcloudPortForwardingRules() *schema.Resource {
+func dataSourceNcloudPortForwardingRule() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceNcloudPortForwardingRulesRead,
+		Read: dataSourceNcloudPortForwardingRuleRead,
 
 		Schema: map[string]*schema.Schema{
 			"internet_line_type_code": {
@@ -26,9 +26,20 @@ func dataSourceNcloudPortForwardingRules() *schema.Resource {
 				Type:     schema.TypeString,
 				Optional: true,
 			},
+			"server_instance_no": {
+				Type:     schema.TypeString,
+				Optional: true,
+				Computed: true,
+			},
 			"port_forwarding_internal_port": {
 				Type:     schema.TypeString,
 				Optional: true,
+				Computed: true,
+			},
+			"port_forwarding_external_port": {
+				Type:     schema.TypeString,
+				Optional: true,
+				Computed: true,
 			},
 
 			"port_forwarding_configuration_no": {
@@ -40,36 +51,11 @@ func dataSourceNcloudPortForwardingRules() *schema.Resource {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
-			"port_forwarding_rule_list": {
-				Type:        schema.TypeList,
-				Computed:    true,
-				Description: "Port forwarding rule list",
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
-						"server_instance_no": {
-							Type:     schema.TypeString,
-							Computed: true,
-						},
-						"port_forwarding_external_port": {
-							Type:     schema.TypeString,
-							Computed: true,
-						},
-						"port_forwarding_internal_port": {
-							Type:     schema.TypeString,
-							Computed: true,
-						},
-					},
-				},
-			},
-			"output_file": {
-				Type:     schema.TypeString,
-				Optional: true,
-			},
 		},
 	}
 }
 
-func dataSourceNcloudPortForwardingRulesRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceNcloudPortForwardingRuleRead(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*NcloudSdk).conn
 
 	reqParams := &sdk.RequestPortForwardingRuleList{
@@ -87,11 +73,18 @@ func dataSourceNcloudPortForwardingRulesRead(d *schema.ResourceData, meta interf
 
 	allPortForwardingRules := resp.PortForwardingRuleList
 	var filteredPortForwardingRuleList []sdk.PortForwardingRule
+	var portForwardingRule sdk.PortForwardingRule
 
+	filterServerInstanceNo, filterServerInstanceNoOk := d.GetOk("server_instance_no")
 	filterInternalPort, filterInternalPortOk := d.GetOk("port_forwarding_internal_port")
-	if filterInternalPortOk {
+	filterExternalPort, filterExternalPortOk := d.GetOk("port_forwarding_external_port")
+	if filterServerInstanceNoOk || filterInternalPortOk || filterExternalPortOk {
 		for _, portForwardingRule := range allPortForwardingRules {
-			if portForwardingRule.PortForwardingInternalPort == filterInternalPort {
+			if filterServerInstanceNoOk && portForwardingRule.ServerInstanceNo == filterServerInstanceNo {
+				filteredPortForwardingRuleList = append(filteredPortForwardingRuleList, portForwardingRule)
+			} else if filterInternalPortOk && portForwardingRule.PortForwardingInternalPort == filterInternalPort {
+				filteredPortForwardingRuleList = append(filteredPortForwardingRuleList, portForwardingRule)
+			} else if filterExternalPortOk && portForwardingRule.PortForwardingExternalPort == filterExternalPort {
 				filteredPortForwardingRuleList = append(filteredPortForwardingRuleList, portForwardingRule)
 			}
 		}
@@ -102,32 +95,20 @@ func dataSourceNcloudPortForwardingRulesRead(d *schema.ResourceData, meta interf
 	if len(filteredPortForwardingRuleList) < 1 {
 		return fmt.Errorf("no results. please change search criteria and try again")
 	}
-	return portForwardingRulesAttributes(d, resp.PortForwardingConfigurationNo, resp.PortForwardingPublicIp, filteredPortForwardingRuleList)
+
+	portForwardingRule = filteredPortForwardingRuleList[0]
+
+	return portForwardingRuleAttributes(d, resp.PortForwardingConfigurationNo, resp.PortForwardingPublicIp, portForwardingRule)
 }
 
-func portForwardingRulesAttributes(d *schema.ResourceData, portForwardingConfigurationNo int, portForwardingPublicIp string, portForwardingRuleList []sdk.PortForwardingRule) error {
-	var s []map[string]interface{}
+func portForwardingRuleAttributes(d *schema.ResourceData, portForwardingConfigurationNo int, portForwardingPublicIp string, rule sdk.PortForwardingRule) error {
 
 	d.SetId(strconv.Itoa(portForwardingConfigurationNo))
 	d.Set("port_forwarding_configuration_no", portForwardingConfigurationNo)
 	d.Set("port_forwarding_public_ip", portForwardingPublicIp)
-
-	for _, rule := range portForwardingRuleList {
-		mapping := map[string]interface{}{
-			"server_instance_no":            rule.ServerInstanceNo,
-			"port_forwarding_external_port": rule.PortForwardingExternalPort,
-			"port_forwarding_internal_port": rule.PortForwardingInternalPort,
-		}
-		s = append(s, mapping)
-	}
-
-	if err := d.Set("port_forwarding_rule_list", s); err != nil {
-		return err
-	}
-
-	if output, ok := d.GetOk("output_file"); ok && output.(string) != "" {
-		writeToFile(output.(string), s)
-	}
+	d.Set("server_instance_no", rule.ServerInstanceNo)
+	d.Set("port_forwarding_external_port", rule.PortForwardingExternalPort)
+	d.Set("port_forwarding_internal_port", rule.PortForwardingInternalPort)
 
 	return nil
 }
