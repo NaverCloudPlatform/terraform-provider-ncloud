@@ -133,14 +133,11 @@ func dataSourceNcloudServerImageRead(d *schema.ResourceData, meta interface{}) e
 		for _, serverImage := range allServerImages {
 			if nameRegexOk && r.MatchString(serverImage.ProductName) {
 				filteredServerImages = append(filteredServerImages, serverImage)
-			}
-			if cpuCountOk && cpuCount == serverImage.CPUCount {
+			} else if cpuCountOk && cpuCount == serverImage.CPUCount {
 				filteredServerImages = append(filteredServerImages, serverImage)
-			}
-			if memorySizeOk && memorySize == serverImage.MemorySize {
+			} else if memorySizeOk && memorySize == serverImage.MemorySize {
 				filteredServerImages = append(filteredServerImages, serverImage)
-			}
-			if productTypeCodeOk && productTypeCode == serverImage.ProductType.Code {
+			} else if productTypeCodeOk && productTypeCode == serverImage.ProductType.Code {
 				filteredServerImages = append(filteredServerImages, serverImage)
 			}
 		}

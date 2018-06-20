@@ -39,10 +39,13 @@ func Provider() terraform.ResourceProvider {
 			"ncloud_root_password":         dataSourceNcloudRootPassword(),
 			"ncloud_server_product":        dataSourceNcloudServerProduct(),
 			"ncloud_server_products":       dataSourceNcloudServerProducts(),
+			"ncloud_port_forwarding_rule":  dataSourceNcloudPortForwardingRule(),
 			"ncloud_port_forwarding_rules": dataSourceNcloudPortForwardingRules(),
+			"ncloud_nas_volume":            dataSourceNcloudNasVolume(),
 			"ncloud_nas_volumes":           dataSourceNcloudNasVolumes(),
 			"ncloud_access_control_group":  dataSourceNcloudAccessControlGroup(),
 			"ncloud_access_control_groups": dataSourceNcloudAccessControlGroups(),
+			"ncloud_access_control_rule":   dataSourceNcloudAccessControlRule(),
 			"ncloud_access_control_rules":  dataSourceNcloudAccessControlRules(),
 		},
 		ResourcesMap: map[string]*schema.Resource{

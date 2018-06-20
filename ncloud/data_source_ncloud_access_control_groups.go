@@ -81,18 +81,14 @@ func dataSourceNcloudAccessControlGroupsRead(d *schema.ResourceData, meta interf
 		paramAccessControlGroupConfigurationNoList = StringList(param.([]interface{}))
 	}
 	reqParams.AccessControlGroupConfigurationNoList = paramAccessControlGroupConfigurationNoList
-
 	reqParams.AccessControlGroupName = d.Get("access_control_group_name").(string)
 	reqParams.IsDefault = d.Get("is_default_group").(string)
 	reqParams.PageNo = d.Get("page_no").(int)
 
-	resp, err := conn.GetAccessControlGroupList(reqParams)
+	resp, err := getAccessControlGroupList(conn, reqParams)
 	if err != nil {
-		logErrorResponse("GetAccessControlGroupList", err, reqParams)
 		return err
 	}
-	logCommonResponse("GetAccessControlGroupList", reqParams, resp.CommonResponse)
-
 	var accessControlGroups []sdk.AccessControlGroup
 
 	for _, group := range resp.AccessControlGroup {
@@ -104,6 +100,16 @@ func dataSourceNcloudAccessControlGroupsRead(d *schema.ResourceData, meta interf
 	}
 
 	return accessControlGroupsAttributes(d, accessControlGroups)
+}
+
+func getAccessControlGroupList(conn *sdk.Conn, reqParams *sdk.RequestAccessControlGroupList) (*sdk.AccessControlGroupList, error) {
+	resp, err := conn.GetAccessControlGroupList(reqParams)
+	if err != nil {
+		logErrorResponse("GetAccessControlGroupList", err, reqParams)
+		return nil, err
+	}
+	logCommonResponse("GetAccessControlGroupList", reqParams, resp.CommonResponse)
+	return resp, nil
 }
 
 func accessControlGroupsAttributes(d *schema.ResourceData, accessControlGroups []sdk.AccessControlGroup) error {

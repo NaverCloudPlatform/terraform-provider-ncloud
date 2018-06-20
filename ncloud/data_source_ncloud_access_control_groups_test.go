@@ -24,6 +24,23 @@ func TestAccDataSourceNcloudAccessControlGroupsBasic(t *testing.T) {
 	})
 }
 
+func TestAccDataSourceNcloudAccessControlGroupsDefault(t *testing.T) {
+	t.Parallel()
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:  func() { testAccPreCheck(t) },
+		Providers: testAccProviders,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccDataSourceNcloudAccessControlGroupsDefaultConfig,
+				Check: resource.ComposeTestCheckFunc(
+					testAccDataSourceNcloudAccessControlGroupsDataSourceID("data.ncloud_access_control_groups.default"),
+				),
+			},
+		},
+	})
+}
+
 func testAccDataSourceNcloudAccessControlGroupsDataSourceID(n string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		rs, ok := s.RootModule().Resources[n]
@@ -40,4 +57,10 @@ func testAccDataSourceNcloudAccessControlGroupsDataSourceID(n string) resource.T
 
 var testAccDataSourceNcloudAccessControlGroupsConfig = `
 data "ncloud_access_control_groups" "test" {}
+`
+
+var testAccDataSourceNcloudAccessControlGroupsDefaultConfig = `
+data "ncloud_access_control_groups" "default" {
+  "is_default_group" = "true"
+}
 `

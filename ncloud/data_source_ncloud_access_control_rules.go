@@ -79,28 +79,29 @@ func dataSourceNcloudAccessControlRulesRead(d *schema.ResourceData, meta interfa
 	resp, err := conn.GetAccessControlRuleList(id)
 	if err != nil {
 		logErrorResponse("GetAccessControlRuleList", err, id)
+		return err
 	}
 	logCommonResponse("GetAccessControlRuleList", id, resp.CommonResponse)
 
 	allAccessControlRuleList := resp.AccessControlRuleList
-	var filtereAccessControlRuleList []sdk.AccessControlRule
+	var filteredAccessControlRuleList []sdk.AccessControlRule
 	nameRegex, nameRegexOk := d.GetOk("source_access_control_rule_name_regex")
 	if nameRegexOk {
 		r := regexp.MustCompile(nameRegex.(string))
-		for _, serverImage := range allAccessControlRuleList {
-			if r.MatchString(serverImage.SourceAccessControlRuleName) {
-				filtereAccessControlRuleList = append(filtereAccessControlRuleList, serverImage)
+		for _, rule := range allAccessControlRuleList {
+			if r.MatchString(rule.SourceAccessControlRuleName) {
+				filteredAccessControlRuleList = append(filteredAccessControlRuleList, rule)
 			}
 		}
 	} else {
-		filtereAccessControlRuleList = allAccessControlRuleList[:]
+		filteredAccessControlRuleList = allAccessControlRuleList[:]
 	}
 
-	if len(filtereAccessControlRuleList) < 1 {
+	if len(filteredAccessControlRuleList) < 1 {
 		return fmt.Errorf("no results. please change search criteria and try again")
 	}
 
-	return accessControlRulesAttributes(d, filtereAccessControlRuleList)
+	return accessControlRulesAttributes(d, filteredAccessControlRuleList)
 }
 
 func accessControlRulesAttributes(d *schema.ResourceData, accessControlRules []sdk.AccessControlRule) error {
