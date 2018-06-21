@@ -44,8 +44,8 @@ The following arguments are supported:
 * `id` - The instance ID.
 * `server_instance_no` - Server instance number
 * `cpu_count` - number of CPUs
-* `memory_size` - Amount of memory in bytes.
-* `base_block_storage_size` - base block storage size (bytes)
+* `memory_size` - The size of the memory in bytes.
+* `base_block_storage_size` - The size of base block storage in bytes
 * `platform_type` - Platform type
     * `code` - Platform type code
     * `code_name` - Platform type name
