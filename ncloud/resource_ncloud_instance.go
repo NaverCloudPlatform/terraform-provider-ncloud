@@ -43,7 +43,7 @@ func resourceNcloudInstance() *schema.Resource {
 				Type:         schema.TypeString,
 				Optional:     true,
 				ValidateFunc: validateServerName,
-				Description:  "Server name to create. default: Assigned by NCloud",
+				Description:  "Server name to create. default: Assigned by ncloud",
 			},
 			"server_description": {
 				Type:        schema.TypeString,

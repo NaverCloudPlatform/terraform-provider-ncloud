@@ -1,0 +1,31 @@
+---
+layout: "ncloud"
+page_title: "NCLOUD: ncloud_regions"
+sidebar_current: "docs-ncloud-datasource-regions"
+description: |-
+  Get region list
+---
+
+# Data Source: ncloud_regions
+
+Gets a list of available regions.
+
+## Example Usage
+
+```hcl
+data "ncloud_regions" "regions" {}
+```
+
+## Argument Reference
+
+The following arguments are supported:
+
+* `code` - (Optional) region code for filtering
+* `output_file` - (Optional) The name of file that can save data source after running `terraform plan`.
+
+## Attributes Reference
+
+* `regions` - A List of region
+    * `region_no` - region no
+    * `region_code` - region code
+    * `region_name` - region name

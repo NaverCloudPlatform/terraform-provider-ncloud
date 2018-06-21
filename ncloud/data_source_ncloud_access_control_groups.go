@@ -14,50 +14,66 @@ func dataSourceNcloudAccessControlGroups() *schema.Resource {
 
 		Schema: map[string]*schema.Schema{
 			"access_control_group_configuration_no_list": {
-				Type:     schema.TypeList,
-				Optional: true,
-				Elem:     &schema.Schema{Type: schema.TypeString},
-				MinItems: 1,
+				Type:        schema.TypeList,
+				Optional:    true,
+				Elem:        &schema.Schema{Type: schema.TypeString},
+				MinItems:    1,
+				Description: "List of ACG configuration numbers you want to get",
 			},
 			"is_default_group": {
 				Type:         schema.TypeString,
 				Optional:     true,
 				ValidateFunc: validateBoolValue,
+				Description:  "Indicates whether to get default groups only",
 			},
 			"access_control_group_name": {
-				Type:     schema.TypeString,
-				Optional: true,
+				Type:        schema.TypeString,
+				Optional:    true,
+				Description: "Name of the ACG you want to get",
 			},
 			"page_no": {
-				Type:     schema.TypeInt,
-				Optional: true,
-				Default:  1,
+				Type:        schema.TypeInt,
+				Optional:    true,
+				Default:     1,
+				Description: "Page number based on the page size if the number of items is large.",
+			},
+			"page_size": {
+				Type:        schema.TypeInt,
+				Optional:    true,
+				Default:     1,
+				Description: "Number of items to be shown per page",
 			},
 
 			"access_control_groups": {
-				Type:     schema.TypeList,
-				Optional: true,
+				Type:        schema.TypeList,
+				Optional:    true,
+				Description: "A List of access control group",
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"access_control_group_configuration_no": {
-							Type:     schema.TypeString,
-							Computed: true,
+							Type:        schema.TypeString,
+							Computed:    true,
+							Description: "ACG configuration number",
 						},
 						"access_control_group_name": {
-							Type:     schema.TypeString,
-							Computed: true,
+							Type:        schema.TypeString,
+							Computed:    true,
+							Description: "ACG name",
 						},
 						"access_control_group_description": {
-							Type:     schema.TypeString,
-							Computed: true,
+							Type:        schema.TypeString,
+							Computed:    true,
+							Description: "ACG description",
 						},
 						"is_default_group": {
-							Type:     schema.TypeBool,
-							Computed: true,
+							Type:        schema.TypeBool,
+							Computed:    true,
+							Description: "whether default group",
 						},
 						"create_date": {
-							Type:     schema.TypeString,
-							Computed: true,
+							Type:        schema.TypeString,
+							Computed:    true,
+							Description: "creation date of ACG",
 						},
 					},
 				},
@@ -84,6 +100,7 @@ func dataSourceNcloudAccessControlGroupsRead(d *schema.ResourceData, meta interf
 	reqParams.AccessControlGroupName = d.Get("access_control_group_name").(string)
 	reqParams.IsDefault = d.Get("is_default_group").(string)
 	reqParams.PageNo = d.Get("page_no").(int)
+	reqParams.PageSize = d.Get("page_size").(int)
 
 	resp, err := getAccessControlGroupList(conn, reqParams)
 	if err != nil {
