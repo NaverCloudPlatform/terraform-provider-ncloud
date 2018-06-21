@@ -1,16 +1,16 @@
 ---
 layout: "ncloud"
-page_title: "Provider: Naver Cloud Platform"
+page_title: "Provider: NAVER Cloud Platform"
 sidebar_current: "docs-ncloud-index"
 description: |-
-  The Ncloud provider is used to interact with Ncloud (Naver Cloud Platform) services. The provider needs to be configured with the proper credentials before it can be used.
+  The Ncloud provider is used to interact with Ncloud (NAVER Cloud Platform) services. The provider needs to be configured with the proper credentials before it can be used.
 
 ---
 
 # Ncloud Provider
 
 The Ncloud provider is used to interact with
-[Ncloud](https://www.ncloud.com) (Naver Cloud Platform) services.
+[Ncloud](https://www.ncloud.com) (NAVER Cloud Platform) services.
 The provider needs to be configured with the proper credentials before it can be used.
 
 
