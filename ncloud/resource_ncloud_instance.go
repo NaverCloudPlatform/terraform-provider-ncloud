@@ -256,10 +256,8 @@ func resourceNcloudInstanceRead(d *schema.ResourceData, meta interface{}) error 
 		d.Set("base_block_storage_disk_type", setCommonCode(instance.BaseBlockStorageDiskType))
 		d.Set("base_block_storage_disk_detail_type", setCommonCode(instance.BaseBlockStroageDiskDetailType))
 		d.Set("internet_line_type", setCommonCode(instance.InternetLineType))
+		d.Set("user_data", d.Get("user_data").(string))
 
-		if userData, ok := d.GetOk("user_data"); ok {
-			d.Set("user_data", Base64Decode(userData.(string)))
-		}
 	}
 
 	return nil
