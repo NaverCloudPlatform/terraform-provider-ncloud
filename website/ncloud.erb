@@ -1,0 +1,33 @@
+<% wrap_layout :inner do %>
+  <% content_for :sidebar do %>
+    <ul class="nav docs-sidenav">
+      <li<%= sidebar_current("docs-home") %>>
+        <a href="/docs/providers/index.html">All Providers</a>
+      </li>
+
+      <li<%= sidebar_current("docs-ncloud-index") %>>
+        <a href="/docs/providers/ncloud/index.html">Local Provider</a>
+      </li>
+
+      <li<%= sidebar_current("docs-ncloud-datasource") %>>
+        <a href="#">Data Sources</a>
+        <ul class="nav nav-visible">
+          <li<%= sidebar_current("docs-ncloud-datasource-file") %>>
+            <a href="/docs/providers/ncloud/d/file.html">file</a>
+          </li>
+        </ul>
+      </li>
+
+      <li<%= sidebar_current("docs-ncloud-resource") %>>
+        <a href="#">Resources</a>
+        <ul class="nav nav-visible">
+          <li<%= sidebar_current("docs-ncloud-resource-file") %>>
+            <a href="/docs/providers/ncloud/r/file.html">file</a>
+          </li>
+        </ul>
+      </li>
+    </ul>
+  <% end %>
+
+  <%= yield %>
+  <% end %>
