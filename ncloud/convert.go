@@ -17,12 +17,16 @@ func StringList(input []interface{}) []string {
 	return vs
 }
 
-func Base64Decode(sEncData string) string {
-	v, err := base64.StdEncoding.DecodeString(sEncData)
-	if err != nil {
-		v = []byte(sEncData)
-	}
-	return string(v)
+func Base64Decode(data string) string {
+	base64Text := make([]byte, base64.StdEncoding.DecodedLen(len(data)))
+	base64.StdEncoding.Decode(base64Text, []byte(data))
+	return string(base64Text)
+}
+
+func Base64Encode(data string) string {
+	base64Text := make([]byte, base64.StdEncoding.EncodedLen(len(data)))
+	base64.StdEncoding.Encode(base64Text, []byte(data))
+	return string(base64Text)
 }
 
 func Int(v interface{}) (int, error) {
