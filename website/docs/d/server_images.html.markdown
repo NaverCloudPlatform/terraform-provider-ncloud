@@ -1,7 +1,7 @@
 ---
 layout: "ncloud"
 page_title: "NCLOUD: ncloud_server_images"
-sidebar_current: "docs-ncloud_server_images"
+sidebar_current: "docs-ncloud-datasource-server-images"
 description: |-
   Get server image product list
 ---

@@ -1,7 +1,7 @@
 ---
 layout: "ncloud"
 page_title: "NCLOUD: ncloud_access_control_groups"
-sidebar_current: "docs-ncloud_access_control_groups"
+sidebar_current: "docs-ncloud-datasource-access-control-groups"
 description: |-
   Get access control group list
 ---
