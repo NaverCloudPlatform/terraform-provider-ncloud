@@ -4,7 +4,7 @@ provider "ncloud" {
   region     = "${var.region}"
 }
 
-data "ncloud_zone" "zones" {
+data "ncloud_zones" "zones" {
   "region_no" = "1"
-  "output_file" = "regions.json"
+  "output_file" = "zones.json"
 }
