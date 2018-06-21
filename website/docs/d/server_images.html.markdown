@@ -43,12 +43,12 @@ The following arguments are supported:
     * `product_description` - Product description
     * `infra_resource_type` - Infra resource type
         * `code` - Infra resource type code
-        * `name` - Infra resource type name
+        * `code_name` - Infra resource type name
     * `cpu_count` - CPU count
     * `memory_size` - Memory size
     * `base_block_storage_size` - Base block storage size
     * `platform_type` - Platform type
         * `code` - Platform type code
-        * `name` - Platform type name
+        * `code_name` - Platform type name
     * `os_information` - OS Information
     * `add_block_storage_size` - additional block storage size
