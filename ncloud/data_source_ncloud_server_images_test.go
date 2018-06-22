@@ -1,9 +1,7 @@
 package ncloud
 
 import (
-	"fmt"
 	"github.com/hashicorp/terraform/helper/resource"
-	"github.com/hashicorp/terraform/terraform"
 	"testing"
 )
 
@@ -17,7 +15,7 @@ func TestAccDataSourceNcloudServerImagesBasic(t *testing.T) {
 			{
 				Config: testAccDataSourceNcloudServerImagesConfig,
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckNcloudServerImagesDataSourceID("data.ncloud_server_images.test"),
+					testAccCheckDataSourceID("data.ncloud_server_images.test"),
 				),
 			},
 		},
@@ -34,7 +32,7 @@ func TestAccDataSourceNcloudServerImagesLinux(t *testing.T) {
 			{
 				Config: testAccDataSourceNcloudServerImagesLinuxConfig,
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckNcloudServerImagesDataSourceID("data.ncloud_server_images.linux"),
+					testAccCheckDataSourceID("data.ncloud_server_images.linux"),
 				),
 			},
 		},
@@ -51,7 +49,7 @@ func TestAccDataSourceNcloudServerImagesWindows(t *testing.T) {
 			{
 				Config: testAccDataSourceNcloudServerImagesWindowsConfig,
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckNcloudServerImagesDataSourceID("data.ncloud_server_images.windows"),
+					testAccCheckDataSourceID("data.ncloud_server_images.windows"),
 				),
 			},
 		},
@@ -68,25 +66,11 @@ func TestAccDataSourceNcloudServerImagesBareMetal(t *testing.T) {
 			{
 				Config: testAccDataSourceNcloudServerImagesBareMetalConfig,
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckNcloudServerImagesDataSourceID("data.ncloud_server_images.beremetal"),
+					testAccCheckDataSourceID("data.ncloud_server_images.beremetal"),
 				),
 			},
 		},
 	})
-}
-
-func testAccCheckNcloudServerImagesDataSourceID(n string) resource.TestCheckFunc {
-	return func(s *terraform.State) error {
-		rs, ok := s.RootModule().Resources[n]
-		if !ok {
-			return fmt.Errorf("can't find Server Image data source: %s", n)
-		}
-
-		if rs.Primary.ID == "" {
-			return fmt.Errorf("server Image data source ID not set")
-		}
-		return nil
-	}
 }
 
 var testAccDataSourceNcloudServerImagesConfig = `
