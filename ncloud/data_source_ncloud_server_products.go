@@ -18,35 +18,34 @@ func dataSourceNcloudServerProducts() *schema.Resource {
 				Optional:     true,
 				ForceNew:     true,
 				ValidateFunc: validateRegexp,
+				Description:  "A regex string to apply to the Server Product list returned.",
 			},
 			"exclusion_product_code": {
 				Type:        schema.TypeString,
 				Optional:    true,
 				Computed:    true,
-				Description: "Product code to exclude",
+				Description: "Enter a product code to exclude from the list.",
 			},
 			"product_code": {
 				Type:        schema.TypeString,
 				Optional:    true,
 				Computed:    true,
-				Description: "Product code to search",
+				Description: "Enter a product code to search from the list. Use it for a single search.",
 			},
 			"server_image_product_code": {
 				Type:        schema.TypeString,
 				Required:    true,
-				Description: "Server image product code",
-			},
-			"cpu_count": {
-				Type:     schema.TypeInt,
-				Optional: true,
+				Description: "You can get one from `data ncloud_server_images`. This is a required value, and each available server's specification varies depending on the server image product.",
 			},
 			"region_no": {
-				Type:     schema.TypeString,
-				Optional: true,
+				Type:        schema.TypeString,
+				Optional:    true,
+				Description: "You can reach a state in which inout is possible by calling `data ncloud_regions`.",
 			},
 			"zone_no": {
-				Type:     schema.TypeString,
-				Optional: true,
+				Type:        schema.TypeString,
+				Optional:    true,
+				Description: "You can decide a zone where servers are created. You can decide which zone the product list will be requested at. You can get one by calling `data ncloud_zones`. default : Select the first Zone in the specific region",
 			},
 			"internet_line_type_code": {
 				Type:         schema.TypeString,
@@ -125,8 +124,8 @@ func dataSourceNcloudServerProductsRead(d *schema.ResourceData, meta interface{}
 		ProductCode:            d.Get("product_code").(string),
 		ServerImageProductCode: d.Get("server_image_product_code").(string),
 		RegionNo:               parseRegionNoParameter(conn, d),
-		//ZoneNo:                 d.Get("zone_no").(string),
-		//InternetLineTypeCode:   d.Get("internet_line_type_code").(string),
+		ZoneNo:                 d.Get("zone_no").(string),
+		InternetLineTypeCode:   d.Get("internet_line_type_code").(string),
 	}
 
 	resp, err := conn.GetServerProductList(reqParams)
