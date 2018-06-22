@@ -6,7 +6,6 @@ import (
 
 	"github.com/NaverCloudPlatform/ncloud-sdk-go/sdk"
 	"github.com/hashicorp/terraform/helper/schema"
-	"sort"
 )
 
 func dataSourceNcloudMemberServerImage() *schema.Resource {
@@ -166,12 +165,6 @@ func dataSourceNcloudMemberServerImageRead(d *schema.ResourceData, meta interfac
 	}
 
 	return memberServerImageAttributes(d, memberServerImage)
-}
-
-func mostRecentServerImage(images []sdk.ServerImage) sdk.ServerImage {
-	sortedImages := images
-	sort.Sort(serverImageSort(sortedImages))
-	return sortedImages[len(sortedImages)-1]
 }
 
 func memberServerImageAttributes(d *schema.ResourceData, m sdk.ServerImage) error {
