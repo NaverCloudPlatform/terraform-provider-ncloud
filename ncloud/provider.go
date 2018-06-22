@@ -47,6 +47,7 @@ func Provider() terraform.ResourceProvider {
 			"ncloud_access_control_rule":   dataSourceNcloudAccessControlRule(),
 			"ncloud_access_control_rules":  dataSourceNcloudAccessControlRules(),
 			"ncloud_root_password":         dataSourceNcloudRootPassword(),
+			"ncloud_public_ip":             dataSourceNcloudPublicIP(),
 		},
 		ResourcesMap: map[string]*schema.Resource{
 			"ncloud_instance":                      resourceNcloudInstance(),

@@ -1,11 +1,9 @@
 package ncloud
 
 import (
-	"fmt"
 	"testing"
 
 	"github.com/hashicorp/terraform/helper/resource"
-	"github.com/hashicorp/terraform/terraform"
 )
 
 func TestAccDataSourceNcloudZonesBasic(t *testing.T) {
@@ -18,25 +16,11 @@ func TestAccDataSourceNcloudZonesBasic(t *testing.T) {
 			{
 				Config: testAccDataSourceNcloudZonesConfig,
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckNcloudZonesDataSourceID("data.ncloud_zones.zones"),
+					testAccCheckDataSourceID("data.ncloud_zones.zones"),
 				),
 			},
 		},
 	})
-}
-
-func testAccCheckNcloudZonesDataSourceID(n string) resource.TestCheckFunc {
-	return func(s *terraform.State) error {
-		rs, ok := s.RootModule().Resources[n]
-		if !ok {
-			return fmt.Errorf("can't find Region data source: %s", n)
-		}
-
-		if rs.Primary.ID == "" {
-			return fmt.Errorf("zone data source ID not set")
-		}
-		return nil
-	}
 }
 
 var testAccDataSourceNcloudZonesConfig = `

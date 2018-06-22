@@ -3,7 +3,6 @@ package ncloud
 import (
 	"fmt"
 	"github.com/hashicorp/terraform/helper/resource"
-	"github.com/hashicorp/terraform/terraform"
 	"log"
 	"os"
 	"testing"
@@ -26,25 +25,11 @@ func testAccDataSourceNcloudAccessControlRulesBasic(t *testing.T) {
 			{
 				Config: testAccDataSourceNcloudAccessControlRulesConfig(testId),
 				Check: resource.ComposeTestCheckFunc(
-					testAccDataSourceNcloudAccessControlRulesDataSourceID("data.ncloud_access_control_rules.test"),
+					testAccCheckDataSourceID("data.ncloud_access_control_rules.test"),
 				),
 			},
 		},
 	})
-}
-
-func testAccDataSourceNcloudAccessControlRulesDataSourceID(n string) resource.TestCheckFunc {
-	return func(s *terraform.State) error {
-		rs, ok := s.RootModule().Resources[n]
-		if !ok {
-			return fmt.Errorf("can't find data source: %s", n)
-		}
-
-		if rs.Primary.ID == "" {
-			return fmt.Errorf("source ID not set")
-		}
-		return nil
-	}
 }
 
 func testAccDataSourceNcloudAccessControlRulesConfig(testConfigNo string) string {

@@ -1,11 +1,9 @@
 package ncloud
 
 import (
-	"fmt"
 	"testing"
 
 	"github.com/hashicorp/terraform/helper/resource"
-	"github.com/hashicorp/terraform/terraform"
 )
 
 func TestAccDataSourceNcloudMemberServerImageBasic(t *testing.T) {
@@ -18,7 +16,7 @@ func TestAccDataSourceNcloudMemberServerImageBasic(t *testing.T) {
 			{
 				Config: testAccDataSourceNcloudMemberServerImageConfig,
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckNcloudMemberServerImageDataSourceID("data.ncloud_member_server_image.test"),
+					testAccCheckDataSourceID("data.ncloud_member_server_image.test"),
 				),
 			},
 		},
@@ -35,25 +33,11 @@ func TestAccDataSourceNcloudMemberServerImageMostRecent(t *testing.T) {
 			{
 				Config: testAccDataSourceNcloudMemberServerImageMostRecentConfig,
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckNcloudMemberServerImageDataSourceID("data.ncloud_member_server_image.test"),
+					testAccCheckDataSourceID("data.ncloud_member_server_image.test"),
 				),
 			},
 		},
 	})
-}
-
-func testAccCheckNcloudMemberServerImageDataSourceID(n string) resource.TestCheckFunc {
-	return func(s *terraform.State) error {
-		rs, ok := s.RootModule().Resources[n]
-		if !ok {
-			return fmt.Errorf("can't find member server image data source: %s", n)
-		}
-
-		if rs.Primary.ID == "" {
-			return fmt.Errorf("member server Image data source ID not set")
-		}
-		return nil
-	}
 }
 
 var testAccDataSourceNcloudMemberServerImageConfig = `

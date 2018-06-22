@@ -1,9 +1,7 @@
 package ncloud
 
 import (
-	"fmt"
 	"github.com/hashicorp/terraform/helper/resource"
-	"github.com/hashicorp/terraform/terraform"
 	"testing"
 )
 
@@ -17,7 +15,7 @@ func TestAccDataSourceNcloudServerImageBasic(t *testing.T) {
 			{
 				Config: testAccDataSourceNcloudServerImageConfig,
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckNcloudServerImageDataSourceID("data.ncloud_server_image.test"),
+					testAccCheckDataSourceID("data.ncloud_server_image.test"),
 				),
 			},
 		},
@@ -34,7 +32,7 @@ func TestAccDataSourceNcloudServerImageFilterByName(t *testing.T) {
 			{
 				Config: testAccDataSourceNcloudServerImageFilterByNameConfig,
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckNcloudServerImageDataSourceID("data.ncloud_server_image.test"),
+					testAccCheckDataSourceID("data.ncloud_server_image.test"),
 				),
 			},
 		},
@@ -51,25 +49,11 @@ func TestAccDataSourceNcloudServerImageFilterByType(t *testing.T) {
 			{
 				Config: testAccDataSourceNcloudServerImageFilterByTypeConfig,
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckNcloudServerImageDataSourceID("data.ncloud_server_image.test"),
+					testAccCheckDataSourceID("data.ncloud_server_image.test"),
 				),
 			},
 		},
 	})
-}
-
-func testAccCheckNcloudServerImageDataSourceID(n string) resource.TestCheckFunc {
-	return func(s *terraform.State) error {
-		rs, ok := s.RootModule().Resources[n]
-		if !ok {
-			return fmt.Errorf("can't find Server Image data source: %s", n)
-		}
-
-		if rs.Primary.ID == "" {
-			return fmt.Errorf("server Image data source ID not set")
-		}
-		return nil
-	}
 }
 
 var testAccDataSourceNcloudServerImageConfig = `
