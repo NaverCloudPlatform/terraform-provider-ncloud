@@ -110,7 +110,7 @@ data "ncloud_public_ip" "test" {
 
 var testAccDataSourceNcloudPublicIPAssociatedConfig = `
 data "ncloud_public_ip" "test" {
-  "is_associated" = "true"
+  "is_associated" = "false"
   "most_recent" = "true"
 }
 `
