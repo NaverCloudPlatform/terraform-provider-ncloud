@@ -3,11 +3,12 @@ layout: "ncloud"
 page_title: "NCLOUD: ncloud_block_storage"
 sidebar_current: "docs-ncloud-resource-block-storage"
 description: |-
-Provides an ncloud block storage resource.
+  Provides an ncloud block storage resource.
 ---
 
 # ncloud_block_storage
 
+Provides an ncloud block storage resource.
 
 ## Example Usage
 
