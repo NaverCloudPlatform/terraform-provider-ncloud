@@ -13,12 +13,16 @@ When creating a server instance (VM), you can add an access control group (ACG) 
 
 ## Example Usage
 
+* Filter by ACG name
+
 ```hcl
 data "ncloud_access_control_group" "test" {
     # filter by ACG name
 	"access_control_group_name" = "acg-name"
 }
 ```
+
+* Filter by most recent ACG
 
 ```hcl
 data "ncloud_access_control_group" "test" {
