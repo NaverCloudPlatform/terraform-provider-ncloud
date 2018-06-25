@@ -80,7 +80,8 @@ func TestAccResourceInstanceChangeServerInstanceSpec(t *testing.T) {
 	})
 }
 
-func TestAccResourceRecreateServerInstance(t *testing.T) {
+// ignore test: must need real test data
+func testAccResourceRecreateServerInstance(t *testing.T) {
 	var before sdk.ServerInstance
 	var after sdk.ServerInstance
 	testServerName := getTestServerName()
