@@ -11,18 +11,21 @@ func dataSourceNcloudRootPassword() *schema.Resource {
 
 		Schema: map[string]*schema.Schema{
 			"server_instance_no": {
-				Type:     schema.TypeString,
-				Required: true,
+				Type:        schema.TypeString,
+				Required:    true,
+				Description: "Server instance number",
 			},
 			"private_key": {
-				Type:      schema.TypeString,
-				Required:  true,
-				Sensitive: true,
+				Type:        schema.TypeString,
+				Required:    true,
+				Sensitive:   true,
+				Description: "Server’s login key (auth key)",
 			},
 			"root_password": {
-				Type:      schema.TypeString,
-				Computed:  true,
-				Sensitive: true,
+				Type:        schema.TypeString,
+				Computed:    true,
+				Sensitive:   true,
+				Description: "Password of a root account",
 			},
 		},
 	}
