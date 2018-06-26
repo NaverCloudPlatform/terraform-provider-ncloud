@@ -7,6 +7,7 @@ import (
 	"github.com/NaverCloudPlatform/ncloud-sdk-go/common"
 	"github.com/NaverCloudPlatform/ncloud-sdk-go/sdk"
 	"github.com/hashicorp/terraform/helper/schema"
+	"log"
 )
 
 func resourceNcloudBlockStorage() *schema.Resource {
@@ -163,6 +164,11 @@ func resourceNcloudBlockStorageRead(d *schema.ResourceData, meta interface{}) er
 func resourceNcloudBlockStorageDelete(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*NcloudSdk).conn
 	blockStorageInstanceNo := d.Get("block_storage_instance_no").(string)
+	err := detachBlockStorage(conn, []string{blockStorageInstanceNo})
+	if err != nil {
+		log.Printf("[ERROR] detachBlockStorage %#v", err)
+		return err
+	}
 	return deleteBlockStorage(conn, []string{blockStorageInstanceNo})
 }
 
@@ -243,6 +249,42 @@ func deleteBlockStorageByServerInstanceNo(conn *sdk.Conn, serverInstanceNo strin
 		}
 	}
 	return deleteBlockStorage(conn, ids)
+}
+
+func detachBlockStorage(conn *sdk.Conn, blockStorageIds []string) error {
+	for _, blockStorageId := range blockStorageIds {
+		resp, err := conn.DetachBlockStorageInstance(&sdk.RequestDetachBlockStorageInstance{
+			BlockStorageInstanceNoList: []string{blockStorageId},
+		})
+		if err != nil {
+			logErrorResponse("DetachBlockStorageInstance", err, []string{blockStorageId})
+			return err
+		}
+		var commonResponse = common.CommonResponse{}
+		if resp != nil {
+			commonResponse = resp.CommonResponse
+		}
+		logCommonResponse("DetachBlockStorageInstance", blockStorageIds, commonResponse)
+
+		if err := waitForBlockStorageInstance(conn, blockStorageId, "CREAT"); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func detachBlockStorageByServerInstanceNo(conn *sdk.Conn, serverInstanceNo string) error {
+	blockStorageInstanceList, _ := getBlockStorageInstanceList(conn, serverInstanceNo)
+	if len(blockStorageInstanceList) < 1 {
+		return nil
+	}
+	var ids []string
+	for _, bs := range blockStorageInstanceList {
+		if bs.BlockStorageType.Code != "BASIC" { // ignore basic storage
+			ids = append(ids, bs.BlockStorageInstanceNo)
+		}
+	}
+	return detachBlockStorage(conn, ids)
 }
 
 func waitForBlockStorageInstance(conn *sdk.Conn, id string, status string) error {
