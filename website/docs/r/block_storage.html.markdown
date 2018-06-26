@@ -14,7 +14,7 @@ Provides an ncloud block storage resource.
 
 ```hcl
 resource "ncloud_block_storage" "storage" {
-	"server_instance_no" = "${var.server_instance_no}"
+	"server_instance_no" = "812345"
 	"block_storage_name" = "tf-test-storage1"
 	"block_storage_size_gb" = "10"
 }
