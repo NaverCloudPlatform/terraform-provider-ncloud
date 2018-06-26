@@ -279,9 +279,9 @@ func resourceNcloudInstanceDelete(d *schema.ResourceData, meta interface{}) erro
 		}
 	}
 
-	err = deleteBlockStorageByServerInstanceNo(conn, d.Id())
+	err = detachBlockStorageByServerInstanceNo(conn, d.Id())
 	if err != nil {
-		log.Printf("[ERROR] deleteBlockStorageByServerInstanceNo err: %s", err)
+		log.Printf("[ERROR] detachBlockStorageByServerInstanceNo err: %s", err)
 		return err
 	}
 
@@ -291,11 +291,9 @@ func resourceNcloudInstanceDelete(d *schema.ResourceData, meta interface{}) erro
 func resourceNcloudInstanceUpdate(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*NcloudSdk).conn
 
-	serverInstanceNo := d.Get("server_instance_no").(string)
-
 	if d.HasChange("server_product_code") {
 		reqParams := &sdk.RequestChangeServerInstanceSpec{
-			ServerInstanceNo:  serverInstanceNo,
+			ServerInstanceNo:  d.Get("server_instance_no").(string),
 			ServerProductCode: d.Get("server_product_code").(string),
 		}
 
@@ -305,26 +303,6 @@ func resourceNcloudInstanceUpdate(d *schema.ResourceData, meta interface{}) erro
 			return err
 		}
 		logCommonResponse("ChangeServerInstanceSpec", reqParams, resp.CommonResponse)
-	}
-
-	if d.HasChange("server_image_product_code") {
-		reqParams := new(sdk.RequestRecreateServerInstance)
-		reqParams.ServerInstanceNo = serverInstanceNo
-		reqParams.ChangeServerImageProductCode = d.Get("server_image_product_code").(string)
-		if d.HasChange("server_name") {
-			reqParams.ServerInstanceName = d.Get("server_name").(string)
-		}
-
-		resp, err := conn.RecreateServerInstance(reqParams)
-		if err != nil {
-			logErrorResponse("RecreateServerInstance", err, reqParams)
-			return err
-		}
-		logCommonResponse("RecreateServerInstance", reqParams, resp.CommonResponse)
-
-		if err := waitForServerInstance(conn, serverInstanceNo, "RUN"); err != nil {
-			return err
-		}
 	}
 
 	return resourceNcloudInstanceRead(d, meta)
