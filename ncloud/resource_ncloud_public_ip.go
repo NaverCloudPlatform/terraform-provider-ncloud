@@ -21,27 +21,32 @@ func resourceNcloudPublicIPInstance() *schema.Resource {
 
 		Schema: map[string]*schema.Schema{
 			"server_instance_no": {
-				Type:     schema.TypeString,
-				Optional: true,
+				Type:        schema.TypeString,
+				Optional:    true,
+				Description: "Server instance No. to assign after creating a public IP. You can get one by calling getPublicIpTargetServerInstanceList.",
 			},
 			"public_ip_description": {
 				Type:         schema.TypeString,
 				Optional:     true,
 				ValidateFunc: validateStringLengthInRange(1, 10000),
+				Description:  "Public IP description.",
 			},
 			"internet_line_type_code": {
 				Type:         schema.TypeString,
 				Optional:     true,
 				ValidateFunc: validateInternetLineTypeCode,
+				Description:  "Internet line code. PUBLC(Public), GLBL(Global)",
 			},
 			"region_no": {
-				Type:     schema.TypeString,
-				Optional: true,
-				Default:  "1",
+				Type:        schema.TypeString,
+				Optional:    true,
+				Default:     "1",
+				Description: "You can reach a state in which inout is possible by calling `data ncloud_regions`",
 			},
 			"zone_no": {
-				Type:     schema.TypeString,
-				Optional: true,
+				Type:        schema.TypeString,
+				Optional:    true,
+				Description: "You can determine the ZONE where the server will be created. It can be obtained through the getZoneList action. Default : Assigned by NAVER Cloud Platform.",
 			},
 
 			"public_ip_instance_no": {
