@@ -3,12 +3,12 @@ layout: "ncloud"
 page_title: "NCLOUD: ncloud_public_ip"
 sidebar_current: "docs-ncloud-resource-public-ip"
 description: |-
-  Creating a public IP instance
+  Provides an ncloud public IP instance resource.
 ---
 
 # ncloud_public_ip
 
-Creating a public IP instance.
+Provides an ncloud public IP instance resource.
 
 ## Example Usage
 
