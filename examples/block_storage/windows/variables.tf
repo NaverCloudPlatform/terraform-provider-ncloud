@@ -14,14 +14,17 @@ variable "acg_name" {
 }
 
 variable "login_key_name" {
-  default = "tf-bswin-key3"
+  default = "tf-bswin-key4"
 }
 
 variable "server_name" {
-  default = "tf-bswin-vm3"
+  default = "tf-bswin-vm4"
 }
 
 variable "block_storage_name" {
-  default = "tf-bswin-sto3"
+  default = "tf-bswin-stor4"
 }
 
+variable "port_forwarding_external_port" {
+  default = "4389"
+}

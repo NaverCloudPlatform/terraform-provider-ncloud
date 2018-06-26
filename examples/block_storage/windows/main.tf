@@ -13,12 +13,12 @@ data "ncloud_access_control_group" "acg" {
 }
 
 data "ncloud_server_image" "image" {
-  "product_name_regex" = "^Windows Server 2016 \\(64-bit\\) English Edition$"
+  "product_name_regex" = "^Windows Server 2012(.*)"
 }
 
 data "ncloud_server_product" "prod" {
   "server_image_product_code" = "${data.ncloud_server_image.image.id}"
-  "product_name_regex" = "^vCPU 2EA(.*)Memory 2GB(.*)"
+  "product_name_regex" = "^vCPU 2EA(.*)Memory 4GB(.*)"
 }
 
 resource "ncloud_instance" "instance" {
@@ -27,9 +27,10 @@ resource "ncloud_instance" "instance" {
   "server_product_code" = "${data.ncloud_server_product.prod.id}"
   "login_key_name" = "${ncloud_login_key.key.key_name}"
   "access_control_group_configuration_no_list" = ["${data.ncloud_access_control_group.acg.id}"]
-  "user_data" =  <<USER_DATA
-CreateObject("WScript.Shell").run("cmd.exe /c powershell Set-ExecutionPolicy RemoteSigned & winrm set winrm/config/service/auth @{Basic="true"} & winrm set winrm/config/service @{AllowUnencrypted="true"} & winrm quickconfig -q & sc config WinRM start= auto & winrm get winrm/config/service")
-USER_DATA
+//  "user_data" =  <<USER_DATA
+//CreateObject("WScript.Shell").run("cmd.exe /c powershell Set-ExecutionPolicy RemoteSigned & winrm set winrm/config/service/auth @{Basic=\"true\"} & winrm set winrm/config/service @{AllowUnencrypted="true"} & winrm quickconfig -q & sc config WinRM start= auto & winrm get winrm/config/service")
+//USER_DATA
+  "user_data" = "CreateObject(\"WScript.Shell\").run(\"cmd.exe /c powershell Set-ExecutionPolicy RemoteSigned & winrm set winrm/config/service/auth @{Basic=\"\"true\"\"} & winrm set winrm/config/service @{AllowUnencrypted=\"\"true\"\"} & winrm quickconfig -q & sc config WinRM start= auto & winrm get winrm/config/service\")"
 }
 
 resource "ncloud_public_ip" "public_ip" {
@@ -48,6 +49,16 @@ data "ncloud_root_password" "rootpwd" {
   "private_key" = "${ncloud_login_key.key.private_key}"
 }
 
+data "ncloud_port_forwarding_rules" "rules" {}
+
+resource "ncloud_port_forwarding_rule" "forwarding" {
+  "port_forwarding_configuration_no" = "${data.ncloud_port_forwarding_rules.rules.id}"
+  "server_instance_no" = "${ncloud_instance.instance.id}"
+  "port_forwarding_external_port" = "${var.port_forwarding_external_port}"
+  "port_forwarding_internal_port" = "3389"
+}
+
+
 resource "null_resource" "winrm" {
   connection {
     type = "winrm"
@@ -57,23 +68,19 @@ resource "null_resource" "winrm" {
   }
 
   provisioner "file" {
-    source = "mount-storage.ps1"
+    source = "scripts/mount-storage.ps1"
     destination = "C:\\scripts\\mount-storage.ps1"
+  }
+
+  provisioner "file" {
+    source = "scripts/get-mountpoints.ps1"
+    destination = "C:\\scripts\\get-mountpoints.ps1"
   }
 
   provisioner "remote-exec" {
     inline = [
-      "powershell.exe -File C:\\scripts\\upload.ps1"
+      "powershell.exe -File C:\\scripts\\mount-storage.ps1",
+      "powershell.exe -File C:\\scripts\\get-mountpoints.ps1"
     ]
   }
-//  provisioner "remote-exec" {
-//    # CentOS 5.x: mkfs.ext3 /dev/xvdb1
-//    # CentOS 6.x: mkfs.ext4 /dev/xvdb1
-//    # CentOS 7.x: mkfs.xfs /dev/xvdb1
-//    # Ubuntu Server / Desktop: mkfs.ext4 /dev/xvdb1
-//    inline = [
-//      "chmod 755 mount-storage.sh",
-//      "sh mount-storage.sh >> mount-storage.log"
-//    ]
-//  }
 }
