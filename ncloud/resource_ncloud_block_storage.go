@@ -7,6 +7,7 @@ import (
 	"github.com/NaverCloudPlatform/ncloud-sdk-go/common"
 	"github.com/NaverCloudPlatform/ncloud-sdk-go/sdk"
 	"github.com/hashicorp/terraform/helper/schema"
+	"log"
 )
 
 func resourceNcloudBlockStorage() *schema.Resource {
@@ -163,6 +164,11 @@ func resourceNcloudBlockStorageRead(d *schema.ResourceData, meta interface{}) er
 func resourceNcloudBlockStorageDelete(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*NcloudSdk).conn
 	blockStorageInstanceNo := d.Get("block_storage_instance_no").(string)
+	err := detachBlockStorage(conn, []string{blockStorageInstanceNo})
+	if err != nil {
+		log.Printf("[ERROR] detachBlockStorage %#v", err)
+		return err
+	}
 	return deleteBlockStorage(conn, []string{blockStorageInstanceNo})
 }
 

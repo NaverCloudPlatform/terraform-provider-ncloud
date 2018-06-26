@@ -27,9 +27,6 @@ resource "ncloud_instance" "instance" {
   "server_product_code" = "${data.ncloud_server_product.prod.id}"
   "login_key_name" = "${ncloud_login_key.key.key_name}"
   "access_control_group_configuration_no_list" = ["${data.ncloud_access_control_group.acg.id}"]
-//  "user_data" =  <<USER_DATA
-//CreateObject("WScript.Shell").run("cmd.exe /c powershell Set-ExecutionPolicy RemoteSigned & winrm set winrm/config/service/auth @{Basic=\"true\"} & winrm set winrm/config/service @{AllowUnencrypted="true"} & winrm quickconfig -q & sc config WinRM start= auto & winrm get winrm/config/service")
-//USER_DATA
   "user_data" = "CreateObject(\"WScript.Shell\").run(\"cmd.exe /c powershell Set-ExecutionPolicy RemoteSigned & winrm set winrm/config/service/auth @{Basic=\"\"true\"\"} & winrm set winrm/config/service @{AllowUnencrypted=\"\"true\"\"} & winrm quickconfig -q & sc config WinRM start= auto & winrm get winrm/config/service\")"
 }
 
@@ -60,6 +57,7 @@ resource "ncloud_port_forwarding_rule" "forwarding" {
 
 
 resource "null_resource" "winrm" {
+  depends_on = ["ncloud_public_ip.public_ip", "ncloud_block_storage.storage"]
   connection {
     type = "winrm"
     user = "Administrator"
@@ -67,11 +65,19 @@ resource "null_resource" "winrm" {
     password = "${data.ncloud_root_password.rootpwd.root_password}"
   }
 
+  # mount
   provisioner "file" {
     source = "scripts/mount-storage.ps1"
     destination = "C:\\scripts\\mount-storage.ps1"
   }
 
+  # unmount
+  provisioner "file" {
+    source = "scripts/unmount-storage.ps1"
+    destination = "C:\\scripts\\unmount-storage.ps1"
+  }
+
+  # get mount points
   provisioner "file" {
     source = "scripts/get-mountpoints.ps1"
     destination = "C:\\scripts\\get-mountpoints.ps1"
