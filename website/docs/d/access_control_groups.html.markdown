@@ -33,5 +33,5 @@ The following arguments are supported:
     * `access_control_group_configuration_no` - ACG configuration number
     * `access_control_group_name` - ACG name
     * `access_control_group_description` - ACG description
-    * `is_default_group` - whether default group
-    * `create_date` - creation date of ACG
+    * `is_default_group` - Whether default group
+    * `create_date` - Creation date of ACG

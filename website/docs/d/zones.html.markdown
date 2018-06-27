@@ -20,14 +20,14 @@ data "ncloud_zones" "zones" {}
 
 The following arguments are supported:
 
-* `region_no` - (Optional) region no for filtering
+* `region_no` - (Optional) Region number for filtering
 * `output_file` - (Optional) The name of file that can save data source after running `terraform plan`.
 
 ## Attributes Reference
 
 * `zones` - A List of region
-    * `zone_no` - zone no
-    * `zone_code` - zone code
-    * `zone_name` - zone name
-    * `zone_description` - zone description
-    * `region_no` - region no
+    * `zone_no` - Zone number
+    * `zone_code` - Zone code
+    * `zone_name` - Zone name
+    * `zone_description` - Zone description
+    * `region_no` - Region number

@@ -37,10 +37,10 @@ The following arguments are supported:
 * `public_ip_instance_no` - Public IP instance No.
 * `public_ip` - Public IP Address.
 * `public_ip_description` - Public IP description.
-* `create_date` - creation date of the public IP instance
-* `internet_line_type` - internet line type
-    * `code` - internet line type code
-    * `code_name` - internet line type code name
+* `create_date` - Creation date of the public IP instance
+* `internet_line_type` - Internet line type
+    * `code` - Internet line type code
+    * `code_name` - Internet line type code name
 * `public_ip_instance_status_name` - Public IP instance status name
 * `public_ip_instance_status` - Public IP instance status
     * `code` - Public IP instance status code
@@ -49,11 +49,11 @@ The following arguments are supported:
     * `code` - Public IP instance operation code
     * `code_name` - Public IP instance operation code name
 * `public_ip_kind_type` - Public IP kind type
-* `zone` - zone info
-    * `zone_no` - zone no
-    * `zone_code` - zone code
-    * `zone_name` - zone name
-* `region` - region info
-    * `region_no` - region no
-    * `region_code` - region code
-    * `region_name` - region name
+* `zone` - Zone info
+    * `zone_no` - Zone number
+    * `zone_code` - Zone code
+    * `zone_name` - Zone name
+* `region` - Region info
+    * `region_no` - Region number
+    * `region_code` - Region code
+    * `region_name` - Region name

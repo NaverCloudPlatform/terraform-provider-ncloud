@@ -26,6 +26,6 @@ The following arguments are supported:
 ## Attributes Reference
 
 * `regions` - A List of region
-    * `region_no` - region no
-    * `region_code` - region code
-    * `region_name` - region name
+    * `region_no` - Region number
+    * `region_code` - Region code
+    * `region_name` - Region name

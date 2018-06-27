@@ -27,6 +27,6 @@ The following arguments are supported:
 
 ## Attributes Reference
 
-* `private_key` - generated private key
-* `fingerprint` - fingerprint of the login key
-* `create_date` - creation date of the login key
+* `private_key` - Generated private key
+* `fingerprint` - Fingerprint of the login key
+* `create_date` - Creation date of the login key
