@@ -9,7 +9,7 @@ description: |-
 # Data Source: ncloud_server_products
 
 You should select a server product (server specification) to create a server instance (VM).
-To this end, we provide API by which you can search a server product.
+To this end, we provide data source by which you can search a server product.
 
 ## Example Usage
 
