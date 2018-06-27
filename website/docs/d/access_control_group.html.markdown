@@ -39,7 +39,7 @@ The following arguments are supported:
 * `access_control_group_configuration_no` - (Optional) List of ACG configuration numbers you want to get
 * `is_default_group` - (Optional) Indicates whether to get default groups only
 * `access_control_group_name` - (Optional) Name of the ACG you want to get
-* `most_recent` - (Optional) If more than one result is returned, get the most recent ACG.
+* `most_recent` - (Optional) If more than one result is returned, get the most recent created ACG.
 
 ## Attributes Reference
 
