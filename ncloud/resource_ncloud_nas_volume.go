@@ -65,7 +65,7 @@ func resourceNcloudNasVolume() *schema.Resource {
 			"cifs_user_password": {
 				Type:        schema.TypeString,
 				Optional:    true,
-				Description: "CIFS user password. The password must contain a combination of at least 2 English letters, numbers and special characters, which can be 8-14 characters in length."
+				Description: "CIFS user password. The password must contain a combination of at least 2 English letters, numbers and special characters, which can be 8-14 characters in length.",
 			},
 			"nas_volume_description": {
 				Type:         schema.TypeString,
