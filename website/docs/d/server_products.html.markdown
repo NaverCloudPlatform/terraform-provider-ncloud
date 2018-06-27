@@ -59,4 +59,4 @@ The following arguments are supported:
         * `code` - Platform type code
         * `code_name` - Platform type name
     * `os_information` - OS Information
-    * `add_block_storage_size` - additional block storage size
+    * `add_block_storage_size` - Additional block storage size
