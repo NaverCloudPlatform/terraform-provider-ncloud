@@ -3,12 +3,12 @@ layout: "ncloud"
 page_title: "NCLOUD: ncloud_login_key"
 sidebar_current: "docs-ncloud-resource-login-key"
 description: |-
-  Provides an ncloud login key resource.
+  Provides a ncloud login key resource.
 ---
 
 # ncloud_login_key
 
-Provides an ncloud login key resource.
+Provides a ncloud login key resource.
 
 ## Example Usage
 

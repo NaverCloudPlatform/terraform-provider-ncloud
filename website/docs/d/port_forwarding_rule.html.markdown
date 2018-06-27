@@ -18,7 +18,7 @@ data "ncloud_port_forwarding_rule" "test" {
   "port_forwarding_external_port" = "4088"
 }
 ```
-
+ncloud_nas_volume
 ## Argument Reference
 
 The following arguments are supported:
