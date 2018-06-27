@@ -24,6 +24,7 @@ func dataSourceNcloudAccessControlRules() *schema.Resource {
 				Optional:     true,
 				ForceNew:     true,
 				ValidateFunc: validateRegexp,
+				Description:  "A regex string to apply to the ACG rule list returned by ncloud",
 			},
 			"access_control_rules": {
 				Type:     schema.TypeList,
