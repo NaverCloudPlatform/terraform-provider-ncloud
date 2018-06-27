@@ -60,27 +60,27 @@ The following arguments are supported:
 * `server_instance_operation` - Server instance operation
     * `code` - Server instance operation code
     * `code_name` - Server instance operation code name
-* `create_date` - creation date of the server instance
-* `uptime` - server uptime
-* `port_forwarding_public_ip` - port forwarding public ip
-* `port_forwarding_external_port` - port forwarding external port
-* `port_forwarding_internal_port` - port forwarding internal port
-* `zone` - zone info
-    * `zone_no` - zone no
-    * `zone_code` - zone code
-    * `zone_name` - zone name
-    * `zone_description` - zone description
-    * `region_no` - region no
-* `region` - region info
-    * `region_no` - region no
-    * `region_code` - region code
-    * `region_name` - region name
-* `base_block_storage_disk_type` - base block storage disk type
-    * `code` - base block storage disk type code
-    * `code_name` - base block storage disk type code name
-* `base_block_storage_disk_detail_type` - base block storage disk detail type
-    * `code` - base block storage disk detail type code
-    * `code_name` - base block storage disk detail type name
-* `internet_line_type` - internet line type
-    * `code` - internet line type code
-    * `code_name` - internet line type code name
+* `create_date` - Creation date of the server instance
+* `uptime` - Server uptime
+* `port_forwarding_public_ip` - Port forwarding public ip
+* `port_forwarding_external_port` - Port forwarding external port
+* `port_forwarding_internal_port` - Port forwarding internal port
+* `zone` - Zone info
+    * `zone_no` - Zone number
+    * `zone_code` - Zone code
+    * `zone_name` - Zone name
+    * `zone_description` - Zone description
+    * `region_no` - Region number
+* `region` - Region info
+    * `region_no` - Region number
+    * `region_code` - Region code
+    * `region_name` - Region name
+* `base_block_storage_disk_type` - Base block storage disk type
+    * `code` - Base block storage disk type code
+    * `code_name` - Base block storage disk type code name
+* `base_block_storage_disk_detail_type` - Base block storage disk detail type
+    * `code` - Base block storage disk detail type code
+    * `code_name` - Base block storage disk detail type name
+* `internet_line_type` - Internet line type
+    * `code` - Internet line type code
+    * `code_name` - Internet line type code name

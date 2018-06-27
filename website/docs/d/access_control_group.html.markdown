@@ -44,4 +44,4 @@ The following arguments are supported:
 ## Attributes Reference
 
 * `access_control_group_description` - ACG description
-* `create_date` - creation date of ACG
+* `create_date` - Creation date of ACG
