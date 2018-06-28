@@ -113,14 +113,14 @@ func testAccCheckPublicIPInstanceDestroyWithProvider(s *terraform.State, provide
 
 func testAccPublicIPInstanceConfig(testServerInstanceName string, testPublicIPDescription string) string {
 	return fmt.Sprintf(`
-resource "ncloud_instance" "test" {
+resource "ncloud_server" "test" {
 	"server_name" = "%s"
 	"server_image_product_code" = "SPSW0LINUX000032"
 	"server_product_code" = "SPSVRSTAND000004"
 }
 
 resource "ncloud_public_ip" "public_ip" {
-	"server_instance_no" = "${ncloud_instance.test.id}"
+	"server_instance_no" = "${ncloud_server.test.id}"
 	"public_ip_description" = "%s"
 	"region_no" = "1"
 	"zone_no" = "2"

@@ -105,7 +105,7 @@ func testAccPortForwardingRuleBasicConfig(externalPort int) string {
 	return fmt.Sprintf(`
 				data "ncloud_port_forwarding_rules" "rules" {}
 
-				resource "ncloud_instance" "instance" {
+				resource "ncloud_server" "server" {
 					"server_name" = "%s"
 					"server_image_product_code" = "SPSW0LINUX000032"
 					"server_product_code" = "SPSVRSTAND000004"
@@ -113,7 +113,7 @@ func testAccPortForwardingRuleBasicConfig(externalPort int) string {
 
 			   resource "ncloud_port_forwarding_rule" "test" {
 				   "port_forwarding_configuration_no" = "${data.ncloud_port_forwarding_rules.rules.id}"
-				   "server_instance_no" = "${ncloud_instance.instance.id}"
+				   "server_instance_no" = "${ncloud_server.server.id}"
 				   "port_forwarding_external_port" = "%d"
 				   "port_forwarding_internal_port" = "22"
 			   }`, testServerName, externalPort)

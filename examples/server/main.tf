@@ -7,7 +7,7 @@ provider "ncloud" {
 data "ncloud_regions" "regions" {}
 data "ncloud_server_images" "server_images" {}
 
-resource "ncloud_instance" "instance" {
+resource "ncloud_server" "server" {
   "server_name"               = "${var.server_name}"
   "server_image_product_code" = "${var.server_image_product_code}"
   "server_product_code"       = "${var.server_product_code}"

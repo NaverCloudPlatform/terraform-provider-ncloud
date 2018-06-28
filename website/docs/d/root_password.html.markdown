@@ -15,7 +15,7 @@ Gets the password of a root account with the server's login key.
 
 ```hcl
 data "ncloud_root_password" "default" {
-  "server_instance_no" = "server_instance_no" # ${ncloud_instance.vm.id}
+  "server_instance_no" = "server_instance_no" # ${ncloud_server.vm.id}
   "private_key" = "private_key" # ${ncloud_login_key.key.private_key}
 }
 ```

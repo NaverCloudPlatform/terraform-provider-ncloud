@@ -21,7 +21,7 @@ data "ncloud_server_product" "prod" {
   "product_name_regex" = "^vCPU 2EA(.*)Memory 4GB(.*)"
 }
 
-resource "ncloud_instance" "instance" {
+resource "ncloud_server" "server" {
   "server_name" = "${var.server_name}"
   "server_image_product_code" = "${data.ncloud_server_image.image.id}"
   "server_product_code" = "${data.ncloud_server_product.prod.id}"
@@ -31,18 +31,18 @@ resource "ncloud_instance" "instance" {
 }
 
 resource "ncloud_public_ip" "public_ip" {
-  "server_instance_no" = "${ncloud_instance.instance.id}"
+  "server_instance_no" = "${ncloud_server.server.id}"
   "zone_no"            = "${var.zone_no}"
 }
 
 resource "ncloud_block_storage" "storage" {
-  "server_instance_no" = "${ncloud_instance.instance.id}"
+  "server_instance_no" = "${ncloud_server.server.id}"
   "block_storage_name" = "${var.block_storage_name}"
   "block_storage_size_gb" = "10"
 }
 
 data "ncloud_root_password" "rootpwd" {
-  "server_instance_no" = "${ncloud_instance.instance.id}"
+  "server_instance_no" = "${ncloud_server.server.id}"
   "private_key" = "${ncloud_login_key.key.private_key}"
 }
 
@@ -50,7 +50,7 @@ data "ncloud_port_forwarding_rules" "rules" {}
 
 resource "ncloud_port_forwarding_rule" "forwarding" {
   "port_forwarding_configuration_no" = "${data.ncloud_port_forwarding_rules.rules.id}"
-  "server_instance_no" = "${ncloud_instance.instance.id}"
+  "server_instance_no" = "${ncloud_server.server.id}"
   "port_forwarding_external_port" = "${var.port_forwarding_external_port}"
   "port_forwarding_internal_port" = "3389"
 }

@@ -32,7 +32,7 @@ resource "ncloud_login_key" "key" {
   "key_name" = "%s-key"
 }
 
-resource "ncloud_instance" "vm" {
+resource "ncloud_server" "server" {
   "server_name" = "%s-vm"
   "server_image_product_code" = "SPSW0LINUX000032"
   "server_product_code" = "SPSVRSTAND000004"
@@ -40,7 +40,7 @@ resource "ncloud_instance" "vm" {
 }
 
 data "ncloud_root_password" "default" {
-  "server_instance_no" = "${ncloud_instance.vm.id}"
+  "server_instance_no" = "${ncloud_server.server.id}"
   "private_key" = "${ncloud_login_key.key.private_key}"
 }
 `, prefix, prefix)
