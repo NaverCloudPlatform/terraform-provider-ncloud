@@ -17,18 +17,22 @@ func dataSourceNcloudPortForwardingRules() *schema.Resource {
 				Optional:     true,
 				ForceNew:     true,
 				ValidateFunc: validateInternetLineTypeCode,
+				Description:  "Internet line code. PUBLC(Public), GLBL(Global)",
 			},
 			"region_no": {
-				Type:     schema.TypeString,
-				Optional: true,
+				Type:        schema.TypeString,
+				Optional:    true,
+				Description: "Region number",
 			},
 			"zone_no": {
-				Type:     schema.TypeString,
-				Optional: true,
+				Type:        schema.TypeString,
+				Optional:    true,
+				Description: "Zone number.",
 			},
 			"port_forwarding_internal_port": {
-				Type:     schema.TypeString,
-				Optional: true,
+				Type:        schema.TypeString,
+				Optional:    true,
+				Description: "Port forwarding internal port.",
 			},
 
 			"port_forwarding_configuration_no": {
@@ -37,8 +41,9 @@ func dataSourceNcloudPortForwardingRules() *schema.Resource {
 				Description: "Port forwarding configuration number.",
 			},
 			"port_forwarding_public_ip": {
-				Type:     schema.TypeString,
-				Computed: true,
+				Type:        schema.TypeString,
+				Computed:    true,
+				Description: "Port forwarding public ip",
 			},
 			"port_forwarding_rule_list": {
 				Type:        schema.TypeList,
@@ -47,16 +52,19 @@ func dataSourceNcloudPortForwardingRules() *schema.Resource {
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"server_instance_no": {
-							Type:     schema.TypeString,
-							Computed: true,
+							Type:        schema.TypeString,
+							Computed:    true,
+							Description: "Server instance number",
 						},
 						"port_forwarding_external_port": {
-							Type:     schema.TypeString,
-							Computed: true,
+							Type:        schema.TypeString,
+							Computed:    true,
+							Description: "Port forwarding external port.",
 						},
 						"port_forwarding_internal_port": {
-							Type:     schema.TypeString,
-							Computed: true,
+							Type:        schema.TypeString,
+							Computed:    true,
+							Description: "Port forwarding internal port.",
 						},
 					},
 				},

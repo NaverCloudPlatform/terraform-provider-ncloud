@@ -3,12 +3,12 @@ layout: "ncloud"
 page_title: "NCLOUD: ncloud_instance"
 sidebar_current: "docs-ncloud-resource-instance"
 description: |-
-  Provides an ncloud server instance resource.
+  Provides a ncloud server instance resource.
 ---
 
 # ncloud_instance
 
-Provides an ncloud server instance resource.
+Provides a ncloud server instance resource.
 
 ## Example Usage
 

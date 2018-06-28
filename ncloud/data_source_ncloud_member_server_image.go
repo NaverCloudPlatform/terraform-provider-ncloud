@@ -40,7 +40,7 @@ func dataSourceNcloudMemberServerImage() *schema.Resource {
 			"most_recent": {
 				Type:        schema.TypeBool,
 				Optional:    true,
-				Default:     false,
+				Default:     true,
 				ForceNew:    true,
 				Description: "If more than one result is returned, get the most recent created member server image.",
 			},

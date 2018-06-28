@@ -29,22 +29,26 @@ func resourceNcloudPortForwadingRule() *schema.Resource {
 				Description: "Port forwarding configuration number.",
 			},
 			"server_instance_no": {
-				Type:     schema.TypeString,
-				Required: true,
+				Type:        schema.TypeString,
+				Required:    true,
+				Description: "Server instance number for which port forwarding is set",
 			},
 			"port_forwarding_external_port": {
 				Type:         schema.TypeString,
 				Required:     true,
 				ValidateFunc: validateIntegerInRange(1024, 65534),
+				Description:  "External port for port forwarding",
 			},
 			"port_forwarding_internal_port": {
 				Type:         schema.TypeString,
 				Required:     true,
 				ValidateFunc: validateIncludeValues([]string{"22", "3389"}), // [Linux : 22 |Windows : 3389]
+				Description:  "Internal port for port forwarding. Only the following ports are available. [Linux: `22` | Windows: `3389`]",
 			},
 			"port_forwarding_public_ip": {
-				Type:     schema.TypeString,
-				Computed: true,
+				Type:        schema.TypeString,
+				Computed:    true,
+				Description: "Port forwarding Public IP",
 			},
 		},
 	}

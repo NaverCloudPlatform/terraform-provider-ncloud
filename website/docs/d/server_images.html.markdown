@@ -8,12 +8,13 @@ description: |-
 
 # Data Source: ncloud_server_images
 
-To create a server instance (VM), you should select a server image. This API gets a list of server images.
+To create a server instance (VM), you should select a server image. This data source gets a list of server images.
 
 ## Example Usage
 
 ```hcl
-data "ncloud_server_images" "linux" {
+data "ncloud_server_images" "all" {
+  "output_file" = "server_images.json"
 }
 ```
 
@@ -51,4 +52,4 @@ The following arguments are supported:
         * `code` - Platform type code
         * `code_name` - Platform type name
     * `os_information` - OS Information
-    * `add_block_storage_size` - additional block storage size
+    * `add_block_storage_size` - Additional block storage size

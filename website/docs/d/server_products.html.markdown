@@ -9,7 +9,7 @@ description: |-
 # Data Source: ncloud_server_products
 
 You should select a server product (server specification) to create a server instance (VM).
-To this end, we provide API by which you can search a server product.
+To this end, we provide data source by which you can search a server product.
 
 ## Example Usage
 
@@ -59,4 +59,4 @@ The following arguments are supported:
         * `code` - Platform type code
         * `code_name` - Platform type name
     * `os_information` - OS Information
-    * `add_block_storage_size` - additional block storage size
+    * `add_block_storage_size` - Additional block storage size
