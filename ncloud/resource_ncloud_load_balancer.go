@@ -449,12 +449,12 @@ var loadBalancerRuleSchemaResource = &schema.Resource{
 		"l7_health_check_path": {
 			Type:        schema.TypeString,
 			Optional:    true,
-			Description: "Health check path of load balancer rules. Required when the loadBalancerRuleList.N.protocolTypeCode is HTTP/HTTPS.",
+			Description: "Health check path of load balancer rules. Required when the protocol_type_code is HTTP/HTTPS.",
 		},
 		"certificate_name": {
 			Type:        schema.TypeString,
 			Optional:    true,
-			Description: "Load balancer SSL certificate. Required when the loadBalancerRuleList.N.protocloTypeCode value is SSL/HTTPS.",
+			Description: "Load balancer SSL certificate. Required when the protocol_type_code value is SSL/HTTPS.",
 		},
 		"proxy_protocol_use_yn": {
 			Type:        schema.TypeString,

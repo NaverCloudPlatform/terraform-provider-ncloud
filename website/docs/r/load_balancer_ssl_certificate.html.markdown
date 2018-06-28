@@ -1,12 +1,12 @@
 ---
 layout: "ncloud"
-page_title: "NCLOUD: ncloud_load_balancer"
-sidebar_current: "docs-ncloud-resource-load-balancer"
+page_title: "NCLOUD: load_balancer_ssl_certificate"
+sidebar_current: "docs-ncloud-resource-load-balancer-ssl-certificate"
 description: |-
-  
+
 ---
 
-# ncloud_load_balancer
+# load_balancer_ssl_certificate
 
 
 ## Example Usage
