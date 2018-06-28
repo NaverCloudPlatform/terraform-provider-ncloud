@@ -37,7 +37,7 @@ func resourceNcloudLoadBalancerSSLCertificate() *schema.Resource {
 			"publickey_certificate": {
 				Type:        schema.TypeString,
 				Required:    true,
-				Description: "Public key certificate",
+				Description: "Public key for a certificate",
 			},
 			"certificate_chain": {
 				Type:        schema.TypeString,
