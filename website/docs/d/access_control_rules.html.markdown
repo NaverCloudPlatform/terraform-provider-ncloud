@@ -8,7 +8,7 @@ description: |-
 
 # Data Source: ncloud_access_control_rules
 
-List of ACG configuration rules you want to get
+List of access configuration rules you want to get
 
 ## Example Usage
 
