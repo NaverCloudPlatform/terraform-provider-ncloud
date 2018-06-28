@@ -1,19 +1,19 @@
 ---
 layout: "ncloud"
-page_title: "NCLOUD: ncloud_instance"
-sidebar_current: "docs-ncloud-resource-instance"
+page_title: "NCLOUD: ncloud_server"
+sidebar_current: "docs-ncloud-resource-server"
 description: |-
   Provides a ncloud server instance resource.
 ---
 
-# ncloud_instance
+# ncloud_server
 
 Provides a ncloud server instance resource.
 
 ## Example Usage
 
 ```hcl
-resource "ncloud_instance" "instance" {
+resource "ncloud_server" "server" {
 	"server_name" = "tf-test-vm1"
 	"server_image_product_code" = "SPSW0LINUX000032"
 	"server_product_code" = "SPSVRSTAND000004"

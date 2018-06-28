@@ -24,8 +24,8 @@ provider "ncloud" {
   region = "${var.region}"
 }
 
-// Create a new instance
-resource "ncloud_instance" "instance" {
+// Create a new server instance
+resource "ncloud_server" "server" {
   # ...
 }
 ```
@@ -47,7 +47,7 @@ ncloud provider block:
 Usage:
 
 ```hcl
-provider "alicloud" {
+provider "ncloud" {
   access_key = "${var.access_key}"
   secret_key = "${var.secret_key}"
   region     = "${var.region}"

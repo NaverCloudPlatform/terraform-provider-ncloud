@@ -109,14 +109,14 @@ func testAccCheckBlockStorageDestroyWithProvider(s *terraform.State, provider *s
 
 func testAccBlockStorageConfig(serverInstanceName string, blockStorageName string) string {
 	return fmt.Sprintf(`
-resource "ncloud_instance" "storagevm" {
+resource "ncloud_server" "server" {
 	"server_name" = "%s"
 	"server_image_product_code" = "SPSW0LINUX000032"
 	"server_product_code" = "SPSVRSTAND000004"
 }
 
 resource "ncloud_block_storage" "storage" {
-	"server_instance_no" = "${ncloud_instance.storagevm.id}"
+	"server_instance_no" = "${ncloud_server.server.id}"
 	"block_storage_name" = "%s"
 	"block_storage_size_gb" = "10"
 }

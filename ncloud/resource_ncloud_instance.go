@@ -9,12 +9,12 @@ import (
 	"github.com/hashicorp/terraform/helper/schema"
 )
 
-func resourceNcloudInstance() *schema.Resource {
+func resourceNcloudServer() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceNcloudInstanceCreate,
-		Read:   resourceNcloudInstanceRead,
-		Delete: resourceNcloudInstanceDelete,
-		Update: resourceNcloudInstanceUpdate,
+		Create: resourceNcloudServerCreate,
+		Read:   resourceNcloudServerRead,
+		Delete: resourceNcloudServerDelete,
+		Update: resourceNcloudServerUpdate,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -201,7 +201,7 @@ func resourceNcloudInstance() *schema.Resource {
 	}
 }
 
-func resourceNcloudInstanceCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceNcloudServerCreate(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*NcloudSdk).conn
 
 	reqParams := buildCreateServerInstanceReqParams(d)
@@ -218,10 +218,10 @@ func resourceNcloudInstanceCreate(d *schema.ResourceData, meta interface{}) erro
 	if err := waitForServerInstance(conn, serverInstance.ServerInstanceNo, "RUN"); err != nil {
 		return err
 	}
-	return resourceNcloudInstanceRead(d, meta)
+	return resourceNcloudServerRead(d, meta)
 }
 
-func resourceNcloudInstanceRead(d *schema.ResourceData, meta interface{}) error {
+func resourceNcloudServerRead(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*NcloudSdk).conn
 
 	instance, err := getServerInstance(conn, d.Id())
@@ -263,7 +263,7 @@ func resourceNcloudInstanceRead(d *schema.ResourceData, meta interface{}) error 
 	return nil
 }
 
-func resourceNcloudInstanceDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceNcloudServerDelete(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*NcloudSdk).conn
 	serverInstance, err := getServerInstance(conn, d.Id())
 	if err != nil {
@@ -288,7 +288,7 @@ func resourceNcloudInstanceDelete(d *schema.ResourceData, meta interface{}) erro
 	return terminateServerInstance(conn, d.Id())
 }
 
-func resourceNcloudInstanceUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceNcloudServerUpdate(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*NcloudSdk).conn
 
 	if d.HasChange("server_product_code") {
@@ -305,7 +305,7 @@ func resourceNcloudInstanceUpdate(d *schema.ResourceData, meta interface{}) erro
 		logCommonResponse("ChangeServerInstanceSpec", reqParams, resp.CommonResponse)
 	}
 
-	return resourceNcloudInstanceRead(d, meta)
+	return resourceNcloudServerRead(d, meta)
 }
 
 func buildCreateServerInstanceReqParams(d *schema.ResourceData) *sdk.RequestCreateServerInstance {

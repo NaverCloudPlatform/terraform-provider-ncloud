@@ -10,7 +10,7 @@ import (
 	"testing"
 )
 
-func TestAccResourceNcloudInstanceBasic(t *testing.T) {
+func TestAccResourceNcloudServerBasic(t *testing.T) {
 	var serverInstance sdk.ServerInstance
 	testServerName := getTestServerName()
 
@@ -25,22 +25,22 @@ func TestAccResourceNcloudInstanceBasic(t *testing.T) {
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:      func() { testAccPreCheck(t) },
-		IDRefreshName: "ncloud_instance.instance",
+		IDRefreshName: "ncloud_server.server",
 		Providers:     testAccProviders,
-		CheckDestroy:  testAccCheckInstanceDestroy,
+		CheckDestroy:  testAccCheckServerDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccInstanceConfig(testServerName),
+				Config: testAccServerConfig(testServerName),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckInstanceExists(
-						"ncloud_instance.instance", &serverInstance),
+					testAccCheckServerExists(
+						"ncloud_server.server", &serverInstance),
 					testCheck(),
 					resource.TestCheckResourceAttr(
-						"ncloud_instance.instance",
+						"ncloud_server.server",
 						"server_image_product_code",
 						"SPSW0LINUX000032"),
 					resource.TestCheckResourceAttr(
-						"ncloud_instance.instance",
+						"ncloud_server.server",
 						"server_product_code",
 						"SPSVRSTAND000004"),
 				),
@@ -56,22 +56,22 @@ func TestAccResourceInstanceChangeServerInstanceSpec(t *testing.T) {
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:      func() { testAccPreCheck(t) },
-		IDRefreshName: "ncloud_instance.instance",
+		IDRefreshName: "ncloud_server.server",
 		Providers:     testAccProviders,
-		CheckDestroy:  testAccCheckInstanceDestroy,
+		CheckDestroy:  testAccCheckServerDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccInstanceConfig(testServerName),
+				Config: testAccServerConfig(testServerName),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckInstanceExists(
-						"ncloud_instance.instance", &before),
+					testAccCheckServerExists(
+						"ncloud_server.server", &before),
 				),
 			},
 			{
 				Config: testAccInstanceChangeSpecConfig(testServerName),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckInstanceExists(
-						"ncloud_instance.instance", &after),
+					testAccCheckServerExists(
+						"ncloud_server.server", &after),
 					testAccCheckInstanceNotRecreated(
 						t, &before, &after),
 				),
@@ -88,26 +88,26 @@ func testAccResourceRecreateServerInstance(t *testing.T) {
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:      func() { testAccPreCheck(t) },
-		IDRefreshName: "ncloud_instance.instance",
+		IDRefreshName: "ncloud_server.server",
 		Providers:     testAccProviders,
-		CheckDestroy:  testAccCheckInstanceDestroy,
+		CheckDestroy:  testAccCheckServerDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccRecreateServerInstanceBeforeConfig(testServerName),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckInstanceExists(
-						"ncloud_instance.instance", &before),
+					testAccCheckServerExists(
+						"ncloud_server.server", &before),
 				),
 			},
 			{
 				Config: testAccRecreateServerInstanceAfterConfig(testServerName),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckInstanceExists(
-						"ncloud_instance.instance", &after),
+					testAccCheckServerExists(
+						"ncloud_server.server", &after),
 					testAccCheckInstanceNotRecreated(
 						t, &before, &after),
 					resource.TestCheckResourceAttr(
-						"ncloud_instance.instance",
+						"ncloud_server.server",
 						"server_image_product_code",
 						"SPSWBMLINUX00002"),
 				),
@@ -116,7 +116,7 @@ func testAccResourceRecreateServerInstance(t *testing.T) {
 	})
 }
 
-func testAccCheckInstanceExists(n string, i *sdk.ServerInstance) resource.TestCheckFunc {
+func testAccCheckServerExists(n string, i *sdk.ServerInstance) resource.TestCheckFunc {
 	return testAccCheckInstanceExistsWithProvider(n, i, func() *schema.Provider { return testAccProvider })
 }
 
@@ -157,7 +157,7 @@ func testAccCheckInstanceNotRecreated(t *testing.T,
 	}
 }
 
-func testAccCheckInstanceDestroy(s *terraform.State) error {
+func testAccCheckServerDestroy(s *terraform.State) error {
 	return testAccCheckInstanceDestroyWithProvider(s, testAccProvider)
 }
 
@@ -165,7 +165,7 @@ func testAccCheckInstanceDestroyWithProvider(s *terraform.State, provider *schem
 	conn := provider.Meta().(*NcloudSdk).conn
 
 	for _, rs := range s.RootModule().Resources {
-		if rs.Type != "ncloud_instance" {
+		if rs.Type != "ncloud_server" {
 			continue
 		}
 		instance, err := getServerInstance(conn, rs.Primary.ID)
@@ -192,9 +192,9 @@ func getTestServerName() string {
 	return testServerName
 }
 
-func testAccInstanceConfig(testServerName string) string {
+func testAccServerConfig(testServerName string) string {
 	return fmt.Sprintf(`
-resource "ncloud_instance" "instance" {
+resource "ncloud_server" "server" {
 	"server_name" = "%s"
 	"server_image_product_code" = "SPSW0LINUX000032"
 	"server_product_code" = "SPSVRSTAND000004"
@@ -204,7 +204,7 @@ resource "ncloud_instance" "instance" {
 
 func testAccInstanceChangeSpecConfig(testServerName string) string {
 	return fmt.Sprintf(`
-resource "ncloud_instance" "instance" {
+resource "ncloud_server" "server" {
 	"server_name" = "%s"
 	"server_image_product_code" = "SPSW0LINUX000032"
 	"server_product_code" = "SPSVRSTAND000056"
@@ -214,7 +214,7 @@ resource "ncloud_instance" "instance" {
 
 func testAccRecreateServerInstanceBeforeConfig(testServerName string) string {
 	return fmt.Sprintf(`
-resource "ncloud_instance" "instance" {
+resource "ncloud_server" "server" {
 	"server_name" = "%s"
 	"server_image_product_code" = "SPSWBMLINUX00001"
 	"server_product_code" = "SPSVRBM000000001"
@@ -224,7 +224,7 @@ resource "ncloud_instance" "instance" {
 
 func testAccRecreateServerInstanceAfterConfig(testServerName string) string {
 	return fmt.Sprintf(`
-resource "ncloud_instance" "instance" {
+resource "ncloud_server" "server" {
 	"server_name" = "%s"
 	"server_image_product_code" = "SPSWBMLINUX00002"
 	"server_product_code" = "SPSVRBM000000001"

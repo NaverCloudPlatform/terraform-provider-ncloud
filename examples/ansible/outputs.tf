@@ -1,3 +1,3 @@
 output "server_name_list" {
-  value = "${join(",", ncloud_instance.instance.*.server_name)}"
+  value = "${join(",", ncloud_server.server.*.server_name)}"
 }
