@@ -100,6 +100,11 @@ func resourceNcloudServer() *schema.Resource {
 				Optional:    true,
 				Description: "The server will execute the user data script set by the user at first boot. To view the column, it is returned only when viewing the server instance. You must need base64 Encoding, URL Encoding before put in value of userData. If you don't URL Encoding again it occurs signature invalid error.",
 			},
+			"raid_type_name": {
+				Type:        schema.TypeString,
+				Optional:    true,
+				Description: "Raid Type Name",
+			},
 
 			"server_instance_no": {
 				Type:     schema.TypeString,
@@ -329,7 +334,8 @@ func buildCreateServerInstanceReqParams(d *schema.ResourceData) *sdk.RequestCrea
 		FeeSystemTypeCode:          d.Get("fee_system_type_code").(string),
 		ZoneNo:                     d.Get("zone_no").(string),
 		AccessControlGroupConfigurationNoList: paramAccessControlGroupConfigurationNoList,
-		UserData: d.Get("user_data").(string),
+		UserData:     d.Get("user_data").(string),
+		RaidTypeName: d.Get("raid_type_name").(string),
 	}
 	return reqParams
 }
