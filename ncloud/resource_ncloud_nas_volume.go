@@ -73,15 +73,29 @@ func resourceNcloudNasVolume() *schema.Resource {
 				ValidateFunc: validateStringLengthInRange(1, 1000),
 				Description:  "NAS volume description",
 			},
+			"region_code": {
+				Type:          schema.TypeString,
+				Optional:      true,
+				Description:   "Region code. Get available values using the `data ncloud_regions`.",
+				ConflictsWith: []string{"region_no"},
+			},
 			"region_no": {
-				Type:        schema.TypeString,
-				Optional:    true,
-				Description: "Region number.",
+				Type:          schema.TypeString,
+				Optional:      true,
+				Description:   "Region number. Get available values using the `data ncloud_regions`.",
+				ConflictsWith: []string{"region_code"},
+			},
+			"zone_code": {
+				Type:          schema.TypeString,
+				Optional:      true,
+				Description:   "Zone code. Zone in which you want to create a NAS volume.",
+				ConflictsWith: []string{"zone_no"},
 			},
 			"zone_no": {
-				Type:        schema.TypeString,
-				Optional:    true,
-				Description: "Zone number. Zone in which you want to create a NAS volume.",
+				Type:          schema.TypeString,
+				Optional:      true,
+				Description:   "Zone number. Zone in which you want to create a NAS volume.",
+				ConflictsWith: []string{"zone_code"},
 			},
 
 			"volume_name": {
@@ -272,7 +286,7 @@ func buildCreateNasVolumeInstanceParams(conn *sdk.Conn, d *schema.ResourceData) 
 		CifsUserPassword:                d.Get("cifs_user_password").(string),
 		NasVolumeDescription:            d.Get("nas_volume_description").(string),
 		RegionNo:                        parseRegionNoParameter(conn, d),
-		ZoneNo:                          d.Get("zone_no").(string),
+		ZoneNo:                          parseZoneNoParameter(conn, d),
 	}
 	return reqParams
 }

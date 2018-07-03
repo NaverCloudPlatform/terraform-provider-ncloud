@@ -27,10 +27,12 @@ The following arguments are supported:
 * `product_name_regex` - (Optional) A regex string to apply to the Server Product list returned.
 * `exclusion_product_code` - (Optional) Enter a product code to exclude from the list.
 * `product_code` - (Optional) Enter a product code to search from the list. Use it for a single search.
-* `region_no` - (Optional) You can reach a state in which inout is possible by calling `data ncloud_regions`.
-* `zone_no` - (Optional) You can decide a zone where servers are created. You can decide which zone the product list will be requested at.
-  You can get one by calling `data ncloud_zones`.
-  default : Select the first Zone in the specific region
+* `region_code` - (Optional) Region code. Get available values using the data source `ncloud_regions`. Conflicts with `region_no`
+* `region_no` - (Optional) Region number. Get available values using the data source `ncloud_regions`. Conflicts with `region_code`
+* `zone_code` - (Optional) Zone code. You can decide a zone where servers are created. You can decide which zone the product list will be requested at. default : Select the first Zone in the specific region
+    Get available values using the data source `ncloud_zones`. Conflicts with `zone_no`
+* `zone_no` - (Optional) Zone number. You can decide a zone where servers are created. You can decide which zone the product list will be requested at. default : Select the first Zone in the specific region
+    Get available values using the data source `ncloud_zones`. Conflicts with `zone_code`
 * `internet_line_type_code` - (Optional) Internet line code. PUBLC(Public), GLBL(Global)
 
 ## Attributes Reference

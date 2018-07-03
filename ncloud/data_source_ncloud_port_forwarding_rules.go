@@ -19,15 +19,29 @@ func dataSourceNcloudPortForwardingRules() *schema.Resource {
 				ValidateFunc: validateInternetLineTypeCode,
 				Description:  "Internet line code. PUBLC(Public), GLBL(Global)",
 			},
+			"region_code": {
+				Type:          schema.TypeString,
+				Optional:      true,
+				Description:   "Region code. Get available values using the `data ncloud_regions`.",
+				ConflictsWith: []string{"region_no"},
+			},
 			"region_no": {
-				Type:        schema.TypeString,
-				Optional:    true,
-				Description: "Region number",
+				Type:          schema.TypeString,
+				Optional:      true,
+				Description:   "Region number. Get available values using the `data ncloud_regions`.",
+				ConflictsWith: []string{"region_code"},
+			},
+			"zone_code": {
+				Type:          schema.TypeString,
+				Optional:      true,
+				Description:   "Zone code",
+				ConflictsWith: []string{"zone_no"},
 			},
 			"zone_no": {
-				Type:        schema.TypeString,
-				Optional:    true,
-				Description: "Zone number.",
+				Type:          schema.TypeString,
+				Optional:      true,
+				Description:   "Zone number",
+				ConflictsWith: []string{"zone_code"},
 			},
 			"port_forwarding_internal_port": {
 				Type:        schema.TypeString,
@@ -83,7 +97,7 @@ func dataSourceNcloudPortForwardingRulesRead(d *schema.ResourceData, meta interf
 	reqParams := &sdk.RequestPortForwardingRuleList{
 		InternetLineTypeCode: d.Get("internet_line_type_code").(string),
 		RegionNo:             parseRegionNoParameter(conn, d),
-		ZoneNo:               d.Get("zone_no").(string),
+		ZoneNo:               parseZoneNoParameter(conn, d),
 	}
 
 	resp, err := conn.GetPortForwardingRuleList(reqParams)

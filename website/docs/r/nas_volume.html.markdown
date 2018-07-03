@@ -34,9 +34,12 @@ The following arguments are supported:
 * `cifs_user_name` - (Conditional) CIFS user name. The ID must contain a combination of English alphabet and numbers, which can be 6-20 characters in length.
 * `cifs_user_password` - (Conditional) CIFS user password. The password must contain a combination of at least 2 English letters, numbers and special characters, which can be 8-14 characters in length.
 * `nas_volume_description` - (Optional) NAS volume description
-* `region_no` - (Optional) Region number. Get available values using the `data ncloud_regions`. Default: KR region
-* `zone_no` - (Optional) Zone number. Zone in which you want to create a NAS volume. Get available values using the `data ncloud_zones`.
-    Default: The first zone of the region.
+* `region_code` - (Optional) Region code. Get available values using the data source `ncloud_regions`. Default: KR region. Conflicts with `region_no`
+* `region_no` - (Optional) Region number. Get available values using the data source `ncloud_regions`. Default: KR region. Conflicts with `region_code`
+* `zone_code` - (Optional) Zone code. Zone in which you want to create a NAS volume. Default: The first zone of the region.
+    Get available values using the data source `ncloud_zones`. Conflicts with `zone_no`
+* `zone_no` - (Optional) Zone number. Zone in which you want to create a NAS volume. Default: The first zone of the region.
+    Get available values using the data source `ncloud_zones`. Conflicts with `zone_code`
 
 ## Attributes Reference
 

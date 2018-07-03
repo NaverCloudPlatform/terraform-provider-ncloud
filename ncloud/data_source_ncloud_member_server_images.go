@@ -32,11 +32,19 @@ func dataSourceNcloudMemberServerImages() *schema.Resource {
 				Elem:        &schema.Schema{Type: schema.TypeString},
 				Description: "List of platform codes of server images to view",
 			},
-			"region_no": {
-				Type:        schema.TypeString,
-				Optional:    true,
-				Description: "Get available values using the getRegionList action.",
+			"region_code": {
+				Type:          schema.TypeString,
+				Optional:      true,
+				Description:   "Region code. Get available values using the `data ncloud_regions`.",
+				ConflictsWith: []string{"region_no"},
 			},
+			"region_no": {
+				Type:          schema.TypeString,
+				Optional:      true,
+				Description:   "Region number. Get available values using the `data ncloud_regions`.",
+				ConflictsWith: []string{"region_code"},
+			},
+
 			"member_server_images": {
 				Type:        schema.TypeList,
 				Optional:    true,

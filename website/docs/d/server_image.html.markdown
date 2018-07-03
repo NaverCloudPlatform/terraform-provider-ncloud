@@ -39,7 +39,8 @@ The following arguments are supported:
 * `platform_type_code_list` - (Optional) Values required for identifying platforms in list-type.
     The available values are as follows: Linux 32Bit(LNX32) | Linux 64Bit(LNX64) | Windows 32Bit(WND32) | Windows 64Bit(WND64) | Ubuntu Desktop 64Bit(UBD64) | Ubuntu Server 64Bit(UBS64)
 * `block_storage_size` - (Optional) Block storage size.
-* `region_no` - (Optional) Region number. Get available values using the `data ncloud_regions`.
+* `region_code` - (Optional) Region code. Get available values using the data source `ncloud_regions`. Conflicts with `region_no`
+* `region_no` - (Optional) Region number. Get available values using the data source `ncloud_regions`. Conflicts with `region_code`
 
 ## Attributes Reference
 

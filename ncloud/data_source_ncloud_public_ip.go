@@ -51,15 +51,29 @@ func dataSourceNcloudPublicIP() *schema.Resource {
 				Optional:    true,
 				Description: "Filter value to search",
 			},
+			"region_code": {
+				Type:          schema.TypeString,
+				Optional:      true,
+				Description:   "Region code. Get available values using the `data ncloud_regions`.",
+				ConflictsWith: []string{"region_no"},
+			},
 			"region_no": {
-				Type:        schema.TypeString,
-				Optional:    true,
-				Description: "Get available values using the `data ncloud_regions`.",
+				Type:          schema.TypeString,
+				Optional:      true,
+				Description:   "Region number. Get available values using the `data ncloud_regions`.",
+				ConflictsWith: []string{"region_code"},
+			},
+			"zone_code": {
+				Type:          schema.TypeString,
+				Optional:      true,
+				Description:   "Zone code. You can filter the list of public IP instances by zones. All the public IP addresses in the zone of the region will be selected if the filter is not specified.",
+				ConflictsWith: []string{"zone_no"},
 			},
 			"zone_no": {
-				Type:        schema.TypeString,
-				Optional:    true,
-				Description: "You can filter the list of public IP instances by zones. All the public IP addresses in the zone of the region will be selected if the filter is not specified.",
+				Type:          schema.TypeString,
+				Optional:      true,
+				Description:   "Zone number. You can filter the list of public IP instances by zones. All the public IP addresses in the zone of the region will be selected if the filter is not specified.",
+				ConflictsWith: []string{"zone_code"},
 			},
 			"sorted_by": {
 				Type:        schema.TypeString,
@@ -160,7 +174,7 @@ func dataSourceNcloudPublicIPRead(d *schema.ResourceData, meta interface{}) erro
 	reqParams.SearchFilterName = d.Get("search_filter_name").(string)
 	reqParams.SearchFilterValue = d.Get("search_filter_value").(string)
 	reqParams.RegionNo = parseRegionNoParameter(conn, d)
-	reqParams.ZoneNo = d.Get("zone_no").(string)
+	reqParams.ZoneNo = parseZoneNoParameter(conn, d)
 	reqParams.SortedBy = d.Get("sorted_by").(string)
 	reqParams.SortingOrder = d.Get("sorting_order").(string)
 	resp, err := conn.GetPublicIPInstanceList(reqParams)

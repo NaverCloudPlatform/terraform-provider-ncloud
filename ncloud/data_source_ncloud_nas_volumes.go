@@ -33,13 +33,29 @@ func dataSourceNcloudNasVolumes() *schema.Resource {
 				Computed: true,
 				Elem:     &schema.Schema{Type: schema.TypeString},
 			},
+			"region_code": {
+				Type:          schema.TypeString,
+				Optional:      true,
+				Description:   "Region code. Get available values using the `data ncloud_regions`.",
+				ConflictsWith: []string{"region_no"},
+			},
 			"region_no": {
-				Type:     schema.TypeString,
-				Optional: true,
+				Type:          schema.TypeString,
+				Optional:      true,
+				Description:   "Region number. Get available values using the `data ncloud_regions`.",
+				ConflictsWith: []string{"region_code"},
+			},
+			"zone_code": {
+				Type:          schema.TypeString,
+				Optional:      true,
+				Description:   "Zone code",
+				ConflictsWith: []string{"zone_no"},
 			},
 			"zone_no": {
-				Type:     schema.TypeString,
-				Optional: true,
+				Type:          schema.TypeString,
+				Optional:      true,
+				Description:   "Zone number",
+				ConflictsWith: []string{"zone_code"},
 			},
 
 			"nas_volumes": {
@@ -144,8 +160,8 @@ func dataSourceNcloudNasVolumesRead(d *schema.ResourceData, meta interface{}) er
 		IsEventConfiguration:            d.Get("is_event_configuration").(string),
 		IsSnapshotConfiguration:         d.Get("is_snapshot_configuration").(string),
 		NasVolumeInstanceNoList:         StringList(d.Get("nas_volume_instance_no_list").([]interface{})),
-		RegionNo:                        d.Get("region_no").(string),
-		ZoneNo:                          d.Get("zone_no").(string),
+		RegionNo:                        parseRegionNoParameter(conn, d),
+		ZoneNo:                          parseZoneNoParameter(conn, d),
 	}
 	resp, err := conn.GetNasVolumeInstanceList(reqParams)
 	if err != nil {
