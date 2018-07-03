@@ -23,6 +23,8 @@ resource "ncloud_server" "bm" {
   "server_image_product_code" = "${data.ncloud_server_image.image.id}"
   "server_product_code" = "${data.ncloud_server_product.prod.id}"
   "login_key_name" = "${ncloud_login_key.key.key_name}"
+  "raid_type_name" = "5"
+  "zone_no" = "2"
 }
 
 resource "ncloud_block_storage" "storage" {
