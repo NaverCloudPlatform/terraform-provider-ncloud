@@ -37,15 +37,29 @@ func dataSourceNcloudServerProduct() *schema.Resource {
 				Computed:    true,
 				Description: "Enter a product code to search from the list. Use it for a single search.",
 			},
+			"region_code": {
+				Type:          schema.TypeString,
+				Optional:      true,
+				Description:   "Region code. Get available values using the `data ncloud_regions`.",
+				ConflictsWith: []string{"region_no"},
+			},
 			"region_no": {
-				Type:        schema.TypeString,
-				Optional:    true,
-				Description: "Region number",
+				Type:          schema.TypeString,
+				Optional:      true,
+				Description:   "Region number. Get available values using the `data ncloud_regions`.",
+				ConflictsWith: []string{"region_code"},
+			},
+			"zone_code": {
+				Type:          schema.TypeString,
+				Optional:      true,
+				Description:   "Zone code",
+				ConflictsWith: []string{"zone_no"},
 			},
 			"zone_no": {
-				Type:        schema.TypeString,
-				Optional:    true,
-				Description: "Zone number",
+				Type:          schema.TypeString,
+				Optional:      true,
+				Description:   "Zone number",
+				ConflictsWith: []string{"zone_code"},
 			},
 			"internet_line_type_code": {
 				Type:         schema.TypeString,
@@ -118,8 +132,8 @@ func dataSourceNcloudServerProductRead(d *schema.ResourceData, meta interface{})
 		ProductCode:            d.Get("product_code").(string),
 		ServerImageProductCode: d.Get("server_image_product_code").(string),
 		RegionNo:               parseRegionNoParameter(conn, d),
-		//ZoneNo:                 d.Get("zone_no").(string),
-		//InternetLineTypeCode:   d.Get("internet_line_type_code").(string),
+		ZoneNo:                 parseZoneNoParameter(conn, d),
+		InternetLineTypeCode:   d.Get("internet_line_type_code").(string),
 	}
 
 	resp, err := conn.GetServerProductList(reqParams)

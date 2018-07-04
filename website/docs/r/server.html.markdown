@@ -35,7 +35,10 @@ The following arguments are supported:
 * `server_create_start_no` - (Optional) If you create multiple servers at once, the server name will be serialized. You can set the starting number of the serial numbers. The total number of servers created and server starting number cannot exceed 1000. Default : If number of servers created(serverCreateCount) is greater than 1, and if there is no corresponding parameter value, the default will start from 001
 * `internet_line_type_code` - (Optional) Internet line identification code. PUBLC(Public), GLBL(Global). default : PUBLC(Public)
 * `fee_system_type_code` - (Optional) A rate system identification code. There are time plan(MTRAT) and flat rate (FXSUM). Default : Time plan(MTRAT)
-* `zone_no` - (Optional) You can determine the ZONE where the server will be created. It can be obtained through the getZoneList action. Default : Assigned by NAVER Cloud Platform.
+* `zone_code` - (Optional) Zone code. You can determine the ZONE where the server will be created. Default : Assigned by NAVER Cloud Platform.
+    Get available values using the data source `ncloud_zones`. Conflicts with `zone_no`
+* `zone_no` - (Optional) Zone number. You can determine the ZONE where the server will be created. Default : Assigned by NAVER Cloud Platform.
+    Get available values using the data source `ncloud_zones`. Conflicts with `zone_code`
 * `access_control_group_configuration_no_list` - (Optional) You can set the ACG created when creating the server. ACG setting number can be obtained through the getAccessControlGroupList action. Default : Default ACG number
 * `user_data` - (Optional) The server will execute the user data script set by the user at first boot. To view the column, it is returned only when viewing the server instance. You must need base64 Encoding, URL Encoding before put in value of userData. If you don't URL Encoding again it occurs signature invalid error.
 * `raid_type_name` - (Optional) Raid Type Name.

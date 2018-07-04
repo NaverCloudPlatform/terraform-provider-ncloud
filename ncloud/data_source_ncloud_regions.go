@@ -2,7 +2,6 @@ package ncloud
 
 import (
 	"fmt"
-	"os"
 	"time"
 
 	"github.com/NaverCloudPlatform/ncloud-sdk-go/common"
@@ -45,9 +44,11 @@ func dataSourceNcloudRegionsRead(d *schema.ResourceData, meta interface{}) error
 
 	var filteredRegions []common.Region
 	if codeOk {
-		if filtered, err := getRegionByCode(conn, code.(string)); err != nil {
-			filteredRegions = []common.Region{*filtered}
-			return err
+		for _, region := range regionList {
+			if region.RegionCode == code {
+				filteredRegions = []common.Region{region}
+				break
+			}
 		}
 	} else {
 		filteredRegions = regionList
@@ -94,52 +95,4 @@ func getRegions(conn *sdk.Conn) ([]common.Region, error) {
 	}
 
 	return resp.RegionList, nil
-}
-
-func getRegionByCode(conn *sdk.Conn, code string) (*common.Region, error) {
-	regionList, err := getRegions(conn)
-	if err != nil {
-		return nil, err
-	}
-
-	var filteredRegion common.Region
-	for _, region := range regionList {
-		if code == region.RegionCode {
-			filteredRegion = region
-			break
-		}
-	}
-
-	return &filteredRegion, nil
-}
-
-func getRegionNoByCode(conn *sdk.Conn, name string) string {
-	region, err := getRegionByCode(conn, name)
-	if err != nil {
-		return ""
-	}
-
-	return region.RegionNo
-}
-
-var regionCache = make(map[string]string)
-
-func parseRegionNoParameter(conn *sdk.Conn, d *schema.ResourceData) string {
-	if paramRegionNo, regionNoOk := d.GetOk("region_no"); regionNoOk {
-		return paramRegionNo.(string)
-	}
-
-	// provider region
-	if regionCode := os.Getenv("NCLOUD_REGION"); regionCode != "" {
-		regionNo := regionCache[regionCode]
-		if regionNo != "" {
-			return regionNo
-		}
-		regionNo = getRegionNoByCode(conn, regionCode)
-		if regionNo != "" {
-			regionCache[regionCode] = regionNo
-		}
-	}
-
-	return ""
 }

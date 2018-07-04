@@ -20,7 +20,8 @@ data "ncloud_zones" "zones" {}
 
 The following arguments are supported:
 
-* `region_no` - (Optional) Region number for filtering
+* `region_code` - (Optional) Region code. Get available values using the data source `ncloud_regions`. Conflicts with `region_no`
+* `region_no` - (Optional) Region number. Get available values using the data source `ncloud_regions`. Conflicts with `region_code`
 * `output_file` - (Optional) The name of file that can save data source after running `terraform plan`.
 
 ## Attributes Reference

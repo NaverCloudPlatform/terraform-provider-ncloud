@@ -37,16 +37,29 @@ func resourceNcloudPublicIPInstance() *schema.Resource {
 				ValidateFunc: validateInternetLineTypeCode,
 				Description:  "Internet line code. PUBLC(Public), GLBL(Global)",
 			},
+			"region_code": {
+				Type:          schema.TypeString,
+				Optional:      true,
+				Description:   "Region code. Get available values using the `data ncloud_regions`.",
+				ConflictsWith: []string{"region_no"},
+			},
 			"region_no": {
-				Type:        schema.TypeString,
-				Optional:    true,
-				Default:     "1",
-				Description: "You can reach a state in which inout is possible by calling `data ncloud_regions`",
+				Type:          schema.TypeString,
+				Optional:      true,
+				Description:   "Region number. Get available values using the `data ncloud_regions`.",
+				ConflictsWith: []string{"region_code"},
+			},
+			"zone_code": {
+				Type:          schema.TypeString,
+				Optional:      true,
+				Description:   "Zone code. You can determine the ZONE where the server will be created. It can be obtained through the getZoneList action. Default : Assigned by NAVER Cloud Platform.",
+				ConflictsWith: []string{"zone_no"},
 			},
 			"zone_no": {
-				Type:        schema.TypeString,
-				Optional:    true,
-				Description: "You can determine the ZONE where the server will be created. It can be obtained through the getZoneList action. Default : Assigned by NAVER Cloud Platform.",
+				Type:          schema.TypeString,
+				Optional:      true,
+				Description:   "Zone number. You can determine the ZONE where the server will be created. It can be obtained through the getZoneList action. Default : Assigned by NAVER Cloud Platform.",
+				ConflictsWith: []string{"zone_code"},
 			},
 
 			"public_ip_instance_no": {
@@ -168,7 +181,7 @@ func buildCreatePublicIPInstanceReqParams(conn *sdk.Conn, d *schema.ResourceData
 		PublicIPDescription:  d.Get("public_ip_description").(string),
 		InternetLineTypeCode: d.Get("internet_line_type_code").(string),
 		RegionNo:             parseRegionNoParameter(conn, d),
-		ZoneNo:               d.Get("zone_no").(string),
+		ZoneNo:               parseZoneNoParameter(conn, d),
 	}
 	return reqParams
 }

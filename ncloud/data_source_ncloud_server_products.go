@@ -37,15 +37,29 @@ func dataSourceNcloudServerProducts() *schema.Resource {
 				Required:    true,
 				Description: "You can get one from `data ncloud_server_images`. This is a required value, and each available server's specification varies depending on the server image product.",
 			},
+			"region_code": {
+				Type:          schema.TypeString,
+				Optional:      true,
+				Description:   "Region code. Get available values using the `data ncloud_regions`.",
+				ConflictsWith: []string{"region_no"},
+			},
 			"region_no": {
-				Type:        schema.TypeString,
-				Optional:    true,
-				Description: "You can reach a state in which inout is possible by calling `data ncloud_regions`.",
+				Type:          schema.TypeString,
+				Optional:      true,
+				Description:   "Region number. Get available values using the `data ncloud_regions`.",
+				ConflictsWith: []string{"region_code"},
+			},
+			"zone_code": {
+				Type:          schema.TypeString,
+				Optional:      true,
+				Description:   "Zone code. You can decide a zone where servers are created. You can decide which zone the product list will be requested at. You can get one by calling `data ncloud_zones`. default : Select the first Zone in the specific region",
+				ConflictsWith: []string{"zone_no"},
 			},
 			"zone_no": {
-				Type:        schema.TypeString,
-				Optional:    true,
-				Description: "You can decide a zone where servers are created. You can decide which zone the product list will be requested at. You can get one by calling `data ncloud_zones`. default : Select the first Zone in the specific region",
+				Type:          schema.TypeString,
+				Optional:      true,
+				Description:   "Zone number. You can decide a zone where servers are created. You can decide which zone the product list will be requested at. You can get one by calling `data ncloud_zones`. default : Select the first Zone in the specific region",
+				ConflictsWith: []string{"zone_code"},
 			},
 			"internet_line_type_code": {
 				Type:         schema.TypeString,
@@ -124,7 +138,7 @@ func dataSourceNcloudServerProductsRead(d *schema.ResourceData, meta interface{}
 		ProductCode:            d.Get("product_code").(string),
 		ServerImageProductCode: d.Get("server_image_product_code").(string),
 		RegionNo:               parseRegionNoParameter(conn, d),
-		ZoneNo:                 d.Get("zone_no").(string),
+		ZoneNo:                 parseZoneNoParameter(conn, d),
 		InternetLineTypeCode:   d.Get("internet_line_type_code").(string),
 	}
 

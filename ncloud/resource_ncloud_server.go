@@ -83,11 +83,19 @@ func resourceNcloudServer() *schema.Resource {
 				Optional:    true,
 				Description: "A rate system identification code. There are time plan(MTRAT) and flat rate (FXSUM). Default : Time plan(MTRAT)",
 			},
-			"zone_no": {
-				Type:        schema.TypeString,
-				Optional:    true,
-				Description: "You can determine the ZONE where the server will be created. It can be obtained through the getZoneList action. Default : Assigned by NAVER Cloud Platform.",
+			"zone_code": {
+				Type:          schema.TypeString,
+				Optional:      true,
+				Description:   "Zone code. You can determine the ZONE where the server will be created. It can be obtained through the getZoneList action. Default : Assigned by NAVER Cloud Platform.",
+				ConflictsWith: []string{"zone_no"},
 			},
+			"zone_no": {
+				Type:          schema.TypeString,
+				Optional:      true,
+				Description:   "Zone number. You can determine the ZONE where the server will be created. It can be obtained through the getZoneList action. Default : Assigned by NAVER Cloud Platform.",
+				ConflictsWith: []string{"zone_code"},
+			},
+
 			"access_control_group_configuration_no_list": {
 				Type:        schema.TypeList,
 				Optional:    true,
@@ -209,7 +217,7 @@ func resourceNcloudServer() *schema.Resource {
 func resourceNcloudServerCreate(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*NcloudSdk).conn
 
-	reqParams := buildCreateServerInstanceReqParams(d)
+	reqParams := buildCreateServerInstanceReqParams(conn, d)
 	resp, err := conn.CreateServerInstances(reqParams)
 	if err != nil {
 		logErrorResponse("CreateServerInstances", err, reqParams)
@@ -313,7 +321,7 @@ func resourceNcloudServerUpdate(d *schema.ResourceData, meta interface{}) error 
 	return resourceNcloudServerRead(d, meta)
 }
 
-func buildCreateServerInstanceReqParams(d *schema.ResourceData) *sdk.RequestCreateServerInstance {
+func buildCreateServerInstanceReqParams(conn *sdk.Conn, d *schema.ResourceData) *sdk.RequestCreateServerInstance {
 
 	var paramAccessControlGroupConfigurationNoList []string
 	if param, ok := d.GetOk("access_control_group_configuration_no_list"); ok {
@@ -332,7 +340,7 @@ func buildCreateServerInstanceReqParams(d *schema.ResourceData) *sdk.RequestCrea
 		ServerCreateStartNo:        d.Get("server_create_start_no").(int),
 		InternetLineTypeCode:       d.Get("internet_line_type_code").(string),
 		FeeSystemTypeCode:          d.Get("fee_system_type_code").(string),
-		ZoneNo:                     d.Get("zone_no").(string),
+		ZoneNo:                     parseZoneNoParameter(conn, d),
 		AccessControlGroupConfigurationNoList: paramAccessControlGroupConfigurationNoList,
 		UserData:     d.Get("user_data").(string),
 		RaidTypeName: d.Get("raid_type_name").(string),

@@ -69,10 +69,17 @@ func resourceNcloudLoadBalancer() *schema.Resource {
 				ValidateFunc: validateIncludeValues([]string{"PBLIP", "PRVT"}),
 				Description:  "Network usage identification code. PBLIP(PublicIP), PRVT(PrivateIP). default : PBLIP(PublicIP)",
 			},
+			"region_code": {
+				Type:          schema.TypeString,
+				Optional:      true,
+				Description:   "Region code. Get available values using the `data ncloud_regions`.",
+				ConflictsWith: []string{"region_no"},
+			},
 			"region_no": {
-				Type:        schema.TypeString,
-				Optional:    true,
-				Description: "Get available values using the getRegionList action.",
+				Type:          schema.TypeString,
+				Optional:      true,
+				Description:   "Region number. Get available values using the `data ncloud_regions`.",
+				ConflictsWith: []string{"region_code"},
 			},
 			"load_balancer_instance_no": {
 				Type:     schema.TypeString,
