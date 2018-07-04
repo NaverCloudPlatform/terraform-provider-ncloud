@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/NaverCloudPlatform/ncloud-sdk-go/sdk"
+	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/helper/schema"
 )
 
@@ -218,7 +219,18 @@ func resourceNcloudServerCreate(d *schema.ResourceData, meta interface{}) error 
 	conn := meta.(*NcloudSdk).conn
 
 	reqParams := buildCreateServerInstanceReqParams(conn, d)
-	resp, err := conn.CreateServerInstances(reqParams)
+
+	var resp *sdk.ServerInstanceList
+	err := resource.Retry(10*time.Second, func() *resource.RetryError {
+		var err error
+		resp, err = conn.CreateServerInstances(reqParams)
+
+		if err != nil && resp != nil && isRetryableErr(&resp.CommonResponse, 23006) {
+			return resource.RetryableError(err)
+		}
+		return resource.NonRetryableError(err)
+	})
+
 	if err != nil {
 		logErrorResponse("CreateServerInstances", err, reqParams)
 		return err

@@ -5,10 +5,11 @@ import (
 	"fmt"
 	"log"
 
+	"os"
+
 	"github.com/NaverCloudPlatform/ncloud-sdk-go/common"
 	"github.com/NaverCloudPlatform/ncloud-sdk-go/sdk"
 	"github.com/hashicorp/terraform/helper/schema"
-	"os"
 )
 
 var commonCodeSchemaResource = &schema.Resource{
@@ -206,4 +207,8 @@ func getZones(conn *sdk.Conn) ([]common.Zone, error) {
 	}
 
 	return resp.Zone, nil
+}
+
+func isRetryableErr(commResp *common.CommonResponse, code int) bool {
+	return commResp != nil && commResp.ReturnCode == code
 }
