@@ -41,6 +41,7 @@ The following arguments are supported:
 * `block_storage_size` - (Optional) Block storage size.
 * `region_code` - (Optional) Region code. Get available values using the data source `ncloud_regions`. Conflicts with `region_no`
 * `region_no` - (Optional) Region number. Get available values using the data source `ncloud_regions`. Conflicts with `region_code`
+* `infra_resource_detail_type_code` - (Optional) infra resource detail type code.
 
 ## Attributes Reference
 
