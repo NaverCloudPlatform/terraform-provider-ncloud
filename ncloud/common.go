@@ -209,6 +209,12 @@ func getZones(conn *sdk.Conn) ([]common.Zone, error) {
 	return resp.Zone, nil
 }
 
-func isRetryableErr(commResp *common.CommonResponse, code int) bool {
-	return commResp != nil && commResp.ReturnCode == code
+func isRetryableErr(commResp *common.CommonResponse, code []int) bool {
+	for _, c := range code {
+		if commResp != nil && commResp.ReturnCode == c {
+			return true
+		}
+	}
+
+	return false
 }
