@@ -642,3 +642,38 @@ type RequestRecreateServerInstance struct {
 	ServerInstanceName           string
 	ChangeServerImageProductCode string
 }
+
+type RequestCreateBlockStorageSnapshotInstance struct {
+	BlockStorageInstanceNo          string
+	BlockStorageSnapshotName        string
+	BlockStorageSnapshotDescription string
+}
+
+type BlockStorageSnapshotInstance struct {
+	BlockStorageSnapshotInstanceNo          string            `xml:"blockStorageSnapshotInstanceNo"`
+	BlockStorageSnapshotName                string            `xml:"blockStorageSnapshotName"`
+	BlockStorageSnapshotVolumeSize          int               `xml:"blockStorageSnapshotVolumeSize"`
+	OriginalBlockStorageInstanceNo          string            `xml:"originalBlockStorageInstanceNo"`
+	OriginalBlockStorageName                string            `xml:"originalBlockStorageName"`
+	BlockStorageSnapshotInstanceStatus      common.CommonCode `xml:"blockStorageSnapshotInstanceStatus"`
+	BlockStorageSnapshotInstanceOperation   common.CommonCode `xml:"blockStorageSnapshotInstanceOperation"`
+	BlockStorageSnapshotInstanceStatusName  string            `xml:"blockStorageSnapshotInstanceStatusName"`
+	CreateDate                              string            `xml:"createDate"`
+	BlockStorageSnapshotInstanceDescription string            `xml:"blockStorageSnapshotInstanceDescription"`
+	ServerImageProductCode                  string            `xml:"serverImageProductCode"`
+	OsInformation                           string            `xml:"osInformation"`
+}
+
+type BlockStorageSnapshotInstanceList struct {
+	common.CommonResponse
+	TotalRows                        int                            `xml:"totalRows"`
+	BlockStorageSnapshotInstanceList []BlockStorageSnapshotInstance `xml:"blockStorageSnapshotInstanceList>blockStorageSnapshot,omitempty"`
+}
+
+type RequestGetBlockStorageSnapshotInstanceList struct {
+	BlockStorageSnapshotInstanceNoList []string
+	OriginalBlockStorageInstanceNoList []string
+	RegionNo                           string
+	PageNo                             int
+	PageSize                           int
+}

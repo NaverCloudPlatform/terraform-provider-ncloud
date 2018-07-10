@@ -52,6 +52,7 @@ func Provider() terraform.ResourceProvider {
 		ResourcesMap: map[string]*schema.Resource{
 			"ncloud_server":                        resourceNcloudServer(),
 			"ncloud_block_storage":                 resourceNcloudBlockStorage(),
+			"ncloud_block_storage_snapshot":        resourceNcloudBlockStorageSnapshot(),
 			"ncloud_public_ip":                     resourceNcloudPublicIPInstance(),
 			"ncloud_login_key":                     resourceNcloudLoginKey(),
 			"ncloud_nas_volume":                    resourceNcloudNasVolume(),
