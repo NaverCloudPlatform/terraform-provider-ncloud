@@ -225,7 +225,7 @@ func resourceNcloudServerCreate(d *schema.ResourceData, meta interface{}) error 
 		var err error
 		resp, err = conn.CreateServerInstances(reqParams)
 
-		if err != nil && resp != nil && isRetryableErr(&resp.CommonResponse, 23006) {
+		if err != nil && resp != nil && isRetryableErr(&resp.CommonResponse, []int{800, 23006}) {
 			return resource.RetryableError(err)
 		}
 		return resource.NonRetryableError(err)
