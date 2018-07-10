@@ -1,6 +1,7 @@
 TEST?=$$(go list ./... |grep -v 'vendor')
 GOFMT_FILES?=$$(find . -name '*.go' |grep -v vendor)
 WEBSITE_REPO=github.com/hashicorp/terraform-website
+EXEC_FILE=terraform-provider-ncloud_v$(VERSION)
 PKG_NAME=ncloud
 
 default: build
@@ -60,13 +61,13 @@ endif
 	@$(MAKE) -C $(GOPATH)/src/$(WEBSITE_REPO) website-provider-test PROVIDER_PATH=$(shell pwd) PROVIDER_NAME=$(PKG_NAME)
 
 build_all_platforms:
-	GOOS=linux GOARCH=amd64 go build && zip terraform-provider-ncloud_linux_amd64.zip terraform-provider-ncloud && rm terraform-provider-ncloud
-	GOOS=linux GOARCH=386 go build && zip terraform-provider-ncloud_linux_386.zip terraform-provider-ncloud && rm terraform-provider-ncloud
-	GOOS=linux GOARCH=arm go build && zip terraform-provider-ncloud_linux_arm.zip terraform-provider-ncloud && rm terraform-provider-ncloud
-	GOOS=darwin GOARCH=386 go build && zip terraform-provider-ncloud_darwin_386.zip terraform-provider-ncloud && rm terraform-provider-ncloud
-	GOOS=darwin GOARCH=amd64 go build && zip terraform-provider-ncloud_darwin_amd64.zip terraform-provider-ncloud && rm terraform-provider-ncloud
-	GOOS=windows GOARCH=amd64 go build && zip terraform-provider-ncloud_windows_amd64.zip terraform-provider-ncloud.exe && rm terraform-provider-ncloud.exe
-	GOOS=windows GOARCH=386 go build && zip terraform-provider-ncloud_windows_386.zip terraform-provider-ncloud.exe && rm terraform-provider-ncloud.exe
+	GOOS=linux GOARCH=amd64 go build -o $(EXEC_FILE) && zip terraform-provider-ncloud_linux_amd64_$(VERSION).zip $(EXEC_FILE) && rm $(EXEC_FILE)
+	GOOS=linux GOARCH=386 go build -o $(EXEC_FILE) && zip terraform-provider-ncloud_linux_386_$(VERSION).zip $(EXEC_FILE) && rm $(EXEC_FILE)
+	GOOS=linux GOARCH=arm go build -o $(EXEC_FILE) && zip terraform-provider-ncloud_linux_arm_$(VERSION).zip $(EXEC_FILE) && rm $(EXEC_FILE)
+	GOOS=darwin GOARCH=386 go build -o $(EXEC_FILE) && zip terraform-provider-ncloud_darwin_386_$(VERSION).zip $(EXEC_FILE) && rm $(EXEC_FILE)
+	GOOS=darwin GOARCH=amd64 go build -o $(EXEC_FILE) && zip terraform-provider-ncloud_darwin_amd64_$(VERSION).zip $(EXEC_FILE) && rm $(EXEC_FILE)
+	GOOS=windows GOARCH=amd64 go build -o $(EXEC_FILE).exe && zip terraform-provider-ncloud_windows_amd64_$(VERSION).zip $(EXEC_FILE).exe && rm $(EXEC_FILE).exe
+	GOOS=windows GOARCH=386 go build -o $(EXEC_FILE).exe && zip terraform-provider-ncloud_windows_386_$(VERSION).zip $(EXEC_FILE).exe && rm $(EXEC_FILE).exe
 
 .PHONY: build test testacc vet fmt fmtcheck errcheck vendor-status test-compile website website-test
 
