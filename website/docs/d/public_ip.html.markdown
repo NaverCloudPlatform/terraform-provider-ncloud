@@ -32,12 +32,18 @@ The following arguments are supported:
 * `public_ip_list` - (Optional) List of public IP addresses to get.
 * `search_filter_name` - (Optional) `publicIp` (Public IP) | `associatedServerName` (Associated server name)
 * `search_filter_value` - (Optional) Filter value to search
-* `region_code` - (Optional) Region code. Get available values using the data source `ncloud_regions`. Conflicts with `region_no`
-* `region_no` - (Optional) Region number. Get available values using the data source `ncloud_regions`. Conflicts with `region_code`
+* `region_code` - (Optional) Region code. Get available values using the data source `ncloud_regions`.
+    Conflicts with `region_no`. Only one of `region_no` and `region_code` can be used.
+    Default: KR region.
+* `region_no` - (Optional) Region number. Get available values using the data source `ncloud_regions`.
+    Conflicts with `region_code`. Only one of `region_no` and `region_code` can be used.
+    Default: KR region.
 * `zone_code` - (Optional) Zone code. You can filter the list of public IP instances by zones. All the public IP addresses in the zone of the region will be selected if the filter is not specified.
-    Get available values using the data source `ncloud_zones`. Conflicts with `zone_no`
+    Get available values using the data source `ncloud_zones`.
+    Conflicts with `zone_no`. Only one of `zone_no` and `zone_code` can be used.
 * `zone_no` - (Optional) Zone number. You can filter the list of public IP instances by zones. All the public IP addresses in the zone of the region will be selected if the filter is not specified.
-    Get available values using the data source `ncloud_zones`. Conflicts with `zone_code`
+    Get available values using the data source `ncloud_zones`.
+    Conflicts with `zone_code`. Only one of `zone_no` and `zone_code` can be used.
 * `sorted_by` - (Optional) The column based on which you want to sort the list.
 * `sorting_order` - (Optional) Sorting order of the list. `ascending` (Ascending) | `descending` (Descending) [case insensitive]. Default: `ascending` Ascending
 

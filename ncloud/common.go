@@ -88,8 +88,10 @@ func setCommonCode(cc common.CommonCode) map[string]interface{} {
 func setZone(zone common.Zone) map[string]interface{} {
 	m := map[string]interface{}{
 		"zone_no":          zone.ZoneNo,
+		"zone_code":        zone.ZoneCode,
 		"zone_name":        zone.ZoneName,
 		"zone_description": zone.ZoneDescription,
+		"region_no":        zone.RegionNo,
 	}
 
 	return m
@@ -107,28 +109,36 @@ func setRegion(region common.Region) map[string]interface{} {
 
 var regionCache = make(map[string]string)
 
-func parseRegionNoParameter(conn *sdk.Conn, d *schema.ResourceData) string {
+func parseRegionNoParameter(conn *sdk.Conn, d *schema.ResourceData) (string, error) {
 	if paramRegionNo, regionNoOk := d.GetOk("region_no"); regionNoOk {
-		return paramRegionNo.(string)
+		return paramRegionNo.(string), nil
 	}
 
 	if regionCode, regionCodeOk := d.GetOk("region_code"); regionCodeOk {
-		return getRegionNoByCode(conn, regionCode.(string))
+		regionNo := getRegionNoByCode(conn, regionCode.(string))
+		if regionNo == "" {
+			return "", fmt.Errorf("no region data for region_code `%s`. please change region_code and try again", regionCode.(string))
+		}
+		return regionNo, nil
 	}
 
 	// provider region
 	if regionCode := os.Getenv("NCLOUD_REGION"); regionCode != "" {
-		return getRegionNoByCode(conn, regionCode)
+		regionNo := getRegionNoByCode(conn, regionCode)
+		if regionNo == "" {
+			return "", fmt.Errorf("no region data for region_code `%s`. please change region_code and try again", regionCode)
+		}
+		return regionNo, nil
 	}
 
-	return ""
+	return "", nil
 }
 
 func getRegionNoByCode(conn *sdk.Conn, code string) string {
 	if regionNo := regionCache[code]; regionNo != "" {
 		return regionNo
 	}
-	if region, err := getRegionByCode(conn, code); err != nil {
+	if region, err := getRegionByCode(conn, code); err == nil {
 		regionCache[code] = region.RegionNo
 		return region.RegionNo
 	}
@@ -158,15 +168,20 @@ func getRegionByCode(conn *sdk.Conn, code string) (*common.Region, error) {
 
 var zoneCache = make(map[string]string)
 
-func parseZoneNoParameter(conn *sdk.Conn, d *schema.ResourceData) string {
+func parseZoneNoParameter(conn *sdk.Conn, d *schema.ResourceData) (string, error) {
 	if zoneNo, zoneNoOk := d.GetOk("zone_no"); zoneNoOk {
-		return zoneNo.(string)
+		return zoneNo.(string), nil
 	}
 
 	if zoneCode, zoneCodeOk := d.GetOk("zone_code"); zoneCodeOk {
-		return getZoneNoByCode(conn, zoneCode.(string))
+		zoneNo := getZoneNoByCode(conn, zoneCode.(string))
+		if zoneNo == "" {
+			return "", fmt.Errorf("no zone data for zone_code `%s`. please change zone_code and try again", zoneCode.(string))
+		}
+		return zoneNo, nil
+
 	}
-	return ""
+	return "", nil
 }
 
 func getZoneNoByCode(conn *sdk.Conn, code string) string {

@@ -6,6 +6,7 @@ import (
 
 	"github.com/NaverCloudPlatform/ncloud-sdk-go/common"
 	"github.com/hashicorp/terraform/helper/schema"
+	"log"
 )
 
 func dataSourceNcloudZones() *schema.Resource {
@@ -43,7 +44,11 @@ func dataSourceNcloudZonesRead(d *schema.ResourceData, meta interface{}) error {
 
 	d.SetId(time.Now().UTC().String())
 
-	resp, err := conn.GetZoneList(parseRegionNoParameter(conn, d))
+	regionNo, err := parseRegionNoParameter(conn, d)
+	if err != nil {
+		return err
+	}
+	resp, err := conn.GetZoneList(regionNo)
 	if err != nil {
 		return err
 	}
@@ -74,7 +79,7 @@ func zonesAttributes(d *schema.ResourceData, zones []common.Zone) error {
 		ids = append(ids, string(zone.ZoneNo))
 		s = append(s, mapping)
 	}
-
+	log.Printf("[DEBUG] zones: %#v", s)
 	d.SetId(dataResourceIdHash(ids))
 	if err := d.Set("zones", s); err != nil {
 		return err

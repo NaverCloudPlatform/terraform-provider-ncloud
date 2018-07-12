@@ -218,10 +218,13 @@ func resourceNcloudServer() *schema.Resource {
 func resourceNcloudServerCreate(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*NcloudSdk).conn
 
-	reqParams := buildCreateServerInstanceReqParams(conn, d)
+	reqParams, err := buildCreateServerInstanceReqParams(conn, d)
+	if err != nil {
+		return err
+	}
 
 	var resp *sdk.ServerInstanceList
-	err := resource.Retry(10*time.Second, func() *resource.RetryError {
+	err = resource.Retry(10*time.Second, func() *resource.RetryError {
 		var err error
 		resp, err = conn.CreateServerInstances(reqParams)
 
@@ -333,13 +336,16 @@ func resourceNcloudServerUpdate(d *schema.ResourceData, meta interface{}) error 
 	return resourceNcloudServerRead(d, meta)
 }
 
-func buildCreateServerInstanceReqParams(conn *sdk.Conn, d *schema.ResourceData) *sdk.RequestCreateServerInstance {
+func buildCreateServerInstanceReqParams(conn *sdk.Conn, d *schema.ResourceData) (*sdk.RequestCreateServerInstance, error) {
 
 	var paramAccessControlGroupConfigurationNoList []string
 	if param, ok := d.GetOk("access_control_group_configuration_no_list"); ok {
 		paramAccessControlGroupConfigurationNoList = StringList(param.([]interface{}))
 	}
-
+	zoneNo, err := parseZoneNoParameter(conn, d)
+	if err != nil {
+		return nil, err
+	}
 	reqParams := &sdk.RequestCreateServerInstance{
 		ServerImageProductCode:     d.Get("server_image_product_code").(string),
 		ServerProductCode:          d.Get("server_product_code").(string),
@@ -352,12 +358,12 @@ func buildCreateServerInstanceReqParams(conn *sdk.Conn, d *schema.ResourceData) 
 		ServerCreateStartNo:        d.Get("server_create_start_no").(int),
 		InternetLineTypeCode:       d.Get("internet_line_type_code").(string),
 		FeeSystemTypeCode:          d.Get("fee_system_type_code").(string),
-		ZoneNo:                     parseZoneNoParameter(conn, d),
+		ZoneNo:                     zoneNo,
 		AccessControlGroupConfigurationNoList: paramAccessControlGroupConfigurationNoList,
 		UserData:     d.Get("user_data").(string),
 		RaidTypeName: d.Get("raid_type_name").(string),
 	}
-	return reqParams
+	return reqParams, nil
 }
 
 func getServerInstance(conn *sdk.Conn, serverInstanceNo string) (*sdk.ServerInstance, error) {
