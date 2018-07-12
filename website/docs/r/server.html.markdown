@@ -42,7 +42,7 @@ The following arguments are supported:
     Get available values using the data source `ncloud_zones`.
     Conflicts with `zone_code`. Only one of `zone_no` and `zone_code` can be used.
 * `access_control_group_configuration_no_list` - (Optional) You can set the ACG created when creating the server. ACG setting number can be obtained through the getAccessControlGroupList action. Default : Default ACG number
-* `user_data` - (Optional) The server will execute the user data script set by the user at first boot. To view the column, it is returned only when viewing the server instance. You must need base64 Encoding, URL Encoding before put in value of userData. If you don't URL Encoding again it occurs signature invalid error.
+* `user_data` - (Optional) The server will execute the user data script set by the user at first boot. To view the column, it is returned only when viewing the server instance.
 * `raid_type_name` - (Optional) Raid Type Name.
 
 ## Attributes Reference
