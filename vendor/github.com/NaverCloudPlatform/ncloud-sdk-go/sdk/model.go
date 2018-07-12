@@ -462,6 +462,7 @@ type PortForwardingRule struct {
 	ServerInstanceNo           string `xml:"serverInstance>serverInstanceNo"`
 	PortForwardingExternalPort string `xml:"portForwardingExternalPort"`
 	PortForwardingInternalPort string `xml:"portForwardingInternalPort"`
+	PortForwardingPublicIp     string `xml:"serverInstance>portForwardingPublicIp"`
 }
 
 type RequestAddPortForwardingRules struct {
@@ -676,4 +677,40 @@ type RequestGetBlockStorageSnapshotInstanceList struct {
 	RegionNo                           string
 	PageNo                             int
 	PageSize                           int
+}
+
+// RequestGetLaunchConfigurationList is request type for Launch Configuration List
+type RequestGetLaunchConfigurationList struct {
+	LaunchConfigurationNameList []string
+	PageNo                      int
+	PageSize                    int
+	SortedBy                    string
+	SortingOrder                string
+}
+
+type LaunchConfigurationList struct {
+	common.CommonResponse
+	TotalRows               int                   `xml:"totalRows"`
+	LaunchConfigurationList []LaunchConfiguration `xml:"launchConfigurationList>launchConfiguration,omitempty"`
+}
+
+type LaunchConfiguration struct {
+	LaunchConfigurationName string               `xml:"launchConfigurationName"`
+	ServerImageProductCode  string               `xml:"serverImageProductCode"`
+	ServerProductCode       string               `xml:"serverProductCode"`
+	MemberServerImageNo     string               `xml:"memberServerImageNo"`
+	LoginKeyName            string               `xml:"loginKeyName"`
+	CreateDate              string               `xml:"createDate"`
+	UserData                string               `xml:"userData"`
+	AccessControlGroupList  []AccessControlGroup `xml:"accessControlGroupList>accessControlGroup,omitempty"`
+}
+
+type RequestCreateLaunchConfiguration struct {
+	LaunchConfigurationName               string
+	ServerImageProductCode                string
+	ServerProductCode                     string
+	MemberServerImageNo                   string
+	AccessControlGroupConfigurationNoList []string
+	LoginKeyName                          string
+	UserData                              string
 }
