@@ -401,12 +401,22 @@ func terminateServerInstance(conn *sdk.Conn, serverInstanceNo string) error {
 	reqParams := &sdk.RequestTerminateServerInstances{
 		ServerInstanceNoList: []string{serverInstanceNo},
 	}
-	resp, err := conn.TerminateServerInstances(reqParams)
+
+	var resp *sdk.ServerInstanceList
+	err := resource.Retry(20*time.Second, func() *resource.RetryError {
+		var err error
+		resp, err = conn.TerminateServerInstances(reqParams)
+
+		if err != nil && resp != nil && isRetryableErr(&resp.CommonResponse, []int{1300}) {
+			logErrorResponse("retry TerminateServerInstances", err, reqParams)
+			return resource.RetryableError(err)
+		}
+		return resource.NonRetryableError(err)
+	})
+
 	if err != nil {
 		logErrorResponse("TerminateServerInstances", err, reqParams)
-		// TODO: check 502 Bad Gateway error
-		// return err
-		return nil
+		return err
 	}
 	logCommonResponse("TerminateServerInstances", reqParams, resp.CommonResponse)
 	return nil
