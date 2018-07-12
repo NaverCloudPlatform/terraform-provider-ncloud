@@ -31,8 +31,6 @@ The following arguments are supported:
 * `server_description` - (Optional) Server description to create
 * `login_key_name` - (Optional) The login key name to encrypt with the public key. Default : Uses the most recently created login key name
 * `is_protect_server_termination` - (Optional) You can set whether or not to protect return when creating. default : false
-* `server_create_count` - (Optional) Number of servers that can be created at a time, and not more than 20 servers can be created at a time. default: 1
-* `server_create_start_no` - (Optional) If you create multiple servers at once, the server name will be serialized. You can set the starting number of the serial numbers. The total number of servers created and server starting number cannot exceed 1000. Default : If number of servers created(serverCreateCount) is greater than 1, and if there is no corresponding parameter value, the default will start from 001
 * `internet_line_type_code` - (Optional) Internet line identification code. PUBLC(Public), GLBL(Global). default : PUBLC(Public)
 * `fee_system_type_code` - (Optional) A rate system identification code. There are time plan(MTRAT) and flat rate (FXSUM). Default : Time plan(MTRAT)
 * `zone_code` - (Optional) Zone code. You can determine the ZONE where the server will be created. Default : Assigned by NAVER Cloud Platform.

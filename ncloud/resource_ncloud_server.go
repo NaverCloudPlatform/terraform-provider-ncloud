@@ -62,17 +62,6 @@ func resourceNcloudServer() *schema.Resource {
 				ValidateFunc: validateBoolValue,
 				Description:  "You can set whether or not to protect return when creating. default : false",
 			},
-			"server_create_count": {
-				Type:        schema.TypeInt,
-				Optional:    true,
-				Default:     1,
-				Description: "Number of servers that can be created at a time, and not more than 20 servers can be created at a time. default: 1",
-			},
-			"server_create_start_no": {
-				Type:        schema.TypeInt,
-				Optional:    true,
-				Description: "If you create multiple servers at once, the server name will be serialized. You can set the starting number of the serial numbers. The total number of servers created and server starting number cannot exceed 1000. Default : If number of servers created(serverCreateCount) is greater than 1, and if there is no corresponding parameter value, the default will start from 001",
-			},
 			"internet_line_type_code": {
 				Type:         schema.TypeString,
 				Optional:     true,
@@ -354,8 +343,6 @@ func buildCreateServerInstanceReqParams(conn *sdk.Conn, d *schema.ResourceData) 
 		ServerDescription:          d.Get("server_description").(string),
 		LoginKeyName:               d.Get("login_key_name").(string),
 		IsProtectServerTermination: d.Get("is_protect_server_termination").(string),
-		ServerCreateCount:          d.Get("server_create_count").(int),
-		ServerCreateStartNo:        d.Get("server_create_start_no").(int),
 		InternetLineTypeCode:       d.Get("internet_line_type_code").(string),
 		FeeSystemTypeCode:          d.Get("fee_system_type_code").(string),
 		ZoneNo:                     zoneNo,
