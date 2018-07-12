@@ -127,12 +127,20 @@ func dataSourceNcloudServerProduct() *schema.Resource {
 func dataSourceNcloudServerProductRead(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*NcloudSdk).conn
 
+	regionNo, err := parseRegionNoParameter(conn, d)
+	if err != nil {
+		return err
+	}
+	zoneNo, err := parseZoneNoParameter(conn, d)
+	if err != nil {
+		return err
+	}
 	reqParams := &sdk.RequestGetServerProductList{
 		ExclusionProductCode:   d.Get("exclusion_product_code").(string),
 		ProductCode:            d.Get("product_code").(string),
 		ServerImageProductCode: d.Get("server_image_product_code").(string),
-		RegionNo:               parseRegionNoParameter(conn, d),
-		ZoneNo:                 parseZoneNoParameter(conn, d),
+		RegionNo:               regionNo,
+		ZoneNo:                 zoneNo,
 		InternetLineTypeCode:   d.Get("internet_line_type_code").(string),
 	}
 

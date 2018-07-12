@@ -79,10 +79,18 @@ func dataSourceNcloudPortForwardingRule() *schema.Resource {
 func dataSourceNcloudPortForwardingRuleRead(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*NcloudSdk).conn
 
+	regionNo, err := parseRegionNoParameter(conn, d)
+	if err != nil {
+		return err
+	}
+	zoneNo, err := parseZoneNoParameter(conn, d)
+	if err != nil {
+		return err
+	}
 	reqParams := &sdk.RequestPortForwardingRuleList{
 		InternetLineTypeCode: d.Get("internet_line_type_code").(string),
-		RegionNo:             parseRegionNoParameter(conn, d),
-		ZoneNo:               parseZoneNoParameter(conn, d),
+		RegionNo:             regionNo,
+		ZoneNo:               zoneNo,
 	}
 
 	resp, err := conn.GetPortForwardingRuleList(reqParams)

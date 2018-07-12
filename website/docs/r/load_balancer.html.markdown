@@ -58,12 +58,18 @@ The following arguments are supported:
 * `server_instance_no_list` - (Optional) List of server instance numbers to be bound to the load balancer
 * `internet_line_type_code` - (Optional) Internet line identification code. PUBLC(Public), GLBL(Global). default : PUBLC(Public)
 * `network_usage_type_code` - (Optional) Network usage identification code. PBLIP(PublicIP), PRVT(PrivateIP). default : PBLIP(PublicIP)
-* `region_code` - (Optional) Region code. Get available values using the data source `ncloud_regions`. Default: KR region. Conflicts with `region_no`
-* `region_no` - (Optional) Region number. Get available values using the data source `ncloud_regions`. Default: KR region. Conflicts with `region_code`
+* `region_code` - (Optional) Region code. Get available values using the data source `ncloud_regions`.
+    Conflicts with `region_no`. Only one of `region_no` and `region_code` can be used.
+    Default: KR region.
+* `region_no` - (Optional) Region number. Get available values using the data source `ncloud_regions`.
+    Conflicts with `region_code`. Only one of `region_no` and `region_code` can be used.
+    Default: KR region.
 * `zone_code` - (Optional) Zone code. Zone in which you want to create a NAS volume. Default: The first zone of the region.
-    Get available values using the data source `ncloud_zones`. Conflicts with `zone_no`
+    Get available values using the data source `ncloud_zones`.
+    Conflicts with `zone_no`. Only one of `zone_no` and `zone_code` can be used.
 * `zone_no` - (Optional) Zone number. Zone in which you want to create a NAS volume. Default: The first zone of the region.
-    Get available values using the data source `ncloud_zones`. Conflicts with `zone_code`
+    Get available values using the data source `ncloud_zones`.
+    Conflicts with `zone_code`. Only one of `zone_no` and `zone_code` can be used.
 
 ## Attributes Reference
 

@@ -166,6 +166,14 @@ func dataSourceNcloudPublicIP() *schema.Resource {
 func dataSourceNcloudPublicIPRead(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*NcloudSdk).conn
 
+	regionNo, err := parseRegionNoParameter(conn, d)
+	if err != nil {
+		return err
+	}
+	zoneNo, err := parseZoneNoParameter(conn, d)
+	if err != nil {
+		return err
+	}
 	reqParams := new(sdk.RequestPublicIPInstanceList)
 	reqParams.InternetLineTypeCode = d.Get("internet_line_type_code").(string)
 	reqParams.IsAssociated = d.Get("is_associated").(string)
@@ -173,8 +181,8 @@ func dataSourceNcloudPublicIPRead(d *schema.ResourceData, meta interface{}) erro
 	reqParams.PublicIPList = StringList(d.Get("public_ip_list").([]interface{}))
 	reqParams.SearchFilterName = d.Get("search_filter_name").(string)
 	reqParams.SearchFilterValue = d.Get("search_filter_value").(string)
-	reqParams.RegionNo = parseRegionNoParameter(conn, d)
-	reqParams.ZoneNo = parseZoneNoParameter(conn, d)
+	reqParams.RegionNo = regionNo
+	reqParams.ZoneNo = zoneNo
 	reqParams.SortedBy = d.Get("sorted_by").(string)
 	reqParams.SortingOrder = d.Get("sorting_order").(string)
 	resp, err := conn.GetPublicIPInstanceList(reqParams)

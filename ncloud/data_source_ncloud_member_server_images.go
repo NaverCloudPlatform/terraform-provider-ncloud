@@ -161,10 +161,14 @@ func dataSourceNcloudMemberServerImages() *schema.Resource {
 func dataSourceNcloudMemberServerImagesRead(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*NcloudSdk).conn
 
+	regionNo, err := parseRegionNoParameter(conn, d)
+	if err != nil {
+		return err
+	}
 	reqParams := &sdk.RequestServerImageList{
 		MemberServerImageNoList: StringList(d.Get("member_server_image_no_list").([]interface{})),
 		PlatformTypeCodeList:    StringList(d.Get("platform_type_code_list").([]interface{})),
-		RegionNo:                parseRegionNoParameter(conn, d),
+		RegionNo:                regionNo,
 	}
 
 	resp, err := conn.GetMemberServerImageList(reqParams)

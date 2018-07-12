@@ -136,13 +136,21 @@ func dataSourceNcloudNasVolume() *schema.Resource {
 func dataSourceNcloudNasVolumeRead(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*NcloudSdk).conn
 
+	regionNo, err := parseRegionNoParameter(conn, d)
+	if err != nil {
+		return err
+	}
+	zoneNo, err := parseZoneNoParameter(conn, d)
+	if err != nil {
+		return err
+	}
 	reqParams := &sdk.RequestGetNasVolumeInstanceList{
 		VolumeAllotmentProtocolTypeCode: d.Get("volume_allotment_protocol_type_code").(string),
 		IsEventConfiguration:            d.Get("is_event_configuration").(string),
 		IsSnapshotConfiguration:         d.Get("is_snapshot_configuration").(string),
 		NasVolumeInstanceNoList:         StringList(d.Get("nas_volume_instance_no_list").([]interface{})),
-		RegionNo:                        parseRegionNoParameter(conn, d),
-		ZoneNo:                          parseZoneNoParameter(conn, d),
+		RegionNo:                        regionNo,
+		ZoneNo:                          zoneNo,
 	}
 	resp, err := conn.GetNasVolumeInstanceList(reqParams)
 	if err != nil {
