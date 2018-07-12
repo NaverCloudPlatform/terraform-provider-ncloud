@@ -285,7 +285,7 @@ func buildCreateNasVolumeInstanceParams(conn *sdk.Conn, d *schema.ResourceData) 
 	}
 	zoneNo, err := parseZoneNoParameter(conn, d)
 	if err != nil {
-		return err
+		return nil, err
 	}
 	reqParams := &sdk.RequestCreateNasVolumeInstance{
 		VolumeName:                      d.Get("volume_name_postfix").(string),
