@@ -2,9 +2,10 @@ package ncloud
 
 import (
 	"fmt"
+	"strconv"
+
 	"github.com/NaverCloudPlatform/ncloud-sdk-go/sdk"
 	"github.com/hashicorp/terraform/helper/schema"
-	"strconv"
 )
 
 func dataSourceNcloudPortForwardingRules() *schema.Resource {
@@ -48,16 +49,10 @@ func dataSourceNcloudPortForwardingRules() *schema.Resource {
 				Optional:    true,
 				Description: "Port forwarding internal port.",
 			},
-
 			"port_forwarding_configuration_no": {
 				Type:        schema.TypeString,
 				Computed:    true,
 				Description: "Port forwarding configuration number.",
-			},
-			"port_forwarding_public_ip": {
-				Type:        schema.TypeString,
-				Computed:    true,
-				Description: "Port forwarding public ip",
 			},
 			"port_forwarding_rule_list": {
 				Type:        schema.TypeList,
@@ -79,6 +74,11 @@ func dataSourceNcloudPortForwardingRules() *schema.Resource {
 							Type:        schema.TypeString,
 							Computed:    true,
 							Description: "Port forwarding internal port.",
+						},
+						"port_forwarding_public_ip": {
+							Type:        schema.TypeString,
+							Computed:    true,
+							Description: "Port forwarding public ip",
 						},
 					},
 				},
@@ -132,21 +132,21 @@ func dataSourceNcloudPortForwardingRulesRead(d *schema.ResourceData, meta interf
 	if len(filteredPortForwardingRuleList) < 1 {
 		return fmt.Errorf("no results. please change search criteria and try again")
 	}
-	return portForwardingRulesAttributes(d, resp.PortForwardingConfigurationNo, resp.PortForwardingPublicIp, filteredPortForwardingRuleList)
+	return portForwardingRulesAttributes(d, resp.PortForwardingConfigurationNo, filteredPortForwardingRuleList)
 }
 
-func portForwardingRulesAttributes(d *schema.ResourceData, portForwardingConfigurationNo int, portForwardingPublicIp string, portForwardingRuleList []sdk.PortForwardingRule) error {
+func portForwardingRulesAttributes(d *schema.ResourceData, portForwardingConfigurationNo int, portForwardingRuleList []sdk.PortForwardingRule) error {
 	var s []map[string]interface{}
 
 	d.SetId(strconv.Itoa(portForwardingConfigurationNo))
 	d.Set("port_forwarding_configuration_no", portForwardingConfigurationNo)
-	d.Set("port_forwarding_public_ip", portForwardingPublicIp)
 
 	for _, rule := range portForwardingRuleList {
 		mapping := map[string]interface{}{
 			"server_instance_no":            rule.ServerInstanceNo,
 			"port_forwarding_external_port": rule.PortForwardingExternalPort,
 			"port_forwarding_internal_port": rule.PortForwardingInternalPort,
+			"port_forwarding_public_ip":     rule.PortForwardingPublicIp,
 		}
 		s = append(s, mapping)
 	}
