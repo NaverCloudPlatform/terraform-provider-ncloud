@@ -10,7 +10,7 @@ import (
 const DefaultWaitForInterval = 10
 
 // Default timeout
-const DefaultTimeout = 1 * time.Minute
+const DefaultTimeout = 5 * time.Minute
 const DefaultCreateTimeout = 1 * time.Hour
 const DefaultUpdateTimeout = 10 * time.Minute
 const DefaultStopTimeout = 5 * time.Minute
