@@ -6,7 +6,7 @@ description: |-
   Get public IP
 ---
 
-# Data Source: ncloud_nas_volume
+# Data Source: ncloud_public_ip
 
 Get public IP instance.
 
