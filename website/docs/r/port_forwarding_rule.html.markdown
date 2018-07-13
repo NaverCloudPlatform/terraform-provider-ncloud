@@ -33,3 +33,7 @@ The following arguments are supported:
 ## Attributes Reference
 
 * `port_forwarding_public_ip` - Port forwarding Public IP
+* `zone` - Zone info
+    * `zone_no` - Zone number
+    * `zone_code` - Zone code
+    * `zone_name` - Zone name

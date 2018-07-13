@@ -94,6 +94,12 @@ func dataSourceNcloudPortForwardingRules() *schema.Resource {
 func dataSourceNcloudPortForwardingRulesRead(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*NcloudSdk).conn
 
+	_, zoneNoOk := d.GetOk("zone_no")
+	_, zoneCodeOk := d.GetOk("zone_code")
+	if !zoneNoOk && !zoneCodeOk {
+		return fmt.Errorf("required to select one among two parameters: `zone_no` and `zone_code`")
+	}
+
 	regionNo, err := parseRegionNoParameter(conn, d)
 	if err != nil {
 		return err

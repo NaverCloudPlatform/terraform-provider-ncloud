@@ -479,6 +479,7 @@ type PortForwardingRuleList struct {
 	common.CommonResponse
 	PortForwardingConfigurationNo int                  `xml:"portForwardingConfigurationNo"`
 	PortForwardingPublicIp        string               `xml:"portForwardingPublicIp"`
+	Zone                          common.Zone          `xml:"zone"`
 	TotalRows                     int                  `xml:"totalRows"`
 	PortForwardingRuleList        []PortForwardingRule `xml:"portForwardingRuleList>portForwardingRule,omitempty"`
 }

@@ -24,8 +24,6 @@ func TestAccDataSourceNcloudPortForwardingRuleBasic(t *testing.T) {
 
 var testAccDataSourceNcloudPortForwardingRuleConfig = `
 data "ncloud_port_forwarding_rule" "test" {
-  // "server_instance_no" = "690731"
-  "port_forwarding_external_port" = "4088"
-  //"port_forwarding_internal_port" = "22"
+  "zone_code" = "KR-1"
 }
 `

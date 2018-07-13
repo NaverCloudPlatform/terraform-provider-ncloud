@@ -188,7 +188,7 @@ func getZoneNoByCode(conn *sdk.Conn, code string) string {
 	if zoneNo := zoneCache[code]; zoneNo != "" {
 		return zoneNo
 	}
-	if zone, err := getZoneByCode(conn, code); err != nil {
+	if zone, err := getZoneByCode(conn, code); err == nil {
 		zoneCache[code] = zone.ZoneNo
 		return zone.ZoneNo
 	}
