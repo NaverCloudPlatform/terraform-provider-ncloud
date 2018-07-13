@@ -61,7 +61,7 @@ func processCreateServerInstancesParams(reqParams *RequestCreateServerInstance) 
 		if err := validateBoolValue("IsProtectServerTermination", reqParams.IsProtectServerTermination); err != nil {
 			return nil, err
 		}
-		params["IsProtectServerTermination"] = reqParams.IsProtectServerTermination
+		params["isProtectServerTermination"] = reqParams.IsProtectServerTermination
 	}
 
 	if reqParams.ServerCreateCount > 0 {
