@@ -24,7 +24,7 @@ resource "ncloud_server" "server" {
 
 The following arguments are supported:
 
-* `server_image_product_code` - (Conditional) Server image product code to determine which server image to create. It can be obtained through getServerImageProductList. You are required to select one among two parameters: server image product code (server_image_product_code) and member server image number(member_server_image_no).
+* `server_image_product_code` - (Conditional) Server image product code to determine which server image to create. It can be obtained through `data ncloud_server_images`. You are required to select one among two parameters: server image product code (server_image_product_code) and member server image number(member_server_image_no).
 * `server_product_code` - (Optional) Server product code to determine the server specification to create. It can be obtained through the getServerProductList action. Default : Selected as minimum specification. The minimum standards are 1. memory 2. CPU 3. basic block storage size 4. disk type (NET,LOCAL)
 * `member_server_image_no` - (Conditional) Required value when creating a server from a manually created server image. It can be obtained through the getMemberServerImageList action.
 * `server_name` - (Optional) Server name to create. default: Assigned by ncloud

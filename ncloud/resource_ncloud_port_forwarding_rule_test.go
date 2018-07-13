@@ -59,7 +59,7 @@ func testAccCheckPortForwardingRuleExistsWithProvider(n string, i *sdk.PortForwa
 
 		provider := providerF()
 		conn := provider.Meta().(*NcloudSdk).conn
-		portForwardingRule, err := getPortForwardingRule(conn, rs.Primary.ID)
+		portForwardingRule, err := getPortForwardingRule(conn, i.ServerInstanceNo, rs.Primary.ID)
 		if err != nil {
 			return nil
 		}
@@ -84,7 +84,8 @@ func testAccCheckPortForwardingRuleDestroyWithProvider(s *terraform.State, provi
 		if rs.Type != "ncloud_port_forwarding_rule" {
 			continue
 		}
-		rule, err := getPortForwardingRule(conn, rs.Primary.ID)
+		_, zoneNo, portForwardingExternalPort := parsePortForwardingRuleId(rs.Primary.ID)
+		rule, err := getPortForwardingRule(conn, zoneNo, portForwardingExternalPort)
 		if rule == nil {
 			return nil
 		}
@@ -103,8 +104,6 @@ func testAccPortForwardingRuleBasicConfig(externalPort int) string {
 	prefix := getTestPrefix()
 	testServerName := prefix + "-vm"
 	return fmt.Sprintf(`
-				data "ncloud_port_forwarding_rules" "rules" {}
-
 				resource "ncloud_server" "server" {
 					"server_name" = "%s"
 					"server_image_product_code" = "SPSW0LINUX000032"
@@ -112,7 +111,6 @@ func testAccPortForwardingRuleBasicConfig(externalPort int) string {
 				}
 
 			   resource "ncloud_port_forwarding_rule" "test" {
-				   "port_forwarding_configuration_no" = "${data.ncloud_port_forwarding_rules.rules.id}"
 				   "server_instance_no" = "${ncloud_server.server.id}"
 				   "port_forwarding_external_port" = "%d"
 				   "port_forwarding_internal_port" = "22"

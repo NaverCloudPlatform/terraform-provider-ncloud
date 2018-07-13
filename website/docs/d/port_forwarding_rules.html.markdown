@@ -28,10 +28,12 @@ The following arguments are supported:
 * `region_no` - (Optional) Region number. Get available values using the data source `ncloud_regions`.
     Conflicts with `region_code`. Only one of `region_no` and `region_code` can be used.
     Default: KR region.
-* `zone_code` - (Optional) Zone code. You can decide a zone where servers are created. You can decide which zone the product list will be requested at. default : Select the first Zone in the specific region
+* `zone_code` - (Conditional) Zone code. You can decide a zone where servers are created. You can decide which zone the product list will be requested at. default : Select the first Zone in the specific region
+    Required to select one among two parameters: `zone_no` and `zone_code`.
     Get available values using the data source `ncloud_zones`.
     Conflicts with `zone_no`. Only one of `zone_no` and `zone_code` can be used.
-* `zone_no` - (Optional) Zone number. You can decide a zone where servers are created. You can decide which zone the product list will be requested at. default : Select the first Zone in the specific region
+* `zone_no` - (Conditional) Zone number. You can decide a zone where servers are created. You can decide which zone the product list will be requested at. default : Select the first Zone in the specific region
+    Required to select one among two parameters: `zone_no` and `zone_code`.
     Get available values using the data source `ncloud_zones`.
     Conflicts with `zone_code`. Only one of `zone_no` and `zone_code` can be used.
 * `port_forwarding_internal_port` - (Optional) Port forwarding internal port.

@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"github.com/NaverCloudPlatform/ncloud-sdk-go/sdk"
 	"github.com/hashicorp/terraform/helper/schema"
+	"strconv"
+	"strings"
 )
 
 func resourceNcloudPortForwadingRule() *schema.Resource {
@@ -50,6 +52,12 @@ func resourceNcloudPortForwadingRule() *schema.Resource {
 				Computed:    true,
 				Description: "Port forwarding Public IP",
 			},
+			"zone": {
+				Type:        schema.TypeMap,
+				Computed:    true,
+				Elem:        zoneSchemaResource,
+				Description: "Zone info",
+			},
 		},
 	}
 }
@@ -80,16 +88,25 @@ func resourceNcloudPortForwardingRuleCreate(d *schema.ResourceData, meta interfa
 		return err
 	}
 	logCommonResponse("AddPortForwardingRules", reqParams, resp.CommonResponse)
-
-	d.SetId(portForwardingExternalPort)
+	d.SetId(PortForwardingRuleId(portForwardingConfigurationNo, resp.Zone.ZoneNo, portForwardingExternalPort))
 	return resourceNcloudPortForwardingRuleRead(d, meta)
+}
+
+func PortForwardingRuleId(portForwardingConfigurationNo string, zonNo string, portForwardingExternalPort string) string {
+	return fmt.Sprintf("%s:%s:%s", portForwardingConfigurationNo, zonNo, portForwardingExternalPort)
+}
+
+func parsePortForwardingRuleId(id string) (portForwardingConfigurationNo string, zoneNo string, portForwardingExternalPort string) {
+	arr := strings.Split(id, ":")
+	portForwardingConfigurationNo, zoneNo, portForwardingExternalPort = arr[0], arr[1], arr[2]
+	return portForwardingConfigurationNo, zoneNo, portForwardingExternalPort
 }
 
 func resourceNcloudPortForwardingRuleRead(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*NcloudSdk).conn
-	portForwardingExternalPort := d.Get("port_forwarding_external_port").(string)
 
-	resp, err := getPortForwardingRuleList(conn)
+	_, zoneNo, portForwardingExternalPort := parsePortForwardingRuleId(d.Id())
+	resp, err := getPortForwardingRuleList(conn, zoneNo)
 	if err != nil {
 		return err
 	}
@@ -106,6 +123,8 @@ func resourceNcloudPortForwardingRuleRead(d *schema.ResourceData, meta interface
 		d.Set("server_instance_no", portForwardingRule.ServerInstanceNo)
 		d.Set("port_forwarding_external_port", portForwardingRule.PortForwardingExternalPort)
 		d.Set("port_forwarding_internal_port", portForwardingRule.PortForwardingInternalPort)
+		d.Set("zone", setZone(resp.Zone))
+
 	}
 	return nil
 }
@@ -113,9 +132,13 @@ func resourceNcloudPortForwardingRuleRead(d *schema.ResourceData, meta interface
 func resourceNcloudPortForwardingRuleExists(d *schema.ResourceData, meta interface{}) (bool, error) {
 	conn := meta.(*NcloudSdk).conn
 
+	zoneNo, err := getServerZoneNo(conn, d.Get("server_instance_no").(string))
+	if err != nil {
+		return false, err
+	}
 	portForwardingExternalPort := d.Get("port_forwarding_external_port").(string)
 
-	return hasPortForwardingRule(conn, portForwardingExternalPort)
+	return hasPortForwardingRule(conn, zoneNo, portForwardingExternalPort)
 }
 
 func resourceNcloudPortForwardingRuleUpdate(d *schema.ResourceData, meta interface{}) error {
@@ -151,19 +174,35 @@ func resourceNcloudPortForwardingRuleDelete(d *schema.ResourceData, meta interfa
 
 func getPortForwardingConfigurationNo(d *schema.ResourceData, meta interface{}) (string, error) {
 	conn := meta.(*NcloudSdk).conn
-	portForwardingConfigurationNo, ok := d.GetOk("port_forwarding_configuration_no")
-	if !ok {
-		getRuleRes, err := getPortForwardingRuleList(conn)
+	paramPortForwardingConfigurationNo, ok := d.GetOk("port_forwarding_configuration_no")
+	var portForwardingConfigurationNo string
+	if ok {
+		portForwardingConfigurationNo = paramPortForwardingConfigurationNo.(string)
+	} else {
+		zoneNo, err := getServerZoneNo(conn, d.Get("server_instance_no").(string))
 		if err != nil {
 			return "", err
 		}
-		portForwardingConfigurationNo = getRuleRes.PortForwardingConfigurationNo
+		resp, err := getPortForwardingRuleList(conn, zoneNo)
+		if err != nil {
+			return "", err
+		}
+		portForwardingConfigurationNo = strconv.Itoa(resp.PortForwardingConfigurationNo)
 	}
-	return portForwardingConfigurationNo.(string), nil
+	return portForwardingConfigurationNo, nil
+}
+func getServerZoneNo(conn *sdk.Conn, serverInstanceNo string) (string, error) {
+	serverInstance, err := getServerInstance(conn, serverInstanceNo)
+	if err != nil {
+		return "", err
+	}
+	return serverInstance.Zone.ZoneNo, nil
 }
 
-func getPortForwardingRuleList(conn *sdk.Conn) (*sdk.PortForwardingRuleList, error) {
-	reqParams := &sdk.RequestPortForwardingRuleList{}
+func getPortForwardingRuleList(conn *sdk.Conn, zoneNo string) (*sdk.PortForwardingRuleList, error) {
+	reqParams := &sdk.RequestPortForwardingRuleList{
+		ZoneNo: zoneNo,
+	}
 	resp, err := conn.GetPortForwardingRuleList(reqParams)
 	if err != nil {
 		logErrorResponse("GetPortForwardingRuleList", err, reqParams)
@@ -174,8 +213,8 @@ func getPortForwardingRuleList(conn *sdk.Conn) (*sdk.PortForwardingRuleList, err
 	return resp, nil
 }
 
-func getPortForwardingRule(conn *sdk.Conn, portForwardingExternalPort string) (*sdk.PortForwardingRule, error) {
-	resp, err := getPortForwardingRuleList(conn)
+func getPortForwardingRule(conn *sdk.Conn, zoneNo string, portForwardingExternalPort string) (*sdk.PortForwardingRule, error) {
+	resp, err := getPortForwardingRuleList(conn, zoneNo)
 	if err != nil {
 		return nil, err
 	}
@@ -187,8 +226,8 @@ func getPortForwardingRule(conn *sdk.Conn, portForwardingExternalPort string) (*
 	return nil, fmt.Errorf("resource not found (portForwardingExternalPort) : %s", portForwardingExternalPort)
 }
 
-func hasPortForwardingRule(conn *sdk.Conn, portForwardingExternalPort string) (bool, error) {
-	rule, err := getPortForwardingRule(conn, portForwardingExternalPort)
+func hasPortForwardingRule(conn *sdk.Conn, zoneNo string, portForwardingExternalPort string) (bool, error) {
+	rule, err := getPortForwardingRule(conn, zoneNo, portForwardingExternalPort)
 	if err != nil {
 		return false, err
 	}
