@@ -34,7 +34,7 @@ func processGetNasVolumeInstanceListParams(reqParams *RequestGetNasVolumeInstanc
 		if err := validateBoolValue("IsSnapshotConfiguration", reqParams.IsSnapshotConfiguration); err != nil {
 			return nil, err
 		}
-		params["isSnapshotConfiguration"] = reqParams.IsEventConfiguration
+		params["isSnapshotConfiguration"] = reqParams.IsSnapshotConfiguration
 	}
 
 	if len(reqParams.NasVolumeInstanceNoList) > 0 {

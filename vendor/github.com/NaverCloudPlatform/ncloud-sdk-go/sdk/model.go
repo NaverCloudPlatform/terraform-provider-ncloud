@@ -446,7 +446,7 @@ type NasVolumeInstanceList struct {
 }
 
 type NasVolumeInstanceCustomIp struct {
-	CustomIP string `xml:"customIP"`
+	CustomIP string `xml:"customIp"`
 }
 
 type RequestGetNasVolumeInstanceList struct {

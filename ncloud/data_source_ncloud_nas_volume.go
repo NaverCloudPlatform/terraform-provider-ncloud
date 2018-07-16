@@ -185,11 +185,23 @@ func nasVolumeInstanceAttributes(d *schema.ResourceData, nasVolume sdk.NasVolume
 	d.Set("snapshot_volume_use_ratio", nasVolume.SnapshotVolumeUseRatio)
 	d.Set("is_snapshot_configuration", nasVolume.IsSnapshotConfiguration)
 	d.Set("is_event_configuration", nasVolume.IsEventConfiguration)
-	d.Set("nas_volume_instance_custom_ip_list", nasVolume.NasVolumeInstanceCustomIPList)
+	if len(nasVolume.NasVolumeInstanceCustomIPList) > 0 {
+		d.Set("nas_volume_instance_custom_ip_list", customIPList(nasVolume.NasVolumeInstanceCustomIPList))
+	}
 	d.Set("zone", setZone(nasVolume.Zone))
 	d.Set("region", setRegion(nasVolume.Region))
 
 	d.SetId(nasVolume.NasVolumeInstanceNo)
 
 	return nil
+}
+
+func customIPList(customIPList []sdk.NasVolumeInstanceCustomIp) []string {
+	a := []string{""}
+
+	for _, v := range customIPList {
+		a = append(a, v.CustomIP)
+	}
+
+	return a
 }
