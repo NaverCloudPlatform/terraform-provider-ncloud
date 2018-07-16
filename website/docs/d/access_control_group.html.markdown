@@ -36,10 +36,13 @@ data "ncloud_access_control_group" "test" {
 
 The following arguments are supported:
 
-* `access_control_group_configuration_no` - (Optional) List of ACG configuration numbers you want to get
-* `is_default_group` - (Optional) Indicates whether to get default groups only
-* `access_control_group_name` - (Optional) Name of the ACG you want to get
-* `most_recent` - (Optional) If more than one result is returned, get the most recent created ACG.
+* `access_control_group_configuration_no` - (Conditional) List of ACG configuration numbers you want to get
+    Conditional: Requires `access_control_group_configuration_no` or` access_control_group_name` or `most_recent`.
+* `access_control_group_name` - (Conditional) Name of the ACG you want to get
+    Conditional: Requires `access_control_group_configuration_no` or` access_control_group_name` or `most_recent`.
+* `most_recent` - (Conditional) If more than one result is returned, get the most recent created ACG.
+    Conditional: Requires `access_control_group_configuration_no` or` access_control_group_name` or `most_recent`.
+* `is_default_group` - (Conditional) Indicates whether to get default groups only
 
 ## Attributes Reference
 
