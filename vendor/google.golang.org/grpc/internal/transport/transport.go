@@ -261,7 +261,7 @@ func (s *Stream) SetSendCompress(str string) {
 	s.sendCompress = str
 }
 
-// Done returns a chanel which is closed when it receives the final status
+// Done returns a channel which is closed when it receives the final status
 // from the server.
 func (s *Stream) Done() <-chan struct{} {
 	return s.done
@@ -305,12 +305,6 @@ func (s *Stream) TrailersOnly() (bool, error) {
 func (s *Stream) Trailer() metadata.MD {
 	c := s.trailer.Copy()
 	return c
-}
-
-// ServerTransport returns the underlying ServerTransport for the stream.
-// The client side stream always returns nil.
-func (s *Stream) ServerTransport() ServerTransport {
-	return s.st
 }
 
 // ContentSubtype returns the content-subtype for a request. For example, a
@@ -359,8 +353,7 @@ func (s *Stream) SetHeader(md metadata.MD) error {
 // combined with any metadata set by previous calls to SetHeader and
 // then written to the transport stream.
 func (s *Stream) SendHeader(md metadata.MD) error {
-	t := s.ServerTransport()
-	return t.WriteHeader(s, md)
+	return s.st.WriteHeader(s, md)
 }
 
 // SetTrailer sets the trailer metadata which will be sent with the RPC status
@@ -467,9 +460,6 @@ func NewServerTransport(protocol string, conn net.Conn, config *ServerConfig) (S
 type ConnectOptions struct {
 	// UserAgent is the application user agent.
 	UserAgent string
-	// Authority is the :authority pseudo-header to use. This field has no effect if
-	// TransportCredentials is set.
-	Authority string
 	// Dialer specifies how to dial a network address.
 	Dialer func(context.Context, string) (net.Conn, error)
 	// FailOnNonTempDialError specifies if gRPC fails on non-temporary dial errors.
@@ -515,11 +505,6 @@ type Options struct {
 	// Last indicates whether this write is the last piece for
 	// this stream.
 	Last bool
-
-	// Delay is a hint to the transport implementation for whether
-	// the data could be buffered for a batching write. The
-	// transport implementation may ignore the hint.
-	Delay bool
 }
 
 // CallHdr carries the information of a particular RPC.
@@ -536,14 +521,6 @@ type CallHdr struct {
 
 	// Creds specifies credentials.PerRPCCredentials for a call.
 	Creds credentials.PerRPCCredentials
-
-	// Flush indicates whether a new stream command should be sent
-	// to the peer without waiting for the first data. This is
-	// only a hint.
-	// If it's true, the transport may modify the flush decision
-	// for performance purposes.
-	// If it's false, new stream will never be flushed.
-	Flush bool
 
 	// ContentSubtype specifies the content-subtype for a request. For example, a
 	// content-subtype of "proto" will result in a content-type of
