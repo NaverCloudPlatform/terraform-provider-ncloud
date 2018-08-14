@@ -1161,5 +1161,5 @@
 			"revisionTime": "2018-07-17T15:26:04Z"
 		}
 	],
-	"rootPath": "oss.navercorp.com/ncloud-paas/terraform-provider-ncloud"
+	"rootPath": "github.com/NaverCloudPlatform/terraform-provider-ncloud"
 }
