@@ -63,7 +63,7 @@ func resourceNcloudServer() *schema.Resource {
 				Description: "You can set whether or not to protect return when creating. default : false",
 			},
 			"internet_line_type_code": {
-				Type:         schema.TypeBool,
+				Type:         schema.TypeString,
 				Optional:     true,
 				ValidateFunc: validateInternetLineTypeCode,
 				Description:  "Internet line identification code. PUBLC(Public), GLBL(Global). default : PUBLC(Public)",
@@ -343,7 +343,7 @@ func buildCreateServerInstanceReqParams(client *NcloudAPIClient, d *schema.Resou
 		ServerName:             ncloud.String(d.Get("server_name").(string)),
 		ServerDescription:      ncloud.String(d.Get("server_description").(string)),
 		LoginKeyName:           ncloud.String(d.Get("login_key_name").(string)),
-		InternetLineTypeCode:   ncloud.Bool(d.Get("internet_line_type_code").(bool)),
+		InternetLineTypeCode:   ncloud.String(d.Get("internet_line_type_code").(string)),
 		FeeSystemTypeCode:      ncloud.String(d.Get("fee_system_type_code").(string)),
 		ZoneNo:                 zoneNo,
 		AccessControlGroupConfigurationNoList: paramAccessControlGroupConfigurationNoList,

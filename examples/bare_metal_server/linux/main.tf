@@ -81,7 +81,9 @@ data "ncloud_root_password" "pwd" {
   "private_key" = "${ncloud_login_key.key.private_key}"
 }
 
-data "ncloud_port_forwarding_rules" "rules" {}
+data "ncloud_port_forwarding_rules" "rules" {
+  "zone_no" = "${ncloud_server.bm.zone_no}"
+}
 
 resource "ncloud_port_forwarding_rule" "rule" {
   "port_forwarding_configuration_no" = "${data.ncloud_port_forwarding_rules.rules.id}"

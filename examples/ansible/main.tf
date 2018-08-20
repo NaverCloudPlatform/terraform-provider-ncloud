@@ -4,16 +4,20 @@ provider "ncloud" {
   region = "${var.region}"
 }
 
+resource "random_id" "id" {
+  byte_length = 4
+}
+
 resource "ncloud_login_key" "key" {
-  "key_name" = "${var.login_key_name}"
+  "key_name" = "${var.login_key_name}${random_id.id.hex}"
 }
 
 resource "ncloud_server" "server" {
-  "server_name" = "${var.server_name}"
+  "server_name" = "${var.server_name}${random_id.id.hex}"
   "server_image_product_code" = "${var.server_image_product_code}"
   "server_product_code" = "${var.server_product_code}"
   "login_key_name" = "${ncloud_login_key.key.key_name}"
-  "zone_code" = "KR-2"
+  "zone_code" = "${var.zone}"
 }
 
 data "ncloud_root_password" "rootpwd" {
@@ -33,23 +37,18 @@ resource "ncloud_port_forwarding_rule" "forwarding" {
 }
 
 resource "null_resource" "ssh" {
-  connection {
-    type = "ssh"
-    user = "root"
-    host = "${ncloud_port_forwarding_rule.forwarding.port_forwarding_public_ip}"
-    port = "${ncloud_port_forwarding_rule.forwarding.port_forwarding_external_port}"
-    password = "${data.ncloud_root_password.rootpwd.root_password}"
+
+  provisioner "local-exec" {
+    command = <<EOF
+      echo "[demo]" > inventory
+      echo "${ncloud_port_forwarding_rule.forwarding.port_forwarding_public_ip} ansible_ssh_user=root ansible_ssh_pass='${data.ncloud_root_password.rootpwd.root_password}'"
+    EOF
   }
 
-  # Copies the file as the root user using SSH
-  provisioner "file" {
-    source = "myapp.conf"
-    destination = "/etc/myapp.conf"
-  }
-
-  provisioner "remote-exec" {
-    inline = [
-      "echo 'hello'"
-    ]
+  provisioner "local-exec" {
+    command = <<EOF
+      ANSIBLE_HOST_KEY_CHECKING=False \
+      ansible-playbook -i inventory playbook.yml
+    EOF
   }
 }

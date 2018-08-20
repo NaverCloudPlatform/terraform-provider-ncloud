@@ -43,9 +43,9 @@ func resourceNcloudPortForwadingRule() *schema.Resource {
 				Description:  "External port for port forwarding",
 			},
 			"port_forwarding_internal_port": {
-				Type:         schema.TypeString,
+				Type:         schema.TypeInt,
 				Required:     true,
-				ValidateFunc: validateIncludeValues([]string{"22", "3389"}), // [Linux : 22 |Windows : 3389]
+				ValidateFunc: validateIncludeIntValues([]int{22, 3389}), // [Linux : 22 |Windows : 3389]
 				Description:  "Internal port for port forwarding. Only the following ports are available. [Linux: `22` | Windows: `3389`]",
 			},
 			"port_forwarding_public_ip": {

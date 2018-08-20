@@ -59,6 +59,9 @@ var regionSchemaResource = &schema.Resource{
 }
 
 func setCommonCode(cc interface{}) map[string]interface{} {
+	if cc == nil {
+		return map[string]interface{}{}
+	}
 	commonCode := GetCommonCode(cc)
 	m := map[string]interface{}{
 		"code":      ncloud.StringValue(commonCode.Code),

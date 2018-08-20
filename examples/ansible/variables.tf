@@ -5,12 +5,16 @@ variable "region" {
   default = "KR"
 }
 
+variable "zone" {
+  default = "KR-1"
+}
+
 variable "login_key_name" {
-  default = "tf-ansibletest-key"
+  default = "tf-test-key"
 }
 
 variable "server_name" {
-  default = "tf-ansibletest-vm"
+  default = "tf-test-vm"
 }
 
 variable "server_image_product_code" {

@@ -3,6 +3,7 @@ package ncloud
 import (
 	"time"
 
+	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/ncloud"
 	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/services/autoscaling"
 	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/services/cdn"
 	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/services/clouddb"
@@ -35,30 +36,16 @@ type NcloudAPIClient struct {
 }
 
 func (c *Config) Client() (*NcloudAPIClient, error) {
+	apiKey := &ncloud.APIKey{
+		AccessKey: c.AccessKey,
+		SecretKey: c.SecretKey,
+	}
 	return &NcloudAPIClient{
-		server: server.NewAPIClient(server.NewConfiguration(&server.APIKey{
-			AccessKey: c.AccessKey,
-			SecretKey: c.SecretKey,
-		})),
-		autoscaling: autoscaling.NewAPIClient(autoscaling.NewConfiguration(&autoscaling.APIKey{
-			AccessKey: c.AccessKey,
-			SecretKey: c.SecretKey,
-		})),
-		loadbalancer: loadbalancer.NewAPIClient(loadbalancer.NewConfiguration(&loadbalancer.APIKey{
-			AccessKey: c.AccessKey,
-			SecretKey: c.SecretKey,
-		})),
-		cdn: cdn.NewAPIClient(cdn.NewConfiguration(&cdn.APIKey{
-			AccessKey: c.AccessKey,
-			SecretKey: c.SecretKey,
-		})),
-		clouddb: clouddb.NewAPIClient(clouddb.NewConfiguration(&clouddb.APIKey{
-			AccessKey: c.AccessKey,
-			SecretKey: c.SecretKey,
-		})),
-		monitoring: monitoring.NewAPIClient(monitoring.NewConfiguration(&monitoring.APIKey{
-			AccessKey: c.AccessKey,
-			SecretKey: c.SecretKey,
-		})),
+		server:       server.NewAPIClient(server.NewConfiguration(apiKey)),
+		autoscaling:  autoscaling.NewAPIClient(autoscaling.NewConfiguration(apiKey)),
+		loadbalancer: loadbalancer.NewAPIClient(loadbalancer.NewConfiguration(apiKey)),
+		cdn:          cdn.NewAPIClient(cdn.NewConfiguration(apiKey)),
+		clouddb:      clouddb.NewAPIClient(clouddb.NewConfiguration(apiKey)),
+		monitoring:   monitoring.NewAPIClient(monitoring.NewConfiguration(apiKey)),
 	}, nil
 }

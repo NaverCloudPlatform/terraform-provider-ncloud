@@ -5,6 +5,7 @@ import (
 	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/ncloud"
 	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/services/server"
 	"github.com/hashicorp/terraform/helper/schema"
+	"strconv"
 )
 
 func dataSourceNcloudPortForwardingRules() *schema.Resource {
@@ -148,10 +149,10 @@ func portForwardingRulesAttributes(d *schema.ResourceData, portForwardingConfigu
 
 	for _, rule := range portForwardingRuleList {
 		mapping := map[string]interface{}{
-			"server_instance_no":            rule.ServerInstance.ServerInstanceNo,
-			"port_forwarding_external_port": rule.PortForwardingExternalPort,
-			"port_forwarding_internal_port": rule.PortForwardingInternalPort,
-			"port_forwarding_public_ip":     portForwardingPublicIp,
+			"server_instance_no":            *rule.ServerInstance.ServerInstanceNo,
+			"port_forwarding_external_port": strconv.Itoa(int(*rule.PortForwardingExternalPort)),
+			"port_forwarding_internal_port": strconv.Itoa(int(*rule.PortForwardingInternalPort)),
+			"port_forwarding_public_ip":     *portForwardingPublicIp,
 		}
 		s = append(s, mapping)
 	}
