@@ -4,8 +4,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/NaverCloudPlatform/ncloud-sdk-go/common"
-	"github.com/NaverCloudPlatform/ncloud-sdk-go/sdk"
+	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/services/server"
 	"github.com/hashicorp/terraform/helper/schema"
 )
 
@@ -32,21 +31,21 @@ func dataSourceNcloudRegions() *schema.Resource {
 }
 
 func dataSourceNcloudRegionsRead(d *schema.ResourceData, meta interface{}) error {
-	conn := meta.(*NcloudSdk).conn
+	client := meta.(*NcloudAPIClient)
 	d.SetId(time.Now().UTC().String())
 
-	regionList, err := getRegions(conn)
+	regionList, err := getRegions(client)
 	if err != nil {
 		return err
 	}
 
 	code, codeOk := d.GetOk("code")
 
-	var filteredRegions []common.Region
+	var filteredRegions []*Region
 	if codeOk {
 		for _, region := range regionList {
-			if region.RegionCode == code {
-				filteredRegions = []common.Region{region}
+			if *region.RegionCode == code {
+				filteredRegions = []*Region{region}
 				break
 			}
 		}
@@ -61,13 +60,13 @@ func dataSourceNcloudRegionsRead(d *schema.ResourceData, meta interface{}) error
 	return regionsAttributes(d, filteredRegions)
 }
 
-func regionsAttributes(d *schema.ResourceData, regions []common.Region) error {
+func regionsAttributes(d *schema.ResourceData, regions []*Region) error {
 
 	var ids []string
 	var s []map[string]interface{}
 	for _, region := range regions {
 		mapping := setRegion(region)
-		ids = append(ids, string(region.RegionNo))
+		ids = append(ids, *region.RegionNo)
 		s = append(s, mapping)
 	}
 
@@ -84,8 +83,8 @@ func regionsAttributes(d *schema.ResourceData, regions []common.Region) error {
 	return nil
 }
 
-func getRegions(conn *sdk.Conn) ([]common.Region, error) {
-	resp, err := conn.GetRegionList()
+func getRegions(client *NcloudAPIClient) ([]*Region, error) {
+	resp, err := client.server.V2Api.GetRegionList(&server.GetRegionListRequest{})
 	if err != nil {
 		return nil, err
 	}
@@ -94,5 +93,10 @@ func getRegions(conn *sdk.Conn) ([]common.Region, error) {
 		return nil, fmt.Errorf("no matching regions found")
 	}
 
-	return resp.RegionList, nil
+	var regions []*Region
+	for _, r := range resp.RegionList {
+		regions = append(regions, GetRegion(r))
+	}
+
+	return regions, nil
 }

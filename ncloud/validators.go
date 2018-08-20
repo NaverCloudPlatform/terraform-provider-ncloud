@@ -6,6 +6,7 @@ import (
 	"strings"
 
 	"github.com/hashicorp/terraform/helper/schema"
+	"strconv"
 )
 
 var boolValueStrings = []string{"true", "false"}
@@ -57,9 +58,19 @@ func validateStringLengthInRange(min, max int) schema.SchemaValidateFunc {
 
 func validateIntegerInRange(min, max int) schema.SchemaValidateFunc {
 	return func(v interface{}, k string) (ws []string, errors []error) {
-		value, err := Int(v)
-		if err != nil {
-			errors = append(errors, err)
+		var value int
+		var ok = true
+		switch v.(type) {
+		case string:
+			var err error
+			if value, err = strconv.Atoi(v.(string)); err != nil {
+				ok = false
+			}
+		default:
+			value, ok = v.(int)
+		}
+		if !ok {
+			errors = append(errors, fmt.Errorf("%q must be int", k))
 			return
 		}
 		if value < min {

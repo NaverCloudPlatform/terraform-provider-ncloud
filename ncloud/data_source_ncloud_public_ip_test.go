@@ -5,7 +5,7 @@ import (
 	"testing"
 )
 
-func TestAccDataSourceNcloudPublicIPBasic(t *testing.T) {
+func TestAccDataSourceNcloudPublicIpBasic(t *testing.T) {
 	t.Parallel()
 
 	resource.Test(t, resource.TestCase{
@@ -13,7 +13,7 @@ func TestAccDataSourceNcloudPublicIPBasic(t *testing.T) {
 		Providers: testAccProviders,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccDataSourceNcloudPublicIPConfig,
+				Config: testAccDataSourceNcloudPublicIpConfig,
 				// ignore check: may be empty created data
 				//Check: resource.ComposeTestCheckFunc(
 				//	testAccCheckDataSourceID("data.ncloud_public_ip.test"),
@@ -23,7 +23,7 @@ func TestAccDataSourceNcloudPublicIPBasic(t *testing.T) {
 	})
 }
 
-func TestAccDataSourceNcloudPublicIPMostRecent(t *testing.T) {
+func TestAccDataSourceNcloudPublicIpMostRecent(t *testing.T) {
 	t.Parallel()
 
 	resource.Test(t, resource.TestCase{
@@ -31,7 +31,7 @@ func TestAccDataSourceNcloudPublicIPMostRecent(t *testing.T) {
 		Providers: testAccProviders,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccDataSourceNcloudPublicIPMostRecentConfig,
+				Config: testAccDataSourceNcloudPublicIpMostRecentConfig,
 				// ignore check: may be empty created data
 				//Check: resource.ComposeTestCheckFunc(
 				//	testAccCheckDataSourceID("data.ncloud_public_ip.test"),
@@ -41,7 +41,7 @@ func TestAccDataSourceNcloudPublicIPMostRecent(t *testing.T) {
 	})
 }
 
-func TestAccDataSourceNcloudPublicIPIsAssociated(t *testing.T) {
+func TestAccDataSourceNcloudPublicIpIsAssociated(t *testing.T) {
 	t.Parallel()
 
 	resource.Test(t, resource.TestCase{
@@ -49,7 +49,7 @@ func TestAccDataSourceNcloudPublicIPIsAssociated(t *testing.T) {
 		Providers: testAccProviders,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccDataSourceNcloudPublicIPAssociatedConfig,
+				Config: testAccDataSourceNcloudPublicIpAssociatedConfig,
 				// ignore check: may be empty created data
 				//Check: resource.ComposeTestCheckFunc(
 				//	testAccCheckDataSourceID("data.ncloud_public_ip.test"),
@@ -59,7 +59,7 @@ func TestAccDataSourceNcloudPublicIPIsAssociated(t *testing.T) {
 	})
 }
 
-func TestAccDataSourceNcloudPublicIPSearch(t *testing.T) {
+func TestAccDataSourceNcloudPublicIpSearch(t *testing.T) {
 	t.Parallel()
 
 	resource.Test(t, resource.TestCase{
@@ -67,7 +67,7 @@ func TestAccDataSourceNcloudPublicIPSearch(t *testing.T) {
 		Providers: testAccProviders,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccDataSourceNcloudPublicIPSearchConfig,
+				Config: testAccDataSourceNcloudPublicIpSearchConfig,
 				// ignore check: may be empty created data
 				//Check: resource.ComposeTestCheckFunc(
 				//	testAccCheckDataSourceID("data.ncloud_public_ip.test"),
@@ -81,7 +81,7 @@ func TestAccDataSourceNcloudPublicIPSearch(t *testing.T) {
 	})
 }
 
-func TestAccDataSourceNcloudPublicIPSorting(t *testing.T) {
+func TestAccDataSourceNcloudPublicIpSorting(t *testing.T) {
 	t.Parallel()
 
 	resource.Test(t, resource.TestCase{
@@ -89,7 +89,7 @@ func TestAccDataSourceNcloudPublicIPSorting(t *testing.T) {
 		Providers: testAccProviders,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccDataSourceNcloudPublicIPSortingConfig,
+				Config: testAccDataSourceNcloudPublicIpSortingConfig,
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckDataSourceID("data.ncloud_public_ip.test"),
 				),
@@ -98,24 +98,24 @@ func TestAccDataSourceNcloudPublicIPSorting(t *testing.T) {
 	})
 }
 
-var testAccDataSourceNcloudPublicIPConfig = `
+var testAccDataSourceNcloudPublicIpConfig = `
 data "ncloud_public_ip" "test" {}
 `
 
-var testAccDataSourceNcloudPublicIPMostRecentConfig = `
+var testAccDataSourceNcloudPublicIpMostRecentConfig = `
 data "ncloud_public_ip" "test" {
   "most_recent" = "true"
 }
 `
 
-var testAccDataSourceNcloudPublicIPAssociatedConfig = `
+var testAccDataSourceNcloudPublicIpAssociatedConfig = `
 data "ncloud_public_ip" "test" {
   "is_associated" = "false"
   "most_recent" = "true"
 }
 `
 
-var testAccDataSourceNcloudPublicIPSearchConfig = `
+var testAccDataSourceNcloudPublicIpSearchConfig = `
 data "ncloud_public_ip" "test" {
   "search_filter_name" = "associatedServerName" // Public IP (publicIp) | Associated server name (associatedServerName)
   "search_filter_value" = "clouddb"
@@ -123,7 +123,7 @@ data "ncloud_public_ip" "test" {
 }
 `
 
-var testAccDataSourceNcloudPublicIPSortingConfig = `
+var testAccDataSourceNcloudPublicIpSortingConfig = `
 data "ncloud_public_ip" "test" {
   "sorted_by" = "publicIp" // Public IP (publicIp) | Public IP instance number (publicIpInstanceNo) [case insensitive]
   "sorting_order" = "ascending" // Ascending (ascending) | Descending (descending) [case insensitive]

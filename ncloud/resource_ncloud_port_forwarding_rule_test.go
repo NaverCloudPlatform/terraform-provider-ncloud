@@ -2,7 +2,7 @@ package ncloud
 
 import (
 	"fmt"
-	"github.com/NaverCloudPlatform/ncloud-sdk-go/sdk"
+	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/services/server"
 	"github.com/hashicorp/terraform/helper/acctest"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/helper/schema"
@@ -13,7 +13,7 @@ import (
 )
 
 func TestAccResourceNcloudPortForwardingRuleBasic(t *testing.T) {
-	var portForwarding sdk.PortForwardingRule
+	var portForwarding server.PortForwardingRule
 
 	externalPort := acctest.RandIntRange(1024, 65534+1024)
 	log.Printf("[DEBUG] externalPort: %d", externalPort)
@@ -42,11 +42,11 @@ func TestAccResourceNcloudPortForwardingRuleBasic(t *testing.T) {
 	})
 }
 
-func testAccCheckPortForwardingRuleExists(n string, i *sdk.PortForwardingRule) resource.TestCheckFunc {
+func testAccCheckPortForwardingRuleExists(n string, i *server.PortForwardingRule) resource.TestCheckFunc {
 	return testAccCheckPortForwardingRuleExistsWithProvider(n, i, func() *schema.Provider { return testAccProvider })
 }
 
-func testAccCheckPortForwardingRuleExistsWithProvider(n string, i *sdk.PortForwardingRule, providerF func() *schema.Provider) resource.TestCheckFunc {
+func testAccCheckPortForwardingRuleExistsWithProvider(n string, i *server.PortForwardingRule, providerF func() *schema.Provider) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		rs, ok := s.RootModule().Resources[n]
 		if !ok {
@@ -58,8 +58,9 @@ func testAccCheckPortForwardingRuleExistsWithProvider(n string, i *sdk.PortForwa
 		}
 
 		provider := providerF()
-		conn := provider.Meta().(*NcloudSdk).conn
-		portForwardingRule, err := getPortForwardingRule(conn, i.ServerInstanceNo, rs.Primary.ID)
+		client := provider.Meta().(*NcloudAPIClient)
+		_, zoneNo, portForwardingExternalPort := parsePortForwardingRuleId(rs.Primary.ID)
+		portForwardingRule, err := getPortForwardingRule(client, zoneNo, portForwardingExternalPort)
 		if err != nil {
 			return nil
 		}
@@ -78,14 +79,14 @@ func testAccCheckPortForwardingRuleDestroy(s *terraform.State) error {
 }
 
 func testAccCheckPortForwardingRuleDestroyWithProvider(s *terraform.State, provider *schema.Provider) error {
-	conn := provider.Meta().(*NcloudSdk).conn
+	client := provider.Meta().(*NcloudAPIClient)
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "ncloud_port_forwarding_rule" {
 			continue
 		}
 		_, zoneNo, portForwardingExternalPort := parsePortForwardingRuleId(rs.Primary.ID)
-		rule, err := getPortForwardingRule(conn, zoneNo, portForwardingExternalPort)
+		rule, err := getPortForwardingRule(client, zoneNo, portForwardingExternalPort)
 		if rule == nil {
 			return nil
 		}
@@ -93,7 +94,7 @@ func testAccCheckPortForwardingRuleDestroyWithProvider(s *terraform.State, provi
 			return err
 		}
 		if rule != nil {
-			return fmt.Errorf("found not deleted resource: %s", rule.PortForwardingExternalPort)
+			return fmt.Errorf("found not deleted resource: %d", *rule.PortForwardingExternalPort)
 		}
 	}
 

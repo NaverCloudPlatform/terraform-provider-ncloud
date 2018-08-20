@@ -5,14 +5,14 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/NaverCloudPlatform/ncloud-sdk-go/sdk"
+	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/services/loadbalancer"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/terraform"
 )
 
 func TestAccNcloudLoadBalancerSSLCertificateBasic(t *testing.T) {
-	var sc sdk.SslCertificate
+	var sc loadbalancer.SslCertificate
 	prefix := getTestPrefix()
 	testSSLCertificateName := prefix + "_cert"
 	testLoadBalancerName := prefix + "_lb"
@@ -65,13 +65,13 @@ GTfhUTV7jTQ0dt9U1E+oxRkjqC2HFYlpewXP0rcQxhtK7p6kiaUDIw==
 
 	testCheck := func() func(*terraform.State) error {
 		return func(*terraform.State) error {
-			if sc.CertificateName != testSSLCertificateName {
+			if *sc.CertificateName != testSSLCertificateName {
 				return fmt.Errorf("not found: CertificateName [%s]", testSSLCertificateName)
 			}
-			if sc.PrivateKey != testPrivateKey {
+			if *sc.PrivateKey != testPrivateKey {
 				return fmt.Errorf("not found: PrivateKey [%s]", testPrivateKey)
 			}
-			if sc.PublicKeyCertificate != testCertPEM {
+			if *sc.PublicKeyCertificate != testCertPEM {
 				return fmt.Errorf("not found: PublicKeyCertificate [%s]", testCertPEM)
 			}
 			return nil
@@ -107,11 +107,11 @@ GTfhUTV7jTQ0dt9U1E+oxRkjqC2HFYlpewXP0rcQxhtK7p6kiaUDIw==
 	})
 }
 
-func testAccCheckLoadBalancerSSLCertificateExists(n string, i *sdk.SslCertificate) resource.TestCheckFunc {
+func testAccCheckLoadBalancerSSLCertificateExists(n string, i *loadbalancer.SslCertificate) resource.TestCheckFunc {
 	return testAccCheckLoadBalancerSSLCertificateExistsWithProvider(n, i, func() *schema.Provider { return testAccProvider })
 }
 
-func testAccCheckLoadBalancerSSLCertificateExistsWithProvider(n string, i *sdk.SslCertificate, providerF func() *schema.Provider) resource.TestCheckFunc {
+func testAccCheckLoadBalancerSSLCertificateExistsWithProvider(n string, i *loadbalancer.SslCertificate, providerF func() *schema.Provider) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		rs, ok := s.RootModule().Resources[n]
 		if !ok {
@@ -123,8 +123,8 @@ func testAccCheckLoadBalancerSSLCertificateExistsWithProvider(n string, i *sdk.S
 		}
 
 		provider := providerF()
-		conn := provider.Meta().(*NcloudSdk).conn
-		sc, err := getLoadBalancerSslCertificateList(conn, rs.Primary.ID)
+		client := provider.Meta().(*NcloudAPIClient)
+		sc, err := getLoadBalancerSslCertificateList(client, rs.Primary.ID)
 		if err != nil {
 			return nil
 		}
@@ -143,12 +143,12 @@ func testAccCheckLoadBalancerSSLCertificateDestroy(s *terraform.State) error {
 }
 
 func testAccCheckLoadBalancerSSLCertificateDestroyWithProvider(s *terraform.State, provider *schema.Provider) error {
-	conn := provider.Meta().(*NcloudSdk).conn
+	client := provider.Meta().(*NcloudAPIClient)
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "ncloud_load_balancer_ssl_certificate" {
 			continue
 		}
-		sc, err := getLoadBalancerSslCertificateList(conn, rs.Primary.ID)
+		sc, err := getLoadBalancerSslCertificateList(client, rs.Primary.ID)
 		if sc == nil {
 			return nil
 		}
@@ -156,7 +156,7 @@ func testAccCheckLoadBalancerSSLCertificateDestroyWithProvider(s *terraform.Stat
 			return err
 		}
 
-		return fmt.Errorf("failed to delete SSL Certificate: %s", sc.CertificateName)
+		return fmt.Errorf("failed to delete SSL Certificate: %s", *sc.CertificateName)
 	}
 
 	return nil

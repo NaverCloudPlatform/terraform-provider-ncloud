@@ -44,18 +44,29 @@ resource "null_resource" "ssh" {
   }
 
   provisioner "file" {
-    source = "mount-storage.sh"
-    destination = "mount-storage.sh"
+    source = "scripts/mount-storage.sh"
+    destination = "scripts/mount-storage.sh"
   }
 
   provisioner "remote-exec" {
+    when = "create"
     # CentOS 5.x: mkfs.ext3 /dev/xvdb1
     # CentOS 6.x: mkfs.ext4 /dev/xvdb1
     # CentOS 7.x: mkfs.xfs /dev/xvdb1
     # Ubuntu Server / Desktop: mkfs.ext4 /dev/xvdb1
     inline = [
-      "chmod 755 mount-storage.sh",
-      "sh mount-storage.sh >> mount-storage.log"
+      "chmod 755 scripts/mount-storage.sh",
+      "sh scripts/mount-storage.sh >> scripts/mount-storage.log",
+      "mount"
     ]
   }
+
+  provisioner "remote-exec" {
+      when = "destroy"
+      inline = [
+        "chmod 755 scripts/umount-storage.sh",
+        "sh scripts/umount-storage.sh >> scripts/umount-storage.log",
+        "mount"
+      ]
+    }
 }

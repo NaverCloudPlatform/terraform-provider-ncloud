@@ -5,16 +5,17 @@ import (
 	"log"
 	"time"
 
-	"github.com/NaverCloudPlatform/ncloud-sdk-go/sdk"
+	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/ncloud"
+	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/services/server"
 	"github.com/hashicorp/terraform/helper/schema"
 )
 
-func resourceNcloudPublicIPInstance() *schema.Resource {
+func resourceNcloudPublicIpInstance() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceNcloudPublicIPCreate,
-		Read:   resourceNcloudPublicIPRead,
-		Delete: resourceNcloudPublicIPDelete,
-		Update: resourceNcloudPublicIPUpdate,
+		Create: resourceNcloudPublicIpCreate,
+		Read:   resourceNcloudPublicIpRead,
+		Delete: resourceNcloudPublicIpDelete,
+		Update: resourceNcloudPublicIpUpdate,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -102,166 +103,166 @@ func resourceNcloudPublicIPInstance() *schema.Resource {
 	}
 }
 
-func resourceNcloudPublicIPCreate(d *schema.ResourceData, meta interface{}) error {
-	conn := meta.(*NcloudSdk).conn
+func resourceNcloudPublicIpCreate(d *schema.ResourceData, meta interface{}) error {
+	client := meta.(*NcloudAPIClient)
 
-	reqParams, err := buildCreatePublicIPInstanceReqParams(conn, d)
+	reqParams, err := buildCreatePublicIpInstanceReqParams(client, d)
 	if err != nil {
 		return err
 	}
-	resp, err := conn.CreatePublicIPInstance(reqParams)
+	resp, err := client.server.V2Api.CreatePublicIpInstance(reqParams)
 	if err != nil {
 		logErrorResponse("Create Public IP Instance", err, reqParams)
 		return err
 	}
-	logCommonResponse("Create Public IP Instance", reqParams, resp.CommonResponse)
+	logCommonResponse("Create Public IP Instance", reqParams, GetCommonResponse(resp))
 
-	publicIPInstance := &resp.PublicIPInstanceList[0]
-	d.SetId(publicIPInstance.PublicIPInstanceNo)
+	publicIPInstance := resp.PublicIpInstanceList[0]
+	d.SetId(*publicIPInstance.PublicIpInstanceNo)
 
-	if err := waitPublicIPInstance(conn, publicIPInstance.PublicIPInstanceNo, "USED"); err != nil {
+	if err := waitPublicIpInstance(client, *publicIPInstance.PublicIpInstanceNo, "USED"); err != nil {
 		return err
 	}
 
-	return resourceNcloudPublicIPRead(d, meta)
+	return resourceNcloudPublicIpRead(d, meta)
 }
 
-func resourceNcloudPublicIPRead(d *schema.ResourceData, meta interface{}) error {
-	conn := meta.(*NcloudSdk).conn
+func resourceNcloudPublicIpRead(d *schema.ResourceData, meta interface{}) error {
+	client := meta.(*NcloudAPIClient)
 
-	instance, err := getPublicIPInstance(conn, d.Id())
+	instance, err := getPublicIpInstance(client, d.Id())
 	if err != nil {
 		logErrorResponse("Create Public IP Instance", err, d.Id())
 		return err
 	}
 
 	if instance != nil {
-		d.Set("public_ip_instance_no", instance.PublicIPInstanceNo)
-		d.Set("public_ip", instance.PublicIP)
-		d.Set("public_ip_description", instance.PublicIPDescription)
+		d.Set("public_ip_instance_no", instance.PublicIpInstanceNo)
+		d.Set("public_ip", instance.PublicIp)
+		d.Set("public_ip_description", instance.PublicIpDescription)
 		d.Set("create_date", instance.CreateDate)
 		d.Set("internet_line_type", setCommonCode(instance.InternetLineType))
-		d.Set("public_ip_instance_status_name", instance.PublicIPInstanceStatusName)
-		d.Set("public_ip_instance_status", setCommonCode(instance.PublicIPInstanceStatus))
-		d.Set("public_ip_instance_operation", setCommonCode(instance.PublicIPInstanceOperation))
-		d.Set("public_ip_kind_type", setCommonCode(instance.PublicIPKindType))
+		d.Set("public_ip_instance_status_name", instance.PublicIpInstanceStatusName)
+		d.Set("public_ip_instance_status", setCommonCode(instance.PublicIpInstanceStatus))
+		d.Set("public_ip_instance_operation", setCommonCode(instance.PublicIpInstanceOperation))
+		d.Set("public_ip_kind_type", setCommonCode(instance.PublicIpKindType))
 	}
 
 	return nil
 }
 
-func resourceNcloudPublicIPDelete(d *schema.ResourceData, meta interface{}) error {
-	conn := meta.(*NcloudSdk).conn
+func resourceNcloudPublicIpDelete(d *schema.ResourceData, meta interface{}) error {
+	client := meta.(*NcloudAPIClient)
 
 	// Check associated public ip
-	if associated, err := checkAssociatedPublicIP(conn, d.Id()); associated {
+	if associated, err := checkAssociatedPublicIp(client, d.Id()); associated {
 		// if associated public ip, disassociated the public ip
-		disassociatedPublicIP(conn, d.Id())
+		disassociatedPublicIp(client, d.Id())
 	} else if err != nil {
 		return err
 	}
 
 	// Step 3 : public ip 삭제
-	reqParams := &sdk.RequestDeletePublicIPInstances{
-		PublicIPInstanceNoList: []string{d.Id()},
+	reqParams := &server.DeletePublicIpInstancesRequest{
+		PublicIpInstanceNoList: ncloud.StringList([]string{d.Id()}),
 	}
-	resp, err := conn.DeletePublicIPInstances(reqParams)
-	logCommonResponse("Delete Public IP Instance", reqParams, resp.CommonResponse)
+	resp, err := client.server.V2Api.DeletePublicIpInstances(reqParams)
+	logCommonResponse("Delete Public IP Instance", reqParams, GetCommonResponse(resp))
 
-	waitDeletePublicIPInstance(conn, d.Id())
+	waitDeletePublicIpInstance(client, d.Id())
 
 	return err
 }
 
-func resourceNcloudPublicIPUpdate(d *schema.ResourceData, meta interface{}) error {
-	return resourceNcloudPublicIPRead(d, meta)
+func resourceNcloudPublicIpUpdate(d *schema.ResourceData, meta interface{}) error {
+	return resourceNcloudPublicIpRead(d, meta)
 }
 
-func buildCreatePublicIPInstanceReqParams(conn *sdk.Conn, d *schema.ResourceData) (*sdk.RequestCreatePublicIPInstance, error) {
-	regionNo, err := parseRegionNoParameter(conn, d)
+func buildCreatePublicIpInstanceReqParams(client *NcloudAPIClient, d *schema.ResourceData) (*server.CreatePublicIpInstanceRequest, error) {
+	regionNo, err := parseRegionNoParameter(client, d)
 	if err != nil {
 		return nil, err
 	}
-	zoneNo, err := parseZoneNoParameter(conn, d)
+	zoneNo, err := parseZoneNoParameter(client, d)
 	if err != nil {
 		return nil, err
 	}
-	reqParams := &sdk.RequestCreatePublicIPInstance{
-		ServerInstanceNo:     d.Get("server_instance_no").(string),
-		PublicIPDescription:  d.Get("public_ip_description").(string),
-		InternetLineTypeCode: d.Get("internet_line_type_code").(string),
+	reqParams := &server.CreatePublicIpInstanceRequest{
+		ServerInstanceNo:     ncloud.String(d.Get("server_instance_no").(string)),
+		PublicIpDescription:  ncloud.String(d.Get("public_ip_description").(string)),
+		InternetLineTypeCode: ncloud.String(d.Get("internet_line_type_code").(string)),
 		RegionNo:             regionNo,
 		ZoneNo:               zoneNo,
 	}
 	return reqParams, nil
 }
 
-func getPublicIPInstance(conn *sdk.Conn, publicIPInstanceNo string) (*sdk.PublicIPInstance, error) {
-	reqParams := new(sdk.RequestPublicIPInstanceList)
-	reqParams.PublicIPInstanceNoList = []string{publicIPInstanceNo}
-	resp, err := conn.GetPublicIPInstanceList(reqParams)
+func getPublicIpInstance(client *NcloudAPIClient, publicIPInstanceNo string) (*server.PublicIpInstance, error) {
+	reqParams := new(server.GetPublicIpInstanceListRequest)
+	reqParams.PublicIpInstanceNoList = ncloud.StringList([]string{publicIPInstanceNo})
+	resp, err := client.server.V2Api.GetPublicIpInstanceList(reqParams)
 
 	if err != nil {
 		logErrorResponse("Get Public IP Instance", err, reqParams)
 		return nil, err
 	}
-	logCommonResponse("Get Public IP Instance", reqParams, resp.CommonResponse)
-	if len(resp.PublicIPInstanceList) > 0 {
-		inst := &resp.PublicIPInstanceList[0]
+	logCommonResponse("Get Public IP Instance", reqParams, GetCommonResponse(resp))
+	if len(resp.PublicIpInstanceList) > 0 {
+		inst := resp.PublicIpInstanceList[0]
 		return inst, nil
 	}
 	return nil, nil
 }
 
-func checkAssociatedPublicIP(conn *sdk.Conn, publicIPInstanceNo string) (bool, error) {
-	reqParams := new(sdk.RequestPublicIPInstanceList)
-	reqParams.IsAssociated = "true"
-	reqParams.PublicIPInstanceNoList = []string{publicIPInstanceNo}
-	resp, err := conn.GetPublicIPInstanceList(reqParams)
+func checkAssociatedPublicIp(client *NcloudAPIClient, publicIPInstanceNo string) (bool, error) {
+	reqParams := new(server.GetPublicIpInstanceListRequest)
+	reqParams.IsAssociated = ncloud.Bool(true)
+	reqParams.PublicIpInstanceNoList = ncloud.StringList([]string{publicIPInstanceNo})
+	resp, err := client.server.V2Api.GetPublicIpInstanceList(reqParams)
 
 	if err != nil {
 		logErrorResponse("Check Associated Public IP Instance", err, reqParams)
 		return false, err
 	}
 
-	logCommonResponse("Check Associated Public IP Instance", reqParams, resp.CommonResponse)
+	logCommonResponse("Check Associated Public IP Instance", reqParams, GetCommonResponse(resp))
 
-	if resp.TotalRows == 0 {
+	if *resp.TotalRows == 0 {
 		return false, nil
 	}
 
 	return true, nil
 }
 
-func disassociatedPublicIP(conn *sdk.Conn, publicIPInstanceNo string) error {
-	resp, err := conn.DisassociatePublicIP(publicIPInstanceNo)
+func disassociatedPublicIp(client *NcloudAPIClient, publicIpInstanceNo string) error {
+	resp, err := client.server.V2Api.DisassociatePublicIpFromServerInstance(&server.DisassociatePublicIpFromServerInstanceRequest{PublicIpInstanceNo: ncloud.String(publicIpInstanceNo)})
 
 	if err != nil {
-		logErrorResponse("Dissociated Public IP Instance", err, publicIPInstanceNo)
+		logErrorResponse("Dissociated Public IP Instance", err, publicIpInstanceNo)
 		return err
 	}
 
-	logCommonResponse("Dissociated Public IP Instance", publicIPInstanceNo, resp.CommonResponse)
+	logCommonResponse("Dissociated Public IP Instance", publicIpInstanceNo, GetCommonResponse(resp))
 
-	return waitDiassociatePublicIP(conn, publicIPInstanceNo)
+	return waitDiassociatePublicIp(client, publicIpInstanceNo)
 }
 
-func waitDiassociatePublicIP(conn *sdk.Conn, publicIPInstanceNo string) error {
-	reqParams := new(sdk.RequestPublicIPInstanceList)
-	reqParams.PublicIPInstanceNoList = []string{publicIPInstanceNo}
+func waitDiassociatePublicIp(client *NcloudAPIClient, publicIPInstanceNo string) error {
+	reqParams := new(server.GetPublicIpInstanceListRequest)
+	reqParams.PublicIpInstanceNoList = ncloud.StringList([]string{publicIPInstanceNo})
 
 	c1 := make(chan error, 1)
 
 	go func() {
 		for {
-			resp, err := conn.GetPublicIPInstanceList(reqParams)
+			resp, err := client.server.V2Api.GetPublicIpInstanceList(reqParams)
 
 			if err != nil {
 				c1 <- err
 				return
 			}
 
-			if resp.TotalRows == 0 {
+			if *resp.TotalRows == 0 {
 				c1 <- nil
 				return
 			}
@@ -279,22 +280,22 @@ func waitDiassociatePublicIP(conn *sdk.Conn, publicIPInstanceNo string) error {
 	}
 }
 
-func waitPublicIPInstance(conn *sdk.Conn, publicIPInstanceNo string, status string) error {
-	reqParams := new(sdk.RequestPublicIPInstanceList)
-	reqParams.PublicIPInstanceNoList = []string{publicIPInstanceNo}
+func waitPublicIpInstance(client *NcloudAPIClient, publicIPInstanceNo string, status string) error {
+	reqParams := new(server.GetPublicIpInstanceListRequest)
+	reqParams.PublicIpInstanceNoList = ncloud.StringList([]string{publicIPInstanceNo})
 
 	c1 := make(chan error, 1)
 
 	go func() {
 		for {
-			resp, err := conn.GetPublicIPInstanceList(reqParams)
+			resp, err := client.server.V2Api.GetPublicIpInstanceList(reqParams)
 
 			if err != nil {
 				c1 <- err
 				return
 			}
 
-			if resp.PublicIPInstanceList[0].PublicIPInstanceStatus.Code == status {
+			if *resp.PublicIpInstanceList[0].PublicIpInstanceStatus.Code == status {
 				c1 <- nil
 				return
 			}
@@ -312,22 +313,22 @@ func waitPublicIPInstance(conn *sdk.Conn, publicIPInstanceNo string, status stri
 	}
 }
 
-func waitDeletePublicIPInstance(conn *sdk.Conn, publicIPInstanceNo string) error {
-	reqParams := new(sdk.RequestPublicIPInstanceList)
-	reqParams.PublicIPInstanceNoList = []string{publicIPInstanceNo}
+func waitDeletePublicIpInstance(client *NcloudAPIClient, publicIPInstanceNo string) error {
+	reqParams := new(server.GetPublicIpInstanceListRequest)
+	reqParams.PublicIpInstanceNoList = ncloud.StringList([]string{publicIPInstanceNo})
 
 	c1 := make(chan error, 1)
 
 	go func() {
 		for {
-			resp, err := conn.GetPublicIPInstanceList(reqParams)
+			resp, err := client.server.V2Api.GetPublicIpInstanceList(reqParams)
 
 			if err != nil {
 				c1 <- err
 				return
 			}
 
-			if resp.TotalRows == 0 {
+			if *resp.TotalRows == 0 {
 				c1 <- nil
 				return
 			}

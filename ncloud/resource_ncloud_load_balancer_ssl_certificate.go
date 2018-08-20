@@ -3,8 +3,8 @@ package ncloud
 import (
 	"log"
 
-	"github.com/NaverCloudPlatform/ncloud-sdk-go/common"
-	"github.com/NaverCloudPlatform/ncloud-sdk-go/sdk"
+	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/ncloud"
+	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/services/loadbalancer"
 	"github.com/hashicorp/terraform/helper/schema"
 )
 
@@ -50,7 +50,7 @@ func resourceNcloudLoadBalancerSSLCertificate() *schema.Resource {
 
 func resourceNcloudLoadBalancerSSLCertificateCreate(d *schema.ResourceData, meta interface{}) error {
 	log.Println("[DEBUG] resourceNcloudLoadBalancerSSLCertificateCreate")
-	conn := meta.(*NcloudSdk).conn
+	client := meta.(*NcloudAPIClient)
 
 	reqParams, err := buildCreateLoadBalancerSSLCertificateParams(d)
 	if err != nil {
@@ -58,25 +58,25 @@ func resourceNcloudLoadBalancerSSLCertificateCreate(d *schema.ResourceData, meta
 		return err
 	}
 
-	resp, err := conn.AddLoadBalancerSslCertificate(reqParams)
+	resp, err := client.loadbalancer.V2Api.AddLoadBalancerSslCertificate(reqParams)
 	if err != nil {
 		logErrorResponse("AddLoadBalancerSslCertificate", err, reqParams)
 		return err
 	}
 
-	logCommonResponse("AddLoadBalancerSslCertificate", reqParams, resp.CommonResponse)
+	logCommonResponse("AddLoadBalancerSslCertificate", reqParams, GetCommonResponse(resp))
 
-	cert := &resp.SslCertificateList[0]
-	d.SetId(cert.CertificateName)
+	cert := resp.SslCertificateList[0]
+	d.SetId(*cert.CertificateName)
 
 	return resourceNcloudLoadBalancerSSLCertificateRead(d, meta)
 }
 
 func resourceNcloudLoadBalancerSSLCertificateRead(d *schema.ResourceData, meta interface{}) error {
 	log.Println("[DEBUG] resourceNcloudLoadBalancerSSLCertificateRead")
-	conn := meta.(*NcloudSdk).conn
+	client := meta.(*NcloudAPIClient)
 
-	lb, err := getLoadBalancerSslCertificateList(conn, d.Id())
+	lb, err := getLoadBalancerSslCertificateList(client, d.Id())
 	if err != nil {
 		return err
 	}
@@ -92,8 +92,8 @@ func resourceNcloudLoadBalancerSSLCertificateRead(d *schema.ResourceData, meta i
 
 func resourceNcloudLoadBalancerSSLCertificateDelete(d *schema.ResourceData, meta interface{}) error {
 	log.Println("[DEBUG] resourceNcloudLoadBalancerSSLCertificateDelete")
-	conn := meta.(*NcloudSdk).conn
-	return deleteLoadBalancerSSLCertificate(conn, d.Id())
+	client := meta.(*NcloudAPIClient)
+	return deleteLoadBalancerSSLCertificate(client, d.Id())
 }
 
 func resourceNcloudLoadBalancerSSLCertificateUpdate(d *schema.ResourceData, meta interface{}) error {
@@ -101,46 +101,46 @@ func resourceNcloudLoadBalancerSSLCertificateUpdate(d *schema.ResourceData, meta
 	return resourceNcloudLoadBalancerSSLCertificateRead(d, meta)
 }
 
-func buildCreateLoadBalancerSSLCertificateParams(d *schema.ResourceData) (*sdk.RequestAddSslCertificate, error) {
-	reqParams := &sdk.RequestAddSslCertificate{
-		CertificateName:      d.Get("certificate_name").(string),
-		PrivateKey:           d.Get("privatekey").(string),
-		PublicKeyCertificate: d.Get("publickey_certificate").(string),
+func buildCreateLoadBalancerSSLCertificateParams(d *schema.ResourceData) (*loadbalancer.AddLoadBalancerSslCertificateRequest, error) {
+	reqParams := &loadbalancer.AddLoadBalancerSslCertificateRequest{
+		CertificateName:      ncloud.String(d.Get("certificate_name").(string)),
+		PrivateKey:           ncloud.String(d.Get("privatekey").(string)),
+		PublicKeyCertificate: ncloud.String(d.Get("publickey_certificate").(string)),
 	}
 
 	if certificateChain, ok := d.GetOk("certificate_chain"); ok {
-		reqParams.CertificateChain = certificateChain.(string)
+		reqParams.CertificateChain = ncloud.String(certificateChain.(string))
 	}
 
 	return reqParams, nil
 }
 
-func getLoadBalancerSslCertificateList(conn *sdk.Conn, certificateName string) (*sdk.SslCertificate, error) {
-	resp, err := conn.GetLoadBalancerSslCertificateList(certificateName)
+func getLoadBalancerSslCertificateList(client *NcloudAPIClient, certificateName string) (*loadbalancer.SslCertificate, error) {
+	resp, err := client.loadbalancer.V2Api.GetLoadBalancerSslCertificateList(&loadbalancer.GetLoadBalancerSslCertificateListRequest{CertificateName: ncloud.String(certificateName)})
 	if err != nil {
 		logErrorResponse("GetLoadBalancerSslCertificateList", err, certificateName)
 		return nil, err
 	}
-	logCommonResponse("GetLoadBalancerSslCertificateList", certificateName, resp.CommonResponse)
+	logCommonResponse("GetLoadBalancerSslCertificateList", certificateName, GetCommonResponse(resp))
 
 	for _, cert := range resp.SslCertificateList {
-		if certificateName == cert.CertificateName {
-			log.Printf("[DEBUG] %s CertificateName: %s,", "GetLoadBalancerSslCertificateList", cert.CertificateName)
-			return &cert, nil
+		if certificateName == *cert.CertificateName {
+			log.Printf("[DEBUG] %s CertificateName: %s,", "GetLoadBalancerSslCertificateList", *cert.CertificateName)
+			return cert, nil
 		}
 	}
 	return nil, nil
 }
 
-func deleteLoadBalancerSSLCertificate(conn *sdk.Conn, certificateName string) error {
-	resp, err := conn.DeleteLoadBalancerSslCertificate(certificateName)
+func deleteLoadBalancerSSLCertificate(client *NcloudAPIClient, certificateName string) error {
+	resp, err := client.loadbalancer.V2Api.DeleteLoadBalancerSslCertificate(&loadbalancer.DeleteLoadBalancerSslCertificateRequest{CertificateName: ncloud.String(certificateName)})
 	if err != nil {
 		logErrorResponse("DeleteLoadBalancerSslCertificate", err, certificateName)
 		return err
 	}
-	var commonResponse = common.CommonResponse{}
+	var commonResponse = &CommonResponse{}
 	if resp != nil {
-		commonResponse = resp.CommonResponse
+		commonResponse = GetCommonResponse(resp)
 	}
 	logCommonResponse("DeleteLoadBalancerSslCertificate", certificateName, commonResponse)
 

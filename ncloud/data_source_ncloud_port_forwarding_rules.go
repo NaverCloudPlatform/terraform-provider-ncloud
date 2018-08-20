@@ -2,9 +2,8 @@ package ncloud
 
 import (
 	"fmt"
-	"strconv"
-
-	"github.com/NaverCloudPlatform/ncloud-sdk-go/sdk"
+	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/ncloud"
+	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/services/server"
 	"github.com/hashicorp/terraform/helper/schema"
 )
 
@@ -92,7 +91,7 @@ func dataSourceNcloudPortForwardingRules() *schema.Resource {
 }
 
 func dataSourceNcloudPortForwardingRulesRead(d *schema.ResourceData, meta interface{}) error {
-	conn := meta.(*NcloudSdk).conn
+	client := meta.(*NcloudAPIClient)
 
 	_, zoneNoOk := d.GetOk("zone_no")
 	_, zoneCodeOk := d.GetOk("zone_code")
@@ -100,29 +99,29 @@ func dataSourceNcloudPortForwardingRulesRead(d *schema.ResourceData, meta interf
 		return fmt.Errorf("required to select one among two parameters: `zone_no` and `zone_code`")
 	}
 
-	regionNo, err := parseRegionNoParameter(conn, d)
+	regionNo, err := parseRegionNoParameter(client, d)
 	if err != nil {
 		return err
 	}
-	zoneNo, err := parseZoneNoParameter(conn, d)
+	zoneNo, err := parseZoneNoParameter(client, d)
 	if err != nil {
 		return err
 	}
-	reqParams := &sdk.RequestPortForwardingRuleList{
-		InternetLineTypeCode: d.Get("internet_line_type_code").(string),
+	reqParams := &server.GetPortForwardingRuleListRequest{
+		InternetLineTypeCode: ncloud.String(d.Get("internet_line_type_code").(string)),
 		RegionNo:             regionNo,
 		ZoneNo:               zoneNo,
 	}
 
-	resp, err := conn.GetPortForwardingRuleList(reqParams)
+	resp, err := client.server.V2Api.GetPortForwardingRuleList(reqParams)
 	if err != nil {
 		logErrorResponse("GetPortForwardingRuleList", err, reqParams)
 		return err
 	}
-	logCommonResponse("GetPortForwardingRuleList", reqParams, resp.CommonResponse)
+	logCommonResponse("GetPortForwardingRuleList", reqParams, GetCommonResponse(resp))
 
 	allPortForwardingRules := resp.PortForwardingRuleList
-	var filteredPortForwardingRuleList []sdk.PortForwardingRule
+	var filteredPortForwardingRuleList []*server.PortForwardingRule
 
 	filterInternalPort, filterInternalPortOk := d.GetOk("port_forwarding_internal_port")
 	if filterInternalPortOk {
@@ -138,21 +137,21 @@ func dataSourceNcloudPortForwardingRulesRead(d *schema.ResourceData, meta interf
 	if len(filteredPortForwardingRuleList) < 1 {
 		return fmt.Errorf("no results. please change search criteria and try again")
 	}
-	return portForwardingRulesAttributes(d, resp.PortForwardingConfigurationNo, filteredPortForwardingRuleList)
+	return portForwardingRulesAttributes(d, resp.PortForwardingConfigurationNo, resp.PortForwardingPublicIp, filteredPortForwardingRuleList)
 }
 
-func portForwardingRulesAttributes(d *schema.ResourceData, portForwardingConfigurationNo int, portForwardingRuleList []sdk.PortForwardingRule) error {
+func portForwardingRulesAttributes(d *schema.ResourceData, portForwardingConfigurationNo *string, portForwardingPublicIp *string, portForwardingRuleList []*server.PortForwardingRule) error {
 	var s []map[string]interface{}
 
-	d.SetId(strconv.Itoa(portForwardingConfigurationNo))
+	d.SetId(*portForwardingConfigurationNo)
 	d.Set("port_forwarding_configuration_no", portForwardingConfigurationNo)
 
 	for _, rule := range portForwardingRuleList {
 		mapping := map[string]interface{}{
-			"server_instance_no":            rule.ServerInstanceNo,
+			"server_instance_no":            rule.ServerInstance.ServerInstanceNo,
 			"port_forwarding_external_port": rule.PortForwardingExternalPort,
 			"port_forwarding_internal_port": rule.PortForwardingInternalPort,
-			"port_forwarding_public_ip":     rule.PortForwardingPublicIp,
+			"port_forwarding_public_ip":     portForwardingPublicIp,
 		}
 		s = append(s, mapping)
 	}

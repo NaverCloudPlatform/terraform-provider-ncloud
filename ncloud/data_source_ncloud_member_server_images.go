@@ -4,7 +4,8 @@ import (
 	"fmt"
 	"regexp"
 
-	"github.com/NaverCloudPlatform/ncloud-sdk-go/sdk"
+	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/ncloud"
+	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/services/server"
 	"github.com/hashicorp/terraform/helper/schema"
 )
 
@@ -159,32 +160,32 @@ func dataSourceNcloudMemberServerImages() *schema.Resource {
 }
 
 func dataSourceNcloudMemberServerImagesRead(d *schema.ResourceData, meta interface{}) error {
-	conn := meta.(*NcloudSdk).conn
+	client := meta.(*NcloudAPIClient)
 
-	regionNo, err := parseRegionNoParameter(conn, d)
+	regionNo, err := parseRegionNoParameter(client, d)
 	if err != nil {
 		return err
 	}
-	reqParams := &sdk.RequestServerImageList{
-		MemberServerImageNoList: StringList(d.Get("member_server_image_no_list").([]interface{})),
-		PlatformTypeCodeList:    StringList(d.Get("platform_type_code_list").([]interface{})),
+	reqParams := &server.GetMemberServerImageListRequest{
+		MemberServerImageNoList: ncloud.StringInterfaceList(d.Get("member_server_image_no_list").([]interface{})),
+		PlatformTypeCodeList:    ncloud.StringInterfaceList(d.Get("platform_type_code_list").([]interface{})),
 		RegionNo:                regionNo,
 	}
 
-	resp, err := conn.GetMemberServerImageList(reqParams)
+	resp, err := client.server.V2Api.GetMemberServerImageList(reqParams)
 	if err != nil {
 		logErrorResponse("GetMemberServerImageList", err, reqParams)
 		return err
 	}
-	logCommonResponse("GetMemberServerImageList", reqParams, resp.CommonResponse)
+	logCommonResponse("GetMemberServerImageList", reqParams, GetCommonResponse(resp))
 
 	allMemberServerImages := resp.MemberServerImageList
-	var filteredMemberServerImages []sdk.ServerImage
+	var filteredMemberServerImages []*server.MemberServerImage
 	nameRegex, nameRegexOk := d.GetOk("member_server_image_name_regex")
 	if nameRegexOk {
 		r := regexp.MustCompile(nameRegex.(string))
 		for _, memberServerImage := range allMemberServerImages {
-			if r.MatchString(memberServerImage.MemberServerImageName) {
+			if r.MatchString(*memberServerImage.MemberServerImageName) {
 				filteredMemberServerImages = append(filteredMemberServerImages, memberServerImage)
 			}
 		}
@@ -199,7 +200,7 @@ func dataSourceNcloudMemberServerImagesRead(d *schema.ResourceData, meta interfa
 	return memberServerImagesAttributes(d, filteredMemberServerImages)
 }
 
-func memberServerImagesAttributes(d *schema.ResourceData, memberServerImages []sdk.ServerImage) error {
+func memberServerImagesAttributes(d *schema.ResourceData, memberServerImages []*server.MemberServerImage) error {
 	var ids []string
 	var s []map[string]interface{}
 	for _, m := range memberServerImages {
@@ -224,7 +225,7 @@ func memberServerImagesAttributes(d *schema.ResourceData, memberServerImages []s
 			"member_server_image_block_storage_total_size": m.MemberServerImageBlockStorageTotalSize,
 		}
 
-		ids = append(ids, m.MemberServerImageNo)
+		ids = append(ids, *m.MemberServerImageNo)
 		s = append(s, mapping)
 	}
 

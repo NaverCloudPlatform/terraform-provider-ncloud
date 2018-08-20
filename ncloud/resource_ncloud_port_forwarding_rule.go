@@ -2,7 +2,8 @@ package ncloud
 
 import (
 	"fmt"
-	"github.com/NaverCloudPlatform/ncloud-sdk-go/sdk"
+	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/ncloud"
+	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/services/server"
 	"github.com/hashicorp/terraform/helper/schema"
 	"strconv"
 	"strings"
@@ -36,7 +37,7 @@ func resourceNcloudPortForwadingRule() *schema.Resource {
 				Description: "Server instance number for which port forwarding is set",
 			},
 			"port_forwarding_external_port": {
-				Type:         schema.TypeString,
+				Type:         schema.TypeInt,
 				Required:     true,
 				ValidateFunc: validateIntegerInRange(1024, 65534),
 				Description:  "External port for port forwarding",
@@ -63,64 +64,73 @@ func resourceNcloudPortForwadingRule() *schema.Resource {
 }
 
 func resourceNcloudPortForwardingRuleCreate(d *schema.ResourceData, meta interface{}) error {
-	conn := meta.(*NcloudSdk).conn
+	client := meta.(*NcloudAPIClient)
 
 	portForwardingConfigurationNo, err := getPortForwardingConfigurationNo(d, meta)
 	if err != nil {
 		return err
 	}
 
-	portForwardingExternalPort := d.Get("port_forwarding_external_port").(string)
+	var portForwardingExternalPort int32
+	if v, ok := d.GetOk("port_forwarding_external_port"); ok {
+		portForwardingExternalPort = int32(v.(int))
+	}
+	var portForwardingInternalPort int32
+	if v, ok := d.GetOk("port_forwarding_internal_port"); ok {
+		portForwardingInternalPort = int32(v.(int))
+	}
 
-	reqParams := &sdk.RequestAddPortForwardingRules{
-		PortForwardingConfigurationNo: portForwardingConfigurationNo,
-		PortForwardingRuleList: []sdk.PortForwardingRule{
+	reqParams := &server.AddPortForwardingRulesRequest{
+		PortForwardingConfigurationNo: ncloud.String(portForwardingConfigurationNo),
+		PortForwardingRuleList: []*server.PortForwardingRuleParameter{
 			{
-				ServerInstanceNo:           d.Get("server_instance_no").(string),
-				PortForwardingExternalPort: portForwardingExternalPort,
-				PortForwardingInternalPort: d.Get("port_forwarding_internal_port").(string),
+				ServerInstanceNo:           ncloud.String(d.Get("server_instance_no").(string)),
+				PortForwardingExternalPort: ncloud.Int32(portForwardingExternalPort),
+				PortForwardingInternalPort: ncloud.Int32(portForwardingInternalPort),
 			},
 		},
 	}
-	resp, err := conn.AddPortForwardingRules(reqParams)
+	resp, err := client.server.V2Api.AddPortForwardingRules(reqParams)
 	if err != nil {
 		logErrorResponse("AddPortForwardingRules", err, reqParams)
 		return err
 	}
-	logCommonResponse("AddPortForwardingRules", reqParams, resp.CommonResponse)
-	d.SetId(PortForwardingRuleId(portForwardingConfigurationNo, resp.Zone.ZoneNo, portForwardingExternalPort))
+	logCommonResponse("AddPortForwardingRules", reqParams, GetCommonResponse(resp))
+	d.SetId(PortForwardingRuleId(portForwardingConfigurationNo, *resp.Zone.ZoneNo, portForwardingExternalPort))
 	return resourceNcloudPortForwardingRuleRead(d, meta)
 }
 
-func PortForwardingRuleId(portForwardingConfigurationNo string, zonNo string, portForwardingExternalPort string) string {
-	return fmt.Sprintf("%s:%s:%s", portForwardingConfigurationNo, zonNo, portForwardingExternalPort)
+func PortForwardingRuleId(portForwardingConfigurationNo string, zonNo string, portForwardingExternalPort int32) string {
+	return fmt.Sprintf("%s:%s:%d", portForwardingConfigurationNo, zonNo, portForwardingExternalPort)
 }
 
-func parsePortForwardingRuleId(id string) (portForwardingConfigurationNo string, zoneNo string, portForwardingExternalPort string) {
+func parsePortForwardingRuleId(id string) (portForwardingConfigurationNo string, zoneNo string, portForwardingExternalPort int32) {
 	arr := strings.Split(id, ":")
-	portForwardingConfigurationNo, zoneNo, portForwardingExternalPort = arr[0], arr[1], arr[2]
-	return portForwardingConfigurationNo, zoneNo, portForwardingExternalPort
+
+	portForwardingConfigurationNo, zoneNo = arr[0], arr[1]
+	tmp, _ := strconv.Atoi(arr[2])
+	return portForwardingConfigurationNo, zoneNo, int32(tmp)
 }
 
 func resourceNcloudPortForwardingRuleRead(d *schema.ResourceData, meta interface{}) error {
-	conn := meta.(*NcloudSdk).conn
+	client := meta.(*NcloudAPIClient)
 
 	_, zoneNo, portForwardingExternalPort := parsePortForwardingRuleId(d.Id())
-	resp, err := getPortForwardingRuleList(conn, zoneNo)
+	resp, err := getPortForwardingRuleList(client, zoneNo)
 	if err != nil {
 		return err
 	}
 
-	var portForwardingRule *sdk.PortForwardingRule
+	var portForwardingRule *server.PortForwardingRule
 	for _, rule := range resp.PortForwardingRuleList {
-		if rule.PortForwardingExternalPort == portForwardingExternalPort {
-			portForwardingRule = &rule
+		if *rule.PortForwardingExternalPort == portForwardingExternalPort {
+			portForwardingRule = rule
 			break
 		}
 	}
 	if portForwardingRule != nil {
 		d.Set("port_forwarding_public_ip", resp.PortForwardingPublicIp)
-		d.Set("server_instance_no", portForwardingRule.ServerInstanceNo)
+		d.Set("server_instance_no", portForwardingRule.ServerInstance.ServerInstanceNo)
 		d.Set("port_forwarding_external_port", portForwardingRule.PortForwardingExternalPort)
 		d.Set("port_forwarding_internal_port", portForwardingRule.PortForwardingInternalPort)
 		d.Set("zone", setZone(resp.Zone))
@@ -130,15 +140,17 @@ func resourceNcloudPortForwardingRuleRead(d *schema.ResourceData, meta interface
 }
 
 func resourceNcloudPortForwardingRuleExists(d *schema.ResourceData, meta interface{}) (bool, error) {
-	conn := meta.(*NcloudSdk).conn
+	client := meta.(*NcloudAPIClient)
 
-	zoneNo, err := getServerZoneNo(conn, d.Get("server_instance_no").(string))
+	zoneNo, err := getServerZoneNo(client, d.Get("server_instance_no").(string))
 	if err != nil {
 		return false, err
 	}
-	portForwardingExternalPort := d.Get("port_forwarding_external_port").(string)
-
-	return hasPortForwardingRule(conn, zoneNo, portForwardingExternalPort)
+	var portForwardingExternalPort int32
+	if v, ok := d.GetOk("port_forwarding_external_port"); ok {
+		portForwardingExternalPort = int32(v.(int))
+	}
+	return hasPortForwardingRule(client, zoneNo, portForwardingExternalPort)
 }
 
 func resourceNcloudPortForwardingRuleUpdate(d *schema.ResourceData, meta interface{}) error {
@@ -146,25 +158,32 @@ func resourceNcloudPortForwardingRuleUpdate(d *schema.ResourceData, meta interfa
 }
 
 func resourceNcloudPortForwardingRuleDelete(d *schema.ResourceData, meta interface{}) error {
-	conn := meta.(*NcloudSdk).conn
+	client := meta.(*NcloudAPIClient)
 
 	portForwardingConfigurationNo, err := getPortForwardingConfigurationNo(d, meta)
 	if err != nil {
 		return err
 	}
-	portForwardingExternalPort := d.Get("port_forwarding_external_port").(string)
+	var portForwardingExternalPort int32
+	if v, ok := d.GetOk("port_forwarding_external_port"); ok {
+		portForwardingExternalPort = int32(v.(int))
+	}
+	var portForwardingInternalPort int32
+	if v, ok := d.GetOk("port_forwarding_internal_port"); ok {
+		portForwardingInternalPort = int32(v.(int))
+	}
 
-	reqParams := &sdk.RequestDeletePortForwardingRules{
-		PortForwardingConfigurationNo: portForwardingConfigurationNo,
-		PortForwardingRuleList: []sdk.PortForwardingRule{
+	reqParams := &server.DeletePortForwardingRulesRequest{
+		PortForwardingConfigurationNo: ncloud.String(portForwardingConfigurationNo),
+		PortForwardingRuleList: []*server.PortForwardingRuleParameter{
 			{
-				ServerInstanceNo:           d.Get("server_instance_no").(string),
-				PortForwardingExternalPort: portForwardingExternalPort,
-				PortForwardingInternalPort: d.Get("port_forwarding_internal_port").(string),
+				ServerInstanceNo:           ncloud.String(d.Get("server_instance_no").(string)),
+				PortForwardingExternalPort: ncloud.Int32(portForwardingExternalPort),
+				PortForwardingInternalPort: ncloud.Int32(portForwardingInternalPort),
 			},
 		},
 	}
-	_, err = conn.DeletePortForwardingRules(reqParams)
+	_, err = client.server.V2Api.DeletePortForwardingRules(reqParams)
 	if err != nil {
 		logErrorResponse("DeletePortForwardingRules", err, reqParams)
 		return err
@@ -173,61 +192,61 @@ func resourceNcloudPortForwardingRuleDelete(d *schema.ResourceData, meta interfa
 }
 
 func getPortForwardingConfigurationNo(d *schema.ResourceData, meta interface{}) (string, error) {
-	conn := meta.(*NcloudSdk).conn
+	client := meta.(*NcloudAPIClient)
 	paramPortForwardingConfigurationNo, ok := d.GetOk("port_forwarding_configuration_no")
 	var portForwardingConfigurationNo string
 	if ok {
 		portForwardingConfigurationNo = paramPortForwardingConfigurationNo.(string)
 	} else {
-		zoneNo, err := getServerZoneNo(conn, d.Get("server_instance_no").(string))
+		zoneNo, err := getServerZoneNo(client, d.Get("server_instance_no").(string))
 		if err != nil {
 			return "", err
 		}
-		resp, err := getPortForwardingRuleList(conn, zoneNo)
+		resp, err := getPortForwardingRuleList(client, zoneNo)
 		if err != nil {
 			return "", err
 		}
-		portForwardingConfigurationNo = strconv.Itoa(resp.PortForwardingConfigurationNo)
+		portForwardingConfigurationNo = *resp.PortForwardingConfigurationNo
 	}
 	return portForwardingConfigurationNo, nil
 }
-func getServerZoneNo(conn *sdk.Conn, serverInstanceNo string) (string, error) {
-	serverInstance, err := getServerInstance(conn, serverInstanceNo)
+func getServerZoneNo(client *NcloudAPIClient, serverInstanceNo string) (string, error) {
+	serverInstance, err := getServerInstance(client, serverInstanceNo)
 	if err != nil {
 		return "", err
 	}
-	return serverInstance.Zone.ZoneNo, nil
+	return *serverInstance.Zone.ZoneNo, nil
 }
 
-func getPortForwardingRuleList(conn *sdk.Conn, zoneNo string) (*sdk.PortForwardingRuleList, error) {
-	reqParams := &sdk.RequestPortForwardingRuleList{
-		ZoneNo: zoneNo,
+func getPortForwardingRuleList(client *NcloudAPIClient, zoneNo string) (*server.GetPortForwardingRuleListResponse, error) {
+	reqParams := &server.GetPortForwardingRuleListRequest{
+		ZoneNo: ncloud.String(zoneNo),
 	}
-	resp, err := conn.GetPortForwardingRuleList(reqParams)
+	resp, err := client.server.V2Api.GetPortForwardingRuleList(reqParams)
 	if err != nil {
 		logErrorResponse("GetPortForwardingRuleList", err, reqParams)
 		return nil, err
 	}
-	logCommonResponse("GetPortForwardingRuleList", reqParams, resp.CommonResponse)
+	logCommonResponse("GetPortForwardingRuleList", reqParams, GetCommonResponse(resp))
 
 	return resp, nil
 }
 
-func getPortForwardingRule(conn *sdk.Conn, zoneNo string, portForwardingExternalPort string) (*sdk.PortForwardingRule, error) {
-	resp, err := getPortForwardingRuleList(conn, zoneNo)
+func getPortForwardingRule(client *NcloudAPIClient, zoneNo string, portForwardingExternalPort int32) (*server.PortForwardingRule, error) {
+	resp, err := getPortForwardingRuleList(client, zoneNo)
 	if err != nil {
 		return nil, err
 	}
 	for _, rule := range resp.PortForwardingRuleList {
-		if rule.PortForwardingExternalPort == portForwardingExternalPort {
-			return &rule, nil
+		if *rule.PortForwardingExternalPort == portForwardingExternalPort {
+			return rule, nil
 		}
 	}
-	return nil, fmt.Errorf("resource not found (portForwardingExternalPort) : %s", portForwardingExternalPort)
+	return nil, fmt.Errorf("resource not found (portForwardingExternalPort) : %d", portForwardingExternalPort)
 }
 
-func hasPortForwardingRule(conn *sdk.Conn, zoneNo string, portForwardingExternalPort string) (bool, error) {
-	rule, err := getPortForwardingRule(conn, zoneNo, portForwardingExternalPort)
+func hasPortForwardingRule(client *NcloudAPIClient, zoneNo string, portForwardingExternalPort int32) (bool, error) {
+	rule, err := getPortForwardingRule(client, zoneNo, portForwardingExternalPort)
 	if err != nil {
 		return false, err
 	}

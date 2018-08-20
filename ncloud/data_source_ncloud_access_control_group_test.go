@@ -5,6 +5,7 @@ import (
 	"testing"
 )
 
+// ignore:  no results. please change search criteria and try again
 func TestAccDataSourceNcloudAccessControlGroupBasic(t *testing.T) {
 	t.Parallel()
 
@@ -41,8 +42,9 @@ func TestAccDataSourceNcloudAccessControlGroupMostRecent(t *testing.T) {
 
 var testAccDataSourceNcloudAccessControlGroupConfig = `
 data "ncloud_access_control_group" "test" {
-	//"access_control_group_name" = "Default"
-	"access_control_group_name" = "winrm-acg"
+	//"access_control_group_name" = "ncloud-default-acg"
+	//"access_control_group_name" = "winrm-acg"
+	"is_default_group" = true
 }
 `
 

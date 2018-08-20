@@ -5,8 +5,8 @@ import (
 	"log"
 	"time"
 
-	"github.com/NaverCloudPlatform/ncloud-sdk-go/common"
-	"github.com/NaverCloudPlatform/ncloud-sdk-go/sdk"
+	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/ncloud"
+	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/services/loadbalancer"
 	"github.com/hashicorp/terraform/helper/schema"
 )
 
@@ -67,7 +67,7 @@ func resourceNcloudLoadBalancer() *schema.Resource {
 				Type:         schema.TypeString,
 				Optional:     true,
 				ValidateFunc: validateIncludeValues([]string{"PBLIP", "PRVT"}),
-				Description:  "Network usage identification code. PBLIP(PublicIP), PRVT(PrivateIP). default : PBLIP(PublicIP)",
+				Description:  "Network usage identification code. PBLIP(PublicIp), PRVT(PrivateIP). default : PBLIP(PublicIp)",
 			},
 			"region_code": {
 				Type:          schema.TypeString,
@@ -148,37 +148,37 @@ func resourceNcloudLoadBalancer() *schema.Resource {
 }
 
 func resourceNcloudLoadBalancerCreate(d *schema.ResourceData, meta interface{}) error {
-	conn := meta.(*NcloudSdk).conn
+	client := meta.(*NcloudAPIClient)
 
-	reqParams, err := buildCreateLoadBalancerInstanceParams(conn, d)
+	reqParams, err := buildCreateLoadBalancerInstanceParams(client, d)
 	if err != nil {
 		return err
 	}
-	resp, err := conn.CreateLoadBalancerInstance(reqParams)
+	resp, err := client.loadbalancer.V2Api.CreateLoadBalancerInstance(reqParams)
 	if err != nil {
 		logErrorResponse("CreateLoadBalancerInstance", err, reqParams)
 		return err
 	}
-	logCommonResponse("CreateLoadBalancerInstance", reqParams, resp.CommonResponse)
+	logCommonResponse("CreateLoadBalancerInstance", reqParams, GetCommonResponse(resp))
 
-	LoadBalancerInstance := &resp.LoadBalancerInstanceList[0]
-	d.SetId(LoadBalancerInstance.LoadBalancerInstanceNo)
+	loadBalancerInstance := resp.LoadBalancerInstanceList[0]
+	d.SetId(*loadBalancerInstance.LoadBalancerInstanceNo)
 
-	if err := waitForLoadBalancerInstance(conn, LoadBalancerInstance.LoadBalancerInstanceNo, "USED", DefaultCreateTimeout); err != nil {
+	if err := waitForLoadBalancerInstance(client, *loadBalancerInstance.LoadBalancerInstanceNo, "USED", DefaultCreateTimeout); err != nil {
 		return err
 	}
 	return resourceNcloudLoadBalancerRead(d, meta)
 }
 
 func resourceNcloudLoadBalancerRead(d *schema.ResourceData, meta interface{}) error {
-	conn := meta.(*NcloudSdk).conn
+	client := meta.(*NcloudAPIClient)
 
-	lb, err := getLoadBalancerInstance(conn, d.Id())
+	lb, err := getLoadBalancerInstance(client, d.Id())
 	if err != nil {
 		return err
 	}
 	if lb != nil {
-		d.Set("virtual_ip", lb.VirtualIP)
+		d.Set("virtual_ip", lb.VirtualIp)
 		d.Set("load_balancer_name", lb.LoadBalancerName)
 		d.Set("load_balancer_algorithm_type", setCommonCode(lb.LoadBalancerAlgorithmType))
 		d.Set("load_balancer_description", lb.LoadBalancerDescription)
@@ -189,7 +189,7 @@ func resourceNcloudLoadBalancerRead(d *schema.ResourceData, meta interface{}) er
 		d.Set("load_balancer_instance_status", setCommonCode(lb.LoadBalancerInstanceStatus))
 		d.Set("load_balancer_instance_operation", setCommonCode(lb.LoadBalancerInstanceOperation))
 		d.Set("network_usage_type", setCommonCode(lb.NetworkUsageType))
-		d.Set("is_http_keep_alive", lb.IsHTTPKeepAlive)
+		d.Set("is_http_keep_alive", lb.IsHttpKeepAlive)
 		d.Set("connection_timeout", lb.ConnectionTimeout)
 		d.Set("certificate_name", lb.CertificateName)
 
@@ -206,7 +206,7 @@ func resourceNcloudLoadBalancerRead(d *schema.ResourceData, meta interface{}) er
 	return nil
 }
 
-func getLoadBalancerRuleList(lbRuleList []sdk.LoadBalancerRule) []interface{} {
+func getLoadBalancerRuleList(lbRuleList []*loadbalancer.LoadBalancerRule) []interface{} {
 	list := make([]interface{}, 0, len(lbRuleList))
 
 	for _, r := range lbRuleList {
@@ -224,50 +224,50 @@ func getLoadBalancerRuleList(lbRuleList []sdk.LoadBalancerRule) []interface{} {
 	return list
 }
 
-func getLoadBalancedServerInstanceList(loadBalancedServerInstanceList []sdk.LoadBalancedServerInstance) []string {
+func getLoadBalancedServerInstanceList(loadBalancedServerInstanceList []*loadbalancer.LoadBalancedServerInstance) []string {
 	list := make([]string, 0, len(loadBalancedServerInstanceList))
 
 	for _, instance := range loadBalancedServerInstanceList {
-		list = append(list, instance.ServerInstanceList[0].ServerInstanceNo)
+		list = append(list, *instance.ServerInstance.ServerInstanceNo)
 	}
 
 	return list
 }
 
 func resourceNcloudLoadBalancerDelete(d *schema.ResourceData, meta interface{}) error {
-	conn := meta.(*NcloudSdk).conn
-	return deleteLoadBalancerInstance(conn, d.Id())
+	client := meta.(*NcloudAPIClient)
+	return deleteLoadBalancerInstance(client, d.Id())
 }
 
 func resourceNcloudLoadBalancerUpdate(d *schema.ResourceData, meta interface{}) error {
-	conn := meta.(*NcloudSdk).conn
+	client := meta.(*NcloudAPIClient)
 
 	// Change Load Balanced Server Instances
 	if d.HasChange("server_instance_no_list") {
-		if err := changeLoadBalancedServerInstances(conn, d); err != nil {
+		if err := changeLoadBalancedServerInstances(client, d); err != nil {
 			return err
 		}
 	}
 
-	reqParams := &sdk.RequestChangeLoadBalancerInstanceConfiguration{
-		LoadBalancerInstanceNo:        d.Id(),
-		LoadBalancerAlgorithmTypeCode: d.Get("load_balancer_algorithm_type_code").(string),
+	reqParams := &loadbalancer.ChangeLoadBalancerInstanceConfigurationRequest{
+		LoadBalancerInstanceNo:        ncloud.String(d.Id()),
+		LoadBalancerAlgorithmTypeCode: ncloud.String(d.Get("load_balancer_algorithm_type_code").(string)),
 		LoadBalancerRuleList:          buildLoadBalancerRuleParams(d),
 	}
 
 	if d.HasChange("load_balancer_description") {
-		reqParams.LoadBalancerDescription = d.Get("load_balancer_description").(string)
+		reqParams.LoadBalancerDescription = ncloud.String(d.Get("load_balancer_description").(string))
 	}
 
 	if d.HasChange("load_balancer_algorithm_type_code") || d.HasChange("load_balancer_description") || d.HasChange("load_balancer_rule_list") {
-		resp, err := conn.ChangeLoadBalancerInstanceConfiguration(reqParams)
+		resp, err := client.loadbalancer.V2Api.ChangeLoadBalancerInstanceConfiguration(reqParams)
 		if err != nil {
 			logErrorResponse("ChangeLoadBalancerInstanceConfiguration", err, reqParams)
 			return err
 		}
-		logCommonResponse("ChangeLoadBalancerInstanceConfiguration", reqParams, resp.CommonResponse)
+		logCommonResponse("ChangeLoadBalancerInstanceConfiguration", reqParams, GetCommonResponse(resp))
 
-		if err := waitForLoadBalancerInstance(conn, d.Id(), "USED", DefaultUpdateTimeout); err != nil {
+		if err := waitForLoadBalancerInstance(client, d.Id(), "USED", DefaultUpdateTimeout); err != nil {
 			return err
 		}
 	}
@@ -275,126 +275,126 @@ func resourceNcloudLoadBalancerUpdate(d *schema.ResourceData, meta interface{}) 
 	return resourceNcloudLoadBalancerRead(d, meta)
 }
 
-func changeLoadBalancedServerInstances(conn *sdk.Conn, d *schema.ResourceData) error {
-	reqParams := &sdk.RequestChangeLoadBalancedServerInstances{
-		LoadBalancerInstanceNo: d.Id(),
-		ServerInstanceNoList:   StringList(d.Get("server_instance_no_list").([]interface{})),
+func changeLoadBalancedServerInstances(client *NcloudAPIClient, d *schema.ResourceData) error {
+	reqParams := &loadbalancer.ChangeLoadBalancedServerInstancesRequest{
+		LoadBalancerInstanceNo: ncloud.String(d.Id()),
+		ServerInstanceNoList:   ncloud.StringInterfaceList(d.Get("server_instance_no_list").([]interface{})),
 	}
 
-	resp, err := conn.ChangeLoadBalancedServerInstances(reqParams)
+	resp, err := client.loadbalancer.V2Api.ChangeLoadBalancedServerInstances(reqParams)
 	if err != nil {
 		logErrorResponse("ChangeLoadBalancedServerInstances", err, reqParams)
 		return err
 	}
-	logCommonResponse("ChangeLoadBalancedServerInstances", reqParams, resp.CommonResponse)
+	logCommonResponse("ChangeLoadBalancedServerInstances", reqParams, GetCommonResponse(resp))
 
-	if err := waitForLoadBalancerInstance(conn, d.Id(), "USED", DefaultUpdateTimeout); err != nil {
+	if err := waitForLoadBalancerInstance(client, d.Id(), "USED", DefaultUpdateTimeout); err != nil {
 		return err
 	}
 
 	return nil
 }
 
-func buildLoadBalancerRuleParams(d *schema.ResourceData) []sdk.RequestLoadBalancerRule {
-	lbRuleList := make([]sdk.RequestLoadBalancerRule, 0, len(d.Get("load_balancer_rule_list").([]interface{})))
+func buildLoadBalancerRuleParams(d *schema.ResourceData) []*loadbalancer.LoadBalancerRuleParameter {
+	lbRuleList := make([]*loadbalancer.LoadBalancerRuleParameter, 0, len(d.Get("load_balancer_rule_list").([]interface{})))
 
 	for _, v := range d.Get("load_balancer_rule_list").([]interface{}) {
-		lbRule := new(sdk.RequestLoadBalancerRule)
+		lbRule := new(loadbalancer.LoadBalancerRuleParameter)
 		for key, value := range v.(map[string]interface{}) {
 			switch key {
 			case "protocol_type_code":
-				lbRule.ProtocolTypeCode = value.(string)
+				lbRule.ProtocolTypeCode = ncloud.String(value.(string))
 			case "load_balancer_port":
-				lbRule.LoadBalancerPort = value.(int)
+				lbRule.LoadBalancerPort = ncloud.Int32(int32(value.(int)))
 			case "server_port":
-				lbRule.ServerPort = value.(int)
+				lbRule.ServerPort = ncloud.Int32(int32(value.(int)))
 			case "l7_health_check_path":
-				lbRule.L7HealthCheckPath = value.(string)
+				lbRule.L7HealthCheckPath = ncloud.String(value.(string))
 			case "certificate_name":
-				lbRule.CertificateName = value.(string)
+				lbRule.CertificateName = ncloud.String(value.(string))
 			case "proxy_protocol_use_yn":
-				lbRule.ProxyProtocolUseYn = value.(string)
+				lbRule.ProxyProtocolUseYn = ncloud.String(value.(string))
 			}
 		}
-		lbRuleList = append(lbRuleList, *lbRule)
+		lbRuleList = append(lbRuleList, lbRule)
 	}
 
 	return lbRuleList
 }
 
-func buildCreateLoadBalancerInstanceParams(conn *sdk.Conn, d *schema.ResourceData) (*sdk.RequestCreateLoadBalancerInstance, error) {
-	regionNo, err := parseRegionNoParameter(conn, d)
+func buildCreateLoadBalancerInstanceParams(client *NcloudAPIClient, d *schema.ResourceData) (*loadbalancer.CreateLoadBalancerInstanceRequest, error) {
+	regionNo, err := parseRegionNoParameter(client, d)
 	if err != nil {
 		return nil, err
 	}
-	reqParams := &sdk.RequestCreateLoadBalancerInstance{
-		LoadBalancerName:              d.Get("load_balancer_name").(string),
-		LoadBalancerAlgorithmTypeCode: d.Get("load_balancer_algorithm_type_code").(string),
-		LoadBalancerDescription:       d.Get("load_balancer_description").(string),
+	reqParams := &loadbalancer.CreateLoadBalancerInstanceRequest{
+		LoadBalancerName:              ncloud.String(d.Get("load_balancer_name").(string)),
+		LoadBalancerAlgorithmTypeCode: ncloud.String(d.Get("load_balancer_algorithm_type_code").(string)),
+		LoadBalancerDescription:       ncloud.String(d.Get("load_balancer_description").(string)),
 		LoadBalancerRuleList:          buildLoadBalancerRuleParams(d),
-		ServerInstanceNoList:          StringList(d.Get("server_instance_no_list").([]interface{})),
-		InternetLineTypeCode:          d.Get("internet_line_type_code").(string),
-		NetworkUsageTypeCode:          d.Get("network_usage_type_code").(string),
+		ServerInstanceNoList:          ncloud.StringInterfaceList(d.Get("server_instance_no_list").([]interface{})),
+		InternetLineTypeCode:          ncloud.String(d.Get("internet_line_type_code").(string)),
+		NetworkUsageTypeCode:          ncloud.String(d.Get("network_usage_type_code").(string)),
 		RegionNo:                      regionNo,
 	}
 	return reqParams, nil
 }
 
-func getLoadBalancerInstance(conn *sdk.Conn, LoadBalancerInstanceNo string) (*sdk.LoadBalancerInstance, error) {
-	reqParams := &sdk.RequestLoadBalancerInstanceList{
-		LoadBalancerInstanceNoList: []string{LoadBalancerInstanceNo},
+func getLoadBalancerInstance(client *NcloudAPIClient, loadBalancerInstanceNo string) (*loadbalancer.LoadBalancerInstance, error) {
+	reqParams := &loadbalancer.GetLoadBalancerInstanceListRequest{
+		LoadBalancerInstanceNoList: []*string{ncloud.String(loadBalancerInstanceNo)},
 	}
-	resp, err := conn.GetLoadBalancerInstanceList(reqParams)
+	resp, err := client.loadbalancer.V2Api.GetLoadBalancerInstanceList(reqParams)
 	if err != nil {
 		logErrorResponse("GetLoadBalancerInstanceList", err, reqParams)
 		return nil, err
 	}
-	logCommonResponse("GetLoadBalancerInstanceList", reqParams, resp.CommonResponse)
+	logCommonResponse("GetLoadBalancerInstanceList", reqParams, GetCommonResponse(resp))
 
 	for _, inst := range resp.LoadBalancerInstanceList {
-		if LoadBalancerInstanceNo == inst.LoadBalancerInstanceNo {
-			return &inst, nil
+		if loadBalancerInstanceNo == *inst.LoadBalancerInstanceNo {
+			return inst, nil
 		}
 	}
 	return nil, nil
 }
 
-func deleteLoadBalancerInstance(conn *sdk.Conn, LoadBalancerInstanceNo string) error {
-	reqParams := &sdk.RequestDeleteLoadBalancerInstances{
-		LoadBalancerInstanceNoList: []string{LoadBalancerInstanceNo},
+func deleteLoadBalancerInstance(client *NcloudAPIClient, loadBalancerInstanceNo string) error {
+	reqParams := &loadbalancer.DeleteLoadBalancerInstancesRequest{
+		LoadBalancerInstanceNoList: []*string{ncloud.String(loadBalancerInstanceNo)},
 	}
-	resp, err := conn.DeleteLoadBalancerInstances(reqParams)
+	resp, err := client.loadbalancer.V2Api.DeleteLoadBalancerInstances(reqParams)
 	if err != nil {
-		logErrorResponse("DeleteLoadBalancerInstance", err, LoadBalancerInstanceNo)
+		logErrorResponse("DeleteLoadBalancerInstance", err, loadBalancerInstanceNo)
 		return err
 	}
-	var commonResponse = common.CommonResponse{}
+	var commonResponse = &CommonResponse{}
 	if resp != nil {
-		commonResponse = resp.CommonResponse
+		commonResponse = GetCommonResponse(resp)
 	}
-	logCommonResponse("DeleteLoadBalancerInstance", LoadBalancerInstanceNo, commonResponse)
+	logCommonResponse("DeleteLoadBalancerInstance", loadBalancerInstanceNo, commonResponse)
 
-	return waitForDeleteLoadBalancerInstance(conn, LoadBalancerInstanceNo)
+	return waitForDeleteLoadBalancerInstance(client, loadBalancerInstanceNo)
 }
 
-func waitForLoadBalancerInstance(conn *sdk.Conn, id string, status string, timeout time.Duration) error {
+func waitForLoadBalancerInstance(client *NcloudAPIClient, id string, status string, timeout time.Duration) error {
 	c1 := make(chan error, 1)
 
 	go func() {
 		for {
-			instance, err := getLoadBalancerInstance(conn, id)
+			instance, err := getLoadBalancerInstance(client, id)
 
 			if err != nil {
 				c1 <- err
 				return
 			}
 
-			if instance == nil || (instance.LoadBalancerInstanceStatus.Code == status && instance.LoadBalancerInstanceOperation.Code == "NULL") {
+			if instance == nil || (*instance.LoadBalancerInstanceStatus.Code == status && *instance.LoadBalancerInstanceOperation.Code == "NULL") {
 				c1 <- nil
 				return
 			}
 
-			log.Printf("[DEBUG] Wait get load balancer instance [%s] status [%s] to be [%s]", id, instance.LoadBalancerInstanceStatus.Code, status)
+			log.Printf("[DEBUG] Wait get load balancer instance [%s] status [%s] to be [%s]", id, *instance.LoadBalancerInstanceStatus.Code, status)
 			time.Sleep(time.Second * 1)
 		}
 	}()
@@ -407,12 +407,12 @@ func waitForLoadBalancerInstance(conn *sdk.Conn, id string, status string, timeo
 	}
 }
 
-func waitForDeleteLoadBalancerInstance(conn *sdk.Conn, id string) error {
+func waitForDeleteLoadBalancerInstance(client *NcloudAPIClient, id string) error {
 	c1 := make(chan error, 1)
 
 	go func() {
 		for {
-			instance, err := getLoadBalancerInstance(conn, id)
+			instance, err := getLoadBalancerInstance(client, id)
 
 			if err != nil {
 				c1 <- err

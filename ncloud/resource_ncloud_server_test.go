@@ -2,7 +2,7 @@ package ncloud
 
 import (
 	"fmt"
-	"github.com/NaverCloudPlatform/ncloud-sdk-go/sdk"
+	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/services/server"
 	"github.com/hashicorp/terraform/helper/acctest"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/helper/schema"
@@ -11,12 +11,12 @@ import (
 )
 
 func TestAccResourceNcloudServerBasic(t *testing.T) {
-	var serverInstance sdk.ServerInstance
+	var serverInstance server.ServerInstance
 	testServerName := getTestServerName()
 
 	testCheck := func() func(*terraform.State) error {
 		return func(*terraform.State) error {
-			if serverInstance.ServerName != testServerName {
+			if *serverInstance.ServerName != testServerName {
 				return fmt.Errorf("not found: %s", testServerName)
 			}
 			return nil
@@ -50,8 +50,8 @@ func TestAccResourceNcloudServerBasic(t *testing.T) {
 }
 
 func TestAccResourceInstanceChangeServerInstanceSpec(t *testing.T) {
-	var before sdk.ServerInstance
-	var after sdk.ServerInstance
+	var before server.ServerInstance
+	var after server.ServerInstance
 	testServerName := getTestServerName()
 
 	resource.Test(t, resource.TestCase{
@@ -82,8 +82,8 @@ func TestAccResourceInstanceChangeServerInstanceSpec(t *testing.T) {
 
 // ignore test: must need real test data
 func testAccResourceRecreateServerInstance(t *testing.T) {
-	var before sdk.ServerInstance
-	var after sdk.ServerInstance
+	var before server.ServerInstance
+	var after server.ServerInstance
 	testServerName := getTestServerName()
 
 	resource.Test(t, resource.TestCase{
@@ -116,11 +116,11 @@ func testAccResourceRecreateServerInstance(t *testing.T) {
 	})
 }
 
-func testAccCheckServerExists(n string, i *sdk.ServerInstance) resource.TestCheckFunc {
+func testAccCheckServerExists(n string, i *server.ServerInstance) resource.TestCheckFunc {
 	return testAccCheckInstanceExistsWithProvider(n, i, func() *schema.Provider { return testAccProvider })
 }
 
-func testAccCheckInstanceExistsWithProvider(n string, i *sdk.ServerInstance, providerF func() *schema.Provider) resource.TestCheckFunc {
+func testAccCheckInstanceExistsWithProvider(n string, i *server.ServerInstance, providerF func() *schema.Provider) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		rs, ok := s.RootModule().Resources[n]
 		if !ok {
@@ -132,8 +132,8 @@ func testAccCheckInstanceExistsWithProvider(n string, i *sdk.ServerInstance, pro
 		}
 
 		provider := providerF()
-		conn := provider.Meta().(*NcloudSdk).conn
-		instance, err := getServerInstance(conn, rs.Primary.ID)
+		client := provider.Meta().(*NcloudAPIClient)
+		instance, err := getServerInstance(client, rs.Primary.ID)
 		if err != nil {
 			return nil
 		}
@@ -148,10 +148,10 @@ func testAccCheckInstanceExistsWithProvider(n string, i *sdk.ServerInstance, pro
 }
 
 func testAccCheckInstanceNotRecreated(t *testing.T,
-	before, after *sdk.ServerInstance) resource.TestCheckFunc {
+	before, after *server.ServerInstance) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		if before.ServerInstanceNo != after.ServerInstanceNo {
-			t.Fatalf("Ncloud Instance IDs have changed. Before %s. After %s", before.ServerInstanceNo, after.ServerInstanceNo)
+			t.Fatalf("Ncloud Instance IDs have changed. Before %s. After %s", *before.ServerInstanceNo, *after.ServerInstanceNo)
 		}
 		return nil
 	}
@@ -162,13 +162,13 @@ func testAccCheckServerDestroy(s *terraform.State) error {
 }
 
 func testAccCheckInstanceDestroyWithProvider(s *terraform.State, provider *schema.Provider) error {
-	conn := provider.Meta().(*NcloudSdk).conn
+	client := provider.Meta().(*NcloudAPIClient)
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "ncloud_server" {
 			continue
 		}
-		instance, err := getServerInstance(conn, rs.Primary.ID)
+		instance, err := getServerInstance(client, rs.Primary.ID)
 
 		if err != nil {
 			return err
@@ -178,8 +178,8 @@ func testAccCheckInstanceDestroyWithProvider(s *terraform.State, provider *schem
 			continue
 		}
 
-		if instance.ServerInstanceStatusName != "terminating" {
-			return fmt.Errorf("found unterminated instance: %s", instance.ServerInstanceNo)
+		if *instance.ServerInstanceStatusName != "terminating" {
+			return fmt.Errorf("found unterminated instance: %s", *instance.ServerInstanceNo)
 		}
 	}
 

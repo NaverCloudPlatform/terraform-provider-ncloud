@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/NaverCloudPlatform/ncloud-sdk-go/common"
-	"github.com/NaverCloudPlatform/ncloud-sdk-go/sdk"
+	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/ncloud"
+	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/services/server"
 	"github.com/hashicorp/terraform/helper/schema"
 )
 
@@ -105,28 +105,28 @@ func resourceNcloudBlockStorageSnapshot() *schema.Resource {
 }
 
 func resourceNcloudBlockStorageSnapshotCreate(d *schema.ResourceData, meta interface{}) error {
-	conn := meta.(*NcloudSdk).conn
+	client := meta.(*NcloudAPIClient)
 
 	reqParams := buildRequestBlockStorageSnapshotInstance(d)
-	resp, err := conn.CreateBlockStorageSnapshotInstance(reqParams)
+	resp, err := client.server.V2Api.CreateBlockStorageSnapshotInstance(reqParams)
 	if err != nil {
 		logErrorResponse("CreateBlockStorageSnapshotInstance", err, reqParams)
 		return err
 	}
-	logCommonResponse("CreateBlockStorageSnapshotInstance", reqParams, resp.CommonResponse)
+	logCommonResponse("CreateBlockStorageSnapshotInstance", reqParams, GetCommonResponse(resp))
 
-	blockStorageSnapshotInstance := &resp.BlockStorageSnapshotInstanceList[0]
-	d.SetId(blockStorageSnapshotInstance.BlockStorageSnapshotInstanceNo)
+	blockStorageSnapshotInstance := resp.BlockStorageInstanceList[0]
+	d.SetId(*blockStorageSnapshotInstance.BlockStorageInstanceNo)
 
-	if err := waitForBlockStorageSnapshotInstance(conn, blockStorageSnapshotInstance.BlockStorageSnapshotInstanceNo, "CREAT"); err != nil {
+	if err := waitForBlockStorageSnapshotInstance(client, *blockStorageSnapshotInstance.BlockStorageInstanceNo, "CREAT"); err != nil {
 		return err
 	}
 	return resourceNcloudBlockStorageRead(d, meta)
 }
 
 func resourceNcloudBlockStorageSnapshotRead(d *schema.ResourceData, meta interface{}) error {
-	conn := meta.(*NcloudSdk).conn
-	snapshot, err := getBlockStorageSnapshotInstance(conn, d.Id())
+	client := meta.(*NcloudAPIClient)
+	snapshot, err := getBlockStorageSnapshotInstance(client, d.Id())
 	if err != nil {
 		return err
 	}
@@ -148,75 +148,78 @@ func resourceNcloudBlockStorageSnapshotRead(d *schema.ResourceData, meta interfa
 }
 
 func resourceNcloudBlockStorageSnapshotDelete(d *schema.ResourceData, meta interface{}) error {
-	conn := meta.(*NcloudSdk).conn
+	client := meta.(*NcloudAPIClient)
 	blockStorageSnapshotInstanceNo := d.Get("block_storage_snapshot_instance_no").(string)
-	return deleteBlockStorageSnapshotInstance(conn, blockStorageSnapshotInstanceNo)
+	return deleteBlockStorageSnapshotInstance(client, blockStorageSnapshotInstanceNo)
 }
 
-func buildRequestBlockStorageSnapshotInstance(d *schema.ResourceData) *sdk.RequestCreateBlockStorageSnapshotInstance {
-	return &sdk.RequestCreateBlockStorageSnapshotInstance{
-		BlockStorageInstanceNo:          d.Get("block_storage_instance_no").(string),
-		BlockStorageSnapshotName:        d.Get("block_storage_snapshot_name").(string),
-		BlockStorageSnapshotDescription: d.Get("block_storage_snapshot_description").(string),
+func buildRequestBlockStorageSnapshotInstance(d *schema.ResourceData) *server.CreateBlockStorageSnapshotInstanceRequest {
+	return &server.CreateBlockStorageSnapshotInstanceRequest{
+		BlockStorageInstanceNo:          ncloud.String(d.Get("block_storage_instance_no").(string)),
+		BlockStorageSnapshotName:        ncloud.String(d.Get("block_storage_snapshot_name").(string)),
+		BlockStorageSnapshotDescription: ncloud.String(d.Get("block_storage_snapshot_description").(string)),
 	}
 }
 
-func getBlockStorageSnapshotInstanceList(conn *sdk.Conn, blockStorageSnapshotInstanceNo string) ([]sdk.BlockStorageSnapshotInstance, error) {
-	reqParams := &sdk.RequestGetBlockStorageSnapshotInstanceList{
-		BlockStorageSnapshotInstanceNoList: []string{blockStorageSnapshotInstanceNo},
+func getBlockStorageSnapshotInstanceList(client *NcloudAPIClient, blockStorageSnapshotInstanceNo string) ([]*server.BlockStorageSnapshotInstance, error) {
+	reqParams := &server.GetBlockStorageSnapshotInstanceListRequest{
+		BlockStorageSnapshotInstanceNoList: []*string{ncloud.String(blockStorageSnapshotInstanceNo)},
 	}
-	resp, err := conn.GetBlockStorageSnapshotInstanceList(reqParams)
+	resp, err := client.server.V2Api.GetBlockStorageSnapshotInstanceList(reqParams)
 	if err != nil {
 		logErrorResponse("GetBlockStorageSnapshotInstanceList", err, reqParams)
 		return nil, err
 	}
-	logCommonResponse("GetBlockStorageSnapshotInstanceList", reqParams, resp.CommonResponse)
+	logCommonResponse("GetBlockStorageSnapshotInstanceList", reqParams, GetCommonResponse(resp))
 	return resp.BlockStorageSnapshotInstanceList, nil
 }
 
-func getBlockStorageSnapshotInstance(conn *sdk.Conn, blockStorageSnapshotInstanceNo string) (*sdk.BlockStorageSnapshotInstance, error) {
-	snapshots, err := getBlockStorageSnapshotInstanceList(conn, blockStorageSnapshotInstanceNo)
+func getBlockStorageSnapshotInstance(client *NcloudAPIClient, blockStorageSnapshotInstanceNo string) (*server.BlockStorageSnapshotInstance, error) {
+	snapshots, err := getBlockStorageSnapshotInstanceList(client, blockStorageSnapshotInstanceNo)
 	if err != nil {
 		return nil, err
 	}
 	if len(snapshots) > 0 {
-		inst := &snapshots[0]
+		inst := snapshots[0]
 		return inst, nil
 	}
 	return nil, nil
 }
 
-func deleteBlockStorageSnapshotInstance(conn *sdk.Conn, blockStorageSnapshotInstanceNo string) error {
-	resp, err := conn.DeleteBlockStorageSnapshotInstances([]string{blockStorageSnapshotInstanceNo})
+func deleteBlockStorageSnapshotInstance(client *NcloudAPIClient, blockStorageSnapshotInstanceNo string) error {
+	resp, err := client.server.V2Api.DeleteBlockStorageSnapshotInstances(
+		&server.DeleteBlockStorageSnapshotInstancesRequest{
+			BlockStorageSnapshotInstanceNoList: []*string{ncloud.String(blockStorageSnapshotInstanceNo)},
+		})
 	if err != nil {
-		logErrorResponse("DeleteBlockStorageSnapshotInstances", err, []string{blockStorageSnapshotInstanceNo})
+		logErrorResponse("DeleteBlockStorageSnapshotInstances", err, []*string{ncloud.String(blockStorageSnapshotInstanceNo)})
 		return err
 	}
-	var commonResponse = common.CommonResponse{}
+	var commonResponse = &CommonResponse{}
 	if resp != nil {
-		commonResponse = resp.CommonResponse
+		commonResponse = GetCommonResponse(resp)
 	}
 	logCommonResponse("DeleteBlockStorageSnapshotInstances", blockStorageSnapshotInstanceNo, commonResponse)
 
-	if err := waitForBlockStorageSnapshotInstance(conn, blockStorageSnapshotInstanceNo, "TERMT"); err != nil {
+	if err := waitForBlockStorageSnapshotInstance(client, blockStorageSnapshotInstanceNo, "TERMT"); err != nil {
 		return err
 	}
 	return nil
 }
 
-func waitForBlockStorageSnapshotInstance(conn *sdk.Conn, id string, status string) error {
+func waitForBlockStorageSnapshotInstance(client *NcloudAPIClient, id string, status string) error {
 
 	c1 := make(chan error, 1)
 
 	go func() {
 		for {
-			snapshot, err := getBlockStorageSnapshotInstance(conn, id)
+			snapshot, err := getBlockStorageSnapshotInstance(client, id)
 
 			if err != nil {
 				c1 <- err
 				return
 			}
-			if snapshot == nil || snapshot.BlockStorageSnapshotInstanceStatus.Code == status {
+			if snapshot == nil || *snapshot.BlockStorageSnapshotInstanceStatus.Code == status {
 				c1 <- nil
 				return
 			}

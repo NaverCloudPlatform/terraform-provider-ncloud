@@ -5,8 +5,8 @@ import (
 	"log"
 	"time"
 
-	"github.com/NaverCloudPlatform/ncloud-sdk-go/common"
-	"github.com/NaverCloudPlatform/ncloud-sdk-go/sdk"
+	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/ncloud"
+	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/services/server"
 	"github.com/hashicorp/terraform/helper/schema"
 )
 
@@ -188,32 +188,32 @@ func resourceNcloudNasVolume() *schema.Resource {
 }
 
 func resourceNcloudNasVolumeCreate(d *schema.ResourceData, meta interface{}) error {
-	conn := meta.(*NcloudSdk).conn
+	client := meta.(*NcloudAPIClient)
 
-	reqParams, err := buildCreateNasVolumeInstanceParams(conn, d)
+	reqParams, err := buildCreateNasVolumeInstanceParams(client, d)
 	if err != nil {
 		return nil
 	}
-	resp, err := conn.CreateNasVolumeInstance(reqParams)
+	resp, err := client.server.V2Api.CreateNasVolumeInstance(reqParams)
 	if err != nil {
 		logErrorResponse("CreateNasVolumeInstance", err, reqParams)
 		return err
 	}
-	logCommonResponse("CreateNasVolumeInstance", reqParams, resp.CommonResponse)
+	logCommonResponse("CreateNasVolumeInstance", reqParams, GetCommonResponse(resp))
 
-	nasVolumeInstance := &resp.NasVolumeInstanceList[0]
-	d.SetId(nasVolumeInstance.NasVolumeInstanceNo)
+	nasVolumeInstance := resp.NasVolumeInstanceList[0]
+	d.SetId(*nasVolumeInstance.NasVolumeInstanceNo)
 
-	if err := waitForNasVolumeInstance(conn, nasVolumeInstance.NasVolumeInstanceNo, "CREAT"); err != nil {
+	if err := waitForNasVolumeInstance(client, *nasVolumeInstance.NasVolumeInstanceNo, "CREAT"); err != nil {
 		return err
 	}
 	return resourceNcloudNasVolumeRead(d, meta)
 }
 
 func resourceNcloudNasVolumeRead(d *schema.ResourceData, meta interface{}) error {
-	conn := meta.(*NcloudSdk).conn
+	client := meta.(*NcloudAPIClient)
 
-	nasVolume, err := getNasVolumeInstance(conn, d.Id())
+	nasVolume, err := getNasVolumeInstance(client, d.Id())
 	if err != nil {
 		return err
 	}
@@ -232,7 +232,7 @@ func resourceNcloudNasVolumeRead(d *schema.ResourceData, meta interface{}) error
 		d.Set("snapshot_volume_use_ratio", nasVolume.SnapshotVolumeUseRatio)
 		d.Set("is_snapshot_configuration", nasVolume.IsSnapshotConfiguration)
 		d.Set("is_event_configuration", nasVolume.IsEventConfiguration)
-		d.Set("nas_volume_instance_custom_ip_list", nasVolume.NasVolumeInstanceCustomIPList)
+		d.Set("nas_volume_instance_custom_ip_list", nasVolume.NasVolumeInstanceCustomIpList)
 		d.Set("zone", setZone(nasVolume.Zone))
 		d.Set("region", setRegion(nasVolume.Region))
 	}
@@ -241,116 +241,118 @@ func resourceNcloudNasVolumeRead(d *schema.ResourceData, meta interface{}) error
 }
 
 func resourceNcloudNasVolumeDelete(d *schema.ResourceData, meta interface{}) error {
-	conn := meta.(*NcloudSdk).conn
-	return deleteNasVolumeInstance(conn, d.Id())
+	client := meta.(*NcloudAPIClient)
+	return deleteNasVolumeInstance(client, d.Id())
 }
 
 func resourceNcloudNasVolumeUpdate(d *schema.ResourceData, meta interface{}) error {
-	conn := meta.(*NcloudSdk).conn
+	client := meta.(*NcloudAPIClient)
 
 	if d.HasChange("volume_size_gb") {
-		reqParams := new(sdk.RequestChangeNasVolumeSize)
-		reqParams.NasVolumeInstanceNo = d.Id()
-		reqParams.VolumeSize = d.Get("volume_size_gb").(int)
-		resp, err := conn.ChangeNasVolumeSize(reqParams)
+		reqParams := new(server.ChangeNasVolumeSizeRequest)
+		reqParams.NasVolumeInstanceNo = ncloud.String(d.Id())
+		if volumeSizeGb, ok := d.GetOk("volume_size_gb"); ok {
+			reqParams.VolumeSize = ncloud.Int32(int32(volumeSizeGb.(int)))
+		}
+		resp, err := client.server.V2Api.ChangeNasVolumeSize(reqParams)
 		if err != nil {
 			logErrorResponse("ChangeNasVolumeSize", err, reqParams)
 			return err
 		}
-		logCommonResponse("ChangeNasVolumeSize", reqParams, resp.CommonResponse)
+		logCommonResponse("ChangeNasVolumeSize", reqParams, GetCommonResponse(resp))
 	}
 
 	if d.HasChange("server_instance_no_list") || d.HasChange("custom_ip_list") {
-		reqParams := &sdk.RequestNasVolumeAccessControl{
-			NasVolumeInstanceNo:  d.Id(),
-			ServerInstanceNoList: StringList(d.Get("server_instance_no_list").([]interface{})),
-			CustomIPList:         StringList(d.Get("custom_ip_list").([]interface{})),
+		reqParams := &server.SetNasVolumeAccessControlRequest{
+			NasVolumeInstanceNo:  ncloud.String(d.Id()),
+			ServerInstanceNoList: ncloud.StringInterfaceList(d.Get("server_instance_no_list").([]interface{})),
+			CustomIpList:         ncloud.StringInterfaceList(d.Get("custom_ip_list").([]interface{})),
 		}
 
-		resp, err := conn.SetNasVolumeAccessControl(reqParams)
+		resp, err := client.server.V2Api.SetNasVolumeAccessControl(reqParams)
 		if err != nil {
 			logErrorResponse("SetNasVolumeAccessControl", err, reqParams)
 			return err
 		}
-		logCommonResponse("SetNasVolumeAccessControl", reqParams, resp.CommonResponse)
+		logCommonResponse("SetNasVolumeAccessControl", reqParams, GetCommonResponse(resp))
 	}
 
 	return resourceNcloudNasVolumeRead(d, meta)
 }
 
-func buildCreateNasVolumeInstanceParams(conn *sdk.Conn, d *schema.ResourceData) (*sdk.RequestCreateNasVolumeInstance, error) {
-	regionNo, err := parseRegionNoParameter(conn, d)
+func buildCreateNasVolumeInstanceParams(client *NcloudAPIClient, d *schema.ResourceData) (*server.CreateNasVolumeInstanceRequest, error) {
+	regionNo, err := parseRegionNoParameter(client, d)
 	if err != nil {
 		return nil, err
 	}
-	zoneNo, err := parseZoneNoParameter(conn, d)
+	zoneNo, err := parseZoneNoParameter(client, d)
 	if err != nil {
 		return nil, err
 	}
-	reqParams := &sdk.RequestCreateNasVolumeInstance{
-		VolumeName:                      d.Get("volume_name_postfix").(string),
-		VolumeSize:                      d.Get("volume_size_gb").(int),
-		VolumeAllotmentProtocolTypeCode: d.Get("volume_allotment_protocol_type_code").(string),
-		ServerInstanceNoList:            StringList(d.Get("server_instance_no_list").([]interface{})),
-		CustomIpList:                    StringList(d.Get("custom_ip_list").([]interface{})),
-		CifsUserName:                    d.Get("cifs_user_name").(string),
-		CifsUserPassword:                d.Get("cifs_user_password").(string),
-		NasVolumeDescription:            d.Get("nas_volume_description").(string),
+	reqParams := &server.CreateNasVolumeInstanceRequest{
+		VolumeName:                      ncloud.String(d.Get("volume_name_postfix").(string)),
+		VolumeSize:                      ncloud.Int32(int32(d.Get("volume_size_gb").(int))),
+		VolumeAllotmentProtocolTypeCode: ncloud.String(d.Get("volume_allotment_protocol_type_code").(string)),
+		ServerInstanceNoList:            ncloud.StringInterfaceList(d.Get("server_instance_no_list").([]interface{})),
+		CustomIpList:                    ncloud.StringInterfaceList(d.Get("custom_ip_list").([]interface{})),
+		CifsUserName:                    ncloud.String(d.Get("cifs_user_name").(string)),
+		CifsUserPassword:                ncloud.String(d.Get("cifs_user_password").(string)),
+		NasVolumeDescription:            ncloud.String(d.Get("nas_volume_description").(string)),
 		RegionNo:                        regionNo,
 		ZoneNo:                          zoneNo,
 	}
 	return reqParams, nil
 }
 
-func getNasVolumeInstance(conn *sdk.Conn, nasVolumeInstanceNo string) (*sdk.NasVolumeInstance, error) {
-	reqParams := &sdk.RequestGetNasVolumeInstanceList{}
-	resp, err := conn.GetNasVolumeInstanceList(reqParams)
+func getNasVolumeInstance(client *NcloudAPIClient, nasVolumeInstanceNo string) (*server.NasVolumeInstance, error) {
+	reqParams := &server.GetNasVolumeInstanceListRequest{}
+	resp, err := client.server.V2Api.GetNasVolumeInstanceList(reqParams)
 	if err != nil {
 		logErrorResponse("GetNasVolumeInstanceList", err, reqParams)
 		return nil, err
 	}
-	logCommonResponse("GetNasVolumeInstanceList", reqParams, resp.CommonResponse)
+	logCommonResponse("GetNasVolumeInstanceList", reqParams, GetCommonResponse(resp))
 
 	for _, inst := range resp.NasVolumeInstanceList {
-		if nasVolumeInstanceNo == inst.NasVolumeInstanceNo {
-			return &inst, nil
+		if nasVolumeInstanceNo == *inst.NasVolumeInstanceNo {
+			return inst, nil
 		}
 	}
 	return nil, nil
 }
 
-func deleteNasVolumeInstance(conn *sdk.Conn, nasVolumeInstanceNo string) error {
-	resp, err := conn.DeleteNasVolumeInstance(nasVolumeInstanceNo)
+func deleteNasVolumeInstance(client *NcloudAPIClient, nasVolumeInstanceNo string) error {
+	resp, err := client.server.V2Api.DeleteNasVolumeInstance(&server.DeleteNasVolumeInstanceRequest{NasVolumeInstanceNo: ncloud.String(nasVolumeInstanceNo)})
 	if err != nil {
 		logErrorResponse("DeleteNasVolumeInstance", err, nasVolumeInstanceNo)
 		return err
 	}
-	var commonResponse = common.CommonResponse{}
+	var commonResponse = &CommonResponse{}
 	if resp != nil {
-		commonResponse = resp.CommonResponse
+		commonResponse = GetCommonResponse(resp)
 	}
 	logCommonResponse("DeleteNasVolumeInstance", nasVolumeInstanceNo, commonResponse)
 
-	if err := waitForNasVolumeInstance(conn, nasVolumeInstanceNo, "TERMT"); err != nil {
+	if err := waitForNasVolumeInstance(client, nasVolumeInstanceNo, "TERMT"); err != nil {
 		return err
 	}
 
 	return nil
 }
 
-func waitForNasVolumeInstance(conn *sdk.Conn, id string, status string) error {
+func waitForNasVolumeInstance(client *NcloudAPIClient, id string, status string) error {
 
 	c1 := make(chan error, 1)
 
 	go func() {
 		for {
-			instance, err := getNasVolumeInstance(conn, id)
+			instance, err := getNasVolumeInstance(client, id)
 
 			if err != nil {
 				c1 <- err
 				return
 			}
-			if instance == nil || instance.NasVolumeInstanceStatus.Code == status {
+			if instance == nil || *instance.NasVolumeInstanceStatus.Code == status {
 				c1 <- nil
 				return
 			}

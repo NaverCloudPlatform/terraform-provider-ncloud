@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/NaverCloudPlatform/ncloud-sdk-go/common"
+	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/services/server"
 	"github.com/hashicorp/terraform/helper/schema"
 	"log"
 )
@@ -40,15 +40,15 @@ func dataSourceNcloudZones() *schema.Resource {
 }
 
 func dataSourceNcloudZonesRead(d *schema.ResourceData, meta interface{}) error {
-	conn := meta.(*NcloudSdk).conn
+	client := meta.(*NcloudAPIClient)
 
 	d.SetId(time.Now().UTC().String())
 
-	regionNo, err := parseRegionNoParameter(conn, d)
+	regionNo, err := parseRegionNoParameter(client, d)
 	if err != nil {
 		return err
 	}
-	resp, err := conn.GetZoneList(regionNo)
+	resp, err := client.server.V2Api.GetZoneList(&server.GetZoneListRequest{RegionNo: regionNo})
 	if err != nil {
 		return err
 	}
@@ -57,10 +57,10 @@ func dataSourceNcloudZonesRead(d *schema.ResourceData, meta interface{}) error {
 		return fmt.Errorf("no matching zones found")
 	}
 
-	var zones []common.Zone
+	var zones []*Zone
 
-	for _, zone := range resp.Zone {
-		zones = append(zones, zone)
+	for _, zone := range resp.ZoneList {
+		zones = append(zones, GetZone(zone))
 	}
 
 	if len(zones) < 1 {
@@ -70,13 +70,13 @@ func dataSourceNcloudZonesRead(d *schema.ResourceData, meta interface{}) error {
 	return zonesAttributes(d, zones)
 }
 
-func zonesAttributes(d *schema.ResourceData, zones []common.Zone) error {
+func zonesAttributes(d *schema.ResourceData, zones []*Zone) error {
 
 	var ids []string
 	var s []map[string]interface{}
 	for _, zone := range zones {
 		mapping := setZone(zone)
-		ids = append(ids, string(zone.ZoneNo))
+		ids = append(ids, *zone.ZoneNo)
 		s = append(s, mapping)
 	}
 	log.Printf("[DEBUG] zones: %#v", s)

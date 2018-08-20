@@ -2,7 +2,8 @@ package ncloud
 
 import (
 	"fmt"
-	"github.com/NaverCloudPlatform/ncloud-sdk-go/sdk"
+	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/ncloud"
+	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/services/server"
 	"github.com/hashicorp/terraform/helper/schema"
 )
 
@@ -16,9 +17,8 @@ func dataSourceNcloudAccessControlGroup() *schema.Resource {
 				Optional: true,
 			},
 			"is_default_group": {
-				Type:         schema.TypeString,
-				Optional:     true,
-				ValidateFunc: validateBoolValue,
+				Type:     schema.TypeBool,
+				Optional: true,
 			},
 			"access_control_group_name": {
 				Type:     schema.TypeString,
@@ -44,7 +44,7 @@ func dataSourceNcloudAccessControlGroup() *schema.Resource {
 }
 
 func dataSourceNcloudAccessControlGroupRead(d *schema.ResourceData, meta interface{}) error {
-	conn := meta.(*NcloudSdk).conn
+	client := meta.(*NcloudAPIClient)
 
 	configNo, configNoOk := d.GetOk("access_control_group_configuration_no")
 	acgName, acgNameOk := d.GetOk("access_control_group_name")
@@ -54,27 +54,30 @@ func dataSourceNcloudAccessControlGroupRead(d *schema.ResourceData, meta interfa
 		return fmt.Errorf("either access_control_group_configuration_no or access_control_group_name or most_recent is required")
 	}
 
-	reqParams := new(sdk.RequestAccessControlGroupList)
+	reqParams := server.GetAccessControlGroupListRequest{}
 	if configNoOk {
-		reqParams.AccessControlGroupConfigurationNoList = []string{configNo.(string)}
+		reqParams.AccessControlGroupConfigurationNoList = []*string{ncloud.String(configNo.(string))}
 	}
 	if acgNameOk {
-		reqParams.AccessControlGroupName = acgName.(string)
+		reqParams.AccessControlGroupName = ncloud.String(acgName.(string))
 	}
-	reqParams.IsDefault = d.Get("is_default_group").(string)
-	reqParams.PageNo = 1
 
-	resp, err := conn.GetAccessControlGroupList(reqParams)
+	if isDefaultGroup, ok := d.GetOk("is_default_group"); ok {
+		reqParams.IsDefault = ncloud.Bool(isDefaultGroup.(bool))
+	}
+	reqParams.PageNo = ncloud.Int32(1)
+
+	resp, err := client.server.V2Api.GetAccessControlGroupList(&reqParams)
 	if err != nil {
 		logErrorResponse("GetAccessControlGroupList", err, reqParams)
 		return err
 	}
-	logCommonResponse("GetAccessControlGroupList", reqParams, resp.CommonResponse)
+	logCommonResponse("GetAccessControlGroupList", reqParams, GetCommonResponse(resp))
 
-	var accessControlGroup sdk.AccessControlGroup
-	var accessControlGroups []sdk.AccessControlGroup
+	var accessControlGroup *server.AccessControlGroup
+	var accessControlGroups []*server.AccessControlGroup
 
-	for _, acg := range resp.AccessControlGroup {
+	for _, acg := range resp.AccessControlGroupList {
 		accessControlGroups = append(accessControlGroups, acg)
 	}
 
@@ -92,12 +95,12 @@ func dataSourceNcloudAccessControlGroupRead(d *schema.ResourceData, meta interfa
 	return accessControlGroupAttributes(d, accessControlGroup)
 }
 
-func accessControlGroupAttributes(d *schema.ResourceData, accessControlGroup sdk.AccessControlGroup) error {
-	d.SetId(string(accessControlGroup.AccessControlGroupConfigurationNo))
+func accessControlGroupAttributes(d *schema.ResourceData, accessControlGroup *server.AccessControlGroup) error {
+	d.SetId(*accessControlGroup.AccessControlGroupConfigurationNo)
 	d.Set("access_control_group_configuration_no", accessControlGroup.AccessControlGroupConfigurationNo)
 	d.Set("access_control_group_name", accessControlGroup.AccessControlGroupName)
 	d.Set("access_control_group_description", accessControlGroup.AccessControlGroupDescription)
-	d.Set("is_default_group", accessControlGroup.IsDefault)
+	d.Set("is_default_group", accessControlGroup.IsDefaultGroup)
 	d.Set("create_date", accessControlGroup.CreateDate)
 
 	return nil

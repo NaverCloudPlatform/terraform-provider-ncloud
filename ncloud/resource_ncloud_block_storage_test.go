@@ -2,7 +2,7 @@ package ncloud
 
 import (
 	"fmt"
-	"github.com/NaverCloudPlatform/ncloud-sdk-go/sdk"
+	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/services/server"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/terraform"
@@ -10,13 +10,13 @@ import (
 )
 
 func TestAccResourceNcloudBlockStorageBasic(t *testing.T) {
-	var storageInstance sdk.BlockStorageInstance
+	var storageInstance server.BlockStorageInstance
 	prefix := getTestPrefix()
 	testServerInstanceName := prefix + "-vm"
 	testBlockStorageName := prefix + "-storage"
 	testCheck := func() func(*terraform.State) error {
 		return func(*terraform.State) error {
-			if storageInstance.BlockStorageName != testBlockStorageName {
+			if *storageInstance.BlockStorageName != testBlockStorageName {
 				return fmt.Errorf("not found: %s", testBlockStorageName)
 			}
 			return nil
@@ -49,11 +49,11 @@ func TestAccResourceNcloudBlockStorageBasic(t *testing.T) {
 	})
 }
 
-func testAccCheckBlockStorageExists(n string, i *sdk.BlockStorageInstance) resource.TestCheckFunc {
+func testAccCheckBlockStorageExists(n string, i *server.BlockStorageInstance) resource.TestCheckFunc {
 	return testAccCheckBlockStorageExistsWithProvider(n, i, func() *schema.Provider { return testAccProvider })
 }
 
-func testAccCheckBlockStorageExistsWithProvider(n string, i *sdk.BlockStorageInstance, providerF func() *schema.Provider) resource.TestCheckFunc {
+func testAccCheckBlockStorageExistsWithProvider(n string, i *server.BlockStorageInstance, providerF func() *schema.Provider) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		rs, ok := s.RootModule().Resources[n]
 		if !ok {
@@ -65,8 +65,8 @@ func testAccCheckBlockStorageExistsWithProvider(n string, i *sdk.BlockStorageIns
 		}
 
 		provider := providerF()
-		conn := provider.Meta().(*NcloudSdk).conn
-		storage, err := getBlockStorageInstance(conn, rs.Primary.ID)
+		client := provider.Meta().(*NcloudAPIClient)
+		storage, err := getBlockStorageInstance(client, rs.Primary.ID)
 		if err != nil {
 			return nil
 		}
@@ -85,13 +85,13 @@ func testAccCheckBlockStorageDestroy(s *terraform.State) error {
 }
 
 func testAccCheckBlockStorageDestroyWithProvider(s *terraform.State, provider *schema.Provider) error {
-	conn := provider.Meta().(*NcloudSdk).conn
+	client := provider.Meta().(*NcloudAPIClient)
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "ncloud_block_storage" {
 			continue
 		}
-		blockStorage, err := getBlockStorageInstance(conn, rs.Primary.ID)
+		blockStorage, err := getBlockStorageInstance(client, rs.Primary.ID)
 
 		if blockStorage == nil {
 			continue
@@ -99,8 +99,8 @@ func testAccCheckBlockStorageDestroyWithProvider(s *terraform.State, provider *s
 		if err != nil {
 			return err
 		}
-		if blockStorage != nil && blockStorage.BlockStorageInstanceStatus.Code != "ATTAC" {
-			return fmt.Errorf("found attached block storage: %s", blockStorage.BlockStorageInstanceNo)
+		if blockStorage != nil && *blockStorage.BlockStorageInstanceStatus.Code != "ATTAC" {
+			return fmt.Errorf("found attached block storage: %s", *blockStorage.BlockStorageInstanceNo)
 		}
 	}
 

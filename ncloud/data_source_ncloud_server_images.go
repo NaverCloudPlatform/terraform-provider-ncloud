@@ -4,7 +4,8 @@ import (
 	"fmt"
 	"regexp"
 
-	"github.com/NaverCloudPlatform/ncloud-sdk-go/sdk"
+	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/ncloud"
+	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/services/server"
 	"github.com/hashicorp/terraform/helper/schema"
 )
 
@@ -136,34 +137,34 @@ func dataSourceNcloudServerImages() *schema.Resource {
 }
 
 func dataSourceNcloudServerImagesRead(d *schema.ResourceData, meta interface{}) error {
-	conn := meta.(*NcloudSdk).conn
+	client := meta.(*NcloudAPIClient)
 
-	regionNo, err := parseRegionNoParameter(conn, d)
+	regionNo, err := parseRegionNoParameter(client, d)
 	if err != nil {
 		return err
 	}
-	reqParams := &sdk.RequestGetServerImageProductList{
-		ExclusionProductCode:        d.Get("exclusion_product_code").(string),
-		ProductCode:                 d.Get("product_code").(string),
-		PlatformTypeCodeList:        StringList(d.Get("platform_type_code_list").([]interface{})),
+	reqParams := &server.GetServerImageProductListRequest{
+		ExclusionProductCode:        ncloud.String(d.Get("exclusion_product_code").(string)),
+		ProductCode:                 ncloud.String(d.Get("product_code").(string)),
+		PlatformTypeCodeList:        ncloud.StringInterfaceList(d.Get("platform_type_code_list").([]interface{})),
 		RegionNo:                    regionNo,
-		InfraResourceDetailTypeCode: d.Get("infra_resource_detail_type_code").(string),
+		InfraResourceDetailTypeCode: ncloud.String(d.Get("infra_resource_detail_type_code").(string)),
 	}
 
-	resp, err := conn.GetServerImageProductList(reqParams)
+	resp, err := client.server.V2Api.GetServerImageProductList(reqParams)
 	if err != nil {
 		logErrorResponse("GetServerImageProductList", err, reqParams)
 		return err
 	}
-	logCommonResponse("GetServerImageProductList", reqParams, resp.CommonResponse)
+	logCommonResponse("GetServerImageProductList", reqParams, GetCommonResponse(resp))
 
-	allServerImages := resp.Product
-	var filteredServerImages []sdk.Product
+	allServerImages := resp.ProductList
+	var filteredServerImages []*server.Product
 	nameRegex, nameRegexOk := d.GetOk("product_name_regex")
 	if nameRegexOk {
 		r := regexp.MustCompile(nameRegex.(string))
 		for _, serverImage := range allServerImages {
-			if r.MatchString(serverImage.ProductName) {
+			if r.MatchString(*serverImage.ProductName) {
 				filteredServerImages = append(filteredServerImages, serverImage)
 				break
 			}
@@ -179,7 +180,7 @@ func dataSourceNcloudServerImagesRead(d *schema.ResourceData, meta interface{}) 
 	return serverImagesAttributes(d, filteredServerImages)
 }
 
-func serverImagesAttributes(d *schema.ResourceData, serverImages []sdk.Product) error {
+func serverImagesAttributes(d *schema.ResourceData, serverImages []*server.Product) error {
 	var ids []string
 	var s []map[string]interface{}
 	for _, product := range serverImages {
@@ -189,15 +190,15 @@ func serverImagesAttributes(d *schema.ResourceData, serverImages []sdk.Product) 
 			"product_type":            setCommonCode(product.ProductType),
 			"product_description":     product.ProductDescription,
 			"infra_resource_type":     setCommonCode(product.InfraResourceType),
-			"cpu_count":               product.CPUCount,
+			"cpu_count":               product.CpuCount,
 			"memory_size":             product.MemorySize,
 			"base_block_storage_size": product.BaseBlockStorageSize,
 			"platform_type":           setCommonCode(product.PlatformType),
 			"os_information":          product.OsInformation,
-			"add_block_storage_size":  product.AddBlockStroageSize,
+			"add_block_storage_size":  product.AddBlockStorageSize,
 		}
 
-		ids = append(ids, product.ProductCode)
+		ids = append(ids, *product.ProductCode)
 		s = append(s, mapping)
 	}
 

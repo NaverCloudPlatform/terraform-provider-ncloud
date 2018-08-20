@@ -5,7 +5,8 @@ import (
 	"regexp"
 	"time"
 
-	"github.com/NaverCloudPlatform/ncloud-sdk-go/sdk"
+	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/ncloud"
+	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/services/server"
 	"github.com/hashicorp/terraform/helper/schema"
 )
 
@@ -72,25 +73,25 @@ func dataSourceNcloudAccessControlRules() *schema.Resource {
 }
 
 func dataSourceNcloudAccessControlRulesRead(d *schema.ResourceData, meta interface{}) error {
-	conn := meta.(*NcloudSdk).conn
+	client := meta.(*NcloudAPIClient)
 
 	d.SetId(time.Now().UTC().String())
 
 	id := d.Get("access_control_group_configuration_no").(string)
-	resp, err := conn.GetAccessControlRuleList(id)
+	resp, err := client.server.V2Api.GetAccessControlRuleList(&server.GetAccessControlRuleListRequest{AccessControlGroupConfigurationNo: ncloud.String(id)})
 	if err != nil {
 		logErrorResponse("GetAccessControlRuleList", err, id)
 		return err
 	}
-	logCommonResponse("GetAccessControlRuleList", id, resp.CommonResponse)
+	logCommonResponse("GetAccessControlRuleList", id, GetCommonResponse(resp))
 
 	allAccessControlRuleList := resp.AccessControlRuleList
-	var filteredAccessControlRuleList []sdk.AccessControlRule
+	var filteredAccessControlRuleList []*server.AccessControlRule
 	nameRegex, nameRegexOk := d.GetOk("source_access_control_rule_name_regex")
 	if nameRegexOk {
 		r := regexp.MustCompile(nameRegex.(string))
 		for _, rule := range allAccessControlRuleList {
-			if r.MatchString(rule.SourceAccessControlRuleName) {
+			if r.MatchString(ncloud.StringValue(rule.SourceAccessControlRuleName)) {
 				filteredAccessControlRuleList = append(filteredAccessControlRuleList, rule)
 			}
 		}
@@ -105,21 +106,21 @@ func dataSourceNcloudAccessControlRulesRead(d *schema.ResourceData, meta interfa
 	return accessControlRulesAttributes(d, filteredAccessControlRuleList)
 }
 
-func accessControlRulesAttributes(d *schema.ResourceData, accessControlRules []sdk.AccessControlRule) error {
+func accessControlRulesAttributes(d *schema.ResourceData, accessControlRules []*server.AccessControlRule) error {
 	var ids []string
 	var s []map[string]interface{}
 	for _, accessControlRule := range accessControlRules {
 		mapping := map[string]interface{}{
 			"access_control_rule_configuration_no":        accessControlRule.AccessControlRuleConfigurationNo,
 			"protocol_type":                               setCommonCode(accessControlRule.ProtocolType),
-			"source_ip":                                   accessControlRule.SourceIP,
+			"source_ip":                                   accessControlRule.SourceIp,
 			"destination_port":                            accessControlRule.DestinationPort,
 			"source_access_control_rule_configuration_no": accessControlRule.SourceAccessControlRuleConfigurationNo,
 			"source_access_control_rule_name":             accessControlRule.SourceAccessControlRuleName,
 			"access_control_rule_description":             accessControlRule.AccessControlRuleDescription,
 		}
 
-		ids = append(ids, accessControlRule.AccessControlRuleConfigurationNo)
+		ids = append(ids, *accessControlRule.AccessControlRuleConfigurationNo)
 		s = append(s, mapping)
 	}
 

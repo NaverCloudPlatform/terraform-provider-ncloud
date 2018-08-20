@@ -4,20 +4,20 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/NaverCloudPlatform/ncloud-sdk-go/sdk"
+	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/services/loadbalancer"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/terraform"
 )
 
 func TestAccNcloudLoadBalancerBasic(t *testing.T) {
-	var loadBalancerInstance sdk.LoadBalancerInstance
+	var loadBalancerInstance loadbalancer.LoadBalancerInstance
 	prefix := getTestPrefix()
 	testLoadBalancerName := prefix + "_lb"
 
 	testCheck := func() func(*terraform.State) error {
 		return func(*terraform.State) error {
-			if loadBalancerInstance.LoadBalancerName != testLoadBalancerName {
+			if *loadBalancerInstance.LoadBalancerName != testLoadBalancerName {
 				return fmt.Errorf("not found: %s", testLoadBalancerName)
 			}
 			return nil
@@ -50,8 +50,8 @@ func TestAccNcloudLoadBalancerBasic(t *testing.T) {
 }
 
 func TestAccNcloudLoadBalancerChangeConfiguration(t *testing.T) {
-	var before sdk.LoadBalancerInstance
-	var after sdk.LoadBalancerInstance
+	var before loadbalancer.LoadBalancerInstance
+	var after loadbalancer.LoadBalancerInstance
 	prefix := getTestPrefix()
 	testLoadBalancerName := prefix + "_lb"
 
@@ -80,11 +80,11 @@ func TestAccNcloudLoadBalancerChangeConfiguration(t *testing.T) {
 	})
 }
 
-func testAccCheckLoadBalancerExists(n string, i *sdk.LoadBalancerInstance) resource.TestCheckFunc {
+func testAccCheckLoadBalancerExists(n string, i *loadbalancer.LoadBalancerInstance) resource.TestCheckFunc {
 	return testAccCheckLoadBalancerExistsWithProvider(n, i, func() *schema.Provider { return testAccProvider })
 }
 
-func testAccCheckLoadBalancerExistsWithProvider(n string, i *sdk.LoadBalancerInstance, providerF func() *schema.Provider) resource.TestCheckFunc {
+func testAccCheckLoadBalancerExistsWithProvider(n string, i *loadbalancer.LoadBalancerInstance, providerF func() *schema.Provider) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		rs, ok := s.RootModule().Resources[n]
 		if !ok {
@@ -96,8 +96,8 @@ func testAccCheckLoadBalancerExistsWithProvider(n string, i *sdk.LoadBalancerIns
 		}
 
 		provider := providerF()
-		conn := provider.Meta().(*NcloudSdk).conn
-		LoadBalancerInstance, err := getLoadBalancerInstance(conn, rs.Primary.ID)
+		client := provider.Meta().(*NcloudAPIClient)
+		LoadBalancerInstance, err := getLoadBalancerInstance(client, rs.Primary.ID)
 		if err != nil {
 			return nil
 		}
@@ -116,12 +116,12 @@ func testAccCheckLoadBalancerDestroy(s *terraform.State) error {
 }
 
 func testAccCheckLoadBalancerDestroyWithProvider(s *terraform.State, provider *schema.Provider) error {
-	conn := provider.Meta().(*NcloudSdk).conn
+	client := provider.Meta().(*NcloudAPIClient)
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "ncloud_load_balancer" {
 			continue
 		}
-		loadBalancerInstance, err := getLoadBalancerInstance(conn, rs.Primary.ID)
+		loadBalancerInstance, err := getLoadBalancerInstance(client, rs.Primary.ID)
 		if loadBalancerInstance == nil {
 			return nil
 		}
@@ -129,7 +129,7 @@ func testAccCheckLoadBalancerDestroyWithProvider(s *terraform.State, provider *s
 			return err
 		}
 
-		return fmt.Errorf("failed to delete load balancer: %s", loadBalancerInstance.LoadBalancerName)
+		return fmt.Errorf("failed to delete load balancer: %s", *loadBalancerInstance.LoadBalancerName)
 	}
 
 	return nil

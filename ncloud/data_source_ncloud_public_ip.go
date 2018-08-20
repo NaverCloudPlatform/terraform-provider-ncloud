@@ -2,13 +2,15 @@ package ncloud
 
 import (
 	"fmt"
-	"github.com/NaverCloudPlatform/ncloud-sdk-go/sdk"
+	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/ncloud"
+	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/services/server"
 	"github.com/hashicorp/terraform/helper/schema"
+	"log"
 )
 
-func dataSourceNcloudPublicIP() *schema.Resource {
+func dataSourceNcloudPublicIp() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceNcloudPublicIPRead,
+		Read: dataSourceNcloudPublicIpRead,
 
 		Schema: map[string]*schema.Schema{
 			"most_recent": {
@@ -25,7 +27,7 @@ func dataSourceNcloudPublicIP() *schema.Resource {
 				Description:  "Internet line type code. `PUBLC` (Public), `GLBL` (Global)",
 			},
 			"is_associated": {
-				Type:        schema.TypeString,
+				Type:        schema.TypeBool,
 				Optional:    true,
 				Description: "Indicates whether the public IP address is associated or not.",
 			},
@@ -163,66 +165,67 @@ func dataSourceNcloudPublicIP() *schema.Resource {
 	}
 }
 
-func dataSourceNcloudPublicIPRead(d *schema.ResourceData, meta interface{}) error {
-	conn := meta.(*NcloudSdk).conn
+func dataSourceNcloudPublicIpRead(d *schema.ResourceData, meta interface{}) error {
+	client := meta.(*NcloudAPIClient)
 
-	regionNo, err := parseRegionNoParameter(conn, d)
+	regionNo, err := parseRegionNoParameter(client, d)
 	if err != nil {
 		return err
 	}
-	zoneNo, err := parseZoneNoParameter(conn, d)
+	zoneNo, err := parseZoneNoParameter(client, d)
 	if err != nil {
 		return err
 	}
-	reqParams := new(sdk.RequestPublicIPInstanceList)
-	reqParams.InternetLineTypeCode = d.Get("internet_line_type_code").(string)
-	reqParams.IsAssociated = d.Get("is_associated").(string)
-	reqParams.PublicIPInstanceNoList = StringList(d.Get("public_ip_instance_no_list").([]interface{}))
-	reqParams.PublicIPList = StringList(d.Get("public_ip_list").([]interface{}))
-	reqParams.SearchFilterName = d.Get("search_filter_name").(string)
-	reqParams.SearchFilterValue = d.Get("search_filter_value").(string)
+	reqParams := new(server.GetPublicIpInstanceListRequest)
+	reqParams.InternetLineTypeCode = ncloud.String(d.Get("internet_line_type_code").(string))
+	reqParams.IsAssociated = ncloud.Bool(d.Get("is_associated").(bool))
+	reqParams.PublicIpInstanceNoList = ncloud.StringInterfaceList(d.Get("public_ip_instance_no_list").([]interface{}))
+	reqParams.PublicIpList = ncloud.StringInterfaceList(d.Get("public_ip_list").([]interface{}))
+	reqParams.SearchFilterName = ncloud.String(d.Get("search_filter_name").(string))
+	reqParams.SearchFilterValue = ncloud.String(d.Get("search_filter_value").(string))
 	reqParams.RegionNo = regionNo
 	reqParams.ZoneNo = zoneNo
-	reqParams.SortedBy = d.Get("sorted_by").(string)
-	reqParams.SortingOrder = d.Get("sorting_order").(string)
-	resp, err := conn.GetPublicIPInstanceList(reqParams)
+	reqParams.SortedBy = ncloud.String(d.Get("sorted_by").(string))
+	reqParams.SortingOrder = ncloud.String(d.Get("sorting_order").(string))
+	log.Printf("[DEBUG] GetPublicIpInstanceList reqParams: %#v", reqParams)
+	resp, err := client.server.V2Api.GetPublicIpInstanceList(reqParams)
 
 	if err != nil {
 		logErrorResponse("Get Public IP Instance", err, reqParams)
 		return err
 	}
-	publicIPInstanceList := resp.PublicIPInstanceList
-	var publicIPInstance sdk.PublicIPInstance
+	publicIpInstanceList := resp.PublicIpInstanceList
+	var publicIpInstance *server.PublicIpInstance
 
-	if len(publicIPInstanceList) < 1 {
+	if len(publicIpInstanceList) < 1 {
 		return fmt.Errorf("no results. please change search criteria and try again")
 	}
 
-	if len(publicIPInstanceList) > 1 && d.Get("most_recent").(bool) {
+	if len(publicIpInstanceList) > 1 && d.Get("most_recent").(bool) {
 		// Query returned single result.
-		publicIPInstance = mostRecentPublicIP(publicIPInstanceList)
+		publicIpInstance = mostRecentPublicIp(publicIpInstanceList)
 	} else {
-		publicIPInstance = publicIPInstanceList[0]
+		publicIpInstance = publicIpInstanceList[0]
 	}
 
-	return publicIPAttributes(d, publicIPInstance)
+	return publicIPAttributes(d, publicIpInstance)
 }
 
-func publicIPAttributes(d *schema.ResourceData, instance sdk.PublicIPInstance) error {
+func publicIPAttributes(d *schema.ResourceData, instance *server.PublicIpInstance) error {
 
-	d.SetId(instance.PublicIPInstanceNo)
-	d.Set("public_ip_instance_no", instance.PublicIPInstanceNo)
-	d.Set("public_ip", instance.PublicIP)
-	d.Set("public_ip_description", instance.PublicIPDescription)
+	d.SetId(*instance.PublicIpInstanceNo)
+	d.Set("public_ip_instance_no", instance.PublicIpInstanceNo)
+	d.Set("public_ip", instance.PublicIp)
+	d.Set("public_ip_description", instance.PublicIpDescription)
 	d.Set("create_date", instance.CreateDate)
 	d.Set("internet_line_type", setCommonCode(instance.InternetLineType))
-	d.Set("public_ip_instance_status_name", instance.PublicIPInstanceStatusName)
-	d.Set("public_ip_instance_status", setCommonCode(instance.PublicIPInstanceStatus))
-	d.Set("public_ip_instance_operation", setCommonCode(instance.PublicIPInstanceOperation))
-	d.Set("public_ip_kind_type", setCommonCode(instance.PublicIPKindType))
+	d.Set("public_ip_instance_status_name", instance.PublicIpInstanceStatusName)
+	d.Set("public_ip_instance_status", setCommonCode(instance.PublicIpInstanceStatus))
+	d.Set("public_ip_instance_operation", setCommonCode(instance.PublicIpInstanceOperation))
+	d.Set("public_ip_kind_type", setCommonCode(instance.PublicIpKindType))
 
-	if instance.ServerInstance.ServerInstanceNo != "" {
-		serverInstance := instance.ServerInstance
+	if *instance.ServerInstanceAssociatedWithPublicIp.ServerInstanceNo != "" {
+		serverInstance := instance.ServerInstanceAssociatedWithPublicIp
 		mapping := map[string]interface{}{
 			"server_instance_no": serverInstance.ServerInstanceNo,
 			"server_name":        serverInstance.ServerName,

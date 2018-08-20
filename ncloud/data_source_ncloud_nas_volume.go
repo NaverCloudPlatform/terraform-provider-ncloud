@@ -3,7 +3,8 @@ package ncloud
 import (
 	"fmt"
 
-	"github.com/NaverCloudPlatform/ncloud-sdk-go/sdk"
+	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/ncloud"
+	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/services/server"
 	"github.com/hashicorp/terraform/helper/schema"
 )
 
@@ -18,16 +19,14 @@ func dataSourceNcloudNasVolume() *schema.Resource {
 				ValidateFunc: validateIncludeValues([]string{"NFS", "CIFS"}),
 			},
 			"is_event_configuration": {
-				Type:         schema.TypeString,
-				Optional:     true,
-				Computed:     true,
-				ValidateFunc: validateBoolValue,
+				Type:     schema.TypeBool,
+				Optional: true,
+				Computed: true,
 			},
 			"is_snapshot_configuration": {
-				Type:         schema.TypeString,
-				Optional:     true,
-				Computed:     true,
-				ValidateFunc: validateBoolValue,
+				Type:     schema.TypeBool,
+				Optional: true,
+				Computed: true,
 			},
 			"nas_volume_instance_no_list": {
 				Type:     schema.TypeList,
@@ -134,32 +133,36 @@ func dataSourceNcloudNasVolume() *schema.Resource {
 }
 
 func dataSourceNcloudNasVolumeRead(d *schema.ResourceData, meta interface{}) error {
-	conn := meta.(*NcloudSdk).conn
+	client := meta.(*NcloudAPIClient)
 
-	regionNo, err := parseRegionNoParameter(conn, d)
+	regionNo, err := parseRegionNoParameter(client, d)
 	if err != nil {
 		return err
 	}
-	zoneNo, err := parseZoneNoParameter(conn, d)
+	zoneNo, err := parseZoneNoParameter(client, d)
 	if err != nil {
 		return err
 	}
-	reqParams := &sdk.RequestGetNasVolumeInstanceList{
-		VolumeAllotmentProtocolTypeCode: d.Get("volume_allotment_protocol_type_code").(string),
-		IsEventConfiguration:            d.Get("is_event_configuration").(string),
-		IsSnapshotConfiguration:         d.Get("is_snapshot_configuration").(string),
-		NasVolumeInstanceNoList:         StringList(d.Get("nas_volume_instance_no_list").([]interface{})),
+	reqParams := &server.GetNasVolumeInstanceListRequest{
+		VolumeAllotmentProtocolTypeCode: ncloud.String(d.Get("volume_allotment_protocol_type_code").(string)),
+		NasVolumeInstanceNoList:         ncloud.StringInterfaceList(d.Get("nas_volume_instance_no_list").([]interface{})),
 		RegionNo:                        regionNo,
 		ZoneNo:                          zoneNo,
 	}
-	resp, err := conn.GetNasVolumeInstanceList(reqParams)
+	if isEventConfiguration, ok := d.GetOk("is_event_configuration"); ok {
+		reqParams.IsEventConfiguration = ncloud.Bool(isEventConfiguration.(bool))
+	}
+	if isSnapshotConfiguration, ok := d.GetOk("is_snapshot_configuration"); ok {
+		reqParams.IsSnapshotConfiguration = ncloud.Bool(isSnapshotConfiguration.(bool))
+	}
+	resp, err := client.server.V2Api.GetNasVolumeInstanceList(reqParams)
 	if err != nil {
 		logErrorResponse("GetNasVolumeInstanceList", err, reqParams)
 		return err
 	}
-	logCommonResponse("GetNasVolumeInstanceList", reqParams, resp.CommonResponse)
+	logCommonResponse("GetNasVolumeInstanceList", reqParams, GetCommonResponse(resp))
 
-	var nasVolumeInstance sdk.NasVolumeInstance
+	var nasVolumeInstance *server.NasVolumeInstance
 	nasVolumeInstances := resp.NasVolumeInstanceList
 	if len(nasVolumeInstances) < 1 {
 		return fmt.Errorf("no results. please change search criteria and try again")
@@ -169,7 +172,7 @@ func dataSourceNcloudNasVolumeRead(d *schema.ResourceData, meta interface{}) err
 	return nasVolumeInstanceAttributes(d, nasVolumeInstance)
 }
 
-func nasVolumeInstanceAttributes(d *schema.ResourceData, nasVolume sdk.NasVolumeInstance) error {
+func nasVolumeInstanceAttributes(d *schema.ResourceData, nasVolume *server.NasVolumeInstance) error {
 	d.Set("nas_volume_instance_no", nasVolume.NasVolumeInstanceNo)
 	d.Set("nas_volume_instance_status", setCommonCode(nasVolume.NasVolumeInstanceStatus))
 	d.Set("create_date", nasVolume.CreateDate)
@@ -185,22 +188,22 @@ func nasVolumeInstanceAttributes(d *schema.ResourceData, nasVolume sdk.NasVolume
 	d.Set("snapshot_volume_use_ratio", nasVolume.SnapshotVolumeUseRatio)
 	d.Set("is_snapshot_configuration", nasVolume.IsSnapshotConfiguration)
 	d.Set("is_event_configuration", nasVolume.IsEventConfiguration)
-	if len(nasVolume.NasVolumeInstanceCustomIPList) > 0 {
-		d.Set("nas_volume_instance_custom_ip_list", customIPList(nasVolume.NasVolumeInstanceCustomIPList))
+	if len(nasVolume.NasVolumeInstanceCustomIpList) > 0 {
+		d.Set("nas_volume_instance_custom_ip_list", customIPList(nasVolume.NasVolumeInstanceCustomIpList))
 	}
 	d.Set("zone", setZone(nasVolume.Zone))
 	d.Set("region", setRegion(nasVolume.Region))
 
-	d.SetId(nasVolume.NasVolumeInstanceNo)
+	d.SetId(*nasVolume.NasVolumeInstanceNo)
 
 	return nil
 }
 
-func customIPList(customIPList []sdk.NasVolumeInstanceCustomIp) []string {
-	a := []string{""}
+func customIPList(customIPList []*server.NasVolumeInstanceCustomIp) []*string {
+	a := []*string{ncloud.String("")}
 
 	for _, v := range customIPList {
-		a = append(a, v.CustomIP)
+		a = append(a, v.CustomIp)
 	}
 
 	return a

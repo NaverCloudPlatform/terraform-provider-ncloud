@@ -5,21 +5,21 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/NaverCloudPlatform/ncloud-sdk-go/sdk"
+	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/services/server"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/terraform"
 )
 
 func TestAccResourceNcloudNasVolumeBasic(t *testing.T) {
-	var volumeInstance sdk.NasVolumeInstance
+	var volumeInstance server.NasVolumeInstance
 	prefix := getTestPrefix()
 	testVolumeName := prefix + "_vol"
 
 	testCheck := func() func(*terraform.State) error {
 		return func(*terraform.State) error {
 			// volume_name_postfix : tf8214_vol => volume_name: n000300_tf8214_vol
-			if !strings.Contains(volumeInstance.VolumeName, testVolumeName) {
+			if !strings.Contains(*volumeInstance.VolumeName, testVolumeName) {
 				return fmt.Errorf("not found: %s", testVolumeName)
 			}
 			return nil
@@ -52,8 +52,8 @@ func TestAccResourceNcloudNasVolumeBasic(t *testing.T) {
 }
 
 func TestAccResourceNcloudNasVolumeResize(t *testing.T) {
-	var before sdk.NasVolumeInstance
-	var after sdk.NasVolumeInstance
+	var before server.NasVolumeInstance
+	var after server.NasVolumeInstance
 	prefix := getTestPrefix()
 	testVolumeName := prefix + "_vol"
 
@@ -81,8 +81,8 @@ func TestAccResourceNcloudNasVolumeResize(t *testing.T) {
 }
 
 func TestAccResourceNcloudNasVolumeChangeAccessControl(t *testing.T) {
-	var before sdk.NasVolumeInstance
-	var after sdk.NasVolumeInstance
+	var before server.NasVolumeInstance
+	var after server.NasVolumeInstance
 	prefix := getTestPrefix()
 	testVolumeName := prefix + "_vol"
 
@@ -109,11 +109,11 @@ func TestAccResourceNcloudNasVolumeChangeAccessControl(t *testing.T) {
 	})
 }
 
-func testAccCheckNasVolumeExists(n string, i *sdk.NasVolumeInstance) resource.TestCheckFunc {
+func testAccCheckNasVolumeExists(n string, i *server.NasVolumeInstance) resource.TestCheckFunc {
 	return testAccCheckNasVolumeExistsWithProvider(n, i, func() *schema.Provider { return testAccProvider })
 }
 
-func testAccCheckNasVolumeExistsWithProvider(n string, i *sdk.NasVolumeInstance, providerF func() *schema.Provider) resource.TestCheckFunc {
+func testAccCheckNasVolumeExistsWithProvider(n string, i *server.NasVolumeInstance, providerF func() *schema.Provider) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		rs, ok := s.RootModule().Resources[n]
 		if !ok {
@@ -125,8 +125,8 @@ func testAccCheckNasVolumeExistsWithProvider(n string, i *sdk.NasVolumeInstance,
 		}
 
 		provider := providerF()
-		conn := provider.Meta().(*NcloudSdk).conn
-		nasVolumeInstance, err := getNasVolumeInstance(conn, rs.Primary.ID)
+		client := provider.Meta().(*NcloudAPIClient)
+		nasVolumeInstance, err := getNasVolumeInstance(client, rs.Primary.ID)
 		if err != nil {
 			return nil
 		}
@@ -145,21 +145,21 @@ func testAccCheckNasVolumeDestroy(s *terraform.State) error {
 }
 
 func testAccCheckNasVolumeDestroyWithProvider(s *terraform.State, provider *schema.Provider) error {
-	conn := provider.Meta().(*NcloudSdk).conn
+	client := provider.Meta().(*NcloudAPIClient)
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "ncloud_nas_volume" {
 			continue
 		}
-		volumeInstance, err := getNasVolumeInstance(conn, rs.Primary.ID)
+		volumeInstance, err := getNasVolumeInstance(client, rs.Primary.ID)
 		if volumeInstance == nil {
 			return nil
 		}
 		if err != nil {
 			return err
 		}
-		if volumeInstance != nil && volumeInstance.NasVolumeInstanceStatus.Code != "CREAT" {
-			return fmt.Errorf("found not deleted nas volume: %s", volumeInstance.VolumeName)
+		if volumeInstance != nil && *volumeInstance.NasVolumeInstanceStatus.Code != "CREAT" {
+			return fmt.Errorf("found not deleted nas volume: %s", *volumeInstance.VolumeName)
 		}
 	}
 
@@ -167,10 +167,10 @@ func testAccCheckNasVolumeDestroyWithProvider(s *terraform.State, provider *sche
 }
 
 func testAccCheckNasVolumeNotRecreated(t *testing.T,
-	before, after *sdk.NasVolumeInstance) resource.TestCheckFunc {
+	before, after *server.NasVolumeInstance) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		if before.NasVolumeInstanceNo != after.NasVolumeInstanceNo {
-			t.Fatalf("Ncloud NasVolumeInstanceNo have changed. Before %s. After %s", before.NasVolumeInstanceNo, after.NasVolumeInstanceNo)
+			t.Fatalf("Ncloud NasVolumeInstanceNo have changed. Before %s. After %s", *before.NasVolumeInstanceNo, *after.NasVolumeInstanceNo)
 		}
 		return nil
 	}

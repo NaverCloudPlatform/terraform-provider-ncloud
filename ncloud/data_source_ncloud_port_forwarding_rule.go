@@ -2,9 +2,9 @@ package ncloud
 
 import (
 	"fmt"
-	"github.com/NaverCloudPlatform/ncloud-sdk-go/sdk"
+	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/ncloud"
+	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/services/server"
 	"github.com/hashicorp/terraform/helper/schema"
-	"strconv"
 )
 
 func dataSourceNcloudPortForwardingRule() *schema.Resource {
@@ -77,48 +77,48 @@ func dataSourceNcloudPortForwardingRule() *schema.Resource {
 }
 
 func dataSourceNcloudPortForwardingRuleRead(d *schema.ResourceData, meta interface{}) error {
-	conn := meta.(*NcloudSdk).conn
+	client := meta.(*NcloudAPIClient)
 
 	_, zoneNoOk := d.GetOk("zone_no")
 	_, zoneCodeOk := d.GetOk("zone_code")
 	if !zoneNoOk && !zoneCodeOk {
 		return fmt.Errorf("required to select one among two parameters: `zone_no` and `zone_code`")
 	}
-	regionNo, err := parseRegionNoParameter(conn, d)
+	regionNo, err := parseRegionNoParameter(client, d)
 	if err != nil {
 		return err
 	}
-	zoneNo, err := parseZoneNoParameter(conn, d)
+	zoneNo, err := parseZoneNoParameter(client, d)
 	if err != nil {
 		return err
 	}
-	reqParams := &sdk.RequestPortForwardingRuleList{
-		InternetLineTypeCode: d.Get("internet_line_type_code").(string),
+	reqParams := &server.GetPortForwardingRuleListRequest{
+		InternetLineTypeCode: ncloud.String(d.Get("internet_line_type_code").(string)),
 		RegionNo:             regionNo,
 		ZoneNo:               zoneNo,
 	}
 
-	resp, err := conn.GetPortForwardingRuleList(reqParams)
+	resp, err := client.server.V2Api.GetPortForwardingRuleList(reqParams)
 	if err != nil {
 		logErrorResponse("GetPortForwardingRuleList", err, reqParams)
 		return err
 	}
-	logCommonResponse("GetPortForwardingRuleList", reqParams, resp.CommonResponse)
+	logCommonResponse("GetPortForwardingRuleList", reqParams, GetCommonResponse(resp))
 
 	allPortForwardingRules := resp.PortForwardingRuleList
-	var filteredPortForwardingRuleList []sdk.PortForwardingRule
-	var portForwardingRule sdk.PortForwardingRule
+	var filteredPortForwardingRuleList []*server.PortForwardingRule
+	var portForwardingRule *server.PortForwardingRule
 
 	filterServerInstanceNo, filterServerInstanceNoOk := d.GetOk("server_instance_no")
 	filterInternalPort, filterInternalPortOk := d.GetOk("port_forwarding_internal_port")
 	filterExternalPort, filterExternalPortOk := d.GetOk("port_forwarding_external_port")
 	if filterServerInstanceNoOk || filterInternalPortOk || filterExternalPortOk {
 		for _, portForwardingRule := range allPortForwardingRules {
-			if filterServerInstanceNoOk && portForwardingRule.ServerInstanceNo == filterServerInstanceNo {
+			if filterServerInstanceNoOk && portForwardingRule.ServerInstance != nil && *portForwardingRule.ServerInstance.ServerInstanceNo == filterServerInstanceNo {
 				filteredPortForwardingRuleList = append(filteredPortForwardingRuleList, portForwardingRule)
-			} else if filterInternalPortOk && portForwardingRule.PortForwardingInternalPort == filterInternalPort {
+			} else if filterInternalPortOk && *portForwardingRule.PortForwardingInternalPort == filterInternalPort {
 				filteredPortForwardingRuleList = append(filteredPortForwardingRuleList, portForwardingRule)
-			} else if filterExternalPortOk && portForwardingRule.PortForwardingExternalPort == filterExternalPort {
+			} else if filterExternalPortOk && *portForwardingRule.PortForwardingExternalPort == filterExternalPort {
 				filteredPortForwardingRuleList = append(filteredPortForwardingRuleList, portForwardingRule)
 			}
 		}
@@ -135,12 +135,12 @@ func dataSourceNcloudPortForwardingRuleRead(d *schema.ResourceData, meta interfa
 	return portForwardingRuleAttributes(d, resp.PortForwardingConfigurationNo, resp.PortForwardingPublicIp, portForwardingRule)
 }
 
-func portForwardingRuleAttributes(d *schema.ResourceData, portForwardingConfigurationNo int, portForwardingPublicIp string, rule sdk.PortForwardingRule) error {
+func portForwardingRuleAttributes(d *schema.ResourceData, portForwardingConfigurationNo *string, portForwardingPublicIp *string, rule *server.PortForwardingRule) error {
 
-	d.SetId(strconv.Itoa(portForwardingConfigurationNo))
+	d.SetId(*portForwardingConfigurationNo)
 	d.Set("port_forwarding_configuration_no", portForwardingConfigurationNo)
 	d.Set("port_forwarding_public_ip", portForwardingPublicIp)
-	d.Set("server_instance_no", rule.ServerInstanceNo)
+	d.Set("server_instance_no", rule.ServerInstance.ServerInstanceNo)
 	d.Set("port_forwarding_external_port", rule.PortForwardingExternalPort)
 	d.Set("port_forwarding_internal_port", rule.PortForwardingInternalPort)
 

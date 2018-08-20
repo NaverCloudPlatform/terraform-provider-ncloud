@@ -1,35 +1,36 @@
 package ncloud
 
 import (
-	"github.com/NaverCloudPlatform/ncloud-sdk-go/sdk"
+	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/ncloud"
+	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/services/server"
 	"sort"
 	"time"
 )
 
 var defaultDateFormat = "2006-01-02T15:04:00+0900"
 
-type serverImageSort []sdk.ServerImage
+type memberServerImageSort []*server.MemberServerImage
 
-func (a serverImageSort) Len() int {
+func (a memberServerImageSort) Len() int {
 	return len(a)
 }
-func (a serverImageSort) Swap(i, j int) {
+func (a memberServerImageSort) Swap(i, j int) {
 	a[i], a[j] = a[j], a[i]
 }
-func (a serverImageSort) Less(i, j int) bool {
-	iTime, _ := time.Parse(defaultDateFormat, a[i].CreateDate)
-	jTime, _ := time.Parse(defaultDateFormat, a[j].CreateDate)
+func (a memberServerImageSort) Less(i, j int) bool {
+	iTime, _ := time.Parse(defaultDateFormat, ncloud.StringValue(a[i].CreateDate))
+	jTime, _ := time.Parse(defaultDateFormat, ncloud.StringValue(a[j].CreateDate))
 
 	return iTime.Unix() < jTime.Unix()
 }
 
-func mostRecentServerImage(images []sdk.ServerImage) sdk.ServerImage {
+func mostRecentMemberServerImage(images []*server.MemberServerImage) *server.MemberServerImage {
 	sortedImages := images
-	sort.Sort(serverImageSort(sortedImages))
+	sort.Sort(memberServerImageSort(sortedImages))
 	return sortedImages[len(sortedImages)-1]
 }
 
-type acgSort []sdk.AccessControlGroup
+type acgSort []*server.AccessControlGroup
 
 func (a acgSort) Len() int {
 	return len(a)
@@ -38,18 +39,18 @@ func (a acgSort) Swap(i, j int) {
 	a[i], a[j] = a[j], a[i]
 }
 func (a acgSort) Less(i, j int) bool {
-	iTime, _ := time.Parse(defaultDateFormat, a[i].CreateDate)
-	jTime, _ := time.Parse(defaultDateFormat, a[j].CreateDate)
+	iTime, _ := time.Parse(defaultDateFormat, ncloud.StringValue(a[i].CreateDate))
+	jTime, _ := time.Parse(defaultDateFormat, ncloud.StringValue(a[j].CreateDate))
 	return iTime.Unix() < jTime.Unix()
 }
 
-func mostRecentAccessControlGroup(acgs []sdk.AccessControlGroup) sdk.AccessControlGroup {
+func mostRecentAccessControlGroup(acgs []*server.AccessControlGroup) *server.AccessControlGroup {
 	sortedAcgs := acgs
 	sort.Sort(acgSort(sortedAcgs))
 	return sortedAcgs[len(sortedAcgs)-1]
 }
 
-type publicIPSort []sdk.PublicIPInstance
+type publicIPSort []*server.PublicIpInstance
 
 func (a publicIPSort) Len() int {
 	return len(a)
@@ -58,13 +59,13 @@ func (a publicIPSort) Swap(i, j int) {
 	a[i], a[j] = a[j], a[i]
 }
 func (a publicIPSort) Less(i, j int) bool {
-	iTime, _ := time.Parse(defaultDateFormat, a[i].CreateDate)
-	jTime, _ := time.Parse(defaultDateFormat, a[j].CreateDate)
+	iTime, _ := time.Parse(defaultDateFormat, ncloud.StringValue(a[i].CreateDate))
+	jTime, _ := time.Parse(defaultDateFormat, ncloud.StringValue(a[j].CreateDate))
 	return iTime.Unix() < jTime.Unix()
 }
 
-func mostRecentPublicIP(publicIPs []sdk.PublicIPInstance) sdk.PublicIPInstance {
-	sortedPublicIPs := publicIPs
-	sort.Sort(publicIPSort(sortedPublicIPs))
-	return sortedPublicIPs[len(sortedPublicIPs)-1]
+func mostRecentPublicIp(publicIPs []*server.PublicIpInstance) *server.PublicIpInstance {
+	sortedPublicIps := publicIPs
+	sort.Sort(publicIPSort(sortedPublicIps))
+	return sortedPublicIps[len(sortedPublicIps)-1]
 }

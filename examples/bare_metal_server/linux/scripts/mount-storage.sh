@@ -10,6 +10,6 @@ w
 EOF
 
 mkfs.xfs /dev/xvdb
-mkdir /mnt/a
+mkdir -p /mnt/a
 ls -l /mnt/a
 mount /dev/xvdb /mnt/a

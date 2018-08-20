@@ -2,7 +2,8 @@ package ncloud
 
 import (
 	"fmt"
-	"github.com/NaverCloudPlatform/ncloud-sdk-go/sdk"
+	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/ncloud"
+	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/services/server"
 	"github.com/hashicorp/terraform/helper/schema"
 	"regexp"
 )
@@ -24,10 +25,9 @@ func dataSourceNcloudAccessControlRule() *schema.Resource {
 				Description: "Access control group name to search",
 			},
 			"is_default_group": {
-				Type:         schema.TypeString,
-				Optional:     true,
-				ValidateFunc: validateBoolValue,
-				Description:  "Whether default group",
+				Type:        schema.TypeBool,
+				Optional:    true,
+				Description: "Whether default group",
 			},
 			"source_access_control_rule_name_regex": {
 				Type:         schema.TypeString,
@@ -84,9 +84,9 @@ func dataSourceNcloudAccessControlRule() *schema.Resource {
 }
 
 func dataSourceNcloudAccessControlRuleRead(d *schema.ResourceData, meta interface{}) error {
-	conn := meta.(*NcloudSdk).conn
+	client := meta.(*NcloudAPIClient)
 
-	var allAccessControlRuleList []sdk.AccessControlRule
+	var allAccessControlRuleList []*server.AccessControlRule
 	configNo, configNoOk := d.GetOk("access_control_group_configuration_no")
 	acgName, acgNameOk := d.GetOk("access_control_group_name")
 	isDefaultGroup, isDefaultGroupOk := d.GetOk("is_default_group")
@@ -96,19 +96,19 @@ func dataSourceNcloudAccessControlRuleRead(d *schema.ResourceData, meta interfac
 	}
 
 	if !configNoOk {
-		reqParams := new(sdk.RequestAccessControlGroupList)
+		reqParams := new(server.GetAccessControlGroupListRequest)
 		if acgNameOk {
-			reqParams.AccessControlGroupName = acgName.(string)
+			reqParams.AccessControlGroupName = ncloud.String(acgName.(string))
 		}
 		if isDefaultGroupOk {
-			reqParams.IsDefault = isDefaultGroup.(string)
+			reqParams.IsDefault = ncloud.Bool(isDefaultGroup.(bool))
 		}
-		acgResp, err := getAccessControlGroupList(conn, reqParams)
+		acgResp, err := getAccessControlGroupList(client, reqParams)
 		if err != nil {
 			return err
 		}
-		for _, acg := range acgResp.AccessControlGroup {
-			resp, err := getAccessControlRuleList(conn, acg.AccessControlGroupConfigurationNo)
+		for _, acg := range acgResp.AccessControlGroupList {
+			resp, err := getAccessControlRuleList(client, ncloud.StringValue(acg.AccessControlGroupConfigurationNo))
 			if err != nil {
 				return err
 			}
@@ -118,7 +118,7 @@ func dataSourceNcloudAccessControlRuleRead(d *schema.ResourceData, meta interfac
 		}
 	} else {
 		groupConfigNo := configNo.(string)
-		resp, err := getAccessControlRuleList(conn, groupConfigNo)
+		resp, err := getAccessControlRuleList(client, groupConfigNo)
 		if err != nil {
 			return err
 		}
@@ -127,8 +127,8 @@ func dataSourceNcloudAccessControlRuleRead(d *schema.ResourceData, meta interfac
 		}
 	}
 
-	var filteredAccessControlRuleList []sdk.AccessControlRule
-	var accessControlRule sdk.AccessControlRule
+	var filteredAccessControlRuleList []*server.AccessControlRule
+	var accessControlRule *server.AccessControlRule
 
 	var r *regexp.Regexp
 	nameRegex, nameRegexOk := d.GetOk("source_access_control_rule_name_regex")
@@ -142,9 +142,9 @@ func dataSourceNcloudAccessControlRuleRead(d *schema.ResourceData, meta interfac
 		}
 
 		for _, rule := range allAccessControlRuleList {
-			if nameRegexOk && r.MatchString(rule.SourceAccessControlRuleName) {
+			if nameRegexOk && r.MatchString(ncloud.StringValue(rule.SourceAccessControlRuleName)) {
 				filteredAccessControlRuleList = append(filteredAccessControlRuleList, rule)
-			} else if sourceIPOk && sourceIP == rule.SourceIP {
+			} else if sourceIPOk && sourceIP == rule.SourceIp {
 				filteredAccessControlRuleList = append(filteredAccessControlRuleList, rule)
 			} else if destinationPortOk && destinationPort == rule.DestinationPort {
 				filteredAccessControlRuleList = append(filteredAccessControlRuleList, rule)
@@ -164,21 +164,23 @@ func dataSourceNcloudAccessControlRuleRead(d *schema.ResourceData, meta interfac
 	return accessControlRuleAttributes(d, accessControlRule)
 }
 
-func getAccessControlRuleList(conn *sdk.Conn, groupConfigNo string) (*sdk.AccessControlRuleList, error) {
-	resp, err := conn.GetAccessControlRuleList(groupConfigNo)
+func getAccessControlRuleList(client *NcloudAPIClient, groupConfigNo string) (*server.GetAccessControlRuleListResponse, error) {
+	resp, err := client.server.V2Api.GetAccessControlRuleList(&server.GetAccessControlRuleListRequest{
+		AccessControlGroupConfigurationNo: ncloud.String(groupConfigNo),
+	})
 	if err != nil {
 		logErrorResponse("GetAccessControlRuleList", err, groupConfigNo)
 		return nil, err
 	}
-	logCommonResponse("GetAccessControlRuleList", groupConfigNo, resp.CommonResponse)
+	logCommonResponse("GetAccessControlRuleList", groupConfigNo, GetCommonResponse(resp))
 	return resp, nil
 }
 
-func accessControlRuleAttributes(d *schema.ResourceData, accessControlRule sdk.AccessControlRule) error {
-	d.SetId(accessControlRule.AccessControlRuleConfigurationNo)
+func accessControlRuleAttributes(d *schema.ResourceData, accessControlRule *server.AccessControlRule) error {
+	d.SetId(*accessControlRule.AccessControlRuleConfigurationNo)
 	d.Set("access_control_rule_configuration_no", accessControlRule.AccessControlRuleConfigurationNo)
-	d.Set("protocol_type", setCommonCode(accessControlRule.ProtocolType))
-	d.Set("source_ip", accessControlRule.SourceIP)
+	d.Set("protocol_type", setCommonCode(GetCommonCode(accessControlRule.ProtocolType)))
+	d.Set("source_ip", accessControlRule.SourceIp)
 	d.Set("destination_port", accessControlRule.DestinationPort)
 	d.Set("source_access_control_rule_configuration_no", accessControlRule.SourceAccessControlRuleConfigurationNo)
 	d.Set("source_access_control_rule_name", accessControlRule.SourceAccessControlRuleName)

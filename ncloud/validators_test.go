@@ -81,6 +81,7 @@ func TestValidateIntegerInRange(t *testing.T) {
 	if _, errs := f("4", "test"); len(errs) > 0 {
 		t.Fatalf("Error: %s", errs)
 	}
+
 }
 
 func TestValidateIntegerInRange_shouldReturnError(t *testing.T) {
