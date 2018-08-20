@@ -12,6 +12,7 @@ resource "ncloud_server" "server" {
   "server_image_product_code" = "${var.server_image_product_code}"
   "server_product_code" = "${var.server_product_code}"
   "login_key_name" = "${ncloud_login_key.key.key_name}"
+  "zone_code" = "KR-2"
 }
 
 resource "ncloud_block_storage" "storage" {
@@ -25,7 +26,9 @@ data "ncloud_root_password" "rootpwd" {
   "private_key" = "${ncloud_login_key.key.private_key}"
 }
 
-data "ncloud_port_forwarding_rules" "rules" {}
+data "ncloud_port_forwarding_rules" "rules" {
+  "zone_code" = "${ncloud_server.server.zone_code}"
+}
 
 resource "ncloud_port_forwarding_rule" "forwarding" {
   "port_forwarding_configuration_no" = "${data.ncloud_port_forwarding_rules.rules.id}"
