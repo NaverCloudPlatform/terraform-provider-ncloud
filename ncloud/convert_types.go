@@ -15,6 +15,9 @@ func StringField(f reflect.Value) *string {
 }
 
 func GetCommonResponse(i interface{}) *CommonResponse {
+	if i == nil {
+		return &CommonResponse{}
+	}
 	var requestId *string
 	var returnCode *string
 	var returnMessage *string
@@ -35,6 +38,9 @@ func GetCommonResponse(i interface{}) *CommonResponse {
 }
 
 func GetCommonCode(i interface{}) *CommonCode {
+	if i == nil {
+		return &CommonCode{}
+	}
 	var code *string
 	var codeName *string
 	if f := reflect.ValueOf(i).Elem().FieldByName("Code"); !f.IsNil() && f.IsValid() {
@@ -51,6 +57,9 @@ func GetCommonCode(i interface{}) *CommonCode {
 }
 
 func GetRegion(i interface{}) *Region {
+	if i == nil {
+		return &Region{}
+	}
 	var regionNo *string
 	var regionCode *string
 	var regionName *string
@@ -72,6 +81,9 @@ func GetRegion(i interface{}) *Region {
 }
 
 func GetZone(i interface{}) *Zone {
+	if i == nil {
+		return &Zone{}
+	}
 	var zoneNo *string
 	var zoneDescription *string
 	var zoneName *string
