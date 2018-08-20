@@ -10,8 +10,9 @@
 package loadbalancer
 
 import (
-	"net/http"
 	"os"
+
+	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/ncloud"
 )
 
 // contextKeys are used to identify the type of value in the context.
@@ -24,55 +25,17 @@ func (c contextKey) String() string {
 	return "auth " + string(c)
 }
 
-var (
-	// ContextOAuth2 takes a oauth2.TokenSource as authentication for the request.
-	ContextOAuth2    	= contextKey("token")
-
-	// ContextBasicAuth takes BasicAuth as authentication for the request.
-	ContextBasicAuth 	= contextKey("basic")
-
-	// ContextAccessToken takes a string oauth2 access token as authentication for the request.
-	ContextAccessToken 	= contextKey("accesstoken")
-
-	// ContextAPIKey takes an APIKey as authentication for the request
- 	ContextAPIKey 		= contextKey("apikey")
-)
-
-// BasicAuth provides basic http authentication to a request passed via context using ContextBasicAuth
-type BasicAuth struct {
-	UserName      string            `json:"userName,omitempty"`
-	Password      string            `json:"password,omitempty"`
-}
-
-// APIKey provides API key based authentication to a request passed via context using ContextAPIKey
-type APIKey struct {
-	AccessKey string
-	SecretKey string
-}
-
-type Configuration struct {
-	BasePath      string            	`json:"basePath,omitempty"`
-	Host          string            	`json:"host,omitempty"`
-	Scheme        string            	`json:"scheme,omitempty"`
-	DefaultHeader map[string]string 	`json:"defaultHeader,omitempty"`
-	UserAgent     string            	`json:"userAgent,omitempty"`
-	HTTPClient 	  *http.Client
-	APIKey        *APIKey
-}
-
-func NewConfiguration(apiKey *APIKey) *Configuration {
-	cfg := &Configuration{
+func NewConfiguration(apiKey *ncloud.APIKey) *ncloud.Configuration {
+	cfg := &ncloud.Configuration{
 		BasePath:      "https://ncloud.apigw.ntruss.com/loadbalancer/v2",
 		DefaultHeader: make(map[string]string),
 		UserAgent:     "loadbalancer/1.0.0/go",
 		APIKey:        apiKey,
 	}
+
 	if os.Getenv("NCLOUD_API_GW") != "" {
 		cfg.BasePath = os.Getenv("NCLOUD_API_GW") + "/loadbalancer/v2"
 	}
-	return cfg
-}
 
-func (c *Configuration) AddDefaultHeader(key string, value string) {
-	c.DefaultHeader[key] = value
+	return cfg
 }
