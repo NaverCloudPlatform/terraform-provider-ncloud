@@ -28,6 +28,7 @@ resource "ncloud_server" "server" {
   "login_key_name" = "${ncloud_login_key.key.key_name}"
   "access_control_group_configuration_no_list" = ["${data.ncloud_access_control_group.acg.id}"]
   "user_data" = "CreateObject(\"WScript.Shell\").run(\"cmd.exe /c powershell Set-ExecutionPolicy RemoteSigned & winrm set winrm/config/service/auth @{Basic=\"\"true\"\"} & winrm set winrm/config/service @{AllowUnencrypted=\"\"true\"\"} & winrm quickconfig -q & sc config WinRM start= auto & winrm get winrm/config/service\")"
+  "zone_code" = "KR-2"
 }
 
 resource "ncloud_public_ip" "public_ip" {
@@ -46,7 +47,9 @@ data "ncloud_root_password" "rootpwd" {
   "private_key" = "${ncloud_login_key.key.private_key}"
 }
 
-data "ncloud_port_forwarding_rules" "rules" {}
+data "ncloud_port_forwarding_rules" "rules" {
+  "zone_code" = "${ncloud_server.server.zone_code}"
+}
 
 resource "ncloud_port_forwarding_rule" "forwarding" {
   "port_forwarding_configuration_no" = "${data.ncloud_port_forwarding_rules.rules.id}"

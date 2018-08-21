@@ -17,8 +17,8 @@
 		{
 			"checksumSHA1": "6veppc+IuYL5FN9DBlR5KmgxKMU=",
 			"path": "github.com/NaverCloudPlatform/ncloud-sdk-go-v2",
-			"revision": "9166d39265be16adfd91b222afbd5130485c90e6",
-			"revisionTime": "2018-08-01T06:49:17Z"
+			"revision": "4542dc1cc748c869d9856d1c871c7a18f7ead62f",
+			"revisionTime": "2018-08-20T07:06:23Z"
 		},
 		{
 			"checksumSHA1": "A83sl7gI6U//0PQ3KppLNIwK4qk=",
@@ -27,10 +27,10 @@
 			"revisionTime": "2018-08-08T01:56:13Z"
 		},
 		{
-			"checksumSHA1": "cCYL8tr+n7qi3mkfZA0paFido1k=",
+			"checksumSHA1": "gMJANTqF9DJYn7knBde8jO084gE=",
 			"path": "github.com/NaverCloudPlatform/ncloud-sdk-go-v2/ncloud",
-			"revision": "a670ee9ba04c4ff9c9ef58c02702b6bfd43c755a",
-			"revisionTime": "2018-08-08T01:56:13Z"
+			"revision": "938a8164eba67ec1e87e689d4ced6c5303c27a24",
+			"revisionTime": "2018-08-20T10:19:09Z"
 		},
 		{
 			"path": "github.com/NaverCloudPlatform/ncloud-sdk-go-v2/server",
@@ -57,40 +57,40 @@
 			"revision": ""
 		},
 		{
-			"checksumSHA1": "tuhvQ2DPG72GAY/PMJsYiOL/5SM=",
+			"checksumSHA1": "GqfGcnvzf61fw+coR8ZbnYbuSdw=",
 			"path": "github.com/NaverCloudPlatform/ncloud-sdk-go-v2/services/autoscaling",
-			"revision": "a670ee9ba04c4ff9c9ef58c02702b6bfd43c755a",
-			"revisionTime": "2018-08-08T01:56:13Z"
+			"revision": "938a8164eba67ec1e87e689d4ced6c5303c27a24",
+			"revisionTime": "2018-08-20T10:19:09Z"
 		},
 		{
-			"checksumSHA1": "AJ4QfRF9HsuClFl+vUhOAwpHWN4=",
+			"checksumSHA1": "JuqOVKndVttAUvagbv5sfPPDJ3c=",
 			"path": "github.com/NaverCloudPlatform/ncloud-sdk-go-v2/services/cdn",
-			"revision": "a670ee9ba04c4ff9c9ef58c02702b6bfd43c755a",
-			"revisionTime": "2018-08-08T01:56:13Z"
+			"revision": "938a8164eba67ec1e87e689d4ced6c5303c27a24",
+			"revisionTime": "2018-08-20T10:19:09Z"
 		},
 		{
-			"checksumSHA1": "+9K/TvAXsP5JcHlHHeWnWAyD6Lw=",
+			"checksumSHA1": "wdS6kc8+54uarXX8Wr5rGi66lpg=",
 			"path": "github.com/NaverCloudPlatform/ncloud-sdk-go-v2/services/clouddb",
-			"revision": "a670ee9ba04c4ff9c9ef58c02702b6bfd43c755a",
-			"revisionTime": "2018-08-08T01:56:13Z"
+			"revision": "938a8164eba67ec1e87e689d4ced6c5303c27a24",
+			"revisionTime": "2018-08-20T10:19:09Z"
 		},
 		{
-			"checksumSHA1": "O9crlfptsSuyxxtbPBVu/ap8KkQ=",
+			"checksumSHA1": "jxglVQ3igVX1qqKUQX3A8hAwwQw=",
 			"path": "github.com/NaverCloudPlatform/ncloud-sdk-go-v2/services/loadbalancer",
-			"revision": "a670ee9ba04c4ff9c9ef58c02702b6bfd43c755a",
-			"revisionTime": "2018-08-08T01:56:13Z"
+			"revision": "938a8164eba67ec1e87e689d4ced6c5303c27a24",
+			"revisionTime": "2018-08-20T10:19:09Z"
 		},
 		{
-			"checksumSHA1": "lCJcaaYsN46PXxtvi3PnM2XpnxY=",
+			"checksumSHA1": "IKQCdyx+slwcPcPAVHuXwSm9IY8=",
 			"path": "github.com/NaverCloudPlatform/ncloud-sdk-go-v2/services/monitoring",
-			"revision": "a670ee9ba04c4ff9c9ef58c02702b6bfd43c755a",
-			"revisionTime": "2018-08-08T01:56:13Z"
+			"revision": "938a8164eba67ec1e87e689d4ced6c5303c27a24",
+			"revisionTime": "2018-08-20T10:19:09Z"
 		},
 		{
-			"checksumSHA1": "JG7MNVycUbS2fibZAMJh3BhlgVU=",
+			"checksumSHA1": "/XGSnTqyXfye3RQRCWGQk8MWrCs=",
 			"path": "github.com/NaverCloudPlatform/ncloud-sdk-go-v2/services/server",
-			"revision": "a670ee9ba04c4ff9c9ef58c02702b6bfd43c755a",
-			"revisionTime": "2018-08-08T01:56:13Z"
+			"revision": "938a8164eba67ec1e87e689d4ced6c5303c27a24",
+			"revisionTime": "2018-08-20T10:19:09Z"
 		},
 		{
 			"checksumSHA1": "reA/ijm6o2PpGX9N/50p+rn2YcU=",
@@ -115,6 +115,10 @@
 			"path": "github.com/NaverCloudPlatform/ncloud-sdk-go/sdk",
 			"revision": "5508e381ff3444cda00d0412028a8f296785c5bd",
 			"revisionTime": "2018-07-16T06:22:51Z"
+		},
+		{
+			"path": "github.com/NaverCloudPlatform/ncloud/sdk-go-v2",
+			"revision": ""
 		},
 		{
 			"checksumSHA1": "jQh1fnoKPKMURvKkpdRjN695nAQ=",

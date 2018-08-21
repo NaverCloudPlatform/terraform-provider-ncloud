@@ -5,6 +5,14 @@ import (
 	"reflect"
 )
 
+func validElem(i interface{}) bool {
+	return reflect.ValueOf(i).Elem().IsValid()
+}
+
+func validField(f reflect.Value) bool {
+	return (!f.CanAddr() || f.CanAddr() && !f.IsNil()) && f.IsValid()
+}
+
 func StringField(f reflect.Value) *string {
 	if f.Kind() == reflect.Ptr && f.Type().String() == "*string" {
 		return f.Interface().(*string)
@@ -15,16 +23,20 @@ func StringField(f reflect.Value) *string {
 }
 
 func GetCommonResponse(i interface{}) *CommonResponse {
+	if i == nil || !validElem(i) {
+		return &CommonResponse{}
+	}
 	var requestId *string
 	var returnCode *string
 	var returnMessage *string
-	if f := reflect.ValueOf(i).Elem().FieldByName("RequestId"); !f.IsNil() && f.IsValid() {
+
+	if f := reflect.ValueOf(i).Elem().FieldByName("RequestId"); validField(f) {
 		requestId = StringField(f)
 	}
-	if f := reflect.ValueOf(i).Elem().FieldByName("ReturnCode"); !f.IsNil() && f.IsValid() {
+	if f := reflect.ValueOf(i).Elem().FieldByName("ReturnCode"); validField(f) {
 		returnCode = StringField(f)
 	}
-	if f := reflect.ValueOf(i).Elem().FieldByName("ReturnMessage"); !f.IsNil() && f.IsValid() {
+	if f := reflect.ValueOf(i).Elem().FieldByName("ReturnMessage"); validField(f) {
 		returnMessage = StringField(f)
 	}
 	return &CommonResponse{
@@ -35,12 +47,16 @@ func GetCommonResponse(i interface{}) *CommonResponse {
 }
 
 func GetCommonCode(i interface{}) *CommonCode {
+	if i == nil || !reflect.ValueOf(i).Elem().IsValid() {
+		return &CommonCode{}
+	}
+
 	var code *string
 	var codeName *string
-	if f := reflect.ValueOf(i).Elem().FieldByName("Code"); !f.IsNil() && f.IsValid() {
+	if f := reflect.ValueOf(i).Elem().FieldByName("Code"); validField(f) {
 		code = StringField(f)
 	}
-	if f := reflect.ValueOf(i).Elem().FieldByName("CodeName"); !f.IsNil() && f.IsValid() {
+	if f := reflect.ValueOf(i).Elem().FieldByName("CodeName"); validField(f) {
 		codeName = StringField(f)
 	}
 
@@ -51,16 +67,19 @@ func GetCommonCode(i interface{}) *CommonCode {
 }
 
 func GetRegion(i interface{}) *Region {
+	if i == nil || !reflect.ValueOf(i).Elem().IsValid() {
+		return &Region{}
+	}
 	var regionNo *string
 	var regionCode *string
 	var regionName *string
-	if f := reflect.ValueOf(i).Elem().FieldByName("RegionNo"); !f.IsNil() && f.IsValid() {
+	if f := reflect.ValueOf(i).Elem().FieldByName("RegionNo"); validField(f) {
 		regionNo = StringField(f)
 	}
-	if f := reflect.ValueOf(i).Elem().FieldByName("RegionCode"); !f.IsNil() && f.IsValid() {
+	if f := reflect.ValueOf(i).Elem().FieldByName("RegionCode"); validField(f) {
 		regionCode = StringField(f)
 	}
-	if f := reflect.ValueOf(i).Elem().FieldByName("RegionName"); !f.IsNil() && f.IsValid() {
+	if f := reflect.ValueOf(i).Elem().FieldByName("RegionName"); validField(f) {
 		regionName = StringField(f)
 	}
 
@@ -72,24 +91,27 @@ func GetRegion(i interface{}) *Region {
 }
 
 func GetZone(i interface{}) *Zone {
+	if i == nil || !reflect.ValueOf(i).Elem().IsValid() {
+		return &Zone{}
+	}
 	var zoneNo *string
 	var zoneDescription *string
 	var zoneName *string
 	var zoneCode *string
 	var regionNo *string
-	if f := reflect.ValueOf(i).Elem().FieldByName("ZoneNo"); !f.IsNil() && f.IsValid() {
+	if f := reflect.ValueOf(i).Elem().FieldByName("ZoneNo"); validField(f) {
 		zoneNo = StringField(f)
 	}
-	if f := reflect.ValueOf(i).Elem().FieldByName("ZoneName"); !f.IsNil() && f.IsValid() {
+	if f := reflect.ValueOf(i).Elem().FieldByName("ZoneName"); validField(f) {
 		zoneName = StringField(f)
 	}
-	if f := reflect.ValueOf(i).Elem().FieldByName("ZoneCode"); !f.IsNil() && f.IsValid() {
+	if f := reflect.ValueOf(i).Elem().FieldByName("ZoneCode"); validField(f) {
 		zoneCode = StringField(f)
 	}
-	if f := reflect.ValueOf(i).Elem().FieldByName("ZoneDescription"); !f.IsNil() && f.IsValid() {
+	if f := reflect.ValueOf(i).Elem().FieldByName("ZoneDescription"); validField(f) {
 		zoneDescription = StringField(f)
 	}
-	if f := reflect.ValueOf(i).Elem().FieldByName("RegionNo"); !f.IsNil() && f.IsValid() {
+	if f := reflect.ValueOf(i).Elem().FieldByName("RegionNo"); validField(f) {
 		regionNo = StringField(f)
 	}
 

@@ -4,15 +4,20 @@ provider "ncloud" {
   region = "${var.region}"
 }
 
+resource "random_id" "id" {
+  byte_length = 4
+}
+
 resource "ncloud_login_key" "key" {
-  "key_name" = "${var.login_key_name}"
+  "key_name" = "${var.login_key_name}${random_id.id.hex}"
 }
 
 resource "ncloud_server" "server" {
-  "server_name" = "${var.server_name}"
+  "server_name" = "${var.server_name}${random_id.id.hex}"
   "server_image_product_code" = "${var.server_image_product_code}"
   "server_product_code" = "${var.server_product_code}"
   "login_key_name" = "${ncloud_login_key.key.key_name}"
+  "zone_code" = "${var.zone}"
 }
 
 data "ncloud_root_password" "rootpwd" {
@@ -20,7 +25,9 @@ data "ncloud_root_password" "rootpwd" {
   "private_key" = "${ncloud_login_key.key.private_key}"
 }
 
-data "ncloud_port_forwarding_rules" "rules" {}
+data "ncloud_port_forwarding_rules" "rules" {
+  "zone_code" = "${ncloud_server.server.zone_code}"
+}
 
 resource "ncloud_port_forwarding_rule" "forwarding" {
   "port_forwarding_configuration_no" = "${data.ncloud_port_forwarding_rules.rules.id}"

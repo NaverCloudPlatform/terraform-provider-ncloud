@@ -114,6 +114,28 @@ func validateIncludeValues(includeValues []string) schema.SchemaValidateFunc {
 	}
 }
 
+func validateIncludeIntValues(includeValues []int) schema.SchemaValidateFunc {
+	return func(v interface{}, k string) (ws []string, errors []error) {
+
+		var values []int
+		switch v.(type) {
+		case int:
+			values = append(values, v.(int))
+		case []int:
+			values = v.([]int)
+		}
+
+		for _, value := range values {
+			err := validateIntIncludes(includeValues, value, k)
+			if err != nil {
+				errors = append(errors, err)
+				return
+			}
+		}
+		return
+	}
+}
+
 func validateIncludes(includeValues []string, v string, k string) error {
 	for _, included := range includeValues {
 		if v == included {
@@ -121,4 +143,15 @@ func validateIncludes(includeValues []string, v string, k string) error {
 		}
 	}
 	return fmt.Errorf("%s should be %s", k, strings.Join(includeValues, " or "))
+}
+
+func validateIntIncludes(includeValues []int, v int, k string) error {
+	var includeValuesString []string
+	for _, included := range includeValues {
+		if v == included {
+			return nil
+		}
+		includeValuesString = append(includeValuesString, strconv.Itoa(included))
+	}
+	return fmt.Errorf("%s should be %s", k, strings.Join(includeValuesString, " or "))
 }
