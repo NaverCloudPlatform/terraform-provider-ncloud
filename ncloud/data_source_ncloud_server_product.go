@@ -142,7 +142,7 @@ func dataSourceNcloudServerProductRead(d *schema.ResourceData, meta interface{})
 		ServerImageProductCode: ncloud.String(d.Get("server_image_product_code").(string)),
 		RegionNo:               regionNo,
 		ZoneNo:                 zoneNo,
-		InternetLineTypeCode:   ncloud.String(d.Get("internet_line_type_code").(string)),
+		InternetLineTypeCode:   StringPtrOrNil(d.GetOk("internet_line_type_code")),
 	}
 
 	resp, err := client.server.V2Api.GetServerProductList(reqParams)

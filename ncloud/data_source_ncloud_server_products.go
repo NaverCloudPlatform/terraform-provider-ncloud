@@ -148,7 +148,7 @@ func dataSourceNcloudServerProductsRead(d *schema.ResourceData, meta interface{}
 		ServerImageProductCode: ncloud.String(d.Get("server_image_product_code").(string)),
 		RegionNo:               regionNo,
 		ZoneNo:                 zoneNo,
-		InternetLineTypeCode:   ncloud.String(d.Get("internet_line_type_code").(string)),
+		InternetLineTypeCode:   StringPtrOrNil(d.GetOk("internet_line_type_code")),
 	}
 
 	resp, err := client.server.V2Api.GetServerProductList(reqParams)
@@ -184,17 +184,17 @@ func serverProductsAttributes(d *schema.ResourceData, serverImages []*server.Pro
 	var s []map[string]interface{}
 	for _, product := range serverImages {
 		mapping := map[string]interface{}{
-			"product_code":            product.ProductCode,
-			"product_name":            product.ProductName,
+			"product_code":            *product.ProductCode,
+			"product_name":            *product.ProductName,
 			"product_type":            setCommonCode(product.ProductType),
-			"product_description":     product.ProductDescription,
+			"product_description":     *product.ProductDescription,
 			"infra_resource_type":     setCommonCode(product.InfraResourceType),
-			"cpu_count":               product.CpuCount,
-			"memory_size":             product.MemorySize,
-			"base_block_storage_size": product.BaseBlockStorageSize,
+			"cpu_count":               int(*product.CpuCount),
+			"memory_size":             int(*product.MemorySize),
+			"base_block_storage_size": int(*product.BaseBlockStorageSize),
 			"platform_type":           setCommonCode(product.PlatformType),
-			"os_information":          product.OsInformation,
-			"add_block_storage_size":  product.AddBlockStorageSize,
+			"os_information":          *product.OsInformation,
+			"add_block_storage_size":  int(*product.AddBlockStorageSize),
 		}
 
 		ids = append(ids, *product.ProductCode)

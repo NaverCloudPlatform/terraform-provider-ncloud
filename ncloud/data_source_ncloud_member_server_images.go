@@ -205,24 +205,24 @@ func memberServerImagesAttributes(d *schema.ResourceData, memberServerImages []*
 	var s []map[string]interface{}
 	for _, m := range memberServerImages {
 		mapping := map[string]interface{}{
-			"member_server_image_no":                m.MemberServerImageNo,
-			"member_server_image_name":              m.MemberServerImageName,
-			"member_server_image_description":       m.MemberServerImageDescription,
-			"original_server_instance_no":           m.OriginalServerInstanceNo,
-			"original_server_product_code":          m.OriginalServerProductCode,
-			"original_server_name":                  m.OriginalServerName,
+			"member_server_image_no":                *m.MemberServerImageNo,
+			"member_server_image_name":              *m.MemberServerImageName,
+			"member_server_image_description":       *m.MemberServerImageDescription,
+			"original_server_instance_no":           *m.OriginalServerInstanceNo,
+			"original_server_product_code":          *m.OriginalServerProductCode,
+			"original_server_name":                  *m.OriginalServerName,
 			"original_base_block_storage_disk_type": setCommonCode(m.OriginalBaseBlockStorageDiskType),
-			"original_server_image_product_code":    m.OriginalServerImageProductCode,
-			"original_os_information":               m.OriginalOsInformation,
-			"original_server_image_name":            m.OriginalServerImageName,
-			"member_server_image_status_name":       m.MemberServerImageStatusName,
+			"original_server_image_product_code":    *m.OriginalServerImageProductCode,
+			"original_os_information":               *m.OriginalOsInformation,
+			"original_server_image_name":            *m.OriginalServerImageName,
+			"member_server_image_status_name":       *m.MemberServerImageStatusName,
 			"member_server_image_status":            setCommonCode(m.MemberServerImageStatus),
 			"member_server_image_operation":         setCommonCode(m.MemberServerImageOperation),
 			"member_server_image_platform_type":     setCommonCode(m.MemberServerImagePlatformType),
-			"create_date":                           m.CreateDate,
+			"create_date":                           *m.CreateDate,
 			"region":                                setRegion(m.Region),
-			"member_server_image_block_storage_total_rows": m.MemberServerImageBlockStorageTotalRows,
-			"member_server_image_block_storage_total_size": m.MemberServerImageBlockStorageTotalSize,
+			"member_server_image_block_storage_total_rows": *m.MemberServerImageBlockStorageTotalRows,
+			"member_server_image_block_storage_total_size": *m.MemberServerImageBlockStorageTotalSize,
 		}
 
 		ids = append(ids, *m.MemberServerImageNo)

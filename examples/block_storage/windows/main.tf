@@ -87,8 +87,17 @@ resource "null_resource" "winrm" {
   }
 
   provisioner "remote-exec" {
+    when = "create"
     inline = [
       "powershell.exe -File C:\\scripts\\mount-storage.ps1",
+      "powershell.exe -File C:\\scripts\\get-mountpoints.ps1"
+    ]
+  }
+
+  provisioner "remote-exec" {
+    when = "destroy"
+    inline = [
+      "powershell.exe -File C:\\scripts\\unmount-storage.ps1",
       "powershell.exe -File C:\\scripts\\get-mountpoints.ps1"
     ]
   }

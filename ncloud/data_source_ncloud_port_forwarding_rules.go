@@ -2,7 +2,6 @@ package ncloud
 
 import (
 	"fmt"
-	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/ncloud"
 	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/services/server"
 	"github.com/hashicorp/terraform/helper/schema"
 	"strconv"
@@ -109,7 +108,7 @@ func dataSourceNcloudPortForwardingRulesRead(d *schema.ResourceData, meta interf
 		return err
 	}
 	reqParams := &server.GetPortForwardingRuleListRequest{
-		InternetLineTypeCode: ncloud.String(d.Get("internet_line_type_code").(string)),
+		InternetLineTypeCode: StringPtrOrNil(d.GetOk("internet_line_type_code")),
 		RegionNo:             regionNo,
 		ZoneNo:               zoneNo,
 	}

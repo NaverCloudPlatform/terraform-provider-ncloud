@@ -9,6 +9,10 @@ variable "zone_no" {
   default = "3"
 }
 
+// winrm-acg
+//  protocol: TCP
+//  Source: 0.0.0.0/0
+//  Allow Port: 5985
 variable "acg_name" {
   default = "winrm-acg"
 }

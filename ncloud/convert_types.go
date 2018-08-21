@@ -123,3 +123,10 @@ func GetZone(i interface{}) *Zone {
 		RegionNo:        regionNo,
 	}
 }
+
+func StringPtrOrNil(v interface{}, ok bool) *string {
+	if !ok {
+		return nil
+	}
+	return ncloud.String(v.(string))
+}

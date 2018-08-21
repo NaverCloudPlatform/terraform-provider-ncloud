@@ -179,7 +179,7 @@ func resourceNcloudBlockStorageUpdate(d *schema.ResourceData, meta interface{}) 
 func buildRequestBlockStorageInstance(d *schema.ResourceData) *server.CreateBlockStorageInstanceRequest {
 	return &server.CreateBlockStorageInstanceRequest{
 		ServerInstanceNo:        ncloud.String(d.Get("server_instance_no").(string)),
-		BlockStorageSize:        ncloud.Int64(d.Get("block_storage_size_gb").(int64)),
+		BlockStorageSize:        ncloud.Int64(int64(d.Get("block_storage_size_gb").(int))),
 		BlockStorageName:        ncloud.String(d.Get("block_storage_name").(string)),
 		BlockStorageDescription: ncloud.String(d.Get("block_storage_description").(string)),
 		DiskDetailTypeCode:      ncloud.String(d.Get("disk_detail_type_code").(string)),
