@@ -133,11 +133,11 @@ func dataSourceNcloudServerImageRead(d *schema.ResourceData, meta interface{}) e
 		return err
 	}
 	reqParams := &server.GetServerImageProductListRequest{
-		ExclusionProductCode:        ncloud.String(d.Get("exclusion_product_code").(string)),
-		ProductCode:                 ncloud.String(d.Get("product_code").(string)),
+		ExclusionProductCode:        StringPtrOrNil(d.GetOk("exclusion_product_code")),
+		ProductCode:                 StringPtrOrNil(d.GetOk("product_code")),
 		PlatformTypeCodeList:        ncloud.StringInterfaceList(d.Get("platform_type_code_list").([]interface{})),
 		RegionNo:                    regionNo,
-		InfraResourceDetailTypeCode: ncloud.String(d.Get("infra_resource_detail_type_code").(string)),
+		InfraResourceDetailTypeCode: StringPtrOrNil(d.GetOk("infra_resource_detail_type_code")),
 	}
 
 	resp, err := client.server.V2Api.GetServerImageProductList(reqParams)

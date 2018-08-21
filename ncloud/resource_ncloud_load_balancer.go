@@ -333,7 +333,7 @@ func buildCreateLoadBalancerInstanceParams(client *NcloudAPIClient, d *schema.Re
 		LoadBalancerDescription:       ncloud.String(d.Get("load_balancer_description").(string)),
 		LoadBalancerRuleList:          buildLoadBalancerRuleParams(d),
 		ServerInstanceNoList:          ncloud.StringInterfaceList(d.Get("server_instance_no_list").([]interface{})),
-		InternetLineTypeCode:          ncloud.String(d.Get("internet_line_type_code").(string)),
+		InternetLineTypeCode:          StringPtrOrNil(d.GetOk("internet_line_type_code")),
 		NetworkUsageTypeCode:          ncloud.String(d.Get("network_usage_type_code").(string)),
 		RegionNo:                      regionNo,
 	}

@@ -51,6 +51,11 @@ resource "null_resource" "ssh" {
     destination = "scripts/mount-storage.sh"
   }
 
+  provisioner "file" {
+    source = "scripts/unmount-storage.sh"
+    destination = "scripts/unmount-storage.sh"
+  }
+
   provisioner "remote-exec" {
     when = "create"
     # CentOS 5.x: mkfs.ext3 /dev/xvdb1

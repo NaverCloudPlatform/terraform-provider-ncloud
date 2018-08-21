@@ -343,7 +343,7 @@ func buildCreateServerInstanceReqParams(client *NcloudAPIClient, d *schema.Resou
 		ServerName:             ncloud.String(d.Get("server_name").(string)),
 		ServerDescription:      ncloud.String(d.Get("server_description").(string)),
 		LoginKeyName:           ncloud.String(d.Get("login_key_name").(string)),
-		InternetLineTypeCode:   ncloud.String(d.Get("internet_line_type_code").(string)),
+		InternetLineTypeCode:   StringPtrOrNil(d.GetOk("internet_line_type_code")),
 		FeeSystemTypeCode:      ncloud.String(d.Get("fee_system_type_code").(string)),
 		ZoneNo:                 zoneNo,
 		AccessControlGroupConfigurationNoList: paramAccessControlGroupConfigurationNoList,
