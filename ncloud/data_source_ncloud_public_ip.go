@@ -227,9 +227,9 @@ func publicIPAttributes(d *schema.ResourceData, instance *server.PublicIpInstanc
 	if *instance.ServerInstanceAssociatedWithPublicIp.ServerInstanceNo != "" {
 		serverInstance := instance.ServerInstanceAssociatedWithPublicIp
 		mapping := map[string]interface{}{
-			"server_instance_no": serverInstance.ServerInstanceNo,
-			"server_name":        serverInstance.ServerName,
-			"create_date":        serverInstance.CreateDate,
+			"server_instance_no": *serverInstance.ServerInstanceNo,
+			"server_name":        *serverInstance.ServerName,
+			"create_date":        *serverInstance.CreateDate,
 		}
 		d.Set("server_instance", mapping)
 	}

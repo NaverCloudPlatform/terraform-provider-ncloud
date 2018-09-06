@@ -185,17 +185,17 @@ func serverImagesAttributes(d *schema.ResourceData, serverImages []*server.Produ
 	var s []map[string]interface{}
 	for _, product := range serverImages {
 		mapping := map[string]interface{}{
-			"product_code":            product.ProductCode,
-			"product_name":            product.ProductName,
+			"product_code":            *product.ProductCode,
+			"product_name":            *product.ProductName,
 			"product_type":            setCommonCode(product.ProductType),
-			"product_description":     product.ProductDescription,
+			"product_description":     *product.ProductDescription,
 			"infra_resource_type":     setCommonCode(product.InfraResourceType),
-			"cpu_count":               product.CpuCount,
-			"memory_size":             product.MemorySize,
-			"base_block_storage_size": product.BaseBlockStorageSize,
+			"cpu_count":               int(*product.CpuCount),
+			"memory_size":             int(*product.MemorySize),
+			"base_block_storage_size": int(*product.BaseBlockStorageSize),
 			"platform_type":           setCommonCode(product.PlatformType),
-			"os_information":          product.OsInformation,
-			"add_block_storage_size":  product.AddBlockStorageSize,
+			"os_information":          *product.OsInformation,
+			"add_block_storage_size":  int(*product.AddBlockStorageSize),
 		}
 
 		ids = append(ids, *product.ProductCode)
