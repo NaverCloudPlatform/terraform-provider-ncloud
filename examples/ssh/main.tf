@@ -4,8 +4,12 @@ provider "ncloud" {
   region = "${var.region}"
 }
 
+resource "random_id" "id" {
+  byte_length = 4
+}
+
 resource "ncloud_login_key" "key" {
-  "key_name" = "${var.login_key_name}"
+  "key_name" = "${var.login_key_name}${random_id.id.hex}"
 }
 
 resource "ncloud_server" "server" {
