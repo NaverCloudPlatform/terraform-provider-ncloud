@@ -10,9 +10,8 @@
 package loadbalancer
 
 import (
-	"os"
-
 	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/ncloud"
+	"os"
 )
 
 // contextKeys are used to identify the type of value in the context.
@@ -32,10 +31,8 @@ func NewConfiguration(apiKey *ncloud.APIKey) *ncloud.Configuration {
 		UserAgent:     "loadbalancer/1.0.0/go",
 		APIKey:        apiKey,
 	}
-
 	if os.Getenv("NCLOUD_API_GW") != "" {
 		cfg.BasePath = os.Getenv("NCLOUD_API_GW") + "/loadbalancer/v2"
 	}
-
 	return cfg
 }
