@@ -4,7 +4,8 @@
 - Documentation: http://10.105.182.126:4567/docs/providers/ncloud/index.html
 - [![Gitter chat](https://badges.gitter.im/hashicorp-terraform/Lobby.png)](https://gitter.im/hashicorp-terraform/Lobby) [![Build Status](https://travis-ci.com/NaverCloudPlatform/terraform-provider-ncloud.svg?branch=master)](https://travis-ci.com/NaverCloudPlatform/terraform-provider-ncloud)
 - Mailing list: [Google Groups](http://groups.google.com/group/terraform-tool)
-  <img src="https://cdn.rawgit.com/hashicorp/terraform-website/master/content/source/assets/images/logo-hashicorp.svg" width="600px">
+
+<img src="https://cdn.rawgit.com/hashicorp/terraform-website/master/content/source/assets/images/logo-hashicorp.svg" width="600px">
 
 ## Requirements
 
