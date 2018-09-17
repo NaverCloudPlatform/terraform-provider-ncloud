@@ -2,11 +2,15 @@ package ncloud
 
 import (
 	"fmt"
-	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/ncloud"
-	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/services/server"
-	"github.com/hashicorp/terraform/helper/schema"
+	"log"
 	"strconv"
 	"strings"
+	"time"
+
+	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/ncloud"
+	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/services/server"
+	"github.com/hashicorp/terraform/helper/resource"
+	"github.com/hashicorp/terraform/helper/schema"
 )
 
 func resourceNcloudPortForwadingRule() *schema.Resource {
@@ -90,7 +94,19 @@ func resourceNcloudPortForwardingRuleCreate(d *schema.ResourceData, meta interfa
 			},
 		},
 	}
-	resp, err := client.server.V2Api.AddPortForwardingRules(reqParams)
+
+	var resp *server.AddPortForwardingRulesResponse
+	err = resource.Retry(3*time.Minute, func() *resource.RetryError {
+		var err error
+		resp, err = client.server.V2Api.AddPortForwardingRules(reqParams)
+
+		log.Printf("[DEBUG] resourceNcloudPortForwardingRuleCreate resp: %v", resp)
+		if err != nil && resp != nil && isRetryableErr(GetCommonResponse(resp), []string{"1300", "25033"}) {
+			return resource.RetryableError(err)
+		}
+		return resource.NonRetryableError(err)
+	})
+
 	if err != nil {
 		logErrorResponse("AddPortForwardingRules", err, reqParams)
 		return err
@@ -129,7 +145,7 @@ func resourceNcloudPortForwardingRuleRead(d *schema.ResourceData, meta interface
 		}
 	}
 	if portForwardingRule != nil {
-		d.Set("port_forwarding_public_ip", resp.PortForwardingPublicIp)
+		d.Set("port_forwarding_public_ip", portForwardingRule.ServerInstance.PortForwardingPublicIp)
 		d.Set("server_instance_no", portForwardingRule.ServerInstance.ServerInstanceNo)
 		d.Set("port_forwarding_external_port", portForwardingRule.PortForwardingExternalPort)
 		d.Set("port_forwarding_internal_port", portForwardingRule.PortForwardingInternalPort)
