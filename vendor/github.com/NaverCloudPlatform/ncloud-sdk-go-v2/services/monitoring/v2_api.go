@@ -88,12 +88,13 @@ func (a *V2ApiService) GetListMetrics(getListMetricsRequest *GetListMetricsReque
 	}
 	defer localVarHttpResponse.Body.Close()
 	bodyBytes, _ := ioutil.ReadAll(localVarHttpResponse.Body)
-	if localVarHttpResponse.StatusCode >= 300 {
-		return &successPayload, reportError("Status: %v, Body: %s", localVarHttpResponse.Status, bodyBytes)
-	}
 
     if err = json.Unmarshal(bodyBytes[bytes.IndexAny(bytes.Trim(bodyBytes, "{"), "{"):len(bodyBytes)-1], &successPayload); err != nil {
 		return &successPayload, err
+	}
+
+	if localVarHttpResponse.StatusCode >= 300 {
+		return &successPayload, reportError("Status: %v, Body: %s", localVarHttpResponse.Status, bodyBytes)
 	}
 
 
@@ -159,12 +160,13 @@ func (a *V2ApiService) GetMetricStatistics(getMetricStatisticsRequest *GetMetric
 	}
 	defer localVarHttpResponse.Body.Close()
 	bodyBytes, _ := ioutil.ReadAll(localVarHttpResponse.Body)
-	if localVarHttpResponse.StatusCode >= 300 {
-		return &successPayload, reportError("Status: %v, Body: %s", localVarHttpResponse.Status, bodyBytes)
-	}
 
     if err = json.Unmarshal(bodyBytes[bytes.IndexAny(bytes.Trim(bodyBytes, "{"), "{"):len(bodyBytes)-1], &successPayload); err != nil {
 		return &successPayload, err
+	}
+
+	if localVarHttpResponse.StatusCode >= 300 {
+		return &successPayload, reportError("Status: %v, Body: %s", localVarHttpResponse.Status, bodyBytes)
 	}
 
 

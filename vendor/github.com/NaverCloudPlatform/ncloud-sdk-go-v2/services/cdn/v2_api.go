@@ -88,12 +88,13 @@ func (a *V2ApiService) GetCdnPlusInstanceList(getCdnPlusInstanceListRequest *Get
 	}
 	defer localVarHttpResponse.Body.Close()
 	bodyBytes, _ := ioutil.ReadAll(localVarHttpResponse.Body)
-	if localVarHttpResponse.StatusCode >= 300 {
-		return &successPayload, reportError("Status: %v, Body: %s", localVarHttpResponse.Status, bodyBytes)
-	}
 
     if err = json.Unmarshal(bodyBytes[bytes.IndexAny(bytes.Trim(bodyBytes, "{"), "{"):len(bodyBytes)-1], &successPayload); err != nil {
 		return &successPayload, err
+	}
+
+	if localVarHttpResponse.StatusCode >= 300 {
+		return &successPayload, reportError("Status: %v, Body: %s", localVarHttpResponse.Status, bodyBytes)
 	}
 
 
@@ -159,12 +160,13 @@ func (a *V2ApiService) GetCdnPlusPurgeHistoryList(getCdnPlusPurgeHistoryListRequ
 	}
 	defer localVarHttpResponse.Body.Close()
 	bodyBytes, _ := ioutil.ReadAll(localVarHttpResponse.Body)
-	if localVarHttpResponse.StatusCode >= 300 {
-		return &successPayload, reportError("Status: %v, Body: %s", localVarHttpResponse.Status, bodyBytes)
-	}
 
     if err = json.Unmarshal(bodyBytes[bytes.IndexAny(bytes.Trim(bodyBytes, "{"), "{"):len(bodyBytes)-1], &successPayload); err != nil {
 		return &successPayload, err
+	}
+
+	if localVarHttpResponse.StatusCode >= 300 {
+		return &successPayload, reportError("Status: %v, Body: %s", localVarHttpResponse.Status, bodyBytes)
 	}
 
 
@@ -230,12 +232,13 @@ func (a *V2ApiService) GetGlobalCdnInstanceList(getGlobalCdnInstanceListRequest 
 	}
 	defer localVarHttpResponse.Body.Close()
 	bodyBytes, _ := ioutil.ReadAll(localVarHttpResponse.Body)
-	if localVarHttpResponse.StatusCode >= 300 {
-		return &successPayload, reportError("Status: %v, Body: %s", localVarHttpResponse.Status, bodyBytes)
-	}
 
     if err = json.Unmarshal(bodyBytes[bytes.IndexAny(bytes.Trim(bodyBytes, "{"), "{"):len(bodyBytes)-1], &successPayload); err != nil {
 		return &successPayload, err
+	}
+
+	if localVarHttpResponse.StatusCode >= 300 {
+		return &successPayload, reportError("Status: %v, Body: %s", localVarHttpResponse.Status, bodyBytes)
 	}
 
 
@@ -301,12 +304,13 @@ func (a *V2ApiService) GetGlobalCdnPurgeHistoryList(getGlobalCdnPurgeHistoryList
 	}
 	defer localVarHttpResponse.Body.Close()
 	bodyBytes, _ := ioutil.ReadAll(localVarHttpResponse.Body)
-	if localVarHttpResponse.StatusCode >= 300 {
-		return &successPayload, reportError("Status: %v, Body: %s", localVarHttpResponse.Status, bodyBytes)
-	}
 
     if err = json.Unmarshal(bodyBytes[bytes.IndexAny(bytes.Trim(bodyBytes, "{"), "{"):len(bodyBytes)-1], &successPayload); err != nil {
 		return &successPayload, err
+	}
+
+	if localVarHttpResponse.StatusCode >= 300 {
+		return &successPayload, reportError("Status: %v, Body: %s", localVarHttpResponse.Status, bodyBytes)
 	}
 
 
@@ -372,12 +376,13 @@ func (a *V2ApiService) RequestCdnPlusPurge(requestCdnPlusPurgeRequest *RequestCd
 	}
 	defer localVarHttpResponse.Body.Close()
 	bodyBytes, _ := ioutil.ReadAll(localVarHttpResponse.Body)
-	if localVarHttpResponse.StatusCode >= 300 {
-		return &successPayload, reportError("Status: %v, Body: %s", localVarHttpResponse.Status, bodyBytes)
-	}
 
     if err = json.Unmarshal(bodyBytes[bytes.IndexAny(bytes.Trim(bodyBytes, "{"), "{"):len(bodyBytes)-1], &successPayload); err != nil {
 		return &successPayload, err
+	}
+
+	if localVarHttpResponse.StatusCode >= 300 {
+		return &successPayload, reportError("Status: %v, Body: %s", localVarHttpResponse.Status, bodyBytes)
 	}
 
 
@@ -443,12 +448,13 @@ func (a *V2ApiService) RequestGlobalCdnPurge(requestGlobalCdnPurgeRequest *Reque
 	}
 	defer localVarHttpResponse.Body.Close()
 	bodyBytes, _ := ioutil.ReadAll(localVarHttpResponse.Body)
-	if localVarHttpResponse.StatusCode >= 300 {
-		return &successPayload, reportError("Status: %v, Body: %s", localVarHttpResponse.Status, bodyBytes)
-	}
 
     if err = json.Unmarshal(bodyBytes[bytes.IndexAny(bytes.Trim(bodyBytes, "{"), "{"):len(bodyBytes)-1], &successPayload); err != nil {
 		return &successPayload, err
+	}
+
+	if localVarHttpResponse.StatusCode >= 300 {
+		return &successPayload, reportError("Status: %v, Body: %s", localVarHttpResponse.Status, bodyBytes)
 	}
 
 
