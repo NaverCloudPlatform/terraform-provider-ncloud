@@ -213,12 +213,12 @@ func resourceNcloudServerCreate(d *schema.ResourceData, meta interface{}) error 
 	}
 
 	var resp *server.CreateServerInstancesResponse
-	err = resource.Retry(10*time.Second, func() *resource.RetryError {
+	err = resource.Retry(10*time.Minute, func() *resource.RetryError {
 		var err error
 		resp, err = client.server.V2Api.CreateServerInstances(reqParams)
 
 		log.Printf("[DEBUG] resourceNcloudServerCreate resp: %v", resp)
-		if err != nil && resp != nil && isRetryableErr(GetCommonResponse(resp), []string{"800", "23006"}) {
+		if err != nil && resp != nil && isRetryableErr(GetCommonResponse(resp), []string{"800", "1300", "23006"}) {
 			return resource.RetryableError(err)
 		}
 		return resource.NonRetryableError(err)
@@ -395,7 +395,7 @@ func terminateServerInstance(client *NcloudAPIClient, serverInstanceNo string) e
 	}
 
 	var resp *server.TerminateServerInstancesResponse
-	err := resource.Retry(20*time.Second, func() *resource.RetryError {
+	err := resource.Retry(1*time.Minute, func() *resource.RetryError {
 		var err error
 		resp, err = client.server.V2Api.TerminateServerInstances(reqParams)
 
