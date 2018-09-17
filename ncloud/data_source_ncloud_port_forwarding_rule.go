@@ -131,14 +131,14 @@ func dataSourceNcloudPortForwardingRuleRead(d *schema.ResourceData, meta interfa
 
 	portForwardingRule = filteredPortForwardingRuleList[0]
 
-	return portForwardingRuleAttributes(d, resp.PortForwardingConfigurationNo, resp.PortForwardingPublicIp, portForwardingRule)
+	return portForwardingRuleAttributes(d, resp.PortForwardingConfigurationNo, portForwardingRule)
 }
 
-func portForwardingRuleAttributes(d *schema.ResourceData, portForwardingConfigurationNo *string, portForwardingPublicIp *string, rule *server.PortForwardingRule) error {
+func portForwardingRuleAttributes(d *schema.ResourceData, portForwardingConfigurationNo *string, rule *server.PortForwardingRule) error {
 
 	d.SetId(*portForwardingConfigurationNo)
 	d.Set("port_forwarding_configuration_no", portForwardingConfigurationNo)
-	d.Set("port_forwarding_public_ip", portForwardingPublicIp)
+	d.Set("port_forwarding_public_ip", rule.ServerInstance.PortForwardingPublicIp)
 	d.Set("server_instance_no", rule.ServerInstance.ServerInstanceNo)
 	d.Set("port_forwarding_external_port", rule.PortForwardingExternalPort)
 	d.Set("port_forwarding_internal_port", rule.PortForwardingInternalPort)
