@@ -137,10 +137,10 @@ func dataSourceNcloudPortForwardingRulesRead(d *schema.ResourceData, meta interf
 	if len(filteredPortForwardingRuleList) < 1 {
 		return fmt.Errorf("no results. please change search criteria and try again")
 	}
-	return portForwardingRulesAttributes(d, resp.PortForwardingConfigurationNo, resp.PortForwardingPublicIp, filteredPortForwardingRuleList)
+	return portForwardingRulesAttributes(d, resp.PortForwardingConfigurationNo, filteredPortForwardingRuleList)
 }
 
-func portForwardingRulesAttributes(d *schema.ResourceData, portForwardingConfigurationNo *string, portForwardingPublicIp *string, portForwardingRuleList []*server.PortForwardingRule) error {
+func portForwardingRulesAttributes(d *schema.ResourceData, portForwardingConfigurationNo *string, portForwardingRuleList []*server.PortForwardingRule) error {
 	var s []map[string]interface{}
 
 	d.SetId(*portForwardingConfigurationNo)
@@ -151,7 +151,7 @@ func portForwardingRulesAttributes(d *schema.ResourceData, portForwardingConfigu
 			"server_instance_no":            *rule.ServerInstance.ServerInstanceNo,
 			"port_forwarding_external_port": strconv.Itoa(int(*rule.PortForwardingExternalPort)),
 			"port_forwarding_internal_port": strconv.Itoa(int(*rule.PortForwardingInternalPort)),
-			"port_forwarding_public_ip":     *portForwardingPublicIp,
+			"port_forwarding_public_ip":     *rule.ServerInstance.PortForwardingPublicIp,
 		}
 		s = append(s, mapping)
 	}
