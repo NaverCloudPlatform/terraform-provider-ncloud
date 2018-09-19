@@ -9,15 +9,13 @@
 
 package server
 
-type GetServerImageProductListResponse struct {
+type DeleteInstanceTagsResponse struct {
 
 RequestId *string `json:"requestId,omitempty"`
 
 ReturnCode *string `json:"returnCode,omitempty"`
 
 ReturnMessage *string `json:"returnMessage,omitempty"`
-
-ProductList []*Product `json:"productList,omitempty"`
 
 TotalRows *int32 `json:"totalRows,omitempty"`
 }

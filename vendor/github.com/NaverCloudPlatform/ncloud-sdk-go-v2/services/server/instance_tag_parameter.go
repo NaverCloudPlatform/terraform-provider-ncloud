@@ -9,11 +9,11 @@
 
 package server
 
-type ImportLoginKeyRequest struct {
+type InstanceTagParameter struct {
 
-	// 키명
-KeyName *string `json:"keyName"`
+	// 태그키
+TagKey *string `json:"tagKey,omitempty"`
 
-	// 공개키
-PublicKey *string `json:"publicKey"`
+	// 태그값
+TagValue *string `json:"tagValue,omitempty"`
 }
