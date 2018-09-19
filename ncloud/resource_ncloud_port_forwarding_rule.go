@@ -254,7 +254,7 @@ func getPortForwardingRule(client *NcloudAPIClient, zoneNo string, portForwardin
 		return nil, err
 	}
 	for _, rule := range resp.PortForwardingRuleList {
-		if *rule.PortForwardingExternalPort == portForwardingExternalPort {
+		if portForwardingExternalPort == *rule.PortForwardingExternalPort {
 			return rule, nil
 		}
 	}

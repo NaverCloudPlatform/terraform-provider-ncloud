@@ -2,6 +2,7 @@ package ncloud
 
 import (
 	"github.com/hashicorp/terraform/helper/resource"
+	"regexp"
 	"testing"
 )
 
@@ -15,6 +16,7 @@ func TestAccDataSourceNcloudPublicIpBasic(t *testing.T) {
 			{
 				Config: testAccDataSourceNcloudPublicIpConfig,
 				// ignore check: may be empty created data
+				ExpectError: regexp.MustCompile("no results"), // may be no data
 				//Check: resource.ComposeTestCheckFunc(
 				//	testAccCheckDataSourceID("data.ncloud_public_ip.test"),
 				//),
@@ -33,6 +35,7 @@ func TestAccDataSourceNcloudPublicIpMostRecent(t *testing.T) {
 			{
 				Config: testAccDataSourceNcloudPublicIpMostRecentConfig,
 				// ignore check: may be empty created data
+				ExpectError: regexp.MustCompile("no results"), // may be no data
 				//Check: resource.ComposeTestCheckFunc(
 				//	testAccCheckDataSourceID("data.ncloud_public_ip.test"),
 				//),
@@ -51,6 +54,7 @@ func TestAccDataSourceNcloudPublicIpIsAssociated(t *testing.T) {
 			{
 				Config: testAccDataSourceNcloudPublicIpAssociatedConfig,
 				// ignore check: may be empty created data
+				ExpectError: regexp.MustCompile("no results"), // may be no data
 				//Check: resource.ComposeTestCheckFunc(
 				//	testAccCheckDataSourceID("data.ncloud_public_ip.test"),
 				//),
@@ -69,6 +73,7 @@ func TestAccDataSourceNcloudPublicIpSearch(t *testing.T) {
 			{
 				Config: testAccDataSourceNcloudPublicIpSearchConfig,
 				// ignore check: may be empty created data
+				ExpectError: regexp.MustCompile("no results"), // may be no data
 				//Check: resource.ComposeTestCheckFunc(
 				//	testAccCheckDataSourceID("data.ncloud_public_ip.test"),
 				//	resource.TestCheckResourceAttrSet(
@@ -90,9 +95,11 @@ func TestAccDataSourceNcloudPublicIpSorting(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				Config: testAccDataSourceNcloudPublicIpSortingConfig,
-				Check: resource.ComposeTestCheckFunc(
-					testAccCheckDataSourceID("data.ncloud_public_ip.test"),
-				),
+				// ignore check: may be empty created data
+				ExpectError: regexp.MustCompile("no results"), // may be no data
+				//Check: resource.ComposeTestCheckFunc(
+				//	testAccCheckDataSourceID("data.ncloud_public_ip.test"),
+				//),
 			},
 		},
 	})

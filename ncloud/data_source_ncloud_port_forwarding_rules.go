@@ -126,7 +126,7 @@ func dataSourceNcloudPortForwardingRulesRead(d *schema.ResourceData, meta interf
 	filterInternalPort, filterInternalPortOk := d.GetOk("port_forwarding_internal_port")
 	if filterInternalPortOk {
 		for _, portForwardingRule := range allPortForwardingRules {
-			if portForwardingRule.PortForwardingInternalPort == filterInternalPort {
+			if filterInternalPort == *portForwardingRule.PortForwardingInternalPort {
 				filteredPortForwardingRuleList = append(filteredPortForwardingRuleList, portForwardingRule)
 			}
 		}

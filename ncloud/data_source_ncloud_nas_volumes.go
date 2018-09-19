@@ -209,8 +209,8 @@ func nasVolumeInstancesAttributes(d *schema.ResourceData, nasVolumeInstances []*
 			"snapshot_volume_use_ratio":      *nasVolume.SnapshotVolumeUseRatio,
 			"is_snapshot_configuration":      *nasVolume.IsSnapshotConfiguration,
 			"is_event_configuration":         *nasVolume.IsEventConfiguration,
-			"zone":                           setZone(nasVolume.Zone),
-			"region":                         setRegion(nasVolume.Region),
+			"zone":   setZone(nasVolume.Zone),
+			"region": setRegion(nasVolume.Region),
 		}
 		if len(nasVolume.NasVolumeInstanceCustomIpList) > 0 {
 			mapping["nas_volume_instance_custom_ip_list"] = customIPList(nasVolume.NasVolumeInstanceCustomIpList)

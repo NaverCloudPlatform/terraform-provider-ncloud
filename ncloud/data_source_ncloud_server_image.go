@@ -2,11 +2,10 @@ package ncloud
 
 import (
 	"fmt"
-	"regexp"
-
 	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/ncloud"
 	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/services/server"
 	"github.com/hashicorp/terraform/helper/schema"
+	"regexp"
 )
 
 func dataSourceNcloudServerImage() *schema.Resource {
@@ -166,7 +165,7 @@ func dataSourceNcloudServerImageRead(d *schema.ResourceData, meta interface{}) e
 			if nameRegexOk && r.MatchString(*serverImage.ProductName) {
 				filteredServerImages = append(filteredServerImages, serverImage)
 				break
-			} else if productTypeCodeOk && productTypeCode == serverImage.ProductType.Code {
+			} else if productTypeCodeOk && productTypeCode == *serverImage.ProductType.Code {
 				filteredServerImages = append(filteredServerImages, serverImage)
 				break
 			}

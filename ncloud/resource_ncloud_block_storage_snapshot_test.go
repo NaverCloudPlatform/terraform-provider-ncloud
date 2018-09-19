@@ -110,10 +110,15 @@ func testAccCheckBlockStorageSnapshotDestroyWithProvider(s *terraform.State, pro
 
 func testAccBlockStorageSnapshotConfig(serverInstanceName string, blockStorageName string, snapshotName string) string {
 	return fmt.Sprintf(`
+resource "ncloud_login_key" "loginkey" {
+	"key_name" = "%s-key"
+}
+
 resource "ncloud_server" "server" {
 	"server_name" = "%s"
 	"server_image_product_code" = "SPSW0LINUX000032"
 	"server_product_code" = "SPSVRSTAND000004"
+	"login_key_name" = "${ncloud_login_key.loginkey.key_name}"
 }
 
 resource "ncloud_block_storage" "storage" {
@@ -126,5 +131,5 @@ resource "ncloud_block_storage_snapshot" "snapshot" {
 	"block_storage_instance_no" = "${ncloud_block_storage.storage.id}"
 	"block_storage_snapshot_name" = "%s"
 }
-`, serverInstanceName, blockStorageName, snapshotName)
+`, serverInstanceName, serverInstanceName, blockStorageName, snapshotName)
 }

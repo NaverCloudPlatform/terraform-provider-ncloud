@@ -69,6 +69,6 @@ data "ncloud_server_image" "test" {
 
 var testAccDataSourceNcloudServerImageFilterByTypeConfig = `
 data "ncloud_server_image" "test" {
-  "product_type_code" = "WINNT"
+  "product_type_code" = "LINUX"
 }
 `

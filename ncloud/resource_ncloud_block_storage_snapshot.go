@@ -115,10 +115,10 @@ func resourceNcloudBlockStorageSnapshotCreate(d *schema.ResourceData, meta inter
 	}
 	logCommonResponse("CreateBlockStorageSnapshotInstance", reqParams, GetCommonResponse(resp))
 
-	blockStorageSnapshotInstance := resp.BlockStorageInstanceList[0]
-	d.SetId(*blockStorageSnapshotInstance.BlockStorageInstanceNo)
+	blockStorageSnapshotInstance := resp.BlockStorageSnapshotInstanceList[0]
+	d.SetId(*blockStorageSnapshotInstance.BlockStorageSnapshotInstanceNo)
 
-	if err := waitForBlockStorageSnapshotInstance(client, *blockStorageSnapshotInstance.BlockStorageInstanceNo, "CREAT"); err != nil {
+	if err := waitForBlockStorageSnapshotInstance(client, *blockStorageSnapshotInstance.BlockStorageSnapshotInstanceNo, "CREAT"); err != nil {
 		return err
 	}
 	return resourceNcloudBlockStorageRead(d, meta)

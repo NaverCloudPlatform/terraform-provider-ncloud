@@ -45,6 +45,7 @@ data "ncloud_access_control_group" "test" {
 	//"access_control_group_name" = "ncloud-default-acg"
 	//"access_control_group_name" = "winrm-acg"
 	"is_default_group" = true
+	"most_recent" = "true"
 }
 `
 
