@@ -6,6 +6,8 @@ import (
 	"github.com/hashicorp/terraform/terraform"
 )
 
+const skipNoResultsTest = true
+
 func testAccCheckDataSourceID(n string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		rs, ok := s.RootModule().Resources[n]

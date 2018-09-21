@@ -16,7 +16,10 @@ func TestAccDataSourceNcloudPortForwardingRulesBasic(t *testing.T) {
 			{
 				Config: testAccDataSourceNcloudPortForwardingRulesConfig,
 				// ignore check: may be empty created data
-				ExpectError: regexp.MustCompile("no results"), // may be no data
+				SkipFunc: func() (bool, error) {
+					return skipNoResultsTest, nil
+				},
+				//ExpectError: regexp.MustCompile("no results"), // may be no data
 				//Check: resource.ComposeTestCheckFunc(
 				//	testAccCheckDataSourceID("data.ncloud_port_forwarding_rules.rules"),
 				//),

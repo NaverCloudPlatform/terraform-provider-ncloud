@@ -2,7 +2,6 @@ package ncloud
 
 import (
 	"github.com/hashicorp/terraform/helper/resource"
-	"regexp"
 	"testing"
 )
 
@@ -16,7 +15,10 @@ func TestAccDataSourceNcloudPublicIpBasic(t *testing.T) {
 			{
 				Config: testAccDataSourceNcloudPublicIpConfig,
 				// ignore check: may be empty created data
-				ExpectError: regexp.MustCompile("no results"), // may be no data
+				SkipFunc: func() (bool, error) {
+					return skipNoResultsTest, nil
+				},
+				//ExpectError: regexp.MustCompile("no results"), // may be no data
 				//Check: resource.ComposeTestCheckFunc(
 				//	testAccCheckDataSourceID("data.ncloud_public_ip.test"),
 				//),
@@ -35,7 +37,10 @@ func TestAccDataSourceNcloudPublicIpMostRecent(t *testing.T) {
 			{
 				Config: testAccDataSourceNcloudPublicIpMostRecentConfig,
 				// ignore check: may be empty created data
-				ExpectError: regexp.MustCompile("no results"), // may be no data
+				SkipFunc: func() (bool, error) {
+					return skipNoResultsTest, nil
+				},
+				//ExpectError: regexp.MustCompile("no results"), // may be no data
 				//Check: resource.ComposeTestCheckFunc(
 				//	testAccCheckDataSourceID("data.ncloud_public_ip.test"),
 				//),
@@ -54,7 +59,10 @@ func TestAccDataSourceNcloudPublicIpIsAssociated(t *testing.T) {
 			{
 				Config: testAccDataSourceNcloudPublicIpAssociatedConfig,
 				// ignore check: may be empty created data
-				ExpectError: regexp.MustCompile("no results"), // may be no data
+				SkipFunc: func() (bool, error) {
+					return skipNoResultsTest, nil
+				},
+				//ExpectError: regexp.MustCompile("no results"), // may be no data
 				//Check: resource.ComposeTestCheckFunc(
 				//	testAccCheckDataSourceID("data.ncloud_public_ip.test"),
 				//),
@@ -73,14 +81,17 @@ func TestAccDataSourceNcloudPublicIpSearch(t *testing.T) {
 			{
 				Config: testAccDataSourceNcloudPublicIpSearchConfig,
 				// ignore check: may be empty created data
-				ExpectError: regexp.MustCompile("no results"), // may be no data
-				//Check: resource.ComposeTestCheckFunc(
-				//	testAccCheckDataSourceID("data.ncloud_public_ip.test"),
-				//	resource.TestCheckResourceAttrSet(
-				//		"data.ncloud_public_ip.test",
-				//		"server_instance.server_instance_no",
-				//	),
-				//),
+				SkipFunc: func() (bool, error) {
+					return skipNoResultsTest, nil
+				},
+				//ExpectError: regexp.MustCompile("no results"), // may be no data
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckDataSourceID("data.ncloud_public_ip.test"),
+					resource.TestCheckResourceAttrSet(
+						"data.ncloud_public_ip.test",
+						"server_instance.server_instance_no",
+					),
+				),
 			},
 		},
 	})
@@ -96,7 +107,10 @@ func TestAccDataSourceNcloudPublicIpSorting(t *testing.T) {
 			{
 				Config: testAccDataSourceNcloudPublicIpSortingConfig,
 				// ignore check: may be empty created data
-				ExpectError: regexp.MustCompile("no results"), // may be no data
+				SkipFunc: func() (bool, error) {
+					return skipNoResultsTest, nil
+				},
+				//ExpectError: regexp.MustCompile("no results"), // may be no data
 				//Check: resource.ComposeTestCheckFunc(
 				//	testAccCheckDataSourceID("data.ncloud_public_ip.test"),
 				//),
