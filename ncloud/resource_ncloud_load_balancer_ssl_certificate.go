@@ -124,8 +124,8 @@ func getLoadBalancerSslCertificateList(client *NcloudAPIClient, certificateName 
 	logCommonResponse("GetLoadBalancerSslCertificateList", certificateName, GetCommonResponse(resp))
 
 	for _, cert := range resp.SslCertificateList {
-		if certificateName == *cert.CertificateName {
-			log.Printf("[DEBUG] %s CertificateName: %s,", "GetLoadBalancerSslCertificateList", *cert.CertificateName)
+		if certificateName == ncloud.StringValue(cert.CertificateName) {
+			log.Printf("[DEBUG] %s CertificateName: %s,", "GetLoadBalancerSslCertificateList", ncloud.StringValue(cert.CertificateName))
 			return cert, nil
 		}
 	}

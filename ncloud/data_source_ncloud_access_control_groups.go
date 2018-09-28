@@ -140,11 +140,11 @@ func accessControlGroupsAttributes(d *schema.ResourceData, accessControlGroups [
 	var s []map[string]interface{}
 	for _, accessControlGroup := range accessControlGroups {
 		mapping := map[string]interface{}{
-			"access_control_group_configuration_no": *accessControlGroup.AccessControlGroupConfigurationNo,
-			"access_control_group_name":             *accessControlGroup.AccessControlGroupName,
-			"access_control_group_description":      *accessControlGroup.AccessControlGroupDescription,
-			"is_default_group":                      *accessControlGroup.IsDefaultGroup,
-			"create_date":                           *accessControlGroup.CreateDate,
+			"access_control_group_configuration_no": ncloud.StringValue(accessControlGroup.AccessControlGroupConfigurationNo),
+			"access_control_group_name":             ncloud.StringValue(accessControlGroup.AccessControlGroupName),
+			"access_control_group_description":      ncloud.StringValue(accessControlGroup.AccessControlGroupDescription),
+			"is_default_group":                      ncloud.BoolValue(accessControlGroup.IsDefaultGroup),
+			"create_date":                           ncloud.StringValue(accessControlGroup.CreateDate),
 		}
 
 		ids = append(ids, ncloud.StringValue(accessControlGroup.AccessControlGroupConfigurationNo))

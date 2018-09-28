@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/ncloud"
 	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/services/server"
 	"github.com/hashicorp/terraform/helper/schema"
 )
@@ -44,7 +45,7 @@ func dataSourceNcloudRegionsRead(d *schema.ResourceData, meta interface{}) error
 	var filteredRegions []*Region
 	if codeOk {
 		for _, region := range regionList {
-			if *region.RegionCode == code {
+			if ncloud.StringValue(region.RegionCode) == code {
 				filteredRegions = []*Region{region}
 				break
 			}

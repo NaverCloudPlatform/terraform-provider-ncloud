@@ -118,9 +118,9 @@ func resourceNcloudPublicIpCreate(d *schema.ResourceData, meta interface{}) erro
 	logCommonResponse("Create Public IP Instance", reqParams, GetCommonResponse(resp))
 
 	publicIPInstance := resp.PublicIpInstanceList[0]
-	d.SetId(*publicIPInstance.PublicIpInstanceNo)
+	d.SetId(ncloud.StringValue(publicIPInstance.PublicIpInstanceNo))
 
-	if err := waitPublicIpInstance(client, *publicIPInstance.PublicIpInstanceNo, "USED"); err != nil {
+	if err := waitPublicIpInstance(client, ncloud.StringValue(publicIPInstance.PublicIpInstanceNo), "USED"); err != nil {
 		return err
 	}
 
@@ -244,10 +244,10 @@ func disassociatedPublicIp(client *NcloudAPIClient, publicIpInstanceNo string) e
 
 	logCommonResponse("Dissociated Public IP Instance", publicIpInstanceNo, GetCommonResponse(resp))
 
-	return waitDiassociatePublicIp(client, publicIpInstanceNo)
+	return waitDisassociatePublicIp(client, publicIpInstanceNo)
 }
 
-func waitDiassociatePublicIp(client *NcloudAPIClient, publicIPInstanceNo string) error {
+func waitDisassociatePublicIp(client *NcloudAPIClient, publicIPInstanceNo string) error {
 	reqParams := new(server.GetPublicIpInstanceListRequest)
 	reqParams.PublicIpInstanceNoList = ncloud.StringList([]string{publicIPInstanceNo})
 
@@ -267,8 +267,8 @@ func waitDiassociatePublicIp(client *NcloudAPIClient, publicIPInstanceNo string)
 				return
 			}
 
-			log.Printf("[DEBUG] Wait disssociate public ip(%s) ", publicIPInstanceNo)
-			time.Sleep(time.Second * 1)
+			log.Printf("[DEBUG] Wait disassociate public ip [%s] ", publicIPInstanceNo)
+			time.Sleep(time.Second * 3)
 		}
 	}()
 
@@ -276,7 +276,7 @@ func waitDiassociatePublicIp(client *NcloudAPIClient, publicIPInstanceNo string)
 	case res := <-c1:
 		return res
 	case <-time.After(DefaultTimeout):
-		return fmt.Errorf("TIMEOUT : diassociation public ip[%s] ", publicIPInstanceNo)
+		return fmt.Errorf("TIMEOUT : disassociate public ip[%s] ", publicIPInstanceNo)
 	}
 }
 
@@ -295,7 +295,7 @@ func waitPublicIpInstance(client *NcloudAPIClient, publicIPInstanceNo string, st
 				return
 			}
 
-			if *resp.PublicIpInstanceList[0].PublicIpInstanceStatus.Code == status {
+			if ncloud.StringValue(resp.PublicIpInstanceList[0].PublicIpInstanceStatus.Code) == status {
 				c1 <- nil
 				return
 			}
@@ -328,7 +328,7 @@ func waitDeletePublicIpInstance(client *NcloudAPIClient, publicIPInstanceNo stri
 				return
 			}
 
-			if *resp.TotalRows == 0 {
+			if ncloud.Int32Value(resp.TotalRows) == 0 {
 				c1 <- nil
 				return
 			}

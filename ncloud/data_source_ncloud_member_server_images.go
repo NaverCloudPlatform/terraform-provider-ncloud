@@ -185,7 +185,7 @@ func dataSourceNcloudMemberServerImagesRead(d *schema.ResourceData, meta interfa
 	if nameRegexOk {
 		r := regexp.MustCompile(nameRegex.(string))
 		for _, memberServerImage := range allMemberServerImages {
-			if r.MatchString(*memberServerImage.MemberServerImageName) {
+			if r.MatchString(ncloud.StringValue(memberServerImage.MemberServerImageName)) {
 				filteredMemberServerImages = append(filteredMemberServerImages, memberServerImage)
 			}
 		}
@@ -205,24 +205,24 @@ func memberServerImagesAttributes(d *schema.ResourceData, memberServerImages []*
 	var s []map[string]interface{}
 	for _, m := range memberServerImages {
 		mapping := map[string]interface{}{
-			"member_server_image_no":                *m.MemberServerImageNo,
-			"member_server_image_name":              *m.MemberServerImageName,
-			"member_server_image_description":       *m.MemberServerImageDescription,
-			"original_server_instance_no":           *m.OriginalServerInstanceNo,
-			"original_server_product_code":          *m.OriginalServerProductCode,
-			"original_server_name":                  *m.OriginalServerName,
+			"member_server_image_no":                ncloud.StringValue(m.MemberServerImageNo),
+			"member_server_image_name":              ncloud.StringValue(m.MemberServerImageName),
+			"member_server_image_description":       ncloud.StringValue(m.MemberServerImageDescription),
+			"original_server_instance_no":           ncloud.StringValue(m.OriginalServerInstanceNo),
+			"original_server_product_code":          ncloud.StringValue(m.OriginalServerProductCode),
+			"original_server_name":                  ncloud.StringValue(m.OriginalServerName),
 			"original_base_block_storage_disk_type": setCommonCode(m.OriginalBaseBlockStorageDiskType),
-			"original_server_image_product_code":    *m.OriginalServerImageProductCode,
-			"original_os_information":               *m.OriginalOsInformation,
-			"original_server_image_name":            *m.OriginalServerImageName,
-			"member_server_image_status_name":       *m.MemberServerImageStatusName,
+			"original_server_image_product_code":    ncloud.StringValue(m.OriginalServerImageProductCode),
+			"original_os_information":               ncloud.StringValue(m.OriginalOsInformation),
+			"original_server_image_name":            ncloud.StringValue(m.OriginalServerImageName),
+			"member_server_image_status_name":       ncloud.StringValue(m.MemberServerImageStatusName),
 			"member_server_image_status":            setCommonCode(m.MemberServerImageStatus),
 			"member_server_image_operation":         setCommonCode(m.MemberServerImageOperation),
 			"member_server_image_platform_type":     setCommonCode(m.MemberServerImagePlatformType),
-			"create_date":                           *m.CreateDate,
+			"create_date":                           ncloud.StringValue(m.CreateDate),
 			"region":                                setRegion(m.Region),
-			"member_server_image_block_storage_total_rows": *m.MemberServerImageBlockStorageTotalRows,
-			"member_server_image_block_storage_total_size": *m.MemberServerImageBlockStorageTotalSize,
+			"member_server_image_block_storage_total_rows": int(ncloud.Int32Value(m.MemberServerImageBlockStorageTotalRows)),
+			"member_server_image_block_storage_total_size": int(ncloud.Int64Value(m.MemberServerImageBlockStorageTotalSize)),
 		}
 
 		ids = append(ids, *m.MemberServerImageNo)

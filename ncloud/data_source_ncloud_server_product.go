@@ -159,7 +159,7 @@ func dataSourceNcloudServerProductRead(d *schema.ResourceData, meta interface{})
 	if nameRegexOk {
 		r := regexp.MustCompile(nameRegex.(string))
 		for _, serverProduct := range allServerProducts {
-			if r.MatchString(*serverProduct.ProductName) {
+			if r.MatchString(ncloud.StringValue(serverProduct.ProductName)) {
 				filteredServerProducts = append(filteredServerProducts, serverProduct)
 			}
 		}
@@ -189,7 +189,7 @@ func serverProductAttributes(d *schema.ResourceData, product *server.Product) er
 	d.Set("os_information", product.OsInformation)
 	d.Set("add_block_storage_size", product.AddBlockStorageSize)
 
-	d.SetId(*product.ProductCode)
+	d.SetId(ncloud.StringValue(product.ProductCode))
 
 	return nil
 }

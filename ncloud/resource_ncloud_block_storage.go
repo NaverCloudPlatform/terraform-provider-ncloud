@@ -6,6 +6,7 @@ import (
 
 	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/ncloud"
 	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/services/server"
+	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/helper/schema"
 	"log"
 )
@@ -164,7 +165,7 @@ func resourceNcloudBlockStorageRead(d *schema.ResourceData, meta interface{}) er
 func resourceNcloudBlockStorageDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*NcloudAPIClient)
 	blockStorageInstanceNo := d.Get("block_storage_instance_no").(string)
-	err := detachBlockStorage(client, []string{blockStorageInstanceNo})
+	err := detachBlockStorage(d, client, []string{blockStorageInstanceNo})
 	if err != nil {
 		log.Printf("[ERROR] detachBlockStorage %#v", err)
 		return err
@@ -253,16 +254,30 @@ func deleteBlockStorageByServerInstanceNo(client *NcloudAPIClient, serverInstanc
 	return deleteBlockStorage(client, ids)
 }
 
-func detachBlockStorage(client *NcloudAPIClient, blockStorageIds []string) error {
+func detachBlockStorage(d *schema.ResourceData, client *NcloudAPIClient, blockStorageIds []string) error {
+	var resp *server.DetachBlockStorageInstancesResponse
 	for _, blockStorageId := range blockStorageIds {
-		resp, err := client.server.V2Api.DetachBlockStorageInstances(&server.DetachBlockStorageInstancesRequest{
+		reqParams := &server.DetachBlockStorageInstancesRequest{
 			BlockStorageInstanceNoList: []*string{ncloud.String(blockStorageId)},
+		}
+		err := resource.Retry(d.Timeout(schema.TimeoutDelete), func() *resource.RetryError {
+			var err error
+			resp, err = client.server.V2Api.DetachBlockStorageInstances(reqParams)
+			if err == nil && resp == nil {
+				return resource.NonRetryableError(err)
+			}
+			if resp != nil && isRetryableErr(GetCommonResponse(resp), []string{ApiErrorUnknown, ApiErrorDetachingMountedStorage}) {
+				logErrorResponse("retry DetachBlockStorageInstances", err, reqParams)
+				return resource.RetryableError(err)
+			}
+			return resource.NonRetryableError(err)
 		})
+
 		if err != nil {
-			logErrorResponse("DetachBlockStorageInstance", err, []string{blockStorageId})
+			logErrorResponse("DetachBlockStorageInstances", err, reqParams)
 			return err
 		}
-		logCommonResponse("DetachBlockStorageInstance", blockStorageIds, GetCommonResponse(resp))
+		logCommonResponse("DetachBlockStorageInstances", reqParams, GetCommonResponse(resp))
 
 		if err := waitForBlockStorageInstance(client, blockStorageId, "CREAT"); err != nil {
 			return err
@@ -271,7 +286,7 @@ func detachBlockStorage(client *NcloudAPIClient, blockStorageIds []string) error
 	return nil
 }
 
-func detachBlockStorageByServerInstanceNo(client *NcloudAPIClient, serverInstanceNo string) error {
+func detachBlockStorageByServerInstanceNo(d *schema.ResourceData, client *NcloudAPIClient, serverInstanceNo string) error {
 	blockStorageInstanceList, _ := getBlockStorageInstanceList(client, serverInstanceNo)
 	if len(blockStorageInstanceList) < 1 {
 		return nil
@@ -279,10 +294,10 @@ func detachBlockStorageByServerInstanceNo(client *NcloudAPIClient, serverInstanc
 	var ids []string
 	for _, bs := range blockStorageInstanceList {
 		if *bs.BlockStorageType.Code != "BASIC" { // ignore basic storage
-			ids = append(ids, *bs.BlockStorageInstanceNo)
+			ids = append(ids, ncloud.StringValue(bs.BlockStorageInstanceNo))
 		}
 	}
-	return detachBlockStorage(client, ids)
+	return detachBlockStorage(d, client, ids)
 }
 
 func waitForBlockStorageInstance(client *NcloudAPIClient, id string, status string) error {
@@ -297,10 +312,11 @@ func waitForBlockStorageInstance(client *NcloudAPIClient, id string, status stri
 				c1 <- err
 				return
 			}
-			if instance == nil || *instance.BlockStorageInstanceStatus.Code == status {
+			if instance == nil || ncloud.StringValue(instance.BlockStorageInstanceStatus.Code) == status {
 				c1 <- nil
 				return
 			}
+			log.Printf("[DEBUG] Wait block storage instance [%s] status [%s] to be [%s]", id, ncloud.StringValue(instance.BlockStorageInstanceStatus.Code), status)
 			time.Sleep(time.Second * 1)
 		}
 	}()

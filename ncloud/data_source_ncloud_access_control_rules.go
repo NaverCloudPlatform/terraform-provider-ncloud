@@ -111,16 +111,16 @@ func accessControlRulesAttributes(d *schema.ResourceData, accessControlRules []*
 	var s []map[string]interface{}
 	for _, accessControlRule := range accessControlRules {
 		mapping := map[string]interface{}{
-			"access_control_rule_configuration_no":        *accessControlRule.AccessControlRuleConfigurationNo,
+			"access_control_rule_configuration_no":        ncloud.StringValue(accessControlRule.AccessControlRuleConfigurationNo),
 			"protocol_type":                               setCommonCode(accessControlRule.ProtocolType),
-			"source_ip":                                   *accessControlRule.SourceIp,
-			"destination_port":                            *accessControlRule.DestinationPort,
-			"source_access_control_rule_configuration_no": *accessControlRule.SourceAccessControlRuleConfigurationNo,
-			"source_access_control_rule_name":             *accessControlRule.SourceAccessControlRuleName,
-			"access_control_rule_description":             *accessControlRule.AccessControlRuleDescription,
+			"source_ip":                                   ncloud.StringValue(accessControlRule.SourceIp),
+			"destination_port":                            ncloud.StringValue(accessControlRule.DestinationPort),
+			"source_access_control_rule_configuration_no": ncloud.StringValue(accessControlRule.SourceAccessControlRuleConfigurationNo),
+			"source_access_control_rule_name":             ncloud.StringValue(accessControlRule.SourceAccessControlRuleName),
+			"access_control_rule_description":             ncloud.StringValue(accessControlRule.AccessControlRuleDescription),
 		}
 
-		ids = append(ids, *accessControlRule.AccessControlRuleConfigurationNo)
+		ids = append(ids, ncloud.StringValue(accessControlRule.AccessControlRuleConfigurationNo))
 		s = append(s, mapping)
 	}
 

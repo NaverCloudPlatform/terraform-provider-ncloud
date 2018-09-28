@@ -194,16 +194,16 @@ func nasVolumeInstanceAttributes(d *schema.ResourceData, nasVolume *server.NasVo
 	d.Set("zone", setZone(nasVolume.Zone))
 	d.Set("region", setRegion(nasVolume.Region))
 
-	d.SetId(*nasVolume.NasVolumeInstanceNo)
+	d.SetId(ncloud.StringValue(nasVolume.NasVolumeInstanceNo))
 
 	return nil
 }
 
-func customIPList(customIPList []*server.NasVolumeInstanceCustomIp) []*string {
-	a := []*string{ncloud.String("")}
+func customIPList(customIPList []*server.NasVolumeInstanceCustomIp) []string {
+	var a []string
 
 	for _, v := range customIPList {
-		a = append(a, v.CustomIp)
+		a = append(a, ncloud.StringValue(v.CustomIp))
 	}
 
 	return a

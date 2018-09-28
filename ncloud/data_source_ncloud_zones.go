@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/ncloud"
 	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/services/server"
 	"github.com/hashicorp/terraform/helper/schema"
 )
@@ -75,7 +76,7 @@ func zonesAttributes(d *schema.ResourceData, zones []*Zone) error {
 	var s []map[string]interface{}
 	for _, zone := range zones {
 		mapping := setZone(zone)
-		ids = append(ids, *zone.ZoneNo)
+		ids = append(ids, ncloud.StringValue(zone.ZoneNo))
 		s = append(s, mapping)
 	}
 	d.SetId(dataResourceIdHash(ids))
