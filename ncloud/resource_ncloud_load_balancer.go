@@ -164,7 +164,7 @@ func resourceNcloudLoadBalancerCreate(d *schema.ResourceData, meta interface{}) 
 	loadBalancerInstance := resp.LoadBalancerInstanceList[0]
 	d.SetId(*loadBalancerInstance.LoadBalancerInstanceNo)
 
-	if err := waitForLoadBalancerInstance(client, *loadBalancerInstance.LoadBalancerInstanceNo, "USED", DefaultCreateTimeout); err != nil {
+	if err := waitForLoadBalancerInstance(client, ncloud.StringValue(loadBalancerInstance.LoadBalancerInstanceNo), "USED", DefaultCreateTimeout); err != nil {
 		return err
 	}
 	return resourceNcloudLoadBalancerRead(d, meta)
@@ -228,7 +228,7 @@ func getLoadBalancedServerInstanceList(loadBalancedServerInstanceList []*loadbal
 	list := make([]string, 0, len(loadBalancedServerInstanceList))
 
 	for _, instance := range loadBalancedServerInstanceList {
-		list = append(list, *instance.ServerInstance.ServerInstanceNo)
+		list = append(list, ncloud.StringValue(instance.ServerInstance.ServerInstanceNo))
 	}
 
 	return list
@@ -352,7 +352,7 @@ func getLoadBalancerInstance(client *NcloudAPIClient, loadBalancerInstanceNo str
 	logCommonResponse("GetLoadBalancerInstanceList", reqParams, GetCommonResponse(resp))
 
 	for _, inst := range resp.LoadBalancerInstanceList {
-		if loadBalancerInstanceNo == *inst.LoadBalancerInstanceNo {
+		if loadBalancerInstanceNo == ncloud.StringValue(inst.LoadBalancerInstanceNo) {
 			return inst, nil
 		}
 	}
@@ -389,7 +389,7 @@ func waitForLoadBalancerInstance(client *NcloudAPIClient, id string, status stri
 				return
 			}
 
-			if instance == nil || (*instance.LoadBalancerInstanceStatus.Code == status && *instance.LoadBalancerInstanceOperation.Code == "NULL") {
+			if instance == nil || (ncloud.StringValue(instance.LoadBalancerInstanceStatus.Code) == status && ncloud.StringValue(instance.LoadBalancerInstanceOperation.Code) == "NULL") {
 				c1 <- nil
 				return
 			}

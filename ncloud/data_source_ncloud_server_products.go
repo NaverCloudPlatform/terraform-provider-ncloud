@@ -164,7 +164,7 @@ func dataSourceNcloudServerProductsRead(d *schema.ResourceData, meta interface{}
 	if nameRegexOk {
 		r := regexp.MustCompile(nameRegex.(string))
 		for _, serverProduct := range allServerProducts {
-			if r.MatchString(*serverProduct.ProductName) {
+			if r.MatchString(ncloud.StringValue(serverProduct.ProductName)) {
 				filteredServerProducts = append(filteredServerProducts, serverProduct)
 			}
 		}
@@ -184,20 +184,20 @@ func serverProductsAttributes(d *schema.ResourceData, serverImages []*server.Pro
 	var s []map[string]interface{}
 	for _, product := range serverImages {
 		mapping := map[string]interface{}{
-			"product_code":            *product.ProductCode,
-			"product_name":            *product.ProductName,
+			"product_code":            ncloud.StringValue(product.ProductCode),
+			"product_name":            ncloud.StringValue(product.ProductName),
 			"product_type":            setCommonCode(product.ProductType),
-			"product_description":     *product.ProductDescription,
+			"product_description":     ncloud.StringValue(product.ProductDescription),
 			"infra_resource_type":     setCommonCode(product.InfraResourceType),
-			"cpu_count":               int(*product.CpuCount),
-			"memory_size":             int(*product.MemorySize),
-			"base_block_storage_size": int(*product.BaseBlockStorageSize),
+			"cpu_count":               int(ncloud.Int32Value(product.CpuCount)),
+			"memory_size":             int(ncloud.Int64Value(product.MemorySize)),
+			"base_block_storage_size": int(ncloud.Int64Value(product.BaseBlockStorageSize)),
 			"platform_type":           setCommonCode(product.PlatformType),
-			"os_information":          *product.OsInformation,
-			"add_block_storage_size":  int(*product.AddBlockStorageSize),
+			"os_information":          ncloud.StringValue(product.OsInformation),
+			"add_block_storage_size":  int(ncloud.Int64Value(product.AddBlockStorageSize)),
 		}
 
-		ids = append(ids, *product.ProductCode)
+		ids = append(ids, ncloud.StringValue(product.ProductCode))
 		s = append(s, mapping)
 	}
 

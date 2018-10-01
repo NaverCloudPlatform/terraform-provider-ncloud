@@ -218,7 +218,7 @@ func resourceNcloudServerCreate(d *schema.ResourceData, meta interface{}) error 
 		resp, err = client.server.V2Api.CreateServerInstances(reqParams)
 
 		log.Printf("[DEBUG] resourceNcloudServerCreate resp: %v", resp)
-		if err != nil && resp != nil && isRetryableErr(GetCommonResponse(resp), []string{"800", "1300", "23006"}) {
+		if resp != nil && isRetryableErr(GetCommonResponse(resp), []string{ApiErrorUnknown, ApiErrorAuthorityParameter, ApiErrorServerObjectInOperation, ApiErrorPreviousServersHaveNotBeenEntirelyTerminated}) {
 			return resource.RetryableError(err)
 		}
 		return resource.NonRetryableError(err)
@@ -231,9 +231,9 @@ func resourceNcloudServerCreate(d *schema.ResourceData, meta interface{}) error 
 	logCommonResponse("CreateServerInstances", reqParams, GetCommonResponse(resp))
 
 	serverInstance := resp.ServerInstanceList[0]
-	d.SetId(*serverInstance.ServerInstanceNo)
+	d.SetId(ncloud.StringValue(serverInstance.ServerInstanceNo))
 
-	if err := waitForServerInstance(client, *serverInstance.ServerInstanceNo, "RUN"); err != nil {
+	if err := waitForServerInstance(client, ncloud.StringValue(serverInstance.ServerInstanceNo), "RUN"); err != nil {
 		return err
 	}
 	return resourceNcloudServerRead(d, meta)
@@ -288,16 +288,16 @@ func resourceNcloudServerDelete(d *schema.ResourceData, meta interface{}) error 
 		return err
 	}
 
-	if *serverInstance.ServerInstanceStatus.Code != "NSTOP" {
+	if serverInstance == nil || ncloud.StringValue(serverInstance.ServerInstanceStatus.Code) != "NSTOP" {
 		if err := stopServerInstance(client, d.Id()); err != nil {
 			return err
 		}
-		if err := waitForServerInstance(client, *serverInstance.ServerInstanceNo, "NSTOP"); err != nil {
+		if err := waitForServerInstance(client, ncloud.StringValue(serverInstance.ServerInstanceNo), "NSTOP"); err != nil {
 			return err
 		}
 	}
 
-	err = detachBlockStorageByServerInstanceNo(client, d.Id())
+	err = detachBlockStorageByServerInstanceNo(d, client, d.Id())
 	if err != nil {
 		log.Printf("[ERROR] detachBlockStorageByServerInstanceNo err: %s", err)
 		return err
@@ -315,7 +315,19 @@ func resourceNcloudServerUpdate(d *schema.ResourceData, meta interface{}) error 
 			ServerProductCode: ncloud.String(d.Get("server_product_code").(string)),
 		}
 
-		resp, err := client.server.V2Api.ChangeServerInstanceSpec(reqParams)
+		var resp *server.ChangeServerInstanceSpecResponse
+		err := resource.Retry(d.Timeout(schema.TimeoutDelete), func() *resource.RetryError {
+			var err error
+			resp, err = client.server.V2Api.ChangeServerInstanceSpec(reqParams)
+
+			if resp != nil && isRetryableErr(GetCommonResponse(resp), []string{ApiErrorUnknown, ApiErrorObjectInOperation, ApiErrorObjectInOperation}) {
+				logErrorResponse("retry ChangeServerInstanceSpec", err, reqParams)
+				time.Sleep(time.Second * 5)
+				return resource.RetryableError(err)
+			}
+			return resource.NonRetryableError(err)
+		})
+
 		if err != nil {
 			logErrorResponse("ChangeServerInstanceSpec", err, reqParams)
 			return err
@@ -350,7 +362,6 @@ func buildCreateServerInstanceReqParams(client *NcloudAPIClient, d *schema.Resou
 		UserData:                              ncloud.String(d.Get("user_data").(string)),
 		RaidTypeName:                          ncloud.String(d.Get("raid_type_name").(string)),
 	}
-	log.Printf("[DEBUG] buildCreateServerInstanceReqParams %#v", reqParams)
 	if IsProtectServerTermination, ok := d.GetOk("is_protect_server_termination"); ok {
 		reqParams.IsProtectServerTermination = ncloud.Bool(IsProtectServerTermination.(bool))
 	}
@@ -373,6 +384,14 @@ func getServerInstance(client *NcloudAPIClient, serverInstanceNo string) (*serve
 		return inst, nil
 	}
 	return nil, nil
+}
+
+func getServerZoneNo(client *NcloudAPIClient, serverInstanceNo string) (string, error) {
+	serverInstance, err := getServerInstance(client, serverInstanceNo)
+	if err != nil || serverInstance == nil || serverInstance.Zone == nil {
+		return "", err
+	}
+	return *serverInstance.Zone.ZoneNo, nil
 }
 
 func stopServerInstance(client *NcloudAPIClient, serverInstanceNo string) error {
@@ -398,11 +417,14 @@ func terminateServerInstance(client *NcloudAPIClient, serverInstanceNo string) e
 	err := resource.Retry(1*time.Minute, func() *resource.RetryError {
 		var err error
 		resp, err = client.server.V2Api.TerminateServerInstances(reqParams)
-
-		if err != nil && resp != nil && isRetryableErr(GetCommonResponse(resp), []string{"1300"}) {
+		if err == nil && resp == nil {
+			return resource.NonRetryableError(err)
+		}
+		if resp != nil && isRetryableErr(GetCommonResponse(resp), []string{ApiErrorUnknown, ApiErrorServerObjectInOperation2}) {
 			logErrorResponse("retry TerminateServerInstances", err, reqParams)
 			return resource.RetryableError(err)
 		}
+		logCommonResponse("TerminateServerInstances", reqParams, GetCommonResponse(resp))
 		return resource.NonRetryableError(err)
 	})
 
@@ -410,7 +432,6 @@ func terminateServerInstance(client *NcloudAPIClient, serverInstanceNo string) e
 		logErrorResponse("TerminateServerInstances", err, reqParams)
 		return err
 	}
-	logCommonResponse("TerminateServerInstances", reqParams, GetCommonResponse(resp))
 	return nil
 }
 
@@ -426,11 +447,11 @@ func waitForServerInstance(client *NcloudAPIClient, instanceId string, status st
 				c1 <- err
 				return
 			}
-			if instance == nil || *instance.ServerInstanceStatus.Code == status {
+			if instance == nil || ncloud.StringValue(instance.ServerInstanceStatus.Code) == status {
 				c1 <- nil
 				return
 			}
-			log.Printf("[DEBUG] Wait to server instance (%s)", instanceId)
+			log.Printf("[DEBUG] Wait server instance [%s] status [%s] to be [%s]", instanceId, ncloud.StringValue(instance.ServerInstanceStatus.Code), status)
 			time.Sleep(time.Second * 1)
 		}
 	}()

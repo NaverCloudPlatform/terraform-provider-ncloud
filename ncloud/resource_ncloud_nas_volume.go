@@ -202,9 +202,9 @@ func resourceNcloudNasVolumeCreate(d *schema.ResourceData, meta interface{}) err
 	logCommonResponse("CreateNasVolumeInstance", reqParams, GetCommonResponse(resp))
 
 	nasVolumeInstance := resp.NasVolumeInstanceList[0]
-	d.SetId(*nasVolumeInstance.NasVolumeInstanceNo)
+	d.SetId(ncloud.StringValue(nasVolumeInstance.NasVolumeInstanceNo))
 
-	if err := waitForNasVolumeInstance(client, *nasVolumeInstance.NasVolumeInstanceNo, "CREAT"); err != nil {
+	if err := waitForNasVolumeInstance(client, ncloud.StringValue(nasVolumeInstance.NasVolumeInstanceNo), "CREAT"); err != nil {
 		return err
 	}
 	return resourceNcloudNasVolumeRead(d, meta)
@@ -314,7 +314,7 @@ func getNasVolumeInstance(client *NcloudAPIClient, nasVolumeInstanceNo string) (
 	logCommonResponse("GetNasVolumeInstanceList", reqParams, GetCommonResponse(resp))
 
 	for _, inst := range resp.NasVolumeInstanceList {
-		if nasVolumeInstanceNo == *inst.NasVolumeInstanceNo {
+		if nasVolumeInstanceNo == ncloud.StringValue(inst.NasVolumeInstanceNo) {
 			return inst, nil
 		}
 	}
@@ -352,11 +352,11 @@ func waitForNasVolumeInstance(client *NcloudAPIClient, id string, status string)
 				c1 <- err
 				return
 			}
-			if instance == nil || *instance.NasVolumeInstanceStatus.Code == status {
+			if instance == nil || ncloud.StringValue(instance.NasVolumeInstanceStatus.Code) == status {
 				c1 <- nil
 				return
 			}
-			log.Printf("[DEBUG] Wait to nas volume instance (%s)", id)
+			log.Printf("[DEBUG] Wait nas volume instance [%s] status [%s] to be [%s]", id, ncloud.StringValue(instance.NasVolumeInstanceStatus.Code), status)
 			time.Sleep(time.Second * 1)
 		}
 	}()

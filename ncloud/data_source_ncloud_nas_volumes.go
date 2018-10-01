@@ -194,21 +194,21 @@ func nasVolumeInstancesAttributes(d *schema.ResourceData, nasVolumeInstances []*
 
 	for _, nasVolume := range nasVolumeInstances {
 		mapping := map[string]interface{}{
-			"nas_volume_instance_no":         *nasVolume.NasVolumeInstanceNo,
+			"nas_volume_instance_no":         ncloud.StringValue(nasVolume.NasVolumeInstanceNo),
 			"nas_volume_instance_status":     setCommonCode(nasVolume.NasVolumeInstanceStatus),
-			"create_date":                    *nasVolume.CreateDate,
-			"nas_volume_description":         *nasVolume.NasVolumeInstanceDescription,
+			"create_date":                    ncloud.StringValue(nasVolume.CreateDate),
+			"nas_volume_description":         ncloud.StringValue(nasVolume.NasVolumeInstanceDescription),
 			"volume_allotment_protocol_type": setCommonCode(nasVolume.VolumeAllotmentProtocolType),
-			"volume_name":                    *nasVolume.VolumeName,
-			"volume_total_size":              int(*nasVolume.VolumeTotalSize),
-			"volume_size":                    int(*nasVolume.VolumeSize),
-			"volume_use_size":                int(*nasVolume.VolumeUseSize),
-			"volume_use_ratio":               *nasVolume.VolumeUseRatio,
-			"snapshot_volume_size":           *nasVolume.SnapshotVolumeSize,
-			"snapshot_volume_use_size":       *nasVolume.SnapshotVolumeUseSize,
-			"snapshot_volume_use_ratio":      *nasVolume.SnapshotVolumeUseRatio,
-			"is_snapshot_configuration":      *nasVolume.IsSnapshotConfiguration,
-			"is_event_configuration":         *nasVolume.IsEventConfiguration,
+			"volume_name":                    ncloud.StringValue(nasVolume.VolumeName),
+			"volume_total_size":              int(ncloud.Int64Value(nasVolume.VolumeTotalSize)),
+			"volume_size":                    int(ncloud.Int64Value(nasVolume.VolumeSize)),
+			"volume_use_size":                int(ncloud.Int64Value(nasVolume.VolumeUseSize)),
+			"volume_use_ratio":               ncloud.Float32Value(nasVolume.VolumeUseRatio),
+			"snapshot_volume_size":           ncloud.Int64Value(nasVolume.SnapshotVolumeSize),
+			"snapshot_volume_use_size":       ncloud.Int64Value(nasVolume.SnapshotVolumeUseSize),
+			"snapshot_volume_use_ratio":      ncloud.Float32Value(nasVolume.SnapshotVolumeUseRatio),
+			"is_snapshot_configuration":      ncloud.BoolValue(nasVolume.IsSnapshotConfiguration),
+			"is_event_configuration":         ncloud.BoolValue(nasVolume.IsEventConfiguration),
 			"zone":                           setZone(nasVolume.Zone),
 			"region":                         setRegion(nasVolume.Region),
 		}
@@ -216,7 +216,7 @@ func nasVolumeInstancesAttributes(d *schema.ResourceData, nasVolumeInstances []*
 			mapping["nas_volume_instance_custom_ip_list"] = customIPList(nasVolume.NasVolumeInstanceCustomIpList)
 		}
 
-		ids = append(ids, *nasVolume.NasVolumeInstanceNo)
+		ids = append(ids, ncloud.StringValue(nasVolume.NasVolumeInstanceNo))
 		s = append(s, mapping)
 	}
 

@@ -5,7 +5,6 @@ import (
 	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/ncloud"
 	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/services/server"
 	"github.com/hashicorp/terraform/helper/schema"
-	"log"
 )
 
 func dataSourceNcloudPublicIp() *schema.Resource {
@@ -187,7 +186,7 @@ func dataSourceNcloudPublicIpRead(d *schema.ResourceData, meta interface{}) erro
 	reqParams.ZoneNo = zoneNo
 	reqParams.SortedBy = ncloud.String(d.Get("sorted_by").(string))
 	reqParams.SortingOrder = ncloud.String(d.Get("sorting_order").(string))
-	log.Printf("[DEBUG] GetPublicIpInstanceList reqParams: %#v", reqParams)
+	// log.Printf("[DEBUG] GetPublicIpInstanceList reqParams: %#v", reqParams)
 	resp, err := client.server.V2Api.GetPublicIpInstanceList(reqParams)
 
 	if err != nil {
@@ -213,7 +212,7 @@ func dataSourceNcloudPublicIpRead(d *schema.ResourceData, meta interface{}) erro
 
 func publicIPAttributes(d *schema.ResourceData, instance *server.PublicIpInstance) error {
 
-	d.SetId(*instance.PublicIpInstanceNo)
+	d.SetId(ncloud.StringValue(instance.PublicIpInstanceNo))
 	d.Set("public_ip_instance_no", instance.PublicIpInstanceNo)
 	d.Set("public_ip", instance.PublicIp)
 	d.Set("public_ip_description", instance.PublicIpDescription)
@@ -227,9 +226,9 @@ func publicIPAttributes(d *schema.ResourceData, instance *server.PublicIpInstanc
 	if *instance.ServerInstanceAssociatedWithPublicIp.ServerInstanceNo != "" {
 		serverInstance := instance.ServerInstanceAssociatedWithPublicIp
 		mapping := map[string]interface{}{
-			"server_instance_no": *serverInstance.ServerInstanceNo,
-			"server_name":        *serverInstance.ServerName,
-			"create_date":        *serverInstance.CreateDate,
+			"server_instance_no": ncloud.StringValue(serverInstance.ServerInstanceNo),
+			"server_name":        ncloud.StringValue(serverInstance.ServerName),
+			"create_date":        ncloud.StringValue(serverInstance.CreateDate),
 		}
 		d.Set("server_instance", mapping)
 	}

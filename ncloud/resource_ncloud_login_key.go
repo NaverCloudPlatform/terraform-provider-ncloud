@@ -15,7 +15,7 @@ func resourceNcloudLoginKey() *schema.Resource {
 	return &schema.Resource{
 		Read:   resourceNcloudLoginKeyRead,
 		Create: resourceNcloudLoginKeyCreate,
-		Update: nil,
+		Update: resourceNcloudLoginKeyUpdate,
 		Delete: resourceNcloudLoginKeyDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
@@ -29,7 +29,6 @@ func resourceNcloudLoginKey() *schema.Resource {
 			"key_name": {
 				Type:         schema.TypeString,
 				Required:     true,
-				ForceNew:     true,
 				ValidateFunc: validateStringLengthInRange(3, 30),
 				Description:  "Key name to generate. If the generated key name exists, an error occurs.",
 			},
@@ -76,6 +75,10 @@ func resourceNcloudLoginKeyRead(d *schema.ResourceData, meta interface{}) error 
 	return nil
 }
 
+func resourceNcloudLoginKeyUpdate(d *schema.ResourceData, meta interface{}) error {
+	return resourceNcloudLoginKeyRead(d, meta)
+}
+
 func resourceNcloudLoginKeyCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*NcloudAPIClient)
 
@@ -98,25 +101,55 @@ func resourceNcloudLoginKeyDelete(d *schema.ResourceData, meta interface{}) erro
 	client := meta.(*NcloudAPIClient)
 
 	keyName := d.Get("key_name").(string)
-	return waitForDeleteLoginKey(client, keyName)
+
+	return deleteLoginKey(client, keyName)
 }
 
-func getLoginKey(client *NcloudAPIClient, keyName string) (*server.LoginKey, error) {
-	reqParams := &server.GetLoginKeyListRequest{
-		KeyName: ncloud.String(keyName),
+func getLoginKeyList(client *NcloudAPIClient, keyName *string) (*server.GetLoginKeyListResponse, error) {
+	reqParams := &server.GetLoginKeyListRequest{}
+	if keyName != nil {
+		reqParams.KeyName = keyName
 	}
 	resp, err := client.server.V2Api.GetLoginKeyList(reqParams)
 	if err != nil {
 		logErrorResponse("GetLoginKeyList", err, reqParams)
 		return nil, err
 	}
-	logCommonResponse("GetLoginKeyList", reqParams, GetCommonResponse(resp))
 
+	var totalRowsLog string
+	if resp != nil {
+		totalRowsLog = fmt.Sprintf("totalRows: %d", ncloud.Int32Value(resp.TotalRows))
+	}
+	logCommonResponse("GetLoginKeyList", reqParams, GetCommonResponse(resp), totalRowsLog)
+	return resp, nil
+}
+
+func getLoginKey(client *NcloudAPIClient, keyName string) (*server.LoginKey, error) {
+	resp, err := getLoginKeyList(client, ncloud.String(keyName))
 	if len(resp.LoginKeyList) > 0 {
 		return resp.LoginKeyList[0], err
 	}
 
 	return nil, err
+}
+
+func deleteLoginKey(client *NcloudAPIClient, keyName string) error {
+	resp, err := client.server.V2Api.DeleteLoginKey(&server.DeleteLoginKeyRequest{KeyName: ncloud.String(keyName)})
+	if err != nil {
+		logErrorResponse("DeleteLoginKey", err, keyName)
+		return err
+	}
+	var commonResponse = &CommonResponse{}
+	if resp != nil {
+		commonResponse = GetCommonResponse(resp)
+	}
+	logCommonResponse("DeleteLoginKey", keyName, commonResponse)
+
+	if err := waitForDeleteLoginKey(client, keyName); err != nil {
+		return err
+	}
+
+	return nil
 }
 
 func waitForDeleteLoginKey(client *NcloudAPIClient, keyName string) error {
@@ -125,15 +158,15 @@ func waitForDeleteLoginKey(client *NcloudAPIClient, keyName string) error {
 
 	go func() {
 		for {
-			resp, err := client.server.V2Api.DeleteLoginKey(&server.DeleteLoginKeyRequest{KeyName: ncloud.String(keyName)})
-
-			if err == nil || *resp.ReturnCode == "200" {
+			resp, err := getLoginKeyList(client, ncloud.String(keyName))
+			if err != nil {
+				c1 <- err
+				return
+			}
+			if ncloud.Int32Value(resp.TotalRows) == 0 {
 				c1 <- nil
 				return
 			}
-			// ignore resp.ReturnCode == 10407
-			logCommonResponse("DeleteLoginKey", keyName, GetCommonResponse(resp))
-
 			log.Printf("[DEBUG] Wait to delete login key (%s)", keyName)
 			time.Sleep(time.Second * 1)
 		}

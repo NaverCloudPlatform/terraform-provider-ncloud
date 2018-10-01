@@ -2,8 +2,11 @@ package ncloud
 
 import (
 	"fmt"
+	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/ncloud"
 	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/services/server"
 	"github.com/hashicorp/terraform/helper/schema"
+	"log"
+	"strconv"
 )
 
 func dataSourceNcloudPortForwardingRule() *schema.Resource {
@@ -103,6 +106,7 @@ func dataSourceNcloudPortForwardingRuleRead(d *schema.ResourceData, meta interfa
 		return err
 	}
 	logCommonResponse("GetPortForwardingRuleList", reqParams, GetCommonResponse(resp))
+	log.Printf("[DEBUG] GetPortForwardingRuleList TotalRows: %d", ncloud.Int32Value(resp.TotalRows))
 
 	allPortForwardingRules := resp.PortForwardingRuleList
 	var filteredPortForwardingRuleList []*server.PortForwardingRule
@@ -113,11 +117,11 @@ func dataSourceNcloudPortForwardingRuleRead(d *schema.ResourceData, meta interfa
 	filterExternalPort, filterExternalPortOk := d.GetOk("port_forwarding_external_port")
 	if filterServerInstanceNoOk || filterInternalPortOk || filterExternalPortOk {
 		for _, portForwardingRule := range allPortForwardingRules {
-			if filterServerInstanceNoOk && portForwardingRule.ServerInstance != nil && *portForwardingRule.ServerInstance.ServerInstanceNo == filterServerInstanceNo {
+			if filterServerInstanceNoOk && portForwardingRule.ServerInstance != nil && ncloud.StringValue(portForwardingRule.ServerInstance.ServerInstanceNo) == filterServerInstanceNo.(string) {
 				filteredPortForwardingRuleList = append(filteredPortForwardingRuleList, portForwardingRule)
-			} else if filterInternalPortOk && *portForwardingRule.PortForwardingInternalPort == filterInternalPort {
+			} else if filterInternalPortOk && strconv.Itoa(int(ncloud.Int32Value(portForwardingRule.PortForwardingInternalPort))) == filterInternalPort.(string) {
 				filteredPortForwardingRuleList = append(filteredPortForwardingRuleList, portForwardingRule)
-			} else if filterExternalPortOk && *portForwardingRule.PortForwardingExternalPort == filterExternalPort {
+			} else if filterExternalPortOk && strconv.Itoa(int(ncloud.Int32Value(portForwardingRule.PortForwardingExternalPort))) == filterExternalPort.(string) {
 				filteredPortForwardingRuleList = append(filteredPortForwardingRuleList, portForwardingRule)
 			}
 		}
@@ -135,8 +139,7 @@ func dataSourceNcloudPortForwardingRuleRead(d *schema.ResourceData, meta interfa
 }
 
 func portForwardingRuleAttributes(d *schema.ResourceData, portForwardingConfigurationNo *string, rule *server.PortForwardingRule) error {
-
-	d.SetId(*portForwardingConfigurationNo)
+	d.SetId(ncloud.StringValue(portForwardingConfigurationNo))
 	d.Set("port_forwarding_configuration_no", portForwardingConfigurationNo)
 	d.Set("port_forwarding_public_ip", rule.ServerInstance.PortForwardingPublicIp)
 	d.Set("server_instance_no", rule.ServerInstance.ServerInstanceNo)

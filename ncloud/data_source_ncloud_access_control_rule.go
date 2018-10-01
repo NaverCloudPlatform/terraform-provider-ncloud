@@ -144,11 +144,11 @@ func dataSourceNcloudAccessControlRuleRead(d *schema.ResourceData, meta interfac
 		for _, rule := range allAccessControlRuleList {
 			if nameRegexOk && r.MatchString(ncloud.StringValue(rule.SourceAccessControlRuleName)) {
 				filteredAccessControlRuleList = append(filteredAccessControlRuleList, rule)
-			} else if sourceIPOk && sourceIP == rule.SourceIp {
+			} else if sourceIPOk && sourceIP == ncloud.StringValue(rule.SourceIp) {
 				filteredAccessControlRuleList = append(filteredAccessControlRuleList, rule)
-			} else if destinationPortOk && destinationPort == rule.DestinationPort {
+			} else if destinationPortOk && destinationPort == ncloud.StringValue(rule.DestinationPort) {
 				filteredAccessControlRuleList = append(filteredAccessControlRuleList, rule)
-			} else if protocolTypeCodeOk && protocolTypeCode == rule.ProtocolType.Code {
+			} else if protocolTypeCodeOk && protocolTypeCode == ncloud.StringValue(rule.ProtocolType.Code) {
 				filteredAccessControlRuleList = append(filteredAccessControlRuleList, rule)
 			}
 		}

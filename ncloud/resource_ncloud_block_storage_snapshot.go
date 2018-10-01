@@ -7,12 +7,14 @@ import (
 	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/ncloud"
 	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/services/server"
 	"github.com/hashicorp/terraform/helper/schema"
+	"log"
 )
 
 func resourceNcloudBlockStorageSnapshot() *schema.Resource {
 	return &schema.Resource{
 		Create: resourceNcloudBlockStorageSnapshotCreate,
 		Read:   resourceNcloudBlockStorageSnapshotRead,
+		Update: resourceNcloudBlockStorageSnapshotUpdate,
 		Delete: resourceNcloudBlockStorageSnapshotDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
@@ -65,6 +67,7 @@ func resourceNcloudBlockStorageSnapshot() *schema.Resource {
 			},
 			"block_storage_snapshot_instance_status": {
 				Type:        schema.TypeMap,
+				Optional:    true,
 				Computed:    true,
 				Elem:        commonCodeSchemaResource,
 				Description: "Block Storage Snapshot Instance Status",
@@ -77,6 +80,7 @@ func resourceNcloudBlockStorageSnapshot() *schema.Resource {
 			},
 			"block_storage_snapshot_instance_status_name": {
 				Type:        schema.TypeString,
+				Optional:    true,
 				Computed:    true,
 				Description: "Block Storage Snapshot Instance Status Name",
 			},
@@ -115,10 +119,10 @@ func resourceNcloudBlockStorageSnapshotCreate(d *schema.ResourceData, meta inter
 	}
 	logCommonResponse("CreateBlockStorageSnapshotInstance", reqParams, GetCommonResponse(resp))
 
-	blockStorageSnapshotInstance := resp.BlockStorageInstanceList[0]
-	d.SetId(*blockStorageSnapshotInstance.BlockStorageInstanceNo)
+	blockStorageSnapshotInstance := resp.BlockStorageSnapshotInstanceList[0]
+	d.SetId(ncloud.StringValue(blockStorageSnapshotInstance.BlockStorageSnapshotInstanceNo))
 
-	if err := waitForBlockStorageSnapshotInstance(client, *blockStorageSnapshotInstance.BlockStorageInstanceNo, "CREAT"); err != nil {
+	if err := waitForBlockStorageSnapshotInstance(client, ncloud.StringValue(blockStorageSnapshotInstance.BlockStorageSnapshotInstanceNo), "CREAT"); err != nil {
 		return err
 	}
 	return resourceNcloudBlockStorageRead(d, meta)
@@ -147,9 +151,13 @@ func resourceNcloudBlockStorageSnapshotRead(d *schema.ResourceData, meta interfa
 	return nil
 }
 
+func resourceNcloudBlockStorageSnapshotUpdate(d *schema.ResourceData, meta interface{}) error {
+	return resourceNcloudBlockStorageSnapshotRead(d, meta)
+}
+
 func resourceNcloudBlockStorageSnapshotDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*NcloudAPIClient)
-	blockStorageSnapshotInstanceNo := d.Get("block_storage_snapshot_instance_no").(string)
+	blockStorageSnapshotInstanceNo := d.Id()
 	return deleteBlockStorageSnapshotInstance(client, blockStorageSnapshotInstanceNo)
 }
 
@@ -177,6 +185,7 @@ func getBlockStorageSnapshotInstanceList(client *NcloudAPIClient, blockStorageSn
 func getBlockStorageSnapshotInstance(client *NcloudAPIClient, blockStorageSnapshotInstanceNo string) (*server.BlockStorageSnapshotInstance, error) {
 	snapshots, err := getBlockStorageSnapshotInstanceList(client, blockStorageSnapshotInstanceNo)
 	if err != nil {
+		logErrorResponse("getBlockStorageSnapshotInstanceList", err, []*string{ncloud.String(blockStorageSnapshotInstanceNo)})
 		return nil, err
 	}
 	if len(snapshots) > 0 {
@@ -219,10 +228,11 @@ func waitForBlockStorageSnapshotInstance(client *NcloudAPIClient, id string, sta
 				c1 <- err
 				return
 			}
-			if snapshot == nil || *snapshot.BlockStorageSnapshotInstanceStatus.Code == status {
+			if snapshot == nil || ncloud.StringValue(snapshot.BlockStorageSnapshotInstanceStatus.Code) == status {
 				c1 <- nil
 				return
 			}
+			log.Printf("[DEBUG] Wait block storage snapshot instance [%s] status [%s] to be [%s]", id, ncloud.StringValue(snapshot.BlockStorageSnapshotInstanceStatus.Code), status)
 			time.Sleep(time.Second * 1)
 		}
 	}()

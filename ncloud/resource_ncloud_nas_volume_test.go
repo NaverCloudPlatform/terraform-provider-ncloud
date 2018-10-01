@@ -169,7 +169,7 @@ func testAccCheckNasVolumeDestroyWithProvider(s *terraform.State, provider *sche
 func testAccCheckNasVolumeNotRecreated(t *testing.T,
 	before, after *server.NasVolumeInstance) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
-		if before.NasVolumeInstanceNo != after.NasVolumeInstanceNo {
+		if *before.NasVolumeInstanceNo != *after.NasVolumeInstanceNo {
 			t.Fatalf("Ncloud NasVolumeInstanceNo have changed. Before %s. After %s", *before.NasVolumeInstanceNo, *after.NasVolumeInstanceNo)
 		}
 		return nil

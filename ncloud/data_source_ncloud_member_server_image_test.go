@@ -15,6 +15,10 @@ func TestAccDataSourceNcloudMemberServerImageBasic(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				Config: testAccDataSourceNcloudMemberServerImageConfig,
+				// ignore check: may be empty created data
+				SkipFunc: func() (bool, error) {
+					return skipNoResultsTest, nil
+				},
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckDataSourceID("data.ncloud_member_server_image.test"),
 				),
@@ -32,6 +36,10 @@ func TestAccDataSourceNcloudMemberServerImageMostRecent(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				Config: testAccDataSourceNcloudMemberServerImageMostRecentConfig,
+				// ignore check: may be empty created data
+				SkipFunc: func() (bool, error) {
+					return skipNoResultsTest, nil
+				},
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckDataSourceID("data.ncloud_member_server_image.test"),
 				),

@@ -2,6 +2,7 @@ package ncloud
 
 import (
 	"fmt"
+	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/ncloud"
 	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/services/server"
 	"github.com/hashicorp/terraform/helper/schema"
 	"strconv"
@@ -126,7 +127,7 @@ func dataSourceNcloudPortForwardingRulesRead(d *schema.ResourceData, meta interf
 	filterInternalPort, filterInternalPortOk := d.GetOk("port_forwarding_internal_port")
 	if filterInternalPortOk {
 		for _, portForwardingRule := range allPortForwardingRules {
-			if portForwardingRule.PortForwardingInternalPort == filterInternalPort {
+			if filterInternalPort == strconv.Itoa(int(ncloud.Int32Value(portForwardingRule.PortForwardingInternalPort))) {
 				filteredPortForwardingRuleList = append(filteredPortForwardingRuleList, portForwardingRule)
 			}
 		}
@@ -143,15 +144,15 @@ func dataSourceNcloudPortForwardingRulesRead(d *schema.ResourceData, meta interf
 func portForwardingRulesAttributes(d *schema.ResourceData, portForwardingConfigurationNo *string, portForwardingRuleList []*server.PortForwardingRule) error {
 	var s []map[string]interface{}
 
-	d.SetId(*portForwardingConfigurationNo)
+	d.SetId(ncloud.StringValue(portForwardingConfigurationNo))
 	d.Set("port_forwarding_configuration_no", portForwardingConfigurationNo)
 
 	for _, rule := range portForwardingRuleList {
 		mapping := map[string]interface{}{
-			"server_instance_no":            *rule.ServerInstance.ServerInstanceNo,
-			"port_forwarding_external_port": strconv.Itoa(int(*rule.PortForwardingExternalPort)),
-			"port_forwarding_internal_port": strconv.Itoa(int(*rule.PortForwardingInternalPort)),
-			"port_forwarding_public_ip":     *rule.ServerInstance.PortForwardingPublicIp,
+			"server_instance_no":            ncloud.StringValue(rule.ServerInstance.ServerInstanceNo),
+			"port_forwarding_external_port": strconv.Itoa(int(ncloud.Int32Value(rule.PortForwardingExternalPort))),
+			"port_forwarding_internal_port": strconv.Itoa(int(ncloud.Int32Value(rule.PortForwardingInternalPort))),
+			"port_forwarding_public_ip":     ncloud.StringValue(rule.ServerInstance.PortForwardingPublicIp),
 		}
 		s = append(s, mapping)
 	}
