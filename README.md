@@ -1,7 +1,7 @@
 # Terraform Provider for Naver Cloud Platform
 
 - Website: https://www.terraform.io
-- Documentation: http://10.105.182.126:4567/docs/providers/ncloud/index.html
+- Documentation: http://106.10.45.95:4567/docs/providers/ncloud/index.html
 - [![Gitter chat](https://badges.gitter.im/hashicorp-terraform/Lobby.png)](https://gitter.im/hashicorp-terraform/Lobby) [![Build Status](https://travis-ci.com/NaverCloudPlatform/terraform-provider-ncloud.svg?branch=master)](https://travis-ci.com/NaverCloudPlatform/terraform-provider-ncloud)
 - Mailing list: [Google Groups](http://groups.google.com/group/terraform-tool)
 
