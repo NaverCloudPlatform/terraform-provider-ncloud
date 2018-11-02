@@ -103,6 +103,12 @@ func resourceNcloudServer() *schema.Resource {
 				Optional:    true,
 				Description: "Raid Type Name",
 			},
+			"tag_list": {
+				Type:        schema.TypeList,
+				Optional:    true,
+				Elem:        tagListSchemaResource,
+				Description: "Instance tag list",
+			},
 
 			"server_instance_no": {
 				Type:     schema.TypeString,
@@ -276,9 +282,26 @@ func resourceNcloudServerRead(d *schema.ResourceData, meta interface{}) error {
 		d.Set("internet_line_type", setCommonCode(instance.InternetLineType))
 		d.Set("user_data", d.Get("user_data").(string))
 
+		if len(instance.InstanceTagList) != 0 {
+			d.Set("load_balancer_rule_list", getInstanceTagList(instance.InstanceTagList))
+		}
 	}
 
 	return nil
+}
+
+func getInstanceTagList(tagList []*server.InstanceTag) []interface{} {
+	list := make([]interface{}, 0, len(tagList))
+
+	for _, r := range tagList {
+		tag := map[string]interface{}{
+			"tag_key":   r.TagKey,
+			"tag_value": r.TagValue,
+		}
+		list = append(list, tag)
+	}
+
+	return list
 }
 
 func resourceNcloudServerDelete(d *schema.ResourceData, meta interface{}) error {
@@ -361,12 +384,32 @@ func buildCreateServerInstanceReqParams(client *NcloudAPIClient, d *schema.Resou
 		AccessControlGroupConfigurationNoList: paramAccessControlGroupConfigurationNoList,
 		UserData:                              ncloud.String(d.Get("user_data").(string)),
 		RaidTypeName:                          ncloud.String(d.Get("raid_type_name").(string)),
+		InstanceTagList:                       buildTagListParams(d),
 	}
 	if IsProtectServerTermination, ok := d.GetOk("is_protect_server_termination"); ok {
 		reqParams.IsProtectServerTermination = ncloud.Bool(IsProtectServerTermination.(bool))
 	}
 
 	return reqParams, nil
+}
+
+func buildTagListParams(d *schema.ResourceData) []*server.InstanceTagParameter {
+	tagList := make([]*server.InstanceTagParameter, 0, len(d.Get("tag_list").([]interface{})))
+
+	for _, v := range d.Get("tag_list").([]interface{}) {
+		tag := new(server.InstanceTagParameter)
+		for key, value := range v.(map[string]interface{}) {
+			switch key {
+			case "tag_key":
+				tag.TagKey = ncloud.String(value.(string))
+			case "tag_value":
+				tag.TagValue = ncloud.String(value.(string))
+			}
+		}
+		tagList = append(tagList, tag)
+	}
+
+	return tagList
 }
 
 func getServerInstance(client *NcloudAPIClient, serverInstanceNo string) (*server.ServerInstance, error) {
@@ -462,5 +505,19 @@ func waitForServerInstance(client *NcloudAPIClient, instanceId string, status st
 	case <-time.After(DefaultCreateTimeout):
 		return fmt.Errorf("TIMEOUT : Wait to server instance  (%s)", instanceId)
 	}
+}
 
+var tagListSchemaResource = &schema.Resource{
+	Schema: map[string]*schema.Schema{
+		"tag_key": {
+			Type:        schema.TypeString,
+			Required:    true,
+			Description: "Instance Tag Key",
+		},
+		"tag_value": {
+			Type:        schema.TypeString,
+			Required:    true,
+			Description: "Instance Tag Value",
+		},
+	},
 }
