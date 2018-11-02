@@ -506,3 +506,18 @@ func waitForServerInstance(client *NcloudAPIClient, instanceId string, status st
 		return fmt.Errorf("TIMEOUT : Wait to server instance  (%s)", instanceId)
 	}
 }
+
+var tagListSchemaResource = &schema.Resource{
+	Schema: map[string]*schema.Schema{
+		"tag_key": {
+			Type:        schema.TypeString,
+			Required:    true,
+			Description: "Instance Tag Key",
+		},
+		"tag_value": {
+			Type:        schema.TypeString,
+			Required:    true,
+			Description: "Instance Tag Value",
+		},
+	},
+}
