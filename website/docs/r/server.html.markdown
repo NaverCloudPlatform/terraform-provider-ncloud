@@ -14,9 +14,20 @@ Provides a ncloud server instance resource.
 
 ```hcl
 resource "ncloud_server" "server" {
-	"server_name" = "tf-test-vm1"
-	"server_image_product_code" = "SPSW0LINUX000032"
-	"server_product_code" = "SPSVRSTAND000004"
+    "server_name" = "tf-test-vm1"
+    "server_image_product_code" = "SPSW0LINUX000032"
+    "server_product_code" = "SPSVRSTAND000004"
+
+    "tag_list" = [
+        {
+            "tag_key"   = "samplekey1"
+            "tag_value" = "samplevalue1"
+        },
+        {
+            "tag_key"   = "samplekey2"
+            "tag_value" = "samplevalue2"
+        },
+    ]
 }
 ```
 
@@ -42,6 +53,9 @@ The following arguments are supported:
 * `access_control_group_configuration_no_list` - (Optional) You can set the ACG created when creating the server. ACG setting number can be obtained through the getAccessControlGroupList action. Default : Default ACG number
 * `user_data` - (Optional) The server will execute the user data script set by the user at first boot. To view the column, it is returned only when viewing the server instance.
 * `raid_type_name` - (Optional) Raid Type Name.
+* `tag_list` - (Optional) Server instance tag list.
+  * `tag_key` - (Required) Instance tag key
+  * `tag_value` - (Required) Instance tag value
 
 ## Attributes Reference
 
