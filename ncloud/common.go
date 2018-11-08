@@ -5,8 +5,9 @@ import (
 	"fmt"
 	"log"
 
-	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/ncloud"
 	"strings"
+
+	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/ncloud"
 )
 
 const (
@@ -38,11 +39,14 @@ func logErrorResponse(tag string, err error, args interface{}) {
 	log.Printf("[ERROR] %s error params=%s, err=%s", tag, param, err)
 }
 
-func logCommonResponse(tag string, args interface{}, commonResponse *CommonResponse, logs ...string) {
+func logCommonRequest(tag string, args interface{}) {
 	param, _ := json.Marshal(args)
+	log.Printf("[INFO] %s params=%s", tag, param)
+}
 
+func logCommonResponse(tag string, commonResponse *CommonResponse, logs ...string) {
 	result := fmt.Sprintf("RequestID: %s, ReturnCode: %s, ReturnMessage: %s", ncloud.StringValue(commonResponse.RequestId), ncloud.StringValue(commonResponse.ReturnCode), ncloud.StringValue(commonResponse.ReturnMessage))
-	log.Printf("[DEBUG] %s success params=%s, response=%s %s", tag, param, result, strings.Join(logs, " "))
+	log.Printf("[INFO] %s success response=%s %s", tag, result, strings.Join(logs, " "))
 }
 
 func isRetryableErr(commResp *CommonResponse, code []string) bool {

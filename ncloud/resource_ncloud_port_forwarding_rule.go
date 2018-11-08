@@ -2,14 +2,15 @@ package ncloud
 
 import (
 	"fmt"
-	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/ncloud"
-	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/services/server"
-	"github.com/hashicorp/terraform/helper/resource"
-	"github.com/hashicorp/terraform/helper/schema"
 	"log"
 	"strconv"
 	"strings"
 	"time"
+
+	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/ncloud"
+	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/services/server"
+	"github.com/hashicorp/terraform/helper/resource"
+	"github.com/hashicorp/terraform/helper/schema"
 )
 
 func resourceNcloudPortForwadingRule() *schema.Resource {
@@ -102,6 +103,7 @@ func resourceNcloudPortForwardingRuleCreate(d *schema.ResourceData, meta interfa
 	var resp *server.AddPortForwardingRulesResponse
 	err = resource.Retry(d.Timeout(schema.TimeoutCreate), func() *resource.RetryError {
 		var err error
+		logCommonRequest("AddPortForwardingRules", reqParams)
 		resp, err = client.server.V2Api.AddPortForwardingRules(reqParams)
 
 		if resp != nil && isRetryableErr(GetCommonResponse(resp), []string{ApiErrorUnknown, ApiErrorPortForwardingObjectInOperation}) {
@@ -109,7 +111,7 @@ func resourceNcloudPortForwardingRuleCreate(d *schema.ResourceData, meta interfa
 			time.Sleep(time.Second * 5)
 			return resource.RetryableError(err)
 		}
-		logCommonResponse("AddPortForwardingRules success", reqParams, GetCommonResponse(resp))
+		logCommonResponse("AddPortForwardingRules", GetCommonResponse(resp))
 
 		return resource.NonRetryableError(err)
 	})
@@ -198,6 +200,9 @@ func resourceNcloudPortForwardingRuleDelete(d *schema.ResourceData, meta interfa
 	var resp *server.DeletePortForwardingRulesResponse
 	err = resource.Retry(d.Timeout(schema.TimeoutDelete), func() *resource.RetryError {
 		var err error
+
+		logCommonRequest("DeletePortForwardingRules", reqParams)
+
 		resp, err = client.server.V2Api.DeletePortForwardingRules(reqParams)
 		log.Printf("=================> DeletePortForwardingRules resp: %#v, err: %#v", resp, err)
 		if err == nil && resp == nil {
@@ -208,7 +213,7 @@ func resourceNcloudPortForwardingRuleDelete(d *schema.ResourceData, meta interfa
 			time.Sleep(time.Second * 5)
 			return resource.RetryableError(err)
 		}
-		logCommonResponse("DeletePortForwardingRules Retry", reqParams, GetCommonResponse(resp))
+		logCommonResponse("DeletePortForwardingRules", GetCommonResponse(resp))
 		return resource.NonRetryableError(err)
 	})
 
@@ -255,12 +260,13 @@ func getPortForwardingRuleList(client *NcloudAPIClient, zoneNo string) (*server.
 	reqParams := &server.GetPortForwardingRuleListRequest{
 		ZoneNo: ncloud.String(zoneNo),
 	}
+	logCommonRequest("GetPortForwardingRuleList", reqParams)
 	resp, err := client.server.V2Api.GetPortForwardingRuleList(reqParams)
 	if err != nil {
 		logErrorResponse("GetPortForwardingRuleList", err, reqParams)
 		return nil, err
 	}
-	logCommonResponse("GetPortForwardingRuleList", reqParams, GetCommonResponse(resp))
+	logCommonResponse("GetPortForwardingRuleList", GetCommonResponse(resp))
 
 	return resp, nil
 }

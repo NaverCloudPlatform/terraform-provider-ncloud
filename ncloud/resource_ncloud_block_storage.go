@@ -4,11 +4,12 @@ import (
 	"fmt"
 	"time"
 
+	"log"
+
 	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/ncloud"
 	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/services/server"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/helper/schema"
-	"log"
 )
 
 func resourceNcloudBlockStorage() *schema.Resource {
@@ -116,12 +117,15 @@ func resourceNcloudBlockStorageCreate(d *schema.ResourceData, meta interface{}) 
 	client := meta.(*NcloudAPIClient)
 
 	reqParams := buildRequestBlockStorageInstance(d)
+
+	logCommonRequest("CreateBlockStorageInstance", reqParams)
+
 	resp, err := client.server.V2Api.CreateBlockStorageInstance(reqParams)
 	if err != nil {
 		logErrorResponse("CreateBlockStorageInstance", err, reqParams)
 		return err
 	}
-	logCommonResponse("CreateBlockStorageInstance", reqParams, GetCommonResponse(resp))
+	logCommonResponse("CreateBlockStorageInstance", GetCommonResponse(resp))
 
 	blockStorageInstance := resp.BlockStorageInstanceList[0]
 	d.SetId(*blockStorageInstance.BlockStorageInstanceNo)
@@ -191,12 +195,15 @@ func getBlockStorageInstanceList(client *NcloudAPIClient, serverInstanceNo strin
 	reqParams := &server.GetBlockStorageInstanceListRequest{
 		ServerInstanceNo: ncloud.String(serverInstanceNo),
 	}
+
+	logCommonRequest("GetBlockStorageInstanceList", reqParams)
+
 	resp, err := client.server.V2Api.GetBlockStorageInstanceList(reqParams)
 	if err != nil {
 		logErrorResponse("GetBlockStorageInstanceList", err, reqParams)
 		return nil, err
 	}
-	logCommonResponse("GetBlockStorageInstanceList", reqParams, GetCommonResponse(resp))
+	logCommonResponse("GetBlockStorageInstanceList", GetCommonResponse(resp))
 	return resp.BlockStorageInstanceList, nil
 }
 
@@ -204,12 +211,15 @@ func getBlockStorageInstance(client *NcloudAPIClient, blockStorageInstanceNo str
 	reqParams := &server.GetBlockStorageInstanceListRequest{
 		BlockStorageInstanceNoList: ncloud.StringList([]string{blockStorageInstanceNo}),
 	}
+
+	logCommonRequest("GetBlockStorageInstance", reqParams)
+
 	resp, err := client.server.V2Api.GetBlockStorageInstanceList(reqParams)
 	if err != nil {
 		logErrorResponse("GetBlockStorageInstance", err, reqParams)
 		return nil, err
 	}
-	logCommonResponse("GetBlockStorageInstance", reqParams, GetCommonResponse(resp))
+	logCommonResponse("GetBlockStorageInstance", GetCommonResponse(resp))
 
 	if len(resp.BlockStorageInstanceList) > 0 {
 		inst := resp.BlockStorageInstanceList[0]
@@ -220,9 +230,12 @@ func getBlockStorageInstance(client *NcloudAPIClient, blockStorageInstanceNo str
 
 func deleteBlockStorage(client *NcloudAPIClient, blockStorageIds []*string) error {
 	for _, blockStorageId := range blockStorageIds {
-		resp, err := client.server.V2Api.DeleteBlockStorageInstances(&server.DeleteBlockStorageInstancesRequest{
+		reqParams := server.DeleteBlockStorageInstancesRequest{
 			BlockStorageInstanceNoList: []*string{blockStorageId},
-		})
+		}
+		logCommonRequest("DeleteBlockStorageInstances", reqParams)
+
+		resp, err := client.server.V2Api.DeleteBlockStorageInstances(&reqParams)
 		if err != nil {
 			logErrorResponse("DeleteBlockStorageInstances", err, []*string{blockStorageId})
 			return err
@@ -231,7 +244,7 @@ func deleteBlockStorage(client *NcloudAPIClient, blockStorageIds []*string) erro
 		if resp != nil {
 			commonResponse = GetCommonResponse(resp)
 		}
-		logCommonResponse("DeleteBlockStorageInstances", blockStorageIds, commonResponse)
+		logCommonResponse("DeleteBlockStorageInstances", commonResponse)
 
 		if err := waitForBlockStorageInstance(client, *blockStorageId, "CREAT"); err != nil {
 			return err
@@ -262,6 +275,9 @@ func detachBlockStorage(d *schema.ResourceData, client *NcloudAPIClient, blockSt
 		}
 		err := resource.Retry(d.Timeout(schema.TimeoutDelete), func() *resource.RetryError {
 			var err error
+
+			logCommonRequest("DetachBlockStorageInstances", reqParams)
+
 			resp, err = client.server.V2Api.DetachBlockStorageInstances(reqParams)
 			if err == nil && resp == nil {
 				return resource.NonRetryableError(err)
@@ -277,7 +293,7 @@ func detachBlockStorage(d *schema.ResourceData, client *NcloudAPIClient, blockSt
 			logErrorResponse("DetachBlockStorageInstances", err, reqParams)
 			return err
 		}
-		logCommonResponse("DetachBlockStorageInstances", reqParams, GetCommonResponse(resp))
+		logCommonResponse("DetachBlockStorageInstances", GetCommonResponse(resp))
 
 		if err := waitForBlockStorageInstance(client, blockStorageId, "CREAT"); err != nil {
 			return err

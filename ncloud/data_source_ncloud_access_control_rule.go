@@ -2,10 +2,11 @@ package ncloud
 
 import (
 	"fmt"
+	"regexp"
+
 	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/ncloud"
 	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/services/server"
 	"github.com/hashicorp/terraform/helper/schema"
-	"regexp"
 )
 
 func dataSourceNcloudAccessControlRule() *schema.Resource {
@@ -165,14 +166,17 @@ func dataSourceNcloudAccessControlRuleRead(d *schema.ResourceData, meta interfac
 }
 
 func getAccessControlRuleList(client *NcloudAPIClient, groupConfigNo string) (*server.GetAccessControlRuleListResponse, error) {
-	resp, err := client.server.V2Api.GetAccessControlRuleList(&server.GetAccessControlRuleListRequest{
+	reqParams := server.GetAccessControlRuleListRequest{
 		AccessControlGroupConfigurationNo: ncloud.String(groupConfigNo),
-	})
+	}
+
+	logCommonRequest("GetAccessControlRuleList", reqParams)
+	resp, err := client.server.V2Api.GetAccessControlRuleList(&reqParams)
 	if err != nil {
 		logErrorResponse("GetAccessControlRuleList", err, groupConfigNo)
 		return nil, err
 	}
-	logCommonResponse("GetAccessControlRuleList", groupConfigNo, GetCommonResponse(resp))
+	logCommonResponse("GetAccessControlRuleList", GetCommonResponse(resp))
 	return resp, nil
 }
 

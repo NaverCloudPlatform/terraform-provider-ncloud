@@ -126,12 +126,13 @@ func dataSourceNcloudAccessControlGroupsRead(d *schema.ResourceData, meta interf
 }
 
 func getAccessControlGroupList(client *NcloudAPIClient, reqParams *server.GetAccessControlGroupListRequest) (*server.GetAccessControlGroupListResponse, error) {
+	logCommonRequest("GetAccessControlGroupList", reqParams)
 	resp, err := client.server.V2Api.GetAccessControlGroupList(reqParams)
 	if err != nil {
 		logErrorResponse("GetAccessControlGroupList", err, reqParams)
 		return nil, err
 	}
-	logCommonResponse("GetAccessControlGroupList", reqParams, GetCommonResponse(resp))
+	logCommonResponse("GetAccessControlGroupList", GetCommonResponse(resp))
 	return resp, nil
 }
 

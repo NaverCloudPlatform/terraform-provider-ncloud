@@ -2,11 +2,11 @@ package ncloud
 
 import (
 	"fmt"
+	"strconv"
+
 	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/ncloud"
 	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/services/server"
 	"github.com/hashicorp/terraform/helper/schema"
-	"log"
-	"strconv"
 )
 
 func dataSourceNcloudPortForwardingRule() *schema.Resource {
@@ -100,13 +100,13 @@ func dataSourceNcloudPortForwardingRuleRead(d *schema.ResourceData, meta interfa
 		ZoneNo:               zoneNo,
 	}
 
+	logCommonRequest("GetPortForwardingRuleList", reqParams)
 	resp, err := client.server.V2Api.GetPortForwardingRuleList(reqParams)
 	if err != nil {
 		logErrorResponse("GetPortForwardingRuleList", err, reqParams)
 		return err
 	}
-	logCommonResponse("GetPortForwardingRuleList", reqParams, GetCommonResponse(resp))
-	log.Printf("[DEBUG] GetPortForwardingRuleList TotalRows: %d", ncloud.Int32Value(resp.TotalRows))
+	logCommonResponse("GetPortForwardingRuleList", GetCommonResponse(resp), fmt.Sprintf("TotalRows: %d", ncloud.Int32Value(resp.TotalRows)))
 
 	allPortForwardingRules := resp.PortForwardingRuleList
 	var filteredPortForwardingRuleList []*server.PortForwardingRule

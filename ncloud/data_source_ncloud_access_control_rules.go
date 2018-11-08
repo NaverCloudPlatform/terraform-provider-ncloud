@@ -78,12 +78,16 @@ func dataSourceNcloudAccessControlRulesRead(d *schema.ResourceData, meta interfa
 	d.SetId(time.Now().UTC().String())
 
 	id := d.Get("access_control_group_configuration_no").(string)
-	resp, err := client.server.V2Api.GetAccessControlRuleList(&server.GetAccessControlRuleListRequest{AccessControlGroupConfigurationNo: ncloud.String(id)})
+	reqParams := server.GetAccessControlRuleListRequest{AccessControlGroupConfigurationNo: ncloud.String(id)}
+
+	logCommonRequest("GetAccessControlRuleList", reqParams)
+
+	resp, err := client.server.V2Api.GetAccessControlRuleList(&reqParams)
 	if err != nil {
 		logErrorResponse("GetAccessControlRuleList", err, id)
 		return err
 	}
-	logCommonResponse("GetAccessControlRuleList", id, GetCommonResponse(resp))
+	logCommonResponse("GetAccessControlRuleList", GetCommonResponse(resp))
 
 	allAccessControlRuleList := resp.AccessControlRuleList
 	var filteredAccessControlRuleList []*server.AccessControlRule

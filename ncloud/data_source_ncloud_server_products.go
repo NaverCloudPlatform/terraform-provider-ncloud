@@ -151,12 +151,14 @@ func dataSourceNcloudServerProductsRead(d *schema.ResourceData, meta interface{}
 		InternetLineTypeCode:   StringPtrOrNil(d.GetOk("internet_line_type_code")),
 	}
 
+	logCommonRequest("GetServerProductList", reqParams)
+
 	resp, err := client.server.V2Api.GetServerProductList(reqParams)
 	if err != nil {
 		logErrorResponse("GetServerProductList", err, reqParams)
 		return err
 	}
-	logCommonResponse("GetServerProductList", reqParams, GetCommonResponse(resp))
+	logCommonResponse("GetServerProductList", GetCommonResponse(resp))
 
 	allServerProducts := resp.ProductList
 	var filteredServerProducts []*server.Product

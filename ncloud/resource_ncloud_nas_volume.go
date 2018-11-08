@@ -194,12 +194,14 @@ func resourceNcloudNasVolumeCreate(d *schema.ResourceData, meta interface{}) err
 	if err != nil {
 		return nil
 	}
+	logCommonRequest("CreateNasVolumeInstance", reqParams)
+
 	resp, err := client.server.V2Api.CreateNasVolumeInstance(reqParams)
 	if err != nil {
 		logErrorResponse("CreateNasVolumeInstance", err, reqParams)
 		return err
 	}
-	logCommonResponse("CreateNasVolumeInstance", reqParams, GetCommonResponse(resp))
+	logCommonResponse("CreateNasVolumeInstance", GetCommonResponse(resp))
 
 	nasVolumeInstance := resp.NasVolumeInstanceList[0]
 	d.SetId(ncloud.StringValue(nasVolumeInstance.NasVolumeInstanceNo))
@@ -254,12 +256,15 @@ func resourceNcloudNasVolumeUpdate(d *schema.ResourceData, meta interface{}) err
 		if volumeSizeGb, ok := d.GetOk("volume_size_gb"); ok {
 			reqParams.VolumeSize = ncloud.Int32(int32(volumeSizeGb.(int)))
 		}
+
+		logCommonRequest("ChangeNasVolumeSize", reqParams)
+
 		resp, err := client.server.V2Api.ChangeNasVolumeSize(reqParams)
 		if err != nil {
 			logErrorResponse("ChangeNasVolumeSize", err, reqParams)
 			return err
 		}
-		logCommonResponse("ChangeNasVolumeSize", reqParams, GetCommonResponse(resp))
+		logCommonResponse("ChangeNasVolumeSize", GetCommonResponse(resp))
 	}
 
 	if d.HasChange("server_instance_no_list") || d.HasChange("custom_ip_list") {
@@ -269,12 +274,14 @@ func resourceNcloudNasVolumeUpdate(d *schema.ResourceData, meta interface{}) err
 			CustomIpList:         ncloud.StringInterfaceList(d.Get("custom_ip_list").([]interface{})),
 		}
 
+		logCommonRequest("SetNasVolumeAccessControl", reqParams)
+
 		resp, err := client.server.V2Api.SetNasVolumeAccessControl(reqParams)
 		if err != nil {
 			logErrorResponse("SetNasVolumeAccessControl", err, reqParams)
 			return err
 		}
-		logCommonResponse("SetNasVolumeAccessControl", reqParams, GetCommonResponse(resp))
+		logCommonResponse("SetNasVolumeAccessControl", GetCommonResponse(resp))
 	}
 
 	return resourceNcloudNasVolumeRead(d, meta)
@@ -306,12 +313,14 @@ func buildCreateNasVolumeInstanceParams(client *NcloudAPIClient, d *schema.Resou
 
 func getNasVolumeInstance(client *NcloudAPIClient, nasVolumeInstanceNo string) (*server.NasVolumeInstance, error) {
 	reqParams := &server.GetNasVolumeInstanceListRequest{}
+	logCommonRequest("GetNasVolumeInstanceList", reqParams)
+
 	resp, err := client.server.V2Api.GetNasVolumeInstanceList(reqParams)
 	if err != nil {
 		logErrorResponse("GetNasVolumeInstanceList", err, reqParams)
 		return nil, err
 	}
-	logCommonResponse("GetNasVolumeInstanceList", reqParams, GetCommonResponse(resp))
+	logCommonResponse("GetNasVolumeInstanceList", GetCommonResponse(resp))
 
 	for _, inst := range resp.NasVolumeInstanceList {
 		if nasVolumeInstanceNo == ncloud.StringValue(inst.NasVolumeInstanceNo) {
@@ -322,7 +331,10 @@ func getNasVolumeInstance(client *NcloudAPIClient, nasVolumeInstanceNo string) (
 }
 
 func deleteNasVolumeInstance(client *NcloudAPIClient, nasVolumeInstanceNo string) error {
-	resp, err := client.server.V2Api.DeleteNasVolumeInstance(&server.DeleteNasVolumeInstanceRequest{NasVolumeInstanceNo: ncloud.String(nasVolumeInstanceNo)})
+	reqParams := &server.DeleteNasVolumeInstanceRequest{NasVolumeInstanceNo: ncloud.String(nasVolumeInstanceNo)}
+	logCommonRequest("DeleteNasVolumeInstance", reqParams)
+
+	resp, err := client.server.V2Api.DeleteNasVolumeInstance(reqParams)
 	if err != nil {
 		logErrorResponse("DeleteNasVolumeInstance", err, nasVolumeInstanceNo)
 		return err
@@ -331,7 +343,7 @@ func deleteNasVolumeInstance(client *NcloudAPIClient, nasVolumeInstanceNo string
 	if resp != nil {
 		commonResponse = GetCommonResponse(resp)
 	}
-	logCommonResponse("DeleteNasVolumeInstance", nasVolumeInstanceNo, commonResponse)
+	logCommonResponse("DeleteNasVolumeInstance", commonResponse)
 
 	if err := waitForNasVolumeInstance(client, nasVolumeInstanceNo, "TERMT"); err != nil {
 		return err

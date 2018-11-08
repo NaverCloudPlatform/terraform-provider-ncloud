@@ -41,12 +41,14 @@ func dataSourceNcloudRootPasswordRead(d *schema.ResourceData, meta interface{}) 
 		ServerInstanceNo: ncloud.String(serverInstanceNo),
 		PrivateKey:       ncloud.String(privateKey),
 	}
+
+	logCommonRequest("GetRootPassword", reqParams)
 	resp, err := client.server.V2Api.GetRootPassword(reqParams)
 	if err != nil {
 		logErrorResponse("GetRootPassword", err, reqParams)
 		return err
 	}
-	logCommonResponse("GetRootPassword", reqParams, GetCommonResponse(resp))
+	logCommonResponse("GetRootPassword", GetCommonResponse(resp))
 
 	d.SetId(serverInstanceNo)
 	d.Set("root_password", resp.RootPassword)
