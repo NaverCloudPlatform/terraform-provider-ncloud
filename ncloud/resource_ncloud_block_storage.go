@@ -143,14 +143,12 @@ func resourceNcloudBlockStorageRead(d *schema.ResourceData, meta interface{}) er
 		return err
 	}
 	if storage != nil {
-		//d.Set("block_storage_size_gb", String(d.Get("block_storage_size_gb").(int)))
 		d.Set("block_storage_instance_no", storage.BlockStorageInstanceNo)
 		d.Set("server_instance_no", storage.ServerInstanceNo)
 		d.Set("block_storage_size", storage.BlockStorageSize)
 		d.Set("block_storage_name", storage.BlockStorageName)
-		d.Set("disk_detail_type_code", storage.DiskDetailType)
+		d.Set("disk_detail_type_code", storage.DiskDetailType.Code)
 		d.Set("server_name", storage.ServerName)
-		d.Set("block_storage_type", storage.BlockStorageType)
 		d.Set("block_storage_type", setCommonCode(storage.BlockStorageType))
 		d.Set("device_name", storage.DeviceName)
 		d.Set("block_storage_product_code", storage.BlockStorageProductCode)
