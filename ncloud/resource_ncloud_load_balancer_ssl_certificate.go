@@ -58,13 +58,15 @@ func resourceNcloudLoadBalancerSSLCertificateCreate(d *schema.ResourceData, meta
 		return err
 	}
 
+	logCommonRequest("AddLoadBalancerSslCertificate", reqParams)
+
 	resp, err := client.loadbalancer.V2Api.AddLoadBalancerSslCertificate(reqParams)
 	if err != nil {
 		logErrorResponse("AddLoadBalancerSslCertificate", err, reqParams)
 		return err
 	}
 
-	logCommonResponse("AddLoadBalancerSslCertificate", reqParams, GetCommonResponse(resp))
+	logCommonResponse("AddLoadBalancerSslCertificate", GetCommonResponse(resp))
 
 	cert := resp.SslCertificateList[0]
 	d.SetId(*cert.CertificateName)
@@ -116,12 +118,14 @@ func buildCreateLoadBalancerSSLCertificateParams(d *schema.ResourceData) (*loadb
 }
 
 func getLoadBalancerSslCertificateList(client *NcloudAPIClient, certificateName string) (*loadbalancer.SslCertificate, error) {
-	resp, err := client.loadbalancer.V2Api.GetLoadBalancerSslCertificateList(&loadbalancer.GetLoadBalancerSslCertificateListRequest{CertificateName: ncloud.String(certificateName)})
+	reqParams := loadbalancer.GetLoadBalancerSslCertificateListRequest{CertificateName: ncloud.String(certificateName)}
+	logCommonRequest("GetLoadBalancerSslCertificateList", reqParams)
+	resp, err := client.loadbalancer.V2Api.GetLoadBalancerSslCertificateList(&reqParams)
 	if err != nil {
 		logErrorResponse("GetLoadBalancerSslCertificateList", err, certificateName)
 		return nil, err
 	}
-	logCommonResponse("GetLoadBalancerSslCertificateList", certificateName, GetCommonResponse(resp))
+	logCommonResponse("GetLoadBalancerSslCertificateList", GetCommonResponse(resp))
 
 	for _, cert := range resp.SslCertificateList {
 		if certificateName == ncloud.StringValue(cert.CertificateName) {
@@ -133,7 +137,9 @@ func getLoadBalancerSslCertificateList(client *NcloudAPIClient, certificateName 
 }
 
 func deleteLoadBalancerSSLCertificate(client *NcloudAPIClient, certificateName string) error {
-	resp, err := client.loadbalancer.V2Api.DeleteLoadBalancerSslCertificate(&loadbalancer.DeleteLoadBalancerSslCertificateRequest{CertificateName: ncloud.String(certificateName)})
+	reqParams := loadbalancer.DeleteLoadBalancerSslCertificateRequest{CertificateName: ncloud.String(certificateName)}
+	logCommonRequest("DeleteLoadBalancerSslCertificate", reqParams)
+	resp, err := client.loadbalancer.V2Api.DeleteLoadBalancerSslCertificate(&reqParams)
 	if err != nil {
 		logErrorResponse("DeleteLoadBalancerSslCertificate", err, certificateName)
 		return err
@@ -142,7 +148,7 @@ func deleteLoadBalancerSSLCertificate(client *NcloudAPIClient, certificateName s
 	if resp != nil {
 		commonResponse = GetCommonResponse(resp)
 	}
-	logCommonResponse("DeleteLoadBalancerSslCertificate", certificateName, commonResponse)
+	logCommonResponse("DeleteLoadBalancerSslCertificate", commonResponse)
 
 	return nil
 }

@@ -4,10 +4,11 @@ import (
 	"fmt"
 	"time"
 
+	"log"
+
 	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/ncloud"
 	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/services/server"
 	"github.com/hashicorp/terraform/helper/schema"
-	"log"
 )
 
 func resourceNcloudBlockStorageSnapshot() *schema.Resource {
@@ -112,12 +113,14 @@ func resourceNcloudBlockStorageSnapshotCreate(d *schema.ResourceData, meta inter
 	client := meta.(*NcloudAPIClient)
 
 	reqParams := buildRequestBlockStorageSnapshotInstance(d)
+	logCommonRequest("CreateBlockStorageSnapshotInstance", reqParams)
+
 	resp, err := client.server.V2Api.CreateBlockStorageSnapshotInstance(reqParams)
 	if err != nil {
 		logErrorResponse("CreateBlockStorageSnapshotInstance", err, reqParams)
 		return err
 	}
-	logCommonResponse("CreateBlockStorageSnapshotInstance", reqParams, GetCommonResponse(resp))
+	logCommonResponse("CreateBlockStorageSnapshotInstance", GetCommonResponse(resp))
 
 	blockStorageSnapshotInstance := resp.BlockStorageSnapshotInstanceList[0]
 	d.SetId(ncloud.StringValue(blockStorageSnapshotInstance.BlockStorageSnapshotInstanceNo))
@@ -173,12 +176,15 @@ func getBlockStorageSnapshotInstanceList(client *NcloudAPIClient, blockStorageSn
 	reqParams := &server.GetBlockStorageSnapshotInstanceListRequest{
 		BlockStorageSnapshotInstanceNoList: []*string{ncloud.String(blockStorageSnapshotInstanceNo)},
 	}
+
+	logCommonRequest("GetBlockStorageSnapshotInstanceList", reqParams)
+
 	resp, err := client.server.V2Api.GetBlockStorageSnapshotInstanceList(reqParams)
 	if err != nil {
 		logErrorResponse("GetBlockStorageSnapshotInstanceList", err, reqParams)
 		return nil, err
 	}
-	logCommonResponse("GetBlockStorageSnapshotInstanceList", reqParams, GetCommonResponse(resp))
+	logCommonResponse("GetBlockStorageSnapshotInstanceList", GetCommonResponse(resp))
 	return resp.BlockStorageSnapshotInstanceList, nil
 }
 
@@ -196,10 +202,13 @@ func getBlockStorageSnapshotInstance(client *NcloudAPIClient, blockStorageSnapsh
 }
 
 func deleteBlockStorageSnapshotInstance(client *NcloudAPIClient, blockStorageSnapshotInstanceNo string) error {
-	resp, err := client.server.V2Api.DeleteBlockStorageSnapshotInstances(
-		&server.DeleteBlockStorageSnapshotInstancesRequest{
-			BlockStorageSnapshotInstanceNoList: []*string{ncloud.String(blockStorageSnapshotInstanceNo)},
-		})
+	reqParams := server.DeleteBlockStorageSnapshotInstancesRequest{
+		BlockStorageSnapshotInstanceNoList: []*string{ncloud.String(blockStorageSnapshotInstanceNo)},
+	}
+
+	logCommonRequest("DeleteBlockStorageSnapshotInstances", reqParams)
+
+	resp, err := client.server.V2Api.DeleteBlockStorageSnapshotInstances(&reqParams)
 	if err != nil {
 		logErrorResponse("DeleteBlockStorageSnapshotInstances", err, []*string{ncloud.String(blockStorageSnapshotInstanceNo)})
 		return err
@@ -208,7 +217,8 @@ func deleteBlockStorageSnapshotInstance(client *NcloudAPIClient, blockStorageSna
 	if resp != nil {
 		commonResponse = GetCommonResponse(resp)
 	}
-	logCommonResponse("DeleteBlockStorageSnapshotInstances", blockStorageSnapshotInstanceNo, commonResponse)
+
+	logCommonResponse("DeleteBlockStorageSnapshotInstances", commonResponse)
 
 	if err := waitForBlockStorageSnapshotInstance(client, blockStorageSnapshotInstanceNo, "TERMT"); err != nil {
 		return err

@@ -154,12 +154,13 @@ func resourceNcloudLoadBalancerCreate(d *schema.ResourceData, meta interface{}) 
 	if err != nil {
 		return err
 	}
+	logCommonRequest("CreateLoadBalancerInstance", reqParams)
 	resp, err := client.loadbalancer.V2Api.CreateLoadBalancerInstance(reqParams)
 	if err != nil {
 		logErrorResponse("CreateLoadBalancerInstance", err, reqParams)
 		return err
 	}
-	logCommonResponse("CreateLoadBalancerInstance", reqParams, GetCommonResponse(resp))
+	logCommonResponse("CreateLoadBalancerInstance", GetCommonResponse(resp))
 
 	loadBalancerInstance := resp.LoadBalancerInstanceList[0]
 	d.SetId(*loadBalancerInstance.LoadBalancerInstanceNo)
@@ -260,12 +261,13 @@ func resourceNcloudLoadBalancerUpdate(d *schema.ResourceData, meta interface{}) 
 	}
 
 	if d.HasChange("load_balancer_algorithm_type_code") || d.HasChange("load_balancer_description") || d.HasChange("load_balancer_rule_list") {
+		logCommonRequest("ChangeLoadBalancerInstanceConfiguration", reqParams)
 		resp, err := client.loadbalancer.V2Api.ChangeLoadBalancerInstanceConfiguration(reqParams)
 		if err != nil {
 			logErrorResponse("ChangeLoadBalancerInstanceConfiguration", err, reqParams)
 			return err
 		}
-		logCommonResponse("ChangeLoadBalancerInstanceConfiguration", reqParams, GetCommonResponse(resp))
+		logCommonResponse("ChangeLoadBalancerInstanceConfiguration", GetCommonResponse(resp))
 
 		if err := waitForLoadBalancerInstance(client, d.Id(), "USED", DefaultUpdateTimeout); err != nil {
 			return err
@@ -281,12 +283,14 @@ func changeLoadBalancedServerInstances(client *NcloudAPIClient, d *schema.Resour
 		ServerInstanceNoList:   ncloud.StringInterfaceList(d.Get("server_instance_no_list").([]interface{})),
 	}
 
+	logCommonRequest("ChangeLoadBalancedServerInstances", reqParams)
+
 	resp, err := client.loadbalancer.V2Api.ChangeLoadBalancedServerInstances(reqParams)
 	if err != nil {
 		logErrorResponse("ChangeLoadBalancedServerInstances", err, reqParams)
 		return err
 	}
-	logCommonResponse("ChangeLoadBalancedServerInstances", reqParams, GetCommonResponse(resp))
+	logCommonResponse("ChangeLoadBalancedServerInstances", GetCommonResponse(resp))
 
 	if err := waitForLoadBalancerInstance(client, d.Id(), "USED", DefaultUpdateTimeout); err != nil {
 		return err
@@ -344,12 +348,13 @@ func getLoadBalancerInstance(client *NcloudAPIClient, loadBalancerInstanceNo str
 	reqParams := &loadbalancer.GetLoadBalancerInstanceListRequest{
 		LoadBalancerInstanceNoList: []*string{ncloud.String(loadBalancerInstanceNo)},
 	}
+	logCommonRequest("GetLoadBalancerInstanceList", reqParams)
 	resp, err := client.loadbalancer.V2Api.GetLoadBalancerInstanceList(reqParams)
 	if err != nil {
 		logErrorResponse("GetLoadBalancerInstanceList", err, reqParams)
 		return nil, err
 	}
-	logCommonResponse("GetLoadBalancerInstanceList", reqParams, GetCommonResponse(resp))
+	logCommonResponse("GetLoadBalancerInstanceList", GetCommonResponse(resp))
 
 	for _, inst := range resp.LoadBalancerInstanceList {
 		if loadBalancerInstanceNo == ncloud.StringValue(inst.LoadBalancerInstanceNo) {
@@ -363,6 +368,7 @@ func deleteLoadBalancerInstance(client *NcloudAPIClient, loadBalancerInstanceNo 
 	reqParams := &loadbalancer.DeleteLoadBalancerInstancesRequest{
 		LoadBalancerInstanceNoList: []*string{ncloud.String(loadBalancerInstanceNo)},
 	}
+	logCommonRequest("DeleteLoadBalancerInstance", reqParams)
 	resp, err := client.loadbalancer.V2Api.DeleteLoadBalancerInstances(reqParams)
 	if err != nil {
 		logErrorResponse("DeleteLoadBalancerInstance", err, loadBalancerInstanceNo)
@@ -372,7 +378,7 @@ func deleteLoadBalancerInstance(client *NcloudAPIClient, loadBalancerInstanceNo 
 	if resp != nil {
 		commonResponse = GetCommonResponse(resp)
 	}
-	logCommonResponse("DeleteLoadBalancerInstance", loadBalancerInstanceNo, commonResponse)
+	logCommonResponse("DeleteLoadBalancerInstance", commonResponse)
 
 	return waitForDeleteLoadBalancerInstance(client, loadBalancerInstanceNo)
 }

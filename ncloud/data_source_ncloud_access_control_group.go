@@ -2,6 +2,7 @@ package ncloud
 
 import (
 	"fmt"
+
 	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/ncloud"
 	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/services/server"
 	"github.com/hashicorp/terraform/helper/schema"
@@ -67,12 +68,14 @@ func dataSourceNcloudAccessControlGroupRead(d *schema.ResourceData, meta interfa
 	}
 	reqParams.PageNo = ncloud.Int32(1)
 
+	logCommonRequest("GetAccessControlGroupList", reqParams)
+
 	resp, err := client.server.V2Api.GetAccessControlGroupList(&reqParams)
 	if err != nil {
 		logErrorResponse("GetAccessControlGroupList", err, reqParams)
 		return err
 	}
-	logCommonResponse("GetAccessControlGroupList", reqParams, GetCommonResponse(resp))
+	logCommonResponse("GetAccessControlGroupList", GetCommonResponse(resp))
 
 	var accessControlGroup *server.AccessControlGroup
 	var accessControlGroups []*server.AccessControlGroup

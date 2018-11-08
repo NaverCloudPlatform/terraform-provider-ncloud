@@ -166,18 +166,20 @@ func dataSourceNcloudMemberServerImagesRead(d *schema.ResourceData, meta interfa
 	if err != nil {
 		return err
 	}
-	reqParams := &server.GetMemberServerImageListRequest{
+	reqParams := server.GetMemberServerImageListRequest{
 		MemberServerImageNoList: ncloud.StringInterfaceList(d.Get("member_server_image_no_list").([]interface{})),
 		PlatformTypeCodeList:    ncloud.StringInterfaceList(d.Get("platform_type_code_list").([]interface{})),
 		RegionNo:                regionNo,
 	}
 
-	resp, err := client.server.V2Api.GetMemberServerImageList(reqParams)
+	logCommonRequest("GetMemberServerImageList", reqParams)
+
+	resp, err := client.server.V2Api.GetMemberServerImageList(&reqParams)
 	if err != nil {
 		logErrorResponse("GetMemberServerImageList", err, reqParams)
 		return err
 	}
-	logCommonResponse("GetMemberServerImageList", reqParams, GetCommonResponse(resp))
+	logCommonResponse("GetMemberServerImageList", GetCommonResponse(resp))
 
 	allMemberServerImages := resp.MemberServerImageList
 	var filteredMemberServerImages []*server.MemberServerImage

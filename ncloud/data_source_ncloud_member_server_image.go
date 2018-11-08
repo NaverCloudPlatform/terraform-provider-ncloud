@@ -165,12 +165,14 @@ func dataSourceNcloudMemberServerImageRead(d *schema.ResourceData, meta interfac
 		RegionNo:                regionNo,
 	}
 
+	logCommonRequest("GetMemberServerImageList", reqParams)
+
 	resp, err := client.server.V2Api.GetMemberServerImageList(reqParams)
 	if err != nil {
 		logErrorResponse("GetMemberServerImageList", err, reqParams)
 		return err
 	}
-	logCommonResponse("GetMemberServerImageList", reqParams, GetCommonResponse(resp))
+	logCommonResponse("GetMemberServerImageList", GetCommonResponse(resp))
 
 	var memberServerImage *server.MemberServerImage
 

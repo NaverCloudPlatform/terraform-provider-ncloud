@@ -221,6 +221,7 @@ func resourceNcloudServerCreate(d *schema.ResourceData, meta interface{}) error 
 	var resp *server.CreateServerInstancesResponse
 	err = resource.Retry(10*time.Minute, func() *resource.RetryError {
 		var err error
+		logCommonRequest("CreateServerInstances", reqParams)
 		resp, err = client.server.V2Api.CreateServerInstances(reqParams)
 
 		log.Printf("[DEBUG] resourceNcloudServerCreate resp: %v", resp)
@@ -234,7 +235,7 @@ func resourceNcloudServerCreate(d *schema.ResourceData, meta interface{}) error 
 		logErrorResponse("CreateServerInstances", err, reqParams)
 		return err
 	}
-	logCommonResponse("CreateServerInstances", reqParams, GetCommonResponse(resp))
+	logCommonResponse("CreateServerInstances", GetCommonResponse(resp))
 
 	serverInstance := resp.ServerInstanceList[0]
 	d.SetId(ncloud.StringValue(serverInstance.ServerInstanceNo))
@@ -341,6 +342,7 @@ func resourceNcloudServerUpdate(d *schema.ResourceData, meta interface{}) error 
 		var resp *server.ChangeServerInstanceSpecResponse
 		err := resource.Retry(d.Timeout(schema.TimeoutDelete), func() *resource.RetryError {
 			var err error
+			logCommonRequest("ChangeServerInstanceSpec", reqParams)
 			resp, err = client.server.V2Api.ChangeServerInstanceSpec(reqParams)
 
 			if resp != nil && isRetryableErr(GetCommonResponse(resp), []string{ApiErrorUnknown, ApiErrorObjectInOperation, ApiErrorObjectInOperation}) {
@@ -355,7 +357,7 @@ func resourceNcloudServerUpdate(d *schema.ResourceData, meta interface{}) error 
 			logErrorResponse("ChangeServerInstanceSpec", err, reqParams)
 			return err
 		}
-		logCommonResponse("ChangeServerInstanceSpec", reqParams, GetCommonResponse(resp))
+		logCommonResponse("ChangeServerInstanceSpec", GetCommonResponse(resp))
 	}
 
 	return resourceNcloudServerRead(d, meta)
@@ -415,13 +417,15 @@ func buildTagListParams(d *schema.ResourceData) []*server.InstanceTagParameter {
 func getServerInstance(client *NcloudAPIClient, serverInstanceNo string) (*server.ServerInstance, error) {
 	reqParams := new(server.GetServerInstanceListRequest)
 	reqParams.ServerInstanceNoList = []*string{ncloud.String(serverInstanceNo)}
+	logCommonRequest("GetServerInstanceList", reqParams)
+
 	resp, err := client.server.V2Api.GetServerInstanceList(reqParams)
 
 	if err != nil {
 		logErrorResponse("GetServerInstanceList", err, reqParams)
 		return nil, err
 	}
-	logCommonResponse("GetServerInstanceList", reqParams, GetCommonResponse(resp))
+	logCommonResponse("GetServerInstanceList", GetCommonResponse(resp))
 	if len(resp.ServerInstanceList) > 0 {
 		inst := resp.ServerInstanceList[0]
 		return inst, nil
@@ -441,12 +445,13 @@ func stopServerInstance(client *NcloudAPIClient, serverInstanceNo string) error 
 	reqParams := &server.StopServerInstancesRequest{
 		ServerInstanceNoList: []*string{ncloud.String(serverInstanceNo)},
 	}
+	logCommonRequest("StopServerInstances", reqParams)
 	resp, err := client.server.V2Api.StopServerInstances(reqParams)
 	if err != nil {
 		logErrorResponse("StopServerInstances", err, reqParams)
 		return err
 	}
-	logCommonResponse("StopServerInstances", reqParams, GetCommonResponse(resp))
+	logCommonResponse("StopServerInstances", GetCommonResponse(resp))
 
 	return nil
 }
@@ -459,6 +464,7 @@ func terminateServerInstance(client *NcloudAPIClient, serverInstanceNo string) e
 	var resp *server.TerminateServerInstancesResponse
 	err := resource.Retry(1*time.Minute, func() *resource.RetryError {
 		var err error
+		logCommonRequest("TerminateServerInstances", reqParams)
 		resp, err = client.server.V2Api.TerminateServerInstances(reqParams)
 		if err == nil && resp == nil {
 			return resource.NonRetryableError(err)
@@ -467,7 +473,7 @@ func terminateServerInstance(client *NcloudAPIClient, serverInstanceNo string) e
 			logErrorResponse("retry TerminateServerInstances", err, reqParams)
 			return resource.RetryableError(err)
 		}
-		logCommonResponse("TerminateServerInstances", reqParams, GetCommonResponse(resp))
+		logCommonResponse("TerminateServerInstances", GetCommonResponse(resp))
 		return resource.NonRetryableError(err)
 	})
 

@@ -2,10 +2,11 @@ package ncloud
 
 import (
 	"fmt"
+	"regexp"
+
 	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/ncloud"
 	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/services/server"
 	"github.com/hashicorp/terraform/helper/schema"
-	"regexp"
 )
 
 func dataSourceNcloudServerImage() *schema.Resource {
@@ -139,12 +140,14 @@ func dataSourceNcloudServerImageRead(d *schema.ResourceData, meta interface{}) e
 		InfraResourceDetailTypeCode: StringPtrOrNil(d.GetOk("infra_resource_detail_type_code")),
 	}
 
+	logCommonRequest("GetServerImageProductList", reqParams)
+
 	resp, err := client.server.V2Api.GetServerImageProductList(reqParams)
 	if err != nil {
 		logErrorResponse("GetServerImageProductList", err, reqParams)
 		return err
 	}
-	logCommonResponse("GetServerImageProductList", reqParams, GetCommonResponse(resp))
+	logCommonResponse("GetServerImageProductList", GetCommonResponse(resp))
 
 	allServerImages := resp.ProductList
 	var serverImage *server.Product

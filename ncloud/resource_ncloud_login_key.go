@@ -83,13 +83,16 @@ func resourceNcloudLoginKeyCreate(d *schema.ResourceData, meta interface{}) erro
 	client := meta.(*NcloudAPIClient)
 
 	keyName := d.Get("key_name").(string)
+	reqParams := &server.CreateLoginKeyRequest{KeyName: ncloud.String(keyName)}
 
-	resp, err := client.server.V2Api.CreateLoginKey(&server.CreateLoginKeyRequest{KeyName: ncloud.String(keyName)})
+	logCommonRequest("CreateLoginKey", reqParams)
+
+	resp, err := client.server.V2Api.CreateLoginKey(reqParams)
 	if err != nil {
 		logErrorResponse("CreateLoginKey", err, keyName)
 		return err
 	}
-	logCommonResponse("CreateLoginKey", keyName, GetCommonResponse(resp))
+	logCommonResponse("CreateLoginKey", GetCommonResponse(resp))
 
 	d.SetId(keyName)
 	d.Set("private_key", resp.PrivateKey)
@@ -110,6 +113,9 @@ func getLoginKeyList(client *NcloudAPIClient, keyName *string) (*server.GetLogin
 	if keyName != nil {
 		reqParams.KeyName = keyName
 	}
+
+	logCommonRequest("GetLoginKeyList", reqParams)
+
 	resp, err := client.server.V2Api.GetLoginKeyList(reqParams)
 	if err != nil {
 		logErrorResponse("GetLoginKeyList", err, reqParams)
@@ -120,7 +126,7 @@ func getLoginKeyList(client *NcloudAPIClient, keyName *string) (*server.GetLogin
 	if resp != nil {
 		totalRowsLog = fmt.Sprintf("totalRows: %d", ncloud.Int32Value(resp.TotalRows))
 	}
-	logCommonResponse("GetLoginKeyList", reqParams, GetCommonResponse(resp), totalRowsLog)
+	logCommonResponse("GetLoginKeyList", GetCommonResponse(resp), totalRowsLog)
 	return resp, nil
 }
 
@@ -134,7 +140,10 @@ func getLoginKey(client *NcloudAPIClient, keyName string) (*server.LoginKey, err
 }
 
 func deleteLoginKey(client *NcloudAPIClient, keyName string) error {
-	resp, err := client.server.V2Api.DeleteLoginKey(&server.DeleteLoginKeyRequest{KeyName: ncloud.String(keyName)})
+	reqParams := &server.DeleteLoginKeyRequest{KeyName: ncloud.String(keyName)}
+	logCommonRequest("DeleteLoginKey", reqParams)
+
+	resp, err := client.server.V2Api.DeleteLoginKey(reqParams)
 	if err != nil {
 		logErrorResponse("DeleteLoginKey", err, keyName)
 		return err
@@ -143,7 +152,7 @@ func deleteLoginKey(client *NcloudAPIClient, keyName string) error {
 	if resp != nil {
 		commonResponse = GetCommonResponse(resp)
 	}
-	logCommonResponse("DeleteLoginKey", keyName, commonResponse)
+	logCommonResponse("DeleteLoginKey", commonResponse)
 
 	if err := waitForDeleteLoginKey(client, keyName); err != nil {
 		return err

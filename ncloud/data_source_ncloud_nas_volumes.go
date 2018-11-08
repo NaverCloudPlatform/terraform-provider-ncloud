@@ -174,12 +174,15 @@ func dataSourceNcloudNasVolumesRead(d *schema.ResourceData, meta interface{}) er
 	if isSnapshotConfiguration, ok := d.GetOk("is_snapshot_configuration"); ok {
 		reqParams.IsSnapshotConfiguration = ncloud.Bool(isSnapshotConfiguration.(bool))
 	}
+
+	logCommonRequest("GetNasVolumeInstanceList", reqParams)
+
 	resp, err := client.server.V2Api.GetNasVolumeInstanceList(reqParams)
 	if err != nil {
 		logErrorResponse("GetNasVolumeInstanceList", err, reqParams)
 		return err
 	}
-	logCommonResponse("GetNasVolumeInstanceList", reqParams, GetCommonResponse(resp))
+	logCommonResponse("GetNasVolumeInstanceList", GetCommonResponse(resp))
 
 	nasVolumeInstances := resp.NasVolumeInstanceList
 	if len(nasVolumeInstances) < 1 {

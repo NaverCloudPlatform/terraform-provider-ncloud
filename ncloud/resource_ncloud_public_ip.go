@@ -110,12 +110,14 @@ func resourceNcloudPublicIpCreate(d *schema.ResourceData, meta interface{}) erro
 	if err != nil {
 		return err
 	}
+	logCommonRequest("CreatePublicIpInstance", reqParams)
+
 	resp, err := client.server.V2Api.CreatePublicIpInstance(reqParams)
 	if err != nil {
-		logErrorResponse("Create Public IP Instance", err, reqParams)
+		logErrorResponse("CreatePublicIpInstance", err, reqParams)
 		return err
 	}
-	logCommonResponse("Create Public IP Instance", reqParams, GetCommonResponse(resp))
+	logCommonResponse("CreatePublicIpInstance", GetCommonResponse(resp))
 
 	publicIPInstance := resp.PublicIpInstanceList[0]
 	d.SetId(ncloud.StringValue(publicIPInstance.PublicIpInstanceNo))
@@ -166,8 +168,9 @@ func resourceNcloudPublicIpDelete(d *schema.ResourceData, meta interface{}) erro
 	reqParams := &server.DeletePublicIpInstancesRequest{
 		PublicIpInstanceNoList: ncloud.StringList([]string{d.Id()}),
 	}
+	logCommonRequest("DeletePublicIpInstances", reqParams)
 	resp, err := client.server.V2Api.DeletePublicIpInstances(reqParams)
-	logCommonResponse("Delete Public IP Instance", reqParams, GetCommonResponse(resp))
+	logCommonResponse("DeletePublicIpInstances", GetCommonResponse(resp))
 
 	waitDeletePublicIpInstance(client, d.Id())
 
@@ -200,13 +203,15 @@ func buildCreatePublicIpInstanceReqParams(client *NcloudAPIClient, d *schema.Res
 func getPublicIpInstance(client *NcloudAPIClient, publicIPInstanceNo string) (*server.PublicIpInstance, error) {
 	reqParams := new(server.GetPublicIpInstanceListRequest)
 	reqParams.PublicIpInstanceNoList = ncloud.StringList([]string{publicIPInstanceNo})
-	resp, err := client.server.V2Api.GetPublicIpInstanceList(reqParams)
 
+	logCommonRequest("GetPublicIpInstanceList", reqParams)
+
+	resp, err := client.server.V2Api.GetPublicIpInstanceList(reqParams)
 	if err != nil {
-		logErrorResponse("Get Public IP Instance", err, reqParams)
+		logErrorResponse("GetPublicIpInstanceList", err, reqParams)
 		return nil, err
 	}
-	logCommonResponse("Get Public IP Instance", reqParams, GetCommonResponse(resp))
+	logCommonResponse("GetPublicIpInstanceList", GetCommonResponse(resp))
 	if len(resp.PublicIpInstanceList) > 0 {
 		inst := resp.PublicIpInstanceList[0]
 		return inst, nil
@@ -218,14 +223,15 @@ func checkAssociatedPublicIp(client *NcloudAPIClient, publicIPInstanceNo string)
 	reqParams := new(server.GetPublicIpInstanceListRequest)
 	reqParams.IsAssociated = ncloud.Bool(true)
 	reqParams.PublicIpInstanceNoList = ncloud.StringList([]string{publicIPInstanceNo})
-	resp, err := client.server.V2Api.GetPublicIpInstanceList(reqParams)
 
+	logCommonRequest("GetPublicIpInstanceList", reqParams)
+
+	resp, err := client.server.V2Api.GetPublicIpInstanceList(reqParams)
 	if err != nil {
-		logErrorResponse("Check Associated Public IP Instance", err, reqParams)
+		logErrorResponse("GetPublicIpInstanceList", err, reqParams)
 		return false, err
 	}
-
-	logCommonResponse("Check Associated Public IP Instance", reqParams, GetCommonResponse(resp))
+	logCommonResponse("GetPublicIpInstanceList", GetCommonResponse(resp))
 
 	if *resp.TotalRows == 0 {
 		return false, nil
@@ -235,14 +241,16 @@ func checkAssociatedPublicIp(client *NcloudAPIClient, publicIPInstanceNo string)
 }
 
 func disassociatedPublicIp(client *NcloudAPIClient, publicIpInstanceNo string) error {
-	resp, err := client.server.V2Api.DisassociatePublicIpFromServerInstance(&server.DisassociatePublicIpFromServerInstanceRequest{PublicIpInstanceNo: ncloud.String(publicIpInstanceNo)})
+	reqParams := &server.DisassociatePublicIpFromServerInstanceRequest{PublicIpInstanceNo: ncloud.String(publicIpInstanceNo)}
 
+	logCommonRequest("DisassociatePublicIpFromServerInstance", reqParams)
+
+	resp, err := client.server.V2Api.DisassociatePublicIpFromServerInstance(reqParams)
 	if err != nil {
-		logErrorResponse("Dissociated Public IP Instance", err, publicIpInstanceNo)
+		logErrorResponse("DisassociatePublicIpFromServerInstance", err, publicIpInstanceNo)
 		return err
 	}
-
-	logCommonResponse("Dissociated Public IP Instance", publicIpInstanceNo, GetCommonResponse(resp))
+	logCommonResponse("DisassociatePublicIpFromServerInstance", GetCommonResponse(resp))
 
 	return waitDisassociatePublicIp(client, publicIpInstanceNo)
 }
