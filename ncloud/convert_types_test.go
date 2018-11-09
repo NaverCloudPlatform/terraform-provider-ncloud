@@ -1,9 +1,10 @@
 package ncloud
 
 import (
-	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/ncloud"
 	"reflect"
 	"testing"
+
+	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/ncloud"
 )
 
 type TestResponse struct {
@@ -61,56 +62,56 @@ func TestGetCommonResponse_convertNil(t *testing.T) {
 	}
 }
 
-func TestGetCommonCode(t *testing.T) {
-	code := ncloud.String("code")
-	codeName := ncloud.String("codeName")
-	resp := &TestCommonCode{
-		Code:     code,
-		CodeName: codeName,
-	}
-	commonCode := GetCommonCode(resp)
+// func TestGetCommonCode(t *testing.T) {
+// 	code := ncloud.String("code")
+// 	codeName := ncloud.String("codeName")
+// 	resp := &TestCommonCode{
+// 		Code:     code,
+// 		CodeName: codeName,
+// 	}
+// 	commonCode := GetCommonCode(resp)
 
-	if !reflect.DeepEqual(code, commonCode.Code) {
-		t.Fatalf("Expected: %s, Actual: %s", ncloud.StringValue(code), ncloud.StringValue(commonCode.Code))
-	}
-}
+// 	if !reflect.DeepEqual(code, commonCode.Code) {
+// 		t.Fatalf("Expected: %s, Actual: %s", ncloud.StringValue(code), ncloud.StringValue(commonCode.Code))
+// 	}
+// }
 
-func TestGetCommonCode_convertNil(t *testing.T) {
-	codeName := ncloud.String("codeName")
-	resp := &TestCommonCode{
-		Code:     nil,
-		CodeName: codeName,
-	}
-	commonCode := GetCommonCode(resp)
+// func TestGetCommonCode_convertNil(t *testing.T) {
+// 	codeName := ncloud.String("codeName")
+// 	resp := &TestCommonCode{
+// 		Code:     nil,
+// 		CodeName: codeName,
+// 	}
+// 	commonCode := GetCommonCode(resp)
 
-	if commonCode.Code != nil {
-		t.Fatalf("Expected: nil, Actual: %s", ncloud.StringValue(commonCode.Code))
-	}
-}
+// 	if commonCode.Code != nil {
+// 		t.Fatalf("Expected: nil, Actual: %s", ncloud.StringValue(commonCode.Code))
+// 	}
+// }
 
-func TestGetZone(t *testing.T) {
-	code := ncloud.String("code")
-	codeName := ncloud.String("codeName")
-	resp := &TestCommonCode{
-		Code:     code,
-		CodeName: codeName,
-	}
-	commonCode := GetCommonCode(resp)
+// func TestGetZone(t *testing.T) {
+// 	code := ncloud.String("code")
+// 	codeName := ncloud.String("codeName")
+// 	resp := &TestCommonCode{
+// 		Code:     code,
+// 		CodeName: codeName,
+// 	}
+// 	commonCode := GetCommonCode(resp)
 
-	if !reflect.DeepEqual(code, commonCode.Code) {
-		t.Fatalf("Expected: %s, Actual: %s", ncloud.StringValue(code), ncloud.StringValue(commonCode.Code))
-	}
-}
+// 	if !reflect.DeepEqual(code, commonCode.Code) {
+// 		t.Fatalf("Expected: %s, Actual: %s", ncloud.StringValue(code), ncloud.StringValue(commonCode.Code))
+// 	}
+// }
 
-func TestGetZone_convertNil(t *testing.T) {
-	codeName := ncloud.String("codeName")
-	resp := &TestCommonCode{
-		Code:     nil,
-		CodeName: codeName,
-	}
-	commonCode := GetCommonCode(resp)
+// func TestGetZone_convertNil(t *testing.T) {
+// 	codeName := ncloud.String("codeName")
+// 	resp := &TestCommonCode{
+// 		Code:     nil,
+// 		CodeName: codeName,
+// 	}
+// 	commonCode := GetCommonCode(resp)
 
-	if commonCode.Code != nil {
-		t.Fatalf("Expected: nil, Actual: %s", ncloud.StringValue(commonCode.Code))
-	}
-}
+// 	if commonCode.Code != nil {
+// 		t.Fatalf("Expected: nil, Actual: %s", ncloud.StringValue(commonCode.Code))
+// 	}
+// }

@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"regexp"
 
-	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/ncloud"
 	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/services/server"
 	"github.com/hashicorp/terraform/helper/schema"
 )
@@ -160,8 +159,8 @@ func dataSourceNcloudMemberServerImageRead(d *schema.ResourceData, meta interfac
 		return err
 	}
 	reqParams := &server.GetMemberServerImageListRequest{
-		MemberServerImageNoList: ncloud.StringInterfaceList(d.Get("member_server_image_no_list").([]interface{})),
-		PlatformTypeCodeList:    ncloud.StringInterfaceList(d.Get("platform_type_code_list").([]interface{})),
+		MemberServerImageNoList: expandStringInterfaceList(d.Get("member_server_image_no_list").([]interface{})),
+		PlatformTypeCodeList:    expandStringInterfaceList(d.Get("platform_type_code_list").([]interface{})),
 		RegionNo:                regionNo,
 	}
 
@@ -211,16 +210,16 @@ func memberServerImageAttributes(d *schema.ResourceData, m *server.MemberServerI
 	d.Set("original_server_instance_no", m.OriginalServerInstanceNo)
 	d.Set("original_server_product_code", m.OriginalServerProductCode)
 	d.Set("original_server_name", m.OriginalServerName)
-	d.Set("original_base_block_storage_disk_type", setCommonCode(m.OriginalBaseBlockStorageDiskType))
+	d.Set("original_base_block_storage_disk_type", flattenCommonCode(m.OriginalBaseBlockStorageDiskType))
 	d.Set("original_server_image_product_code", m.OriginalServerImageProductCode)
 	d.Set("original_os_information", m.OriginalOsInformation)
 	d.Set("original_server_image_name", m.OriginalServerImageName)
 	d.Set("member_server_image_status_name", m.MemberServerImageStatusName)
-	d.Set("member_server_image_status", setCommonCode(m.MemberServerImageStatus))
-	d.Set("member_server_image_operation", setCommonCode(m.MemberServerImageOperation))
-	d.Set("member_server_image_platform_type", setCommonCode(m.MemberServerImagePlatformType))
+	d.Set("member_server_image_status", flattenCommonCode(m.MemberServerImageStatus))
+	d.Set("member_server_image_operation", flattenCommonCode(m.MemberServerImageOperation))
+	d.Set("member_server_image_platform_type", flattenCommonCode(m.MemberServerImagePlatformType))
 	d.Set("create_date", m.CreateDate)
-	d.Set("region", setRegion(m.Region))
+	d.Set("region", flattenRegion(m.Region))
 	d.Set("member_server_image_block_storage_total_rows", m.MemberServerImageBlockStorageTotalRows)
 	d.Set("member_server_image_block_storage_total_size", m.MemberServerImageBlockStorageTotalSize)
 

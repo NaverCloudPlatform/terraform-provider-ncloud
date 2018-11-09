@@ -94,7 +94,7 @@ func dataSourceNcloudAccessControlGroupsRead(d *schema.ResourceData, meta interf
 	reqParams := &server.GetAccessControlGroupListRequest{}
 	var paramAccessControlGroupConfigurationNoList []*string
 	if param, ok := d.GetOk("access_control_group_configuration_no_list"); ok {
-		paramAccessControlGroupConfigurationNoList = ncloud.StringInterfaceList(param.([]interface{}))
+		paramAccessControlGroupConfigurationNoList = expandStringInterfaceList(param.([]interface{}))
 	}
 	reqParams.AccessControlGroupConfigurationNoList = paramAccessControlGroupConfigurationNoList
 	reqParams.AccessControlGroupName = ncloud.String(d.Get("access_control_group_name").(string))
@@ -138,28 +138,19 @@ func getAccessControlGroupList(client *NcloudAPIClient, reqParams *server.GetAcc
 
 func accessControlGroupsAttributes(d *schema.ResourceData, accessControlGroups []*server.AccessControlGroup) error {
 	var ids []string
-	var s []map[string]interface{}
-	for _, accessControlGroup := range accessControlGroups {
-		mapping := map[string]interface{}{
-			"access_control_group_configuration_no": ncloud.StringValue(accessControlGroup.AccessControlGroupConfigurationNo),
-			"access_control_group_name":             ncloud.StringValue(accessControlGroup.AccessControlGroupName),
-			"access_control_group_description":      ncloud.StringValue(accessControlGroup.AccessControlGroupDescription),
-			"is_default_group":                      ncloud.BoolValue(accessControlGroup.IsDefaultGroup),
-			"create_date":                           ncloud.StringValue(accessControlGroup.CreateDate),
-		}
 
+	for _, accessControlGroup := range accessControlGroups {
 		ids = append(ids, ncloud.StringValue(accessControlGroup.AccessControlGroupConfigurationNo))
-		s = append(s, mapping)
 	}
 
 	d.SetId(dataResourceIdHash(ids))
-	if err := d.Set("access_control_groups", s); err != nil {
+	if err := d.Set("access_control_groups", flattenAccessControlGroups(accessControlGroups)); err != nil {
 		return err
 	}
 
 	// create a json file in current directory and write d source to it.
 	if output, ok := d.GetOk("output_file"); ok && output.(string) != "" {
-		writeToFile(output.(string), s)
+		writeToFile(output.(string), d.Get("access_control_groups"))
 	}
 
 	return nil

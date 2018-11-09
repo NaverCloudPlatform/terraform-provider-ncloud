@@ -112,29 +112,18 @@ func dataSourceNcloudAccessControlRulesRead(d *schema.ResourceData, meta interfa
 
 func accessControlRulesAttributes(d *schema.ResourceData, accessControlRules []*server.AccessControlRule) error {
 	var ids []string
-	var s []map[string]interface{}
+
 	for _, accessControlRule := range accessControlRules {
-		mapping := map[string]interface{}{
-			"access_control_rule_configuration_no":        ncloud.StringValue(accessControlRule.AccessControlRuleConfigurationNo),
-			"protocol_type":                               setCommonCode(accessControlRule.ProtocolType),
-			"source_ip":                                   ncloud.StringValue(accessControlRule.SourceIp),
-			"destination_port":                            ncloud.StringValue(accessControlRule.DestinationPort),
-			"source_access_control_rule_configuration_no": ncloud.StringValue(accessControlRule.SourceAccessControlRuleConfigurationNo),
-			"source_access_control_rule_name":             ncloud.StringValue(accessControlRule.SourceAccessControlRuleName),
-			"access_control_rule_description":             ncloud.StringValue(accessControlRule.AccessControlRuleDescription),
-		}
-
 		ids = append(ids, ncloud.StringValue(accessControlRule.AccessControlRuleConfigurationNo))
-		s = append(s, mapping)
 	}
-
 	d.SetId(dataResourceIdHash(ids))
-	if err := d.Set("access_control_rules", s); err != nil {
+
+	if err := d.Set("access_control_rules", flattenAccessControlRules(accessControlRules)); err != nil {
 		return err
 	}
 
 	if output, ok := d.GetOk("output_file"); ok && output.(string) != "" {
-		writeToFile(output.(string), s)
+		writeToFile(output.(string), d.Get("access_control_rules"))
 	}
 
 	return nil

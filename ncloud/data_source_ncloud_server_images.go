@@ -146,7 +146,7 @@ func dataSourceNcloudServerImagesRead(d *schema.ResourceData, meta interface{}) 
 	reqParams := &server.GetServerImageProductListRequest{
 		ExclusionProductCode:        StringPtrOrNil(d.GetOk("exclusion_product_code")),
 		ProductCode:                 StringPtrOrNil(d.GetOk("product_code")),
-		PlatformTypeCodeList:        ncloud.StringInterfaceList(d.Get("platform_type_code_list").([]interface{})),
+		PlatformTypeCodeList:        expandStringInterfaceList(d.Get("platform_type_code_list").([]interface{})),
 		RegionNo:                    regionNo,
 		InfraResourceDetailTypeCode: StringPtrOrNil(d.GetOk("infra_resource_detail_type_code")),
 	}
@@ -189,13 +189,13 @@ func serverImagesAttributes(d *schema.ResourceData, serverImages []*server.Produ
 		mapping := map[string]interface{}{
 			"product_code":            ncloud.StringValue(product.ProductCode),
 			"product_name":            ncloud.StringValue(product.ProductName),
-			"product_type":            setCommonCode(product.ProductType),
+			"product_type":            flattenCommonCode(product.ProductType),
 			"product_description":     ncloud.StringValue(product.ProductDescription),
-			"infra_resource_type":     setCommonCode(product.InfraResourceType),
+			"infra_resource_type":     flattenCommonCode(product.InfraResourceType),
 			"cpu_count":               int(ncloud.Int32Value(product.CpuCount)),
 			"memory_size":             int(ncloud.Int64Value(product.MemorySize)),
 			"base_block_storage_size": int(ncloud.Int64Value(product.BaseBlockStorageSize)),
-			"platform_type":           setCommonCode(product.PlatformType),
+			"platform_type":           flattenCommonCode(product.PlatformType),
 			"os_information":          ncloud.StringValue(product.OsInformation),
 			"add_block_storage_size":  int(ncloud.Int64Value(product.AddBlockStorageSize)),
 		}

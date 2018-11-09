@@ -188,13 +188,13 @@ func serverProductsAttributes(d *schema.ResourceData, serverImages []*server.Pro
 		mapping := map[string]interface{}{
 			"product_code":            ncloud.StringValue(product.ProductCode),
 			"product_name":            ncloud.StringValue(product.ProductName),
-			"product_type":            setCommonCode(product.ProductType),
+			"product_type":            flattenCommonCode(product.ProductType),
 			"product_description":     ncloud.StringValue(product.ProductDescription),
-			"infra_resource_type":     setCommonCode(product.InfraResourceType),
+			"infra_resource_type":     flattenCommonCode(product.InfraResourceType),
 			"cpu_count":               int(ncloud.Int32Value(product.CpuCount)),
 			"memory_size":             int(ncloud.Int64Value(product.MemorySize)),
 			"base_block_storage_size": int(ncloud.Int64Value(product.BaseBlockStorageSize)),
-			"platform_type":           setCommonCode(product.PlatformType),
+			"platform_type":           flattenCommonCode(product.PlatformType),
 			"os_information":          ncloud.StringValue(product.OsInformation),
 			"add_block_storage_size":  int(ncloud.Int64Value(product.AddBlockStorageSize)),
 		}

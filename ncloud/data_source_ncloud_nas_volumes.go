@@ -164,7 +164,7 @@ func dataSourceNcloudNasVolumesRead(d *schema.ResourceData, meta interface{}) er
 	}
 	reqParams := &server.GetNasVolumeInstanceListRequest{
 		VolumeAllotmentProtocolTypeCode: ncloud.String(d.Get("volume_allotment_protocol_type_code").(string)),
-		NasVolumeInstanceNoList:         ncloud.StringInterfaceList(d.Get("nas_volume_instance_no_list").([]interface{})),
+		NasVolumeInstanceNoList:         expandStringInterfaceList(d.Get("nas_volume_instance_no_list").([]interface{})),
 		RegionNo:                        regionNo,
 		ZoneNo:                          zoneNo,
 	}
@@ -198,10 +198,10 @@ func nasVolumeInstancesAttributes(d *schema.ResourceData, nasVolumeInstances []*
 	for _, nasVolume := range nasVolumeInstances {
 		mapping := map[string]interface{}{
 			"nas_volume_instance_no":         ncloud.StringValue(nasVolume.NasVolumeInstanceNo),
-			"nas_volume_instance_status":     setCommonCode(nasVolume.NasVolumeInstanceStatus),
+			"nas_volume_instance_status":     flattenCommonCode(nasVolume.NasVolumeInstanceStatus),
 			"create_date":                    ncloud.StringValue(nasVolume.CreateDate),
 			"nas_volume_description":         ncloud.StringValue(nasVolume.NasVolumeInstanceDescription),
-			"volume_allotment_protocol_type": setCommonCode(nasVolume.VolumeAllotmentProtocolType),
+			"volume_allotment_protocol_type": flattenCommonCode(nasVolume.VolumeAllotmentProtocolType),
 			"volume_name":                    ncloud.StringValue(nasVolume.VolumeName),
 			"volume_total_size":              int(ncloud.Int64Value(nasVolume.VolumeTotalSize)),
 			"volume_size":                    int(ncloud.Int64Value(nasVolume.VolumeSize)),
@@ -213,10 +213,10 @@ func nasVolumeInstancesAttributes(d *schema.ResourceData, nasVolumeInstances []*
 			"is_snapshot_configuration":      ncloud.BoolValue(nasVolume.IsSnapshotConfiguration),
 			"is_event_configuration":         ncloud.BoolValue(nasVolume.IsEventConfiguration),
 			"zone":                           setZone(nasVolume.Zone),
-			"region":                         setRegion(nasVolume.Region),
+			"region":                         flattenRegion(nasVolume.Region),
 		}
 		if len(nasVolume.NasVolumeInstanceCustomIpList) > 0 {
-			mapping["nas_volume_instance_custom_ip_list"] = customIPList(nasVolume.NasVolumeInstanceCustomIpList)
+			mapping["nas_volume_instance_custom_ip_list"] = flattenCustomIPList(nasVolume.NasVolumeInstanceCustomIpList)
 		}
 
 		ids = append(ids, ncloud.StringValue(nasVolume.NasVolumeInstanceNo))

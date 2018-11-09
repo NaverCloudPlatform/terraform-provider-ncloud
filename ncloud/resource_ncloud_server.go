@@ -258,7 +258,7 @@ func resourceNcloudServerRead(d *schema.ResourceData, meta interface{}) error {
 		d.Set("server_instance_no", instance.ServerInstanceNo)
 		d.Set("server_name", instance.ServerName)
 		d.Set("server_image_product_code", instance.ServerImageProductCode)
-		d.Set("server_instance_status", setCommonCode(instance.ServerInstanceStatus))
+		d.Set("server_instance_status", flattenCommonCode(instance.ServerInstanceStatus))
 		d.Set("server_instance_status_name", instance.ServerInstanceStatusName)
 		d.Set("uptime", instance.Uptime)
 		d.Set("server_image_name", instance.ServerImageName)
@@ -266,21 +266,21 @@ func resourceNcloudServerRead(d *schema.ResourceData, meta interface{}) error {
 		d.Set("cpu_count", instance.CpuCount)
 		d.Set("memory_size", instance.MemorySize)
 		d.Set("base_block_storage_size", instance.BaseBlockStorageSize)
-		d.Set("platform_type", setCommonCode(instance.PlatformType))
+		d.Set("platform_type", flattenCommonCode(instance.PlatformType))
 		d.Set("is_fee_charging_monitoring", instance.IsFeeChargingMonitoring)
 		d.Set("public_ip", instance.PublicIp)
 		d.Set("private_ip", instance.PrivateIp)
-		d.Set("server_instance_operation", setCommonCode(instance.ServerInstanceOperation))
+		d.Set("server_instance_operation", flattenCommonCode(instance.ServerInstanceOperation))
 		d.Set("create_date", instance.CreateDate)
 		d.Set("uptime", instance.Uptime)
 		d.Set("port_forwarding_public_ip", instance.PortForwardingPublicIp)
 		d.Set("port_forwarding_external_port", instance.PortForwardingExternalPort)
 		d.Set("port_forwarding_internal_port", instance.PortForwardingInternalPort)
 		d.Set("zone", setZone(instance.Zone))
-		d.Set("region", setRegion(instance.Region))
-		d.Set("base_block_storage_disk_type", setCommonCode(instance.BaseBlockStorageDiskType))
-		d.Set("base_block_storage_disk_detail_type", setCommonCode(instance.BaseBlockStroageDiskDetailType))
-		d.Set("internet_line_type", setCommonCode(instance.InternetLineType))
+		d.Set("region", flattenRegion(instance.Region))
+		d.Set("base_block_storage_disk_type", flattenCommonCode(instance.BaseBlockStorageDiskType))
+		d.Set("base_block_storage_disk_detail_type", flattenCommonCode(instance.BaseBlockStroageDiskDetailType))
+		d.Set("internet_line_type", flattenCommonCode(instance.InternetLineType))
 		d.Set("user_data", d.Get("user_data").(string))
 
 		if len(instance.InstanceTagList) != 0 {
@@ -367,7 +367,7 @@ func buildCreateServerInstanceReqParams(client *NcloudAPIClient, d *schema.Resou
 
 	var paramAccessControlGroupConfigurationNoList []*string
 	if param, ok := d.GetOk("access_control_group_configuration_no_list"); ok {
-		paramAccessControlGroupConfigurationNoList = ncloud.StringInterfaceList(param.([]interface{}))
+		paramAccessControlGroupConfigurationNoList = expandStringInterfaceList(param.([]interface{}))
 	}
 	zoneNo, err := parseZoneNoParameter(client, d)
 	if err != nil {

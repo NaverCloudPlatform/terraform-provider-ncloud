@@ -149,16 +149,16 @@ func resourceNcloudBlockStorageRead(d *schema.ResourceData, meta interface{}) er
 		d.Set("block_storage_name", storage.BlockStorageName)
 		d.Set("disk_detail_type_code", storage.DiskDetailType.Code)
 		d.Set("server_name", storage.ServerName)
-		d.Set("block_storage_type", setCommonCode(storage.BlockStorageType))
+		d.Set("block_storage_type", flattenCommonCode(storage.BlockStorageType))
 		d.Set("device_name", storage.DeviceName)
 		d.Set("block_storage_product_code", storage.BlockStorageProductCode)
-		d.Set("block_storage_instance_status", setCommonCode(storage.BlockStorageInstanceStatus))
-		d.Set("block_storage_instance_operation", setCommonCode(storage.BlockStorageInstanceOperation))
+		d.Set("block_storage_instance_status", flattenCommonCode(storage.BlockStorageInstanceStatus))
+		d.Set("block_storage_instance_operation", flattenCommonCode(storage.BlockStorageInstanceOperation))
 		d.Set("block_storage_instance_status_name", storage.BlockStorageInstanceStatusName)
 		d.Set("create_date", storage.CreateDate)
 		d.Set("block_storage_description", storage.BlockStorageInstanceDescription)
-		d.Set("disk_type", setCommonCode(storage.DiskType))
-		d.Set("disk_detail_type", setCommonCode(storage.DiskDetailType))
+		d.Set("disk_type", flattenCommonCode(storage.DiskType))
+		d.Set("disk_detail_type", flattenCommonCode(storage.DiskDetailType))
 	}
 
 	return nil

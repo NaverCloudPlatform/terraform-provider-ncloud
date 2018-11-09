@@ -181,15 +181,15 @@ func resourceNcloudLoadBalancerRead(d *schema.ResourceData, meta interface{}) er
 	if lb != nil {
 		d.Set("virtual_ip", lb.VirtualIp)
 		d.Set("load_balancer_name", lb.LoadBalancerName)
-		d.Set("load_balancer_algorithm_type", setCommonCode(lb.LoadBalancerAlgorithmType))
+		d.Set("load_balancer_algorithm_type", flattenCommonCode(lb.LoadBalancerAlgorithmType))
 		d.Set("load_balancer_description", lb.LoadBalancerDescription)
 		d.Set("create_date", lb.CreateDate)
 		d.Set("domain_name", lb.DomainName)
-		d.Set("internet_line_type", setCommonCode(lb.InternetLineType))
+		d.Set("internet_line_type", flattenCommonCode(lb.InternetLineType))
 		d.Set("load_balancer_instance_status_name", lb.LoadBalancerInstanceStatusName)
-		d.Set("load_balancer_instance_status", setCommonCode(lb.LoadBalancerInstanceStatus))
-		d.Set("load_balancer_instance_operation", setCommonCode(lb.LoadBalancerInstanceOperation))
-		d.Set("network_usage_type", setCommonCode(lb.NetworkUsageType))
+		d.Set("load_balancer_instance_status", flattenCommonCode(lb.LoadBalancerInstanceStatus))
+		d.Set("load_balancer_instance_operation", flattenCommonCode(lb.LoadBalancerInstanceOperation))
+		d.Set("network_usage_type", flattenCommonCode(lb.NetworkUsageType))
 		d.Set("is_http_keep_alive", lb.IsHttpKeepAlive)
 		d.Set("connection_timeout", lb.ConnectionTimeout)
 		d.Set("certificate_name", lb.CertificateName)
@@ -212,7 +212,7 @@ func getLoadBalancerRuleList(lbRuleList []*loadbalancer.LoadBalancerRule) []inte
 
 	for _, r := range lbRuleList {
 		rule := map[string]interface{}{
-			"protocol_type_code":    setCommonCode(r.ProtocolType),
+			"protocol_type_code":    flattenCommonCode(r.ProtocolType),
 			"load_balancer_port":    r.LoadBalancerPort,
 			"server_port":           r.ServerPort,
 			"l7_health_check_path":  r.L7HealthCheckPath,
@@ -280,7 +280,7 @@ func resourceNcloudLoadBalancerUpdate(d *schema.ResourceData, meta interface{}) 
 func changeLoadBalancedServerInstances(client *NcloudAPIClient, d *schema.ResourceData) error {
 	reqParams := &loadbalancer.ChangeLoadBalancedServerInstancesRequest{
 		LoadBalancerInstanceNo: ncloud.String(d.Id()),
-		ServerInstanceNoList:   ncloud.StringInterfaceList(d.Get("server_instance_no_list").([]interface{})),
+		ServerInstanceNoList:   expandStringInterfaceList(d.Get("server_instance_no_list").([]interface{})),
 	}
 
 	logCommonRequest("ChangeLoadBalancedServerInstances", reqParams)
@@ -336,7 +336,7 @@ func buildCreateLoadBalancerInstanceParams(client *NcloudAPIClient, d *schema.Re
 		LoadBalancerAlgorithmTypeCode: ncloud.String(d.Get("load_balancer_algorithm_type_code").(string)),
 		LoadBalancerDescription:       ncloud.String(d.Get("load_balancer_description").(string)),
 		LoadBalancerRuleList:          buildLoadBalancerRuleParams(d),
-		ServerInstanceNoList:          ncloud.StringInterfaceList(d.Get("server_instance_no_list").([]interface{})),
+		ServerInstanceNoList:          expandStringInterfaceList(d.Get("server_instance_no_list").([]interface{})),
 		InternetLineTypeCode:          StringPtrOrNil(d.GetOk("internet_line_type_code")),
 		NetworkUsageTypeCode:          ncloud.String(d.Get("network_usage_type_code").(string)),
 		RegionNo:                      regionNo,

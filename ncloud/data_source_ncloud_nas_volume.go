@@ -145,7 +145,7 @@ func dataSourceNcloudNasVolumeRead(d *schema.ResourceData, meta interface{}) err
 	}
 	reqParams := &server.GetNasVolumeInstanceListRequest{
 		VolumeAllotmentProtocolTypeCode: ncloud.String(d.Get("volume_allotment_protocol_type_code").(string)),
-		NasVolumeInstanceNoList:         ncloud.StringInterfaceList(d.Get("nas_volume_instance_no_list").([]interface{})),
+		NasVolumeInstanceNoList:         expandStringInterfaceList(d.Get("nas_volume_instance_no_list").([]interface{})),
 		RegionNo:                        regionNo,
 		ZoneNo:                          zoneNo,
 	}
@@ -177,10 +177,10 @@ func dataSourceNcloudNasVolumeRead(d *schema.ResourceData, meta interface{}) err
 
 func nasVolumeInstanceAttributes(d *schema.ResourceData, nasVolume *server.NasVolumeInstance) error {
 	d.Set("nas_volume_instance_no", nasVolume.NasVolumeInstanceNo)
-	d.Set("nas_volume_instance_status", setCommonCode(nasVolume.NasVolumeInstanceStatus))
+	d.Set("nas_volume_instance_status", flattenCommonCode(nasVolume.NasVolumeInstanceStatus))
 	d.Set("create_date", nasVolume.CreateDate)
 	d.Set("nas_volume_description", nasVolume.NasVolumeInstanceDescription)
-	d.Set("volume_allotment_protocol_type", setCommonCode(nasVolume.VolumeAllotmentProtocolType))
+	d.Set("volume_allotment_protocol_type", flattenCommonCode(nasVolume.VolumeAllotmentProtocolType))
 	d.Set("volume_name", nasVolume.VolumeName)
 	d.Set("volume_total_size", nasVolume.VolumeTotalSize)
 	d.Set("volume_size", nasVolume.VolumeSize)
@@ -192,22 +192,12 @@ func nasVolumeInstanceAttributes(d *schema.ResourceData, nasVolume *server.NasVo
 	d.Set("is_snapshot_configuration", nasVolume.IsSnapshotConfiguration)
 	d.Set("is_event_configuration", nasVolume.IsEventConfiguration)
 	if len(nasVolume.NasVolumeInstanceCustomIpList) > 0 {
-		d.Set("nas_volume_instance_custom_ip_list", customIPList(nasVolume.NasVolumeInstanceCustomIpList))
+		d.Set("nas_volume_instance_custom_ip_list", flattenCustomIPList(nasVolume.NasVolumeInstanceCustomIpList))
 	}
 	d.Set("zone", setZone(nasVolume.Zone))
-	d.Set("region", setRegion(nasVolume.Region))
+	d.Set("region", flattenRegion(nasVolume.Region))
 
 	d.SetId(ncloud.StringValue(nasVolume.NasVolumeInstanceNo))
 
 	return nil
-}
-
-func customIPList(customIPList []*server.NasVolumeInstanceCustomIp) []string {
-	var a []string
-
-	for _, v := range customIPList {
-		a = append(a, ncloud.StringValue(v.CustomIp))
-	}
-
-	return a
 }
