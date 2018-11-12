@@ -145,7 +145,7 @@ func resourceNcloudPortForwardingRuleRead(d *schema.ResourceData, meta interface
 		d.Set("server_instance_no", portForwardingRule.ServerInstance.ServerInstanceNo)
 		d.Set("port_forwarding_external_port", portForwardingRule.PortForwardingExternalPort)
 		d.Set("port_forwarding_internal_port", portForwardingRule.PortForwardingInternalPort)
-		d.Set("zone", setZone(resp.Zone))
+		d.Set("zone", flattenZone(resp.Zone))
 
 	}
 	return nil
@@ -281,7 +281,7 @@ func getPortForwardingRule(client *NcloudAPIClient, zoneNo string, portForwardin
 			return rule, nil
 		}
 	}
-	return nil, nil //fmt.Errorf("resource not found (portForwardingExternalPort) : %d", portForwardingExternalPort)
+	return nil, nil
 }
 
 func hasPortForwardingRule(client *NcloudAPIClient, zoneNo string, portForwardingExternalPort int32) (bool, error) {

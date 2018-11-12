@@ -4,7 +4,9 @@ import (
 	"reflect"
 
 	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/ncloud"
+	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/services/loadbalancer"
 	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/services/server"
+	"github.com/hashicorp/terraform/helper/schema"
 )
 
 func expandStringInterfaceList(i []interface{}) []*string {
@@ -107,6 +109,53 @@ func flattenRegion(i interface{}) map[string]interface{} {
 	return m
 }
 
+func flattenZones(zones []*Zone) []map[string]interface{} {
+	var s []map[string]interface{}
+
+	for _, zone := range zones {
+		mapping := flattenZone(zone)
+		s = append(s, mapping)
+	}
+
+	return s
+}
+
+func flattenZone(i interface{}) map[string]interface{} {
+	if i == nil || !reflect.ValueOf(i).Elem().IsValid() {
+		return map[string]interface{}{}
+	}
+
+	var zoneNo *string
+	var zoneDescription *string
+	var zoneName *string
+	var zoneCode *string
+	var regionNo *string
+
+	if f := reflect.ValueOf(i).Elem().FieldByName("ZoneNo"); validField(f) {
+		zoneNo = StringField(f)
+	}
+	if f := reflect.ValueOf(i).Elem().FieldByName("ZoneName"); validField(f) {
+		zoneName = StringField(f)
+	}
+	if f := reflect.ValueOf(i).Elem().FieldByName("ZoneCode"); validField(f) {
+		zoneCode = StringField(f)
+	}
+	if f := reflect.ValueOf(i).Elem().FieldByName("ZoneDescription"); validField(f) {
+		zoneDescription = StringField(f)
+	}
+	if f := reflect.ValueOf(i).Elem().FieldByName("RegionNo"); validField(f) {
+		regionNo = StringField(f)
+	}
+
+	return map[string]interface{}{
+		"zone_no":          ncloud.StringValue(zoneNo),
+		"zone_code":        ncloud.StringValue(zoneCode),
+		"zone_name":        ncloud.StringValue(zoneName),
+		"zone_description": ncloud.StringValue(zoneDescription),
+		"region_no":        ncloud.StringValue(regionNo),
+	}
+}
+
 func flattenMemberServerImages(memberServerImages []*server.MemberServerImage) []map[string]interface{} {
 	var s []map[string]interface{}
 	for _, m := range memberServerImages {
@@ -145,4 +194,148 @@ func flattenCustomIPList(customIPList []*server.NasVolumeInstanceCustomIp) []str
 	}
 
 	return a
+}
+
+func flattenServerImages(serverImages []*server.Product) []map[string]interface{} {
+	var s []map[string]interface{}
+	for _, product := range serverImages {
+		mapping := map[string]interface{}{
+			"product_code":            ncloud.StringValue(product.ProductCode),
+			"product_name":            ncloud.StringValue(product.ProductName),
+			"product_type":            flattenCommonCode(product.ProductType),
+			"product_description":     ncloud.StringValue(product.ProductDescription),
+			"infra_resource_type":     flattenCommonCode(product.InfraResourceType),
+			"cpu_count":               int(ncloud.Int32Value(product.CpuCount)),
+			"memory_size":             int(ncloud.Int64Value(product.MemorySize)),
+			"base_block_storage_size": int(ncloud.Int64Value(product.BaseBlockStorageSize)),
+			"platform_type":           flattenCommonCode(product.PlatformType),
+			"os_information":          ncloud.StringValue(product.OsInformation),
+			"add_block_storage_size":  int(ncloud.Int64Value(product.AddBlockStorageSize)),
+		}
+
+		s = append(s, mapping)
+	}
+
+	return s
+}
+
+func flattenNasVolumeInstances(nasVolumeInstances []*server.NasVolumeInstance) []map[string]interface{} {
+	var s []map[string]interface{}
+
+	for _, nasVolume := range nasVolumeInstances {
+		mapping := map[string]interface{}{
+			"nas_volume_instance_no":         ncloud.StringValue(nasVolume.NasVolumeInstanceNo),
+			"nas_volume_instance_status":     flattenCommonCode(nasVolume.NasVolumeInstanceStatus),
+			"create_date":                    ncloud.StringValue(nasVolume.CreateDate),
+			"nas_volume_description":         ncloud.StringValue(nasVolume.NasVolumeInstanceDescription),
+			"volume_allotment_protocol_type": flattenCommonCode(nasVolume.VolumeAllotmentProtocolType),
+			"volume_name":                    ncloud.StringValue(nasVolume.VolumeName),
+			"volume_total_size":              int(ncloud.Int64Value(nasVolume.VolumeTotalSize)),
+			"volume_size":                    int(ncloud.Int64Value(nasVolume.VolumeSize)),
+			"volume_use_size":                int(ncloud.Int64Value(nasVolume.VolumeUseSize)),
+			"volume_use_ratio":               ncloud.Float32Value(nasVolume.VolumeUseRatio),
+			"snapshot_volume_size":           ncloud.Int64Value(nasVolume.SnapshotVolumeSize),
+			"snapshot_volume_use_size":       ncloud.Int64Value(nasVolume.SnapshotVolumeUseSize),
+			"snapshot_volume_use_ratio":      ncloud.Float32Value(nasVolume.SnapshotVolumeUseRatio),
+			"is_snapshot_configuration":      ncloud.BoolValue(nasVolume.IsSnapshotConfiguration),
+			"is_event_configuration":         ncloud.BoolValue(nasVolume.IsEventConfiguration),
+			"zone":                           flattenZone(nasVolume.Zone),
+			"region":                         flattenRegion(nasVolume.Region),
+		}
+		if len(nasVolume.NasVolumeInstanceCustomIpList) > 0 {
+			mapping["nas_volume_instance_custom_ip_list"] = flattenCustomIPList(nasVolume.NasVolumeInstanceCustomIpList)
+		}
+
+		s = append(s, mapping)
+	}
+
+	return s
+}
+
+func expandLoadBalancerRuleParams(d *schema.ResourceData) ([]*loadbalancer.LoadBalancerRuleParameter, error) {
+	lbRuleList := make([]*loadbalancer.LoadBalancerRuleParameter, 0, len(d.Get("load_balancer_rule_list").([]interface{})))
+
+	for _, v := range d.Get("load_balancer_rule_list").([]interface{}) {
+		lbRule := new(loadbalancer.LoadBalancerRuleParameter)
+		for key, value := range v.(map[string]interface{}) {
+			switch key {
+			case "protocol_type_code":
+				lbRule.ProtocolTypeCode = ncloud.String(value.(string))
+			case "load_balancer_port":
+				lbRule.LoadBalancerPort = ncloud.Int32(int32(value.(int)))
+			case "server_port":
+				lbRule.ServerPort = ncloud.Int32(int32(value.(int)))
+			case "l7_health_check_path":
+				lbRule.L7HealthCheckPath = ncloud.String(value.(string))
+			case "certificate_name":
+				lbRule.CertificateName = ncloud.String(value.(string))
+			case "proxy_protocol_use_yn":
+				lbRule.ProxyProtocolUseYn = ncloud.String(value.(string))
+			}
+		}
+		lbRuleList = append(lbRuleList, lbRule)
+	}
+
+	return lbRuleList, nil
+}
+
+func flattenLoadBalancerRuleList(lbRuleList []*loadbalancer.LoadBalancerRule) []interface{} {
+	list := make([]interface{}, 0, len(lbRuleList))
+
+	for _, r := range lbRuleList {
+		rule := map[string]interface{}{
+			"protocol_type_code":    flattenCommonCode(r.ProtocolType),
+			"load_balancer_port":    r.LoadBalancerPort,
+			"server_port":           r.ServerPort,
+			"l7_health_check_path":  r.L7HealthCheckPath,
+			"certificate_name":      r.CertificateName,
+			"proxy_protocol_use_yn": r.ProxyProtocolUseYn,
+		}
+		list = append(list, rule)
+	}
+
+	return list
+}
+
+func flattenLoadBalancedServerInstanceList(loadBalancedServerInstanceList []*loadbalancer.LoadBalancedServerInstance) []string {
+	list := make([]string, 0, len(loadBalancedServerInstanceList))
+
+	for _, instance := range loadBalancedServerInstanceList {
+		list = append(list, ncloud.StringValue(instance.ServerInstance.ServerInstanceNo))
+	}
+
+	return list
+}
+
+func expandTagListParams(d *schema.ResourceData) ([]*server.InstanceTagParameter, error) {
+	tagList := make([]*server.InstanceTagParameter, 0, len(d.Get("tag_list").([]interface{})))
+
+	for _, v := range d.Get("tag_list").([]interface{}) {
+		tag := new(server.InstanceTagParameter)
+		for key, value := range v.(map[string]interface{}) {
+			switch key {
+			case "tag_key":
+				tag.TagKey = ncloud.String(value.(string))
+			case "tag_value":
+				tag.TagValue = ncloud.String(value.(string))
+			}
+		}
+		tagList = append(tagList, tag)
+	}
+
+	return tagList, nil
+}
+
+func flattenInstanceTagList(tagList []*server.InstanceTag) []interface{} {
+	list := make([]interface{}, 0, len(tagList))
+
+	for _, r := range tagList {
+		tag := map[string]interface{}{
+			"tag_key":   r.TagKey,
+			"tag_value": r.TagValue,
+		}
+		list = append(list, tag)
+	}
+
+	return list
 }

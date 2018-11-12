@@ -193,43 +193,18 @@ func dataSourceNcloudNasVolumesRead(d *schema.ResourceData, meta interface{}) er
 
 func nasVolumeInstancesAttributes(d *schema.ResourceData, nasVolumeInstances []*server.NasVolumeInstance) error {
 	var ids []string
-	var s []map[string]interface{}
 
 	for _, nasVolume := range nasVolumeInstances {
-		mapping := map[string]interface{}{
-			"nas_volume_instance_no":         ncloud.StringValue(nasVolume.NasVolumeInstanceNo),
-			"nas_volume_instance_status":     flattenCommonCode(nasVolume.NasVolumeInstanceStatus),
-			"create_date":                    ncloud.StringValue(nasVolume.CreateDate),
-			"nas_volume_description":         ncloud.StringValue(nasVolume.NasVolumeInstanceDescription),
-			"volume_allotment_protocol_type": flattenCommonCode(nasVolume.VolumeAllotmentProtocolType),
-			"volume_name":                    ncloud.StringValue(nasVolume.VolumeName),
-			"volume_total_size":              int(ncloud.Int64Value(nasVolume.VolumeTotalSize)),
-			"volume_size":                    int(ncloud.Int64Value(nasVolume.VolumeSize)),
-			"volume_use_size":                int(ncloud.Int64Value(nasVolume.VolumeUseSize)),
-			"volume_use_ratio":               ncloud.Float32Value(nasVolume.VolumeUseRatio),
-			"snapshot_volume_size":           ncloud.Int64Value(nasVolume.SnapshotVolumeSize),
-			"snapshot_volume_use_size":       ncloud.Int64Value(nasVolume.SnapshotVolumeUseSize),
-			"snapshot_volume_use_ratio":      ncloud.Float32Value(nasVolume.SnapshotVolumeUseRatio),
-			"is_snapshot_configuration":      ncloud.BoolValue(nasVolume.IsSnapshotConfiguration),
-			"is_event_configuration":         ncloud.BoolValue(nasVolume.IsEventConfiguration),
-			"zone":                           setZone(nasVolume.Zone),
-			"region":                         flattenRegion(nasVolume.Region),
-		}
-		if len(nasVolume.NasVolumeInstanceCustomIpList) > 0 {
-			mapping["nas_volume_instance_custom_ip_list"] = flattenCustomIPList(nasVolume.NasVolumeInstanceCustomIpList)
-		}
-
 		ids = append(ids, ncloud.StringValue(nasVolume.NasVolumeInstanceNo))
-		s = append(s, mapping)
 	}
 
 	d.SetId(dataResourceIdHash(ids))
-	if err := d.Set("nas_volumes", s); err != nil {
+	if err := d.Set("nas_volumes", flattenNasVolumeInstances(nasVolumeInstances)); err != nil {
 		return err
 	}
 
 	if output, ok := d.GetOk("output_file"); ok && output.(string) != "" {
-		writeToFile(output.(string), s)
+		writeToFile(output.(string), d.Get("nas_volumes"))
 	}
 
 	return nil

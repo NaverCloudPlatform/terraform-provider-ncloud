@@ -235,7 +235,7 @@ func resourceNcloudNasVolumeRead(d *schema.ResourceData, meta interface{}) error
 		d.Set("is_snapshot_configuration", nasVolume.IsSnapshotConfiguration)
 		d.Set("is_event_configuration", nasVolume.IsEventConfiguration)
 		d.Set("nas_volume_instance_custom_ip_list", nasVolume.NasVolumeInstanceCustomIpList)
-		d.Set("zone", setZone(nasVolume.Zone))
+		d.Set("zone", flattenZone(nasVolume.Zone))
 		d.Set("region", flattenRegion(nasVolume.Region))
 	}
 

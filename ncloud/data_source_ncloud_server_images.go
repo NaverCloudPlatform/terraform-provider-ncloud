@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"regexp"
 
-	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/ncloud"
 	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/services/server"
 	"github.com/hashicorp/terraform/helper/schema"
 )
@@ -184,33 +183,18 @@ func dataSourceNcloudServerImagesRead(d *schema.ResourceData, meta interface{}) 
 
 func serverImagesAttributes(d *schema.ResourceData, serverImages []*server.Product) error {
 	var ids []string
-	var s []map[string]interface{}
-	for _, product := range serverImages {
-		mapping := map[string]interface{}{
-			"product_code":            ncloud.StringValue(product.ProductCode),
-			"product_name":            ncloud.StringValue(product.ProductName),
-			"product_type":            flattenCommonCode(product.ProductType),
-			"product_description":     ncloud.StringValue(product.ProductDescription),
-			"infra_resource_type":     flattenCommonCode(product.InfraResourceType),
-			"cpu_count":               int(ncloud.Int32Value(product.CpuCount)),
-			"memory_size":             int(ncloud.Int64Value(product.MemorySize)),
-			"base_block_storage_size": int(ncloud.Int64Value(product.BaseBlockStorageSize)),
-			"platform_type":           flattenCommonCode(product.PlatformType),
-			"os_information":          ncloud.StringValue(product.OsInformation),
-			"add_block_storage_size":  int(ncloud.Int64Value(product.AddBlockStorageSize)),
-		}
 
+	for _, product := range serverImages {
 		ids = append(ids, *product.ProductCode)
-		s = append(s, mapping)
 	}
 
 	d.SetId(dataResourceIdHash(ids))
-	if err := d.Set("server_images", s); err != nil {
+	if err := d.Set("server_images", flattenServerImages(serverImages)); err != nil {
 		return err
 	}
 
 	if output, ok := d.GetOk("output_file"); ok && output.(string) != "" {
-		writeToFile(output.(string), s)
+		writeToFile(output.(string), d.Get("server_images"))
 	}
 
 	return nil

@@ -276,7 +276,7 @@ func resourceNcloudServerRead(d *schema.ResourceData, meta interface{}) error {
 		d.Set("port_forwarding_public_ip", instance.PortForwardingPublicIp)
 		d.Set("port_forwarding_external_port", instance.PortForwardingExternalPort)
 		d.Set("port_forwarding_internal_port", instance.PortForwardingInternalPort)
-		d.Set("zone", setZone(instance.Zone))
+		d.Set("zone", flattenZone(instance.Zone))
 		d.Set("region", flattenRegion(instance.Region))
 		d.Set("base_block_storage_disk_type", flattenCommonCode(instance.BaseBlockStorageDiskType))
 		d.Set("base_block_storage_disk_detail_type", flattenCommonCode(instance.BaseBlockStroageDiskDetailType))
@@ -284,25 +284,11 @@ func resourceNcloudServerRead(d *schema.ResourceData, meta interface{}) error {
 		d.Set("user_data", d.Get("user_data").(string))
 
 		if len(instance.InstanceTagList) != 0 {
-			d.Set("load_balancer_rule_list", getInstanceTagList(instance.InstanceTagList))
+			d.Set("load_balancer_rule_list", flattenInstanceTagList(instance.InstanceTagList))
 		}
 	}
 
 	return nil
-}
-
-func getInstanceTagList(tagList []*server.InstanceTag) []interface{} {
-	list := make([]interface{}, 0, len(tagList))
-
-	for _, r := range tagList {
-		tag := map[string]interface{}{
-			"tag_key":   r.TagKey,
-			"tag_value": r.TagValue,
-		}
-		list = append(list, tag)
-	}
-
-	return list
 }
 
 func resourceNcloudServerDelete(d *schema.ResourceData, meta interface{}) error {
@@ -386,32 +372,17 @@ func buildCreateServerInstanceReqParams(client *NcloudAPIClient, d *schema.Resou
 		AccessControlGroupConfigurationNoList: paramAccessControlGroupConfigurationNoList,
 		UserData:                              ncloud.String(d.Get("user_data").(string)),
 		RaidTypeName:                          ncloud.String(d.Get("raid_type_name").(string)),
-		InstanceTagList:                       buildTagListParams(d),
 	}
+
+	if instanceTagList, err := expandTagListParams(d); err != nil {
+		reqParams.InstanceTagList = instanceTagList
+	}
+
 	if IsProtectServerTermination, ok := d.GetOk("is_protect_server_termination"); ok {
 		reqParams.IsProtectServerTermination = ncloud.Bool(IsProtectServerTermination.(bool))
 	}
 
 	return reqParams, nil
-}
-
-func buildTagListParams(d *schema.ResourceData) []*server.InstanceTagParameter {
-	tagList := make([]*server.InstanceTagParameter, 0, len(d.Get("tag_list").([]interface{})))
-
-	for _, v := range d.Get("tag_list").([]interface{}) {
-		tag := new(server.InstanceTagParameter)
-		for key, value := range v.(map[string]interface{}) {
-			switch key {
-			case "tag_key":
-				tag.TagKey = ncloud.String(value.(string))
-			case "tag_value":
-				tag.TagValue = ncloud.String(value.(string))
-			}
-		}
-		tagList = append(tagList, tag)
-	}
-
-	return tagList
 }
 
 func getServerInstance(client *NcloudAPIClient, serverInstanceNo string) (*server.ServerInstance, error) {

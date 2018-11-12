@@ -1,7 +1,6 @@
 package ncloud
 
 import (
-	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/ncloud"
 	"github.com/hashicorp/terraform/helper/schema"
 )
 
@@ -56,17 +55,4 @@ var regionSchemaResource = &schema.Resource{
 			Computed: true,
 		},
 	},
-}
-
-func setZone(i interface{}) map[string]interface{} {
-	zone := GetZone(i)
-	m := map[string]interface{}{
-		"zone_no":          ncloud.StringValue(zone.ZoneNo),
-		"zone_code":        ncloud.StringValue(zone.ZoneCode),
-		"zone_name":        ncloud.StringValue(zone.ZoneName),
-		"zone_description": ncloud.StringValue(zone.ZoneDescription),
-		"region_no":        ncloud.StringValue(zone.RegionNo),
-	}
-
-	return m
 }

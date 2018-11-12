@@ -194,7 +194,7 @@ func nasVolumeInstanceAttributes(d *schema.ResourceData, nasVolume *server.NasVo
 	if len(nasVolume.NasVolumeInstanceCustomIpList) > 0 {
 		d.Set("nas_volume_instance_custom_ip_list", flattenCustomIPList(nasVolume.NasVolumeInstanceCustomIpList))
 	}
-	d.Set("zone", setZone(nasVolume.Zone))
+	d.Set("zone", flattenZone(nasVolume.Zone))
 	d.Set("region", flattenRegion(nasVolume.Region))
 
 	d.SetId(ncloud.StringValue(nasVolume.NasVolumeInstanceNo))
