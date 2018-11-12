@@ -327,7 +327,11 @@ func resourceNcloudServerDelete(d *schema.ResourceData, meta interface{}) error 
 		return err
 	}
 
-	return terminateServerInstance(client, d.Id())
+	if err := terminateServerInstance(client, d.Id()); err != nil {
+		return err
+	}
+	d.SetId("")
+	return nil
 }
 
 func resourceNcloudServerUpdate(d *schema.ResourceData, meta interface{}) error {
@@ -374,15 +378,15 @@ func buildCreateServerInstanceReqParams(client *NcloudAPIClient, d *schema.Resou
 		return nil, err
 	}
 	reqParams := &server.CreateServerInstancesRequest{
-		ServerImageProductCode:                ncloud.String(d.Get("server_image_product_code").(string)),
-		ServerProductCode:                     ncloud.String(d.Get("server_product_code").(string)),
-		MemberServerImageNo:                   ncloud.String(d.Get("member_server_image_no").(string)),
-		ServerName:                            ncloud.String(d.Get("server_name").(string)),
-		ServerDescription:                     ncloud.String(d.Get("server_description").(string)),
-		LoginKeyName:                          ncloud.String(d.Get("login_key_name").(string)),
-		InternetLineTypeCode:                  StringPtrOrNil(d.GetOk("internet_line_type_code")),
-		FeeSystemTypeCode:                     ncloud.String(d.Get("fee_system_type_code").(string)),
-		ZoneNo:                                zoneNo,
+		ServerImageProductCode: ncloud.String(d.Get("server_image_product_code").(string)),
+		ServerProductCode:      ncloud.String(d.Get("server_product_code").(string)),
+		MemberServerImageNo:    ncloud.String(d.Get("member_server_image_no").(string)),
+		ServerName:             ncloud.String(d.Get("server_name").(string)),
+		ServerDescription:      ncloud.String(d.Get("server_description").(string)),
+		LoginKeyName:           ncloud.String(d.Get("login_key_name").(string)),
+		InternetLineTypeCode:   StringPtrOrNil(d.GetOk("internet_line_type_code")),
+		FeeSystemTypeCode:      ncloud.String(d.Get("fee_system_type_code").(string)),
+		ZoneNo:                 zoneNo,
 		AccessControlGroupConfigurationNoList: paramAccessControlGroupConfigurationNoList,
 		UserData:                              ncloud.String(d.Get("user_data").(string)),
 		RaidTypeName:                          ncloud.String(d.Get("raid_type_name").(string)),

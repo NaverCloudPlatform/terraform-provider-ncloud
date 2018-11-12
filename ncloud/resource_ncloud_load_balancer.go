@@ -237,7 +237,11 @@ func getLoadBalancedServerInstanceList(loadBalancedServerInstanceList []*loadbal
 
 func resourceNcloudLoadBalancerDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*NcloudAPIClient)
-	return deleteLoadBalancerInstance(client, d.Id())
+	if err := deleteLoadBalancerInstance(client, d.Id()); err != nil {
+		return err
+	}
+	d.SetId("")
+	return nil
 }
 
 func resourceNcloudLoadBalancerUpdate(d *schema.ResourceData, meta interface{}) error {

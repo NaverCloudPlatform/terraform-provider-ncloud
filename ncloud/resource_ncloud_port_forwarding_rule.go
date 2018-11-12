@@ -221,6 +221,7 @@ func resourceNcloudPortForwardingRuleDelete(d *schema.ResourceData, meta interfa
 		logErrorResponse("DeletePortForwardingRules", err, reqParams)
 		return err
 	}
+	d.SetId("")
 	return nil
 }
 

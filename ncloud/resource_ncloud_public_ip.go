@@ -171,10 +171,15 @@ func resourceNcloudPublicIpDelete(d *schema.ResourceData, meta interface{}) erro
 	logCommonRequest("DeletePublicIpInstances", reqParams)
 	resp, err := client.server.V2Api.DeletePublicIpInstances(reqParams)
 	logCommonResponse("DeletePublicIpInstances", GetCommonResponse(resp))
-
-	waitDeletePublicIpInstance(client, d.Id())
-
-	return err
+	if err != nil {
+		logErrorResponse("Delete Public IP Instance", err, reqParams)
+		return err
+	}
+	if err := waitDeletePublicIpInstance(client, d.Id()); err != nil {
+		return err
+	}
+	d.SetId("")
+	return nil
 }
 
 func resourceNcloudPublicIpUpdate(d *schema.ResourceData, meta interface{}) error {

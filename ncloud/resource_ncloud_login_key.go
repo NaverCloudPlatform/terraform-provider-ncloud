@@ -105,7 +105,11 @@ func resourceNcloudLoginKeyDelete(d *schema.ResourceData, meta interface{}) erro
 
 	keyName := d.Get("key_name").(string)
 
-	return deleteLoginKey(client, keyName)
+	if err := deleteLoginKey(client, keyName); err != nil {
+		return err
+	}
+	d.SetId("")
+	return nil
 }
 
 func getLoginKeyList(client *NcloudAPIClient, keyName *string) (*server.GetLoginKeyListResponse, error) {
