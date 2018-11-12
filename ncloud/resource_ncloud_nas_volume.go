@@ -244,7 +244,11 @@ func resourceNcloudNasVolumeRead(d *schema.ResourceData, meta interface{}) error
 
 func resourceNcloudNasVolumeDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*NcloudAPIClient)
-	return deleteNasVolumeInstance(client, d.Id())
+	if err := deleteNasVolumeInstance(client, d.Id()); err != nil {
+		return err
+	}
+	d.SetId("")
+	return nil
 }
 
 func resourceNcloudNasVolumeUpdate(d *schema.ResourceData, meta interface{}) error {

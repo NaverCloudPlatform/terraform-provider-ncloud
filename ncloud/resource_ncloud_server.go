@@ -327,7 +327,11 @@ func resourceNcloudServerDelete(d *schema.ResourceData, meta interface{}) error 
 		return err
 	}
 
-	return terminateServerInstance(client, d.Id())
+	if err := terminateServerInstance(client, d.Id()); err != nil {
+		return err
+	}
+	d.SetId("")
+	return nil
 }
 
 func resourceNcloudServerUpdate(d *schema.ResourceData, meta interface{}) error {

@@ -95,7 +95,11 @@ func resourceNcloudLoadBalancerSSLCertificateRead(d *schema.ResourceData, meta i
 func resourceNcloudLoadBalancerSSLCertificateDelete(d *schema.ResourceData, meta interface{}) error {
 	log.Println("[DEBUG] resourceNcloudLoadBalancerSSLCertificateDelete")
 	client := meta.(*NcloudAPIClient)
-	return deleteLoadBalancerSSLCertificate(client, d.Id())
+	if err := deleteLoadBalancerSSLCertificate(client, d.Id()); err != nil {
+		return err
+	}
+	d.SetId("")
+	return nil
 }
 
 func resourceNcloudLoadBalancerSSLCertificateUpdate(d *schema.ResourceData, meta interface{}) error {

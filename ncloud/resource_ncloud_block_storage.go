@@ -172,7 +172,11 @@ func resourceNcloudBlockStorageDelete(d *schema.ResourceData, meta interface{}) 
 		log.Printf("[ERROR] detachBlockStorage %#v", err)
 		return err
 	}
-	return deleteBlockStorage(client, []*string{ncloud.String(blockStorageInstanceNo)})
+	if err := deleteBlockStorage(client, []*string{ncloud.String(blockStorageInstanceNo)}); err != nil {
+		return err
+	}
+	d.SetId("")
+	return nil
 }
 
 func resourceNcloudBlockStorageUpdate(d *schema.ResourceData, meta interface{}) error {
