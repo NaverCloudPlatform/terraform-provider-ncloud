@@ -89,8 +89,10 @@ func (a *V2ApiService) CreateAutoScalingGroup(createAutoScalingGroupRequest *Cre
 	defer localVarHttpResponse.Body.Close()
 	bodyBytes, _ := ioutil.ReadAll(localVarHttpResponse.Body)
 
-    if err = json.Unmarshal(bodyBytes[bytes.IndexAny(bytes.Trim(bodyBytes, "{"), "{"):len(bodyBytes)-1], &successPayload); err != nil {
-		return &successPayload, err
+	if !strings.Contains(string(bodyBytes), `{"error"`) {
+		if err = json.Unmarshal(bodyBytes[bytes.IndexAny(bytes.Trim(bodyBytes, "{"), "{"):len(bodyBytes)-1], &successPayload); err != nil {
+			return &successPayload, err
+		}
 	}
 
 	if localVarHttpResponse.StatusCode >= 300 {
@@ -161,8 +163,10 @@ func (a *V2ApiService) CreateLaunchConfiguration(createLaunchConfigurationReques
 	defer localVarHttpResponse.Body.Close()
 	bodyBytes, _ := ioutil.ReadAll(localVarHttpResponse.Body)
 
-    if err = json.Unmarshal(bodyBytes[bytes.IndexAny(bytes.Trim(bodyBytes, "{"), "{"):len(bodyBytes)-1], &successPayload); err != nil {
-		return &successPayload, err
+	if !strings.Contains(string(bodyBytes), `{"error"`) {
+		if err = json.Unmarshal(bodyBytes[bytes.IndexAny(bytes.Trim(bodyBytes, "{"), "{"):len(bodyBytes)-1], &successPayload); err != nil {
+			return &successPayload, err
+		}
 	}
 
 	if localVarHttpResponse.StatusCode >= 300 {
@@ -233,8 +237,10 @@ func (a *V2ApiService) DeleteAutoScalingGroup(deleteAutoScalingGroupRequest *Del
 	defer localVarHttpResponse.Body.Close()
 	bodyBytes, _ := ioutil.ReadAll(localVarHttpResponse.Body)
 
-    if err = json.Unmarshal(bodyBytes[bytes.IndexAny(bytes.Trim(bodyBytes, "{"), "{"):len(bodyBytes)-1], &successPayload); err != nil {
-		return &successPayload, err
+	if !strings.Contains(string(bodyBytes), `{"error"`) {
+		if err = json.Unmarshal(bodyBytes[bytes.IndexAny(bytes.Trim(bodyBytes, "{"), "{"):len(bodyBytes)-1], &successPayload); err != nil {
+			return &successPayload, err
+		}
 	}
 
 	if localVarHttpResponse.StatusCode >= 300 {
@@ -305,8 +311,10 @@ func (a *V2ApiService) DeleteAutoScalingLaunchConfiguration(deleteAutoScalingLau
 	defer localVarHttpResponse.Body.Close()
 	bodyBytes, _ := ioutil.ReadAll(localVarHttpResponse.Body)
 
-    if err = json.Unmarshal(bodyBytes[bytes.IndexAny(bytes.Trim(bodyBytes, "{"), "{"):len(bodyBytes)-1], &successPayload); err != nil {
-		return &successPayload, err
+	if !strings.Contains(string(bodyBytes), `{"error"`) {
+		if err = json.Unmarshal(bodyBytes[bytes.IndexAny(bytes.Trim(bodyBytes, "{"), "{"):len(bodyBytes)-1], &successPayload); err != nil {
+			return &successPayload, err
+		}
 	}
 
 	if localVarHttpResponse.StatusCode >= 300 {
@@ -377,8 +385,10 @@ func (a *V2ApiService) DeletePolicy(deletePolicyRequest *DeletePolicyRequest) (*
 	defer localVarHttpResponse.Body.Close()
 	bodyBytes, _ := ioutil.ReadAll(localVarHttpResponse.Body)
 
-    if err = json.Unmarshal(bodyBytes[bytes.IndexAny(bytes.Trim(bodyBytes, "{"), "{"):len(bodyBytes)-1], &successPayload); err != nil {
-		return &successPayload, err
+	if !strings.Contains(string(bodyBytes), `{"error"`) {
+		if err = json.Unmarshal(bodyBytes[bytes.IndexAny(bytes.Trim(bodyBytes, "{"), "{"):len(bodyBytes)-1], &successPayload); err != nil {
+			return &successPayload, err
+		}
 	}
 
 	if localVarHttpResponse.StatusCode >= 300 {
@@ -449,8 +459,10 @@ func (a *V2ApiService) DeleteScheduledAction(deleteScheduledActionRequest *Delet
 	defer localVarHttpResponse.Body.Close()
 	bodyBytes, _ := ioutil.ReadAll(localVarHttpResponse.Body)
 
-    if err = json.Unmarshal(bodyBytes[bytes.IndexAny(bytes.Trim(bodyBytes, "{"), "{"):len(bodyBytes)-1], &successPayload); err != nil {
-		return &successPayload, err
+	if !strings.Contains(string(bodyBytes), `{"error"`) {
+		if err = json.Unmarshal(bodyBytes[bytes.IndexAny(bytes.Trim(bodyBytes, "{"), "{"):len(bodyBytes)-1], &successPayload); err != nil {
+			return &successPayload, err
+		}
 	}
 
 	if localVarHttpResponse.StatusCode >= 300 {
@@ -521,8 +533,10 @@ func (a *V2ApiService) ExecutePolicy(executePolicyRequest *ExecutePolicyRequest)
 	defer localVarHttpResponse.Body.Close()
 	bodyBytes, _ := ioutil.ReadAll(localVarHttpResponse.Body)
 
-    if err = json.Unmarshal(bodyBytes[bytes.IndexAny(bytes.Trim(bodyBytes, "{"), "{"):len(bodyBytes)-1], &successPayload); err != nil {
-		return &successPayload, err
+	if !strings.Contains(string(bodyBytes), `{"error"`) {
+		if err = json.Unmarshal(bodyBytes[bytes.IndexAny(bytes.Trim(bodyBytes, "{"), "{"):len(bodyBytes)-1], &successPayload); err != nil {
+			return &successPayload, err
+		}
 	}
 
 	if localVarHttpResponse.StatusCode >= 300 {
@@ -593,8 +607,10 @@ func (a *V2ApiService) GetAdjustmentTypeList(getAdjustmentTypeListRequest *GetAd
 	defer localVarHttpResponse.Body.Close()
 	bodyBytes, _ := ioutil.ReadAll(localVarHttpResponse.Body)
 
-    if err = json.Unmarshal(bodyBytes[bytes.IndexAny(bytes.Trim(bodyBytes, "{"), "{"):len(bodyBytes)-1], &successPayload); err != nil {
-		return &successPayload, err
+	if !strings.Contains(string(bodyBytes), `{"error"`) {
+		if err = json.Unmarshal(bodyBytes[bytes.IndexAny(bytes.Trim(bodyBytes, "{"), "{"):len(bodyBytes)-1], &successPayload); err != nil {
+			return &successPayload, err
+		}
 	}
 
 	if localVarHttpResponse.StatusCode >= 300 {
@@ -665,8 +681,10 @@ func (a *V2ApiService) GetAutoScalingActivityLogList(getAutoScalingActivityLogLi
 	defer localVarHttpResponse.Body.Close()
 	bodyBytes, _ := ioutil.ReadAll(localVarHttpResponse.Body)
 
-    if err = json.Unmarshal(bodyBytes[bytes.IndexAny(bytes.Trim(bodyBytes, "{"), "{"):len(bodyBytes)-1], &successPayload); err != nil {
-		return &successPayload, err
+	if !strings.Contains(string(bodyBytes), `{"error"`) {
+		if err = json.Unmarshal(bodyBytes[bytes.IndexAny(bytes.Trim(bodyBytes, "{"), "{"):len(bodyBytes)-1], &successPayload); err != nil {
+			return &successPayload, err
+		}
 	}
 
 	if localVarHttpResponse.StatusCode >= 300 {
@@ -737,8 +755,10 @@ func (a *V2ApiService) GetAutoScalingConfigurationLogList(getAutoScalingConfigur
 	defer localVarHttpResponse.Body.Close()
 	bodyBytes, _ := ioutil.ReadAll(localVarHttpResponse.Body)
 
-    if err = json.Unmarshal(bodyBytes[bytes.IndexAny(bytes.Trim(bodyBytes, "{"), "{"):len(bodyBytes)-1], &successPayload); err != nil {
-		return &successPayload, err
+	if !strings.Contains(string(bodyBytes), `{"error"`) {
+		if err = json.Unmarshal(bodyBytes[bytes.IndexAny(bytes.Trim(bodyBytes, "{"), "{"):len(bodyBytes)-1], &successPayload); err != nil {
+			return &successPayload, err
+		}
 	}
 
 	if localVarHttpResponse.StatusCode >= 300 {
@@ -809,8 +829,10 @@ func (a *V2ApiService) GetAutoScalingGroupList(getAutoScalingGroupListRequest *G
 	defer localVarHttpResponse.Body.Close()
 	bodyBytes, _ := ioutil.ReadAll(localVarHttpResponse.Body)
 
-    if err = json.Unmarshal(bodyBytes[bytes.IndexAny(bytes.Trim(bodyBytes, "{"), "{"):len(bodyBytes)-1], &successPayload); err != nil {
-		return &successPayload, err
+	if !strings.Contains(string(bodyBytes), `{"error"`) {
+		if err = json.Unmarshal(bodyBytes[bytes.IndexAny(bytes.Trim(bodyBytes, "{"), "{"):len(bodyBytes)-1], &successPayload); err != nil {
+			return &successPayload, err
+		}
 	}
 
 	if localVarHttpResponse.StatusCode >= 300 {
@@ -881,8 +903,10 @@ func (a *V2ApiService) GetAutoScalingPolicyList(getAutoScalingPolicyListRequest 
 	defer localVarHttpResponse.Body.Close()
 	bodyBytes, _ := ioutil.ReadAll(localVarHttpResponse.Body)
 
-    if err = json.Unmarshal(bodyBytes[bytes.IndexAny(bytes.Trim(bodyBytes, "{"), "{"):len(bodyBytes)-1], &successPayload); err != nil {
-		return &successPayload, err
+	if !strings.Contains(string(bodyBytes), `{"error"`) {
+		if err = json.Unmarshal(bodyBytes[bytes.IndexAny(bytes.Trim(bodyBytes, "{"), "{"):len(bodyBytes)-1], &successPayload); err != nil {
+			return &successPayload, err
+		}
 	}
 
 	if localVarHttpResponse.StatusCode >= 300 {
@@ -953,8 +977,10 @@ func (a *V2ApiService) GetLaunchConfigurationList(getLaunchConfigurationListRequ
 	defer localVarHttpResponse.Body.Close()
 	bodyBytes, _ := ioutil.ReadAll(localVarHttpResponse.Body)
 
-    if err = json.Unmarshal(bodyBytes[bytes.IndexAny(bytes.Trim(bodyBytes, "{"), "{"):len(bodyBytes)-1], &successPayload); err != nil {
-		return &successPayload, err
+	if !strings.Contains(string(bodyBytes), `{"error"`) {
+		if err = json.Unmarshal(bodyBytes[bytes.IndexAny(bytes.Trim(bodyBytes, "{"), "{"):len(bodyBytes)-1], &successPayload); err != nil {
+			return &successPayload, err
+		}
 	}
 
 	if localVarHttpResponse.StatusCode >= 300 {
@@ -1025,8 +1051,10 @@ func (a *V2ApiService) GetScalingProcessTypeList(getScalingProcessTypeListReques
 	defer localVarHttpResponse.Body.Close()
 	bodyBytes, _ := ioutil.ReadAll(localVarHttpResponse.Body)
 
-    if err = json.Unmarshal(bodyBytes[bytes.IndexAny(bytes.Trim(bodyBytes, "{"), "{"):len(bodyBytes)-1], &successPayload); err != nil {
-		return &successPayload, err
+	if !strings.Contains(string(bodyBytes), `{"error"`) {
+		if err = json.Unmarshal(bodyBytes[bytes.IndexAny(bytes.Trim(bodyBytes, "{"), "{"):len(bodyBytes)-1], &successPayload); err != nil {
+			return &successPayload, err
+		}
 	}
 
 	if localVarHttpResponse.StatusCode >= 300 {
@@ -1097,8 +1125,10 @@ func (a *V2ApiService) GetScheduledActionList(getScheduledActionListRequest *Get
 	defer localVarHttpResponse.Body.Close()
 	bodyBytes, _ := ioutil.ReadAll(localVarHttpResponse.Body)
 
-    if err = json.Unmarshal(bodyBytes[bytes.IndexAny(bytes.Trim(bodyBytes, "{"), "{"):len(bodyBytes)-1], &successPayload); err != nil {
-		return &successPayload, err
+	if !strings.Contains(string(bodyBytes), `{"error"`) {
+		if err = json.Unmarshal(bodyBytes[bytes.IndexAny(bytes.Trim(bodyBytes, "{"), "{"):len(bodyBytes)-1], &successPayload); err != nil {
+			return &successPayload, err
+		}
 	}
 
 	if localVarHttpResponse.StatusCode >= 300 {
@@ -1169,8 +1199,10 @@ func (a *V2ApiService) PutScalingPolicy(putScalingPolicyRequest *PutScalingPolic
 	defer localVarHttpResponse.Body.Close()
 	bodyBytes, _ := ioutil.ReadAll(localVarHttpResponse.Body)
 
-    if err = json.Unmarshal(bodyBytes[bytes.IndexAny(bytes.Trim(bodyBytes, "{"), "{"):len(bodyBytes)-1], &successPayload); err != nil {
-		return &successPayload, err
+	if !strings.Contains(string(bodyBytes), `{"error"`) {
+		if err = json.Unmarshal(bodyBytes[bytes.IndexAny(bytes.Trim(bodyBytes, "{"), "{"):len(bodyBytes)-1], &successPayload); err != nil {
+			return &successPayload, err
+		}
 	}
 
 	if localVarHttpResponse.StatusCode >= 300 {
@@ -1241,8 +1273,10 @@ func (a *V2ApiService) PutScheduledUpdateGroupAction(putScheduledUpdateGroupActi
 	defer localVarHttpResponse.Body.Close()
 	bodyBytes, _ := ioutil.ReadAll(localVarHttpResponse.Body)
 
-    if err = json.Unmarshal(bodyBytes[bytes.IndexAny(bytes.Trim(bodyBytes, "{"), "{"):len(bodyBytes)-1], &successPayload); err != nil {
-		return &successPayload, err
+	if !strings.Contains(string(bodyBytes), `{"error"`) {
+		if err = json.Unmarshal(bodyBytes[bytes.IndexAny(bytes.Trim(bodyBytes, "{"), "{"):len(bodyBytes)-1], &successPayload); err != nil {
+			return &successPayload, err
+		}
 	}
 
 	if localVarHttpResponse.StatusCode >= 300 {
@@ -1313,8 +1347,10 @@ func (a *V2ApiService) ResumeProcesses(resumeProcessesRequest *ResumeProcessesRe
 	defer localVarHttpResponse.Body.Close()
 	bodyBytes, _ := ioutil.ReadAll(localVarHttpResponse.Body)
 
-    if err = json.Unmarshal(bodyBytes[bytes.IndexAny(bytes.Trim(bodyBytes, "{"), "{"):len(bodyBytes)-1], &successPayload); err != nil {
-		return &successPayload, err
+	if !strings.Contains(string(bodyBytes), `{"error"`) {
+		if err = json.Unmarshal(bodyBytes[bytes.IndexAny(bytes.Trim(bodyBytes, "{"), "{"):len(bodyBytes)-1], &successPayload); err != nil {
+			return &successPayload, err
+		}
 	}
 
 	if localVarHttpResponse.StatusCode >= 300 {
@@ -1385,8 +1421,10 @@ func (a *V2ApiService) SetDesiredCapacity(setDesiredCapacityRequest *SetDesiredC
 	defer localVarHttpResponse.Body.Close()
 	bodyBytes, _ := ioutil.ReadAll(localVarHttpResponse.Body)
 
-    if err = json.Unmarshal(bodyBytes[bytes.IndexAny(bytes.Trim(bodyBytes, "{"), "{"):len(bodyBytes)-1], &successPayload); err != nil {
-		return &successPayload, err
+	if !strings.Contains(string(bodyBytes), `{"error"`) {
+		if err = json.Unmarshal(bodyBytes[bytes.IndexAny(bytes.Trim(bodyBytes, "{"), "{"):len(bodyBytes)-1], &successPayload); err != nil {
+			return &successPayload, err
+		}
 	}
 
 	if localVarHttpResponse.StatusCode >= 300 {
@@ -1457,8 +1495,10 @@ func (a *V2ApiService) SetServerInstanceHealth(setServerInstanceHealthRequest *S
 	defer localVarHttpResponse.Body.Close()
 	bodyBytes, _ := ioutil.ReadAll(localVarHttpResponse.Body)
 
-    if err = json.Unmarshal(bodyBytes[bytes.IndexAny(bytes.Trim(bodyBytes, "{"), "{"):len(bodyBytes)-1], &successPayload); err != nil {
-		return &successPayload, err
+	if !strings.Contains(string(bodyBytes), `{"error"`) {
+		if err = json.Unmarshal(bodyBytes[bytes.IndexAny(bytes.Trim(bodyBytes, "{"), "{"):len(bodyBytes)-1], &successPayload); err != nil {
+			return &successPayload, err
+		}
 	}
 
 	if localVarHttpResponse.StatusCode >= 300 {
@@ -1529,8 +1569,10 @@ func (a *V2ApiService) SuspendProcesses(suspendProcessesRequest *SuspendProcesse
 	defer localVarHttpResponse.Body.Close()
 	bodyBytes, _ := ioutil.ReadAll(localVarHttpResponse.Body)
 
-    if err = json.Unmarshal(bodyBytes[bytes.IndexAny(bytes.Trim(bodyBytes, "{"), "{"):len(bodyBytes)-1], &successPayload); err != nil {
-		return &successPayload, err
+	if !strings.Contains(string(bodyBytes), `{"error"`) {
+		if err = json.Unmarshal(bodyBytes[bytes.IndexAny(bytes.Trim(bodyBytes, "{"), "{"):len(bodyBytes)-1], &successPayload); err != nil {
+			return &successPayload, err
+		}
 	}
 
 	if localVarHttpResponse.StatusCode >= 300 {
@@ -1601,8 +1643,10 @@ func (a *V2ApiService) TerminateServerInstanceInAutoScalingGroup(terminateServer
 	defer localVarHttpResponse.Body.Close()
 	bodyBytes, _ := ioutil.ReadAll(localVarHttpResponse.Body)
 
-    if err = json.Unmarshal(bodyBytes[bytes.IndexAny(bytes.Trim(bodyBytes, "{"), "{"):len(bodyBytes)-1], &successPayload); err != nil {
-		return &successPayload, err
+	if !strings.Contains(string(bodyBytes), `{"error"`) {
+		if err = json.Unmarshal(bodyBytes[bytes.IndexAny(bytes.Trim(bodyBytes, "{"), "{"):len(bodyBytes)-1], &successPayload); err != nil {
+			return &successPayload, err
+		}
 	}
 
 	if localVarHttpResponse.StatusCode >= 300 {
@@ -1673,8 +1717,10 @@ func (a *V2ApiService) UpdateAutoScalingGroup(updateAutoScalingGroupRequest *Upd
 	defer localVarHttpResponse.Body.Close()
 	bodyBytes, _ := ioutil.ReadAll(localVarHttpResponse.Body)
 
-    if err = json.Unmarshal(bodyBytes[bytes.IndexAny(bytes.Trim(bodyBytes, "{"), "{"):len(bodyBytes)-1], &successPayload); err != nil {
-		return &successPayload, err
+	if !strings.Contains(string(bodyBytes), `{"error"`) {
+		if err = json.Unmarshal(bodyBytes[bytes.IndexAny(bytes.Trim(bodyBytes, "{"), "{"):len(bodyBytes)-1], &successPayload); err != nil {
+			return &successPayload, err
+		}
 	}
 
 	if localVarHttpResponse.StatusCode >= 300 {
