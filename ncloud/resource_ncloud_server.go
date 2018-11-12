@@ -388,9 +388,9 @@ func buildCreateServerInstanceReqParams(client *NcloudAPIClient, d *schema.Resou
 		FeeSystemTypeCode:      ncloud.String(d.Get("fee_system_type_code").(string)),
 		ZoneNo:                 zoneNo,
 		AccessControlGroupConfigurationNoList: paramAccessControlGroupConfigurationNoList,
-		UserData:                              ncloud.String(d.Get("user_data").(string)),
-		RaidTypeName:                          ncloud.String(d.Get("raid_type_name").(string)),
-		InstanceTagList:                       buildTagListParams(d),
+		UserData:        ncloud.String(d.Get("user_data").(string)),
+		RaidTypeName:    ncloud.String(d.Get("raid_type_name").(string)),
+		InstanceTagList: buildTagListParams(d),
 	}
 	if IsProtectServerTermination, ok := d.GetOk("is_protect_server_termination"); ok {
 		reqParams.IsProtectServerTermination = ncloud.Bool(IsProtectServerTermination.(bool))
