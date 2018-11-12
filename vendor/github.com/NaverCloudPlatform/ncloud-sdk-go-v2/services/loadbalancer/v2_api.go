@@ -89,8 +89,10 @@ func (a *V2ApiService) AddLoadBalancerSslCertificate(addLoadBalancerSslCertifica
 	defer localVarHttpResponse.Body.Close()
 	bodyBytes, _ := ioutil.ReadAll(localVarHttpResponse.Body)
 
-    if err = json.Unmarshal(bodyBytes[bytes.IndexAny(bytes.Trim(bodyBytes, "{"), "{"):len(bodyBytes)-1], &successPayload); err != nil {
-		return &successPayload, err
+	if !strings.Contains(string(bodyBytes), `{"error"`) {
+		if err = json.Unmarshal(bodyBytes[bytes.IndexAny(bytes.Trim(bodyBytes, "{"), "{"):len(bodyBytes)-1], &successPayload); err != nil {
+			return &successPayload, err
+		}
 	}
 
 	if localVarHttpResponse.StatusCode >= 300 {
@@ -161,8 +163,10 @@ func (a *V2ApiService) ChangeLoadBalancedServerInstances(changeLoadBalancedServe
 	defer localVarHttpResponse.Body.Close()
 	bodyBytes, _ := ioutil.ReadAll(localVarHttpResponse.Body)
 
-    if err = json.Unmarshal(bodyBytes[bytes.IndexAny(bytes.Trim(bodyBytes, "{"), "{"):len(bodyBytes)-1], &successPayload); err != nil {
-		return &successPayload, err
+	if !strings.Contains(string(bodyBytes), `{"error"`) {
+		if err = json.Unmarshal(bodyBytes[bytes.IndexAny(bytes.Trim(bodyBytes, "{"), "{"):len(bodyBytes)-1], &successPayload); err != nil {
+			return &successPayload, err
+		}
 	}
 
 	if localVarHttpResponse.StatusCode >= 300 {
@@ -233,8 +237,10 @@ func (a *V2ApiService) ChangeLoadBalancerInstanceConfiguration(changeLoadBalance
 	defer localVarHttpResponse.Body.Close()
 	bodyBytes, _ := ioutil.ReadAll(localVarHttpResponse.Body)
 
-    if err = json.Unmarshal(bodyBytes[bytes.IndexAny(bytes.Trim(bodyBytes, "{"), "{"):len(bodyBytes)-1], &successPayload); err != nil {
-		return &successPayload, err
+	if !strings.Contains(string(bodyBytes), `{"error"`) {
+		if err = json.Unmarshal(bodyBytes[bytes.IndexAny(bytes.Trim(bodyBytes, "{"), "{"):len(bodyBytes)-1], &successPayload); err != nil {
+			return &successPayload, err
+		}
 	}
 
 	if localVarHttpResponse.StatusCode >= 300 {
@@ -305,8 +311,10 @@ func (a *V2ApiService) CreateLoadBalancerInstance(createLoadBalancerInstanceRequ
 	defer localVarHttpResponse.Body.Close()
 	bodyBytes, _ := ioutil.ReadAll(localVarHttpResponse.Body)
 
-    if err = json.Unmarshal(bodyBytes[bytes.IndexAny(bytes.Trim(bodyBytes, "{"), "{"):len(bodyBytes)-1], &successPayload); err != nil {
-		return &successPayload, err
+	if !strings.Contains(string(bodyBytes), `{"error"`) {
+		if err = json.Unmarshal(bodyBytes[bytes.IndexAny(bytes.Trim(bodyBytes, "{"), "{"):len(bodyBytes)-1], &successPayload); err != nil {
+			return &successPayload, err
+		}
 	}
 
 	if localVarHttpResponse.StatusCode >= 300 {
@@ -377,8 +385,10 @@ func (a *V2ApiService) DeleteLoadBalancerInstances(deleteLoadBalancerInstancesRe
 	defer localVarHttpResponse.Body.Close()
 	bodyBytes, _ := ioutil.ReadAll(localVarHttpResponse.Body)
 
-    if err = json.Unmarshal(bodyBytes[bytes.IndexAny(bytes.Trim(bodyBytes, "{"), "{"):len(bodyBytes)-1], &successPayload); err != nil {
-		return &successPayload, err
+	if !strings.Contains(string(bodyBytes), `{"error"`) {
+		if err = json.Unmarshal(bodyBytes[bytes.IndexAny(bytes.Trim(bodyBytes, "{"), "{"):len(bodyBytes)-1], &successPayload); err != nil {
+			return &successPayload, err
+		}
 	}
 
 	if localVarHttpResponse.StatusCode >= 300 {
@@ -449,8 +459,10 @@ func (a *V2ApiService) DeleteLoadBalancerSslCertificate(deleteLoadBalancerSslCer
 	defer localVarHttpResponse.Body.Close()
 	bodyBytes, _ := ioutil.ReadAll(localVarHttpResponse.Body)
 
-    if err = json.Unmarshal(bodyBytes[bytes.IndexAny(bytes.Trim(bodyBytes, "{"), "{"):len(bodyBytes)-1], &successPayload); err != nil {
-		return &successPayload, err
+	if !strings.Contains(string(bodyBytes), `{"error"`) {
+		if err = json.Unmarshal(bodyBytes[bytes.IndexAny(bytes.Trim(bodyBytes, "{"), "{"):len(bodyBytes)-1], &successPayload); err != nil {
+			return &successPayload, err
+		}
 	}
 
 	if localVarHttpResponse.StatusCode >= 300 {
@@ -521,8 +533,10 @@ func (a *V2ApiService) GetLoadBalancedServerInstanceList(getLoadBalancedServerIn
 	defer localVarHttpResponse.Body.Close()
 	bodyBytes, _ := ioutil.ReadAll(localVarHttpResponse.Body)
 
-    if err = json.Unmarshal(bodyBytes[bytes.IndexAny(bytes.Trim(bodyBytes, "{"), "{"):len(bodyBytes)-1], &successPayload); err != nil {
-		return &successPayload, err
+	if !strings.Contains(string(bodyBytes), `{"error"`) {
+		if err = json.Unmarshal(bodyBytes[bytes.IndexAny(bytes.Trim(bodyBytes, "{"), "{"):len(bodyBytes)-1], &successPayload); err != nil {
+			return &successPayload, err
+		}
 	}
 
 	if localVarHttpResponse.StatusCode >= 300 {
@@ -593,8 +607,10 @@ func (a *V2ApiService) GetLoadBalancerInstanceList(getLoadBalancerInstanceListRe
 	defer localVarHttpResponse.Body.Close()
 	bodyBytes, _ := ioutil.ReadAll(localVarHttpResponse.Body)
 
-    if err = json.Unmarshal(bodyBytes[bytes.IndexAny(bytes.Trim(bodyBytes, "{"), "{"):len(bodyBytes)-1], &successPayload); err != nil {
-		return &successPayload, err
+	if !strings.Contains(string(bodyBytes), `{"error"`) {
+		if err = json.Unmarshal(bodyBytes[bytes.IndexAny(bytes.Trim(bodyBytes, "{"), "{"):len(bodyBytes)-1], &successPayload); err != nil {
+			return &successPayload, err
+		}
 	}
 
 	if localVarHttpResponse.StatusCode >= 300 {
@@ -665,8 +681,10 @@ func (a *V2ApiService) GetLoadBalancerSslCertificateList(getLoadBalancerSslCerti
 	defer localVarHttpResponse.Body.Close()
 	bodyBytes, _ := ioutil.ReadAll(localVarHttpResponse.Body)
 
-    if err = json.Unmarshal(bodyBytes[bytes.IndexAny(bytes.Trim(bodyBytes, "{"), "{"):len(bodyBytes)-1], &successPayload); err != nil {
-		return &successPayload, err
+	if !strings.Contains(string(bodyBytes), `{"error"`) {
+		if err = json.Unmarshal(bodyBytes[bytes.IndexAny(bytes.Trim(bodyBytes, "{"), "{"):len(bodyBytes)-1], &successPayload); err != nil {
+			return &successPayload, err
+		}
 	}
 
 	if localVarHttpResponse.StatusCode >= 300 {
@@ -737,8 +755,10 @@ func (a *V2ApiService) GetLoadBalancerTargetServerInstanceList(getLoadBalancerTa
 	defer localVarHttpResponse.Body.Close()
 	bodyBytes, _ := ioutil.ReadAll(localVarHttpResponse.Body)
 
-    if err = json.Unmarshal(bodyBytes[bytes.IndexAny(bytes.Trim(bodyBytes, "{"), "{"):len(bodyBytes)-1], &successPayload); err != nil {
-		return &successPayload, err
+	if !strings.Contains(string(bodyBytes), `{"error"`) {
+		if err = json.Unmarshal(bodyBytes[bytes.IndexAny(bytes.Trim(bodyBytes, "{"), "{"):len(bodyBytes)-1], &successPayload); err != nil {
+			return &successPayload, err
+		}
 	}
 
 	if localVarHttpResponse.StatusCode >= 300 {

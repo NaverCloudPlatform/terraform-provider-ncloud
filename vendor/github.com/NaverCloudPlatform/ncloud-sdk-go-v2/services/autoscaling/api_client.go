@@ -12,7 +12,6 @@ package autoscaling
 import (
 	"bytes"
 	"crypto"
-	"encoding/base64"
 	"errors"
 	"fmt"
 	"io"
@@ -327,11 +326,7 @@ func setBody(body interface{}, contentType string) (bodyBuf *bytes.Buffer, err e
 			if f.Kind() == reflect.Ptr {
 				switch f.Type().String() {
 				case "*string":
-					if key == "userData" {
-						result += fmt.Sprintf("&%s=%s", key, base64.StdEncoding.EncodeToString([]byte(ncloud.StringValue(f.Interface().(*string)))))
-					} else {
-						result += fmt.Sprintf("&%s=%s", key, url.QueryEscape(ncloud.StringValue(f.Interface().(*string))))
-					}
+                    result += fmt.Sprintf("&%s=%s", key, url.QueryEscape(ncloud.StringValue(f.Interface().(*string))))
 				case "*bool":
 					result += fmt.Sprintf("&%s=%t", key, ncloud.BoolValue(f.Interface().(*bool)))
 				case "*int":
@@ -357,11 +352,7 @@ func setBody(body interface{}, contentType string) (bodyBuf *bytes.Buffer, err e
 
 							switch subItem.Type().String() {
 							case "*string":
-								if key == "userData" {
-									result += fmt.Sprintf("&%s.%d.%s=%s", key, i+1, subKey, base64.StdEncoding.EncodeToString([]byte(ncloud.StringValue(subItem.Interface().(*string)))))
-								} else {
-									result += fmt.Sprintf("&%s.%d.%s=%s", key, i+1, subKey, url.QueryEscape(ncloud.StringValue(subItem.Interface().(*string))))
-								}
+                                result += fmt.Sprintf("&%s.%d.%s=%s", key, i+1, subKey, url.QueryEscape(ncloud.StringValue(subItem.Interface().(*string))))
 							case "*bool":
 								result += fmt.Sprintf("&%s.%d.%s=%t", key, i+1, subKey, ncloud.BoolValue(subItem.Interface().(*bool)))
 							case "*int":
@@ -377,11 +368,7 @@ func setBody(body interface{}, contentType string) (bodyBuf *bytes.Buffer, err e
 					} else {
 						switch item.Type().String() {
 						case "*string":
-							if key == "userData" {
-								result += fmt.Sprintf("&%s.%d=%s", key, i+1, base64.StdEncoding.EncodeToString([]byte(*item.Interface().(*string))))
-							} else {
-								result += fmt.Sprintf("&%s.%d=%s", key, i+1, url.QueryEscape(*item.Interface().(*string)))
-							}
+                            result += fmt.Sprintf("&%s.%d=%s", key, i+1, url.QueryEscape(*item.Interface().(*string)))
 						case "*bool":
 							result += fmt.Sprintf("&%s.%d.%s=%t", key, i+1, ncloud.BoolValue(item.Interface().(*bool)))
 						case "*int":
