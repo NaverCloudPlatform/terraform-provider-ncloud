@@ -178,61 +178,35 @@ func resourceNcloudLoadBalancerRead(d *schema.ResourceData, meta interface{}) er
 	if err != nil {
 		return err
 	}
+
 	if lb != nil {
 		d.Set("virtual_ip", lb.VirtualIp)
 		d.Set("load_balancer_name", lb.LoadBalancerName)
-		d.Set("load_balancer_algorithm_type", setCommonCode(lb.LoadBalancerAlgorithmType))
+		d.Set("load_balancer_algorithm_type", flattenCommonCode(lb.LoadBalancerAlgorithmType))
 		d.Set("load_balancer_description", lb.LoadBalancerDescription)
 		d.Set("create_date", lb.CreateDate)
 		d.Set("domain_name", lb.DomainName)
-		d.Set("internet_line_type", setCommonCode(lb.InternetLineType))
+		d.Set("internet_line_type", flattenCommonCode(lb.InternetLineType))
 		d.Set("load_balancer_instance_status_name", lb.LoadBalancerInstanceStatusName)
-		d.Set("load_balancer_instance_status", setCommonCode(lb.LoadBalancerInstanceStatus))
-		d.Set("load_balancer_instance_operation", setCommonCode(lb.LoadBalancerInstanceOperation))
-		d.Set("network_usage_type", setCommonCode(lb.NetworkUsageType))
+		d.Set("load_balancer_instance_status", flattenCommonCode(lb.LoadBalancerInstanceStatus))
+		d.Set("load_balancer_instance_operation", flattenCommonCode(lb.LoadBalancerInstanceOperation))
+		d.Set("network_usage_type", flattenCommonCode(lb.NetworkUsageType))
 		d.Set("is_http_keep_alive", lb.IsHttpKeepAlive)
 		d.Set("connection_timeout", lb.ConnectionTimeout)
 		d.Set("certificate_name", lb.CertificateName)
 
 		if len(lb.LoadBalancerRuleList) != 0 {
-			d.Set("load_balancer_rule_list", getLoadBalancerRuleList(lb.LoadBalancerRuleList))
+			d.Set("load_balancer_rule_list", flattenLoadBalancerRuleList(lb.LoadBalancerRuleList))
 		}
+
 		if len(lb.LoadBalancedServerInstanceList) != 0 {
-			d.Set("load_balanced_server_instance_list", getLoadBalancedServerInstanceList(lb.LoadBalancedServerInstanceList))
+			d.Set("load_balanced_server_instance_list", flattenLoadBalancedServerInstanceList(lb.LoadBalancedServerInstanceList))
 		} else {
 			d.Set("load_balanced_server_instance_list", nil)
 		}
 	}
 
 	return nil
-}
-
-func getLoadBalancerRuleList(lbRuleList []*loadbalancer.LoadBalancerRule) []interface{} {
-	list := make([]interface{}, 0, len(lbRuleList))
-
-	for _, r := range lbRuleList {
-		rule := map[string]interface{}{
-			"protocol_type_code":    setCommonCode(r.ProtocolType),
-			"load_balancer_port":    r.LoadBalancerPort,
-			"server_port":           r.ServerPort,
-			"l7_health_check_path":  r.L7HealthCheckPath,
-			"certificate_name":      r.CertificateName,
-			"proxy_protocol_use_yn": r.ProxyProtocolUseYn,
-		}
-		list = append(list, rule)
-	}
-
-	return list
-}
-
-func getLoadBalancedServerInstanceList(loadBalancedServerInstanceList []*loadbalancer.LoadBalancedServerInstance) []string {
-	list := make([]string, 0, len(loadBalancedServerInstanceList))
-
-	for _, instance := range loadBalancedServerInstanceList {
-		list = append(list, ncloud.StringValue(instance.ServerInstance.ServerInstanceNo))
-	}
-
-	return list
 }
 
 func resourceNcloudLoadBalancerDelete(d *schema.ResourceData, meta interface{}) error {
@@ -257,7 +231,10 @@ func resourceNcloudLoadBalancerUpdate(d *schema.ResourceData, meta interface{}) 
 	reqParams := &loadbalancer.ChangeLoadBalancerInstanceConfigurationRequest{
 		LoadBalancerInstanceNo:        ncloud.String(d.Id()),
 		LoadBalancerAlgorithmTypeCode: ncloud.String(d.Get("load_balancer_algorithm_type_code").(string)),
-		LoadBalancerRuleList:          buildLoadBalancerRuleParams(d),
+	}
+
+	if loadBalancerRuleParams, err := expandLoadBalancerRuleParams(d.Get("load_balancer_rule_list").([]interface{})); err == nil {
+		reqParams.LoadBalancerRuleList = loadBalancerRuleParams
 	}
 
 	if d.HasChange("load_balancer_description") {
@@ -284,7 +261,7 @@ func resourceNcloudLoadBalancerUpdate(d *schema.ResourceData, meta interface{}) 
 func changeLoadBalancedServerInstances(client *NcloudAPIClient, d *schema.ResourceData) error {
 	reqParams := &loadbalancer.ChangeLoadBalancedServerInstancesRequest{
 		LoadBalancerInstanceNo: ncloud.String(d.Id()),
-		ServerInstanceNoList:   ncloud.StringInterfaceList(d.Get("server_instance_no_list").([]interface{})),
+		ServerInstanceNoList:   expandStringInterfaceList(d.Get("server_instance_no_list").([]interface{})),
 	}
 
 	logCommonRequest("ChangeLoadBalancedServerInstances", reqParams)
@@ -303,48 +280,26 @@ func changeLoadBalancedServerInstances(client *NcloudAPIClient, d *schema.Resour
 	return nil
 }
 
-func buildLoadBalancerRuleParams(d *schema.ResourceData) []*loadbalancer.LoadBalancerRuleParameter {
-	lbRuleList := make([]*loadbalancer.LoadBalancerRuleParameter, 0, len(d.Get("load_balancer_rule_list").([]interface{})))
-
-	for _, v := range d.Get("load_balancer_rule_list").([]interface{}) {
-		lbRule := new(loadbalancer.LoadBalancerRuleParameter)
-		for key, value := range v.(map[string]interface{}) {
-			switch key {
-			case "protocol_type_code":
-				lbRule.ProtocolTypeCode = ncloud.String(value.(string))
-			case "load_balancer_port":
-				lbRule.LoadBalancerPort = ncloud.Int32(int32(value.(int)))
-			case "server_port":
-				lbRule.ServerPort = ncloud.Int32(int32(value.(int)))
-			case "l7_health_check_path":
-				lbRule.L7HealthCheckPath = ncloud.String(value.(string))
-			case "certificate_name":
-				lbRule.CertificateName = ncloud.String(value.(string))
-			case "proxy_protocol_use_yn":
-				lbRule.ProxyProtocolUseYn = ncloud.String(value.(string))
-			}
-		}
-		lbRuleList = append(lbRuleList, lbRule)
-	}
-
-	return lbRuleList
-}
-
 func buildCreateLoadBalancerInstanceParams(client *NcloudAPIClient, d *schema.ResourceData) (*loadbalancer.CreateLoadBalancerInstanceRequest, error) {
 	regionNo, err := parseRegionNoParameter(client, d)
 	if err != nil {
 		return nil, err
 	}
+
 	reqParams := &loadbalancer.CreateLoadBalancerInstanceRequest{
 		LoadBalancerName:              ncloud.String(d.Get("load_balancer_name").(string)),
 		LoadBalancerAlgorithmTypeCode: ncloud.String(d.Get("load_balancer_algorithm_type_code").(string)),
 		LoadBalancerDescription:       ncloud.String(d.Get("load_balancer_description").(string)),
-		LoadBalancerRuleList:          buildLoadBalancerRuleParams(d),
-		ServerInstanceNoList:          ncloud.StringInterfaceList(d.Get("server_instance_no_list").([]interface{})),
+		ServerInstanceNoList:          expandStringInterfaceList(d.Get("server_instance_no_list").([]interface{})),
 		InternetLineTypeCode:          StringPtrOrNil(d.GetOk("internet_line_type_code")),
 		NetworkUsageTypeCode:          ncloud.String(d.Get("network_usage_type_code").(string)),
 		RegionNo:                      regionNo,
 	}
+
+	if loadBalancerRuleParams, err := expandLoadBalancerRuleParams(d.Get("load_balancer_rule_list").([]interface{})); err == nil {
+		reqParams.LoadBalancerRuleList = loadBalancerRuleParams
+	}
+
 	return reqParams, nil
 }
 

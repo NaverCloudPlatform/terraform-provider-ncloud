@@ -183,33 +183,18 @@ func dataSourceNcloudServerProductsRead(d *schema.ResourceData, meta interface{}
 
 func serverProductsAttributes(d *schema.ResourceData, serverImages []*server.Product) error {
 	var ids []string
-	var s []map[string]interface{}
-	for _, product := range serverImages {
-		mapping := map[string]interface{}{
-			"product_code":            ncloud.StringValue(product.ProductCode),
-			"product_name":            ncloud.StringValue(product.ProductName),
-			"product_type":            setCommonCode(product.ProductType),
-			"product_description":     ncloud.StringValue(product.ProductDescription),
-			"infra_resource_type":     setCommonCode(product.InfraResourceType),
-			"cpu_count":               int(ncloud.Int32Value(product.CpuCount)),
-			"memory_size":             int(ncloud.Int64Value(product.MemorySize)),
-			"base_block_storage_size": int(ncloud.Int64Value(product.BaseBlockStorageSize)),
-			"platform_type":           setCommonCode(product.PlatformType),
-			"os_information":          ncloud.StringValue(product.OsInformation),
-			"add_block_storage_size":  int(ncloud.Int64Value(product.AddBlockStorageSize)),
-		}
 
+	for _, product := range serverImages {
 		ids = append(ids, ncloud.StringValue(product.ProductCode))
-		s = append(s, mapping)
 	}
 
 	d.SetId(dataResourceIdHash(ids))
-	if err := d.Set("server_products", s); err != nil {
+	if err := d.Set("server_products", flattenServerImages(serverImages)); err != nil {
 		return err
 	}
 
 	if output, ok := d.GetOk("output_file"); ok && output.(string) != "" {
-		writeToFile(output.(string), s)
+		writeToFile(output.(string), d.Get("server_products"))
 	}
 
 	return nil

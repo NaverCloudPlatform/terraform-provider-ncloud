@@ -167,8 +167,8 @@ func dataSourceNcloudMemberServerImagesRead(d *schema.ResourceData, meta interfa
 		return err
 	}
 	reqParams := server.GetMemberServerImageListRequest{
-		MemberServerImageNoList: ncloud.StringInterfaceList(d.Get("member_server_image_no_list").([]interface{})),
-		PlatformTypeCodeList:    ncloud.StringInterfaceList(d.Get("platform_type_code_list").([]interface{})),
+		MemberServerImageNoList: expandStringInterfaceList(d.Get("member_server_image_no_list").([]interface{})),
+		PlatformTypeCodeList:    expandStringInterfaceList(d.Get("platform_type_code_list").([]interface{})),
 		RegionNo:                regionNo,
 	}
 
@@ -204,40 +204,18 @@ func dataSourceNcloudMemberServerImagesRead(d *schema.ResourceData, meta interfa
 
 func memberServerImagesAttributes(d *schema.ResourceData, memberServerImages []*server.MemberServerImage) error {
 	var ids []string
-	var s []map[string]interface{}
-	for _, m := range memberServerImages {
-		mapping := map[string]interface{}{
-			"member_server_image_no":                       ncloud.StringValue(m.MemberServerImageNo),
-			"member_server_image_name":                     ncloud.StringValue(m.MemberServerImageName),
-			"member_server_image_description":              ncloud.StringValue(m.MemberServerImageDescription),
-			"original_server_instance_no":                  ncloud.StringValue(m.OriginalServerInstanceNo),
-			"original_server_product_code":                 ncloud.StringValue(m.OriginalServerProductCode),
-			"original_server_name":                         ncloud.StringValue(m.OriginalServerName),
-			"original_base_block_storage_disk_type":        setCommonCode(m.OriginalBaseBlockStorageDiskType),
-			"original_server_image_product_code":           ncloud.StringValue(m.OriginalServerImageProductCode),
-			"original_os_information":                      ncloud.StringValue(m.OriginalOsInformation),
-			"original_server_image_name":                   ncloud.StringValue(m.OriginalServerImageName),
-			"member_server_image_status_name":              ncloud.StringValue(m.MemberServerImageStatusName),
-			"member_server_image_status":                   setCommonCode(m.MemberServerImageStatus),
-			"member_server_image_operation":                setCommonCode(m.MemberServerImageOperation),
-			"member_server_image_platform_type":            setCommonCode(m.MemberServerImagePlatformType),
-			"create_date":                                  ncloud.StringValue(m.CreateDate),
-			"region":                                       setRegion(m.Region),
-			"member_server_image_block_storage_total_rows": int(ncloud.Int32Value(m.MemberServerImageBlockStorageTotalRows)),
-			"member_server_image_block_storage_total_size": int(ncloud.Int64Value(m.MemberServerImageBlockStorageTotalSize)),
-		}
 
+	for _, m := range memberServerImages {
 		ids = append(ids, *m.MemberServerImageNo)
-		s = append(s, mapping)
 	}
 
 	d.SetId(dataResourceIdHash(ids))
-	if err := d.Set("member_server_images", s); err != nil {
+	if err := d.Set("member_server_images", flattenMemberServerImages(memberServerImages)); err != nil {
 		return err
 	}
 
 	if output, ok := d.GetOk("output_file"); ok && output.(string) != "" {
-		writeToFile(output.(string), s)
+		writeToFile(output.(string), d.Get("member_server_images"))
 	}
 
 	return nil

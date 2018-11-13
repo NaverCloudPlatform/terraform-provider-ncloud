@@ -66,7 +66,7 @@ func regionsAttributes(d *schema.ResourceData, regions []*Region) error {
 	var ids []string
 	var s []map[string]interface{}
 	for _, region := range regions {
-		mapping := setRegion(region)
+		mapping := flattenRegion(region)
 		ids = append(ids, *region.RegionNo)
 		s = append(s, mapping)
 	}

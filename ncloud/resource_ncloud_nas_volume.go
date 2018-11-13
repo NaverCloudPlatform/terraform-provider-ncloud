@@ -220,10 +220,10 @@ func resourceNcloudNasVolumeRead(d *schema.ResourceData, meta interface{}) error
 		return err
 	}
 	if nasVolume != nil {
-		d.Set("nas_volume_instance_status", setCommonCode(nasVolume.NasVolumeInstanceStatus))
+		d.Set("nas_volume_instance_status", flattenCommonCode(nasVolume.NasVolumeInstanceStatus))
 		d.Set("create_date", nasVolume.CreateDate)
 		d.Set("nas_volume_description", nasVolume.NasVolumeInstanceDescription)
-		d.Set("volume_allotment_protocol_type", setCommonCode(nasVolume.VolumeAllotmentProtocolType))
+		d.Set("volume_allotment_protocol_type", flattenCommonCode(nasVolume.VolumeAllotmentProtocolType))
 		d.Set("volume_name", nasVolume.VolumeName)
 		d.Set("volume_total_size", nasVolume.VolumeTotalSize)
 		d.Set("volume_size", nasVolume.VolumeSize)
@@ -235,8 +235,8 @@ func resourceNcloudNasVolumeRead(d *schema.ResourceData, meta interface{}) error
 		d.Set("is_snapshot_configuration", nasVolume.IsSnapshotConfiguration)
 		d.Set("is_event_configuration", nasVolume.IsEventConfiguration)
 		d.Set("nas_volume_instance_custom_ip_list", nasVolume.NasVolumeInstanceCustomIpList)
-		d.Set("zone", setZone(nasVolume.Zone))
-		d.Set("region", setRegion(nasVolume.Region))
+		d.Set("zone", flattenZone(nasVolume.Zone))
+		d.Set("region", flattenRegion(nasVolume.Region))
 	}
 
 	return nil
@@ -274,8 +274,8 @@ func resourceNcloudNasVolumeUpdate(d *schema.ResourceData, meta interface{}) err
 	if d.HasChange("server_instance_no_list") || d.HasChange("custom_ip_list") {
 		reqParams := &server.SetNasVolumeAccessControlRequest{
 			NasVolumeInstanceNo:  ncloud.String(d.Id()),
-			ServerInstanceNoList: ncloud.StringInterfaceList(d.Get("server_instance_no_list").([]interface{})),
-			CustomIpList:         ncloud.StringInterfaceList(d.Get("custom_ip_list").([]interface{})),
+			ServerInstanceNoList: expandStringInterfaceList(d.Get("server_instance_no_list").([]interface{})),
+			CustomIpList:         expandStringInterfaceList(d.Get("custom_ip_list").([]interface{})),
 		}
 
 		logCommonRequest("SetNasVolumeAccessControl", reqParams)
@@ -304,8 +304,8 @@ func buildCreateNasVolumeInstanceParams(client *NcloudAPIClient, d *schema.Resou
 		VolumeName:                      ncloud.String(d.Get("volume_name_postfix").(string)),
 		VolumeSize:                      ncloud.Int32(int32(d.Get("volume_size_gb").(int))),
 		VolumeAllotmentProtocolTypeCode: ncloud.String(d.Get("volume_allotment_protocol_type_code").(string)),
-		ServerInstanceNoList:            ncloud.StringInterfaceList(d.Get("server_instance_no_list").([]interface{})),
-		CustomIpList:                    ncloud.StringInterfaceList(d.Get("custom_ip_list").([]interface{})),
+		ServerInstanceNoList:            expandStringInterfaceList(d.Get("server_instance_no_list").([]interface{})),
+		CustomIpList:                    expandStringInterfaceList(d.Get("custom_ip_list").([]interface{})),
 		CifsUserName:                    ncloud.String(d.Get("cifs_user_name").(string)),
 		CifsUserPassword:                ncloud.String(d.Get("cifs_user_password").(string)),
 		NasVolumeDescription:            ncloud.String(d.Get("nas_volume_description").(string)),

@@ -1,8 +1,9 @@
 package ncloud
 
 import (
-	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/ncloud"
 	"reflect"
+
+	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/ncloud"
 )
 
 func validElem(i interface{}) bool {
@@ -43,26 +44,6 @@ func GetCommonResponse(i interface{}) *CommonResponse {
 		RequestId:     requestId,
 		ReturnCode:    returnCode,
 		ReturnMessage: returnMessage,
-	}
-}
-
-func GetCommonCode(i interface{}) *CommonCode {
-	if i == nil || !reflect.ValueOf(i).Elem().IsValid() {
-		return &CommonCode{}
-	}
-
-	var code *string
-	var codeName *string
-	if f := reflect.ValueOf(i).Elem().FieldByName("Code"); validField(f) {
-		code = StringField(f)
-	}
-	if f := reflect.ValueOf(i).Elem().FieldByName("CodeName"); validField(f) {
-		codeName = StringField(f)
-	}
-
-	return &CommonCode{
-		Code:     code,
-		CodeName: codeName,
 	}
 }
 

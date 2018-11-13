@@ -71,22 +71,20 @@ func dataSourceNcloudZonesRead(d *schema.ResourceData, meta interface{}) error {
 }
 
 func zonesAttributes(d *schema.ResourceData, zones []*Zone) error {
-
 	var ids []string
-	var s []map[string]interface{}
+
 	for _, zone := range zones {
-		mapping := setZone(zone)
 		ids = append(ids, ncloud.StringValue(zone.ZoneNo))
-		s = append(s, mapping)
 	}
+
 	d.SetId(dataResourceIdHash(ids))
-	if err := d.Set("zones", s); err != nil {
+	if err := d.Set("zones", flattenZones(zones)); err != nil {
 		return err
 	}
 
 	// create a json file in current directory and write d source to it.
 	if output, ok := d.GetOk("output_file"); ok && output.(string) != "" {
-		writeToFile(output.(string), s)
+		writeToFile(output.(string), d.Get("zones"))
 	}
 
 	return nil

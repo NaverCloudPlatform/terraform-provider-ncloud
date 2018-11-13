@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"regexp"
 
-	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/ncloud"
 	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/services/server"
 	"github.com/hashicorp/terraform/helper/schema"
 )
@@ -146,7 +145,7 @@ func dataSourceNcloudServerImagesRead(d *schema.ResourceData, meta interface{}) 
 	reqParams := &server.GetServerImageProductListRequest{
 		ExclusionProductCode:        StringPtrOrNil(d.GetOk("exclusion_product_code")),
 		ProductCode:                 StringPtrOrNil(d.GetOk("product_code")),
-		PlatformTypeCodeList:        ncloud.StringInterfaceList(d.Get("platform_type_code_list").([]interface{})),
+		PlatformTypeCodeList:        expandStringInterfaceList(d.Get("platform_type_code_list").([]interface{})),
 		RegionNo:                    regionNo,
 		InfraResourceDetailTypeCode: StringPtrOrNil(d.GetOk("infra_resource_detail_type_code")),
 	}
@@ -184,33 +183,18 @@ func dataSourceNcloudServerImagesRead(d *schema.ResourceData, meta interface{}) 
 
 func serverImagesAttributes(d *schema.ResourceData, serverImages []*server.Product) error {
 	var ids []string
-	var s []map[string]interface{}
-	for _, product := range serverImages {
-		mapping := map[string]interface{}{
-			"product_code":            ncloud.StringValue(product.ProductCode),
-			"product_name":            ncloud.StringValue(product.ProductName),
-			"product_type":            setCommonCode(product.ProductType),
-			"product_description":     ncloud.StringValue(product.ProductDescription),
-			"infra_resource_type":     setCommonCode(product.InfraResourceType),
-			"cpu_count":               int(ncloud.Int32Value(product.CpuCount)),
-			"memory_size":             int(ncloud.Int64Value(product.MemorySize)),
-			"base_block_storage_size": int(ncloud.Int64Value(product.BaseBlockStorageSize)),
-			"platform_type":           setCommonCode(product.PlatformType),
-			"os_information":          ncloud.StringValue(product.OsInformation),
-			"add_block_storage_size":  int(ncloud.Int64Value(product.AddBlockStorageSize)),
-		}
 
+	for _, product := range serverImages {
 		ids = append(ids, *product.ProductCode)
-		s = append(s, mapping)
 	}
 
 	d.SetId(dataResourceIdHash(ids))
-	if err := d.Set("server_images", s); err != nil {
+	if err := d.Set("server_images", flattenServerImages(serverImages)); err != nil {
 		return err
 	}
 
 	if output, ok := d.GetOk("output_file"); ok && output.(string) != "" {
-		writeToFile(output.(string), s)
+		writeToFile(output.(string), d.Get("server_images"))
 	}
 
 	return nil

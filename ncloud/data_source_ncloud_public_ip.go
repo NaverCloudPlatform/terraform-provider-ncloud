@@ -2,6 +2,7 @@ package ncloud
 
 import (
 	"fmt"
+
 	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/ncloud"
 	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/services/server"
 	"github.com/hashicorp/terraform/helper/schema"
@@ -178,8 +179,8 @@ func dataSourceNcloudPublicIpRead(d *schema.ResourceData, meta interface{}) erro
 	reqParams := new(server.GetPublicIpInstanceListRequest)
 	reqParams.InternetLineTypeCode = ncloud.String(d.Get("internet_line_type_code").(string))
 	reqParams.IsAssociated = ncloud.Bool(d.Get("is_associated").(bool))
-	reqParams.PublicIpInstanceNoList = ncloud.StringInterfaceList(d.Get("public_ip_instance_no_list").([]interface{}))
-	reqParams.PublicIpList = ncloud.StringInterfaceList(d.Get("public_ip_list").([]interface{}))
+	reqParams.PublicIpInstanceNoList = expandStringInterfaceList(d.Get("public_ip_instance_no_list").([]interface{}))
+	reqParams.PublicIpList = expandStringInterfaceList(d.Get("public_ip_list").([]interface{}))
 	reqParams.SearchFilterName = ncloud.String(d.Get("search_filter_name").(string))
 	reqParams.SearchFilterValue = ncloud.String(d.Get("search_filter_value").(string))
 	reqParams.RegionNo = regionNo
@@ -217,11 +218,11 @@ func publicIPAttributes(d *schema.ResourceData, instance *server.PublicIpInstanc
 	d.Set("public_ip", instance.PublicIp)
 	d.Set("public_ip_description", instance.PublicIpDescription)
 	d.Set("create_date", instance.CreateDate)
-	d.Set("internet_line_type", setCommonCode(instance.InternetLineType))
+	d.Set("internet_line_type", flattenCommonCode(instance.InternetLineType))
 	d.Set("public_ip_instance_status_name", instance.PublicIpInstanceStatusName)
-	d.Set("public_ip_instance_status", setCommonCode(instance.PublicIpInstanceStatus))
-	d.Set("public_ip_instance_operation", setCommonCode(instance.PublicIpInstanceOperation))
-	d.Set("public_ip_kind_type", setCommonCode(instance.PublicIpKindType))
+	d.Set("public_ip_instance_status", flattenCommonCode(instance.PublicIpInstanceStatus))
+	d.Set("public_ip_instance_operation", flattenCommonCode(instance.PublicIpInstanceOperation))
+	d.Set("public_ip_kind_type", flattenCommonCode(instance.PublicIpKindType))
 
 	if *instance.ServerInstanceAssociatedWithPublicIp.ServerInstanceNo != "" {
 		serverInstance := instance.ServerInstanceAssociatedWithPublicIp
