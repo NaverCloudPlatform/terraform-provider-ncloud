@@ -229,7 +229,7 @@ func resourceNcloudLoadBalancerUpdate(d *schema.ResourceData, meta interface{}) 
 		LoadBalancerAlgorithmTypeCode: ncloud.String(d.Get("load_balancer_algorithm_type_code").(string)),
 	}
 
-	if loadBalancerRuleParams, err := expandLoadBalancerRuleParams(d); err == nil {
+	if loadBalancerRuleParams, err := expandLoadBalancerRuleParams(d.Get("load_balancer_rule_list").([]interface{})); err == nil {
 		reqParams.LoadBalancerRuleList = loadBalancerRuleParams
 	}
 
@@ -292,7 +292,7 @@ func buildCreateLoadBalancerInstanceParams(client *NcloudAPIClient, d *schema.Re
 		RegionNo:                      regionNo,
 	}
 
-	if loadBalancerRuleParams, err := expandLoadBalancerRuleParams(d); err == nil {
+	if loadBalancerRuleParams, err := expandLoadBalancerRuleParams(d.Get("load_balancer_rule_list").([]interface{})); err == nil {
 		reqParams.LoadBalancerRuleList = loadBalancerRuleParams
 	}
 

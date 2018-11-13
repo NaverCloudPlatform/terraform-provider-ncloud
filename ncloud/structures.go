@@ -6,7 +6,6 @@ import (
 	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/ncloud"
 	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/services/loadbalancer"
 	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/services/server"
-	"github.com/hashicorp/terraform/helper/schema"
 )
 
 func expandStringInterfaceList(i []interface{}) []*string {
@@ -252,10 +251,10 @@ func flattenNasVolumeInstances(nasVolumeInstances []*server.NasVolumeInstance) [
 	return s
 }
 
-func expandLoadBalancerRuleParams(d *schema.ResourceData) ([]*loadbalancer.LoadBalancerRuleParameter, error) {
-	lbRuleList := make([]*loadbalancer.LoadBalancerRuleParameter, 0, len(d.Get("load_balancer_rule_list").([]interface{})))
+func expandLoadBalancerRuleParams(list []interface{}) ([]*loadbalancer.LoadBalancerRuleParameter, error) {
+	lbRuleList := make([]*loadbalancer.LoadBalancerRuleParameter, 0, len(list))
 
-	for _, v := range d.Get("load_balancer_rule_list").([]interface{}) {
+	for _, v := range list {
 		lbRule := new(loadbalancer.LoadBalancerRuleParameter)
 		for key, value := range v.(map[string]interface{}) {
 			switch key {
@@ -279,17 +278,17 @@ func expandLoadBalancerRuleParams(d *schema.ResourceData) ([]*loadbalancer.LoadB
 	return lbRuleList, nil
 }
 
-func flattenLoadBalancerRuleList(lbRuleList []*loadbalancer.LoadBalancerRule) []interface{} {
-	list := make([]interface{}, 0, len(lbRuleList))
+func flattenLoadBalancerRuleList(lbRuleList []*loadbalancer.LoadBalancerRule) []map[string]interface{} {
+	list := make([]map[string]interface{}, 0, len(lbRuleList))
 
 	for _, r := range lbRuleList {
 		rule := map[string]interface{}{
 			"protocol_type_code":    flattenCommonCode(r.ProtocolType),
-			"load_balancer_port":    r.LoadBalancerPort,
-			"server_port":           r.ServerPort,
-			"l7_health_check_path":  r.L7HealthCheckPath,
-			"certificate_name":      r.CertificateName,
-			"proxy_protocol_use_yn": r.ProxyProtocolUseYn,
+			"load_balancer_port":    ncloud.Int32Value(r.LoadBalancerPort),
+			"server_port":           ncloud.Int32Value(r.ServerPort),
+			"l7_health_check_path":  ncloud.StringValue(r.L7HealthCheckPath),
+			"certificate_name":      ncloud.StringValue(r.CertificateName),
+			"proxy_protocol_use_yn": ncloud.StringValue(r.ProxyProtocolUseYn),
 		}
 		list = append(list, rule)
 	}
@@ -307,10 +306,10 @@ func flattenLoadBalancedServerInstanceList(loadBalancedServerInstanceList []*loa
 	return list
 }
 
-func expandTagListParams(d *schema.ResourceData) ([]*server.InstanceTagParameter, error) {
-	tagList := make([]*server.InstanceTagParameter, 0, len(d.Get("tag_list").([]interface{})))
+func expandTagListParams(tl []interface{}) ([]*server.InstanceTagParameter, error) {
+	tagList := make([]*server.InstanceTagParameter, 0, len(tl))
 
-	for _, v := range d.Get("tag_list").([]interface{}) {
+	for _, v := range tl {
 		tag := new(server.InstanceTagParameter)
 		for key, value := range v.(map[string]interface{}) {
 			switch key {
@@ -326,13 +325,13 @@ func expandTagListParams(d *schema.ResourceData) ([]*server.InstanceTagParameter
 	return tagList, nil
 }
 
-func flattenInstanceTagList(tagList []*server.InstanceTag) []interface{} {
-	list := make([]interface{}, 0, len(tagList))
+func flattenInstanceTagList(tagList []*server.InstanceTag) []map[string]interface{} {
+	list := make([]map[string]interface{}, 0, len(tagList))
 
 	for _, r := range tagList {
 		tag := map[string]interface{}{
-			"tag_key":   r.TagKey,
-			"tag_value": r.TagValue,
+			"tag_key":   ncloud.StringValue(r.TagKey),
+			"tag_value": ncloud.StringValue(r.TagValue),
 		}
 		list = append(list, tag)
 	}

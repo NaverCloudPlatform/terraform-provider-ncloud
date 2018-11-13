@@ -374,7 +374,7 @@ func buildCreateServerInstanceReqParams(client *NcloudAPIClient, d *schema.Resou
 		RaidTypeName:                          ncloud.String(d.Get("raid_type_name").(string)),
 	}
 
-	if instanceTagList, err := expandTagListParams(d); err != nil {
+	if instanceTagList, err := expandTagListParams(d.Get("tag_list").([]interface{})); err == nil {
 		reqParams.InstanceTagList = instanceTagList
 	}
 
