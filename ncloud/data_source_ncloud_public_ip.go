@@ -218,11 +218,20 @@ func publicIPAttributes(d *schema.ResourceData, instance *server.PublicIpInstanc
 	d.Set("public_ip", instance.PublicIp)
 	d.Set("public_ip_description", instance.PublicIpDescription)
 	d.Set("create_date", instance.CreateDate)
-	d.Set("internet_line_type", flattenCommonCode(instance.InternetLineType))
 	d.Set("public_ip_instance_status_name", instance.PublicIpInstanceStatusName)
-	d.Set("public_ip_instance_status", flattenCommonCode(instance.PublicIpInstanceStatus))
-	d.Set("public_ip_instance_operation", flattenCommonCode(instance.PublicIpInstanceOperation))
-	d.Set("public_ip_kind_type", flattenCommonCode(instance.PublicIpKindType))
+
+	if err := d.Set("internet_line_type", flattenCommonCode(instance.InternetLineType)); err != nil {
+		return err
+	}
+	if err := d.Set("public_ip_instance_status", flattenCommonCode(instance.PublicIpInstanceStatus)); err != nil {
+		return err
+	}
+	if err := d.Set("public_ip_instance_operation", flattenCommonCode(instance.PublicIpInstanceOperation)); err != nil {
+		return err
+	}
+	if err := d.Set("public_ip_kind_type", flattenCommonCode(instance.PublicIpKindType)); err != nil {
+		return err
+	}
 
 	if *instance.ServerInstanceAssociatedWithPublicIp.ServerInstanceNo != "" {
 		serverInstance := instance.ServerInstanceAssociatedWithPublicIp
@@ -233,5 +242,6 @@ func publicIPAttributes(d *schema.ResourceData, instance *server.PublicIpInstanc
 		}
 		d.Set("server_instance", mapping)
 	}
+
 	return nil
 }

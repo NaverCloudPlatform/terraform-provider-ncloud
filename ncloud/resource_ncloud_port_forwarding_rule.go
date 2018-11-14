@@ -145,7 +145,10 @@ func resourceNcloudPortForwardingRuleRead(d *schema.ResourceData, meta interface
 		d.Set("server_instance_no", portForwardingRule.ServerInstance.ServerInstanceNo)
 		d.Set("port_forwarding_external_port", portForwardingRule.PortForwardingExternalPort)
 		d.Set("port_forwarding_internal_port", portForwardingRule.PortForwardingInternalPort)
-		d.Set("zone", flattenZone(resp.Zone))
+
+		if err := d.Set("zone", flattenZone(resp.Zone)); err != nil {
+			return err
+		}
 
 	}
 	return nil

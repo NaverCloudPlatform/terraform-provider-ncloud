@@ -219,11 +219,10 @@ func resourceNcloudNasVolumeRead(d *schema.ResourceData, meta interface{}) error
 	if err != nil {
 		return err
 	}
+
 	if nasVolume != nil {
-		d.Set("nas_volume_instance_status", flattenCommonCode(nasVolume.NasVolumeInstanceStatus))
 		d.Set("create_date", nasVolume.CreateDate)
 		d.Set("nas_volume_description", nasVolume.NasVolumeInstanceDescription)
-		d.Set("volume_allotment_protocol_type", flattenCommonCode(nasVolume.VolumeAllotmentProtocolType))
 		d.Set("volume_name", nasVolume.VolumeName)
 		d.Set("volume_total_size", nasVolume.VolumeTotalSize)
 		d.Set("volume_size", nasVolume.VolumeSize)
@@ -235,8 +234,19 @@ func resourceNcloudNasVolumeRead(d *schema.ResourceData, meta interface{}) error
 		d.Set("is_snapshot_configuration", nasVolume.IsSnapshotConfiguration)
 		d.Set("is_event_configuration", nasVolume.IsEventConfiguration)
 		d.Set("nas_volume_instance_custom_ip_list", nasVolume.NasVolumeInstanceCustomIpList)
-		d.Set("zone", flattenZone(nasVolume.Zone))
-		d.Set("region", flattenRegion(nasVolume.Region))
+
+		if err := d.Set("nas_volume_instance_status", flattenCommonCode(nasVolume.NasVolumeInstanceStatus)); err != nil {
+			return err
+		}
+		if err := d.Set("volume_allotment_protocol_type", flattenCommonCode(nasVolume.VolumeAllotmentProtocolType)); err != nil {
+			return err
+		}
+		if err := d.Set("zone", flattenZone(nasVolume.Zone)); err != nil {
+			return err
+		}
+		if err := d.Set("region", flattenRegion(nasVolume.Region)); err != nil {
+			return err
+		}
 	}
 
 	return nil

@@ -210,18 +210,33 @@ func memberServerImageAttributes(d *schema.ResourceData, m *server.MemberServerI
 	d.Set("original_server_instance_no", m.OriginalServerInstanceNo)
 	d.Set("original_server_product_code", m.OriginalServerProductCode)
 	d.Set("original_server_name", m.OriginalServerName)
-	d.Set("original_base_block_storage_disk_type", flattenCommonCode(m.OriginalBaseBlockStorageDiskType))
 	d.Set("original_server_image_product_code", m.OriginalServerImageProductCode)
 	d.Set("original_os_information", m.OriginalOsInformation)
 	d.Set("original_server_image_name", m.OriginalServerImageName)
 	d.Set("member_server_image_status_name", m.MemberServerImageStatusName)
-	d.Set("member_server_image_status", flattenCommonCode(m.MemberServerImageStatus))
-	d.Set("member_server_image_operation", flattenCommonCode(m.MemberServerImageOperation))
-	d.Set("member_server_image_platform_type", flattenCommonCode(m.MemberServerImagePlatformType))
 	d.Set("create_date", m.CreateDate)
-	d.Set("region", flattenRegion(m.Region))
 	d.Set("member_server_image_block_storage_total_rows", m.MemberServerImageBlockStorageTotalRows)
 	d.Set("member_server_image_block_storage_total_size", m.MemberServerImageBlockStorageTotalSize)
+
+	if err := d.Set("original_base_block_storage_disk_type", flattenCommonCode(m.OriginalBaseBlockStorageDiskType)); err != nil {
+		return err
+	}
+
+	if err := d.Set("member_server_image_status", flattenCommonCode(m.MemberServerImageStatus)); err != nil {
+		return err
+	}
+
+	if err := d.Set("member_server_image_operation", flattenCommonCode(m.MemberServerImageOperation)); err != nil {
+		return err
+	}
+
+	if err := d.Set("member_server_image_platform_type", flattenCommonCode(m.MemberServerImagePlatformType)); err != nil {
+		return err
+	}
+
+	if err := d.Set("region", flattenRegion(m.Region)); err != nil {
+		return err
+	}
 
 	d.SetId(*m.MemberServerImageNo)
 

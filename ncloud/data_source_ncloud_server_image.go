@@ -187,15 +187,23 @@ func dataSourceNcloudServerImageRead(d *schema.ResourceData, meta interface{}) e
 func serverImageAttributes(d *schema.ResourceData, serverImage *server.Product) error {
 	d.Set("product_code", serverImage.ProductCode)
 	d.Set("product_name", serverImage.ProductName)
-	d.Set("product_type", flattenCommonCode(serverImage.ProductType))
 	d.Set("product_description", serverImage.ProductDescription)
-	d.Set("infra_resource_type", flattenCommonCode(serverImage.InfraResourceType))
 	d.Set("cpu_count", serverImage.CpuCount)
 	d.Set("memory_size", serverImage.MemorySize)
 	d.Set("base_block_storage_size", serverImage.BaseBlockStorageSize)
-	d.Set("platform_type", flattenCommonCode(serverImage.PlatformType))
 	d.Set("os_information", serverImage.OsInformation)
 	d.Set("add_block_storage_size", serverImage.AddBlockStorageSize)
+
+	if err := d.Set("product_type", flattenCommonCode(serverImage.ProductType)); err != nil {
+		return err
+	}
+	if err := d.Set("infra_resource_type", flattenCommonCode(serverImage.InfraResourceType)); err != nil {
+		return err
+	}
+	if err := d.Set("platform_type", flattenCommonCode(serverImage.PlatformType)); err != nil {
+		return err
+	}
+
 	d.SetId(*serverImage.ProductCode)
 
 	return nil

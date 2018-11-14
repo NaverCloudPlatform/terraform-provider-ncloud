@@ -183,12 +183,15 @@ func getAccessControlRuleList(client *NcloudAPIClient, groupConfigNo string) (*s
 func accessControlRuleAttributes(d *schema.ResourceData, accessControlRule *server.AccessControlRule) error {
 	d.SetId(*accessControlRule.AccessControlRuleConfigurationNo)
 	d.Set("access_control_rule_configuration_no", accessControlRule.AccessControlRuleConfigurationNo)
-	d.Set("protocol_type", flattenCommonCode(accessControlRule.ProtocolType))
 	d.Set("source_ip", accessControlRule.SourceIp)
 	d.Set("destination_port", accessControlRule.DestinationPort)
 	d.Set("source_access_control_rule_configuration_no", accessControlRule.SourceAccessControlRuleConfigurationNo)
 	d.Set("source_access_control_rule_name", accessControlRule.SourceAccessControlRuleName)
 	d.Set("access_control_rule_description", accessControlRule.AccessControlRuleDescription)
+
+	if err := d.Set("protocol_type", flattenCommonCode(accessControlRule.ProtocolType)); err != nil {
+		return err
+	}
 
 	return nil
 }
