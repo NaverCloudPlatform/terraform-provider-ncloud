@@ -181,15 +181,22 @@ func dataSourceNcloudServerProductRead(d *schema.ResourceData, meta interface{})
 func serverProductAttributes(d *schema.ResourceData, product *server.Product) error {
 	d.Set("product_code", product.ProductCode)
 	d.Set("product_name", product.ProductName)
-	d.Set("product_type", flattenCommonCode(product.ProductType))
 	d.Set("product_description", product.ProductDescription)
-	d.Set("infra_resource_type", flattenCommonCode(product.InfraResourceType))
 	d.Set("cpu_count", product.CpuCount)
 	d.Set("memory_size", product.MemorySize)
 	d.Set("base_block_storage_size", product.BaseBlockStorageSize)
-	d.Set("platform_type", flattenCommonCode(product.PlatformType))
 	d.Set("os_information", product.OsInformation)
 	d.Set("add_block_storage_size", product.AddBlockStorageSize)
+
+	if err := d.Set("product_type", flattenCommonCode(product.ProductType)); err != nil {
+		return err
+	}
+	if err := d.Set("infra_resource_type", flattenCommonCode(product.InfraResourceType)); err != nil {
+		return err
+	}
+	if err := d.Set("platform_type", flattenCommonCode(product.PlatformType)); err != nil {
+		return err
+	}
 
 	d.SetId(ncloud.StringValue(product.ProductCode))
 

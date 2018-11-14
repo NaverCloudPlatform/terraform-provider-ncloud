@@ -258,7 +258,6 @@ func resourceNcloudServerRead(d *schema.ResourceData, meta interface{}) error {
 		d.Set("server_instance_no", instance.ServerInstanceNo)
 		d.Set("server_name", instance.ServerName)
 		d.Set("server_image_product_code", instance.ServerImageProductCode)
-		d.Set("server_instance_status", flattenCommonCode(instance.ServerInstanceStatus))
 		d.Set("server_instance_status_name", instance.ServerInstanceStatusName)
 		d.Set("uptime", instance.Uptime)
 		d.Set("server_image_name", instance.ServerImageName)
@@ -266,23 +265,40 @@ func resourceNcloudServerRead(d *schema.ResourceData, meta interface{}) error {
 		d.Set("cpu_count", instance.CpuCount)
 		d.Set("memory_size", instance.MemorySize)
 		d.Set("base_block_storage_size", instance.BaseBlockStorageSize)
-		d.Set("platform_type", flattenCommonCode(instance.PlatformType))
 		d.Set("is_fee_charging_monitoring", instance.IsFeeChargingMonitoring)
 		d.Set("public_ip", instance.PublicIp)
 		d.Set("private_ip", instance.PrivateIp)
-		d.Set("server_instance_operation", flattenCommonCode(instance.ServerInstanceOperation))
 		d.Set("create_date", instance.CreateDate)
 		d.Set("uptime", instance.Uptime)
 		d.Set("port_forwarding_public_ip", instance.PortForwardingPublicIp)
 		d.Set("port_forwarding_external_port", instance.PortForwardingExternalPort)
 		d.Set("port_forwarding_internal_port", instance.PortForwardingInternalPort)
-		d.Set("zone", flattenZone(instance.Zone))
-		d.Set("region", flattenRegion(instance.Region))
-		d.Set("base_block_storage_disk_type", flattenCommonCode(instance.BaseBlockStorageDiskType))
-		d.Set("base_block_storage_disk_detail_type", flattenCommonCode(instance.BaseBlockStroageDiskDetailType))
-		d.Set("internet_line_type", flattenCommonCode(instance.InternetLineType))
 		d.Set("user_data", d.Get("user_data").(string))
 
+		if err := d.Set("server_instance_status", flattenCommonCode(instance.ServerInstanceStatus)); err != nil {
+			return err
+		}
+		if err := d.Set("platform_type", flattenCommonCode(instance.PlatformType)); err != nil {
+			return err
+		}
+		if err := d.Set("server_instance_operation", flattenCommonCode(instance.ServerInstanceOperation)); err != nil {
+			return err
+		}
+		if err := d.Set("zone", flattenZone(instance.Zone)); err != nil {
+			return err
+		}
+		if err := d.Set("region", flattenRegion(instance.Region)); err != nil {
+			return err
+		}
+		if err := d.Set("base_block_storage_disk_type", flattenCommonCode(instance.BaseBlockStorageDiskType)); err != nil {
+			return err
+		}
+		if err := d.Set("base_block_storage_disk_detail_type", flattenCommonCode(instance.BaseBlockStroageDiskDetailType)); err != nil {
+			return err
+		}
+		if err := d.Set("internet_line_type", flattenCommonCode(instance.InternetLineType)); err != nil {
+			return err
+		}
 		if len(instance.InstanceTagList) != 0 {
 			d.Set("load_balancer_rule_list", flattenInstanceTagList(instance.InstanceTagList))
 		}

@@ -142,22 +142,34 @@ func resourceNcloudBlockStorageRead(d *schema.ResourceData, meta interface{}) er
 	if err != nil {
 		return err
 	}
+
 	if storage != nil {
 		d.Set("block_storage_instance_no", storage.BlockStorageInstanceNo)
 		d.Set("server_instance_no", storage.ServerInstanceNo)
 		d.Set("block_storage_size", storage.BlockStorageSize)
 		d.Set("block_storage_name", storage.BlockStorageName)
 		d.Set("server_name", storage.ServerName)
-		d.Set("block_storage_type", flattenCommonCode(storage.BlockStorageType))
 		d.Set("device_name", storage.DeviceName)
 		d.Set("block_storage_product_code", storage.BlockStorageProductCode)
-		d.Set("block_storage_instance_status", flattenCommonCode(storage.BlockStorageInstanceStatus))
-		d.Set("block_storage_instance_operation", flattenCommonCode(storage.BlockStorageInstanceOperation))
 		d.Set("block_storage_instance_status_name", storage.BlockStorageInstanceStatusName)
 		d.Set("create_date", storage.CreateDate)
 		d.Set("block_storage_description", storage.BlockStorageInstanceDescription)
-		d.Set("disk_type", flattenCommonCode(storage.DiskType))
-		d.Set("disk_detail_type", flattenCommonCode(storage.DiskDetailType))
+
+		if err := d.Set("block_storage_type", flattenCommonCode(storage.BlockStorageType)); err != nil {
+			return err
+		}
+		if err := d.Set("block_storage_instance_status", flattenCommonCode(storage.BlockStorageInstanceStatus)); err != nil {
+			return err
+		}
+		if err := d.Set("block_storage_instance_operation", flattenCommonCode(storage.BlockStorageInstanceOperation)); err != nil {
+			return err
+		}
+		if err := d.Set("disk_type", flattenCommonCode(storage.DiskType)); err != nil {
+			return err
+		}
+		if err := d.Set("disk_detail_type", flattenCommonCode(storage.DiskDetailType)); err != nil {
+			return err
+		}
 	}
 
 	return nil

@@ -182,25 +182,40 @@ func resourceNcloudLoadBalancerRead(d *schema.ResourceData, meta interface{}) er
 	if lb != nil {
 		d.Set("virtual_ip", lb.VirtualIp)
 		d.Set("load_balancer_name", lb.LoadBalancerName)
-		d.Set("load_balancer_algorithm_type", flattenCommonCode(lb.LoadBalancerAlgorithmType))
 		d.Set("load_balancer_description", lb.LoadBalancerDescription)
 		d.Set("create_date", lb.CreateDate)
 		d.Set("domain_name", lb.DomainName)
-		d.Set("internet_line_type", flattenCommonCode(lb.InternetLineType))
 		d.Set("load_balancer_instance_status_name", lb.LoadBalancerInstanceStatusName)
-		d.Set("load_balancer_instance_status", flattenCommonCode(lb.LoadBalancerInstanceStatus))
-		d.Set("load_balancer_instance_operation", flattenCommonCode(lb.LoadBalancerInstanceOperation))
-		d.Set("network_usage_type", flattenCommonCode(lb.NetworkUsageType))
 		d.Set("is_http_keep_alive", lb.IsHttpKeepAlive)
 		d.Set("connection_timeout", lb.ConnectionTimeout)
 		d.Set("certificate_name", lb.CertificateName)
 
+		if err := d.Set("load_balancer_algorithm_type", flattenCommonCode(lb.LoadBalancerAlgorithmType)); err != nil {
+			return err
+		}
+		if err := d.Set("internet_line_type", flattenCommonCode(lb.InternetLineType)); err != nil {
+			return err
+		}
+		if err := d.Set("load_balancer_instance_status", flattenCommonCode(lb.LoadBalancerInstanceStatus)); err != nil {
+			return err
+		}
+		if err := d.Set("load_balancer_instance_operation", flattenCommonCode(lb.LoadBalancerInstanceOperation)); err != nil {
+			return err
+		}
+		if err := d.Set("network_usage_type", flattenCommonCode(lb.NetworkUsageType)); err != nil {
+			return err
+		}
+
 		if len(lb.LoadBalancerRuleList) != 0 {
-			d.Set("load_balancer_rule_list", flattenLoadBalancerRuleList(lb.LoadBalancerRuleList))
+			if err := d.Set("load_balancer_rule_list", flattenLoadBalancerRuleList(lb.LoadBalancerRuleList)); err != nil {
+				return err
+			}
 		}
 
 		if len(lb.LoadBalancedServerInstanceList) != 0 {
-			d.Set("load_balanced_server_instance_list", flattenLoadBalancedServerInstanceList(lb.LoadBalancedServerInstanceList))
+			if err := d.Set("load_balanced_server_instance_list", flattenLoadBalancedServerInstanceList(lb.LoadBalancedServerInstanceList)); err != nil {
+				return err
+			}
 		} else {
 			d.Set("load_balanced_server_instance_list", nil)
 		}

@@ -137,18 +137,24 @@ func resourceNcloudBlockStorageSnapshotRead(d *schema.ResourceData, meta interfa
 	if err != nil {
 		return err
 	}
+
 	if snapshot != nil {
 		d.Set("block_storage_snapshot_instance_no", snapshot.BlockStorageSnapshotInstanceNo)
 		d.Set("block_storage_snapshot_name", snapshot.BlockStorageSnapshotName)
 		d.Set("block_storage_snapshot_volume_size", snapshot.BlockStorageSnapshotVolumeSize)
 		d.Set("original_block_storage_instance_no", snapshot.OriginalBlockStorageInstanceNo)
 		d.Set("original_block_storage_name", snapshot.OriginalBlockStorageName)
-		d.Set("block_storage_snapshot_instance_status", flattenCommonCode(snapshot.BlockStorageSnapshotInstanceStatus))
-		d.Set("block_storage_snapshot_instance_operation", flattenCommonCode(snapshot.BlockStorageSnapshotInstanceOperation))
 		d.Set("block_storage_snapshot_instance_status_name", snapshot.BlockStorageSnapshotInstanceStatusName)
 		d.Set("create_date", snapshot.CreateDate)
 		d.Set("server_image_product_code", snapshot.ServerImageProductCode)
 		d.Set("os_information", snapshot.OsInformation)
+
+		if err := d.Set("block_storage_snapshot_instance_status", flattenCommonCode(snapshot.BlockStorageSnapshotInstanceStatus)); err != nil {
+			return err
+		}
+		if err := d.Set("block_storage_snapshot_instance_operation", flattenCommonCode(snapshot.BlockStorageSnapshotInstanceOperation)); err != nil {
+			return err
+		}
 	}
 
 	return nil
