@@ -233,8 +233,7 @@ func publicIPAttributes(d *schema.ResourceData, instance *server.PublicIpInstanc
 		return err
 	}
 
-	if *instance.ServerInstanceAssociatedWithPublicIp.ServerInstanceNo != "" {
-		serverInstance := instance.ServerInstanceAssociatedWithPublicIp
+	if serverInstance := instance.ServerInstanceAssociatedWithPublicIp; serverInstance != nil {
 		mapping := map[string]interface{}{
 			"server_instance_no": ncloud.StringValue(serverInstance.ServerInstanceNo),
 			"server_name":        ncloud.StringValue(serverInstance.ServerName),
