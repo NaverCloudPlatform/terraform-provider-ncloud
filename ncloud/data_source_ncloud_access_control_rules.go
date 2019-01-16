@@ -20,7 +20,7 @@ func dataSourceNcloudAccessControlRules() *schema.Resource {
 				Required:    true,
 				Description: "Access control group setting number to search",
 			},
-			"source_access_control_rule_name_regex": {
+			"source_name_regex": {
 				Type:         schema.TypeString,
 				Optional:     true,
 				ForceNew:     true,
@@ -32,7 +32,7 @@ func dataSourceNcloudAccessControlRules() *schema.Resource {
 				Computed: true,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
-						"access_control_rule_configuration_no": {
+						"configuration_no": {
 							Type:     schema.TypeString,
 							Computed: true,
 						},
@@ -49,15 +49,15 @@ func dataSourceNcloudAccessControlRules() *schema.Resource {
 							Type:     schema.TypeString,
 							Computed: true,
 						},
-						"source_access_control_rule_configuration_no": {
+						"source_configuration_no": {
 							Type:     schema.TypeString,
 							Computed: true,
 						},
-						"source_access_control_rule_name": {
+						"source_name": {
 							Type:     schema.TypeString,
 							Computed: true,
 						},
-						"access_control_rule_description": {
+						"description": {
 							Type:     schema.TypeString,
 							Computed: true,
 						},
@@ -91,7 +91,7 @@ func dataSourceNcloudAccessControlRulesRead(d *schema.ResourceData, meta interfa
 
 	allAccessControlRuleList := resp.AccessControlRuleList
 	var filteredAccessControlRuleList []*server.AccessControlRule
-	nameRegex, nameRegexOk := d.GetOk("source_access_control_rule_name_regex")
+	nameRegex, nameRegexOk := d.GetOk("source_name_regex")
 	if nameRegexOk {
 		r := regexp.MustCompile(nameRegex.(string))
 		for _, rule := range allAccessControlRuleList {

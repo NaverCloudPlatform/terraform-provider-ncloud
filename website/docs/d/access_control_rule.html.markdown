@@ -26,17 +26,17 @@ The following arguments are supported:
 * `access_control_group_configuration_no` - (Optional) Access control group number to search
 * `access_control_group_name` - (Optional) Access control group name to search
 * `is_default_group` - (Optional) Whether default group
-* `source_access_control_rule_name_regex` - (Optional) A regex string to apply to the source access control rule list returned by ncloud
+* `source_name_regex` - (Optional) A regex string to apply to the source access control rule list returned by ncloud
 
 ## Attributes Reference
 
 * `source_ip` - Source IP
 * `destination_port` - Destination Port
 * `protocol_type_code` - Protocol type code
-* `access_control_rule_configuration_no` - Access control rule configuration no
+* `configuration_no` - Access control rule configuration no
 * `protocol_type` - Protocol type
     * `code` - Protocol type code
     * `code_name` - Protocol type name
-* `source_access_control_rule_configuration_no` - Source access control rule configuration no
-* `source_access_control_rule_name` - Source access control rule name
-* `access_control_rule_description` - Access control rule description
+* `source_configuration_no` - Source access control rule configuration no
+* `source_name` - Source access control rule name
+* `description` - Access control rule description

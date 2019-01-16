@@ -76,8 +76,8 @@ func TestFlattenAccessControlRules(t *testing.T) {
 		t.Fatalf("expected result had %d elements, but got %d", 1, len(result))
 	}
 
-	if result[0]["access_control_rule_configuration_no"] != "25363" {
-		t.Fatalf("expected access_control_rule_configuration_no to be 25363, but was %s", result[0]["access_control_rule_configuration_no"])
+	if result[0]["configuration_no"] != "25363" {
+		t.Fatalf("expected configuration_no to be 25363, but was %s", result[0]["configuration_no"])
 	}
 
 	if result[0]["source_ip"] != "0.0.0.0/0" {
@@ -88,16 +88,16 @@ func TestFlattenAccessControlRules(t *testing.T) {
 		t.Fatalf("expected destination_port to be 1-65535, but was %s", result[0]["destination_port"])
 	}
 
-	if result[0]["source_access_control_rule_configuration_no"] != "4964" {
-		t.Fatalf("expected source_access_control_rule_configuration_no to be 4964, but was %s", result[0]["source_access_control_rule_configuration_no"])
+	if result[0]["source_configuration_no"] != "4964" {
+		t.Fatalf("expected source_configuration_no to be 4964, but was %s", result[0]["source_configuration_no"])
 	}
 
-	if result[0]["source_access_control_rule_name"] != "ncloud-default-acg" {
-		t.Fatalf("expected source_access_control_rule_name to be ncloud-default-acg, but was %s", result[0]["source_access_control_rule_name"])
+	if result[0]["source_name"] != "ncloud-default-acg" {
+		t.Fatalf("expected source_name to be ncloud-default-acg, but was %s", result[0]["source_name"])
 	}
 
-	if result[0]["access_control_rule_description"] != "for test" {
-		t.Fatalf("expected access_control_rule_description to be 'for test', but was %s", result[0]["access_control_rule_description"])
+	if result[0]["description"] != "for test" {
+		t.Fatalf("expected description to be 'for test', but was %s", result[0]["description"])
 	}
 }
 
@@ -129,16 +129,16 @@ func TestFlattenAccessControlGroups(t *testing.T) {
 		t.Fatalf("expected result had %d elements, but got %d", 2, len(result))
 	}
 
-	if result[0]["access_control_group_configuration_no"] != "4964" {
-		t.Fatalf("expected access_control_group_configuration_no to be 4964, but was %s", result[0]["access_control_group_configuration_no"])
+	if result[0]["configuration_no"] != "4964" {
+		t.Fatalf("expected configuration_no to be 4964, but was %s", result[0]["configuration_no"])
 	}
 
-	if result[0]["access_control_group_name"] != "ncloud-default-acg" {
-		t.Fatalf("expected access_control_group_name to be ncloud-default-acg, but was %s", result[0]["access_control_group_name"])
+	if result[0]["name"] != "ncloud-default-acg" {
+		t.Fatalf("expected name to be ncloud-default-acg, but was %s", result[0]["name"])
 	}
 
-	if result[0]["access_control_group_description"] != "for test" {
-		t.Fatalf("expected access_control_group_description to be 'for test', but was %s", result[0]["access_control_group_description"])
+	if result[0]["description"] != "for test" {
+		t.Fatalf("expected description to be 'for test', but was %s", result[0]["description"])
 	}
 
 	if result[0]["is_default_group"] != true {

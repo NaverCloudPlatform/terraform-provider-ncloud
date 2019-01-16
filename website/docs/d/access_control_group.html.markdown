@@ -18,7 +18,7 @@ When creating a server instance (VM), you can add an access control group (ACG) 
 ```hcl
 data "ncloud_access_control_group" "test" {
     # filter by ACG name
-	"access_control_group_name" = "acg-name"
+	"name" = "acg-name"
 }
 ```
 
@@ -36,15 +36,15 @@ data "ncloud_access_control_group" "test" {
 
 The following arguments are supported:
 
-* `access_control_group_configuration_no` - (Conditional) List of ACG configuration numbers you want to get
-    Conditional: Requires `access_control_group_configuration_no` or` access_control_group_name` or `most_recent`.
-* `access_control_group_name` - (Conditional) Name of the ACG you want to get
-    Conditional: Requires `access_control_group_configuration_no` or` access_control_group_name` or `most_recent`.
+* `configuration_no` - (Conditional) List of ACG configuration numbers you want to get
+    Conditional: Requires `configuration_no` or` name` or `most_recent`.
+* `name` - (Conditional) Name of the ACG you want to get
+    Conditional: Requires `configuration_no` or` name` or `most_recent`.
 * `most_recent` - (Conditional) If more than one result is returned, get the most recent created ACG.
-    Conditional: Requires `access_control_group_configuration_no` or` access_control_group_name` or `most_recent`.
+    Conditional: Requires `configuration_no` or` name` or `most_recent`.
 * `is_default_group` - (Conditional) Indicates whether to get default groups only
 
 ## Attributes Reference
 
-* `access_control_group_description` - ACG description
+* `description` - ACG description
 * `create_date` - Creation date of ACG

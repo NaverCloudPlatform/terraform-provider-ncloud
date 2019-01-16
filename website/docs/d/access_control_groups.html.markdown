@@ -20,9 +20,9 @@ data "ncloud_access_control_groups" "acg" {}
 
 The following arguments are supported:
 
-* `access_control_group_configuration_no_list` - (Optional) List of ACG configuration numbers you want to get
+* `configuration_no_list` - (Optional) List of ACG configuration numbers you want to get
 * `is_default_group` - (Optional) Indicates whether to get default groups only
-* `access_control_group_name` - (Optional) Name of the ACG you want to get
+* `name` - (Optional) Name of the ACG you want to get
 * `page_no` - (Optional) Page number based on the page size if the number of items is large
 * `page_size` - (Optional) Number of items to be shown per page
 
@@ -30,8 +30,8 @@ The following arguments are supported:
 
 * `id` - ID of access control groups.
 * `access_control_groups` - A List of access control group
-    * `access_control_group_configuration_no` - ACG configuration number
-    * `access_control_group_name` - ACG name
-    * `access_control_group_description` - ACG description
+    * `configuration_no` - ACG configuration number
+    * `name` - ACG name
+    * `description` - ACG description
     * `is_default_group` - Whether default group
     * `create_date` - Creation date of ACG

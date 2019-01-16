@@ -30,7 +30,7 @@ func dataSourceNcloudAccessControlRule() *schema.Resource {
 				Optional:    true,
 				Description: "Whether default group",
 			},
-			"source_access_control_rule_name_regex": {
+			"source_name_regex": {
 				Type:         schema.TypeString,
 				Optional:     true,
 				ForceNew:     true,
@@ -54,7 +54,7 @@ func dataSourceNcloudAccessControlRule() *schema.Resource {
 				Computed:    true,
 				Description: "Protocol type code",
 			},
-			"access_control_rule_configuration_no": {
+			"configuration_no": {
 				Type:        schema.TypeString,
 				Computed:    true,
 				Description: "Access control rule configuration no",
@@ -65,17 +65,17 @@ func dataSourceNcloudAccessControlRule() *schema.Resource {
 				Elem:        commonCodeSchemaResource,
 				Description: "Protocol type",
 			},
-			"source_access_control_rule_configuration_no": {
+			"source_configuration_no": {
 				Type:        schema.TypeString,
 				Computed:    true,
 				Description: "Source access control rule configuration no",
 			},
-			"source_access_control_rule_name": {
+			"source_name": {
 				Type:        schema.TypeString,
 				Computed:    true,
 				Description: "Source access control rule name",
 			},
-			"access_control_rule_description": {
+			"description": {
 				Type:        schema.TypeString,
 				Computed:    true,
 				Description: "Access control rule description",
@@ -132,7 +132,7 @@ func dataSourceNcloudAccessControlRuleRead(d *schema.ResourceData, meta interfac
 	var accessControlRule *server.AccessControlRule
 
 	var r *regexp.Regexp
-	nameRegex, nameRegexOk := d.GetOk("source_access_control_rule_name_regex")
+	nameRegex, nameRegexOk := d.GetOk("source_name_regex")
 	sourceIP, sourceIPOk := d.GetOk("source_ip")
 	destinationPort, destinationPortOk := d.GetOk("destination_port")
 	protocolTypeCode, protocolTypeCodeOk := d.GetOk("protocol_type_code")
@@ -182,12 +182,12 @@ func getAccessControlRuleList(client *NcloudAPIClient, groupConfigNo string) (*s
 
 func accessControlRuleAttributes(d *schema.ResourceData, accessControlRule *server.AccessControlRule) error {
 	d.SetId(*accessControlRule.AccessControlRuleConfigurationNo)
-	d.Set("access_control_rule_configuration_no", accessControlRule.AccessControlRuleConfigurationNo)
+	d.Set("configuration_no", accessControlRule.AccessControlRuleConfigurationNo)
 	d.Set("source_ip", accessControlRule.SourceIp)
 	d.Set("destination_port", accessControlRule.DestinationPort)
-	d.Set("source_access_control_rule_configuration_no", accessControlRule.SourceAccessControlRuleConfigurationNo)
-	d.Set("source_access_control_rule_name", accessControlRule.SourceAccessControlRuleName)
-	d.Set("access_control_rule_description", accessControlRule.AccessControlRuleDescription)
+	d.Set("source_configuration_no", accessControlRule.SourceAccessControlRuleConfigurationNo)
+	d.Set("source_name", accessControlRule.SourceAccessControlRuleName)
+	d.Set("description", accessControlRule.AccessControlRuleDescription)
 
 	if err := d.Set("protocol_type", flattenCommonCode(accessControlRule.ProtocolType)); err != nil {
 		return err

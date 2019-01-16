@@ -13,7 +13,7 @@ func dataSourceNcloudAccessControlGroup() *schema.Resource {
 		Read: dataSourceNcloudAccessControlGroupRead,
 
 		Schema: map[string]*schema.Schema{
-			"access_control_group_configuration_no": {
+			"configuration_no": {
 				Type:     schema.TypeString,
 				Optional: true,
 			},
@@ -21,7 +21,7 @@ func dataSourceNcloudAccessControlGroup() *schema.Resource {
 				Type:     schema.TypeBool,
 				Optional: true,
 			},
-			"access_control_group_name": {
+			"name": {
 				Type:     schema.TypeString,
 				Optional: true,
 			},
@@ -32,7 +32,7 @@ func dataSourceNcloudAccessControlGroup() *schema.Resource {
 				ForceNew: true,
 			},
 
-			"access_control_group_description": {
+			"description": {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
@@ -47,12 +47,12 @@ func dataSourceNcloudAccessControlGroup() *schema.Resource {
 func dataSourceNcloudAccessControlGroupRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*NcloudAPIClient)
 
-	configNo, configNoOk := d.GetOk("access_control_group_configuration_no")
-	acgName, acgNameOk := d.GetOk("access_control_group_name")
+	configNo, configNoOk := d.GetOk("configuration_no")
+	acgName, acgNameOk := d.GetOk("name")
 	mostRecent, mostRecentOk := d.GetOk("most_recent")
 
 	if !configNoOk && !acgNameOk && !mostRecentOk {
-		return fmt.Errorf("either access_control_group_configuration_no or access_control_group_name or most_recent is required")
+		return fmt.Errorf("either configuration_no or name or most_recent is required")
 	}
 
 	reqParams := server.GetAccessControlGroupListRequest{}
@@ -100,9 +100,9 @@ func dataSourceNcloudAccessControlGroupRead(d *schema.ResourceData, meta interfa
 
 func accessControlGroupAttributes(d *schema.ResourceData, accessControlGroup *server.AccessControlGroup) error {
 	d.SetId(*accessControlGroup.AccessControlGroupConfigurationNo)
-	d.Set("access_control_group_configuration_no", accessControlGroup.AccessControlGroupConfigurationNo)
-	d.Set("access_control_group_name", accessControlGroup.AccessControlGroupName)
-	d.Set("access_control_group_description", accessControlGroup.AccessControlGroupDescription)
+	d.Set("configuration_no", accessControlGroup.AccessControlGroupConfigurationNo)
+	d.Set("name", accessControlGroup.AccessControlGroupName)
+	d.Set("description", accessControlGroup.AccessControlGroupDescription)
 	d.Set("is_default_group", accessControlGroup.IsDefaultGroup)
 	d.Set("create_date", accessControlGroup.CreateDate)
 
