@@ -2,11 +2,12 @@ package ncloud
 
 import (
 	"fmt"
+	"testing"
+
 	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/services/server"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/terraform"
-	"testing"
 )
 
 func TestAccResourceNcloudBlockStorageBasic(t *testing.T) {
@@ -37,11 +38,11 @@ func TestAccResourceNcloudBlockStorageBasic(t *testing.T) {
 					testCheck(),
 					resource.TestCheckResourceAttr(
 						"ncloud_block_storage.storage",
-						"block_storage_name",
+						"name",
 						testBlockStorageName),
 					resource.TestCheckResourceAttr(
 						"ncloud_block_storage.storage",
-						"block_storage_instance_status.code",
+						"instance_status.code",
 						"ATTAC"),
 				),
 			},
@@ -114,7 +115,7 @@ resource "ncloud_login_key" "loginkey" {
 }
 
 resource "ncloud_server" "server" {
-	"server_name" = "%s"
+	"name" = "%s"
 	"server_image_product_code" = "SPSW0LINUX000032"
 	"server_product_code" = "SPSVRSTAND000004"
 	"login_key_name" = "${ncloud_login_key.loginkey.key_name}"
@@ -122,8 +123,8 @@ resource "ncloud_server" "server" {
 
 resource "ncloud_block_storage" "storage" {
 	"server_instance_no" = "${ncloud_server.server.id}"
-	"block_storage_name" = "%s"
-	"block_storage_size_gb" = "10"
+	"name" = "%s"
+	"size_gb" = "10"
 }
 `, serverInstanceName, serverInstanceName, blockStorageName)
 }

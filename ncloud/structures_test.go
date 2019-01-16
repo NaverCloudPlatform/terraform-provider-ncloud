@@ -76,8 +76,8 @@ func TestFlattenAccessControlRules(t *testing.T) {
 		t.Fatalf("expected result had %d elements, but got %d", 1, len(result))
 	}
 
-	if result[0]["access_control_rule_configuration_no"] != "25363" {
-		t.Fatalf("expected access_control_rule_configuration_no to be 25363, but was %s", result[0]["access_control_rule_configuration_no"])
+	if result[0]["configuration_no"] != "25363" {
+		t.Fatalf("expected configuration_no to be 25363, but was %s", result[0]["configuration_no"])
 	}
 
 	if result[0]["source_ip"] != "0.0.0.0/0" {
@@ -88,16 +88,16 @@ func TestFlattenAccessControlRules(t *testing.T) {
 		t.Fatalf("expected destination_port to be 1-65535, but was %s", result[0]["destination_port"])
 	}
 
-	if result[0]["source_access_control_rule_configuration_no"] != "4964" {
-		t.Fatalf("expected source_access_control_rule_configuration_no to be 4964, but was %s", result[0]["source_access_control_rule_configuration_no"])
+	if result[0]["source_configuration_no"] != "4964" {
+		t.Fatalf("expected source_configuration_no to be 4964, but was %s", result[0]["source_configuration_no"])
 	}
 
-	if result[0]["source_access_control_rule_name"] != "ncloud-default-acg" {
-		t.Fatalf("expected source_access_control_rule_name to be ncloud-default-acg, but was %s", result[0]["source_access_control_rule_name"])
+	if result[0]["source_name"] != "ncloud-default-acg" {
+		t.Fatalf("expected source_name to be ncloud-default-acg, but was %s", result[0]["source_name"])
 	}
 
-	if result[0]["access_control_rule_description"] != "for test" {
-		t.Fatalf("expected access_control_rule_description to be 'for test', but was %s", result[0]["access_control_rule_description"])
+	if result[0]["description"] != "for test" {
+		t.Fatalf("expected description to be 'for test', but was %s", result[0]["description"])
 	}
 }
 
@@ -129,16 +129,16 @@ func TestFlattenAccessControlGroups(t *testing.T) {
 		t.Fatalf("expected result had %d elements, but got %d", 2, len(result))
 	}
 
-	if result[0]["access_control_group_configuration_no"] != "4964" {
-		t.Fatalf("expected access_control_group_configuration_no to be 4964, but was %s", result[0]["access_control_group_configuration_no"])
+	if result[0]["configuration_no"] != "4964" {
+		t.Fatalf("expected configuration_no to be 4964, but was %s", result[0]["configuration_no"])
 	}
 
-	if result[0]["access_control_group_name"] != "ncloud-default-acg" {
-		t.Fatalf("expected access_control_group_name to be ncloud-default-acg, but was %s", result[0]["access_control_group_name"])
+	if result[0]["name"] != "ncloud-default-acg" {
+		t.Fatalf("expected name to be ncloud-default-acg, but was %s", result[0]["name"])
 	}
 
-	if result[0]["access_control_group_description"] != "for test" {
-		t.Fatalf("expected access_control_group_description to be 'for test', but was %s", result[0]["access_control_group_description"])
+	if result[0]["description"] != "for test" {
+		t.Fatalf("expected description to be 'for test', but was %s", result[0]["description"])
 	}
 
 	if result[0]["is_default_group"] != true {
@@ -264,16 +264,16 @@ func TestFlattenMemberServerImages(t *testing.T) {
 
 	r := result[0]
 
-	if r["member_server_image_no"] != "4653" {
-		t.Fatalf("expected result member_server_image_no to be 4653, but was %s", r["member_server_image_no"])
+	if r["no"] != "4653" {
+		t.Fatalf("expected result no to be 4653, but was %s", r["no"])
 	}
 
-	if r["member_server_image_name"] != "test-1514385790" {
-		t.Fatalf("expected result member_server_image_name to be test-1514385790, but was %s", r["member_server_image_name"])
+	if r["name"] != "test-1514385790" {
+		t.Fatalf("expected result name to be test-1514385790, but was %s", r["name"])
 	}
 
-	if r["member_server_image_description"] != "server description" {
-		t.Fatalf("expected result member_server_image_description to be 'server description', but was %s", r["member_server_image_description"])
+	if r["description"] != "server description" {
+		t.Fatalf("expected result description to be 'server description', but was %s", r["description"])
 	}
 
 	if r["original_server_instance_no"] != "572053" {
@@ -300,20 +300,20 @@ func TestFlattenMemberServerImages(t *testing.T) {
 		t.Fatalf("expected result original_server_image_name to be centos-5.11-64, but was %s", r["original_server_image_name"])
 	}
 
-	if r["member_server_image_status_name"] != "creating" {
-		t.Fatalf("expected result member_server_image_status_name to be creating, but was %s", r["member_server_image_status_name"])
+	if r["status_name"] != "creating" {
+		t.Fatalf("expected result status_name to be creating, but was %s", r["status_name"])
 	}
 
 	if r["create_date"] != "2018-01-07T10:17:14+0900" {
 		t.Fatalf("expected result create_date to be 2018-01-07T10:17:14+0900, but was %s", r["create_date"])
 	}
 
-	if r["member_server_image_block_storage_total_rows"] != 2 {
-		t.Fatalf("expected result member_server_image_block_storage_total_rows to be 2, but was %s", r["member_server_image_block_storage_total_rows"])
+	if r["block_storage_total_rows"] != 2 {
+		t.Fatalf("expected result block_storage_total_rows to be 2, but was %s", r["block_storage_total_rows"])
 	}
 
-	if r["member_server_image_block_storage_total_size"] != 1127428915200 {
-		t.Fatalf("expected result member_server_image_block_storage_total_size to be 1127428915200, but was %s", r["member_server_image_block_storage_total_size"])
+	if r["block_storage_total_size"] != 1127428915200 {
+		t.Fatalf("expected result block_storage_total_size to be 1127428915200, but was %s", r["block_storage_total_size"])
 	}
 }
 
@@ -469,8 +469,8 @@ func TestFlattenNasVolumeInstances(t *testing.T) {
 
 	r := result[0]
 
-	if r["nas_volume_instance_no"] != "856180" {
-		t.Fatalf("expected result nas_volume_instance_no to be 856180, but was %s", r["nas_volume_instance_no"])
+	if r["instance_no"] != "856180" {
+		t.Fatalf("expected result instance_no to be 856180, but was %s", r["instance_no"])
 	}
 
 	if r["create_date"] != "2018-07-12T20:32:45+0900" {

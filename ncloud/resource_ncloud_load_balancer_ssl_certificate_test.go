@@ -171,11 +171,11 @@ func testAccLoadBalancerSSLCertificateConfig(certificateName string, privatekey 
 		}
 
 		resource "ncloud_load_balancer" "lb" {
-			"load_balancer_name"                = "%s"
-			"load_balancer_algorithm_type_code" = "SIPHS"
-			"load_balancer_description"         = "tftest_lb description"
+			"name"                = "%s"
+			"algorithm_type_code" = "SIPHS"
+			"description"         = "tftest_lb description"
 
-			"load_balancer_rule_list" = [
+			"rule_list" = [
 				{
 					"protocol_type_code"   = "HTTP"
 					"load_balancer_port"   = 80

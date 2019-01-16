@@ -25,7 +25,7 @@ resource "ncloud_public_ip" "public_ip" {
 The following arguments are supported:
 
 * `server_instance_no` - (Optional) Server instance No. to assign after creating a public IP. You can get one by calling getPublicIpTargetServerInstanceList.
-* `public_ip_description` - (Optional) Public IP description.
+* `description` - (Optional) Public IP description.
 * `internet_line_type_code` - (Optional) Internet line code. PUBLC(Public), GLBL(Global)
 * `region_code` - (Optional) Region code. Get available values using the data source `ncloud_regions`.
     Conflicts with `region_no`. Only one of `region_no` and `region_code` can be used.
@@ -42,21 +42,21 @@ The following arguments are supported:
 
 ## Attributes Reference
 
-* `public_ip_instance_no` - Public IP instance No.
+* `instance_no` - Public IP instance No.
 * `public_ip` - Public IP Address.
-* `public_ip_description` - Public IP description.
+* `description` - Public IP description.
 * `create_date` - Creation date of the public IP instance
 * `internet_line_type` - Internet line type
     * `code` - Internet line type code
     * `code_name` - Internet line type code name
-* `public_ip_instance_status_name` - Public IP instance status name
-* `public_ip_instance_status` - Public IP instance status
+* `instance_status_name` - Public IP instance status name
+* `instance_status` - Public IP instance status
     * `code` - Public IP instance status code
     * `code_name` - Public IP instance status code name
-* `public_ip_instance_operation` - Public IP instance operation
+* `instance_operation` - Public IP instance operation
     * `code` - Public IP instance operation code
     * `code_name` - Public IP instance operation code name
-* `public_ip_kind_type` - Public IP kind type
+* `kind_type` - Public IP kind type
 * `zone` - Zone info
     * `zone_no` - Zone number
     * `zone_code` - Zone code

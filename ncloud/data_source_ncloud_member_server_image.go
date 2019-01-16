@@ -13,14 +13,14 @@ func dataSourceNcloudMemberServerImage() *schema.Resource {
 		Read: dataSourceNcloudMemberServerImageRead,
 
 		Schema: map[string]*schema.Schema{
-			"member_server_image_name_regex": {
+			"name_regex": {
 				Type:     schema.TypeString,
 				Optional: true,
 				// ForceNew:     true,
 				ValidateFunc: validateRegexp,
 				Description:  "A regex string to apply to the member server image list returned by ncloud",
 			},
-			"member_server_image_no_list": {
+			"no_list": {
 				Type:        schema.TypeList,
 				Optional:    true,
 				Elem:        &schema.Schema{Type: schema.TypeString},
@@ -52,17 +52,17 @@ func dataSourceNcloudMemberServerImage() *schema.Resource {
 				Description: "If more than one result is returned, get the most recent created member server image.",
 			},
 
-			"member_server_image_no": {
+			"no": {
 				Type:        schema.TypeString,
 				Computed:    true,
 				Description: "Member server image no",
 			},
-			"member_server_image_name": {
+			"name": {
 				Type:        schema.TypeString,
 				Computed:    true,
 				Description: "Member server image name",
 			},
-			"member_server_image_description": {
+			"description": {
 				Type:        schema.TypeString,
 				Computed:    true,
 				Description: "Member server image description",
@@ -103,24 +103,24 @@ func dataSourceNcloudMemberServerImage() *schema.Resource {
 				Computed:    true,
 				Description: "Original server image name",
 			},
-			"member_server_image_status_name": {
+			"status_name": {
 				Type:        schema.TypeString,
 				Computed:    true,
 				Description: "Member server image status name",
 			},
-			"member_server_image_status": {
+			"status": {
 				Type:        schema.TypeMap,
 				Computed:    true,
 				Elem:        commonCodeSchemaResource,
 				Description: "Member server image status",
 			},
-			"member_server_image_operation": {
+			"operation": {
 				Type:        schema.TypeMap,
 				Computed:    true,
 				Elem:        commonCodeSchemaResource,
 				Description: "Member server image operation",
 			},
-			"member_server_image_platform_type": {
+			"platform_type": {
 				Type:        schema.TypeMap,
 				Computed:    true,
 				Elem:        commonCodeSchemaResource,
@@ -137,12 +137,12 @@ func dataSourceNcloudMemberServerImage() *schema.Resource {
 				Elem:        regionSchemaResource,
 				Description: "Region info",
 			},
-			"member_server_image_block_storage_total_rows": {
+			"block_storage_total_rows": {
 				Type:        schema.TypeInt,
 				Computed:    true,
 				Description: "Member server image block storage total rows",
 			},
-			"member_server_image_block_storage_total_size": {
+			"block_storage_total_size": {
 				Type:        schema.TypeInt,
 				Computed:    true,
 				Description: "Member server image block storage total size",
@@ -159,7 +159,7 @@ func dataSourceNcloudMemberServerImageRead(d *schema.ResourceData, meta interfac
 		return err
 	}
 	reqParams := &server.GetMemberServerImageListRequest{
-		MemberServerImageNoList: expandStringInterfaceList(d.Get("member_server_image_no_list").([]interface{})),
+		MemberServerImageNoList: expandStringInterfaceList(d.Get("no_list").([]interface{})),
 		PlatformTypeCodeList:    expandStringInterfaceList(d.Get("platform_type_code_list").([]interface{})),
 		RegionNo:                regionNo,
 	}
@@ -177,7 +177,7 @@ func dataSourceNcloudMemberServerImageRead(d *schema.ResourceData, meta interfac
 
 	allMemberServerImages := resp.MemberServerImageList
 	var filteredMemberServerImages []*server.MemberServerImage
-	nameRegex, nameRegexOk := d.GetOk("member_server_image_name_regex")
+	nameRegex, nameRegexOk := d.GetOk("name_regex")
 	if nameRegexOk {
 		r := regexp.MustCompile(nameRegex.(string))
 		for _, memberServerImage := range allMemberServerImages {
@@ -204,33 +204,33 @@ func dataSourceNcloudMemberServerImageRead(d *schema.ResourceData, meta interfac
 }
 
 func memberServerImageAttributes(d *schema.ResourceData, m *server.MemberServerImage) error {
-	d.Set("member_server_image_no", m.MemberServerImageNo)
-	d.Set("member_server_image_name", m.MemberServerImageName)
-	d.Set("member_server_image_description", m.MemberServerImageDescription)
+	d.Set("no", m.MemberServerImageNo)
+	d.Set("name", m.MemberServerImageName)
+	d.Set("description", m.MemberServerImageDescription)
 	d.Set("original_server_instance_no", m.OriginalServerInstanceNo)
 	d.Set("original_server_product_code", m.OriginalServerProductCode)
 	d.Set("original_server_name", m.OriginalServerName)
 	d.Set("original_server_image_product_code", m.OriginalServerImageProductCode)
 	d.Set("original_os_information", m.OriginalOsInformation)
 	d.Set("original_server_image_name", m.OriginalServerImageName)
-	d.Set("member_server_image_status_name", m.MemberServerImageStatusName)
+	d.Set("status_name", m.MemberServerImageStatusName)
 	d.Set("create_date", m.CreateDate)
-	d.Set("member_server_image_block_storage_total_rows", m.MemberServerImageBlockStorageTotalRows)
-	d.Set("member_server_image_block_storage_total_size", m.MemberServerImageBlockStorageTotalSize)
+	d.Set("block_storage_total_rows", m.MemberServerImageBlockStorageTotalRows)
+	d.Set("block_storage_total_size", m.MemberServerImageBlockStorageTotalSize)
 
 	if err := d.Set("original_base_block_storage_disk_type", flattenCommonCode(m.OriginalBaseBlockStorageDiskType)); err != nil {
 		return err
 	}
 
-	if err := d.Set("member_server_image_status", flattenCommonCode(m.MemberServerImageStatus)); err != nil {
+	if err := d.Set("status", flattenCommonCode(m.MemberServerImageStatus)); err != nil {
 		return err
 	}
 
-	if err := d.Set("member_server_image_operation", flattenCommonCode(m.MemberServerImageOperation)); err != nil {
+	if err := d.Set("operation", flattenCommonCode(m.MemberServerImageOperation)); err != nil {
 		return err
 	}
 
-	if err := d.Set("member_server_image_platform_type", flattenCommonCode(m.MemberServerImagePlatformType)); err != nil {
+	if err := d.Set("platform_type", flattenCommonCode(m.MemberServerImagePlatformType)); err != nil {
 		return err
 	}
 

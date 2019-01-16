@@ -2,13 +2,14 @@ package ncloud
 
 import (
 	"fmt"
+	"log"
+	"testing"
+
 	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/ncloud"
 	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/services/server"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/terraform"
-	"log"
-	"testing"
 )
 
 // TODO: Fix TestAcc ErrorTestAccResourceNcloudBlockStorageBasic
@@ -44,7 +45,7 @@ func ignore_TestAccResourceNcloudBlockStorageSnapshotBasic(t *testing.T) {
 					testCheck(),
 					resource.TestCheckResourceAttr(
 						"ncloud_block_storage_snapshot.ss",
-						"block_storage_snapshot_name",
+						"name",
 						testSnapshotName),
 				),
 			},
@@ -122,7 +123,7 @@ resource "ncloud_login_key" "key" {
 }
 
 resource "ncloud_server" "vm" {
-	"server_name" = "%s"
+	"name" = "%s"
 	"server_image_product_code" = "SPSW0LINUX000032"
 	"server_product_code" = "SPSVRSTAND000004"
 	"login_key_name" = "${ncloud_login_key.key.key_name}"
@@ -130,13 +131,13 @@ resource "ncloud_server" "vm" {
 
 resource "ncloud_block_storage" "bs" {
 	"server_instance_no" = "${ncloud_server.vm.id}"
-	"block_storage_name" = "%s"
-	"block_storage_size_gb" = "10"
+	"name" = "%s"
+	"size_gb" = "10"
 }
 
 resource "ncloud_block_storage_snapshot" "ss" {
 	"block_storage_instance_no" = "${ncloud_block_storage.bs.id}"
-	"block_storage_snapshot_name" = "%s"
+	"name" = "%s"
 }
 `, testLoginKeyName, serverInstanceName, blockStorageName, snapshotName)
 }

@@ -33,19 +33,19 @@ func resourceNcloudBlockStorage() *schema.Resource {
 				Required:    true,
 				Description: "Server instance number to attach. Required value. The server instance number can be obtained through the getServerInstanceList action.",
 			},
-			"block_storage_size_gb": {
-				// note : value of block_storage_size is different from the parameter and response value.
-				// 	 change the parameter name to block_storage_size_gb.
+			"size_gb": {
+				// note : value of size is different from the parameter and response value.
+				// 	 change the parameter name to size_gb.
 				Type:        schema.TypeInt,
 				Required:    true,
 				Description: "Enter the block storage size to be created. You can enter in GB units, and you can only enter up to 1000 GB.",
 			},
-			"block_storage_name": {
+			"name": {
 				Type:        schema.TypeString,
 				Optional:    true,
 				Description: "Block storage name. default: Assigned by Ncloud",
 			},
-			"block_storage_description": {
+			"description": {
 				Type:        schema.TypeString,
 				Optional:    true,
 				Description: "Block storage description",
@@ -56,11 +56,11 @@ func resourceNcloudBlockStorage() *schema.Resource {
 				Description: "You can choose a disk detail type code of HDD and SSD. default: HDD",
 			},
 
-			"block_storage_instance_no": {
+			"instance_no": {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
-			"block_storage_size": {
+			"size": {
 				Type:     schema.TypeInt,
 				Computed: true,
 			},
@@ -68,7 +68,7 @@ func resourceNcloudBlockStorage() *schema.Resource {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
-			"block_storage_type": {
+			"type": {
 				Type:     schema.TypeMap,
 				Computed: true,
 				Elem:     commonCodeSchemaResource,
@@ -77,21 +77,21 @@ func resourceNcloudBlockStorage() *schema.Resource {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
-			"block_storage_product_code": {
+			"product_code": {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
-			"block_storage_instance_status": {
+			"instance_status": {
 				Type:     schema.TypeMap,
 				Computed: true,
 				Elem:     commonCodeSchemaResource,
 			},
-			"block_storage_instance_operation": {
+			"instance_operation": {
 				Type:     schema.TypeMap,
 				Computed: true,
 				Elem:     commonCodeSchemaResource,
 			},
-			"block_storage_instance_status_name": {
+			"instance_status_name": {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
@@ -144,24 +144,24 @@ func resourceNcloudBlockStorageRead(d *schema.ResourceData, meta interface{}) er
 	}
 
 	if storage != nil {
-		d.Set("block_storage_instance_no", storage.BlockStorageInstanceNo)
+		d.Set("instance_no", storage.BlockStorageInstanceNo)
 		d.Set("server_instance_no", storage.ServerInstanceNo)
-		d.Set("block_storage_size", storage.BlockStorageSize)
-		d.Set("block_storage_name", storage.BlockStorageName)
+		d.Set("size", storage.BlockStorageSize)
+		d.Set("name", storage.BlockStorageName)
 		d.Set("server_name", storage.ServerName)
 		d.Set("device_name", storage.DeviceName)
-		d.Set("block_storage_product_code", storage.BlockStorageProductCode)
-		d.Set("block_storage_instance_status_name", storage.BlockStorageInstanceStatusName)
+		d.Set("product_code", storage.BlockStorageProductCode)
+		d.Set("instance_status_name", storage.BlockStorageInstanceStatusName)
 		d.Set("create_date", storage.CreateDate)
-		d.Set("block_storage_description", storage.BlockStorageInstanceDescription)
+		d.Set("description", storage.BlockStorageInstanceDescription)
 
-		if err := d.Set("block_storage_type", flattenCommonCode(storage.BlockStorageType)); err != nil {
+		if err := d.Set("type", flattenCommonCode(storage.BlockStorageType)); err != nil {
 			return err
 		}
-		if err := d.Set("block_storage_instance_status", flattenCommonCode(storage.BlockStorageInstanceStatus)); err != nil {
+		if err := d.Set("instance_status", flattenCommonCode(storage.BlockStorageInstanceStatus)); err != nil {
 			return err
 		}
-		if err := d.Set("block_storage_instance_operation", flattenCommonCode(storage.BlockStorageInstanceOperation)); err != nil {
+		if err := d.Set("instance_operation", flattenCommonCode(storage.BlockStorageInstanceOperation)); err != nil {
 			return err
 		}
 		if err := d.Set("disk_type", flattenCommonCode(storage.DiskType)); err != nil {
@@ -177,7 +177,7 @@ func resourceNcloudBlockStorageRead(d *schema.ResourceData, meta interface{}) er
 
 func resourceNcloudBlockStorageDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*NcloudAPIClient)
-	blockStorageInstanceNo := d.Get("block_storage_instance_no").(string)
+	blockStorageInstanceNo := d.Get("instance_no").(string)
 	err := detachBlockStorage(d, client, []string{blockStorageInstanceNo})
 	if err != nil {
 		log.Printf("[ERROR] detachBlockStorage %#v", err)
@@ -197,9 +197,9 @@ func resourceNcloudBlockStorageUpdate(d *schema.ResourceData, meta interface{}) 
 func buildRequestBlockStorageInstance(d *schema.ResourceData) *server.CreateBlockStorageInstanceRequest {
 	return &server.CreateBlockStorageInstanceRequest{
 		ServerInstanceNo:        ncloud.String(d.Get("server_instance_no").(string)),
-		BlockStorageSize:        ncloud.Int64(int64(d.Get("block_storage_size_gb").(int))),
-		BlockStorageName:        ncloud.String(d.Get("block_storage_name").(string)),
-		BlockStorageDescription: ncloud.String(d.Get("block_storage_description").(string)),
+		BlockStorageSize:        ncloud.Int64(int64(d.Get("size_gb").(int))),
+		BlockStorageName:        ncloud.String(d.Get("name").(string)),
+		BlockStorageDescription: ncloud.String(d.Get("description").(string)),
 		DiskDetailTypeCode:      ncloud.String(d.Get("disk_detail_type_code").(string)),
 	}
 }

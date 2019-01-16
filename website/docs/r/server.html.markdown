@@ -14,7 +14,7 @@ Provides a ncloud server instance resource.
 
 ```hcl
 resource "ncloud_server" "server" {
-    "server_name" = "tf-test-vm1"
+    "name" = "tf-test-vm1"
     "server_image_product_code" = "SPSW0LINUX000032"
     "server_product_code" = "SPSVRSTAND000004"
 
@@ -38,8 +38,8 @@ The following arguments are supported:
 * `server_image_product_code` - (Conditional) Server image product code to determine which server image to create. It can be obtained through `data ncloud_server_images`. You are required to select one among two parameters: server image product code (server_image_product_code) and member server image number(member_server_image_no).
 * `server_product_code` - (Optional) Server product code to determine the server specification to create. It can be obtained through the getServerProductList action. Default : Selected as minimum specification. The minimum standards are 1. memory 2. CPU 3. basic block storage size 4. disk type (NET,LOCAL)
 * `member_server_image_no` - (Conditional) Required value when creating a server from a manually created server image. It can be obtained through the getMemberServerImageList action.
-* `server_name` - (Optional) Server name to create. default: Assigned by ncloud
-* `server_description` - (Optional) Server description to create
+* `name` - (Optional) Server name to create. default: Assigned by ncloud
+* `description` - (Optional) Server description to create
 * `login_key_name` - (Optional) The login key name to encrypt with the public key. Default : Uses the most recently created login key name
 * `is_protect_server_termination` - (Optional) You can set whether or not to protect return when creating. default : false
 * `internet_line_type_code` - (Optional) Internet line identification code. PUBLC(Public), GLBL(Global). default : PUBLC(Public)
@@ -60,7 +60,7 @@ The following arguments are supported:
 ## Attributes Reference
 
 * `id` - The instance ID.
-* `server_instance_no` - Server instance number
+* `instance_no` - Server instance number
 * `cpu_count` - number of CPUs
 * `memory_size` - The size of the memory in bytes.
 * `base_block_storage_size` - The size of base block storage in bytes
@@ -71,11 +71,11 @@ The following arguments are supported:
 * `public_ip` - Public IP
 * `private_ip` - Private IP
 * `server_image_name` - Server image name
-* `server_instance_status` - Server instance status
+* `instance_status` - Server instance status
     * `code` - Server instance status code
     * `code_name` - Server instance status code name
-* `server_instance_status_name` - Server instance status name
-* `server_instance_operation` - Server instance operation
+* `instance_status_name` - Server instance status name
+* `instance_operation` - Server instance operation
     * `code` - Server instance operation code
     * `code_name` - Server instance operation code name
 * `create_date` - Creation date of the server instance

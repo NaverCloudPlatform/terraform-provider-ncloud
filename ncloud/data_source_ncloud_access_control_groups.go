@@ -14,7 +14,7 @@ func dataSourceNcloudAccessControlGroups() *schema.Resource {
 		Read: dataSourceNcloudAccessControlGroupsRead,
 
 		Schema: map[string]*schema.Schema{
-			"access_control_group_configuration_no_list": {
+			"configuration_no_list": {
 				Type:        schema.TypeList,
 				Optional:    true,
 				Elem:        &schema.Schema{Type: schema.TypeString},
@@ -26,7 +26,7 @@ func dataSourceNcloudAccessControlGroups() *schema.Resource {
 				Optional:    true,
 				Description: "Indicates whether to get default groups only",
 			},
-			"access_control_group_name": {
+			"name": {
 				Type:        schema.TypeString,
 				Optional:    true,
 				Description: "Name of the ACG you want to get",
@@ -50,17 +50,17 @@ func dataSourceNcloudAccessControlGroups() *schema.Resource {
 				Description: "A List of access control group",
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
-						"access_control_group_configuration_no": {
+						"configuration_no": {
 							Type:        schema.TypeString,
 							Computed:    true,
 							Description: "ACG configuration number",
 						},
-						"access_control_group_name": {
+						"name": {
 							Type:        schema.TypeString,
 							Computed:    true,
 							Description: "ACG name",
 						},
-						"access_control_group_description": {
+						"description": {
 							Type:        schema.TypeString,
 							Computed:    true,
 							Description: "ACG description",
@@ -93,11 +93,11 @@ func dataSourceNcloudAccessControlGroupsRead(d *schema.ResourceData, meta interf
 
 	reqParams := &server.GetAccessControlGroupListRequest{}
 	var paramAccessControlGroupConfigurationNoList []*string
-	if param, ok := d.GetOk("access_control_group_configuration_no_list"); ok {
+	if param, ok := d.GetOk("configuration_no_list"); ok {
 		paramAccessControlGroupConfigurationNoList = expandStringInterfaceList(param.([]interface{}))
 	}
 	reqParams.AccessControlGroupConfigurationNoList = paramAccessControlGroupConfigurationNoList
-	reqParams.AccessControlGroupName = ncloud.String(d.Get("access_control_group_name").(string))
+	reqParams.AccessControlGroupName = ncloud.String(d.Get("name").(string))
 	if isDefaultGroup, ok := d.GetOk("is_default_group"); ok {
 		reqParams.IsDefault = ncloud.Bool(isDefaultGroup.(bool))
 	}

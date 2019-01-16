@@ -8,7 +8,7 @@ resource "ncloud_login_key" "key" {
   "key_name" = "${var.login_key_name}"
 }
 resource "ncloud_server" "server" {
-  "server_name" = "${var.server_name}"
+  "name" = "${var.server_name}"
   "server_image_product_code" = "${var.server_image_product_code}"
   "server_product_code" = "${var.server_product_code}"
   "login_key_name" = "${ncloud_login_key.key.key_name}"
@@ -18,7 +18,7 @@ resource "ncloud_server" "server" {
 resource "ncloud_block_storage" "storage" {
   "server_instance_no" = "${ncloud_server.server.id}"
   "block_storage_name" = "${var.block_storage_name}"
-  "block_storage_size_gb" = "10"
+  "size_gb" = "10"
 }
 
 data "ncloud_root_password" "rootpwd" {

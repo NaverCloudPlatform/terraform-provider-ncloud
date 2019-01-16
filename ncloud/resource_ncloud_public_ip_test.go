@@ -118,7 +118,7 @@ resource "ncloud_login_key" "loginkey" {
 }
 
 resource "ncloud_server" "test" {
-	"server_name" = "%s"
+	"name" = "%s"
 	"server_image_product_code" = "SPSW0LINUX000032"
 	"server_product_code" = "SPSVRSTAND000004"
 	"login_key_name" = "${ncloud_login_key.loginkey.key_name}"
@@ -126,7 +126,7 @@ resource "ncloud_server" "test" {
 
 resource "ncloud_public_ip" "public_ip" {
 	"server_instance_no" = "${ncloud_server.test.id}"
-	"public_ip_description" = "%s"
+	"description" = "%s"
 	"region_no" = "1"
 	"zone_no" = "2"
 }

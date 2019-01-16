@@ -28,7 +28,7 @@ func dataSourceNcloudNasVolume() *schema.Resource {
 				Optional: true,
 				Computed: true,
 			},
-			"nas_volume_instance_no_list": {
+			"no_list": {
 				Type:     schema.TypeList,
 				Optional: true,
 				Computed: true,
@@ -59,7 +59,7 @@ func dataSourceNcloudNasVolume() *schema.Resource {
 				ConflictsWith: []string{"zone_code"},
 			},
 
-			"nas_volume_instance_no": {
+			"instance_no": {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
@@ -67,7 +67,7 @@ func dataSourceNcloudNasVolume() *schema.Resource {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
-			"nas_volume_instance_status": {
+			"instance_status": {
 				Type:     schema.TypeMap,
 				Computed: true,
 				Elem:     commonCodeSchemaResource,
@@ -109,12 +109,12 @@ func dataSourceNcloudNasVolume() *schema.Resource {
 				Type:     schema.TypeFloat,
 				Computed: true,
 			},
-			"nas_volume_instance_custom_ip_list": {
+			"instance_custom_ip_list": {
 				Type:     schema.TypeList,
 				Computed: true,
 				Elem:     &schema.Schema{Type: schema.TypeString},
 			},
-			"nas_volume_description": {
+			"description": {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
@@ -145,7 +145,7 @@ func dataSourceNcloudNasVolumeRead(d *schema.ResourceData, meta interface{}) err
 	}
 	reqParams := &server.GetNasVolumeInstanceListRequest{
 		VolumeAllotmentProtocolTypeCode: ncloud.String(d.Get("volume_allotment_protocol_type_code").(string)),
-		NasVolumeInstanceNoList:         expandStringInterfaceList(d.Get("nas_volume_instance_no_list").([]interface{})),
+		NasVolumeInstanceNoList:         expandStringInterfaceList(d.Get("no_list").([]interface{})),
 		RegionNo:                        regionNo,
 		ZoneNo:                          zoneNo,
 	}
@@ -176,9 +176,9 @@ func dataSourceNcloudNasVolumeRead(d *schema.ResourceData, meta interface{}) err
 }
 
 func nasVolumeInstanceAttributes(d *schema.ResourceData, nasVolume *server.NasVolumeInstance) error {
-	d.Set("nas_volume_instance_no", nasVolume.NasVolumeInstanceNo)
+	d.Set("instance_no", nasVolume.NasVolumeInstanceNo)
 	d.Set("create_date", nasVolume.CreateDate)
-	d.Set("nas_volume_description", nasVolume.NasVolumeInstanceDescription)
+	d.Set("description", nasVolume.NasVolumeInstanceDescription)
 	d.Set("volume_name", nasVolume.VolumeName)
 	d.Set("volume_total_size", nasVolume.VolumeTotalSize)
 	d.Set("volume_size", nasVolume.VolumeSize)
@@ -190,7 +190,7 @@ func nasVolumeInstanceAttributes(d *schema.ResourceData, nasVolume *server.NasVo
 	d.Set("is_snapshot_configuration", nasVolume.IsSnapshotConfiguration)
 	d.Set("is_event_configuration", nasVolume.IsEventConfiguration)
 
-	if err := d.Set("nas_volume_instance_status", flattenCommonCode(nasVolume.NasVolumeInstanceStatus)); err != nil {
+	if err := d.Set("instance_status", flattenCommonCode(nasVolume.NasVolumeInstanceStatus)); err != nil {
 		return err
 	}
 
@@ -199,7 +199,7 @@ func nasVolumeInstanceAttributes(d *schema.ResourceData, nasVolume *server.NasVo
 	}
 
 	if len(nasVolume.NasVolumeInstanceCustomIpList) > 0 {
-		d.Set("nas_volume_instance_custom_ip_list", flattenCustomIPList(nasVolume.NasVolumeInstanceCustomIpList))
+		d.Set("instance_custom_ip_list", flattenCustomIPList(nasVolume.NasVolumeInstanceCustomIpList))
 	}
 
 	if err := d.Set("zone", flattenZone(nasVolume.Zone)); err != nil {

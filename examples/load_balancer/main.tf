@@ -5,17 +5,17 @@ provider "ncloud" {
 }
 
 resource "ncloud_server" "server" {
-  "server_name"               = "${var.server_name}"
+  "name"               = "${var.server_name}"
   "server_image_product_code" = "${var.server_image_product_code}"
   "server_product_code"       = "${var.server_product_code}"
 }
 
 resource "ncloud_load_balancer" "lb" {
-  "load_balancer_name"                = "tftest_lb"
-  "load_balancer_algorithm_type_code" = "SIPHS"
-  "load_balancer_description"         = "tftest_lb description"
+  "name"                = "tftest_lb"
+  "algorithm_type_code" = "SIPHS"
+  "description"         = "tftest_lb description"
 
-  "load_balancer_rule_list" = [
+  "rule_list" = [
     {
       "protocol_type_code"   = "HTTP"
       "load_balancer_port"   = 80

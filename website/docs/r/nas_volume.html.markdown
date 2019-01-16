@@ -33,7 +33,7 @@ The following arguments are supported:
 * `custom_ip_list` - (Optional) To add a server of another account to the NAS volume, enter a private IP address of the server.
 * `cifs_user_name` - (Conditional) CIFS user name. The ID must contain a combination of English alphabet and numbers, which can be 6-20 characters in length.
 * `cifs_user_password` - (Conditional) CIFS user password. The password must contain a combination of at least 2 English letters, numbers and special characters, which can be 8-14 characters in length.
-* `nas_volume_description` - (Optional) NAS volume description
+* `description` - (Optional) NAS volume description
 * `region_code` - (Optional) Region code. Get available values using the data source `ncloud_regions`.
     Conflicts with `region_no`. Only one of `region_no` and `region_code` can be used.
     Default: KR region.
@@ -50,7 +50,7 @@ The following arguments are supported:
 ## Attributes Reference
 
 * `volume_name` - NAS volume name.
-* `nas_volume_instance_status` - NAS Volume instance status
+* `instance_status` - NAS Volume instance status
     * `code` - NAS Volume instance status code
     * `code_name` - NAS Volume instance status name
 * `create_date` - Creation date of the NAS volume
@@ -66,7 +66,7 @@ The following arguments are supported:
 * `snapshot_volume_use_ratio` - Snapshot volume use ratio
 * `is_snapshot_configuration` - Indicates whether a snapshot volume is set.
 * `is_event_configuration` - Indicates whether the event is set.
-* `nas_volume_instance_custom_ip_list` - NAS volume instance custom IP list
+* `instance_custom_ip_list` - NAS volume instance custom IP list
 * `zone` - Zone info
     * `zone_no` - Zone number
     * `zone_code` - Zone code

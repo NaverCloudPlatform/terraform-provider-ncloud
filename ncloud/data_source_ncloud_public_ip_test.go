@@ -89,7 +89,7 @@ func TestAccDataSourceNcloudPublicIpSearch(t *testing.T) {
 					testAccCheckDataSourceID("data.ncloud_public_ip.test"),
 					resource.TestCheckResourceAttrSet(
 						"data.ncloud_public_ip.test",
-						"server_instance.server_instance_no",
+						"server_instance.instance_no",
 					),
 				),
 			},

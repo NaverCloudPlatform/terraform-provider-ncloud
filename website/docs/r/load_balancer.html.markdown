@@ -13,11 +13,11 @@ Provides a ncloud load balancer instance resource.
 
 ```hcl
 resource "ncloud_load_balancer" "lb" {
-  "load_balancer_name"                = "tftest_lb"
-  "load_balancer_algorithm_type_code" = "SIPHS"
-  "load_balancer_description"         = "tftest_lb description"
+  "name"                = "tftest_lb"
+  "algorithm_type_code" = "SIPHS"
+  "description"         = "tftest_lb description"
 
-  "load_balancer_rule_list" = [
+  "rule_list" = [
     {
       "protocol_type_code"   = "HTTP"
       "load_balancer_port"   = 80
@@ -45,10 +45,10 @@ resource "ncloud_load_balancer" "lb" {
 
 The following arguments are supported:
 
-* `load_balancer_name` - (Optional) Name of a load balancer instance. Default: Automatically specified by Ncloud.
-* `load_balancer_algorithm_type_code` - (Optional) Load balancer algorithm type code. The available algorithms are as follows: [ROUND ROBIN (RR) | LEAST_CONNECTION (LC)]. Default: ROUND ROBIN (RR)
-* `load_balancer_description` - (Optional) Description of a load balancer instance.
-* `load_balancer_rule_list` - (Required) Load balancer rules.
+* `name` - (Optional) Name of a load balancer instance. Default: Automatically specified by Ncloud.
+* `algorithm_type_code` - (Optional) Load balancer algorithm type code. The available algorithms are as follows: [ROUND ROBIN (RR) | LEAST_CONNECTION (LC)]. Default: ROUND ROBIN (RR)
+* `description` - (Optional) Description of a load balancer instance.
+* `rule_list` - (Required) Load balancer rules.
   * `protocol_type_code` - (Required) Protocol type code of load balancer rules. The following codes are available. [HTTP | HTTPS | TCP | SSL]
   * `load_balancer_port` - (Required) Load balancer port of load balancer rules
   * `server_port` - (Required) Server port of load balancer rules
@@ -73,9 +73,9 @@ The following arguments are supported:
 
 ## Attributes Reference
 
-* `load_balancer_instance_no` - Load balancer instance No
+* `instance_no` - Load balancer instance No
 * `virtual_ip` - Virtual IP address
-* `load_balancer_algorithm_type` - Load balancer algorithm type
+* `algorithm_type` - Load balancer algorithm type
     * `code` - Load balancer algorithm type code
     * `code_name` - Load balancer algorithm type code name
 * `create_date` - Creation date of the load balancer instance
@@ -83,11 +83,11 @@ The following arguments are supported:
 * `internet_line_type` - Internet line identification type
     * `code` - Internet line identification type code
     * `code_name` - Internet line identification type code name
-* `load_balancer_instance_status_name` - Load balancer instance status name
-* `load_balancer_instance_status` - Load balancer instance status
+* `instance_status_name` - Load balancer instance status name
+* `instance_status` - Load balancer instance status
     * `code` - Load balancer instance status code
     * `code_name` - Load balancer instance status code name
-* `load_balancer_instance_operation` - Load balancer instance operation
+* `instance_operation` - Load balancer instance operation
     * `code` - Load balancer instance operation code
     * `code_name` - Load balancer instance operation code name
 * `network_usage_type` - Network usage type

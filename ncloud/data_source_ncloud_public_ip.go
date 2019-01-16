@@ -31,13 +31,13 @@ func dataSourceNcloudPublicIp() *schema.Resource {
 				Optional:    true,
 				Description: "Indicates whether the public IP address is associated or not.",
 			},
-			"public_ip_instance_no_list": {
+			"instance_no_list": {
 				Type:        schema.TypeList,
 				Optional:    true,
 				Elem:        &schema.Schema{Type: schema.TypeString},
 				Description: "List of public IP instance numbers to get.",
 			},
-			"public_ip_list": {
+			"list": {
 				Type:        schema.TypeList,
 				Optional:    true,
 				Elem:        &schema.Schema{Type: schema.TypeString},
@@ -88,7 +88,7 @@ func dataSourceNcloudPublicIp() *schema.Resource {
 				Description: "Sorting order of the list. `ascending` (Ascending) | `descending` (Descending) [case insensitive]. Default: `ascending` Ascending",
 			},
 
-			"public_ip_instance_no": {
+			"instance_no": {
 				Type:        schema.TypeString,
 				Computed:    true,
 				Description: "Public IP instance number",
@@ -98,7 +98,7 @@ func dataSourceNcloudPublicIp() *schema.Resource {
 				Computed:    true,
 				Description: "Public IP",
 			},
-			"public_ip_description": {
+			"description": {
 				Type:        schema.TypeString,
 				Computed:    true,
 				Description: "Public IP description",
@@ -114,24 +114,24 @@ func dataSourceNcloudPublicIp() *schema.Resource {
 				Elem:        commonCodeSchemaResource,
 				Description: "Internet line type",
 			},
-			"public_ip_instance_status_name": {
+			"instance_status_name": {
 				Type:        schema.TypeString,
 				Computed:    true,
 				Description: "Public IP instance status name",
 			},
-			"public_ip_instance_status": {
+			"instance_status": {
 				Type:        schema.TypeMap,
 				Computed:    true,
 				Elem:        commonCodeSchemaResource,
 				Description: "Public IP instance status",
 			},
-			"public_ip_instance_operation": {
+			"instance_operation": {
 				Type:        schema.TypeMap,
 				Computed:    true,
 				Elem:        commonCodeSchemaResource,
 				Description: "Public IP instance operation",
 			},
-			"public_ip_kind_type": {
+			"kind_type": {
 				Type:        schema.TypeMap,
 				Computed:    true,
 				Elem:        commonCodeSchemaResource,
@@ -179,8 +179,8 @@ func dataSourceNcloudPublicIpRead(d *schema.ResourceData, meta interface{}) erro
 	reqParams := new(server.GetPublicIpInstanceListRequest)
 	reqParams.InternetLineTypeCode = ncloud.String(d.Get("internet_line_type_code").(string))
 	reqParams.IsAssociated = ncloud.Bool(d.Get("is_associated").(bool))
-	reqParams.PublicIpInstanceNoList = expandStringInterfaceList(d.Get("public_ip_instance_no_list").([]interface{}))
-	reqParams.PublicIpList = expandStringInterfaceList(d.Get("public_ip_list").([]interface{}))
+	reqParams.PublicIpInstanceNoList = expandStringInterfaceList(d.Get("instance_no_list").([]interface{}))
+	reqParams.PublicIpList = expandStringInterfaceList(d.Get("list").([]interface{}))
 	reqParams.SearchFilterName = ncloud.String(d.Get("search_filter_name").(string))
 	reqParams.SearchFilterValue = ncloud.String(d.Get("search_filter_value").(string))
 	reqParams.RegionNo = regionNo
@@ -214,22 +214,22 @@ func dataSourceNcloudPublicIpRead(d *schema.ResourceData, meta interface{}) erro
 func publicIPAttributes(d *schema.ResourceData, instance *server.PublicIpInstance) error {
 
 	d.SetId(ncloud.StringValue(instance.PublicIpInstanceNo))
-	d.Set("public_ip_instance_no", instance.PublicIpInstanceNo)
+	d.Set("instance_no", instance.PublicIpInstanceNo)
 	d.Set("public_ip", instance.PublicIp)
-	d.Set("public_ip_description", instance.PublicIpDescription)
+	d.Set("description", instance.PublicIpDescription)
 	d.Set("create_date", instance.CreateDate)
-	d.Set("public_ip_instance_status_name", instance.PublicIpInstanceStatusName)
+	d.Set("instance_status_name", instance.PublicIpInstanceStatusName)
 
 	if err := d.Set("internet_line_type", flattenCommonCode(instance.InternetLineType)); err != nil {
 		return err
 	}
-	if err := d.Set("public_ip_instance_status", flattenCommonCode(instance.PublicIpInstanceStatus)); err != nil {
+	if err := d.Set("instance_status", flattenCommonCode(instance.PublicIpInstanceStatus)); err != nil {
 		return err
 	}
-	if err := d.Set("public_ip_instance_operation", flattenCommonCode(instance.PublicIpInstanceOperation)); err != nil {
+	if err := d.Set("instance_operation", flattenCommonCode(instance.PublicIpInstanceOperation)); err != nil {
 		return err
 	}
-	if err := d.Set("public_ip_kind_type", flattenCommonCode(instance.PublicIpKindType)); err != nil {
+	if err := d.Set("kind_type", flattenCommonCode(instance.PublicIpKindType)); err != nil {
 		return err
 	}
 

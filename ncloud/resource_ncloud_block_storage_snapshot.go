@@ -33,25 +33,25 @@ func resourceNcloudBlockStorageSnapshot() *schema.Resource {
 				ForceNew:    true,
 				Description: "Block storage instance No for creating snapshot.",
 			},
-			"block_storage_snapshot_name": {
+			"name": {
 				Type:        schema.TypeString,
 				Optional:    true,
 				Computed:    true,
 				Description: "Block storage snapshot name to create. default : Ncloud assigns default values.",
 			},
-			"block_storage_snapshot_description": {
+			"description": {
 				Type:        schema.TypeString,
 				Optional:    true,
 				Computed:    true,
 				Description: "Descriptions on a snapshot to create",
 			},
 
-			"block_storage_snapshot_instance_no": {
+			"instance_no": {
 				Type:        schema.TypeString,
 				Computed:    true,
 				Description: "Block Storage Snapshot Instance Number",
 			},
-			"block_storage_snapshot_volume_size": {
+			"volume_size": {
 				Type:        schema.TypeInt,
 				Computed:    true,
 				Description: "Block Storage Snapshot Volume Size",
@@ -66,20 +66,20 @@ func resourceNcloudBlockStorageSnapshot() *schema.Resource {
 				Computed:    true,
 				Description: "Original Block Storage Name",
 			},
-			"block_storage_snapshot_instance_status": {
+			"instance_status": {
 				Type:        schema.TypeMap,
 				Optional:    true,
 				Computed:    true,
 				Elem:        commonCodeSchemaResource,
 				Description: "Block Storage Snapshot Instance Status",
 			},
-			"block_storage_snapshot_instance_operation": {
+			"instance_operation": {
 				Type:        schema.TypeMap,
 				Computed:    true,
 				Elem:        commonCodeSchemaResource,
 				Description: "Block Storage Snapshot Instance Operation",
 			},
-			"block_storage_snapshot_instance_status_name": {
+			"instance_status_name": {
 				Type:        schema.TypeString,
 				Optional:    true,
 				Computed:    true,
@@ -90,7 +90,7 @@ func resourceNcloudBlockStorageSnapshot() *schema.Resource {
 				Computed:    true,
 				Description: "Creation date of the Block Storage Snapshot Instance",
 			},
-			"block_storage_snapshot_instance_description": {
+			"instance_description": {
 				Type:        schema.TypeString,
 				Computed:    true,
 				Description: "Block Storage Snapshot Instance Description",
@@ -139,20 +139,20 @@ func resourceNcloudBlockStorageSnapshotRead(d *schema.ResourceData, meta interfa
 	}
 
 	if snapshot != nil {
-		d.Set("block_storage_snapshot_instance_no", snapshot.BlockStorageSnapshotInstanceNo)
-		d.Set("block_storage_snapshot_name", snapshot.BlockStorageSnapshotName)
-		d.Set("block_storage_snapshot_volume_size", snapshot.BlockStorageSnapshotVolumeSize)
+		d.Set("instance_no", snapshot.BlockStorageSnapshotInstanceNo)
+		d.Set("name", snapshot.BlockStorageSnapshotName)
+		d.Set("volume_size", snapshot.BlockStorageSnapshotVolumeSize)
 		d.Set("original_block_storage_instance_no", snapshot.OriginalBlockStorageInstanceNo)
 		d.Set("original_block_storage_name", snapshot.OriginalBlockStorageName)
-		d.Set("block_storage_snapshot_instance_status_name", snapshot.BlockStorageSnapshotInstanceStatusName)
+		d.Set("instance_status_name", snapshot.BlockStorageSnapshotInstanceStatusName)
 		d.Set("create_date", snapshot.CreateDate)
 		d.Set("server_image_product_code", snapshot.ServerImageProductCode)
 		d.Set("os_information", snapshot.OsInformation)
 
-		if err := d.Set("block_storage_snapshot_instance_status", flattenCommonCode(snapshot.BlockStorageSnapshotInstanceStatus)); err != nil {
+		if err := d.Set("instance_status", flattenCommonCode(snapshot.BlockStorageSnapshotInstanceStatus)); err != nil {
 			return err
 		}
-		if err := d.Set("block_storage_snapshot_instance_operation", flattenCommonCode(snapshot.BlockStorageSnapshotInstanceOperation)); err != nil {
+		if err := d.Set("instance_operation", flattenCommonCode(snapshot.BlockStorageSnapshotInstanceOperation)); err != nil {
 			return err
 		}
 	}
@@ -166,7 +166,7 @@ func resourceNcloudBlockStorageSnapshotUpdate(d *schema.ResourceData, meta inter
 
 func resourceNcloudBlockStorageSnapshotDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*NcloudAPIClient)
-	blockStorageSnapshotInstanceNo := d.Get("block_storage_snapshot_instance_no").(string)
+	blockStorageSnapshotInstanceNo := d.Get("instance_no").(string)
 	if err := deleteBlockStorageSnapshotInstance(client, blockStorageSnapshotInstanceNo); err != nil {
 		return err
 	}
@@ -177,8 +177,8 @@ func resourceNcloudBlockStorageSnapshotDelete(d *schema.ResourceData, meta inter
 func buildRequestBlockStorageSnapshotInstance(d *schema.ResourceData) *server.CreateBlockStorageSnapshotInstanceRequest {
 	return &server.CreateBlockStorageSnapshotInstanceRequest{
 		BlockStorageInstanceNo:          ncloud.String(d.Get("block_storage_instance_no").(string)),
-		BlockStorageSnapshotName:        ncloud.String(d.Get("block_storage_snapshot_name").(string)),
-		BlockStorageSnapshotDescription: ncloud.String(d.Get("block_storage_snapshot_description").(string)),
+		BlockStorageSnapshotName:        ncloud.String(d.Get("name").(string)),
+		BlockStorageSnapshotDescription: ncloud.String(d.Get("description").(string)),
 	}
 }
 

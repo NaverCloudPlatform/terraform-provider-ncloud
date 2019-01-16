@@ -14,14 +14,14 @@ func dataSourceNcloudMemberServerImages() *schema.Resource {
 		Read: dataSourceNcloudMemberServerImagesRead,
 
 		Schema: map[string]*schema.Schema{
-			"member_server_image_name_regex": {
+			"name_regex": {
 				Type:     schema.TypeString,
 				Optional: true,
 				// ForceNew:     true,
 				ValidateFunc: validateRegexp,
 				Description:  "A regex string to apply to the member server image list returned by ncloud",
 			},
-			"member_server_image_no_list": {
+			"no_list": {
 				Type:        schema.TypeList,
 				Optional:    true,
 				Elem:        &schema.Schema{Type: schema.TypeString},
@@ -52,17 +52,17 @@ func dataSourceNcloudMemberServerImages() *schema.Resource {
 				Description: "Member server image list",
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
-						"member_server_image_no": {
+						"no": {
 							Type:        schema.TypeString,
 							Computed:    true,
 							Description: "Member server image no",
 						},
-						"member_server_image_name": {
+						"name": {
 							Type:        schema.TypeString,
 							Computed:    true,
 							Description: "Member server image name",
 						},
-						"member_server_image_description": {
+						"description": {
 							Type:        schema.TypeString,
 							Computed:    true,
 							Description: "Member server image description",
@@ -103,24 +103,24 @@ func dataSourceNcloudMemberServerImages() *schema.Resource {
 							Computed:    true,
 							Description: "Original server image name",
 						},
-						"member_server_image_status_name": {
+						"status_name": {
 							Type:        schema.TypeString,
 							Computed:    true,
 							Description: "Member server image status name",
 						},
-						"member_server_image_status": {
+						"status": {
 							Type:        schema.TypeMap,
 							Computed:    true,
 							Elem:        commonCodeSchemaResource,
 							Description: "Member server image status",
 						},
-						"member_server_image_operation": {
+						"operation": {
 							Type:        schema.TypeMap,
 							Computed:    true,
 							Elem:        commonCodeSchemaResource,
 							Description: "Member server image operation",
 						},
-						"member_server_image_platform_type": {
+						"platform_type": {
 							Type:        schema.TypeMap,
 							Computed:    true,
 							Elem:        commonCodeSchemaResource,
@@ -137,12 +137,12 @@ func dataSourceNcloudMemberServerImages() *schema.Resource {
 							Elem:        regionSchemaResource,
 							Description: "Region info",
 						},
-						"member_server_image_block_storage_total_rows": {
+						"block_storage_total_rows": {
 							Type:        schema.TypeInt,
 							Computed:    true,
 							Description: "Member server image block storage total rows",
 						},
-						"member_server_image_block_storage_total_size": {
+						"block_storage_total_size": {
 							Type:        schema.TypeInt,
 							Computed:    true,
 							Description: "Member server image block storage total size",
@@ -167,7 +167,7 @@ func dataSourceNcloudMemberServerImagesRead(d *schema.ResourceData, meta interfa
 		return err
 	}
 	reqParams := server.GetMemberServerImageListRequest{
-		MemberServerImageNoList: expandStringInterfaceList(d.Get("member_server_image_no_list").([]interface{})),
+		MemberServerImageNoList: expandStringInterfaceList(d.Get("no_list").([]interface{})),
 		PlatformTypeCodeList:    expandStringInterfaceList(d.Get("platform_type_code_list").([]interface{})),
 		RegionNo:                regionNo,
 	}
@@ -183,7 +183,7 @@ func dataSourceNcloudMemberServerImagesRead(d *schema.ResourceData, meta interfa
 
 	allMemberServerImages := resp.MemberServerImageList
 	var filteredMemberServerImages []*server.MemberServerImage
-	nameRegex, nameRegexOk := d.GetOk("member_server_image_name_regex")
+	nameRegex, nameRegexOk := d.GetOk("name_regex")
 	if nameRegexOk {
 		r := regexp.MustCompile(nameRegex.(string))
 		for _, memberServerImage := range allMemberServerImages {

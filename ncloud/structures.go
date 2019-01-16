@@ -48,13 +48,13 @@ func flattenAccessControlRules(accessControlRules []*server.AccessControlRule) [
 
 	for _, accessControlRule := range accessControlRules {
 		mapping := map[string]interface{}{
-			"access_control_rule_configuration_no":        ncloud.StringValue(accessControlRule.AccessControlRuleConfigurationNo),
-			"protocol_type":                               flattenCommonCode(accessControlRule.ProtocolType),
-			"source_ip":                                   ncloud.StringValue(accessControlRule.SourceIp),
-			"destination_port":                            ncloud.StringValue(accessControlRule.DestinationPort),
-			"source_access_control_rule_configuration_no": ncloud.StringValue(accessControlRule.SourceAccessControlRuleConfigurationNo),
-			"source_access_control_rule_name":             ncloud.StringValue(accessControlRule.SourceAccessControlRuleName),
-			"access_control_rule_description":             ncloud.StringValue(accessControlRule.AccessControlRuleDescription),
+			"configuration_no":        ncloud.StringValue(accessControlRule.AccessControlRuleConfigurationNo),
+			"protocol_type":           flattenCommonCode(accessControlRule.ProtocolType),
+			"source_ip":               ncloud.StringValue(accessControlRule.SourceIp),
+			"destination_port":        ncloud.StringValue(accessControlRule.DestinationPort),
+			"source_configuration_no": ncloud.StringValue(accessControlRule.SourceAccessControlRuleConfigurationNo),
+			"source_name":             ncloud.StringValue(accessControlRule.SourceAccessControlRuleName),
+			"description":             ncloud.StringValue(accessControlRule.AccessControlRuleDescription),
 		}
 
 		s = append(s, mapping)
@@ -67,11 +67,11 @@ func flattenAccessControlGroups(accessControlGroups []*server.AccessControlGroup
 	var s []map[string]interface{}
 	for _, accessControlGroup := range accessControlGroups {
 		mapping := map[string]interface{}{
-			"access_control_group_configuration_no": ncloud.StringValue(accessControlGroup.AccessControlGroupConfigurationNo),
-			"access_control_group_name":             ncloud.StringValue(accessControlGroup.AccessControlGroupName),
-			"access_control_group_description":      ncloud.StringValue(accessControlGroup.AccessControlGroupDescription),
-			"is_default_group":                      ncloud.BoolValue(accessControlGroup.IsDefaultGroup),
-			"create_date":                           ncloud.StringValue(accessControlGroup.CreateDate),
+			"configuration_no": ncloud.StringValue(accessControlGroup.AccessControlGroupConfigurationNo),
+			"name":             ncloud.StringValue(accessControlGroup.AccessControlGroupName),
+			"description":      ncloud.StringValue(accessControlGroup.AccessControlGroupDescription),
+			"is_default_group": ncloud.BoolValue(accessControlGroup.IsDefaultGroup),
+			"create_date":      ncloud.StringValue(accessControlGroup.CreateDate),
 		}
 
 		s = append(s, mapping)
@@ -159,24 +159,24 @@ func flattenMemberServerImages(memberServerImages []*server.MemberServerImage) [
 	var s []map[string]interface{}
 	for _, m := range memberServerImages {
 		mapping := map[string]interface{}{
-			"member_server_image_no":                       ncloud.StringValue(m.MemberServerImageNo),
-			"member_server_image_name":                     ncloud.StringValue(m.MemberServerImageName),
-			"member_server_image_description":              ncloud.StringValue(m.MemberServerImageDescription),
-			"original_server_instance_no":                  ncloud.StringValue(m.OriginalServerInstanceNo),
-			"original_server_product_code":                 ncloud.StringValue(m.OriginalServerProductCode),
-			"original_server_name":                         ncloud.StringValue(m.OriginalServerName),
-			"original_base_block_storage_disk_type":        flattenCommonCode(m.OriginalBaseBlockStorageDiskType),
-			"original_server_image_product_code":           ncloud.StringValue(m.OriginalServerImageProductCode),
-			"original_os_information":                      ncloud.StringValue(m.OriginalOsInformation),
-			"original_server_image_name":                   ncloud.StringValue(m.OriginalServerImageName),
-			"member_server_image_status_name":              ncloud.StringValue(m.MemberServerImageStatusName),
-			"member_server_image_status":                   flattenCommonCode(m.MemberServerImageStatus),
-			"member_server_image_operation":                flattenCommonCode(m.MemberServerImageOperation),
-			"member_server_image_platform_type":            flattenCommonCode(m.MemberServerImagePlatformType),
-			"create_date":                                  ncloud.StringValue(m.CreateDate),
-			"region":                                       flattenRegion(m.Region),
-			"member_server_image_block_storage_total_rows": int(ncloud.Int32Value(m.MemberServerImageBlockStorageTotalRows)),
-			"member_server_image_block_storage_total_size": int(ncloud.Int64Value(m.MemberServerImageBlockStorageTotalSize)),
+			"no":                                    ncloud.StringValue(m.MemberServerImageNo),
+			"name":                                  ncloud.StringValue(m.MemberServerImageName),
+			"description":                           ncloud.StringValue(m.MemberServerImageDescription),
+			"original_server_instance_no":           ncloud.StringValue(m.OriginalServerInstanceNo),
+			"original_server_product_code":          ncloud.StringValue(m.OriginalServerProductCode),
+			"original_server_name":                  ncloud.StringValue(m.OriginalServerName),
+			"original_base_block_storage_disk_type": flattenCommonCode(m.OriginalBaseBlockStorageDiskType),
+			"original_server_image_product_code":    ncloud.StringValue(m.OriginalServerImageProductCode),
+			"original_os_information":               ncloud.StringValue(m.OriginalOsInformation),
+			"original_server_image_name":            ncloud.StringValue(m.OriginalServerImageName),
+			"status_name":                           ncloud.StringValue(m.MemberServerImageStatusName),
+			"status":                                flattenCommonCode(m.MemberServerImageStatus),
+			"operation":                             flattenCommonCode(m.MemberServerImageOperation),
+			"platform_type":                         flattenCommonCode(m.MemberServerImagePlatformType),
+			"create_date":                           ncloud.StringValue(m.CreateDate),
+			"region":                                flattenRegion(m.Region),
+			"block_storage_total_rows":              int(ncloud.Int32Value(m.MemberServerImageBlockStorageTotalRows)),
+			"block_storage_total_size":              int(ncloud.Int64Value(m.MemberServerImageBlockStorageTotalSize)),
 		}
 
 		s = append(s, mapping)
@@ -223,10 +223,10 @@ func flattenNasVolumeInstances(nasVolumeInstances []*server.NasVolumeInstance) [
 
 	for _, nasVolume := range nasVolumeInstances {
 		mapping := map[string]interface{}{
-			"nas_volume_instance_no":         ncloud.StringValue(nasVolume.NasVolumeInstanceNo),
-			"nas_volume_instance_status":     flattenCommonCode(nasVolume.NasVolumeInstanceStatus),
+			"instance_no":                    ncloud.StringValue(nasVolume.NasVolumeInstanceNo),
+			"instance_status":                flattenCommonCode(nasVolume.NasVolumeInstanceStatus),
 			"create_date":                    ncloud.StringValue(nasVolume.CreateDate),
-			"nas_volume_description":         ncloud.StringValue(nasVolume.NasVolumeInstanceDescription),
+			"description":                    ncloud.StringValue(nasVolume.NasVolumeInstanceDescription),
 			"volume_allotment_protocol_type": flattenCommonCode(nasVolume.VolumeAllotmentProtocolType),
 			"volume_name":                    ncloud.StringValue(nasVolume.VolumeName),
 			"volume_total_size":              int(ncloud.Int64Value(nasVolume.VolumeTotalSize)),
@@ -242,7 +242,7 @@ func flattenNasVolumeInstances(nasVolumeInstances []*server.NasVolumeInstance) [
 			"region":                         flattenRegion(nasVolume.Region),
 		}
 		if len(nasVolume.NasVolumeInstanceCustomIpList) > 0 {
-			mapping["nas_volume_instance_custom_ip_list"] = flattenCustomIPList(nasVolume.NasVolumeInstanceCustomIpList)
+			mapping["instance_custom_ip_list"] = flattenCustomIPList(nasVolume.NasVolumeInstanceCustomIpList)
 		}
 
 		s = append(s, mapping)

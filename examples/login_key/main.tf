@@ -9,7 +9,7 @@ resource "ncloud_login_key" "loginkey" {
 }
 
 resource "ncloud_server" "server" {
-  "server_name" = "${var.server_name}"
+  "name" = "${var.server_name}"
   "server_image_product_code" = "${var.server_image_product_code}"
   "server_product_code" = "${var.server_product_code}"
   "login_key_name" = "${ncloud_login_key.loginkey.key_name}"
