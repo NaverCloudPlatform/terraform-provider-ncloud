@@ -41,13 +41,13 @@ func resourceNcloudServer() *schema.Resource {
 				Optional:    true,
 				Description: "Required value when creating a server from a manually created server image. It can be obtained through the getMemberServerImageList action.",
 			},
-			"server_name": {
+			"name": {
 				Type:         schema.TypeString,
 				Optional:     true,
 				ValidateFunc: validateServerName,
 				Description:  "Server name to create. default: Assigned by ncloud",
 			},
-			"server_description": {
+			"description": {
 				Type:        schema.TypeString,
 				Optional:    true,
 				Description: "Server description to create",
@@ -110,7 +110,7 @@ func resourceNcloudServer() *schema.Resource {
 				Description: "Instance tag list",
 			},
 
-			"server_instance_no": {
+			"instance_no": {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
@@ -147,17 +147,17 @@ func resourceNcloudServer() *schema.Resource {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
-			"server_instance_status": {
+			"instance_status": {
 				Type:     schema.TypeMap,
 				Computed: true,
 				Elem:     commonCodeSchemaResource,
 			},
-			"server_instance_operation": {
+			"instance_operation": {
 				Type:     schema.TypeMap,
 				Computed: true,
 				Elem:     commonCodeSchemaResource,
 			},
-			"server_instance_status_name": {
+			"instance_status_name": {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
@@ -255,10 +255,10 @@ func resourceNcloudServerRead(d *schema.ResourceData, meta interface{}) error {
 	}
 
 	if instance != nil {
-		d.Set("server_instance_no", instance.ServerInstanceNo)
-		d.Set("server_name", instance.ServerName)
+		d.Set("instance_no", instance.ServerInstanceNo)
+		d.Set("name", instance.ServerName)
 		d.Set("server_image_product_code", instance.ServerImageProductCode)
-		d.Set("server_instance_status_name", instance.ServerInstanceStatusName)
+		d.Set("instance_status_name", instance.ServerInstanceStatusName)
 		d.Set("uptime", instance.Uptime)
 		d.Set("server_image_name", instance.ServerImageName)
 		d.Set("private_ip", instance.PrivateIp)
@@ -275,13 +275,13 @@ func resourceNcloudServerRead(d *schema.ResourceData, meta interface{}) error {
 		d.Set("port_forwarding_internal_port", instance.PortForwardingInternalPort)
 		d.Set("user_data", d.Get("user_data").(string))
 
-		if err := d.Set("server_instance_status", flattenCommonCode(instance.ServerInstanceStatus)); err != nil {
+		if err := d.Set("instance_status", flattenCommonCode(instance.ServerInstanceStatus)); err != nil {
 			return err
 		}
 		if err := d.Set("platform_type", flattenCommonCode(instance.PlatformType)); err != nil {
 			return err
 		}
-		if err := d.Set("server_instance_operation", flattenCommonCode(instance.ServerInstanceOperation)); err != nil {
+		if err := d.Set("instance_operation", flattenCommonCode(instance.ServerInstanceOperation)); err != nil {
 			return err
 		}
 		if err := d.Set("zone", flattenZone(instance.Zone)); err != nil {
@@ -300,7 +300,7 @@ func resourceNcloudServerRead(d *schema.ResourceData, meta interface{}) error {
 			return err
 		}
 		if len(instance.InstanceTagList) != 0 {
-			d.Set("load_balancer_rule_list", flattenInstanceTagList(instance.InstanceTagList))
+			d.Set("tag_list", flattenInstanceTagList(instance.InstanceTagList))
 		}
 	}
 
@@ -341,7 +341,7 @@ func resourceNcloudServerUpdate(d *schema.ResourceData, meta interface{}) error 
 
 	if d.HasChange("server_product_code") {
 		reqParams := &server.ChangeServerInstanceSpecRequest{
-			ServerInstanceNo:  ncloud.String(d.Get("server_instance_no").(string)),
+			ServerInstanceNo:  ncloud.String(d.Get("instance_no").(string)),
 			ServerProductCode: ncloud.String(d.Get("server_product_code").(string)),
 		}
 
@@ -383,8 +383,8 @@ func buildCreateServerInstanceReqParams(client *NcloudAPIClient, d *schema.Resou
 		ServerImageProductCode:                ncloud.String(d.Get("server_image_product_code").(string)),
 		ServerProductCode:                     ncloud.String(d.Get("server_product_code").(string)),
 		MemberServerImageNo:                   ncloud.String(d.Get("member_server_image_no").(string)),
-		ServerName:                            ncloud.String(d.Get("server_name").(string)),
-		ServerDescription:                     ncloud.String(d.Get("server_description").(string)),
+		ServerName:                            ncloud.String(d.Get("name").(string)),
+		ServerDescription:                     ncloud.String(d.Get("description").(string)),
 		LoginKeyName:                          ncloud.String(d.Get("login_key_name").(string)),
 		InternetLineTypeCode:                  StringPtrOrNil(d.GetOk("internet_line_type_code")),
 		FeeSystemTypeCode:                     ncloud.String(d.Get("fee_system_type_code").(string)),

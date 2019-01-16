@@ -37,11 +37,11 @@ func TestAccNcloudLoadBalancerBasic(t *testing.T) {
 					testCheck(),
 					resource.TestCheckResourceAttr(
 						"ncloud_load_balancer.lb",
-						"load_balancer_name",
+						"name",
 						testLoadBalancerName),
 					resource.TestCheckResourceAttr(
 						"ncloud_load_balancer.lb",
-						"load_balancer_algorithm_type_code",
+						"algorithm_type_code",
 						"SIPHS"),
 				),
 			},
@@ -73,7 +73,7 @@ func TestAccNcloudLoadBalancerChangeConfiguration(t *testing.T) {
 					testAccCheckLoadBalancerExists("ncloud_load_balancer.lb", &after),
 					resource.TestCheckResourceAttr(
 						"ncloud_load_balancer.lb",
-						"load_balancer_description",
+						"description",
 						"tftest_lb change port")),
 			},
 		},
@@ -138,11 +138,11 @@ func testAccCheckLoadBalancerDestroyWithProvider(s *terraform.State, provider *s
 func testAccLoadBalancerConfig(lbName string) string {
 	return fmt.Sprintf(`
 		resource "ncloud_load_balancer" "lb" {
-			"load_balancer_name"                = "%s"
-			"load_balancer_algorithm_type_code" = "SIPHS"
-			"load_balancer_description"         = "tftest_lb description"
+			"name"                = "%s"
+			"algorithm_type_code" = "SIPHS"
+			"description"         = "tftest_lb description"
 
-			"load_balancer_rule_list" = [
+			"rule_list" = [
 				{
 					"protocol_type_code"   = "HTTP"
 					"load_balancer_port"   = 80
@@ -161,11 +161,11 @@ func testAccLoadBalancerConfig(lbName string) string {
 func testAccLoadBalancerChangedConfig(lbName string) string {
 	return fmt.Sprintf(`
 		resource "ncloud_load_balancer" "lb" {
-			"load_balancer_name"                = "%s"
-			"load_balancer_algorithm_type_code" = "SIPHS"
-			"load_balancer_description"         = "tftest_lb change port"
+			"name"                = "%s"
+			"algorithm_type_code" = "SIPHS"
+			"description"         = "tftest_lb change port"
 
-			"load_balancer_rule_list" = [
+			"rule_list" = [
 				{
 					"protocol_type_code"   = "HTTP"
 					"load_balancer_port"   = 8080

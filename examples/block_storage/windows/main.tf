@@ -22,7 +22,7 @@ data "ncloud_server_product" "prod" {
 }
 
 resource "ncloud_server" "server" {
-  "server_name"                                = "${var.server_name}"
+  "name"                                = "${var.server_name}"
   "server_image_product_code"                  = "${data.ncloud_server_image.image.id}"
   "server_product_code"                        = "${data.ncloud_server_product.prod.id}"
   "login_key_name"                             = "${ncloud_login_key.key.key_name}"
@@ -39,7 +39,7 @@ resource "ncloud_public_ip" "public_ip" {
 resource "ncloud_block_storage" "storage" {
   "server_instance_no"    = "${ncloud_server.server.id}"
   "block_storage_name"    = "${var.block_storage_name}"
-  "block_storage_size_gb" = "10"
+  "size_gb" = "10"
 }
 
 data "ncloud_root_password" "rootpwd" {

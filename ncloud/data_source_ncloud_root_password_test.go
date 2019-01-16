@@ -33,7 +33,7 @@ resource "ncloud_login_key" "key" {
 }
 
 resource "ncloud_server" "server" {
-  "server_name" = "%s-vm"
+  "name" = "%s-vm"
   "server_image_product_code" = "SPSW0LINUX000032"
   "server_product_code" = "SPSVRSTAND000004"
   "login_key_name" = "${ncloud_login_key.key.key_name}"

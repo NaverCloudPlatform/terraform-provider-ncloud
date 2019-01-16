@@ -27,25 +27,25 @@ func resourceNcloudLoadBalancer() *schema.Resource {
 		},
 
 		Schema: map[string]*schema.Schema{
-			"load_balancer_name": {
+			"name": {
 				Type:         schema.TypeString,
 				Optional:     true,
 				ValidateFunc: validateStringLengthInRange(3, 30),
 				Description:  "Name of a load balancer to create. Default: Automatically specified by Ncloud.",
 			},
-			"load_balancer_algorithm_type_code": {
+			"algorithm_type_code": {
 				Type:         schema.TypeString,
 				Optional:     true,
 				ValidateFunc: validateIncludeValues([]string{"RR", "LC", "SIPHS"}),
 				Description:  "Load balancer algorithm type code. The available algorithms are as follows: [ROUND ROBIN (RR) | LEAST_CONNECTION (LC)]. Default: ROUND ROBIN (RR)",
 			},
-			"load_balancer_description": {
+			"description": {
 				Type:         schema.TypeString,
 				Optional:     true,
 				ValidateFunc: validateStringLengthInRange(1, 1000),
 				Description:  "Description of a load balancer to create",
 			},
-			"load_balancer_rule_list": {
+			"rule_list": {
 				Type:        schema.TypeList,
 				Required:    true,
 				Elem:        loadBalancerRuleSchemaResource,
@@ -81,7 +81,7 @@ func resourceNcloudLoadBalancer() *schema.Resource {
 				Description:   "Region number. Get available values using the `data ncloud_regions`.",
 				ConflictsWith: []string{"region_code"},
 			},
-			"load_balancer_instance_no": {
+			"instance_no": {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
@@ -89,7 +89,7 @@ func resourceNcloudLoadBalancer() *schema.Resource {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
-			"load_balancer_algorithm_type": {
+			"algorithm_type": {
 				Type:     schema.TypeMap,
 				Computed: true,
 				Elem:     commonCodeSchemaResource,
@@ -107,16 +107,16 @@ func resourceNcloudLoadBalancer() *schema.Resource {
 				Computed: true,
 				Elem:     commonCodeSchemaResource,
 			},
-			"load_balancer_instance_status_name": {
+			"instance_status_name": {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
-			"load_balancer_instance_status": {
+			"instance_status": {
 				Type:     schema.TypeMap,
 				Computed: true,
 				Elem:     commonCodeSchemaResource,
 			},
-			"load_balancer_instance_operation": {
+			"instance_operation": {
 				Type:     schema.TypeMap,
 				Computed: true,
 				Elem:     commonCodeSchemaResource,
@@ -181,25 +181,25 @@ func resourceNcloudLoadBalancerRead(d *schema.ResourceData, meta interface{}) er
 
 	if lb != nil {
 		d.Set("virtual_ip", lb.VirtualIp)
-		d.Set("load_balancer_name", lb.LoadBalancerName)
-		d.Set("load_balancer_description", lb.LoadBalancerDescription)
+		d.Set("name", lb.LoadBalancerName)
+		d.Set("description", lb.LoadBalancerDescription)
 		d.Set("create_date", lb.CreateDate)
 		d.Set("domain_name", lb.DomainName)
-		d.Set("load_balancer_instance_status_name", lb.LoadBalancerInstanceStatusName)
+		d.Set("instance_status_name", lb.LoadBalancerInstanceStatusName)
 		d.Set("is_http_keep_alive", lb.IsHttpKeepAlive)
 		d.Set("connection_timeout", lb.ConnectionTimeout)
 		d.Set("certificate_name", lb.CertificateName)
 
-		if err := d.Set("load_balancer_algorithm_type", flattenCommonCode(lb.LoadBalancerAlgorithmType)); err != nil {
+		if err := d.Set("algorithm_type", flattenCommonCode(lb.LoadBalancerAlgorithmType)); err != nil {
 			return err
 		}
 		if err := d.Set("internet_line_type", flattenCommonCode(lb.InternetLineType)); err != nil {
 			return err
 		}
-		if err := d.Set("load_balancer_instance_status", flattenCommonCode(lb.LoadBalancerInstanceStatus)); err != nil {
+		if err := d.Set("instance_status", flattenCommonCode(lb.LoadBalancerInstanceStatus)); err != nil {
 			return err
 		}
-		if err := d.Set("load_balancer_instance_operation", flattenCommonCode(lb.LoadBalancerInstanceOperation)); err != nil {
+		if err := d.Set("instance_operation", flattenCommonCode(lb.LoadBalancerInstanceOperation)); err != nil {
 			return err
 		}
 		if err := d.Set("network_usage_type", flattenCommonCode(lb.NetworkUsageType)); err != nil {
@@ -207,7 +207,7 @@ func resourceNcloudLoadBalancerRead(d *schema.ResourceData, meta interface{}) er
 		}
 
 		if len(lb.LoadBalancerRuleList) != 0 {
-			if err := d.Set("load_balancer_rule_list", flattenLoadBalancerRuleList(lb.LoadBalancerRuleList)); err != nil {
+			if err := d.Set("rule_list", flattenLoadBalancerRuleList(lb.LoadBalancerRuleList)); err != nil {
 				return err
 			}
 		}
@@ -245,18 +245,18 @@ func resourceNcloudLoadBalancerUpdate(d *schema.ResourceData, meta interface{}) 
 
 	reqParams := &loadbalancer.ChangeLoadBalancerInstanceConfigurationRequest{
 		LoadBalancerInstanceNo:        ncloud.String(d.Id()),
-		LoadBalancerAlgorithmTypeCode: ncloud.String(d.Get("load_balancer_algorithm_type_code").(string)),
+		LoadBalancerAlgorithmTypeCode: ncloud.String(d.Get("algorithm_type_code").(string)),
 	}
 
-	if loadBalancerRuleParams, err := expandLoadBalancerRuleParams(d.Get("load_balancer_rule_list").([]interface{})); err == nil {
+	if loadBalancerRuleParams, err := expandLoadBalancerRuleParams(d.Get("rule_list").([]interface{})); err == nil {
 		reqParams.LoadBalancerRuleList = loadBalancerRuleParams
 	}
 
-	if d.HasChange("load_balancer_description") {
-		reqParams.LoadBalancerDescription = ncloud.String(d.Get("load_balancer_description").(string))
+	if d.HasChange("description") {
+		reqParams.LoadBalancerDescription = ncloud.String(d.Get("description").(string))
 	}
 
-	if d.HasChange("load_balancer_algorithm_type_code") || d.HasChange("load_balancer_description") || d.HasChange("load_balancer_rule_list") {
+	if d.HasChange("algorithm_type_code") || d.HasChange("description") || d.HasChange("rule_list") {
 		logCommonRequest("ChangeLoadBalancerInstanceConfiguration", reqParams)
 		resp, err := client.loadbalancer.V2Api.ChangeLoadBalancerInstanceConfiguration(reqParams)
 		if err != nil {
@@ -302,16 +302,16 @@ func buildCreateLoadBalancerInstanceParams(client *NcloudAPIClient, d *schema.Re
 	}
 
 	reqParams := &loadbalancer.CreateLoadBalancerInstanceRequest{
-		LoadBalancerName:              ncloud.String(d.Get("load_balancer_name").(string)),
-		LoadBalancerAlgorithmTypeCode: ncloud.String(d.Get("load_balancer_algorithm_type_code").(string)),
-		LoadBalancerDescription:       ncloud.String(d.Get("load_balancer_description").(string)),
+		LoadBalancerName:              ncloud.String(d.Get("name").(string)),
+		LoadBalancerAlgorithmTypeCode: ncloud.String(d.Get("algorithm_type_code").(string)),
+		LoadBalancerDescription:       ncloud.String(d.Get("description").(string)),
 		ServerInstanceNoList:          expandStringInterfaceList(d.Get("server_instance_no_list").([]interface{})),
 		InternetLineTypeCode:          StringPtrOrNil(d.GetOk("internet_line_type_code")),
 		NetworkUsageTypeCode:          ncloud.String(d.Get("network_usage_type_code").(string)),
 		RegionNo:                      regionNo,
 	}
 
-	if loadBalancerRuleParams, err := expandLoadBalancerRuleParams(d.Get("load_balancer_rule_list").([]interface{})); err == nil {
+	if loadBalancerRuleParams, err := expandLoadBalancerRuleParams(d.Get("rule_list").([]interface{})); err == nil {
 		reqParams.LoadBalancerRuleList = loadBalancerRuleParams
 	}
 

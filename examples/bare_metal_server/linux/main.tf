@@ -19,7 +19,7 @@ resource "ncloud_login_key" "key" {
 }
 
 resource "ncloud_server" "bm" {
-  "server_name" = "${var.server_name}"
+  "name" = "${var.server_name}"
   "server_image_product_code" = "${data.ncloud_server_image.image.id}"
   "server_product_code" = "${data.ncloud_server_product.prod.id}"
   "login_key_name" = "${ncloud_login_key.key.key_name}"
@@ -30,7 +30,7 @@ resource "ncloud_server" "bm" {
 resource "ncloud_block_storage" "storage" {
   "server_instance_no" = "${ncloud_server.bm.id}"
   "block_storage_name" = "${var.block_storage_name}"
-  "block_storage_size_gb" = "10"
+  "size_gb" = "10"
 }
 
 resource "ncloud_nas_volume" "nas" {
@@ -51,11 +51,11 @@ resource "ncloud_load_balancer_ssl_certificate" "cert" {
 }
 
 resource "ncloud_load_balancer" "lb" {
-  "load_balancer_name" = "${var.load_balancer_name}"
-  "load_balancer_algorithm_type_code" = "SIPHS"
-  "load_balancer_description" = "${var.load_balancer_name} description"
+  "name" = "${var.load_balancer_name}"
+  "algorithm_type_code" = "SIPHS"
+  "description" = "${var.load_balancer_name} description"
 
-  "load_balancer_rule_list" = [
+  "rule_list" = [
     {
       "protocol_type_code" = "HTTP"
       "load_balancer_port" = 80
