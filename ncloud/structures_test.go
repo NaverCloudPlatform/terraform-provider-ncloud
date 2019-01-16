@@ -264,16 +264,16 @@ func TestFlattenMemberServerImages(t *testing.T) {
 
 	r := result[0]
 
-	if r["member_server_image_no"] != "4653" {
-		t.Fatalf("expected result member_server_image_no to be 4653, but was %s", r["member_server_image_no"])
+	if r["no"] != "4653" {
+		t.Fatalf("expected result no to be 4653, but was %s", r["no"])
 	}
 
-	if r["member_server_image_name"] != "test-1514385790" {
-		t.Fatalf("expected result member_server_image_name to be test-1514385790, but was %s", r["member_server_image_name"])
+	if r["name"] != "test-1514385790" {
+		t.Fatalf("expected result name to be test-1514385790, but was %s", r["name"])
 	}
 
-	if r["member_server_image_description"] != "server description" {
-		t.Fatalf("expected result member_server_image_description to be 'server description', but was %s", r["member_server_image_description"])
+	if r["description"] != "server description" {
+		t.Fatalf("expected result description to be 'server description', but was %s", r["description"])
 	}
 
 	if r["original_server_instance_no"] != "572053" {
@@ -300,20 +300,20 @@ func TestFlattenMemberServerImages(t *testing.T) {
 		t.Fatalf("expected result original_server_image_name to be centos-5.11-64, but was %s", r["original_server_image_name"])
 	}
 
-	if r["member_server_image_status_name"] != "creating" {
-		t.Fatalf("expected result member_server_image_status_name to be creating, but was %s", r["member_server_image_status_name"])
+	if r["status_name"] != "creating" {
+		t.Fatalf("expected result status_name to be creating, but was %s", r["status_name"])
 	}
 
 	if r["create_date"] != "2018-01-07T10:17:14+0900" {
 		t.Fatalf("expected result create_date to be 2018-01-07T10:17:14+0900, but was %s", r["create_date"])
 	}
 
-	if r["member_server_image_block_storage_total_rows"] != 2 {
-		t.Fatalf("expected result member_server_image_block_storage_total_rows to be 2, but was %s", r["member_server_image_block_storage_total_rows"])
+	if r["block_storage_total_rows"] != 2 {
+		t.Fatalf("expected result block_storage_total_rows to be 2, but was %s", r["block_storage_total_rows"])
 	}
 
-	if r["member_server_image_block_storage_total_size"] != 1127428915200 {
-		t.Fatalf("expected result member_server_image_block_storage_total_size to be 1127428915200, but was %s", r["member_server_image_block_storage_total_size"])
+	if r["block_storage_total_size"] != 1127428915200 {
+		t.Fatalf("expected result block_storage_total_size to be 1127428915200, but was %s", r["block_storage_total_size"])
 	}
 }
 
@@ -469,8 +469,8 @@ func TestFlattenNasVolumeInstances(t *testing.T) {
 
 	r := result[0]
 
-	if r["nas_volume_instance_no"] != "856180" {
-		t.Fatalf("expected result nas_volume_instance_no to be 856180, but was %s", r["nas_volume_instance_no"])
+	if r["instance_no"] != "856180" {
+		t.Fatalf("expected result instance_no to be 856180, but was %s", r["instance_no"])
 	}
 
 	if r["create_date"] != "2018-07-12T20:32:45+0900" {

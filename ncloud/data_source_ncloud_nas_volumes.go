@@ -26,7 +26,7 @@ func dataSourceNcloudNasVolumes() *schema.Resource {
 				Type:     schema.TypeBool,
 				Optional: true,
 			},
-			"nas_volume_instance_no_list": {
+			"no_list": {
 				Type:     schema.TypeList,
 				Optional: true,
 				Computed: true,
@@ -63,7 +63,7 @@ func dataSourceNcloudNasVolumes() *schema.Resource {
 				Description: "NAS Volume Instance list",
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
-						"nas_volume_instance_no": {
+						"instance_no": {
 							Type:     schema.TypeString,
 							Computed: true,
 						},
@@ -71,7 +71,7 @@ func dataSourceNcloudNasVolumes() *schema.Resource {
 							Type:     schema.TypeString,
 							Computed: true,
 						},
-						"nas_volume_instance_status": {
+						"instance_status": {
 							Type:     schema.TypeMap,
 							Computed: true,
 							Elem:     commonCodeSchemaResource,
@@ -121,12 +121,12 @@ func dataSourceNcloudNasVolumes() *schema.Resource {
 							Type:     schema.TypeBool,
 							Computed: true,
 						},
-						"nas_volume_instance_custom_ip_list": {
+						"instance_custom_ip_list": {
 							Type:     schema.TypeList,
 							Computed: true,
 							Elem:     &schema.Schema{Type: schema.TypeString},
 						},
-						"nas_volume_description": {
+						"description": {
 							Type:     schema.TypeString,
 							Computed: true,
 						},
@@ -164,7 +164,7 @@ func dataSourceNcloudNasVolumesRead(d *schema.ResourceData, meta interface{}) er
 	}
 	reqParams := &server.GetNasVolumeInstanceListRequest{
 		VolumeAllotmentProtocolTypeCode: ncloud.String(d.Get("volume_allotment_protocol_type_code").(string)),
-		NasVolumeInstanceNoList:         expandStringInterfaceList(d.Get("nas_volume_instance_no_list").([]interface{})),
+		NasVolumeInstanceNoList:         expandStringInterfaceList(d.Get("no_list").([]interface{})),
 		RegionNo:                        regionNo,
 		ZoneNo:                          zoneNo,
 	}

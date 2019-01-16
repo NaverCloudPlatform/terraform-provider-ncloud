@@ -67,7 +67,7 @@ func resourceNcloudNasVolume() *schema.Resource {
 				Optional:    true,
 				Description: "CIFS user password. The password must contain a combination of at least 2 English letters, numbers and special characters, which can be 8-14 characters in length.",
 			},
-			"nas_volume_description": {
+			"description": {
 				Type:         schema.TypeString,
 				Optional:     true,
 				ValidateFunc: validateStringLengthInRange(1, 1000),
@@ -103,7 +103,7 @@ func resourceNcloudNasVolume() *schema.Resource {
 				Computed:    true,
 				Description: "NAS volume name.",
 			},
-			"nas_volume_instance_status": {
+			"instance_status": {
 				Type:        schema.TypeMap,
 				Computed:    true,
 				Elem:        commonCodeSchemaResource,
@@ -165,7 +165,7 @@ func resourceNcloudNasVolume() *schema.Resource {
 				Computed:    true,
 				Description: "Indicates whether the event is set.",
 			},
-			"nas_volume_instance_custom_ip_list": {
+			"instance_custom_ip_list": {
 				Type:        schema.TypeList,
 				Computed:    true,
 				Elem:        &schema.Schema{Type: schema.TypeString},
@@ -222,7 +222,7 @@ func resourceNcloudNasVolumeRead(d *schema.ResourceData, meta interface{}) error
 
 	if nasVolume != nil {
 		d.Set("create_date", nasVolume.CreateDate)
-		d.Set("nas_volume_description", nasVolume.NasVolumeInstanceDescription)
+		d.Set("description", nasVolume.NasVolumeInstanceDescription)
 		d.Set("volume_name", nasVolume.VolumeName)
 		d.Set("volume_total_size", nasVolume.VolumeTotalSize)
 		d.Set("volume_size", nasVolume.VolumeSize)
@@ -233,9 +233,9 @@ func resourceNcloudNasVolumeRead(d *schema.ResourceData, meta interface{}) error
 		d.Set("snapshot_volume_use_ratio", nasVolume.SnapshotVolumeUseRatio)
 		d.Set("is_snapshot_configuration", nasVolume.IsSnapshotConfiguration)
 		d.Set("is_event_configuration", nasVolume.IsEventConfiguration)
-		d.Set("nas_volume_instance_custom_ip_list", nasVolume.NasVolumeInstanceCustomIpList)
+		d.Set("instance_custom_ip_list", nasVolume.NasVolumeInstanceCustomIpList)
 
-		if err := d.Set("nas_volume_instance_status", flattenCommonCode(nasVolume.NasVolumeInstanceStatus)); err != nil {
+		if err := d.Set("instance_status", flattenCommonCode(nasVolume.NasVolumeInstanceStatus)); err != nil {
 			return err
 		}
 		if err := d.Set("volume_allotment_protocol_type", flattenCommonCode(nasVolume.VolumeAllotmentProtocolType)); err != nil {
@@ -318,7 +318,7 @@ func buildCreateNasVolumeInstanceParams(client *NcloudAPIClient, d *schema.Resou
 		CustomIpList:                    expandStringInterfaceList(d.Get("custom_ip_list").([]interface{})),
 		CifsUserName:                    ncloud.String(d.Get("cifs_user_name").(string)),
 		CifsUserPassword:                ncloud.String(d.Get("cifs_user_password").(string)),
-		NasVolumeDescription:            ncloud.String(d.Get("nas_volume_description").(string)),
+		NasVolumeDescription:            ncloud.String(d.Get("description").(string)),
 		RegionNo:                        regionNo,
 		ZoneNo:                          zoneNo,
 	}

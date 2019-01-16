@@ -40,7 +40,7 @@ func resourceNcloudBlockStorage() *schema.Resource {
 				Required:    true,
 				Description: "Enter the block storage size to be created. You can enter in GB units, and you can only enter up to 1000 GB.",
 			},
-			"block_storage_name": {
+			"name": {
 				Type:        schema.TypeString,
 				Optional:    true,
 				Description: "Block storage name. default: Assigned by Ncloud",
@@ -147,7 +147,7 @@ func resourceNcloudBlockStorageRead(d *schema.ResourceData, meta interface{}) er
 		d.Set("block_storage_instance_no", storage.BlockStorageInstanceNo)
 		d.Set("server_instance_no", storage.ServerInstanceNo)
 		d.Set("block_storage_size", storage.BlockStorageSize)
-		d.Set("block_storage_name", storage.BlockStorageName)
+		d.Set("name", storage.BlockStorageName)
 		d.Set("server_name", storage.ServerName)
 		d.Set("device_name", storage.DeviceName)
 		d.Set("block_storage_product_code", storage.BlockStorageProductCode)
@@ -198,7 +198,7 @@ func buildRequestBlockStorageInstance(d *schema.ResourceData) *server.CreateBloc
 	return &server.CreateBlockStorageInstanceRequest{
 		ServerInstanceNo:        ncloud.String(d.Get("server_instance_no").(string)),
 		BlockStorageSize:        ncloud.Int64(int64(d.Get("block_storage_size_gb").(int))),
-		BlockStorageName:        ncloud.String(d.Get("block_storage_name").(string)),
+		BlockStorageName:        ncloud.String(d.Get("name").(string)),
 		BlockStorageDescription: ncloud.String(d.Get("block_storage_description").(string)),
 		DiskDetailTypeCode:      ncloud.String(d.Get("disk_detail_type_code").(string)),
 	}

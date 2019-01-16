@@ -2,13 +2,14 @@ package ncloud
 
 import (
 	"fmt"
+	"log"
+	"testing"
+
 	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/ncloud"
 	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/services/server"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/terraform"
-	"log"
-	"testing"
 )
 
 // TODO: Fix TestAcc ErrorTestAccResourceNcloudBlockStorageBasic
@@ -130,7 +131,7 @@ resource "ncloud_server" "vm" {
 
 resource "ncloud_block_storage" "bs" {
 	"server_instance_no" = "${ncloud_server.vm.id}"
-	"block_storage_name" = "%s"
+	"name" = "%s"
 	"block_storage_size_gb" = "10"
 }
 

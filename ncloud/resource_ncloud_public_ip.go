@@ -26,7 +26,7 @@ func resourceNcloudPublicIpInstance() *schema.Resource {
 				Optional:    true,
 				Description: "Server instance No. to assign after creating a public IP. You can get one by calling getPublicIpTargetServerInstanceList.",
 			},
-			"public_ip_description": {
+			"description": {
 				Type:         schema.TypeString,
 				Optional:     true,
 				ValidateFunc: validateStringLengthInRange(1, 10000),
@@ -63,7 +63,7 @@ func resourceNcloudPublicIpInstance() *schema.Resource {
 				ConflictsWith: []string{"zone_code"},
 			},
 
-			"public_ip_instance_no": {
+			"instance_no": {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
@@ -80,21 +80,21 @@ func resourceNcloudPublicIpInstance() *schema.Resource {
 				Computed: true,
 				Elem:     commonCodeSchemaResource,
 			},
-			"public_ip_instance_status_name": {
+			"instance_status_name": {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
-			"public_ip_instance_status": {
+			"instance_status": {
 				Type:     schema.TypeMap,
 				Computed: true,
 				Elem:     commonCodeSchemaResource,
 			},
-			"public_ip_instance_operation": {
+			"instance_operation": {
 				Type:     schema.TypeMap,
 				Computed: true,
 				Elem:     commonCodeSchemaResource,
 			},
-			"public_ip_kind_type": {
+			"kind_type": {
 				Type:     schema.TypeMap,
 				Computed: true,
 				Elem:     commonCodeSchemaResource,
@@ -139,22 +139,22 @@ func resourceNcloudPublicIpRead(d *schema.ResourceData, meta interface{}) error 
 	}
 
 	if instance != nil {
-		d.Set("public_ip_instance_no", instance.PublicIpInstanceNo)
+		d.Set("instance_no", instance.PublicIpInstanceNo)
 		d.Set("public_ip", instance.PublicIp)
-		d.Set("public_ip_description", instance.PublicIpDescription)
+		d.Set("description", instance.PublicIpDescription)
 		d.Set("create_date", instance.CreateDate)
-		d.Set("public_ip_instance_status_name", instance.PublicIpInstanceStatusName)
+		d.Set("instance_status_name", instance.PublicIpInstanceStatusName)
 
 		if err := d.Set("internet_line_type", flattenCommonCode(instance.InternetLineType)); err != nil {
 			return err
 		}
-		if err := d.Set("public_ip_instance_status", flattenCommonCode(instance.PublicIpInstanceStatus)); err != nil {
+		if err := d.Set("instance_status", flattenCommonCode(instance.PublicIpInstanceStatus)); err != nil {
 			return err
 		}
-		if err := d.Set("public_ip_instance_operation", flattenCommonCode(instance.PublicIpInstanceOperation)); err != nil {
+		if err := d.Set("instance_operation", flattenCommonCode(instance.PublicIpInstanceOperation)); err != nil {
 			return err
 		}
-		if err := d.Set("public_ip_kind_type", flattenCommonCode(instance.PublicIpKindType)); err != nil {
+		if err := d.Set("kind_type", flattenCommonCode(instance.PublicIpKindType)); err != nil {
 			return err
 		}
 	}
@@ -206,7 +206,7 @@ func buildCreatePublicIpInstanceReqParams(client *NcloudAPIClient, d *schema.Res
 	}
 	reqParams := &server.CreatePublicIpInstanceRequest{
 		ServerInstanceNo:     ncloud.String(d.Get("server_instance_no").(string)),
-		PublicIpDescription:  ncloud.String(d.Get("public_ip_description").(string)),
+		PublicIpDescription:  ncloud.String(d.Get("description").(string)),
 		InternetLineTypeCode: StringPtrOrNil(d.GetOk("internet_line_type_code")),
 		RegionNo:             regionNo,
 		ZoneNo:               zoneNo,

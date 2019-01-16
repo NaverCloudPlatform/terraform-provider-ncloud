@@ -23,7 +23,7 @@ The following arguments are supported:
 * `volume_allotment_protocol_type_code` - (Optional) Volume allotment protocol type code. All volume instances will be selected if the filter is not specified. (`NFS` | `CIFS`)
 * `is_event_configuration` - (Optional) Indicates whether the event is set. All volume instances will be selected if the filter is not specified. (`true` | `false`)
 * `is_snapshot_configuration` - (Optional) Indicates whether a snapshot volume is set. All volume instances will be selected if the filter is not specified. (`true` | `false`)
-* `nas_volume_instance_no_list` - (Optional) List of nas volume instance numbers.
+* `no_list` - (Optional) List of nas volume instance numbers.
 * `region_code` - (Optional) Region code. Get available values using the data source `ncloud_regions`.
     Conflicts with `region_no`. Only one of `region_no` and `region_code` can be used.
     Default: KR region.
@@ -37,9 +37,9 @@ The following arguments are supported:
 
 ## Attributes Reference
 
-* `nas_volume_instance_no` - NAS volume instance number
+* `instance_no` - NAS volume instance number
 * `volume_name` - Volume name
-* `nas_volume_instance_status` - NAS volume instance status
+* `instance_status` - NAS volume instance status
     * `code` - NAS volume instance status code
     * `code_name` - NAS volume instance status name
 * `create_date` - Creation date of the NAS Volume instance
@@ -55,8 +55,8 @@ The following arguments are supported:
 * `snapshot_volume_use_ratio` - Snapshot volume use ratio
 * `is_snapshot_configuration` - Indicates whether a snapshot volume is set.
 * `is_event_configuration` - Indicates whether the event is set.
-* `nas_volume_instance_custom_ip_list` - NAS volume instance custom IP list
-* `nas_volume_description` - NAS volume description
+* `instance_custom_ip_list` - NAS volume instance custom IP list
+* `description` - NAS volume description
 * `zone` - Zone info
     * `zone_no` - Zone number
     * `zone_code` - Zone code

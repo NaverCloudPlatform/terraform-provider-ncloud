@@ -126,7 +126,7 @@ resource "ncloud_server" "test" {
 
 resource "ncloud_public_ip" "public_ip" {
 	"server_instance_no" = "${ncloud_server.test.id}"
-	"public_ip_description" = "%s"
+	"description" = "%s"
 	"region_no" = "1"
 	"zone_no" = "2"
 }

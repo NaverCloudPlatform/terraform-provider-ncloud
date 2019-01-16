@@ -28,8 +28,8 @@ The following arguments are supported:
 * `most_recent` - (Optional) If more than one result is returned, get the most recent created Public IP.
 * `internet_line_type_code` - (Optional) Internet line type code. `PUBLC` (Public), `GLBL` (Global)
 * `is_associated` - (Optional) Indicates whether the public IP address is associated or not.
-* `public_ip_instance_no_list` - (Optional) List of public IP instance numbers to get.
-* `public_ip_list` - (Optional) List of public IP addresses to get.
+* `instance_no_list` - (Optional) List of public IP instance numbers to get.
+* `list` - (Optional) List of public IP addresses to get.
 * `search_filter_name` - (Optional) `publicIp` (Public IP) | `associatedServerName` (Associated server name)
 * `search_filter_value` - (Optional) Filter value to search
 * `region_code` - (Optional) Region code. Get available values using the data source `ncloud_regions`.
@@ -49,15 +49,15 @@ The following arguments are supported:
 
 ## Attributes Reference
 
-* `public_ip_instance_no` - Public IP instance number
+* `instance_no` - Public IP instance number
 * `public_ip` - Public IP
-* `public_ip_description` - Public IP description
+* `description` - Public IP description
 * `create_date` - Creation date of the public ip
 * `internet_line_type` - Internet line type
-* `public_ip_instance_status_name` - Public IP instance status name
-* `public_ip_instance_status` - Public IP instance status
-* `public_ip_instance_operation` - Public IP instance operation
-* `public_ip_kind_type` - Public IP kind type
+* `instance_status_name` - Public IP instance status name
+* `instance_status` - Public IP instance status
+* `instance_operation` - Public IP instance operation
+* `kind_type` - Public IP kind type
 * `server_instance` - Associated server instance
     * `server_instance_no` - Associated server instance number
     * `server_name` - Associated server name
