@@ -60,14 +60,5 @@ ifeq (,$(wildcard $(GOPATH)/src/$(WEBSITE_REPO)))
 endif
 	@$(MAKE) -C $(GOPATH)/src/$(WEBSITE_REPO) website-provider-test PROVIDER_PATH=$(shell pwd) PROVIDER_NAME=$(PKG_NAME)
 
-build_all_platforms:
-	GOOS=linux GOARCH=amd64 go build -o $(EXEC_FILE) && zip terraform-provider-ncloud_linux_amd64_$(VERSION).zip $(EXEC_FILE) && rm $(EXEC_FILE)
-	GOOS=linux GOARCH=386 go build -o $(EXEC_FILE) && zip terraform-provider-ncloud_linux_386_$(VERSION).zip $(EXEC_FILE) && rm $(EXEC_FILE)
-	GOOS=linux GOARCH=arm go build -o $(EXEC_FILE) && zip terraform-provider-ncloud_linux_arm_$(VERSION).zip $(EXEC_FILE) && rm $(EXEC_FILE)
-	GOOS=darwin GOARCH=386 go build -o $(EXEC_FILE) && zip terraform-provider-ncloud_darwin_386_$(VERSION).zip $(EXEC_FILE) && rm $(EXEC_FILE)
-	GOOS=darwin GOARCH=amd64 go build -o $(EXEC_FILE) && zip terraform-provider-ncloud_darwin_amd64_$(VERSION).zip $(EXEC_FILE) && rm $(EXEC_FILE)
-	GOOS=windows GOARCH=amd64 go build -o $(EXEC_FILE).exe && zip terraform-provider-ncloud_windows_amd64_$(VERSION).zip $(EXEC_FILE).exe && rm $(EXEC_FILE).exe
-	GOOS=windows GOARCH=386 go build -o $(EXEC_FILE).exe && zip terraform-provider-ncloud_windows_386_$(VERSION).zip $(EXEC_FILE).exe && rm $(EXEC_FILE).exe
-
 .PHONY: build test testacc vet fmt fmtcheck errcheck vendor-status test-compile website website-test
 
