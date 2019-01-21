@@ -4,10 +4,11 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
-	"github.com/hashicorp/terraform/helper/hashcode"
 	"io/ioutil"
 	"log"
 	"os"
+
+	"github.com/hashicorp/terraform/helper/hashcode"
 )
 
 // Generates a hash for the set hash function used by the ID
@@ -23,9 +24,8 @@ func dataResourceIdHash(ids []string) string {
 
 func writeToFile(filePath string, data interface{}) {
 	log.Printf("[INFO] WriteToFile FilaPath: %s", filePath)
-	if err := os.Remove(filePath); err != nil {
-		// ignore
-	}
+
+	os.Remove(filePath)
 
 	if bs, err := json.MarshalIndent(data, "", "\t"); err == nil {
 		str := string(bs)
