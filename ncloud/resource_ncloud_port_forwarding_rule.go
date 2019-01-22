@@ -149,8 +149,11 @@ func resourceNcloudPortForwardingRuleRead(d *schema.ResourceData, meta interface
 		if err := d.Set("zone", flattenZone(resp.Zone)); err != nil {
 			return err
 		}
-
+	} else {
+		log.Printf("unable to find resource: %s", d.Id())
+		d.SetId("") // resource not found
 	}
+
 	return nil
 }
 

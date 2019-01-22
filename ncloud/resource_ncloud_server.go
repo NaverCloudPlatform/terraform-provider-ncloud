@@ -302,6 +302,9 @@ func resourceNcloudServerRead(d *schema.ResourceData, meta interface{}) error {
 		if len(instance.InstanceTagList) != 0 {
 			d.Set("tag_list", flattenInstanceTagList(instance.InstanceTagList))
 		}
+	} else {
+		log.Printf("unable to find resource: %s", d.Id())
+		d.SetId("") // resource not found
 	}
 
 	return nil

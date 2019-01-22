@@ -172,6 +172,9 @@ func resourceNcloudBlockStorageRead(d *schema.ResourceData, meta interface{}) er
 		if err := d.Set("disk_detail_type", flattenCommonCode(storage.DiskDetailType)); err != nil {
 			return err
 		}
+	} else {
+		log.Printf("unable to find resource: %s", d.Id())
+		d.SetId("") // resource not found
 	}
 
 	return nil

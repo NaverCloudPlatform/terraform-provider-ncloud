@@ -157,6 +157,9 @@ func resourceNcloudPublicIpRead(d *schema.ResourceData, meta interface{}) error 
 		if err := d.Set("kind_type", flattenCommonCode(instance.PublicIpKindType)); err != nil {
 			return err
 		}
+	} else {
+		log.Printf("unable to find resource: %s", d.Id())
+		d.SetId("") // resource not found
 	}
 
 	return nil
