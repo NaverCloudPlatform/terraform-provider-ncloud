@@ -247,6 +247,9 @@ func resourceNcloudNasVolumeRead(d *schema.ResourceData, meta interface{}) error
 		if err := d.Set("region", flattenRegion(nasVolume.Region)); err != nil {
 			return err
 		}
+	} else {
+		log.Printf("unable to find resource: %s", d.Id())
+		d.SetId("") // resource not found
 	}
 
 	return nil

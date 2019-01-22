@@ -87,6 +87,9 @@ func resourceNcloudLoadBalancerSSLCertificateRead(d *schema.ResourceData, meta i
 		d.Set("privatekey", lb.PrivateKey)
 		d.Set("publickey_certificate", lb.PublicKeyCertificate)
 		d.Set("certificate_chain", lb.CertificateChain)
+	} else {
+		log.Printf("unable to find resource: %s", d.Id())
+		d.SetId("") // resource not found
 	}
 
 	return nil

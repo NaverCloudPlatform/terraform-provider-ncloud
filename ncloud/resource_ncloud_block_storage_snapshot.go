@@ -155,6 +155,9 @@ func resourceNcloudBlockStorageSnapshotRead(d *schema.ResourceData, meta interfa
 		if err := d.Set("instance_operation", flattenCommonCode(snapshot.BlockStorageSnapshotInstanceOperation)); err != nil {
 			return err
 		}
+	} else {
+		log.Printf("unable to find resource: %s", d.Id())
+		d.SetId("") // resource not found
 	}
 
 	return nil

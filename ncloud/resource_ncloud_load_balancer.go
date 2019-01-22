@@ -219,6 +219,9 @@ func resourceNcloudLoadBalancerRead(d *schema.ResourceData, meta interface{}) er
 		} else {
 			d.Set("load_balanced_server_instance_list", nil)
 		}
+	} else {
+		log.Printf("unable to find resource: %s", d.Id())
+		d.SetId("") // resource not found
 	}
 
 	return nil
