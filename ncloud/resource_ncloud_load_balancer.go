@@ -456,6 +456,7 @@ var loadBalancerRuleSchemaResource = &schema.Resource{
 		"proxy_protocol_use_yn": {
 			Type:        schema.TypeString,
 			Optional:    true,
+			Default:     "N",
 			Description: "Use 'Y' if you want to check client IP addresses by enabling the proxy protocol while you select TCP or SSL.",
 		},
 	},
