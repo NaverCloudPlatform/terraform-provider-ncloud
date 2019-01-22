@@ -284,12 +284,14 @@ func flattenLoadBalancerRuleList(lbRuleList []*loadbalancer.LoadBalancerRule) []
 	for _, r := range lbRuleList {
 		rule := map[string]interface{}{
 			"protocol_type":         flattenCommonCode(r.ProtocolType),
+			"protocol_type_code":    ncloud.StringValue(r.ProtocolType.Code),
 			"load_balancer_port":    ncloud.Int32Value(r.LoadBalancerPort),
 			"server_port":           ncloud.Int32Value(r.ServerPort),
 			"l7_health_check_path":  ncloud.StringValue(r.L7HealthCheckPath),
 			"certificate_name":      ncloud.StringValue(r.CertificateName),
 			"proxy_protocol_use_yn": ncloud.StringValue(r.ProxyProtocolUseYn),
 		}
+
 		list = append(list, rule)
 	}
 
