@@ -24,7 +24,7 @@ func Provider() terraform.ResourceProvider {
 			},
 			"region": {
 				Type:        schema.TypeString,
-				Required:    true,
+				Required:    false,
 				DefaultFunc: schema.EnvDefaultFunc("NCLOUD_REGION", nil),
 				Description: descriptions["region"],
 			},
