@@ -7,6 +7,7 @@ import (
 	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/ncloud"
 	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/services/server"
 	"github.com/hashicorp/terraform/helper/schema"
+	"github.com/hashicorp/terraform/helper/validation"
 )
 
 func dataSourceNcloudMemberServerImages() *schema.Resource {
@@ -18,7 +19,7 @@ func dataSourceNcloudMemberServerImages() *schema.Resource {
 				Type:     schema.TypeString,
 				Optional: true,
 				// ForceNew:     true,
-				ValidateFunc: validateRegexp,
+				ValidateFunc: validation.ValidateRegexp,
 				Description:  "A regex string to apply to the member server image list returned by ncloud",
 			},
 			"no_list": {

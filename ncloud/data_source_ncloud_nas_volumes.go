@@ -6,6 +6,7 @@ import (
 	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/ncloud"
 	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/services/server"
 	"github.com/hashicorp/terraform/helper/schema"
+	"github.com/hashicorp/terraform/helper/validation"
 )
 
 func dataSourceNcloudNasVolumes() *schema.Resource {
@@ -16,7 +17,7 @@ func dataSourceNcloudNasVolumes() *schema.Resource {
 			"volume_allotment_protocol_type_code": {
 				Type:         schema.TypeString,
 				Optional:     true,
-				ValidateFunc: validateIncludeValues([]string{"NFS", "CIFS"}),
+				ValidateFunc: validation.StringInSlice([]string{"NFS", "CIFS"}, false),
 			},
 			"is_event_configuration": {
 				Type:     schema.TypeBool,

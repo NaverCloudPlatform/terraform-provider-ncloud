@@ -8,6 +8,7 @@ import (
 	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/ncloud"
 	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/services/server"
 	"github.com/hashicorp/terraform/helper/schema"
+	"github.com/hashicorp/terraform/helper/validation"
 )
 
 func resourceNcloudPublicIpInstance() *schema.Resource {
@@ -29,13 +30,13 @@ func resourceNcloudPublicIpInstance() *schema.Resource {
 			"description": {
 				Type:         schema.TypeString,
 				Optional:     true,
-				ValidateFunc: validateStringLengthInRange(1, 10000),
+				ValidateFunc: validation.StringLenBetween(1, 10000),
 				Description:  "Public IP description.",
 			},
 			"internet_line_type_code": {
 				Type:         schema.TypeString,
 				Optional:     true,
-				ValidateFunc: validateInternetLineTypeCode,
+				ValidateFunc: validation.StringInSlice([]string{"PUBLC", "GLBL"}, false),
 				Description:  "Internet line code. PUBLC(Public), GLBL(Global)",
 			},
 			"region_code": {

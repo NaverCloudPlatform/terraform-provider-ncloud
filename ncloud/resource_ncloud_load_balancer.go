@@ -8,6 +8,7 @@ import (
 	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/ncloud"
 	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/services/loadbalancer"
 	"github.com/hashicorp/terraform/helper/schema"
+	"github.com/hashicorp/terraform/helper/validation"
 )
 
 func resourceNcloudLoadBalancer() *schema.Resource {
@@ -30,19 +31,19 @@ func resourceNcloudLoadBalancer() *schema.Resource {
 			"name": {
 				Type:         schema.TypeString,
 				Optional:     true,
-				ValidateFunc: validateStringLengthInRange(3, 30),
+				ValidateFunc: validation.StringLenBetween(3, 30),
 				Description:  "Name of a load balancer to create. Default: Automatically specified by Ncloud.",
 			},
 			"algorithm_type_code": {
 				Type:         schema.TypeString,
 				Optional:     true,
-				ValidateFunc: validateIncludeValues([]string{"RR", "LC", "SIPHS"}),
+				ValidateFunc: validation.StringInSlice([]string{"RR", "LC", "SIPHS"}, false),
 				Description:  "Load balancer algorithm type code. The available algorithms are as follows: [ROUND ROBIN (RR) | LEAST_CONNECTION (LC)]. Default: ROUND ROBIN (RR)",
 			},
 			"description": {
 				Type:         schema.TypeString,
 				Optional:     true,
-				ValidateFunc: validateStringLengthInRange(1, 1000),
+				ValidateFunc: validation.StringLenBetween(1, 1000),
 				Description:  "Description of a load balancer to create",
 			},
 			"rule_list": {
@@ -60,13 +61,13 @@ func resourceNcloudLoadBalancer() *schema.Resource {
 			"internet_line_type_code": {
 				Type:         schema.TypeString,
 				Optional:     true,
-				ValidateFunc: validateIncludeValues([]string{"PUBLC", "GLBL"}),
+				ValidateFunc: validation.StringInSlice([]string{"PUBLC", "GLBL"}, false),
 				Description:  "Internet line identification code. PUBLC(Public), GLBL(Global). default : PUBLC(Public)",
 			},
 			"network_usage_type_code": {
 				Type:         schema.TypeString,
 				Optional:     true,
-				ValidateFunc: validateIncludeValues([]string{"PBLIP", "PRVT"}),
+				ValidateFunc: validation.StringInSlice([]string{"PBLIP", "PRVT"}, false),
 				Description:  "Network usage identification code. PBLIP(PublicIp), PRVT(PrivateIP). default : PBLIP(PublicIp)",
 			},
 			"region_code": {
