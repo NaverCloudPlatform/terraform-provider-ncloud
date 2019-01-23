@@ -94,10 +94,6 @@ func resourceNcloudLoadBalancer() *schema.Resource {
 				Computed: true,
 				Elem:     commonCodeSchemaResource,
 			},
-			"create_date": {
-				Type:     schema.TypeString,
-				Computed: true,
-			},
 			"domain_name": {
 				Type:     schema.TypeString,
 				Computed: true,
@@ -183,7 +179,6 @@ func resourceNcloudLoadBalancerRead(d *schema.ResourceData, meta interface{}) er
 		d.Set("virtual_ip", lb.VirtualIp)
 		d.Set("name", lb.LoadBalancerName)
 		d.Set("description", lb.LoadBalancerDescription)
-		d.Set("create_date", lb.CreateDate)
 		d.Set("domain_name", lb.DomainName)
 		d.Set("instance_status_name", lb.LoadBalancerInstanceStatusName)
 		d.Set("is_http_keep_alive", lb.IsHttpKeepAlive)

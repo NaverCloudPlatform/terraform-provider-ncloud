@@ -72,10 +72,6 @@ func dataSourceNcloudNasVolume() *schema.Resource {
 				Computed: true,
 				Elem:     commonCodeSchemaResource,
 			},
-			"create_date": {
-				Type:     schema.TypeString,
-				Computed: true,
-			},
 			"volume_allotment_protocol_type": {
 				Type:     schema.TypeMap,
 				Computed: true,
@@ -177,7 +173,6 @@ func dataSourceNcloudNasVolumeRead(d *schema.ResourceData, meta interface{}) err
 
 func nasVolumeInstanceAttributes(d *schema.ResourceData, nasVolume *server.NasVolumeInstance) error {
 	d.Set("instance_no", nasVolume.NasVolumeInstanceNo)
-	d.Set("create_date", nasVolume.CreateDate)
 	d.Set("description", nasVolume.NasVolumeInstanceDescription)
 	d.Set("volume_name", nasVolume.VolumeName)
 	d.Set("volume_total_size", nasVolume.VolumeTotalSize)

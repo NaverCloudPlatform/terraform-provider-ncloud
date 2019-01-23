@@ -36,10 +36,6 @@ func dataSourceNcloudAccessControlGroup() *schema.Resource {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
-			"create_date": {
-				Type:     schema.TypeString,
-				Computed: true,
-			},
 		},
 	}
 }
@@ -104,7 +100,6 @@ func accessControlGroupAttributes(d *schema.ResourceData, accessControlGroup *se
 	d.Set("name", accessControlGroup.AccessControlGroupName)
 	d.Set("description", accessControlGroup.AccessControlGroupDescription)
 	d.Set("is_default_group", accessControlGroup.IsDefaultGroup)
-	d.Set("create_date", accessControlGroup.CreateDate)
 
 	return nil
 }

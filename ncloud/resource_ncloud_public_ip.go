@@ -71,10 +71,6 @@ func resourceNcloudPublicIpInstance() *schema.Resource {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
-			"create_date": {
-				Type:     schema.TypeString,
-				Computed: true,
-			},
 			"internet_line_type": {
 				Type:     schema.TypeMap,
 				Computed: true,
@@ -142,7 +138,6 @@ func resourceNcloudPublicIpRead(d *schema.ResourceData, meta interface{}) error 
 		d.Set("instance_no", instance.PublicIpInstanceNo)
 		d.Set("public_ip", instance.PublicIp)
 		d.Set("description", instance.PublicIpDescription)
-		d.Set("create_date", instance.CreateDate)
 		d.Set("instance_status_name", instance.PublicIpInstanceStatusName)
 
 		if err := d.Set("internet_line_type", flattenCommonCode(instance.InternetLineType)); err != nil {

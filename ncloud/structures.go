@@ -71,7 +71,6 @@ func flattenAccessControlGroups(accessControlGroups []*server.AccessControlGroup
 			"name":             ncloud.StringValue(accessControlGroup.AccessControlGroupName),
 			"description":      ncloud.StringValue(accessControlGroup.AccessControlGroupDescription),
 			"is_default_group": ncloud.BoolValue(accessControlGroup.IsDefaultGroup),
-			"create_date":      ncloud.StringValue(accessControlGroup.CreateDate),
 		}
 
 		s = append(s, mapping)
@@ -173,7 +172,6 @@ func flattenMemberServerImages(memberServerImages []*server.MemberServerImage) [
 			"status":                                flattenCommonCode(m.MemberServerImageStatus),
 			"operation":                             flattenCommonCode(m.MemberServerImageOperation),
 			"platform_type":                         flattenCommonCode(m.MemberServerImagePlatformType),
-			"create_date":                           ncloud.StringValue(m.CreateDate),
 			"region":                                flattenRegion(m.Region),
 			"block_storage_total_rows":              int(ncloud.Int32Value(m.MemberServerImageBlockStorageTotalRows)),
 			"block_storage_total_size":              int(ncloud.Int64Value(m.MemberServerImageBlockStorageTotalSize)),
@@ -225,7 +223,6 @@ func flattenNasVolumeInstances(nasVolumeInstances []*server.NasVolumeInstance) [
 		mapping := map[string]interface{}{
 			"instance_no":                    ncloud.StringValue(nasVolume.NasVolumeInstanceNo),
 			"instance_status":                flattenCommonCode(nasVolume.NasVolumeInstanceStatus),
-			"create_date":                    ncloud.StringValue(nasVolume.CreateDate),
 			"description":                    ncloud.StringValue(nasVolume.NasVolumeInstanceDescription),
 			"volume_allotment_protocol_type": flattenCommonCode(nasVolume.VolumeAllotmentProtocolType),
 			"volume_name":                    ncloud.StringValue(nasVolume.VolumeName),

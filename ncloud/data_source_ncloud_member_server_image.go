@@ -126,11 +126,6 @@ func dataSourceNcloudMemberServerImage() *schema.Resource {
 				Elem:        commonCodeSchemaResource,
 				Description: "Member server image platform type",
 			},
-			"create_date": {
-				Type:        schema.TypeString,
-				Computed:    true,
-				Description: "Creation date of the member server image",
-			},
 			"region": {
 				Type:        schema.TypeMap,
 				Computed:    true,
@@ -214,7 +209,6 @@ func memberServerImageAttributes(d *schema.ResourceData, m *server.MemberServerI
 	d.Set("original_os_information", m.OriginalOsInformation)
 	d.Set("original_server_image_name", m.OriginalServerImageName)
 	d.Set("status_name", m.MemberServerImageStatusName)
-	d.Set("create_date", m.CreateDate)
 	d.Set("block_storage_total_rows", m.MemberServerImageBlockStorageTotalRows)
 	d.Set("block_storage_total_size", m.MemberServerImageBlockStorageTotalSize)
 

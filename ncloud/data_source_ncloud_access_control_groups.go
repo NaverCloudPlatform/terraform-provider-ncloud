@@ -70,11 +70,6 @@ func dataSourceNcloudAccessControlGroups() *schema.Resource {
 							Computed:    true,
 							Description: "whether default group",
 						},
-						"create_date": {
-							Type:        schema.TypeString,
-							Computed:    true,
-							Description: "creation date of ACG",
-						},
 					},
 				},
 			},

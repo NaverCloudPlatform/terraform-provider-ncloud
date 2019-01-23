@@ -97,10 +97,6 @@ func resourceNcloudBlockStorage() *schema.Resource {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
-			"create_date": {
-				Type:     schema.TypeString,
-				Computed: true,
-			},
 			"disk_type": {
 				Type:     schema.TypeMap,
 				Computed: true,
@@ -154,7 +150,6 @@ func resourceNcloudBlockStorageRead(d *schema.ResourceData, meta interface{}) er
 		d.Set("device_name", storage.DeviceName)
 		d.Set("product_code", storage.BlockStorageProductCode)
 		d.Set("instance_status_name", storage.BlockStorageInstanceStatusName)
-		d.Set("create_date", storage.CreateDate)
 		d.Set("description", storage.BlockStorageInstanceDescription)
 
 		if err := d.Set("type", flattenCommonCode(storage.BlockStorageType)); err != nil {

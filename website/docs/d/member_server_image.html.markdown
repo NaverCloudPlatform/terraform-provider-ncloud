@@ -57,7 +57,6 @@ The following arguments are supported:
 * `platform_type` - Member server image platform type
     * `code` - Member server image platform type code
     * `code_name` - Member server image platform type name
-* `create_date` - Creation date of the member server image
 * `region` - Region info
     * `region_no` - region no
     * `region_code` - Region code

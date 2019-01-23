@@ -126,11 +126,6 @@ func dataSourceNcloudMemberServerImages() *schema.Resource {
 							Elem:        commonCodeSchemaResource,
 							Description: "Member server image platform type",
 						},
-						"create_date": {
-							Type:        schema.TypeString,
-							Computed:    true,
-							Description: "Creation date of the member server image",
-						},
 						"region": {
 							Type:        schema.TypeMap,
 							Computed:    true,

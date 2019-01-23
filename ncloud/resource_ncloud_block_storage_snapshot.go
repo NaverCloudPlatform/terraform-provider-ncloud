@@ -85,11 +85,6 @@ func resourceNcloudBlockStorageSnapshot() *schema.Resource {
 				Computed:    true,
 				Description: "Block Storage Snapshot Instance Status Name",
 			},
-			"create_date": {
-				Type:        schema.TypeString,
-				Computed:    true,
-				Description: "Creation date of the Block Storage Snapshot Instance",
-			},
 			"instance_description": {
 				Type:        schema.TypeString,
 				Computed:    true,
@@ -145,7 +140,6 @@ func resourceNcloudBlockStorageSnapshotRead(d *schema.ResourceData, meta interfa
 		d.Set("original_block_storage_instance_no", snapshot.OriginalBlockStorageInstanceNo)
 		d.Set("original_block_storage_name", snapshot.OriginalBlockStorageName)
 		d.Set("instance_status_name", snapshot.BlockStorageSnapshotInstanceStatusName)
-		d.Set("create_date", snapshot.CreateDate)
 		d.Set("server_image_product_code", snapshot.ServerImageProductCode)
 		d.Set("os_information", snapshot.OsInformation)
 

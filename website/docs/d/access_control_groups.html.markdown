@@ -34,4 +34,3 @@ The following arguments are supported:
     * `name` - ACG name
     * `description` - ACG description
     * `is_default_group` - Whether default group
-    * `create_date` - Creation date of ACG

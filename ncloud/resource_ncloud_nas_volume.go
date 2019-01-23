@@ -109,11 +109,6 @@ func resourceNcloudNasVolume() *schema.Resource {
 				Elem:        commonCodeSchemaResource,
 				Description: "NAS Volume instance status",
 			},
-			"create_date": {
-				Type:        schema.TypeString,
-				Computed:    true,
-				Description: "Creation date of the NAS volume",
-			},
 			"volume_allotment_protocol_type": {
 				Type:        schema.TypeMap,
 				Computed:    true,
@@ -221,7 +216,6 @@ func resourceNcloudNasVolumeRead(d *schema.ResourceData, meta interface{}) error
 	}
 
 	if nasVolume != nil {
-		d.Set("create_date", nasVolume.CreateDate)
 		d.Set("description", nasVolume.NasVolumeInstanceDescription)
 		d.Set("volume_name", nasVolume.VolumeName)
 		d.Set("volume_total_size", nasVolume.VolumeTotalSize)
