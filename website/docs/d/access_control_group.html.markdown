@@ -47,4 +47,3 @@ The following arguments are supported:
 ## Attributes Reference
 
 * `description` - ACG description
-* `create_date` - Creation date of ACG

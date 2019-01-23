@@ -76,10 +76,6 @@ func dataSourceNcloudNasVolumes() *schema.Resource {
 							Computed: true,
 							Elem:     commonCodeSchemaResource,
 						},
-						"create_date": {
-							Type:     schema.TypeString,
-							Computed: true,
-						},
 						"volume_allotment_protocol_type": {
 							Type:     schema.TypeMap,
 							Computed: true,

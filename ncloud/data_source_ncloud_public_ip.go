@@ -103,11 +103,6 @@ func dataSourceNcloudPublicIp() *schema.Resource {
 				Computed:    true,
 				Description: "Public IP description",
 			},
-			"create_date": {
-				Type:        schema.TypeString,
-				Computed:    true,
-				Description: "Creation date of the public ip",
-			},
 			"internet_line_type": {
 				Type:        schema.TypeMap,
 				Computed:    true,
@@ -152,11 +147,6 @@ func dataSourceNcloudPublicIp() *schema.Resource {
 							Type:        schema.TypeString,
 							Computed:    true,
 							Description: "Associated server name",
-						},
-						"create_date": {
-							Type:        schema.TypeString,
-							Computed:    true,
-							Description: "Creation date of the server instance",
 						},
 					},
 				},
@@ -217,7 +207,6 @@ func publicIPAttributes(d *schema.ResourceData, instance *server.PublicIpInstanc
 	d.Set("instance_no", instance.PublicIpInstanceNo)
 	d.Set("public_ip", instance.PublicIp)
 	d.Set("description", instance.PublicIpDescription)
-	d.Set("create_date", instance.CreateDate)
 	d.Set("instance_status_name", instance.PublicIpInstanceStatusName)
 
 	if err := d.Set("internet_line_type", flattenCommonCode(instance.InternetLineType)); err != nil {
@@ -237,7 +226,6 @@ func publicIPAttributes(d *schema.ResourceData, instance *server.PublicIpInstanc
 		mapping := map[string]interface{}{
 			"server_instance_no": ncloud.StringValue(serverInstance.ServerInstanceNo),
 			"server_name":        ncloud.StringValue(serverInstance.ServerName),
-			"create_date":        ncloud.StringValue(serverInstance.CreateDate),
 		}
 		d.Set("server_instance", mapping)
 	}

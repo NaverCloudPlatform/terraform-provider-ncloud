@@ -49,10 +49,6 @@ func resourceNcloudLoginKey() *schema.Resource {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
-			"create_date": {
-				Type:     schema.TypeString,
-				Computed: true,
-			},
 		},
 	}
 }
@@ -69,7 +65,6 @@ func resourceNcloudLoginKeyRead(d *schema.ResourceData, meta interface{}) error 
 
 	if loginKey != nil {
 		d.Set("fingerprint", loginKey.Fingerprint)
-		d.Set("create_date", loginKey.CreateDate)
 	} else {
 		log.Printf("unable to find resource: %s", d.Id())
 		d.SetId("") // resource not found

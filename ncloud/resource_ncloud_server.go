@@ -161,14 +161,6 @@ func resourceNcloudServer() *schema.Resource {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
-			"create_date": {
-				Type:     schema.TypeString,
-				Computed: true,
-			},
-			"uptime": {
-				Type:     schema.TypeString,
-				Computed: true,
-			},
 			"port_forwarding_public_ip": {
 				Type:     schema.TypeString,
 				Computed: true,
@@ -259,7 +251,6 @@ func resourceNcloudServerRead(d *schema.ResourceData, meta interface{}) error {
 		d.Set("name", instance.ServerName)
 		d.Set("server_image_product_code", instance.ServerImageProductCode)
 		d.Set("instance_status_name", instance.ServerInstanceStatusName)
-		d.Set("uptime", instance.Uptime)
 		d.Set("server_image_name", instance.ServerImageName)
 		d.Set("private_ip", instance.PrivateIp)
 		d.Set("cpu_count", instance.CpuCount)
@@ -268,8 +259,6 @@ func resourceNcloudServerRead(d *schema.ResourceData, meta interface{}) error {
 		d.Set("is_fee_charging_monitoring", instance.IsFeeChargingMonitoring)
 		d.Set("public_ip", instance.PublicIp)
 		d.Set("private_ip", instance.PrivateIp)
-		d.Set("create_date", instance.CreateDate)
-		d.Set("uptime", instance.Uptime)
 		d.Set("port_forwarding_public_ip", instance.PortForwardingPublicIp)
 		d.Set("port_forwarding_external_port", instance.PortForwardingExternalPort)
 		d.Set("port_forwarding_internal_port", instance.PortForwardingInternalPort)

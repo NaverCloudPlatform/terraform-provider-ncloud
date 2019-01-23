@@ -144,10 +144,6 @@ func TestFlattenAccessControlGroups(t *testing.T) {
 	if result[0]["is_default_group"] != true {
 		t.Fatalf("expected is_default_group to be true, but was %b", result[0]["is_default_group"])
 	}
-
-	if result[0]["create_date"] != "2017-02-23T10:25:39+0900" {
-		t.Fatalf("expected create_date to be 2017-02-23T10:25:39+0900, but was %s", result[0]["create_date"])
-	}
 }
 
 func TestFlattenRegion(t *testing.T) {
@@ -302,10 +298,6 @@ func TestFlattenMemberServerImages(t *testing.T) {
 
 	if r["status_name"] != "creating" {
 		t.Fatalf("expected result status_name to be creating, but was %s", r["status_name"])
-	}
-
-	if r["create_date"] != "2018-01-07T10:17:14+0900" {
-		t.Fatalf("expected result create_date to be 2018-01-07T10:17:14+0900, but was %s", r["create_date"])
 	}
 
 	if r["block_storage_total_rows"] != 2 {
@@ -471,10 +463,6 @@ func TestFlattenNasVolumeInstances(t *testing.T) {
 
 	if r["instance_no"] != "856180" {
 		t.Fatalf("expected result instance_no to be 856180, but was %s", r["instance_no"])
-	}
-
-	if r["create_date"] != "2018-07-12T20:32:45+0900" {
-		t.Fatalf("expected result create_date to be 2018-07-12T20:32:45+0900, but was %s", r["create_date"])
 	}
 
 	if r["volume_name"] != "n003666_aaa" {
