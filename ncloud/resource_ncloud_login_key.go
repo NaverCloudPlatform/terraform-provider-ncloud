@@ -9,6 +9,7 @@ import (
 	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/ncloud"
 	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/services/server"
 	"github.com/hashicorp/terraform/helper/schema"
+	"github.com/hashicorp/terraform/helper/validation"
 )
 
 func resourceNcloudLoginKey() *schema.Resource {
@@ -29,7 +30,7 @@ func resourceNcloudLoginKey() *schema.Resource {
 			"key_name": {
 				Type:         schema.TypeString,
 				Required:     true,
-				ValidateFunc: validateStringLengthInRange(3, 30),
+				ValidateFunc: validation.StringLenBetween(3, 30),
 				Description:  "Key name to generate. If the generated key name exists, an error occurs.",
 			},
 			"private_key": {
@@ -94,6 +95,8 @@ func resourceNcloudLoginKeyCreate(d *schema.ResourceData, meta interface{}) erro
 
 	d.SetId(keyName)
 	d.Set("private_key", resp.PrivateKey)
+
+	time.Sleep(time.Second * 1) // for internal Master / Slave DB sync
 
 	return resourceNcloudLoginKeyRead(d, meta)
 }

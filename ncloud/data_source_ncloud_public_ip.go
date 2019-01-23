@@ -6,6 +6,7 @@ import (
 	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/ncloud"
 	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/services/server"
 	"github.com/hashicorp/terraform/helper/schema"
+	"github.com/hashicorp/terraform/helper/validation"
 )
 
 func dataSourceNcloudPublicIp() *schema.Resource {
@@ -23,7 +24,7 @@ func dataSourceNcloudPublicIp() *schema.Resource {
 			"internet_line_type_code": {
 				Type:         schema.TypeString,
 				Optional:     true,
-				ValidateFunc: validateInternetLineTypeCode,
+				ValidateFunc: validation.StringInSlice([]string{"PUBLC", "GLBL"}, false),
 				Description:  "Internet line type code. `PUBLC` (Public), `GLBL` (Global)",
 			},
 			"is_associated": {

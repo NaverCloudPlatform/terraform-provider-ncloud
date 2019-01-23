@@ -11,6 +11,7 @@ import (
 	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/services/server"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/helper/schema"
+	"github.com/hashicorp/terraform/helper/validation"
 )
 
 func resourceNcloudPortForwadingRule() *schema.Resource {
@@ -43,13 +44,13 @@ func resourceNcloudPortForwadingRule() *schema.Resource {
 			"port_forwarding_external_port": {
 				Type:         schema.TypeInt,
 				Required:     true,
-				ValidateFunc: validateIntegerInRange(1024, 65534),
+				ValidateFunc: validation.IntBetween(1024, 65534),
 				Description:  "External port for port forwarding",
 			},
 			"port_forwarding_internal_port": {
 				Type:         schema.TypeInt,
 				Required:     true,
-				ValidateFunc: validateIncludeIntValues([]int{22, 3389}), // [Linux : 22 |Windows : 3389]
+				ValidateFunc: validation.IntInSlice([]int{22, 3389}), // [Linux : 22 |Windows : 3389]
 				Description:  "Internal port for port forwarding. Only the following ports are available. [Linux: `22` | Windows: `3389`]",
 			},
 			"port_forwarding_public_ip": {

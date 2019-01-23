@@ -7,6 +7,7 @@ import (
 	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/ncloud"
 	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/services/server"
 	"github.com/hashicorp/terraform/helper/schema"
+	"github.com/hashicorp/terraform/helper/validation"
 )
 
 func dataSourceNcloudAccessControlRule() *schema.Resource {
@@ -34,7 +35,7 @@ func dataSourceNcloudAccessControlRule() *schema.Resource {
 				Type:         schema.TypeString,
 				Optional:     true,
 				ForceNew:     true,
-				ValidateFunc: validateRegexp,
+				ValidateFunc: validation.ValidateRegexp,
 				Description:  "A regex string to apply to the source access control rule list returned by ncloud",
 			},
 			"source_ip": {

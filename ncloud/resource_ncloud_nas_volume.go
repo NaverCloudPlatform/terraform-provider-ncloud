@@ -8,6 +8,7 @@ import (
 	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/ncloud"
 	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/services/server"
 	"github.com/hashicorp/terraform/helper/schema"
+	"github.com/hashicorp/terraform/helper/validation"
 )
 
 func resourceNcloudNasVolume() *schema.Resource {
@@ -30,19 +31,19 @@ func resourceNcloudNasVolume() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validateStringLengthInRange(3, 30),
+				ValidateFunc: validation.StringLenBetween(3, 30),
 				Description:  "Name of a NAS volume to create. Enter a volume name that can be 3-20 characters in length after the name already entered for user identification.",
 			},
 			"volume_size_gb": {
 				Type:         schema.TypeInt,
 				Required:     true,
-				ValidateFunc: validateIntegerInRange(500, 10000),
+				ValidateFunc: validation.IntBetween(500, 10000),
 				Description:  "Enter the nas volume size to be created. You can enter in GB units.",
 			},
 			"volume_allotment_protocol_type_code": {
 				Type:         schema.TypeString,
 				Required:     true,
-				ValidateFunc: validateStringLengthInRange(1, 5),
+				ValidateFunc: validation.StringLenBetween(1, 5),
 				Description:  "Volume allotment protocol type code. `NFS` | `CIFS`",
 			},
 			"server_instance_no_list": {
@@ -70,7 +71,7 @@ func resourceNcloudNasVolume() *schema.Resource {
 			"description": {
 				Type:         schema.TypeString,
 				Optional:     true,
-				ValidateFunc: validateStringLengthInRange(1, 1000),
+				ValidateFunc: validation.StringLenBetween(1, 1000),
 				Description:  "NAS volume description",
 			},
 			"region_code": {

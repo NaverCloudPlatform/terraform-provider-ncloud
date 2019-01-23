@@ -7,6 +7,7 @@ import (
 	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/ncloud"
 	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/services/server"
 	"github.com/hashicorp/terraform/helper/schema"
+	"github.com/hashicorp/terraform/helper/validation"
 )
 
 func dataSourceNcloudPortForwardingRule() *schema.Resource {
@@ -18,7 +19,7 @@ func dataSourceNcloudPortForwardingRule() *schema.Resource {
 				Type:         schema.TypeString,
 				Optional:     true,
 				ForceNew:     true,
-				ValidateFunc: validateInternetLineTypeCode,
+				ValidateFunc: validation.StringInSlice([]string{"PUBLC", "GLBL"}, false),
 				Description:  "Internet line code. PUBLC(Public), GLBL(Global)",
 			},
 			"region_code": {

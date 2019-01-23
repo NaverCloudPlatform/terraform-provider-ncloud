@@ -3,12 +3,14 @@ package ncloud
 import (
 	"fmt"
 	"log"
+	"regexp"
 	"time"
 
 	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/ncloud"
 	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/services/server"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/helper/schema"
+	"github.com/hashicorp/terraform/helper/validation"
 )
 
 func resourceNcloudServer() *schema.Resource {
@@ -42,10 +44,14 @@ func resourceNcloudServer() *schema.Resource {
 				Description: "Required value when creating a server from a manually created server image. It can be obtained through the getMemberServerImageList action.",
 			},
 			"name": {
-				Type:         schema.TypeString,
-				Optional:     true,
-				ValidateFunc: validateServerName,
-				Description:  "Server name to create. default: Assigned by ncloud",
+				Type:     schema.TypeString,
+				Optional: true,
+				ValidateFunc: validation.All(
+					validation.StringLenBetween(3, 30),
+					validation.StringMatch(regexp.MustCompile(`^[A-Za-z0-9-*]+$`), "Composed of alphabets, numbers, hyphen (-) and wild card (*)."),
+					validation.StringMatch(regexp.MustCompile(`.*[^\\-]$`), "Hyphen (-) cannot be used for the last character and if wild card (*) is used, other characters cannot be input."),
+				),
+				Description: "Server name to create. default: Assigned by ncloud",
 			},
 			"description": {
 				Type:        schema.TypeString,
@@ -65,7 +71,7 @@ func resourceNcloudServer() *schema.Resource {
 			"internet_line_type_code": {
 				Type:         schema.TypeString,
 				Optional:     true,
-				ValidateFunc: validateInternetLineTypeCode,
+				ValidateFunc: validation.StringInSlice([]string{"PUBLC", "GLBL"}, false),
 				Description:  "Internet line identification code. PUBLC(Public), GLBL(Global). default : PUBLC(Public)",
 			},
 			"fee_system_type_code": {
