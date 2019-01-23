@@ -238,8 +238,8 @@ func flattenNasVolumeInstances(nasVolumeInstances []*server.NasVolumeInstance) [
 			"snapshot_volume_use_ratio":      ncloud.Float32Value(nasVolume.SnapshotVolumeUseRatio),
 			"is_snapshot_configuration":      ncloud.BoolValue(nasVolume.IsSnapshotConfiguration),
 			"is_event_configuration":         ncloud.BoolValue(nasVolume.IsEventConfiguration),
-			"zone":   flattenZone(nasVolume.Zone),
-			"region": flattenRegion(nasVolume.Region),
+			"zone":                           flattenZone(nasVolume.Zone),
+			"region":                         flattenRegion(nasVolume.Region),
 		}
 		if len(nasVolume.NasVolumeInstanceCustomIpList) > 0 {
 			mapping["instance_custom_ip_list"] = flattenCustomIPList(nasVolume.NasVolumeInstanceCustomIpList)
