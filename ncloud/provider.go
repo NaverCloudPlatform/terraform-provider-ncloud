@@ -13,19 +13,19 @@ func Provider() terraform.ResourceProvider {
 			"access_key": {
 				Type:        schema.TypeString,
 				Required:    true,
-				DefaultFunc: schema.EnvDefaultFunc("NCLOUD_ACCESS_KEY", os.Getenv("NCLOUD_ACCESS_KEY")),
+				DefaultFunc: schema.EnvDefaultFunc("NCLOUD_ACCESS_KEY", nil),
 				Description: descriptions["access_key"],
 			},
 			"secret_key": {
 				Type:        schema.TypeString,
 				Required:    true,
-				DefaultFunc: schema.EnvDefaultFunc("NCLOUD_SECRET_KEY", os.Getenv("NCLOUD_SECRET_KEY")),
+				DefaultFunc: schema.EnvDefaultFunc("NCLOUD_SECRET_KEY", nil),
 				Description: descriptions["secret_key"],
 			},
 			"region": {
 				Type:        schema.TypeString,
 				Required:    true,
-				DefaultFunc: schema.EnvDefaultFunc("NCLOUD_REGION", os.Getenv("NCLOUD_REGION")),
+				DefaultFunc: schema.EnvDefaultFunc("NCLOUD_REGION", nil),
 				Description: descriptions["region"],
 			},
 		},
