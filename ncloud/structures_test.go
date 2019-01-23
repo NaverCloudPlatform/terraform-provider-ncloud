@@ -58,7 +58,7 @@ func TestFlattenAccessControlRules(t *testing.T) {
 				Code:     ncloud.String("TCP"),
 				CodeName: ncloud.String("tcp"),
 			},
-			SourceIp:                               ncloud.String("0.0.0.0/0"),
+			SourceIp: ncloud.String("0.0.0.0/0"),
 			SourceAccessControlRuleConfigurationNo: ncloud.String("4964"),
 			SourceAccessControlRuleName:            ncloud.String("ncloud-default-acg"),
 			DestinationPort:                        ncloud.String("1-65535"),

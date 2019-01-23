@@ -383,18 +383,18 @@ func buildCreateServerInstanceReqParams(client *NcloudAPIClient, d *schema.Resou
 		return nil, err
 	}
 	reqParams := &server.CreateServerInstancesRequest{
-		ServerImageProductCode:                ncloud.String(d.Get("server_image_product_code").(string)),
-		ServerProductCode:                     ncloud.String(d.Get("server_product_code").(string)),
-		MemberServerImageNo:                   ncloud.String(d.Get("member_server_image_no").(string)),
-		ServerName:                            ncloud.String(d.Get("name").(string)),
-		ServerDescription:                     ncloud.String(d.Get("description").(string)),
-		LoginKeyName:                          ncloud.String(d.Get("login_key_name").(string)),
-		InternetLineTypeCode:                  StringPtrOrNil(d.GetOk("internet_line_type_code")),
-		FeeSystemTypeCode:                     ncloud.String(d.Get("fee_system_type_code").(string)),
-		ZoneNo:                                zoneNo,
+		ServerImageProductCode: ncloud.String(d.Get("server_image_product_code").(string)),
+		ServerProductCode:      ncloud.String(d.Get("server_product_code").(string)),
+		MemberServerImageNo:    ncloud.String(d.Get("member_server_image_no").(string)),
+		ServerName:             ncloud.String(d.Get("name").(string)),
+		ServerDescription:      ncloud.String(d.Get("description").(string)),
+		LoginKeyName:           ncloud.String(d.Get("login_key_name").(string)),
+		InternetLineTypeCode:   StringPtrOrNil(d.GetOk("internet_line_type_code")),
+		FeeSystemTypeCode:      ncloud.String(d.Get("fee_system_type_code").(string)),
+		ZoneNo:                 zoneNo,
 		AccessControlGroupConfigurationNoList: paramAccessControlGroupConfigurationNoList,
-		UserData:                              ncloud.String(d.Get("user_data").(string)),
-		RaidTypeName:                          ncloud.String(d.Get("raid_type_name").(string)),
+		UserData:     ncloud.String(d.Get("user_data").(string)),
+		RaidTypeName: ncloud.String(d.Get("raid_type_name").(string)),
 	}
 
 	if instanceTagList, err := expandTagListParams(d.Get("tag_list").([]interface{})); err == nil {
