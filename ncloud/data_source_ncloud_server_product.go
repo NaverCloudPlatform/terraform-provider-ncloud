@@ -138,12 +138,18 @@ func dataSourceNcloudServerProductRead(d *schema.ResourceData, meta interface{})
 		return err
 	}
 	reqParams := &server.GetServerProductListRequest{
-		ExclusionProductCode:   ncloud.String(d.Get("exclusion_product_code").(string)),
-		ProductCode:            ncloud.String(d.Get("product_code").(string)),
 		ServerImageProductCode: ncloud.String(d.Get("server_image_product_code").(string)),
 		RegionNo:               regionNo,
 		ZoneNo:                 zoneNo,
 		InternetLineTypeCode:   StringPtrOrNil(d.GetOk("internet_line_type_code")),
+	}
+
+	if exclusionProductCode, ok := d.GetOk("exclusion_product_code"); ok {
+		reqParams.ExclusionProductCode = ncloud.String(exclusionProductCode.(string))
+	}
+
+	if productCode, ok := d.GetOk("product_code"); ok {
+		reqParams.ProductCode = ncloud.String(productCode.(string))
 	}
 
 	logCommonRequest("GetServerProductList", reqParams)

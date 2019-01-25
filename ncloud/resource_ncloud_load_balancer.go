@@ -301,13 +301,28 @@ func buildCreateLoadBalancerInstanceParams(client *NcloudAPIClient, d *schema.Re
 	}
 
 	reqParams := &loadbalancer.CreateLoadBalancerInstanceRequest{
-		LoadBalancerName:              ncloud.String(d.Get("name").(string)),
-		LoadBalancerAlgorithmTypeCode: ncloud.String(d.Get("algorithm_type_code").(string)),
-		LoadBalancerDescription:       ncloud.String(d.Get("description").(string)),
-		ServerInstanceNoList:          expandStringInterfaceList(d.Get("server_instance_no_list").([]interface{})),
-		InternetLineTypeCode:          StringPtrOrNil(d.GetOk("internet_line_type_code")),
-		NetworkUsageTypeCode:          ncloud.String(d.Get("network_usage_type_code").(string)),
-		RegionNo:                      regionNo,
+		InternetLineTypeCode: StringPtrOrNil(d.GetOk("internet_line_type_code")),
+		RegionNo:             regionNo,
+	}
+
+	if loadBalancerName, ok := d.GetOk("name"); ok {
+		reqParams.LoadBalancerName = ncloud.String(loadBalancerName.(string))
+	}
+
+	if loadBalancerAlgorithmTypeCode, ok := d.GetOk("algorithm_type_code"); ok {
+		reqParams.LoadBalancerAlgorithmTypeCode = ncloud.String(loadBalancerAlgorithmTypeCode.(string))
+	}
+
+	if loadBalancerDescription, ok := d.GetOk("description"); ok {
+		reqParams.LoadBalancerDescription = ncloud.String(loadBalancerDescription.(string))
+	}
+
+	if serverInstanceNoList, ok := d.GetOk("server_instance_no_list"); ok {
+		reqParams.ServerInstanceNoList = expandStringInterfaceList(serverInstanceNoList.([]interface{}))
+	}
+
+	if networkUsageTypeCode, ok := d.GetOk("network_usage_type_code"); ok {
+		reqParams.NetworkUsageTypeCode = ncloud.String(networkUsageTypeCode.(string))
 	}
 
 	if loadBalancerRuleParams, err := expandLoadBalancerRuleParams(d.Get("rule_list").([]interface{})); err == nil {

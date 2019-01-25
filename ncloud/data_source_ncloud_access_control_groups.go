@@ -91,8 +91,13 @@ func dataSourceNcloudAccessControlGroupsRead(d *schema.ResourceData, meta interf
 	if param, ok := d.GetOk("configuration_no_list"); ok {
 		paramAccessControlGroupConfigurationNoList = expandStringInterfaceList(param.([]interface{}))
 	}
+
 	reqParams.AccessControlGroupConfigurationNoList = paramAccessControlGroupConfigurationNoList
-	reqParams.AccessControlGroupName = ncloud.String(d.Get("name").(string))
+
+	if accessControlGroupName, ok := d.GetOk("name"); ok {
+		reqParams.AccessControlGroupName = ncloud.String(accessControlGroupName.(string))
+	}
+
 	if isDefaultGroup, ok := d.GetOk("is_default_group"); ok {
 		reqParams.IsDefault = ncloud.Bool(isDefaultGroup.(bool))
 	}

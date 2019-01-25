@@ -378,18 +378,45 @@ func buildCreateServerInstanceReqParams(client *NcloudAPIClient, d *schema.Resou
 		return nil, err
 	}
 	reqParams := &server.CreateServerInstancesRequest{
-		ServerImageProductCode:                ncloud.String(d.Get("server_image_product_code").(string)),
-		ServerProductCode:                     ncloud.String(d.Get("server_product_code").(string)),
-		MemberServerImageNo:                   ncloud.String(d.Get("member_server_image_no").(string)),
-		ServerName:                            ncloud.String(d.Get("name").(string)),
-		ServerDescription:                     ncloud.String(d.Get("description").(string)),
-		LoginKeyName:                          ncloud.String(d.Get("login_key_name").(string)),
 		InternetLineTypeCode:                  StringPtrOrNil(d.GetOk("internet_line_type_code")),
-		FeeSystemTypeCode:                     ncloud.String(d.Get("fee_system_type_code").(string)),
 		ZoneNo:                                zoneNo,
 		AccessControlGroupConfigurationNoList: paramAccessControlGroupConfigurationNoList,
-		UserData:                              ncloud.String(d.Get("user_data").(string)),
-		RaidTypeName:                          ncloud.String(d.Get("raid_type_name").(string)),
+	}
+
+	if serverImageProductCode, ok := d.GetOk("server_image_product_code"); ok {
+		reqParams.ServerImageProductCode = ncloud.String(serverImageProductCode.(string))
+	}
+
+	if serverProductCode, ok := d.GetOk("server_product_code"); ok {
+		reqParams.ServerProductCode = ncloud.String(serverProductCode.(string))
+	}
+
+	if memberServerImageNo, ok := d.GetOk("member_server_image_no"); ok {
+		reqParams.MemberServerImageNo = ncloud.String(memberServerImageNo.(string))
+	}
+
+	if serverName, ok := d.GetOk("name"); ok {
+		reqParams.ServerName = ncloud.String(serverName.(string))
+	}
+
+	if serverDescription, ok := d.GetOk("description"); ok {
+		reqParams.ServerDescription = ncloud.String(serverDescription.(string))
+	}
+
+	if loginKeyName, ok := d.GetOk("login_key_name"); ok {
+		reqParams.LoginKeyName = ncloud.String(loginKeyName.(string))
+	}
+
+	if feeSystemTypeCode, ok := d.GetOk("fee_system_type_code"); ok {
+		reqParams.FeeSystemTypeCode = ncloud.String(feeSystemTypeCode.(string))
+	}
+
+	if userData, ok := d.GetOk("user_data"); ok {
+		reqParams.UserData = ncloud.String(userData.(string))
+	}
+
+	if raidTypeName, ok := d.GetOk("raid_type_name"); ok {
+		reqParams.RaidTypeName = ncloud.String(raidTypeName.(string))
 	}
 
 	if instanceTagList, err := expandTagListParams(d.Get("tag_list").([]interface{})); err == nil {

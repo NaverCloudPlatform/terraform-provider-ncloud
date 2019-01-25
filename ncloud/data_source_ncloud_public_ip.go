@@ -167,18 +167,44 @@ func dataSourceNcloudPublicIpRead(d *schema.ResourceData, meta interface{}) erro
 	if err != nil {
 		return err
 	}
+
 	reqParams := new(server.GetPublicIpInstanceListRequest)
-	reqParams.InternetLineTypeCode = ncloud.String(d.Get("internet_line_type_code").(string))
-	reqParams.IsAssociated = ncloud.Bool(d.Get("is_associated").(bool))
-	reqParams.PublicIpInstanceNoList = expandStringInterfaceList(d.Get("instance_no_list").([]interface{}))
-	reqParams.PublicIpList = expandStringInterfaceList(d.Get("list").([]interface{}))
-	reqParams.SearchFilterName = ncloud.String(d.Get("search_filter_name").(string))
-	reqParams.SearchFilterValue = ncloud.String(d.Get("search_filter_value").(string))
+
+	if internetLineTypeCode, ok := d.GetOk("internet_line_type_code"); ok {
+		reqParams.InternetLineTypeCode = ncloud.String(internetLineTypeCode.(string))
+	}
+
+	if isAssociated, ok := d.GetOk("is_associated"); ok {
+		reqParams.IsAssociated = ncloud.Bool(isAssociated.(bool))
+	}
+
+	if instanceNoList, ok := d.GetOk("instance_no_list"); ok {
+		reqParams.PublicIpInstanceNoList = expandStringInterfaceList(instanceNoList.([]interface{}))
+	}
+
+	if publicIPList, ok := d.GetOk("list"); ok {
+		reqParams.PublicIpList = expandStringInterfaceList(publicIPList.([]interface{}))
+	}
+
+	if searchFilterName, ok := d.GetOk("search_filter_name"); ok {
+		reqParams.SearchFilterName = ncloud.String(searchFilterName.(string))
+	}
+
+	if searchFilterValue, ok := d.GetOk("search_filter_value"); ok {
+		reqParams.SearchFilterValue = ncloud.String(searchFilterValue.(string))
+	}
+
 	reqParams.RegionNo = regionNo
 	reqParams.ZoneNo = zoneNo
-	reqParams.SortedBy = ncloud.String(d.Get("sorted_by").(string))
-	reqParams.SortingOrder = ncloud.String(d.Get("sorting_order").(string))
-	// log.Printf("[DEBUG] GetPublicIpInstanceList reqParams: %#v", reqParams)
+
+	if sortedBy, ok := d.GetOk("sorted_by"); ok {
+		reqParams.SortedBy = ncloud.String(sortedBy.(string))
+	}
+
+	if sortingOrder, ok := d.GetOk("sorting_order"); ok {
+		reqParams.SortingOrder = ncloud.String(sortingOrder.(string))
+	}
+
 	resp, err := client.server.V2Api.GetPublicIpInstanceList(reqParams)
 
 	if err != nil {
@@ -192,7 +218,12 @@ func dataSourceNcloudPublicIpRead(d *schema.ResourceData, meta interface{}) erro
 		return fmt.Errorf("no results. please change search criteria and try again")
 	}
 
-	if len(publicIpInstanceList) > 1 && d.Get("most_recent").(bool) {
+	var mostRecent = false
+	if _, ok := d.GetOk("most_recent"); ok {
+		mostRecent = d.Get("most_recent").(bool)
+	}
+
+	if len(publicIpInstanceList) > 1 && mostRecent {
 		// Query returned single result.
 		publicIpInstance = mostRecentPublicIp(publicIpInstanceList)
 	} else {

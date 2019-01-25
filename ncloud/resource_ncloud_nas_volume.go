@@ -308,18 +308,35 @@ func buildCreateNasVolumeInstanceParams(client *NcloudAPIClient, d *schema.Resou
 	if err != nil {
 		return nil, err
 	}
+
 	reqParams := &server.CreateNasVolumeInstanceRequest{
 		VolumeName:                      ncloud.String(d.Get("volume_name_postfix").(string)),
 		VolumeSize:                      ncloud.Int32(int32(d.Get("volume_size_gb").(int))),
 		VolumeAllotmentProtocolTypeCode: ncloud.String(d.Get("volume_allotment_protocol_type_code").(string)),
-		ServerInstanceNoList:            expandStringInterfaceList(d.Get("server_instance_no_list").([]interface{})),
-		CustomIpList:                    expandStringInterfaceList(d.Get("custom_ip_list").([]interface{})),
-		CifsUserName:                    ncloud.String(d.Get("cifs_user_name").(string)),
-		CifsUserPassword:                ncloud.String(d.Get("cifs_user_password").(string)),
-		NasVolumeDescription:            ncloud.String(d.Get("description").(string)),
 		RegionNo:                        regionNo,
 		ZoneNo:                          zoneNo,
 	}
+
+	if serverInstanceNoList, ok := d.GetOk("server_instance_no_list"); ok {
+		reqParams.ServerInstanceNoList = expandStringInterfaceList(serverInstanceNoList.([]interface{}))
+	}
+
+	if customIPList, ok := d.GetOk("custom_ip_list"); ok {
+		reqParams.CustomIpList = expandStringInterfaceList(customIPList.([]interface{}))
+	}
+
+	if cifsUserName, ok := d.GetOk("cifs_user_name"); ok {
+		reqParams.CifsUserName = ncloud.String(cifsUserName.(string))
+	}
+
+	if cifsUserPassword, ok := d.GetOk("cifs_user_password"); ok {
+		reqParams.CifsUserPassword = ncloud.String(cifsUserPassword.(string))
+	}
+
+	if nasVolumeDescription, ok := d.GetOk("description"); ok {
+		reqParams.NasVolumeDescription = ncloud.String(nasVolumeDescription.(string))
+	}
+
 	return reqParams, nil
 }
 

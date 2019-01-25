@@ -203,13 +203,21 @@ func buildCreatePublicIpInstanceReqParams(client *NcloudAPIClient, d *schema.Res
 	if err != nil {
 		return nil, err
 	}
+
 	reqParams := &server.CreatePublicIpInstanceRequest{
-		ServerInstanceNo:     ncloud.String(d.Get("server_instance_no").(string)),
-		PublicIpDescription:  ncloud.String(d.Get("description").(string)),
 		InternetLineTypeCode: StringPtrOrNil(d.GetOk("internet_line_type_code")),
 		RegionNo:             regionNo,
 		ZoneNo:               zoneNo,
 	}
+
+	if serverInstanceNo, ok := d.GetOk("server_instance_no"); ok {
+		reqParams.ServerInstanceNo = ncloud.String(serverInstanceNo.(string))
+	}
+
+	if description, ok := d.GetOk("description"); ok {
+		reqParams.PublicIpDescription = ncloud.String(description.(string))
+	}
+
 	return reqParams, nil
 }
 
