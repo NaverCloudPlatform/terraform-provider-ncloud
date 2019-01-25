@@ -154,9 +154,15 @@ func dataSourceNcloudMemberServerImageRead(d *schema.ResourceData, meta interfac
 		return err
 	}
 	reqParams := &server.GetMemberServerImageListRequest{
-		MemberServerImageNoList: expandStringInterfaceList(d.Get("no_list").([]interface{})),
-		PlatformTypeCodeList:    expandStringInterfaceList(d.Get("platform_type_code_list").([]interface{})),
-		RegionNo:                regionNo,
+		RegionNo: regionNo,
+	}
+
+	if noList, ok := d.GetOk("no_list"); ok {
+		reqParams.MemberServerImageNoList = expandStringInterfaceList(noList.([]interface{}))
+	}
+
+	if platformTypeCodeList, ok := d.GetOk("platform_type_code_list"); ok {
+		reqParams.PlatformTypeCodeList = expandStringInterfaceList(platformTypeCodeList.([]interface{}))
 	}
 
 	logCommonRequest("GetMemberServerImageList", reqParams)
@@ -188,7 +194,12 @@ func dataSourceNcloudMemberServerImageRead(d *schema.ResourceData, meta interfac
 		return fmt.Errorf("no results. please change search criteria and try again")
 	}
 
-	if len(filteredMemberServerImages) > 1 && d.Get("most_recent").(bool) {
+	var mostRecent = false
+	if _, ok := d.GetOk("most_recent"); ok {
+		mostRecent = d.Get("most_recent").(bool)
+	}
+
+	if len(filteredMemberServerImages) > 1 && mostRecent {
 		// Query returned single result.
 		memberServerImage = mostRecentMemberServerImage(filteredMemberServerImages)
 	} else {

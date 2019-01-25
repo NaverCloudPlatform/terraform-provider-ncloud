@@ -172,11 +172,19 @@ func resourceNcloudBlockStorageSnapshotDelete(d *schema.ResourceData, meta inter
 }
 
 func buildRequestBlockStorageSnapshotInstance(d *schema.ResourceData) *server.CreateBlockStorageSnapshotInstanceRequest {
-	return &server.CreateBlockStorageSnapshotInstanceRequest{
-		BlockStorageInstanceNo:          ncloud.String(d.Get("block_storage_instance_no").(string)),
-		BlockStorageSnapshotName:        ncloud.String(d.Get("name").(string)),
-		BlockStorageSnapshotDescription: ncloud.String(d.Get("description").(string)),
+	reqParams := &server.CreateBlockStorageSnapshotInstanceRequest{
+		BlockStorageInstanceNo: ncloud.String(d.Get("block_storage_instance_no").(string)),
 	}
+
+	if blockStorageSnapshotName, ok := d.GetOk("name"); ok {
+		reqParams.BlockStorageSnapshotName = ncloud.String(blockStorageSnapshotName.(string))
+	}
+
+	if blockStorageSnapshotDescription, ok := d.GetOk("description"); ok {
+		reqParams.BlockStorageSnapshotDescription = ncloud.String(blockStorageSnapshotDescription.(string))
+	}
+
+	return reqParams
 }
 
 func getBlockStorageSnapshotInstanceList(client *NcloudAPIClient, blockStorageSnapshotInstanceNo string) ([]*server.BlockStorageSnapshotInstance, error) {

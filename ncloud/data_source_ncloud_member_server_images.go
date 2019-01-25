@@ -162,9 +162,15 @@ func dataSourceNcloudMemberServerImagesRead(d *schema.ResourceData, meta interfa
 		return err
 	}
 	reqParams := server.GetMemberServerImageListRequest{
-		MemberServerImageNoList: expandStringInterfaceList(d.Get("no_list").([]interface{})),
-		PlatformTypeCodeList:    expandStringInterfaceList(d.Get("platform_type_code_list").([]interface{})),
-		RegionNo:                regionNo,
+		RegionNo: regionNo,
+	}
+
+	if noList, ok := d.GetOk("no_list"); ok {
+		reqParams.MemberServerImageNoList = expandStringInterfaceList(noList.([]interface{}))
+	}
+
+	if platformTypeCodeList, ok := d.GetOk("platform_type_code_list"); ok {
+		reqParams.PlatformTypeCodeList = expandStringInterfaceList(platformTypeCodeList.([]interface{}))
 	}
 
 	logCommonRequest("GetMemberServerImageList", reqParams)

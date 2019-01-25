@@ -145,9 +145,12 @@ func dataSourceNcloudServerImagesRead(d *schema.ResourceData, meta interface{}) 
 	reqParams := &server.GetServerImageProductListRequest{
 		ExclusionProductCode:        StringPtrOrNil(d.GetOk("exclusion_product_code")),
 		ProductCode:                 StringPtrOrNil(d.GetOk("product_code")),
-		PlatformTypeCodeList:        expandStringInterfaceList(d.Get("platform_type_code_list").([]interface{})),
 		RegionNo:                    regionNo,
 		InfraResourceDetailTypeCode: StringPtrOrNil(d.GetOk("infra_resource_detail_type_code")),
+	}
+
+	if platformTypeCodeList, ok := d.GetOk("platform_type_code_list"); ok {
+		reqParams.PlatformTypeCodeList = expandStringInterfaceList(platformTypeCodeList.([]interface{}))
 	}
 
 	logCommonRequest("GetServerImageProductList", reqParams)

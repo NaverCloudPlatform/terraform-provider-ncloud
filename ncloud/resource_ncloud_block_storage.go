@@ -195,13 +195,24 @@ func resourceNcloudBlockStorageUpdate(d *schema.ResourceData, meta interface{}) 
 }
 
 func buildRequestBlockStorageInstance(d *schema.ResourceData) *server.CreateBlockStorageInstanceRequest {
-	return &server.CreateBlockStorageInstanceRequest{
-		ServerInstanceNo:        ncloud.String(d.Get("server_instance_no").(string)),
-		BlockStorageSize:        ncloud.Int64(int64(d.Get("size_gb").(int))),
-		BlockStorageName:        ncloud.String(d.Get("name").(string)),
-		BlockStorageDescription: ncloud.String(d.Get("description").(string)),
-		DiskDetailTypeCode:      ncloud.String(d.Get("disk_detail_type_code").(string)),
+	reqParams := &server.CreateBlockStorageInstanceRequest{
+		ServerInstanceNo: ncloud.String(d.Get("server_instance_no").(string)),
+		BlockStorageSize: ncloud.Int64(int64(d.Get("size_gb").(int))),
 	}
+
+	if blockStorageName, ok := d.GetOk("name"); ok {
+		reqParams.BlockStorageName = ncloud.String(blockStorageName.(string))
+	}
+
+	if blockStorageDescription, ok := d.GetOk("description"); ok {
+		reqParams.BlockStorageDescription = ncloud.String(blockStorageDescription.(string))
+	}
+
+	if diskDetailTypeCode, ok := d.GetOk("disk_detail_type_code"); ok {
+		reqParams.DiskDetailTypeCode = ncloud.String(diskDetailTypeCode.(string))
+	}
+
+	return reqParams
 }
 
 func getBlockStorageInstanceList(client *NcloudAPIClient, serverInstanceNo string) ([]*server.BlockStorageInstance, error) {

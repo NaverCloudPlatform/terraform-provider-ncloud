@@ -140,14 +140,22 @@ func dataSourceNcloudNasVolumeRead(d *schema.ResourceData, meta interface{}) err
 		return err
 	}
 	reqParams := &server.GetNasVolumeInstanceListRequest{
-		VolumeAllotmentProtocolTypeCode: ncloud.String(d.Get("volume_allotment_protocol_type_code").(string)),
-		NasVolumeInstanceNoList:         expandStringInterfaceList(d.Get("no_list").([]interface{})),
-		RegionNo:                        regionNo,
-		ZoneNo:                          zoneNo,
+		RegionNo: regionNo,
+		ZoneNo:   zoneNo,
 	}
+
+	if volumeAllotmentProtocolTypeCode, ok := d.GetOk("volume_allotment_protocol_type_code"); ok {
+		reqParams.VolumeAllotmentProtocolTypeCode = ncloud.String(volumeAllotmentProtocolTypeCode.(string))
+	}
+
+	if noList, ok := d.GetOk("no_list"); ok {
+		reqParams.NasVolumeInstanceNoList = expandStringInterfaceList(noList.([]interface{}))
+	}
+
 	if isEventConfiguration, ok := d.GetOk("is_event_configuration"); ok {
 		reqParams.IsEventConfiguration = ncloud.Bool(isEventConfiguration.(bool))
 	}
+
 	if isSnapshotConfiguration, ok := d.GetOk("is_snapshot_configuration"); ok {
 		reqParams.IsSnapshotConfiguration = ncloud.Bool(isSnapshotConfiguration.(bool))
 	}
