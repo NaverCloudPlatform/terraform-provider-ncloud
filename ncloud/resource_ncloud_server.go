@@ -238,9 +238,26 @@ func resourceNcloudServerCreate(d *schema.ResourceData, meta interface{}) error 
 	serverInstance := resp.ServerInstanceList[0]
 	d.SetId(ncloud.StringValue(serverInstance.ServerInstanceNo))
 
-	if err := waitForServerInstance(client, ncloud.StringValue(serverInstance.ServerInstanceNo), "RUN"); err != nil {
-		return err
+	stateConf := &resource.StateChangeConf{
+		Pending: []string{"INIT", "CREAT"},
+		Target:  []string{"RUN"},
+		Refresh: func() (interface{}, string, error) {
+			instance, err := getServerInstance(client, ncloud.StringValue(serverInstance.ServerInstanceNo))
+			if err != nil {
+				return 0, "", err
+			}
+			return instance, ncloud.StringValue(instance.ServerInstanceStatus.Code), nil
+		},
+		Timeout:    DefaultCreateTimeout,
+		Delay:      2 * time.Second,
+		MinTimeout: 3 * time.Second,
 	}
+
+	_, err = stateConf.WaitForState()
+	if err != nil {
+		return fmt.Errorf("Error waiting for ServerInstance state to be \"RUN\": %s", err)
+	}
+
 	return resourceNcloudServerRead(d, meta)
 }
 
@@ -316,8 +333,25 @@ func resourceNcloudServerDelete(d *schema.ResourceData, meta interface{}) error 
 		if err := stopServerInstance(client, d.Id()); err != nil {
 			return err
 		}
-		if err := waitForServerInstance(client, ncloud.StringValue(serverInstance.ServerInstanceNo), "NSTOP"); err != nil {
-			return err
+
+		stateConf := &resource.StateChangeConf{
+			Pending: []string{"RUN"},
+			Target:  []string{"NSTOP"},
+			Refresh: func() (interface{}, string, error) {
+				instance, err := getServerInstance(client, ncloud.StringValue(serverInstance.ServerInstanceNo))
+				if err != nil {
+					return 0, "", err
+				}
+				return instance, ncloud.StringValue(instance.ServerInstanceStatus.Code), nil
+			},
+			Timeout:    DefaultTimeout,
+			Delay:      2 * time.Second,
+			MinTimeout: 3 * time.Second,
+		}
+
+		_, err = stateConf.WaitForState()
+		if err != nil {
+			return fmt.Errorf("Error waiting for ServerInstance state to be \"NSTOP\": %s", err)
 		}
 	}
 
@@ -498,35 +532,6 @@ func terminateServerInstance(client *NcloudAPIClient, serverInstanceNo string) e
 		return err
 	}
 	return nil
-}
-
-func waitForServerInstance(client *NcloudAPIClient, instanceId string, status string) error {
-
-	c1 := make(chan error, 1)
-
-	go func() {
-		for {
-			instance, err := getServerInstance(client, instanceId)
-
-			if err != nil {
-				c1 <- err
-				return
-			}
-			if instance == nil || ncloud.StringValue(instance.ServerInstanceStatus.Code) == status {
-				c1 <- nil
-				return
-			}
-			log.Printf("[DEBUG] Wait server instance [%s] status [%s] to be [%s]", instanceId, ncloud.StringValue(instance.ServerInstanceStatus.Code), status)
-			time.Sleep(time.Second * 1)
-		}
-	}()
-
-	select {
-	case res := <-c1:
-		return res
-	case <-time.After(DefaultCreateTimeout):
-		return fmt.Errorf("TIMEOUT : Wait to server instance  (%s)", instanceId)
-	}
 }
 
 var tagListSchemaResource = &schema.Resource{

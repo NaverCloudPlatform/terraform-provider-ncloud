@@ -126,11 +126,29 @@ func resourceNcloudBlockStorageCreate(d *schema.ResourceData, meta interface{}) 
 	logCommonResponse("CreateBlockStorageInstance", GetCommonResponse(resp))
 
 	blockStorageInstance := resp.BlockStorageInstanceList[0]
-	d.SetId(*blockStorageInstance.BlockStorageInstanceNo)
+	blockStorageInstanceNo := ncloud.StringValue(blockStorageInstance.BlockStorageInstanceNo)
+	d.SetId(blockStorageInstanceNo)
 
-	if err := waitForBlockStorageInstance(client, *blockStorageInstance.BlockStorageInstanceNo, "ATTAC"); err != nil {
-		return err
+	stateConf := &resource.StateChangeConf{
+		Pending: []string{"INIT"},
+		Target:  []string{"ATTAC"},
+		Refresh: func() (interface{}, string, error) {
+			instance, err := getBlockStorageInstance(client, blockStorageInstanceNo)
+			if err != nil {
+				return 0, "", err
+			}
+			return instance, ncloud.StringValue(instance.BlockStorageInstanceStatus.Code), nil
+		},
+		Timeout:    DefaultCreateTimeout,
+		Delay:      2 * time.Second,
+		MinTimeout: 3 * time.Second,
 	}
+
+	_, err = stateConf.WaitForState()
+	if err != nil {
+		return fmt.Errorf("Error waiting for BlockStorageInstance state to be \"ATTAC\": %s", err)
+	}
+
 	return resourceNcloudBlockStorageRead(d, meta)
 }
 
@@ -270,8 +288,24 @@ func deleteBlockStorage(client *NcloudAPIClient, blockStorageIds []*string) erro
 		}
 		logCommonResponse("DeleteBlockStorageInstances", commonResponse)
 
-		if err := waitForBlockStorageInstance(client, *blockStorageId, "CREAT"); err != nil {
-			return err
+		stateConf := &resource.StateChangeConf{
+			Pending: []string{"INIT"},
+			Target:  []string{"CREAT"},
+			Refresh: func() (interface{}, string, error) {
+				instance, err := getBlockStorageInstance(client, *blockStorageId)
+				if err != nil {
+					return 0, "", err
+				}
+				return instance, ncloud.StringValue(instance.BlockStorageInstanceStatus.Code), nil
+			},
+			Timeout:    DefaultTimeout,
+			Delay:      2 * time.Second,
+			MinTimeout: 3 * time.Second,
+		}
+
+		_, err = stateConf.WaitForState()
+		if err != nil {
+			return fmt.Errorf("Error waiting for BlockStorageInstance state to be \"CREAT\": %s", err)
 		}
 	}
 	return nil
@@ -319,8 +353,24 @@ func detachBlockStorage(d *schema.ResourceData, client *NcloudAPIClient, blockSt
 		}
 		logCommonResponse("DetachBlockStorageInstances", GetCommonResponse(resp))
 
-		if err := waitForBlockStorageInstance(client, blockStorageId, "CREAT"); err != nil {
-			return err
+		stateConf := &resource.StateChangeConf{
+			Pending: []string{"INIT"},
+			Target:  []string{"CREAT"},
+			Refresh: func() (interface{}, string, error) {
+				instance, err := getBlockStorageInstance(client, blockStorageId)
+				if err != nil {
+					return 0, "", err
+				}
+				return instance, ncloud.StringValue(instance.BlockStorageInstanceStatus.Code), nil
+			},
+			Timeout:    DefaultTimeout,
+			Delay:      2 * time.Second,
+			MinTimeout: 3 * time.Second,
+		}
+
+		_, err = stateConf.WaitForState()
+		if err != nil {
+			return fmt.Errorf("Error waiting for BlockStorageInstance state to be \"CREAT\": %s", err)
 		}
 	}
 	return nil
@@ -338,34 +388,4 @@ func detachBlockStorageByServerInstanceNo(d *schema.ResourceData, client *Ncloud
 		}
 	}
 	return detachBlockStorage(d, client, ids)
-}
-
-func waitForBlockStorageInstance(client *NcloudAPIClient, id string, status string) error {
-
-	c1 := make(chan error, 1)
-
-	go func() {
-		for {
-			instance, err := getBlockStorageInstance(client, id)
-
-			if err != nil {
-				c1 <- err
-				return
-			}
-			if instance == nil || ncloud.StringValue(instance.BlockStorageInstanceStatus.Code) == status {
-				c1 <- nil
-				return
-			}
-			log.Printf("[DEBUG] Wait block storage instance [%s] status [%s] to be [%s]", id, ncloud.StringValue(instance.BlockStorageInstanceStatus.Code), status)
-			time.Sleep(time.Second * 1)
-		}
-	}()
-
-	select {
-	case res := <-c1:
-		return res
-	case <-time.After(DefaultTimeout):
-		return fmt.Errorf("TIMEOUT : Wait to block storage instance  (%s)", id)
-
-	}
 }

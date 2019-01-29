@@ -7,6 +7,7 @@ import (
 
 	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/ncloud"
 	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/services/server"
+	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/validation"
 )
@@ -202,9 +203,27 @@ func resourceNcloudNasVolumeCreate(d *schema.ResourceData, meta interface{}) err
 	nasVolumeInstance := resp.NasVolumeInstanceList[0]
 	d.SetId(ncloud.StringValue(nasVolumeInstance.NasVolumeInstanceNo))
 
-	if err := waitForNasVolumeInstance(client, ncloud.StringValue(nasVolumeInstance.NasVolumeInstanceNo), "CREAT"); err != nil {
-		return err
+	stateConf := &resource.StateChangeConf{
+		Pending: []string{"INIT"},
+		Target:  []string{"CREAT"},
+		Refresh: func() (interface{}, string, error) {
+			instance, err := getNasVolumeInstance(client, ncloud.StringValue(nasVolumeInstance.NasVolumeInstanceNo))
+
+			if err != nil {
+				return 0, "", err
+			}
+			return instance, ncloud.StringValue(instance.NasVolumeInstanceStatus.Code), nil
+		},
+		Timeout:    DefaultCreateTimeout,
+		Delay:      2 * time.Second,
+		MinTimeout: 3 * time.Second,
 	}
+
+	_, err = stateConf.WaitForState()
+	if err != nil {
+		return fmt.Errorf("Error waiting for NasVolumeInstance state to be \"CREAT\": %s", err)
+	}
+
 	return resourceNcloudNasVolumeRead(d, meta)
 }
 
@@ -341,7 +360,10 @@ func buildCreateNasVolumeInstanceParams(client *NcloudAPIClient, d *schema.Resou
 }
 
 func getNasVolumeInstance(client *NcloudAPIClient, nasVolumeInstanceNo string) (*server.NasVolumeInstance, error) {
-	reqParams := &server.GetNasVolumeInstanceListRequest{}
+	reqParams := &server.GetNasVolumeInstanceListRequest{
+		NasVolumeInstanceNoList: []*string{ncloud.String(nasVolumeInstanceNo)},
+	}
+
 	logCommonRequest("GetNasVolumeInstanceList", reqParams)
 
 	resp, err := client.server.V2Api.GetNasVolumeInstanceList(reqParams)
@@ -374,38 +396,31 @@ func deleteNasVolumeInstance(client *NcloudAPIClient, nasVolumeInstanceNo string
 	}
 	logCommonResponse("DeleteNasVolumeInstance", commonResponse)
 
-	if err := waitForNasVolumeInstance(client, nasVolumeInstanceNo, "TERMT"); err != nil {
-		return err
+	stateConf := &resource.StateChangeConf{
+		Pending: []string{"INIT", "CREAT"},
+		Target:  []string{"TERMT"},
+		Refresh: func() (interface{}, string, error) {
+			instance, err := getNasVolumeInstance(client, nasVolumeInstanceNo)
+
+			if err != nil {
+				return 0, "", err
+			}
+
+			if instance == nil { // Instance is terminated.
+				return instance, "TERMT", nil
+			}
+
+			return instance, ncloud.StringValue(instance.NasVolumeInstanceStatus.Code), nil
+		},
+		Timeout:    DefaultCreateTimeout,
+		Delay:      2 * time.Second,
+		MinTimeout: 3 * time.Second,
+	}
+
+	_, err = stateConf.WaitForState()
+	if err != nil {
+		return fmt.Errorf("Error waiting for NasVolumeInstance state to be \"TERMT\": %s", err)
 	}
 
 	return nil
-}
-
-func waitForNasVolumeInstance(client *NcloudAPIClient, id string, status string) error {
-
-	c1 := make(chan error, 1)
-
-	go func() {
-		for {
-			instance, err := getNasVolumeInstance(client, id)
-
-			if err != nil {
-				c1 <- err
-				return
-			}
-			if instance == nil || ncloud.StringValue(instance.NasVolumeInstanceStatus.Code) == status {
-				c1 <- nil
-				return
-			}
-			log.Printf("[DEBUG] Wait nas volume instance [%s] status [%s] to be [%s]", id, ncloud.StringValue(instance.NasVolumeInstanceStatus.Code), status)
-			time.Sleep(time.Second * 1)
-		}
-	}()
-
-	select {
-	case res := <-c1:
-		return res
-	case <-time.After(DefaultTimeout):
-		return fmt.Errorf("TIMEOUT : Wait to nas volume instance (%s)", id)
-	}
 }

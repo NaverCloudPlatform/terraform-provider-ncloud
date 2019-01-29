@@ -8,6 +8,7 @@ import (
 
 	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/ncloud"
 	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/services/server"
+	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/helper/schema"
 )
 
@@ -118,12 +119,30 @@ func resourceNcloudBlockStorageSnapshotCreate(d *schema.ResourceData, meta inter
 	logCommonResponse("CreateBlockStorageSnapshotInstance", GetCommonResponse(resp))
 
 	blockStorageSnapshotInstance := resp.BlockStorageSnapshotInstanceList[0]
-	d.SetId(ncloud.StringValue(blockStorageSnapshotInstance.BlockStorageSnapshotInstanceNo))
+	blockStorageSnapshotInstanceNo := ncloud.StringValue(blockStorageSnapshotInstance.BlockStorageSnapshotInstanceNo)
+	d.SetId(blockStorageSnapshotInstanceNo)
 
-	if err := waitForBlockStorageSnapshotInstance(client, ncloud.StringValue(blockStorageSnapshotInstance.BlockStorageSnapshotInstanceNo), "CREAT"); err != nil {
-		return err
+	stateConf := &resource.StateChangeConf{
+		Pending: []string{"INIT"},
+		Target:  []string{"CREAT"},
+		Refresh: func() (interface{}, string, error) {
+			instance, err := getBlockStorageSnapshotInstance(client, blockStorageSnapshotInstanceNo)
+			if err != nil {
+				return 0, "", err
+			}
+			return instance, ncloud.StringValue(instance.BlockStorageSnapshotInstanceStatus.Code), nil
+		},
+		Timeout:    DefaultCreateTimeout,
+		Delay:      2 * time.Second,
+		MinTimeout: 3 * time.Second,
 	}
-	return resourceNcloudBlockStorageRead(d, meta)
+
+	_, err = stateConf.WaitForState()
+	if err != nil {
+		return fmt.Errorf("Error waiting for BlockStorageSnapshotInstance state to be \"CREAT\": %s", err)
+	}
+
+	return resourceNcloudBlockStorageSnapshotRead(d, meta)
 }
 
 func resourceNcloudBlockStorageSnapshotRead(d *schema.ResourceData, meta interface{}) error {
@@ -235,38 +254,28 @@ func deleteBlockStorageSnapshotInstance(client *NcloudAPIClient, blockStorageSna
 
 	logCommonResponse("DeleteBlockStorageSnapshotInstances", commonResponse)
 
-	if err := waitForBlockStorageSnapshotInstance(client, blockStorageSnapshotInstanceNo, "TERMT"); err != nil {
-		return err
-	}
-	return nil
-}
-
-func waitForBlockStorageSnapshotInstance(client *NcloudAPIClient, id string, status string) error {
-
-	c1 := make(chan error, 1)
-
-	go func() {
-		for {
-			snapshot, err := getBlockStorageSnapshotInstance(client, id)
-
+	stateConf := &resource.StateChangeConf{
+		Pending: []string{"CREAT"},
+		Target:  []string{"TERMT"},
+		Refresh: func() (interface{}, string, error) {
+			instance, err := getBlockStorageSnapshotInstance(client, blockStorageSnapshotInstanceNo)
 			if err != nil {
-				c1 <- err
-				return
+				return 0, "", err
 			}
-			if snapshot == nil || ncloud.StringValue(snapshot.BlockStorageSnapshotInstanceStatus.Code) == status {
-				c1 <- nil
-				return
+			if instance == nil { // Instance is terminated.
+				return instance, "TERMT", nil
 			}
-			log.Printf("[DEBUG] Wait block storage snapshot instance [%s] status [%s] to be [%s]", id, ncloud.StringValue(snapshot.BlockStorageSnapshotInstanceStatus.Code), status)
-			time.Sleep(time.Second * 1)
-		}
-	}()
-
-	select {
-	case res := <-c1:
-		return res
-	case <-time.After(DefaultTimeout):
-		return fmt.Errorf("TIMEOUT : Wait to block storage snapshot instance  (%s)", id)
-
+			return instance, ncloud.StringValue(instance.BlockStorageSnapshotInstanceStatus.Code), nil
+		},
+		Timeout:    DefaultTimeout,
+		Delay:      2 * time.Second,
+		MinTimeout: 3 * time.Second,
 	}
+
+	_, err = stateConf.WaitForState()
+	if err != nil {
+		return fmt.Errorf("Error waiting for BlockStorageSnapshotInstance state to be \"TERMT\": %s", err)
+	}
+
+	return nil
 }
