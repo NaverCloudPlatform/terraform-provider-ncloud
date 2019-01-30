@@ -25,10 +25,9 @@ func TestAccNcloudLoadBalancerBasic(t *testing.T) {
 	}
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:      func() { testAccPreCheck(t) },
-		IDRefreshName: "ncloud_load_balancer.lb",
-		Providers:     testAccProviders,
-		CheckDestroy:  testAccCheckLoadBalancerDestroy,
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckLoadBalancerDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccLoadBalancerConfig(testLoadBalancerName),
@@ -56,10 +55,9 @@ func TestAccNcloudLoadBalancerChangeConfiguration(t *testing.T) {
 	testLoadBalancerName := prefix + "_lb"
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:      func() { testAccPreCheck(t) },
-		IDRefreshName: "ncloud_load_balancer.lb",
-		Providers:     testAccProviders,
-		CheckDestroy:  testAccCheckLoadBalancerDestroy,
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckLoadBalancerDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccLoadBalancerConfig(testLoadBalancerName),

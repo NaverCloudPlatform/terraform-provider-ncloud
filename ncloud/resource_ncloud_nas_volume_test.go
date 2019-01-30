@@ -27,10 +27,9 @@ func TestAccResourceNcloudNasVolumeBasic(t *testing.T) {
 	}
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:      func() { testAccPreCheck(t) },
-		IDRefreshName: "ncloud_nas_volume.test",
-		Providers:     testAccProviders,
-		CheckDestroy:  testAccCheckNasVolumeDestroy,
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckNasVolumeDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccNasVolumeConfig(testVolumeName),
@@ -58,10 +57,9 @@ func TestAccResourceNcloudNasVolumeResize(t *testing.T) {
 	testVolumeName := prefix + "_vol"
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:      func() { testAccPreCheck(t) },
-		IDRefreshName: "ncloud_nas_volume.test",
-		Providers:     testAccProviders,
-		CheckDestroy:  testAccCheckNasVolumeDestroy,
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckNasVolumeDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccNasVolumeConfig(testVolumeName),
@@ -87,10 +85,9 @@ func TestAccResourceNcloudNasVolumeChangeAccessControl(t *testing.T) {
 	testVolumeName := prefix + "_vol"
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:      func() { testAccPreCheck(t) },
-		IDRefreshName: "ncloud_nas_volume.test",
-		Providers:     testAccProviders,
-		CheckDestroy:  testAccCheckNasVolumeDestroy,
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckNasVolumeDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccNasVolumeConfig(testVolumeName),

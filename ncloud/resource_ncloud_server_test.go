@@ -2,12 +2,13 @@ package ncloud
 
 import (
 	"fmt"
+	"testing"
+
 	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/services/server"
 	"github.com/hashicorp/terraform/helper/acctest"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/terraform"
-	"testing"
 )
 
 func TestAccResourceNcloudServerBasic(t *testing.T) {
@@ -24,10 +25,9 @@ func TestAccResourceNcloudServerBasic(t *testing.T) {
 	}
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:      func() { testAccPreCheck(t) },
-		IDRefreshName: "ncloud_server.server",
-		Providers:     testAccProviders,
-		CheckDestroy:  testAccCheckServerDestroy,
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckServerDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccServerConfig(testServerName),
@@ -58,10 +58,9 @@ func ignore_TestAccResourceInstanceChangeServerInstanceSpec(t *testing.T) {
 	testServerName := getTestServerName()
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:      func() { testAccPreCheck(t) },
-		IDRefreshName: "ncloud_server.server",
-		Providers:     testAccProviders,
-		CheckDestroy:  testAccCheckServerDestroy,
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckServerDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccServerConfig(testServerName),
@@ -90,10 +89,9 @@ func testAccResourceRecreateServerInstance(t *testing.T) {
 	testServerName := getTestServerName()
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:      func() { testAccPreCheck(t) },
-		IDRefreshName: "ncloud_server.server",
-		Providers:     testAccProviders,
-		CheckDestroy:  testAccCheckServerDestroy,
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckServerDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccRecreateServerInstanceBeforeConfig(testServerName),

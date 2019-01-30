@@ -130,7 +130,7 @@ func resourceNcloudBlockStorageCreate(d *schema.ResourceData, meta interface{}) 
 	d.SetId(blockStorageInstanceNo)
 
 	stateConf := &resource.StateChangeConf{
-		Pending: []string{"INIT"},
+		Pending: []string{"INIT", "CREAT"},
 		Target:  []string{"ATTAC"},
 		Refresh: func() (interface{}, string, error) {
 			instance, err := getBlockStorageInstance(client, blockStorageInstanceNo)

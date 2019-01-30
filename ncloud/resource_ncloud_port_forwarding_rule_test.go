@@ -2,16 +2,17 @@ package ncloud
 
 import (
 	"fmt"
-	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/services/server"
-	"github.com/hashicorp/terraform/helper/acctest"
-	"github.com/hashicorp/terraform/helper/resource"
-	"github.com/hashicorp/terraform/helper/schema"
-	"github.com/hashicorp/terraform/terraform"
 	"log"
 	"math/rand"
 	"strconv"
 	"testing"
 	"time"
+
+	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/services/server"
+	"github.com/hashicorp/terraform/helper/acctest"
+	"github.com/hashicorp/terraform/helper/resource"
+	"github.com/hashicorp/terraform/helper/schema"
+	"github.com/hashicorp/terraform/terraform"
 )
 
 func TestAccResourceNcloudPortForwardingRuleBasic(t *testing.T) {
@@ -21,10 +22,9 @@ func TestAccResourceNcloudPortForwardingRuleBasic(t *testing.T) {
 	log.Printf("[DEBUG] externalPort: %d", externalPort)
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:      func() { testAccPreCheck(t) },
-		IDRefreshName: "ncloud_port_forwarding_rule.test",
-		Providers:     testAccProviders,
-		CheckDestroy:  testAccCheckPortForwardingRuleDestroy,
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckPortForwardingRuleDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccPortForwardingRuleBasicConfig(externalPort),
@@ -57,10 +57,9 @@ func ignore_TestAccResourceNcloudPortForwardingRuleExistingServer(t *testing.T) 
 	log.Printf("[DEBUG] externalPort: %d", externalPort)
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:      func() { testAccPreCheck(t) },
-		IDRefreshName: "ncloud_port_forwarding_rule.test",
-		Providers:     testAccProviders,
-		CheckDestroy:  testAccCheckPortForwardingRuleDestroy,
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckPortForwardingRuleDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccPortForwardingRuleExistingServerConfig(externalPort),
