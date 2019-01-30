@@ -2,11 +2,12 @@ package ncloud
 
 import (
 	"fmt"
+	"testing"
+
 	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/services/server"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/terraform"
-	"testing"
 )
 
 func TestAccResourceNcloudLoginKeyBasic(t *testing.T) {
@@ -24,10 +25,9 @@ func TestAccResourceNcloudLoginKeyBasic(t *testing.T) {
 	}
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:      func() { testAccPreCheck(t) },
-		IDRefreshName: "ncloud_login_key.loginkey",
-		Providers:     testAccProviders,
-		CheckDestroy:  testAccCheckLoginKeyDestroy,
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckLoginKeyDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccLoginKeyConfig(testKeyName),

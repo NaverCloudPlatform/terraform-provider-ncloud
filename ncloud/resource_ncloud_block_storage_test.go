@@ -25,10 +25,9 @@ func TestAccResourceNcloudBlockStorageBasic(t *testing.T) {
 	}
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:      func() { testAccPreCheck(t) },
-		IDRefreshName: "ncloud_block_storage.storage",
-		Providers:     testAccProviders,
-		CheckDestroy:  testAccCheckBlockStorageDestroy,
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckBlockStorageDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccBlockStorageConfig(testServerInstanceName, testBlockStorageName),

@@ -27,10 +27,9 @@ func TestAccResourceNcloudPublicIpInstanceBasic(t *testing.T) {
 	}
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:      func() { testAccPreCheck(t) },
-		IDRefreshName: "ncloud_public_ip.public_ip",
-		Providers:     testAccProviders,
-		CheckDestroy:  testAccCheckPublicIpInstanceDestroy,
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckPublicIpInstanceDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccPublicIpInstanceConfig(testServerInstanceName, testPublicIpDescription),

@@ -31,10 +31,9 @@ func ignore_TestAccResourceNcloudBlockStorageSnapshotBasic(t *testing.T) {
 	}
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:      func() { testAccPreCheck(t) },
-		IDRefreshName: "ncloud_block_storage_snapshot.ss",
-		Providers:     testAccProviders,
-		CheckDestroy:  testAccCheckBlockStorageSnapshotDestroy,
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckBlockStorageSnapshotDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccBlockStorageSnapshotConfig(testLoginKeyName, testServerInstanceName, testBlockStorageName, testSnapshotName),

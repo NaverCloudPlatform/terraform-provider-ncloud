@@ -79,10 +79,9 @@ GTfhUTV7jTQ0dt9U1E+oxRkjqC2HFYlpewXP0rcQxhtK7p6kiaUDIw==
 	}
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:      func() { testAccPreCheck(t) },
-		IDRefreshName: "ncloud_load_balancer_ssl_certificate.cert",
-		Providers:     testAccProviders,
-		CheckDestroy:  testAccCheckLoadBalancerSSLCertificateDestroy,
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckLoadBalancerSSLCertificateDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccLoadBalancerSSLCertificateConfig(testSSLCertificateName, testPrivateKey, testCertPEM, testLoadBalancerName),
