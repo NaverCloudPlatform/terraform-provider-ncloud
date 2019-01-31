@@ -44,7 +44,6 @@ The following arguments are supported:
 
 * `instance_no` - Public IP instance No.
 * `public_ip` - Public IP Address.
-* `description` - Public IP description.
 * `create_date` - Creation date of the public IP instance
 * `internet_line_type` - Internet line type
     * `code` - Internet line type code

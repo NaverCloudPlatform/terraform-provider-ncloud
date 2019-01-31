@@ -38,32 +38,4 @@ The following arguments are supported:
 
 ## Attributes Reference
 
-* `nas_volumes` - NAS Volume Instance list
-    * `instance_no` - NAS volume instance number
-    * `volume_name` - Volume name
-    * `instance_status` - NAS volume instance status
-        * `code` - NAS volume instance status code
-        * `code_name` - NAS volume instance status name
-    * `create_date` - Creation date of the NAS Volume instance
-    * `volume_allotment_protocol_type` - Volume allotment protocol type
-        * `code` - Volume allotment protocol type code
-        * `code_name` - Volume allotment protocol type name
-    * `volume_total_size` - Volume total size
-    * `volume_size` - Volume size
-    * `volume_use_size` - Volume use size
-    * `volume_use_ratio` - Volume use ratio
-    * `snapshot_volume_size` - Snapshot volume size
-    * `snapshot_volume_use_size` - Snapshot volume use size
-    * `snapshot_volume_use_ratio` - Snapshot volume use ratio
-    * `is_snapshot_configuration` - Indicates whether a snapshot volume is set.
-    * `is_event_configuration` - Indicates whether the event is set.
-    * `instance_custom_ip_list` - NAS volume instance custom IP list
-    * `description` - NAS volume description
-    * `zone` - Zone info
-        * `zone_no` - Zone number
-        * `zone_code` - Zone code
-        * `zone_name` - Zone name
-    * `region` - Region info
-        * `region_no` - Region number
-        * `region_code` - Region code
-        * `region_name` - Region name
+* `nas_volumes` - A list of NAS Volume Instance no
