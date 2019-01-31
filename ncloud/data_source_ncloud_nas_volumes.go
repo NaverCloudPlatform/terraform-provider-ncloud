@@ -57,88 +57,11 @@ func dataSourceNcloudNasVolumes() *schema.Resource {
 				Description:   "Zone number",
 				ConflictsWith: []string{"zone_code"},
 			},
-
 			"nas_volumes": {
 				Type:        schema.TypeList,
 				Computed:    true,
-				Description: "NAS Volume Instance list",
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
-						"instance_no": {
-							Type:     schema.TypeString,
-							Computed: true,
-						},
-						"volume_name": {
-							Type:     schema.TypeString,
-							Computed: true,
-						},
-						"instance_status": {
-							Type:     schema.TypeMap,
-							Computed: true,
-							Elem:     commonCodeSchemaResource,
-						},
-						"volume_allotment_protocol_type": {
-							Type:     schema.TypeMap,
-							Computed: true,
-							Elem:     commonCodeSchemaResource,
-						},
-						"volume_total_size": {
-							Type:     schema.TypeInt,
-							Computed: true,
-						},
-						"volume_size": {
-							Type:     schema.TypeInt,
-							Computed: true,
-						},
-						"volume_use_size": {
-							Type:     schema.TypeInt,
-							Computed: true,
-						},
-						"volume_use_ratio": {
-							Type:     schema.TypeFloat,
-							Computed: true,
-						},
-						"snapshot_volume_size": {
-							Type:     schema.TypeInt,
-							Computed: true,
-						},
-						"snapshot_volume_use_size": {
-							Type:     schema.TypeInt,
-							Computed: true,
-						},
-						"snapshot_volume_use_ratio": {
-							Type:     schema.TypeFloat,
-							Computed: true,
-						},
-						"is_snapshot_configuration": {
-							Type:     schema.TypeBool,
-							Computed: true,
-						},
-						"is_event_configuration": {
-							Type:     schema.TypeBool,
-							Computed: true,
-						},
-						"instance_custom_ip_list": {
-							Type:     schema.TypeList,
-							Computed: true,
-							Elem:     &schema.Schema{Type: schema.TypeString},
-						},
-						"description": {
-							Type:     schema.TypeString,
-							Computed: true,
-						},
-						"zone": {
-							Type:     schema.TypeMap,
-							Computed: true,
-							Elem:     zoneSchemaResource,
-						},
-						"region": {
-							Type:     schema.TypeMap,
-							Computed: true,
-							Elem:     regionSchemaResource,
-						},
-					},
-				},
+				Description: "A list of NAS Volume Instance no",
+				Elem:        &schema.Schema{Type: schema.TypeString},
 			},
 			"output_file": {
 				Type:     schema.TypeString,

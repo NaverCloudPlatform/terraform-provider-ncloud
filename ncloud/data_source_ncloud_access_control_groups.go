@@ -43,35 +43,11 @@ func dataSourceNcloudAccessControlGroups() *schema.Resource {
 				Default:     1,
 				Description: "Number of items to be shown per page",
 			},
-
 			"access_control_groups": {
 				Type:        schema.TypeList,
 				Optional:    true,
-				Description: "A List of access control group",
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
-						"configuration_no": {
-							Type:        schema.TypeString,
-							Computed:    true,
-							Description: "ACG configuration number",
-						},
-						"name": {
-							Type:        schema.TypeString,
-							Computed:    true,
-							Description: "ACG name",
-						},
-						"description": {
-							Type:        schema.TypeString,
-							Computed:    true,
-							Description: "ACG description",
-						},
-						"is_default_group": {
-							Type:        schema.TypeBool,
-							Computed:    true,
-							Description: "whether default group",
-						},
-					},
-				},
+				Description: "A List of access control group configuration no",
+				Elem:        &schema.Schema{Type: schema.TypeString},
 			},
 			"output_file": {
 				Type:     schema.TypeString,

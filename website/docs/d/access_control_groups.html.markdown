@@ -25,12 +25,8 @@ The following arguments are supported:
 * `name` - (Optional) Name of the ACG you want to get
 * `page_no` - (Optional) Page number based on the page size if the number of items is large
 * `page_size` - (Optional) Number of items to be shown per page
+* `output_file` - (Optional) The name of file that can save data source after running `terraform plan`.
 
 ## Attributes Reference
 
-* `id` - ID of access control groups.
-* `access_control_groups` - A List of access control group
-    * `configuration_no` - ACG configuration number
-    * `name` - ACG name
-    * `description` - ACG description
-    * `is_default_group` - Whether default group
+* `access_control_groups` - A List of access control group configuration_no.

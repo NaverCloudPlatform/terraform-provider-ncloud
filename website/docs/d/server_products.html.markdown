@@ -24,10 +24,10 @@ data "ncloud_server_products" "all" {
 
 The following arguments are supported:
 
+* `server_image_product_code` - (Required) You can get one from `data ncloud_server_images`. This is a required value, and each available server's specification varies depending on the server image product.
 * `product_name_regex` - (Optional) A regex string to apply to the Server Product list returned.
 * `exclusion_product_code` - (Optional) Enter a product code to exclude from the list.
 * `product_code` - (Optional) Enter a product code to search from the list. Use it for a single search.
-* `server_image_product_code` - (Required) You can get one from `data ncloud_server_images`. This is a required value, and each available server's specification varies depending on the server image product.
 * `region_code` - (Optional) Region code. Get available values using the data source `ncloud_regions`.
     Conflicts with `region_no`. Only one of `region_no` and `region_code` can be used.
     Default: KR region.
@@ -44,21 +44,4 @@ The following arguments are supported:
 
 ## Attributes Reference
 
-* `server_products` - A List of Server Product
-    * `product_code` - Product code
-    * `product_name` - Product name
-    * `product_type` - Product type
-        * `code` - Product type code
-        * `name` - Product type name
-    * `product_description` - Product description
-    * `infra_resource_type` - Infra resource type
-        * `code` - Infra resource type code
-        * `code_name` - Infra resource type name
-    * `cpu_count` - CPU count
-    * `memory_size` - Memory size
-    * `base_block_storage_size` - Base block storage size
-    * `platform_type` - Platform type
-        * `code` - Platform type code
-        * `code_name` - Platform type name
-    * `os_information` - OS Information
-    * `add_block_storage_size` - Additional block storage size
+* `server_products` - A List of server product code

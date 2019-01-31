@@ -30,13 +30,4 @@ The following arguments are supported:
 
 ## Attributes Reference
 
-* `access_control_rules`
-    * `configuration_no` - Access control group configuration number
-    * `protocol_type` - Protocol type
-        * `code` - Protocol type code
-        * `code_name` - Protocol type name
-    * `source_ip` - Source IP
-    * `destination_port` - Destination Port
-    * `source_configuration_no` - Source access control rule configuration no
-    * `source_name` - Source access control rule name
-    * `description` - Access control rule description
+* `access_control_rules` - A list of access control rules configuration no

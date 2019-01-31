@@ -70,59 +70,10 @@ func dataSourceNcloudServerProducts() *schema.Resource {
 				Description:  "Internet line identification code. PUBLC(Public), GLBL(Global). default : PUBLC(Public)",
 			},
 			"server_products": {
-				Type:     schema.TypeList,
-				Optional: true,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
-						"product_code": {
-							Type:     schema.TypeString,
-							Computed: true,
-						},
-						"product_name": {
-							Type:     schema.TypeString,
-							Computed: true,
-						},
-						"product_type": {
-							Type:     schema.TypeMap,
-							Computed: true,
-							Elem:     commonCodeSchemaResource,
-						},
-						"product_description": {
-							Type:     schema.TypeString,
-							Computed: true,
-						},
-						"infra_resource_type": {
-							Type:     schema.TypeMap,
-							Computed: true,
-							Elem:     commonCodeSchemaResource,
-						},
-						"cpu_count": {
-							Type:     schema.TypeInt,
-							Computed: true,
-						},
-						"memory_size": {
-							Type:     schema.TypeInt,
-							Computed: true,
-						},
-						"base_block_storage_size": {
-							Type:     schema.TypeInt,
-							Computed: true,
-						},
-						"platform_type": {
-							Type:     schema.TypeMap,
-							Computed: true,
-							Elem:     commonCodeSchemaResource,
-						},
-						"os_information": {
-							Type:     schema.TypeString,
-							Computed: true,
-						},
-						"add_block_storage_size": {
-							Type:     schema.TypeInt,
-							Computed: true,
-						},
-					},
-				},
+				Type:        schema.TypeList,
+				Optional:    true,
+				Description: "A list of server product code.",
+				Elem:        &schema.Schema{Type: schema.TypeString},
 			},
 			"output_file": {
 				Type:     schema.TypeString,
@@ -188,15 +139,15 @@ func dataSourceNcloudServerProductsRead(d *schema.ResourceData, meta interface{}
 	return serverProductsAttributes(d, filteredServerProducts)
 }
 
-func serverProductsAttributes(d *schema.ResourceData, serverImages []*server.Product) error {
+func serverProductsAttributes(d *schema.ResourceData, serverProduct []*server.Product) error {
 	var ids []string
 
-	for _, product := range serverImages {
+	for _, product := range serverProduct {
 		ids = append(ids, ncloud.StringValue(product.ProductCode))
 	}
 
 	d.SetId(dataResourceIdHash(ids))
-	if err := d.Set("server_products", flattenServerImages(serverImages)); err != nil {
+	if err := d.Set("server_products", flattenServerProducts(serverProduct)); err != nil {
 		return err
 	}
 
