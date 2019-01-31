@@ -31,8 +31,8 @@ The following arguments are supported:
     `CIFS`: You can mount the volume in a Windows server.
 * `server_instance_no_list` - (Optional) List of server instance numbers for which access to NFS is to be controlled
 * `custom_ip_list` - (Optional) To add a server of another account to the NAS volume, enter a private IP address of the server.
-* `cifs_user_name` - (Conditional) CIFS user name. The ID must contain a combination of English alphabet and numbers, which can be 6-20 characters in length.
-* `cifs_user_password` - (Conditional) CIFS user password. The password must contain a combination of at least 2 English letters, numbers and special characters, which can be 8-14 characters in length.
+* `cifs_user_name` - (Optional) CIFS user name. The ID must contain a combination of English alphabet and numbers, which can be 6-20 characters in length.
+* `cifs_user_password` - (Optional) CIFS user password. The password must contain a combination of at least 2 English letters, numbers and special characters, which can be 8-14 characters in length.
 * `description` - (Optional) NAS volume description
 * `region_code` - (Optional) Region code. Get available values using the data source `ncloud_regions`.
     Conflicts with `region_no`. Only one of `region_no` and `region_code` can be used.
