@@ -43,37 +43,20 @@ func flattenCommonCode(i interface{}) map[string]interface{} {
 	}
 }
 
-func flattenAccessControlRules(accessControlRules []*server.AccessControlRule) []map[string]interface{} {
-	var s []map[string]interface{}
+func flattenAccessControlRules(accessControlRules []*server.AccessControlRule) []string {
+	var s []string
 
 	for _, accessControlRule := range accessControlRules {
-		mapping := map[string]interface{}{
-			"configuration_no":        ncloud.StringValue(accessControlRule.AccessControlRuleConfigurationNo),
-			"protocol_type":           flattenCommonCode(accessControlRule.ProtocolType),
-			"source_ip":               ncloud.StringValue(accessControlRule.SourceIp),
-			"destination_port":        ncloud.StringValue(accessControlRule.DestinationPort),
-			"source_configuration_no": ncloud.StringValue(accessControlRule.SourceAccessControlRuleConfigurationNo),
-			"source_name":             ncloud.StringValue(accessControlRule.SourceAccessControlRuleName),
-			"description":             ncloud.StringValue(accessControlRule.AccessControlRuleDescription),
-		}
-
-		s = append(s, mapping)
+		s = append(s, ncloud.StringValue(accessControlRule.AccessControlRuleConfigurationNo))
 	}
 
 	return s
 }
 
-func flattenAccessControlGroups(accessControlGroups []*server.AccessControlGroup) []map[string]interface{} {
-	var s []map[string]interface{}
+func flattenAccessControlGroups(accessControlGroups []*server.AccessControlGroup) []string {
+	var s []string
 	for _, accessControlGroup := range accessControlGroups {
-		mapping := map[string]interface{}{
-			"configuration_no": ncloud.StringValue(accessControlGroup.AccessControlGroupConfigurationNo),
-			"name":             ncloud.StringValue(accessControlGroup.AccessControlGroupName),
-			"description":      ncloud.StringValue(accessControlGroup.AccessControlGroupDescription),
-			"is_default_group": ncloud.BoolValue(accessControlGroup.IsDefaultGroup),
-		}
-
-		s = append(s, mapping)
+		s = append(s, ncloud.StringValue(accessControlGroup.AccessControlGroupConfigurationNo))
 	}
 
 	return s
@@ -154,30 +137,11 @@ func flattenZone(i interface{}) map[string]interface{} {
 	}
 }
 
-func flattenMemberServerImages(memberServerImages []*server.MemberServerImage) []map[string]interface{} {
-	var s []map[string]interface{}
-	for _, m := range memberServerImages {
-		mapping := map[string]interface{}{
-			"no":                                    ncloud.StringValue(m.MemberServerImageNo),
-			"name":                                  ncloud.StringValue(m.MemberServerImageName),
-			"description":                           ncloud.StringValue(m.MemberServerImageDescription),
-			"original_server_instance_no":           ncloud.StringValue(m.OriginalServerInstanceNo),
-			"original_server_product_code":          ncloud.StringValue(m.OriginalServerProductCode),
-			"original_server_name":                  ncloud.StringValue(m.OriginalServerName),
-			"original_base_block_storage_disk_type": flattenCommonCode(m.OriginalBaseBlockStorageDiskType),
-			"original_server_image_product_code":    ncloud.StringValue(m.OriginalServerImageProductCode),
-			"original_os_information":               ncloud.StringValue(m.OriginalOsInformation),
-			"original_server_image_name":            ncloud.StringValue(m.OriginalServerImageName),
-			"status_name":                           ncloud.StringValue(m.MemberServerImageStatusName),
-			"status":                                flattenCommonCode(m.MemberServerImageStatus),
-			"operation":                             flattenCommonCode(m.MemberServerImageOperation),
-			"platform_type":                         flattenCommonCode(m.MemberServerImagePlatformType),
-			"region":                                flattenRegion(m.Region),
-			"block_storage_total_rows":              int(ncloud.Int32Value(m.MemberServerImageBlockStorageTotalRows)),
-			"block_storage_total_size":              int(ncloud.Int64Value(m.MemberServerImageBlockStorageTotalSize)),
-		}
+func flattenMemberServerImages(memberServerImages []*server.MemberServerImage) []string {
+	var s []string
 
-		s = append(s, mapping)
+	for _, m := range memberServerImages {
+		s = append(s, ncloud.StringValue(m.MemberServerImageNo))
 	}
 
 	return s
@@ -193,56 +157,21 @@ func flattenCustomIPList(customIPList []*server.NasVolumeInstanceCustomIp) []str
 	return a
 }
 
-func flattenServerImages(serverImages []*server.Product) []map[string]interface{} {
-	var s []map[string]interface{}
-	for _, product := range serverImages {
-		mapping := map[string]interface{}{
-			"product_code":            ncloud.StringValue(product.ProductCode),
-			"product_name":            ncloud.StringValue(product.ProductName),
-			"product_type":            flattenCommonCode(product.ProductType),
-			"product_description":     ncloud.StringValue(product.ProductDescription),
-			"infra_resource_type":     flattenCommonCode(product.InfraResourceType),
-			"cpu_count":               int(ncloud.Int32Value(product.CpuCount)),
-			"memory_size":             int(ncloud.Int64Value(product.MemorySize)),
-			"base_block_storage_size": int(ncloud.Int64Value(product.BaseBlockStorageSize)),
-			"platform_type":           flattenCommonCode(product.PlatformType),
-			"os_information":          ncloud.StringValue(product.OsInformation),
-			"add_block_storage_size":  int(ncloud.Int64Value(product.AddBlockStorageSize)),
-		}
+func flattenServerProducts(serverProduct []*server.Product) []string {
+	var s []string
 
-		s = append(s, mapping)
+	for _, product := range serverProduct {
+		s = append(s, ncloud.StringValue(product.ProductCode))
 	}
 
 	return s
 }
 
-func flattenNasVolumeInstances(nasVolumeInstances []*server.NasVolumeInstance) []map[string]interface{} {
-	var s []map[string]interface{}
+func flattenNasVolumeInstances(nasVolumeInstances []*server.NasVolumeInstance) []string {
+	var s []string
 
 	for _, nasVolume := range nasVolumeInstances {
-		mapping := map[string]interface{}{
-			"instance_no":                    ncloud.StringValue(nasVolume.NasVolumeInstanceNo),
-			"instance_status":                flattenCommonCode(nasVolume.NasVolumeInstanceStatus),
-			"description":                    ncloud.StringValue(nasVolume.NasVolumeInstanceDescription),
-			"volume_allotment_protocol_type": flattenCommonCode(nasVolume.VolumeAllotmentProtocolType),
-			"volume_name":                    ncloud.StringValue(nasVolume.VolumeName),
-			"volume_total_size":              int(ncloud.Int64Value(nasVolume.VolumeTotalSize)),
-			"volume_size":                    int(ncloud.Int64Value(nasVolume.VolumeSize)),
-			"volume_use_size":                int(ncloud.Int64Value(nasVolume.VolumeUseSize)),
-			"volume_use_ratio":               ncloud.Float32Value(nasVolume.VolumeUseRatio),
-			"snapshot_volume_size":           ncloud.Int64Value(nasVolume.SnapshotVolumeSize),
-			"snapshot_volume_use_size":       ncloud.Int64Value(nasVolume.SnapshotVolumeUseSize),
-			"snapshot_volume_use_ratio":      ncloud.Float32Value(nasVolume.SnapshotVolumeUseRatio),
-			"is_snapshot_configuration":      ncloud.BoolValue(nasVolume.IsSnapshotConfiguration),
-			"is_event_configuration":         ncloud.BoolValue(nasVolume.IsEventConfiguration),
-			"zone":                           flattenZone(nasVolume.Zone),
-			"region":                         flattenRegion(nasVolume.Region),
-		}
-		if len(nasVolume.NasVolumeInstanceCustomIpList) > 0 {
-			mapping["instance_custom_ip_list"] = flattenCustomIPList(nasVolume.NasVolumeInstanceCustomIpList)
-		}
-
-		s = append(s, mapping)
+		s = append(s, ncloud.StringValue(nasVolume.NasVolumeInstanceNo))
 	}
 
 	return s

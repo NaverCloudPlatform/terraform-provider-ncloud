@@ -76,28 +76,8 @@ func TestFlattenAccessControlRules(t *testing.T) {
 		t.Fatalf("expected result had %d elements, but got %d", 1, len(result))
 	}
 
-	if result[0]["configuration_no"] != "25363" {
-		t.Fatalf("expected configuration_no to be 25363, but was %s", result[0]["configuration_no"])
-	}
-
-	if result[0]["source_ip"] != "0.0.0.0/0" {
-		t.Fatalf("expected source_ip to be 0.0.0.0/0, but was %s", result[0]["source_ip"])
-	}
-
-	if result[0]["destination_port"] != "1-65535" {
-		t.Fatalf("expected destination_port to be 1-65535, but was %s", result[0]["destination_port"])
-	}
-
-	if result[0]["source_configuration_no"] != "4964" {
-		t.Fatalf("expected source_configuration_no to be 4964, but was %s", result[0]["source_configuration_no"])
-	}
-
-	if result[0]["source_name"] != "ncloud-default-acg" {
-		t.Fatalf("expected source_name to be ncloud-default-acg, but was %s", result[0]["source_name"])
-	}
-
-	if result[0]["description"] != "for test" {
-		t.Fatalf("expected description to be 'for test', but was %s", result[0]["description"])
+	if result[0] != "25363" {
+		t.Fatalf("expected configuration_no to be 25363, but was %s", result[0])
 	}
 }
 
@@ -129,20 +109,12 @@ func TestFlattenAccessControlGroups(t *testing.T) {
 		t.Fatalf("expected result had %d elements, but got %d", 2, len(result))
 	}
 
-	if result[0]["configuration_no"] != "4964" {
-		t.Fatalf("expected configuration_no to be 4964, but was %s", result[0]["configuration_no"])
+	if result[0] != "4964" {
+		t.Fatalf("expected configuration_no to be 4964, but was %s", result[0])
 	}
 
-	if result[0]["name"] != "ncloud-default-acg" {
-		t.Fatalf("expected name to be ncloud-default-acg, but was %s", result[0]["name"])
-	}
-
-	if result[0]["description"] != "for test" {
-		t.Fatalf("expected description to be 'for test', but was %s", result[0]["description"])
-	}
-
-	if result[0]["is_default_group"] != true {
-		t.Fatalf("expected is_default_group to be true, but was %b", result[0]["is_default_group"])
+	if result[1] != "30067" {
+		t.Fatalf("expected configuration_no to be 30067, but was %s", result[0])
 	}
 }
 
@@ -258,54 +230,8 @@ func TestFlattenMemberServerImages(t *testing.T) {
 		t.Fatalf("expected result had %d elements, but got %d", 1, len(result))
 	}
 
-	r := result[0]
-
-	if r["no"] != "4653" {
-		t.Fatalf("expected result no to be 4653, but was %s", r["no"])
-	}
-
-	if r["name"] != "test-1514385790" {
-		t.Fatalf("expected result name to be test-1514385790, but was %s", r["name"])
-	}
-
-	if r["description"] != "server description" {
-		t.Fatalf("expected result description to be 'server description', but was %s", r["description"])
-	}
-
-	if r["original_server_instance_no"] != "572053" {
-		t.Fatalf("expected result original_server_instance_no to be 572053, but was %s", r["original_server_instance_no"])
-	}
-
-	if r["original_server_product_code"] != "SPSVRSTAND000004" {
-		t.Fatalf("expected result original_server_product_code to be SPSVRSTAND000004, but was %s", r["original_server_product_code"])
-	}
-
-	if r["original_server_name"] != "svr-9bbaf27a2902b5c" {
-		t.Fatalf("expected result original_server_name to be svr-9bbaf27a2902b5c, but was %s", r["original_server_name"])
-	}
-
-	if r["original_server_image_product_code"] != "SPSW0LINUX000043" {
-		t.Fatalf("expected result original_server_image_product_code to be SPSW0LINUX000043, but was %s", r["original_server_image_product_code"])
-	}
-
-	if r["original_os_information"] != "CentOS 5.11 (64-bit)" {
-		t.Fatalf("expected result original_os_information to be CentOS 5.11 (64-bit), but was %s", r["original_os_information"])
-	}
-
-	if r["original_server_image_name"] != "centos-5.11-64" {
-		t.Fatalf("expected result original_server_image_name to be centos-5.11-64, but was %s", r["original_server_image_name"])
-	}
-
-	if r["status_name"] != "creating" {
-		t.Fatalf("expected result status_name to be creating, but was %s", r["status_name"])
-	}
-
-	if r["block_storage_total_rows"] != 2 {
-		t.Fatalf("expected result block_storage_total_rows to be 2, but was %s", r["block_storage_total_rows"])
-	}
-
-	if r["block_storage_total_size"] != 1127428915200 {
-		t.Fatalf("expected result block_storage_total_size to be 1127428915200, but was %s", r["block_storage_total_size"])
+	if result[0] != "4653" {
+		t.Fatalf("expected result no to be 4653, but was %s", result[0])
 	}
 }
 
@@ -363,7 +289,7 @@ func TestFlattenServerImages(t *testing.T) {
 		},
 	}
 
-	result := flattenServerImages(expanded)
+	result := flattenServerProducts(expanded)
 
 	if result == nil {
 		t.Fatal("result was nil")
@@ -373,34 +299,8 @@ func TestFlattenServerImages(t *testing.T) {
 		t.Fatalf("expected result had %d elements, but got %d", 1, len(result))
 	}
 
-	r := result[0]
-
-	if r["product_code"] != "SPSVRSTAND000056" {
-		t.Fatalf("expected result product_code to be SPSVRSTAND000056, but was %s", r["product_code"])
-	}
-
-	if r["product_name"] != "vCPU 1EA, Memory 1GB, Disk 50GB" {
-		t.Fatalf("expected result product_name to be 'vCPU 1EA, Memory 1GB, Disk 50GB', but was %s", r["product_name"])
-	}
-
-	if r["product_description"] != "vCPU 1EA, Memory 1GB, Disk 50GB" {
-		t.Fatalf("expected result product_description to be 'vCPU 1EA, Memory 1GB, Disk 50GB', but was %s", r["product_description"])
-	}
-
-	if r["cpu_count"] != 1 {
-		t.Fatalf("expected result cpu_count to be 1, but was %d", r["cpu_count"])
-	}
-
-	if r["memory_size"] != 1073741824 {
-		t.Fatalf("expected result memory_size to be 1073741824, but was %d", r["memory_size"])
-	}
-
-	if r["base_block_storage_size"] != 53687091200 {
-		t.Fatalf("expected result base_block_storage_size to be 53687091200, but was %d", r["base_block_storage_size"])
-	}
-
-	if r["add_block_storage_size"] != 0 {
-		t.Fatalf("expected result add_block_storage_size to be 0, but was %d", r["add_block_storage_size"])
+	if result[0] != "SPSVRSTAND000056" {
+		t.Fatalf("expected result product_code to be SPSVRSTAND000056, but was %s", result[0])
 	}
 }
 
@@ -459,50 +359,8 @@ func TestFlattenNasVolumeInstances(t *testing.T) {
 		t.Fatalf("expected result had %d elements, but got %d", 1, len(result))
 	}
 
-	r := result[0]
-
-	if r["instance_no"] != "856180" {
-		t.Fatalf("expected result instance_no to be 856180, but was %s", r["instance_no"])
-	}
-
-	if r["volume_name"] != "n003666_aaa" {
-		t.Fatalf("expected result volume_name to be n003666_aaa, but was %s", r["volume_name"])
-	}
-
-	if r["volume_total_size"] != 536870912000 {
-		t.Fatalf("expected result volume_total_size to be 536870912000, but was %d", r["volume_total_size"])
-	}
-
-	if r["volume_size"] != 536870912000 {
-		t.Fatalf("expected result volume_size to be 536870912000, but was %d", r["volume_size"])
-	}
-
-	if r["volume_use_size"] != 1314816 {
-		t.Fatalf("expected result volume_use_size to be 1314816, but was %d", r["volume_use_size"])
-	}
-
-	if r["volume_use_ratio"] != float32(0.0) {
-		t.Fatalf("expected result volume_use_ratio to be 0.0, but was %f", r["volume_use_ratio"])
-	}
-
-	if r["snapshot_volume_size"] != int64(0) {
-		t.Fatalf("expected result snapshot_volume_size to be 0, but was %d", r["snapshot_volume_size"])
-	}
-
-	if r["snapshot_volume_use_size"] != int64(0) {
-		t.Fatalf("expected result snapshot_volume_use_size to be 0, but was %d", r["snapshot_volume_use_size"])
-	}
-
-	if r["snapshot_volume_use_ratio"] != float32(0.0) {
-		t.Fatalf("expected result snapshot_volume_use_ratio to be 0.0 , but was %f", r["snapshot_volume_use_ratio"])
-	}
-
-	if r["is_snapshot_configuration"] != false {
-		t.Fatalf("expected result is_snapshot_configuration to be false, but was %b", r["is_snapshot_configuration"])
-	}
-
-	if r["is_event_configuration"] != false {
-		t.Fatalf("expected result is_event_configuration to be false, but was %b", r["is_event_configuration"])
+	if result[0] != "856180" {
+		t.Fatalf("expected result instance_no to be 856180, but was %s", result[0])
 	}
 }
 

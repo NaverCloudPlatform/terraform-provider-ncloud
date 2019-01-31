@@ -63,70 +63,10 @@ func dataSourceNcloudServerImages() *schema.Resource {
 				Description: "infra resource detail type code.",
 			},
 			"server_images": {
-				Type:     schema.TypeList,
-				Optional: true,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
-						"product_code": {
-							Type:        schema.TypeString,
-							Computed:    true,
-							Description: "Product Code",
-						},
-						"product_name": {
-							Type:        schema.TypeString,
-							Computed:    true,
-							Description: "Product name",
-						},
-						"product_type": {
-							Type:        schema.TypeMap,
-							Computed:    true,
-							Elem:        commonCodeSchemaResource,
-							Description: "Product type",
-						},
-						"product_description": {
-							Type:        schema.TypeString,
-							Computed:    true,
-							Description: "Product description",
-						},
-						"infra_resource_type": {
-							Type:        schema.TypeMap,
-							Computed:    true,
-							Elem:        commonCodeSchemaResource,
-							Description: "Infra resource type",
-						},
-						"cpu_count": {
-							Type:        schema.TypeInt,
-							Computed:    true,
-							Description: "CPU count",
-						},
-						"memory_size": {
-							Type:        schema.TypeInt,
-							Computed:    true,
-							Description: "Memory size",
-						},
-						"base_block_storage_size": {
-							Type:        schema.TypeInt,
-							Computed:    true,
-							Description: "Base block storage size",
-						},
-						"platform_type": {
-							Type:        schema.TypeMap,
-							Computed:    true,
-							Elem:        commonCodeSchemaResource,
-							Description: "Platform type",
-						},
-						"os_information": {
-							Type:        schema.TypeString,
-							Computed:    true,
-							Description: "OS Information",
-						},
-						"add_block_storage_size": {
-							Type:        schema.TypeInt,
-							Computed:    true,
-							Description: "additional block storage size",
-						},
-					},
-				},
+				Type:        schema.TypeList,
+				Optional:    true,
+				Description: "A list of server image product code.",
+				Elem:        &schema.Schema{Type: schema.TypeString},
 			},
 			"output_file": {
 				Type:     schema.TypeString,
@@ -193,7 +133,7 @@ func serverImagesAttributes(d *schema.ResourceData, serverImages []*server.Produ
 	}
 
 	d.SetId(dataResourceIdHash(ids))
-	if err := d.Set("server_images", flattenServerImages(serverImages)); err != nil {
+	if err := d.Set("server_images", flattenServerProducts(serverImages)); err != nil {
 		return err
 	}
 

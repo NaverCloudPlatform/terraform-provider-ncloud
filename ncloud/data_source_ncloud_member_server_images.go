@@ -46,105 +46,11 @@ func dataSourceNcloudMemberServerImages() *schema.Resource {
 				Description:   "Region number. Get available values using the `data ncloud_regions`.",
 				ConflictsWith: []string{"region_code"},
 			},
-
 			"member_server_images": {
 				Type:        schema.TypeList,
 				Optional:    true,
-				Description: "Member server image list",
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
-						"no": {
-							Type:        schema.TypeString,
-							Computed:    true,
-							Description: "Member server image no",
-						},
-						"name": {
-							Type:        schema.TypeString,
-							Computed:    true,
-							Description: "Member server image name",
-						},
-						"description": {
-							Type:        schema.TypeString,
-							Computed:    true,
-							Description: "Member server image description",
-						},
-						"original_server_instance_no": {
-							Type:        schema.TypeString,
-							Computed:    true,
-							Description: "Original server instance no",
-						},
-						"original_server_product_code": {
-							Type:        schema.TypeString,
-							Computed:    true,
-							Description: "Original server product code",
-						},
-						"original_server_name": {
-							Type:        schema.TypeString,
-							Computed:    true,
-							Description: "Original server name",
-						},
-						"original_base_block_storage_disk_type": {
-							Type:        schema.TypeMap,
-							Computed:    true,
-							Elem:        commonCodeSchemaResource,
-							Description: "Original base block storage disk type",
-						},
-						"original_server_image_product_code": {
-							Type:        schema.TypeString,
-							Computed:    true,
-							Description: "Original server image product code",
-						},
-						"original_os_information": {
-							Type:        schema.TypeString,
-							Computed:    true,
-							Description: "Original os information",
-						},
-						"original_server_image_name": {
-							Type:        schema.TypeString,
-							Computed:    true,
-							Description: "Original server image name",
-						},
-						"status_name": {
-							Type:        schema.TypeString,
-							Computed:    true,
-							Description: "Member server image status name",
-						},
-						"status": {
-							Type:        schema.TypeMap,
-							Computed:    true,
-							Elem:        commonCodeSchemaResource,
-							Description: "Member server image status",
-						},
-						"operation": {
-							Type:        schema.TypeMap,
-							Computed:    true,
-							Elem:        commonCodeSchemaResource,
-							Description: "Member server image operation",
-						},
-						"platform_type": {
-							Type:        schema.TypeMap,
-							Computed:    true,
-							Elem:        commonCodeSchemaResource,
-							Description: "Member server image platform type",
-						},
-						"region": {
-							Type:        schema.TypeMap,
-							Computed:    true,
-							Elem:        regionSchemaResource,
-							Description: "Region info",
-						},
-						"block_storage_total_rows": {
-							Type:        schema.TypeInt,
-							Computed:    true,
-							Description: "Member server image block storage total rows",
-						},
-						"block_storage_total_size": {
-							Type:        schema.TypeInt,
-							Computed:    true,
-							Description: "Member server image block storage total size",
-						},
-					},
-				},
+				Description: "A list of Member server image no",
+				Elem:        &schema.Schema{Type: schema.TypeString},
 			},
 			"output_file": {
 				Type:        schema.TypeString,

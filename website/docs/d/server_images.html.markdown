@@ -39,22 +39,4 @@ The following arguments are supported:
 
 ## Attributes Reference
 
-* `id` - ID of server images.
-* `server_images` - A List of server image
-    * `product_code` - Product code
-    * `product_name` - Product name
-    * `product_type` - Product type
-        * `code` - Product type code
-        * `name` - Product type name
-    * `product_description` - Product description
-    * `infra_resource_type` - Infra resource type
-        * `code` - Infra resource type code
-        * `code_name` - Infra resource type name
-    * `cpu_count` - CPU count
-    * `memory_size` - Memory size
-    * `base_block_storage_size` - Base block storage size
-    * `platform_type` - Platform type
-        * `code` - Platform type code
-        * `code_name` - Platform type name
-    * `os_information` - OS Information
-    * `add_block_storage_size` - Additional block storage size
+* `server_images` - A List of server image product code

@@ -33,32 +33,4 @@ The following arguments are supported:
 
 ## Attributes Reference
 
-* `member_server_images` - Member server image list
-    * `no` - Member server image no
-    * `name` - Member server image name
-    * `description` - Member server image description
-    * `original_server_instance_no` - Original server instance no
-    * `original_server_product_code` - Original server product code
-    * `original_server_name` - Original server name
-    * `original_base_block_storage_disk_type` - Original base block storage disk type
-        * `code` - Original base block storage disk type code
-        * `code_name` - Original base block storage disk type name
-    * `original_server_image_product_code` - Original server image product code
-    * `original_os_information` - Original os information
-    * `original_server_image_name` - Original server image name
-    * `status_name` - Member server image status name
-    * `status` - Member server image status
-        * `code` - Member server image status code
-        * `code_name` - Member server image status name
-    * `operation` - Member server image operation
-        * `code` - Member server image operation code
-        * `code_name` - Member server image operation name
-    * `platform_type` - Member server image platform type
-        * `code` - Member server image platform type code
-        * `code_name` - Member server image platform type name
-    * `region` - Region info
-        * `region_no` - region no
-        * `region_code` - Region code
-        * `region_name` - Region name
-    * `block_storage_total_rows` - Member server image block storage total rows
-    * `block_storage_total_size` - Member server image block storage total size
+* `member_server_images` - A list of Member server image no

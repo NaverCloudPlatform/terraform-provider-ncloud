@@ -29,41 +29,10 @@ func dataSourceNcloudAccessControlRules() *schema.Resource {
 				Description:  "A regex string to apply to the ACG rule list returned by ncloud",
 			},
 			"access_control_rules": {
-				Type:     schema.TypeList,
-				Computed: true,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
-						"configuration_no": {
-							Type:     schema.TypeString,
-							Computed: true,
-						},
-						"protocol_type": {
-							Type:     schema.TypeMap,
-							Computed: true,
-							Elem:     commonCodeSchemaResource,
-						},
-						"source_ip": {
-							Type:     schema.TypeString,
-							Computed: true,
-						},
-						"destination_port": {
-							Type:     schema.TypeString,
-							Computed: true,
-						},
-						"source_configuration_no": {
-							Type:     schema.TypeString,
-							Computed: true,
-						},
-						"source_name": {
-							Type:     schema.TypeString,
-							Computed: true,
-						},
-						"description": {
-							Type:     schema.TypeString,
-							Computed: true,
-						},
-					},
-				},
+				Type:        schema.TypeList,
+				Computed:    true,
+				Elem:        &schema.Schema{Type: schema.TypeString},
+				Description: "A list of access control rules configuration no",
 			},
 			"output_file": {
 				Type:     schema.TypeString,
