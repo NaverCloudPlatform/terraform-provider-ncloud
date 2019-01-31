@@ -45,9 +45,6 @@ resource "ncloud_load_balancer" "lb" {
 
 The following arguments are supported:
 
-* `name` - (Optional) Name of a load balancer instance. Default: Automatically specified by Ncloud.
-* `algorithm_type_code` - (Optional) Load balancer algorithm type code. The available algorithms are as follows: [ROUND ROBIN (RR) | LEAST_CONNECTION (LC)]. Default: ROUND ROBIN (RR)
-* `description` - (Optional) Description of a load balancer instance.
 * `rule_list` - (Required) Load balancer rules.
   * `protocol_type_code` - (Required) Protocol type code of load balancer rules. The following codes are available. [HTTP | HTTPS | TCP | SSL]
   * `load_balancer_port` - (Required) Load balancer port of load balancer rules
@@ -55,6 +52,9 @@ The following arguments are supported:
   * `l7_health_check_path` - Health check path of load balancer rules. Required when the `protocol_type_code` is HTTP/HTTPS.
   * `certificate_name` - Load balancer SSL certificate name. Required when the `protocol_type_code` value is SSL/HTTPS.
   * `proxy_protocol_use_yn` - (Optional) Use 'Y' if you want to check client IP addresses by enabling the proxy protocol while you select TCP or SSL.
+* `name` - (Optional) Name of a load balancer instance. Default: Automatically specified by Ncloud.
+* `algorithm_type_code` - (Optional) Load balancer algorithm type code. The available algorithms are as follows: [ROUND ROBIN (RR) | LEAST_CONNECTION (LC)]. Default: ROUND ROBIN (RR)
+* `description` - (Optional) Description of a load balancer instance.
 * `server_instance_no_list` - (Optional) List of server instance numbers to be bound to the load balancer
 * `internet_line_type_code` - (Optional) Internet line identification code. PUBLC(Public), GLBL(Global). default : PUBLC(Public)
 * `network_usage_type_code` - (Optional) Network usage identification code. PBLIP(PublicIP), PRVT(PrivateIP). default : PBLIP(PublicIP)
