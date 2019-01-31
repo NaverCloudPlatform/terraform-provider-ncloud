@@ -49,7 +49,6 @@ The following arguments are supported:
 
 ## Attributes Reference
 
-* `product_code` - Product code
 * `product_name` - Product name
 * `product_type` - Product type
     * `code` - Product type code

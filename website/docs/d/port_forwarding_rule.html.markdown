@@ -46,6 +46,3 @@ The following arguments are supported:
 
 * `port_forwarding_configuration_no` - Port forwarding configuration number
 * `port_forwarding_public_ip` - Port forwarding public ip
-* `server_instance_no` - Server instance number
-* `port_forwarding_external_port` - Port forwarding external port.
-* `port_forwarding_internal_port` - Port forwarding internal port.

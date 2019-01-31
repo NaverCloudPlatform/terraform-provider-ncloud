@@ -53,8 +53,6 @@ The following arguments are supported:
 * `snapshot_volume_size` - Snapshot volume size
 * `snapshot_volume_use_size` - Snapshot volume use size
 * `snapshot_volume_use_ratio` - Snapshot volume use ratio
-* `is_snapshot_configuration` - Indicates whether a snapshot volume is set.
-* `is_event_configuration` - Indicates whether the event is set.
 * `instance_custom_ip_list` - NAS volume instance custom IP list
 * `description` - NAS volume description
 * `zone` - Zone info

@@ -42,6 +42,5 @@ The following arguments are supported:
     * `code_name` - Block Storage Snapshot Instance Operation name
 * `instance_status_name` - Block Storage Snapshot Instance Status Name
 * `create_date` - Creation date of the block storage snapshot instance
-* `instance_description` - Block Storage Snapshot Instance Description
 * `server_image_product_code` - Server Image Product Code
 * `os_information` - OS Information
