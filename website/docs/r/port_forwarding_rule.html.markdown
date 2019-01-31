@@ -25,10 +25,10 @@ resource "ncloud_port_forwarding_rule" "rule" {
 
 The following arguments are supported:
 
-* `port_forwarding_configuration_no` - (Optional) Port forwarding configuration number. You can get by calling `data ncloud_port_forwarding_rules`
 * `server_instance_no` - (Required) Server instance number for which port forwarding is set
 * `port_forwarding_external_port` - (Required) External port for port forwarding
 * `port_forwarding_internal_port` - (Required) Internal port for port forwarding. Only the following ports are available. [Linux: `22` | Windows: `3389`]
+* `port_forwarding_configuration_no` - (Optional) Port forwarding configuration number. You can get by calling `data ncloud_port_forwarding_rules`
 
 ## Attributes Reference
 
