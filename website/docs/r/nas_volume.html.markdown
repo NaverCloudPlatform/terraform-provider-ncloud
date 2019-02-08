@@ -14,8 +14,8 @@ Provides a ncloud NAS volume.
 
 ```hcl
 resource "ncloud_nas_volume" "test" {
-	"volume_name_postfix" = "vol"
-	"volume_size_gb" = "600"
+	"volume_name_postfix"                 = "vol"
+	"volume_size"                         = "600"
 	"volume_allotment_protocol_type_code" = "NFS"
 }
 ```
@@ -25,7 +25,7 @@ resource "ncloud_nas_volume" "test" {
 The following arguments are supported:
 
 * `volume_name_postfix` - (Required) Name of a NAS volume to create. Enter a volume name that can be 3-20 characters in length after the name already entered for user identification.
-* `volume_size_gb` - (Required) Enter the nas volume size to be created. You can enter in GB units.
+* `volume_size` - (Required) Enter the nas volume size to be created. You can enter in GiB.
 * `volume_allotment_protocol_type_code` - (Required) Volume allotment protocol type code. `NFS` | `CIFS`
     `NFS`: You can mount the volume in a Linux server such as CentOS and Ubuntu.
     `CIFS`: You can mount the volume in a Windows server.
@@ -57,11 +57,10 @@ The following arguments are supported:
 * `volume_allotment_protocol_type` - Volume allotment protocol type.
     * `code` - Volume allotment protocol type code
     * `code_name` - Volume allotment protocol type name
-* `volume_total_size` - Volume total size
-* `volume_size` - Volume size
-* `volume_use_size` - Volume use size
+* `volume_total_size` - Volume total size, in GiB
+* `volume_use_size` - Volume use size, in GiB
 * `volume_use_ratio` - Volume use ratio
-* `snapshot_volume_size` - Snapshot volume size
+* `snapshot_volume_size` - Snapshot volume size, in GiB
 * `snapshot_volume_use_size` - Snapshot volume use size
 * `snapshot_volume_use_ratio` - Snapshot volume use ratio
 * `is_snapshot_configuration` - Indicates whether a snapshot volume is set.

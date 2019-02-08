@@ -23,6 +23,14 @@ const (
 	ApiErrorDetachingMountedStorage = "24002"
 )
 
+const (
+	BYTE = 1 << (10 * iota)
+	KILOBYTE
+	MEGABYTE
+	GIGABYTE
+	TERABYTE
+)
+
 type CommonResponse struct {
 	RequestId     *string `json:"requestId,omitempty"`
 	ReturnCode    *string `json:"returnCode,omitempty"`

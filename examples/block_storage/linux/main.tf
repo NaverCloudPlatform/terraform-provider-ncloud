@@ -17,8 +17,8 @@ resource "ncloud_server" "server" {
 
 resource "ncloud_block_storage" "storage" {
   "server_instance_no" = "${ncloud_server.server.id}"
-  "block_storage_name" = "${var.block_storage_name}"
-  "size_gb" = "10"
+  "name" = "${var.block_storage_name}"
+  "size" = "10"
 }
 
 data "ncloud_root_password" "rootpwd" {

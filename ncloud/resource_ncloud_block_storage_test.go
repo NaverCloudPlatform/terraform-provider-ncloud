@@ -123,7 +123,7 @@ resource "ncloud_server" "server" {
 resource "ncloud_block_storage" "storage" {
 	"server_instance_no" = "${ncloud_server.server.id}"
 	"name" = "%s"
-	"size_gb" = "10"
+	"size" = "10"
 }
 `, serverInstanceName, serverInstanceName, blockStorageName)
 }
