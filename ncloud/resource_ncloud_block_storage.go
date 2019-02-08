@@ -38,7 +38,7 @@ func resourceNcloudBlockStorage() *schema.Resource {
 				Type:         schema.TypeInt,
 				Required:     true,
 				Description:  "Enter the block storage size to be created. You can enter in GB units, and you can only enter up to 1000 GB.",
-				ValidateFunc: validation.All(validation.IntAtMost(1000), validation.IntAtLeast(10)),
+				ValidateFunc: validation.IntBetween(10, 1000),
 			},
 			"name": {
 				Type:        schema.TypeString,

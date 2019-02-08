@@ -35,7 +35,7 @@ func resourceNcloudNasVolume() *schema.Resource {
 				ValidateFunc: validation.StringLenBetween(3, 30),
 				Description:  "Name of a NAS volume to create. Enter a volume name that can be 3-20 characters in length after the name already entered for user identification.",
 			},
-			"volume_size_gb": {
+			"volume_size": {
 				Type:         schema.TypeInt,
 				Required:     true,
 				ValidateFunc: validation.IntBetween(500, 10000),
@@ -121,11 +121,6 @@ func resourceNcloudNasVolume() *schema.Resource {
 				Type:        schema.TypeInt,
 				Computed:    true,
 				Description: "Volume total size",
-			},
-			"volume_size": {
-				Type:        schema.TypeInt,
-				Computed:    true,
-				Description: "Volume size",
 			},
 			"volume_use_size": {
 				Type:        schema.TypeInt,
@@ -238,11 +233,11 @@ func resourceNcloudNasVolumeRead(d *schema.ResourceData, meta interface{}) error
 	if nasVolume != nil {
 		d.Set("description", nasVolume.NasVolumeInstanceDescription)
 		d.Set("volume_name", nasVolume.VolumeName)
-		d.Set("volume_total_size", nasVolume.VolumeTotalSize)
-		d.Set("volume_size", nasVolume.VolumeSize)
+		d.Set("volume_total_size", ncloud.Int64Value(nasVolume.VolumeTotalSize)/GIGABYTE)
+		d.Set("volume_size", ncloud.Int64Value(nasVolume.VolumeSize)/GIGABYTE)
 		d.Set("volume_use_size", nasVolume.VolumeUseSize)
 		d.Set("volume_use_ratio", nasVolume.VolumeUseRatio)
-		d.Set("snapshot_volume_size", nasVolume.SnapshotVolumeSize)
+		d.Set("snapshot_volume_size", ncloud.Int64Value(nasVolume.SnapshotVolumeSize)/GIGABYTE)
 		d.Set("snapshot_volume_use_size", nasVolume.SnapshotVolumeUseSize)
 		d.Set("snapshot_volume_use_ratio", nasVolume.SnapshotVolumeUseRatio)
 		d.Set("is_snapshot_configuration", nasVolume.IsSnapshotConfiguration)
@@ -281,10 +276,10 @@ func resourceNcloudNasVolumeDelete(d *schema.ResourceData, meta interface{}) err
 func resourceNcloudNasVolumeUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*NcloudAPIClient)
 
-	if d.HasChange("volume_size_gb") {
+	if d.HasChange("volume_size") {
 		reqParams := new(server.ChangeNasVolumeSizeRequest)
 		reqParams.NasVolumeInstanceNo = ncloud.String(d.Id())
-		if volumeSizeGb, ok := d.GetOk("volume_size_gb"); ok {
+		if volumeSizeGb, ok := d.GetOk("volume_size"); ok {
 			reqParams.VolumeSize = ncloud.Int32(int32(volumeSizeGb.(int)))
 		}
 
@@ -330,7 +325,7 @@ func buildCreateNasVolumeInstanceParams(client *NcloudAPIClient, d *schema.Resou
 
 	reqParams := &server.CreateNasVolumeInstanceRequest{
 		VolumeName:                      ncloud.String(d.Get("volume_name_postfix").(string)),
-		VolumeSize:                      ncloud.Int32(int32(d.Get("volume_size_gb").(int))),
+		VolumeSize:                      ncloud.Int32(int32(d.Get("volume_size").(int))),
 		VolumeAllotmentProtocolTypeCode: ncloud.String(d.Get("volume_allotment_protocol_type_code").(string)),
 		RegionNo:                        regionNo,
 		ZoneNo:                          zoneNo,
