@@ -34,13 +34,11 @@ func resourceNcloudBlockStorage() *schema.Resource {
 				Required:    true,
 				Description: "Server instance number to attach. Required value. The server instance number can be obtained through the getServerInstanceList action.",
 			},
-			"size_gb": {
-				// note : value of size is different from the parameter and response value.
-				// 	 change the parameter name to size_gb.
+			"size": {
 				Type:         schema.TypeInt,
 				Required:     true,
 				Description:  "Enter the block storage size to be created. You can enter in GB units, and you can only enter up to 1000 GB.",
-				ValidateFunc: validation.IntAtMost(1000),
+				ValidateFunc: validation.All(validation.IntAtMost(1000), validation.IntAtLeast(10)),
 			},
 			"name": {
 				Type:        schema.TypeString,
@@ -60,10 +58,6 @@ func resourceNcloudBlockStorage() *schema.Resource {
 
 			"instance_no": {
 				Type:     schema.TypeString,
-				Computed: true,
-			},
-			"size": {
-				Type:     schema.TypeInt,
 				Computed: true,
 			},
 			"server_name": {
@@ -162,7 +156,7 @@ func resourceNcloudBlockStorageRead(d *schema.ResourceData, meta interface{}) er
 	if storage != nil {
 		d.Set("instance_no", storage.BlockStorageInstanceNo)
 		d.Set("server_instance_no", storage.ServerInstanceNo)
-		d.Set("size", storage.BlockStorageSize)
+		d.Set("size", ncloud.Int64Value(storage.BlockStorageSize)/GIGABYTE)
 		d.Set("name", storage.BlockStorageName)
 		d.Set("server_name", storage.ServerName)
 		d.Set("device_name", storage.DeviceName)
@@ -215,7 +209,7 @@ func resourceNcloudBlockStorageUpdate(d *schema.ResourceData, meta interface{}) 
 func buildRequestBlockStorageInstance(d *schema.ResourceData) *server.CreateBlockStorageInstanceRequest {
 	reqParams := &server.CreateBlockStorageInstanceRequest{
 		ServerInstanceNo: ncloud.String(d.Get("server_instance_no").(string)),
-		BlockStorageSize: ncloud.Int64(int64(d.Get("size_gb").(int))),
+		BlockStorageSize: ncloud.Int64(int64(d.Get("size").(int))),
 	}
 
 	if blockStorageName, ok := d.GetOk("name"); ok {

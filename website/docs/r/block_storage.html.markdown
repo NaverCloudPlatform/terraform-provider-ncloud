@@ -16,7 +16,7 @@ Provides a ncloud block storage resource.
 resource "ncloud_block_storage" "storage" {
 	"server_instance_no" = "812345"
 	"name" = "tf-test-storage1"
-	"size_gb" = "10"
+	"size" = "10"
 }
 ```
 
@@ -24,7 +24,7 @@ resource "ncloud_block_storage" "storage" {
 
 The following arguments are supported:
 
-* `size_gb` - (Required) Enter a block storage size to ceate. You can enter by the unit of GB. Up to 1000GB you can enter.
+* `size` - (Required) Enter a block storage size to ceate. You can enter by the unit of GB. Up to 1000GB you can enter.
 * `server_instance_no` - (Required) Server instance No. to attach. It is required and you can get a server instance No. by calling getServerInstanceList.
 * `name` - (Optional) Block storage name to create default : Ncloud configures it by itself.
 * `description` - (Optional) Block storage descriptions
@@ -33,7 +33,6 @@ The following arguments are supported:
 ## Attributes Reference
 
 * `instance_no` - Block storage instance no
-* `size` - Block storage size in bytes
 * `server_name` - Server name
 * `type`
     * `code` - Block storage type code

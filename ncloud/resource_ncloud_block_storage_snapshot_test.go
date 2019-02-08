@@ -131,7 +131,7 @@ resource "ncloud_server" "vm" {
 resource "ncloud_block_storage" "bs" {
 	"server_instance_no" = "${ncloud_server.vm.id}"
 	"name" = "%s"
-	"size_gb" = "10"
+	"size" = "10"
 }
 
 resource "ncloud_block_storage_snapshot" "ss" {

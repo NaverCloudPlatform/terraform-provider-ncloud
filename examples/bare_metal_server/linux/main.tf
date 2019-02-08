@@ -29,8 +29,8 @@ resource "ncloud_server" "bm" {
 
 resource "ncloud_block_storage" "storage" {
   "server_instance_no" = "${ncloud_server.bm.id}"
-  "block_storage_name" = "${var.block_storage_name}"
-  "size_gb" = "10"
+  "name" = "${var.block_storage_name}"
+  "size" = "10"
 }
 
 resource "ncloud_nas_volume" "nas" {
