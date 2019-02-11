@@ -33,35 +33,18 @@ func resourceNcloudPublicIpInstance() *schema.Resource {
 				ValidateFunc: validation.StringLenBetween(1, 10000),
 				Description:  "Public IP description.",
 			},
-			"internet_line_type_code": {
+			"internet_line_type": {
 				Type:         schema.TypeString,
 				Optional:     true,
+				Computed:     true,
 				ValidateFunc: validation.StringInSlice([]string{"PUBLC", "GLBL"}, false),
 				Description:  "Internet line code. PUBLC(Public), GLBL(Global)",
 			},
-			"region_code": {
-				Type:          schema.TypeString,
-				Optional:      true,
-				Description:   "Region code. Get available values using the `data ncloud_regions`.",
-				ConflictsWith: []string{"region_no"},
-			},
-			"region_no": {
-				Type:          schema.TypeString,
-				Optional:      true,
-				Description:   "Region number. Get available values using the `data ncloud_regions`.",
-				ConflictsWith: []string{"region_code"},
-			},
-			"zone_code": {
-				Type:          schema.TypeString,
-				Optional:      true,
-				Description:   "Zone code. You can determine the ZONE where the server will be created. It can be obtained through the getZoneList action. Default : Assigned by NAVER Cloud Platform.",
-				ConflictsWith: []string{"zone_no"},
-			},
-			"zone_no": {
-				Type:          schema.TypeString,
-				Optional:      true,
-				Description:   "Zone number. You can determine the ZONE where the server will be created. It can be obtained through the getZoneList action. Default : Assigned by NAVER Cloud Platform.",
-				ConflictsWith: []string{"zone_code"},
+			"zone": {
+				Type:        schema.TypeString,
+				Optional:    true,
+				Computed:    true,
+				Description: "Zone code. You can determine the ZONE where the server will be created. It can be obtained through the getZoneList action. Default : Assigned by NAVER Cloud Platform.",
 			},
 
 			"instance_no": {
@@ -72,29 +55,21 @@ func resourceNcloudPublicIpInstance() *schema.Resource {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
-			"internet_line_type": {
-				Type:     schema.TypeMap,
-				Computed: true,
-				Elem:     commonCodeSchemaResource,
-			},
 			"instance_status_name": {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
 			"instance_status": {
-				Type:     schema.TypeMap,
+				Type:     schema.TypeString,
 				Computed: true,
-				Elem:     commonCodeSchemaResource,
 			},
 			"instance_operation": {
-				Type:     schema.TypeMap,
+				Type:     schema.TypeString,
 				Computed: true,
-				Elem:     commonCodeSchemaResource,
 			},
 			"kind_type": {
-				Type:     schema.TypeMap,
+				Type:     schema.TypeString,
 				Computed: true,
-				Elem:     commonCodeSchemaResource,
 			},
 		},
 	}
@@ -141,17 +116,24 @@ func resourceNcloudPublicIpRead(d *schema.ResourceData, meta interface{}) error 
 		d.Set("description", instance.PublicIpDescription)
 		d.Set("instance_status_name", instance.PublicIpInstanceStatusName)
 
-		if err := d.Set("internet_line_type", flattenCommonCode(instance.InternetLineType)); err != nil {
-			return err
+		if lineType := flattenCommonCode(instance.InternetLineType); lineType["code"] != nil {
+			d.Set("internet_line_type", lineType["code"])
 		}
-		if err := d.Set("instance_status", flattenCommonCode(instance.PublicIpInstanceStatus)); err != nil {
-			return err
+
+		if instanceStatus := flattenCommonCode(instance.PublicIpInstanceStatus); instanceStatus["code"] != nil {
+			d.Set("instance_status", instanceStatus["code"])
 		}
-		if err := d.Set("instance_operation", flattenCommonCode(instance.PublicIpInstanceOperation)); err != nil {
-			return err
+
+		if instanceOperation := flattenCommonCode(instance.PublicIpInstanceOperation); instanceOperation["code"] != nil {
+			d.Set("instance_operation", instanceOperation["code"])
 		}
-		if err := d.Set("kind_type", flattenCommonCode(instance.PublicIpKindType)); err != nil {
-			return err
+
+		if kindType := flattenCommonCode(instance.PublicIpKindType); kindType["code"] != nil {
+			d.Set("kind_type", kindType["code"])
+		}
+
+		if zone := flattenZone(instance.Zone); zone["zone_code"] != nil {
+			d.Set("zone", zone["zone_code"])
 		}
 	} else {
 		log.Printf("unable to find resource: %s", d.Id())
@@ -205,7 +187,7 @@ func buildCreatePublicIpInstanceReqParams(client *NcloudAPIClient, d *schema.Res
 	}
 
 	reqParams := &server.CreatePublicIpInstanceRequest{
-		InternetLineTypeCode: StringPtrOrNil(d.GetOk("internet_line_type_code")),
+		InternetLineTypeCode: StringPtrOrNil(d.GetOk("internet_line_type")),
 		RegionNo:             regionNo,
 		ZoneNo:               zoneNo,
 	}
@@ -291,7 +273,7 @@ func waitDisassociatePublicIp(client *NcloudAPIClient, publicIPInstanceNo string
 				return
 			}
 
-			if *resp.TotalRows == 0 {
+			if resp.PublicIpInstanceList[0].ServerInstanceAssociatedWithPublicIp.PublicIp == nil {
 				c1 <- nil
 				return
 			}

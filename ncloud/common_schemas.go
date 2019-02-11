@@ -29,17 +29,6 @@ var zoneSchemaResource = &schema.Resource{
 	},
 }
 
-var commonCodeSchemaResource = &schema.Resource{
-	Schema: map[string]*schema.Schema{
-		"code": {
-			Type: schema.TypeString,
-		},
-		"code_name": {
-			Type: schema.TypeString,
-		},
-	},
-}
-
 var regionSchemaResource = &schema.Resource{
 	Schema: map[string]*schema.Schema{
 		"region_no": {

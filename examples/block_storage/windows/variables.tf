@@ -5,8 +5,8 @@ variable "region" {
   default = "KR"
 }
 
-variable "zone_no" {
-  default = "3"
+variable "zone" {
+  default = "KR-2"
 }
 
 // winrm-acg

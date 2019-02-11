@@ -14,17 +14,10 @@ func dataSourceNcloudZones() *schema.Resource {
 		Read: dataSourceNcloudZonesRead,
 
 		Schema: map[string]*schema.Schema{
-			"region_code": {
-				Type:          schema.TypeString,
-				Optional:      true,
-				Description:   "Region code. Get available values using the `data ncloud_regions`.",
-				ConflictsWith: []string{"region_no"},
-			},
-			"region_no": {
-				Type:          schema.TypeString,
-				Optional:      true,
-				Description:   "Region number. Get available values using the `data ncloud_regions`.",
-				ConflictsWith: []string{"region_code"},
+			"region": {
+				Type:        schema.TypeString,
+				Optional:    true,
+				Description: "Region code. Get available values using the `data ncloud_regions`.",
 			},
 			"zones": {
 				Type:     schema.TypeList,

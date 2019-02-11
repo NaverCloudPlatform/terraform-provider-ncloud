@@ -5,7 +5,7 @@ provider "ncloud" {
 }
 
 data "ncloud_zones" "korea" {
-  "region_no" = "1"
+  "region" = "KR"
 }
 
 resource "ncloud_server" "server" {

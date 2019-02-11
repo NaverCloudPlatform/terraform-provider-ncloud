@@ -5,6 +5,6 @@ provider "ncloud" {
 }
 
 data "ncloud_zones" "zones" {
-  "region_no" = "1"
+  "region"      = "KR"
   "output_file" = "zones.json"
 }

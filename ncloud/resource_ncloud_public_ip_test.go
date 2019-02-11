@@ -39,11 +39,11 @@ func TestAccResourceNcloudPublicIpInstanceBasic(t *testing.T) {
 					testCheck(),
 					resource.TestCheckResourceAttr(
 						"ncloud_public_ip.public_ip",
-						"region_no",
+						"region",
 						"1"),
 					resource.TestCheckResourceAttr(
 						"ncloud_public_ip.public_ip",
-						"zone_no",
+						"zone",
 						"2"),
 				),
 			},
@@ -126,8 +126,8 @@ resource "ncloud_server" "test" {
 resource "ncloud_public_ip" "public_ip" {
 	"server_instance_no" = "${ncloud_server.test.id}"
 	"description" = "%s"
-	"region_no" = "1"
-	"zone_no" = "2"
+	"region" = "KR"
+	"zone" = "KR-2"
 }
 `, testServerInstanceName, testServerInstanceName, testPublicIpDescription)
 }

@@ -42,14 +42,10 @@ The following arguments are supported:
 * `description` - (Optional) Server description to create
 * `login_key_name` - (Optional) The login key name to encrypt with the public key. Default : Uses the most recently created login key name
 * `is_protect_server_termination` - (Optional) You can set whether or not to protect return when creating. default : false
-* `internet_line_type_code` - (Optional) Internet line identification code. PUBLC(Public), GLBL(Global). default : PUBLC(Public)
+* `internet_line_type` - (Optional) Internet line identification code. PUBLC(Public), GLBL(Global). default : PUBLC(Public)
 * `fee_system_type_code` - (Optional) A rate system identification code. There are time plan(MTRAT) and flat rate (FXSUM). Default : Time plan(MTRAT)
-* `zone_code` - (Optional) Zone code. You can determine the ZONE where the server will be created. Default : Assigned by NAVER Cloud Platform.
+* `zone` - (Optional) Zone code. You can determine the ZONE where the server will be created. Default : Assigned by NAVER Cloud Platform.
     Get available values using the data source `ncloud_zones`.
-    Conflicts with `zone_no`. Only one of `zone_no` and `zone_code` can be used.
-* `zone_no` - (Optional) Zone number. You can determine the ZONE where the server will be created. Default : Assigned by NAVER Cloud Platform.
-    Get available values using the data source `ncloud_zones`.
-    Conflicts with `zone_code`. Only one of `zone_no` and `zone_code` can be used.
 * `access_control_group_configuration_no_list` - (Optional) You can set the ACG created when creating the server. ACG setting number can be obtained through the getAccessControlGroupList action. Default : Default ACG number
 * `user_data` - (Optional) The server will execute the user data script set by the user at first boot. To view the column, it is returned only when viewing the server instance.
 * `raid_type_name` - (Optional) Raid Type Name.
@@ -64,39 +60,17 @@ The following arguments are supported:
 * `cpu_count` - number of CPUs
 * `memory_size` - The size of the memory in bytes.
 * `base_block_storage_size` - The size of base block storage in bytes
-* `platform_type` - Platform type
-    * `code` - Platform type code
-    * `code_name` - Platform type name
+* `platform_type` - Platform type code
 * `is_fee_charging_monitoring` - Fee charging monitoring
 * `public_ip` - Public IP
 * `private_ip` - Private IP
 * `server_image_name` - Server image name
-* `instance_status` - Server instance status
-    * `code` - Server instance status code
-    * `code_name` - Server instance status code name
+* `instance_status` - Server instance status code
 * `instance_status_name` - Server instance status name
-* `instance_operation` - Server instance operation
-    * `code` - Server instance operation code
-    * `code_name` - Server instance operation code name
+* `instance_operation` - Server instance operation code
 * `port_forwarding_public_ip` - Port forwarding public ip
 * `port_forwarding_external_port` - Port forwarding external port
 * `port_forwarding_internal_port` - Port forwarding internal port
-* `zone` - Zone info
-    * `zone_no` - Zone number
-    * `zone_code` - Zone code
-    * `zone_name` - Zone name
-    * `zone_description` - Zone description
-    * `region_no` - Region number
-* `region` - Region info
-    * `region_no` - Region number
-    * `region_code` - Region code
-    * `region_name` - Region name
-* `base_block_storage_disk_type` - Base block storage disk type
-    * `code` - Base block storage disk type code
-    * `code_name` - Base block storage disk type code name
-* `base_block_storage_disk_detail_type` - Base block storage disk detail type
-    * `code` - Base block storage disk detail type code
-    * `code_name` - Base block storage disk detail type name
-* `internet_line_type` - Internet line type
-    * `code` - Internet line type code
-    * `code_name` - Internet line type code name
+* `region` - Region code
+* `base_block_storage_disk_type` - Base block storage disk type code
+* `base_block_storage_disk_detail_type` - Base block storage disk detail type code

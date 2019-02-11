@@ -50,9 +50,10 @@ func resourceNcloudBlockStorage() *schema.Resource {
 				Optional:    true,
 				Description: "Block storage description",
 			},
-			"disk_detail_type_code": {
+			"disk_detail_type": {
 				Type:        schema.TypeString,
 				Optional:    true,
+				Computed:    true,
 				Description: "You can choose a disk detail type code of HDD and SSD. default: HDD",
 			},
 
@@ -65,9 +66,8 @@ func resourceNcloudBlockStorage() *schema.Resource {
 				Computed: true,
 			},
 			"type": {
-				Type:     schema.TypeMap,
+				Type:     schema.TypeString,
 				Computed: true,
-				Elem:     commonCodeSchemaResource,
 			},
 			"device_name": { // TODO: response check
 				Type:     schema.TypeString,
@@ -78,28 +78,20 @@ func resourceNcloudBlockStorage() *schema.Resource {
 				Computed: true,
 			},
 			"instance_status": {
-				Type:     schema.TypeMap,
+				Type:     schema.TypeString,
 				Computed: true,
-				Elem:     commonCodeSchemaResource,
 			},
 			"instance_operation": {
-				Type:     schema.TypeMap,
+				Type:     schema.TypeString,
 				Computed: true,
-				Elem:     commonCodeSchemaResource,
 			},
 			"instance_status_name": {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
 			"disk_type": {
-				Type:     schema.TypeMap,
+				Type:     schema.TypeString,
 				Computed: true,
-				Elem:     commonCodeSchemaResource,
-			},
-			"disk_detail_type": {
-				Type:     schema.TypeMap,
-				Computed: true,
-				Elem:     commonCodeSchemaResource,
 			},
 		},
 	}
@@ -164,20 +156,24 @@ func resourceNcloudBlockStorageRead(d *schema.ResourceData, meta interface{}) er
 		d.Set("instance_status_name", storage.BlockStorageInstanceStatusName)
 		d.Set("description", storage.BlockStorageInstanceDescription)
 
-		if err := d.Set("type", flattenCommonCode(storage.BlockStorageType)); err != nil {
-			return err
+		if blockStorageType := flattenCommonCode(storage.BlockStorageType); blockStorageType["code"] != nil {
+			d.Set("type", blockStorageType["code"])
 		}
-		if err := d.Set("instance_status", flattenCommonCode(storage.BlockStorageInstanceStatus)); err != nil {
-			return err
+
+		if instanceStatus := flattenCommonCode(storage.BlockStorageInstanceStatus); instanceStatus["code"] != nil {
+			d.Set("instance_status", instanceStatus["code"])
 		}
-		if err := d.Set("instance_operation", flattenCommonCode(storage.BlockStorageInstanceOperation)); err != nil {
-			return err
+
+		if instanceOperation := flattenCommonCode(storage.BlockStorageInstanceOperation); instanceOperation["code"] != nil {
+			d.Set("instance_operation", instanceOperation["code"])
 		}
-		if err := d.Set("disk_type", flattenCommonCode(storage.DiskType)); err != nil {
-			return err
+
+		if diskType := flattenCommonCode(storage.DiskType); diskType["code"] != nil {
+			d.Set("disk_type", diskType["code"])
 		}
-		if err := d.Set("disk_detail_type", flattenCommonCode(storage.DiskDetailType)); err != nil {
-			return err
+
+		if diskDetailType := flattenCommonCode(storage.DiskDetailType); diskDetailType["code"] != nil {
+			d.Set("disk_detail_type", diskDetailType["code"])
 		}
 	} else {
 		log.Printf("unable to find resource: %s", d.Id())
@@ -220,7 +216,7 @@ func buildRequestBlockStorageInstance(d *schema.ResourceData) *server.CreateBloc
 		reqParams.BlockStorageDescription = ncloud.String(blockStorageDescription.(string))
 	}
 
-	if diskDetailTypeCode, ok := d.GetOk("disk_detail_type_code"); ok {
+	if diskDetailTypeCode, ok := d.GetOk("disk_detail_type"); ok {
 		reqParams.DiskDetailTypeCode = ncloud.String(diskDetailTypeCode.(string))
 	}
 

@@ -8,11 +8,3 @@ variable "region" {
 variable "server_instance_no" {
   default = "805853"
 }
-
-variable "region_no" {
-  default = "1"
-}
-
-variable "zone_no" {
-  default = "3"
-}

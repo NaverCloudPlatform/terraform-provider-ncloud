@@ -11,19 +11,19 @@ resource "ncloud_load_balancer_ssl_certificate" "cert" {
 }
 
 resource "ncloud_load_balancer" "lb" {
-  "name"                = "tftest_lb"
-  "algorithm_type_code" = "SIPHS"
-  "description"         = "tftest_lb description"
+  "name"           = "tftest_lb"
+  "algorithm_type" = "SIPHS"
+  "description"    = "tftest_lb description"
 
   "rule_list" = [
     {
-      "protocol_type_code"   = "HTTP"
+      "protocol_type"        = "HTTP"
       "load_balancer_port"   = 80
       "server_port"          = 80
       "l7_health_check_path" = "/monitor/l7check"
     },
     {
-      "protocol_type_code"   = "HTTPS"
+      "protocol_type"        = "HTTPS"
       "load_balancer_port"   = 443
       "server_port"          = 443
       "l7_health_check_path" = "/monitor/l7check"
@@ -31,5 +31,5 @@ resource "ncloud_load_balancer" "lb" {
     },
   ]
 
-  "region_no" = "1"
+  "region" = "KR"
 }
