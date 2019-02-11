@@ -34,9 +34,10 @@ func resourceNcloudLoadBalancer() *schema.Resource {
 				ValidateFunc: validation.StringLenBetween(3, 30),
 				Description:  "Name of a load balancer to create. Default: Automatically specified by Ncloud.",
 			},
-			"algorithm_type_code": {
+			"algorithm_type": {
 				Type:         schema.TypeString,
 				Optional:     true,
+				Computed:     true,
 				ValidateFunc: validation.StringInSlice([]string{"RR", "LC", "SIPHS"}, false),
 				Description:  "Load balancer algorithm type code. The available algorithms are as follows: [ROUND ROBIN (RR) | LEAST_CONNECTION (LC)]. Default: ROUND ROBIN (RR)",
 			},
@@ -58,29 +59,24 @@ func resourceNcloudLoadBalancer() *schema.Resource {
 				Elem:        &schema.Schema{Type: schema.TypeString},
 				Description: "List of server instance numbers to be bound to the load balancer",
 			},
-			"internet_line_type_code": {
+			"internet_line_type": {
 				Type:         schema.TypeString,
 				Optional:     true,
+				Computed:     true,
 				ValidateFunc: validation.StringInSlice([]string{"PUBLC", "GLBL"}, false),
 				Description:  "Internet line identification code. PUBLC(Public), GLBL(Global). default : PUBLC(Public)",
 			},
-			"network_usage_type_code": {
+			"network_usage_type": {
 				Type:         schema.TypeString,
 				Optional:     true,
+				Computed:     true,
 				ValidateFunc: validation.StringInSlice([]string{"PBLIP", "PRVT"}, false),
 				Description:  "Network usage identification code. PBLIP(PublicIp), PRVT(PrivateIP). default : PBLIP(PublicIp)",
 			},
-			"region_code": {
-				Type:          schema.TypeString,
-				Optional:      true,
-				Description:   "Region code. Get available values using the `data ncloud_regions`.",
-				ConflictsWith: []string{"region_no"},
-			},
-			"region_no": {
-				Type:          schema.TypeString,
-				Optional:      true,
-				Description:   "Region number. Get available values using the `data ncloud_regions`.",
-				ConflictsWith: []string{"region_code"},
+			"region": {
+				Type:        schema.TypeString,
+				Optional:    true,
+				Description: "Region code. Get available values using the `data ncloud_regions`.",
 			},
 			"instance_no": {
 				Type:     schema.TypeString,
@@ -90,38 +86,21 @@ func resourceNcloudLoadBalancer() *schema.Resource {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
-			"algorithm_type": {
-				Type:     schema.TypeMap,
-				Computed: true,
-				Elem:     commonCodeSchemaResource,
-			},
 			"domain_name": {
 				Type:     schema.TypeString,
 				Computed: true,
-			},
-			"internet_line_type": {
-				Type:     schema.TypeMap,
-				Computed: true,
-				Elem:     commonCodeSchemaResource,
 			},
 			"instance_status_name": {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
 			"instance_status": {
-				Type:     schema.TypeMap,
+				Type:     schema.TypeString,
 				Computed: true,
-				Elem:     commonCodeSchemaResource,
 			},
 			"instance_operation": {
-				Type:     schema.TypeMap,
+				Type:     schema.TypeString,
 				Computed: true,
-				Elem:     commonCodeSchemaResource,
-			},
-			"network_usage_type": {
-				Type:     schema.TypeMap,
-				Computed: true,
-				Elem:     commonCodeSchemaResource,
 			},
 			"is_http_keep_alive": {
 				Type:     schema.TypeBool,
@@ -186,20 +165,24 @@ func resourceNcloudLoadBalancerRead(d *schema.ResourceData, meta interface{}) er
 		d.Set("connection_timeout", lb.ConnectionTimeout)
 		d.Set("certificate_name", lb.CertificateName)
 
-		if err := d.Set("algorithm_type", flattenCommonCode(lb.LoadBalancerAlgorithmType)); err != nil {
-			return err
+		if algorithmType := flattenCommonCode(lb.LoadBalancerAlgorithmType); algorithmType["code"] != nil {
+			d.Set("algorithm_type", algorithmType["code"])
 		}
-		if err := d.Set("internet_line_type", flattenCommonCode(lb.InternetLineType)); err != nil {
-			return err
+
+		if internetLineType := flattenCommonCode(lb.InternetLineType); internetLineType["code"] != nil {
+			d.Set("internet_line_type", internetLineType["code"])
 		}
-		if err := d.Set("instance_status", flattenCommonCode(lb.LoadBalancerInstanceStatus)); err != nil {
-			return err
+
+		if instanceStatus := flattenCommonCode(lb.LoadBalancerInstanceStatus); instanceStatus["code"] != nil {
+			d.Set("instance_status", instanceStatus["code"])
 		}
-		if err := d.Set("instance_operation", flattenCommonCode(lb.LoadBalancerInstanceOperation)); err != nil {
-			return err
+
+		if instanceOperation := flattenCommonCode(lb.LoadBalancerInstanceOperation); instanceOperation["code"] != nil {
+			d.Set("instance_operation", instanceOperation["code"])
 		}
-		if err := d.Set("network_usage_type", flattenCommonCode(lb.NetworkUsageType)); err != nil {
-			return err
+
+		if networkUsageType := flattenCommonCode(lb.NetworkUsageType); networkUsageType["code"] != nil {
+			d.Set("network_usage_type", networkUsageType["code"])
 		}
 
 		if len(lb.LoadBalancerRuleList) != 0 {
@@ -244,7 +227,7 @@ func resourceNcloudLoadBalancerUpdate(d *schema.ResourceData, meta interface{}) 
 
 	reqParams := &loadbalancer.ChangeLoadBalancerInstanceConfigurationRequest{
 		LoadBalancerInstanceNo:        ncloud.String(d.Id()),
-		LoadBalancerAlgorithmTypeCode: ncloud.String(d.Get("algorithm_type_code").(string)),
+		LoadBalancerAlgorithmTypeCode: ncloud.String(d.Get("algorithm_type").(string)),
 	}
 
 	if loadBalancerRuleParams, err := expandLoadBalancerRuleParams(d.Get("rule_list").([]interface{})); err == nil {
@@ -255,7 +238,7 @@ func resourceNcloudLoadBalancerUpdate(d *schema.ResourceData, meta interface{}) 
 		reqParams.LoadBalancerDescription = ncloud.String(d.Get("description").(string))
 	}
 
-	if d.HasChange("algorithm_type_code") || d.HasChange("description") || d.HasChange("rule_list") {
+	if d.HasChange("algorithm_type") || d.HasChange("description") || d.HasChange("rule_list") {
 		logCommonRequest("ChangeLoadBalancerInstanceConfiguration", reqParams)
 		resp, err := client.loadbalancer.V2Api.ChangeLoadBalancerInstanceConfiguration(reqParams)
 		if err != nil {
@@ -301,7 +284,7 @@ func buildCreateLoadBalancerInstanceParams(client *NcloudAPIClient, d *schema.Re
 	}
 
 	reqParams := &loadbalancer.CreateLoadBalancerInstanceRequest{
-		InternetLineTypeCode: StringPtrOrNil(d.GetOk("internet_line_type_code")),
+		InternetLineTypeCode: StringPtrOrNil(d.GetOk("internet_line_type")),
 		RegionNo:             regionNo,
 	}
 
@@ -309,7 +292,7 @@ func buildCreateLoadBalancerInstanceParams(client *NcloudAPIClient, d *schema.Re
 		reqParams.LoadBalancerName = ncloud.String(loadBalancerName.(string))
 	}
 
-	if loadBalancerAlgorithmTypeCode, ok := d.GetOk("algorithm_type_code"); ok {
+	if loadBalancerAlgorithmTypeCode, ok := d.GetOk("algorithm_type"); ok {
 		reqParams.LoadBalancerAlgorithmTypeCode = ncloud.String(loadBalancerAlgorithmTypeCode.(string))
 	}
 
@@ -321,7 +304,7 @@ func buildCreateLoadBalancerInstanceParams(client *NcloudAPIClient, d *schema.Re
 		reqParams.ServerInstanceNoList = expandStringInterfaceList(serverInstanceNoList.([]interface{}))
 	}
 
-	if networkUsageTypeCode, ok := d.GetOk("network_usage_type_code"); ok {
+	if networkUsageTypeCode, ok := d.GetOk("network_usage_type"); ok {
 		reqParams.NetworkUsageTypeCode = ncloud.String(networkUsageTypeCode.(string))
 	}
 
@@ -433,16 +416,10 @@ func waitForDeleteLoadBalancerInstance(client *NcloudAPIClient, id string) error
 
 var loadBalancerRuleSchemaResource = &schema.Resource{
 	Schema: map[string]*schema.Schema{
-		"protocol_type_code": {
+		"protocol_type": {
 			Type:        schema.TypeString,
 			Required:    true,
 			Description: "Protocol type code of load balancer rules. The following codes are available. [HTTP | HTTPS | TCP | SSL]",
-		},
-		"protocol_type": {
-			Type:        schema.TypeMap,
-			Computed:    true,
-			Elem:        commonCodeSchemaResource,
-			Description: "",
 		},
 		"load_balancer_port": {
 			Type:        schema.TypeInt,
@@ -457,12 +434,12 @@ var loadBalancerRuleSchemaResource = &schema.Resource{
 		"l7_health_check_path": {
 			Type:        schema.TypeString,
 			Optional:    true,
-			Description: "Health check path of load balancer rules. Required when the protocol_type_code is HTTP/HTTPS.",
+			Description: "Health check path of load balancer rules. Required when the protocol_type is HTTP/HTTPS.",
 		},
 		"certificate_name": {
 			Type:        schema.TypeString,
 			Optional:    true,
-			Description: "Load balancer SSL certificate. Required when the protocol_type_code value is SSL/HTTPS.",
+			Description: "Load balancer SSL certificate. Required when the protocol_type value is SSL/HTTPS.",
 		},
 		"proxy_protocol_use_yn": {
 			Type:        schema.TypeString,

@@ -24,20 +24,10 @@ ncloud_nas_volume
 The following arguments are supported:
 
 * `internet_line_type_code` - (Optional) Internet line code. PUBLC(Public), GLBL(Global)
-* `region_code` - (Optional) Region code. Get available values using the data source `ncloud_regions`.
-    Conflicts with `region_no`. Only one of `region_no` and `region_code` can be used.
+* `region` - (Optional) Region code. Get available values using the data source `ncloud_regions`.
     Default: KR region.
-* `region_no` - (Optional) Region number. Get available values using the data source `ncloud_regions`.
-    Conflicts with `region_code`. Only one of `region_no` and `region_code` can be used.
-    Default: KR region.
-* `zone_code` - (Optional) Zone code. You can decide a zone where servers are created. You can decide which zone the product list will be requested at. default : Select the first Zone in the specific region
-    Required to select one among two parameters: `zone_no` and `zone_code`.
+* `zone` - (Optional) Zone code. You can decide a zone where servers are created. You can decide which zone the product list will be requested at. default : Select the first Zone in the specific region
     Get available values using the data source `ncloud_zones`.
-    Conflicts with `zone_no`. Only one of `zone_no` and `zone_code` can be used.
-* `zone_no` - (Optional) Zone number. You can decide a zone where servers are created. You can decide which zone the product list will be requested at. default : Select the first Zone in the specific region
-    Required to select one among two parameters: `zone_no` and `zone_code`.
-    Get available values using the data source `ncloud_zones`.
-    Conflicts with `zone_code`. Only one of `zone_no` and `zone_code` can be used.
 * `server_instance_no` - Filter by server instance number
 * `port_forwarding_internal_port` - (Optional) Port forwarding internal port.
 * `port_forwarding_external_port` - Port forwarding external port.

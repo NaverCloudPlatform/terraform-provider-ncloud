@@ -5,7 +5,7 @@ provider "ncloud" {
 }
 
 resource "ncloud_server" "server" {
-  "name"               = "${var.server_name}"
+  "name"                      = "${var.server_name}"
   "server_image_product_code" = "${var.server_image_product_code}"
   "server_product_code"       = "${var.server_product_code}"
 }
@@ -34,5 +34,5 @@ resource "ncloud_load_balancer" "lb" {
   "server_instance_no_list" = ["${ncloud_server.server.id}"]
   "internet_line_type_code" = "PUBLC"
   "network_usage_type_code" = "PBLIP"
-  "region_no"               = "1"
+  "region"                  = "KR"
 }

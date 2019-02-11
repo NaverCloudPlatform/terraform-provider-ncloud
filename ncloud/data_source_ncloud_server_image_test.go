@@ -1,8 +1,9 @@
 package ncloud
 
 import (
-	"github.com/hashicorp/terraform/helper/resource"
 	"testing"
+
+	"github.com/hashicorp/terraform/helper/resource"
 )
 
 func TestAccDataSourceNcloudServerImageBasic(t *testing.T) {
@@ -69,6 +70,6 @@ data "ncloud_server_image" "test" {
 
 var testAccDataSourceNcloudServerImageFilterByTypeConfig = `
 data "ncloud_server_image" "test" {
-  "product_type_code" = "LINUX"
+  "product_type" = "LINUX"
 }
 `

@@ -41,7 +41,7 @@ func TestAccResourceNcloudBlockStorageBasic(t *testing.T) {
 						testBlockStorageName),
 					resource.TestCheckResourceAttr(
 						"ncloud_block_storage.storage",
-						"instance_status.code",
+						"instance_status",
 						"ATTAC"),
 				),
 			},

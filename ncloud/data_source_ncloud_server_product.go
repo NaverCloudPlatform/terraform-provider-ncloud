@@ -39,29 +39,15 @@ func dataSourceNcloudServerProduct() *schema.Resource {
 				Computed:    true,
 				Description: "Enter a product code to search from the list. Use it for a single search.",
 			},
-			"region_code": {
-				Type:          schema.TypeString,
-				Optional:      true,
-				Description:   "Region code. Get available values using the `data ncloud_regions`.",
-				ConflictsWith: []string{"region_no"},
+			"region": {
+				Type:        schema.TypeString,
+				Optional:    true,
+				Description: "Region code. Get available values using the `data ncloud_regions`.",
 			},
-			"region_no": {
-				Type:          schema.TypeString,
-				Optional:      true,
-				Description:   "Region number. Get available values using the `data ncloud_regions`.",
-				ConflictsWith: []string{"region_code"},
-			},
-			"zone_code": {
-				Type:          schema.TypeString,
-				Optional:      true,
-				Description:   "Zone code",
-				ConflictsWith: []string{"zone_no"},
-			},
-			"zone_no": {
-				Type:          schema.TypeString,
-				Optional:      true,
-				Description:   "Zone number",
-				ConflictsWith: []string{"zone_code"},
+			"zone": {
+				Type:        schema.TypeString,
+				Optional:    true,
+				Description: "Zone code. Get available values using the `data ncloud_zones`.",
 			},
 			"internet_line_type_code": {
 				Type:         schema.TypeString,
@@ -75,9 +61,8 @@ func dataSourceNcloudServerProduct() *schema.Resource {
 				Description: "Product name",
 			},
 			"product_type": {
-				Type:        schema.TypeMap,
+				Type:        schema.TypeString,
 				Computed:    true,
-				Elem:        commonCodeSchemaResource,
 				Description: "Product type",
 			},
 			"product_description": {
@@ -86,9 +71,8 @@ func dataSourceNcloudServerProduct() *schema.Resource {
 				Description: "Product description",
 			},
 			"infra_resource_type": {
-				Type:        schema.TypeMap,
+				Type:        schema.TypeString,
 				Computed:    true,
-				Elem:        commonCodeSchemaResource,
 				Description: "Infra resource type",
 			},
 			"cpu_count": {
@@ -107,9 +91,8 @@ func dataSourceNcloudServerProduct() *schema.Resource {
 				Description: "Base block storage size",
 			},
 			"platform_type": {
-				Type:        schema.TypeMap,
+				Type:        schema.TypeString,
 				Computed:    true,
-				Elem:        commonCodeSchemaResource,
 				Description: "Platform type",
 			},
 			"os_information": {
@@ -195,14 +178,16 @@ func serverProductAttributes(d *schema.ResourceData, product *server.Product) er
 	d.Set("os_information", product.OsInformation)
 	d.Set("add_block_storage_size", product.AddBlockStorageSize)
 
-	if err := d.Set("product_type", flattenCommonCode(product.ProductType)); err != nil {
-		return err
+	if productType := flattenCommonCode(product.ProductType); productType["code"] != nil {
+		d.Set("product_type", productType["code"])
 	}
-	if err := d.Set("infra_resource_type", flattenCommonCode(product.InfraResourceType)); err != nil {
-		return err
+
+	if infraResourceType := flattenCommonCode(product.InfraResourceType); infraResourceType["code"] != nil {
+		d.Set("infra_resource_type", infraResourceType["code"])
 	}
-	if err := d.Set("platform_type", flattenCommonCode(product.PlatformType)); err != nil {
-		return err
+
+	if platformType := flattenCommonCode(product.PlatformType); platformType["code"] != nil {
+		d.Set("platform_type", platformType["code"])
 	}
 
 	d.SetId(ncloud.StringValue(product.ProductCode))

@@ -68,16 +68,14 @@ func resourceNcloudBlockStorageSnapshot() *schema.Resource {
 				Description: "Original Block Storage Name",
 			},
 			"instance_status": {
-				Type:        schema.TypeMap,
+				Type:        schema.TypeString,
 				Optional:    true,
 				Computed:    true,
-				Elem:        commonCodeSchemaResource,
 				Description: "Block Storage Snapshot Instance Status",
 			},
 			"instance_operation": {
-				Type:        schema.TypeMap,
+				Type:        schema.TypeString,
 				Computed:    true,
-				Elem:        commonCodeSchemaResource,
 				Description: "Block Storage Snapshot Instance Operation",
 			},
 			"instance_status_name": {
@@ -162,11 +160,12 @@ func resourceNcloudBlockStorageSnapshotRead(d *schema.ResourceData, meta interfa
 		d.Set("server_image_product_code", snapshot.ServerImageProductCode)
 		d.Set("os_information", snapshot.OsInformation)
 
-		if err := d.Set("instance_status", flattenCommonCode(snapshot.BlockStorageSnapshotInstanceStatus)); err != nil {
-			return err
+		if instanceStatus := flattenCommonCode(snapshot.BlockStorageSnapshotInstanceStatus); instanceStatus["code"] != nil {
+			d.Set("instance_status", instanceStatus["code"])
 		}
-		if err := d.Set("instance_operation", flattenCommonCode(snapshot.BlockStorageSnapshotInstanceOperation)); err != nil {
-			return err
+
+		if instanceOperation := flattenCommonCode(snapshot.BlockStorageSnapshotInstanceOperation); instanceOperation["code"] != nil {
+			d.Set("instance_operation", instanceOperation["code"])
 		}
 	} else {
 		log.Printf("unable to find resource: %s", d.Id())

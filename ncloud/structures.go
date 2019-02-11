@@ -184,7 +184,7 @@ func expandLoadBalancerRuleParams(list []interface{}) ([]*loadbalancer.LoadBalan
 		lbRule := new(loadbalancer.LoadBalancerRuleParameter)
 		for key, value := range v.(map[string]interface{}) {
 			switch key {
-			case "protocol_type_code":
+			case "protocol_type":
 				lbRule.ProtocolTypeCode = ncloud.String(value.(string))
 			case "load_balancer_port":
 				lbRule.LoadBalancerPort = ncloud.Int32(int32(value.(int)))
@@ -209,8 +209,7 @@ func flattenLoadBalancerRuleList(lbRuleList []*loadbalancer.LoadBalancerRule) []
 
 	for _, r := range lbRuleList {
 		rule := map[string]interface{}{
-			"protocol_type":         flattenCommonCode(r.ProtocolType),
-			"protocol_type_code":    ncloud.StringValue(r.ProtocolType.Code),
+			"protocol_type":         ncloud.StringValue(r.ProtocolType.Code),
 			"load_balancer_port":    ncloud.Int32Value(r.LoadBalancerPort),
 			"server_port":           ncloud.Int32Value(r.ServerPort),
 			"l7_health_check_path":  ncloud.StringValue(r.L7HealthCheckPath),

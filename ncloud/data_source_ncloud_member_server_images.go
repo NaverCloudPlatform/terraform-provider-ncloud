@@ -16,9 +16,8 @@ func dataSourceNcloudMemberServerImages() *schema.Resource {
 
 		Schema: map[string]*schema.Schema{
 			"name_regex": {
-				Type:     schema.TypeString,
-				Optional: true,
-				// ForceNew:     true,
+				Type:         schema.TypeString,
+				Optional:     true,
 				ValidateFunc: validation.ValidateRegexp,
 				Description:  "A regex string to apply to the member server image list returned by ncloud",
 			},
@@ -34,17 +33,10 @@ func dataSourceNcloudMemberServerImages() *schema.Resource {
 				Elem:        &schema.Schema{Type: schema.TypeString},
 				Description: "List of platform codes of server images to view",
 			},
-			"region_code": {
-				Type:          schema.TypeString,
-				Optional:      true,
-				Description:   "Region code. Get available values using the `data ncloud_regions`.",
-				ConflictsWith: []string{"region_no"},
-			},
-			"region_no": {
-				Type:          schema.TypeString,
-				Optional:      true,
-				Description:   "Region number. Get available values using the `data ncloud_regions`.",
-				ConflictsWith: []string{"region_code"},
+			"region": {
+				Type:        schema.TypeString,
+				Optional:    true,
+				Description: "Region code. Get available values using the `data ncloud_regions`.",
 			},
 			"member_server_images": {
 				Type:        schema.TypeList,

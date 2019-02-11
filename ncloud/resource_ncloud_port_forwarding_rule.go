@@ -59,9 +59,8 @@ func resourceNcloudPortForwadingRule() *schema.Resource {
 				Description: "Port forwarding Public IP",
 			},
 			"zone": {
-				Type:        schema.TypeMap,
+				Type:        schema.TypeString,
 				Computed:    true,
-				Elem:        zoneSchemaResource,
 				Description: "Zone info",
 			},
 		},
@@ -147,8 +146,8 @@ func resourceNcloudPortForwardingRuleRead(d *schema.ResourceData, meta interface
 		d.Set("port_forwarding_external_port", portForwardingRule.PortForwardingExternalPort)
 		d.Set("port_forwarding_internal_port", portForwardingRule.PortForwardingInternalPort)
 
-		if err := d.Set("zone", flattenZone(resp.Zone)); err != nil {
-			return err
+		if zone := flattenZone(resp.Zone); zone["zone_code"] != nil {
+			d.Set("zone", zone["zone_code"])
 		}
 	} else {
 		log.Printf("unable to find resource: %s", d.Id())

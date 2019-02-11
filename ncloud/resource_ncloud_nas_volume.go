@@ -41,7 +41,7 @@ func resourceNcloudNasVolume() *schema.Resource {
 				ValidateFunc: validation.IntBetween(500, 10000),
 				Description:  "Enter the nas volume size to be created. You can enter in GB units.",
 			},
-			"volume_allotment_protocol_type_code": {
+			"volume_allotment_protocol_type": {
 				Type:         schema.TypeString,
 				Required:     true,
 				ValidateFunc: validation.StringLenBetween(1, 5),
@@ -75,29 +75,17 @@ func resourceNcloudNasVolume() *schema.Resource {
 				ValidateFunc: validation.StringLenBetween(1, 1000),
 				Description:  "NAS volume description",
 			},
-			"region_code": {
-				Type:          schema.TypeString,
-				Optional:      true,
-				Description:   "Region code. Get available values using the `data ncloud_regions`.",
-				ConflictsWith: []string{"region_no"},
+			"region": {
+				Type:        schema.TypeString,
+				Optional:    true,
+				Computed:    true,
+				Description: "Region code. Get available values using the `data ncloud_regions`.",
 			},
-			"region_no": {
-				Type:          schema.TypeString,
-				Optional:      true,
-				Description:   "Region number. Get available values using the `data ncloud_regions`.",
-				ConflictsWith: []string{"region_code"},
-			},
-			"zone_code": {
-				Type:          schema.TypeString,
-				Optional:      true,
-				Description:   "Zone code. Zone in which you want to create a NAS volume.",
-				ConflictsWith: []string{"zone_no"},
-			},
-			"zone_no": {
-				Type:          schema.TypeString,
-				Optional:      true,
-				Description:   "Zone number. Zone in which you want to create a NAS volume.",
-				ConflictsWith: []string{"zone_code"},
+			"zone": {
+				Type:        schema.TypeString,
+				Optional:    true,
+				Computed:    true,
+				Description: "Zone code. Zone in which you want to create a NAS volume.",
 			},
 
 			"volume_name": {
@@ -106,16 +94,9 @@ func resourceNcloudNasVolume() *schema.Resource {
 				Description: "NAS volume name.",
 			},
 			"instance_status": {
-				Type:        schema.TypeMap,
+				Type:        schema.TypeString,
 				Computed:    true,
-				Elem:        commonCodeSchemaResource,
 				Description: "NAS Volume instance status",
-			},
-			"volume_allotment_protocol_type": {
-				Type:        schema.TypeMap,
-				Computed:    true,
-				Elem:        commonCodeSchemaResource,
-				Description: "Volume allotment protocol type.",
 			},
 			"volume_total_size": {
 				Type:        schema.TypeInt,
@@ -162,18 +143,6 @@ func resourceNcloudNasVolume() *schema.Resource {
 				Computed:    true,
 				Elem:        &schema.Schema{Type: schema.TypeString},
 				Description: "NAS volume instance custom IP list",
-			},
-			"zone": {
-				Type:        schema.TypeMap,
-				Computed:    true,
-				Elem:        zoneSchemaResource,
-				Description: "Zone info",
-			},
-			"region": {
-				Type:        schema.TypeMap,
-				Computed:    true,
-				Elem:        regionSchemaResource,
-				Description: "Region info",
 			},
 		},
 	}
@@ -244,17 +213,20 @@ func resourceNcloudNasVolumeRead(d *schema.ResourceData, meta interface{}) error
 		d.Set("is_event_configuration", nasVolume.IsEventConfiguration)
 		d.Set("instance_custom_ip_list", nasVolume.NasVolumeInstanceCustomIpList)
 
-		if err := d.Set("instance_status", flattenCommonCode(nasVolume.NasVolumeInstanceStatus)); err != nil {
-			return err
+		if instanceStatus := flattenCommonCode(nasVolume.NasVolumeInstanceStatus); instanceStatus["code"] != nil {
+			d.Set("instance_status", instanceStatus["code"])
 		}
-		if err := d.Set("volume_allotment_protocol_type", flattenCommonCode(nasVolume.VolumeAllotmentProtocolType)); err != nil {
-			return err
+
+		if protocolType := flattenCommonCode(nasVolume.VolumeAllotmentProtocolType); protocolType["code"] != nil {
+			d.Set("volume_allotment_protocol_type", protocolType["code"])
 		}
-		if err := d.Set("zone", flattenZone(nasVolume.Zone)); err != nil {
-			return err
+
+		if zone := flattenZone(nasVolume.Zone); zone["zone_code"] != nil {
+			d.Set("zone", zone["zone_code"])
 		}
-		if err := d.Set("region", flattenRegion(nasVolume.Region)); err != nil {
-			return err
+
+		if region := flattenRegion(nasVolume.Region); region["region_code"] != nil {
+			d.Set("region", region["region_code"])
 		}
 	} else {
 		log.Printf("unable to find resource: %s", d.Id())
@@ -326,7 +298,7 @@ func buildCreateNasVolumeInstanceParams(client *NcloudAPIClient, d *schema.Resou
 	reqParams := &server.CreateNasVolumeInstanceRequest{
 		VolumeName:                      ncloud.String(d.Get("volume_name_postfix").(string)),
 		VolumeSize:                      ncloud.Int32(int32(d.Get("volume_size").(int))),
-		VolumeAllotmentProtocolTypeCode: ncloud.String(d.Get("volume_allotment_protocol_type_code").(string)),
+		VolumeAllotmentProtocolTypeCode: ncloud.String(d.Get("volume_allotment_protocol_type").(string)),
 		RegionNo:                        regionNo,
 		ZoneNo:                          zoneNo,
 	}

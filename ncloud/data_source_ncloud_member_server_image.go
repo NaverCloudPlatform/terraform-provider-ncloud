@@ -15,9 +15,8 @@ func dataSourceNcloudMemberServerImage() *schema.Resource {
 
 		Schema: map[string]*schema.Schema{
 			"name_regex": {
-				Type:     schema.TypeString,
-				Optional: true,
-				// ForceNew:     true,
+				Type:         schema.TypeString,
+				Optional:     true,
 				ValidateFunc: validation.ValidateRegexp,
 				Description:  "A regex string to apply to the member server image list returned by ncloud",
 			},
@@ -33,17 +32,10 @@ func dataSourceNcloudMemberServerImage() *schema.Resource {
 				Elem:        &schema.Schema{Type: schema.TypeString},
 				Description: "List of platform codes of server images to view",
 			},
-			"region_code": {
-				Type:          schema.TypeString,
-				Optional:      true,
-				Description:   "Region code.",
-				ConflictsWith: []string{"region_no"},
-			},
-			"region_no": {
-				Type:          schema.TypeString,
-				Optional:      true,
-				Description:   "Region number.",
-				ConflictsWith: []string{"region_code"},
+			"region": {
+				Type:        schema.TypeString,
+				Optional:    true,
+				Description: "Region code. Get available values using the `data ncloud_regions`.",
 			},
 			"most_recent": {
 				Type:        schema.TypeBool,
@@ -84,9 +76,8 @@ func dataSourceNcloudMemberServerImage() *schema.Resource {
 				Description: "Original server name",
 			},
 			"original_base_block_storage_disk_type": {
-				Type:        schema.TypeMap,
+				Type:        schema.TypeString,
 				Computed:    true,
-				Elem:        commonCodeSchemaResource,
 				Description: "Original base block storage disk type",
 			},
 			"original_server_image_product_code": {
@@ -110,28 +101,19 @@ func dataSourceNcloudMemberServerImage() *schema.Resource {
 				Description: "Member server image status name",
 			},
 			"status": {
-				Type:        schema.TypeMap,
+				Type:        schema.TypeString,
 				Computed:    true,
-				Elem:        commonCodeSchemaResource,
 				Description: "Member server image status",
 			},
 			"operation": {
-				Type:        schema.TypeMap,
+				Type:        schema.TypeString,
 				Computed:    true,
-				Elem:        commonCodeSchemaResource,
 				Description: "Member server image operation",
 			},
 			"platform_type": {
-				Type:        schema.TypeMap,
+				Type:        schema.TypeString,
 				Computed:    true,
-				Elem:        commonCodeSchemaResource,
 				Description: "Member server image platform type",
-			},
-			"region": {
-				Type:        schema.TypeMap,
-				Computed:    true,
-				Elem:        regionSchemaResource,
-				Description: "Region info",
 			},
 			"block_storage_total_rows": {
 				Type:        schema.TypeInt,
@@ -224,24 +206,24 @@ func memberServerImageAttributes(d *schema.ResourceData, m *server.MemberServerI
 	d.Set("block_storage_total_rows", m.MemberServerImageBlockStorageTotalRows)
 	d.Set("block_storage_total_size", m.MemberServerImageBlockStorageTotalSize)
 
-	if err := d.Set("original_base_block_storage_disk_type", flattenCommonCode(m.OriginalBaseBlockStorageDiskType)); err != nil {
-		return err
+	if diskType := flattenCommonCode(m.OriginalBaseBlockStorageDiskType); diskType["code"] != nil {
+		d.Set("original_base_block_storage_disk_type", diskType["code"])
 	}
 
-	if err := d.Set("status", flattenCommonCode(m.MemberServerImageStatus)); err != nil {
-		return err
+	if status := flattenCommonCode(m.MemberServerImageStatus); status["code"] != nil {
+		d.Set("status", status["code"])
 	}
 
-	if err := d.Set("operation", flattenCommonCode(m.MemberServerImageOperation)); err != nil {
-		return err
+	if operation := flattenCommonCode(m.MemberServerImageOperation); operation["code"] != nil {
+		d.Set("operation", operation["code"])
 	}
 
-	if err := d.Set("platform_type", flattenCommonCode(m.MemberServerImagePlatformType)); err != nil {
-		return err
+	if platformType := flattenCommonCode(m.MemberServerImagePlatformType); platformType["code"] != nil {
+		d.Set("platform_type", platformType["code"])
 	}
 
-	if err := d.Set("region", flattenRegion(m.Region)); err != nil {
-		return err
+	if region := flattenRegion(m.Region); region["region_code"] != nil {
+		d.Set("region", region["region_code"])
 	}
 
 	d.SetId(*m.MemberServerImageNo)
