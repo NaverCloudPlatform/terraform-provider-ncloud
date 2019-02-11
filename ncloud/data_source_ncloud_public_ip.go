@@ -21,8 +21,9 @@ func dataSourceNcloudPublicIp() *schema.Resource {
 				ForceNew:    true,
 				Description: "If more than one result is returned, get the most recent created Public IP.",
 			},
-			"internet_line_type_code": {
+			"internet_line_type": {
 				Type:         schema.TypeString,
+				Computed:     true,
 				Optional:     true,
 				ValidateFunc: validation.StringInSlice([]string{"PUBLC", "GLBL"}, false),
 				Description:  "Internet line type code. `PUBLC` (Public), `GLBL` (Global)",
@@ -54,29 +55,15 @@ func dataSourceNcloudPublicIp() *schema.Resource {
 				Optional:    true,
 				Description: "Filter value to search",
 			},
-			"region_code": {
-				Type:          schema.TypeString,
-				Optional:      true,
-				Description:   "Region code. Get available values using the `data ncloud_regions`.",
-				ConflictsWith: []string{"region_no"},
+			"region": {
+				Type:        schema.TypeString,
+				Optional:    true,
+				Description: "Region code. Get available values using the `data ncloud_regions`.",
 			},
-			"region_no": {
-				Type:          schema.TypeString,
-				Optional:      true,
-				Description:   "Region number. Get available values using the `data ncloud_regions`.",
-				ConflictsWith: []string{"region_code"},
-			},
-			"zone_code": {
-				Type:          schema.TypeString,
-				Optional:      true,
-				Description:   "Zone code. You can filter the list of public IP instances by zones. All the public IP addresses in the zone of the region will be selected if the filter is not specified.",
-				ConflictsWith: []string{"zone_no"},
-			},
-			"zone_no": {
-				Type:          schema.TypeString,
-				Optional:      true,
-				Description:   "Zone number. You can filter the list of public IP instances by zones. All the public IP addresses in the zone of the region will be selected if the filter is not specified.",
-				ConflictsWith: []string{"zone_code"},
+			"zone": {
+				Type:        schema.TypeString,
+				Optional:    true,
+				Description: "Zone code. You can filter the list of public IP instances by zones. All the public IP addresses in the zone of the region will be selected if the filter is not specified.",
 			},
 			"sorted_by": {
 				Type:        schema.TypeString,
@@ -104,33 +91,24 @@ func dataSourceNcloudPublicIp() *schema.Resource {
 				Computed:    true,
 				Description: "Public IP description",
 			},
-			"internet_line_type": {
-				Type:        schema.TypeMap,
-				Computed:    true,
-				Elem:        commonCodeSchemaResource,
-				Description: "Internet line type",
-			},
 			"instance_status_name": {
 				Type:        schema.TypeString,
 				Computed:    true,
 				Description: "Public IP instance status name",
 			},
 			"instance_status": {
-				Type:        schema.TypeMap,
+				Type:        schema.TypeString,
 				Computed:    true,
-				Elem:        commonCodeSchemaResource,
 				Description: "Public IP instance status",
 			},
 			"instance_operation": {
-				Type:        schema.TypeMap,
+				Type:        schema.TypeString,
 				Computed:    true,
-				Elem:        commonCodeSchemaResource,
 				Description: "Public IP instance operation",
 			},
 			"kind_type": {
-				Type:        schema.TypeMap,
+				Type:        schema.TypeString,
 				Computed:    true,
-				Elem:        commonCodeSchemaResource,
 				Description: "Public IP kind type",
 			},
 			"server_instance": {
@@ -170,7 +148,7 @@ func dataSourceNcloudPublicIpRead(d *schema.ResourceData, meta interface{}) erro
 
 	reqParams := new(server.GetPublicIpInstanceListRequest)
 
-	if internetLineTypeCode, ok := d.GetOk("internet_line_type_code"); ok {
+	if internetLineTypeCode, ok := d.GetOk("internet_line_type"); ok {
 		reqParams.InternetLineTypeCode = ncloud.String(internetLineTypeCode.(string))
 	}
 
@@ -241,17 +219,20 @@ func publicIPAttributes(d *schema.ResourceData, instance *server.PublicIpInstanc
 	d.Set("description", instance.PublicIpDescription)
 	d.Set("instance_status_name", instance.PublicIpInstanceStatusName)
 
-	if err := d.Set("internet_line_type", flattenCommonCode(instance.InternetLineType)); err != nil {
-		return err
+	if lineType := flattenCommonCode(instance.InternetLineType); lineType["code"] != nil {
+		d.Set("internet_line_type", lineType["code"])
 	}
-	if err := d.Set("instance_status", flattenCommonCode(instance.PublicIpInstanceStatus)); err != nil {
-		return err
+
+	if instanceStatus := flattenCommonCode(instance.PublicIpInstanceStatus); instanceStatus["code"] != nil {
+		d.Set("instance_status", instanceStatus["code"])
 	}
-	if err := d.Set("instance_operation", flattenCommonCode(instance.PublicIpInstanceOperation)); err != nil {
-		return err
+
+	if instanceOperation := flattenCommonCode(instance.PublicIpInstanceOperation); instanceOperation["code"] != nil {
+		d.Set("instance_operation", instanceOperation["code"])
 	}
-	if err := d.Set("kind_type", flattenCommonCode(instance.PublicIpKindType)); err != nil {
-		return err
+
+	if kindType := flattenCommonCode(instance.PublicIpKindType); kindType["code"] != nil {
+		d.Set("kind_type", kindType["code"])
 	}
 
 	if serverInstance := instance.ServerInstanceAssociatedWithPublicIp; serverInstance != nil {

@@ -33,29 +33,15 @@ func dataSourceNcloudNasVolumes() *schema.Resource {
 				Computed: true,
 				Elem:     &schema.Schema{Type: schema.TypeString},
 			},
-			"region_code": {
-				Type:          schema.TypeString,
-				Optional:      true,
-				Description:   "Region code. Get available values using the `data ncloud_regions`.",
-				ConflictsWith: []string{"region_no"},
+			"region": {
+				Type:        schema.TypeString,
+				Optional:    true,
+				Description: "Region code. Get available values using the `data ncloud_regions`.",
 			},
-			"region_no": {
-				Type:          schema.TypeString,
-				Optional:      true,
-				Description:   "Region number. Get available values using the `data ncloud_regions`.",
-				ConflictsWith: []string{"region_code"},
-			},
-			"zone_code": {
-				Type:          schema.TypeString,
-				Optional:      true,
-				Description:   "Zone code",
-				ConflictsWith: []string{"zone_no"},
-			},
-			"zone_no": {
-				Type:          schema.TypeString,
-				Optional:      true,
-				Description:   "Zone number",
-				ConflictsWith: []string{"zone_code"},
+			"zone": {
+				Type:        schema.TypeString,
+				Optional:    true,
+				Description: "Zone code. Get available values using the `data ncloud_zones`.",
 			},
 			"nas_volumes": {
 				Type:        schema.TypeList,

@@ -18,6 +18,7 @@ func dataSourceNcloudNasVolume() *schema.Resource {
 			"volume_allotment_protocol_type_code": {
 				Type:         schema.TypeString,
 				Optional:     true,
+				Computed:     true,
 				ValidateFunc: validation.StringInSlice([]string{"NFS", "CIFS"}, false),
 			},
 			"is_event_configuration": {
@@ -36,29 +37,17 @@ func dataSourceNcloudNasVolume() *schema.Resource {
 				Computed: true,
 				Elem:     &schema.Schema{Type: schema.TypeString},
 			},
-			"region_code": {
-				Type:          schema.TypeString,
-				Optional:      true,
-				Description:   "Region code. Get available values using the `data ncloud_regions`.",
-				ConflictsWith: []string{"region_no"},
+			"region": {
+				Type:        schema.TypeString,
+				Optional:    true,
+				Computed:    true,
+				Description: "Region code. Get available values using the `data ncloud_regions`.",
 			},
-			"region_no": {
-				Type:          schema.TypeString,
-				Optional:      true,
-				Description:   "Region number. Get available values using the `data ncloud_regions`.",
-				ConflictsWith: []string{"region_code"},
-			},
-			"zone_code": {
-				Type:          schema.TypeString,
-				Optional:      true,
-				Description:   "Zone code",
-				ConflictsWith: []string{"zone_no"},
-			},
-			"zone_no": {
-				Type:          schema.TypeString,
-				Optional:      true,
-				Description:   "Zone number",
-				ConflictsWith: []string{"zone_code"},
+			"zone": {
+				Type:        schema.TypeString,
+				Optional:    true,
+				Computed:    true,
+				Description: "Zone code. Get available values using the `data ncloud_zones`.",
 			},
 
 			"instance_no": {
@@ -70,14 +59,8 @@ func dataSourceNcloudNasVolume() *schema.Resource {
 				Computed: true,
 			},
 			"instance_status": {
-				Type:     schema.TypeMap,
+				Type:     schema.TypeString,
 				Computed: true,
-				Elem:     commonCodeSchemaResource,
-			},
-			"volume_allotment_protocol_type": {
-				Type:     schema.TypeMap,
-				Computed: true,
-				Elem:     commonCodeSchemaResource,
 			},
 			"volume_total_size": {
 				Type:     schema.TypeInt,
@@ -115,16 +98,6 @@ func dataSourceNcloudNasVolume() *schema.Resource {
 			"description": {
 				Type:     schema.TypeString,
 				Computed: true,
-			},
-			"zone": {
-				Type:     schema.TypeMap,
-				Computed: true,
-				Elem:     zoneSchemaResource,
-			},
-			"region": {
-				Type:     schema.TypeMap,
-				Computed: true,
-				Elem:     regionSchemaResource,
 			},
 		},
 	}
@@ -195,24 +168,24 @@ func nasVolumeInstanceAttributes(d *schema.ResourceData, nasVolume *server.NasVo
 	d.Set("is_snapshot_configuration", nasVolume.IsSnapshotConfiguration)
 	d.Set("is_event_configuration", nasVolume.IsEventConfiguration)
 
-	if err := d.Set("instance_status", flattenCommonCode(nasVolume.NasVolumeInstanceStatus)); err != nil {
-		return err
+	if instanceStatus := flattenCommonCode(nasVolume.NasVolumeInstanceStatus); instanceStatus["code"] != nil {
+		d.Set("instance_status", instanceStatus["code"])
 	}
 
-	if err := d.Set("volume_allotment_protocol_type", flattenCommonCode(nasVolume.VolumeAllotmentProtocolType)); err != nil {
-		return err
+	if typeCode := flattenCommonCode(nasVolume.VolumeAllotmentProtocolType); typeCode["code"] != nil {
+		d.Set("volume_allotment_protocol_type_code", typeCode["code"])
 	}
 
 	if len(nasVolume.NasVolumeInstanceCustomIpList) > 0 {
 		d.Set("instance_custom_ip_list", flattenCustomIPList(nasVolume.NasVolumeInstanceCustomIpList))
 	}
 
-	if err := d.Set("zone", flattenZone(nasVolume.Zone)); err != nil {
-		return err
+	if zone := flattenZone(nasVolume.Zone); zone["zone_code"] != nil {
+		d.Set("zone", zone["zone_code"])
 	}
 
-	if err := d.Set("region", flattenRegion(nasVolume.Region)); err != nil {
-		return err
+	if region := flattenRegion(nasVolume.Region); region["region_code"] != nil {
+		d.Set("region", region["region_code"])
 	}
 
 	d.SetId(ncloud.StringValue(nasVolume.NasVolumeInstanceNo))

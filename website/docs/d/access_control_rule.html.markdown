@@ -34,9 +34,7 @@ The following arguments are supported:
 * `destination_port` - Destination Port
 * `protocol_type_code` - Protocol type code
 * `configuration_no` - Access control rule configuration no
-* `protocol_type` - Protocol type
-    * `code` - Protocol type code
-    * `code_name` - Protocol type name
+* `protocol_type` - Protocol type code
 * `source_configuration_no` - Source access control rule configuration no
 * `source_name` - Source access control rule name
 * `description` - Access control rule description
