@@ -367,13 +367,13 @@ func TestFlattenNasVolumeInstances(t *testing.T) {
 func TestExpandLoadBalancerRuleParams(t *testing.T) {
 	lbrulelist := []interface{}{
 		map[string]interface{}{
-			"protocol_type_code":   "HTTP",
+			"protocol_type":        "HTTP",
 			"load_balancer_port":   80,
 			"server_port":          80,
 			"l7_health_check_path": "/monitor/l7check",
 		},
 		map[string]interface{}{
-			"protocol_type_code":   "HTTPS",
+			"protocol_type":        "HTTPS",
 			"load_balancer_port":   443,
 			"server_port":          443,
 			"l7_health_check_path": "/monitor/l7check",
