@@ -34,13 +34,9 @@ The following arguments are supported:
 * `volume_size` - Block Storage Snapshot Volume Size
 * `original_block_storage_instance_no` - Original Block Storage Instance Number
 * `original_block_storage_name` - Original Block Storage Name
-* `instance_status`
-    * `code` - Block Storage Snapshot Instance Status code
-    * `code_name` - Block Storage Snapshot Instance Status name
-* `instance_operation`
-    * `code` - Block Storage Snapshot Instance Operation code
-    * `code_name` - Block Storage Snapshot Instance Operation name
+* `instance_status` - Block Storage Snapshot Instance Status code
 * `instance_status_name` - Block Storage Snapshot Instance Status Name
+* `instance_operation` - Block Storage Snapshot Instance Operation code
 * `create_date` - Creation date of the block storage snapshot instance
 * `server_image_product_code` - Server Image Product Code
 * `os_information` - OS Information

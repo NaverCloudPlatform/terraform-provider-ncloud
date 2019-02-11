@@ -49,7 +49,7 @@ func dataSourceNcloudAccessControlRule() *schema.Resource {
 				Computed:    true,
 				Description: "Destination Port",
 			},
-			"protocol_type_code": {
+			"protocol_type": {
 				Type:        schema.TypeString,
 				Optional:    true,
 				Computed:    true,
@@ -59,12 +59,6 @@ func dataSourceNcloudAccessControlRule() *schema.Resource {
 				Type:        schema.TypeString,
 				Computed:    true,
 				Description: "Access control rule configuration no",
-			},
-			"protocol_type": {
-				Type:        schema.TypeMap,
-				Computed:    true,
-				Elem:        commonCodeSchemaResource,
-				Description: "Protocol type",
 			},
 			"source_configuration_no": {
 				Type:        schema.TypeString,
@@ -136,7 +130,7 @@ func dataSourceNcloudAccessControlRuleRead(d *schema.ResourceData, meta interfac
 	nameRegex, nameRegexOk := d.GetOk("source_name_regex")
 	sourceIP, sourceIPOk := d.GetOk("source_ip")
 	destinationPort, destinationPortOk := d.GetOk("destination_port")
-	protocolTypeCode, protocolTypeCodeOk := d.GetOk("protocol_type_code")
+	protocolTypeCode, protocolTypeCodeOk := d.GetOk("protocol_type")
 
 	if nameRegexOk || sourceIPOk || destinationPortOk || protocolTypeCodeOk {
 		if nameRegexOk {
@@ -190,8 +184,8 @@ func accessControlRuleAttributes(d *schema.ResourceData, accessControlRule *serv
 	d.Set("source_name", accessControlRule.SourceAccessControlRuleName)
 	d.Set("description", accessControlRule.AccessControlRuleDescription)
 
-	if err := d.Set("protocol_type", flattenCommonCode(accessControlRule.ProtocolType)); err != nil {
-		return err
+	if protocolType := flattenCommonCode(accessControlRule.ProtocolType); protocolType["code"] != nil {
+		d.Set("protocol_type", protocolType["code"])
 	}
 
 	return nil

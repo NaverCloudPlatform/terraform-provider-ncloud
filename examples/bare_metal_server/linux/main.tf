@@ -24,7 +24,7 @@ resource "ncloud_server" "bm" {
   "server_product_code"       = "${data.ncloud_server_product.prod.id}"
   "login_key_name"            = "${ncloud_login_key.key.key_name}"
   "raid_type_name"            = "5"
-  "zone_no"                   = "2"
+  "zone"                      = "KR-2"
 }
 
 resource "ncloud_block_storage" "storage" {
@@ -34,10 +34,10 @@ resource "ncloud_block_storage" "storage" {
 }
 
 resource "ncloud_nas_volume" "nas" {
-  "volume_name_postfix"                 = "${var.nas_volume_name_prefix}"
-  "volume_size"                         = "500"
-  "volume_allotment_protocol_type_code" = "NFS"
-  "server_instance_no_list"             = ["${ncloud_server.bm.id}"]
+  "volume_name_postfix"            = "${var.nas_volume_name_prefix}"
+  "volume_size"                    = "500"
+  "volume_allotment_protocol_type" = "NFS"
+  "server_instance_no_list"        = ["${ncloud_server.bm.id}"]
 }
 
 resource "ncloud_public_ip" "public_ip" {
@@ -51,19 +51,19 @@ resource "ncloud_load_balancer_ssl_certificate" "cert" {
 }
 
 resource "ncloud_load_balancer" "lb" {
-  "name"                = "${var.load_balancer_name}"
-  "algorithm_type_code" = "SIPHS"
-  "description"         = "${var.load_balancer_name} description"
+  "name"           = "${var.load_balancer_name}"
+  "algorithm_type" = "SIPHS"
+  "description"    = "${var.load_balancer_name} description"
 
   "rule_list" = [
     {
-      "protocol_type_code"   = "HTTP"
+      "protocol_type"        = "HTTP"
       "load_balancer_port"   = 80
       "server_port"          = 80
       "l7_health_check_path" = "/monitor/l7check"
     },
     {
-      "protocol_type_code"   = "HTTPS"
+      "protocol_type"        = "HTTPS"
       "load_balancer_port"   = 443
       "server_port"          = 443
       "l7_health_check_path" = "/monitor/l7check"
@@ -72,8 +72,8 @@ resource "ncloud_load_balancer" "lb" {
   ]
 
   "server_instance_no_list" = ["${ncloud_server.bm.id}"]
-  "internet_line_type_code" = "PUBLC"
-  "network_usage_type_code" = "PBLIP"
+  "internet_line_type"      = "PUBLC"
+  "network_usage_type"      = "PBLIP"
 }
 
 data "ncloud_root_password" "pwd" {
@@ -82,7 +82,7 @@ data "ncloud_root_password" "pwd" {
 }
 
 data "ncloud_port_forwarding_rules" "rules" {
-  "zone_no" = "${ncloud_server.bm.zone_no}"
+  "zone" = "${ncloud_server.bm.zone}"
 }
 
 resource "ncloud_port_forwarding_rule" "rule" {

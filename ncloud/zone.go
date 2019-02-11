@@ -2,6 +2,7 @@ package ncloud
 
 import (
 	"fmt"
+
 	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/ncloud"
 	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/services/server"
 	"github.com/hashicorp/terraform/helper/schema"
@@ -18,11 +19,7 @@ type Zone struct {
 var zoneCache = make(map[string]string)
 
 func parseZoneNoParameter(client *NcloudAPIClient, d *schema.ResourceData) (*string, error) {
-	if zoneNo, zoneNoOk := d.GetOk("zone_no"); zoneNoOk {
-		return ncloud.String(zoneNo.(string)), nil
-	}
-
-	if zoneCode, zoneCodeOk := d.GetOk("zone_code"); zoneCodeOk {
+	if zoneCode, zoneCodeOk := d.GetOk("zone"); zoneCodeOk {
 		zoneNo := getZoneNoByCode(client, zoneCode.(string))
 		if zoneNo == "" {
 			return nil, fmt.Errorf("no zone data for zone_code `%s`. please change zone_code and try again", zoneCode.(string))

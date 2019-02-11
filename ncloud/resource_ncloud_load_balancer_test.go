@@ -40,7 +40,7 @@ func TestAccNcloudLoadBalancerBasic(t *testing.T) {
 						testLoadBalancerName),
 					resource.TestCheckResourceAttr(
 						"ncloud_load_balancer.lb",
-						"algorithm_type_code",
+						"algorithm_type",
 						"SIPHS"),
 				),
 			},
@@ -136,22 +136,22 @@ func testAccCheckLoadBalancerDestroyWithProvider(s *terraform.State, provider *s
 func testAccLoadBalancerConfig(lbName string) string {
 	return fmt.Sprintf(`
 		resource "ncloud_load_balancer" "lb" {
-			"name"                = "%s"
-			"algorithm_type_code" = "SIPHS"
-			"description"         = "tftest_lb description"
+			"name"           = "%s"
+			"algorithm_type" = "SIPHS"
+			"description"    = "tftest_lb description"
 
 			"rule_list" = [
 				{
-					"protocol_type_code"   = "HTTP"
+					"protocol_type"        = "HTTP"
 					"load_balancer_port"   = 80
 					"server_port"          = 80
 					"l7_health_check_path" = "/monitor/l7check"
 				},
 			]
 
-			"internet_line_type_code" = "PUBLC"
-			"network_usage_type_code" = "PBLIP"
-			"region_no"               = "1"
+			"internet_line_type" = "PUBLC"
+			"network_usage_type" = "PBLIP"
+			"region"             = "KR"
 		}
 		`, lbName)
 }
@@ -159,22 +159,22 @@ func testAccLoadBalancerConfig(lbName string) string {
 func testAccLoadBalancerChangedConfig(lbName string) string {
 	return fmt.Sprintf(`
 		resource "ncloud_load_balancer" "lb" {
-			"name"                = "%s"
-			"algorithm_type_code" = "SIPHS"
-			"description"         = "tftest_lb change port"
+			"name"           = "%s"
+			"algorithm_type" = "SIPHS"
+			"description"    = "tftest_lb change port"
 
 			"rule_list" = [
 				{
-					"protocol_type_code"   = "HTTP"
+					"protocol_type"        = "HTTP"
 					"load_balancer_port"   = 8080
 					"server_port"          = 8080
 					"l7_health_check_path" = "/monitor/l7check"
 				},
 			]
 
-			"internet_line_type_code" = "PUBLC"
-			"network_usage_type_code" = "PBLIP"
-			"region_no"               = "1"
+			"internet_line_type" = "PUBLC"
+			"network_usage_type" = "PBLIP"
+			"region"             = "KR"
 		}
 		`, lbName)
 }

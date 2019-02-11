@@ -68,9 +68,10 @@ func resourceNcloudServer() *schema.Resource {
 				Optional:    true,
 				Description: "You can set whether or not to protect return when creating. default : false",
 			},
-			"internet_line_type_code": {
+			"internet_line_type": {
 				Type:         schema.TypeString,
 				Optional:     true,
+				Computed:     true,
 				ValidateFunc: validation.StringInSlice([]string{"PUBLC", "GLBL"}, false),
 				Description:  "Internet line identification code. PUBLC(Public), GLBL(Global). default : PUBLC(Public)",
 			},
@@ -79,17 +80,11 @@ func resourceNcloudServer() *schema.Resource {
 				Optional:    true,
 				Description: "A rate system identification code. There are time plan(MTRAT) and flat rate (FXSUM). Default : Time plan(MTRAT)",
 			},
-			"zone_code": {
-				Type:          schema.TypeString,
-				Optional:      true,
-				Description:   "Zone code. You can determine the ZONE where the server will be created. It can be obtained through the getZoneList action. Default : Assigned by NAVER Cloud Platform.",
-				ConflictsWith: []string{"zone_no"},
-			},
-			"zone_no": {
-				Type:          schema.TypeString,
-				Optional:      true,
-				Description:   "Zone number. You can determine the ZONE where the server will be created. It can be obtained through the getZoneList action. Default : Assigned by NAVER Cloud Platform.",
-				ConflictsWith: []string{"zone_code"},
+			"zone": {
+				Type:        schema.TypeString,
+				Optional:    true,
+				Computed:    true,
+				Description: "Zone code. You can determine the ZONE where the server will be created. It can be obtained through the getZoneList action. Default : Assigned by NAVER Cloud Platform.",
 			},
 
 			"access_control_group_configuration_no_list": {
@@ -133,9 +128,8 @@ func resourceNcloudServer() *schema.Resource {
 				Computed: true,
 			},
 			"platform_type": {
-				Type:     schema.TypeMap,
+				Type:     schema.TypeString,
 				Computed: true,
-				Elem:     commonCodeSchemaResource,
 			},
 			"is_fee_charging_monitoring": {
 				Type:     schema.TypeBool,
@@ -154,14 +148,12 @@ func resourceNcloudServer() *schema.Resource {
 				Computed: true,
 			},
 			"instance_status": {
-				Type:     schema.TypeMap,
+				Type:     schema.TypeString,
 				Computed: true,
-				Elem:     commonCodeSchemaResource,
 			},
 			"instance_operation": {
-				Type:     schema.TypeMap,
+				Type:     schema.TypeString,
 				Computed: true,
-				Elem:     commonCodeSchemaResource,
 			},
 			"instance_status_name": {
 				Type:     schema.TypeString,
@@ -179,30 +171,17 @@ func resourceNcloudServer() *schema.Resource {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
-			"zone": {
-				Type:     schema.TypeMap,
-				Computed: true,
-				Elem:     zoneSchemaResource,
-			},
 			"region": {
-				Type:     schema.TypeMap,
+				Type:     schema.TypeString,
 				Computed: true,
-				Elem:     regionSchemaResource,
 			},
 			"base_block_storage_disk_type": {
-				Type:     schema.TypeMap,
+				Type:     schema.TypeString,
 				Computed: true,
-				Elem:     commonCodeSchemaResource,
 			},
 			"base_block_storage_disk_detail_type": {
-				Type:     schema.TypeMap,
+				Type:     schema.TypeString,
 				Computed: true,
-				Elem:     commonCodeSchemaResource,
-			},
-			"internet_line_type": {
-				Type:     schema.TypeMap,
-				Computed: true,
-				Elem:     commonCodeSchemaResource,
 			},
 		},
 	}
@@ -287,30 +266,38 @@ func resourceNcloudServerRead(d *schema.ResourceData, meta interface{}) error {
 		d.Set("port_forwarding_internal_port", instance.PortForwardingInternalPort)
 		d.Set("user_data", d.Get("user_data").(string))
 
-		if err := d.Set("instance_status", flattenCommonCode(instance.ServerInstanceStatus)); err != nil {
-			return err
+		if instanceStatus := flattenCommonCode(instance.ServerInstanceStatus); instanceStatus["code"] != nil {
+			d.Set("instance_status", instanceStatus["code"])
 		}
-		if err := d.Set("platform_type", flattenCommonCode(instance.PlatformType)); err != nil {
-			return err
+
+		if platformType := flattenCommonCode(instance.PlatformType); platformType["code"] != nil {
+			d.Set("platform_type", platformType["code"])
 		}
-		if err := d.Set("instance_operation", flattenCommonCode(instance.ServerInstanceOperation)); err != nil {
-			return err
+
+		if instanceOperation := flattenCommonCode(instance.ServerInstanceOperation); instanceOperation["code"] != nil {
+			d.Set("instance_operation", instanceOperation["code"])
 		}
-		if err := d.Set("zone", flattenZone(instance.Zone)); err != nil {
-			return err
+
+		if zone := flattenZone(instance.Zone); zone["zone_code"] != nil {
+			d.Set("zone", zone["zone_code"])
 		}
-		if err := d.Set("region", flattenRegion(instance.Region)); err != nil {
-			return err
+
+		if region := flattenRegion(instance.Region); region["region_code"] != nil {
+			d.Set("region", region["region_code"])
 		}
-		if err := d.Set("base_block_storage_disk_type", flattenCommonCode(instance.BaseBlockStorageDiskType)); err != nil {
-			return err
+
+		if diskType := flattenCommonCode(instance.BaseBlockStorageDiskType); diskType["code"] != nil {
+			d.Set("base_block_storage_disk_type", diskType["code"])
 		}
-		if err := d.Set("base_block_storage_disk_detail_type", flattenCommonCode(instance.BaseBlockStroageDiskDetailType)); err != nil {
-			return err
+
+		if diskDetailType := flattenCommonCode(instance.BaseBlockStroageDiskDetailType); diskDetailType["code"] != nil {
+			d.Set("base_block_storage_disk_detail_type", diskDetailType["code"])
 		}
-		if err := d.Set("internet_line_type", flattenCommonCode(instance.InternetLineType)); err != nil {
-			return err
+
+		if LineType := flattenCommonCode(instance.InternetLineType); LineType["code"] != nil {
+			d.Set("internet_line_type", LineType["code"])
 		}
+
 		if len(instance.InstanceTagList) != 0 {
 			d.Set("tag_list", flattenInstanceTagList(instance.InstanceTagList))
 		}
@@ -412,7 +399,7 @@ func buildCreateServerInstanceReqParams(client *NcloudAPIClient, d *schema.Resou
 		return nil, err
 	}
 	reqParams := &server.CreateServerInstancesRequest{
-		InternetLineTypeCode:                  StringPtrOrNil(d.GetOk("internet_line_type_code")),
+		InternetLineTypeCode:                  StringPtrOrNil(d.GetOk("internet_line_type")),
 		ZoneNo:                                zoneNo,
 		AccessControlGroupConfigurationNoList: paramAccessControlGroupConfigurationNoList,
 	}

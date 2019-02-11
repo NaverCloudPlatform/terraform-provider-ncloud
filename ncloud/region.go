@@ -2,10 +2,11 @@ package ncloud
 
 import (
 	"fmt"
+	"os"
+
 	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/ncloud"
 	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/services/server"
 	"github.com/hashicorp/terraform/helper/schema"
-	"os"
 )
 
 type Region struct {
@@ -17,11 +18,7 @@ type Region struct {
 var regionCache = make(map[string]string)
 
 func parseRegionNoParameter(client *NcloudAPIClient, d *schema.ResourceData) (*string, error) {
-	if paramRegionNo, regionNoOk := d.GetOk("region_no"); regionNoOk {
-		return ncloud.String(paramRegionNo.(string)), nil
-	}
-
-	if regionCode, regionCodeOk := d.GetOk("region_code"); regionCodeOk {
+	if regionCode, regionCodeOk := d.GetOk("region"); regionCodeOk {
 		regionNo := getRegionNoByCode(client, regionCode.(string))
 		if regionNo == nil {
 			return nil, fmt.Errorf("no region data for region_code `%s`. please change region_code and try again", regionCode.(string))

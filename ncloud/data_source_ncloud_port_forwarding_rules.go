@@ -22,29 +22,15 @@ func dataSourceNcloudPortForwardingRules() *schema.Resource {
 				ValidateFunc: validation.StringInSlice([]string{"PUBLC", "GLBL"}, false),
 				Description:  "Internet line code. PUBLC(Public), GLBL(Global)",
 			},
-			"region_code": {
-				Type:          schema.TypeString,
-				Optional:      true,
-				Description:   "Region code. Get available values using the `data ncloud_regions`.",
-				ConflictsWith: []string{"region_no"},
+			"region": {
+				Type:        schema.TypeString,
+				Optional:    true,
+				Description: "Region code. Get available values using the `data ncloud_regions`.",
 			},
-			"region_no": {
-				Type:          schema.TypeString,
-				Optional:      true,
-				Description:   "Region number. Get available values using the `data ncloud_regions`.",
-				ConflictsWith: []string{"region_code"},
-			},
-			"zone_code": {
-				Type:          schema.TypeString,
-				Optional:      true,
-				Description:   "Zone code",
-				ConflictsWith: []string{"zone_no"},
-			},
-			"zone_no": {
-				Type:          schema.TypeString,
-				Optional:      true,
-				Description:   "Zone number",
-				ConflictsWith: []string{"zone_code"},
+			"zone": {
+				Type:        schema.TypeString,
+				Optional:    true,
+				Description: "Zone code. Get available values using the `data ncloud_zones`.",
 			},
 			"port_forwarding_internal_port": {
 				Type:        schema.TypeString,
@@ -95,12 +81,6 @@ func dataSourceNcloudPortForwardingRules() *schema.Resource {
 
 func dataSourceNcloudPortForwardingRulesRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*NcloudAPIClient)
-
-	_, zoneNoOk := d.GetOk("zone_no")
-	_, zoneCodeOk := d.GetOk("zone_code")
-	if !zoneNoOk && !zoneCodeOk {
-		return fmt.Errorf("required to select one among two parameters: `zone_no` and `zone_code`")
-	}
 
 	regionNo, err := parseRegionNoParameter(client, d)
 	if err != nil {

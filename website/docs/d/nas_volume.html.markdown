@@ -24,28 +24,16 @@ The following arguments are supported:
 * `is_event_configuration` - (Optional) Indicates whether the event is set. All volume instances will be selected if the filter is not specified. (`true` | `false`)
 * `is_snapshot_configuration` - (Optional) Indicates whether a snapshot volume is set. All volume instances will be selected if the filter is not specified. (`true` | `false`)
 * `no_list` - (Optional) List of nas volume instance numbers.
-* `region_code` - (Optional) Region code. Get available values using the data source `ncloud_regions`.
-    Conflicts with `region_no`. Only one of `region_no` and `region_code` can be used.
-    Default: KR region.
-* `region_no` - (Optional) Region number. Get available values using the data source `ncloud_regions`.
-    Conflicts with `region_code`. Only one of `region_no` and `region_code` can be used.
-    Default: KR region.
-* `zone_code` - (Optional) Zone code. Get available values using the data source `ncloud_zones`.
-    Conflicts with `zone_no`. Only one of `zone_no` and `zone_code` can be used.
-* `zone_no` - (Optional) Zone number. Get available values using the data source `ncloud_zones`.
-    Conflicts with `zone_code`. Only one of `zone_no` and `zone_code` can be used.
+* `region` - (Optional) Region code. Get available values using the data source `ncloud_regions`.
+    Default: `KR` region.
+* `zone` - (Optional) Zone code. Get available values using the data source `ncloud_zones`.
 
 ## Attributes Reference
 
 * `instance_no` - NAS volume instance number
 * `volume_name` - Volume name
-* `instance_status` - NAS volume instance status
-    * `code` - NAS volume instance status code
-    * `code_name` - NAS volume instance status name
+* `instance_status` - NAS volume instance status code
 * `create_date` - Creation date of the NAS Volume instance
-* `volume_allotment_protocol_type` - Volume allotment protocol type
-    * `code` - Volume allotment protocol type code
-    * `code_name` - Volume allotment protocol type name
 * `volume_total_size` - Volume total size
 * `volume_size` - Volume size
 * `volume_use_size` - Volume use size
@@ -55,11 +43,3 @@ The following arguments are supported:
 * `snapshot_volume_use_ratio` - Snapshot volume use ratio
 * `instance_custom_ip_list` - NAS volume instance custom IP list
 * `description` - NAS volume description
-* `zone` - Zone info
-    * `zone_no` - Zone number
-    * `zone_code` - Zone code
-    * `zone_name` - Zone name
-* `region` - Region info
-    * `region_no` - Region number
-    * `region_code` - Region code
-    * `region_name` - Region name

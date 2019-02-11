@@ -5,7 +5,7 @@ provider "ncloud" {
 }
 
 resource "ncloud_nas_volume" "nas" {
-  "volume_name_postfix"                 = "tftest_vol"
-  "volume_size"                         = "500"
-  "volume_allotment_protocol_type_code" = "NFS"
+  "volume_name_postfix"            = "tftest_vol"
+  "volume_size"                    = "500"
+  "volume_allotment_protocol_type" = "NFS"
 }
