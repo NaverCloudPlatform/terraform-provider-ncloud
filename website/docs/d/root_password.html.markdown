@@ -10,6 +10,8 @@ description: |-
 
 Gets the password of a root account with the server's login key.
 
+~> **Note:** All arguments including the private key will be stored in the raw state as plain-text.
+[Read more about sensitive data in state](/docs/state/sensitive-data.html).
 
 ## Example Usage
 
