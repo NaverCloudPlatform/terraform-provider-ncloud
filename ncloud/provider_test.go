@@ -74,20 +74,3 @@ func getTestPrefix() string {
 	rInt := acctest.RandIntRange(1, 9999)
 	return fmt.Sprintf("tf%d", rInt)
 }
-
-func testApiClient(t *testing.T) (*NcloudAPIClient, error) {
-	s := map[string]*schema.Schema{
-		"access_key": {
-			Type: schema.TypeString,
-		},
-		"secret_key": {
-			Type: schema.TypeString,
-		},
-	}
-	d := schema.TestResourceDataRaw(t, s, map[string]interface{}{
-		"access_key": os.Getenv("NCLOUD_ACCESS_KEY"),
-		"secret_key": os.Getenv("NCLOUD_SECRET_KEY"),
-	})
-	client, err := providerConfigure(d)
-	return client.(*NcloudAPIClient), err
-}
