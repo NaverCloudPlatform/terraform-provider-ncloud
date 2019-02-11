@@ -412,8 +412,8 @@ func buildCreateServerInstanceReqParams(client *NcloudAPIClient, d *schema.Resou
 		return nil, err
 	}
 	reqParams := &server.CreateServerInstancesRequest{
-		InternetLineTypeCode: StringPtrOrNil(d.GetOk("internet_line_type_code")),
-		ZoneNo:               zoneNo,
+		InternetLineTypeCode:                  StringPtrOrNil(d.GetOk("internet_line_type_code")),
+		ZoneNo:                                zoneNo,
 		AccessControlGroupConfigurationNoList: paramAccessControlGroupConfigurationNoList,
 	}
 
