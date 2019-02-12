@@ -48,7 +48,7 @@ func TestAccResourceNcloudPublicIpInstanceBasic(t *testing.T) {
 				),
 			},
 			{
-				ResourceName:      testVolumeName,
+				ResourceName:      "ncloud_public_ip.public_ip",
 				ImportState:       true,
 				ImportStateVerify: true,
 			},
