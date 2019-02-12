@@ -21,9 +21,6 @@ func resourceNcloudPortForwadingRule() *schema.Resource {
 		Update: resourceNcloudPortForwardingRuleUpdate,
 		Delete: resourceNcloudPortForwardingRuleDelete,
 		Exists: resourceNcloudPortForwardingRuleExists,
-		Importer: &schema.ResourceImporter{
-			State: schema.ImportStatePassthrough,
-		},
 
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(DefaultCreateTimeout),

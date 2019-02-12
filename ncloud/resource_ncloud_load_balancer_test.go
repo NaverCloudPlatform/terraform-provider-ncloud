@@ -44,6 +44,11 @@ func TestAccNcloudLoadBalancerBasic(t *testing.T) {
 						"SIPHS"),
 				),
 			},
+			{
+				ResourceName:      testLoadBalancerName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
 		},
 	})
 }
@@ -73,6 +78,11 @@ func TestAccNcloudLoadBalancerChangeConfiguration(t *testing.T) {
 						"ncloud_load_balancer.lb",
 						"description",
 						"tftest_lb change port")),
+			},
+			{
+				ResourceName:      testLoadBalancerName,
+				ImportState:       true,
+				ImportStateVerify: true,
 			},
 		},
 	})

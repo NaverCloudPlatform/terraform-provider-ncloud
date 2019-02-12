@@ -45,6 +45,11 @@ func TestAccResourceNcloudBlockStorageBasic(t *testing.T) {
 						"ATTAC"),
 				),
 			},
+			{
+				ResourceName:      testBlockStorageName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
 		},
 	})
 }

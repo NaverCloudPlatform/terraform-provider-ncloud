@@ -48,6 +48,11 @@ func ignore_TestAccResourceNcloudBlockStorageSnapshotBasic(t *testing.T) {
 						testSnapshotName),
 				),
 			},
+			{
+				ResourceName:      testSnapshotName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
 		},
 	})
 }

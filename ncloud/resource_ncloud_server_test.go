@@ -45,6 +45,11 @@ func TestAccResourceNcloudServerBasic(t *testing.T) {
 						"SPSVRSTAND000004"),
 				),
 			},
+			{
+				ResourceName:      testServerName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
 		},
 	})
 }
@@ -77,6 +82,11 @@ func ignore_TestAccResourceInstanceChangeServerInstanceSpec(t *testing.T) {
 					testAccCheckInstanceNotRecreated(
 						t, &before, &after),
 				),
+			},
+			{
+				ResourceName:      testServerName,
+				ImportState:       true,
+				ImportStateVerify: true,
 			},
 		},
 	})
@@ -112,6 +122,11 @@ func testAccResourceRecreateServerInstance(t *testing.T) {
 						"server_image_product_code",
 						"SPSWBMLINUX00002"),
 				),
+			},
+			{
+				ResourceName:      testServerName,
+				ImportState:       true,
+				ImportStateVerify: true,
 			},
 		},
 	})

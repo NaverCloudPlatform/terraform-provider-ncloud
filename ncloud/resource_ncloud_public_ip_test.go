@@ -43,6 +43,11 @@ func TestAccResourceNcloudPublicIpInstanceBasic(t *testing.T) {
 						"KR-2"),
 				),
 			},
+			{
+				ResourceName:      "ncloud_public_ip.public_ip",
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
 		},
 	})
 }
