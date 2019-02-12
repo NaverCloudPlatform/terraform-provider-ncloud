@@ -23,8 +23,6 @@ The following arguments are supported:
 * `configuration_no_list` - (Optional) List of ACG configuration numbers you want to get
 * `is_default_group` - (Optional) Indicates whether to get default groups only
 * `name` - (Optional) Name of the ACG you want to get
-* `page_no` - (Optional) Page number based on the page size if the number of items is large
-* `page_size` - (Optional) Number of items to be shown per page
 * `output_file` - (Optional) The name of file that can save data source after running `terraform plan`.
 
 ## Attributes Reference
