@@ -15,7 +15,7 @@ func TestAccDataSourceNcloudAccessControlGroupBasic(t *testing.T) {
 		Providers: testAccProviders,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccDataSourceNcloudAccessControlGroupConfig,
+				Config: testAccDataSourceNcloudAccessControlGroupDefaultConfig,
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckDataSourceID("data.ncloud_access_control_group.test"),
 				),
@@ -24,7 +24,7 @@ func TestAccDataSourceNcloudAccessControlGroupBasic(t *testing.T) {
 	})
 }
 
-func TestAccDataSourceNcloudAccessControlGroupMostRecent(t *testing.T) {
+func TestAccDataSourceNcloudAccessControlGroupSelectByName(t *testing.T) {
 	t.Parallel()
 
 	resource.Test(t, resource.TestCase{
@@ -32,11 +32,7 @@ func TestAccDataSourceNcloudAccessControlGroupMostRecent(t *testing.T) {
 		Providers: testAccProviders,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccDataSourceNcloudAccessControlGroupMostRecentConfig,
-				// ignore check: may be empty created data
-				SkipFunc: func() (bool, error) {
-					return skipNoResultsTest, nil
-				},
+				Config: testAccDataSourceNcloudAccessControlGroupSelectByNameConfig,
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckDataSourceID("data.ncloud_access_control_group.test"),
 				),
@@ -45,15 +41,14 @@ func TestAccDataSourceNcloudAccessControlGroupMostRecent(t *testing.T) {
 	})
 }
 
-var testAccDataSourceNcloudAccessControlGroupConfig = `
+var testAccDataSourceNcloudAccessControlGroupDefaultConfig = `
 data "ncloud_access_control_group" "test" {
 	"is_default_group" = true
-	"most_recent" = "true"
 }
 `
 
-var testAccDataSourceNcloudAccessControlGroupMostRecentConfig = `
+var testAccDataSourceNcloudAccessControlGroupSelectByNameConfig = `
 data "ncloud_access_control_group" "test" {
-	"most_recent" = "true"
+	"name" = "ncloud-default-acg"
 }
 `

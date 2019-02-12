@@ -25,13 +25,6 @@ func dataSourceNcloudAccessControlGroup() *schema.Resource {
 				Type:     schema.TypeString,
 				Optional: true,
 			},
-			"most_recent": {
-				Type:     schema.TypeBool,
-				Optional: true,
-				Default:  false,
-				ForceNew: true,
-			},
-
 			"description": {
 				Type:     schema.TypeString,
 				Computed: true,
@@ -45,10 +38,10 @@ func dataSourceNcloudAccessControlGroupRead(d *schema.ResourceData, meta interfa
 
 	configNo, configNoOk := d.GetOk("configuration_no")
 	acgName, acgNameOk := d.GetOk("name")
-	mostRecent, mostRecentOk := d.GetOk("most_recent")
+	isDefaultGroup, isDefaultGroupOk := d.GetOk("is_default_group")
 
-	if !configNoOk && !acgNameOk && !mostRecentOk {
-		return fmt.Errorf("either configuration_no or name or most_recent is required")
+	if !configNoOk && !acgNameOk && !isDefaultGroupOk {
+		return fmt.Errorf("either configuration_no or name or is_default_group is required")
 	}
 
 	reqParams := server.GetAccessControlGroupListRequest{}
@@ -58,8 +51,7 @@ func dataSourceNcloudAccessControlGroupRead(d *schema.ResourceData, meta interfa
 	if acgNameOk {
 		reqParams.AccessControlGroupName = ncloud.String(acgName.(string))
 	}
-
-	if isDefaultGroup, ok := d.GetOk("is_default_group"); ok {
+	if isDefaultGroupOk {
 		reqParams.IsDefault = ncloud.Bool(isDefaultGroup.(bool))
 	}
 	reqParams.PageNo = ncloud.Int32(1)
@@ -84,13 +76,7 @@ func dataSourceNcloudAccessControlGroupRead(d *schema.ResourceData, meta interfa
 		return fmt.Errorf("no results. please change search criteria and try again")
 	}
 
-	if len(accessControlGroups) > 1 && mostRecent.(bool) {
-		// Query returned single result.
-		accessControlGroup = mostRecentAccessControlGroup(accessControlGroups)
-	} else {
-		accessControlGroup = accessControlGroups[0]
-	}
-
+	accessControlGroup = accessControlGroups[0]
 	return accessControlGroupAttributes(d, accessControlGroup)
 }
 
