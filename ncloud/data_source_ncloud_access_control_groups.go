@@ -31,18 +31,6 @@ func dataSourceNcloudAccessControlGroups() *schema.Resource {
 				Optional:    true,
 				Description: "Name of the ACG you want to get",
 			},
-			"page_no": {
-				Type:        schema.TypeInt,
-				Optional:    true,
-				Default:     1,
-				Description: "Page number based on the page size if the number of items is large.",
-			},
-			"page_size": {
-				Type:        schema.TypeInt,
-				Optional:    true,
-				Default:     1,
-				Description: "Number of items to be shown per page",
-			},
 			"access_control_groups": {
 				Type:        schema.TypeList,
 				Optional:    true,
@@ -76,12 +64,6 @@ func dataSourceNcloudAccessControlGroupsRead(d *schema.ResourceData, meta interf
 
 	if isDefaultGroup, ok := d.GetOk("is_default_group"); ok {
 		reqParams.IsDefault = ncloud.Bool(isDefaultGroup.(bool))
-	}
-	if pageNo, ok := d.GetOk("page_no"); ok {
-		reqParams.PageNo = ncloud.Int32(int32(pageNo.(int)))
-	}
-	if pageSize, ok := d.GetOk("page_size"); ok {
-		reqParams.PageSize = ncloud.Int32(int32(pageSize.(int)))
 	}
 
 	resp, err := getAccessControlGroupList(client, reqParams)
