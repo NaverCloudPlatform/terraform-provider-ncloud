@@ -22,27 +22,16 @@ data "ncloud_access_control_group" "test" {
 }
 ```
 
-* Filter by most recent ACG
-
-```hcl
-data "ncloud_access_control_group" "test" {
-    # use the most recent ACG
-	"most_recent" = "true"
-}
-```
-
 
 ## Argument Reference
 
 The following arguments are supported:
 
 * `configuration_no` - (Optional) List of ACG configuration numbers you want to get
-    Conditional: Requires `configuration_no` or` name` or `most_recent`.
 * `name` - (Optional) Name of the ACG you want to get
-    Conditional: Requires `configuration_no` or` name` or `most_recent`.
-* `most_recent` - (Optional) If more than one result is returned, get the most recent created ACG.
-    Conditional: Requires `configuration_no` or` name` or `most_recent`.
-* `is_default_group` - (Optional) Indicates whether to get default groups only
+* `is_default_group` - (Optional) Indicates whether to get default group only
+
+Conditional: Requires `configuration_no` or` name` or `is_default_group`.
 
 ## Attributes Reference
 
