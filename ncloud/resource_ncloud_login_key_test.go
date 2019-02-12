@@ -40,6 +40,11 @@ func TestAccResourceNcloudLoginKeyBasic(t *testing.T) {
 						testKeyName),
 				),
 			},
+			{
+				ResourceName:      testKeyName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
 		},
 	})
 }

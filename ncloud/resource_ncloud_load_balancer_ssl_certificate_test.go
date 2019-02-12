@@ -102,6 +102,11 @@ GTfhUTV7jTQ0dt9U1E+oxRkjqC2HFYlpewXP0rcQxhtK7p6kiaUDIw==
 						testCertPEM),
 				),
 			},
+			{
+				ResourceName:      testSSLCertificateName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
 		},
 	})
 }

@@ -47,6 +47,11 @@ func TestAccResourceNcloudPublicIpInstanceBasic(t *testing.T) {
 						"2"),
 				),
 			},
+			{
+				ResourceName:      testVolumeName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
 		},
 	})
 }

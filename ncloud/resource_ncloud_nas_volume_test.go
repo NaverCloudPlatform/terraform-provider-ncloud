@@ -46,6 +46,11 @@ func TestAccResourceNcloudNasVolumeBasic(t *testing.T) {
 						"500"),
 				),
 			},
+			{
+				ResourceName:      testVolumeName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
 		},
 	})
 }
@@ -74,6 +79,11 @@ func TestAccResourceNcloudNasVolumeResize(t *testing.T) {
 					testAccCheckNasVolumeNotRecreated(t, &before, &after),
 				),
 			},
+			{
+				ResourceName:      testVolumeName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
 		},
 	})
 }
@@ -101,6 +111,11 @@ func TestAccResourceNcloudNasVolumeChangeAccessControl(t *testing.T) {
 					testAccCheckNasVolumeExists("ncloud_nas_volume.test", &after),
 					testAccCheckNasVolumeNotRecreated(t, &before, &after),
 				),
+			},
+			{
+				ResourceName:      testVolumeName,
+				ImportState:       true,
+				ImportStateVerify: true,
 			},
 		},
 	})
