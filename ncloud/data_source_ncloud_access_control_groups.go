@@ -108,7 +108,7 @@ func accessControlGroupsAttributes(d *schema.ResourceData, accessControlGroups [
 
 	// create a json file in current directory and write d source to it.
 	if output, ok := d.GetOk("output_file"); ok && output.(string) != "" {
-		writeToFile(output.(string), d.Get("access_control_groups"))
+		return writeToFile(output.(string), d.Get("access_control_groups"))
 	}
 
 	return nil

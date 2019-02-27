@@ -78,7 +78,7 @@ func regionsAttributes(d *schema.ResourceData, regions []*Region) error {
 
 	// create a json file in current directory and write d source to it.
 	if output, ok := d.GetOk("output_file"); ok && output.(string) != "" {
-		writeToFile(output.(string), s)
+		return writeToFile(output.(string), s)
 	}
 
 	return nil

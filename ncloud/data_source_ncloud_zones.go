@@ -77,7 +77,7 @@ func zonesAttributes(d *schema.ResourceData, zones []*Zone) error {
 
 	// create a json file in current directory and write d source to it.
 	if output, ok := d.GetOk("output_file"); ok && output.(string) != "" {
-		writeToFile(output.(string), d.Get("zones"))
+		return writeToFile(output.(string), d.Get("zones"))
 	}
 
 	return nil

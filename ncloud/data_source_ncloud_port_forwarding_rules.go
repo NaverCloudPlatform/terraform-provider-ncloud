@@ -145,7 +145,7 @@ func portForwardingRulesAttributes(d *schema.ResourceData, portForwardingConfigu
 	}
 
 	if output, ok := d.GetOk("output_file"); ok && output.(string) != "" {
-		writeToFile(output.(string), s)
+		return writeToFile(output.(string), s)
 	}
 
 	return nil

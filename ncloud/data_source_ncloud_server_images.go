@@ -131,7 +131,7 @@ func serverImagesAttributes(d *schema.ResourceData, serverImages []*server.Produ
 	}
 
 	if output, ok := d.GetOk("output_file"); ok && output.(string) != "" {
-		writeToFile(output.(string), d.Get("server_images"))
+		return writeToFile(output.(string), d.Get("server_images"))
 	}
 
 	return nil

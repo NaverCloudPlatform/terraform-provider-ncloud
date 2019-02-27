@@ -118,7 +118,7 @@ func nasVolumeInstancesAttributes(d *schema.ResourceData, nasVolumeInstances []*
 	}
 
 	if output, ok := d.GetOk("output_file"); ok && output.(string) != "" {
-		writeToFile(output.(string), d.Get("nas_volumes"))
+		return writeToFile(output.(string), d.Get("nas_volumes"))
 	}
 
 	return nil

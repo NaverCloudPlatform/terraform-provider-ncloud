@@ -93,7 +93,7 @@ func accessControlRulesAttributes(d *schema.ResourceData, accessControlRules []*
 	}
 
 	if output, ok := d.GetOk("output_file"); ok && output.(string) != "" {
-		writeToFile(output.(string), d.Get("access_control_rules"))
+		return writeToFile(output.(string), d.Get("access_control_rules"))
 	}
 
 	return nil
