@@ -14,13 +14,6 @@ func dataSourceNcloudPublicIp() *schema.Resource {
 		Read: dataSourceNcloudPublicIpRead,
 
 		Schema: map[string]*schema.Schema{
-			"most_recent": {
-				Type:        schema.TypeBool,
-				Optional:    true,
-				Default:     true,
-				ForceNew:    true,
-				Description: "If more than one result is returned, get the most recent created Public IP.",
-			},
 			"internet_line_type": {
 				Type:         schema.TypeString,
 				Computed:     true,
@@ -195,19 +188,7 @@ func dataSourceNcloudPublicIpRead(d *schema.ResourceData, meta interface{}) erro
 	if len(publicIpInstanceList) < 1 {
 		return fmt.Errorf("no results. please change search criteria and try again")
 	}
-
-	var mostRecent = false
-	if _, ok := d.GetOk("most_recent"); ok {
-		mostRecent = d.Get("most_recent").(bool)
-	}
-
-	if len(publicIpInstanceList) > 1 && mostRecent {
-		// Query returned single result.
-		publicIpInstance = mostRecentPublicIp(publicIpInstanceList)
-	} else {
-		publicIpInstance = publicIpInstanceList[0]
-	}
-
+	publicIpInstance = publicIpInstanceList[0]
 	return publicIPAttributes(d, publicIpInstance)
 }
 

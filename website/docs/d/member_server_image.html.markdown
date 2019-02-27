@@ -14,7 +14,6 @@ Gets a member server image.
 
 ```hcl
 data "ncloud_member_server_image" "test" {
-  "most_recent" = "true"
 }
 ```
 
@@ -27,7 +26,6 @@ The following arguments are supported:
 * `platform_type_code_list` - (Optional) List of platform codes of server images to view. Linux 32Bit (`LNX32`) | Linux 64Bit (`LNX64`) | Windows 32Bit (`WND32`) | Windows 64Bit (`WND64`) | Ubuntu Desktop 64Bit (`UBD64`) | Ubuntu Server 64Bit (`UBS64`)
 * `region` - (Optional) Region code. Get available values using the data source `ncloud_regions`.
     Default: `KR` region.
-* `most_recent` - (Optional) If more than one result is returned, get the most recent created member server image.
 
 ## Attributes Reference
 

@@ -37,14 +37,6 @@ func dataSourceNcloudMemberServerImage() *schema.Resource {
 				Optional:    true,
 				Description: "Region code. Get available values using the `data ncloud_regions`.",
 			},
-			"most_recent": {
-				Type:        schema.TypeBool,
-				Optional:    true,
-				Default:     true,
-				ForceNew:    true,
-				Description: "If more than one result is returned, get the most recent created member server image.",
-			},
-
 			"no": {
 				Type:        schema.TypeString,
 				Computed:    true,
@@ -176,19 +168,7 @@ func dataSourceNcloudMemberServerImageRead(d *schema.ResourceData, meta interfac
 	if len(filteredMemberServerImages) < 1 {
 		return fmt.Errorf("no results. please change search criteria and try again")
 	}
-
-	var mostRecent = false
-	if _, ok := d.GetOk("most_recent"); ok {
-		mostRecent = d.Get("most_recent").(bool)
-	}
-
-	if len(filteredMemberServerImages) > 1 && mostRecent {
-		// Query returned single result.
-		memberServerImage = mostRecentMemberServerImage(filteredMemberServerImages)
-	} else {
-		memberServerImage = filteredMemberServerImages[0]
-	}
-
+	memberServerImage = filteredMemberServerImages[0]
 	return memberServerImageAttributes(d, memberServerImage)
 }
 
