@@ -1,8 +1,6 @@
 package ncloud
 
 import (
-	"fmt"
-
 	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/ncloud"
 	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/services/server"
 	"github.com/hashicorp/terraform/helper/schema"
@@ -185,8 +183,8 @@ func dataSourceNcloudPublicIpRead(d *schema.ResourceData, meta interface{}) erro
 	publicIpInstanceList := resp.PublicIpInstanceList
 	var publicIpInstance *server.PublicIpInstance
 
-	if len(publicIpInstanceList) < 1 {
-		return fmt.Errorf("no results. please change search criteria and try again")
+	if err := validateOneResult(len(publicIpInstanceList)); err != nil {
+		return err
 	}
 	publicIpInstance = publicIpInstanceList[0]
 	return publicIPAttributes(d, publicIpInstance)

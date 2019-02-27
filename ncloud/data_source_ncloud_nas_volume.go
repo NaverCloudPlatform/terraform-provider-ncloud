@@ -1,8 +1,6 @@
 package ncloud
 
 import (
-	"fmt"
-
 	"github.com/hashicorp/terraform/helper/validation"
 
 	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/ncloud"
@@ -146,8 +144,8 @@ func dataSourceNcloudNasVolumeRead(d *schema.ResourceData, meta interface{}) err
 
 	var nasVolumeInstance *server.NasVolumeInstance
 	nasVolumeInstances := resp.NasVolumeInstanceList
-	if len(nasVolumeInstances) < 1 {
-		return fmt.Errorf("no results. please change search criteria and try again")
+	if err := validateOneResult(len(nasVolumeInstances)); err != nil {
+		return err
 	}
 	nasVolumeInstance = nasVolumeInstances[0]
 

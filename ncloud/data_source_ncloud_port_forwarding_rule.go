@@ -110,10 +110,9 @@ func dataSourceNcloudPortForwardingRuleRead(d *schema.ResourceData, meta interfa
 		filteredPortForwardingRuleList = allPortForwardingRules[:]
 	}
 
-	if len(filteredPortForwardingRuleList) < 1 {
-		return fmt.Errorf("no results. please change search criteria and try again")
+	if err := validateOneResult(len(filteredPortForwardingRuleList)); err != nil {
+		return err
 	}
-
 	portForwardingRule = filteredPortForwardingRuleList[0]
 
 	return portForwardingRuleAttributes(d, resp.PortForwardingConfigurationNo, portForwardingRule)
