@@ -72,10 +72,9 @@ func dataSourceNcloudAccessControlGroupRead(d *schema.ResourceData, meta interfa
 		accessControlGroups = append(accessControlGroups, acg)
 	}
 
-	if len(accessControlGroups) < 1 {
-		return fmt.Errorf("no results. please change search criteria and try again")
+	if err := validateOneResult(len(accessControlGroups)); err != nil {
+		return err
 	}
-
 	accessControlGroup = accessControlGroups[0]
 	return accessControlGroupAttributes(d, accessControlGroup)
 }

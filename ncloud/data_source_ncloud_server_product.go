@@ -1,7 +1,6 @@
 package ncloud
 
 import (
-	"fmt"
 	"regexp"
 
 	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/ncloud"
@@ -159,10 +158,9 @@ func dataSourceNcloudServerProductRead(d *schema.ResourceData, meta interface{})
 		filteredServerProducts = allServerProducts[:]
 	}
 
-	if len(filteredServerProducts) < 1 {
-		return fmt.Errorf("no results. please change search criteria and try again")
+	if err := validateOneResult(len(filteredServerProducts)); err != nil {
+		return err
 	}
-
 	serverProduct = filteredServerProducts[0]
 
 	return serverProductAttributes(d, serverProduct)

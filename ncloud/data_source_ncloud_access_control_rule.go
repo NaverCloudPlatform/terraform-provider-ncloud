@@ -152,10 +152,9 @@ func dataSourceNcloudAccessControlRuleRead(d *schema.ResourceData, meta interfac
 		filteredAccessControlRuleList = allAccessControlRuleList[:]
 	}
 
-	if len(filteredAccessControlRuleList) < 1 {
-		return fmt.Errorf("no results. please change search criteria and try again")
+	if err := validateOneResult(len(filteredAccessControlRuleList)); err != nil {
+		return err
 	}
-
 	accessControlRule = filteredAccessControlRuleList[0]
 	return accessControlRuleAttributes(d, accessControlRule)
 }

@@ -1,7 +1,6 @@
 package ncloud
 
 import (
-	"fmt"
 	"regexp"
 
 	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/ncloud"
@@ -165,10 +164,9 @@ func dataSourceNcloudServerImageRead(d *schema.ResourceData, meta interface{}) e
 		}
 	}
 
-	if len(filteredServerImages) < 1 {
-		return fmt.Errorf("no results. please change search criteria and try again")
+	if err := validateOneResult(len(filteredServerImages)); err != nil {
+		return err
 	}
-
 	serverImage = filteredServerImages[0]
 
 	return serverImageAttributes(d, serverImage)
