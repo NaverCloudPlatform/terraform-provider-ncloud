@@ -138,7 +138,7 @@ func serverProductsAttributes(d *schema.ResourceData, serverProduct []*server.Pr
 	}
 
 	if output, ok := d.GetOk("output_file"); ok && output.(string) != "" {
-		writeToFile(output.(string), d.Get("server_products"))
+		return writeToFile(output.(string), d.Get("server_products"))
 	}
 
 	return nil

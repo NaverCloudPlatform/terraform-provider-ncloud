@@ -22,13 +22,17 @@ func dataResourceIdHash(ids []string) string {
 	return fmt.Sprintf("%d", hashcode.String(buf.String()))
 }
 
-func writeToFile(filePath string, data interface{}) {
+func writeToFile(filePath string, data interface{}) error {
 	log.Printf("[INFO] WriteToFile FilaPath: %s", filePath)
 
-	os.Remove(filePath)
-
-	if bs, err := json.MarshalIndent(data, "", "\t"); err == nil {
-		str := string(bs)
-		_ = ioutil.WriteFile(filePath, []byte(str), 777)
+	if err := os.Remove(filePath); err != nil {
+		return err
 	}
+
+	bs, err := json.MarshalIndent(data, "", "\t")
+	if err != nil {
+		return err
+	}
+	str := string(bs)
+	return ioutil.WriteFile(filePath, []byte(str), 777)
 }

@@ -115,7 +115,7 @@ func memberServerImagesAttributes(d *schema.ResourceData, memberServerImages []*
 	}
 
 	if output, ok := d.GetOk("output_file"); ok && output.(string) != "" {
-		writeToFile(output.(string), d.Get("member_server_images"))
+		return writeToFile(output.(string), d.Get("member_server_images"))
 	}
 
 	return nil
