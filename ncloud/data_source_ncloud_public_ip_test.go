@@ -27,28 +27,6 @@ func TestAccDataSourceNcloudPublicIpBasic(t *testing.T) {
 	})
 }
 
-func TestAccDataSourceNcloudPublicIpMostRecent(t *testing.T) {
-	t.Parallel()
-
-	resource.Test(t, resource.TestCase{
-		PreCheck:  func() { testAccPreCheck(t) },
-		Providers: testAccProviders,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccDataSourceNcloudPublicIpMostRecentConfig,
-				// ignore check: may be empty created data
-				SkipFunc: func() (bool, error) {
-					return skipNoResultsTest, nil
-				},
-				//ExpectError: regexp.MustCompile("no results"), // may be no data
-				//Check: resource.ComposeTestCheckFunc(
-				//	testAccCheckDataSourceID("data.ncloud_public_ip.test"),
-				//),
-			},
-		},
-	})
-}
-
 func TestAccDataSourceNcloudPublicIpIsAssociated(t *testing.T) {
 	t.Parallel()
 
@@ -123,16 +101,9 @@ var testAccDataSourceNcloudPublicIpConfig = `
 data "ncloud_public_ip" "test" {}
 `
 
-var testAccDataSourceNcloudPublicIpMostRecentConfig = `
-data "ncloud_public_ip" "test" {
-  "most_recent" = "true"
-}
-`
-
 var testAccDataSourceNcloudPublicIpAssociatedConfig = `
 data "ncloud_public_ip" "test" {
   "is_associated" = "false"
-  "most_recent" = "true"
 }
 `
 
@@ -140,7 +111,6 @@ var testAccDataSourceNcloudPublicIpSearchConfig = `
 data "ncloud_public_ip" "test" {
   "search_filter_name" = "associatedServerName" // Public IP (publicIp) | Associated server name (associatedServerName)
   "search_filter_value" = "clouddb"
-  "most_recent" = "true"
 }
 `
 
@@ -148,6 +118,5 @@ var testAccDataSourceNcloudPublicIpSortingConfig = `
 data "ncloud_public_ip" "test" {
   "sorted_by" = "publicIp" // Public IP (publicIp) | Public IP instance number (publicIpInstanceNo) [case insensitive]
   "sorting_order" = "ascending" // Ascending (ascending) | Descending (descending) [case insensitive]
-  "most_recent" = "true"
 }
 `

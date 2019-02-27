@@ -17,7 +17,6 @@ Get public IP instance.
 data "ncloud_public_ip" "public_ip" {
   "sorted_by" = "publicIp"
   "sorting_order" = "ascending"
-  "most_recent" = "true"
 }
 ```
 
@@ -25,7 +24,6 @@ data "ncloud_public_ip" "public_ip" {
 
 The following arguments are supported:
 
-* `most_recent` - (Optional) If more than one result is returned, get the most recent created Public IP.
 * `internet_line_type` - (Optional) Internet line type code. `PUBLC` (Public), `GLBL` (Global)
 * `is_associated` - (Optional) Indicates whether the public IP address is associated or not.
 * `instance_no_list` - (Optional) List of public IP instance numbers to get.
