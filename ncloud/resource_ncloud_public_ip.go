@@ -7,6 +7,7 @@ import (
 
 	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/ncloud"
 	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/services/server"
+	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/validation"
 )
@@ -94,7 +95,7 @@ func resourceNcloudPublicIpCreate(d *schema.ResourceData, meta interface{}) erro
 	publicIPInstance := resp.PublicIpInstanceList[0]
 	d.SetId(ncloud.StringValue(publicIPInstance.PublicIpInstanceNo))
 
-	if err := waitPublicIpInstance(client, ncloud.StringValue(publicIPInstance.PublicIpInstanceNo), "USED"); err != nil {
+	if err := waitPublicIPInstance(client, ncloud.StringValue(publicIPInstance.PublicIpInstanceNo)); err != nil {
 		return err
 	}
 
@@ -154,7 +155,6 @@ func resourceNcloudPublicIpDelete(d *schema.ResourceData, meta interface{}) erro
 		return err
 	}
 
-	// Step 3 : public ip 삭제
 	reqParams := &server.DeletePublicIpInstancesRequest{
 		PublicIpInstanceNoList: ncloud.StringList([]string{d.Id()}),
 	}
@@ -165,7 +165,7 @@ func resourceNcloudPublicIpDelete(d *schema.ResourceData, meta interface{}) erro
 		logErrorResponse("Delete Public IP Instance", err, reqParams)
 		return err
 	}
-	if err := waitDeletePublicIpInstance(client, d.Id()); err != nil {
+	if err := waitDeletePublicIPInstance(client, d.Id()); err != nil {
 		return err
 	}
 	d.SetId("")
@@ -255,104 +255,96 @@ func disassociatedPublicIp(client *NcloudAPIClient, publicIpInstanceNo string) e
 	}
 	logCommonResponse("DisassociatePublicIpFromServerInstance", GetCommonResponse(resp))
 
-	return waitDisassociatePublicIp(client, publicIpInstanceNo)
+	return waitDisassociatePublicIP(client, publicIpInstanceNo)
 }
 
-func waitDisassociatePublicIp(client *NcloudAPIClient, publicIPInstanceNo string) error {
+func waitDisassociatePublicIP(client *NcloudAPIClient, publicIPInstanceNo string) error {
 	reqParams := new(server.GetPublicIpInstanceListRequest)
 	reqParams.PublicIpInstanceNoList = ncloud.StringList([]string{publicIPInstanceNo})
 
-	c1 := make(chan error, 1)
-
-	go func() {
-		for {
+	stateConf := &resource.StateChangeConf{
+		Pending: []string{"NOT OK"},
+		Target:  []string{"OK"},
+		Refresh: func() (interface{}, string, error) {
 			resp, err := client.server.V2Api.GetPublicIpInstanceList(reqParams)
-
 			if err != nil {
-				c1 <- err
-				return
+				return 0, "", err
 			}
 
 			if resp.PublicIpInstanceList[0].ServerInstanceAssociatedWithPublicIp.PublicIp == nil {
-				c1 <- nil
-				return
+				return resp, "OK", nil
 			}
 
-			log.Printf("[DEBUG] Wait disassociate public ip [%s] ", publicIPInstanceNo)
-			time.Sleep(time.Second * 3)
-		}
-	}()
-
-	select {
-	case res := <-c1:
-		return res
-	case <-time.After(DefaultTimeout):
-		return fmt.Errorf("TIMEOUT : disassociate public ip[%s] ", publicIPInstanceNo)
+			return resp, "NOT OK", nil
+		},
+		Timeout:    DefaultTimeout,
+		Delay:      2 * time.Second,
+		MinTimeout: 3 * time.Second,
 	}
+
+	_, err := stateConf.WaitForState()
+	if err != nil {
+		return fmt.Errorf("Error waiting for waitDisassociatePublicIp: %s", err)
+	}
+
+	return nil
 }
 
-func waitPublicIpInstance(client *NcloudAPIClient, publicIPInstanceNo string, status string) error {
+func waitPublicIPInstance(client *NcloudAPIClient, publicIPInstanceNo string) error {
 	reqParams := new(server.GetPublicIpInstanceListRequest)
 	reqParams.PublicIpInstanceNoList = ncloud.StringList([]string{publicIPInstanceNo})
 
-	c1 := make(chan error, 1)
-
-	go func() {
-		for {
+	stateConf := &resource.StateChangeConf{
+		Pending: []string{"CREAT"},
+		Target:  []string{"USED"},
+		Refresh: func() (interface{}, string, error) {
 			resp, err := client.server.V2Api.GetPublicIpInstanceList(reqParams)
-
 			if err != nil {
-				c1 <- err
-				return
+				return 0, "", err
 			}
 
-			if ncloud.StringValue(resp.PublicIpInstanceList[0].PublicIpInstanceStatus.Code) == status {
-				c1 <- nil
-				return
-			}
-
-			log.Printf("[DEBUG] Wait public ip(%s) status(%s)", publicIPInstanceNo, status)
-			time.Sleep(time.Second * 1)
-		}
-	}()
-
-	select {
-	case res := <-c1:
-		return res
-	case <-time.After(DefaultTimeout):
-		return fmt.Errorf("TIMEOUT : Wait public ip(%s) status(%s)", publicIPInstanceNo, status)
+			return resp, ncloud.StringValue(resp.PublicIpInstanceList[0].PublicIpInstanceStatus.Code), nil
+		},
+		Timeout:    DefaultTimeout,
+		Delay:      2 * time.Second,
+		MinTimeout: 3 * time.Second,
 	}
+
+	_, err := stateConf.WaitForState()
+	if err != nil {
+		return fmt.Errorf("Error waiting for waitPublicIPInstance: %s", err)
+	}
+
+	return nil
 }
 
-func waitDeletePublicIpInstance(client *NcloudAPIClient, publicIPInstanceNo string) error {
+func waitDeletePublicIPInstance(client *NcloudAPIClient, publicIPInstanceNo string) error {
 	reqParams := new(server.GetPublicIpInstanceListRequest)
 	reqParams.PublicIpInstanceNoList = ncloud.StringList([]string{publicIPInstanceNo})
 
-	c1 := make(chan error, 1)
-
-	go func() {
-		for {
+	stateConf := &resource.StateChangeConf{
+		Pending: []string{"NOT OK"},
+		Target:  []string{"OK"},
+		Refresh: func() (interface{}, string, error) {
 			resp, err := client.server.V2Api.GetPublicIpInstanceList(reqParams)
-
 			if err != nil {
-				c1 <- err
-				return
+				return 0, "", err
 			}
 
 			if ncloud.Int32Value(resp.TotalRows) == 0 {
-				c1 <- nil
-				return
+				return resp, "OK", nil
 			}
-
-			log.Printf("[DEBUG] Wait to delete public ip(%s)", publicIPInstanceNo)
-			time.Sleep(time.Second * 1)
-		}
-	}()
-
-	select {
-	case res := <-c1:
-		return res
-	case <-time.After(DefaultTimeout):
-		return fmt.Errorf("TIMEOUT : Wait to delete public ip(%s)", publicIPInstanceNo)
+			return resp, "NOT OK", nil
+		},
+		Timeout:    DefaultTimeout,
+		Delay:      2 * time.Second,
+		MinTimeout: 3 * time.Second,
 	}
+
+	_, err := stateConf.WaitForState()
+	if err != nil {
+		return fmt.Errorf("Error waiting for waitDeletePublicIPInstance: %s", err)
+	}
+
+	return nil
 }
