@@ -103,7 +103,7 @@ GTfhUTV7jTQ0dt9U1E+oxRkjqC2HFYlpewXP0rcQxhtK7p6kiaUDIw==
 				),
 			},
 			{
-				ResourceName:      testSSLCertificateName,
+				ResourceName:      "ncloud_load_balancer_ssl_certificate.cert",
 				ImportState:       true,
 				ImportStateVerify: true,
 			},

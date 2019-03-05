@@ -49,7 +49,7 @@ func ignore_TestAccResourceNcloudBlockStorageSnapshotBasic(t *testing.T) {
 				),
 			},
 			{
-				ResourceName:      testSnapshotName,
+				ResourceName:      "ncloud_block_storage_snapshot.ss",
 				ImportState:       true,
 				ImportStateVerify: true,
 			},

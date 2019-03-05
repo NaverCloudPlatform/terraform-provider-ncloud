@@ -45,9 +45,10 @@ func TestAccNcloudLoadBalancerBasic(t *testing.T) {
 				),
 			},
 			{
-				ResourceName:      testLoadBalancerName,
-				ImportState:       true,
-				ImportStateVerify: true,
+				ResourceName:            "ncloud_load_balancer.lb",
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"region"},
 			},
 		},
 	})
@@ -80,9 +81,10 @@ func TestAccNcloudLoadBalancerChangeConfiguration(t *testing.T) {
 						"tftest_lb change port")),
 			},
 			{
-				ResourceName:      testLoadBalancerName,
-				ImportState:       true,
-				ImportStateVerify: true,
+				ResourceName:            "ncloud_load_balancer.lb",
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"region"},
 			},
 		},
 	})
