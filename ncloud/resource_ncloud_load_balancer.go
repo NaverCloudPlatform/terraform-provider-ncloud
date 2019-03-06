@@ -7,6 +7,7 @@ import (
 
 	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/ncloud"
 	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/services/loadbalancer"
+	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/validation"
 )
@@ -141,9 +142,31 @@ func resourceNcloudLoadBalancerCreate(d *schema.ResourceData, meta interface{}) 
 	loadBalancerInstance := resp.LoadBalancerInstanceList[0]
 	d.SetId(*loadBalancerInstance.LoadBalancerInstanceNo)
 
-	if err := waitForLoadBalancerInstance(client, ncloud.StringValue(loadBalancerInstance.LoadBalancerInstanceNo), "USED", DefaultCreateTimeout); err != nil {
-		return err
+	stateConf := &resource.StateChangeConf{
+		Pending: []string{"INIT", "USE"},
+		Target:  []string{"USED"},
+		Refresh: func() (interface{}, string, error) {
+			instance, err := getLoadBalancerInstance(client, ncloud.StringValue(loadBalancerInstance.LoadBalancerInstanceNo))
+			if err != nil {
+				return 0, "", err
+			}
+
+			if ncloud.StringValue(instance.LoadBalancerInstanceOperation.Code) == "NULL" {
+				return instance, ncloud.StringValue(instance.LoadBalancerInstanceStatus.Code), nil
+			}
+
+			return instance, ncloud.StringValue(instance.LoadBalancerInstanceOperation.Code), nil
+		},
+		Timeout:    DefaultCreateTimeout,
+		Delay:      2 * time.Second,
+		MinTimeout: 3 * time.Second,
 	}
+
+	_, err = stateConf.WaitForState()
+	if err != nil {
+		return fmt.Errorf("Error waiting for LoadBalancerInstanceStatus state to be \"USED\": %s", err)
+	}
+
 	return resourceNcloudLoadBalancerRead(d, meta)
 }
 
@@ -247,8 +270,29 @@ func resourceNcloudLoadBalancerUpdate(d *schema.ResourceData, meta interface{}) 
 		}
 		logCommonResponse("ChangeLoadBalancerInstanceConfiguration", GetCommonResponse(resp))
 
-		if err := waitForLoadBalancerInstance(client, d.Id(), "USED", DefaultUpdateTimeout); err != nil {
-			return err
+		stateConf := &resource.StateChangeConf{
+			Pending: []string{"INIT", "USE"},
+			Target:  []string{"USED"},
+			Refresh: func() (interface{}, string, error) {
+				instance, err := getLoadBalancerInstance(client, d.Id())
+				if err != nil {
+					return 0, "", err
+				}
+
+				if ncloud.StringValue(instance.LoadBalancerInstanceOperation.Code) == "NULL" {
+					return instance, ncloud.StringValue(instance.LoadBalancerInstanceStatus.Code), nil
+				}
+
+				return instance, ncloud.StringValue(instance.LoadBalancerInstanceOperation.Code), nil
+			},
+			Timeout:    DefaultUpdateTimeout,
+			Delay:      2 * time.Second,
+			MinTimeout: 3 * time.Second,
+		}
+
+		_, err = stateConf.WaitForState()
+		if err != nil {
+			return fmt.Errorf("Error waiting for LoadBalancerInstanceStatus state to be \"USED\": %s", err)
 		}
 	}
 
@@ -270,8 +314,29 @@ func changeLoadBalancedServerInstances(client *NcloudAPIClient, d *schema.Resour
 	}
 	logCommonResponse("ChangeLoadBalancedServerInstances", GetCommonResponse(resp))
 
-	if err := waitForLoadBalancerInstance(client, d.Id(), "USED", DefaultUpdateTimeout); err != nil {
-		return err
+	stateConf := &resource.StateChangeConf{
+		Pending: []string{"INIT", "USE"},
+		Target:  []string{"USED"},
+		Refresh: func() (interface{}, string, error) {
+			instance, err := getLoadBalancerInstance(client, d.Id())
+			if err != nil {
+				return 0, "", err
+			}
+
+			if ncloud.StringValue(instance.LoadBalancerInstanceOperation.Code) == "NULL" {
+				return instance, ncloud.StringValue(instance.LoadBalancerInstanceStatus.Code), nil
+			}
+
+			return instance, ncloud.StringValue(instance.LoadBalancerInstanceOperation.Code), nil
+		},
+		Timeout:    DefaultUpdateTimeout,
+		Delay:      2 * time.Second,
+		MinTimeout: 3 * time.Second,
+	}
+
+	_, err = stateConf.WaitForState()
+	if err != nil {
+		return fmt.Errorf("Error waiting for LoadBalancerInstanceStatus state to be \"USED\": %s", err)
 	}
 
 	return nil
@@ -351,67 +416,32 @@ func deleteLoadBalancerInstance(client *NcloudAPIClient, loadBalancerInstanceNo 
 	}
 	logCommonResponse("DeleteLoadBalancerInstance", commonResponse)
 
-	return waitForDeleteLoadBalancerInstance(client, loadBalancerInstanceNo)
-}
-
-func waitForLoadBalancerInstance(client *NcloudAPIClient, id string, status string, timeout time.Duration) error {
-	c1 := make(chan error, 1)
-
-	go func() {
-		for {
-			instance, err := getLoadBalancerInstance(client, id)
-
+	stateConf := &resource.StateChangeConf{
+		Pending: []string{"", "USED"},
+		Target:  []string{"OK"},
+		Refresh: func() (interface{}, string, error) {
+			instance, err := getLoadBalancerInstance(client, loadBalancerInstanceNo)
 			if err != nil {
-				c1 <- err
-				return
-			}
-
-			if instance == nil || (ncloud.StringValue(instance.LoadBalancerInstanceStatus.Code) == status && ncloud.StringValue(instance.LoadBalancerInstanceOperation.Code) == "NULL") {
-				c1 <- nil
-				return
-			}
-
-			log.Printf("[DEBUG] Wait get load balancer instance [%s] status [%s] to be [%s]", id, *instance.LoadBalancerInstanceStatus.Code, status)
-			time.Sleep(time.Second * 1)
-		}
-	}()
-
-	select {
-	case res := <-c1:
-		return res
-	case <-time.After(timeout):
-		return fmt.Errorf("TIMEOUT : delete load balancer instance [%s] ", id)
-	}
-}
-
-func waitForDeleteLoadBalancerInstance(client *NcloudAPIClient, id string) error {
-	c1 := make(chan error, 1)
-
-	go func() {
-		for {
-			instance, err := getLoadBalancerInstance(client, id)
-
-			if err != nil {
-				c1 <- err
-				return
+				return 0, "", err
 			}
 
 			if instance == nil {
-				c1 <- nil
-				return
+				return 0, "OK", err
 			}
 
-			log.Printf("[DEBUG] Wait delete load balancer instance [%s] ", id)
-			time.Sleep(time.Second * 1)
-		}
-	}()
-
-	select {
-	case res := <-c1:
-		return res
-	case <-time.After(DefaultTimeout):
-		return fmt.Errorf("TIMEOUT : delete load balancer instance [%s] ", id)
+			return instance, "", nil
+		},
+		Timeout:    DefaultUpdateTimeout,
+		Delay:      2 * time.Second,
+		MinTimeout: 3 * time.Second,
 	}
+
+	_, err = stateConf.WaitForState()
+	if err != nil {
+		return fmt.Errorf("Error waiting to delete LoadBalancerInstance: %s", err)
+	}
+
+	return nil
 }
 
 var loadBalancerRuleSchemaResource = &schema.Resource{

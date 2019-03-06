@@ -46,9 +46,10 @@ func TestAccResourceNcloudServerBasic(t *testing.T) {
 				),
 			},
 			{
-				ResourceName:      testServerName,
-				ImportState:       true,
-				ImportStateVerify: true,
+				ResourceName:            "ncloud_server.server",
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"login_key_name", "server_product_code"},
 			},
 		},
 	})
@@ -84,7 +85,7 @@ func ignore_TestAccResourceInstanceChangeServerInstanceSpec(t *testing.T) {
 				),
 			},
 			{
-				ResourceName:      testServerName,
+				ResourceName:      "ncloud_server.server",
 				ImportState:       true,
 				ImportStateVerify: true,
 			},
@@ -124,7 +125,7 @@ func testAccResourceRecreateServerInstance(t *testing.T) {
 				),
 			},
 			{
-				ResourceName:      testServerName,
+				ResourceName:      "ncloud_server.server",
 				ImportState:       true,
 				ImportStateVerify: true,
 			},

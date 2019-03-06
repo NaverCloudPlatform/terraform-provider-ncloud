@@ -8,6 +8,7 @@ import (
 
 	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/ncloud"
 	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/services/server"
+	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/validation"
 )
@@ -159,37 +160,30 @@ func deleteLoginKey(client *NcloudAPIClient, keyName string) error {
 	}
 	logCommonResponse("DeleteLoginKey", commonResponse)
 
-	if err := waitForDeleteLoginKey(client, keyName); err != nil {
-		return err
+	stateConf := &resource.StateChangeConf{
+		Pending: []string{""},
+		Target:  []string{"OK"},
+		Refresh: func() (interface{}, string, error) {
+			resp, err := getLoginKeyList(client, ncloud.String(keyName))
+			if err != nil {
+				return 0, "", err
+			}
+
+			if ncloud.Int32Value(resp.TotalRows) == 0 {
+				return 0, "OK", err
+			}
+
+			return resp, "", nil
+		},
+		Timeout:    DefaultTimeout,
+		Delay:      2 * time.Second,
+		MinTimeout: 3 * time.Second,
+	}
+
+	_, err = stateConf.WaitForState()
+	if err != nil {
+		return fmt.Errorf("Error waiting to delete LoginKey: %s", err)
 	}
 
 	return nil
-}
-
-func waitForDeleteLoginKey(client *NcloudAPIClient, keyName string) error {
-
-	c1 := make(chan error, 1)
-
-	go func() {
-		for {
-			resp, err := getLoginKeyList(client, ncloud.String(keyName))
-			if err != nil {
-				c1 <- err
-				return
-			}
-			if ncloud.Int32Value(resp.TotalRows) == 0 {
-				c1 <- nil
-				return
-			}
-			log.Printf("[DEBUG] Wait to delete login key (%s)", keyName)
-			time.Sleep(time.Second * 1)
-		}
-	}()
-
-	select {
-	case res := <-c1:
-		return res
-	case <-time.After(DefaultTimeout):
-		return fmt.Errorf("TIMEOUT : Wait to delete login key (%s)", keyName)
-	}
 }

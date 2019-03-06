@@ -46,7 +46,7 @@ func TestAccResourceNcloudBlockStorageBasic(t *testing.T) {
 				),
 			},
 			{
-				ResourceName:      testBlockStorageName,
+				ResourceName:      "ncloud_block_storage.storage",
 				ImportState:       true,
 				ImportStateVerify: true,
 			},

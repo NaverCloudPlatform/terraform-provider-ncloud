@@ -1,18 +1,16 @@
 package ncloud
 
 import (
+	"testing"
+
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/terraform"
-	"testing"
 )
 
 func testZoneSchema() map[string]*schema.Schema {
 	s := map[string]*schema.Schema{
-		"zone_no": {
-			Type: schema.TypeString,
-		},
-		"zone_code": {
+		"zone": {
 			Type: schema.TypeString,
 		},
 	}
@@ -32,7 +30,7 @@ func TestParseZoneNoParameterBasic(t *testing.T) {
 					client := testAccProvider.Meta().(*NcloudAPIClient)
 					s := testZoneSchema()
 					d := schema.TestResourceDataRaw(t, s, map[string]interface{}{
-						"zone_code": testZoneCode,
+						"zone": testZoneCode,
 					})
 					if zoneNo, _ := parseZoneNoParameter(client, d); zoneNo == nil {
 						t.Fatalf("zone_no should be returned when input zoneCode. input: %s", testZoneCode)
@@ -63,31 +61,6 @@ func TestParseZoneNoParameterInputNil(t *testing.T) {
 	})
 }
 
-func TestParseZoneNoParameterInputZoneNo(t *testing.T) {
-	testZoneNo := "1"
-	resource.Test(t, resource.TestCase{
-		PreCheck:  func() { testAccPreCheck(t) },
-		Providers: testAccProviders,
-		Steps: []resource.TestStep{
-			{
-				Config: `data "ncloud_zones" "zones" {}`,
-				Check: func(*terraform.State) error {
-					client := testAccProvider.Meta().(*NcloudAPIClient)
-					s := testZoneSchema()
-					d := schema.TestResourceDataRaw(t, s, map[string]interface{}{
-						"zone_no": testZoneNo,
-					})
-					if zoneNo, _ := parseZoneNoParameter(client, d); *zoneNo != testZoneNo {
-						t.Fatalf("Expected: %s, Actual: %s", testZoneNo, *zoneNo)
-					}
-					return nil
-				},
-			},
-		},
-	})
-
-}
-
 func TestParseZoneNoParameterInputUnknownZoneCode(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:  func() { testAccPreCheck(t) },
@@ -99,7 +72,7 @@ func TestParseZoneNoParameterInputUnknownZoneCode(t *testing.T) {
 					client := testAccProvider.Meta().(*NcloudAPIClient)
 					s := testZoneSchema()
 					d := schema.TestResourceDataRaw(t, s, map[string]interface{}{
-						"zone_code": "unknown-zone-code",
+						"zone": "unknown-zone-code",
 					})
 					if zoneNo, err := parseZoneNoParameter(client, d); err == nil || zoneNo != nil {
 						t.Fatalf("Unknown zone code must throw error. zone_no: %s", *zoneNo)

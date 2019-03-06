@@ -41,9 +41,10 @@ func TestAccResourceNcloudLoginKeyBasic(t *testing.T) {
 				),
 			},
 			{
-				ResourceName:      testKeyName,
-				ImportState:       true,
-				ImportStateVerify: true,
+				ResourceName:            "ncloud_login_key.loginkey",
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"key_name", "private_key"},
 			},
 		},
 	})

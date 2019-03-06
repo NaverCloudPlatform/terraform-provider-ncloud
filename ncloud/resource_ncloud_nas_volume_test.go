@@ -47,9 +47,10 @@ func TestAccResourceNcloudNasVolumeBasic(t *testing.T) {
 				),
 			},
 			{
-				ResourceName:      testVolumeName,
-				ImportState:       true,
-				ImportStateVerify: true,
+				ResourceName:            "ncloud_nas_volume.test",
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"volume_name_postfix"},
 			},
 		},
 	})
@@ -80,9 +81,10 @@ func TestAccResourceNcloudNasVolumeResize(t *testing.T) {
 				),
 			},
 			{
-				ResourceName:      testVolumeName,
-				ImportState:       true,
-				ImportStateVerify: true,
+				ResourceName:            "ncloud_nas_volume.test",
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"volume_name_postfix"},
 			},
 		},
 	})
@@ -113,9 +115,10 @@ func TestAccResourceNcloudNasVolumeChangeAccessControl(t *testing.T) {
 				),
 			},
 			{
-				ResourceName:      testVolumeName,
-				ImportState:       true,
-				ImportStateVerify: true,
+				ResourceName:            "ncloud_nas_volume.test",
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"custom_ip_list", "instance_custom_ip_list", "volume_name_postfix"},
 			},
 		},
 	})

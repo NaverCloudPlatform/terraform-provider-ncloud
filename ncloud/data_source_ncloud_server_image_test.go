@@ -6,23 +6,6 @@ import (
 	"github.com/hashicorp/terraform/helper/resource"
 )
 
-func TestAccDataSourceNcloudServerImageBasic(t *testing.T) {
-	t.Parallel()
-
-	resource.Test(t, resource.TestCase{
-		PreCheck:  func() { testAccPreCheck(t) },
-		Providers: testAccProviders,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccDataSourceNcloudServerImageConfig,
-				Check: resource.ComposeTestCheckFunc(
-					testAccCheckDataSourceID("data.ncloud_server_image.test"),
-				),
-			},
-		},
-	})
-}
-
 func TestAccDataSourceNcloudServerImageFilterByName(t *testing.T) {
 	t.Parallel()
 
@@ -56,11 +39,6 @@ func TestAccDataSourceNcloudServerImageFilterByType(t *testing.T) {
 		},
 	})
 }
-
-var testAccDataSourceNcloudServerImageConfig = `
-data "ncloud_server_image" "test" {
-}
-`
 
 var testAccDataSourceNcloudServerImageFilterByNameConfig = `
 data "ncloud_server_image" "test" {
