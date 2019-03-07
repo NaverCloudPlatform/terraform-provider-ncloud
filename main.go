@@ -1,8 +1,8 @@
 package main
 
 import (
-	"github.com/NaverCloudPlatform/terraform-provider-ncloud/ncloud"
 	"github.com/hashicorp/terraform/plugin"
+	"github.com/terraform-providers/terraform-provider-ncloud/ncloud"
 )
 
 func main() {
