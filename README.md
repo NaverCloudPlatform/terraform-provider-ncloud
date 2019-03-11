@@ -1,8 +1,8 @@
 # Terraform Provider for Naver Cloud Platform
 
 - Website: https://www.terraform.io
-- Documentation: http://106.10.45.95:4567/docs/providers/ncloud/index.html
-- [![Gitter chat](https://badges.gitter.im/hashicorp-terraform/Lobby.png)](https://gitter.im/hashicorp-terraform/Lobby) [![Build Status](https://travis-ci.com/NaverCloudPlatform/terraform-provider-ncloud.svg?branch=master)](https://travis-ci.com/NaverCloudPlatform/terraform-provider-ncloud)
+- Documentation: https://www.terraform.io/docs/providers/ncloud/index.html
+- [![Gitter chat](https://badges.gitter.im/hashicorp-terraform/Lobby.png)](https://gitter.im/hashicorp-terraform/Lobby)
 - Mailing list: [Google Groups](http://groups.google.com/group/terraform-tool)
 
 <img src="https://cdn.rawgit.com/hashicorp/terraform-website/master/content/source/assets/images/logo-hashicorp.svg" width="600px">
@@ -14,23 +14,23 @@
 
 ## Building The Provider
 
-Clone repository to: `$GOPATH/src/github.com/NaverCloudPlatform/terraform-provider-ncloud`
+Clone repository to: `$GOPATH/src/github.com/terraform-providers/terraform-provider-ncloud`
 
 ```sh
-$ mkdir -p $GOPATH/src/github.com/NaverCloudPlatform; cd $GOPATH/src/github.com/NaverCloudPlatform
-$ git clone git@github.com:NaverCloudPlatform/terraform-provider-ncloud.git
+$ mkdir -p $GOPATH/src/github.com/terraform-providers; cd $GOPATH/src/github.com/terraform-providers
+$ git clone git@github.com:terraform-providers/terraform-provider-ncloud.git
 ```
 
 Enter the provider directory and build the provider
 
 ```sh
-$ cd $GOPATH/src/github.com/NaverCloudPlatform/terraform-provider-ncloud
+$ cd $GOPATH/src/github.com/terraform-providers/terraform-provider-ncloud
 $ make build
 ```
 
 ## Using the provider
 
-See the [Naver Cloud Platform Provider documentation](http://10.105.182.126:4567/docs/providers/ncloud/index.html) to get started using the Naver Cloud Platform provider.
+See the [Naver Cloud Platform Provider documentation](http://www.terraform.io/docs/providers/ncloud/index.html) to get started using the Naver Cloud Platform provider.
 
 ## Upgrading the provider
 
