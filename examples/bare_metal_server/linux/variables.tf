@@ -1,5 +1,8 @@
-variable "access_key" {} # export TF_VAR_access_key=...
-variable "secret_key" {} # export TF_VAR_secret_key=...
+variable "access_key" { # export TF_VAR_access_key=...
+}
+
+variable "secret_key" { # export TF_VAR_secret_key=...
+}
 
 variable "region" {
   default = "KR"
@@ -22,13 +25,14 @@ variable "nas_volume_name_prefix" {
 }
 
 variable "load_balancer_name" {
-  default =  "tf-bmtest_lb"
+  default = "tf-bmtest_lb"
 }
 
 variable "certificate_name" {
-  default =  "tf-bmtest_ssl_cert"
+  default = "tf-bmtest_ssl_cert"
 }
 
 variable "port_forwarding_external_port" {
   default = "5022"
 }
+
