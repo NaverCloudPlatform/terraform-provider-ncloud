@@ -1,5 +1,8 @@
-variable "access_key" {} # export TF_VAR_access_key=...
-variable "secret_key" {} # export TF_VAR_secret_key=...
+variable "access_key" { # export TF_VAR_access_key=...
+}
+
+variable "secret_key" { # export TF_VAR_secret_key=...
+}
 
 variable "server_name" {
   default = "tf-test-vm"
@@ -16,3 +19,4 @@ variable "server_product_code" {
 variable "region" {
   default = "KR"
 }
+
