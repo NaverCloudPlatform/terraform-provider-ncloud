@@ -28,6 +28,6 @@ func TestAccDataSourceNcloudServerProductsBasic(t *testing.T) {
 
 var testAccDataSourceNcloudServerProductsConfig = `
 data "ncloud_server_products" "all" {
-	"server_image_product_code" = "SPSW0LINUX000032"
+	server_image_product_code = "SPSW0LINUX000032"
 }
 `

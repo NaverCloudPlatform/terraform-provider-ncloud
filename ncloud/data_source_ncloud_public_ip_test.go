@@ -103,20 +103,20 @@ data "ncloud_public_ip" "test" {}
 
 var testAccDataSourceNcloudPublicIpAssociatedConfig = `
 data "ncloud_public_ip" "test" {
-  "is_associated" = "false"
+  is_associated = "false"
 }
 `
 
 var testAccDataSourceNcloudPublicIpSearchConfig = `
 data "ncloud_public_ip" "test" {
-  "search_filter_name" = "associatedServerName" // Public IP (publicIp) | Associated server name (associatedServerName)
-  "search_filter_value" = "clouddb"
+  search_filter_name = "associatedServerName" // Public IP (publicIp) | Associated server name (associatedServerName)
+  search_filter_value = "clouddb"
 }
 `
 
 var testAccDataSourceNcloudPublicIpSortingConfig = `
 data "ncloud_public_ip" "test" {
-  "sorted_by" = "publicIp" // Public IP (publicIp) | Public IP instance number (publicIpInstanceNo) [case insensitive]
-  "sorting_order" = "ascending" // Ascending (ascending) | Descending (descending) [case insensitive]
+  sorted_by = "publicIp" // Public IP (publicIp) | Public IP instance number (publicIpInstanceNo) [case insensitive]
+  sorting_order = "ascending" // Ascending (ascending) | Descending (descending) [case insensitive]
 }
 `

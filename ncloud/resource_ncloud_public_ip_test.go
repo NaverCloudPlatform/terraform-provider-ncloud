@@ -115,20 +115,20 @@ func testAccCheckPublicIpInstanceDestroyWithProvider(s *terraform.State, provide
 func testAccPublicIpInstanceConfig(testServerInstanceName string, testPublicIpDescription string) string {
 	return fmt.Sprintf(`
 resource "ncloud_login_key" "loginkey" {
-	"key_name" = "%s-key"
+	key_name = "%s-key"
 }
 
 resource "ncloud_server" "test" {
-	"name" = "%s"
-	"server_image_product_code" = "SPSW0LINUX000032"
-	"server_product_code" = "SPSVRSTAND000004"
-	"login_key_name" = "${ncloud_login_key.loginkey.key_name}"
+	name = "%s"
+	server_image_product_code = "SPSW0LINUX000032"
+	server_product_code = "SPSVRSTAND000004"
+	login_key_name = "${ncloud_login_key.loginkey.key_name}"
 }
 
 resource "ncloud_public_ip" "public_ip" {
-	"server_instance_no" = "${ncloud_server.test.id}"
-	"description" = "%s"
-	"zone" = "KR-2"
+	server_instance_no = "${ncloud_server.test.id}"
+	description = "%s"
+	zone = "KR-2"
 }
 `, testServerInstanceName, testServerInstanceName, testPublicIpDescription)
 }

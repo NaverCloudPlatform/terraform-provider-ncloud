@@ -111,7 +111,7 @@ func testAccCheckLoginKeyDestroyWithProvider(s *terraform.State, provider *schem
 func testAccLoginKeyConfig(keyName string) string {
 	return fmt.Sprintf(`
 resource "ncloud_login_key" "loginkey" {
-	"key_name" = "%s"
+	key_name = "%s"
 }
 `, keyName)
 }

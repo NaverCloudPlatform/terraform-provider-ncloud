@@ -49,6 +49,6 @@ data "ncloud_access_control_groups" "test" {}
 
 var testAccDataSourceNcloudAccessControlGroupsDefaultConfig = `
 data "ncloud_access_control_groups" "default" {
-  "is_default_group" = "true"
+  is_default_group = "true"
 }
 `

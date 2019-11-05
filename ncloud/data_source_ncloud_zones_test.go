@@ -63,12 +63,12 @@ data "ncloud_zones" "zones" {}
 
 var testAccDataSourceNcloudZonesByRegionCodeConfig = `
 data "ncloud_zones" "zones" {
-	"region" = "JPN"
+	region = "JPN"
 }
 `
 
 var testAccDataSourceNcloudZonesByInvalidRegionCodeConfig = `
 data "ncloud_zones" "zones" {
-	"region" = "INVALID"
+	region = "INVALID"
 }
 `

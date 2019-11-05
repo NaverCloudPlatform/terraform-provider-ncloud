@@ -169,33 +169,33 @@ func testAccCheckLoadBalancerSSLCertificateDestroyWithProvider(s *terraform.Stat
 func testAccLoadBalancerSSLCertificateConfig(certificateName string, privatekey string, publickeyCertificate string, lbName string) string {
 	return fmt.Sprintf(`
 		resource "ncloud_load_balancer_ssl_certificate" "cert" {
-			"certificate_name"      = "%s"
-			"privatekey"            = "%s"
-			"publickey_certificate" = "%s"
+			certificate_name      = "%s"
+			privatekey            = "%s"
+			publickey_certificate = "%s"
 		}
 
 		resource "ncloud_load_balancer" "lb" {
-			"name"           = "%s"
-			"algorithm_type" = "SIPHS"
-			"description"    = "tftest_lb description"
+			name           = "%s"
+			algorithm_type = "SIPHS"
+			description    = "tftest_lb description"
 
-			"rule_list" = [
+			rule_list = [
 				{
-					"protocol_type"        = "HTTP"
-					"load_balancer_port"   = 80
-					"server_port"          = 80
-					"l7_health_check_path" = "/monitor/l7check"
+					protocol_type        = "HTTP"
+					load_balancer_port   = 80
+					server_port          = 80
+					l7_health_check_path = "/monitor/l7check"
 				},
 				{
-					"protocol_type"        = "HTTPS"
-					"load_balancer_port"   = 443
-					"server_port"          = 443
-					"l7_health_check_path" = "/monitor/l7check"
-					"certificate_name"     = "${ncloud_load_balancer_ssl_certificate.cert.certificate_name}"
+					protocol_type        = "HTTPS"
+					load_balancer_port   = 443
+					server_port          = 443
+					l7_health_check_path = "/monitor/l7check"
+					certificate_name     = "${ncloud_load_balancer_ssl_certificate.cert.certificate_name}"
 				},
 			]
 
-			"region" = "KR"
+			region = "KR"
 		}
 		`, certificateName, strings.Replace(privatekey, "\n", "\\n", -1), strings.Replace(publickeyCertificate, "\n", "\\n", -1), lbName)
 }

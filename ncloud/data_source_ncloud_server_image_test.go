@@ -42,12 +42,12 @@ func TestAccDataSourceNcloudServerImageFilterByType(t *testing.T) {
 
 var testAccDataSourceNcloudServerImageFilterByNameConfig = `
 data "ncloud_server_image" "test" {
-  "product_name_regex" = "Server.*2016"
+  product_name_regex = "Server.*2016"
 }
 `
 
 var testAccDataSourceNcloudServerImageFilterByTypeConfig = `
 data "ncloud_server_image" "test" {
-  "product_type" = "LINUX"
+  product_type = "LINUX"
 }
 `
