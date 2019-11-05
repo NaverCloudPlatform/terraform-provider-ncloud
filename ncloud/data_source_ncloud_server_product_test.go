@@ -3,7 +3,7 @@ package ncloud
 import (
 	"testing"
 
-	"github.com/hashicorp/terraform/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 )
 
 func TestAccDataSourceNcloudServerProductBasic(t *testing.T) {
