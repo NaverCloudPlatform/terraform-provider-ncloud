@@ -5,10 +5,10 @@ import (
 	"testing"
 
 	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/services/server"
-	"github.com/hashicorp/terraform/helper/acctest"
-	"github.com/hashicorp/terraform/helper/resource"
-	"github.com/hashicorp/terraform/helper/schema"
-	"github.com/hashicorp/terraform/terraform"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 )
 
 func TestAccResourceNcloudServerBasic(t *testing.T) {
@@ -212,14 +212,14 @@ func getTestServerName() string {
 func testAccServerConfig(testServerName string) string {
 	return fmt.Sprintf(`
 resource "ncloud_login_key" "loginkey" {
-	"key_name" = "%s-key"
+	key_name = "%s-key"
 }
 
 resource "ncloud_server" "server" {
-	"name" = "%s"
-	"server_image_product_code" = "SPSW0LINUX000032"
-	"server_product_code" = "SPSVRSTAND000004"
-	"login_key_name" = "${ncloud_login_key.loginkey.key_name}"
+	name = "%s"
+	server_image_product_code = "SPSW0LINUX000032"
+	server_product_code = "SPSVRSTAND000004"
+	login_key_name = "${ncloud_login_key.loginkey.key_name}"
 }
 `, testServerName, testServerName)
 }
@@ -227,14 +227,14 @@ resource "ncloud_server" "server" {
 func testAccInstanceChangeSpecConfig(testServerName string) string {
 	return fmt.Sprintf(`
 resource "ncloud_login_key" "loginkey" {
-	"key_name" = "%s-key"
+	key_name = "%s-key"
 }
 
 resource "ncloud_server" "server" {
-	"name" = "%s"
-	"server_image_product_code" = "SPSW0LINUX000032"
-	"server_product_code" = "SPSVRSTAND000024"
-	"login_key_name" = "${ncloud_login_key.loginkey.key_name}"
+	name = "%s"
+	server_image_product_code = "SPSW0LINUX000032"
+	server_product_code = "SPSVRSTAND000024"
+	login_key_name = "${ncloud_login_key.loginkey.key_name}"
 }
 `, testServerName, testServerName)
 }
@@ -242,14 +242,14 @@ resource "ncloud_server" "server" {
 func testAccRecreateServerInstanceBeforeConfig(testServerName string) string {
 	return fmt.Sprintf(`
 resource "ncloud_login_key" "loginkey" {
-	"key_name" = "%s-key"
+	key_name = "%s-key"
 }
 
 resource "ncloud_server" "server" {
-	"name" = "%s"
-	"server_image_product_code" = "SPSWBMLINUX00001"
-	"server_product_code" = "SPSVRBM000000001"
-	"login_key_name" = "${ncloud_login_key.loginkey.key_name}"
+	name = "%s"
+	server_image_product_code = "SPSWBMLINUX00001"
+	server_product_code = "SPSVRBM000000001"
+	login_key_name = "${ncloud_login_key.loginkey.key_name}"
 }
 `, testServerName, testServerName)
 }
@@ -257,14 +257,14 @@ resource "ncloud_server" "server" {
 func testAccRecreateServerInstanceAfterConfig(testServerName string) string {
 	return fmt.Sprintf(`
 resource "ncloud_login_key" "loginkey" {
-	"key_name" = "%s-key"
+	key_name = "%s-key"
 }
 
 resource "ncloud_server" "server" {
-	"name" = "%s"
-	"server_image_product_code" = "SPSWBMLINUX00002"
-	"server_product_code" = "SPSVRBM000000001"
-	"login_key_name" = "${ncloud_login_key.loginkey.key_name}"
+	name = "%s"
+	server_image_product_code = "SPSWBMLINUX00002"
+	server_product_code = "SPSVRBM000000001"
+	login_key_name = "${ncloud_login_key.loginkey.key_name}"
 }
 `, testServerName, testServerName)
 }

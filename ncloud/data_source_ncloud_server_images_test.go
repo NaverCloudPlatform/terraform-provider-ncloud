@@ -1,7 +1,7 @@
 package ncloud
 
 import (
-	"github.com/hashicorp/terraform/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"testing"
 )
 
@@ -79,18 +79,18 @@ data "ncloud_server_images" "test" {}
 
 var testAccDataSourceNcloudServerImagesLinuxConfig = `
 data "ncloud_server_images" "linux" {
-	"platform_type_code_list" = ["LNX32", "LNX64"]
+	platform_type_code_list = ["LNX32", "LNX64"]
 }
 `
 
 var testAccDataSourceNcloudServerImagesWindowsConfig = `
 data "ncloud_server_images" "windows" {
-	"platform_type_code_list" = ["WND32", "WND64"]
+	platform_type_code_list = ["WND32", "WND64"]
 }
 `
 
 var testAccDataSourceNcloudServerImagesBareMetalConfig = `
 data "ncloud_server_images" "beremetal" {
-	"infra_resource_detail_type_code" = "BM"
+	infra_resource_detail_type_code = "BM"
 }
 `

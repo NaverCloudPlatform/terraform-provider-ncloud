@@ -5,7 +5,7 @@ import (
 
 	"regexp"
 
-	"github.com/hashicorp/terraform/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 )
 
 func TestAccDataSourceNcloudZonesBasic(t *testing.T) {
@@ -63,12 +63,12 @@ data "ncloud_zones" "zones" {}
 
 var testAccDataSourceNcloudZonesByRegionCodeConfig = `
 data "ncloud_zones" "zones" {
-	"region" = "JPN"
+	region = "JPN"
 }
 `
 
 var testAccDataSourceNcloudZonesByInvalidRegionCodeConfig = `
 data "ncloud_zones" "zones" {
-	"region" = "INVALID"
+	region = "INVALID"
 }
 `

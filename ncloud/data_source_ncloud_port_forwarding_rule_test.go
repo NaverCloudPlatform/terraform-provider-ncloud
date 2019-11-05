@@ -1,7 +1,7 @@
 package ncloud
 
 import (
-	"github.com/hashicorp/terraform/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"testing"
 )
 
@@ -29,6 +29,6 @@ func TestAccDataSourceNcloudPortForwardingRuleBasic(t *testing.T) {
 
 var testAccDataSourceNcloudPortForwardingRuleConfig = `
 data "ncloud_port_forwarding_rule" "test" {
-  "zone_code" = "KR-2"
+  zone_code = "KR-2"
 }
 `

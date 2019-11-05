@@ -3,7 +3,7 @@ package ncloud
 import (
 	"testing"
 
-	"github.com/hashicorp/terraform/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 )
 
 func TestAccDataSourceNcloudPortForwardingRulesBasic(t *testing.T) {
@@ -30,6 +30,6 @@ func TestAccDataSourceNcloudPortForwardingRulesBasic(t *testing.T) {
 
 var testAccDataSourceNcloudPortForwardingRulesConfig = `
 data "ncloud_port_forwarding_rules" "rules" {
-  "zone" = "KR-1"
+  zone = "KR-1"
 }
 `

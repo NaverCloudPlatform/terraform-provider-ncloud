@@ -6,9 +6,9 @@ import (
 	"testing"
 
 	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/services/server"
-	"github.com/hashicorp/terraform/helper/resource"
-	"github.com/hashicorp/terraform/helper/schema"
-	"github.com/hashicorp/terraform/terraform"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 )
 
 func TestAccResourceNcloudNasVolumeBasic(t *testing.T) {
@@ -190,27 +190,27 @@ func testAccCheckNasVolumeNotRecreated(t *testing.T,
 func testAccNasVolumeConfig(volumeNamePostfix string) string {
 	return fmt.Sprintf(`
 resource "ncloud_nas_volume" "test" {
-	"volume_name_postfix" = "%s"
-	"volume_size" = "500"
-	"volume_allotment_protocol_type" = "NFS"
+	volume_name_postfix = "%s"
+	volume_size = "500"
+	volume_allotment_protocol_type = "NFS"
 }`, volumeNamePostfix)
 }
 
 func testAccNasVolumeResizeConfig(volumeNamePostfix string) string {
 	return fmt.Sprintf(`
 resource "ncloud_nas_volume" "test" {
-	"volume_name_postfix" = "%s"
-	"volume_size" = "600"
-	"volume_allotment_protocol_type" = "NFS"
+	volume_name_postfix = "%s"
+	volume_size = "600"
+	volume_allotment_protocol_type = "NFS"
 }`, volumeNamePostfix)
 }
 
 func testAccNasVolumeChangeAccessControl(volumeNamePostfix string) string {
 	return fmt.Sprintf(`
 resource "ncloud_nas_volume" "test" {
-	"volume_name_postfix" = "%s"
-	"volume_size" = "600"
-	"volume_allotment_protocol_type" = "NFS"
-	"custom_ip_list" = ["10.10.10.1", "10.10.10.2"]
+	volume_name_postfix = "%s"
+	volume_size = "600"
+	volume_allotment_protocol_type = "NFS"
+	custom_ip_list = ["10.10.10.1", "10.10.10.2"]
 }`, volumeNamePostfix)
 }

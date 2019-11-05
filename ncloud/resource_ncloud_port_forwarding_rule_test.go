@@ -9,10 +9,10 @@ import (
 	"time"
 
 	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/services/server"
-	"github.com/hashicorp/terraform/helper/acctest"
-	"github.com/hashicorp/terraform/helper/resource"
-	"github.com/hashicorp/terraform/helper/schema"
-	"github.com/hashicorp/terraform/terraform"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 )
 
 func TestAccResourceNcloudPortForwardingRuleBasic(t *testing.T) {
@@ -147,20 +147,20 @@ func testAccPortForwardingRuleBasicConfig(externalPort int) string {
 	testServerName := prefix + "-vm"
 	return fmt.Sprintf(`
 resource "ncloud_login_key" "loginkey" {
-	"key_name" = "%s-key"
+	key_name = "%s-key"
 }
 
 resource "ncloud_server" "server" {
-	"name" = "%s"
-	"server_image_product_code" = "SPSW0LINUX000032"
-	"server_product_code" = "SPSVRSTAND000004"
-	"login_key_name" = "${ncloud_login_key.loginkey.key_name}"
+	name = "%s"
+	server_image_product_code = "SPSW0LINUX000032"
+	server_product_code = "SPSVRSTAND000004"
+	login_key_name = "${ncloud_login_key.loginkey.key_name}"
 }
 
 resource "ncloud_port_forwarding_rule" "test" {
-	"server_instance_no" = "${ncloud_server.server.id}"
-	"port_forwarding_external_port" = "%d"
-	"port_forwarding_internal_port" = "22"
+	server_instance_no = "${ncloud_server.server.id}"
+	port_forwarding_external_port = "%d"
+	port_forwarding_internal_port = "22"
 }`, testServerName, testServerName, externalPort)
 
 }
@@ -168,9 +168,9 @@ resource "ncloud_port_forwarding_rule" "test" {
 func testAccPortForwardingRuleExistingServerConfig(externalPort int) string {
 	return fmt.Sprintf(`
 resource "ncloud_port_forwarding_rule" "test" {
-	"server_instance_no" = "966669"
-	"port_forwarding_external_port" = "%d"
-	"port_forwarding_internal_port" = "22"
+	server_instance_no = "966669"
+	port_forwarding_external_port = "%d"
+	port_forwarding_internal_port = "22"
 }`, externalPort)
 
 }

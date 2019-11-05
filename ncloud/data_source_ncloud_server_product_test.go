@@ -3,7 +3,7 @@ package ncloud
 import (
 	"testing"
 
-	"github.com/hashicorp/terraform/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 )
 
 func TestAccDataSourceNcloudServerProductBasic(t *testing.T) {
@@ -25,7 +25,7 @@ func TestAccDataSourceNcloudServerProductBasic(t *testing.T) {
 
 var testAccDataSourceNcloudServerProductConfig = `
 data "ncloud_server_product" "test" {
-	"server_image_product_code" = "SPSW0LINUX000032"
-	"product_name_regex" = "vCPU 1EA, Memory 1GB, Disk 50GB"
+	server_image_product_code = "SPSW0LINUX000032"
+	product_name_regex = "vCPU 1EA, Memory 1GB, Disk 50GB"
 }
 `
