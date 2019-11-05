@@ -1,7 +1,7 @@
 package ncloud
 
 import (
-	"github.com/hashicorp/terraform/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"testing"
 )
 
@@ -24,7 +24,7 @@ func TestAccDataSourceNcloudAccessControlRuleBasic(t *testing.T) {
 
 var testAccDataSourceNcloudAccessControlRuleConfig = `
 data "ncloud_access_control_rule" "test" {
-  "is_default_group" = "true"
-  "destination_port" = "22"
+  is_default_group = "true"
+  destination_port = "22"
 }
 `

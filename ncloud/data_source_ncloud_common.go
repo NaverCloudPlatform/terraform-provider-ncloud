@@ -8,7 +8,7 @@ import (
 	"log"
 	"os"
 
-	"github.com/hashicorp/terraform/helper/hashcode"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/hashcode"
 )
 
 // Generates a hash for the set hash function used by the ID

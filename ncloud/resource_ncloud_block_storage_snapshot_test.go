@@ -7,9 +7,9 @@ import (
 
 	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/ncloud"
 	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/services/server"
-	"github.com/hashicorp/terraform/helper/resource"
-	"github.com/hashicorp/terraform/helper/schema"
-	"github.com/hashicorp/terraform/terraform"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 )
 
 // TODO: Fix TestAcc ErrorTestAccResourceNcloudBlockStorageBasic
@@ -123,25 +123,25 @@ func testAccCheckBlockStorageSnapshotDestroyWithProvider(s *terraform.State, pro
 func testAccBlockStorageSnapshotConfig(testLoginKeyName string, serverInstanceName string, blockStorageName string, snapshotName string) string {
 	return fmt.Sprintf(`
 resource "ncloud_login_key" "key" {
-	"key_name" = "%s"
+	key_name = "%s"
 }
 
 resource "ncloud_server" "vm" {
-	"name" = "%s"
-	"server_image_product_code" = "SPSW0LINUX000032"
-	"server_product_code" = "SPSVRSTAND000004"
-	"login_key_name" = "${ncloud_login_key.key.key_name}"
+	name = "%s"
+	server_image_product_code = "SPSW0LINUX000032"
+	server_product_code = "SPSVRSTAND000004"
+	login_key_name = "${ncloud_login_key.key.key_name}"
 }
 
 resource "ncloud_block_storage" "bs" {
-	"server_instance_no" = "${ncloud_server.vm.id}"
-	"name" = "%s"
-	"size" = "10"
+	server_instance_no = "${ncloud_server.vm.id}"
+	name = "%s"
+	size = "10"
 }
 
 resource "ncloud_block_storage_snapshot" "ss" {
-	"block_storage_instance_no" = "${ncloud_block_storage.bs.id}"
-	"name" = "%s"
+	block_storage_instance_no = "${ncloud_block_storage.bs.id}"
+	name = "%s"
 }
 `, testLoginKeyName, serverInstanceName, blockStorageName, snapshotName)
 }

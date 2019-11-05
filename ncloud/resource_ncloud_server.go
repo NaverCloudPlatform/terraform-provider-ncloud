@@ -8,9 +8,9 @@ import (
 
 	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/ncloud"
 	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/services/server"
-	"github.com/hashicorp/terraform/helper/resource"
-	"github.com/hashicorp/terraform/helper/schema"
-	"github.com/hashicorp/terraform/helper/validation"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
 
 func resourceNcloudServer() *schema.Resource {
@@ -517,6 +517,30 @@ func terminateServerInstance(client *NcloudAPIClient, serverInstanceNo string) e
 	if err != nil {
 		logErrorResponse("TerminateServerInstances", err, reqParams)
 		return err
+	}
+
+	stateConf := &resource.StateChangeConf{
+		Pending: []string{"NSTOP"},
+		Target:  []string{"TERMINATED"},
+		Refresh: func() (interface{}, string, error) {
+			instance, err := getServerInstance(client, serverInstanceNo)
+
+			if err != nil {
+				return 0, "", err
+			}
+			if instance == nil { // Instance is terminated.
+				return instance, "TERMINATED", nil
+			}
+			return instance, ncloud.StringValue(instance.ServerInstanceStatus.Code), nil
+		},
+		Timeout:    DefaultTimeout,
+		Delay:      2 * time.Second,
+		MinTimeout: 3 * time.Second,
+	}
+
+	_, err = stateConf.WaitForState()
+	if err != nil {
+		return fmt.Errorf("Error waiting for ServerInstance state to be \"TERMINATED\": %s", err)
 	}
 	return nil
 }

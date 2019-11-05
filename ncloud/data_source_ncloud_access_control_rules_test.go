@@ -2,7 +2,7 @@ package ncloud
 
 import (
 	"fmt"
-	"github.com/hashicorp/terraform/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"log"
 	"os"
 	"testing"
@@ -35,7 +35,7 @@ func testAccDataSourceNcloudAccessControlRulesBasic(t *testing.T) {
 func testAccDataSourceNcloudAccessControlRulesConfig(testConfigNo string) string {
 	return fmt.Sprintf(`
 data "ncloud_access_control_rules" "test" {
-	"access_control_group_configuration_no" = "%s"
+	access_control_group_configuration_no = "%s"
 }
 `, testConfigNo)
 

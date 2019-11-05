@@ -3,7 +3,7 @@ package ncloud
 import (
 	"testing"
 
-	"github.com/hashicorp/terraform/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 )
 
 // ignore:  no results. please change search criteria and try again
@@ -43,12 +43,12 @@ func TestAccDataSourceNcloudAccessControlGroupSelectByName(t *testing.T) {
 
 var testAccDataSourceNcloudAccessControlGroupDefaultConfig = `
 data "ncloud_access_control_group" "test" {
-	"is_default_group" = true
+	is_default_group = true
 }
 `
 
 var testAccDataSourceNcloudAccessControlGroupSelectByNameConfig = `
 data "ncloud_access_control_group" "test" {
-	"name" = "ncloud-default-acg"
+	name = "ncloud-default-acg"
 }
 `

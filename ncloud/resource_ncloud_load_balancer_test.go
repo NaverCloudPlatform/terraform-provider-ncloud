@@ -5,9 +5,9 @@ import (
 	"testing"
 
 	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/services/loadbalancer"
-	"github.com/hashicorp/terraform/helper/resource"
-	"github.com/hashicorp/terraform/helper/schema"
-	"github.com/hashicorp/terraform/terraform"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 )
 
 func TestAccNcloudLoadBalancerBasic(t *testing.T) {
@@ -148,22 +148,22 @@ func testAccCheckLoadBalancerDestroyWithProvider(s *terraform.State, provider *s
 func testAccLoadBalancerConfig(lbName string) string {
 	return fmt.Sprintf(`
 		resource "ncloud_load_balancer" "lb" {
-			"name"           = "%s"
-			"algorithm_type" = "SIPHS"
-			"description"    = "tftest_lb description"
+			name           = "%s"
+			algorithm_type = "SIPHS"
+			description    = "tftest_lb description"
 
-			"rule_list" = [
+			rule_list = [
 				{
-					"protocol_type"        = "HTTP"
-					"load_balancer_port"   = 80
-					"server_port"          = 80
-					"l7_health_check_path" = "/monitor/l7check"
+					protocol_type        = "HTTP"
+					load_balancer_port   = 80
+					server_port          = 80
+					l7_health_check_path = "/monitor/l7check"
 				},
 			]
 
-			"internet_line_type" = "PUBLC"
-			"network_usage_type" = "PBLIP"
-			"region"             = "KR"
+			internet_line_type = "PUBLC"
+			network_usage_type = "PBLIP"
+			region             = "KR"
 		}
 		`, lbName)
 }
@@ -171,22 +171,22 @@ func testAccLoadBalancerConfig(lbName string) string {
 func testAccLoadBalancerChangedConfig(lbName string) string {
 	return fmt.Sprintf(`
 		resource "ncloud_load_balancer" "lb" {
-			"name"           = "%s"
-			"algorithm_type" = "SIPHS"
-			"description"    = "tftest_lb change port"
+			name           = "%s"
+			algorithm_type = "SIPHS"
+			description    = "tftest_lb change port"
 
-			"rule_list" = [
+			rule_list = [
 				{
-					"protocol_type"        = "HTTP"
-					"load_balancer_port"   = 8080
-					"server_port"          = 8080
-					"l7_health_check_path" = "/monitor/l7check"
+					protocol_type        = "HTTP"
+					load_balancer_port   = 8080
+					server_port          = 8080
+					l7_health_check_path = "/monitor/l7check"
 				},
 			]
 
-			"internet_line_type" = "PUBLC"
-			"network_usage_type" = "PBLIP"
-			"region"             = "KR"
+			internet_line_type = "PUBLC"
+			network_usage_type = "PBLIP"
+			region             = "KR"
 		}
 		`, lbName)
 }
