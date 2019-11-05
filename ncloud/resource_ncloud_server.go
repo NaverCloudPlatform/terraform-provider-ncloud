@@ -518,6 +518,30 @@ func terminateServerInstance(client *NcloudAPIClient, serverInstanceNo string) e
 		logErrorResponse("TerminateServerInstances", err, reqParams)
 		return err
 	}
+
+	stateConf := &resource.StateChangeConf{
+		Pending: []string{"NSTOP"},
+		Target:  []string{"TERMINATED"},
+		Refresh: func() (interface{}, string, error) {
+			instance, err := getServerInstance(client, serverInstanceNo)
+
+			if err != nil {
+				return 0, "", err
+			}
+			if instance == nil { // Instance is terminated.
+				return instance, "TERMINATED", nil
+			}
+			return instance, ncloud.StringValue(instance.ServerInstanceStatus.Code), nil
+		},
+		Timeout:    DefaultTimeout,
+		Delay:      2 * time.Second,
+		MinTimeout: 3 * time.Second,
+	}
+
+	_, err = stateConf.WaitForState()
+	if err != nil {
+		return fmt.Errorf("Error waiting for ServerInstance state to be \"TERMINATED\": %s", err)
+	}
 	return nil
 }
 
