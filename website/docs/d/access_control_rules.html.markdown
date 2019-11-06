@@ -16,7 +16,7 @@ List of access configuration rules you want to get
 data "ncloud_access_control_rules" "test" {
     // access_control_group_configuration_no : You can get one from `ncloud_access_control_group`
     //      or `ncloud_access_control_groups`
-	"access_control_group_configuration_no" = "123"
+	access_control_group_configuration_no = "123"
 }
 ```
 

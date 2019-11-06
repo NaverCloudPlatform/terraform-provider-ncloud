@@ -15,7 +15,7 @@ When a server is created for the first time, a public IP address for port forwar
 
 ```hcl
 data "ncloud_port_forwarding_rule" "test" {
-  "port_forwarding_external_port" = "4088"
+  port_forwarding_external_port = "4088"
 }
 ```
 ncloud_nas_volume

@@ -14,10 +14,10 @@ Provides a ncloud load balancer ssl certificate resource.
 
 ```hcl
 resource "ncloud_load_balancer_ssl_certificate" "cert" {
-  "certificate_name"      = "tftest_ssl_cert"
-  "privatekey"            = "${file("lbtest.privateKey")}"
-  "publickey_certificate" = "${file("lbtest.crt")}"
-  "certificate_chain"     = "${file("lbtest.chain")}"
+  certificate_name      = "tftest_ssl_cert"
+  privatekey            = "${file("lbtest.privateKey")}"
+  publickey_certificate = "${file("lbtest.crt")}"
+  certificate_chain     = "${file("lbtest.chain")}"
 }
 ```
 

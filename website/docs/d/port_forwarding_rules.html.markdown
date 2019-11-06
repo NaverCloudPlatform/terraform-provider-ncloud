@@ -15,7 +15,7 @@ When a server is created for the first time, a public IP address for port forwar
 
 ```hcl
 data "ncloud_port_forwarding_rules" "rules" {
-  "zone_code" = "KR-1"
+  zone_code = "KR-1"
 }
 ```
 

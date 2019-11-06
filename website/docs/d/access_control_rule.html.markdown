@@ -14,8 +14,8 @@ Access configuration rule you want to get
 
 ```hcl
 data "ncloud_access_control_rule" "test" {
-  "is_default_group" = "true"
-  "destination_port" = "22"
+  is_default_group = "true"
+  destination_port = "22"
 }
 ```
 

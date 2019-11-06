@@ -15,8 +15,8 @@ Get public IP instance.
 
 ```hcl
 data "ncloud_public_ip" "public_ip" {
-  "sorted_by" = "publicIp"
-  "sorting_order" = "ascending"
+  sorted_by = "publicIp"
+  sorting_order = "ascending"
 }
 ```
 
