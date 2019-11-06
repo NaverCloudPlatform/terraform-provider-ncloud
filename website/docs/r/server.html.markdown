@@ -14,18 +14,18 @@ Provides a ncloud server instance resource.
 
 ```hcl
 resource "ncloud_server" "server" {
-    "name" = "tf-test-vm1"
-    "server_image_product_code" = "SPSW0LINUX000032"
-    "server_product_code" = "SPSVRSTAND000004"
+    name = "tf-test-vm1"
+    server_image_product_code = "SPSW0LINUX000032"
+    server_product_code = "SPSVRSTAND000004"
 
-    "tag_list" = [
+    tag_list = [
         {
-            "tag_key"   = "samplekey1"
-            "tag_value" = "samplevalue1"
+            tag_key   = "samplekey1"
+            tag_value = "samplevalue1"
         },
         {
-            "tag_key"   = "samplekey2"
-            "tag_value" = "samplevalue2"
+            tag_key   = "samplekey2"
+            tag_value = "samplevalue2"
         },
     ]
 }

@@ -14,9 +14,9 @@ Provides a ncloud block storage snapshot resource.
 
 ```hcl
 resource "ncloud_block_storage_snapshot" "snapshot" {
-	"block_storage_instance_no" = "812345"
-	"name" = "tf-test-snapshot1"
-	"description" = "Terraform test snapshot1"
+	block_storage_instance_no = "812345"
+	name = "tf-test-snapshot1"
+	description = "Terraform test snapshot1"
 }
 ```
 

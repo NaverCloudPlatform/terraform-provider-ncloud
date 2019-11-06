@@ -17,7 +17,7 @@ Provides a ncloud login key resource.
 
 ```hcl
 resource "ncloud_login_key" "loginkey" {
-  "key_name" = "sample key name"
+  key_name = "sample key name"
 }
 ```
 

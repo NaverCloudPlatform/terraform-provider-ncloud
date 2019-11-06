@@ -14,10 +14,10 @@ Provides a ncloud port forwarding rule resource.
 
 ```hcl
 resource "ncloud_port_forwarding_rule" "rule" {
-   "port_forwarding_configuration_no" = "1222"
-   "server_instance_no" = "812345"
-   "port_forwarding_external_port" = "2022"
-   "port_forwarding_internal_port" = "22"
+   port_forwarding_configuration_no = "1222"
+   server_instance_no = "812345"
+   port_forwarding_external_port = "2022"
+   port_forwarding_internal_port = "22"
 }
 ```
 

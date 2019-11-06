@@ -16,7 +16,7 @@ To create a server instance (VM), you should select a server image. This data so
 
 ```hcl
 data "ncloud_server_image" "image" {
-  "product_name_regex" = "^Windows Server 2012(.*)"
+  product_name_regex = "^Windows Server 2012(.*)"
 }
 ```
 
@@ -24,7 +24,7 @@ data "ncloud_server_image" "image" {
 
 ```hcl
 data "ncloud_server_image" "image" {
-  "product_type_code" = "WINNT"
+  product_type_code = "WINNT"
 }
 ```
 

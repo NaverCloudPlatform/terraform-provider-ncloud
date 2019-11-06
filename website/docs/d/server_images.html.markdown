@@ -14,7 +14,7 @@ To create a server instance (VM), you should select a server image. This data so
 
 ```hcl
 data "ncloud_server_images" "all" {
-  "output_file" = "server_images.json"
+  output_file = "server_images.json"
 }
 ```
 

@@ -18,7 +18,7 @@ When creating a server instance (VM), you can add an access control group (ACG) 
 ```hcl
 data "ncloud_access_control_group" "test" {
     # filter by ACG name
-	"name" = "acg-name"
+	name = "acg-name"
 }
 ```
 
