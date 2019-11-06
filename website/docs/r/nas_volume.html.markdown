@@ -14,9 +14,9 @@ Provides a ncloud NAS volume.
 
 ```hcl
 resource "ncloud_nas_volume" "test" {
-	"volume_name_postfix"            = "vol"
-	"volume_size"                    = "600"
-	"volume_allotment_protocol_type" = "NFS"
+	volume_name_postfix            = "vol"
+	volume_size                    = "600"
+	volume_allotment_protocol_type = "NFS"
 }
 ```
 

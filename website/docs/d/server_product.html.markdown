@@ -15,7 +15,7 @@ To this end, we provide data source by which you can search a server product.
 
 ```hcl
 data "ncloud_server_product" "product" {
-	"server_image_product_code" = "SPSW0LINUX000032"
+	server_image_product_code = "SPSW0LINUX000032"
 }
 ```
 

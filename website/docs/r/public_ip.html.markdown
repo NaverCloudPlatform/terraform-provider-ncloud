@@ -14,7 +14,7 @@ Provides a ncloud public IP instance resource.
 
 ```hcl
 resource "ncloud_public_ip" "public_ip" {
-  "server_instance_no" = "812345"
+  server_instance_no = "812345"
 }
 ```
 

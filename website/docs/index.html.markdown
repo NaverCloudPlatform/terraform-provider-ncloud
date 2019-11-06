@@ -19,9 +19,9 @@ The provider needs to be configured with the proper credentials before it can be
 ```hcl
 // Configure the ncloud provider
 provider "ncloud" {
-  access_key = "${var.access_key}"
-  secret_key = "${var.secret_key}"
-  region = "${var.region}"
+  access_key = var.access_key
+  secret_key = var.secret_key
+  region     = var.region
 }
 
 // Create a new server instance
@@ -48,9 +48,9 @@ Usage:
 
 ```hcl
 provider "ncloud" {
-  access_key = "${var.access_key}"
-  secret_key = "${var.secret_key}"
-  region     = "${var.region}"
+  access_key = var.access_key
+  secret_key = var.secret_key
+  region     = var.region
 }
 ```
 
