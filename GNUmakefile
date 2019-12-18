@@ -6,6 +6,13 @@ PKG_NAME=ncloud
 
 default: build
 
+clean:
+	@if [[ -f $(GOPATH)/bin/terraform-provider-ncloud ]]; then \
+		rm $(GOPATH)/bin/terraform-provider-ncloud; \
+	else \
+		echo "nothing to clean."; \
+	fi
+
 build: fmtcheck
 	go install
 
