@@ -1,4 +1,4 @@
-## 1.2.0 (Unreleased)
+## 1.2.0 (December 18, 2019)
 
 ENHANCEMENTS:
 * Add a "clean" rule to Makefile
