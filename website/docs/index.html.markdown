@@ -22,6 +22,7 @@ provider "ncloud" {
   access_key = var.access_key
   secret_key = var.secret_key
   region     = var.region
+  site       = var.site
 }
 
 // Create a new server instance
@@ -41,7 +42,7 @@ The following methods are supported, in this order, and explained below:
 
 ### Static credentials ###
 
-Static credentials can be provided by adding an `access_key` `secret_key` and `region` in-line in the
+Static credentials can be provided by adding an `access_key` `secret_key` `region` and `site` in-line in the
 ncloud provider block:
 
 Usage:
@@ -51,6 +52,7 @@ provider "ncloud" {
   access_key = var.access_key
   secret_key = var.secret_key
   region     = var.region
+  site       = var.site
 }
 ```
 
@@ -88,6 +90,8 @@ The following arguments are supported:
 
 * `region` - (Optional) Ncloud region. default 'KR'
   it can also be sourced from the `NCLOUD_REGION` environment variables.
+
+* `site` - (Optional) Ncloud site. By default, the value is "public". You can specify only the following value: "public", "gov", "fin". "public" is for `www.ncloud.com`. "gov" is for `www.gov-ncloud.com`. "fin" is for `www.fin-ncloud.com`.
 
 ~> **Note** `access_key`, `secret_key` : (Get authentication keys for your account)[http://docs.ncloud.com/en/api_new/api_new-1-1.html#preparation]
 

@@ -28,6 +28,11 @@ func Provider() terraform.ResourceProvider {
 				DefaultFunc: schema.EnvDefaultFunc("NCLOUD_REGION", nil),
 				Description: descriptions["region"],
 			},
+			"site": {
+				Type:        schema.TypeString,
+				Optional:    true,
+				Description: descriptions["site"],
+			},
 		},
 		DataSourcesMap: map[string]*schema.Resource{
 			"ncloud_regions":               dataSourceNcloudRegions(),
@@ -74,6 +79,15 @@ func providerConfigure(d *schema.ResourceData) (interface{}, error) {
 		os.Setenv("NCLOUD_REGION", region.(string))
 	}
 
+	if site, ok := d.GetOk("site"); ok {
+		switch site {
+		case "gov":
+			os.Setenv("NCLOUD_API_GW", "https://ncloud.apigw.gov-ntruss.com")
+		case "fin":
+			os.Setenv("NCLOUD_API_GW", "https://ncloud.apigw.fin-ntruss.com")
+		}
+	}
+
 	sdk, err := config.Client()
 	if err != nil {
 		return nil, err
@@ -88,5 +102,6 @@ func init() {
 		"access_key": "Access key of ncloud",
 		"secret_key": "Secret key of ncloud",
 		"region":     "Region of ncloud",
+		"site":       "Site of ncloud (public / gov / fin)",
 	}
 }
