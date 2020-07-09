@@ -1,7 +1,13 @@
-## 1.2.1 (Unreleased)
+## 1.3.0 (Unreleased)
+
+ENHANCEMENTS:
+
+* Support "Gov" and "Fin" sites. "Gov" : ncloud for government (www.gov-ncloud.com) / "Fin" : ncloud for finance site (www.fin-ncloud.com). Default: "public" (www.ncloud.com)
+
 ## 1.2.0 (December 18, 2019)
 
 ENHANCEMENTS:
+
 * Add a "clean" rule to Makefile
 
 ## 1.1.0 (November 05, 2019)
