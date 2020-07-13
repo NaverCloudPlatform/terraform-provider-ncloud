@@ -52,6 +52,11 @@ func logCommonRequest(tag string, args interface{}) {
 	log.Printf("[INFO] %s params=%s", tag, param)
 }
 
+func logResponse(tag string, args interface{}) {
+	param, _ := json.Marshal(args)
+	log.Printf("[INFO] %s response=%s", tag, param)
+}
+
 func logCommonResponse(tag string, commonResponse *CommonResponse, logs ...string) {
 	result := fmt.Sprintf("RequestID: %s, ReturnCode: %s, ReturnMessage: %s", ncloud.StringValue(commonResponse.RequestId), ncloud.StringValue(commonResponse.ReturnCode), ncloud.StringValue(commonResponse.ReturnMessage))
 	log.Printf("[INFO] %s success response=%s %s", tag, result, strings.Join(logs, " "))
