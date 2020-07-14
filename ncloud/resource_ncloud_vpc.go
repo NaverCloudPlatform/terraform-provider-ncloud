@@ -15,17 +15,15 @@ import (
 
 func resourceNcloudVpc() *schema.Resource {
 	return &schema.Resource{
-		Create:        resourceNcloudVpcCreate,
-		Read:          resourceNcloudVpcRead,
-		Update:        resourceNcloudVpcUpdate,
-		Delete:        resourceNcloudVpcDelete,
-		SchemaVersion: 1,
+		Create: resourceNcloudVpcCreate,
+		Read:   resourceNcloudVpcRead,
+		Update: resourceNcloudVpcUpdate,
+		Delete: resourceNcloudVpcDelete,
+		Importer: &schema.ResourceImporter{
+			State: schema.ImportStatePassthrough,
+		},
 		CustomizeDiff: resourceNcloudVpcCustomizeDiff,
 		Schema: map[string]*schema.Schema{
-			"vpc_no": {
-				Type:     schema.TypeString,
-				Computed: true,
-			},
 			"name": {
 				Type:     schema.TypeString,
 				Required: true,
@@ -36,9 +34,14 @@ func resourceNcloudVpc() *schema.Resource {
 				),
 			},
 			"ipv4_cidr_block": {
+				Type:         schema.TypeString,
+				Required:     true,
+				ForceNew:     true,
+				ValidateFunc: validation.IsCIDRNetwork(16, 28),
+			},
+			"vpc_no": {
 				Type:     schema.TypeString,
-				Required: true,
-				ForceNew: true,
+				Computed: true,
 			},
 			"status": {
 				Type:     schema.TypeString,
@@ -72,7 +75,6 @@ func resourceNcloudVpcCreate(d *schema.ResourceData, meta interface{}) error {
 
 	vpcInstance := resp.VpcList[0]
 	d.SetId(*vpcInstance.VpcNo)
-	d.Set("vpc_no", vpcInstance.VpcNo)
 
 	stateConf := &resource.StateChangeConf{
 		Pending:    []string{"INIT", "CREATING"},
@@ -108,7 +110,13 @@ func resourceNcloudVpcRead(d *schema.ResourceData, meta interface{}) error {
 		return nil
 	}
 
-	return vpcInstanceAttributes(d, vpc)
+	d.SetId(*vpc.VpcNo)
+	d.Set("vpc_no", vpc.VpcNo)
+	d.Set("name", vpc.VpcName)
+	d.Set("ipv4_cidr_block", vpc.Ipv4CidrBlock)
+	d.Set("status", vpc.VpcStatus.Code)
+
+	return nil
 }
 
 func resourceNcloudVpcUpdate(d *schema.ResourceData, meta interface{}) error {
@@ -196,7 +204,9 @@ func VPCStateRefreshFunc(client *NcloudAPIClient, id string) resource.StateRefre
 func resourceNcloudVpcCustomizeDiff(diff *schema.ResourceDiff, v interface{}) error {
 	if diff.HasChange("name") {
 		old, new := diff.GetChange("name")
-		return fmt.Errorf("Change 'name' is not support, Please set name as a old value = [%s -> %s]", new, old)
+		if len(old.(string)) > 0 {
+			return fmt.Errorf("Change 'name' is not support, Please set name as a old value = [%s -> %s]", new, old)
+		}
 	}
 
 	return nil
