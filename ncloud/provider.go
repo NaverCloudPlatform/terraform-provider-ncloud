@@ -54,6 +54,7 @@ func Provider() terraform.ResourceProvider {
 			"ncloud_root_password":         dataSourceNcloudRootPassword(),
 			"ncloud_public_ip":             dataSourceNcloudPublicIp(),
 			"ncloud_vpc":                   dataSourceNcloudVpc(),
+			"ncloud_vpcs":                  dataSourceNcloudVpcs(),
 		},
 		ResourcesMap: map[string]*schema.Resource{
 			"ncloud_server":                        resourceNcloudServer(),
