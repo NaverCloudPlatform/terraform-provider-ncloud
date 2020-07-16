@@ -38,6 +38,27 @@ func parseRegionNoParameter(client *NcloudAPIClient, d *schema.ResourceData) (*s
 	return nil, nil
 }
 
+func parseRegionCodeParameter(client *NcloudAPIClient, d *schema.ResourceData) (*string, error) {
+	if regionCode, regionCodeOk := d.GetOk("region"); regionCodeOk {
+		region, err := getRegionByCode(client, regionCode.(string))
+		if region == nil || err != nil {
+			return nil, fmt.Errorf("no region data for region_code `%s`. please change region_code and try again", regionCode.(string))
+		}
+		return region.RegionCode, nil
+	}
+
+	// provider region
+	if regionCode := os.Getenv("NCLOUD_REGION"); regionCode != "" {
+		region, err := getRegionByCode(client, regionCode)
+		if region == nil || err != nil {
+			return nil, fmt.Errorf("no region data for region_code `%s`. please change region_code and try again", regionCode)
+		}
+		return region.RegionCode, nil
+	}
+
+	return nil, nil
+}
+
 func getRegionNoByCode(client *NcloudAPIClient, code string) *string {
 	if regionNo := regionCache[code]; regionNo != "" {
 		return ncloud.String(regionNo)
