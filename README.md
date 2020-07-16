@@ -14,7 +14,7 @@
 
 ## Building The Provider
 
-Clone repository to: `$GOPATH/src/github.com/terraform-providers/terraform-provider-ncloud`
+Clone repository to: `$GOPATH/src/github.com/NaverCloudPlatform/terraform-provider-ncloud`
 
 ```sh
 $ mkdir -p $GOPATH/src/github.com/NaverCloudPlatform; cd $GOPATH/src/github.com/NaverCloudPlatform
