@@ -53,8 +53,8 @@ func logCommonRequest(tag string, args interface{}) {
 }
 
 func logResponse(tag string, args interface{}) {
-	param, _ := json.Marshal(args)
-	log.Printf("[INFO] %s response=%s", tag, param)
+	resp, _ := json.Marshal(args)
+	log.Printf("[INFO] %s response=%s", tag, resp)
 }
 
 func logCommonResponse(tag string, commonResponse *CommonResponse, logs ...string) {
