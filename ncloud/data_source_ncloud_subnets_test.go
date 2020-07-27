@@ -80,7 +80,7 @@ func TestAccDataSourceNcloudSubnetsVpcNo(t *testing.T) {
 }
 
 func testAccDataSourceNcloudSubnetsConfig() string {
-	return fmt.Sprintf(`
+	return fmt.Sprint(`
 data "ncloud_subnets" "all" {}
 `)
 }

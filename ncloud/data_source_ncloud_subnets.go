@@ -16,35 +16,42 @@ func dataSourceNcloudSubnets() *schema.Resource {
 
 		Schema: map[string]*schema.Schema{
 			"subnet_no_list": {
-				Type:     schema.TypeList,
-				Optional: true,
-				Elem:     &schema.Schema{Type: schema.TypeString},
+				Type:        schema.TypeList,
+				Optional:    true,
+				Elem:        &schema.Schema{Type: schema.TypeString},
+				Description: "List of subnet ID to retrieve",
 			},
 			"vpc_no": {
-				Type:     schema.TypeString,
-				Optional: true,
+				Type:        schema.TypeString,
+				Optional:    true,
+				Description: "The VPC ID that you want to filter from",
 			},
 			"subnet": {
-				Type:     schema.TypeString,
-				Optional: true,
+				Type:        schema.TypeString,
+				Optional:    true,
+				Description: "The CIDR block for the subnet.",
 			},
 			"zone": {
-				Type:     schema.TypeString,
-				Optional: true,
+				Type:        schema.TypeString,
+				Optional:    true,
+				Description: "Available Zone. Get available values using the `data ncloud_zones`.",
 			},
 			"network_acl_no": {
-				Type:     schema.TypeString,
-				Optional: true,
+				Type:        schema.TypeString,
+				Optional:    true,
+				Description: "Network ACL No. Get available values using the `default_network_acl_no` from Resource `ncloud_vpc` or Data source `data.ncloud_network_acls`.",
 			},
 			"subnet_type": {
 				Type:         schema.TypeString,
 				Optional:     true,
 				ValidateFunc: validation.StringInSlice([]string{"PUBLIC", "PRIVATE"}, false),
+				Description:  "Internet Gateway Only. PUBLC(Yes/Public), PRIVATE(No/Private).",
 			},
 			"usage_type": {
 				Type:         schema.TypeString,
 				Optional:     true,
-				ValidateFunc: validation.StringInSlice([]string{"GEN", "LOADB"}, false),
+				ValidateFunc: validation.StringInSlice([]string{"GEN", "LOADB", "BM"}, false),
+				Description:  "Usage type. GEN(Normal), LOADB(Load Balance), BM(BareMetal). default : GEN(Normal).",
 			},
 			"status": {
 				Type:         schema.TypeString,
