@@ -12,8 +12,9 @@ func dataSourceNcloudSubnet() *schema.Resource {
 
 		Schema: map[string]*schema.Schema{
 			"subnet_no": {
-				Type:     schema.TypeString,
-				Required: true,
+				Type:        schema.TypeString,
+				Required:    true,
+				Description: "Subnet No. The id of the subnet for lookup",
 			},
 			"name": {
 				Type:     schema.TypeString,

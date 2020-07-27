@@ -3,7 +3,6 @@ package ncloud
 import (
 	"fmt"
 	"log"
-	"regexp"
 	"time"
 
 	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/ncloud"
@@ -25,45 +24,48 @@ func resourceNcloudSubnet() *schema.Resource {
 		CustomizeDiff: resourceNcloudSubnetCustomizeDiff,
 		Schema: map[string]*schema.Schema{
 			"name": {
-				Type:     schema.TypeString,
-				Required: true,
-				ValidateFunc: validation.All(
-					validation.StringLenBetween(3, 30),
-					validation.StringMatch(regexp.MustCompile(`^[A-Za-z0-9-*]+$`), "Composed of alphabets, numbers, hyphen (-) and wild card (*)."),
-					validation.StringMatch(regexp.MustCompile(`.*[^\\-]$`), "Hyphen (-) cannot be used for the last character and if wild card (*) is used, other characters cannot be input."),
-				),
+				Type:         schema.TypeString,
+				Required:     true,
+				ValidateFunc: validateInstanceName,
+				Description:  "Subnet name to create. default: Assigned by NAVER CLOUD PLATFORM.",
 			},
 			"vpc_no": {
-				Type:     schema.TypeString,
-				Required: true,
-				ForceNew: true,
+				Type:        schema.TypeString,
+				Required:    true,
+				ForceNew:    true,
+				Description: "The VPC ID.",
 			},
 			"subnet": {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
 				ValidateFunc: validation.IsCIDRNetwork(16, 28),
+				Description:  "The CIDR block for the subnet.",
 			},
 			"zone": {
-				Type:     schema.TypeString,
-				Required: true,
-				ForceNew: true,
+				Type:        schema.TypeString,
+				Required:    true,
+				ForceNew:    true,
+				Description: "Available Zone. Get available values using the `data ncloud_zones`.",
 			},
 			"network_acl_no": {
-				Type:     schema.TypeString,
-				Required: true,
+				Type:        schema.TypeString,
+				Required:    true,
+				Description: "Network ACL No. Get available values using the `default_network_acl_no` from Resource `ncloud_vpc` or Data source `data.ncloud_network_acls`.",
 			},
 			"subnet_type": {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
 				ValidateFunc: validation.StringInSlice([]string{"PUBLIC", "PRIVATE"}, false),
+				Description:  "Internet Gateway Only. PUBLC(Yes/Public), PRIVATE(No/Private).",
 			},
 			"usage_type": {
 				Type:         schema.TypeString,
 				Optional:     true,
 				ForceNew:     true,
-				ValidateFunc: validation.StringInSlice([]string{"GEN", "LOADB"}, false),
+				ValidateFunc: validation.StringInSlice([]string{"GEN", "LOADB", "BM"}, false),
+				Description:  "Usage type. GEN(Normal), LOADB(Load Balance), BM(BareMetal). default : GEN(Normal).",
 			},
 			"subnet_no": {
 				Type:     schema.TypeString,
