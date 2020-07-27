@@ -104,14 +104,14 @@ func dataSourceNcloudSubnetsRead(d *schema.ResourceData, meta interface{}) error
 		reqParams.SubnetStatusCode = ncloud.String(v.(string))
 	}
 
-	logCommonRequest("GetSubnetList", reqParams)
+	logCommonRequest("data_source_ncloud_subnets > GetSubnetList", reqParams)
 	resp, err := client.vpc.V2Api.GetSubnetList(reqParams)
 
 	if err != nil {
-		logErrorResponse("GetSubnetList", err, reqParams)
+		logErrorResponse("data_source_ncloud_subnets > GetSubnetList", err, reqParams)
 		return err
 	}
-	logResponse("GetSubnetList", resp)
+	logResponse("data_source_ncloud_subnets > GetSubnetList", resp)
 
 	if resp == nil || len(resp.SubnetList) == 0 {
 		return fmt.Errorf("no matching Subnets found")
