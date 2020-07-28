@@ -3,7 +3,6 @@ package ncloud
 import (
 	"fmt"
 	"log"
-	"regexp"
 	"time"
 
 	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/ncloud"
@@ -25,19 +24,17 @@ func resourceNcloudVpc() *schema.Resource {
 		CustomizeDiff: resourceNcloudVpcCustomizeDiff,
 		Schema: map[string]*schema.Schema{
 			"name": {
-				Type:     schema.TypeString,
-				Required: true,
-				ValidateFunc: validation.All(
-					validation.StringLenBetween(3, 30),
-					validation.StringMatch(regexp.MustCompile(`^[A-Za-z0-9-*]+$`), "Composed of alphabets, numbers, hyphen (-) and wild card (*)."),
-					validation.StringMatch(regexp.MustCompile(`.*[^\\-]$`), "Hyphen (-) cannot be used for the last character and if wild card (*) is used, other characters cannot be input."),
-				),
+				Type:         schema.TypeString,
+				Optional:     true,
+				ValidateFunc: validateInstanceName,
+				Description:  "Subnet name to create. default: Assigned by NAVER CLOUD PLATFORM.",
 			},
 			"ipv4_cidr_block": {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
 				ValidateFunc: validation.IsCIDRNetwork(16, 28),
+				Description:  "The CIDR block for the vpc.",
 			},
 			"vpc_no": {
 				Type:     schema.TypeString,
@@ -63,9 +60,12 @@ func resourceNcloudVpcCreate(d *schema.ResourceData, meta interface{}) error {
 	}
 
 	reqParams := &vpc.CreateVpcRequest{
-		VpcName:       ncloud.String(d.Get("name").(string)),
 		Ipv4CidrBlock: ncloud.String(d.Get("ipv4_cidr_block").(string)),
 		RegionCode:    regionCode,
+	}
+
+	if v, ok := d.GetOk("name"); ok {
+		reqParams.VpcName = ncloud.String(v.(string))
 	}
 
 	logCommonRequest("resource_ncloud_vpc > CreateVpc", reqParams)
