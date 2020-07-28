@@ -25,7 +25,7 @@ func resourceNcloudSubnet() *schema.Resource {
 		Schema: map[string]*schema.Schema{
 			"name": {
 				Type:         schema.TypeString,
-				Required:     true,
+				Optional:     true,
 				ValidateFunc: validateInstanceName,
 				Description:  "Subnet name to create. default: Assigned by NAVER CLOUD PLATFORM.",
 			},
@@ -177,6 +177,21 @@ func resourceNcloudSubnetUpdate(d *schema.ResourceData, meta interface{}) error 
 			return err
 		}
 		logResponse("resource_ncloud_subnet > SetSubnetNetworkAcl", resp)
+	}
+
+	stateConf := &resource.StateChangeConf{
+		Pending:    []string{"SET"},
+		Target:     []string{"RUN"},
+		Refresh:    NetworkACLStateRefreshFunc(client, d.Get("network_acl_no").(string)),
+		Timeout:    DefaultTimeout,
+		Delay:      2 * time.Second,
+		MinTimeout: 3 * time.Second,
+	}
+
+	if _, err := stateConf.WaitForState(); err != nil {
+		return fmt.Errorf(
+			"Error waiting for Set network ACL for Subnet (%s) to become running: %s",
+			d.Id(), err)
 	}
 
 	return resourceNcloudSubnetRead(d, meta)
