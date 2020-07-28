@@ -33,7 +33,7 @@ func resourceNcloudSubnet() *schema.Resource {
 				Type:        schema.TypeString,
 				Required:    true,
 				ForceNew:    true,
-				Description: "The VPC ID.",
+				Description: "The id of the VPC that the desired subnet belongs to.",
 			},
 			"subnet": {
 				Type:         schema.TypeString,
@@ -58,7 +58,7 @@ func resourceNcloudSubnet() *schema.Resource {
 				Required:     true,
 				ForceNew:     true,
 				ValidateFunc: validation.StringInSlice([]string{"PUBLIC", "PRIVATE"}, false),
-				Description:  "Internet Gateway Only. PUBLC(Yes/Public), PRIVATE(No/Private).",
+				Description:  "Internet Gateway Only. PUBLIC(Yes/Public), PRIVATE(No/Private).",
 			},
 			"usage_type": {
 				Type:         schema.TypeString,

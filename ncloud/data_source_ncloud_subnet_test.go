@@ -9,8 +9,8 @@ import (
 )
 
 func TestAccDataSourceNcloudSubnet(t *testing.T) {
-	cidr := fmt.Sprint("10.2.2.0/24")
-	name := fmt.Sprint("testacc-data-subnet-basic")
+	cidr := "10.2.2.0/24"
+	name := "testacc-data-subnet-basic"
 	resourceName := "ncloud_subnet.bar"
 	dataName := "data.ncloud_subnet.by_id"
 
