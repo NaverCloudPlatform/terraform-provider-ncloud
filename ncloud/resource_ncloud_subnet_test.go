@@ -13,7 +13,7 @@ import (
 func TestAccResourceNcloudSubnet_basic(t *testing.T) {
 	var subnet vpc.Subnet
 	name := "testacc-subnet-basic"
-	cidr := fmt.Sprintf("10.2.2.0/24")
+	cidr := "10.2.2.0/24"
 	resourceName := "ncloud_subnet.bar"
 
 	resource.ParallelTest(t, resource.TestCase{
