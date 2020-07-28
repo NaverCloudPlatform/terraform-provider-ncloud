@@ -14,7 +14,7 @@ func TestAccDataSourceNcloudSubnet(t *testing.T) {
 	resourceName := "ncloud_subnet.bar"
 	dataName := "data.ncloud_subnet.by_id"
 
-	resource.ParallelTest(t, resource.TestCase{
+	resource.Test(t, resource.TestCase{
 		PreCheck:  func() { testAccPreCheck(t) },
 		Providers: testAccProviders,
 		Steps: []resource.TestStep{
