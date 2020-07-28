@@ -10,7 +10,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 )
 
-func TestAccResourceNcloudSubnet_basic(t *testing.T) {
+func TestAccResourceNcloudSubnet_Basic(t *testing.T) {
 	var subnet vpc.Subnet
 	name := "testacc-subnet-basic"
 	cidr := "10.2.2.0/24"
@@ -31,6 +31,38 @@ func TestAccResourceNcloudSubnet_basic(t *testing.T) {
 					resource.TestMatchResourceAttr(resourceName, "network_acl_no", regexp.MustCompile(`^\d+$`)),
 					resource.TestCheckResourceAttr(resourceName, "status", "RUN"),
 				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+		},
+	})
+}
+
+func TestAccResourceNcloudSubnet_UpdateName(t *testing.T) {
+	var subnet vpc.Subnet
+	name := "testacc-subnet-basic"
+	cidr := "10.2.2.0/24"
+	resourceName := "ncloud_subnet.bar"
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:  func() { testAccPreCheck(t) },
+		Providers: testAccProviders,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccResourceNcloudSubnetConfig(name, cidr),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckSubnetExists(resourceName, &subnet),
+				),
+			},
+			{
+				Config: testAccResourceNcloudSubnetConfig("testacc-subnet-update", cidr),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckSubnetExists(resourceName, &subnet),
+				),
+				ExpectError: regexp.MustCompile("Change 'name' is not support, Please set `name` as a old value"),
 			},
 			{
 				ResourceName:      resourceName,
