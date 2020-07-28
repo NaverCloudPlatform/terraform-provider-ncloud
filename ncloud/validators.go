@@ -3,6 +3,8 @@ package ncloud
 import (
 	"fmt"
 	"regexp"
+	"strconv"
+	"strings"
 )
 
 func validateInstanceName(v interface{}, k string) (ws []string, errors []error) {
@@ -29,4 +31,55 @@ func validateInstanceName(v interface{}, k string) (ws []string, errors []error)
 	}
 
 	return
+}
+
+func validatePortRange(v interface{}, k string) (ws []string, errors []error) {
+	value := v.(string)
+
+	if !regexp.MustCompile(`^[1-9][0-9]*([-][1-9][0-9]*|[0-9]*)`).MatchString(value) {
+		errors = append(errors, fmt.Errorf("Invalid %s type format (eg. 1-65535, 22)", k))
+		return
+	}
+
+	if !isValidPortRange(value) {
+		errors = append(errors, fmt.Errorf("%s must be 1 to 65535", k))
+		return
+	}
+
+	return
+}
+
+func isValidPortRange(value string) bool {
+	ports := strings.Split(value, "-")
+
+	if len(ports) == 2 {
+		start, err := strconv.Atoi(ports[0])
+		if err != nil {
+			return false
+		}
+
+		end, err := strconv.Atoi(ports[1])
+		if err != nil {
+			return false
+		}
+
+		if start > 65535 || end > 65535 {
+			return false
+		}
+
+		if start > end {
+			return false
+		}
+
+		return true
+	} else if len(ports) > 2 {
+		return false
+	}
+
+	portNumber, err := strconv.Atoi(value)
+	if err != nil {
+		return false
+	}
+
+	return portNumber <= 65535
 }

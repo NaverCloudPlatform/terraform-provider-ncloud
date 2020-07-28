@@ -69,3 +69,67 @@ func Test_validateInstanceName(t *testing.T) {
 		}
 	}
 }
+
+func Test_validatePortRange(t *testing.T) {
+	cases := []struct {
+		Value    string
+		ErrCount int
+	}{
+		{
+			Value:    "22",
+			ErrCount: 0,
+		},
+		{
+			Value:    "65535",
+			ErrCount: 0,
+		},
+		{
+			Value:    "1-65535",
+			ErrCount: 0,
+		},
+		{
+			Value:    "1-65536",
+			ErrCount: 1,
+		},
+		{
+			Value:    "0-65535",
+			ErrCount: 1,
+		},
+		{
+			Value:    "8081-22",
+			ErrCount: 1,
+		},
+		{
+			Value:    "65536",
+			ErrCount: 1,
+		},
+		{
+			Value:    "a22",
+			ErrCount: 1,
+		},
+		{
+			Value:    "a22-8081",
+			ErrCount: 1,
+		},
+		{
+			Value:    "22-33-567",
+			ErrCount: 1,
+		},
+		{
+			Value:    "22-",
+			ErrCount: 1,
+		},
+		{
+			Value:    "-22",
+			ErrCount: 1,
+		},
+	}
+
+	for _, tc := range cases {
+		_, errors := validatePortRange(tc.Value, "portRange")
+
+		if len(errors) != tc.ErrCount {
+			t.Fatalf("Expected the portRange to trigger a validation error for %q", tc.Value)
+		}
+	}
+}
