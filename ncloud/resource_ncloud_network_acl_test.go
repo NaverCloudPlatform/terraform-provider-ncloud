@@ -14,7 +14,7 @@ func TestAccResourceNcloudNetworkACL_basic(t *testing.T) {
 	var networkACL vpc.NetworkAcl
 	resourceName := "ncloud_network_acl.nacl"
 
-	resource.ParallelTest(t, resource.TestCase{
+	resource.Test(t, resource.TestCase{
 		PreCheck:  func() { testAccPreCheck(t) },
 		Providers: testAccProviders,
 		Steps: []resource.TestStep{
@@ -41,7 +41,7 @@ func TestAccResourceNcloudNetworkACL_onlyRequiredParam(t *testing.T) {
 	var networkACL vpc.NetworkAcl
 	resourceName := "ncloud_network_acl.nacl"
 
-	resource.ParallelTest(t, resource.TestCase{
+	resource.Test(t, resource.TestCase{
 		PreCheck:  func() { testAccPreCheck(t) },
 		Providers: testAccProviders,
 		Steps: []resource.TestStep{
@@ -68,7 +68,7 @@ func TestAccResourceNcloudNetworkACL_updateName(t *testing.T) {
 	var networkACL vpc.NetworkAcl
 	resourceName := "ncloud_network_acl.nacl"
 
-	resource.ParallelTest(t, resource.TestCase{
+	resource.Test(t, resource.TestCase{
 		PreCheck:  func() { testAccPreCheck(t) },
 		Providers: testAccProviders,
 		Steps: []resource.TestStep{
