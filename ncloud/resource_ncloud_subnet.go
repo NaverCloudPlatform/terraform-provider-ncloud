@@ -87,7 +87,6 @@ func resourceNcloudSubnetCreate(d *schema.ResourceData, meta interface{}) error 
 	}
 
 	reqParams := &vpc.CreateSubnetRequest{
-		SubnetName:     ncloud.String(d.Get("name").(string)),
 		Subnet:         ncloud.String(d.Get("subnet").(string)),
 		SubnetTypeCode: ncloud.String(d.Get("subnet_type").(string)),
 		UsageTypeCode:  ncloud.String(d.Get("usage_type").(string)),
@@ -95,6 +94,10 @@ func resourceNcloudSubnetCreate(d *schema.ResourceData, meta interface{}) error 
 		VpcNo:          ncloud.String(d.Get("vpc_no").(string)),
 		ZoneCode:       ncloud.String(d.Get("zone").(string)),
 		RegionCode:     regionCode,
+	}
+
+	if v, ok := d.GetOk("name"); ok {
+		reqParams.SubnetName = ncloud.String(v.(string))
 	}
 
 	if v, ok := d.GetOk("usage_type"); ok {

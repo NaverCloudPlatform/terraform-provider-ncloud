@@ -1,0 +1,237 @@
+package ncloud
+
+import (
+	"fmt"
+	"log"
+	"time"
+
+	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/ncloud"
+	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/services/vpc"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
+)
+
+func resourceNcloudNatGateway() *schema.Resource {
+	return &schema.Resource{
+		Create: resourceNcloudNatGatewayCreate,
+		Read:   resourceNcloudNatGatewayRead,
+		Update: resourceNcloudNatGatewayUpdate,
+		Delete: resourceNcloudNatGatewayDelete,
+		Importer: &schema.ResourceImporter{
+			State: schema.ImportStatePassthrough,
+		},
+		CustomizeDiff: resourceNcloudNatGatewayCustomizeDiff,
+		Schema: map[string]*schema.Schema{
+			"name": {
+				Type:         schema.TypeString,
+				Optional:     true,
+				Computed:     true,
+				ValidateFunc: validateInstanceName,
+				Description:  "NAT Gateway name to create. default: Assigned by NAVER CLOUD PLATFORM.",
+			},
+			"description": {
+				Type:         schema.TypeString,
+				Optional:     true,
+				ValidateFunc: validation.StringLenBetween(0, 1000),
+				Description:  "Description of a NAT Gateway to create.",
+			},
+			"vpc_no": {
+				Type:        schema.TypeString,
+				Required:    true,
+				ForceNew:    true,
+				Description: "The id of the VPC that the desired nat gateway belongs to.",
+			},
+			"zone": {
+				Type:        schema.TypeString,
+				Required:    true,
+				ForceNew:    true,
+				Description: "Available Zone. Get available values using the `data ncloud_zones`.",
+			},
+			"nat_gateway_no": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+			"public_ip": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+			"status": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+		},
+	}
+}
+
+func resourceNcloudNatGatewayCreate(d *schema.ResourceData, meta interface{}) error {
+	client := meta.(*NcloudAPIClient)
+	regionCode, err := parseRegionCodeParameter(client, d)
+	if err != nil {
+		return err
+	}
+
+	reqParams := &vpc.CreateNatGatewayInstanceRequest{
+		RegionCode: regionCode,
+		VpcNo:      ncloud.String(d.Get("vpc_no").(string)),
+		ZoneCode:   ncloud.String(d.Get("zone").(string)),
+	}
+
+	if v, ok := d.GetOk("name"); ok {
+		reqParams.NatGatewayName = ncloud.String(v.(string))
+	}
+
+	if v, ok := d.GetOk("description"); ok {
+		reqParams.NatGatewayDescription = ncloud.String(v.(string))
+	}
+
+	logCommonRequest("resource_ncloud_nat_gateway > CreateNatGatewayInstance", reqParams)
+	resp, err := client.vpc.V2Api.CreateNatGatewayInstance(reqParams)
+	if err != nil {
+		logErrorResponse("resource_ncloud_nat_gateway > CreateNatGatewayInstance", err, reqParams)
+		return err
+	}
+
+	logResponse("resource_ncloud_nat_gateway > CreateNatGatewayInstance", resp)
+
+	instance := resp.NatGatewayInstanceList[0]
+	d.SetId(*instance.NatGatewayInstanceNo)
+
+	stateConf := &resource.StateChangeConf{
+		Pending:    []string{"INIT", "CREATING"},
+		Target:     []string{"RUN"},
+		Refresh:    NatGatewayStateRefreshFunc(client, d.Id()),
+		Timeout:    DefaultCreateTimeout,
+		Delay:      2 * time.Second,
+		MinTimeout: 3 * time.Second,
+	}
+
+	if _, err := stateConf.WaitForState(); err != nil {
+		return fmt.Errorf(
+			"Error waiting for NAT Gateway (%s) to become available: %s",
+			d.Id(), err)
+	}
+
+	log.Printf("[INFO] NAT Gateway ID: %s", d.Id())
+
+	return resourceNcloudNatGatewayRead(d, meta)
+}
+
+func resourceNcloudNatGatewayRead(d *schema.ResourceData, meta interface{}) error {
+	client := meta.(*NcloudAPIClient)
+
+	instance, err := getNatGatewayInstance(client, d.Id())
+	if err != nil {
+		d.SetId("")
+		return err
+	}
+
+	if instance == nil {
+		d.SetId("")
+		return nil
+	}
+
+	d.SetId(*instance.NatGatewayInstanceNo)
+	d.Set("nat_gateway_no", instance.NatGatewayInstanceNo)
+	d.Set("name", instance.NatGatewayName)
+	d.Set("description", instance.NatGatewayDescription)
+	d.Set("public_ip", instance.PublicIp)
+	d.Set("status", instance.NatGatewayInstanceStatus.Code)
+	d.Set("vpc_no", instance.VpcNo)
+	d.Set("zone", instance.ZoneCode)
+
+	return nil
+}
+
+func resourceNcloudNatGatewayUpdate(d *schema.ResourceData, meta interface{}) error {
+	return resourceNcloudNatGatewayRead(d, meta)
+}
+
+func resourceNcloudNatGatewayDelete(d *schema.ResourceData, meta interface{}) error {
+	client := meta.(*NcloudAPIClient)
+
+	regionCode, err := parseRegionCodeParameter(client, d)
+	if err != nil {
+		return err
+	}
+
+	reqParams := &vpc.DeleteNatGatewayInstanceRequest{
+		NatGatewayInstanceNo: ncloud.String(d.Get("nat_gateway_no").(string)),
+		RegionCode:           regionCode,
+	}
+
+	logCommonRequest("resource_ncloud_nat_gateway > DeleteNatGatewayInstance", reqParams)
+	resp, err := client.vpc.V2Api.DeleteNatGatewayInstance(reqParams)
+	if err != nil {
+		logErrorResponse("resource_ncloud_nat_gateway > DeleteNatGatewayInstance", err, reqParams)
+		return err
+	}
+
+	logResponse("resource_ncloud_nat_gateway > DeleteNatGatewayInstance", resp)
+
+	stateConf := &resource.StateChangeConf{
+		Pending:    []string{"RUN", "TERMTING"},
+		Target:     []string{"TERMINATED"},
+		Refresh:    NatGatewayStateRefreshFunc(client, d.Id()),
+		Timeout:    DefaultTimeout,
+		Delay:      2 * time.Second,
+		MinTimeout: 3 * time.Second,
+	}
+
+	if _, err := stateConf.WaitForState(); err != nil {
+		return fmt.Errorf(
+			"Error waiting for NAT Gateway (%s) to become termintaing: %s",
+			d.Id(), err)
+	}
+
+	return nil
+}
+
+func getNatGatewayInstance(client *NcloudAPIClient, id string) (*vpc.NatGatewayInstance, error) {
+	reqParams := &vpc.GetNatGatewayInstanceDetailRequest{
+		NatGatewayInstanceNo: ncloud.String(id),
+	}
+
+	logCommonRequest("resource_ncloud_nat_gateway > GetNatGatewayInstanceDetail", reqParams)
+	resp, err := client.vpc.V2Api.GetNatGatewayInstanceDetail(reqParams)
+	if err != nil {
+		logErrorResponse("resource_ncloud_nat_gateway > GetNatGatewayInstanceDetail", err, reqParams)
+		return nil, err
+	}
+	logResponse("resource_ncloud_nat_gateway > GetNatGatewayInstanceDetail", resp)
+
+	if len(resp.NatGatewayInstanceList) > 0 {
+		instance := resp.NatGatewayInstanceList[0]
+		return instance, nil
+	}
+
+	return nil, nil
+}
+
+// NatGatewayStateRefreshFunc returns a resource.StateRefreshFunc that is used to watch a NAT Gateway
+func NatGatewayStateRefreshFunc(client *NcloudAPIClient, id string) resource.StateRefreshFunc {
+	return func() (interface{}, string, error) {
+		instance, err := getNatGatewayInstance(client, id)
+
+		if err != nil {
+			return nil, "", err
+		}
+
+		if instance == nil {
+			return instance, "TERMINATED", nil
+		}
+
+		return instance, *instance.NatGatewayInstanceStatus.Code, nil
+	}
+}
+
+func resourceNcloudNatGatewayCustomizeDiff(diff *schema.ResourceDiff, v interface{}) error {
+	if diff.HasChange("name") {
+		old, new := diff.GetChange("name")
+		if len(old.(string)) > 0 {
+			return fmt.Errorf("Change 'name' is not support, Please set name as a old value = [%s -> %s]", new, old)
+		}
+	}
+
+	return nil
+}
