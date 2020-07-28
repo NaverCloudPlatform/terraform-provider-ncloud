@@ -26,6 +26,7 @@ func resourceNcloudNatGateway() *schema.Resource {
 			"name": {
 				Type:         schema.TypeString,
 				Optional:     true,
+				Computed:     true,
 				ValidateFunc: validateInstanceName,
 				Description:  "NAT Gateway name to create. default: Assigned by NAVER CLOUD PLATFORM.",
 			},
@@ -47,7 +48,7 @@ func resourceNcloudNatGateway() *schema.Resource {
 				ForceNew:    true,
 				Description: "Available Zone. Get available values using the `data ncloud_zones`.",
 			},
-			"instance_no": {
+			"nat_gateway_no": {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
@@ -131,7 +132,7 @@ func resourceNcloudNatGatewayRead(d *schema.ResourceData, meta interface{}) erro
 	}
 
 	d.SetId(*instance.NatGatewayInstanceNo)
-	d.Set("instance_no", instance.NatGatewayInstanceNo)
+	d.Set("nat_gateway_no", instance.NatGatewayInstanceNo)
 	d.Set("name", instance.NatGatewayName)
 	d.Set("description", instance.NatGatewayDescription)
 	d.Set("public_ip", instance.PublicIp)
@@ -155,7 +156,7 @@ func resourceNcloudNatGatewayDelete(d *schema.ResourceData, meta interface{}) er
 	}
 
 	reqParams := &vpc.DeleteNatGatewayInstanceRequest{
-		NatGatewayInstanceNo: ncloud.String(d.Get("instance_no").(string)),
+		NatGatewayInstanceNo: ncloud.String(d.Get("nat_gateway_no").(string)),
 		RegionCode:           regionCode,
 	}
 

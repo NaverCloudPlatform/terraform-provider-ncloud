@@ -11,10 +11,18 @@ func dataSourceNcloudNatGateway() *schema.Resource {
 		Read: dataSourceNcloudNatGatewayRead,
 
 		Schema: map[string]*schema.Schema{
-			"instance_no": {
+			"nat_gateway_no": {
 				Type:        schema.TypeString,
 				Required:    true,
 				Description: "NAT Gateway No. The id of the NAT Gateway for lookup",
+			},
+			"vpc_no": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+			"zone": {
+				Type:     schema.TypeString,
+				Computed: true,
 			},
 			"name": {
 				Type:     schema.TypeString,
@@ -44,7 +52,7 @@ func dataSourceNcloudNatGatewayRead(d *schema.ResourceData, meta interface{}) er
 	}
 
 	reqParams := &vpc.GetNatGatewayInstanceDetailRequest{
-		NatGatewayInstanceNo: ncloud.String(d.Get("instance_no").(string)),
+		NatGatewayInstanceNo: ncloud.String(d.Get("nat_gateway_no").(string)),
 		RegionCode:           regionCode,
 	}
 
@@ -67,13 +75,13 @@ func dataSourceNcloudNatGatewayRead(d *schema.ResourceData, meta interface{}) er
 	instance := instanceList[0]
 
 	d.SetId(*instance.NatGatewayInstanceNo)
-	d.Set("instance_no", instance.NatGatewayInstanceNo)
+	d.Set("nat_gateway_no", instance.NatGatewayInstanceNo)
 	d.Set("name", instance.NatGatewayName)
 	d.Set("description", instance.NatGatewayDescription)
 	d.Set("public_ip", instance.PublicIp)
 	d.Set("status", instance.NatGatewayInstanceStatus.Code)
-	// d.Set("vpc_no", instance.VpcNo)
-	// d.Set("zone", instance.ZoneCode)
+	d.Set("vpc_no", instance.VpcNo)
+	d.Set("zone", instance.ZoneCode)
 
 	return nil
 }
