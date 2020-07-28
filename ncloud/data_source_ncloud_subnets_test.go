@@ -8,7 +8,7 @@ import (
 )
 
 func TestAccDataSourceNcloudSubnetsBasic(t *testing.T) {
-	resource.ParallelTest(t, resource.TestCase{
+	resource.Test(t, resource.TestCase{
 		PreCheck:  func() { testAccPreCheck(t) },
 		Providers: testAccProviders,
 		Steps: []resource.TestStep{
@@ -26,7 +26,7 @@ func TestAccDataSourceNcloudSubnetsBasic(t *testing.T) {
 }
 
 func TestAccDataSourceNcloudSubnetsName(t *testing.T) {
-	resource.ParallelTest(t, resource.TestCase{
+	resource.Test(t, resource.TestCase{
 		PreCheck:  func() { testAccPreCheck(t) },
 		Providers: testAccProviders,
 		Steps: []resource.TestStep{
@@ -44,7 +44,7 @@ func TestAccDataSourceNcloudSubnetsName(t *testing.T) {
 }
 
 func TestAccDataSourceNcloudSubnetsStatus(t *testing.T) {
-	resource.ParallelTest(t, resource.TestCase{
+	resource.Test(t, resource.TestCase{
 		PreCheck:  func() { testAccPreCheck(t) },
 		Providers: testAccProviders,
 		Steps: []resource.TestStep{
@@ -62,7 +62,7 @@ func TestAccDataSourceNcloudSubnetsStatus(t *testing.T) {
 }
 
 func TestAccDataSourceNcloudSubnetsVpcNo(t *testing.T) {
-	resource.ParallelTest(t, resource.TestCase{
+	resource.Test(t, resource.TestCase{
 		PreCheck:  func() { testAccPreCheck(t) },
 		Providers: testAccProviders,
 		Steps: []resource.TestStep{

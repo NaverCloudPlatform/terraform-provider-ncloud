@@ -16,7 +16,7 @@ func TestAccResourceNcloudSubnet_basic(t *testing.T) {
 	cidr := "10.2.2.0/24"
 	resourceName := "ncloud_subnet.bar"
 
-	resource.ParallelTest(t, resource.TestCase{
+	resource.Test(t, resource.TestCase{
 		PreCheck:  func() { testAccPreCheck(t) },
 		Providers: testAccProviders,
 		Steps: []resource.TestStep{
@@ -47,7 +47,7 @@ func TestAccResourceNcloudSubnet_UpdateNetworkACL(t *testing.T) {
 	cidr := "10.2.2.0/24"
 	resourceName := "ncloud_subnet.bar"
 
-	resource.ParallelTest(t, resource.TestCase{
+	resource.Test(t, resource.TestCase{
 		PreCheck:  func() { testAccPreCheck(t) },
 		Providers: testAccProviders,
 		Steps: []resource.TestStep{
@@ -68,7 +68,7 @@ func TestAccResourceNcloudSubnet_UpdateNetworkACL(t *testing.T) {
 }
 
 func TestAccResourceNcloudSubnet_InvalidCIDR(t *testing.T) {
-	resource.ParallelTest(t, resource.TestCase{
+	resource.Test(t, resource.TestCase{
 		PreCheck:  func() { testAccPreCheck(t) },
 		Providers: testAccProviders,
 		Steps: []resource.TestStep{
