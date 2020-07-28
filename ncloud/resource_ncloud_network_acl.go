@@ -21,7 +21,6 @@ func resourceNcloudNetworkACL() *schema.Resource {
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
-		CustomizeDiff: resourceNcloudNetworkACLCustomizeDiff,
 		Schema: map[string]*schema.Schema{
 			"name": {
 				Type:         schema.TypeString,
@@ -214,15 +213,4 @@ func NetworkACLStateRefreshFunc(client *NcloudAPIClient, id string) resource.Sta
 
 		return instance, *instance.NetworkAclStatus.Code, nil
 	}
-}
-
-func resourceNcloudNetworkACLCustomizeDiff(diff *schema.ResourceDiff, v interface{}) error {
-	if diff.HasChange("name") {
-		old, new := diff.GetChange("name")
-		if len(old.(string)) > 0 {
-			return fmt.Errorf("Change 'name' is not support, Please set name as a old value = [%s -> %s]", new, old)
-		}
-	}
-
-	return nil
 }
