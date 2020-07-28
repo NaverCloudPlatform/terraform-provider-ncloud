@@ -37,6 +37,63 @@ func TestAccResourceNcloudNetworkACL_basic(t *testing.T) {
 	})
 }
 
+func TestAccResourceNcloudNetworkACL_onlyRequiredParam(t *testing.T) {
+	var networkACL vpc.NetworkAcl
+	resourceName := "ncloud_network_acl.nacl"
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:  func() { testAccPreCheck(t) },
+		Providers: testAccProviders,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccResourceNcloudNetworkACLConfigOnlyRequired(),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckNetworkACLExists(resourceName, &networkACL),
+					resource.TestMatchResourceAttr(resourceName, "vpc_no", regexp.MustCompile(`^\d+$`)),
+					resource.TestMatchResourceAttr(resourceName, "network_acl_no", regexp.MustCompile(`^\d+$`)),
+					resource.TestMatchResourceAttr(resourceName, "name", regexp.MustCompile(`^[a-z0-9]+$`)),
+					resource.TestCheckResourceAttr(resourceName, "status", "RUN"),
+				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+		},
+	})
+}
+
+func TestAccResourceNcloudNetworkACL_updateName(t *testing.T) {
+	var networkACL vpc.NetworkAcl
+	resourceName := "ncloud_network_acl.nacl"
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:  func() { testAccPreCheck(t) },
+		Providers: testAccProviders,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccResourceNcloudNetworkACLConfigOnlyRequired(),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckNetworkACLExists(resourceName, &networkACL),
+				),
+			},
+			{
+				Config: testAccResourceNcloudNetworkACLConfig(),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckNetworkACLExists(resourceName, &networkACL),
+				),
+				ExpectError: regexp.MustCompile("Change 'name' is not support, Please set name as a old value"),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+		},
+	})
+}
+
 func testAccResourceNcloudNetworkACLConfig() string {
 	return `
 resource "ncloud_vpc" "vpc" {
@@ -48,6 +105,19 @@ resource "ncloud_network_acl" "nacl" {
 	vpc_no      = ncloud_vpc.vpc.vpc_no
 	name        = "tf-testacc-network-acl"
 	description = "for test acc"
+}
+`
+}
+
+func testAccResourceNcloudNetworkACLConfigOnlyRequired() string {
+	return `
+resource "ncloud_vpc" "vpc" {
+	name            = "tf-testacc-network-acl"
+	ipv4_cidr_block = "10.3.0.0/16"
+}
+
+resource "ncloud_network_acl" "nacl" {
+	vpc_no      = ncloud_vpc.vpc.vpc_no
 }
 `
 }
