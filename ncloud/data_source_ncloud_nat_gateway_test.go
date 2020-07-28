@@ -10,7 +10,7 @@ func TestAccDataSourceNcloudNatGateway_basic(t *testing.T) {
 	resourceName := "ncloud_nat_gateway.nat_gateway"
 	dataName := "data.ncloud_nat_gateway.by_id"
 
-	resource.ParallelTest(t, resource.TestCase{
+	resource.Test(t, resource.TestCase{
 		PreCheck:  func() { testAccPreCheck(t) },
 		Providers: testAccProviders,
 		Steps: []resource.TestStep{

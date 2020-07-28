@@ -14,7 +14,7 @@ func TestAccResourceNcloudNatGateway_basic(t *testing.T) {
 	var natGateway vpc.NatGatewayInstance
 	resourceName := "ncloud_nat_gateway.nat_gateway"
 
-	resource.ParallelTest(t, resource.TestCase{
+	resource.Test(t, resource.TestCase{
 		PreCheck:  func() { testAccPreCheck(t) },
 		Providers: testAccProviders,
 		Steps: []resource.TestStep{
@@ -41,7 +41,7 @@ func TestAccResourceNcloudNatGateway_onlyRequiredParam(t *testing.T) {
 	var natGateway vpc.NatGatewayInstance
 	resourceName := "ncloud_nat_gateway.nat_gateway"
 
-	resource.ParallelTest(t, resource.TestCase{
+	resource.Test(t, resource.TestCase{
 		PreCheck:  func() { testAccPreCheck(t) },
 		Providers: testAccProviders,
 		Steps: []resource.TestStep{
@@ -68,7 +68,7 @@ func TestAccResourceNcloudNatGateway_updateName(t *testing.T) {
 	var natGateway vpc.NatGatewayInstance
 	resourceName := "ncloud_nat_gateway.nat_gateway"
 
-	resource.ParallelTest(t, resource.TestCase{
+	resource.Test(t, resource.TestCase{
 		PreCheck:  func() { testAccPreCheck(t) },
 		Providers: testAccProviders,
 		Steps: []resource.TestStep{
