@@ -21,7 +21,7 @@ func resourceNcloudSubnet() *schema.Resource {
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
-		CustomizeDiff: resourceNcloudSubnetCustomizeDiff,
+		CustomizeDiff: ncloudVpcCommonCustomizeDiff,
 		Schema: map[string]*schema.Schema{
 			"name": {
 				Type:         schema.TypeString,
@@ -275,15 +275,4 @@ func SubnetStateRefreshFunc(client *NcloudAPIClient, id string) resource.StateRe
 
 		return instance, *instance.SubnetStatus.Code, nil
 	}
-}
-
-func resourceNcloudSubnetCustomizeDiff(diff *schema.ResourceDiff, v interface{}) error {
-	if diff.HasChange("name") {
-		old, new := diff.GetChange("name")
-		if len(old.(string)) > 0 {
-			return fmt.Errorf("Change 'name' is not support, Please set name as a old value = [%s -> %s]", new, old)
-		}
-	}
-
-	return nil
 }

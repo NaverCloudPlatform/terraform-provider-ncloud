@@ -83,7 +83,7 @@ func TestAccResourceNcloudNetworkACL_updateName(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckNetworkACLExists(resourceName, &networkACL),
 				),
-				ExpectError: regexp.MustCompile("Change 'name' is not support, Please set name as a old value"),
+				ExpectError: regexp.MustCompile("Change 'name' is not support, Please set `name` as a old value"),
 			},
 			{
 				ResourceName:      resourceName,
