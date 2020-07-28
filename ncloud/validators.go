@@ -18,13 +18,14 @@ func validateInstanceName(v interface{}, k string) (ws []string, errors []error)
 			"%q cannot be longer than 30 characters", k))
 	}
 
-	if !regexp.MustCompile(`^[A-Za-z0-9-]+$`).MatchString(value) {
+	if !regexp.MustCompile(`^[a-z][a-z0-9-]*$`).MatchString(value) {
 		errors = append(errors, fmt.Errorf(
-			"%q can only composed of alphabets, numbers, hyphen (-)", k))
+			"%s can only lowercase letters, numbers and special characters \"-\" are allowed and must start with an alphabetic character", k))
 	}
-	if !regexp.MustCompile(`.*[^\\-]$`).MatchString(value) {
+
+	if regexp.MustCompile(`.*(-|_)$`).MatchString(value) {
 		errors = append(errors, fmt.Errorf(
-			"%q with hyphen (-) cannot be used for the last character", k))
+			"%q must end with an alphabetic character or number", k))
 	}
 
 	return
