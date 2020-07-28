@@ -3,6 +3,7 @@ package ncloud
 import (
 	"fmt"
 	"math/rand"
+	"regexp"
 	"testing"
 
 	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/services/vpc"
@@ -10,7 +11,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 )
 
-func TestAccResourceNcloudVpc_basic(t *testing.T) {
+func TestAccResourceNcloudVpc_Basic(t *testing.T) {
 	var vpc vpc.Vpc
 	rInt := rand.Intn(16)
 	cidr := fmt.Sprintf("10.%d.0.0/16", rInt)
@@ -29,6 +30,34 @@ func TestAccResourceNcloudVpc_basic(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "name", name),
 					resource.TestCheckResourceAttr(resourceName, "status", "RUN"),
 				),
+			},
+		},
+	})
+}
+
+func TestAccResourceNcloudVpc_Update(t *testing.T) {
+	var vpc vpc.Vpc
+	rInt := rand.Intn(16)
+	cidr := fmt.Sprintf("10.%d.0.0/16", rInt)
+	name := fmt.Sprintf("testacc-vpc-basic-%d", rInt)
+	resourceName := "ncloud_vpc.test"
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:  func() { testAccPreCheck(t) },
+		Providers: testAccProviders,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccDataSourceNcloudVpcConfig(name, cidr),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckVpcExists(resourceName, &vpc),
+				),
+			},
+			{
+				Config: testAccDataSourceNcloudVpcConfig("testacc-vpc-basic-update", cidr),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckVpcExists(resourceName, &vpc),
+				),
+				ExpectError: regexp.MustCompile("Change 'name' is not support, Please set `name` as a old value"),
 			},
 		},
 	})
