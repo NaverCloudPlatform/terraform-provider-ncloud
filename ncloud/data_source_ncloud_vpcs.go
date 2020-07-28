@@ -7,6 +7,7 @@ import (
 	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/ncloud"
 	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/services/vpc"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
 
 func dataSourceNcloudVpcs() *schema.Resource {
@@ -19,8 +20,9 @@ func dataSourceNcloudVpcs() *schema.Resource {
 				Optional: true,
 			},
 			"status": {
-				Type:     schema.TypeString,
-				Optional: true,
+				Type:         schema.TypeString,
+				Optional:     true,
+				ValidateFunc: validation.StringInSlice([]string{"INIT", "CREATING", "RUN", "TERMTING"}, false),
 			},
 			"vpc_no_list": {
 				Type:     schema.TypeList,

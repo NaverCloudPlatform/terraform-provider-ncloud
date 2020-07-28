@@ -55,6 +55,8 @@ func Provider() terraform.ResourceProvider {
 			"ncloud_public_ip":             dataSourceNcloudPublicIp(),
 			"ncloud_vpc":                   dataSourceNcloudVpc(),
 			"ncloud_vpcs":                  dataSourceNcloudVpcs(),
+			"ncloud_subnet":                dataSourceNcloudSubnet(),
+			"ncloud_subnets":               dataSourceNcloudSubnets(),
 		},
 		ResourcesMap: map[string]*schema.Resource{
 			"ncloud_server":                        resourceNcloudServer(),
@@ -67,6 +69,7 @@ func Provider() terraform.ResourceProvider {
 			"ncloud_load_balancer":                 resourceNcloudLoadBalancer(),
 			"ncloud_load_balancer_ssl_certificate": resourceNcloudLoadBalancerSSLCertificate(),
 			"ncloud_vpc":                           resourceNcloudVpc(),
+			"ncloud_subnet":                        resourceNcloudSubnet(),
 		},
 		ConfigureFunc: providerConfigure,
 	}
