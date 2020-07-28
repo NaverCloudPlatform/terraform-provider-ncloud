@@ -68,9 +68,9 @@ func TestAccDataSourceNcloudNetworkAclsVpcNo(t *testing.T) {
 }
 
 func testAccDataSourceNcloudNetworkAclsConfig() string {
-	return fmt.Sprintf(`
+	return `
 data "ncloud_network_acls" "all" {}
-`)
+`
 }
 
 func testAccDataSourceNcloudNetworkAclsConfigName(name string) string {
