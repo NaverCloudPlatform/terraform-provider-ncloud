@@ -42,7 +42,7 @@ func TestAccResourceNcloudVpc_Update(t *testing.T) {
 	name := fmt.Sprintf("testacc-vpc-basic-%d", rInt)
 	resourceName := "ncloud_vpc.test"
 
-	resource.ParallelTest(t, resource.TestCase{
+	resource.Test(t, resource.TestCase{
 		PreCheck:  func() { testAccPreCheck(t) },
 		Providers: testAccProviders,
 		Steps: []resource.TestStep{
