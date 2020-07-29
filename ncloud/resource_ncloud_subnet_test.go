@@ -47,7 +47,7 @@ func TestAccResourceNcloudSubnet_UpdateName(t *testing.T) {
 	cidr := "10.2.2.0/24"
 	resourceName := "ncloud_subnet.bar"
 
-	resource.ParallelTest(t, resource.TestCase{
+	resource.Test(t, resource.TestCase{
 		PreCheck:  func() { testAccPreCheck(t) },
 		Providers: testAccProviders,
 		Steps: []resource.TestStep{
