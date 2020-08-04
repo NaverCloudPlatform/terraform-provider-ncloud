@@ -117,9 +117,12 @@ func resourceNcloudSubnetCreate(d *schema.ResourceData, meta interface{}) error 
 	d.SetId(*instance.SubnetNo)
 
 	stateConf := &resource.StateChangeConf{
-		Pending:    []string{"INIT", "CREATING"},
-		Target:     []string{"RUN"},
-		Refresh:    SubnetStateRefreshFunc(client, d.Id()),
+		Pending: []string{"INIT", "CREATING"},
+		Target:  []string{"RUN"},
+		Refresh: func() (interface{}, string, error) {
+			instance, err := getSubnetInstance(client, d.Id())
+			return VpcCommonStateRefreshFunc(instance, err, "SubnetStatus")
+		},
 		Timeout:    DefaultCreateTimeout,
 		Delay:      2 * time.Second,
 		MinTimeout: 3 * time.Second,
@@ -182,9 +185,12 @@ func resourceNcloudSubnetUpdate(d *schema.ResourceData, meta interface{}) error 
 		logResponse("resource_ncloud_subnet > SetSubnetNetworkAcl", resp)
 
 		stateConf := &resource.StateChangeConf{
-			Pending:    []string{"SET"},
-			Target:     []string{"RUN"},
-			Refresh:    NetworkACLStateRefreshFunc(client, d.Get("network_acl_no").(string)),
+			Pending: []string{"SET"},
+			Target:  []string{"RUN"},
+			Refresh: func() (interface{}, string, error) {
+				instance, err := getNetworkACLInstance(client, d.Id())
+				return VpcCommonStateRefreshFunc(instance, err, "NetworkAclStatus")
+			},
 			Timeout:    DefaultTimeout,
 			Delay:      2 * time.Second,
 			MinTimeout: 3 * time.Second,
@@ -222,9 +228,12 @@ func resourceNcloudSubnetDelete(d *schema.ResourceData, meta interface{}) error 
 	logResponse("resource_ncloud_subnet > DeleteSubnet", resp)
 
 	stateConf := &resource.StateChangeConf{
-		Pending:    []string{"RUN", "TERMTING"},
-		Target:     []string{"TERMINATED"},
-		Refresh:    SubnetStateRefreshFunc(client, d.Id()),
+		Pending: []string{"RUN", "TERMTING"},
+		Target:  []string{"TERMINATED"},
+		Refresh: func() (interface{}, string, error) {
+			instance, err := getSubnetInstance(client, d.Id())
+			return VpcCommonStateRefreshFunc(instance, err, "SubnetStatus")
+		},
 		Timeout:    DefaultTimeout,
 		Delay:      2 * time.Second,
 		MinTimeout: 3 * time.Second,
@@ -258,21 +267,4 @@ func getSubnetInstance(client *NcloudAPIClient, id string) (*vpc.Subnet, error) 
 	}
 
 	return nil, nil
-}
-
-// SubnetStateRefreshFunc returns a resource.StateRefreshFunc that is used to watch a Subnet
-func SubnetStateRefreshFunc(client *NcloudAPIClient, id string) resource.StateRefreshFunc {
-	return func() (interface{}, string, error) {
-		instance, err := getSubnetInstance(client, id)
-
-		if err != nil {
-			return nil, "", err
-		}
-
-		if instance == nil {
-			return instance, "TERMINATED", nil
-		}
-
-		return instance, *instance.SubnetStatus.Code, nil
-	}
 }

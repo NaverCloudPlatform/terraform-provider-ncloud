@@ -91,9 +91,12 @@ func resourceNcloudNetworkACLCreate(d *schema.ResourceData, meta interface{}) er
 	d.SetId(*instance.NetworkAclNo)
 
 	stateConf := &resource.StateChangeConf{
-		Pending:    []string{"INIT", "CREATING"},
-		Target:     []string{"RUN"},
-		Refresh:    NetworkACLStateRefreshFunc(client, d.Id()),
+		Pending: []string{"INIT", "CREATING"},
+		Target:  []string{"RUN"},
+		Refresh: func() (interface{}, string, error) {
+			instance, err := getNetworkACLInstance(client, d.Id())
+			return VpcCommonStateRefreshFunc(instance, err, "NetworkAclStatus")
+		},
 		Timeout:    DefaultCreateTimeout,
 		Delay:      2 * time.Second,
 		MinTimeout: 3 * time.Second,
@@ -162,9 +165,12 @@ func resourceNcloudNetworkACLDelete(d *schema.ResourceData, meta interface{}) er
 	logResponse("resource_ncloud_network_acl > DeleteNetworkAcl", resp)
 
 	stateConf := &resource.StateChangeConf{
-		Pending:    []string{"RUN", "TERMTING"},
-		Target:     []string{"TERMINATED"},
-		Refresh:    NetworkACLStateRefreshFunc(client, d.Id()),
+		Pending: []string{"RUN", "TERMTING"},
+		Target:  []string{"TERMINATED"},
+		Refresh: func() (interface{}, string, error) {
+			instance, err := getNetworkACLInstance(client, d.Id())
+			return VpcCommonStateRefreshFunc(instance, err, "NetworkAclStatus")
+		},
 		Timeout:    DefaultTimeout,
 		Delay:      2 * time.Second,
 		MinTimeout: 3 * time.Second,
@@ -198,21 +204,4 @@ func getNetworkACLInstance(client *NcloudAPIClient, id string) (*vpc.NetworkAcl,
 	}
 
 	return nil, nil
-}
-
-// NetworkACLStateRefreshFunc returns a resource.StateRefreshFunc that is used to watch a Network ACL
-func NetworkACLStateRefreshFunc(client *NcloudAPIClient, id string) resource.StateRefreshFunc {
-	return func() (interface{}, string, error) {
-		instance, err := getNetworkACLInstance(client, id)
-
-		if err != nil {
-			return nil, "", err
-		}
-
-		if instance == nil {
-			return instance, "TERMINATED", nil
-		}
-
-		return instance, *instance.NetworkAclStatus.Code, nil
-	}
 }
