@@ -81,9 +81,12 @@ func resourceNcloudVpcCreate(d *schema.ResourceData, meta interface{}) error {
 	d.SetId(*vpcInstance.VpcNo)
 
 	stateConf := &resource.StateChangeConf{
-		Pending:    []string{"INIT", "CREATING"},
-		Target:     []string{"RUN"},
-		Refresh:    VPCStateRefreshFunc(client, d.Id()),
+		Pending: []string{"INIT", "CREATING"},
+		Target:  []string{"RUN"},
+		Refresh: func() (interface{}, string, error) {
+			instance, err := getVpcInstance(client, d.Id())
+			return VpcCommonStateRefreshFunc(instance, err, "VpcStatus")
+		},
 		Timeout:    DefaultCreateTimeout,
 		Delay:      2 * time.Second,
 		MinTimeout: 3 * time.Second,
@@ -184,9 +187,12 @@ func resourceNcloudVpcDelete(d *schema.ResourceData, meta interface{}) error {
 	logResponse("resource_ncloud_vpc > DeleteVpc", resp)
 
 	stateConf := &resource.StateChangeConf{
-		Pending:    []string{"RUN", "TERMTING"},
-		Target:     []string{"TERMINATED"},
-		Refresh:    VPCStateRefreshFunc(client, d.Id()),
+		Pending: []string{"RUN", "TERMTING"},
+		Target:  []string{"TERMINATED"},
+		Refresh: func() (interface{}, string, error) {
+			instance, err := getVpcInstance(client, d.Id())
+			return VpcCommonStateRefreshFunc(instance, err, "VpcStatus")
+		},
 		Timeout:    DefaultTimeout,
 		Delay:      2 * time.Second,
 		MinTimeout: 3 * time.Second,
@@ -219,21 +225,4 @@ func getVpcInstance(client *NcloudAPIClient, id string) (*vpc.Vpc, error) {
 	}
 
 	return nil, nil
-}
-
-// VPCStateRefreshFunc returns a resource.StateRefreshFunc that is used to watch a VPC
-func VPCStateRefreshFunc(client *NcloudAPIClient, id string) resource.StateRefreshFunc {
-	return func() (interface{}, string, error) {
-		vpc, err := getVpcInstance(client, id)
-
-		if err != nil {
-			return nil, "", err
-		}
-
-		if vpc == nil {
-			return vpc, "TERMINATED", nil
-		}
-
-		return vpc, *vpc.VpcStatus.Code, nil
-	}
 }

@@ -98,9 +98,12 @@ func resourceNcloudNatGatewayCreate(d *schema.ResourceData, meta interface{}) er
 	d.SetId(*instance.NatGatewayInstanceNo)
 
 	stateConf := &resource.StateChangeConf{
-		Pending:    []string{"INIT", "CREATING"},
-		Target:     []string{"RUN"},
-		Refresh:    NatGatewayStateRefreshFunc(client, d.Id()),
+		Pending: []string{"INIT", "CREATING"},
+		Target:  []string{"RUN"},
+		Refresh: func() (interface{}, string, error) {
+			instance, err := getNatGatewayInstance(client, d.Id())
+			return VpcCommonStateRefreshFunc(instance, err, "NatGatewayInstanceStatus")
+		},
 		Timeout:    DefaultCreateTimeout,
 		Delay:      2 * time.Second,
 		MinTimeout: 3 * time.Second,
@@ -170,9 +173,12 @@ func resourceNcloudNatGatewayDelete(d *schema.ResourceData, meta interface{}) er
 	logResponse("resource_ncloud_nat_gateway > DeleteNatGatewayInstance", resp)
 
 	stateConf := &resource.StateChangeConf{
-		Pending:    []string{"RUN", "TERMTING"},
-		Target:     []string{"TERMINATED"},
-		Refresh:    NatGatewayStateRefreshFunc(client, d.Id()),
+		Pending: []string{"RUN", "TERMTING"},
+		Target:  []string{"TERMINATED"},
+		Refresh: func() (interface{}, string, error) {
+			instance, err := getNatGatewayInstance(client, d.Id())
+			return VpcCommonStateRefreshFunc(instance, err, "NatGatewayInstanceStatus")
+		},
 		Timeout:    DefaultTimeout,
 		Delay:      2 * time.Second,
 		MinTimeout: 3 * time.Second,
@@ -206,21 +212,4 @@ func getNatGatewayInstance(client *NcloudAPIClient, id string) (*vpc.NatGatewayI
 	}
 
 	return nil, nil
-}
-
-// NatGatewayStateRefreshFunc returns a resource.StateRefreshFunc that is used to watch a NAT Gateway
-func NatGatewayStateRefreshFunc(client *NcloudAPIClient, id string) resource.StateRefreshFunc {
-	return func() (interface{}, string, error) {
-		instance, err := getNatGatewayInstance(client, id)
-
-		if err != nil {
-			return nil, "", err
-		}
-
-		if instance == nil {
-			return instance, "TERMINATED", nil
-		}
-
-		return instance, *instance.NatGatewayInstanceStatus.Code, nil
-	}
 }
