@@ -27,8 +27,7 @@ func VpcCommonStateRefreshFunc(instance interface{}, err error, statusName strin
 	a[0] = unicode.ToLower(a[0])
 	statusName = string(a)
 
-	u, ok := m[statusName].(map[string]interface{})
-	if ok {
+	if u, ok := m[statusName].(map[string]interface{}); ok {
 		return instance, u["code"].(string), nil
 	}
 
