@@ -66,7 +66,7 @@ func testAccCheckLoginKeyExistsWithProvider(n string, i *server.LoginKey, provid
 		}
 
 		provider := providerF()
-		client := provider.Meta().(*NcloudAPIClient)
+		client := provider.Meta().(*ProviderConfig).Client
 		loginKey, err := getLoginKey(client, rs.Primary.ID)
 		if err != nil {
 			return nil
@@ -86,7 +86,7 @@ func testAccCheckLoginKeyDestroy(s *terraform.State) error {
 }
 
 func testAccCheckLoginKeyDestroyWithProvider(s *terraform.State, provider *schema.Provider) error {
-	client := provider.Meta().(*NcloudAPIClient)
+	client := provider.Meta().(*ProviderConfig).Client
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "ncloud_login_key" {

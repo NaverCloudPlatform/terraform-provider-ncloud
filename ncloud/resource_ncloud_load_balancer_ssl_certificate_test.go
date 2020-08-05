@@ -127,7 +127,7 @@ func testAccCheckLoadBalancerSSLCertificateExistsWithProvider(n string, i *loadb
 		}
 
 		provider := providerF()
-		client := provider.Meta().(*NcloudAPIClient)
+		client := provider.Meta().(*ProviderConfig).Client
 		sc, err := getLoadBalancerSslCertificateList(client, rs.Primary.ID)
 		if err != nil {
 			return nil
@@ -147,7 +147,7 @@ func testAccCheckLoadBalancerSSLCertificateDestroy(s *terraform.State) error {
 }
 
 func testAccCheckLoadBalancerSSLCertificateDestroyWithProvider(s *terraform.State, provider *schema.Provider) error {
-	client := provider.Meta().(*NcloudAPIClient)
+	client := provider.Meta().(*ProviderConfig).Client
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "ncloud_load_balancer_ssl_certificate" {
 			continue

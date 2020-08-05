@@ -69,7 +69,7 @@ func testAccCheckPublicIpInstanceExistsWithProvider(n string, i *server.PublicIp
 		}
 
 		provider := providerF()
-		client := provider.Meta().(*NcloudAPIClient)
+		client := provider.Meta().(*ProviderConfig).Client
 		instance, err := getPublicIpInstance(client, rs.Primary.ID)
 		if err != nil {
 			return nil
@@ -89,7 +89,7 @@ func testAccCheckPublicIpInstanceDestroy(s *terraform.State) error {
 }
 
 func testAccCheckPublicIpInstanceDestroyWithProvider(s *terraform.State, provider *schema.Provider) error {
-	client := provider.Meta().(*NcloudAPIClient)
+	client := provider.Meta().(*ProviderConfig).Client
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "ncloud_public_ip" {

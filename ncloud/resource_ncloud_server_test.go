@@ -149,7 +149,7 @@ func testAccCheckInstanceExistsWithProvider(n string, i *server.ServerInstance, 
 		}
 
 		provider := providerF()
-		client := provider.Meta().(*NcloudAPIClient)
+		client := provider.Meta().(*ProviderConfig).Client
 		instance, err := getServerInstance(client, rs.Primary.ID)
 		if err != nil {
 			return nil
@@ -179,7 +179,7 @@ func testAccCheckServerDestroy(s *terraform.State) error {
 }
 
 func testAccCheckInstanceDestroyWithProvider(s *terraform.State, provider *schema.Provider) error {
-	client := provider.Meta().(*NcloudAPIClient)
+	client := provider.Meta().(*ProviderConfig).Client
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "ncloud_server" {

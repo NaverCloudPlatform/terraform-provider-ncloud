@@ -73,7 +73,7 @@ func testAccCheckBlockStorageSnapshotExistsWithProvider(n string, i *server.Bloc
 		}
 
 		provider := providerF()
-		client := provider.Meta().(*NcloudAPIClient)
+		client := provider.Meta().(*ProviderConfig).Client
 		snapshot, err := getBlockStorageSnapshotInstance(client, rs.Primary.ID)
 		log.Printf("[DEBUG] testAccCheckBlockStorageSnapshotExistsWithProvider snapshot %#v", snapshot)
 
@@ -95,7 +95,7 @@ func testAccCheckBlockStorageSnapshotDestroy(s *terraform.State) error {
 }
 
 func testAccCheckBlockStorageSnapshotDestroyWithProvider(s *terraform.State, provider *schema.Provider) error {
-	client := provider.Meta().(*NcloudAPIClient)
+	client := provider.Meta().(*ProviderConfig).Client
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "ncloud_block_storage_snapshot" {

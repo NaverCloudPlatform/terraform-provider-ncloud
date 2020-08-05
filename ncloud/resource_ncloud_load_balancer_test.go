@@ -106,7 +106,7 @@ func testAccCheckLoadBalancerExistsWithProvider(n string, i *loadbalancer.LoadBa
 		}
 
 		provider := providerF()
-		client := provider.Meta().(*NcloudAPIClient)
+		client := provider.Meta().(*ProviderConfig).Client
 		LoadBalancerInstance, err := getLoadBalancerInstance(client, rs.Primary.ID)
 		if err != nil {
 			return nil
@@ -126,7 +126,7 @@ func testAccCheckLoadBalancerDestroy(s *terraform.State) error {
 }
 
 func testAccCheckLoadBalancerDestroyWithProvider(s *terraform.State, provider *schema.Provider) error {
-	client := provider.Meta().(*NcloudAPIClient)
+	client := provider.Meta().(*ProviderConfig).Client
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "ncloud_load_balancer" {
 			continue

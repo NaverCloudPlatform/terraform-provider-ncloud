@@ -70,7 +70,7 @@ func testAccCheckBlockStorageExistsWithProvider(n string, i *server.BlockStorage
 		}
 
 		provider := providerF()
-		client := provider.Meta().(*NcloudAPIClient)
+		client := provider.Meta().(*ProviderConfig).Client
 		storage, err := getBlockStorageInstance(client, rs.Primary.ID)
 		if err != nil {
 			return nil
@@ -90,7 +90,7 @@ func testAccCheckBlockStorageDestroy(s *terraform.State) error {
 }
 
 func testAccCheckBlockStorageDestroyWithProvider(s *terraform.State, provider *schema.Provider) error {
-	client := provider.Meta().(*NcloudAPIClient)
+	client := provider.Meta().(*ProviderConfig).Client
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "ncloud_block_storage" {
