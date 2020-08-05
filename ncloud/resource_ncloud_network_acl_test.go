@@ -1,30 +1,34 @@
 package ncloud
 
 import (
+	"errors"
 	"fmt"
 	"regexp"
 	"testing"
 
 	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/services/vpc"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 )
 
 func TestAccResourceNcloudNetworkACL_basic(t *testing.T) {
 	var networkACL vpc.NetworkAcl
+	name := fmt.Sprintf("test-network-acl-basic-%s", acctest.RandString(5))
 	resourceName := "ncloud_network_acl.nacl"
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:  func() { testAccPreCheck(t) },
-		Providers: testAccProviders,
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckNetworkACLDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccResourceNcloudNetworkACLConfig(),
+				Config: testAccResourceNcloudNetworkACLConfig(name),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckNetworkACLExists(resourceName, &networkACL),
 					resource.TestMatchResourceAttr(resourceName, "vpc_no", regexp.MustCompile(`^\d+$`)),
 					resource.TestMatchResourceAttr(resourceName, "network_acl_no", regexp.MustCompile(`^\d+$`)),
-					resource.TestCheckResourceAttr(resourceName, "name", "tf-testacc-network-acl"),
+					resource.TestCheckResourceAttr(resourceName, "name", name),
 					resource.TestCheckResourceAttr(resourceName, "status", "RUN"),
 				),
 			},
@@ -37,16 +41,40 @@ func TestAccResourceNcloudNetworkACL_basic(t *testing.T) {
 	})
 }
 
-func TestAccResourceNcloudNetworkACL_onlyRequiredParam(t *testing.T) {
+func TestAccResourceNcloudNetworkACL_disappears(t *testing.T) {
 	var networkACL vpc.NetworkAcl
+	name := fmt.Sprintf("test-network-acl-basic-%s", acctest.RandString(5))
 	resourceName := "ncloud_network_acl.nacl"
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:  func() { testAccPreCheck(t) },
-		Providers: testAccProviders,
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckNetworkACLDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccResourceNcloudNetworkACLConfigOnlyRequired(),
+				Config: testAccResourceNcloudNetworkACLConfig(name),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckNetworkACLExists(resourceName, &networkACL),
+					testAccCheckNetworkACLDisappears(&networkACL),
+				),
+				ExpectNonEmptyPlan: true,
+			},
+		},
+	})
+}
+
+func TestAccResourceNcloudNetworkACL_onlyRequiredParam(t *testing.T) {
+	var networkACL vpc.NetworkAcl
+	name := fmt.Sprintf("test-network-acl-basic-%s", acctest.RandString(5))
+	resourceName := "ncloud_network_acl.nacl"
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckNetworkACLDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccResourceNcloudNetworkACLConfigOnlyRequired(name),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckNetworkACLExists(resourceName, &networkACL),
 					resource.TestMatchResourceAttr(resourceName, "vpc_no", regexp.MustCompile(`^\d+$`)),
@@ -66,20 +94,22 @@ func TestAccResourceNcloudNetworkACL_onlyRequiredParam(t *testing.T) {
 
 func TestAccResourceNcloudNetworkACL_updateName(t *testing.T) {
 	var networkACL vpc.NetworkAcl
+	name := fmt.Sprintf("test-network-acl-basic-%s", acctest.RandString(5))
 	resourceName := "ncloud_network_acl.nacl"
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:  func() { testAccPreCheck(t) },
-		Providers: testAccProviders,
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckNetworkACLDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccResourceNcloudNetworkACLConfigOnlyRequired(),
+				Config: testAccResourceNcloudNetworkACLConfigOnlyRequired(name),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckNetworkACLExists(resourceName, &networkACL),
 				),
 			},
 			{
-				Config: testAccResourceNcloudNetworkACLConfig(),
+				Config: testAccResourceNcloudNetworkACLConfig(name),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckNetworkACLExists(resourceName, &networkACL),
 				),
@@ -94,32 +124,32 @@ func TestAccResourceNcloudNetworkACL_updateName(t *testing.T) {
 	})
 }
 
-func testAccResourceNcloudNetworkACLConfig() string {
-	return `
+func testAccResourceNcloudNetworkACLConfig(name string) string {
+	return fmt.Sprintf(`
 resource "ncloud_vpc" "vpc" {
-	name            = "tf-testacc-network-acl"
+	name            = "%[1]s"
 	ipv4_cidr_block = "10.3.0.0/16"
 }
 
 resource "ncloud_network_acl" "nacl" {
 	vpc_no      = ncloud_vpc.vpc.vpc_no
-	name        = "tf-testacc-network-acl"
+	name        = "%[1]s"
 	description = "for test acc"
 }
-`
+`, name)
 }
 
-func testAccResourceNcloudNetworkACLConfigOnlyRequired() string {
-	return `
+func testAccResourceNcloudNetworkACLConfigOnlyRequired(name string) string {
+	return fmt.Sprintf(`
 resource "ncloud_vpc" "vpc" {
-	name            = "tf-testacc-network-acl"
+	name            = "%s"
 	ipv4_cidr_block = "10.3.0.0/16"
 }
 
 resource "ncloud_network_acl" "nacl" {
 	vpc_no      = ncloud_vpc.vpc.vpc_no
 }
-`
+`, name)
 }
 
 func testAccCheckNetworkACLExists(n string, networkACL *vpc.NetworkAcl) resource.TestCheckFunc {
@@ -142,5 +172,43 @@ func testAccCheckNetworkACLExists(n string, networkACL *vpc.NetworkAcl) resource
 		*networkACL = *instance
 
 		return nil
+	}
+}
+
+func testAccCheckNetworkACLDestroy(s *terraform.State) error {
+	client := testAccProvider.Meta().(*NcloudAPIClient)
+
+	for _, rs := range s.RootModule().Resources {
+		if rs.Type != "ncloud_network_acl" {
+			continue
+		}
+
+		instance, err := getNetworkACLInstance(client, rs.Primary.ID)
+
+		if err != nil {
+			return err
+		}
+
+		if instance != nil {
+			return errors.New("Network ACL still exists")
+		}
+	}
+
+	return nil
+}
+
+func testAccCheckNetworkACLDisappears(instance *vpc.NetworkAcl) resource.TestCheckFunc {
+	return func(s *terraform.State) error {
+		client := testAccProvider.Meta().(*NcloudAPIClient)
+
+		reqParams := &vpc.DeleteNetworkAclRequest{
+			NetworkAclNo: instance.NetworkAclNo,
+		}
+
+		_, err := client.vpc.V2Api.DeleteNetworkAcl(reqParams)
+
+		waitForNcloudNetworkACLDeletion(client, *instance.NetworkAclNo)
+
+		return err
 	}
 }

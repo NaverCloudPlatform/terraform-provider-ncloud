@@ -1,30 +1,34 @@
 package ncloud
 
 import (
+	"errors"
 	"fmt"
 	"regexp"
 	"testing"
 
 	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/services/vpc"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 )
 
 func TestAccResourceNcloudNatGateway_basic(t *testing.T) {
 	var natGateway vpc.NatGatewayInstance
+	name := fmt.Sprintf("test-nat-gateway-%s", acctest.RandString(5))
 	resourceName := "ncloud_nat_gateway.nat_gateway"
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:  func() { testAccPreCheck(t) },
-		Providers: testAccProviders,
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckNatGatewayDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccResourceNcloudNatGatewayConfig(),
+				Config: testAccResourceNcloudNatGatewayConfig(name),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckNatGatewayExists(resourceName, &natGateway),
 					resource.TestMatchResourceAttr(resourceName, "vpc_no", regexp.MustCompile(`^\d+$`)),
 					resource.TestMatchResourceAttr(resourceName, "nat_gateway_no", regexp.MustCompile(`^\d+$`)),
-					resource.TestCheckResourceAttr(resourceName, "name", "tf-testacc-nat-gateway"),
+					resource.TestCheckResourceAttr(resourceName, "name", name),
 					resource.TestCheckResourceAttr(resourceName, "status", "RUN"),
 				),
 			},
@@ -37,16 +41,40 @@ func TestAccResourceNcloudNatGateway_basic(t *testing.T) {
 	})
 }
 
-func TestAccResourceNcloudNatGateway_onlyRequiredParam(t *testing.T) {
+func TestAccResourceNcloudNatGateway_disappears(t *testing.T) {
 	var natGateway vpc.NatGatewayInstance
+	name := fmt.Sprintf("test-nat-gateway-%s", acctest.RandString(5))
 	resourceName := "ncloud_nat_gateway.nat_gateway"
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:  func() { testAccPreCheck(t) },
-		Providers: testAccProviders,
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckNatGatewayDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccResourceNcloudNatGatewayConfigOnlyRequiredParam(),
+				Config: testAccResourceNcloudNatGatewayConfig(name),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckNatGatewayExists(resourceName, &natGateway),
+					testAccCheckNatGatewayDisappears(&natGateway),
+				),
+				ExpectNonEmptyPlan: true,
+			},
+		},
+	})
+}
+
+func TestAccResourceNcloudNatGateway_onlyRequiredParam(t *testing.T) {
+	var natGateway vpc.NatGatewayInstance
+	name := fmt.Sprintf("test-nat-gateway-%s", acctest.RandString(5))
+	resourceName := "ncloud_nat_gateway.nat_gateway"
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckNatGatewayDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccResourceNcloudNatGatewayConfigOnlyRequiredParam(name),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckNatGatewayExists(resourceName, &natGateway),
 					resource.TestMatchResourceAttr(resourceName, "vpc_no", regexp.MustCompile(`^\d+$`)),
@@ -66,20 +94,24 @@ func TestAccResourceNcloudNatGateway_onlyRequiredParam(t *testing.T) {
 
 func TestAccResourceNcloudNatGateway_updateName(t *testing.T) {
 	var natGateway vpc.NatGatewayInstance
+	name := fmt.Sprintf("test-nat-gateway-%s", acctest.RandString(5))
+	updateName := fmt.Sprintf("test-nat-gateway-update-%s", acctest.RandString(5))
 	resourceName := "ncloud_nat_gateway.nat_gateway"
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:  func() { testAccPreCheck(t) },
-		Providers: testAccProviders,
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckNatGatewayDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccResourceNcloudNatGatewayConfig(),
+				Config: testAccResourceNcloudNatGatewayConfig(name),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckNatGatewayExists(resourceName, &natGateway),
+					resource.TestCheckResourceAttr(resourceName, "name", name),
 				),
 			},
 			{
-				Config: testAccResourceNcloudNatGatewayConfigUpdate(),
+				Config: testAccResourceNcloudNatGatewayConfigUpdate(name, updateName),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckNatGatewayExists(resourceName, &natGateway),
 				),
@@ -89,42 +121,42 @@ func TestAccResourceNcloudNatGateway_updateName(t *testing.T) {
 	})
 }
 
-func testAccResourceNcloudNatGatewayConfig() string {
-	return `
+func testAccResourceNcloudNatGatewayConfig(name string) string {
+	return fmt.Sprintf(`
 resource "ncloud_vpc" "vpc" {
-	name            = "tf-testacc-nat-gateway"
+	name            = "%[1]s"
 	ipv4_cidr_block = "10.3.0.0/16"
 }
 
 resource "ncloud_nat_gateway" "nat_gateway" {
   vpc_no      = ncloud_vpc.vpc.vpc_no
   zone        = "KR-1"
-  name        = "tf-testacc-nat-gateway"
+  name        = "%[1]s"
   description = "description"
 }
-`
+`, name)
 }
 
-func testAccResourceNcloudNatGatewayConfigUpdate() string {
-	return `
+func testAccResourceNcloudNatGatewayConfigUpdate(name, updateName string) string {
+	return fmt.Sprintf(`
 resource "ncloud_vpc" "vpc" {
-	name            = "tf-testacc-nat-gateway"
+	name            = "%s"
 	ipv4_cidr_block = "10.3.0.0/16"
 }
 
 resource "ncloud_nat_gateway" "nat_gateway" {
   vpc_no      = ncloud_vpc.vpc.vpc_no
   zone        = "KR-1"
-  name        = "tf-testacc-nat-gateway-update"
+  name        = "%s"
   description = "description"
 }
-`
+`, name, updateName)
 }
 
-func testAccResourceNcloudNatGatewayConfigOnlyRequiredParam() string {
-	return `
+func testAccResourceNcloudNatGatewayConfigOnlyRequiredParam(name string) string {
+	return fmt.Sprintf(`
 resource "ncloud_vpc" "vpc" {
-	name            = "tf-testacc-nat-gateway"
+	name            = "%s"
 	ipv4_cidr_block = "10.3.0.0/16"
 }
 
@@ -132,7 +164,7 @@ resource "ncloud_nat_gateway" "nat_gateway" {
   vpc_no      = ncloud_vpc.vpc.vpc_no
   zone        = "KR-1"
 }
-`
+`, name)
 }
 
 func testAccCheckNatGatewayExists(n string, natGateway *vpc.NatGatewayInstance) resource.TestCheckFunc {
@@ -155,5 +187,43 @@ func testAccCheckNatGatewayExists(n string, natGateway *vpc.NatGatewayInstance) 
 		*natGateway = *instance
 
 		return nil
+	}
+}
+
+func testAccCheckNatGatewayDestroy(s *terraform.State) error {
+	client := testAccProvider.Meta().(*NcloudAPIClient)
+
+	for _, rs := range s.RootModule().Resources {
+		if rs.Type != "ncloud_nat_gateway" {
+			continue
+		}
+
+		instance, err := getNatGatewayInstance(client, rs.Primary.ID)
+
+		if err != nil {
+			return err
+		}
+
+		if instance != nil {
+			return errors.New("NAT Gateway still exists")
+		}
+	}
+
+	return nil
+}
+
+func testAccCheckNatGatewayDisappears(instance *vpc.NatGatewayInstance) resource.TestCheckFunc {
+	return func(s *terraform.State) error {
+		client := testAccProvider.Meta().(*NcloudAPIClient)
+
+		reqParams := &vpc.DeleteNatGatewayInstanceRequest{
+			NatGatewayInstanceNo: instance.NatGatewayInstanceNo,
+		}
+
+		_, err := client.vpc.V2Api.DeleteNatGatewayInstance(reqParams)
+
+		waitForNcloudNatGatewayDeletion(client, *instance.NatGatewayInstanceNo)
+
+		return err
 	}
 }

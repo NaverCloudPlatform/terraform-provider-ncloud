@@ -1,26 +1,29 @@
 package ncloud
 
 import (
+	"errors"
 	"fmt"
 	"math/rand"
 	"regexp"
 	"testing"
 
 	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/services/vpc"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 )
 
-func TestAccResourceNcloudVpc_Basic(t *testing.T) {
+func TestAccResourceNcloudVpc_basic(t *testing.T) {
 	var vpc vpc.Vpc
 	rInt := rand.Intn(16)
 	cidr := fmt.Sprintf("10.%d.0.0/16", rInt)
-	name := fmt.Sprintf("testacc-vpc-basic-%d", rInt)
+	name := fmt.Sprintf("test-vpc-basic-%s", acctest.RandString(5))
 	resourceName := "ncloud_vpc.test"
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:  func() { testAccPreCheck(t) },
-		Providers: testAccProviders,
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckVpcDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccDataSourceNcloudVpcConfig(name, cidr),
@@ -35,16 +38,41 @@ func TestAccResourceNcloudVpc_Basic(t *testing.T) {
 	})
 }
 
-func TestAccResourceNcloudVpc_Update(t *testing.T) {
+func TestAccResourceNcloudVpc_disappears(t *testing.T) {
 	var vpc vpc.Vpc
 	rInt := rand.Intn(16)
 	cidr := fmt.Sprintf("10.%d.0.0/16", rInt)
-	name := fmt.Sprintf("testacc-vpc-basic-%d", rInt)
+	name := fmt.Sprintf("test-vpc-basic-%s", acctest.RandString(5))
 	resourceName := "ncloud_vpc.test"
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:  func() { testAccPreCheck(t) },
-		Providers: testAccProviders,
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckVpcDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccDataSourceNcloudVpcConfig(name, cidr),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckVpcExists(resourceName, &vpc),
+					testAccCheckVpcDisappears(&vpc),
+				),
+				ExpectNonEmptyPlan: true,
+			},
+		},
+	})
+}
+
+func TestAccResourceNcloudVpc_updateName(t *testing.T) {
+	var vpc vpc.Vpc
+	rInt := rand.Intn(16)
+	cidr := fmt.Sprintf("10.%d.0.0/16", rInt)
+	name := fmt.Sprintf("test-vpc-name-%s", acctest.RandString(5))
+	resourceName := "ncloud_vpc.test"
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckVpcDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccDataSourceNcloudVpcConfig(name, cidr),
@@ -92,5 +120,42 @@ func testAccCheckVpcExists(n string, vpc *vpc.Vpc) resource.TestCheckFunc {
 		*vpc = *vpcInstance
 
 		return nil
+	}
+}
+
+func testAccCheckVpcDestroy(s *terraform.State) error {
+	client := testAccProvider.Meta().(*NcloudAPIClient)
+
+	for _, rs := range s.RootModule().Resources {
+		if rs.Type != "ncloud_vpc" {
+			continue
+		}
+
+		instance, err := getVpcInstance(client, rs.Primary.ID)
+
+		if err != nil {
+			return err
+		}
+
+		if instance != nil {
+			return errors.New("VPC still exists")
+		}
+	}
+
+	return nil
+}
+
+func testAccCheckVpcDisappears(instance *vpc.Vpc) resource.TestCheckFunc {
+	return func(s *terraform.State) error {
+		client := testAccProvider.Meta().(*NcloudAPIClient)
+		reqParams := &vpc.DeleteVpcRequest{
+			VpcNo: instance.VpcNo,
+		}
+
+		_, err := client.vpc.V2Api.DeleteVpc(reqParams)
+
+		waitForNcloudVpcDeletion(client, *instance.VpcNo)
+
+		return err
 	}
 }

@@ -1,24 +1,27 @@
 package ncloud
 
 import (
+	"errors"
 	"fmt"
 	"regexp"
 	"testing"
 
 	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/services/vpc"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 )
 
-func TestAccResourceNcloudSubnet_Basic(t *testing.T) {
+func TestAccResourceNcloudSubnet_basic(t *testing.T) {
 	var subnet vpc.Subnet
-	name := "testacc-subnet-basic"
+	name := fmt.Sprintf("test-subnet-basic-%s", acctest.RandString(5))
 	cidr := "10.2.2.0/24"
 	resourceName := "ncloud_subnet.bar"
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:  func() { testAccPreCheck(t) },
-		Providers: testAccProviders,
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckSubnetDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccResourceNcloudSubnetConfig(name, cidr),
@@ -41,15 +44,39 @@ func TestAccResourceNcloudSubnet_Basic(t *testing.T) {
 	})
 }
 
-func TestAccResourceNcloudSubnet_UpdateName(t *testing.T) {
+func TestAccResourceNcloudSubnet_disappears(t *testing.T) {
 	var subnet vpc.Subnet
-	name := "testacc-subnet-basic"
+	name := fmt.Sprintf("test-subnet-disappears-%s", acctest.RandString(5))
 	cidr := "10.2.2.0/24"
 	resourceName := "ncloud_subnet.bar"
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:  func() { testAccPreCheck(t) },
-		Providers: testAccProviders,
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckSubnetDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccResourceNcloudSubnetConfig(name, cidr),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckSubnetExists(resourceName, &subnet),
+					testAccCheckSubnetDisappears(&subnet),
+				),
+				ExpectNonEmptyPlan: true,
+			},
+		},
+	})
+}
+
+func TestAccResourceNcloudSubnet_updateName(t *testing.T) {
+	var subnet vpc.Subnet
+	name := fmt.Sprintf("test-subnet-name-%s", acctest.RandString(5))
+	cidr := "10.2.2.0/24"
+	resourceName := "ncloud_subnet.bar"
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckSubnetDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccResourceNcloudSubnetConfig(name, cidr),
@@ -73,15 +100,16 @@ func TestAccResourceNcloudSubnet_UpdateName(t *testing.T) {
 	})
 }
 
-func TestAccResourceNcloudSubnet_UpdateNetworkACL(t *testing.T) {
+func TestAccResourceNcloudSubnet_updateNetworkACL(t *testing.T) {
 	var subnet vpc.Subnet
-	name := "testacc-subnet-update"
+	name := fmt.Sprintf("test-subnet-update-nacl-%s", acctest.RandString(5))
 	cidr := "10.2.2.0/24"
 	resourceName := "ncloud_subnet.bar"
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:  func() { testAccPreCheck(t) },
-		Providers: testAccProviders,
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckSubnetDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccResourceNcloudSubnetConfig(name, cidr),
@@ -100,12 +128,16 @@ func TestAccResourceNcloudSubnet_UpdateNetworkACL(t *testing.T) {
 }
 
 func TestAccResourceNcloudSubnet_InvalidCIDR(t *testing.T) {
+	name := fmt.Sprintf("test-subnet-update-nacl-%s", acctest.RandString(5))
+	cidr := "10.3.2.0/24"
+
 	resource.Test(t, resource.TestCase{
-		PreCheck:  func() { testAccPreCheck(t) },
-		Providers: testAccProviders,
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckSubnetDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config:      testAccResourceNcloudSubnetConfigInvalidCIDR("10.3.2.0/24"),
+				Config:      testAccResourceNcloudSubnetConfigInvalidCIDR(name, cidr),
 				ExpectError: regexp.MustCompile("The subnet must belong to the IPv4 CIDR of the specified VPC."),
 			},
 		},
@@ -115,14 +147,14 @@ func TestAccResourceNcloudSubnet_InvalidCIDR(t *testing.T) {
 func testAccResourceNcloudSubnetConfig(name, cidr string) string {
 	return fmt.Sprintf(`
 resource "ncloud_vpc" "foo" {
-	name               = "testacc-subnet-basic"
+	name               = "%[1]s"
 	ipv4_cidr_block    = "10.2.0.0/16"
 }
 
 resource "ncloud_subnet" "bar" {
 	vpc_no             = ncloud_vpc.foo.vpc_no
-	name               = "%s"
-	subnet             = "%s"
+	name               = "%[1]s"
+	subnet             = "%[2]s"
 	zone               = "KR-1"
 	network_acl_no     = ncloud_vpc.foo.default_network_acl_no
 	subnet_type        = "PUBLIC"
@@ -134,20 +166,20 @@ resource "ncloud_subnet" "bar" {
 func testAccResourceNcloudSubnetConfigUpdateNetworkACL(name, cidr string) string {
 	return fmt.Sprintf(`
 resource "ncloud_vpc" "foo" {
-	name               = "testacc-subnet-basic"
+	name               = "%[1]s"
 	ipv4_cidr_block    = "10.2.0.0/16"
 }
 
 resource "ncloud_network_acl" "nacl" {
 	vpc_no      = ncloud_vpc.foo.vpc_no
-	name        = "testacc-subnet-nacl-update"
+	name        = "%[1]s"
 	description = "for test acc"
 }
 
 resource "ncloud_subnet" "bar" {
 	vpc_no             = ncloud_vpc.foo.vpc_no
-	name               = "%s"
-	subnet             = "%s"
+	name               = "%[1]s"
+	subnet             = "%[2]s"
 	zone               = "KR-1"
 	network_acl_no     = ncloud_network_acl.nacl.network_acl_no
 	subnet_type        = "PUBLIC"
@@ -156,23 +188,23 @@ resource "ncloud_subnet" "bar" {
 `, name, cidr)
 }
 
-func testAccResourceNcloudSubnetConfigInvalidCIDR(cidr string) string {
+func testAccResourceNcloudSubnetConfigInvalidCIDR(name, cidr string) string {
 	return fmt.Sprintf(`
 resource "ncloud_vpc" "foo" {
-	name               = "testacc-subnet-invalid-cidr"
+	name               = "%[1]s"
 	ipv4_cidr_block    = "10.2.0.0/16"
 }
 
 resource "ncloud_subnet" "bar" {
 	vpc_no             = ncloud_vpc.foo.vpc_no
-	name               = "testacc-subnet-invalid-cidr"
+	name               = "%[1]s"
 	subnet             = "%s"
 	zone               = "KR-1"
 	network_acl_no     = ncloud_vpc.foo.default_network_acl_no
 	subnet_type        = "PUBLIC"
 	usage_type         = "GEN"
 }
-`, cidr)
+`, name, cidr)
 }
 
 func testAccCheckSubnetExists(n string, subnet *vpc.Subnet) resource.TestCheckFunc {
@@ -195,5 +227,43 @@ func testAccCheckSubnetExists(n string, subnet *vpc.Subnet) resource.TestCheckFu
 		*subnet = *instance
 
 		return nil
+	}
+}
+
+func testAccCheckSubnetDestroy(s *terraform.State) error {
+	client := testAccProvider.Meta().(*NcloudAPIClient)
+
+	for _, rs := range s.RootModule().Resources {
+		if rs.Type != "ncloud_subnet" {
+			continue
+		}
+
+		instance, err := getSubnetInstance(client, rs.Primary.ID)
+
+		if err != nil {
+			return err
+		}
+
+		if instance != nil {
+			return errors.New("Subnet still exists")
+		}
+	}
+
+	return nil
+}
+
+func testAccCheckSubnetDisappears(instance *vpc.Subnet) resource.TestCheckFunc {
+	return func(s *terraform.State) error {
+		client := testAccProvider.Meta().(*NcloudAPIClient)
+
+		reqParams := &vpc.DeleteSubnetRequest{
+			SubnetNo: instance.SubnetNo,
+		}
+
+		_, err := client.vpc.V2Api.DeleteSubnet(reqParams)
+
+		waitForNcloudSubnetDeletion(client, *instance.SubnetNo)
+
+		return err
 	}
 }

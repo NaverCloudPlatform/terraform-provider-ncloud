@@ -79,26 +79,9 @@ func resourceNcloudVpcCreate(d *schema.ResourceData, meta interface{}) error {
 
 	vpcInstance := resp.VpcList[0]
 	d.SetId(*vpcInstance.VpcNo)
-
-	stateConf := &resource.StateChangeConf{
-		Pending: []string{"INIT", "CREATING"},
-		Target:  []string{"RUN"},
-		Refresh: func() (interface{}, string, error) {
-			instance, err := getVpcInstance(client, d.Id())
-			return VpcCommonStateRefreshFunc(instance, err, "VpcStatus")
-		},
-		Timeout:    DefaultCreateTimeout,
-		Delay:      2 * time.Second,
-		MinTimeout: 3 * time.Second,
-	}
-
-	if _, err := stateConf.WaitForState(); err != nil {
-		return fmt.Errorf(
-			"Error waiting for VPC (%s) to become available: %s",
-			d.Id(), err)
-	}
-
 	log.Printf("[INFO] VPC ID: %s", d.Id())
+
+	waitForNcloudVpcCreation(client, d.Id())
 
 	return resourceNcloudVpcRead(d, meta)
 }
@@ -123,12 +106,14 @@ func resourceNcloudVpcRead(d *schema.ResourceData, meta interface{}) error {
 	d.Set("ipv4_cidr_block", instance.Ipv4CidrBlock)
 	d.Set("status", instance.VpcStatus.Code)
 
-	defaultNetworkACLNo, err := getDefaultNetworkACL(client, d.Id())
-	if err != nil {
-		return fmt.Errorf("Error get default network acl for VPC (%s): %s", d.Id(), err)
-	}
+	if *instance.VpcStatus.Code != "TERMTING" {
+		defaultNetworkACLNo, err := getDefaultNetworkACL(client, d.Id())
+		if err != nil {
+			return fmt.Errorf("Error get default network acl for VPC (%s): %s", d.Id(), err)
+		}
 
-	d.Set("default_network_acl_no", defaultNetworkACLNo)
+		d.Set("default_network_acl_no", defaultNetworkACLNo)
+	}
 
 	return nil
 }
@@ -186,11 +171,37 @@ func resourceNcloudVpcDelete(d *schema.ResourceData, meta interface{}) error {
 	}
 	logResponse("resource_ncloud_vpc > DeleteVpc", resp)
 
+	waitForNcloudVpcDeletion(client, d.Id())
+
+	return nil
+}
+
+func waitForNcloudVpcCreation(client *NcloudAPIClient, id string) error {
+	stateConf := &resource.StateChangeConf{
+		Pending: []string{"INIT", "CREATING"},
+		Target:  []string{"RUN"},
+		Refresh: func() (interface{}, string, error) {
+			instance, err := getVpcInstance(client, id)
+			return VpcCommonStateRefreshFunc(instance, err, "VpcStatus")
+		},
+		Timeout:    DefaultCreateTimeout,
+		Delay:      2 * time.Second,
+		MinTimeout: 3 * time.Second,
+	}
+
+	if _, err := stateConf.WaitForState(); err != nil {
+		return fmt.Errorf("Error waiting for VPC (%s) to become available: %s", id, err)
+	}
+
+	return nil
+}
+
+func waitForNcloudVpcDeletion(client *NcloudAPIClient, id string) error {
 	stateConf := &resource.StateChangeConf{
 		Pending: []string{"RUN", "TERMTING"},
 		Target:  []string{"TERMINATED"},
 		Refresh: func() (interface{}, string, error) {
-			instance, err := getVpcInstance(client, d.Id())
+			instance, err := getVpcInstance(client, id)
 			return VpcCommonStateRefreshFunc(instance, err, "VpcStatus")
 		},
 		Timeout:    DefaultTimeout,
@@ -199,9 +210,7 @@ func resourceNcloudVpcDelete(d *schema.ResourceData, meta interface{}) error {
 	}
 
 	if _, err := stateConf.WaitForState(); err != nil {
-		return fmt.Errorf(
-			"Error waiting for VPC (%s) to become termintaing: %s",
-			d.Id(), err)
+		return fmt.Errorf("Error waiting for VPC (%s) to become termintaing: %s", id, err)
 	}
 
 	return nil
