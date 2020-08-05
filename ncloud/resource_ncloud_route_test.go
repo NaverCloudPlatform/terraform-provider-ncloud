@@ -12,47 +12,47 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 )
 
-func TestAccResourceNcloudRouteTableAssociation_basic(t *testing.T) {
+func TestAccresourceNcloudRoute_basic(t *testing.T) {
 	var route vpc.Route
-	name := fmt.Sprintf("test-table-ass-basic-%s", acctest.RandString(5))
-	resourceName := "ncloud_route_table_association.foo"
+	name := fmt.Sprintf("test-route-basic-%s", acctest.RandString(5))
+	resourceName := "ncloud_route.foo"
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
-		CheckDestroy: testAccCheckRouteTableAssocationDestroy,
+		CheckDestroy: testAccCheckRouteDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccResourceNcloudRouteTableAssociationConfig(name),
+				Config: testAccresourceNcloudRouteConfig(name),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckRouteTableAssociationExists(resourceName, &route),
+					testAccCheckRouteExists(resourceName, &route),
 				),
 			},
 			{
 				ResourceName:      resourceName,
 				ImportState:       true,
-				ImportStateIdFunc: testAccNcloudRouteTableAssociationImportStateIDFunc(resourceName),
+				ImportStateIdFunc: testAccNcloudRouteImportStateIDFunc(resourceName),
 				ImportStateVerify: true,
 			},
 		},
 	})
 }
 
-func TestAccResourceNcloudRouteTableAssociation_disappears(t *testing.T) {
+func TestAccresourceNcloudRoute_disappears(t *testing.T) {
 	var route vpc.Route
-	name := fmt.Sprintf("test-table-ass-disappear-%s", acctest.RandString(5))
-	resourceName := "ncloud_route_table_association.foo"
+	name := fmt.Sprintf("test-route-disappear-%s", acctest.RandString(5))
+	resourceName := "ncloud_route.foo"
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
-		CheckDestroy: testAccCheckRouteTableAssocationDestroy,
+		CheckDestroy: testAccCheckRouteDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccResourceNcloudRouteTableAssociationConfig(name),
+				Config: testAccresourceNcloudRouteConfig(name),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckRouteTableAssociationExists(resourceName, &route),
-					testAccCheckRouteTableAssocationDisappears(&route),
+					testAccCheckRouteExists(resourceName, &route),
+					testAccCheckRouteDisappears(&route),
 				),
 				ExpectNonEmptyPlan: true,
 			},
@@ -60,7 +60,7 @@ func TestAccResourceNcloudRouteTableAssociation_disappears(t *testing.T) {
 	})
 }
 
-func testAccResourceNcloudRouteTableAssociationConfig(name string) string {
+func testAccresourceNcloudRouteConfig(name string) string {
 	return fmt.Sprintf(`
 resource "ncloud_vpc" "vpc" {
 	name            = "%[1]s"
@@ -79,7 +79,7 @@ resource "ncloud_nat_gateway" "nat_gateway" {
   zone        = "KR-1"
 }
 
-resource "ncloud_route_table_association" "foo" {
+resource "ncloud_route" "foo" {
 	route_table_no         = ncloud_route_table.route_table.id
 	destination_cidr_block = "0.0.0.0/0"
 	target_type            = "NATGW"
@@ -89,7 +89,7 @@ resource "ncloud_route_table_association" "foo" {
 `, name)
 }
 
-func testAccCheckRouteTableAssociationExists(n string, route *vpc.Route) resource.TestCheckFunc {
+func testAccCheckRouteExists(n string, route *vpc.Route) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		rs, ok := s.RootModule().Resources[n]
 		if !ok {
@@ -107,13 +107,13 @@ func testAccCheckRouteTableAssociationExists(n string, route *vpc.Route) resourc
 			RouteTableNo: ncloud.String(rs.Primary.Attributes["route_table_no"]),
 		}
 
-		logCommonRequest("resource_ncloud_route_table_association_test > GetRouteList", reqParams)
+		logCommonRequest("resource_ncloud_route_test > GetRouteList", reqParams)
 		resp, err := client.vpc.V2Api.GetRouteList(reqParams)
 		if err != nil {
-			logErrorResponse("resource_ncloud_route_table_association_test > GetRouteList", err, reqParams)
+			logErrorResponse("resource_ncloud_route_test > GetRouteList", err, reqParams)
 			return fmt.Errorf("Not found: %s", n)
 		}
-		logResponse("resource_ncloud_route_table_association_test > GetRouteList", resp)
+		logResponse("resource_ncloud_route_test > GetRouteList", resp)
 
 		if resp.RouteList != nil {
 			for _, i := range resp.RouteList {
@@ -128,7 +128,7 @@ func testAccCheckRouteTableAssociationExists(n string, route *vpc.Route) resourc
 	}
 }
 
-func testAccNcloudRouteTableAssociationImportStateIDFunc(resourceName string) resource.ImportStateIdFunc {
+func testAccNcloudRouteImportStateIDFunc(resourceName string) resource.ImportStateIdFunc {
 	return func(s *terraform.State) (string, error) {
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
@@ -141,11 +141,11 @@ func testAccNcloudRouteTableAssociationImportStateIDFunc(resourceName string) re
 	}
 }
 
-func testAccCheckRouteTableAssocationDestroy(s *terraform.State) error {
+func testAccCheckRouteDestroy(s *terraform.State) error {
 	client := testAccProvider.Meta().(*NcloudAPIClient)
 
 	for _, rs := range s.RootModule().Resources {
-		if rs.Type != "ncloud_route_table_association" {
+		if rs.Type != "ncloud_route" {
 			continue
 		}
 
@@ -166,7 +166,7 @@ func testAccCheckRouteTableAssocationDestroy(s *terraform.State) error {
 
 		resp, err := client.vpc.V2Api.GetRouteList(reqParams)
 		if err != nil {
-			logErrorResponse("resource_ncloud_route_table_association_test > GetRouteList", err, reqParams)
+			logErrorResponse("resource_ncloud_route_test > GetRouteList", err, reqParams)
 			return err
 		}
 
@@ -183,7 +183,7 @@ func testAccCheckRouteTableAssocationDestroy(s *terraform.State) error {
 	return nil
 }
 
-func testAccCheckRouteTableAssocationDisappears(instance *vpc.Route) resource.TestCheckFunc {
+func testAccCheckRouteDisappears(instance *vpc.Route) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		client := testAccProvider.Meta().(*NcloudAPIClient)
 		routeTable, err := getRouteTableInstance(client, *instance.RouteTableNo)

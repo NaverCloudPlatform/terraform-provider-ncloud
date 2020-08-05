@@ -78,7 +78,7 @@ func Provider() terraform.ResourceProvider {
 			"ncloud_network_acl_rule":              resourceNcloudNetworkACLRule(),
 			"ncloud_nat_gateway":                   resourceNcloudNatGateway(),
 			"ncloud_route_table":                   resourceNcloudRouteTable(),
-			"ncloud_route_table_association":       resourceNcloudRouteTableAssociation(),
+			"ncloud_route":                         resourceNcloudRoute(),
 		},
 		ConfigureFunc: providerConfigure,
 	}

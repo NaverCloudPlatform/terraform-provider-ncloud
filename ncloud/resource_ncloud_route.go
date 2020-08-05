@@ -15,12 +15,12 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
 
-func resourceNcloudRouteTableAssociation() *schema.Resource {
+func resourceNcloudRoute() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceNcloudRouteTableAssociationCreate,
-		Read:   resourceNcloudRouteTableAssociationRead,
-		Update: resourceNcloudRouteTableAssociationUpdate,
-		Delete: resourceNcloudRouteTableAssociationDelete,
+		Create: resourceNcloudRouteCreate,
+		Read:   resourceNcloudRouteRead,
+		Update: resourceNcloudRouteUpdate,
+		Delete: resourceNcloudRouteDelete,
 		Importer: &schema.ResourceImporter{
 			State: func(d *schema.ResourceData, meta interface{}) ([]*schema.ResourceData, error) {
 				idParts := strings.Split(d.Id(), ":")
@@ -75,7 +75,7 @@ func resourceNcloudRouteTableAssociation() *schema.Resource {
 	}
 }
 
-func resourceNcloudRouteTableAssociationCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceNcloudRouteCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*NcloudAPIClient)
 	routeTable, err := getRouteTableInstance(client, d.Get("route_table_no").(string))
 	if err != nil {
@@ -99,25 +99,25 @@ func resourceNcloudRouteTableAssociationCreate(d *schema.ResourceData, meta inte
 		RouteList:    []*vpc.RouteParameter{routeParams},
 	}
 
-	logCommonRequest("resource_ncloud_route_table_association > AddRoute", reqParams)
+	logCommonRequest("resource_ncloud_route > AddRoute", reqParams)
 	resp, err := client.vpc.V2Api.AddRoute(reqParams)
 	if err != nil {
-		logErrorResponse("resource_ncloud_route_table_association > AddRoute", err, reqParams)
+		logErrorResponse("resource_ncloud_route > AddRoute", err, reqParams)
 		return err
 	}
 
-	logResponse("resource_ncloud_route_table_association > AddRoute", resp)
+	logResponse("resource_ncloud_route > AddRoute", resp)
 
 	d.SetId(routeRuleHash(d.Get("route_table_no").(string), d.Get("destination_cidr_block").(string)))
 
-	log.Printf("[INFO] Route Table Rule ID: %s", d.Id())
+	log.Printf("[INFO] Route ID: %s", d.Id())
 
 	waitForNcloudRouteTableUpdate(client, d.Get("route_table_no").(string))
 
-	return resourceNcloudRouteTableAssociationRead(d, meta)
+	return resourceNcloudRouteRead(d, meta)
 }
 
-func resourceNcloudRouteTableAssociationRead(d *schema.ResourceData, meta interface{}) error {
+func resourceNcloudRouteRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*NcloudAPIClient)
 
 	routeTable, err := getRouteTableInstance(client, d.Get("route_table_no").(string))
@@ -151,11 +151,11 @@ func resourceNcloudRouteTableAssociationRead(d *schema.ResourceData, meta interf
 	return nil
 }
 
-func resourceNcloudRouteTableAssociationUpdate(d *schema.ResourceData, meta interface{}) error {
-	return resourceNcloudRouteTableAssociationRead(d, meta)
+func resourceNcloudRouteUpdate(d *schema.ResourceData, meta interface{}) error {
+	return resourceNcloudRouteRead(d, meta)
 }
 
-func resourceNcloudRouteTableAssociationDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceNcloudRouteDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*NcloudAPIClient)
 
 	routeParams := &vpc.RouteParameter{
@@ -171,14 +171,14 @@ func resourceNcloudRouteTableAssociationDelete(d *schema.ResourceData, meta inte
 		RouteList:    []*vpc.RouteParameter{routeParams},
 	}
 
-	logCommonRequest("resource_ncloud_route_table_association > RemoveRoute", reqParams)
+	logCommonRequest("resource_ncloud_route > RemoveRoute", reqParams)
 	resp, err := client.vpc.V2Api.RemoveRoute(reqParams)
 	if err != nil {
-		logErrorResponse("resource_ncloud_route_table_association > RemoveRoute", err, reqParams)
+		logErrorResponse("resource_ncloud_route > RemoveRoute", err, reqParams)
 		return err
 	}
 
-	logResponse("resource_ncloud_route_table_association > RemoveRoute", resp)
+	logResponse("resource_ncloud_route > RemoveRoute", resp)
 
 	waitForNcloudRouteTableUpdate(client, d.Get("route_table_no").(string))
 
@@ -211,13 +211,13 @@ func getRouteTableRouteInstance(client *NcloudAPIClient, d *schema.ResourceData)
 		RouteTableNo: ncloud.String(d.Get("route_table_no").(string)),
 	}
 
-	logCommonRequest("resource_ncloud_route_table_association > GetRouteList", reqParams)
+	logCommonRequest("resource_ncloud_route > GetRouteList", reqParams)
 	resp, err := client.vpc.V2Api.GetRouteList(reqParams)
 	if err != nil {
-		logErrorResponse("resource_ncloud_route_table_association > GetRouteList", err, reqParams)
+		logErrorResponse("resource_ncloud_route > GetRouteList", err, reqParams)
 		return nil, err
 	}
-	logResponse("resource_ncloud_route_table_association > GetRouteList", resp)
+	logResponse("resource_ncloud_route > GetRouteList", resp)
 
 	if resp.RouteList != nil {
 		for _, i := range resp.RouteList {
