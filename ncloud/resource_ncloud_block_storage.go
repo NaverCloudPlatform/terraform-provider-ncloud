@@ -280,11 +280,14 @@ func deleteBlockStorage(client *NcloudAPIClient, blockStorageIds []*string) erro
 
 		stateConf := &resource.StateChangeConf{
 			Pending: []string{"INIT"},
-			Target:  []string{"CREAT"},
+			Target:  []string{"TERMINATED"},
 			Refresh: func() (interface{}, string, error) {
 				instance, err := getBlockStorageInstance(client, *blockStorageId)
 				if err != nil {
 					return 0, "", err
+				}
+				if instance == nil { // Instance is terminated.
+					return instance, "TERMINATED", nil
 				}
 				return instance, ncloud.StringValue(instance.BlockStorageInstanceStatus.Code), nil
 			},
