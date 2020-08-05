@@ -49,8 +49,7 @@ func resourceNcloudLoadBalancerSSLCertificate() *schema.Resource {
 }
 
 func resourceNcloudLoadBalancerSSLCertificateCreate(d *schema.ResourceData, meta interface{}) error {
-	log.Println("[DEBUG] resourceNcloudLoadBalancerSSLCertificateCreate")
-	client := meta.(*NcloudAPIClient)
+	client := meta.(*ProviderConfig).Client
 
 	reqParams, err := buildCreateLoadBalancerSSLCertificateParams(d)
 	if err != nil {
@@ -75,8 +74,7 @@ func resourceNcloudLoadBalancerSSLCertificateCreate(d *schema.ResourceData, meta
 }
 
 func resourceNcloudLoadBalancerSSLCertificateRead(d *schema.ResourceData, meta interface{}) error {
-	log.Println("[DEBUG] resourceNcloudLoadBalancerSSLCertificateRead")
-	client := meta.(*NcloudAPIClient)
+	client := meta.(*ProviderConfig).Client
 
 	lb, err := getLoadBalancerSslCertificateList(client, d.Id())
 	if err != nil {
@@ -96,8 +94,7 @@ func resourceNcloudLoadBalancerSSLCertificateRead(d *schema.ResourceData, meta i
 }
 
 func resourceNcloudLoadBalancerSSLCertificateDelete(d *schema.ResourceData, meta interface{}) error {
-	log.Println("[DEBUG] resourceNcloudLoadBalancerSSLCertificateDelete")
-	client := meta.(*NcloudAPIClient)
+	client := meta.(*ProviderConfig).Client
 	if err := deleteLoadBalancerSSLCertificate(client, d.Id()); err != nil {
 		return err
 	}
@@ -106,7 +103,6 @@ func resourceNcloudLoadBalancerSSLCertificateDelete(d *schema.ResourceData, meta
 }
 
 func resourceNcloudLoadBalancerSSLCertificateUpdate(d *schema.ResourceData, meta interface{}) error {
-	log.Println("[DEBUG] resourceNcloudLoadBalancerSSLCertificateUpdate")
 	return resourceNcloudLoadBalancerSSLCertificateRead(d, meta)
 }
 

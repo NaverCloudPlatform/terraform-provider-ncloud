@@ -32,7 +32,7 @@ func dataSourceNcloudRegions() *schema.Resource {
 }
 
 func dataSourceNcloudRegionsRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*NcloudAPIClient)
+	client := meta.(*ProviderConfig).Client
 	d.SetId(time.Now().UTC().String())
 
 	regionList, err := getRegions(client)

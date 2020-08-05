@@ -48,14 +48,11 @@ func dataSourceNcloudNetworkAcls() *schema.Resource {
 }
 
 func dataSourceNcloudNetworkAclsRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*NcloudAPIClient)
-	regionCode, err := parseRegionCodeParameter(client, d)
-	if err != nil {
-		return err
-	}
+	client := meta.(*ProviderConfig).Client
+	regionCode := meta.(*ProviderConfig).RegionCode
 
 	reqParams := &vpc.GetNetworkAclListRequest{
-		RegionCode: regionCode,
+		RegionCode: &regionCode,
 	}
 
 	if v, ok := d.GetOk("network_acl_no_list"); ok {

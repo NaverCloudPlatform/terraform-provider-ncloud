@@ -80,11 +80,8 @@ func resourceNcloudSubnet() *schema.Resource {
 }
 
 func resourceNcloudSubnetCreate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*NcloudAPIClient)
-	regionCode, err := parseRegionCodeParameter(client, d)
-	if err != nil {
-		return err
-	}
+	client := meta.(*ProviderConfig).Client
+	regionCode := meta.(*ProviderConfig).RegionCode
 
 	reqParams := &vpc.CreateSubnetRequest{
 		Subnet:         ncloud.String(d.Get("subnet").(string)),
@@ -93,7 +90,7 @@ func resourceNcloudSubnetCreate(d *schema.ResourceData, meta interface{}) error 
 		NetworkAclNo:   ncloud.String(d.Get("network_acl_no").(string)),
 		VpcNo:          ncloud.String(d.Get("vpc_no").(string)),
 		ZoneCode:       ncloud.String(d.Get("zone").(string)),
-		RegionCode:     regionCode,
+		RegionCode:     &regionCode,
 	}
 
 	if v, ok := d.GetOk("name"); ok {
@@ -123,7 +120,7 @@ func resourceNcloudSubnetCreate(d *schema.ResourceData, meta interface{}) error 
 }
 
 func resourceNcloudSubnetRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*NcloudAPIClient)
+	client := meta.(*ProviderConfig).Client
 
 	instance, err := getSubnetInstance(client, d.Id())
 	if err != nil {
@@ -151,7 +148,7 @@ func resourceNcloudSubnetRead(d *schema.ResourceData, meta interface{}) error {
 }
 
 func resourceNcloudSubnetUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*NcloudAPIClient)
+	client := meta.(*ProviderConfig).Client
 
 	if d.HasChange("network_acl_no") {
 		reqParams := &vpc.SetSubnetNetworkAclRequest{
@@ -174,16 +171,12 @@ func resourceNcloudSubnetUpdate(d *schema.ResourceData, meta interface{}) error 
 }
 
 func resourceNcloudSubnetDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*NcloudAPIClient)
-
-	regionCode, err := parseRegionCodeParameter(client, d)
-	if err != nil {
-		return err
-	}
+	client := meta.(*ProviderConfig).Client
+	regionCode := meta.(*ProviderConfig).RegionCode
 
 	reqParams := &vpc.DeleteSubnetRequest{
 		SubnetNo:   ncloud.String(d.Get("subnet_no").(string)),
-		RegionCode: regionCode,
+		RegionCode: &regionCode,
 	}
 
 	logCommonRequest("resource_ncloud_subnet > DeleteSubnet", reqParams)

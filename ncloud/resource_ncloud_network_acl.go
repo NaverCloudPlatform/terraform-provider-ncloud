@@ -59,14 +59,11 @@ func resourceNcloudNetworkACL() *schema.Resource {
 }
 
 func resourceNcloudNetworkACLCreate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*NcloudAPIClient)
-	regionCode, err := parseRegionCodeParameter(client, d)
-	if err != nil {
-		return err
-	}
+	client := meta.(*ProviderConfig).Client
+	regionCode := meta.(*ProviderConfig).RegionCode
 
 	reqParams := &vpc.CreateNetworkAclRequest{
-		RegionCode: regionCode,
+		RegionCode: &regionCode,
 		VpcNo:      ncloud.String(d.Get("vpc_no").(string)),
 	}
 
@@ -97,7 +94,7 @@ func resourceNcloudNetworkACLCreate(d *schema.ResourceData, meta interface{}) er
 }
 
 func resourceNcloudNetworkACLRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*NcloudAPIClient)
+	client := meta.(*ProviderConfig).Client
 
 	instance, err := getNetworkACLInstance(client, d.Id())
 	if err != nil {
@@ -126,16 +123,12 @@ func resourceNcloudNetworkACLUpdate(d *schema.ResourceData, meta interface{}) er
 }
 
 func resourceNcloudNetworkACLDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*NcloudAPIClient)
-
-	regionCode, err := parseRegionCodeParameter(client, d)
-	if err != nil {
-		return err
-	}
+	client := meta.(*ProviderConfig).Client
+	regionCode := meta.(*ProviderConfig).RegionCode
 
 	reqParams := &vpc.DeleteNetworkAclRequest{
 		NetworkAclNo: ncloud.String(d.Get("network_acl_no").(string)),
-		RegionCode:   regionCode,
+		RegionCode:   &regionCode,
 	}
 
 	logCommonRequest("resource_ncloud_network_acl > DeleteNetworkAcl", reqParams)

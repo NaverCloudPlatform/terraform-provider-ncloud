@@ -65,7 +65,7 @@ func dataSourceNcloudPortForwardingRule() *schema.Resource {
 }
 
 func dataSourceNcloudPortForwardingRuleRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*NcloudAPIClient)
+	client := meta.(*ProviderConfig).Client
 
 	regionNo, err := parseRegionNoParameter(client, d)
 	if err != nil {

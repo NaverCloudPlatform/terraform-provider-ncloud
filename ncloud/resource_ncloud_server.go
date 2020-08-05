@@ -188,7 +188,7 @@ func resourceNcloudServer() *schema.Resource {
 }
 
 func resourceNcloudServerCreate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*NcloudAPIClient)
+	client := meta.(*ProviderConfig).Client
 
 	reqParams, err := buildCreateServerInstanceReqParams(client, d)
 	if err != nil {
@@ -241,7 +241,7 @@ func resourceNcloudServerCreate(d *schema.ResourceData, meta interface{}) error 
 }
 
 func resourceNcloudServerRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*NcloudAPIClient)
+	client := meta.(*ProviderConfig).Client
 
 	instance, err := getServerInstance(client, d.Id())
 	if err != nil {
@@ -310,7 +310,7 @@ func resourceNcloudServerRead(d *schema.ResourceData, meta interface{}) error {
 }
 
 func resourceNcloudServerDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*NcloudAPIClient)
+	client := meta.(*ProviderConfig).Client
 	serverInstance, err := getServerInstance(client, d.Id())
 	if err != nil {
 		return err
@@ -356,7 +356,7 @@ func resourceNcloudServerDelete(d *schema.ResourceData, meta interface{}) error 
 }
 
 func resourceNcloudServerUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*NcloudAPIClient)
+	client := meta.(*ProviderConfig).Client
 
 	if d.HasChange("server_product_code") {
 		reqParams := &server.ChangeServerInstanceSpecRequest{

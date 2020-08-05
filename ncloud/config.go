@@ -52,3 +52,11 @@ func (c *Config) Client() (*NcloudAPIClient, error) {
 		vpc:          vpc.NewAPIClient(vpc.NewConfiguration(apiKey)),
 	}, nil
 }
+
+type ProviderConfig struct {
+	Site       string
+	SupportVPC bool
+	RegionCode string
+	RegionNo   string
+	Client     *NcloudAPIClient
+}

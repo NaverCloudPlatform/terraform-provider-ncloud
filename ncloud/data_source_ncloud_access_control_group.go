@@ -34,7 +34,7 @@ func dataSourceNcloudAccessControlGroup() *schema.Resource {
 }
 
 func dataSourceNcloudAccessControlGroupRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*NcloudAPIClient)
+	client := meta.(*ProviderConfig).Client
 
 	configNo, configNoOk := d.GetOk("configuration_no")
 	acgName, acgNameOk := d.GetOk("name")

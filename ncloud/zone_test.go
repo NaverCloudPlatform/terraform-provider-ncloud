@@ -27,7 +27,7 @@ func TestParseZoneNoParameterBasic(t *testing.T) {
 			{
 				Config: `data "ncloud_zones" "zones" {}`,
 				Check: func(*terraform.State) error {
-					client := testAccProvider.Meta().(*NcloudAPIClient)
+					client := testAccProvider.Meta().(*ProviderConfig).Client
 					s := testZoneSchema()
 					d := schema.TestResourceDataRaw(t, s, map[string]interface{}{
 						"zone": testZoneCode,
@@ -50,7 +50,7 @@ func TestParseZoneNoParameterInputNil(t *testing.T) {
 			{
 				Config: `data "ncloud_zones" "zones" {}`,
 				Check: func(*terraform.State) error {
-					client := testAccProvider.Meta().(*NcloudAPIClient)
+					client := testAccProvider.Meta().(*ProviderConfig).Client
 					if zoneNo, _ := parseZoneNoParameter(client, &schema.ResourceData{}); zoneNo != nil {
 						t.Fatalf("zone_no should be return nil when input empty resource data. actual: %s", *zoneNo)
 					}
@@ -69,7 +69,7 @@ func TestParseZoneNoParameterInputUnknownZoneCode(t *testing.T) {
 			{
 				Config: `data "ncloud_zones" "zones" {}`,
 				Check: func(*terraform.State) error {
-					client := testAccProvider.Meta().(*NcloudAPIClient)
+					client := testAccProvider.Meta().(*ProviderConfig).Client
 					s := testZoneSchema()
 					d := schema.TestResourceDataRaw(t, s, map[string]interface{}{
 						"zone": "unknown-zone-code",
@@ -93,7 +93,7 @@ func TestGetZoneNoByCodeBasic(t *testing.T) {
 			{
 				Config: `data "ncloud_zones" "zones" {}`,
 				Check: func(*terraform.State) error {
-					client := testAccProvider.Meta().(*NcloudAPIClient)
+					client := testAccProvider.Meta().(*ProviderConfig).Client
 					if zoneNo := getZoneNoByCode(client, testZoneCode); zoneNo == "" {
 						t.Fatalf("No zone data for zone_code: %s", testZoneCode)
 					}
@@ -113,7 +113,7 @@ func TestGetZoneNoByCodeInputUnknownZoneCode(t *testing.T) {
 			{
 				Config: `data "ncloud_zones" "zones" {}`,
 				Check: func(*terraform.State) error {
-					client := testAccProvider.Meta().(*NcloudAPIClient)
+					client := testAccProvider.Meta().(*ProviderConfig).Client
 					if zoneNo := getZoneNoByCode(client, testZoneCode); zoneNo != "" {
 						t.Fatalf("Unknown zone code must return nil. zone_code: %s", testZoneCode)
 					}
@@ -133,7 +133,7 @@ func TestGetZoneByCodeBasic(t *testing.T) {
 			{
 				Config: `data "ncloud_zones" "zones" {}`,
 				Check: func(*terraform.State) error {
-					client := testAccProvider.Meta().(*NcloudAPIClient)
+					client := testAccProvider.Meta().(*ProviderConfig).Client
 					if zone, err := getZoneByCode(client, testZoneCode); err != nil || zone == nil {
 						t.Fatalf("No zone data for zone_code: %s, %#v", testZoneCode, err)
 					}
@@ -153,7 +153,7 @@ func TestGetZoneByCodeInputUnknownZoneCode(t *testing.T) {
 			{
 				Config: `data "ncloud_zones" "zones" {}`,
 				Check: func(*terraform.State) error {
-					client := testAccProvider.Meta().(*NcloudAPIClient)
+					client := testAccProvider.Meta().(*ProviderConfig).Client
 					if zone, _ := getZoneByCode(client, testZoneCode); zone != nil {
 						t.Fatalf("Unknown zone code must return nil. zone: %#v", zone)
 					}
@@ -172,7 +172,7 @@ func TestGetZonesBasic(t *testing.T) {
 			{
 				Config: `data "ncloud_zones" "zones" {}`,
 				Check: func(*terraform.State) error {
-					client := testAccProvider.Meta().(*NcloudAPIClient)
+					client := testAccProvider.Meta().(*ProviderConfig).Client
 					if zones, err := getZones(client); err != nil || zones == nil || len(zones) == 0 {
 						t.Fatalf("No zone data")
 					}

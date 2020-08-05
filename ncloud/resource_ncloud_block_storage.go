@@ -98,7 +98,7 @@ func resourceNcloudBlockStorage() *schema.Resource {
 }
 
 func resourceNcloudBlockStorageCreate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*NcloudAPIClient)
+	client := meta.(*ProviderConfig).Client
 
 	reqParams := buildRequestBlockStorageInstance(d)
 
@@ -139,7 +139,7 @@ func resourceNcloudBlockStorageCreate(d *schema.ResourceData, meta interface{}) 
 }
 
 func resourceNcloudBlockStorageRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*NcloudAPIClient)
+	client := meta.(*ProviderConfig).Client
 	storage, err := getBlockStorageInstance(client, d.Id())
 	if err != nil {
 		return err
@@ -184,7 +184,7 @@ func resourceNcloudBlockStorageRead(d *schema.ResourceData, meta interface{}) er
 }
 
 func resourceNcloudBlockStorageDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*NcloudAPIClient)
+	client := meta.(*ProviderConfig).Client
 	blockStorageInstanceNo := d.Get("instance_no").(string)
 	err := detachBlockStorage(d, client, []string{blockStorageInstanceNo})
 	if err != nil {

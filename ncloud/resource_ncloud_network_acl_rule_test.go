@@ -164,7 +164,7 @@ func testAccCheckNetworkACLRuleExists(n string, networkACLRule *vpc.NetworkAclRu
 			return fmt.Errorf("No network ACL Rule id is set: %s", n)
 		}
 
-		client := testAccProvider.Meta().(*NcloudAPIClient)
+		client := testAccProvider.Meta().(*ProviderConfig).Client
 
 		priority, err := strconv.ParseInt(rs.Primary.Attributes["priority"], 10, 32)
 		if err != nil {
@@ -210,7 +210,7 @@ func testAccNcloudNetworkACLRuleImportStateIDFunc(resourceName string) resource.
 }
 
 func testAccCheckNetworkACLRuleDestroy(s *terraform.State) error {
-	client := testAccProvider.Meta().(*NcloudAPIClient)
+	client := testAccProvider.Meta().(*ProviderConfig).Client
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "ncloud_network_acl_rule" {
@@ -257,7 +257,7 @@ func testAccCheckNetworkACLRuleDestroy(s *terraform.State) error {
 
 func testAccCheckNetworkACLRuleDisappears(instance *vpc.NetworkAclRule) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
-		client := testAccProvider.Meta().(*NcloudAPIClient)
+		client := testAccProvider.Meta().(*ProviderConfig).Client
 
 		networkACLRule := &vpc.RemoveNetworkAclRuleParameter{
 			IpBlock:          instance.IpBlock,

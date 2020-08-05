@@ -33,6 +33,11 @@ func Provider() terraform.ResourceProvider {
 				Optional:    true,
 				Description: descriptions["site"],
 			},
+			"support_vpc": {
+				Type:        schema.TypeBool,
+				Optional:    true,
+				Description: descriptions["support_vpc"],
+			},
 		},
 		DataSourcesMap: map[string]*schema.Resource{
 			"ncloud_regions":               dataSourceNcloudRegions(),
@@ -81,6 +86,8 @@ func Provider() terraform.ResourceProvider {
 }
 
 func providerConfigure(d *schema.ResourceData) (interface{}, error) {
+	var providerConfig ProviderConfig
+
 	config := Config{
 		AccessKey: d.Get("access_key").(string),
 		SecretKey: d.Get("secret_key").(string),
@@ -88,9 +95,12 @@ func providerConfigure(d *schema.ResourceData) (interface{}, error) {
 
 	if region, ok := d.GetOk("region"); ok && os.Getenv("NCLOUD_REGION") == "" {
 		os.Setenv("NCLOUD_REGION", region.(string))
+		providerConfig.RegionCode = region.(string)
 	}
 
 	if site, ok := d.GetOk("site"); ok {
+		providerConfig.Site = site.(string)
+
 		switch site {
 		case "gov":
 			os.Setenv("NCLOUD_API_GW", "https://ncloud.apigw.gov-ntruss.com")
@@ -99,20 +109,41 @@ func providerConfigure(d *schema.ResourceData) (interface{}, error) {
 		}
 	}
 
-	sdk, err := config.Client()
+	if supportVpc, ok := d.GetOk("support_vpc"); ok {
+		providerConfig.SupportVPC = supportVpc.(bool)
+	}
+
+	client, err := config.Client()
 	if err != nil {
 		return nil, err
 	}
-	return sdk, nil
+
+	// Fin only supports VPC
+	if providerConfig.Site == "fin" {
+		providerConfig.SupportVPC = true
+	}
+
+	if providerConfig.SupportVPC == false {
+		if regionNo, err := parseRegionNoParameter(client, d); err != nil {
+			return nil, err
+		} else {
+			providerConfig.RegionNo = *regionNo
+		}
+	}
+
+	providerConfig.Client = client
+
+	return &providerConfig, nil
 }
 
 var descriptions map[string]string
 
 func init() {
 	descriptions = map[string]string{
-		"access_key": "Access key of ncloud",
-		"secret_key": "Secret key of ncloud",
-		"region":     "Region of ncloud",
-		"site":       "Site of ncloud (public / gov / fin)",
+		"access_key":  "Access key of ncloud",
+		"secret_key":  "Secret key of ncloud",
+		"region":      "Region of ncloud",
+		"site":        "Site of ncloud (public / gov / fin)",
+		"support_vpc": "Support VPC platform",
 	}
 }
