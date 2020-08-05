@@ -115,26 +115,9 @@ func resourceNcloudSubnetCreate(d *schema.ResourceData, meta interface{}) error 
 
 	instance := resp.SubnetList[0]
 	d.SetId(*instance.SubnetNo)
-
-	stateConf := &resource.StateChangeConf{
-		Pending: []string{"INIT", "CREATING"},
-		Target:  []string{"RUN"},
-		Refresh: func() (interface{}, string, error) {
-			instance, err := getSubnetInstance(client, d.Id())
-			return VpcCommonStateRefreshFunc(instance, err, "SubnetStatus")
-		},
-		Timeout:    DefaultCreateTimeout,
-		Delay:      2 * time.Second,
-		MinTimeout: 3 * time.Second,
-	}
-
-	if _, err := stateConf.WaitForState(); err != nil {
-		return fmt.Errorf(
-			"Error waiting for Subnet (%s) to become available: %s",
-			d.Id(), err)
-	}
-
 	log.Printf("[INFO] Subnet ID: %s", d.Id())
+
+	waitForNcloudSubnetCreation(client, d.Id())
 
 	return resourceNcloudSubnetRead(d, meta)
 }
@@ -184,23 +167,7 @@ func resourceNcloudSubnetUpdate(d *schema.ResourceData, meta interface{}) error 
 		}
 		logResponse("resource_ncloud_subnet > SetSubnetNetworkAcl", resp)
 
-		stateConf := &resource.StateChangeConf{
-			Pending: []string{"SET"},
-			Target:  []string{"RUN"},
-			Refresh: func() (interface{}, string, error) {
-				instance, err := getNetworkACLInstance(client, d.Id())
-				return VpcCommonStateRefreshFunc(instance, err, "NetworkAclStatus")
-			},
-			Timeout:    DefaultTimeout,
-			Delay:      2 * time.Second,
-			MinTimeout: 3 * time.Second,
-		}
-
-		if _, err := stateConf.WaitForState(); err != nil {
-			return fmt.Errorf(
-				"Error waiting for Set network ACL for Subnet (%s) to become running: %s",
-				d.Id(), err)
-		}
+		waitForNcloudNetworkACLUpdate(client, d.Id())
 	}
 
 	return resourceNcloudSubnetRead(d, meta)
@@ -227,11 +194,57 @@ func resourceNcloudSubnetDelete(d *schema.ResourceData, meta interface{}) error 
 	}
 	logResponse("resource_ncloud_subnet > DeleteSubnet", resp)
 
+	waitForNcloudSubnetDeletion(client, d.Id())
+
+	return nil
+}
+
+func waitForNcloudSubnetCreation(client *NcloudAPIClient, id string) error {
+	stateConf := &resource.StateChangeConf{
+		Pending: []string{"INIT", "CREATING"},
+		Target:  []string{"RUN"},
+		Refresh: func() (interface{}, string, error) {
+			instance, err := getSubnetInstance(client, id)
+			return VpcCommonStateRefreshFunc(instance, err, "SubnetStatus")
+		},
+		Timeout:    DefaultCreateTimeout,
+		Delay:      2 * time.Second,
+		MinTimeout: 3 * time.Second,
+	}
+
+	if _, err := stateConf.WaitForState(); err != nil {
+		return fmt.Errorf("Error waiting for Subnet (%s) to become available: %s", id, err)
+	}
+
+	return nil
+}
+
+func waitForNcloudNetworkACLUpdate(client *NcloudAPIClient, id string) error {
+	stateConf := &resource.StateChangeConf{
+		Pending: []string{"SET"},
+		Target:  []string{"RUN"},
+		Refresh: func() (interface{}, string, error) {
+			instance, err := getNetworkACLInstance(client, id)
+			return VpcCommonStateRefreshFunc(instance, err, "NetworkAclStatus")
+		},
+		Timeout:    DefaultTimeout,
+		Delay:      2 * time.Second,
+		MinTimeout: 3 * time.Second,
+	}
+
+	if _, err := stateConf.WaitForState(); err != nil {
+		return fmt.Errorf("Error waiting for Set network ACL for Subnet (%s) to become running: %s", id, err)
+	}
+
+	return nil
+}
+
+func waitForNcloudSubnetDeletion(client *NcloudAPIClient, id string) error {
 	stateConf := &resource.StateChangeConf{
 		Pending: []string{"RUN", "TERMTING"},
 		Target:  []string{"TERMINATED"},
 		Refresh: func() (interface{}, string, error) {
-			instance, err := getSubnetInstance(client, d.Id())
+			instance, err := getSubnetInstance(client, id)
 			return VpcCommonStateRefreshFunc(instance, err, "SubnetStatus")
 		},
 		Timeout:    DefaultTimeout,
@@ -240,9 +253,7 @@ func resourceNcloudSubnetDelete(d *schema.ResourceData, meta interface{}) error 
 	}
 
 	if _, err := stateConf.WaitForState(); err != nil {
-		return fmt.Errorf(
-			"Error waiting for Subnet (%s) to become termintaing: %s",
-			d.Id(), err)
+		return fmt.Errorf("Error waiting for Subnet (%s) to become termintaing: %s", id, err)
 	}
 
 	return nil
