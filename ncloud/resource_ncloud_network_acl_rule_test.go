@@ -242,16 +242,13 @@ func testAccCheckNetworkACLRuleDestroy(s *terraform.State) error {
 		resp, err := client.vpc.V2Api.GetNetworkAclRuleList(reqParams)
 		if err != nil {
 			logErrorResponse("resource_ncloud_network_acl_rule_test > GetNetworkAclRuleList", err, reqParams)
+			return err
 		}
 
 		for _, i := range resp.NetworkAclRuleList {
 			if *i.Priority == int32(priority) && *i.NetworkAclRuleType.Code == *networkRuleType {
 				return errors.New("Network ACL Rule still exists")
 			}
-		}
-
-		if err != nil {
-			return err
 		}
 	}
 
