@@ -99,7 +99,7 @@ func testAccCheckPortForwardingRuleExistsWithProvider(n string, i *server.PortFo
 		}
 
 		provider := providerF()
-		client := provider.Meta().(*NcloudAPIClient)
+		client := provider.Meta().(*ProviderConfig).Client
 		_, zoneNo, portForwardingExternalPort := parsePortForwardingRuleId(rs.Primary.ID)
 		portForwardingRule, err := getPortForwardingRule(client, zoneNo, portForwardingExternalPort)
 		if err != nil {
@@ -120,7 +120,7 @@ func testAccCheckPortForwardingRuleDestroy(s *terraform.State) error {
 }
 
 func testAccCheckPortForwardingRuleDestroyWithProvider(s *terraform.State, provider *schema.Provider) error {
-	client := provider.Meta().(*NcloudAPIClient)
+	client := provider.Meta().(*ProviderConfig).Client
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "ncloud_port_forwarding_rule" {
