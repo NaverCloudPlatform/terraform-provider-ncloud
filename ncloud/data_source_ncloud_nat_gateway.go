@@ -45,15 +45,12 @@ func dataSourceNcloudNatGateway() *schema.Resource {
 }
 
 func dataSourceNcloudNatGatewayRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*NcloudAPIClient)
-	regionCode, err := parseRegionCodeParameter(client, d)
-	if err != nil {
-		return err
-	}
+	client := meta.(*ProviderConfig).Client
+	regionCode := meta.(*ProviderConfig).RegionCode
 
 	reqParams := &vpc.GetNatGatewayInstanceDetailRequest{
 		NatGatewayInstanceNo: ncloud.String(d.Get("nat_gateway_no").(string)),
-		RegionCode:           regionCode,
+		RegionCode:           &regionCode,
 	}
 
 	logCommonRequest("data_source_ncloud_nat_gateway > GetNatGatewayInstanceDetail", reqParams)

@@ -80,7 +80,7 @@ func dataSourceNcloudAccessControlRule() *schema.Resource {
 }
 
 func dataSourceNcloudAccessControlRuleRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*NcloudAPIClient)
+	client := meta.(*ProviderConfig).Client
 
 	var allAccessControlRuleList []*server.AccessControlRule
 	configNo, configNoOk := d.GetOk("access_control_group_configuration_no")

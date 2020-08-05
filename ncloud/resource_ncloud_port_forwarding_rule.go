@@ -65,7 +65,7 @@ func resourceNcloudPortForwadingRule() *schema.Resource {
 }
 
 func resourceNcloudPortForwardingRuleCreate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*NcloudAPIClient)
+	client := meta.(*ProviderConfig).Client
 
 	portForwardingConfigurationNo, err := getPortForwardingConfigurationNo(d, meta)
 	if err != nil {
@@ -122,7 +122,7 @@ func resourceNcloudPortForwardingRuleCreate(d *schema.ResourceData, meta interfa
 }
 
 func resourceNcloudPortForwardingRuleRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*NcloudAPIClient)
+	client := meta.(*ProviderConfig).Client
 
 	_, zoneNo, portForwardingExternalPort := parsePortForwardingRuleId(d.Id())
 	resp, err := getPortForwardingRuleList(client, zoneNo)
@@ -155,7 +155,7 @@ func resourceNcloudPortForwardingRuleRead(d *schema.ResourceData, meta interface
 }
 
 func resourceNcloudPortForwardingRuleExists(d *schema.ResourceData, meta interface{}) (bool, error) {
-	client := meta.(*NcloudAPIClient)
+	client := meta.(*ProviderConfig).Client
 
 	zoneNo, err := getServerZoneNo(client, d.Get("server_instance_no").(string))
 	if err != nil {
@@ -173,7 +173,7 @@ func resourceNcloudPortForwardingRuleUpdate(d *schema.ResourceData, meta interfa
 }
 
 func resourceNcloudPortForwardingRuleDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*NcloudAPIClient)
+	client := meta.(*ProviderConfig).Client
 
 	portForwardingConfigurationNo, err := getPortForwardingConfigurationNo(d, meta)
 	if err != nil {
@@ -241,7 +241,8 @@ func parsePortForwardingRuleId(id string) (portForwardingConfigurationNo string,
 }
 
 func getPortForwardingConfigurationNo(d *schema.ResourceData, meta interface{}) (string, error) {
-	client := meta.(*NcloudAPIClient)
+	client := meta.(*ProviderConfig).Client
+
 	paramPortForwardingConfigurationNo, ok := d.GetOk("port_forwarding_configuration_no")
 	var portForwardingConfigurationNo string
 	if ok {

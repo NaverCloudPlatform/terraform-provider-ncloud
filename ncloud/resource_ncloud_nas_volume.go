@@ -149,7 +149,7 @@ func resourceNcloudNasVolume() *schema.Resource {
 }
 
 func resourceNcloudNasVolumeCreate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*NcloudAPIClient)
+	client := meta.(*ProviderConfig).Client
 
 	reqParams, err := buildCreateNasVolumeInstanceParams(client, d)
 	if err != nil {
@@ -192,7 +192,7 @@ func resourceNcloudNasVolumeCreate(d *schema.ResourceData, meta interface{}) err
 }
 
 func resourceNcloudNasVolumeRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*NcloudAPIClient)
+	client := meta.(*ProviderConfig).Client
 
 	nasVolume, err := getNasVolumeInstance(client, d.Id())
 	if err != nil {
@@ -237,7 +237,7 @@ func resourceNcloudNasVolumeRead(d *schema.ResourceData, meta interface{}) error
 }
 
 func resourceNcloudNasVolumeDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*NcloudAPIClient)
+	client := meta.(*ProviderConfig).Client
 	if err := deleteNasVolumeInstance(client, d.Id()); err != nil {
 		return err
 	}
@@ -246,7 +246,7 @@ func resourceNcloudNasVolumeDelete(d *schema.ResourceData, meta interface{}) err
 }
 
 func resourceNcloudNasVolumeUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*NcloudAPIClient)
+	client := meta.(*ProviderConfig).Client
 
 	if d.HasChange("volume_size") {
 		reqParams := new(server.ChangeNasVolumeSizeRequest)

@@ -65,14 +65,11 @@ func resourceNcloudNatGateway() *schema.Resource {
 }
 
 func resourceNcloudNatGatewayCreate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*NcloudAPIClient)
-	regionCode, err := parseRegionCodeParameter(client, d)
-	if err != nil {
-		return err
-	}
+	client := meta.(*ProviderConfig).Client
+	regionCode := meta.(*ProviderConfig).RegionCode
 
 	reqParams := &vpc.CreateNatGatewayInstanceRequest{
-		RegionCode: regionCode,
+		RegionCode: &regionCode,
 		VpcNo:      ncloud.String(d.Get("vpc_no").(string)),
 		ZoneCode:   ncloud.String(d.Get("zone").(string)),
 	}
@@ -104,7 +101,7 @@ func resourceNcloudNatGatewayCreate(d *schema.ResourceData, meta interface{}) er
 }
 
 func resourceNcloudNatGatewayRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*NcloudAPIClient)
+	client := meta.(*ProviderConfig).Client
 
 	instance, err := getNatGatewayInstance(client, d.Id())
 	if err != nil {
@@ -134,16 +131,12 @@ func resourceNcloudNatGatewayUpdate(d *schema.ResourceData, meta interface{}) er
 }
 
 func resourceNcloudNatGatewayDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*NcloudAPIClient)
-
-	regionCode, err := parseRegionCodeParameter(client, d)
-	if err != nil {
-		return err
-	}
+	client := meta.(*ProviderConfig).Client
+	regionCode := meta.(*ProviderConfig).RegionCode
 
 	reqParams := &vpc.DeleteNatGatewayInstanceRequest{
 		NatGatewayInstanceNo: ncloud.String(d.Get("nat_gateway_no").(string)),
-		RegionCode:           regionCode,
+		RegionCode:           &regionCode,
 	}
 
 	logCommonRequest("resource_ncloud_nat_gateway > DeleteNatGatewayInstance", reqParams)

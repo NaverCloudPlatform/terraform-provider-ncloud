@@ -140,7 +140,7 @@ func testAccCheckNasVolumeExistsWithProvider(n string, i *server.NasVolumeInstan
 		}
 
 		provider := providerF()
-		client := provider.Meta().(*NcloudAPIClient)
+		client := provider.Meta().(*ProviderConfig).Client
 		nasVolumeInstance, err := getNasVolumeInstance(client, rs.Primary.ID)
 		if err != nil {
 			return nil
@@ -156,7 +156,7 @@ func testAccCheckNasVolumeExistsWithProvider(n string, i *server.NasVolumeInstan
 }
 
 func testAccCheckNasVolumeDestroy(s *terraform.State) error {
-	client := testAccProvider.Meta().(*NcloudAPIClient)
+	client := testAccProvider.Meta().(*ProviderConfig).Client
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "ncloud_nas_volume" {

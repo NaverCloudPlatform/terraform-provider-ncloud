@@ -100,11 +100,8 @@ func resourceNcloudNetworkACLRule() *schema.Resource {
 }
 
 func resourceNcloudNetworkACLRuleCreate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*NcloudAPIClient)
-	regionCode, err := parseRegionCodeParameter(client, d)
-	if err != nil {
-		return err
-	}
+	client := meta.(*ProviderConfig).Client
+	regionCode := meta.(*ProviderConfig).RegionCode
 
 	networkACLRule := &vpc.AddNetworkAclRuleParameter{
 		IpBlock:          ncloud.String(d.Get("ip_block").(string)),
@@ -123,7 +120,7 @@ func resourceNcloudNetworkACLRuleCreate(d *schema.ResourceData, meta interface{}
 
 	if d.Get("network_rule_type").(string) == "INBND" {
 		reqParams := &vpc.AddNetworkAclInboundRuleRequest{
-			RegionCode:         regionCode,
+			RegionCode:         &regionCode,
 			NetworkAclNo:       ncloud.String(d.Get("network_acl_no").(string)),
 			NetworkAclRuleList: []*vpc.AddNetworkAclRuleParameter{networkACLRule},
 		}
@@ -138,7 +135,7 @@ func resourceNcloudNetworkACLRuleCreate(d *schema.ResourceData, meta interface{}
 		logResponse("resource_ncloud_network_acl_rule > AddNetworkAclInboundRule", resp)
 	} else {
 		reqParams := &vpc.AddNetworkAclOutboundRuleRequest{
-			RegionCode:         regionCode,
+			RegionCode:         &regionCode,
 			NetworkAclNo:       ncloud.String(d.Get("network_acl_no").(string)),
 			NetworkAclRuleList: []*vpc.AddNetworkAclRuleParameter{networkACLRule},
 		}
@@ -161,9 +158,10 @@ func resourceNcloudNetworkACLRuleCreate(d *schema.ResourceData, meta interface{}
 }
 
 func resourceNcloudNetworkACLRuleRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*NcloudAPIClient)
+	client := meta.(*ProviderConfig).Client
+	regionCode := meta.(*ProviderConfig).RegionCode
 
-	instance, err := getNetworkACLRuleInstance(client, d)
+	instance, err := getNetworkACLRuleInstance(d, client, regionCode)
 	if err != nil {
 		d.SetId("")
 		return err
@@ -192,12 +190,8 @@ func resourceNcloudNetworkACLRuleUpdate(d *schema.ResourceData, meta interface{}
 }
 
 func resourceNcloudNetworkACLRuleDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*NcloudAPIClient)
-
-	regionCode, err := parseRegionCodeParameter(client, d)
-	if err != nil {
-		return err
-	}
+	client := meta.(*ProviderConfig).Client
+	regionCode := meta.(*ProviderConfig).RegionCode
 
 	networkACLRule := &vpc.RemoveNetworkAclRuleParameter{
 		IpBlock:          ncloud.String(d.Get("ip_block").(string)),
@@ -209,7 +203,7 @@ func resourceNcloudNetworkACLRuleDelete(d *schema.ResourceData, meta interface{}
 
 	if d.Get("network_rule_type").(string) == "INBND" {
 		reqParams := &vpc.RemoveNetworkAclInboundRuleRequest{
-			RegionCode:         regionCode,
+			RegionCode:         &regionCode,
 			NetworkAclNo:       ncloud.String(d.Get("network_acl_no").(string)),
 			NetworkAclRuleList: []*vpc.RemoveNetworkAclRuleParameter{networkACLRule},
 		}
@@ -224,7 +218,7 @@ func resourceNcloudNetworkACLRuleDelete(d *schema.ResourceData, meta interface{}
 		logResponse("resource_ncloud_network_acl_rule > RemoveNetworkAclInboundRule", resp)
 	} else {
 		reqParams := &vpc.RemoveNetworkAclOutboundRuleRequest{
-			RegionCode:         regionCode,
+			RegionCode:         &regionCode,
 			NetworkAclNo:       ncloud.String(d.Get("network_acl_no").(string)),
 			NetworkAclRuleList: []*vpc.RemoveNetworkAclRuleParameter{networkACLRule},
 		}
@@ -242,14 +236,9 @@ func resourceNcloudNetworkACLRuleDelete(d *schema.ResourceData, meta interface{}
 	return nil
 }
 
-func getNetworkACLRuleInstance(client *NcloudAPIClient, d *schema.ResourceData) (*vpc.NetworkAclRule, error) {
-	regionCode, err := parseRegionCodeParameter(client, d)
-	if err != nil {
-		return nil, err
-	}
-
+func getNetworkACLRuleInstance(d *schema.ResourceData, client *NcloudAPIClient, regionCode string) (*vpc.NetworkAclRule, error) {
 	reqParams := &vpc.GetNetworkAclRuleListRequest{
-		RegionCode:             regionCode,
+		RegionCode:             &regionCode,
 		NetworkAclNo:           ncloud.String(d.Get("network_acl_no").(string)),
 		NetworkAclRuleTypeCode: ncloud.String(d.Get("network_rule_type").(string)),
 	}

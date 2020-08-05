@@ -56,7 +56,7 @@ func resourceNcloudLoginKey() *schema.Resource {
 }
 
 func resourceNcloudLoginKeyRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*NcloudAPIClient)
+	client := meta.(*ProviderConfig).Client
 
 	keyName := d.Get("key_name").(string)
 
@@ -80,7 +80,7 @@ func resourceNcloudLoginKeyUpdate(d *schema.ResourceData, meta interface{}) erro
 }
 
 func resourceNcloudLoginKeyCreate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*NcloudAPIClient)
+	client := meta.(*ProviderConfig).Client
 
 	keyName := d.Get("key_name").(string)
 	reqParams := &server.CreateLoginKeyRequest{KeyName: ncloud.String(keyName)}
@@ -103,7 +103,7 @@ func resourceNcloudLoginKeyCreate(d *schema.ResourceData, meta interface{}) erro
 }
 
 func resourceNcloudLoginKeyDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*NcloudAPIClient)
+	client := meta.(*ProviderConfig).Client
 
 	keyName := d.Get("key_name").(string)
 

@@ -33,7 +33,7 @@ func dataSourceNcloudRootPassword() *schema.Resource {
 }
 
 func dataSourceNcloudRootPasswordRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*NcloudAPIClient)
+	client := meta.(*ProviderConfig).Client
 
 	serverInstanceNo := d.Get("server_instance_no").(string)
 	privateKey := d.Get("private_key").(string)

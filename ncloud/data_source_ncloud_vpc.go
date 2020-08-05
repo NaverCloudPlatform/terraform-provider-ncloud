@@ -32,15 +32,12 @@ func dataSourceNcloudVpc() *schema.Resource {
 }
 
 func dataSourceNcloudVpcRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*NcloudAPIClient)
-	regionCode, err := parseRegionCodeParameter(client, d)
-	if err != nil {
-		return err
-	}
+	client := meta.(*ProviderConfig).Client
+	regionCode := meta.(*ProviderConfig).RegionCode
 
 	reqParams := &vpc.GetVpcDetailRequest{
 		VpcNo:      ncloud.String(d.Get("vpc_no").(string)),
-		RegionCode: regionCode,
+		RegionCode: &regionCode,
 	}
 
 	logCommonRequest("GetVpcDetail", reqParams)

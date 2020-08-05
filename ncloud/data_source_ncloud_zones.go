@@ -33,7 +33,7 @@ func dataSourceNcloudZones() *schema.Resource {
 }
 
 func dataSourceNcloudZonesRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*NcloudAPIClient)
+	client := meta.(*ProviderConfig).Client
 
 	d.SetId(time.Now().UTC().String())
 

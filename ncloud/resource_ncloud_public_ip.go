@@ -77,7 +77,7 @@ func resourceNcloudPublicIpInstance() *schema.Resource {
 }
 
 func resourceNcloudPublicIpCreate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*NcloudAPIClient)
+	client := meta.(*ProviderConfig).Client
 
 	reqParams, err := buildCreatePublicIpInstanceReqParams(client, d)
 	if err != nil {
@@ -103,7 +103,7 @@ func resourceNcloudPublicIpCreate(d *schema.ResourceData, meta interface{}) erro
 }
 
 func resourceNcloudPublicIpRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*NcloudAPIClient)
+	client := meta.(*ProviderConfig).Client
 
 	instance, err := getPublicIpInstance(client, d.Id())
 	if err != nil {
@@ -145,7 +145,7 @@ func resourceNcloudPublicIpRead(d *schema.ResourceData, meta interface{}) error 
 }
 
 func resourceNcloudPublicIpDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*NcloudAPIClient)
+	client := meta.(*ProviderConfig).Client
 
 	// Check associated public ip
 	if associated, err := checkAssociatedPublicIp(client, d.Id()); associated {

@@ -53,15 +53,12 @@ func resourceNcloudVpc() *schema.Resource {
 }
 
 func resourceNcloudVpcCreate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*NcloudAPIClient)
-	regionCode, err := parseRegionCodeParameter(client, d)
-	if err != nil {
-		return err
-	}
+	client := meta.(*ProviderConfig).Client
+	regionCode := meta.(*ProviderConfig).RegionCode
 
 	reqParams := &vpc.CreateVpcRequest{
 		Ipv4CidrBlock: ncloud.String(d.Get("ipv4_cidr_block").(string)),
-		RegionCode:    regionCode,
+		RegionCode:    &regionCode,
 	}
 
 	if v, ok := d.GetOk("name"); ok {
@@ -87,7 +84,7 @@ func resourceNcloudVpcCreate(d *schema.ResourceData, meta interface{}) error {
 }
 
 func resourceNcloudVpcRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*NcloudAPIClient)
+	client := meta.(*ProviderConfig).Client
 
 	instance, err := getVpcInstance(client, d.Id())
 	if err != nil {
@@ -151,16 +148,12 @@ func resourceNcloudVpcUpdate(d *schema.ResourceData, meta interface{}) error {
 }
 
 func resourceNcloudVpcDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*NcloudAPIClient)
-
-	regionCode, err := parseRegionCodeParameter(client, d)
-	if err != nil {
-		return err
-	}
+	client := meta.(*ProviderConfig).Client
+	regionCode := meta.(*ProviderConfig).RegionCode
 
 	reqParams := &vpc.DeleteVpcRequest{
 		VpcNo:      ncloud.String(d.Get("vpc_no").(string)),
-		RegionCode: regionCode,
+		RegionCode: &regionCode,
 	}
 
 	logCommonRequest("resource_ncloud_vpc > DeleteVpc", reqParams)

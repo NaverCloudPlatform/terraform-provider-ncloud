@@ -125,7 +125,7 @@ func resourceNcloudLoadBalancer() *schema.Resource {
 }
 
 func resourceNcloudLoadBalancerCreate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*NcloudAPIClient)
+	client := meta.(*ProviderConfig).Client
 
 	reqParams, err := buildCreateLoadBalancerInstanceParams(client, d)
 	if err != nil {
@@ -171,7 +171,7 @@ func resourceNcloudLoadBalancerCreate(d *schema.ResourceData, meta interface{}) 
 }
 
 func resourceNcloudLoadBalancerRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*NcloudAPIClient)
+	client := meta.(*ProviderConfig).Client
 
 	lb, err := getLoadBalancerInstance(client, d.Id())
 	if err != nil {
@@ -230,7 +230,7 @@ func resourceNcloudLoadBalancerRead(d *schema.ResourceData, meta interface{}) er
 }
 
 func resourceNcloudLoadBalancerDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*NcloudAPIClient)
+	client := meta.(*ProviderConfig).Client
 	if err := deleteLoadBalancerInstance(client, d.Id()); err != nil {
 		return err
 	}
@@ -239,7 +239,7 @@ func resourceNcloudLoadBalancerDelete(d *schema.ResourceData, meta interface{}) 
 }
 
 func resourceNcloudLoadBalancerUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*NcloudAPIClient)
+	client := meta.(*ProviderConfig).Client
 
 	// Change Load Balanced Server Instances
 	if d.HasChange("server_instance_no_list") {

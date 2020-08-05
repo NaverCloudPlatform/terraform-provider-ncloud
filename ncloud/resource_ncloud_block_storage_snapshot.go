@@ -104,7 +104,7 @@ func resourceNcloudBlockStorageSnapshot() *schema.Resource {
 }
 
 func resourceNcloudBlockStorageSnapshotCreate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*NcloudAPIClient)
+	client := meta.(*ProviderConfig).Client
 
 	reqParams := buildRequestBlockStorageSnapshotInstance(d)
 	logCommonRequest("CreateBlockStorageSnapshotInstance", reqParams)
@@ -144,7 +144,7 @@ func resourceNcloudBlockStorageSnapshotCreate(d *schema.ResourceData, meta inter
 }
 
 func resourceNcloudBlockStorageSnapshotRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*NcloudAPIClient)
+	client := meta.(*ProviderConfig).Client
 	snapshot, err := getBlockStorageSnapshotInstance(client, d.Id())
 	if err != nil {
 		return err
@@ -180,7 +180,7 @@ func resourceNcloudBlockStorageSnapshotUpdate(d *schema.ResourceData, meta inter
 }
 
 func resourceNcloudBlockStorageSnapshotDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*NcloudAPIClient)
+	client := meta.(*ProviderConfig).Client
 	blockStorageSnapshotInstanceNo := d.Get("instance_no").(string)
 	if err := deleteBlockStorageSnapshotInstance(client, blockStorageSnapshotInstanceNo); err != nil {
 		return err

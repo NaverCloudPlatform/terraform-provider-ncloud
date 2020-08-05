@@ -58,7 +58,7 @@ func dataSourceNcloudNasVolumes() *schema.Resource {
 }
 
 func dataSourceNcloudNasVolumesRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*NcloudAPIClient)
+	client := meta.(*ProviderConfig).Client
 
 	regionNo, err := parseRegionNoParameter(client, d)
 	if err != nil {
