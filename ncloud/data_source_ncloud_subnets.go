@@ -69,11 +69,10 @@ func dataSourceNcloudSubnets() *schema.Resource {
 }
 
 func dataSourceNcloudSubnetsRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ProviderConfig).Client
-	regionCode := meta.(*ProviderConfig).RegionCode
+	config := meta.(*ProviderConfig)
 
 	reqParams := &vpc.GetSubnetListRequest{
-		RegionCode: &regionCode,
+		RegionCode: &config.RegionCode,
 	}
 
 	if v, ok := d.GetOk("subnet_no_list"); ok {
@@ -109,7 +108,7 @@ func dataSourceNcloudSubnetsRead(d *schema.ResourceData, meta interface{}) error
 	}
 
 	logCommonRequest("data_source_ncloud_subnets > GetSubnetList", reqParams)
-	resp, err := client.vpc.V2Api.GetSubnetList(reqParams)
+	resp, err := config.Client.vpc.V2Api.GetSubnetList(reqParams)
 
 	if err != nil {
 		logErrorResponse("data_source_ncloud_subnets > GetSubnetList", err, reqParams)

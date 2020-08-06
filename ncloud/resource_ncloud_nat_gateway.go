@@ -65,11 +65,10 @@ func resourceNcloudNatGateway() *schema.Resource {
 }
 
 func resourceNcloudNatGatewayCreate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ProviderConfig).Client
-	regionCode := meta.(*ProviderConfig).RegionCode
+	config := meta.(*ProviderConfig)
 
 	reqParams := &vpc.CreateNatGatewayInstanceRequest{
-		RegionCode: &regionCode,
+		RegionCode: &config.RegionCode,
 		VpcNo:      ncloud.String(d.Get("vpc_no").(string)),
 		ZoneCode:   ncloud.String(d.Get("zone").(string)),
 	}
@@ -83,7 +82,7 @@ func resourceNcloudNatGatewayCreate(d *schema.ResourceData, meta interface{}) er
 	}
 
 	logCommonRequest("resource_ncloud_nat_gateway > CreateNatGatewayInstance", reqParams)
-	resp, err := client.vpc.V2Api.CreateNatGatewayInstance(reqParams)
+	resp, err := config.Client.vpc.V2Api.CreateNatGatewayInstance(reqParams)
 	if err != nil {
 		logErrorResponse("resource_ncloud_nat_gateway > CreateNatGatewayInstance", err, reqParams)
 		return err
@@ -95,15 +94,15 @@ func resourceNcloudNatGatewayCreate(d *schema.ResourceData, meta interface{}) er
 	d.SetId(*instance.NatGatewayInstanceNo)
 	log.Printf("[INFO] NAT Gateway ID: %s", d.Id())
 
-	waitForNcloudNatGatewayCreation(client, d.Id())
+	waitForNcloudNatGatewayCreation(config, d.Id())
 
 	return resourceNcloudNatGatewayRead(d, meta)
 }
 
 func resourceNcloudNatGatewayRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ProviderConfig).Client
+	config := meta.(*ProviderConfig)
 
-	instance, err := getNatGatewayInstance(client, d.Id())
+	instance, err := getNatGatewayInstance(config, d.Id())
 	if err != nil {
 		d.SetId("")
 		return err
@@ -131,16 +130,15 @@ func resourceNcloudNatGatewayUpdate(d *schema.ResourceData, meta interface{}) er
 }
 
 func resourceNcloudNatGatewayDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ProviderConfig).Client
-	regionCode := meta.(*ProviderConfig).RegionCode
+	config := meta.(*ProviderConfig)
 
 	reqParams := &vpc.DeleteNatGatewayInstanceRequest{
+		RegionCode:           &config.RegionCode,
 		NatGatewayInstanceNo: ncloud.String(d.Get("nat_gateway_no").(string)),
-		RegionCode:           &regionCode,
 	}
 
 	logCommonRequest("resource_ncloud_nat_gateway > DeleteNatGatewayInstance", reqParams)
-	resp, err := client.vpc.V2Api.DeleteNatGatewayInstance(reqParams)
+	resp, err := config.Client.vpc.V2Api.DeleteNatGatewayInstance(reqParams)
 	if err != nil {
 		logErrorResponse("resource_ncloud_nat_gateway > DeleteNatGatewayInstance", err, reqParams)
 		return err
@@ -148,17 +146,17 @@ func resourceNcloudNatGatewayDelete(d *schema.ResourceData, meta interface{}) er
 
 	logResponse("resource_ncloud_nat_gateway > DeleteNatGatewayInstance", resp)
 
-	waitForNcloudNatGatewayDeletion(client, d.Id())
+	waitForNcloudNatGatewayDeletion(config, d.Id())
 
 	return nil
 }
 
-func waitForNcloudNatGatewayCreation(client *NcloudAPIClient, id string) error {
+func waitForNcloudNatGatewayCreation(config *ProviderConfig, id string) error {
 	stateConf := &resource.StateChangeConf{
 		Pending: []string{"INIT", "CREATING"},
 		Target:  []string{"RUN"},
 		Refresh: func() (interface{}, string, error) {
-			instance, err := getNatGatewayInstance(client, id)
+			instance, err := getNatGatewayInstance(config, id)
 			return VpcCommonStateRefreshFunc(instance, err, "NatGatewayInstanceStatus")
 		},
 		Timeout:    DefaultCreateTimeout,
@@ -173,12 +171,12 @@ func waitForNcloudNatGatewayCreation(client *NcloudAPIClient, id string) error {
 	return nil
 }
 
-func waitForNcloudNatGatewayDeletion(client *NcloudAPIClient, id string) error {
+func waitForNcloudNatGatewayDeletion(config *ProviderConfig, id string) error {
 	stateConf := &resource.StateChangeConf{
 		Pending: []string{"RUN", "TERMTING"},
 		Target:  []string{"TERMINATED"},
 		Refresh: func() (interface{}, string, error) {
-			instance, err := getNatGatewayInstance(client, id)
+			instance, err := getNatGatewayInstance(config, id)
 			return VpcCommonStateRefreshFunc(instance, err, "NatGatewayInstanceStatus")
 		},
 		Timeout:    DefaultTimeout,
@@ -193,13 +191,14 @@ func waitForNcloudNatGatewayDeletion(client *NcloudAPIClient, id string) error {
 	return nil
 }
 
-func getNatGatewayInstance(client *NcloudAPIClient, id string) (*vpc.NatGatewayInstance, error) {
+func getNatGatewayInstance(config *ProviderConfig, id string) (*vpc.NatGatewayInstance, error) {
 	reqParams := &vpc.GetNatGatewayInstanceDetailRequest{
+		RegionCode:           &config.RegionCode,
 		NatGatewayInstanceNo: ncloud.String(id),
 	}
 
 	logCommonRequest("resource_ncloud_nat_gateway > GetNatGatewayInstanceDetail", reqParams)
-	resp, err := client.vpc.V2Api.GetNatGatewayInstanceDetail(reqParams)
+	resp, err := config.Client.vpc.V2Api.GetNatGatewayInstanceDetail(reqParams)
 	if err != nil {
 		logErrorResponse("resource_ncloud_nat_gateway > GetNatGatewayInstanceDetail", err, reqParams)
 		return nil, err

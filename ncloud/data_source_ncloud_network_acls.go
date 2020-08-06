@@ -48,11 +48,10 @@ func dataSourceNcloudNetworkAcls() *schema.Resource {
 }
 
 func dataSourceNcloudNetworkAclsRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ProviderConfig).Client
-	regionCode := meta.(*ProviderConfig).RegionCode
+	config := meta.(*ProviderConfig)
 
 	reqParams := &vpc.GetNetworkAclListRequest{
-		RegionCode: &regionCode,
+		RegionCode: &config.RegionCode,
 	}
 
 	if v, ok := d.GetOk("network_acl_no_list"); ok {
@@ -72,7 +71,7 @@ func dataSourceNcloudNetworkAclsRead(d *schema.ResourceData, meta interface{}) e
 	}
 
 	logCommonRequest("data_source_ncloud_network_acls > GetNetworkAclList", reqParams)
-	resp, err := client.vpc.V2Api.GetNetworkAclList(reqParams)
+	resp, err := config.Client.vpc.V2Api.GetNetworkAclList(reqParams)
 
 	if err != nil {
 		logErrorResponse("data_source_ncloud_network_acls > GetNetworkAclList", err, reqParams)

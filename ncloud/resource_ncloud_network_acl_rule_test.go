@@ -164,7 +164,7 @@ func testAccCheckNetworkACLRuleExists(n string, networkACLRule *vpc.NetworkAclRu
 			return fmt.Errorf("No network ACL Rule id is set: %s", n)
 		}
 
-		client := testAccProvider.Meta().(*ProviderConfig).Client
+		config := testAccProvider.Meta().(*ProviderConfig)
 
 		priority, err := strconv.ParseInt(rs.Primary.Attributes["priority"], 10, 32)
 		if err != nil {
@@ -174,11 +174,12 @@ func testAccCheckNetworkACLRuleExists(n string, networkACLRule *vpc.NetworkAclRu
 		networkRuleType := ncloud.String(rs.Primary.Attributes["network_rule_type"])
 
 		reqParams := &vpc.GetNetworkAclRuleListRequest{
+			RegionCode:             &config.RegionCode,
 			NetworkAclNo:           ncloud.String(rs.Primary.Attributes["network_acl_no"]),
 			NetworkAclRuleTypeCode: networkRuleType,
 		}
 
-		resp, err := client.vpc.V2Api.GetNetworkAclRuleList(reqParams)
+		resp, err := config.Client.vpc.V2Api.GetNetworkAclRuleList(reqParams)
 		if err != nil {
 			logErrorResponse("resource_ncloud_network_acl_rule_test > GetNetworkAclRuleList", err, reqParams)
 			return err
@@ -210,14 +211,14 @@ func testAccNcloudNetworkACLRuleImportStateIDFunc(resourceName string) resource.
 }
 
 func testAccCheckNetworkACLRuleDestroy(s *terraform.State) error {
-	client := testAccProvider.Meta().(*ProviderConfig).Client
+	config := testAccProvider.Meta().(*ProviderConfig)
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "ncloud_network_acl_rule" {
 			continue
 		}
 
-		instance, err := getNetworkACLInstance(client, rs.Primary.Attributes["network_acl_no"])
+		instance, err := getNetworkACLInstance(config, rs.Primary.Attributes["network_acl_no"])
 
 		if err != nil {
 			return err
@@ -235,11 +236,12 @@ func testAccCheckNetworkACLRuleDestroy(s *terraform.State) error {
 		networkRuleType := ncloud.String(rs.Primary.Attributes["network_rule_type"])
 
 		reqParams := &vpc.GetNetworkAclRuleListRequest{
+			RegionCode:             &config.RegionCode,
 			NetworkAclNo:           ncloud.String(rs.Primary.Attributes["network_acl_no"]),
 			NetworkAclRuleTypeCode: networkRuleType,
 		}
 
-		resp, err := client.vpc.V2Api.GetNetworkAclRuleList(reqParams)
+		resp, err := config.Client.vpc.V2Api.GetNetworkAclRuleList(reqParams)
 		if err != nil {
 			logErrorResponse("resource_ncloud_network_acl_rule_test > GetNetworkAclRuleList", err, reqParams)
 			return err
@@ -257,7 +259,7 @@ func testAccCheckNetworkACLRuleDestroy(s *terraform.State) error {
 
 func testAccCheckNetworkACLRuleDisappears(instance *vpc.NetworkAclRule) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
-		client := testAccProvider.Meta().(*ProviderConfig).Client
+		config := testAccProvider.Meta().(*ProviderConfig)
 
 		networkACLRule := &vpc.RemoveNetworkAclRuleParameter{
 			IpBlock:          instance.IpBlock,
@@ -269,21 +271,23 @@ func testAccCheckNetworkACLRuleDisappears(instance *vpc.NetworkAclRule) resource
 
 		if *instance.NetworkAclRuleType.Code == "INBND" {
 			reqParams := &vpc.RemoveNetworkAclInboundRuleRequest{
+				RegionCode:         &config.RegionCode,
 				NetworkAclNo:       instance.NetworkAclNo,
 				NetworkAclRuleList: []*vpc.RemoveNetworkAclRuleParameter{networkACLRule},
 			}
 
-			_, err := client.vpc.V2Api.RemoveNetworkAclInboundRule(reqParams)
+			_, err := config.Client.vpc.V2Api.RemoveNetworkAclInboundRule(reqParams)
 			if err != nil {
 				return err
 			}
 		} else {
 			reqParams := &vpc.RemoveNetworkAclOutboundRuleRequest{
+				RegionCode:         &config.RegionCode,
 				NetworkAclNo:       instance.NetworkAclNo,
 				NetworkAclRuleList: []*vpc.RemoveNetworkAclRuleParameter{networkACLRule},
 			}
 
-			_, err := client.vpc.V2Api.RemoveNetworkAclOutboundRule(reqParams)
+			_, err := config.Client.vpc.V2Api.RemoveNetworkAclOutboundRule(reqParams)
 			if err != nil {
 				return err
 			}

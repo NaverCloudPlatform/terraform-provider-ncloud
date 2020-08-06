@@ -53,12 +53,11 @@ func resourceNcloudVpc() *schema.Resource {
 }
 
 func resourceNcloudVpcCreate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ProviderConfig).Client
-	regionCode := meta.(*ProviderConfig).RegionCode
+	config := meta.(*ProviderConfig)
 
 	reqParams := &vpc.CreateVpcRequest{
+		RegionCode:    &config.RegionCode,
 		Ipv4CidrBlock: ncloud.String(d.Get("ipv4_cidr_block").(string)),
-		RegionCode:    &regionCode,
 	}
 
 	if v, ok := d.GetOk("name"); ok {
@@ -66,7 +65,7 @@ func resourceNcloudVpcCreate(d *schema.ResourceData, meta interface{}) error {
 	}
 
 	logCommonRequest("resource_ncloud_vpc > CreateVpc", reqParams)
-	resp, err := client.vpc.V2Api.CreateVpc(reqParams)
+	resp, err := config.Client.vpc.V2Api.CreateVpc(reqParams)
 	if err != nil {
 		logErrorResponse("resource_ncloud_vpc > Create Vpc Instance", err, reqParams)
 		return err
@@ -78,15 +77,15 @@ func resourceNcloudVpcCreate(d *schema.ResourceData, meta interface{}) error {
 	d.SetId(*vpcInstance.VpcNo)
 	log.Printf("[INFO] VPC ID: %s", d.Id())
 
-	waitForNcloudVpcCreation(client, d.Id())
+	waitForNcloudVpcCreation(config, d.Id())
 
 	return resourceNcloudVpcRead(d, meta)
 }
 
 func resourceNcloudVpcRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ProviderConfig).Client
+	config := meta.(*ProviderConfig)
 
-	instance, err := getVpcInstance(client, d.Id())
+	instance, err := getVpcInstance(config, d.Id())
 	if err != nil {
 		d.SetId("")
 		return err
@@ -104,7 +103,7 @@ func resourceNcloudVpcRead(d *schema.ResourceData, meta interface{}) error {
 	d.Set("status", instance.VpcStatus.Code)
 
 	if *instance.VpcStatus.Code != "TERMTING" {
-		defaultNetworkACLNo, err := getDefaultNetworkACL(client, d.Id())
+		defaultNetworkACLNo, err := getDefaultNetworkACL(config, d.Id())
 		if err != nil {
 			return fmt.Errorf("Error get default network acl for VPC (%s): %s", d.Id(), err)
 		}
@@ -115,13 +114,14 @@ func resourceNcloudVpcRead(d *schema.ResourceData, meta interface{}) error {
 	return nil
 }
 
-func getDefaultNetworkACL(client *NcloudAPIClient, id string) (string, error) {
+func getDefaultNetworkACL(config *ProviderConfig, id string) (string, error) {
 	reqParams := &vpc.GetNetworkAclListRequest{
-		VpcNo: ncloud.String(id),
+		RegionCode: &config.RegionCode,
+		VpcNo:      ncloud.String(id),
 	}
 
 	logCommonRequest("resource_ncloud_vpc > GetNetworkAclList", reqParams)
-	resp, err := client.vpc.V2Api.GetNetworkAclList(reqParams)
+	resp, err := config.Client.vpc.V2Api.GetNetworkAclList(reqParams)
 
 	if err != nil {
 		logErrorResponse("resource_ncloud_vpc > GetNetworkAclList", err, reqParams)
@@ -148,33 +148,32 @@ func resourceNcloudVpcUpdate(d *schema.ResourceData, meta interface{}) error {
 }
 
 func resourceNcloudVpcDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ProviderConfig).Client
-	regionCode := meta.(*ProviderConfig).RegionCode
+	config := meta.(*ProviderConfig)
 
 	reqParams := &vpc.DeleteVpcRequest{
+		RegionCode: &config.RegionCode,
 		VpcNo:      ncloud.String(d.Get("vpc_no").(string)),
-		RegionCode: &regionCode,
 	}
 
 	logCommonRequest("resource_ncloud_vpc > DeleteVpc", reqParams)
-	resp, err := client.vpc.V2Api.DeleteVpc(reqParams)
+	resp, err := config.Client.vpc.V2Api.DeleteVpc(reqParams)
 	if err != nil {
 		logErrorResponse("resource_ncloud_vpc > DeleteVpc Vpc Instance", err, reqParams)
 		return err
 	}
 	logResponse("resource_ncloud_vpc > DeleteVpc", resp)
 
-	waitForNcloudVpcDeletion(client, d.Id())
+	waitForNcloudVpcDeletion(config, d.Id())
 
 	return nil
 }
 
-func waitForNcloudVpcCreation(client *NcloudAPIClient, id string) error {
+func waitForNcloudVpcCreation(config *ProviderConfig, id string) error {
 	stateConf := &resource.StateChangeConf{
 		Pending: []string{"INIT", "CREATING"},
 		Target:  []string{"RUN"},
 		Refresh: func() (interface{}, string, error) {
-			instance, err := getVpcInstance(client, id)
+			instance, err := getVpcInstance(config, id)
 			return VpcCommonStateRefreshFunc(instance, err, "VpcStatus")
 		},
 		Timeout:    DefaultCreateTimeout,
@@ -189,12 +188,12 @@ func waitForNcloudVpcCreation(client *NcloudAPIClient, id string) error {
 	return nil
 }
 
-func waitForNcloudVpcDeletion(client *NcloudAPIClient, id string) error {
+func waitForNcloudVpcDeletion(config *ProviderConfig, id string) error {
 	stateConf := &resource.StateChangeConf{
 		Pending: []string{"RUN", "TERMTING"},
 		Target:  []string{"TERMINATED"},
 		Refresh: func() (interface{}, string, error) {
-			instance, err := getVpcInstance(client, id)
+			instance, err := getVpcInstance(config, id)
 			return VpcCommonStateRefreshFunc(instance, err, "VpcStatus")
 		},
 		Timeout:    DefaultTimeout,
@@ -209,12 +208,13 @@ func waitForNcloudVpcDeletion(client *NcloudAPIClient, id string) error {
 	return nil
 }
 
-func getVpcInstance(client *NcloudAPIClient, id string) (*vpc.Vpc, error) {
+func getVpcInstance(config *ProviderConfig, id string) (*vpc.Vpc, error) {
 	reqParams := &vpc.GetVpcDetailRequest{
-		VpcNo: ncloud.String(id),
+		RegionCode: &config.RegionCode,
+		VpcNo:      ncloud.String(id),
 	}
 
-	resp, err := client.vpc.V2Api.GetVpcDetail(reqParams)
+	resp, err := config.Client.vpc.V2Api.GetVpcDetail(reqParams)
 	if err != nil {
 		logErrorResponse("resource_ncloud_vpc > Get Vpc Instance", err, reqParams)
 		return nil, err

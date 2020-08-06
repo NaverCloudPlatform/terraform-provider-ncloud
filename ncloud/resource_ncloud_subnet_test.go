@@ -218,8 +218,8 @@ func testAccCheckSubnetExists(n string, subnet *vpc.Subnet) resource.TestCheckFu
 			return fmt.Errorf("No subnet no is set")
 		}
 
-		client := testAccProvider.Meta().(*ProviderConfig).Client
-		instance, err := getSubnetInstance(client, rs.Primary.ID)
+		config := testAccProvider.Meta().(*ProviderConfig)
+		instance, err := getSubnetInstance(config, rs.Primary.ID)
 		if err != nil {
 			return err
 		}
@@ -231,14 +231,14 @@ func testAccCheckSubnetExists(n string, subnet *vpc.Subnet) resource.TestCheckFu
 }
 
 func testAccCheckSubnetDestroy(s *terraform.State) error {
-	client := testAccProvider.Meta().(*ProviderConfig).Client
+	config := testAccProvider.Meta().(*ProviderConfig)
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "ncloud_subnet" {
 			continue
 		}
 
-		instance, err := getSubnetInstance(client, rs.Primary.ID)
+		instance, err := getSubnetInstance(config, rs.Primary.ID)
 
 		if err != nil {
 			return err
@@ -254,15 +254,16 @@ func testAccCheckSubnetDestroy(s *terraform.State) error {
 
 func testAccCheckSubnetDisappears(instance *vpc.Subnet) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
-		client := testAccProvider.Meta().(*ProviderConfig).Client
+		config := testAccProvider.Meta().(*ProviderConfig)
 
 		reqParams := &vpc.DeleteSubnetRequest{
-			SubnetNo: instance.SubnetNo,
+			RegionCode: &config.RegionCode,
+			SubnetNo:   instance.SubnetNo,
 		}
 
-		_, err := client.vpc.V2Api.DeleteSubnet(reqParams)
+		_, err := config.Client.vpc.V2Api.DeleteSubnet(reqParams)
 
-		waitForNcloudSubnetDeletion(client, *instance.SubnetNo)
+		waitForNcloudSubnetDeletion(config, *instance.SubnetNo)
 
 		return err
 	}

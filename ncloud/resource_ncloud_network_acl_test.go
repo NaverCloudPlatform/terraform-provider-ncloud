@@ -163,8 +163,8 @@ func testAccCheckNetworkACLExists(n string, networkACL *vpc.NetworkAcl) resource
 			return fmt.Errorf("No network acl id is set: %s", n)
 		}
 
-		client := testAccProvider.Meta().(*ProviderConfig).Client
-		instance, err := getNetworkACLInstance(client, rs.Primary.ID)
+		config := testAccProvider.Meta().(*ProviderConfig)
+		instance, err := getNetworkACLInstance(config, rs.Primary.ID)
 		if err != nil {
 			return err
 		}
@@ -176,14 +176,14 @@ func testAccCheckNetworkACLExists(n string, networkACL *vpc.NetworkAcl) resource
 }
 
 func testAccCheckNetworkACLDestroy(s *terraform.State) error {
-	client := testAccProvider.Meta().(*ProviderConfig).Client
+	config := testAccProvider.Meta().(*ProviderConfig)
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "ncloud_network_acl" {
 			continue
 		}
 
-		instance, err := getNetworkACLInstance(client, rs.Primary.ID)
+		instance, err := getNetworkACLInstance(config, rs.Primary.ID)
 
 		if err != nil {
 			return err
@@ -199,15 +199,16 @@ func testAccCheckNetworkACLDestroy(s *terraform.State) error {
 
 func testAccCheckNetworkACLDisappears(instance *vpc.NetworkAcl) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
-		client := testAccProvider.Meta().(*ProviderConfig).Client
+		config := testAccProvider.Meta().(*ProviderConfig)
 
 		reqParams := &vpc.DeleteNetworkAclRequest{
+			RegionCode:   &config.RegionCode,
 			NetworkAclNo: instance.NetworkAclNo,
 		}
 
-		_, err := client.vpc.V2Api.DeleteNetworkAcl(reqParams)
+		_, err := config.Client.vpc.V2Api.DeleteNetworkAcl(reqParams)
 
-		waitForNcloudNetworkACLDeletion(client, *instance.NetworkAclNo)
+		waitForNcloudNetworkACLDeletion(config, *instance.NetworkAclNo)
 
 		return err
 	}

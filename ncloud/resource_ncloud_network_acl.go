@@ -59,11 +59,10 @@ func resourceNcloudNetworkACL() *schema.Resource {
 }
 
 func resourceNcloudNetworkACLCreate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ProviderConfig).Client
-	regionCode := meta.(*ProviderConfig).RegionCode
+	config := meta.(*ProviderConfig)
 
 	reqParams := &vpc.CreateNetworkAclRequest{
-		RegionCode: &regionCode,
+		RegionCode: &config.RegionCode,
 		VpcNo:      ncloud.String(d.Get("vpc_no").(string)),
 	}
 
@@ -76,7 +75,7 @@ func resourceNcloudNetworkACLCreate(d *schema.ResourceData, meta interface{}) er
 	}
 
 	logCommonRequest("resource_ncloud_network_acl > CreateNetworkAcl", reqParams)
-	resp, err := client.vpc.V2Api.CreateNetworkAcl(reqParams)
+	resp, err := config.Client.vpc.V2Api.CreateNetworkAcl(reqParams)
 	if err != nil {
 		logErrorResponse("resource_ncloud_network_acl > CreateNetworkAcl", err, reqParams)
 		return err
@@ -88,15 +87,15 @@ func resourceNcloudNetworkACLCreate(d *schema.ResourceData, meta interface{}) er
 	d.SetId(*instance.NetworkAclNo)
 	log.Printf("[INFO] Network ACL ID: %s", d.Id())
 
-	waitForNcloudNetworkACLCreation(client, d.Id())
+	waitForNcloudNetworkACLCreation(config, d.Id())
 
 	return resourceNcloudNetworkACLRead(d, meta)
 }
 
 func resourceNcloudNetworkACLRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ProviderConfig).Client
+	config := meta.(*ProviderConfig)
 
-	instance, err := getNetworkACLInstance(client, d.Id())
+	instance, err := getNetworkACLInstance(config, d.Id())
 	if err != nil {
 		d.SetId("")
 		return err
@@ -123,16 +122,15 @@ func resourceNcloudNetworkACLUpdate(d *schema.ResourceData, meta interface{}) er
 }
 
 func resourceNcloudNetworkACLDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ProviderConfig).Client
-	regionCode := meta.(*ProviderConfig).RegionCode
+	config := meta.(*ProviderConfig)
 
 	reqParams := &vpc.DeleteNetworkAclRequest{
+		RegionCode:   &config.RegionCode,
 		NetworkAclNo: ncloud.String(d.Get("network_acl_no").(string)),
-		RegionCode:   &regionCode,
 	}
 
 	logCommonRequest("resource_ncloud_network_acl > DeleteNetworkAcl", reqParams)
-	resp, err := client.vpc.V2Api.DeleteNetworkAcl(reqParams)
+	resp, err := config.Client.vpc.V2Api.DeleteNetworkAcl(reqParams)
 	if err != nil {
 		logErrorResponse("resource_ncloud_network_acl > DeleteNetworkAcl", err, reqParams)
 		return err
@@ -140,17 +138,17 @@ func resourceNcloudNetworkACLDelete(d *schema.ResourceData, meta interface{}) er
 
 	logResponse("resource_ncloud_network_acl > DeleteNetworkAcl", resp)
 
-	waitForNcloudNetworkACLDeletion(client, d.Id())
+	waitForNcloudNetworkACLDeletion(config, d.Id())
 
 	return nil
 }
 
-func waitForNcloudNetworkACLCreation(client *NcloudAPIClient, id string) error {
+func waitForNcloudNetworkACLCreation(config *ProviderConfig, id string) error {
 	stateConf := &resource.StateChangeConf{
 		Pending: []string{"INIT", "CREATING"},
 		Target:  []string{"RUN"},
 		Refresh: func() (interface{}, string, error) {
-			instance, err := getNetworkACLInstance(client, id)
+			instance, err := getNetworkACLInstance(config, id)
 			return VpcCommonStateRefreshFunc(instance, err, "NetworkAclStatus")
 		},
 		Timeout:    DefaultCreateTimeout,
@@ -165,12 +163,12 @@ func waitForNcloudNetworkACLCreation(client *NcloudAPIClient, id string) error {
 	return nil
 }
 
-func waitForNcloudNetworkACLDeletion(client *NcloudAPIClient, id string) error {
+func waitForNcloudNetworkACLDeletion(config *ProviderConfig, id string) error {
 	stateConf := &resource.StateChangeConf{
 		Pending: []string{"RUN", "TERMTING"},
 		Target:  []string{"TERMINATED"},
 		Refresh: func() (interface{}, string, error) {
-			instance, err := getNetworkACLInstance(client, id)
+			instance, err := getNetworkACLInstance(config, id)
 			return VpcCommonStateRefreshFunc(instance, err, "NetworkAclStatus")
 		},
 		Timeout:    DefaultTimeout,
@@ -185,13 +183,14 @@ func waitForNcloudNetworkACLDeletion(client *NcloudAPIClient, id string) error {
 	return nil
 }
 
-func getNetworkACLInstance(client *NcloudAPIClient, id string) (*vpc.NetworkAcl, error) {
+func getNetworkACLInstance(config *ProviderConfig, id string) (*vpc.NetworkAcl, error) {
 	reqParams := &vpc.GetNetworkAclDetailRequest{
+		RegionCode:   &config.RegionCode,
 		NetworkAclNo: ncloud.String(id),
 	}
 
 	logCommonRequest("resource_ncloud_network_acl > GetNetworkAclDetail", reqParams)
-	resp, err := client.vpc.V2Api.GetNetworkAclDetail(reqParams)
+	resp, err := config.Client.vpc.V2Api.GetNetworkAclDetail(reqParams)
 	if err != nil {
 		logErrorResponse("resource_ncloud_network_acl > GetNetworkAclDetail", err, reqParams)
 		return nil, err
