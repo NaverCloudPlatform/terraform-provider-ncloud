@@ -159,9 +159,8 @@ func resourceNcloudNetworkACLRuleCreate(d *schema.ResourceData, meta interface{}
 
 func resourceNcloudNetworkACLRuleRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ProviderConfig).Client
-	regionCode := meta.(*ProviderConfig).RegionCode
 
-	instance, err := getNetworkACLRuleInstance(d, client, regionCode)
+	instance, err := getNetworkACLRuleInstance(d, client)
 	if err != nil {
 		d.SetId("")
 		return err
@@ -236,9 +235,8 @@ func resourceNcloudNetworkACLRuleDelete(d *schema.ResourceData, meta interface{}
 	return nil
 }
 
-func getNetworkACLRuleInstance(d *schema.ResourceData, client *NcloudAPIClient, regionCode string) (*vpc.NetworkAclRule, error) {
+func getNetworkACLRuleInstance(d *schema.ResourceData, client *NcloudAPIClient) (*vpc.NetworkAclRule, error) {
 	reqParams := &vpc.GetNetworkAclRuleListRequest{
-		RegionCode:             &regionCode,
 		NetworkAclNo:           ncloud.String(d.Get("network_acl_no").(string)),
 		NetworkAclRuleTypeCode: ncloud.String(d.Get("network_rule_type").(string)),
 	}
