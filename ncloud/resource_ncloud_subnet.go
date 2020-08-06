@@ -80,17 +80,16 @@ func resourceNcloudSubnet() *schema.Resource {
 }
 
 func resourceNcloudSubnetCreate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ProviderConfig).Client
-	regionCode := meta.(*ProviderConfig).RegionCode
+	config := meta.(*ProviderConfig)
 
 	reqParams := &vpc.CreateSubnetRequest{
+		RegionCode:     &config.RegionCode,
 		Subnet:         ncloud.String(d.Get("subnet").(string)),
 		SubnetTypeCode: ncloud.String(d.Get("subnet_type").(string)),
 		UsageTypeCode:  ncloud.String(d.Get("usage_type").(string)),
 		NetworkAclNo:   ncloud.String(d.Get("network_acl_no").(string)),
 		VpcNo:          ncloud.String(d.Get("vpc_no").(string)),
 		ZoneCode:       ncloud.String(d.Get("zone").(string)),
-		RegionCode:     &regionCode,
 	}
 
 	if v, ok := d.GetOk("name"); ok {
@@ -102,7 +101,7 @@ func resourceNcloudSubnetCreate(d *schema.ResourceData, meta interface{}) error 
 	}
 
 	logCommonRequest("resource_ncloud_subnet > CreateSubnet", reqParams)
-	resp, err := client.vpc.V2Api.CreateSubnet(reqParams)
+	resp, err := config.Client.vpc.V2Api.CreateSubnet(reqParams)
 	if err != nil {
 		logErrorResponse("resource_ncloud_subnet > CreateSubnet", err, reqParams)
 		return err
@@ -114,15 +113,15 @@ func resourceNcloudSubnetCreate(d *schema.ResourceData, meta interface{}) error 
 	d.SetId(*instance.SubnetNo)
 	log.Printf("[INFO] Subnet ID: %s", d.Id())
 
-	waitForNcloudSubnetCreation(client, d.Id())
+	waitForNcloudSubnetCreation(config, d.Id())
 
 	return resourceNcloudSubnetRead(d, meta)
 }
 
 func resourceNcloudSubnetRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ProviderConfig).Client
+	config := meta.(*ProviderConfig)
 
-	instance, err := getSubnetInstance(client, d.Id())
+	instance, err := getSubnetInstance(config, d.Id())
 	if err != nil {
 		d.SetId("")
 		return err
@@ -148,56 +147,56 @@ func resourceNcloudSubnetRead(d *schema.ResourceData, meta interface{}) error {
 }
 
 func resourceNcloudSubnetUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ProviderConfig).Client
+	config := meta.(*ProviderConfig)
 
 	if d.HasChange("network_acl_no") {
 		reqParams := &vpc.SetSubnetNetworkAclRequest{
+			RegionCode:   &config.RegionCode,
 			SubnetNo:     ncloud.String(d.Get("subnet_no").(string)),
 			NetworkAclNo: ncloud.String(d.Get("network_acl_no").(string)),
 		}
 
 		logCommonRequest("resource_ncloud_subnet > SetSubnetNetworkAcl", reqParams)
-		resp, err := client.vpc.V2Api.SetSubnetNetworkAcl(reqParams)
+		resp, err := config.Client.vpc.V2Api.SetSubnetNetworkAcl(reqParams)
 		if err != nil {
 			logErrorResponse("resource_ncloud_subnet > SetSubnetNetworkAcl", err, reqParams)
 			return err
 		}
 		logResponse("resource_ncloud_subnet > SetSubnetNetworkAcl", resp)
 
-		waitForNcloudNetworkACLUpdate(client, d.Id())
+		waitForNcloudNetworkACLUpdate(config, d.Id())
 	}
 
 	return resourceNcloudSubnetRead(d, meta)
 }
 
 func resourceNcloudSubnetDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ProviderConfig).Client
-	regionCode := meta.(*ProviderConfig).RegionCode
+	config := meta.(*ProviderConfig)
 
 	reqParams := &vpc.DeleteSubnetRequest{
+		RegionCode: &config.RegionCode,
 		SubnetNo:   ncloud.String(d.Get("subnet_no").(string)),
-		RegionCode: &regionCode,
 	}
 
 	logCommonRequest("resource_ncloud_subnet > DeleteSubnet", reqParams)
-	resp, err := client.vpc.V2Api.DeleteSubnet(reqParams)
+	resp, err := config.Client.vpc.V2Api.DeleteSubnet(reqParams)
 	if err != nil {
 		logErrorResponse("resource_ncloud_subnet > DeleteSubnet", err, reqParams)
 		return err
 	}
 	logResponse("resource_ncloud_subnet > DeleteSubnet", resp)
 
-	waitForNcloudSubnetDeletion(client, d.Id())
+	waitForNcloudSubnetDeletion(config, d.Id())
 
 	return nil
 }
 
-func waitForNcloudSubnetCreation(client *NcloudAPIClient, id string) error {
+func waitForNcloudSubnetCreation(config *ProviderConfig, id string) error {
 	stateConf := &resource.StateChangeConf{
 		Pending: []string{"INIT", "CREATING"},
 		Target:  []string{"RUN"},
 		Refresh: func() (interface{}, string, error) {
-			instance, err := getSubnetInstance(client, id)
+			instance, err := getSubnetInstance(config, id)
 			return VpcCommonStateRefreshFunc(instance, err, "SubnetStatus")
 		},
 		Timeout:    DefaultCreateTimeout,
@@ -212,12 +211,12 @@ func waitForNcloudSubnetCreation(client *NcloudAPIClient, id string) error {
 	return nil
 }
 
-func waitForNcloudNetworkACLUpdate(client *NcloudAPIClient, id string) error {
+func waitForNcloudNetworkACLUpdate(config *ProviderConfig, id string) error {
 	stateConf := &resource.StateChangeConf{
 		Pending: []string{"SET"},
 		Target:  []string{"RUN"},
 		Refresh: func() (interface{}, string, error) {
-			instance, err := getNetworkACLInstance(client, id)
+			instance, err := getNetworkACLInstance(config, id)
 			return VpcCommonStateRefreshFunc(instance, err, "NetworkAclStatus")
 		},
 		Timeout:    DefaultTimeout,
@@ -232,12 +231,12 @@ func waitForNcloudNetworkACLUpdate(client *NcloudAPIClient, id string) error {
 	return nil
 }
 
-func waitForNcloudSubnetDeletion(client *NcloudAPIClient, id string) error {
+func waitForNcloudSubnetDeletion(config *ProviderConfig, id string) error {
 	stateConf := &resource.StateChangeConf{
 		Pending: []string{"RUN", "TERMTING"},
 		Target:  []string{"TERMINATED"},
 		Refresh: func() (interface{}, string, error) {
-			instance, err := getSubnetInstance(client, id)
+			instance, err := getSubnetInstance(config, id)
 			return VpcCommonStateRefreshFunc(instance, err, "SubnetStatus")
 		},
 		Timeout:    DefaultTimeout,
@@ -252,13 +251,14 @@ func waitForNcloudSubnetDeletion(client *NcloudAPIClient, id string) error {
 	return nil
 }
 
-func getSubnetInstance(client *NcloudAPIClient, id string) (*vpc.Subnet, error) {
+func getSubnetInstance(config *ProviderConfig, id string) (*vpc.Subnet, error) {
 	reqParams := &vpc.GetSubnetDetailRequest{
-		SubnetNo: ncloud.String(id),
+		RegionCode: &config.RegionCode,
+		SubnetNo:   ncloud.String(id),
 	}
 
 	logCommonRequest("resource_ncloud_subnet > GetSubnetDetail", reqParams)
-	resp, err := client.vpc.V2Api.GetSubnetDetail(reqParams)
+	resp, err := config.Client.vpc.V2Api.GetSubnetDetail(reqParams)
 	if err != nil {
 		logErrorResponse("resource_ncloud_subnet > GetSubnetDetail", err, reqParams)
 		return nil, err

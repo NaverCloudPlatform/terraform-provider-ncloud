@@ -53,16 +53,15 @@ func dataSourceNcloudSubnet() *schema.Resource {
 }
 
 func dataSourceNcloudSubnetRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ProviderConfig).Client
-	regionCode := meta.(*ProviderConfig).RegionCode
+	config := meta.(*ProviderConfig)
 
 	reqParams := &vpc.GetSubnetDetailRequest{
+		RegionCode: &config.RegionCode,
 		SubnetNo:   ncloud.String(d.Get("subnet_no").(string)),
-		RegionCode: &regionCode,
 	}
 
 	logCommonRequest("data_source_ncloud_subnet > GetSubnetDetail", reqParams)
-	resp, err := client.vpc.V2Api.GetSubnetDetail(reqParams)
+	resp, err := config.Client.vpc.V2Api.GetSubnetDetail(reqParams)
 
 	if err != nil {
 		logErrorResponse("data_source_ncloud_subnet > GetSubnetDetail", err, reqParams)

@@ -40,11 +40,10 @@ func dataSourceNcloudVpcs() *schema.Resource {
 }
 
 func dataSourceNcloudVpcsRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ProviderConfig).Client
-	regionCode := meta.(*ProviderConfig).RegionCode
+	config := meta.(*ProviderConfig)
 
 	reqParams := &vpc.GetVpcListRequest{
-		RegionCode: &regionCode,
+		RegionCode: &config.RegionCode,
 	}
 
 	if v, ok := d.GetOk("name"); ok {
@@ -60,7 +59,7 @@ func dataSourceNcloudVpcsRead(d *schema.ResourceData, meta interface{}) error {
 	}
 
 	logCommonRequest("GetVpcList", reqParams)
-	resp, err := client.vpc.V2Api.GetVpcList(reqParams)
+	resp, err := config.Client.vpc.V2Api.GetVpcList(reqParams)
 
 	if err != nil {
 		logErrorResponse("GetVpcList", err, reqParams)
