@@ -129,7 +129,7 @@ func resourceNcloudRouteRead(d *schema.ResourceData, meta interface{}) error {
 		d.Set("vpc_no", routeTable.VpcNo)
 	}
 
-	instance, err := getRouteTableRouteInstance(client, d)
+	instance, err := getRouteInstance(client, d)
 	if err != nil {
 		d.SetId("")
 		return err
@@ -205,7 +205,7 @@ func waitForNcloudRouteTableUpdate(client *NcloudAPIClient, id string) error {
 	return nil
 }
 
-func getRouteTableRouteInstance(client *NcloudAPIClient, d *schema.ResourceData) (*vpc.Route, error) {
+func getRouteInstance(client *NcloudAPIClient, d *schema.ResourceData) (*vpc.Route, error) {
 	reqParams := &vpc.GetRouteListRequest{
 		VpcNo:        ncloud.String(d.Get("vpc_no").(string)),
 		RouteTableNo: ncloud.String(d.Get("route_table_no").(string)),
