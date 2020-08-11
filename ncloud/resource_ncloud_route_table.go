@@ -204,8 +204,7 @@ func getRouteTableInstance(config *ProviderConfig, id string) (*vpc.RouteTable, 
 	logResponse("resource_ncloud_route_table > GetRouteTableDetail", resp)
 
 	if len(resp.RouteTableList) > 0 {
-		instance := resp.RouteTableList[0]
-		return instance, nil
+		return resp.RouteTableList[0], nil
 	}
 
 	return nil, nil
