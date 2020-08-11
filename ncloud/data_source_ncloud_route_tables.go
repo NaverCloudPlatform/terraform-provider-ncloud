@@ -2,7 +2,6 @@ package ncloud
 
 import (
 	"fmt"
-	"strconv"
 	"time"
 
 	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/ncloud"
@@ -27,16 +26,11 @@ func dataSourceNcloudRouteTables() *schema.Resource {
 				Type:     schema.TypeString,
 				Optional: true,
 			},
-
-			"is_default": {
-				Type:     schema.TypeString,
-				Optional: true,
-			},
-			"ids": {
-				Type:     schema.TypeSet,
+			"filter": dataSourceFiltersSchema(),
+			"route_tables": {
+				Type:     schema.TypeList,
 				Computed: true,
-				Elem:     &schema.Schema{Type: schema.TypeString},
-				Set:      schema.HashString,
+				Elem:     GetDataSourceItemSchema(resourceNcloudRouteTable()),
 			},
 		},
 	}
@@ -45,6 +39,42 @@ func dataSourceNcloudRouteTables() *schema.Resource {
 func dataSourceNcloudRouteTablesRead(d *schema.ResourceData, meta interface{}) error {
 	config := meta.(*ProviderConfig)
 
+	resp, err := getRouteTableList(d, config)
+
+	if err != nil {
+		return err
+	}
+
+	resources := []map[string]interface{}{}
+
+	for _, r := range resp.RouteTableList {
+		instance := map[string]interface{}{
+			"id":                    *r.RouteTableNo,
+			"route_table_no":        *r.RouteTableNo,
+			"name":                  *r.RouteTableName,
+			"description":           *r.RouteTableDescription,
+			"status":                *r.RouteTableStatus.Code,
+			"vpc_no":                *r.VpcNo,
+			"supported_subnet_type": *r.SupportedSubnetType.Code,
+			"is_default":            *r.IsDefault,
+		}
+
+		resources = append(resources, instance)
+	}
+
+	if f, ok := d.GetOk("filter"); ok {
+		resources = ApplyFilters(f.(*schema.Set), resources, dataSourceNcloudRouteTables().Schema["route_tables"].Elem.(*schema.Resource).Schema)
+	}
+
+	d.SetId(time.Now().UTC().String())
+	if err := d.Set("route_tables", resources); err != nil {
+		return fmt.Errorf("Error setting route table ids: %s", err)
+	}
+
+	return nil
+}
+
+func getRouteTableList(d *schema.ResourceData, config *ProviderConfig) (*vpc.GetRouteTableListResponse, error) {
 	reqParams := &vpc.GetRouteTableListRequest{
 		RegionCode: &config.RegionCode,
 	}
@@ -61,43 +91,18 @@ func dataSourceNcloudRouteTablesRead(d *schema.ResourceData, meta interface{}) e
 		reqParams.SupportedSubnetTypeCode = ncloud.String(v.(string))
 	}
 
+	if v, ok := d.GetOk("route_table_no"); ok {
+		reqParams.RouteTableNoList = []*string{ncloud.String(v.(string))}
+	}
+
 	logCommonRequest("data_source_ncloud_route_tables > GetRouteTableList", reqParams)
 	resp, err := config.Client.vpc.V2Api.GetRouteTableList(reqParams)
 
 	if err != nil {
 		logErrorResponse("data_source_ncloud_route_tables > GetRouteTableList", err, reqParams)
-		return err
+		return nil, err
 	}
 
 	logResponse("data_source_ncloud_route_tables > GetRouteTableList", resp)
-
-	var instanceList []*vpc.RouteTable
-
-	if v, ok := d.GetOk("is_default"); ok {
-		isDefault, err := strconv.ParseBool(v.(string))
-		if err != nil {
-			return fmt.Errorf("invalid attribute: invalid value for is_default: %s", v)
-		}
-
-		for _, i := range resp.RouteTableList {
-			if *i.IsDefault == isDefault {
-				instanceList = append(instanceList, i)
-			}
-		}
-	} else {
-		instanceList = resp.RouteTableList
-	}
-
-	ids := make([]string, 0)
-
-	for _, instance := range instanceList {
-		ids = append(ids, ncloud.StringValue(instance.RouteTableNo))
-	}
-
-	d.SetId(time.Now().UTC().String())
-	if err := d.Set("ids", ids); err != nil {
-		return fmt.Errorf("Error setting route table ids: %s", err)
-	}
-
-	return nil
+	return resp, nil
 }
