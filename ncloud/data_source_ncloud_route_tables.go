@@ -39,31 +39,10 @@ func dataSourceNcloudRouteTables() *schema.Resource {
 func dataSourceNcloudRouteTablesRead(d *schema.ResourceData, meta interface{}) error {
 	config := meta.(*ProviderConfig)
 
-	resp, err := getRouteTableList(d, config)
+	resources, err := getRouteTableListFiltered(d, config)
 
 	if err != nil {
 		return err
-	}
-
-	resources := []map[string]interface{}{}
-
-	for _, r := range resp.RouteTableList {
-		instance := map[string]interface{}{
-			"id":                    *r.RouteTableNo,
-			"route_table_no":        *r.RouteTableNo,
-			"name":                  *r.RouteTableName,
-			"description":           *r.RouteTableDescription,
-			"status":                *r.RouteTableStatus.Code,
-			"vpc_no":                *r.VpcNo,
-			"supported_subnet_type": *r.SupportedSubnetType.Code,
-			"is_default":            *r.IsDefault,
-		}
-
-		resources = append(resources, instance)
-	}
-
-	if f, ok := d.GetOk("filter"); ok {
-		resources = ApplyFilters(f.(*schema.Set), resources, dataSourceNcloudRouteTables().Schema["route_tables"].Elem.(*schema.Resource).Schema)
 	}
 
 	d.SetId(time.Now().UTC().String())
@@ -105,4 +84,35 @@ func getRouteTableList(d *schema.ResourceData, config *ProviderConfig) (*vpc.Get
 
 	logResponse("data_source_ncloud_route_tables > GetRouteTableList", resp)
 	return resp, nil
+}
+
+func getRouteTableListFiltered(d *schema.ResourceData, config *ProviderConfig) ([]map[string]interface{}, error) {
+	resp, err := getRouteTableList(d, config)
+
+	if err != nil {
+		return nil, err
+	}
+
+	resources := []map[string]interface{}{}
+
+	for _, r := range resp.RouteTableList {
+		instance := map[string]interface{}{
+			"id":                    *r.RouteTableNo,
+			"route_table_no":        *r.RouteTableNo,
+			"name":                  *r.RouteTableName,
+			"description":           *r.RouteTableDescription,
+			"status":                *r.RouteTableStatus.Code,
+			"vpc_no":                *r.VpcNo,
+			"supported_subnet_type": *r.SupportedSubnetType.Code,
+			"is_default":            *r.IsDefault,
+		}
+
+		resources = append(resources, instance)
+	}
+
+	if f, ok := d.GetOk("filter"); ok {
+		resources = ApplyFilters(f.(*schema.Set), resources, resourceNcloudRouteTable().Schema)
+	}
+
+	return resources, nil
 }
