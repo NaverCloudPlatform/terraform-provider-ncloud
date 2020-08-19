@@ -75,3 +75,14 @@ func convertResourceFieldsToDatasourceFields(resourceSchema *schema.Resource) *s
 
 	return resourceSchema
 }
+
+// SetSingularResourceDataFromMap Set the Singular DataSource from Map
+func SetSingularResourceDataFromMap(d *schema.ResourceData, resources map[string]interface{}) {
+	for k, v := range resources {
+		if k == "id" {
+			d.SetId(v.(string))
+			continue
+		}
+		d.Set(k, v)
+	}
+}
