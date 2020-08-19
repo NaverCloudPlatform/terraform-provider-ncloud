@@ -30,6 +30,7 @@ func TestAccDataSourceNcloudSubnet(t *testing.T) {
 					resource.TestCheckResourceAttr(dataName, "subnet_type", "PUBLIC"),
 					resource.TestCheckResourceAttr(dataName, "usage_type", "GEN"),
 					resource.TestCheckResourceAttr(dataName, "status", "RUN"),
+					testAccCheckDataSourceID("data.ncloud_subnet.by_filter"),
 				),
 			},
 		},
@@ -55,6 +56,13 @@ resource "ncloud_subnet" "bar" {
 
 data "ncloud_subnet" "by_id" {
   subnet_no = "${ncloud_subnet.bar.id}"
+}
+
+data "ncloud_subnet" "by_filter" {
+	filter {
+		name   = "subnet_no"
+		values = [ncloud_subnet.bar.id]
+	}
 }
 `, name, cidr)
 }

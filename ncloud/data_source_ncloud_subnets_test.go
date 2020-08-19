@@ -14,9 +14,6 @@ func TestAccDataSourceNcloudSubnetsBasic(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				Config: testAccDataSourceNcloudSubnetsConfig(),
-				SkipFunc: func() (bool, error) {
-					return skipNoResultsTest, nil
-				},
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckDataSourceID("data.ncloud_subnets.all"),
 				),
@@ -32,9 +29,6 @@ func TestAccDataSourceNcloudSubnetsName(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				Config: testAccDataSourceNcloudSubnetsConfigSubnet("10.2.1.0"),
-				SkipFunc: func() (bool, error) {
-					return skipNoResultsTest, nil
-				},
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckDataSourceID("data.ncloud_subnets.by_cidr"),
 				),
@@ -50,9 +44,6 @@ func TestAccDataSourceNcloudSubnetsStatus(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				Config: testAccDataSourceNcloudSubnetsConfigStatus("RUN"),
-				SkipFunc: func() (bool, error) {
-					return skipNoResultsTest, nil
-				},
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckDataSourceID("data.ncloud_subnets.by_status"),
 				),
@@ -68,9 +59,6 @@ func TestAccDataSourceNcloudSubnetsVpcNo(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				Config: testAccDataSourceNcloudSubnetsConfigVpcNo("502"),
-				SkipFunc: func() (bool, error) {
-					return skipNoResultsTest, nil
-				},
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckDataSourceID("data.ncloud_subnets.by_vpc_no"),
 				),
@@ -107,12 +95,4 @@ data "ncloud_subnets" "by_vpc_no" {
 	vpc_no = "%s"
 }
 `, vpcNo)
-}
-
-func testAccDataSourceNcloudSubnetsConfigSubnetNoList(subnetNo string) string {
-	return fmt.Sprintf(`
-data "ncloud_subnets" "by_subnet_no" {
-	subnet_no_list = ["%s"]
-}
-`, subnetNo)
 }
