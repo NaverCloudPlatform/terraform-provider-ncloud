@@ -45,7 +45,7 @@ func dataSourceNcloudRouteTablesRead(d *schema.ResourceData, meta interface{}) e
 
 	d.SetId(time.Now().UTC().String())
 	if err := d.Set("route_tables", resources); err != nil {
-		return fmt.Errorf("Error setting route table ids: %s", err)
+		return fmt.Errorf("Error setting route tables: %s", err)
 	}
 
 	return nil

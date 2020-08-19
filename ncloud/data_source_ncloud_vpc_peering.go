@@ -46,13 +46,7 @@ func dataSourceNcloudVpcPeeringRead(d *schema.ResourceData, meta interface{}) er
 		return err
 	}
 
-	for k, v := range resources[0] {
-		if k == "id" {
-			d.SetId(v.(string))
-			continue
-		}
-		d.Set(k, v)
-	}
+	SetSingularResourceDataFromMap(d, resources[0])
 
 	return nil
 }
