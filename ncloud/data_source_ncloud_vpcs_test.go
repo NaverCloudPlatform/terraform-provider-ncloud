@@ -14,9 +14,6 @@ func TestAccDataSourceNcloudVpcsBasic(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				Config: testAccDataSourceNcloudVpcsConfig(),
-				SkipFunc: func() (bool, error) {
-					return skipNoResultsTest, nil
-				},
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckDataSourceID("data.ncloud_vpcs.all"),
 				),
@@ -32,9 +29,6 @@ func TestAccDataSourceNcloudVpcsName(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				Config: testAccDataSourceNcloudVpcsConfigName("test"),
-				SkipFunc: func() (bool, error) {
-					return skipNoResultsTest, nil
-				},
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckDataSourceID("data.ncloud_vpcs.by_name"),
 				),
@@ -50,9 +44,6 @@ func TestAccDataSourceNcloudVpcsStatus(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				Config: testAccDataSourceNcloudVpcsConfigStatus("RUN"),
-				SkipFunc: func() (bool, error) {
-					return skipNoResultsTest, nil
-				},
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckDataSourceID("data.ncloud_vpcs.by_status"),
 				),
@@ -67,12 +58,10 @@ func TestAccDataSourceNcloudVpcsVpcNo(t *testing.T) {
 		Providers: testAccProviders,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccDataSourceNcloudVpcsConfigVpcNoList("446"),
-				SkipFunc: func() (bool, error) {
-					return skipNoResultsTest, nil
-				},
+				Config: testAccDataSourceNcloudVpcsConfigVpcNo("446"),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckDataSourceID("data.ncloud_vpcs.by_vpc_no"),
+					testAccCheckDataSourceID("data.ncloud_vpcs.by_filter"),
 				),
 			},
 		},
@@ -101,10 +90,17 @@ data "ncloud_vpcs" "by_status" {
 `, status)
 }
 
-func testAccDataSourceNcloudVpcsConfigVpcNoList(vpcNo string) string {
+func testAccDataSourceNcloudVpcsConfigVpcNo(vpcNo string) string {
 	return fmt.Sprintf(`
 data "ncloud_vpcs" "by_vpc_no" {
-	vpc_no_list          = ["%s"]
+	vpc_no          = "%[1]s"
+}
+
+data "ncloud_vpcs" "by_filter" {
+	filter {
+		name   = "vpc_no"
+		values = ["%[1]s"]
+	}
 }
 `, vpcNo)
 }
