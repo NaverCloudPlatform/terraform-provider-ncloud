@@ -4,8 +4,6 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/ncloud"
-	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/services/vpc"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
@@ -15,6 +13,10 @@ func dataSourceNcloudVpcs() *schema.Resource {
 		Read: dataSourceNcloudVpcsRead,
 
 		Schema: map[string]*schema.Schema{
+			"vpc_no": {
+				Type:     schema.TypeString,
+				Optional: true,
+			},
 			"name": {
 				Type:     schema.TypeString,
 				Optional: true,
@@ -24,16 +26,11 @@ func dataSourceNcloudVpcs() *schema.Resource {
 				Optional:     true,
 				ValidateFunc: validation.StringInSlice([]string{"INIT", "CREATING", "RUN", "TERMTING"}, false),
 			},
-			"vpc_no_list": {
+			"filter": dataSourceFiltersSchema(),
+			"vpcs": {
 				Type:     schema.TypeList,
-				Optional: true,
-				Elem:     &schema.Schema{Type: schema.TypeString},
-			},
-			"ids": {
-				Type:     schema.TypeSet,
 				Computed: true,
-				Elem:     &schema.Schema{Type: schema.TypeString},
-				Set:      schema.HashString,
+				Elem:     GetDataSourceItemSchema(resourceNcloudVpc()),
 			},
 		},
 	}
@@ -42,44 +39,15 @@ func dataSourceNcloudVpcs() *schema.Resource {
 func dataSourceNcloudVpcsRead(d *schema.ResourceData, meta interface{}) error {
 	config := meta.(*ProviderConfig)
 
-	reqParams := &vpc.GetVpcListRequest{
-		RegionCode: &config.RegionCode,
-	}
-
-	if v, ok := d.GetOk("name"); ok {
-		reqParams.VpcName = ncloud.String(v.(string))
-	}
-
-	if v, ok := d.GetOk("status"); ok {
-		reqParams.VpcStatusCode = ncloud.String(v.(string))
-	}
-
-	if v, ok := d.GetOk("vpc_no_list"); ok {
-		reqParams.VpcNoList = expandStringInterfaceList(v.([]interface{}))
-	}
-
-	logCommonRequest("GetVpcList", reqParams)
-	resp, err := config.Client.vpc.V2Api.GetVpcList(reqParams)
+	resources, err := getVpcListFiltered(d, config)
 
 	if err != nil {
-		logErrorResponse("GetVpcList", err, reqParams)
 		return err
-	}
-	logResponse("GetVpcList", resp)
-
-	if resp == nil || len(resp.VpcList) == 0 {
-		return fmt.Errorf("no matching VPC found")
-	}
-
-	vpcs := make([]string, 0)
-
-	for _, vpc := range resp.VpcList {
-		vpcs = append(vpcs, ncloud.StringValue(vpc.VpcNo))
 	}
 
 	d.SetId(time.Now().UTC().String())
-	if err := d.Set("ids", vpcs); err != nil {
-		return fmt.Errorf("Error setting vpc ids: %s", err)
+	if err := d.Set("vpcs", resources); err != nil {
+		return fmt.Errorf("Error setting vpcs: %s", err)
 	}
 
 	return nil
