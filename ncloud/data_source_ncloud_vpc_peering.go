@@ -7,63 +7,57 @@ import (
 )
 
 func dataSourceNcloudVpcPeering() *schema.Resource {
-	return &schema.Resource{
-		Read: dataSourceNcloudVpcPeeringRead,
-		Schema: map[string]*schema.Schema{
-			"name": {
-				Type:     schema.TypeString,
-				Optional: true,
-				Computed: true,
-			},
-			"source_vpc_name": {
-				Type:     schema.TypeString,
-				Optional: true,
-			},
-			"target_vpc_name": {
-				Type:     schema.TypeString,
-				Optional: true,
-				Computed: true,
-			},
-			"status": {
-				Type:     schema.TypeString,
-				Optional: true,
-				Computed: true,
-			},
-			"description": {
-				Type:     schema.TypeString,
-				Computed: true,
-			},
-			"source_vpc_no": {
-				Type:     schema.TypeString,
-				Computed: true,
-			},
-			"target_vpc_no": {
-				Type:     schema.TypeString,
-				Computed: true,
-			},
-			"target_vpc_login_id": {
-				Type:     schema.TypeString,
-				Computed: true,
-			},
-			"vpc_peering_no": {
-				Type:     schema.TypeString,
-				Computed: true,
-			},
-			"has_reverse_vpc_peering": {
-				Type:     schema.TypeBool,
-				Computed: true,
-			},
-			"is_between_accounts": {
-				Type:     schema.TypeBool,
-				Computed: true,
-			},
+	fieldMap := map[string]*schema.Schema{
+		"name": {
+			Type:     schema.TypeString,
+			Optional: true,
+			Computed: true,
 		},
+		"source_vpc_name": {
+			Type:     schema.TypeString,
+			Optional: true,
+			Computed: true,
+		},
+		"target_vpc_name": {
+			Type:     schema.TypeString,
+			Optional: true,
+			Computed: true,
+		},
+		"status": {
+			Type:     schema.TypeString,
+			Optional: true,
+			Computed: true,
+		},
+		"filter": dataSourceFiltersSchema(),
 	}
+
+	return GetSingularDataSourceItemSchema(resourceNcloudVpcPeering(), fieldMap, dataSourceNcloudVpcPeeringRead)
 }
 
 func dataSourceNcloudVpcPeeringRead(d *schema.ResourceData, meta interface{}) error {
 	config := meta.(*ProviderConfig)
 
+	resources, err := getVpcPeeringListFiltered(d, config)
+	if err != nil {
+		return err
+	}
+
+	if err := validateOneResult(len(resources)); err != nil {
+		return err
+	}
+
+	for k, v := range resources[0] {
+		if k == "id" {
+			d.SetId(v.(string))
+			continue
+		}
+		d.Set(k, v)
+	}
+
+	return nil
+}
+
+func getVpcPeeringListFiltered(d *schema.ResourceData, config *ProviderConfig) ([]map[string]interface{}, error) {
 	reqParams := &vpc.GetVpcPeeringInstanceListRequest{
 		RegionCode: &config.RegionCode,
 	}
@@ -80,32 +74,42 @@ func dataSourceNcloudVpcPeeringRead(d *schema.ResourceData, meta interface{}) er
 		reqParams.SourceVpcName = ncloud.String(v.(string))
 	}
 
+	if v, ok := d.GetOk("status"); ok {
+		reqParams.VpcPeeringInstanceStatusCode = ncloud.String(v.(string))
+	}
+
 	logCommonRequest("data_source_ncloud_vpc_peering > GetVpcPeeringInstanceList", reqParams)
 	resp, err := config.Client.vpc.V2Api.GetVpcPeeringInstanceList(reqParams)
 
 	if err != nil {
 		logErrorResponse("data_source_ncloud_vpc_peering > GetVpcPeeringInstanceList", err, reqParams)
-		return err
+		return nil, err
 	}
 	logResponse("data_source_ncloud_vpc_peering > GetVpcPeeringInstanceList", resp)
 
-	if err := validateOneResult(len(resp.VpcPeeringInstanceList)); err != nil {
-		return err
+	resources := []map[string]interface{}{}
+
+	for _, r := range resp.VpcPeeringInstanceList {
+		instance := map[string]interface{}{
+			"id":                      *r.VpcPeeringInstanceNo,
+			"vpc_peering_no":          *r.VpcPeeringInstanceNo,
+			"name":                    *r.VpcPeeringName,
+			"description":             *r.VpcPeeringDescription,
+			"source_vpc_no":           *r.SourceVpcNo,
+			"target_vpc_no":           *r.TargetVpcNo,
+			"target_vpc_name":         *r.TargetVpcName,
+			"target_vpc_login_id":     *r.TargetVpcLoginId,
+			"status":                  *r.VpcPeeringInstanceStatus.Code,
+			"has_reverse_vpc_peering": *r.HasReverseVpcPeering,
+			"is_between_accounts":     *r.IsBetweenAccounts,
+		}
+
+		resources = append(resources, instance)
 	}
 
-	instance := resp.VpcPeeringInstanceList[0]
+	if f, ok := d.GetOk("filter"); ok {
+		resources = ApplyFilters(f.(*schema.Set), resources, resourceNcloudVpcPeering().Schema)
+	}
 
-	d.SetId(*instance.VpcPeeringInstanceNo)
-	d.Set("vpc_peering_no", instance.VpcPeeringInstanceNo)
-	d.Set("name", instance.VpcPeeringName)
-	d.Set("description", instance.VpcPeeringDescription)
-	d.Set("source_vpc_no", instance.SourceVpcNo)
-	d.Set("target_vpc_no", instance.TargetVpcNo)
-	d.Set("target_vpc_name", instance.TargetVpcName)
-	d.Set("target_vpc_login_id", instance.TargetVpcLoginId)
-	d.Set("status", instance.VpcPeeringInstanceStatus.Code)
-	d.Set("has_reverse_vpc_peering", instance.HasReverseVpcPeering)
-	d.Set("is_between_accounts", instance.IsBetweenAccounts)
-
-	return nil
+	return resources, nil
 }
