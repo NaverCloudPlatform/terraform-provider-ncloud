@@ -1,10 +1,9 @@
 package ncloud
 
 import (
-	"regexp"
-
 	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/ncloud"
 	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/services/server"
+	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/services/vserver"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
@@ -25,6 +24,7 @@ func dataSourceNcloudServerProduct() *schema.Resource {
 				ForceNew:     true,
 				ValidateFunc: validation.ValidateRegexp,
 				Description:  "A regex string to apply to the Server Product list returned.",
+				Deprecated:   "use filter instead",
 			},
 			"exclusion_product_code": {
 				Type:        schema.TypeString,
@@ -42,6 +42,7 @@ func dataSourceNcloudServerProduct() *schema.Resource {
 				Type:        schema.TypeString,
 				Optional:    true,
 				Description: "Region code. Get available values using the `data ncloud_regions`.",
+				Deprecated:  "use region attribute of provider instead",
 			},
 			"zone": {
 				Type:        schema.TypeString,
@@ -54,6 +55,8 @@ func dataSourceNcloudServerProduct() *schema.Resource {
 				ValidateFunc: validation.StringInSlice([]string{"PUBLC", "GLBL"}, false),
 				Description:  "Internet line identification code. PUBLC(Public), GLBL(Global). default : PUBLC(Public)",
 			},
+			"filter": dataSourceFiltersSchema(),
+
 			"product_name": {
 				Type:        schema.TypeString,
 				Computed:    true,
@@ -99,96 +102,154 @@ func dataSourceNcloudServerProduct() *schema.Resource {
 				Computed:    true,
 				Description: "OS Information",
 			},
+			"disk_type": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
 			"add_block_storage_size": {
 				Type:        schema.TypeInt,
 				Computed:    true,
 				Description: "Additional block storage size",
+			},
+			"generation_code": {
+				Type:     schema.TypeString,
+				Computed: true,
 			},
 		},
 	}
 }
 
 func dataSourceNcloudServerProductRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ProviderConfig).Client
+	var resources []map[string]interface{}
+	var err error
 
-	regionNo, err := parseRegionNoParameter(client, d)
+	if meta.(*ProviderConfig).SupportVPC == true || meta.(*ProviderConfig).Site == "fin" {
+		resources, err = getVpcServerProductList(d, meta.(*ProviderConfig))
+	} else {
+		resources, err = getClassicServerProductList(d, meta.(*ProviderConfig))
+	}
+
 	if err != nil {
 		return err
 	}
+
+	if f, ok := d.GetOk("filter"); ok {
+		resources = ApplyFilters(f.(*schema.Set), resources, dataSourceNcloudServerProduct().Schema)
+	}
+
+	if err := validateOneResult(len(resources)); err != nil {
+		return err
+	}
+
+	SetSingularResourceDataFromMap(d, resources[0])
+
+	return nil
+}
+
+func getClassicServerProductList(d *schema.ResourceData, config *ProviderConfig) ([]map[string]interface{}, error) {
+	client := config.Client
+	regionNo := config.RegionNo
+
 	zoneNo, err := parseZoneNoParameter(client, d)
 	if err != nil {
-		return err
+		return nil, err
 	}
 	reqParams := &server.GetServerProductListRequest{
+		ExclusionProductCode:   StringPtrOrNil(d.GetOk("exclusion_product_code")),
 		ServerImageProductCode: ncloud.String(d.Get("server_image_product_code").(string)),
-		RegionNo:               regionNo,
+		ProductCode:            StringPtrOrNil(d.GetOk("product_code")),
+		RegionNo:               &regionNo,
 		ZoneNo:                 zoneNo,
 		InternetLineTypeCode:   StringPtrOrNil(d.GetOk("internet_line_type_code")),
 	}
 
-	if exclusionProductCode, ok := d.GetOk("exclusion_product_code"); ok {
-		reqParams.ExclusionProductCode = ncloud.String(exclusionProductCode.(string))
-	}
-
-	if productCode, ok := d.GetOk("product_code"); ok {
-		reqParams.ProductCode = ncloud.String(productCode.(string))
-	}
-
-	logCommonRequest("GetServerProductList", reqParams)
-
+	logCommonRequest("getClassicServerProductList", reqParams)
 	resp, err := client.server.V2Api.GetServerProductList(reqParams)
 	if err != nil {
-		logErrorResponse("GetServerProductList", err, reqParams)
-		return err
+		logErrorResponse("getClassicServerProductList", err, reqParams)
+		return nil, err
 	}
-	logCommonResponse("GetServerProductList", GetCommonResponse(resp))
+	logCommonResponse("getClassicServerProductList", GetCommonResponse(resp))
 
-	var serverProduct *server.Product
-	allServerProducts := resp.ProductList
-	var filteredServerProducts []*server.Product
-	nameRegex, nameRegexOk := d.GetOk("product_name_regex")
-	if nameRegexOk {
-		r := regexp.MustCompile(nameRegex.(string))
-		for _, serverProduct := range allServerProducts {
-			if r.MatchString(ncloud.StringValue(serverProduct.ProductName)) {
-				filteredServerProducts = append(filteredServerProducts, serverProduct)
-			}
+	resources := []map[string]interface{}{}
+
+	for _, r := range resp.ProductList {
+		instance := map[string]interface{}{
+			"id":                      *r.ProductCode,
+			"product_code":            *r.ProductCode,
+			"product_name":            *r.ProductName,
+			"product_type":            *r.ProductType.Code,
+			"product_description":     *r.ProductDescription,
+			"infra_resource_type":     *r.InfraResourceType.Code,
+			"cpu_count":               *r.CpuCount,
+			"memory_size":             *r.MemorySize,
+			"base_block_storage_size": *r.BaseBlockStorageSize,
+			"os_information":          *r.OsInformation,
+			"disk_type":               *r.DiskType.Code,
+			"add_block_storage_size":  *r.AddBlockStorageSize,
 		}
-	} else {
-		filteredServerProducts = allServerProducts[:]
+
+		if r.InfraResourceDetailType != nil {
+			instance["infra_resource_detail_type_code"] = *r.InfraResourceDetailType.Code
+		}
+		if r.PlatformType != nil {
+			instance["platform_type"] = *r.PlatformType.Code
+		}
+
+		resources = append(resources, instance)
 	}
 
-	if err := validateOneResult(len(filteredServerProducts)); err != nil {
-		return err
-	}
-	serverProduct = filteredServerProducts[0]
-
-	return serverProductAttributes(d, serverProduct)
+	return resources, nil
 }
 
-func serverProductAttributes(d *schema.ResourceData, product *server.Product) error {
-	d.Set("product_code", product.ProductCode)
-	d.Set("product_name", product.ProductName)
-	d.Set("product_description", product.ProductDescription)
-	d.Set("cpu_count", product.CpuCount)
-	d.Set("memory_size", product.MemorySize)
-	d.Set("base_block_storage_size", product.BaseBlockStorageSize)
-	d.Set("os_information", product.OsInformation)
-	d.Set("add_block_storage_size", product.AddBlockStorageSize)
+func getVpcServerProductList(d *schema.ResourceData, config *ProviderConfig) ([]map[string]interface{}, error) {
+	client := config.Client
+	regionCode := config.RegionCode
 
-	if productType := flattenCommonCode(product.ProductType); productType["code"] != nil {
-		d.Set("product_type", productType["code"])
+	reqParams := &vserver.GetServerProductListRequest{
+		ExclusionProductCode:   StringPtrOrNil(d.GetOk("exclusion_product_code")),
+		ServerImageProductCode: ncloud.String(d.Get("server_image_product_code").(string)),
+		ProductCode:            StringPtrOrNil(d.GetOk("product_code")),
+		RegionCode:             &regionCode,
+		ZoneCode:               StringPtrOrNil(d.GetOk("zone")),
 	}
 
-	if infraResourceType := flattenCommonCode(product.InfraResourceType); infraResourceType["code"] != nil {
-		d.Set("infra_resource_type", infraResourceType["code"])
+	logCommonRequest("getVpcServerProductList", reqParams)
+	resp, err := client.vserver.V2Api.GetServerProductList(reqParams)
+	if err != nil {
+		logErrorResponse("getVpcServerProductList", err, reqParams)
+		return nil, err
+	}
+	logCommonResponse("getVpcServerProductList", GetCommonResponse(resp))
+
+	resources := []map[string]interface{}{}
+
+	for _, r := range resp.ProductList {
+		instance := map[string]interface{}{
+			"id":                      *r.ProductCode,
+			"product_code":            *r.ProductCode,
+			"product_name":            *r.ProductName,
+			"product_type":            *r.ProductType.Code,
+			"product_description":     *r.ProductDescription,
+			"infra_resource_type":     *r.InfraResourceType.Code,
+			"cpu_count":               *r.CpuCount,
+			"memory_size":             *r.MemorySize,
+			"base_block_storage_size": *r.BaseBlockStorageSize,
+			"os_information":          *r.OsInformation,
+			"disk_type":               *r.DiskType.Code,
+			"add_block_storage_size":  *r.AddBlockStorageSize,
+			"generation_code":         *r.GenerationCode,
+		}
+
+		if r.InfraResourceDetailType != nil {
+			instance["infra_resource_detail_type_code"] = *r.InfraResourceDetailType.Code
+		}
+		if r.PlatformType != nil {
+			instance["platform_type"] = *r.PlatformType.Code
+		}
+
+		resources = append(resources, instance)
 	}
 
-	if platformType := flattenCommonCode(product.PlatformType); platformType["code"] != nil {
-		d.Set("platform_type", platformType["code"])
-	}
-
-	d.SetId(ncloud.StringValue(product.ProductCode))
-
-	return nil
+	return resources, nil
 }
