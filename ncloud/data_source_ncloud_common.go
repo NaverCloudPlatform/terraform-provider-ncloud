@@ -23,9 +23,9 @@ func dataResourceIdHash(ids []string) string {
 }
 
 func writeToFile(filePath string, data interface{}) error {
-	log.Printf("[INFO] WriteToFile FilaPath: %s", filePath)
+	log.Printf("[INFO] WriteToFile FilePath: %s", filePath)
 
-	if err := os.Remove(filePath); err != nil {
+	if err := os.Remove(filePath); err != nil && os.IsNotExist(err) != true {
 		return err
 	}
 
