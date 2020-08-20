@@ -6,10 +6,10 @@ provider "ncloud" {
 
 data "ncloud_regions" "regions" {
   filter {
-		name   = "region_code"
-		values = [".*N$"]
+    name   = "region_code"
+    values = [".*N$"]
     regex = true
-	}
+  }
   output_file = "regions.json"
 }
 
