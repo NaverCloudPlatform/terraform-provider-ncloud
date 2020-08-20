@@ -111,6 +111,7 @@ func flattenZone(i interface{}) map[string]interface{} {
 	var zoneName *string
 	var zoneCode *string
 	var regionNo *string
+	var regionCode *string
 
 	if f := reflect.ValueOf(i).Elem().FieldByName("ZoneNo"); validField(f) {
 		zoneNo = StringField(f)
@@ -127,6 +128,9 @@ func flattenZone(i interface{}) map[string]interface{} {
 	if f := reflect.ValueOf(i).Elem().FieldByName("RegionNo"); validField(f) {
 		regionNo = StringField(f)
 	}
+	if f := reflect.ValueOf(i).Elem().FieldByName("RegionCode"); validField(f) {
+		regionCode = StringField(f)
+	}
 
 	return map[string]interface{}{
 		"zone_no":          ncloud.StringValue(zoneNo),
@@ -134,6 +138,7 @@ func flattenZone(i interface{}) map[string]interface{} {
 		"zone_name":        ncloud.StringValue(zoneName),
 		"zone_description": ncloud.StringValue(zoneDescription),
 		"region_no":        ncloud.StringValue(regionNo),
+		"region_code":      ncloud.StringValue(regionCode),
 	}
 }
 

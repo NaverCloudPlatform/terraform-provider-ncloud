@@ -26,6 +26,10 @@ var zoneSchemaResource = &schema.Resource{
 			Type:     schema.TypeString,
 			Computed: true,
 		},
+		"region_code": {
+			Type:     schema.TypeString,
+			Computed: true,
+		},
 	},
 }
 

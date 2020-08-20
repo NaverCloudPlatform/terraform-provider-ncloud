@@ -80,6 +80,8 @@ func GetZone(i interface{}) *Zone {
 	var zoneName *string
 	var zoneCode *string
 	var regionNo *string
+	var regionCode *string
+
 	if f := reflect.ValueOf(i).Elem().FieldByName("ZoneNo"); validField(f) {
 		zoneNo = StringField(f)
 	}
@@ -95,6 +97,9 @@ func GetZone(i interface{}) *Zone {
 	if f := reflect.ValueOf(i).Elem().FieldByName("RegionNo"); validField(f) {
 		regionNo = StringField(f)
 	}
+	if f := reflect.ValueOf(i).Elem().FieldByName("RegionCode"); validField(f) {
+		regionCode = StringField(f)
+	}
 
 	return &Zone{
 		ZoneNo:          zoneNo,
@@ -102,6 +107,7 @@ func GetZone(i interface{}) *Zone {
 		ZoneCode:        zoneCode,
 		ZoneDescription: zoneDescription,
 		RegionNo:        regionNo,
+		RegionCode:      regionCode,
 	}
 }
 
