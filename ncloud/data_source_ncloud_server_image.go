@@ -168,7 +168,6 @@ func getClassicServerImageProductList(d *schema.ResourceData, config *ProviderCo
 	resources := []map[string]interface{}{}
 
 	for _, r := range resp.ProductList {
-		logResponse("Product", r)
 		instance := map[string]interface{}{
 			"id":                      *r.ProductCode,
 			"product_code":            *r.ProductCode,
