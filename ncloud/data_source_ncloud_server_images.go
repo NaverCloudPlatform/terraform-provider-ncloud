@@ -2,9 +2,7 @@ package ncloud
 
 import (
 	"fmt"
-	"regexp"
 
-	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/services/server"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
@@ -20,6 +18,7 @@ func dataSourceNcloudServerImages() *schema.Resource {
 				ForceNew:     true,
 				ValidateFunc: validation.ValidateRegexp,
 				Description:  "A regex string to apply to the server image list returned by ncloud.",
+				Deprecated:   "use filter instead",
 			},
 			"exclusion_product_code": {
 				Type:        schema.TypeString,
@@ -49,6 +48,7 @@ func dataSourceNcloudServerImages() *schema.Resource {
 				Type:        schema.TypeString,
 				Optional:    true,
 				Description: "Region code. Get available values using the `data ncloud_regions`.",
+				Deprecated:  "use region attribute of provider instead",
 			},
 			"infra_resource_detail_type_code": {
 				Type:        schema.TypeString,
@@ -61,6 +61,7 @@ func dataSourceNcloudServerImages() *schema.Resource {
 				Description: "A list of server image product code.",
 				Elem:        &schema.Schema{Type: schema.TypeString},
 			},
+			"filter": dataSourceFiltersSchema(),
 			"output_file": {
 				Type:     schema.TypeString,
 				Optional: true,
@@ -70,65 +71,43 @@ func dataSourceNcloudServerImages() *schema.Resource {
 }
 
 func dataSourceNcloudServerImagesRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ProviderConfig).Client
+	var resources []map[string]interface{}
+	var err error
 
-	regionNo, err := parseRegionNoParameter(client, d)
-	if err != nil {
-		return err
-	}
-	reqParams := &server.GetServerImageProductListRequest{
-		ExclusionProductCode:        StringPtrOrNil(d.GetOk("exclusion_product_code")),
-		ProductCode:                 StringPtrOrNil(d.GetOk("product_code")),
-		RegionNo:                    regionNo,
-		InfraResourceDetailTypeCode: StringPtrOrNil(d.GetOk("infra_resource_detail_type_code")),
-	}
-
-	if platformTypeCodeList, ok := d.GetOk("platform_type_code_list"); ok {
-		reqParams.PlatformTypeCodeList = expandStringInterfaceList(platformTypeCodeList.([]interface{}))
-	}
-
-	logCommonRequest("GetServerImageProductList", reqParams)
-
-	resp, err := client.server.V2Api.GetServerImageProductList(reqParams)
-	if err != nil {
-		logErrorResponse("GetServerImageProductList", err, reqParams)
-		return err
-	}
-	logCommonResponse("GetServerImageProductList", GetCommonResponse(resp))
-
-	allServerImages := resp.ProductList
-	var filteredServerImages []*server.Product
-	nameRegex, nameRegexOk := d.GetOk("product_name_regex")
-	if nameRegexOk {
-		r := regexp.MustCompile(nameRegex.(string))
-		for _, serverImage := range allServerImages {
-			if r.MatchString(*serverImage.ProductName) {
-				filteredServerImages = append(filteredServerImages, serverImage)
-				break
-			}
-		}
+	if meta.(*ProviderConfig).SupportVPC == true || meta.(*ProviderConfig).Site == "fin" {
+		resources, err = getVpcServerImageProductList(d, meta.(*ProviderConfig))
 	} else {
-		filteredServerImages = allServerImages[:]
+		resources, err = getClassicServerImageProductList(d, meta.(*ProviderConfig))
 	}
 
-	if len(filteredServerImages) < 1 {
+	if err != nil {
+		return err
+	}
+
+	if f, ok := d.GetOk("filter"); ok {
+		resources = ApplyFilters(f.(*schema.Set), resources, dataSourceNcloudServerImage().Schema)
+	}
+
+	if len(resources) < 1 {
 		return fmt.Errorf("no results. please change search criteria and try again")
 	}
 
-	return serverImagesAttributes(d, filteredServerImages)
+	return serverImagesAttributes(d, resources)
 }
 
-func serverImagesAttributes(d *schema.ResourceData, serverImages []*server.Product) error {
+func serverImagesAttributes(d *schema.ResourceData, serverImages []map[string]interface{}) error {
 	var ids []string
 
-	for _, product := range serverImages {
-		ids = append(ids, *product.ProductCode)
+	for _, r := range serverImages {
+		for k, v := range r {
+			if k == "id" {
+				ids = append(ids, v.(string))
+			}
+		}
 	}
 
 	d.SetId(dataResourceIdHash(ids))
-	if err := d.Set("server_images", flattenServerProducts(serverImages)); err != nil {
-		return err
-	}
+	d.Set("server_images", ids)
 
 	if output, ok := d.GetOk("output_file"); ok && output.(string) != "" {
 		return writeToFile(output.(string), d.Get("server_images"))
