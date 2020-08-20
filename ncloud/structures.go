@@ -62,6 +62,17 @@ func flattenAccessControlGroups(accessControlGroups []*server.AccessControlGroup
 	return s
 }
 
+func flattenRegions(regions []*Region) []map[string]interface{} {
+	var s []map[string]interface{}
+
+	for _, region := range regions {
+		mapping := flattenRegion(region)
+		s = append(s, mapping)
+	}
+
+	return s
+}
+
 func flattenRegion(i interface{}) map[string]interface{} {
 	if i == nil || !reflect.ValueOf(i).Elem().IsValid() {
 		return map[string]interface{}{}
