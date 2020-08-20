@@ -6,6 +6,7 @@ import (
 
 	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/ncloud"
 	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/services/server"
+	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/services/vserver"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
@@ -18,6 +19,7 @@ func dataSourceNcloudRegions() *schema.Resource {
 				Type:     schema.TypeString,
 				Optional: true,
 			},
+			"filter": dataSourceFiltersSchema(),
 			"regions": {
 				Type:     schema.TypeList,
 				Optional: true,
@@ -32,59 +34,54 @@ func dataSourceNcloudRegions() *schema.Resource {
 }
 
 func dataSourceNcloudRegionsRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ProviderConfig).Client
 	d.SetId(time.Now().UTC().String())
 
-	regionList, err := getRegions(client)
+	var regions []*Region
+	var err error
+
+	if meta.(*ProviderConfig).SupportVPC == true || meta.(*ProviderConfig).Site == "fin" {
+		regions, err = getVpcRegions(d, meta.(*ProviderConfig))
+	} else {
+		regions, err = getClassicRegions(d, meta.(*ProviderConfig))
+	}
+
 	if err != nil {
 		return err
 	}
 
-	code, codeOk := d.GetOk("code")
-
-	var filteredRegions []*Region
-	if codeOk {
-		for _, region := range regionList {
+	if code, codeOk := d.GetOk("code"); codeOk {
+		for _, region := range regions {
 			if ncloud.StringValue(region.RegionCode) == code {
-				filteredRegions = []*Region{region}
+				regions = []*Region{region}
 				break
 			}
 		}
-	} else {
-		filteredRegions = regionList
 	}
 
-	if len(filteredRegions) < 1 {
+	if len(regions) < 1 {
 		return fmt.Errorf("no results. please change search criteria and try again")
 	}
 
-	return regionsAttributes(d, filteredRegions)
-}
+	resources := flattenRegions(regions)
 
-func regionsAttributes(d *schema.ResourceData, regions []*Region) error {
-
-	var ids []string
-	var s []map[string]interface{}
-	for _, region := range regions {
-		mapping := flattenRegion(region)
-		ids = append(ids, *region.RegionNo)
-		s = append(s, mapping)
+	if f, ok := d.GetOk("filter"); ok {
+		resources = ApplyFilters(f.(*schema.Set), resources, dataSourceNcloudRegions().Schema["regions"].Elem.(*schema.Resource).Schema)
 	}
 
-	d.SetId(dataResourceIdHash(ids))
-	if err := d.Set("regions", s); err != nil {
+	if err := d.Set("regions", resources); err != nil {
 		return err
 	}
 
 	// create a json file in current directory and write d source to it.
 	if output, ok := d.GetOk("output_file"); ok && output.(string) != "" {
-		return writeToFile(output.(string), s)
+		return writeToFile(output.(string), d.Get("regions"))
 	}
 
 	return nil
 }
 
-func getRegions(client *NcloudAPIClient) ([]*Region, error) {
+func getClassicRegions(d *schema.ResourceData, config *ProviderConfig) ([]*Region, error) {
+	client := config.Client
 	resp, err := client.server.V2Api.GetRegionList(&server.GetRegionListRequest{})
 	if err != nil {
 		return nil, err
@@ -95,6 +92,27 @@ func getRegions(client *NcloudAPIClient) ([]*Region, error) {
 	}
 
 	var regions []*Region
+
+	for _, r := range resp.RegionList {
+		regions = append(regions, GetRegion(r))
+	}
+
+	return regions, nil
+}
+
+func getVpcRegions(d *schema.ResourceData, config *ProviderConfig) ([]*Region, error) {
+	client := config.Client
+	resp, err := client.vserver.V2Api.GetRegionList(&vserver.GetRegionListRequest{})
+	if err != nil {
+		return nil, err
+	}
+
+	if resp == nil {
+		return nil, fmt.Errorf("no matching regions found")
+	}
+
+	var regions []*Region
+
 	for _, r := range resp.RegionList {
 		regions = append(regions, GetRegion(r))
 	}
