@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/ncloud"
 	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/services/server"
+	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/services/vserver"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
@@ -19,6 +19,7 @@ func dataSourceNcloudZones() *schema.Resource {
 				Optional:    true,
 				Description: "Region code. Get available values using the `data ncloud_regions`.",
 			},
+			"filter": dataSourceFiltersSchema(),
 			"zones": {
 				Type:     schema.TypeList,
 				Computed: true,
@@ -33,45 +34,28 @@ func dataSourceNcloudZones() *schema.Resource {
 }
 
 func dataSourceNcloudZonesRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ProviderConfig).Client
-
 	d.SetId(time.Now().UTC().String())
 
-	regionNo, err := parseRegionNoParameter(client, d)
-	if err != nil {
-		return err
-	}
-	resp, err := client.server.V2Api.GetZoneList(&server.GetZoneListRequest{RegionNo: regionNo})
-	if err != nil {
-		return err
-	}
-
-	if resp == nil {
-		return fmt.Errorf("no matching zones found")
-	}
-
 	var zones []*Zone
+	var err error
 
-	for _, zone := range resp.ZoneList {
-		zones = append(zones, GetZone(zone))
+	if meta.(*ProviderConfig).SupportVPC == true || meta.(*ProviderConfig).Site == "fin" {
+		zones, err = getVpcZones(d, meta.(*ProviderConfig))
+	} else {
+		zones, err = getClassicZones(d, meta.(*ProviderConfig))
 	}
 
-	if len(zones) < 1 {
-		return fmt.Errorf("no results. please change search criteria and try again")
+	if err != nil {
+		return err
 	}
 
-	return zonesAttributes(d, zones)
-}
+	resources := flattenZones(zones)
 
-func zonesAttributes(d *schema.ResourceData, zones []*Zone) error {
-	var ids []string
-
-	for _, zone := range zones {
-		ids = append(ids, ncloud.StringValue(zone.ZoneNo))
+	if f, ok := d.GetOk("filter"); ok {
+		resources = ApplyFilters(f.(*schema.Set), resources, dataSourceNcloudZones().Schema["zones"].Elem.(*schema.Resource).Schema)
 	}
 
-	d.SetId(dataResourceIdHash(ids))
-	if err := d.Set("zones", flattenZones(zones)); err != nil {
+	if err := d.Set("zones", resources); err != nil {
 		return err
 	}
 
@@ -81,4 +65,48 @@ func zonesAttributes(d *schema.ResourceData, zones []*Zone) error {
 	}
 
 	return nil
+}
+
+func getClassicZones(d *schema.ResourceData, config *ProviderConfig) ([]*Zone, error) {
+	client := config.Client
+	regionNo := config.RegionNo
+
+	resp, err := client.server.V2Api.GetZoneList(&server.GetZoneListRequest{RegionNo: &regionNo})
+	if err != nil {
+		return nil, err
+	}
+
+	if resp == nil {
+		return nil, fmt.Errorf("no matching zones found")
+	}
+
+	var zones []*Zone
+
+	for _, zone := range resp.ZoneList {
+		zones = append(zones, GetZone(zone))
+	}
+
+	return zones, nil
+}
+
+func getVpcZones(d *schema.ResourceData, config *ProviderConfig) ([]*Zone, error) {
+	client := config.Client
+	regionCode := config.RegionCode
+
+	resp, err := client.vserver.V2Api.GetZoneList(&vserver.GetZoneListRequest{RegionCode: &regionCode})
+	if err != nil {
+		return nil, err
+	}
+
+	if resp == nil {
+		return nil, fmt.Errorf("no matching zones found")
+	}
+
+	var zones []*Zone
+
+	for _, zone := range resp.ZoneList {
+		zones = append(zones, GetZone(zone))
+	}
+
+	return zones, nil
 }

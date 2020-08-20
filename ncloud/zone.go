@@ -14,6 +14,7 @@ type Zone struct {
 	ZoneCode        *string `json:"zoneCode,omitempty"`
 	ZoneDescription *string `json:"zoneDescription,omitempty"`
 	RegionNo        *string `json:"regionNo,omitempty"`
+	RegionCode      *string `json:"regionCode,omitempty"`
 }
 
 var zoneCache = make(map[string]string)
