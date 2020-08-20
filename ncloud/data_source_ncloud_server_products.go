@@ -2,10 +2,7 @@ package ncloud
 
 import (
 	"fmt"
-	"regexp"
 
-	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/ncloud"
-	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/services/server"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
@@ -21,12 +18,14 @@ func dataSourceNcloudServerProducts() *schema.Resource {
 				ForceNew:     true,
 				ValidateFunc: validation.ValidateRegexp,
 				Description:  "A regex string to apply to the Server Product list returned.",
+				Deprecated:   "use filter instead",
 			},
 			"exclusion_product_code": {
 				Type:        schema.TypeString,
 				Optional:    true,
 				Computed:    true,
 				Description: "Enter a product code to exclude from the list.",
+				Deprecated:  "use filter instead",
 			},
 			"product_code": {
 				Type:        schema.TypeString,
@@ -43,6 +42,7 @@ func dataSourceNcloudServerProducts() *schema.Resource {
 				Type:        schema.TypeString,
 				Optional:    true,
 				Description: "Region code. Get available values using the `data ncloud_regions`.",
+				Deprecated:  "use region attribute of provider instead",
 			},
 			"zone": {
 				Type:        schema.TypeString,
@@ -61,6 +61,7 @@ func dataSourceNcloudServerProducts() *schema.Resource {
 				Description: "A list of server product code.",
 				Elem:        &schema.Schema{Type: schema.TypeString},
 			},
+			"filter": dataSourceFiltersSchema(),
 			"output_file": {
 				Type:     schema.TypeString,
 				Optional: true,
@@ -70,72 +71,43 @@ func dataSourceNcloudServerProducts() *schema.Resource {
 }
 
 func dataSourceNcloudServerProductsRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ProviderConfig).Client
+	var resources []map[string]interface{}
+	var err error
 
-	regionNo, err := parseRegionNoParameter(client, d)
-	if err != nil {
-		return err
-	}
-	zoneNo, err := parseZoneNoParameter(client, d)
-	if err != nil {
-		return err
-	}
-	reqParams := &server.GetServerProductListRequest{
-		ServerImageProductCode: ncloud.String(d.Get("server_image_product_code").(string)),
-		RegionNo:               regionNo,
-		ZoneNo:                 zoneNo,
-		InternetLineTypeCode:   StringPtrOrNil(d.GetOk("internet_line_type_code")),
-	}
-
-	if exclusionProductCode, ok := d.GetOk("exclusion_product_code"); ok {
-		reqParams.ExclusionProductCode = ncloud.String(exclusionProductCode.(string))
-	}
-
-	if productCode, ok := d.GetOk("product_code"); ok {
-		reqParams.ProductCode = ncloud.String(productCode.(string))
-	}
-
-	logCommonRequest("GetServerProductList", reqParams)
-
-	resp, err := client.server.V2Api.GetServerProductList(reqParams)
-	if err != nil {
-		logErrorResponse("GetServerProductList", err, reqParams)
-		return err
-	}
-	logCommonResponse("GetServerProductList", GetCommonResponse(resp))
-
-	allServerProducts := resp.ProductList
-	var filteredServerProducts []*server.Product
-	nameRegex, nameRegexOk := d.GetOk("product_name_regex")
-	if nameRegexOk {
-		r := regexp.MustCompile(nameRegex.(string))
-		for _, serverProduct := range allServerProducts {
-			if r.MatchString(ncloud.StringValue(serverProduct.ProductName)) {
-				filteredServerProducts = append(filteredServerProducts, serverProduct)
-			}
-		}
+	if meta.(*ProviderConfig).SupportVPC == true || meta.(*ProviderConfig).Site == "fin" {
+		resources, err = getVpcServerProductList(d, meta.(*ProviderConfig))
 	} else {
-		filteredServerProducts = allServerProducts[:]
+		resources, err = getClassicServerProductList(d, meta.(*ProviderConfig))
 	}
 
-	if len(filteredServerProducts) < 1 {
+	if err != nil {
+		return err
+	}
+
+	if f, ok := d.GetOk("filter"); ok {
+		resources = ApplyFilters(f.(*schema.Set), resources, dataSourceNcloudServerProduct().Schema)
+	}
+
+	if len(resources) < 1 {
 		return fmt.Errorf("no results. please change search criteria and try again")
 	}
 
-	return serverProductsAttributes(d, filteredServerProducts)
+	return serverProductsAttributes(d, resources)
 }
 
-func serverProductsAttributes(d *schema.ResourceData, serverProduct []*server.Product) error {
+func serverProductsAttributes(d *schema.ResourceData, serverProduct []map[string]interface{}) error {
 	var ids []string
 
-	for _, product := range serverProduct {
-		ids = append(ids, ncloud.StringValue(product.ProductCode))
+	for _, r := range serverProduct {
+		for k, v := range r {
+			if k == "id" {
+				ids = append(ids, v.(string))
+			}
+		}
 	}
 
 	d.SetId(dataResourceIdHash(ids))
-	if err := d.Set("server_products", flattenServerProducts(serverProduct)); err != nil {
-		return err
-	}
+	d.Set("server_products", ids)
 
 	if output, ok := d.GetOk("output_file"); ok && output.(string) != "" {
 		return writeToFile(output.(string), d.Get("server_products"))
