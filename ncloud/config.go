@@ -3,6 +3,9 @@ package ncloud
 import (
 	"time"
 
+	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/services/vnas"
+	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/services/vserver"
+
 	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/ncloud"
 	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/services/autoscaling"
 	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/services/cdn"
@@ -35,6 +38,8 @@ type NcloudAPIClient struct {
 	clouddb      *clouddb.APIClient
 	monitoring   *monitoring.APIClient
 	vpc          *vpc.APIClient
+	vserver      *vserver.APIClient
+	vnas         *vnas.APIClient
 }
 
 func (c *Config) Client() (*NcloudAPIClient, error) {
@@ -50,6 +55,8 @@ func (c *Config) Client() (*NcloudAPIClient, error) {
 		clouddb:      clouddb.NewAPIClient(clouddb.NewConfiguration(apiKey)),
 		monitoring:   monitoring.NewAPIClient(monitoring.NewConfiguration(apiKey)),
 		vpc:          vpc.NewAPIClient(vpc.NewConfiguration(apiKey)),
+		vserver:      vserver.NewAPIClient(vserver.NewConfiguration(apiKey)),
+		vnas:         vnas.NewAPIClient(vnas.NewConfiguration(apiKey)),
 	}, nil
 }
 
