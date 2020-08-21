@@ -29,7 +29,6 @@ func dataSourceNcloudServerProduct() *schema.Resource {
 			"exclusion_product_code": {
 				Type:        schema.TypeString,
 				Optional:    true,
-				Computed:    true,
 				Description: "Enter a product code to exclude from the list.",
 			},
 			"product_code": {
@@ -76,6 +75,11 @@ func dataSourceNcloudServerProduct() *schema.Resource {
 				Type:        schema.TypeString,
 				Computed:    true,
 				Description: "Infra resource type",
+			},
+			"infra_resource_detail_type_code": {
+				Type:        schema.TypeString,
+				Computed:    true,
+				Description: "infra resource detail type code.",
 			},
 			"cpu_count": {
 				Type:        schema.TypeInt,
