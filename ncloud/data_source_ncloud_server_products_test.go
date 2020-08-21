@@ -13,10 +13,6 @@ func TestAccDataSourceNcloudServerProductsBasic(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				Config: testAccDataSourceNcloudServerProductsConfig,
-				// ignore check: may be empty created data
-				SkipFunc: func() (bool, error) {
-					return skipNoResultsTest, nil
-				},
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckDataSourceID("data.ncloud_server_products.all"),
 				),
