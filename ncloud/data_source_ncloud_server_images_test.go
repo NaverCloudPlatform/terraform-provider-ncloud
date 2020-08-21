@@ -66,6 +66,21 @@ func TestAccDataSourceNcloudServerImagesBareMetal(t *testing.T) {
 	})
 }
 
+func TestAccDataSourceNcloudServerImagesBlockStorageSize(t *testing.T) {
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:  func() { testAccPreCheck(t) },
+		Providers: testAccProviders,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccDataSourceNcloudServerImagesBlockStorageSizeConfig,
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckDataSourceID("data.ncloud_server_images.blockstorage"),
+				),
+			},
+		},
+	})
+}
+
 var testAccDataSourceNcloudServerImagesConfig = `
 data "ncloud_server_images" "test" {}
 `
@@ -85,5 +100,11 @@ data "ncloud_server_images" "windows" {
 var testAccDataSourceNcloudServerImagesBareMetalConfig = `
 data "ncloud_server_images" "beremetal" {
 	infra_resource_detail_type_code = "BM"
+}
+`
+
+var testAccDataSourceNcloudServerImagesBlockStorageSizeConfig = `
+data "ncloud_server_images" "blockstorage" {
+	block_storage_size = 50
 }
 `
