@@ -38,6 +38,7 @@ func TestAccResourceNcloudLoginKeyBasic(t *testing.T) {
 						"key_name",
 						testKeyName),
 				),
+				ExpectNonEmptyPlan: true,
 			},
 			{
 				ResourceName:            "ncloud_login_key.loginkey",
