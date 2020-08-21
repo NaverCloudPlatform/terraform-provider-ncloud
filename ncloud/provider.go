@@ -67,6 +67,7 @@ func Provider() terraform.ResourceProvider {
 			"ncloud_route_table":           dataSourceNcloudRouteTable(),
 			"ncloud_route_tables":          dataSourceNcloudRouteTables(),
 			"ncloud_vpc_peering":           dataSourceNcloudVpcPeering(),
+			"ncloud_placement_group":       dataSourceNcloudPlacementGroup(),
 		},
 		ResourcesMap: map[string]*schema.Resource{
 			"ncloud_server":                        resourceNcloudServer(),
@@ -87,6 +88,7 @@ func Provider() terraform.ResourceProvider {
 			"ncloud_route":                         resourceNcloudRoute(),
 			"ncloud_route_table_association":       resourceNcloudRouteTableAssociation(),
 			"ncloud_vpc_peering":                   resourceNcloudVpcPeering(),
+			"ncloud_placement_group":               resourceNcloudPlacementGroup(),
 		},
 		ConfigureFunc: providerConfigure,
 	}
