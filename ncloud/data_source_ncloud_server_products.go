@@ -23,7 +23,6 @@ func dataSourceNcloudServerProducts() *schema.Resource {
 			"exclusion_product_code": {
 				Type:        schema.TypeString,
 				Optional:    true,
-				Computed:    true,
 				Description: "Enter a product code to exclude from the list.",
 				Deprecated:  "use filter instead",
 			},

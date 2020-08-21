@@ -23,7 +23,6 @@ func dataSourceNcloudServerImages() *schema.Resource {
 			"exclusion_product_code": {
 				Type:        schema.TypeString,
 				Optional:    true,
-				Computed:    true,
 				Description: "Product code you want to exclude from the list.",
 			},
 			"product_code": {
@@ -35,14 +34,8 @@ func dataSourceNcloudServerImages() *schema.Resource {
 			"platform_type_code_list": {
 				Type:        schema.TypeList,
 				Optional:    true,
-				Computed:    true,
 				Elem:        &schema.Schema{Type: schema.TypeString},
 				Description: "Values required for identifying platforms in list-type.",
-			},
-			"block_storage_size": {
-				Type:        schema.TypeInt,
-				Optional:    true,
-				Description: "Block storage size.",
 			},
 			"region": {
 				Type:        schema.TypeString,
@@ -53,6 +46,7 @@ func dataSourceNcloudServerImages() *schema.Resource {
 			"infra_resource_detail_type_code": {
 				Type:        schema.TypeString,
 				Optional:    true,
+				Computed:    true,
 				Description: "infra resource detail type code.",
 			},
 			"server_images": {
