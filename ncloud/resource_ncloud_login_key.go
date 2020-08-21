@@ -169,7 +169,7 @@ func getFingerPrint(config *ProviderConfig, keyName *string) (*string, error) {
 	var fingerPrintList []*string
 	var err error
 
-	if config.SupportVPC == true || config.Site == "fin" {
+	if config.SupportVPC == true {
 		fingerPrintList, err = getVpcFingerPrintList(config.Client, keyName)
 	} else {
 		fingerPrintList, err = getClassicFingerPrintList(config.Client, keyName)
