@@ -6,15 +6,27 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 )
 
-func TestAccDataSourceNcloudServerImageFilterByName(t *testing.T) {
-	t.Parallel()
-
-	resource.Test(t, resource.TestCase{
+func TestAccDataSourceNcloudServerImageByCode(t *testing.T) {
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:  func() { testAccPreCheck(t) },
 		Providers: testAccProviders,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccDataSourceNcloudServerImageFilterByNameConfig,
+				Config: testAccDataSourceNcloudServerImageByCodeConfig,
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckDataSourceID("data.ncloud_server_image.test"),
+				),
+			},
+		},
+	})
+}
+func TestAccDataSourceNcloudServerImageByFilterProductCode(t *testing.T) {
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:  func() { testAccPreCheck(t) },
+		Providers: testAccProviders,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccDataSourceNcloudServerImageByFilterProductCodeConfig,
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckDataSourceID("data.ncloud_server_image.test"),
 				),
@@ -23,15 +35,13 @@ func TestAccDataSourceNcloudServerImageFilterByName(t *testing.T) {
 	})
 }
 
-func TestAccDataSourceNcloudServerImageFilterByType(t *testing.T) {
-	t.Parallel()
-
-	resource.Test(t, resource.TestCase{
+func TestAccDataSourceNcloudServerImageByFilterProductName(t *testing.T) {
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:  func() { testAccPreCheck(t) },
 		Providers: testAccProviders,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccDataSourceNcloudServerImageFilterByTypeConfig,
+				Config: testAccDataSourceNcloudServerImageByFilterProductNameConfig,
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckDataSourceID("data.ncloud_server_image.test"),
 				),
@@ -40,14 +50,26 @@ func TestAccDataSourceNcloudServerImageFilterByType(t *testing.T) {
 	})
 }
 
-var testAccDataSourceNcloudServerImageFilterByNameConfig = `
+var testAccDataSourceNcloudServerImageByCodeConfig = `
 data "ncloud_server_image" "test" {
-  product_name_regex = "Server.*2016"
+  product_code = "SPSW0LINUX000139"
 }
 `
 
-var testAccDataSourceNcloudServerImageFilterByTypeConfig = `
+var testAccDataSourceNcloudServerImageByFilterProductCodeConfig = `
 data "ncloud_server_image" "test" {
-  product_type = "LINUX"
+  filter {
+    name = "product_code"
+    values = ["SPSW0LINUX000139"]
+  }
+}
+`
+
+var testAccDataSourceNcloudServerImageByFilterProductNameConfig = `
+data "ncloud_server_image" "test" {
+  filter {
+    name = "product_name"
+    values = ["CentOS 7.8 (64-bit)"]
+  }
 }
 `
