@@ -37,6 +37,12 @@ func dataSourceNcloudServerImages() *schema.Resource {
 				Elem:        &schema.Schema{Type: schema.TypeString},
 				Description: "Values required for identifying platforms in list-type.",
 			},
+			"block_storage_size": {
+				Type:         schema.TypeInt,
+				Optional:     true,
+				ValidateFunc: validation.IntInSlice([]int{50, 100}),
+				Description:  "Block storage size.",
+			},
 			"region": {
 				Type:        schema.TypeString,
 				Optional:    true,

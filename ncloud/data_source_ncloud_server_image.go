@@ -1,6 +1,7 @@
 package ncloud
 
 import (
+	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/ncloud"
 	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/services/server"
 	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/services/vserver"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
@@ -41,6 +42,12 @@ func dataSourceNcloudServerImage() *schema.Resource {
 				Optional:    true,
 				Elem:        &schema.Schema{Type: schema.TypeString},
 				Description: "Values required for identifying platforms in list-type.",
+			},
+			"block_storage_size": {
+				Type:         schema.TypeInt,
+				Optional:     true,
+				ValidateFunc: validation.IntInSlice([]int{50, 100}),
+				Description:  "Block storage size.",
 			},
 			"region": {
 				Type:        schema.TypeString,
@@ -151,6 +158,10 @@ func getClassicServerImageProductList(d *schema.ResourceData, config *ProviderCo
 		reqParams.PlatformTypeCodeList = expandStringInterfaceList(platformTypeCodeList.([]interface{}))
 	}
 
+	if d.HasChange("block_storage_size") {
+		reqParams.BlockStorageSize = ncloud.Int32(int32(d.Get("block_storage_size").(int)))
+	}
+
 	logCommonRequest("GetServerImageProductList", reqParams)
 	resp, err := client.server.V2Api.GetServerImageProductList(reqParams)
 	if err != nil {
@@ -199,6 +210,10 @@ func getVpcServerImageProductList(d *schema.ResourceData, config *ProviderConfig
 
 	if platformTypeCodeList, ok := d.GetOk("platform_type_code_list"); ok {
 		reqParams.PlatformTypeCodeList = expandStringInterfaceList(platformTypeCodeList.([]interface{}))
+	}
+
+	if d.HasChange("block_storage_size") {
+		reqParams.BlockStorageSize = ncloud.Int32(int32(d.Get("block_storage_size").(int)))
 	}
 
 	logCommonRequest("GetServerImageProductList", reqParams)
