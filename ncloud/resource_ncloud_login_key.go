@@ -106,7 +106,7 @@ func resourceNcloudLoginKeyDelete(d *schema.ResourceData, meta interface{}) erro
 
 	keyName := d.Get("key_name").(string)
 
-	if config.SupportVPC == true || config.Site == "fin" {
+	if config.SupportVPC == true {
 		if err := deleteVpcLoginKey(config.Client, &keyName); err != nil {
 			return err
 		}
