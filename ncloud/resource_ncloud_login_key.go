@@ -83,7 +83,7 @@ func resourceNcloudLoginKeyCreate(d *schema.ResourceData, meta interface{}) erro
 
 	keyName := d.Get("key_name").(string)
 
-	if meta.(*ProviderConfig).SupportVPC == true || meta.(*ProviderConfig).Site == "fin" {
+	if meta.(*ProviderConfig).SupportVPC == true {
 		privateKey, err = createVpcLoginKey(meta.(*ProviderConfig), &keyName)
 	} else {
 		privateKey, err = createClassicLoginKey(meta.(*ProviderConfig), &keyName)
