@@ -73,7 +73,7 @@ func dataSourceNcloudServerProductsRead(d *schema.ResourceData, meta interface{}
 	var resources []map[string]interface{}
 	var err error
 
-	if meta.(*ProviderConfig).SupportVPC == true || meta.(*ProviderConfig).Site == "fin" {
+	if meta.(*ProviderConfig).SupportVPC == true {
 		resources, err = getVpcServerProductList(d, meta.(*ProviderConfig))
 	} else {
 		resources, err = getClassicServerProductList(d, meta.(*ProviderConfig))
