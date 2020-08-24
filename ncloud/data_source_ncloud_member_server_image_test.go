@@ -7,9 +7,7 @@ import (
 )
 
 func TestAccDataSourceNcloudMemberServerImageBasic(t *testing.T) {
-	t.Parallel()
-
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:  func() { testAccPreCheck(t) },
 		Providers: testAccProviders,
 		Steps: []resource.TestStep{
@@ -27,6 +25,34 @@ func TestAccDataSourceNcloudMemberServerImageBasic(t *testing.T) {
 	})
 }
 
+func TestAccDataSourceNcloudMemberServerImageFilter(t *testing.T) {
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:  func() { testAccPreCheck(t) },
+		Providers: testAccProviders,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccDataSourceNcloudMemberServerImageConfigFilter,
+				// ignore check: may be empty created data
+				SkipFunc: func() (bool, error) {
+					return skipNoResultsTest, nil
+				},
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckDataSourceID("data.ncloud_member_server_image.test"),
+				),
+			},
+		},
+	})
+}
+
 var testAccDataSourceNcloudMemberServerImageConfig = `
 data "ncloud_member_server_image" "test" {}
+`
+
+var testAccDataSourceNcloudMemberServerImageConfigFilter = `
+data "ncloud_member_server_image" "member_server_images" {
+	filter {
+		name   = "status"
+		values = ["RUN"]
+	}
+}
 `
