@@ -1,9 +1,8 @@
 package ncloud
 
 import (
-	"regexp"
-
 	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/services/server"
+	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/services/vserver"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
@@ -13,12 +12,6 @@ func dataSourceNcloudMemberServerImage() *schema.Resource {
 		Read: dataSourceNcloudMemberServerImageRead,
 
 		Schema: map[string]*schema.Schema{
-			"name_regex": {
-				Type:         schema.TypeString,
-				Optional:     true,
-				ValidateFunc: validation.ValidateRegexp,
-				Description:  "A regex string to apply to the member server image list returned by ncloud",
-			},
 			"no_list": {
 				Type:        schema.TypeList,
 				Optional:    true,
@@ -31,11 +24,21 @@ func dataSourceNcloudMemberServerImage() *schema.Resource {
 				Elem:        &schema.Schema{Type: schema.TypeString},
 				Description: "List of platform codes of server images to view",
 			},
+			"filter": dataSourceFiltersSchema(),
+			"name_regex": {
+				Type:         schema.TypeString,
+				Optional:     true,
+				ValidateFunc: validation.ValidateRegexp,
+				Description:  "A regex string to apply to the member server image list returned by ncloud",
+				Deprecated:   "use filter instead",
+			},
 			"region": {
 				Type:        schema.TypeString,
 				Optional:    true,
 				Description: "Region code. Get available values using the `data ncloud_regions`.",
+				Deprecated:  "use region attribute of provider instead",
 			},
+
 			"no": {
 				Type:        schema.TypeString,
 				Computed:    true,
@@ -121,14 +124,39 @@ func dataSourceNcloudMemberServerImage() *schema.Resource {
 }
 
 func dataSourceNcloudMemberServerImageRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ProviderConfig).Client
+	config := meta.(*ProviderConfig)
+	var resources []map[string]interface{}
+	var err error
 
-	regionNo, err := parseRegionNoParameter(client, d)
+	if config.SupportVPC {
+		resources, err = getVpcMemberServerImage(d, config)
+	} else {
+		resources, err = getClassicMemberServerImage(d, config)
+	}
+
 	if err != nil {
 		return err
 	}
+
+	if f, ok := d.GetOk("filter"); ok {
+		resources = ApplyFilters(f.(*schema.Set), resources, dataSourceNcloudMemberServerImage().Schema)
+	}
+
+	if err := validateOneResult(len(resources)); err != nil {
+		return err
+	}
+
+	SetSingularResourceDataFromMap(d, resources[0])
+
+	return nil
+}
+
+func getClassicMemberServerImage(d *schema.ResourceData, config *ProviderConfig) ([]map[string]interface{}, error) {
+	client := config.Client
+	regionNo := config.RegionNo
+
 	reqParams := &server.GetMemberServerImageListRequest{
-		RegionNo: regionNo,
+		RegionNo: &regionNo,
 	}
 
 	if noList, ok := d.GetOk("no_list"); ok {
@@ -139,73 +167,100 @@ func dataSourceNcloudMemberServerImageRead(d *schema.ResourceData, meta interfac
 		reqParams.PlatformTypeCodeList = expandStringInterfaceList(platformTypeCodeList.([]interface{}))
 	}
 
-	logCommonRequest("GetMemberServerImageList", reqParams)
+	logCommonRequest("getClassicMemberServerImage", reqParams)
 
 	resp, err := client.server.V2Api.GetMemberServerImageList(reqParams)
 	if err != nil {
-		logErrorResponse("GetMemberServerImageList", err, reqParams)
-		return err
+		logErrorResponse("getClassicMemberServerImage", err, reqParams)
+		return nil, err
 	}
-	logCommonResponse("GetMemberServerImageList", GetCommonResponse(resp))
+	logCommonResponse("getClassicMemberServerImage", GetCommonResponse(resp))
 
-	var memberServerImage *server.MemberServerImage
+	resources := []map[string]interface{}{}
 
-	allMemberServerImages := resp.MemberServerImageList
-	var filteredMemberServerImages []*server.MemberServerImage
-	nameRegex, nameRegexOk := d.GetOk("name_regex")
-	if nameRegexOk {
-		r := regexp.MustCompile(nameRegex.(string))
-		for _, memberServerImage := range allMemberServerImages {
-			if r.MatchString(*memberServerImage.MemberServerImageName) {
-				filteredMemberServerImages = append(filteredMemberServerImages, memberServerImage)
-			}
+	for _, r := range resp.MemberServerImageList {
+		instance := map[string]interface{}{
+			"id":                                    *r.MemberServerImageNo,
+			"no":                                    *r.MemberServerImageNo,
+			"name":                                  *r.MemberServerImageName,
+			"description":                           *r.MemberServerImageDescription,
+			"original_server_instance_no":           *r.OriginalServerInstanceNo,
+			"original_server_product_code":          *r.OriginalServerProductCode,
+			"original_server_name":                  *r.OriginalServerName,
+			"original_base_block_storage_disk_type": *r.OriginalBaseBlockStorageDiskType.Code,
+			"original_server_image_product_code":    *r.OriginalServerImageProductCode,
+			"original_os_information":               *r.OriginalOsInformation,
+			"original_server_image_name":            *r.OriginalServerImageName,
+			"status_name":                           *r.MemberServerImageStatusName,
+			"status":                                *r.MemberServerImageStatus.Code,
+			"operation":                             *r.MemberServerImageOperation.Code,
+			"platform_type":                         *r.MemberServerImagePlatformType.Code,
 		}
-	} else {
-		filteredMemberServerImages = allMemberServerImages[:]
+
+		if r.MemberServerImageBlockStorageTotalRows != nil {
+			instance["block_storage_total_rows"] = *r.MemberServerImageBlockStorageTotalRows
+		}
+
+		if r.MemberServerImageBlockStorageTotalSize != nil {
+			instance["block_storage_total_size"] = *r.MemberServerImageBlockStorageTotalSize
+		}
+
+		resources = append(resources, instance)
 	}
 
-	if err := validateOneResult(len(filteredMemberServerImages)); err != nil {
-		return err
-	}
-	memberServerImage = filteredMemberServerImages[0]
-	return memberServerImageAttributes(d, memberServerImage)
+	return resources, nil
 }
 
-func memberServerImageAttributes(d *schema.ResourceData, m *server.MemberServerImage) error {
-	d.Set("no", m.MemberServerImageNo)
-	d.Set("name", m.MemberServerImageName)
-	d.Set("description", m.MemberServerImageDescription)
-	d.Set("original_server_instance_no", m.OriginalServerInstanceNo)
-	d.Set("original_server_product_code", m.OriginalServerProductCode)
-	d.Set("original_server_name", m.OriginalServerName)
-	d.Set("original_server_image_product_code", m.OriginalServerImageProductCode)
-	d.Set("original_os_information", m.OriginalOsInformation)
-	d.Set("original_server_image_name", m.OriginalServerImageName)
-	d.Set("status_name", m.MemberServerImageStatusName)
-	d.Set("block_storage_total_rows", m.MemberServerImageBlockStorageTotalRows)
-	d.Set("block_storage_total_size", m.MemberServerImageBlockStorageTotalSize)
+func getVpcMemberServerImage(d *schema.ResourceData, config *ProviderConfig) ([]map[string]interface{}, error) {
+	client := config.Client
+	regionCode := config.RegionCode
 
-	if diskType := flattenCommonCode(m.OriginalBaseBlockStorageDiskType); diskType["code"] != nil {
-		d.Set("original_base_block_storage_disk_type", diskType["code"])
+	reqParams := &vserver.GetMemberServerImageInstanceListRequest{
+		RegionCode: &regionCode,
 	}
 
-	if status := flattenCommonCode(m.MemberServerImageStatus); status["code"] != nil {
-		d.Set("status", status["code"])
+	if noList, ok := d.GetOk("no_list"); ok {
+		reqParams.MemberServerImageInstanceNoList = expandStringInterfaceList(noList.([]interface{}))
 	}
 
-	if operation := flattenCommonCode(m.MemberServerImageOperation); operation["code"] != nil {
-		d.Set("operation", operation["code"])
+	if platformTypeCodeList, ok := d.GetOk("platform_type_code_list"); ok {
+		reqParams.PlatformTypeCodeList = expandStringInterfaceList(platformTypeCodeList.([]interface{}))
 	}
 
-	if platformType := flattenCommonCode(m.MemberServerImagePlatformType); platformType["code"] != nil {
-		d.Set("platform_type", platformType["code"])
+	logCommonRequest("getVpcMemberServerImage", reqParams)
+
+	resp, err := client.vserver.V2Api.GetMemberServerImageInstanceList(reqParams)
+	if err != nil {
+		logErrorResponse("getVpcMemberServerImage", err, reqParams)
+		return nil, err
+	}
+	logCommonResponse("getVpcMemberServerImage", GetCommonResponse(resp))
+
+	resources := []map[string]interface{}{}
+
+	for _, r := range resp.MemberServerImageInstanceList {
+		instance := map[string]interface{}{
+			"id":                                 *r.MemberServerImageInstanceNo,
+			"no":                                 *r.MemberServerImageInstanceNo,
+			"name":                               *r.MemberServerImageName,
+			"description":                        *r.MemberServerImageDescription,
+			"original_server_instance_no":        *r.OriginalServerInstanceNo,
+			"original_server_image_product_code": *r.OriginalServerImageProductCode,
+			"status_name":                        *r.MemberServerImageInstanceStatusName,
+			"status":                             *r.MemberServerImageInstanceStatus.Code,
+			"operation":                          *r.MemberServerImageInstanceOperation.Code,
+		}
+
+		if r.MemberServerImageBlockStorageTotalRows != nil {
+			instance["block_storage_total_rows"] = *r.MemberServerImageBlockStorageTotalRows
+		}
+
+		if r.MemberServerImageBlockStorageTotalSize != nil {
+			instance["block_storage_total_size"] = *r.MemberServerImageBlockStorageTotalSize
+		}
+
+		resources = append(resources, instance)
 	}
 
-	if region := flattenRegion(m.Region); region["region_code"] != nil {
-		d.Set("region", region["region_code"])
-	}
-
-	d.SetId(*m.MemberServerImageNo)
-
-	return nil
+	return resources, nil
 }

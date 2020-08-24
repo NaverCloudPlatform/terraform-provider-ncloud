@@ -2,10 +2,7 @@ package ncloud
 
 import (
 	"fmt"
-	"regexp"
 
-	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/ncloud"
-	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/services/server"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
@@ -15,12 +12,6 @@ func dataSourceNcloudMemberServerImages() *schema.Resource {
 		Read: dataSourceNcloudMemberServerImagesRead,
 
 		Schema: map[string]*schema.Schema{
-			"name_regex": {
-				Type:         schema.TypeString,
-				Optional:     true,
-				ValidateFunc: validation.ValidateRegexp,
-				Description:  "A regex string to apply to the member server image list returned by ncloud",
-			},
 			"no_list": {
 				Type:        schema.TypeList,
 				Optional:    true,
@@ -33,11 +24,21 @@ func dataSourceNcloudMemberServerImages() *schema.Resource {
 				Elem:        &schema.Schema{Type: schema.TypeString},
 				Description: "List of platform codes of server images to view",
 			},
+			"filter": dataSourceFiltersSchema(),
+			"name_regex": {
+				Type:         schema.TypeString,
+				Optional:     true,
+				ValidateFunc: validation.ValidateRegexp,
+				Deprecated:   "use filter instead",
+				Description:  "A regex string to apply to the member server image list returned by ncloud",
+			},
 			"region": {
 				Type:        schema.TypeString,
 				Optional:    true,
+				Deprecated:  "use region attribute of provider instead",
 				Description: "Region code. Get available values using the `data ncloud_regions`.",
 			},
+
 			"member_server_images": {
 				Type:        schema.TypeList,
 				Optional:    true,
@@ -54,65 +55,40 @@ func dataSourceNcloudMemberServerImages() *schema.Resource {
 }
 
 func dataSourceNcloudMemberServerImagesRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ProviderConfig).Client
+	config := meta.(*ProviderConfig)
+	var resources []map[string]interface{}
+	var err error
 
-	regionNo, err := parseRegionNoParameter(client, d)
-	if err != nil {
-		return err
-	}
-	reqParams := server.GetMemberServerImageListRequest{
-		RegionNo: regionNo,
-	}
-
-	if noList, ok := d.GetOk("no_list"); ok {
-		reqParams.MemberServerImageNoList = expandStringInterfaceList(noList.([]interface{}))
-	}
-
-	if platformTypeCodeList, ok := d.GetOk("platform_type_code_list"); ok {
-		reqParams.PlatformTypeCodeList = expandStringInterfaceList(platformTypeCodeList.([]interface{}))
-	}
-
-	logCommonRequest("GetMemberServerImageList", reqParams)
-
-	resp, err := client.server.V2Api.GetMemberServerImageList(&reqParams)
-	if err != nil {
-		logErrorResponse("GetMemberServerImageList", err, reqParams)
-		return err
-	}
-	logCommonResponse("GetMemberServerImageList", GetCommonResponse(resp))
-
-	allMemberServerImages := resp.MemberServerImageList
-	var filteredMemberServerImages []*server.MemberServerImage
-	nameRegex, nameRegexOk := d.GetOk("name_regex")
-	if nameRegexOk {
-		r := regexp.MustCompile(nameRegex.(string))
-		for _, memberServerImage := range allMemberServerImages {
-			if r.MatchString(ncloud.StringValue(memberServerImage.MemberServerImageName)) {
-				filteredMemberServerImages = append(filteredMemberServerImages, memberServerImage)
-			}
-		}
+	if config.SupportVPC {
+		resources, err = getVpcMemberServerImage(d, config)
 	} else {
-		filteredMemberServerImages = allMemberServerImages[:]
+		resources, err = getClassicMemberServerImage(d, config)
 	}
 
-	if len(filteredMemberServerImages) < 1 {
+	if err != nil {
+		return err
+	}
+
+	if f, ok := d.GetOk("filter"); ok {
+		resources = ApplyFilters(f.(*schema.Set), resources, dataSourceNcloudMemberServerImage().Schema)
+	}
+
+	if len(resources) < 1 {
 		return fmt.Errorf("no results. please change search criteria and try again")
 	}
 
-	return memberServerImagesAttributes(d, filteredMemberServerImages)
+	return memberServerImagesAttributes(d, resources)
 }
 
-func memberServerImagesAttributes(d *schema.ResourceData, memberServerImages []*server.MemberServerImage) error {
+func memberServerImagesAttributes(d *schema.ResourceData, memberServerImages []map[string]interface{}) error {
 	var ids []string
 
-	for _, m := range memberServerImages {
-		ids = append(ids, *m.MemberServerImageNo)
+	for _, r := range memberServerImages {
+		ids = append(ids, r["id"].(string))
 	}
 
 	d.SetId(dataResourceIdHash(ids))
-	if err := d.Set("member_server_images", flattenMemberServerImages(memberServerImages)); err != nil {
-		return err
-	}
+	d.Set("member_server_images", ids)
 
 	if output, ok := d.GetOk("output_file"); ok && output.(string) != "" {
 		return writeToFile(output.(string), d.Get("member_server_images"))
