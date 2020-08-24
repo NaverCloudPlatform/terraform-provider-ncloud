@@ -31,11 +31,13 @@ func Provider() terraform.ResourceProvider {
 			"site": {
 				Type:        schema.TypeString,
 				Optional:    true,
+				DefaultFunc: schema.EnvDefaultFunc("NCLOUD_SITE", nil),
 				Description: descriptions["site"],
 			},
 			"support_vpc": {
 				Type:        schema.TypeBool,
 				Optional:    true,
+				DefaultFunc: schema.EnvDefaultFunc("NCLOUD_SUPPORT_VPC", nil),
 				Description: descriptions["support_vpc"],
 			},
 		},
