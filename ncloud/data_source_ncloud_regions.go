@@ -39,7 +39,7 @@ func dataSourceNcloudRegionsRead(d *schema.ResourceData, meta interface{}) error
 	var regions []*Region
 	var err error
 
-	if meta.(*ProviderConfig).SupportVPC == true || meta.(*ProviderConfig).Site == "fin" {
+	if meta.(*ProviderConfig).SupportVPC == true {
 		regions, err = getVpcRegions(d, meta.(*ProviderConfig))
 	} else {
 		regions, err = getClassicRegions(d, meta.(*ProviderConfig))

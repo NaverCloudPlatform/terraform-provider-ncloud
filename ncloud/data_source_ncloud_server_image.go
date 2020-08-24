@@ -120,7 +120,7 @@ func dataSourceNcloudServerImageRead(d *schema.ResourceData, meta interface{}) e
 	var resources []map[string]interface{}
 	var err error
 
-	if meta.(*ProviderConfig).SupportVPC == true || meta.(*ProviderConfig).Site == "fin" {
+	if meta.(*ProviderConfig).SupportVPC == true {
 		resources, err = getVpcServerImageProductList(d, meta.(*ProviderConfig))
 	} else {
 		resources, err = getClassicServerImageProductList(d, meta.(*ProviderConfig))
