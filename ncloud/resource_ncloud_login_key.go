@@ -94,7 +94,7 @@ func resourceNcloudLoginKeyCreate(d *schema.ResourceData, meta interface{}) erro
 	}
 
 	d.SetId(keyName)
-	d.Set("private_key", privateKey)
+	d.Set("private_key", strings.TrimSpace(*privateKey))
 
 	time.Sleep(time.Second * 1) // for internal Master / Slave DB sync
 
