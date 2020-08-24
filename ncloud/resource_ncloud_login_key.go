@@ -106,7 +106,7 @@ func resourceNcloudLoginKeyDelete(d *schema.ResourceData, meta interface{}) erro
 
 	keyName := d.Get("key_name").(string)
 
-	if config.SupportVPC == true || config.Site == "fin" {
+	if config.SupportVPC == true {
 		if err := deleteVpcLoginKey(config.Client, &keyName); err != nil {
 			return err
 		}
@@ -169,7 +169,7 @@ func getFingerPrint(config *ProviderConfig, keyName *string) (*string, error) {
 	var fingerPrintList []*string
 	var err error
 
-	if config.SupportVPC == true || config.Site == "fin" {
+	if config.SupportVPC == true {
 		fingerPrintList, err = getVpcFingerPrintList(config.Client, keyName)
 	} else {
 		fingerPrintList, err = getClassicFingerPrintList(config.Client, keyName)
