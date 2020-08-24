@@ -83,3 +83,13 @@ func isValidPortRange(value string) bool {
 
 	return portNumber <= 65535
 }
+
+func validateOneResult(resultCount int) error {
+	if resultCount < 1 {
+		return fmt.Errorf("no results. please change search criteria and try again")
+	}
+	if resultCount > 1 {
+		return fmt.Errorf("more than one found results. please change search criteria and try again")
+	}
+	return nil
+}

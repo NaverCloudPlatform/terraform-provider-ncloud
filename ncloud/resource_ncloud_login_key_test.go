@@ -4,21 +4,20 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/services/server"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 )
 
 func TestAccResourceNcloudLoginKeyBasic(t *testing.T) {
-	var loginKey server.LoginKey
+	var fingerprint *string
 	prefix := getTestPrefix()
 	testKeyName := prefix + "-key"
 
 	testCheck := func() func(*terraform.State) error {
 		return func(*terraform.State) error {
-			if *loginKey.KeyName != testKeyName {
-				return fmt.Errorf("not found: %s", testKeyName)
+			if fingerprint != nil {
+				return fmt.Errorf("fingerprint must not be nil")
 			}
 			return nil
 		}
@@ -32,7 +31,7 @@ func TestAccResourceNcloudLoginKeyBasic(t *testing.T) {
 			{
 				Config: testAccLoginKeyConfig(testKeyName),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckLoginKeyExists("ncloud_login_key.loginkey", &loginKey),
+					testAccCheckLoginKeyExists("ncloud_login_key.loginkey", fingerprint),
 					testCheck(),
 					resource.TestCheckResourceAttr(
 						"ncloud_login_key.loginkey",
@@ -50,11 +49,11 @@ func TestAccResourceNcloudLoginKeyBasic(t *testing.T) {
 	})
 }
 
-func testAccCheckLoginKeyExists(n string, i *server.LoginKey) resource.TestCheckFunc {
+func testAccCheckLoginKeyExists(n string, i *string) resource.TestCheckFunc {
 	return testAccCheckLoginKeyExistsWithProvider(n, i, func() *schema.Provider { return testAccProvider })
 }
 
-func testAccCheckLoginKeyExistsWithProvider(n string, i *server.LoginKey, providerF func() *schema.Provider) resource.TestCheckFunc {
+func testAccCheckLoginKeyExistsWithProvider(n string, i *string, providerF func() *schema.Provider) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		rs, ok := s.RootModule().Resources[n]
 		if !ok {
@@ -66,18 +65,18 @@ func testAccCheckLoginKeyExistsWithProvider(n string, i *server.LoginKey, provid
 		}
 
 		provider := providerF()
-		client := provider.Meta().(*ProviderConfig).Client
-		loginKey, err := getLoginKey(client, rs.Primary.ID)
+		config := provider.Meta().(*ProviderConfig)
+		fingerPrint, err := getFingerPrint(config, &rs.Primary.ID)
 		if err != nil {
 			return nil
 		}
 
-		if loginKey != nil {
-			*i = *loginKey
+		if fingerPrint != nil {
+			i = fingerPrint
 			return nil
 		}
 
-		return fmt.Errorf("login key not found")
+		return fmt.Errorf("fingerprint is not found")
 	}
 }
 
@@ -86,22 +85,22 @@ func testAccCheckLoginKeyDestroy(s *terraform.State) error {
 }
 
 func testAccCheckLoginKeyDestroyWithProvider(s *terraform.State, provider *schema.Provider) error {
-	client := provider.Meta().(*ProviderConfig).Client
+	config := provider.Meta().(*ProviderConfig)
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "ncloud_login_key" {
 			continue
 		}
-		loginKey, err := getLoginKey(client, rs.Primary.ID)
+		fingerPrint, err := getFingerPrint(config, &rs.Primary.ID)
 
-		if loginKey == nil {
+		if fingerPrint == nil {
 			continue
 		}
 		if err != nil {
 			return err
 		}
-		if loginKey != nil && *loginKey.Fingerprint != "" {
-			return fmt.Errorf("found not deleted login key: %s", *loginKey.KeyName)
+		if fingerPrint != nil && *fingerPrint != "" {
+			return fmt.Errorf("found not deleted login key: %s", rs.Primary.ID)
 		}
 	}
 

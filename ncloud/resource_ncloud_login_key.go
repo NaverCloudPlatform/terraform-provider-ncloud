@@ -6,8 +6,8 @@ import (
 	"strings"
 	"time"
 
-	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/ncloud"
 	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/services/server"
+	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/services/vserver"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
@@ -56,17 +56,15 @@ func resourceNcloudLoginKey() *schema.Resource {
 }
 
 func resourceNcloudLoginKeyRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ProviderConfig).Client
-
 	keyName := d.Get("key_name").(string)
 
-	loginKey, err := getLoginKey(client, keyName)
+	fingerprint, err := getFingerPrint(meta.(*ProviderConfig), &keyName)
 	if err != nil {
 		return err
 	}
 
-	if loginKey != nil {
-		d.Set("fingerprint", loginKey.Fingerprint)
+	if fingerprint != nil {
+		d.Set("fingerprint", fingerprint)
 	} else {
 		log.Printf("unable to find resource: %s", d.Id())
 		d.SetId("") // resource not found
@@ -80,22 +78,23 @@ func resourceNcloudLoginKeyUpdate(d *schema.ResourceData, meta interface{}) erro
 }
 
 func resourceNcloudLoginKeyCreate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ProviderConfig).Client
+	var privateKey *string
+	var err error
 
 	keyName := d.Get("key_name").(string)
-	reqParams := &server.CreateLoginKeyRequest{KeyName: ncloud.String(keyName)}
 
-	logCommonRequest("CreateLoginKey", reqParams)
+	if meta.(*ProviderConfig).SupportVPC == true {
+		privateKey, err = createVpcLoginKey(meta.(*ProviderConfig), &keyName)
+	} else {
+		privateKey, err = createClassicLoginKey(meta.(*ProviderConfig), &keyName)
+	}
 
-	resp, err := client.server.V2Api.CreateLoginKey(reqParams)
 	if err != nil {
-		logErrorResponse("CreateLoginKey", err, keyName)
 		return err
 	}
-	logCommonResponse("CreateLoginKey", GetCommonResponse(resp))
 
 	d.SetId(keyName)
-	d.Set("private_key", resp.PrivateKey)
+	d.Set("private_key", strings.TrimSpace(*privateKey))
 
 	time.Sleep(time.Second * 1) // for internal Master / Slave DB sync
 
@@ -103,73 +102,111 @@ func resourceNcloudLoginKeyCreate(d *schema.ResourceData, meta interface{}) erro
 }
 
 func resourceNcloudLoginKeyDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ProviderConfig).Client
+	config := meta.(*ProviderConfig)
 
 	keyName := d.Get("key_name").(string)
 
-	if err := deleteLoginKey(client, keyName); err != nil {
-		return err
+	if config.SupportVPC == true {
+		if err := deleteVpcLoginKey(config.Client, &keyName); err != nil {
+			return err
+		}
+	} else {
+		if err := deleteClassicLoginKey(config.Client, &keyName); err != nil {
+			return err
+		}
 	}
+
 	d.SetId("")
+
 	return nil
 }
 
-func getLoginKeyList(client *NcloudAPIClient, keyName *string) (*server.GetLoginKeyListResponse, error) {
+func getClassicFingerPrintList(client *NcloudAPIClient, keyName *string) ([]*string, error) {
 	reqParams := &server.GetLoginKeyListRequest{}
 	if keyName != nil {
 		reqParams.KeyName = keyName
 	}
 
-	logCommonRequest("GetLoginKeyList", reqParams)
-
+	logCommonRequest("getClassicFingerPrintList", reqParams)
 	resp, err := client.server.V2Api.GetLoginKeyList(reqParams)
 	if err != nil {
-		logErrorResponse("GetLoginKeyList", err, reqParams)
+		logErrorResponse("getClassicFingerPrintList", err, reqParams)
+		return nil, err
+	}
+	logResponse("getClassicFingerPrintList", resp)
+
+	keyList := make([]*string, 0, *resp.TotalRows)
+	for _, v := range resp.LoginKeyList {
+		keyList = append(keyList, v.Fingerprint)
+	}
+
+	return keyList, nil
+}
+
+func getVpcFingerPrintList(client *NcloudAPIClient, keyName *string) ([]*string, error) {
+	reqParams := &vserver.GetLoginKeyListRequest{}
+	if keyName != nil {
+		reqParams.KeyName = keyName
+	}
+
+	logCommonRequest("getVpcFingerPrintList", reqParams)
+	resp, err := client.vserver.V2Api.GetLoginKeyList(reqParams)
+	if err != nil {
+		logErrorResponse("getVpcFingerPrintList", err, reqParams)
+		return nil, err
+	}
+	logResponse("getVpcFingerPrintList", resp)
+
+	keyList := make([]*string, 0, *resp.TotalRows)
+	for _, v := range resp.LoginKeyList {
+		keyList = append(keyList, v.Fingerprint)
+	}
+
+	return keyList, nil
+}
+
+func getFingerPrint(config *ProviderConfig, keyName *string) (*string, error) {
+	var fingerPrintList []*string
+	var err error
+
+	if config.SupportVPC == true {
+		fingerPrintList, err = getVpcFingerPrintList(config.Client, keyName)
+	} else {
+		fingerPrintList, err = getClassicFingerPrintList(config.Client, keyName)
+	}
+
+	if err != nil {
 		return nil, err
 	}
 
-	var totalRowsLog string
-	if resp != nil {
-		totalRowsLog = fmt.Sprintf("totalRows: %d", ncloud.Int32Value(resp.TotalRows))
-	}
-	logCommonResponse("GetLoginKeyList", GetCommonResponse(resp), totalRowsLog)
-	return resp, nil
-}
-
-func getLoginKey(client *NcloudAPIClient, keyName string) (*server.LoginKey, error) {
-	resp, err := getLoginKeyList(client, ncloud.String(keyName))
-	if len(resp.LoginKeyList) > 0 {
-		return resp.LoginKeyList[0], err
+	if len(fingerPrintList) > 0 {
+		return fingerPrintList[0], nil
 	}
 
-	return nil, err
+	return nil, nil
 }
 
-func deleteLoginKey(client *NcloudAPIClient, keyName string) error {
-	reqParams := &server.DeleteLoginKeyRequest{KeyName: ncloud.String(keyName)}
-	logCommonRequest("DeleteLoginKey", reqParams)
+func deleteClassicLoginKey(client *NcloudAPIClient, keyName *string) error {
+	reqParams := &server.DeleteLoginKeyRequest{KeyName: keyName}
 
+	logCommonRequest("deleteClassicLoginKey", reqParams)
 	resp, err := client.server.V2Api.DeleteLoginKey(reqParams)
 	if err != nil {
-		logErrorResponse("DeleteLoginKey", err, keyName)
+		logErrorResponse("deleteClassicLoginKey", err, keyName)
 		return err
 	}
-	var commonResponse = &CommonResponse{}
-	if resp != nil {
-		commonResponse = GetCommonResponse(resp)
-	}
-	logCommonResponse("DeleteLoginKey", commonResponse)
+	logCommonResponse("deleteClassicLoginKey", GetCommonResponse(resp))
 
 	stateConf := &resource.StateChangeConf{
 		Pending: []string{""},
 		Target:  []string{"OK"},
 		Refresh: func() (interface{}, string, error) {
-			resp, err := getLoginKeyList(client, ncloud.String(keyName))
+			resp, err := getClassicFingerPrintList(client, keyName)
 			if err != nil {
 				return 0, "", err
 			}
 
-			if ncloud.Int32Value(resp.TotalRows) == 0 {
+			if len(resp) == 0 {
 				return 0, "OK", err
 			}
 
@@ -186,4 +223,75 @@ func deleteLoginKey(client *NcloudAPIClient, keyName string) error {
 	}
 
 	return nil
+}
+
+func deleteVpcLoginKey(client *NcloudAPIClient, keyName *string) error {
+	reqParams := &vserver.DeleteLoginKeysRequest{KeyNameList: []*string{keyName}}
+
+	logCommonRequest("deleteVpcLoginKey", reqParams)
+	resp, err := client.vserver.V2Api.DeleteLoginKeys(reqParams)
+	if err != nil {
+		logErrorResponse("deleteVpcLoginKey", err, keyName)
+		return err
+	}
+	logCommonResponse("deleteVpcLoginKey", GetCommonResponse(resp))
+
+	stateConf := &resource.StateChangeConf{
+		Pending: []string{""},
+		Target:  []string{"OK"},
+		Refresh: func() (interface{}, string, error) {
+			resp, err := getVpcFingerPrintList(client, keyName)
+			if err != nil {
+				return 0, "", err
+			}
+
+			if len(resp) == 0 {
+				return 0, "OK", err
+			}
+
+			return resp, "", nil
+		},
+		Timeout:    DefaultTimeout,
+		Delay:      2 * time.Second,
+		MinTimeout: 3 * time.Second,
+	}
+
+	_, err = stateConf.WaitForState()
+	if err != nil {
+		return fmt.Errorf("Error waiting to delete LoginKey: %s", err)
+	}
+
+	return nil
+}
+
+func createClassicLoginKey(config *ProviderConfig, keyName *string) (*string, error) {
+	client := config.Client
+
+	reqParams := &server.CreateLoginKeyRequest{KeyName: keyName}
+
+	logCommonRequest("createClassicLoginKey", reqParams)
+	resp, err := client.server.V2Api.CreateLoginKey(reqParams)
+	if err != nil {
+		logErrorResponse("createClassicLoginKey", err, keyName)
+		return nil, err
+	}
+	logCommonResponse("createClassicLoginKey", GetCommonResponse(resp))
+
+	return resp.PrivateKey, nil
+}
+
+func createVpcLoginKey(config *ProviderConfig, keyName *string) (*string, error) {
+	client := config.Client
+
+	reqParams := &vserver.CreateLoginKeyRequest{KeyName: keyName}
+
+	logCommonRequest("createVpcLoginKey", reqParams)
+	resp, err := client.vserver.V2Api.CreateLoginKey(reqParams)
+	if err != nil {
+		logErrorResponse("createVpcLoginKey", err, keyName)
+		return nil, err
+	}
+	logCommonResponse("createVpcLoginKey", GetCommonResponse(resp))
+
+	return resp.PrivateKey, nil
 }
