@@ -2,26 +2,28 @@ package ncloud
 
 import (
 	"fmt"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
+	"log"
 	"testing"
 
-	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/services/server"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 )
 
-func TestAccResourceNcloudPublicIpInstanceBasic(t *testing.T) {
-	var publicIPInstance server.PublicIpInstance
-	testServerInstanceName := getTestServerName()
-	testPublicIpDescription := "acceptanceTest"
-	testCheck := func() func(*terraform.State) error {
+func TestAccResourceNcloudPublicIpInstance_basic(t *testing.T) {
+	instance := map[string]interface{}{}
+
+	description := fmt.Sprintf("test-public-ip-basic-%s", acctest.RandString(5))
+	resourceName := "ncloud_public_ip.public_ip"
+
+	testCheckAttribute := func() func(*terraform.State) error {
 		return func(*terraform.State) error {
-			if *publicIPInstance.ServerInstanceAssociatedWithPublicIp.ServerName != testServerInstanceName {
-				return fmt.Errorf("not found: %s", testServerInstanceName)
+			config := testAccProvider.Meta().(*ProviderConfig)
+
+			if instance["instance_status"] != GetValueClassicOrVPC(config, "CREAT", "RUN") {
+				return fmt.Errorf("invalid public ip status: %s ", instance["instance_status"])
 			}
-			if *publicIPInstance.PublicIpDescription != testPublicIpDescription {
-				return fmt.Errorf("invalid public ip description: %s ", *publicIPInstance.PublicIpDescription)
-			}
+
 			return nil
 		}
 	}
@@ -32,19 +34,15 @@ func TestAccResourceNcloudPublicIpInstanceBasic(t *testing.T) {
 		CheckDestroy: testAccCheckPublicIpInstanceDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccPublicIpInstanceConfig(testServerInstanceName, testPublicIpDescription),
+				Config: testAccPublicIpInstanceConfig(description),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckPublicIpInstanceExists(
-						"ncloud_public_ip.public_ip", &publicIPInstance),
-					testCheck(),
-					resource.TestCheckResourceAttr(
-						"ncloud_public_ip.public_ip",
-						"zone",
-						"KR-2"),
+					testAccCheckPublicIpInstanceExists(resourceName, instance),
+					testCheckAttribute(),
+					resource.TestCheckResourceAttr(resourceName, "description", description),
 				),
 			},
 			{
-				ResourceName:            "ncloud_public_ip.public_ip",
+				ResourceName:            resourceName,
 				ImportState:             true,
 				ImportStateVerify:       true,
 				ImportStateVerifyIgnore: []string{"server_instance_no"},
@@ -53,11 +51,40 @@ func TestAccResourceNcloudPublicIpInstanceBasic(t *testing.T) {
 	})
 }
 
-func testAccCheckPublicIpInstanceExists(n string, i *server.PublicIpInstance) resource.TestCheckFunc {
-	return testAccCheckPublicIpInstanceExistsWithProvider(n, i, func() *schema.Provider { return testAccProvider })
+func TestAccResourceNcloudPublicIpInstance_update(t *testing.T) {
+	instance := map[string]interface{}{}
+	serverNameFoo := fmt.Sprintf("test-public-ip-basic-%s", acctest.RandString(5))
+	serverNameBar := fmt.Sprintf("test-public-ip-basic-%s", acctest.RandString(5))
+	resourceName := "ncloud_public_ip.public_ip"
+
+	log.Print(testAccPublicIpInstanceConfigServer(serverNameFoo, serverNameBar, "${ncloud_server.foo.id}"))
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckPublicIpInstanceDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccPublicIpInstanceConfigServer(serverNameFoo, serverNameBar, ""),
+				Check:  resource.ComposeTestCheckFunc(testAccCheckPublicIpInstanceExists(resourceName, instance)),
+			},
+			{
+				Config: testAccPublicIpInstanceConfigServer(serverNameFoo, serverNameBar, "${ncloud_server.foo.id}"),
+				Check:  resource.ComposeTestCheckFunc(testAccCheckPublicIpInstanceExists(resourceName, instance)),
+			},
+			{
+				Config: testAccPublicIpInstanceConfigServer(serverNameFoo, serverNameBar, "${ncloud_server.bar.id}"),
+				Check:  resource.ComposeTestCheckFunc(testAccCheckPublicIpInstanceExists(resourceName, instance)),
+			},
+			{
+				Config: testAccPublicIpInstanceConfigServer(serverNameFoo, serverNameBar, ""),
+				Check:  resource.ComposeTestCheckFunc(testAccCheckPublicIpInstanceExists(resourceName, instance)),
+			},
+		},
+	})
 }
 
-func testAccCheckPublicIpInstanceExistsWithProvider(n string, i *server.PublicIpInstance, providerF func() *schema.Provider) resource.TestCheckFunc {
+func testAccCheckPublicIpInstanceExists(n string, i map[string]interface{}) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		rs, ok := s.RootModule().Resources[n]
 		if !ok {
@@ -68,15 +95,19 @@ func testAccCheckPublicIpInstanceExistsWithProvider(n string, i *server.PublicIp
 			return fmt.Errorf("no ID is set")
 		}
 
-		provider := providerF()
-		client := provider.Meta().(*ProviderConfig).Client
-		instance, err := getPublicIpInstance(client, rs.Primary.ID)
+		config := testAccProvider.Meta().(*ProviderConfig)
+
+		instance, err := getPublicIp(config, rs.Primary.ID)
+
 		if err != nil {
 			return nil
 		}
 
 		if instance != nil {
-			*i = *instance
+			for k, v := range instance {
+				i[k] = v
+			}
+
 			return nil
 		}
 
@@ -85,18 +116,14 @@ func testAccCheckPublicIpInstanceExistsWithProvider(n string, i *server.PublicIp
 }
 
 func testAccCheckPublicIpInstanceDestroy(s *terraform.State) error {
-	return testAccCheckPublicIpInstanceDestroyWithProvider(s, testAccProvider)
-}
-
-func testAccCheckPublicIpInstanceDestroyWithProvider(s *terraform.State, provider *schema.Provider) error {
-	client := provider.Meta().(*ProviderConfig).Client
-
 	for _, rs := range s.RootModule().Resources {
+		config := testAccProvider.Meta().(*ProviderConfig)
+
 		if rs.Type != "ncloud_public_ip" {
 			continue
 		}
 
-		instance, err := getPublicIpInstance(client, rs.Primary.ID)
+		instance, err := getPublicIp(config, rs.Primary.ID)
 
 		if err != nil {
 			return err
@@ -112,23 +139,37 @@ func testAccCheckPublicIpInstanceDestroyWithProvider(s *terraform.State, provide
 	return nil
 }
 
-func testAccPublicIpInstanceConfig(testServerInstanceName string, testPublicIpDescription string) string {
+func testAccPublicIpInstanceConfig(description string) string {
 	return fmt.Sprintf(`
-resource "ncloud_login_key" "loginkey" {
-	key_name = "%s-key"
+resource "ncloud_public_ip" "public_ip" {
+	description = "%s"
+}
+`, description)
 }
 
-resource "ncloud_server" "test" {
-	name = "%s"
+func testAccPublicIpInstanceConfigServer(serverNameFoo, serverNameBar, serverInstanceNo string) string {
+	return fmt.Sprintf(`
+resource "ncloud_login_key" "loginkey" {
+	key_name = "%[1]s-key"
+}
+
+resource "ncloud_server" "foo" {
+	name = "%[1]s"
+	server_image_product_code = "SPSW0LINUX000032"
+	server_product_code = "SPSVRSTAND000004"
+	login_key_name = "${ncloud_login_key.loginkey.key_name}"
+}
+
+resource "ncloud_server" "bar" {
+	name = "%[2]s"
 	server_image_product_code = "SPSW0LINUX000032"
 	server_product_code = "SPSVRSTAND000004"
 	login_key_name = "${ncloud_login_key.loginkey.key_name}"
 }
 
 resource "ncloud_public_ip" "public_ip" {
-	server_instance_no = "${ncloud_server.test.id}"
-	description = "%s"
-	zone = "KR-2"
+	description = "%[1]s"
+	server_instance_no = "%[3]s"
 }
-`, testServerInstanceName, testServerInstanceName, testPublicIpDescription)
+`, serverNameFoo, serverNameBar, serverInstanceNo)
 }

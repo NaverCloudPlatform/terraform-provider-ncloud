@@ -86,3 +86,11 @@ func SetSingularResourceDataFromMap(d *schema.ResourceData, resources map[string
 		d.Set(k, v)
 	}
 }
+
+//GetValueClassicOrVPC get value classic for vpc
+func GetValueClassicOrVPC(config *ProviderConfig, classicValue, vpcValue string) string {
+	if config.SupportVPC {
+		return vpcValue
+	}
+	return classicValue
+}
