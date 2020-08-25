@@ -7,6 +7,7 @@ import (
 
 	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/ncloud"
 	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/services/server"
+	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/services/vserver"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
@@ -21,31 +22,28 @@ func resourceNcloudPublicIpInstance() *schema.Resource {
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
-
+		CustomizeDiff: resourceNcloudPublicIpCustomizeDiff,
 		Schema: map[string]*schema.Schema{
 			"server_instance_no": {
-				Type:        schema.TypeString,
-				Optional:    true,
-				Description: "Server instance No. to assign after creating a public IP. You can get one by calling getPublicIpTargetServerInstanceList.",
+				Type:     schema.TypeString,
+				Optional: true,
 			},
 			"description": {
 				Type:         schema.TypeString,
 				Optional:     true,
 				ValidateFunc: validation.StringLenBetween(1, 10000),
-				Description:  "Public IP description.",
 			},
 			"internet_line_type": {
 				Type:         schema.TypeString,
 				Optional:     true,
 				Computed:     true,
+				ForceNew:     true,
 				ValidateFunc: validation.StringInSlice([]string{"PUBLC", "GLBL"}, false),
-				Description:  "Internet line code. PUBLC(Public), GLBL(Global)",
 			},
 			"zone": {
-				Type:        schema.TypeString,
-				Optional:    true,
-				Computed:    true,
-				Description: "Zone code. You can determine the ZONE where the server will be created. It can be obtained through the getZoneList action. Default : Assigned by NAVER Cloud Platform.",
+				Type:     schema.TypeString,
+				Optional: true,
+				Computed: true,
 			},
 
 			"instance_no": {
@@ -77,233 +75,386 @@ func resourceNcloudPublicIpInstance() *schema.Resource {
 }
 
 func resourceNcloudPublicIpCreate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ProviderConfig).Client
+	config := meta.(*ProviderConfig)
+	var publicIpInstanceNo *string
+	var err error
 
-	reqParams, err := buildCreatePublicIpInstanceReqParams(client, d)
+	if config.SupportVPC {
+		publicIpInstanceNo, err = createVpcPublicIp(d, config)
+	} else {
+		publicIpInstanceNo, err = createClassicPublicIp(d, config)
+	}
+
 	if err != nil {
 		return err
 	}
-	logCommonRequest("CreatePublicIpInstance", reqParams)
 
-	resp, err := client.server.V2Api.CreatePublicIpInstance(reqParams)
-	if err != nil {
-		logErrorResponse("CreatePublicIpInstance", err, reqParams)
-		return err
-	}
-	logCommonResponse("CreatePublicIpInstance", GetCommonResponse(resp))
+	d.SetId(ncloud.StringValue(publicIpInstanceNo))
+	log.Printf("[INFO] Public IP ID: %s", d.Id())
 
-	publicIPInstance := resp.PublicIpInstanceList[0]
-	d.SetId(ncloud.StringValue(publicIPInstance.PublicIpInstanceNo))
-
-	if err := waitPublicIPInstance(client, ncloud.StringValue(publicIPInstance.PublicIpInstanceNo)); err != nil {
-		return err
+	if v, ok := d.GetOk("server_instance_no"); ok && v != "" {
+		if err := waitForPublicIpAssociation(config, d.Id()); err != nil {
+			return err
+		}
 	}
 
 	return resourceNcloudPublicIpRead(d, meta)
 }
 
 func resourceNcloudPublicIpRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ProviderConfig).Client
+	config := meta.(*ProviderConfig)
 
-	instance, err := getPublicIpInstance(client, d.Id())
+	resource, err := getPublicIp(config, d.Id())
+
 	if err != nil {
-		logErrorResponse("Create Public IP Instance", err, d.Id())
 		return err
 	}
 
-	if instance != nil {
-		d.Set("instance_no", instance.PublicIpInstanceNo)
-		d.Set("public_ip", instance.PublicIp)
-		d.Set("description", instance.PublicIpDescription)
-		d.Set("instance_status_name", instance.PublicIpInstanceStatusName)
-
-		if lineType := flattenCommonCode(instance.InternetLineType); lineType["code"] != nil {
-			d.Set("internet_line_type", lineType["code"])
-		}
-
-		if instanceStatus := flattenCommonCode(instance.PublicIpInstanceStatus); instanceStatus["code"] != nil {
-			d.Set("instance_status", instanceStatus["code"])
-		}
-
-		if instanceOperation := flattenCommonCode(instance.PublicIpInstanceOperation); instanceOperation["code"] != nil {
-			d.Set("instance_operation", instanceOperation["code"])
-		}
-
-		if kindType := flattenCommonCode(instance.PublicIpKindType); kindType["code"] != nil {
-			d.Set("kind_type", kindType["code"])
-		}
-
-		if zone := flattenZone(instance.Zone); zone["zone_code"] != nil {
-			d.Set("zone", zone["zone_code"])
-		}
-	} else {
-		log.Printf("unable to find resource: %s", d.Id())
-		d.SetId("") // resource not found
-	}
+	SetSingularResourceDataFromMap(d, resource)
 
 	return nil
 }
 
 func resourceNcloudPublicIpDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ProviderConfig).Client
+	config := meta.(*ProviderConfig)
+	var err error
 
 	// Check associated public ip
-	if associated, err := checkAssociatedPublicIp(client, d.Id()); associated {
+	if associated, err := checkAssociatedPublicIP(config, d.Id()); associated {
 		// if associated public ip, disassociated the public ip
-		disassociatedPublicIp(client, d.Id())
+		disassociatedPublicIp(config, d.Id())
 	} else if err != nil {
 		return err
 	}
 
-	reqParams := &server.DeletePublicIpInstancesRequest{
-		PublicIpInstanceNoList: ncloud.StringList([]string{d.Id()}),
+	if config.SupportVPC {
+		err = deleteVpcPublicIp(d, config)
+	} else {
+		err = deleteClassicPublicIp(d, config)
 	}
-	logCommonRequest("DeletePublicIpInstances", reqParams)
-	resp, err := client.server.V2Api.DeletePublicIpInstances(reqParams)
-	logCommonResponse("DeletePublicIpInstances", GetCommonResponse(resp))
+
 	if err != nil {
-		logErrorResponse("Delete Public IP Instance", err, reqParams)
 		return err
 	}
-	if err := waitDeletePublicIPInstance(client, d.Id()); err != nil {
-		return err
-	}
+
 	d.SetId("")
 	return nil
 }
 
 func resourceNcloudPublicIpUpdate(d *schema.ResourceData, meta interface{}) error {
+	config := meta.(*ProviderConfig)
+
+	if d.HasChange("server_instance_no") {
+		disassociatedPublicIp(config, d.Id())
+
+		if d.Get("server_instance_no") != "" {
+			associatedPublicIp(d, config)
+		}
+	}
+
 	return resourceNcloudPublicIpRead(d, meta)
 }
 
-func buildCreatePublicIpInstanceReqParams(client *NcloudAPIClient, d *schema.ResourceData) (*server.CreatePublicIpInstanceRequest, error) {
-	regionNo, err := parseRegionNoParameter(client, d)
-	if err != nil {
-		return nil, err
-	}
+func createClassicPublicIp(d *schema.ResourceData, config *ProviderConfig) (*string, error) {
+	client := config.Client
+
 	zoneNo, err := parseZoneNoParameter(client, d)
 	if err != nil {
 		return nil, err
 	}
 
 	reqParams := &server.CreatePublicIpInstanceRequest{
-		InternetLineTypeCode: StringPtrOrNil(d.GetOk("internet_line_type")),
-		RegionNo:             regionNo,
+		RegionNo:             &config.RegionNo,
 		ZoneNo:               zoneNo,
+		InternetLineTypeCode: StringPtrOrNil(d.GetOk("internet_line_type")),
+		ServerInstanceNo:     StringPtrOrNil(d.GetOk("server_instance_no")),
+		PublicIpDescription:  StringPtrOrNil(d.GetOk("description")),
 	}
 
-	if serverInstanceNo, ok := d.GetOk("server_instance_no"); ok {
-		reqParams.ServerInstanceNo = ncloud.String(serverInstanceNo.(string))
-	}
+	logCommonRequest("createClassicPublicIp", reqParams)
 
-	if description, ok := d.GetOk("description"); ok {
-		reqParams.PublicIpDescription = ncloud.String(description.(string))
-	}
-
-	return reqParams, nil
-}
-
-func getPublicIpInstance(client *NcloudAPIClient, publicIPInstanceNo string) (*server.PublicIpInstance, error) {
-	reqParams := new(server.GetPublicIpInstanceListRequest)
-	reqParams.PublicIpInstanceNoList = ncloud.StringList([]string{publicIPInstanceNo})
-
-	logCommonRequest("GetPublicIpInstanceList", reqParams)
-
-	resp, err := client.server.V2Api.GetPublicIpInstanceList(reqParams)
+	resp, err := client.server.V2Api.CreatePublicIpInstance(reqParams)
 	if err != nil {
-		logErrorResponse("GetPublicIpInstanceList", err, reqParams)
+		logErrorResponse("createClassicPublicIp", err, reqParams)
 		return nil, err
 	}
-	logCommonResponse("GetPublicIpInstanceList", GetCommonResponse(resp))
-	if len(resp.PublicIpInstanceList) > 0 {
-		inst := resp.PublicIpInstanceList[0]
-		return inst, nil
-	}
-	return nil, nil
+	logResponse("createClassicPublicIp", resp)
+
+	publicIPInstance := resp.PublicIpInstanceList[0]
+
+	return publicIPInstance.PublicIpInstanceNo, nil
 }
 
-func checkAssociatedPublicIp(client *NcloudAPIClient, publicIPInstanceNo string) (bool, error) {
-	reqParams := new(server.GetPublicIpInstanceListRequest)
-	reqParams.IsAssociated = ncloud.Bool(true)
-	reqParams.PublicIpInstanceNoList = ncloud.StringList([]string{publicIPInstanceNo})
+func createVpcPublicIp(d *schema.ResourceData, config *ProviderConfig) (*string, error) {
+	client := config.Client
 
-	logCommonRequest("GetPublicIpInstanceList", reqParams)
+	reqParams := &vserver.CreatePublicIpInstanceRequest{
+		RegionCode:          &config.RegionCode,
+		ServerInstanceNo:    StringPtrOrNil(d.GetOk("server_instance_no")),
+		PublicIpDescription: StringPtrOrNil(d.GetOk("description")),
+	}
 
-	resp, err := client.server.V2Api.GetPublicIpInstanceList(reqParams)
+	logCommonRequest("createVpcPublicIp", reqParams)
+
+	resp, err := client.vserver.V2Api.CreatePublicIpInstance(reqParams)
 	if err != nil {
-		logErrorResponse("GetPublicIpInstanceList", err, reqParams)
-		return false, err
+		logErrorResponse("createVpcPublicIp", err, reqParams)
+		return nil, err
 	}
-	logCommonResponse("GetPublicIpInstanceList", GetCommonResponse(resp))
+	logResponse("createVpcPublicIp", resp)
 
-	if *resp.TotalRows == 0 {
-		return false, nil
-	}
+	publicIPInstance := resp.PublicIpInstanceList[0]
 
-	return true, nil
+	return publicIPInstance.PublicIpInstanceNo, nil
 }
 
-func disassociatedPublicIp(client *NcloudAPIClient, publicIpInstanceNo string) error {
-	reqParams := &server.DisassociatePublicIpFromServerInstanceRequest{PublicIpInstanceNo: ncloud.String(publicIpInstanceNo)}
+func deleteClassicPublicIp(d *schema.ResourceData, config *ProviderConfig) error {
+	client := config.Client
 
-	logCommonRequest("DisassociatePublicIpFromServerInstance", reqParams)
+	reqParams := &server.DeletePublicIpInstancesRequest{
+		PublicIpInstanceNoList: []*string{ncloud.String(d.Id())},
+	}
 
-	resp, err := client.server.V2Api.DisassociatePublicIpFromServerInstance(reqParams)
+	logCommonRequest("deleteClassicPublicIp", reqParams)
+
+	resp, err := client.server.V2Api.DeletePublicIpInstances(reqParams)
 	if err != nil {
-		logErrorResponse("DisassociatePublicIpFromServerInstance", err, publicIpInstanceNo)
+		logErrorResponse("deleteClassicPublicIp", err, reqParams)
 		return err
 	}
-	logCommonResponse("DisassociatePublicIpFromServerInstance", GetCommonResponse(resp))
+	logResponse("deleteClassicPublicIp", resp)
 
-	return waitDisassociatePublicIP(client, publicIpInstanceNo)
+	return nil
 }
 
-func waitDisassociatePublicIP(client *NcloudAPIClient, publicIPInstanceNo string) error {
-	reqParams := new(server.GetPublicIpInstanceListRequest)
-	reqParams.PublicIpInstanceNoList = ncloud.StringList([]string{publicIPInstanceNo})
+func deleteVpcPublicIp(d *schema.ResourceData, config *ProviderConfig) error {
+	client := config.Client
 
-	stateConf := &resource.StateChangeConf{
-		Pending: []string{"NOT OK"},
-		Target:  []string{"OK"},
-		Refresh: func() (interface{}, string, error) {
-			resp, err := client.server.V2Api.GetPublicIpInstanceList(reqParams)
-			if err != nil {
-				return 0, "", err
-			}
-
-			if resp.PublicIpInstanceList[0].ServerInstanceAssociatedWithPublicIp.PublicIp == nil {
-				return resp, "OK", nil
-			}
-
-			return resp, "NOT OK", nil
-		},
-		Timeout:    DefaultTimeout,
-		Delay:      2 * time.Second,
-		MinTimeout: 3 * time.Second,
+	reqParams := &vserver.DeletePublicIpInstanceRequest{
+		RegionCode:         &config.RegionCode,
+		PublicIpInstanceNo: ncloud.String(d.Id()),
 	}
 
-	_, err := stateConf.WaitForState()
+	logCommonRequest("deleteVpcPublicIp", reqParams)
+
+	resp, err := client.vserver.V2Api.DeletePublicIpInstance(reqParams)
 	if err != nil {
-		return fmt.Errorf("Error waiting for waitDisassociatePublicIp: %s", err)
+		logErrorResponse("deleteVpcPublicIp", err, reqParams)
+		return err
+	}
+	logResponse("deleteVpcPublicIp", resp)
+
+	return nil
+}
+
+func getPublicIp(config *ProviderConfig, id string) (map[string]interface{}, error) {
+	var resource map[string]interface{}
+	var err error
+
+	if config.SupportVPC {
+		resource, err = getVpcPublicIp(config, id)
+	} else {
+		resource, err = getClassicPublicIp(config, id)
+	}
+
+	if err != nil {
+		return nil, err
+	}
+
+	return resource, nil
+}
+
+func getClassicPublicIp(config *ProviderConfig, id string) (map[string]interface{}, error) {
+	client := config.Client
+	regionNo := config.RegionNo
+
+	reqParams := &server.GetPublicIpInstanceListRequest{
+		RegionNo:               &regionNo,
+		PublicIpInstanceNoList: []*string{ncloud.String(id)},
+	}
+
+	logCommonRequest("getClassicPublicIp", reqParams)
+	resp, err := client.server.V2Api.GetPublicIpInstanceList(reqParams)
+
+	if err != nil {
+		logErrorResponse("getClassicPublicIp", err, reqParams)
+		return nil, err
+	}
+	logResponse("getClassicPublicIp", resp)
+
+	if len(resp.PublicIpInstanceList) == 0 {
+		return nil, nil
+	}
+
+	if err := validateOneResult(len(resp.PublicIpInstanceList)); err != nil {
+		return nil, err
+	}
+
+	r := resp.PublicIpInstanceList[0]
+
+	instance := map[string]interface{}{
+		"id":                   *r.PublicIpInstanceNo,
+		"instance_no":          *r.PublicIpInstanceNo,
+		"public_ip":            *r.PublicIp,
+		"description":          *r.PublicIpDescription,
+		"instance_status_name": *r.PublicIpInstanceStatusName,
+		"zone":                 *r.Zone.ZoneCode,
+	}
+
+	if m := flattenCommonCode(r.InternetLineType); m["code"] != nil {
+		instance["internet_line_type"] = m["code"]
+	}
+
+	if m := flattenCommonCode(r.PublicIpInstanceStatus); m["code"] != nil {
+		instance["instance_status"] = m["code"]
+	}
+
+	if m := flattenCommonCode(r.PublicIpInstanceOperation); m["code"] != nil {
+		instance["instance_operation"] = m["code"]
+	}
+
+	if m := flattenCommonCode(r.PublicIpKindType); m["code"] != nil {
+		instance["kind_type"] = m["code"]
+	}
+
+	if r.ServerInstanceAssociatedWithPublicIp != nil {
+		if r.ServerInstanceAssociatedWithPublicIp.ServerInstanceNo != nil {
+			instance["server_instance_no"] = *r.ServerInstanceAssociatedWithPublicIp.ServerInstanceNo
+		}
+
+		if r.ServerInstanceAssociatedWithPublicIp.ServerName != nil {
+			instance["server_name"] = *r.ServerInstanceAssociatedWithPublicIp.ServerName
+		}
+	}
+
+	return instance, nil
+}
+
+func getVpcPublicIp(config *ProviderConfig, id string) (map[string]interface{}, error) {
+	client := config.Client
+	regionCode := config.RegionCode
+
+	reqParams := &vserver.GetPublicIpInstanceListRequest{
+		RegionCode:             &regionCode,
+		PublicIpInstanceNoList: []*string{ncloud.String(id)},
+	}
+
+	logCommonRequest("getVpcPublicIp", reqParams)
+	resp, err := client.vserver.V2Api.GetPublicIpInstanceList(reqParams)
+
+	if err != nil {
+		logErrorResponse("getVpcPublicIp", err, reqParams)
+		return nil, err
+	}
+	logResponse("getVpcPublicIp", resp)
+
+	if len(resp.PublicIpInstanceList) == 0 {
+		return nil, nil
+	}
+
+	if err := validateOneResult(len(resp.PublicIpInstanceList)); err != nil {
+		return nil, err
+	}
+
+	r := resp.PublicIpInstanceList[0]
+
+	instance := map[string]interface{}{
+		"id":                   *r.PublicIpInstanceNo,
+		"instance_no":          *r.PublicIpInstanceNo,
+		"public_ip":            *r.PublicIp,
+		"description":          *r.PublicIpDescription,
+		"instance_status_name": *r.PublicIpInstanceStatusName,
+		"server_instance_no":   *r.ServerInstanceNo,
+		"server_name":          *r.ServerName,
+	}
+
+	if m := flattenCommonCode(r.PublicIpInstanceStatus); m["code"] != nil {
+		instance["instance_status"] = m["code"]
+	}
+
+	if m := flattenCommonCode(r.PublicIpInstanceOperation); m["code"] != nil {
+		instance["instance_operation"] = m["code"]
+	}
+
+	return instance, nil
+}
+
+func checkAssociatedPublicIP(config *ProviderConfig, id string) (bool, error) {
+	instance, err := getPublicIp(config, id)
+
+	if err != nil {
+		return false, err
+	}
+
+	return instance["server_instance_no"] != nil && instance["server_instance_no"] != "", nil
+}
+
+func disassociatedPublicIp(config *ProviderConfig, id string) error {
+	var err error
+
+	if config.SupportVPC {
+		err = disassociatedVpcPublicIp(config, id)
+	} else {
+		err = disassociatedClassicPublicIp(config, id)
+	}
+
+	if err != nil {
+		return err
+	}
+
+	if err := waitForPublicIpDisassociation(config, id); err != nil {
+		return err
 	}
 
 	return nil
 }
 
-func waitPublicIPInstance(client *NcloudAPIClient, publicIPInstanceNo string) error {
-	reqParams := new(server.GetPublicIpInstanceListRequest)
-	reqParams.PublicIpInstanceNoList = ncloud.StringList([]string{publicIPInstanceNo})
+func disassociatedClassicPublicIp(config *ProviderConfig, id string) error {
+	reqParams := &server.DisassociatePublicIpFromServerInstanceRequest{PublicIpInstanceNo: ncloud.String(id)}
 
+	logCommonRequest("disassociatedClassicPublicIP", reqParams)
+
+	resp, err := config.Client.server.V2Api.DisassociatePublicIpFromServerInstance(reqParams)
+	if err != nil {
+		logErrorResponse("disassociatedClassicPublicIP", err, id)
+		return err
+	}
+	logCommonResponse("disassociatedClassicPublicIP", GetCommonResponse(resp))
+
+	return nil
+}
+
+func disassociatedVpcPublicIp(config *ProviderConfig, id string) error {
+	reqParams := &vserver.DisassociatePublicIpFromServerInstanceRequest{PublicIpInstanceNo: ncloud.String(id)}
+
+	logCommonRequest("disassociatedVpcPublicIp", reqParams)
+
+	resp, err := config.Client.vserver.V2Api.DisassociatePublicIpFromServerInstance(reqParams)
+	if err != nil {
+		logErrorResponse("disassociatedVpcPublicIp", err, id)
+		return err
+	}
+	logCommonResponse("disassociatedVpcPublicIp", GetCommonResponse(resp))
+
+	return nil
+}
+
+func waitForPublicIpDisassociation(config *ProviderConfig, id string) error {
 	stateConf := &resource.StateChangeConf{
-		Pending: []string{"CREAT"},
-		Target:  []string{"USED"},
+		Pending: []string{"NOT OK"},
+		Target:  []string{"OK"},
 		Refresh: func() (interface{}, string, error) {
-			resp, err := client.server.V2Api.GetPublicIpInstanceList(reqParams)
+			isAssociated, err := checkAssociatedPublicIP(config, id)
+
 			if err != nil {
 				return 0, "", err
 			}
 
-			return resp, ncloud.StringValue(resp.PublicIpInstanceList[0].PublicIpInstanceStatus.Code), nil
+			if !isAssociated {
+				return 0, "OK", nil
+			}
+
+			return nil, "NOT OK", nil
 		},
 		Timeout:    DefaultTimeout,
 		Delay:      2 * time.Second,
@@ -312,29 +463,28 @@ func waitPublicIPInstance(client *NcloudAPIClient, publicIPInstanceNo string) er
 
 	_, err := stateConf.WaitForState()
 	if err != nil {
-		return fmt.Errorf("Error waiting for waitPublicIPInstance: %s", err)
+		return fmt.Errorf("Error waiting for Public IP (%s) to become disassociation: %s", id, err)
 	}
 
 	return nil
 }
 
-func waitDeletePublicIPInstance(client *NcloudAPIClient, publicIPInstanceNo string) error {
-	reqParams := new(server.GetPublicIpInstanceListRequest)
-	reqParams.PublicIpInstanceNoList = ncloud.StringList([]string{publicIPInstanceNo})
-
+func waitForPublicIpAssociation(config *ProviderConfig, id string) error {
 	stateConf := &resource.StateChangeConf{
 		Pending: []string{"NOT OK"},
 		Target:  []string{"OK"},
 		Refresh: func() (interface{}, string, error) {
-			resp, err := client.server.V2Api.GetPublicIpInstanceList(reqParams)
+			isAssociated, err := checkAssociatedPublicIP(config, id)
+
 			if err != nil {
 				return 0, "", err
 			}
 
-			if ncloud.Int32Value(resp.TotalRows) == 0 {
-				return resp, "OK", nil
+			if isAssociated {
+				return 0, "OK", nil
 			}
-			return resp, "NOT OK", nil
+
+			return nil, "NOT OK", nil
 		},
 		Timeout:    DefaultTimeout,
 		Delay:      2 * time.Second,
@@ -343,7 +493,88 @@ func waitDeletePublicIPInstance(client *NcloudAPIClient, publicIPInstanceNo stri
 
 	_, err := stateConf.WaitForState()
 	if err != nil {
-		return fmt.Errorf("Error waiting for waitDeletePublicIPInstance: %s", err)
+		return fmt.Errorf("Error waiting for Public IP (%s) to become association: %s", id, err)
+	}
+
+	return nil
+}
+
+func associatedPublicIp(d *schema.ResourceData, config *ProviderConfig) error {
+	var err error
+
+	if config.SupportVPC {
+		err = associatedVpcPublicIp(d, config)
+	} else {
+		err = associatedClassicPublicIp(d, config)
+	}
+
+	if err != nil {
+		return err
+	}
+
+	if err := waitForPublicIpAssociation(config, d.Id()); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func associatedClassicPublicIp(d *schema.ResourceData, config *ProviderConfig) error {
+	reqParams := &server.AssociatePublicIpWithServerInstanceRequest{
+		PublicIpInstanceNo: ncloud.String(d.Id()),
+		ServerInstanceNo:   ncloud.String(d.Get("server_instance_no").(string)),
+	}
+
+	logCommonRequest("associatedClassicPublicIp", reqParams)
+
+	resp, err := config.Client.server.V2Api.AssociatePublicIpWithServerInstance(reqParams)
+	if err != nil {
+		logErrorResponse("associatedClassicPublicIp", err, d.Id())
+		return err
+	}
+	logCommonResponse("associatedClassicPublicIp", GetCommonResponse(resp))
+
+	return nil
+}
+
+func associatedVpcPublicIp(d *schema.ResourceData, config *ProviderConfig) error {
+	reqParams := &vserver.AssociatePublicIpWithServerInstanceRequest{
+		RegionCode:         &config.RegionCode,
+		PublicIpInstanceNo: ncloud.String(d.Id()),
+		ServerInstanceNo:   ncloud.String(d.Get("server_instance_no").(string)),
+	}
+
+	logCommonRequest("associatedVpcPublicIp", reqParams)
+
+	resp, err := config.Client.vserver.V2Api.AssociatePublicIpWithServerInstance(reqParams)
+	if err != nil {
+		logErrorResponse("associatedVpcPublicIp", err, d.Id())
+		return err
+	}
+	logCommonResponse("associatedVpcPublicIp", GetCommonResponse(resp))
+
+	return nil
+}
+
+func resourceNcloudPublicIpCustomizeDiff(diff *schema.ResourceDiff, meta interface{}) error {
+	config := meta.(*ProviderConfig)
+
+	if config.SupportVPC {
+		if v, ok := diff.GetOk("zone"); ok {
+			diff.Clear("zone")
+			return fmt.Errorf("You don't use 'zone' if SupportVPC is true. Please remove this value [%s]", v)
+		}
+
+		if v, ok := diff.GetOk("internet_line_type"); ok {
+			return fmt.Errorf("You don't use 'internet_line_type' if SupportVPC is true. Please remove this value [%s]", v)
+		}
+	}
+
+	if diff.HasChange("description") {
+		old, new := diff.GetChange("description")
+		if len(old.(string)) > 0 {
+			return fmt.Errorf("Change 'description' is not support, Please set `description` as a old value = [%s -> %s]", new, old)
+		}
 	}
 
 	return nil

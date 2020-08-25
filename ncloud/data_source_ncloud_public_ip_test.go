@@ -1,68 +1,61 @@
 package ncloud
 
 import (
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
+	"regexp"
 	"testing"
+
+	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 )
 
 func TestAccDataSourceNcloudPublicIpBasic(t *testing.T) {
-	t.Parallel()
-
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:  func() { testAccPreCheck(t) },
 		Providers: testAccProviders,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccDataSourceNcloudPublicIpConfig,
-				// ignore check: may be empty created data
 				SkipFunc: func() (bool, error) {
 					return skipNoResultsTest, nil
 				},
-				//ExpectError: regexp.MustCompile("no results"), // may be no data
-				//Check: resource.ComposeTestCheckFunc(
-				//	testAccCheckDataSourceID("data.ncloud_public_ip.test"),
-				//),
+				ExpectError: regexp.MustCompile("no results"),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckDataSourceID("data.ncloud_public_ip.test"),
+				),
 			},
 		},
 	})
 }
 
 func TestAccDataSourceNcloudPublicIpIsAssociated(t *testing.T) {
-	t.Parallel()
-
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:  func() { testAccPreCheck(t) },
 		Providers: testAccProviders,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccDataSourceNcloudPublicIpAssociatedConfig,
-				// ignore check: may be empty created data
 				SkipFunc: func() (bool, error) {
 					return skipNoResultsTest, nil
 				},
-				//ExpectError: regexp.MustCompile("no results"), // may be no data
-				//Check: resource.ComposeTestCheckFunc(
-				//	testAccCheckDataSourceID("data.ncloud_public_ip.test"),
-				//),
+				ExpectError: regexp.MustCompile("no results"),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckDataSourceID("data.ncloud_public_ip.test"),
+				),
 			},
 		},
 	})
 }
 
 func TestAccDataSourceNcloudPublicIpSearch(t *testing.T) {
-	t.Parallel()
-
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:  func() { testAccPreCheck(t) },
 		Providers: testAccProviders,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccDataSourceNcloudPublicIpSearchConfig,
-				// ignore check: may be empty created data
 				SkipFunc: func() (bool, error) {
 					return skipNoResultsTest, nil
 				},
-				//ExpectError: regexp.MustCompile("no results"), // may be no data
+				ExpectError: regexp.MustCompile("no results"),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckDataSourceID("data.ncloud_public_ip.test"),
 					resource.TestCheckResourceAttrSet(
@@ -75,48 +68,21 @@ func TestAccDataSourceNcloudPublicIpSearch(t *testing.T) {
 	})
 }
 
-func TestAccDataSourceNcloudPublicIpSorting(t *testing.T) {
-	t.Parallel()
-
-	resource.Test(t, resource.TestCase{
-		PreCheck:  func() { testAccPreCheck(t) },
-		Providers: testAccProviders,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccDataSourceNcloudPublicIpSortingConfig,
-				// ignore check: may be empty created data
-				SkipFunc: func() (bool, error) {
-					return skipNoResultsTest, nil
-				},
-				//ExpectError: regexp.MustCompile("no results"), // may be no data
-				//Check: resource.ComposeTestCheckFunc(
-				//	testAccCheckDataSourceID("data.ncloud_public_ip.test"),
-				//),
-			},
-		},
-	})
-}
-
 var testAccDataSourceNcloudPublicIpConfig = `
 data "ncloud_public_ip" "test" {}
 `
 
 var testAccDataSourceNcloudPublicIpAssociatedConfig = `
 data "ncloud_public_ip" "test" {
-  is_associated = "false"
+	is_associated = "false"
 }
 `
 
 var testAccDataSourceNcloudPublicIpSearchConfig = `
 data "ncloud_public_ip" "test" {
-  search_filter_name = "associatedServerName" // Public IP (publicIp) | Associated server name (associatedServerName)
-  search_filter_value = "clouddb"
-}
-`
-
-var testAccDataSourceNcloudPublicIpSortingConfig = `
-data "ncloud_public_ip" "test" {
-  sorted_by = "publicIp" // Public IP (publicIp) | Public IP instance number (publicIpInstanceNo) [case insensitive]
-  sorting_order = "ascending" // Ascending (ascending) | Descending (descending) [case insensitive]
+	filter {
+		name = "server_instance.server_name"
+		values = ["clouddb"]
+	}
 }
 `

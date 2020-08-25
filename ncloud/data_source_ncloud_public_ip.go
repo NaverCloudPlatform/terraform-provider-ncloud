@@ -3,6 +3,7 @@ package ncloud
 import (
 	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/ncloud"
 	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/services/server"
+	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/services/vserver"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
@@ -12,6 +13,12 @@ func dataSourceNcloudPublicIp() *schema.Resource {
 		Read: dataSourceNcloudPublicIpRead,
 
 		Schema: map[string]*schema.Schema{
+			"instance_no_list": {
+				Type:        schema.TypeList,
+				Optional:    true,
+				Elem:        &schema.Schema{Type: schema.TypeString},
+				Description: "List of public IP instance numbers to get.",
+			},
 			"internet_line_type": {
 				Type:         schema.TypeString,
 				Computed:     true,
@@ -24,12 +31,6 @@ func dataSourceNcloudPublicIp() *schema.Resource {
 				Optional:    true,
 				Description: "Indicates whether the public IP address is associated or not.",
 			},
-			"instance_no_list": {
-				Type:        schema.TypeList,
-				Optional:    true,
-				Elem:        &schema.Schema{Type: schema.TypeString},
-				Description: "List of public IP instance numbers to get.",
-			},
 			"list": {
 				Type:        schema.TypeList,
 				Optional:    true,
@@ -39,16 +40,19 @@ func dataSourceNcloudPublicIp() *schema.Resource {
 			"search_filter_name": {
 				Type:        schema.TypeString,
 				Optional:    true,
+				Deprecated:  "use filter instead",
 				Description: "`publicIp` (Public IP) | `associatedServerName` (Associated server name)",
 			},
 			"search_filter_value": {
 				Type:        schema.TypeString,
 				Optional:    true,
+				Deprecated:  "use filter instead",
 				Description: "Filter value to search",
 			},
 			"region": {
 				Type:        schema.TypeString,
 				Optional:    true,
+				Deprecated:  "use region attribute of provider instead",
 				Description: "Region code. Get available values using the `data ncloud_regions`.",
 			},
 			"zone": {
@@ -59,13 +63,16 @@ func dataSourceNcloudPublicIp() *schema.Resource {
 			"sorted_by": {
 				Type:        schema.TypeString,
 				Optional:    true,
+				Deprecated:  "This attribute no longer support",
 				Description: "The column based on which you want to sort the list.",
 			},
 			"sorting_order": {
 				Type:        schema.TypeString,
 				Optional:    true,
+				Deprecated:  "This attribute no longer support",
 				Description: "Sorting order of the list. `ascending` (Ascending) | `descending` (Descending) [case insensitive]. Default: `ascending` Ascending",
 			},
+			"filter": dataSourceFiltersSchema(),
 
 			"instance_no": {
 				Type:        schema.TypeString,
@@ -126,21 +133,42 @@ func dataSourceNcloudPublicIp() *schema.Resource {
 }
 
 func dataSourceNcloudPublicIpRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ProviderConfig).Client
+	config := meta.(*ProviderConfig)
 
-	regionNo, err := parseRegionNoParameter(client, d)
+	var resources []map[string]interface{}
+	var err error
+
+	if config.SupportVPC {
+		resources, err = getClassicPublicIpList(d, meta.(*ProviderConfig))
+	} else {
+		resources, err = getVpcPublicIpList(d, meta.(*ProviderConfig))
+	}
+
 	if err != nil {
 		return err
 	}
-	zoneNo, err := parseZoneNoParameter(client, d)
-	if err != nil {
+
+	if f, ok := d.GetOk("filter"); ok {
+		resources = ApplyFilters(f.(*schema.Set), resources, dataSourceNcloudMemberServerImage().Schema)
+	}
+
+	if err := validateOneResult(len(resources)); err != nil {
 		return err
 	}
 
-	reqParams := new(server.GetPublicIpInstanceListRequest)
+	SetSingularResourceDataFromMap(d, resources[0])
 
-	if internetLineTypeCode, ok := d.GetOk("internet_line_type"); ok {
-		reqParams.InternetLineTypeCode = ncloud.String(internetLineTypeCode.(string))
+	return nil
+}
+
+func getClassicPublicIpList(d *schema.ResourceData, config *ProviderConfig) ([]map[string]interface{}, error) {
+	client := config.Client
+	regionNo := config.RegionNo
+
+	reqParams := &server.GetPublicIpInstanceListRequest{
+		RegionNo:             &regionNo,
+		ZoneNo:               StringPtrOrNil(d.GetOk("zone")),
+		InternetLineTypeCode: StringPtrOrNil(d.GetOk("internet_line_type")),
 	}
 
 	if isAssociated, ok := d.GetOk("is_associated"); ok {
@@ -155,72 +183,116 @@ func dataSourceNcloudPublicIpRead(d *schema.ResourceData, meta interface{}) erro
 		reqParams.PublicIpList = expandStringInterfaceList(publicIPList.([]interface{}))
 	}
 
-	if searchFilterName, ok := d.GetOk("search_filter_name"); ok {
-		reqParams.SearchFilterName = ncloud.String(searchFilterName.(string))
-	}
-
-	if searchFilterValue, ok := d.GetOk("search_filter_value"); ok {
-		reqParams.SearchFilterValue = ncloud.String(searchFilterValue.(string))
-	}
-
-	reqParams.RegionNo = regionNo
-	reqParams.ZoneNo = zoneNo
-
-	if sortedBy, ok := d.GetOk("sorted_by"); ok {
-		reqParams.SortedBy = ncloud.String(sortedBy.(string))
-	}
-
-	if sortingOrder, ok := d.GetOk("sorting_order"); ok {
-		reqParams.SortingOrder = ncloud.String(sortingOrder.(string))
-	}
-
+	logCommonRequest("getClassicPublicIpList", reqParams)
 	resp, err := client.server.V2Api.GetPublicIpInstanceList(reqParams)
 
 	if err != nil {
-		logErrorResponse("Get Public IP Instance", err, reqParams)
-		return err
+		logErrorResponse("getClassicPublicIpList", err, reqParams)
+		return nil, err
 	}
-	publicIpInstanceList := resp.PublicIpInstanceList
-	var publicIpInstance *server.PublicIpInstance
+	logCommonResponse("getClassicPublicIpList", GetCommonResponse(resp))
 
-	if err := validateOneResult(len(publicIpInstanceList)); err != nil {
-		return err
+	resources := []map[string]interface{}{}
+
+	for _, r := range resp.PublicIpInstanceList {
+		instance := map[string]interface{}{
+			"id":                   *r.PublicIpInstanceNo,
+			"instance_no":          *r.PublicIpInstanceNo,
+			"public_ip":            *r.PublicIp,
+			"description":          *r.PublicIpDescription,
+			"instance_status_name": *r.PublicIpInstanceStatusName,
+		}
+
+		if m := flattenCommonCode(r.InternetLineType); m["code"] != nil {
+			instance["internet_line_type"] = m["code"]
+		}
+
+		if m := flattenCommonCode(r.PublicIpInstanceStatus); m["code"] != nil {
+			instance["instance_status"] = m["code"]
+		}
+
+		if m := flattenCommonCode(r.PublicIpInstanceOperation); m["code"] != nil {
+			instance["instance_operation"] = m["code"]
+		}
+
+		if m := flattenCommonCode(r.PublicIpKindType); m["code"] != nil {
+			instance["kind_type"] = m["code"]
+		}
+
+		if m := flattenCommonCode(r.Zone); m["code"] != nil {
+			instance["zone"] = m["code"]
+		}
+
+		if serverInstance := r.ServerInstanceAssociatedWithPublicIp; serverInstance != nil {
+			mapping := map[string]interface{}{
+				"server_instance_no": ncloud.StringValue(serverInstance.ServerInstanceNo),
+				"server_name":        ncloud.StringValue(serverInstance.ServerName),
+			}
+
+			instance["server_instance"] = mapping
+		}
+
+		resources = append(resources, instance)
 	}
-	publicIpInstance = publicIpInstanceList[0]
-	return publicIPAttributes(d, publicIpInstance)
+
+	return resources, nil
 }
 
-func publicIPAttributes(d *schema.ResourceData, instance *server.PublicIpInstance) error {
+func getVpcPublicIpList(d *schema.ResourceData, config *ProviderConfig) ([]map[string]interface{}, error) {
+	client := config.Client
+	regionCode := config.RegionCode
 
-	d.SetId(ncloud.StringValue(instance.PublicIpInstanceNo))
-	d.Set("instance_no", instance.PublicIpInstanceNo)
-	d.Set("public_ip", instance.PublicIp)
-	d.Set("description", instance.PublicIpDescription)
-	d.Set("instance_status_name", instance.PublicIpInstanceStatusName)
-
-	if lineType := flattenCommonCode(instance.InternetLineType); lineType["code"] != nil {
-		d.Set("internet_line_type", lineType["code"])
+	reqParams := &vserver.GetPublicIpInstanceListRequest{
+		RegionCode: &regionCode,
 	}
 
-	if instanceStatus := flattenCommonCode(instance.PublicIpInstanceStatus); instanceStatus["code"] != nil {
-		d.Set("instance_status", instanceStatus["code"])
+	if isAssociated, ok := d.GetOk("is_associated"); ok {
+		reqParams.IsAssociated = ncloud.Bool(isAssociated.(bool))
 	}
 
-	if instanceOperation := flattenCommonCode(instance.PublicIpInstanceOperation); instanceOperation["code"] != nil {
-		d.Set("instance_operation", instanceOperation["code"])
+	if instanceNoList, ok := d.GetOk("instance_no_list"); ok {
+		reqParams.PublicIpInstanceNoList = expandStringInterfaceList(instanceNoList.([]interface{}))
 	}
 
-	if kindType := flattenCommonCode(instance.PublicIpKindType); kindType["code"] != nil {
-		d.Set("kind_type", kindType["code"])
-	}
+	logCommonRequest("getVpcPublicIpList", reqParams)
+	resp, err := client.vserver.V2Api.GetPublicIpInstanceList(reqParams)
 
-	if serverInstance := instance.ServerInstanceAssociatedWithPublicIp; serverInstance != nil {
-		mapping := map[string]interface{}{
-			"server_instance_no": ncloud.StringValue(serverInstance.ServerInstanceNo),
-			"server_name":        ncloud.StringValue(serverInstance.ServerName),
+	if err != nil {
+		logErrorResponse("getVpcPublicIpList", err, reqParams)
+		return nil, err
+	}
+	logCommonResponse("getVpcPublicIpList", GetCommonResponse(resp))
+
+	resources := []map[string]interface{}{}
+
+	for _, r := range resp.PublicIpInstanceList {
+		instance := map[string]interface{}{
+			"id":                   *r.PublicIpInstanceNo,
+			"instance_no":          *r.PublicIpInstanceNo,
+			"public_ip":            *r.PublicIp,
+			"description":          *r.PublicIpDescription,
+			"instance_status_name": *r.PublicIpInstanceStatusName,
 		}
-		d.Set("server_instance", mapping)
+
+		if m := flattenCommonCode(r.PublicIpInstanceStatus); m["code"] != nil {
+			instance["instance_status"] = m["code"]
+		}
+
+		if m := flattenCommonCode(r.PublicIpInstanceOperation); m["code"] != nil {
+			instance["instance_operation"] = m["code"]
+		}
+
+		if r.ServerInstanceNo != nil && r.ServerName != nil {
+			mapping := map[string]interface{}{
+				"server_instance_no": ncloud.StringValue(r.ServerInstanceNo),
+				"server_name":        ncloud.StringValue(r.ServerName),
+			}
+
+			instance["server_instance"] = mapping
+		}
+
+		resources = append(resources, instance)
 	}
 
-	return nil
+	return resources, nil
 }
