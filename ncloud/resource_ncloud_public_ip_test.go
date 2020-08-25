@@ -3,7 +3,6 @@ package ncloud
 import (
 	"fmt"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
-	"log"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
@@ -53,11 +52,9 @@ func TestAccResourceNcloudPublicIpInstance_basic(t *testing.T) {
 
 func TestAccResourceNcloudPublicIpInstance_update(t *testing.T) {
 	instance := map[string]interface{}{}
-	serverNameFoo := fmt.Sprintf("test-public-ip-basic-%s", acctest.RandString(5))
-	serverNameBar := fmt.Sprintf("test-public-ip-basic-%s", acctest.RandString(5))
+	serverNameFoo := fmt.Sprintf("test-public-ip-foo-%s", acctest.RandString(5))
+	serverNameBar := fmt.Sprintf("test-public-ip-bar-%s", acctest.RandString(5))
 	resourceName := "ncloud_public_ip.public_ip"
-
-	log.Print(testAccPublicIpInstanceConfigServer(serverNameFoo, serverNameBar, "${ncloud_server.foo.id}"))
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },

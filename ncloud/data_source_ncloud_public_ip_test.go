@@ -60,7 +60,7 @@ func TestAccDataSourceNcloudPublicIpSearch(t *testing.T) {
 					testAccCheckDataSourceID("data.ncloud_public_ip.test"),
 					resource.TestCheckResourceAttrSet(
 						"data.ncloud_public_ip.test",
-						"server_instance.instance_no",
+						"server_instance.server_instance_no",
 					),
 				),
 			},
@@ -82,7 +82,7 @@ var testAccDataSourceNcloudPublicIpSearchConfig = `
 data "ncloud_public_ip" "test" {
 	filter {
 		name = "server_instance.server_name"
-		values = ["clouddb"]
+		values = ["tf-2807-1"]
 	}
 }
 `
