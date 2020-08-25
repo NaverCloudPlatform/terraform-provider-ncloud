@@ -139,9 +139,9 @@ func dataSourceNcloudPublicIpRead(d *schema.ResourceData, meta interface{}) erro
 	var err error
 
 	if config.SupportVPC {
-		resources, err = getClassicPublicIpList(d, meta.(*ProviderConfig))
-	} else {
 		resources, err = getVpcPublicIpList(d, meta.(*ProviderConfig))
+	} else {
+		resources, err = getClassicPublicIpList(d, meta.(*ProviderConfig))
 	}
 
 	if err != nil {
@@ -149,7 +149,7 @@ func dataSourceNcloudPublicIpRead(d *schema.ResourceData, meta interface{}) erro
 	}
 
 	if f, ok := d.GetOk("filter"); ok {
-		resources = ApplyFilters(f.(*schema.Set), resources, dataSourceNcloudMemberServerImage().Schema)
+		resources = ApplyFilters(f.(*schema.Set), resources, dataSourceNcloudPublicIp().Schema)
 	}
 
 	if err := validateOneResult(len(resources)); err != nil {
