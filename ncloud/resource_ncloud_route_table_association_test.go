@@ -203,7 +203,9 @@ func testAccCheckRouteTableAssociationDisappears(instance *vpc.Subnet, routeTabl
 
 		_, err = config.Client.vpc.V2Api.RemoveRouteTableSubnet(reqParams)
 
-		waitForNcloudRouteTableAssociationTableUpdate(config, *routeTableNo)
+		if err := waitForNcloudRouteTableAssociationTableUpdate(config, *routeTableNo); err != nil {
+			return err
+		}
 
 		return err
 	}

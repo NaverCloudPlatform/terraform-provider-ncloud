@@ -77,7 +77,9 @@ func resourceNcloudRouteTableAssociationCreate(d *schema.ResourceData, meta inte
 
 	log.Printf("[INFO] Association ID: %s", d.Id())
 
-	waitForNcloudRouteTableAssociationTableUpdate(config, d.Get("route_table_no").(string))
+	if err := waitForNcloudRouteTableAssociationTableUpdate(config, d.Get("route_table_no").(string)); err != nil {
+		return err
+	}
 
 	return resourceNcloudRouteTableAssociationRead(d, meta)
 }
@@ -144,7 +146,9 @@ func resourceNcloudRouteTableAssociationDelete(d *schema.ResourceData, meta inte
 
 	logResponse("resource_ncloud_route_table_association > RemoveRouteTableSubnet", resp)
 
-	waitForNcloudRouteTableAssociationTableUpdate(config, d.Get("route_table_no").(string))
+	if err := waitForNcloudRouteTableAssociationTableUpdate(config, d.Get("route_table_no").(string)); err != nil {
+		return err
+	}
 
 	return nil
 }

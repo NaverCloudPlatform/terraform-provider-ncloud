@@ -113,7 +113,9 @@ func resourceNcloudVpcPeeringCreate(d *schema.ResourceData, meta interface{}) er
 	d.SetId(*instance.VpcPeeringInstanceNo)
 	log.Printf("[INFO] VPC Peering ID: %s", d.Id())
 
-	waitForNcloudVpcPeeringCreation(config, d.Id())
+	if err := waitForNcloudVpcPeeringCreation(config, d.Id()); err != nil {
+		return err
+	}
 
 	return resourceNcloudVpcPeeringRead(d, meta)
 }
@@ -168,7 +170,9 @@ func resourceNcloudVpcPeeringDelete(d *schema.ResourceData, meta interface{}) er
 
 	logResponse("resource_ncloud_vpc_peering > DeleteVpcPeeringInstance", resp)
 
-	waitForNcloudVpcPeeringDeletion(config, d.Id())
+	if err := waitForNcloudVpcPeeringDeletion(config, d.Id()); err != nil {
+		return err
+	}
 
 	return nil
 }

@@ -77,7 +77,9 @@ func resourceNcloudVpcCreate(d *schema.ResourceData, meta interface{}) error {
 	d.SetId(*vpcInstance.VpcNo)
 	log.Printf("[INFO] VPC ID: %s", d.Id())
 
-	waitForNcloudVpcCreation(config, d.Id())
+	if err := waitForNcloudVpcCreation(config, d.Id()); err != nil {
+		return err
+	}
 
 	return resourceNcloudVpcRead(d, meta)
 }
@@ -163,7 +165,9 @@ func resourceNcloudVpcDelete(d *schema.ResourceData, meta interface{}) error {
 	}
 	logResponse("resource_ncloud_vpc > DeleteVpc", resp)
 
-	waitForNcloudVpcDeletion(config, d.Id())
+	if err := waitForNcloudVpcDeletion(config, d.Id()); err != nil {
+		return err
+	}
 
 	return nil
 }

@@ -87,7 +87,9 @@ func resourceNcloudNetworkACLCreate(d *schema.ResourceData, meta interface{}) er
 	d.SetId(*instance.NetworkAclNo)
 	log.Printf("[INFO] Network ACL ID: %s", d.Id())
 
-	waitForNcloudNetworkACLCreation(config, d.Id())
+	if err := waitForNcloudNetworkACLCreation(config, d.Id()); err != nil {
+		return err
+	}
 
 	return resourceNcloudNetworkACLRead(d, meta)
 }
@@ -138,7 +140,9 @@ func resourceNcloudNetworkACLDelete(d *schema.ResourceData, meta interface{}) er
 
 	logResponse("resource_ncloud_network_acl > DeleteNetworkAcl", resp)
 
-	waitForNcloudNetworkACLDeletion(config, d.Id())
+	if err := waitForNcloudNetworkACLDeletion(config, d.Id()); err != nil {
+		return err
+	}
 
 	return nil
 }

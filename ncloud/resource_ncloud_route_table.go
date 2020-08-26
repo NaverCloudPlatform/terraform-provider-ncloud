@@ -92,7 +92,9 @@ func resourceNcloudRouteTableCreate(d *schema.ResourceData, meta interface{}) er
 
 	log.Printf("[INFO] Route Table ID: %s", d.Id())
 
-	waitForNcloudRouteTableCreation(config, d.Id())
+	if err := waitForNcloudRouteTableCreation(config, d.Id()); err != nil {
+		return err
+	}
 
 	return resourceNcloudRouteTableRead(d, meta)
 }
@@ -144,7 +146,9 @@ func resourceNcloudRouteTableDelete(d *schema.ResourceData, meta interface{}) er
 
 	logResponse("resource_ncloud_route_table > DeleteRouteTable", resp)
 
-	waitForNcloudRouteTableDeletion(config, d.Id())
+	if err := waitForNcloudRouteTableDeletion(config, d.Id()); err != nil {
+		return err
+	}
 
 	return nil
 }
