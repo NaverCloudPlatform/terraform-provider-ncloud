@@ -137,7 +137,7 @@ func createInitScript(d *schema.ResourceData, config *ProviderConfig) (*vserver.
 	if config.SupportVPC {
 		return createVpcInitScript(d, config)
 	} else {
-		return nil, fmt.Errorf("create init script doens't support Classic")
+		return nil, fmt.Errorf("create init script doesn't support Classic")
 	}
 }
 
@@ -165,7 +165,7 @@ func deleteInitScript(config *ProviderConfig, id string) error {
 	if config.SupportVPC {
 		return deleteVpcInitScript(config, id)
 	} else {
-		return fmt.Errorf("delete init script doens't support Classic")
+		return fmt.Errorf("delete init script doesn't support Classic")
 	}
 }
 
