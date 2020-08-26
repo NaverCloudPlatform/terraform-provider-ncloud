@@ -208,7 +208,9 @@ func testAccCheckNetworkACLDisappears(instance *vpc.NetworkAcl) resource.TestChe
 
 		_, err := config.Client.vpc.V2Api.DeleteNetworkAcl(reqParams)
 
-		waitForNcloudNetworkACLDeletion(config, *instance.NetworkAclNo)
+		if err := waitForNcloudNetworkACLDeletion(config, *instance.NetworkAclNo); err != nil {
+			return err
+		}
 
 		return err
 	}

@@ -156,7 +156,9 @@ func testAccCheckVpcDisappears(instance *vpc.Vpc) resource.TestCheckFunc {
 
 		_, err := config.Client.vpc.V2Api.DeleteVpc(reqParams)
 
-		waitForNcloudVpcDeletion(config, *instance.VpcNo)
+		if err := waitForNcloudVpcDeletion(config, *instance.VpcNo); err != nil {
+			return err
+		}
 
 		return err
 	}

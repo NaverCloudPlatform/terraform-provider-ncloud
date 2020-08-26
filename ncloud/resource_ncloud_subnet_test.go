@@ -263,7 +263,9 @@ func testAccCheckSubnetDisappears(instance *vpc.Subnet) resource.TestCheckFunc {
 
 		_, err := config.Client.vpc.V2Api.DeleteSubnet(reqParams)
 
-		waitForNcloudSubnetDeletion(config, *instance.SubnetNo)
+		if err := waitForNcloudSubnetDeletion(config, *instance.SubnetNo); err != nil {
+			return err
+		}
 
 		return err
 	}

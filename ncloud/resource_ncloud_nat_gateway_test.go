@@ -223,7 +223,9 @@ func testAccCheckNatGatewayDisappears(instance *vpc.NatGatewayInstance) resource
 
 		_, err := config.Client.vpc.V2Api.DeleteNatGatewayInstance(reqParams)
 
-		waitForNcloudNatGatewayDeletion(config, *instance.NatGatewayInstanceNo)
+		if err := waitForNcloudNatGatewayDeletion(config, *instance.NatGatewayInstanceNo); err != nil {
+			return err
+		}
 
 		return err
 	}

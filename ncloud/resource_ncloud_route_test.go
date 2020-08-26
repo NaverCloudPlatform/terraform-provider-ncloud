@@ -211,7 +211,9 @@ func testAccCheckRouteDisappears(instance *vpc.Route) resource.TestCheckFunc {
 
 		_, err = config.Client.vpc.V2Api.RemoveRoute(reqParams)
 
-		waitForNcloudRouteTableUpdate(config, *instance.RouteTableNo)
+		if err := waitForNcloudRouteTableUpdate(config, *instance.RouteTableNo); err != nil {
+			return err
+		}
 
 		return err
 	}

@@ -114,7 +114,9 @@ func resourceNcloudRouteCreate(d *schema.ResourceData, meta interface{}) error {
 
 	log.Printf("[INFO] Route ID: %s", d.Id())
 
-	waitForNcloudRouteTableUpdate(config, d.Get("route_table_no").(string))
+	if err := waitForNcloudRouteTableUpdate(config, d.Get("route_table_no").(string)); err != nil {
+		return err
+	}
 
 	return resourceNcloudRouteRead(d, meta)
 }
@@ -183,7 +185,9 @@ func resourceNcloudRouteDelete(d *schema.ResourceData, meta interface{}) error {
 
 	logResponse("resource_ncloud_route > RemoveRoute", resp)
 
-	waitForNcloudRouteTableUpdate(config, d.Get("route_table_no").(string))
+	if err := waitForNcloudRouteTableUpdate(config, d.Get("route_table_no").(string)); err != nil {
+		return err
+	}
 
 	return nil
 }

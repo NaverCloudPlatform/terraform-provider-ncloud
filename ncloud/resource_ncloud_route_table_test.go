@@ -210,7 +210,9 @@ func testAccCheckRouteTableDisappears(instance *vpc.RouteTable) resource.TestChe
 
 		_, err := config.Client.vpc.V2Api.DeleteRouteTable(reqParams)
 
-		waitForNcloudRouteTableDeletion(config, *instance.RouteTableNo)
+		if err := waitForNcloudRouteTableDeletion(config, *instance.RouteTableNo); err != nil {
+			return err
+		}
 
 		return err
 	}

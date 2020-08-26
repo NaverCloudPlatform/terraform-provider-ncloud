@@ -94,7 +94,9 @@ func resourceNcloudNatGatewayCreate(d *schema.ResourceData, meta interface{}) er
 	d.SetId(*instance.NatGatewayInstanceNo)
 	log.Printf("[INFO] NAT Gateway ID: %s", d.Id())
 
-	waitForNcloudNatGatewayCreation(config, d.Id())
+	if err := waitForNcloudNatGatewayCreation(config, d.Id()); err != nil {
+		return err
+	}
 
 	return resourceNcloudNatGatewayRead(d, meta)
 }
@@ -146,7 +148,9 @@ func resourceNcloudNatGatewayDelete(d *schema.ResourceData, meta interface{}) er
 
 	logResponse("resource_ncloud_nat_gateway > DeleteNatGatewayInstance", resp)
 
-	waitForNcloudNatGatewayDeletion(config, d.Id())
+	if err := waitForNcloudNatGatewayDeletion(config, d.Id()); err != nil {
+		return err
+	}
 
 	return nil
 }

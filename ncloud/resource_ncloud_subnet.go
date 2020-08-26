@@ -113,7 +113,9 @@ func resourceNcloudSubnetCreate(d *schema.ResourceData, meta interface{}) error 
 	d.SetId(*instance.SubnetNo)
 	log.Printf("[INFO] Subnet ID: %s", d.Id())
 
-	waitForNcloudSubnetCreation(config, d.Id())
+	if err := waitForNcloudSubnetCreation(config, d.Id()); err != nil {
+		return err
+	}
 
 	return resourceNcloudSubnetRead(d, meta)
 }
@@ -164,7 +166,9 @@ func resourceNcloudSubnetUpdate(d *schema.ResourceData, meta interface{}) error 
 		}
 		logResponse("resource_ncloud_subnet > SetSubnetNetworkAcl", resp)
 
-		waitForNcloudNetworkACLUpdate(config, d.Id())
+		if err := waitForNcloudNetworkACLUpdate(config, d.Id()); err != nil {
+			return err
+		}
 	}
 
 	return resourceNcloudSubnetRead(d, meta)
@@ -186,7 +190,9 @@ func resourceNcloudSubnetDelete(d *schema.ResourceData, meta interface{}) error 
 	}
 	logResponse("resource_ncloud_subnet > DeleteSubnet", resp)
 
-	waitForNcloudSubnetDeletion(config, d.Id())
+	if err := waitForNcloudSubnetDeletion(config, d.Id()); err != nil {
+		return err
+	}
 
 	return nil
 }
