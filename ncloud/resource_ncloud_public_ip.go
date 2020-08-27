@@ -122,7 +122,9 @@ func resourceNcloudPublicIpDelete(d *schema.ResourceData, meta interface{}) erro
 	// Check associated public ip
 	if associated, err := checkAssociatedPublicIP(config, d.Id()); associated {
 		// if associated public ip, disassociated the public ip
-		disassociatedPublicIp(config, d.Id())
+		if err := disassociatedPublicIp(config, d.Id()); err != nil {
+			return err
+		}
 	} else if err != nil {
 		return err
 	}
@@ -145,10 +147,17 @@ func resourceNcloudPublicIpUpdate(d *schema.ResourceData, meta interface{}) erro
 	config := meta.(*ProviderConfig)
 
 	if d.HasChange("server_instance_no") {
-		disassociatedPublicIp(config, d.Id())
+		o, n := d.GetChange("server_instance_no")
+		if len(o.(string)) > 0 {
+			if err := disassociatedPublicIp(config, d.Id()); err != nil {
+				return err
+			}
+		}
 
-		if d.Get("server_instance_no") != "" {
-			associatedPublicIp(d, config)
+		if len(n.(string)) > 0 {
+			if err := associatedPublicIp(d, config); err != nil {
+				return err
+			}
 		}
 	}
 
