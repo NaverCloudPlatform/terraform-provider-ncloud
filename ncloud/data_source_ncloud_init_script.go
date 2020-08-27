@@ -46,7 +46,7 @@ func dataSourceNcloudInitScriptRead(d *schema.ResourceData, meta interface{}) er
 	if config.SupportVPC {
 		resources, err = getVpcInitScriptListFiltered(d, config)
 	} else {
-		return fmt.Errorf("get init script doens't support Classic")
+		return fmt.Errorf("get init script doesn't support Classic")
 	}
 
 	if err != nil {
