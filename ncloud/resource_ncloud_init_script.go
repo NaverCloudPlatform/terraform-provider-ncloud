@@ -108,7 +108,7 @@ func getInitScript(config *ProviderConfig, id string) (*vserver.InitScript, erro
 	if config.SupportVPC {
 		return getVpcInitScript(config, id)
 	} else {
-		return nil, fmt.Errorf("get init script doens't support Classic")
+		return nil, fmt.Errorf("get init script doesn't support Classic")
 	}
 }
 
