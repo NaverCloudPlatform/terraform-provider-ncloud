@@ -31,7 +31,7 @@ func TestAccresourceNcloudNetworkInterface_basic(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "description", "for acc test"),
 					resource.TestCheckResourceAttr(resourceName, "private_ip", "10.4.0.6"),
 					resource.TestCheckResourceAttr(resourceName, "server_instance_no", ""),
-					resource.TestCheckResourceAttr(resourceName, "status", "RUN"),
+					resource.TestCheckResourceAttr(resourceName, "status", "NOTUSED"),
 					resource.TestMatchResourceAttr(resourceName, "subnet_no", regexp.MustCompile(`^\d+$`)),
 					resource.TestCheckResourceAttr(resourceName, "access_control_groups.#", "1"),
 					resource.TestCheckResourceAttr(resourceName, "is_default", "false"),
