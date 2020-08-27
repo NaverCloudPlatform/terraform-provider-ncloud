@@ -1,7 +1,6 @@
 package ncloud
 
 import (
-	"fmt"
 	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/ncloud"
 	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/services/vserver"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
@@ -107,9 +106,9 @@ func resourceNcloudInitScriptDelete(d *schema.ResourceData, meta interface{}) er
 func getInitScript(config *ProviderConfig, id string) (*vserver.InitScript, error) {
 	if config.SupportVPC {
 		return getVpcInitScript(config, id)
-	} else {
-		return nil, fmt.Errorf("get init script doesn't support Classic")
 	}
+
+	return nil, NotSupportClassic("Init Script")
 }
 
 func getVpcInitScript(config *ProviderConfig, id string) (*vserver.InitScript, error) {
@@ -136,9 +135,9 @@ func getVpcInitScript(config *ProviderConfig, id string) (*vserver.InitScript, e
 func createInitScript(d *schema.ResourceData, config *ProviderConfig) (*vserver.InitScript, error) {
 	if config.SupportVPC {
 		return createVpcInitScript(d, config)
-	} else {
-		return nil, fmt.Errorf("create init script doesn't support Classic")
 	}
+
+	return nil, NotSupportClassic("Init Script")
 }
 
 func createVpcInitScript(d *schema.ResourceData, config *ProviderConfig) (*vserver.InitScript, error) {
@@ -164,9 +163,9 @@ func createVpcInitScript(d *schema.ResourceData, config *ProviderConfig) (*vserv
 func deleteInitScript(config *ProviderConfig, id string) error {
 	if config.SupportVPC {
 		return deleteVpcInitScript(config, id)
-	} else {
-		return fmt.Errorf("delete init script doesn't support Classic")
 	}
+
+	return NotSupportClassic("Init Script")
 }
 
 func deleteVpcInitScript(config *ProviderConfig, id string) error {

@@ -1,7 +1,6 @@
 package ncloud
 
 import (
-	"fmt"
 	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/ncloud"
 	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/services/vserver"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
@@ -46,7 +45,7 @@ func dataSourceNcloudInitScriptRead(d *schema.ResourceData, meta interface{}) er
 	if config.SupportVPC {
 		resources, err = getVpcInitScriptListFiltered(d, config)
 	} else {
-		return fmt.Errorf("get init script doesn't support Classic")
+		return NotSupportClassic("Init Script")
 	}
 
 	if err != nil {
