@@ -111,9 +111,29 @@ func GetZone(i interface{}) *Zone {
 	}
 }
 
+//StringPtrOrNil return *string from interface{}
 func StringPtrOrNil(v interface{}, ok bool) *string {
 	if !ok {
 		return nil
 	}
 	return ncloud.String(v.(string))
+}
+
+//StringOrEmpty Get string from *pointer
+func StringOrEmpty(v *string) string {
+	if v != nil {
+		return *v
+	}
+
+	return ""
+}
+
+//StringPtrArrToStringArr Convert []*string to []string
+func StringPtrArrToStringArr(ptrArray []*string) []string {
+	var arr []string
+	for _, v := range ptrArray {
+		arr = append(arr, *v)
+	}
+
+	return arr
 }
