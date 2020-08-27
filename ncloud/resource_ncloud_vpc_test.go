@@ -32,6 +32,9 @@ func TestAccResourceNcloudVpc_basic(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "ipv4_cidr_block", cidr),
 					resource.TestCheckResourceAttr(resourceName, "name", name),
 					resource.TestCheckResourceAttr(resourceName, "status", "RUN"),
+					resource.TestMatchResourceAttr(resourceName, "vpc_no", regexp.MustCompile(`^\d+$`)),
+					resource.TestMatchResourceAttr(resourceName, "default_network_acl_no", regexp.MustCompile(`^\d+$`)),
+					resource.TestMatchResourceAttr(resourceName, "default_access_control_group_no", regexp.MustCompile(`^\d+$`)),
 				),
 			},
 		},
@@ -95,7 +98,7 @@ func testAccResourceNcloudVpcConfig(name, cidr string) string {
 	return fmt.Sprintf(`
 resource "ncloud_vpc" "test" {
 	name               = "%s"
-  ipv4_cidr_block    = "%s"
+	ipv4_cidr_block    = "%s"
 }
 `, name, cidr)
 }
