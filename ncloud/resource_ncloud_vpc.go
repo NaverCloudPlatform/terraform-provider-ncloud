@@ -2,6 +2,7 @@ package ncloud
 
 import (
 	"fmt"
+	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/services/vserver"
 	"log"
 	"time"
 
@@ -45,6 +46,10 @@ func resourceNcloudVpc() *schema.Resource {
 				Computed: true,
 			},
 			"default_network_acl_no": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+			"default_access_control_group_no": {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
@@ -111,6 +116,12 @@ func resourceNcloudVpcRead(d *schema.ResourceData, meta interface{}) error {
 		}
 
 		d.Set("default_network_acl_no", defaultNetworkACLNo)
+
+		defaultAcgNo, err := getDefaultAccessControlGroup(config, d.Id())
+		if err != nil {
+			return fmt.Errorf("Error get default Access Control Group for VPC (%s): %s", d.Id(), err)
+		}
+		d.Set("default_access_control_group_no", defaultAcgNo)
 	}
 
 	return nil
@@ -143,6 +154,35 @@ func getDefaultNetworkACL(config *ProviderConfig, id string) (string, error) {
 	}
 
 	return "", fmt.Errorf("No matching default network ACL found")
+}
+
+func getDefaultAccessControlGroup(config *ProviderConfig, id string) (string, error) {
+	reqParams := &vserver.GetAccessControlGroupListRequest{
+		RegionCode: &config.RegionCode,
+		VpcNo:      ncloud.String(id),
+	}
+
+	logCommonRequest("getDefaultAccessControlGroup", reqParams)
+	resp, err := config.Client.vserver.V2Api.GetAccessControlGroupList(reqParams)
+
+	if err != nil {
+		logErrorResponse("getDefaultAccessControlGroup", err, reqParams)
+		return "", err
+	}
+
+	logResponse("getDefaultAccessControlGroup", resp)
+
+	if resp == nil || len(resp.AccessControlGroupList) == 0 {
+		return "", fmt.Errorf("no matching Access Control Group found")
+	}
+
+	for _, i := range resp.AccessControlGroupList {
+		if *i.IsDefault {
+			return *i.AccessControlGroupNo, nil
+		}
+	}
+
+	return "", fmt.Errorf("No matching default Access Control Group found")
 }
 
 func resourceNcloudVpcUpdate(d *schema.ResourceData, meta interface{}) error {
