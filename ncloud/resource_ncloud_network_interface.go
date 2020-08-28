@@ -191,6 +191,8 @@ func getVpcNetworkInterface(config *ProviderConfig, id string) (*vserver.Network
 func createNetworkInterface(d *schema.ResourceData, config *ProviderConfig) (*vserver.NetworkInterface, error) {
 	if config.SupportVPC {
 		return createVpcNetworkInterface(d, config)
+	} else {
+		return nil, NotSupportClassic("Network Interface")
 	}
 
 	if v, ok := d.GetOk("server_instance_no"); ok && v != "" {
@@ -199,7 +201,7 @@ func createNetworkInterface(d *schema.ResourceData, config *ProviderConfig) (*vs
 		}
 	}
 
-	return nil, NotSupportClassic("Network Interface")
+	return nil, nil
 }
 
 func createVpcNetworkInterface(d *schema.ResourceData, config *ProviderConfig) (*vserver.NetworkInterface, error) {
