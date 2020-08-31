@@ -90,11 +90,11 @@ func GetCommonErrorBody(err error) (*ResponseError, error) {
 		return nil, err
 	}
 
-	e := m["responseError"].(map[string]string)
+	e := m["responseError"].(map[string]interface{})
 
 	return &ResponseError{
-		ReturnCode:    e["returnCode"],
-		ReturnMessage: e["returnMessage"],
+		ReturnCode:    e["returnCode"].(string),
+		ReturnMessage: e["returnMessage"].(string),
 	}, nil
 }
 
