@@ -1,7 +1,7 @@
 package ncloud
 
 import (
-	"fmt"
+	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/services/vserver"
 
 	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/ncloud"
 	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/services/server"
@@ -14,77 +14,161 @@ func dataSourceNcloudAccessControlGroup() *schema.Resource {
 
 		Schema: map[string]*schema.Schema{
 			"configuration_no": {
-				Type:     schema.TypeString,
-				Optional: true,
+				Type:          schema.TypeString,
+				Optional:      true,
+				Deprecated:    "use 'access_control_group_no' instead",
+				ConflictsWith: []string{"access_control_group_no"},
 			},
 			"is_default_group": {
-				Type:     schema.TypeBool,
-				Optional: true,
+				Type:          schema.TypeBool,
+				Optional:      true,
+				Deprecated:    "use 'is_default' instead",
+				ConflictsWith: []string{"is_default"},
+			},
+			"access_control_group_no": {
+				Type:          schema.TypeString,
+				Optional:      true,
+				Computed:      true,
+				ConflictsWith: []string{"configuration_no"},
+			},
+			"is_default": {
+				Type:          schema.TypeBool,
+				Optional:      true,
+				Computed:      true,
+				ConflictsWith: []string{"is_default_group"},
 			},
 			"name": {
 				Type:     schema.TypeString,
 				Optional: true,
+				Computed: true,
+			},
+			"vpc_no": {
+				Type:     schema.TypeString,
+				Optional: true,
+				Computed: true,
 			},
 			"description": {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
+			"filter": dataSourceFiltersSchema(),
 		},
 	}
 }
 
 func dataSourceNcloudAccessControlGroupRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ProviderConfig).Client
+	config := meta.(*ProviderConfig)
+	var resources []map[string]interface{}
+	var err error
 
-	configNo, configNoOk := d.GetOk("configuration_no")
-	acgName, acgNameOk := d.GetOk("name")
-	isDefaultGroup, isDefaultGroupOk := d.GetOk("is_default_group")
-
-	if !configNoOk && !acgNameOk && !isDefaultGroupOk {
-		return fmt.Errorf("either configuration_no or name or is_default_group is required")
+	if config.SupportVPC {
+		resources, err = getVpcAccessControlGroupList(d, config)
+	} else {
+		resources, err = getClassicAccessControlGroupList(d, config)
 	}
 
-	reqParams := server.GetAccessControlGroupListRequest{}
-	if configNoOk {
-		reqParams.AccessControlGroupConfigurationNoList = []*string{ncloud.String(configNo.(string))}
+	if err != nil {
+		return err
 	}
-	if acgNameOk {
-		reqParams.AccessControlGroupName = ncloud.String(acgName.(string))
+
+	if f, ok := d.GetOk("filter"); ok {
+		resources = ApplyFilters(f.(*schema.Set), resources, dataSourceNcloudMemberServerImage().Schema)
 	}
-	if isDefaultGroupOk {
-		reqParams.IsDefault = ncloud.Bool(isDefaultGroup.(bool))
+
+	if err := validateOneResult(len(resources)); err != nil {
+		return err
 	}
+
+	SetSingularResourceDataFromMap(d, resources[0])
+
+	return nil
+}
+
+func getVpcAccessControlGroupList(d *schema.ResourceData, config *ProviderConfig) ([]map[string]interface{}, error) {
+	reqParams := &vserver.GetAccessControlGroupListRequest{
+		RegionCode:             &config.RegionCode,
+		AccessControlGroupName: StringPtrOrNil(d.GetOk("name")),
+		VpcNo:                  StringPtrOrNil(d.GetOk("vpc_no")),
+	}
+
+	if v, ok := d.GetOk("access_control_group_no"); ok {
+		reqParams.AccessControlGroupNoList = []*string{ncloud.String(v.(string))}
+	}
+
+	logCommonRequest("getVpcAccessControlGroup", reqParams)
+
+	resp, err := config.Client.vserver.V2Api.GetAccessControlGroupList(reqParams)
+	if err != nil {
+		logErrorResponse("getVpcAccessControlGroup", err, reqParams)
+		return nil, err
+	}
+	logResponse("getVpcAccessControlGroup", resp)
+
+	var resources []map[string]interface{}
+	for _, r := range resp.AccessControlGroupList {
+		instance := map[string]interface{}{
+			"id":                      *r.AccessControlGroupNo,
+			"access_control_group_no": *r.AccessControlGroupNo,
+			"name":                    *r.AccessControlGroupName,
+			"description":             *r.AccessControlGroupDescription,
+			"is_default":              *r.IsDefault,
+			"vpc_no":                  *r.VpcNo,
+			"status":                  *r.AccessControlGroupStatus.Code,
+		}
+
+		resources = append(resources, instance)
+	}
+
+	return resources, nil
+}
+
+func getClassicAccessControlGroupList(d *schema.ResourceData, config *ProviderConfig) ([]map[string]interface{}, error) {
+	client := config.Client
+
+	reqParams := server.GetAccessControlGroupListRequest{
+		AccessControlGroupName: StringPtrOrNil(d.GetOk("name")),
+	}
+
+	if v, ok := d.GetOk("access_control_group_no"); ok {
+		reqParams.AccessControlGroupConfigurationNoList = expandStringInterfaceList(v.([]interface{}))
+	} else if v, ok := d.GetOk("configuration_no"); ok {
+		reqParams.AccessControlGroupConfigurationNoList = expandStringInterfaceList(v.([]interface{}))
+	}
+
+	if v, ok := d.GetOk("is_default"); ok {
+		reqParams.IsDefault = ncloud.Bool(v.(bool))
+	} else if v, ok := d.GetOk("is_default_group"); ok {
+		reqParams.IsDefault = ncloud.Bool(v.(bool))
+	}
+
 	reqParams.PageNo = ncloud.Int32(1)
 
-	logCommonRequest("GetAccessControlGroupList", reqParams)
+	logCommonRequest("getClassicAccessControlGroupList", reqParams)
 
 	resp, err := client.server.V2Api.GetAccessControlGroupList(&reqParams)
 	if err != nil {
-		logErrorResponse("GetAccessControlGroupList", err, reqParams)
-		return err
+		logErrorResponse("getClassicAccessControlGroupList", err, reqParams)
+		return nil, err
 	}
-	logCommonResponse("GetAccessControlGroupList", GetCommonResponse(resp))
+	logResponse("getClassicAccessControlGroupList", resp)
 
-	var accessControlGroup *server.AccessControlGroup
-	var accessControlGroups []*server.AccessControlGroup
+	var resources []map[string]interface{}
+	for _, r := range resp.AccessControlGroupList {
+		instance := map[string]interface{}{
+			"id":                      *r.AccessControlGroupConfigurationNo,
+			"access_control_group_no": *r.AccessControlGroupConfigurationNo,
+			"name":                    *r.AccessControlGroupName,
+			"description":             *r.AccessControlGroupDescription,
+			"configuration_no":        *r.AccessControlGroupConfigurationNo, // To deprecated
+		}
 
-	for _, acg := range resp.AccessControlGroupList {
-		accessControlGroups = append(accessControlGroups, acg)
+		if r.IsDefaultGroup != nil {
+			instance["is_default"] = *r.IsDefaultGroup
+			instance["is_default_group"] = *r.IsDefaultGroup // To deprecated
+		}
+
+		resources = append(resources, instance)
 	}
 
-	if err := validateOneResult(len(accessControlGroups)); err != nil {
-		return err
-	}
-	accessControlGroup = accessControlGroups[0]
-	return accessControlGroupAttributes(d, accessControlGroup)
-}
-
-func accessControlGroupAttributes(d *schema.ResourceData, accessControlGroup *server.AccessControlGroup) error {
-	d.SetId(*accessControlGroup.AccessControlGroupConfigurationNo)
-	d.Set("configuration_no", accessControlGroup.AccessControlGroupConfigurationNo)
-	d.Set("name", accessControlGroup.AccessControlGroupName)
-	d.Set("description", accessControlGroup.AccessControlGroupDescription)
-	d.Set("is_default_group", accessControlGroup.IsDefaultGroup)
-
-	return nil
+	return resources, nil
 }

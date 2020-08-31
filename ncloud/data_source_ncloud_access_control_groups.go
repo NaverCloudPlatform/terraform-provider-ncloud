@@ -2,10 +2,6 @@ package ncloud
 
 import (
 	"fmt"
-	"time"
-
-	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/ncloud"
-	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/services/server"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
@@ -22,9 +18,16 @@ func dataSourceNcloudAccessControlGroups() *schema.Resource {
 				Description: "List of ACG configuration numbers you want to get",
 			},
 			"is_default_group": {
-				Type:        schema.TypeBool,
-				Optional:    true,
-				Description: "Indicates whether to get default groups only",
+				Type:          schema.TypeBool,
+				Optional:      true,
+				Deprecated:    "use 'is_default' instead",
+				ConflictsWith: []string{"is_default"},
+			},
+			"is_default": {
+				Type:          schema.TypeBool,
+				Optional:      true,
+				Computed:      true,
+				ConflictsWith: []string{"is_default_group"},
 			},
 			"name": {
 				Type:        schema.TypeString,
@@ -46,65 +49,40 @@ func dataSourceNcloudAccessControlGroups() *schema.Resource {
 }
 
 func dataSourceNcloudAccessControlGroupsRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ProviderConfig).Client
+	config := meta.(*ProviderConfig)
+	var resources []map[string]interface{}
+	var err error
 
-	d.SetId(time.Now().UTC().String())
-
-	reqParams := &server.GetAccessControlGroupListRequest{}
-	var paramAccessControlGroupConfigurationNoList []*string
-	if param, ok := d.GetOk("configuration_no_list"); ok {
-		paramAccessControlGroupConfigurationNoList = expandStringInterfaceList(param.([]interface{}))
+	if config.SupportVPC {
+		resources, err = getVpcAccessControlGroupList(d, config)
+	} else {
+		resources, err = getClassicAccessControlGroupList(d, config)
 	}
 
-	reqParams.AccessControlGroupConfigurationNoList = paramAccessControlGroupConfigurationNoList
-
-	if accessControlGroupName, ok := d.GetOk("name"); ok {
-		reqParams.AccessControlGroupName = ncloud.String(accessControlGroupName.(string))
-	}
-
-	if isDefaultGroup, ok := d.GetOk("is_default_group"); ok {
-		reqParams.IsDefault = ncloud.Bool(isDefaultGroup.(bool))
-	}
-
-	resp, err := getAccessControlGroupList(client, reqParams)
 	if err != nil {
 		return err
 	}
-	var accessControlGroups []*server.AccessControlGroup
 
-	for _, group := range resp.AccessControlGroupList {
-		accessControlGroups = append(accessControlGroups, group)
+	if f, ok := d.GetOk("filter"); ok {
+		resources = ApplyFilters(f.(*schema.Set), resources, dataSourceNcloudMemberServerImage().Schema)
 	}
 
-	if len(accessControlGroups) < 1 {
+	if len(resources) < 1 {
 		return fmt.Errorf("no results. please change search criteria and try again")
 	}
 
-	return accessControlGroupsAttributes(d, accessControlGroups)
+	return accessControlGroupsAttributes(d, resources)
 }
 
-func getAccessControlGroupList(client *NcloudAPIClient, reqParams *server.GetAccessControlGroupListRequest) (*server.GetAccessControlGroupListResponse, error) {
-	logCommonRequest("GetAccessControlGroupList", reqParams)
-	resp, err := client.server.V2Api.GetAccessControlGroupList(reqParams)
-	if err != nil {
-		logErrorResponse("GetAccessControlGroupList", err, reqParams)
-		return nil, err
-	}
-	logCommonResponse("GetAccessControlGroupList", GetCommonResponse(resp))
-	return resp, nil
-}
-
-func accessControlGroupsAttributes(d *schema.ResourceData, accessControlGroups []*server.AccessControlGroup) error {
+func accessControlGroupsAttributes(d *schema.ResourceData, accessControlGroups []map[string]interface{}) error {
 	var ids []string
 
-	for _, accessControlGroup := range accessControlGroups {
-		ids = append(ids, ncloud.StringValue(accessControlGroup.AccessControlGroupConfigurationNo))
+	for _, r := range accessControlGroups {
+		ids = append(ids, r["id"].(string))
 	}
 
 	d.SetId(dataResourceIdHash(ids))
-	if err := d.Set("access_control_groups", flattenAccessControlGroups(accessControlGroups)); err != nil {
-		return err
-	}
+	d.Set("access_control_groups", ids)
 
 	// create a json file in current directory and write d source to it.
 	if output, ok := d.GetOk("output_file"); ok && output.(string) != "" {
