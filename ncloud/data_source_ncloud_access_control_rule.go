@@ -99,12 +99,12 @@ func dataSourceNcloudAccessControlRuleRead(d *schema.ResourceData, meta interfac
 		if isDefaultGroupOk {
 			reqParams.IsDefault = ncloud.Bool(isDefaultGroup.(bool))
 		}
-		acgResp, err := getAccessControlGroupList(client, reqParams)
+		acgResp, err := getClassicAccessControlGroupList(d, meta.(*ProviderConfig))
 		if err != nil {
 			return err
 		}
-		for _, acg := range acgResp.AccessControlGroupList {
-			resp, err := getAccessControlRuleList(client, ncloud.StringValue(acg.AccessControlGroupConfigurationNo))
+		for _, acg := range acgResp {
+			resp, err := getAccessControlRuleList(client, acg["access_control_group_no"].(string))
 			if err != nil {
 				return err
 			}
