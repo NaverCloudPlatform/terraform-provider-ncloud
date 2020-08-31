@@ -24,7 +24,7 @@ func resourceNcloudNetworkACLRule() *schema.Resource {
 			State: func(d *schema.ResourceData, meta interface{}) ([]*schema.ResourceData, error) {
 				idParts := strings.Split(d.Id(), ":")
 				if len(idParts) != 3 || idParts[0] == "" || idParts[1] == "" || idParts[2] == "" {
-					return nil, fmt.Errorf("unexpected format of ID (%q), expected NETWORK_ACL_NO:NETWORK_RULE_TYPE:PRIORITY", d.Id())
+					return nil, fmt.Errorf("unexpected format of ID (%q), expected NETWORK_ACL_NO:RULE_TYPE:PRIORITY", d.Id())
 				}
 				networkACLNo := idParts[0]
 				networkRuleType := idParts[1]
@@ -35,7 +35,7 @@ func resourceNcloudNetworkACLRule() *schema.Resource {
 
 				d.Set("network_acl_no", networkACLNo)
 				d.Set("priority", priority)
-				d.Set("network_rule_type", networkRuleType)
+				d.Set("rule_type", networkRuleType)
 				d.SetId(networkACLIdRuleHash(networkACLNo, networkRuleType, priority))
 				return []*schema.ResourceData{d}, nil
 			},
@@ -82,7 +82,7 @@ func resourceNcloudNetworkACLRule() *schema.Resource {
 				ValidateFunc: validation.IsCIDRNetwork(0, 32),
 				Description:  "The network range to allow or block, in CIDR notation (e.g. \"100.10.20.0/24\")",
 			},
-			"network_rule_type": {
+			"rule_type": {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
@@ -117,7 +117,7 @@ func resourceNcloudNetworkACLRuleCreate(d *schema.ResourceData, meta interface{}
 		networkACLRule.NetworkAclRuleDescription = ncloud.String(v.(string))
 	}
 
-	if d.Get("network_rule_type").(string) == "INBND" {
+	if d.Get("rule_type").(string) == "INBND" {
 		reqParams := &vpc.AddNetworkAclInboundRuleRequest{
 			RegionCode:         &config.RegionCode,
 			NetworkAclNo:       ncloud.String(d.Get("network_acl_no").(string)),
@@ -149,7 +149,7 @@ func resourceNcloudNetworkACLRuleCreate(d *schema.ResourceData, meta interface{}
 		logResponse("resource_ncloud_network_acl_rule > AddNetworkAclOutboundRule", resp)
 	}
 
-	d.SetId(networkACLIdRuleHash(d.Get("network_acl_no").(string), d.Get("network_rule_type").(string), d.Get("priority").(int)))
+	d.SetId(networkACLIdRuleHash(d.Get("network_acl_no").(string), d.Get("rule_type").(string), d.Get("priority").(int)))
 
 	log.Printf("[INFO] Network ACL Rule ID: %s", d.Id())
 
@@ -177,7 +177,7 @@ func resourceNcloudNetworkACLRuleRead(d *schema.ResourceData, meta interface{}) 
 	d.Set("port_range", instance.PortRange)
 	d.Set("rule_action", instance.RuleAction.Code)
 	d.Set("ip_block", instance.IpBlock)
-	d.Set("network_rule_type", instance.NetworkAclRuleType.Code)
+	d.Set("rule_type", instance.NetworkAclRuleType.Code)
 	d.Set("description", instance.NetworkAclRuleDescription)
 
 	return nil
@@ -198,7 +198,7 @@ func resourceNcloudNetworkACLRuleDelete(d *schema.ResourceData, meta interface{}
 		ProtocolTypeCode: ncloud.String(d.Get("protocol").(string)),
 	}
 
-	if d.Get("network_rule_type").(string) == "INBND" {
+	if d.Get("rule_type").(string) == "INBND" {
 		reqParams := &vpc.RemoveNetworkAclInboundRuleRequest{
 			RegionCode:         &config.RegionCode,
 			NetworkAclNo:       ncloud.String(d.Get("network_acl_no").(string)),
@@ -237,7 +237,7 @@ func getNetworkACLRuleInstance(d *schema.ResourceData, config *ProviderConfig) (
 	reqParams := &vpc.GetNetworkAclRuleListRequest{
 		RegionCode:             &config.RegionCode,
 		NetworkAclNo:           ncloud.String(d.Get("network_acl_no").(string)),
-		NetworkAclRuleTypeCode: ncloud.String(d.Get("network_rule_type").(string)),
+		NetworkAclRuleTypeCode: ncloud.String(d.Get("rule_type").(string)),
 	}
 
 	logCommonRequest("resource_ncloud_network_acl_rule > GetNetworkAclRuleList", reqParams)

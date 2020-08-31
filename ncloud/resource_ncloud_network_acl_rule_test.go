@@ -90,7 +90,7 @@ resource "ncloud_network_acl_rule" "nacl_rule_inbound_100" {
 	rule_action       = "ALLOW"
 	port_range        = "22"
 	ip_block          = "0.0.0.0/0"
-	network_rule_type = "INBND"
+	rule_type         = "INBND"
 	description       = "%[1]s"
 }
 
@@ -101,7 +101,7 @@ resource "ncloud_network_acl_rule" "nacl_rule_inbound_110" {
 	rule_action       = "ALLOW"
 	port_range        = "80"
 	ip_block          = "0.0.0.0/0"
-	network_rule_type = "INBND"
+	rule_type         = "INBND"
 	description       = "tf-testacc-network-acl-rule"
 }
 
@@ -112,7 +112,7 @@ resource "ncloud_network_acl_rule" "nacl_rule_inbound_120" {
 	rule_action       = "ALLOW"
 	port_range        = "443"
 	ip_block          = "0.0.0.0/0"
-	network_rule_type = "INBND"
+	rule_type         = "INBND"
 	description       = "tf-testacc-network-acl-rule"
 }
 
@@ -123,7 +123,7 @@ resource "ncloud_network_acl_rule" "nacl_rule_outbound_100" {
 	rule_action       = "ALLOW"
 	port_range        = "1-65535"
 	ip_block          = "0.0.0.0/0"
-	network_rule_type = "OTBND"
+	rule_type         = "OTBND"
 	description       = "tf-testacc-network-acl-rule"
 }`, name)
 }
@@ -148,7 +148,7 @@ resource "ncloud_network_acl_rule" "test" {
 	rule_action       = "ALLOW"
 	port_range        = "22"
 	ip_block          = "0.0.0.0/0"
-	network_rule_type = "INBND"
+	rule_type         = "INBND"
 	description       = "%[1]s"
 }`, name)
 }
@@ -171,7 +171,7 @@ func testAccCheckNetworkACLRuleExists(n string, networkACLRule *vpc.NetworkAclRu
 			return err
 		}
 
-		networkRuleType := ncloud.String(rs.Primary.Attributes["network_rule_type"])
+		networkRuleType := ncloud.String(rs.Primary.Attributes["rule_type"])
 
 		reqParams := &vpc.GetNetworkAclRuleListRequest{
 			RegionCode:             &config.RegionCode,
@@ -203,7 +203,7 @@ func testAccNcloudNetworkACLRuleImportStateIDFunc(resourceName string) resource.
 			return "", fmt.Errorf("not found: %s", resourceName)
 		}
 		networkACLNo := rs.Primary.Attributes["network_acl_no"]
-		networkRuleType := rs.Primary.Attributes["network_rule_type"]
+		networkRuleType := rs.Primary.Attributes["rule_type"]
 		priority := rs.Primary.Attributes["priority"]
 
 		return fmt.Sprintf("%s:%s:%s", networkACLNo, networkRuleType, priority), nil
@@ -233,7 +233,7 @@ func testAccCheckNetworkACLRuleDestroy(s *terraform.State) error {
 			return err
 		}
 
-		networkRuleType := ncloud.String(rs.Primary.Attributes["network_rule_type"])
+		networkRuleType := ncloud.String(rs.Primary.Attributes["rule_type"])
 
 		reqParams := &vpc.GetNetworkAclRuleListRequest{
 			RegionCode:             &config.RegionCode,
