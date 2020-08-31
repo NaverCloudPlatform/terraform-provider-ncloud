@@ -21,6 +21,8 @@ const (
 	ApiErrorPreviousServersHaveNotBeenEntirelyTerminated = "23003"
 
 	ApiErrorDetachingMountedStorage = "24002"
+
+	ApiErrorAcgCantChangeSameTime = "1007009"
 )
 
 const (
@@ -70,4 +72,34 @@ func isRetryableErr(commResp *CommonResponse, code []string) bool {
 	}
 
 	return false
+}
+
+//GetCommonErrorBody parse common error message
+func GetCommonErrorBody(err error) (*ResponseError, error) {
+	sa := strings.Split(err.Error(), "Body: ")
+	var errMsg string
+
+	if len(sa) != 2 {
+		return nil, fmt.Errorf("error body is incorrect: %s", err)
+	}
+
+	errMsg = sa[1]
+
+	var m map[string]interface{}
+	if err := json.Unmarshal([]byte(errMsg), &m); err != nil {
+		return nil, err
+	}
+
+	e := m["responseError"].(map[string]string)
+
+	return &ResponseError{
+		ReturnCode:    e["returnCode"],
+		ReturnMessage: e["returnMessage"],
+	}, nil
+}
+
+//ResponseError response error body
+type ResponseError struct {
+	ReturnCode    string
+	ReturnMessage string
 }
