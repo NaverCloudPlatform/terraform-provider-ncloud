@@ -96,6 +96,8 @@ func Provider() terraform.ResourceProvider {
 			"ncloud_placement_group":               resourceNcloudPlacementGroup(),
 			"ncloud_init_script":                   resourceNcloudInitScript(),
 			"ncloud_network_interface":             resourceNcloudNetworkInterface(),
+			"ncloud_access_control_group":          resourceNcloudAccessControlGroup(),
+			"ncloud_access_control_group_rule":     resourceNcloudAccessControlGroupRule(),
 		},
 		ConfigureFunc: providerConfigure,
 	}
