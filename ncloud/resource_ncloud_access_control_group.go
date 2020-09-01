@@ -115,7 +115,7 @@ func getAccessControlGroup(config *ProviderConfig, id string) (*vserver.AccessCo
 		return getVpcAccessControlGroup(config, id)
 	}
 
-	return nil, NotSupportClassic("Access Control Group")
+	return nil, NotSupportClassic("resource `ncloud_access_control_group`")
 }
 
 func getVpcAccessControlGroup(config *ProviderConfig, id string) (*vserver.AccessControlGroup, error) {
@@ -144,7 +144,7 @@ func createAccessControlGroup(d *schema.ResourceData, config *ProviderConfig) (*
 		return createVpcAccessControlGroup(d, config)
 	}
 
-	return nil, NotSupportClassic("Access Control Group")
+	return nil, NotSupportClassic("resource `ncloud_access_control_group`")
 }
 
 func createVpcAccessControlGroup(d *schema.ResourceData, config *ProviderConfig) (*vserver.AccessControlGroup, error) {
@@ -171,7 +171,7 @@ func deleteAccessControlGroup(config *ProviderConfig, id string) error {
 		return deleteVpcAccessControlGroup(config, id)
 	}
 
-	return NotSupportClassic("Access Control Group")
+	return NotSupportClassic("resource `ncloud_access_control_group`")
 }
 
 func deleteVpcAccessControlGroup(config *ProviderConfig, id string) error {
