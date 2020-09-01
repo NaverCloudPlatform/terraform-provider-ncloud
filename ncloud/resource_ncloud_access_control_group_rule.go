@@ -194,7 +194,7 @@ func resourceNcloudAccessControlGroupRuleDelete(d *schema.ResourceData, meta int
 			return err
 		}
 	} else {
-		return NotSupportClassic("Access Control Group")
+		return NotSupportClassic("resource `ncloud_access_control_group_rule`")
 	}
 
 	return nil
@@ -205,7 +205,7 @@ func getAccessControlGroupRule(config *ProviderConfig, rule *AccessControlGroupR
 		return getVpcAccessControlGroupRule(config, rule)
 	}
 
-	return nil, NotSupportClassic("Access Control Group")
+	return nil, NotSupportClassic("resource `ncloud_access_control_group_rule`")
 }
 
 func getVpcAccessControlGroupRule(config *ProviderConfig, rule *AccessControlGroupRuleParam) (*vserver.AccessControlGroupRule, error) {
@@ -243,7 +243,7 @@ func createAccessControlGroupRule(d *schema.ResourceData, config *ProviderConfig
 		return createVpcAccessControlGroupRule(d, config)
 	}
 
-	return nil, NotSupportClassic("Access Control Group")
+	return nil, NotSupportClassic("resource `ncloud_access_control_group_rule`")
 }
 
 func createVpcAccessControlGroupRule(d *schema.ResourceData, config *ProviderConfig) (*vserver.AccessControlGroupRule, error) {
@@ -329,7 +329,7 @@ func deleteAccessControlGroupRule(d *schema.ResourceData, config *ProviderConfig
 		return deleteVpcAccessControlGroupRule(d, config, rule)
 	}
 
-	return NotSupportClassic("Access Control Group")
+	return NotSupportClassic("resource `ncloud_access_control_group_rule`")
 }
 
 func deleteVpcAccessControlGroupRule(d *schema.ResourceData, config *ProviderConfig, rule *AccessControlGroupRuleParam) error {
