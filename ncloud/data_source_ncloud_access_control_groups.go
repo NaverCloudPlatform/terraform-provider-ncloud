@@ -64,7 +64,7 @@ func dataSourceNcloudAccessControlGroupsRead(d *schema.ResourceData, meta interf
 	}
 
 	if f, ok := d.GetOk("filter"); ok {
-		resources = ApplyFilters(f.(*schema.Set), resources, dataSourceNcloudMemberServerImage().Schema)
+		resources = ApplyFilters(f.(*schema.Set), resources, dataSourceNcloudAccessControlGroups().Schema)
 	}
 
 	if len(resources) < 1 {
