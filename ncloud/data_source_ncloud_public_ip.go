@@ -13,120 +13,131 @@ func dataSourceNcloudPublicIp() *schema.Resource {
 		Read: dataSourceNcloudPublicIpRead,
 
 		Schema: map[string]*schema.Schema{
-			"instance_no_list": {
-				Type:        schema.TypeList,
-				Optional:    true,
-				Elem:        &schema.Schema{Type: schema.TypeString},
-				Description: "List of public IP instance numbers to get.",
+			"public_ip_no": {
+				Type:     schema.TypeString,
+				Optional: true,
+				Computed: true,
 			},
 			"internet_line_type": {
 				Type:         schema.TypeString,
 				Computed:     true,
 				Optional:     true,
 				ValidateFunc: validation.StringInSlice([]string{"PUBLC", "GLBL"}, false),
-				Description:  "Internet line type code. `PUBLC` (Public), `GLBL` (Global)",
 			},
 			"is_associated": {
-				Type:        schema.TypeBool,
-				Optional:    true,
-				Description: "Indicates whether the public IP address is associated or not.",
-			},
-			"list": {
-				Type:        schema.TypeList,
-				Optional:    true,
-				Elem:        &schema.Schema{Type: schema.TypeString},
-				Description: "List of public IP addresses to get.",
-			},
-			"search_filter_name": {
-				Type:        schema.TypeString,
-				Optional:    true,
-				Deprecated:  "use filter instead",
-				Description: "`publicIp` (Public IP) | `associatedServerName` (Associated server name)",
-			},
-			"search_filter_value": {
-				Type:        schema.TypeString,
-				Optional:    true,
-				Deprecated:  "use filter instead",
-				Description: "Filter value to search",
-			},
-			"region": {
-				Type:        schema.TypeString,
-				Optional:    true,
-				Deprecated:  "use region attribute of provider instead",
-				Description: "Region code. Get available values using the `data ncloud_regions`.",
+				Type:     schema.TypeBool,
+				Optional: true,
 			},
 			"zone": {
-				Type:        schema.TypeString,
-				Optional:    true,
-				Description: "Zone code. You can filter the list of public IP instances by zones. All the public IP addresses in the zone of the region will be selected if the filter is not specified.",
-			},
-			"sorted_by": {
-				Type:        schema.TypeString,
-				Optional:    true,
-				Deprecated:  "This attribute no longer support",
-				Description: "The column based on which you want to sort the list.",
-			},
-			"sorting_order": {
-				Type:        schema.TypeString,
-				Optional:    true,
-				Deprecated:  "This attribute no longer support",
-				Description: "Sorting order of the list. `ascending` (Ascending) | `descending` (Descending) [case insensitive]. Default: `ascending` Ascending",
+				Type:     schema.TypeString,
+				Optional: true,
+				Computed: true,
 			},
 			"filter": dataSourceFiltersSchema(),
 
-			"instance_no": {
-				Type:        schema.TypeString,
-				Computed:    true,
-				Description: "Public IP instance number",
-			},
 			"public_ip": {
-				Type:        schema.TypeString,
-				Computed:    true,
-				Description: "Public IP",
+				Type:     schema.TypeString,
+				Computed: true,
 			},
 			"description": {
-				Type:        schema.TypeString,
-				Computed:    true,
-				Description: "Public IP description",
+				Type:     schema.TypeString,
+				Computed: true,
 			},
-			"instance_status_name": {
-				Type:        schema.TypeString,
-				Computed:    true,
-				Description: "Public IP instance status name",
+			"status_name": {
+				Type:     schema.TypeString,
+				Computed: true,
 			},
-			"instance_status": {
-				Type:        schema.TypeString,
-				Computed:    true,
-				Description: "Public IP instance status",
-			},
-			"instance_operation": {
-				Type:        schema.TypeString,
-				Computed:    true,
-				Description: "Public IP instance operation",
+			"status": {
+				Type:     schema.TypeString,
+				Computed: true,
 			},
 			"kind_type": {
-				Type:        schema.TypeString,
-				Computed:    true,
-				Description: "Public IP kind type",
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+			"server_instance_no": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+			"server_name": {
+				Type:     schema.TypeString,
+				Computed: true,
 			},
 			"server_instance": {
-				Type:        schema.TypeMap,
-				Computed:    true,
-				Description: "Associated server instance",
+				Type:       schema.TypeMap,
+				Computed:   true,
+				Deprecated: "use 'server_instance_no' instead",
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"server_instance_no": {
-							Type:        schema.TypeString,
-							Computed:    true,
-							Description: "Associated server instance number",
+							Type:       schema.TypeString,
+							Computed:   true,
+							Deprecated: "use 'server_instance_no' instead",
 						},
 						"server_name": {
-							Type:        schema.TypeString,
-							Computed:    true,
-							Description: "Associated server name",
+							Type:       schema.TypeString,
+							Computed:   true,
+							Deprecated: "This field no longer support",
 						},
 					},
 				},
+			},
+			"search_filter_name": {
+				Type:       schema.TypeString,
+				Optional:   true,
+				Deprecated: "use 'filter' instead",
+			},
+			"search_filter_value": {
+				Type:       schema.TypeString,
+				Optional:   true,
+				Deprecated: "use 'filter' instead",
+			},
+			"region": {
+				Type:       schema.TypeString,
+				Optional:   true,
+				Deprecated: "use region attribute of provider instead",
+			},
+			"sorted_by": {
+				Type:       schema.TypeString,
+				Optional:   true,
+				Deprecated: "This attribute no longer support",
+			},
+			"sorting_order": {
+				Type:       schema.TypeString,
+				Optional:   true,
+				Deprecated: "This attribute no longer support",
+			},
+			"instance_no": {
+				Type:       schema.TypeString,
+				Computed:   true,
+				Deprecated: "Use 'public_ip_no' instead",
+			},
+			"instance_status_name": {
+				Type:       schema.TypeString,
+				Computed:   true,
+				Deprecated: "Use 'status_name' instead",
+			},
+			"instance_status": {
+				Type:       schema.TypeString,
+				Computed:   true,
+				Deprecated: "Use 'status' instead",
+			},
+			"instance_operation": {
+				Type:       schema.TypeString,
+				Computed:   true,
+				Deprecated: "Use 'operation' instead",
+			},
+			"list": {
+				Type:       schema.TypeList,
+				Optional:   true,
+				Elem:       &schema.Schema{Type: schema.TypeString},
+				Deprecated: "use 'filter' instead",
+			},
+			"instance_no_list": {
+				Type:       schema.TypeList,
+				Optional:   true,
+				Elem:       &schema.Schema{Type: schema.TypeString},
+				Deprecated: "use 'filter' instead",
 			},
 		},
 	}
@@ -175,12 +186,8 @@ func getClassicPublicIpList(d *schema.ResourceData, config *ProviderConfig) ([]m
 		reqParams.IsAssociated = ncloud.Bool(isAssociated.(bool))
 	}
 
-	if instanceNoList, ok := d.GetOk("instance_no_list"); ok {
-		reqParams.PublicIpInstanceNoList = expandStringInterfaceList(instanceNoList.([]interface{}))
-	}
-
-	if publicIPList, ok := d.GetOk("list"); ok {
-		reqParams.PublicIpList = expandStringInterfaceList(publicIPList.([]interface{}))
+	if v, ok := d.GetOk("public_ip_no"); ok {
+		reqParams.PublicIpInstanceNoList = []*string{ncloud.String(v.(string))}
 	}
 
 	logCommonRequest("getClassicPublicIpList", reqParams)
@@ -208,22 +215,27 @@ func getClassicPublicIpList(d *schema.ResourceData, config *ProviderConfig) ([]m
 		}
 
 		if m := flattenCommonCode(r.PublicIpInstanceStatus); m["code"] != nil {
-			instance["instance_status"] = m["code"]
+			instance["status"] = m["code"]
+			instance["instance_status"] = m["code"] // Deprecated
 		}
 
 		if m := flattenCommonCode(r.PublicIpInstanceOperation); m["code"] != nil {
-			instance["instance_operation"] = m["code"]
+			instance["instance_operation"] = m["code"] // Deprecated
 		}
 
 		if m := flattenCommonCode(r.PublicIpKindType); m["code"] != nil {
 			instance["kind_type"] = m["code"]
 		}
 
-		if m := flattenCommonCode(r.Zone); m["code"] != nil {
-			instance["zone"] = m["code"]
+		if m := flattenZone(r.Zone); m["zone_code"] != nil {
+			instance["zone"] = m["zone_code"]
 		}
 
 		if serverInstance := r.ServerInstanceAssociatedWithPublicIp; serverInstance != nil {
+			SetStringIfNotNilAndEmpty(instance, "server_instance_no", serverInstance.ServerInstanceNo)
+			SetStringIfNotNilAndEmpty(instance, "server_name", serverInstance.ServerName)
+
+			// Deprecated
 			mapping := map[string]interface{}{
 				"server_instance_no": ncloud.StringValue(serverInstance.ServerInstanceNo),
 				"server_name":        ncloud.StringValue(serverInstance.ServerName),
@@ -246,12 +258,12 @@ func getVpcPublicIpList(d *schema.ResourceData, config *ProviderConfig) ([]map[s
 		RegionCode: &regionCode,
 	}
 
-	if isAssociated, ok := d.GetOk("is_associated"); ok {
-		reqParams.IsAssociated = ncloud.Bool(isAssociated.(bool))
+	if v, ok := d.GetOk("is_associated"); ok {
+		reqParams.IsAssociated = ncloud.Bool(v.(bool))
 	}
 
-	if instanceNoList, ok := d.GetOk("instance_no_list"); ok {
-		reqParams.PublicIpInstanceNoList = expandStringInterfaceList(instanceNoList.([]interface{}))
+	if v, ok := d.GetOk("public_ip_no"); ok {
+		reqParams.PublicIpInstanceNoList = []*string{ncloud.String(v.(string))}
 	}
 
 	logCommonRequest("getVpcPublicIpList", reqParams)
@@ -267,28 +279,17 @@ func getVpcPublicIpList(d *schema.ResourceData, config *ProviderConfig) ([]map[s
 
 	for _, r := range resp.PublicIpInstanceList {
 		instance := map[string]interface{}{
-			"id":                   *r.PublicIpInstanceNo,
-			"instance_no":          *r.PublicIpInstanceNo,
-			"public_ip":            *r.PublicIp,
-			"description":          *r.PublicIpDescription,
-			"instance_status_name": *r.PublicIpInstanceStatusName,
+			"id":           *r.PublicIpInstanceNo,
+			"public_ip_no": *r.PublicIpInstanceNo,
+			"public_ip":    *r.PublicIp,
+			"description":  *r.PublicIpDescription,
 		}
+
+		SetStringIfNotNilAndEmpty(instance, "server_instance_no", r.ServerInstanceNo)
+		SetStringIfNotNilAndEmpty(instance, "server_name", r.ServerName)
 
 		if m := flattenCommonCode(r.PublicIpInstanceStatus); m["code"] != nil {
-			instance["instance_status"] = m["code"]
-		}
-
-		if m := flattenCommonCode(r.PublicIpInstanceOperation); m["code"] != nil {
-			instance["instance_operation"] = m["code"]
-		}
-
-		if r.ServerInstanceNo != nil && r.ServerName != nil {
-			mapping := map[string]interface{}{
-				"server_instance_no": ncloud.StringValue(r.ServerInstanceNo),
-				"server_name":        ncloud.StringValue(r.ServerName),
-			}
-
-			instance["server_instance"] = mapping
+			instance["status"] = m["code"]
 		}
 
 		resources = append(resources, instance)
