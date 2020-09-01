@@ -149,7 +149,7 @@ func resourceNcloudAccessControlGroupRuleCreate(d *schema.ResourceData, meta int
 func resourceNcloudAccessControlGroupRuleRead(d *schema.ResourceData, meta interface{}) error {
 	config := meta.(*ProviderConfig)
 
-	param := convAccessControlGroupRuleParam(d)
+	param := buildAccessControlGroupRuleParam(d)
 	instance, err := getAccessControlGroupRule(config, param)
 	if err != nil {
 		d.SetId("")
@@ -189,7 +189,7 @@ func resourceNcloudAccessControlGroupRuleDelete(d *schema.ResourceData, meta int
 	config := meta.(*ProviderConfig)
 
 	if config.SupportVPC {
-		rule := convAccessControlGroupRuleParam(d)
+		rule := buildAccessControlGroupRuleParam(d)
 		if err := deleteAccessControlGroupRule(d, config, rule); err != nil {
 			return err
 		}
@@ -417,7 +417,7 @@ func accessControlGroupRuleHash(rule *AccessControlGroupRuleParam) string {
 	return fmt.Sprintf("acgr-%d", hashcode.String(buf.String()))
 }
 
-func convAccessControlGroupRuleParam(d *schema.ResourceData) *AccessControlGroupRuleParam {
+func buildAccessControlGroupRuleParam(d *schema.ResourceData) *AccessControlGroupRuleParam {
 	return &AccessControlGroupRuleParam{
 		AccessControlGroupNo:     d.Get("access_control_group_no").(string),
 		RuleType:                 d.Get("rule_type").(string),
