@@ -1,7 +1,10 @@
 package ncloud
 
 import (
+	"encoding/json"
+	"fmt"
 	"reflect"
+	"strings"
 
 	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/ncloud"
 )
@@ -45,6 +48,30 @@ func GetCommonResponse(i interface{}) *CommonResponse {
 		ReturnCode:    returnCode,
 		ReturnMessage: returnMessage,
 	}
+}
+
+//GetCommonErrorBody parse common error message
+func GetCommonErrorBody(err error) (*CommonError, error) {
+	sa := strings.Split(err.Error(), "Body: ")
+	var errMsg string
+
+	if len(sa) != 2 {
+		return nil, fmt.Errorf("error body is incorrect: %s", err)
+	}
+
+	errMsg = sa[1]
+
+	var m map[string]interface{}
+	if err := json.Unmarshal([]byte(errMsg), &m); err != nil {
+		return nil, err
+	}
+
+	e := m["responseError"].(map[string]interface{})
+
+	return &CommonError{
+		ReturnCode:    e["returnCode"].(string),
+		ReturnMessage: e["returnMessage"].(string),
+	}, nil
 }
 
 func GetRegion(i interface{}) *Region {

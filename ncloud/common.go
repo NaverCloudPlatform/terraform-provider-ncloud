@@ -44,6 +44,12 @@ type CommonCode struct {
 	CodeName *string `json:"codeName,omitempty"`
 }
 
+//CommonError response error body
+type CommonError struct {
+	ReturnCode    string
+	ReturnMessage string
+}
+
 func logErrorResponse(tag string, err error, args interface{}) {
 	param, _ := json.Marshal(args)
 	log.Printf("[ERROR] %s error params=%s, err=%s", tag, param, err)
@@ -72,34 +78,4 @@ func isRetryableErr(commResp *CommonResponse, code []string) bool {
 	}
 
 	return false
-}
-
-//GetCommonErrorBody parse common error message
-func GetCommonErrorBody(err error) (*ResponseError, error) {
-	sa := strings.Split(err.Error(), "Body: ")
-	var errMsg string
-
-	if len(sa) != 2 {
-		return nil, fmt.Errorf("error body is incorrect: %s", err)
-	}
-
-	errMsg = sa[1]
-
-	var m map[string]interface{}
-	if err := json.Unmarshal([]byte(errMsg), &m); err != nil {
-		return nil, err
-	}
-
-	e := m["responseError"].(map[string]interface{})
-
-	return &ResponseError{
-		ReturnCode:    e["returnCode"].(string),
-		ReturnMessage: e["returnMessage"].(string),
-	}, nil
-}
-
-//ResponseError response error body
-type ResponseError struct {
-	ReturnCode    string
-	ReturnMessage string
 }
