@@ -8,18 +8,27 @@ import (
 )
 
 func TestAccDataSourceNcloudPublicIpBasic(t *testing.T) {
+	resourceName := "ncloud_public_ip.public_ip"
+	dataName := "data.ncloud_public_ip.test"
+
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:  func() { testAccPreCheck(t) },
 		Providers: testAccProviders,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccDataSourceNcloudPublicIpConfig,
-				SkipFunc: func() (bool, error) {
-					return skipNoResultsTest, nil
-				},
-				ExpectError: regexp.MustCompile("no results"),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckDataSourceID("data.ncloud_public_ip.test"),
+					testAccCheckDataSourceID(dataName),
+					resource.TestCheckResourceAttrPair(dataName, "description", resourceName, "description"),
+					resource.TestCheckResourceAttrPair(dataName, "public_ip", resourceName, "public_ip"),
+					resource.TestCheckResourceAttrPair(dataName, "status", resourceName, "status"),
+					resource.TestCheckResourceAttrPair(dataName, "server_instance_no", resourceName, "server_instance_no"),
+					resource.TestCheckResourceAttrPair(dataName, "server_name", resourceName, "server_name"),
+
+					// Classic only
+					resource.TestCheckResourceAttrPair(dataName, "zone", resourceName, "zone"),
+					resource.TestCheckResourceAttrPair(dataName, "internet_line_type", resourceName, "internet_line_type"),
+					resource.TestCheckResourceAttrPair(dataName, "kind_type", resourceName, "kind_type"),
 				),
 			},
 		},
@@ -69,7 +78,10 @@ func TestAccDataSourceNcloudPublicIpSearch(t *testing.T) {
 }
 
 var testAccDataSourceNcloudPublicIpConfig = `
-data "ncloud_public_ip" "test" {}
+resource "ncloud_public_ip" "public_ip" {}
+data "ncloud_public_ip" "test" {
+	public_ip_no = ncloud_public_ip.public_ip.id
+}
 `
 
 var testAccDataSourceNcloudPublicIpAssociatedConfig = `

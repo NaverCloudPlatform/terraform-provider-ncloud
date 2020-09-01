@@ -3,6 +3,7 @@ package ncloud
 import (
 	"fmt"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
+	"regexp"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
@@ -19,8 +20,8 @@ func TestAccResourceNcloudPublicIpInstance_basic(t *testing.T) {
 		return func(*terraform.State) error {
 			config := testAccProvider.Meta().(*ProviderConfig)
 
-			if instance["instance_status"] != GetValueClassicOrVPC(config, "CREAT", "RUN") {
-				return fmt.Errorf("invalid public ip status: %s ", instance["instance_status"])
+			if instance["status"] != GetValueClassicOrVPC(config, "CREAT", "RUN") {
+				return fmt.Errorf("invalid public ip status: %s ", instance["status"])
 			}
 
 			return nil
@@ -37,6 +38,9 @@ func TestAccResourceNcloudPublicIpInstance_basic(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckPublicIpInstanceExists(resourceName, instance),
 					testCheckAttribute(),
+					resource.TestMatchResourceAttr(resourceName, "id", regexp.MustCompile(`^\d+$`)),
+					resource.TestMatchResourceAttr(resourceName, "public_ip_no", regexp.MustCompile(`^\d+$`)),
+					resource.TestMatchResourceAttr(resourceName, "public_ip", regexp.MustCompile(`^(?:[0-9]{1,3}\.){3}[0-9]{1,3}$`)),
 					resource.TestCheckResourceAttr(resourceName, "description", description),
 				),
 			},

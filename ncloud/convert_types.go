@@ -164,3 +164,10 @@ func StringPtrArrToStringArr(ptrArray []*string) []string {
 
 	return arr
 }
+
+//SetStringIfNotNilAndEmpty set value map[key] if *string pointer is not nil and not empty
+func SetStringIfNotNilAndEmpty(m map[string]interface{}, k string, v *string) {
+	if v != nil && len(*v) > 0 {
+		m[k] = *v
+	}
+}
