@@ -384,7 +384,6 @@ func getVpcPublicIp(config *ProviderConfig, id string) (map[string]interface{}, 
 		"public_ip_no": *r.PublicIpInstanceNo,
 		"public_ip":    *r.PublicIp,
 		"description":  *r.PublicIpDescription,
-		"status_name":  *r.PublicIpInstanceStatusName,
 	}
 
 	SetStringIfNotNilAndEmpty(instance, "server_instance_no", r.ServerInstanceNo)
