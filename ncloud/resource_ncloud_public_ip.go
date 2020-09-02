@@ -183,7 +183,7 @@ func resourceNcloudPublicIpUpdate(d *schema.ResourceData, meta interface{}) erro
 func createClassicPublicIp(d *schema.ResourceData, config *ProviderConfig) (*string, error) {
 	client := config.Client
 
-	zoneNo, err := parseZoneNoParameter(client, d)
+	zoneNo, err := parseZoneNoParameter(config, d)
 	if err != nil {
 		return nil, err
 	}

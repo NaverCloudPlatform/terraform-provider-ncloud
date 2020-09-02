@@ -40,9 +40,9 @@ func dataSourceNcloudZonesRead(d *schema.ResourceData, meta interface{}) error {
 	var err error
 
 	if meta.(*ProviderConfig).SupportVPC == true {
-		zones, err = getVpcZones(d, meta.(*ProviderConfig))
+		zones, err = getVpcZones(meta.(*ProviderConfig))
 	} else {
-		zones, err = getClassicZones(d, meta.(*ProviderConfig))
+		zones, err = getClassicZones(meta.(*ProviderConfig))
 	}
 
 	if err != nil {
@@ -67,7 +67,7 @@ func dataSourceNcloudZonesRead(d *schema.ResourceData, meta interface{}) error {
 	return nil
 }
 
-func getClassicZones(d *schema.ResourceData, config *ProviderConfig) ([]*Zone, error) {
+func getClassicZones(config *ProviderConfig) ([]*Zone, error) {
 	client := config.Client
 	regionNo := config.RegionNo
 
@@ -89,7 +89,7 @@ func getClassicZones(d *schema.ResourceData, config *ProviderConfig) ([]*Zone, e
 	return zones, nil
 }
 
-func getVpcZones(d *schema.ResourceData, config *ProviderConfig) ([]*Zone, error) {
+func getVpcZones(config *ProviderConfig) ([]*Zone, error) {
 	client := config.Client
 	regionCode := config.RegionCode
 
