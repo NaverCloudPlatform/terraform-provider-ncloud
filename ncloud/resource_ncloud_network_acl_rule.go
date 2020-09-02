@@ -3,9 +3,11 @@ package ncloud
 import (
 	"bytes"
 	"fmt"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"log"
 	"strconv"
 	"strings"
+	"time"
 
 	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/ncloud"
 	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/services/vpc"
@@ -117,41 +119,59 @@ func resourceNcloudNetworkACLRuleCreate(d *schema.ResourceData, meta interface{}
 		networkACLRule.NetworkAclRuleDescription = ncloud.String(v.(string))
 	}
 
-	if d.Get("rule_type").(string) == "INBND" {
-		reqParams := &vpc.AddNetworkAclInboundRuleRequest{
-			RegionCode:         &config.RegionCode,
-			NetworkAclNo:       ncloud.String(d.Get("network_acl_no").(string)),
-			NetworkAclRuleList: []*vpc.AddNetworkAclRuleParameter{networkACLRule},
+	var reqParams interface{}
+	var resp interface{}
+
+	err := resource.Retry(d.Timeout(schema.TimeoutCreate), func() *resource.RetryError {
+		var err error
+		if d.Get("rule_type").(string) == "INBND" {
+			reqParams = &vpc.AddNetworkAclInboundRuleRequest{
+				RegionCode:         &config.RegionCode,
+				NetworkAclNo:       ncloud.String(d.Get("network_acl_no").(string)),
+				NetworkAclRuleList: []*vpc.AddNetworkAclRuleParameter{networkACLRule},
+			}
+
+			logCommonRequest("resource_ncloud_network_acl_rule > AddNetworkAclInboundRule", reqParams)
+			resp, err = config.Client.vpc.V2Api.AddNetworkAclInboundRule(reqParams.(*vpc.AddNetworkAclInboundRuleRequest))
+		} else {
+			reqParams = &vpc.AddNetworkAclOutboundRuleRequest{
+				RegionCode:         &config.RegionCode,
+				NetworkAclNo:       ncloud.String(d.Get("network_acl_no").(string)),
+				NetworkAclRuleList: []*vpc.AddNetworkAclRuleParameter{networkACLRule},
+			}
+
+			logCommonRequest("resource_ncloud_network_acl_rule > AddNetworkAclOutboundRule", reqParams)
+			resp, err = config.Client.vpc.V2Api.AddNetworkAclOutboundRule(reqParams.(*vpc.AddNetworkAclOutboundRuleRequest))
 		}
 
-		logCommonRequest("resource_ncloud_network_acl_rule > AddNetworkAclInboundRule", reqParams)
-		resp, err := config.Client.vpc.V2Api.AddNetworkAclInboundRule(reqParams)
-		if err != nil {
-			logErrorResponse("resource_ncloud_network_acl_rule > AddNetworkAclInboundRule", err, reqParams)
-			return err
+		if err == nil {
+			return resource.NonRetryableError(err)
 		}
 
-		logResponse("resource_ncloud_network_acl_rule > AddNetworkAclInboundRule", resp)
-	} else {
-		reqParams := &vpc.AddNetworkAclOutboundRuleRequest{
-			RegionCode:         &config.RegionCode,
-			NetworkAclNo:       ncloud.String(d.Get("network_acl_no").(string)),
-			NetworkAclRuleList: []*vpc.AddNetworkAclRuleParameter{networkACLRule},
+		errBody, _ := GetCommonErrorBody(err)
+		if errBody.ReturnCode == ApiErrorNetworkAclCantAccessaApropriate {
+			logErrorResponse("retry AddNetworkAclRule", err, reqParams)
+			time.Sleep(time.Second * 5)
+			return resource.RetryableError(err)
 		}
 
-		logCommonRequest("resource_ncloud_network_acl_rule > AddNetworkAclOutboundRule", reqParams)
-		resp, err := config.Client.vpc.V2Api.AddNetworkAclOutboundRule(reqParams)
-		if err != nil {
-			logErrorResponse("resource_ncloud_network_acl_rule > AddNetworkAclOutboundRule", err, reqParams)
-			return err
-		}
+		return resource.NonRetryableError(err)
+	})
 
-		logResponse("resource_ncloud_network_acl_rule > AddNetworkAclOutboundRule", resp)
+	if err != nil {
+		logErrorResponse("resource_ncloud_network_acl_rule > AddNetworkAclRule", err, reqParams)
+		return err
 	}
+
+	logResponse("resource_ncloud_network_acl_rule > AddNetworkAclRule", resp)
 
 	d.SetId(networkACLIdRuleHash(d.Get("network_acl_no").(string), d.Get("rule_type").(string), d.Get("priority").(int)))
 
 	log.Printf("[INFO] Network ACL Rule ID: %s", d.Id())
+
+	if err = waitForNcloudNetworkACLRunning(config, d.Get("network_acl_no").(string)); err != nil {
+		return err
+	}
 
 	return resourceNcloudNetworkACLRuleRead(d, meta)
 }
@@ -198,36 +218,55 @@ func resourceNcloudNetworkACLRuleDelete(d *schema.ResourceData, meta interface{}
 		ProtocolTypeCode: ncloud.String(d.Get("protocol").(string)),
 	}
 
-	if d.Get("rule_type").(string) == "INBND" {
-		reqParams := &vpc.RemoveNetworkAclInboundRuleRequest{
-			RegionCode:         &config.RegionCode,
-			NetworkAclNo:       ncloud.String(d.Get("network_acl_no").(string)),
-			NetworkAclRuleList: []*vpc.RemoveNetworkAclRuleParameter{networkACLRule},
+	var reqParams interface{}
+	var resp interface{}
+
+	err := resource.Retry(d.Timeout(schema.TimeoutDelete), func() *resource.RetryError {
+		var err error
+
+		if d.Get("rule_type").(string) == "INBND" {
+			reqParams := &vpc.RemoveNetworkAclInboundRuleRequest{
+				RegionCode:         &config.RegionCode,
+				NetworkAclNo:       ncloud.String(d.Get("network_acl_no").(string)),
+				NetworkAclRuleList: []*vpc.RemoveNetworkAclRuleParameter{networkACLRule},
+			}
+
+			logCommonRequest("resource_ncloud_network_acl_rule > RemoveNetworkAclInboundRule", reqParams)
+			resp, err = config.Client.vpc.V2Api.RemoveNetworkAclInboundRule(reqParams)
+		} else {
+			reqParams := &vpc.RemoveNetworkAclOutboundRuleRequest{
+				RegionCode:         &config.RegionCode,
+				NetworkAclNo:       ncloud.String(d.Get("network_acl_no").(string)),
+				NetworkAclRuleList: []*vpc.RemoveNetworkAclRuleParameter{networkACLRule},
+			}
+
+			logCommonRequest("resource_ncloud_network_acl_rule > RemoveNetworkAclOutboundRule", reqParams)
+			resp, err = config.Client.vpc.V2Api.RemoveNetworkAclOutboundRule(reqParams)
 		}
 
-		logCommonRequest("resource_ncloud_network_acl_rule > RemoveNetworkAclInboundRule", reqParams)
-		resp, err := config.Client.vpc.V2Api.RemoveNetworkAclInboundRule(reqParams)
-		if err != nil {
-			logErrorResponse("resource_ncloud_network_acl_rule > RemoveNetworkAclInboundRule", err, reqParams)
-			return err
+		if err == nil {
+			return resource.NonRetryableError(err)
 		}
 
-		logResponse("resource_ncloud_network_acl_rule > RemoveNetworkAclInboundRule", resp)
-	} else {
-		reqParams := &vpc.RemoveNetworkAclOutboundRuleRequest{
-			RegionCode:         &config.RegionCode,
-			NetworkAclNo:       ncloud.String(d.Get("network_acl_no").(string)),
-			NetworkAclRuleList: []*vpc.RemoveNetworkAclRuleParameter{networkACLRule},
+		errBody, _ := GetCommonErrorBody(err)
+		if errBody.ReturnCode == ApiErrorNetworkAclCantAccessaApropriate {
+			logErrorResponse("retry RemoveNetworkAclRule", err, reqParams)
+			time.Sleep(time.Second * 5)
+			return resource.RetryableError(err)
 		}
 
-		logCommonRequest("resource_ncloud_network_acl_rule > RemoveNetworkAclOutboundRule", reqParams)
-		resp, err := config.Client.vpc.V2Api.RemoveNetworkAclOutboundRule(reqParams)
-		if err != nil {
-			logErrorResponse("resource_ncloud_network_acl_rule > RemoveNetworkAclOutboundRule", err, reqParams)
-			return err
-		}
+		return resource.NonRetryableError(err)
+	})
 
-		logResponse("resource_ncloud_network_acl_rule > RemoveNetworkAclOutboundRule", resp)
+	if err != nil {
+		logErrorResponse("resource_ncloud_network_acl_rule > RemoveNetworkAclRule", err, reqParams)
+		return err
+	}
+
+	logResponse("resource_ncloud_network_acl_rule > RemoveNetworkAclRule", resp)
+
+	if err = waitForNcloudNetworkACLRunning(config, d.Get("network_acl_no").(string)); err != nil {
+		return err
 	}
 
 	return nil
@@ -258,6 +297,26 @@ func getNetworkACLRuleInstance(d *schema.ResourceData, config *ProviderConfig) (
 	}
 
 	return nil, fmt.Errorf("Not found acl rule, got: %#v", resp.NetworkAclRuleList)
+}
+
+func waitForNcloudNetworkACLRunning(config *ProviderConfig, id string) error {
+	stateConf := &resource.StateChangeConf{
+		Pending: []string{"SET"},
+		Target:  []string{"RUN"},
+		Refresh: func() (interface{}, string, error) {
+			instance, err := getNetworkACLInstance(config, id)
+			return VpcCommonStateRefreshFunc(instance, err, "NetworkAclStatus")
+		},
+		Timeout:    DefaultTimeout,
+		Delay:      2 * time.Second,
+		MinTimeout: 3 * time.Second,
+	}
+
+	if _, err := stateConf.WaitForState(); err != nil {
+		return fmt.Errorf("Error waiting for Network ACL (%s) to become termintaing: %s", id, err)
+	}
+
+	return nil
 }
 
 func networkACLIdRuleHash(networkACLId string, ruleType string, priority int) string {

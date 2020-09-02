@@ -22,7 +22,8 @@ const (
 
 	ApiErrorDetachingMountedStorage = "24002"
 
-	ApiErrorAcgCantChangeSameTime = "1007009"
+	ApiErrorAcgCantChangeSameTime           = "1007009"
+	ApiErrorNetworkAclCantAccessaApropriate = "1011002"
 )
 
 const (
