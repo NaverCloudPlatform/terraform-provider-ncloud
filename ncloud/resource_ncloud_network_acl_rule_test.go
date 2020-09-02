@@ -48,6 +48,29 @@ func TestAccResourceNcloudNetworkACLRule_basic(t *testing.T) {
 	})
 }
 
+func TestAccResourceNcloudNetworkACLRule_AssociatedSubnet(t *testing.T) {
+	var networkACLRule vpc.NetworkAclRule
+
+	name := fmt.Sprintf("test-nacl-rule-subnet-%s", acctest.RandString(5))
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckNetworkACLRuleDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccResourceNcloudNetworkACLRuleConfigAssociatedSubnet(name),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckNetworkACLRuleExists("ncloud_network_acl_rule.nacl_rule_inbound_100", &networkACLRule),
+					testAccCheckNetworkACLRuleExists("ncloud_network_acl_rule.nacl_rule_inbound_110", &networkACLRule),
+					testAccCheckNetworkACLRuleExists("ncloud_network_acl_rule.nacl_rule_inbound_120", &networkACLRule),
+					testAccCheckNetworkACLRuleExists("ncloud_network_acl_rule.nacl_rule_outbound_100", &networkACLRule),
+				),
+			},
+		},
+	})
+}
+
 func TestAccResourceNcloudNetworkACLRule_disappears(t *testing.T) {
 	var networkACLRule vpc.NetworkAclRule
 
@@ -125,6 +148,78 @@ resource "ncloud_network_acl_rule" "nacl_rule_outbound_100" {
 	ip_block          = "0.0.0.0/0"
 	rule_type         = "OTBND"
 	description       = "tf-testacc-network-acl-rule"
+}`, name)
+}
+
+func testAccResourceNcloudNetworkACLRuleConfigAssociatedSubnet(name string) string {
+	return fmt.Sprintf(`
+resource "ncloud_vpc" "vpc" {
+	name            = "%[1]s"
+	ipv4_cidr_block = "10.3.0.0/16"
+}
+
+resource "ncloud_subnet" "subnet" {
+	vpc_no             = ncloud_vpc.vpc.vpc_no
+	name               = "%[1]s"
+	subnet             = "10.3.0.0/24"
+	zone               = "KR-1"
+	network_acl_no     = ncloud_network_acl.nacl.id
+	subnet_type        = "PUBLIC"
+	usage_type         = "GEN"
+}
+
+resource "ncloud_network_acl" "nacl" {
+	vpc_no      = ncloud_vpc.vpc.vpc_no
+	name        = "%[1]s"
+	description = "test acc for network acl"
+}
+
+resource "ncloud_network_acl_rule" "nacl_rule_inbound_100" {
+	network_acl_no    = ncloud_network_acl.nacl.network_acl_no
+	priority          = 100
+	protocol          = "TCP"
+	rule_action       = "ALLOW"
+	port_range        = "22"
+	ip_block          = "0.0.0.0/0"
+	rule_type         = "INBND"
+	description       = "%[1]s"
+	depends_on        = [ncloud_subnet.subnet]
+}
+
+resource "ncloud_network_acl_rule" "nacl_rule_inbound_110" {
+	network_acl_no    = ncloud_network_acl.nacl.network_acl_no
+	priority          = 110
+	protocol          = "TCP"
+	rule_action       = "ALLOW"
+	port_range        = "80"
+	ip_block          = "0.0.0.0/0"
+	rule_type         = "INBND"
+	description       = "tf-testacc-network-acl-rule"
+	depends_on        = [ncloud_subnet.subnet]
+}
+
+resource "ncloud_network_acl_rule" "nacl_rule_inbound_120" {
+	network_acl_no    = ncloud_network_acl.nacl.network_acl_no
+	priority          = 120
+	protocol          = "TCP"
+	rule_action       = "ALLOW"
+	port_range        = "443"
+	ip_block          = "0.0.0.0/0"
+	rule_type         = "INBND"
+	description       = "tf-testacc-network-acl-rule"
+	depends_on        = [ncloud_subnet.subnet]
+}
+
+resource "ncloud_network_acl_rule" "nacl_rule_outbound_100" {
+	network_acl_no    = ncloud_network_acl.nacl.network_acl_no
+	priority          = 100
+	protocol          = "TCP"
+	rule_action       = "ALLOW"
+	port_range        = "1-65535"
+	ip_block          = "0.0.0.0/0"
+	rule_type         = "OTBND"
+	description       = "tf-testacc-network-acl-rule"
+	depends_on        = [ncloud_subnet.subnet]
 }`, name)
 }
 
