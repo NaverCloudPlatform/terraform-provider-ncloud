@@ -29,9 +29,10 @@ func resourceNcloudServer() *schema.Resource {
 		},
 		Schema: map[string]*schema.Schema{
 			"server_image_product_code": {
-				Type:        schema.TypeString,
-				Optional:    true,
-				Description: "Server image product code to determine which server image to create. It can be obtained through getServerImageProductList. You are required to select one among two parameters: server image product code (server_image_product_code) and member server image number(member_server_image_no).",
+				Type:          schema.TypeString,
+				Optional:      true,
+				Description:   "Server image product code to determine which server image to create. It can be obtained through getServerImageProductList. You are required to select one among two parameters: server image product code (server_image_product_code) and member server image number(member_server_image_no).",
+				ConflictsWith: []string{"member_server_image_no"},
 			},
 			"server_product_code": {
 				Type:        schema.TypeString,
@@ -39,9 +40,10 @@ func resourceNcloudServer() *schema.Resource {
 				Description: "Server product code to determine the server specification to create. It can be obtained through the getServerProductList action. Default : Selected as minimum specification. The minimum standards are 1. memory 2. CPU 3. basic block storage size 4. disk type (NET,LOCAL)",
 			},
 			"member_server_image_no": {
-				Type:        schema.TypeString,
-				Optional:    true,
-				Description: "Required value when creating a server from a manually created server image. It can be obtained through the getMemberServerImageList action.",
+				Type:          schema.TypeString,
+				Optional:      true,
+				Description:   "Required value when creating a server from a manually created server image. It can be obtained through the getMemberServerImageList action.",
+				ConflictsWith: []string{"server_image_product_code"},
 			},
 			"name": {
 				Type:     schema.TypeString,
@@ -188,9 +190,10 @@ func resourceNcloudServer() *schema.Resource {
 }
 
 func resourceNcloudServerCreate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ProviderConfig).Client
+	config := meta.(*ProviderConfig)
+	client := config.Client
 
-	reqParams, err := buildCreateServerInstanceReqParams(client, d)
+	reqParams, err := buildCreateServerInstanceReqParams(config, d)
 	if err != nil {
 		return err
 	}
@@ -388,13 +391,13 @@ func resourceNcloudServerUpdate(d *schema.ResourceData, meta interface{}) error 
 	return resourceNcloudServerRead(d, meta)
 }
 
-func buildCreateServerInstanceReqParams(client *NcloudAPIClient, d *schema.ResourceData) (*server.CreateServerInstancesRequest, error) {
+func buildCreateServerInstanceReqParams(config *ProviderConfig, d *schema.ResourceData) (*server.CreateServerInstancesRequest, error) {
 
 	var paramAccessControlGroupConfigurationNoList []*string
 	if param, ok := d.GetOk("access_control_group_configuration_no_list"); ok {
 		paramAccessControlGroupConfigurationNoList = expandStringInterfaceList(param.([]interface{}))
 	}
-	zoneNo, err := parseZoneNoParameter(client, d)
+	zoneNo, err := parseZoneNoParameter(config, d)
 	if err != nil {
 		return nil, err
 	}

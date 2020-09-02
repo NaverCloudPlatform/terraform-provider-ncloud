@@ -154,7 +154,7 @@ func getClassicServerProductList(d *schema.ResourceData, config *ProviderConfig)
 	client := config.Client
 	regionNo := config.RegionNo
 
-	zoneNo, err := parseZoneNoParameter(client, d)
+	zoneNo, err := parseZoneNoParameter(config, d)
 	if err != nil {
 		return nil, err
 	}

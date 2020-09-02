@@ -149,9 +149,10 @@ func resourceNcloudNasVolume() *schema.Resource {
 }
 
 func resourceNcloudNasVolumeCreate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ProviderConfig).Client
+	config := meta.(*ProviderConfig)
+	client := config.Client
 
-	reqParams, err := buildCreateNasVolumeInstanceParams(client, d)
+	reqParams, err := buildCreateNasVolumeInstanceParams(config, d)
 	if err != nil {
 		return nil
 	}
@@ -285,12 +286,12 @@ func resourceNcloudNasVolumeUpdate(d *schema.ResourceData, meta interface{}) err
 	return resourceNcloudNasVolumeRead(d, meta)
 }
 
-func buildCreateNasVolumeInstanceParams(client *NcloudAPIClient, d *schema.ResourceData) (*server.CreateNasVolumeInstanceRequest, error) {
-	regionNo, err := parseRegionNoParameter(client, d)
+func buildCreateNasVolumeInstanceParams(config *ProviderConfig, d *schema.ResourceData) (*server.CreateNasVolumeInstanceRequest, error) {
+	regionNo, err := parseRegionNoParameter(config.Client, d)
 	if err != nil {
 		return nil, err
 	}
-	zoneNo, err := parseZoneNoParameter(client, d)
+	zoneNo, err := parseZoneNoParameter(config, d)
 	if err != nil {
 		return nil, err
 	}

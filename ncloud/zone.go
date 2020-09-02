@@ -4,7 +4,6 @@ import (
 	"fmt"
 
 	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/ncloud"
-	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/services/server"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
@@ -19,9 +18,9 @@ type Zone struct {
 
 var zoneCache = make(map[string]string)
 
-func parseZoneNoParameter(client *NcloudAPIClient, d *schema.ResourceData) (*string, error) {
+func parseZoneNoParameter(config *ProviderConfig, d *schema.ResourceData) (*string, error) {
 	if zoneCode, zoneCodeOk := d.GetOk("zone"); zoneCodeOk {
-		zoneNo := getZoneNoByCode(client, zoneCode.(string))
+		zoneNo := getZoneNoByCode(config, zoneCode.(string))
 		if zoneNo == "" {
 			return nil, fmt.Errorf("no zone data for zone_code `%s`. please change zone_code and try again", zoneCode.(string))
 		}
@@ -31,19 +30,19 @@ func parseZoneNoParameter(client *NcloudAPIClient, d *schema.ResourceData) (*str
 	return nil, nil
 }
 
-func getZoneNoByCode(client *NcloudAPIClient, code string) string {
+func getZoneNoByCode(config *ProviderConfig, code string) string {
 	if zoneNo := zoneCache[code]; zoneNo != "" {
 		return zoneNo
 	}
-	if zone, err := getZoneByCode(client, code); err == nil && zone != nil {
+	if zone, err := getZoneByCode(config, code); err == nil && zone != nil {
 		zoneCache[code] = *zone.ZoneNo
 		return *zone.ZoneNo
 	}
 	return ""
 }
 
-func getZoneByCode(client *NcloudAPIClient, code string) (*Zone, error) {
-	zonesList, err := getZones(client)
+func getZoneByCode(config *ProviderConfig, code string) (*Zone, error) {
+	zonesList, err := getZones(config)
 	if err != nil {
 		return nil, err
 	}
@@ -58,19 +57,22 @@ func getZoneByCode(client *NcloudAPIClient, code string) (*Zone, error) {
 	return filteredZone, nil
 }
 
-func getZones(client *NcloudAPIClient) ([]*Zone, error) {
-	resp, err := client.server.V2Api.GetZoneList(&server.GetZoneListRequest{})
+func getZones(config *ProviderConfig) ([]*Zone, error) {
+	var zones []*Zone
+	var err error
+
+	if config.SupportVPC == true {
+		zones, err = getVpcZones(config)
+	} else {
+		zones, err = getClassicZones(config)
+	}
+
 	if err != nil {
 		return nil, err
 	}
 
-	if resp == nil {
+	if len(zones) == 0 {
 		return nil, fmt.Errorf("no matching zones found")
-	}
-
-	var zones []*Zone
-	for _, zone := range resp.ZoneList {
-		zones = append(zones, GetZone(zone))
 	}
 
 	return zones, nil
