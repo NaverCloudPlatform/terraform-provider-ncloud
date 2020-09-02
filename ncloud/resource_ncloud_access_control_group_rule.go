@@ -354,7 +354,7 @@ func deleteVpcAccessControlGroupRule(d *schema.ResourceData, config *ProviderCon
 
 	err = resource.Retry(d.Timeout(schema.TimeoutDelete), func() *resource.RetryError {
 		if rule.RuleType == "INBND" {
-			reqParams := &vserver.RemoveAccessControlGroupInboundRuleRequest{
+			reqParams = &vserver.RemoveAccessControlGroupInboundRuleRequest{
 				RegionCode:                 &config.RegionCode,
 				AccessControlGroupNo:       &rule.AccessControlGroupNo,
 				VpcNo:                      accessControlGroup.VpcNo,
@@ -362,9 +362,9 @@ func deleteVpcAccessControlGroupRule(d *schema.ResourceData, config *ProviderCon
 			}
 
 			logCommonRequest("deleteVpcAccessControlGroupRule", reqParams)
-			resp, err = config.Client.vserver.V2Api.RemoveAccessControlGroupInboundRule(reqParams)
+			resp, err = config.Client.vserver.V2Api.RemoveAccessControlGroupInboundRule(reqParams.(*vserver.RemoveAccessControlGroupInboundRuleRequest))
 		} else {
-			reqParams := &vserver.RemoveAccessControlGroupOutboundRuleRequest{
+			reqParams = &vserver.RemoveAccessControlGroupOutboundRuleRequest{
 				RegionCode:                 &config.RegionCode,
 				AccessControlGroupNo:       &rule.AccessControlGroupNo,
 				VpcNo:                      accessControlGroup.VpcNo,
@@ -372,7 +372,7 @@ func deleteVpcAccessControlGroupRule(d *schema.ResourceData, config *ProviderCon
 			}
 
 			logCommonRequest("deleteVpcAccessControlGroupRule", reqParams)
-			resp, err = config.Client.vserver.V2Api.RemoveAccessControlGroupOutboundRule(reqParams)
+			resp, err = config.Client.vserver.V2Api.RemoveAccessControlGroupOutboundRule(reqParams.(*vserver.RemoveAccessControlGroupOutboundRuleRequest))
 		}
 
 		if err == nil {
