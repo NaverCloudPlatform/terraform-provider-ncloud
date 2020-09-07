@@ -3,7 +3,10 @@
 
 package ncloud
 
-import "github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+import (
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"log"
+)
 
 // Get the schema for a nested DataSourceSchema generated from the ResourceSchema
 func GetDataSourceItemSchema(resourceSchema *schema.Resource) *schema.Resource {
@@ -84,6 +87,31 @@ func SetSingularResourceDataFromMap(d *schema.ResourceData, resources map[string
 			continue
 		}
 		d.Set(k, v)
+	}
+}
+
+// SetSingularResourceDataFromMapSchema Set the Singular DataSource from Map
+func SetSingularResourceDataFromMapSchema(resourceSchema *schema.Resource, d *schema.ResourceData, resources map[string]interface{}) {
+	for k, fieldSchema := range resourceSchema.Schema {
+		if resources[k] != nil {
+			if fieldSchema.Computed {
+				d.Set(k, resources[k])
+			} else {
+				log.Printf("[DEBUG] SetSingularResourceDataFromMapSchema >> [%s] is not nil but Not Computed", k)
+			}
+		} else {
+			log.Printf("[DEBUG] SetSingularResourceDataFromMapSchema >> [%s] is nil", k)
+		}
+	}
+
+	for k, _ := range resources {
+		if k == "id" {
+			continue
+		}
+
+		if resourceSchema.Schema[k] == nil {
+			log.Printf("[DEBUG] SetSingularResourceDataFromMapSchema >> [%s] is doesn't have schema", k)
+		}
 	}
 }
 
