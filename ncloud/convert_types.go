@@ -146,6 +146,14 @@ func StringPtrOrNil(v interface{}, ok bool) *string {
 	return ncloud.String(v.(string))
 }
 
+//BoolPtrOrNil return *bool from interface{}
+func BoolPtrOrNil(v interface{}, ok bool) *bool {
+	if !ok {
+		return nil
+	}
+	return ncloud.Bool(v.(bool))
+}
+
 //StringOrEmpty Get string from *pointer
 func StringOrEmpty(v *string) string {
 	if v != nil {
@@ -170,4 +178,20 @@ func SetStringIfNotNilAndEmpty(m map[string]interface{}, k string, v *string) {
 	if v != nil && len(*v) > 0 {
 		m[k] = *v
 	}
+}
+
+//ConvertToMap convert interface{} to map[string]interface{}
+func ConvertToMap(i interface{}) map[string]interface{} {
+	if i == nil {
+		return nil
+	}
+
+	b, err := json.Marshal(i)
+	if err != nil {
+		return nil
+	}
+	var m map[string]interface{}
+	json.Unmarshal(b, &m)
+
+	return m
 }
