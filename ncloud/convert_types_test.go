@@ -2,6 +2,7 @@ package ncloud
 
 import (
 	"fmt"
+	"log"
 	"reflect"
 	"testing"
 
@@ -66,4 +67,33 @@ func TestGetCommonErrorBody(t *testing.T) {
 		t.Fatalf("Return code expected 'If the Acg settings are being changed, you cannot change other settings at the same time.' but %s", e.ReturnMessage)
 	}
 
+}
+
+func TestConvertToMap(t *testing.T) {
+	i := &NcloudServerInstance{
+		ZoneNo:                     ncloud.String("KR-1"),
+		ServerName:                 ncloud.String("tf-server"),
+		IsProtectServerTermination: ncloud.Bool(true),
+		CpuCount:                   ncloud.Int32(2),
+	}
+
+	m := ConvertToMap(i)
+
+	log.Printf("%+v", m)
+
+	if m["cpu_count"].(float64) != 2 {
+		t.Fatalf("'cpu_count' expected '2' but %s", m["cpu_count"])
+	}
+
+	if m["is_protect_server_termination"].(bool) != true {
+		t.Fatalf("'is_protect_server_termination' expected 'true' but %s", m["is_protect_server_termination"])
+	}
+
+	if m["name"].(string) != "tf-server" {
+		t.Fatalf("'cpu_count' expected '2' but %s", m["name"])
+	}
+
+	if _, ok := m["network_interfaces"]; !ok {
+		t.Fatalf("'network_interfaces' expected 'nil' but %s", m["network_interfaces"])
+	}
 }
