@@ -325,20 +325,12 @@ resource "ncloud_subnet" "test" {
 	usage_type         = "GEN"
 }
 
-resource "ncloud_network_interface" "test" {
-	name                  = "%[1]s"
-	description           = "for acc test"
-	subnet_no             = ncloud_subnet.test.id
-	access_control_groups = [ncloud_vpc.test.default_access_control_group_no]
-}
-
 resource "ncloud_server" "server" {
 	subnet_no = ncloud_subnet.test.id
 	name = "%[1]s"
 	server_image_product_code = "SW.VSVR.OS.LNX64.CNTOS.0708.B050"
 	server_product_code = "%[2]s"
 	login_key_name = ncloud_login_key.loginkey.key_name
-	network_interfaces = [ncloud_network_interface.test.id]
 }
 `, testServerName, productCode)
 }
