@@ -597,3 +597,19 @@ func TestFlattenInstanceTagList(t *testing.T) {
 		t.Fatalf("expected result tag_value to be 'auth', but was %s", r["tag_value"])
 	}
 }
+
+func TestFlattenMapByKey(t *testing.T) {
+	expanded := &server.CommonCode{
+		Code: ncloud.String("test"),
+	}
+
+	result := flattenMapByKey(expanded, "code")
+
+	if result == nil {
+		t.Fatal("result was nil")
+	}
+
+	if *result != "test" {
+		t.Fatalf("result expected 'test' but was %s", *result)
+	}
+}
