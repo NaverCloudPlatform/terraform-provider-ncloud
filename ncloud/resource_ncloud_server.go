@@ -2,6 +2,7 @@ package ncloud
 
 import (
 	"fmt"
+	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/services/vserver"
 	"log"
 	"regexp"
 	"time"
@@ -27,93 +28,127 @@ func resourceNcloudServer() *schema.Resource {
 			Create: schema.DefaultTimeout(DefaultCreateTimeout),
 			Delete: schema.DefaultTimeout(DefaultTimeout),
 		},
+		CustomizeDiff: ncloudVpcCommonCustomizeDiff,
 		Schema: map[string]*schema.Schema{
 			"server_image_product_code": {
 				Type:          schema.TypeString,
 				Optional:      true,
-				Description:   "Server image product code to determine which server image to create. It can be obtained through getServerImageProductList. You are required to select one among two parameters: server image product code (server_image_product_code) and member server image number(member_server_image_no).",
+				Computed:      true,
+				ForceNew:      true,
 				ConflictsWith: []string{"member_server_image_no"},
 			},
 			"server_product_code": {
-				Type:        schema.TypeString,
-				Optional:    true,
-				Description: "Server product code to determine the server specification to create. It can be obtained through the getServerProductList action. Default : Selected as minimum specification. The minimum standards are 1. memory 2. CPU 3. basic block storage size 4. disk type (NET,LOCAL)",
+				Type:     schema.TypeString,
+				Optional: true,
+				Computed: true,
 			},
 			"member_server_image_no": {
 				Type:          schema.TypeString,
 				Optional:      true,
-				Description:   "Required value when creating a server from a manually created server image. It can be obtained through the getMemberServerImageList action.",
+				ForceNew:      true,
 				ConflictsWith: []string{"server_image_product_code"},
 			},
 			"name": {
 				Type:     schema.TypeString,
 				Optional: true,
+				Computed: true,
 				ValidateFunc: validation.All(
 					validation.StringLenBetween(3, 30),
 					validation.StringMatch(regexp.MustCompile(`^[A-Za-z0-9-*]+$`), "Composed of alphabets, numbers, hyphen (-) and wild card (*)."),
 					validation.StringMatch(regexp.MustCompile(`.*[^\\-]$`), "Hyphen (-) cannot be used for the last character and if wild card (*) is used, other characters cannot be input."),
 				),
-				Description: "Server name to create. default: Assigned by ncloud",
 			},
 			"description": {
-				Type:        schema.TypeString,
-				Optional:    true,
-				Description: "Server description to create",
+				Type:     schema.TypeString,
+				Optional: true,
+				Computed: true,
 			},
 			"login_key_name": {
-				Type:        schema.TypeString,
-				Optional:    true,
-				Description: "The login key name to encrypt with the public key. Default : Uses the most recently created login key name",
+				Type:     schema.TypeString,
+				Optional: true,
+				Computed: true,
 			},
 			"is_protect_server_termination": {
-				Type:        schema.TypeBool,
-				Optional:    true,
-				Description: "You can set whether or not to protect return when creating. default : false",
+				Type:     schema.TypeBool,
+				Optional: true,
+				Computed: true,
+				ForceNew: true,
 			},
 			"internet_line_type": {
 				Type:         schema.TypeString,
 				Optional:     true,
 				Computed:     true,
+				ForceNew:     true,
 				ValidateFunc: validation.StringInSlice([]string{"PUBLC", "GLBL"}, false),
-				Description:  "Internet line identification code. PUBLC(Public), GLBL(Global). default : PUBLC(Public)",
 			},
 			"fee_system_type_code": {
-				Type:        schema.TypeString,
-				Optional:    true,
-				Description: "A rate system identification code. There are time plan(MTRAT) and flat rate (FXSUM). Default : Time plan(MTRAT)",
+				Type:     schema.TypeString,
+				Optional: true,
+				ForceNew: true,
 			},
 			"zone": {
-				Type:        schema.TypeString,
-				Optional:    true,
-				Computed:    true,
-				Description: "Zone code. You can determine the ZONE where the server will be created. It can be obtained through the getZoneList action. Default : Assigned by NAVER Cloud Platform.",
+				Type:     schema.TypeString,
+				Optional: true,
+				Computed: true,
+				ForceNew: true,
 			},
-
 			"access_control_group_configuration_no_list": {
-				Type:        schema.TypeList,
-				Optional:    true,
-				Elem:        &schema.Schema{Type: schema.TypeString},
-				MinItems:    1,
-				Description: "You can set the ACG created when creating the server. ACG setting number can be obtained through the getAccessControlGroupList action. Default : Default ACG number",
+				Type:     schema.TypeList,
+				Optional: true,
+				Elem:     &schema.Schema{Type: schema.TypeString},
+				MinItems: 1,
 			},
 			"user_data": {
-				Type:        schema.TypeString,
-				Optional:    true,
-				Description: "The server will execute the user data script set by the user at first boot. To view the column, it is returned only when viewing the server instance. You must need base64 Encoding, URL Encoding before put in value of userData. If you don't URL Encoding again it occurs signature invalid error.",
+				Type:     schema.TypeString,
+				Optional: true,
+				Computed: true,
 			},
 			"raid_type_name": {
-				Type:        schema.TypeString,
-				Optional:    true,
-				Description: "Raid Type Name",
+				Type:     schema.TypeString,
+				Optional: true,
+				ForceNew: true,
 			},
 			"tag_list": {
-				Type:        schema.TypeList,
-				Optional:    true,
-				Elem:        tagListSchemaResource,
-				Description: "Instance tag list",
+				Type:     schema.TypeList,
+				Optional: true,
+				Elem:     tagListSchemaResource,
+			},
+			"subnet_no": {
+				Type:     schema.TypeString,
+				Optional: true,
+				Computed: true,
+				ForceNew: true,
+			},
+			"init_script_no": {
+				Type:     schema.TypeString,
+				Optional: true,
+				Computed: true,
+			},
+			"placement_group_no": {
+				Type:     schema.TypeString,
+				Optional: true,
+				Computed: true,
+			},
+			"network_interfaces": {
+				Type:     schema.TypeList,
+				Optional: true,
+				Computed: true,
+				Elem:     &schema.Schema{Type: schema.TypeString},
+				MinItems: 1,
+				MaxItems: 3,
+			},
+			"is_encrypted_base_block_storage_volume": {
+				Type:     schema.TypeBool,
+				Optional: true,
+				Computed: true,
+				ForceNew: true,
 			},
 
 			"instance_no": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+			"vpc_no": {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
@@ -149,15 +184,11 @@ func resourceNcloudServer() *schema.Resource {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
-			"instance_status": {
+			"status": {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
-			"instance_operation": {
-				Type:     schema.TypeString,
-				Computed: true,
-			},
-			"instance_status_name": {
+			"operation": {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
@@ -185,173 +216,88 @@ func resourceNcloudServer() *schema.Resource {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
+			"instance_status": {
+				Type:       schema.TypeString,
+				Computed:   true,
+				Deprecated: "Use `status` instead",
+			},
+			"instance_operation": {
+				Type:       schema.TypeString,
+				Computed:   true,
+				Deprecated: "Use `operation` instead",
+			},
+			"instance_status_name": {
+				Type:       schema.TypeString,
+				Computed:   true,
+				Deprecated: "This field no longer support",
+			},
 		},
 	}
 }
 
 func resourceNcloudServerCreate(d *schema.ResourceData, meta interface{}) error {
 	config := meta.(*ProviderConfig)
-	client := config.Client
 
-	reqParams, err := buildCreateServerInstanceReqParams(config, d)
+	id, err := createServerInstance(d, config)
+
 	if err != nil {
 		return err
 	}
 
-	var resp *server.CreateServerInstancesResponse
-	err = resource.Retry(10*time.Minute, func() *resource.RetryError {
-		var err error
-		logCommonRequest("CreateServerInstances", reqParams)
-		resp, err = client.server.V2Api.CreateServerInstances(reqParams)
-
-		log.Printf("[DEBUG] resourceNcloudServerCreate resp: %v", resp)
-		if resp != nil && isRetryableErr(GetCommonResponse(resp), []string{ApiErrorUnknown, ApiErrorAuthorityParameter, ApiErrorServerObjectInOperation, ApiErrorPreviousServersHaveNotBeenEntirelyTerminated}) {
-			return resource.RetryableError(err)
-		}
-		return resource.NonRetryableError(err)
-	})
-
-	if err != nil {
-		logErrorResponse("CreateServerInstances", err, reqParams)
-		return err
-	}
-	logCommonResponse("CreateServerInstances", GetCommonResponse(resp))
-
-	serverInstance := resp.ServerInstanceList[0]
-	d.SetId(ncloud.StringValue(serverInstance.ServerInstanceNo))
-
-	stateConf := &resource.StateChangeConf{
-		Pending: []string{"INIT", "CREAT"},
-		Target:  []string{"RUN"},
-		Refresh: func() (interface{}, string, error) {
-			instance, err := getServerInstance(client, ncloud.StringValue(serverInstance.ServerInstanceNo))
-			if err != nil {
-				return 0, "", err
-			}
-			return instance, ncloud.StringValue(instance.ServerInstanceStatus.Code), nil
-		},
-		Timeout:    DefaultCreateTimeout,
-		Delay:      2 * time.Second,
-		MinTimeout: 3 * time.Second,
-	}
-
-	_, err = stateConf.WaitForState()
-	if err != nil {
-		return fmt.Errorf("Error waiting for ServerInstance state to be \"RUN\": %s", err)
-	}
+	d.SetId(ncloud.StringValue(id))
+	log.Printf("[INFO] Server instance ID: %s", d.Id())
 
 	return resourceNcloudServerRead(d, meta)
 }
 
 func resourceNcloudServerRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ProviderConfig).Client
+	config := meta.(*ProviderConfig)
 
-	instance, err := getServerInstance(client, d.Id())
+	r, err := getServerInstance(config, d.Id())
 	if err != nil {
 		return err
 	}
 
-	if instance != nil {
-		d.Set("instance_no", instance.ServerInstanceNo)
-		d.Set("name", instance.ServerName)
-		d.Set("server_image_product_code", instance.ServerImageProductCode)
-		d.Set("instance_status_name", instance.ServerInstanceStatusName)
-		d.Set("server_image_name", instance.ServerImageName)
-		d.Set("private_ip", instance.PrivateIp)
-		d.Set("cpu_count", instance.CpuCount)
-		d.Set("memory_size", instance.MemorySize)
-		d.Set("base_block_storage_size", instance.BaseBlockStorageSize)
-		d.Set("is_fee_charging_monitoring", instance.IsFeeChargingMonitoring)
-		d.Set("public_ip", instance.PublicIp)
-		d.Set("private_ip", instance.PrivateIp)
-		d.Set("port_forwarding_public_ip", instance.PortForwardingPublicIp)
-		d.Set("port_forwarding_external_port", instance.PortForwardingExternalPort)
-		d.Set("port_forwarding_internal_port", instance.PortForwardingInternalPort)
-		d.Set("user_data", d.Get("user_data").(string))
+	if r == nil {
+		d.SetId("")
+	}
 
-		if instanceStatus := flattenCommonCode(instance.ServerInstanceStatus); instanceStatus["code"] != nil {
-			d.Set("instance_status", instanceStatus["code"])
-		}
+	instance := ConvertToMap(r)
 
-		if platformType := flattenCommonCode(instance.PlatformType); platformType["code"] != nil {
-			d.Set("platform_type", platformType["code"])
-		}
+	SetSingularResourceDataFromMapSchema(resourceNcloudServer(), d, instance)
 
-		if instanceOperation := flattenCommonCode(instance.ServerInstanceOperation); instanceOperation["code"] != nil {
-			d.Set("instance_operation", instanceOperation["code"])
-		}
-
-		if zone := flattenZone(instance.Zone); zone["zone_code"] != nil {
-			d.Set("zone", zone["zone_code"])
-		}
-
-		if region := flattenRegion(instance.Region); region["region_code"] != nil {
-			d.Set("region", region["region_code"])
-		}
-
-		if diskType := flattenCommonCode(instance.BaseBlockStorageDiskType); diskType["code"] != nil {
-			d.Set("base_block_storage_disk_type", diskType["code"])
-		}
-
-		if diskDetailType := flattenCommonCode(instance.BaseBlockStroageDiskDetailType); diskDetailType["code"] != nil {
-			d.Set("base_block_storage_disk_detail_type", diskDetailType["code"])
-		}
-
-		if LineType := flattenCommonCode(instance.InternetLineType); LineType["code"] != nil {
-			d.Set("internet_line_type", LineType["code"])
-		}
-
-		if len(instance.InstanceTagList) != 0 {
-			d.Set("tag_list", flattenInstanceTagList(instance.InstanceTagList))
-		}
-	} else {
-		log.Printf("unable to find resource: %s", d.Id())
-		d.SetId("") // resource not found
+	if !config.SupportVPC {
+		// Set deprecated field on classic
+		d.Set("instance_operation", r.ServerInstanceOperation)
+		d.Set("instance_status", r.ServerInstanceStatus)
 	}
 
 	return nil
 }
 
 func resourceNcloudServerDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ProviderConfig).Client
-	serverInstance, err := getServerInstance(client, d.Id())
+	config := meta.(*ProviderConfig)
+	serverInstance, err := getServerInstance(config, d.Id())
 	if err != nil {
 		return err
 	}
 
-	if serverInstance == nil || ncloud.StringValue(serverInstance.ServerInstanceStatus.Code) != "NSTOP" {
-		if err := stopServerInstance(client, d.Id()); err != nil {
+	if ncloud.StringValue(serverInstance.ServerInstanceStatus) != "NSTOP" {
+		log.Printf("[INFO] Stopping Instance %q for terminate", d.Id())
+		if err := stopThenWaitServerInstance(config, d.Id()); err != nil {
 			return err
 		}
+	}
 
-		stateConf := &resource.StateChangeConf{
-			Pending: []string{"RUN"},
-			Target:  []string{"NSTOP"},
-			Refresh: func() (interface{}, string, error) {
-				instance, err := getServerInstance(client, ncloud.StringValue(serverInstance.ServerInstanceNo))
-				if err != nil {
-					return 0, "", err
-				}
-				return instance, ncloud.StringValue(instance.ServerInstanceStatus.Code), nil
-			},
-			Timeout:    DefaultTimeout,
-			Delay:      2 * time.Second,
-			MinTimeout: 3 * time.Second,
-		}
-
-		_, err = stateConf.WaitForState()
+	if !config.SupportVPC {
+		err = detachBlockStorageByServerInstanceNo(d, config.Client, d.Id())
 		if err != nil {
-			return fmt.Errorf("Error waiting for ServerInstance state to be \"NSTOP\": %s", err)
+			log.Printf("[ERROR] detachBlockStorageByServerInstanceNo err: %s", err)
+			return err
 		}
 	}
 
-	err = detachBlockStorageByServerInstanceNo(d, client, d.Id())
-	if err != nil {
-		log.Printf("[ERROR] detachBlockStorageByServerInstanceNo err: %s", err)
-		return err
-	}
-
-	if err := terminateServerInstance(client, d.Id()); err != nil {
+	if err := terminateThenWaitServerInstance(config, d.Id()); err != nil {
 		return err
 	}
 	d.SetId("")
@@ -359,166 +305,564 @@ func resourceNcloudServerDelete(d *schema.ResourceData, meta interface{}) error 
 }
 
 func resourceNcloudServerUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ProviderConfig).Client
+	config := meta.(*ProviderConfig)
 
-	if d.HasChange("server_product_code") {
-		reqParams := &server.ChangeServerInstanceSpecRequest{
-			ServerInstanceNo:  ncloud.String(d.Get("instance_no").(string)),
-			ServerProductCode: ncloud.String(d.Get("server_product_code").(string)),
-		}
-
-		var resp *server.ChangeServerInstanceSpecResponse
-		err := resource.Retry(d.Timeout(schema.TimeoutDelete), func() *resource.RetryError {
-			var err error
-			logCommonRequest("ChangeServerInstanceSpec", reqParams)
-			resp, err = client.server.V2Api.ChangeServerInstanceSpec(reqParams)
-
-			if resp != nil && isRetryableErr(GetCommonResponse(resp), []string{ApiErrorUnknown, ApiErrorObjectInOperation, ApiErrorObjectInOperation}) {
-				logErrorResponse("retry ChangeServerInstanceSpec", err, reqParams)
-				time.Sleep(time.Second * 5)
-				return resource.RetryableError(err)
-			}
-			return resource.NonRetryableError(err)
-		})
-
-		if err != nil {
-			logErrorResponse("ChangeServerInstanceSpec", err, reqParams)
-			return err
-		}
-		logCommonResponse("ChangeServerInstanceSpec", GetCommonResponse(resp))
+	if err := updateServerInstance(d, config); err != nil {
+		return err
 	}
 
 	return resourceNcloudServerRead(d, meta)
 }
 
-func buildCreateServerInstanceReqParams(config *ProviderConfig, d *schema.ResourceData) (*server.CreateServerInstancesRequest, error) {
-
-	var paramAccessControlGroupConfigurationNoList []*string
-	if param, ok := d.GetOk("access_control_group_configuration_no_list"); ok {
-		paramAccessControlGroupConfigurationNoList = expandStringInterfaceList(param.([]interface{}))
+func getServerZoneNo(config *ProviderConfig, serverInstanceNo string) (string, error) {
+	instance, err := getServerInstance(config, serverInstanceNo)
+	if err != nil || instance == nil || instance.ZoneNo == nil {
+		return "", err
 	}
+	return *instance.ZoneNo, nil
+}
+
+// Create
+func createServerInstance(d *schema.ResourceData, config *ProviderConfig) (*string, error) {
+	if config.SupportVPC {
+		return createVpcServerInstance(d, config)
+	}
+
+	return createClassicServerInstance(d, config)
+}
+
+func createClassicServerInstance(d *schema.ResourceData, config *ProviderConfig) (*string, error) {
 	zoneNo, err := parseZoneNoParameter(config, d)
 	if err != nil {
 		return nil, err
 	}
+
 	reqParams := &server.CreateServerInstancesRequest{
-		InternetLineTypeCode:                  StringPtrOrNil(d.GetOk("internet_line_type")),
-		ZoneNo:                                zoneNo,
-		AccessControlGroupConfigurationNoList: paramAccessControlGroupConfigurationNoList,
-	}
-
-	if serverImageProductCode, ok := d.GetOk("server_image_product_code"); ok {
-		reqParams.ServerImageProductCode = ncloud.String(serverImageProductCode.(string))
-	}
-
-	if serverProductCode, ok := d.GetOk("server_product_code"); ok {
-		reqParams.ServerProductCode = ncloud.String(serverProductCode.(string))
-	}
-
-	if memberServerImageNo, ok := d.GetOk("member_server_image_no"); ok {
-		reqParams.MemberServerImageNo = ncloud.String(memberServerImageNo.(string))
-	}
-
-	if serverName, ok := d.GetOk("name"); ok {
-		reqParams.ServerName = ncloud.String(serverName.(string))
-	}
-
-	if serverDescription, ok := d.GetOk("description"); ok {
-		reqParams.ServerDescription = ncloud.String(serverDescription.(string))
-	}
-
-	if loginKeyName, ok := d.GetOk("login_key_name"); ok {
-		reqParams.LoginKeyName = ncloud.String(loginKeyName.(string))
-	}
-
-	if feeSystemTypeCode, ok := d.GetOk("fee_system_type_code"); ok {
-		reqParams.FeeSystemTypeCode = ncloud.String(feeSystemTypeCode.(string))
-	}
-
-	if userData, ok := d.GetOk("user_data"); ok {
-		reqParams.UserData = ncloud.String(userData.(string))
-	}
-
-	if raidTypeName, ok := d.GetOk("raid_type_name"); ok {
-		reqParams.RaidTypeName = ncloud.String(raidTypeName.(string))
+		ZoneNo:                     zoneNo,
+		ServerImageProductCode:     StringPtrOrNil(d.GetOk("server_image_product_code")),
+		ServerProductCode:          StringPtrOrNil(d.GetOk("server_product_code")),
+		MemberServerImageNo:        StringPtrOrNil(d.GetOk("member_server_image_no")),
+		ServerName:                 StringPtrOrNil(d.GetOk("name")),
+		ServerDescription:          StringPtrOrNil(d.GetOk("description")),
+		LoginKeyName:               StringPtrOrNil(d.GetOk("login_key_name")),
+		IsProtectServerTermination: BoolPtrOrNil(d.GetOk("is_protect_server_termination")),
+		InternetLineTypeCode:       StringPtrOrNil(d.GetOk("internet_line_type")),
+		FeeSystemTypeCode:          StringPtrOrNil(d.GetOk("fee_system_type_code")),
+		UserData:                   StringPtrOrNil(d.GetOk("user_data")),
+		RaidTypeName:               StringPtrOrNil(d.GetOk("raid_type_name")),
 	}
 
 	if instanceTagList, err := expandTagListParams(d.Get("tag_list").([]interface{})); err == nil {
 		reqParams.InstanceTagList = instanceTagList
 	}
 
-	if IsProtectServerTermination, ok := d.GetOk("is_protect_server_termination"); ok {
-		reqParams.IsProtectServerTermination = ncloud.Bool(IsProtectServerTermination.(bool))
+	if param, ok := d.GetOk("access_control_group_configuration_no_list"); ok {
+		reqParams.AccessControlGroupConfigurationNoList = expandStringInterfaceList(param.([]interface{}))
 	}
 
-	return reqParams, nil
-}
-
-func getServerInstance(client *NcloudAPIClient, serverInstanceNo string) (*server.ServerInstance, error) {
-	reqParams := new(server.GetServerInstanceListRequest)
-	reqParams.ServerInstanceNoList = []*string{ncloud.String(serverInstanceNo)}
-	logCommonRequest("GetServerInstanceList", reqParams)
-
-	resp, err := client.server.V2Api.GetServerInstanceList(reqParams)
-
-	if err != nil {
-		logErrorResponse("GetServerInstanceList", err, reqParams)
-		return nil, err
-	}
-	logCommonResponse("GetServerInstanceList", GetCommonResponse(resp))
-	if len(resp.ServerInstanceList) > 0 {
-		inst := resp.ServerInstanceList[0]
-		return inst, nil
-	}
-	return nil, nil
-}
-
-func getServerZoneNo(client *NcloudAPIClient, serverInstanceNo string) (string, error) {
-	serverInstance, err := getServerInstance(client, serverInstanceNo)
-	if err != nil || serverInstance == nil || serverInstance.Zone == nil {
-		return "", err
-	}
-	return *serverInstance.Zone.ZoneNo, nil
-}
-
-func stopServerInstance(client *NcloudAPIClient, serverInstanceNo string) error {
-	reqParams := &server.StopServerInstancesRequest{
-		ServerInstanceNoList: []*string{ncloud.String(serverInstanceNo)},
-	}
-	logCommonRequest("StopServerInstances", reqParams)
-	resp, err := client.server.V2Api.StopServerInstances(reqParams)
-	if err != nil {
-		logErrorResponse("StopServerInstances", err, reqParams)
-		return err
-	}
-	logCommonResponse("StopServerInstances", GetCommonResponse(resp))
-
-	return nil
-}
-
-func terminateServerInstance(client *NcloudAPIClient, serverInstanceNo string) error {
-	reqParams := &server.TerminateServerInstancesRequest{
-		ServerInstanceNoList: []*string{ncloud.String(serverInstanceNo)},
-	}
-
-	var resp *server.TerminateServerInstancesResponse
-	err := resource.Retry(1*time.Minute, func() *resource.RetryError {
+	var resp *server.CreateServerInstancesResponse
+	err = resource.Retry(10*time.Minute, func() *resource.RetryError {
 		var err error
-		logCommonRequest("TerminateServerInstances", reqParams)
-		resp, err = client.server.V2Api.TerminateServerInstances(reqParams)
-		if err == nil && resp == nil {
-			return resource.NonRetryableError(err)
-		}
-		if resp != nil && isRetryableErr(GetCommonResponse(resp), []string{ApiErrorUnknown, ApiErrorServerObjectInOperation2}) {
-			logErrorResponse("retry TerminateServerInstances", err, reqParams)
+		logCommonRequest("createClassicServerInstance", reqParams)
+		resp, err = config.Client.server.V2Api.CreateServerInstances(reqParams)
+
+		if resp != nil && isRetryableErr(GetCommonResponse(resp), []string{ApiErrorUnknown, ApiErrorAuthorityParameter, ApiErrorServerObjectInOperation, ApiErrorPreviousServersHaveNotBeenEntirelyTerminated}) {
 			return resource.RetryableError(err)
 		}
-		logCommonResponse("TerminateServerInstances", GetCommonResponse(resp))
 		return resource.NonRetryableError(err)
 	})
 
 	if err != nil {
-		logErrorResponse("TerminateServerInstances", err, reqParams)
+		logErrorResponse("createClassicServerInstance", err, reqParams)
+		return nil, err
+	}
+	logResponse("createClassicServerInstance", resp)
+
+	serverInstance := resp.ServerInstanceList[0]
+
+	if err := waitStateNcloudServerForCreation(config, *serverInstance.ServerInstanceNo); err != nil {
+		return nil, err
+	}
+
+	return serverInstance.ServerInstanceNo, nil
+}
+
+func createVpcServerInstance(d *schema.ResourceData, config *ProviderConfig) (*string, error) {
+	if _, ok := d.GetOk("subnet_no"); !ok {
+		return nil, ErrorRequiredArgOnVpc("subnet_no")
+	}
+
+	subnet, err := getSubnetInstance(config, d.Get("subnet_no").(string))
+	if err != nil {
+		return nil, err
+	}
+
+	if subnet == nil {
+		return nil, fmt.Errorf("no matching subnet(%s) found", d.Get("subnet_no"))
+	}
+
+	reqParams := &vserver.CreateServerInstancesRequest{
+		RegionCode:                        &config.RegionCode,
+		ServerProductCode:                 StringPtrOrNil(d.GetOk("server_product_code")),
+		ServerImageProductCode:            StringPtrOrNil(d.GetOk("server_image_product_code")),
+		MemberServerImageInstanceNo:       StringPtrOrNil(d.GetOk("member_server_image_no")),
+		ServerName:                        StringPtrOrNil(d.GetOk("name")),
+		ServerDescription:                 StringPtrOrNil(d.GetOk("description")),
+		LoginKeyName:                      StringPtrOrNil(d.GetOk("login_key_name")),
+		IsProtectServerTermination:        BoolPtrOrNil(d.GetOk("is_protect_server_termination")),
+		FeeSystemTypeCode:                 StringPtrOrNil(d.GetOk("fee_system_type_code")),
+		InitScriptNo:                      StringPtrOrNil(d.GetOk("init_script_no")),
+		VpcNo:                             subnet.VpcNo,
+		SubnetNo:                          subnet.SubnetNo,
+		PlacementGroupNo:                  StringPtrOrNil(d.GetOk("placement_group_no")),
+		IsEncryptedBaseBlockStorageVolume: BoolPtrOrNil(d.GetOk("is_encrypted_base_block_storage_volume")),
+	}
+
+	if networkInterfaceList, ok := d.GetOk("network_interfaces"); !ok {
+		defaultAcgNo, err := getDefaultAccessControlGroup(config, *subnet.VpcNo)
+		if err != nil {
+			return nil, err
+		}
+
+		niParam := &vserver.NetworkInterfaceParameter{
+			NetworkInterfaceOrder:    ncloud.Int32(0),
+			AccessControlGroupNoList: []*string{ncloud.String(defaultAcgNo)},
+		}
+
+		reqParams.NetworkInterfaceList = []*vserver.NetworkInterfaceParameter{niParam}
+	} else {
+		for i, networkInterfaceNo := range expandStringInterfaceList(networkInterfaceList.([]interface{})) {
+			networkInterface, err := getNetworkInterface(config, *networkInterfaceNo)
+			if err != nil {
+				return nil, err
+			}
+
+			if networkInterface == nil {
+				return nil, fmt.Errorf("no matching network interface [%s] found", *networkInterfaceNo)
+			}
+
+			niParam := &vserver.NetworkInterfaceParameter{
+				NetworkInterfaceOrder:    ncloud.Int32(int32(i)),
+				NetworkInterfaceNo:       networkInterface.NetworkInterfaceNo,
+				SubnetNo:                 networkInterface.SubnetNo,
+				Ip:                       networkInterface.Ip,
+				AccessControlGroupNoList: networkInterface.AccessControlGroupNoList,
+			}
+
+			reqParams.NetworkInterfaceList = append(reqParams.NetworkInterfaceList, niParam)
+		}
+	}
+
+	logCommonRequest("createVpcServerInstance", reqParams)
+	resp, err := config.Client.vserver.V2Api.CreateServerInstances(reqParams)
+	if err != nil {
+		logErrorResponse("createVpcServerInstance", err, reqParams)
+		return nil, err
+	}
+	logResponse("createVpcServerInstance", resp)
+	serverInstance := resp.ServerInstanceList[0]
+
+	if err := waitStateNcloudServerForCreation(config, *serverInstance.ServerInstanceNo); err != nil {
+		return nil, err
+	}
+
+	return serverInstance.ServerInstanceNo, nil
+}
+
+func waitStateNcloudServerForCreation(config *ProviderConfig, id string) error {
+	stateConf := &resource.StateChangeConf{
+		Pending: []string{"INIT", "CREAT"},
+		Target:  []string{"RUN"},
+		Refresh: func() (interface{}, string, error) {
+			instance, err := getServerInstance(config, id)
+			if err != nil {
+				return 0, "", err
+			}
+			return instance, ncloud.StringValue(instance.ServerInstanceStatus), nil
+		},
+		Timeout:    DefaultCreateTimeout,
+		Delay:      2 * time.Second,
+		MinTimeout: 3 * time.Second,
+	}
+
+	_, err := stateConf.WaitForState()
+	if err != nil {
+		return fmt.Errorf("error waiting for ServerInstance state to be \"RUN\": %s", err)
+	}
+
+	return nil
+}
+
+// Update
+func updateServerInstance(d *schema.ResourceData, config *ProviderConfig) error {
+	serverInstance, err := getServerInstance(config, d.Id())
+	if err != nil {
+		return err
+	}
+
+	log.Printf("[INFO] Stopping Instance %q for server_product_code change", d.Id())
+	if ncloud.StringValue(serverInstance.ServerInstanceStatus) != "NSTOP" {
+		if err := stopThenWaitServerInstance(config, d.Id()); err != nil {
+			return err
+		}
+	}
+
+	if err := changeServerInstanceSpec(d, config); err != nil {
+		return err
+	}
+
+	log.Printf("[INFO] Start Instance %q for server_product_code change", d.Id())
+	if err := startThenWaitServerInstance(config, d.Id()); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func changeServerInstanceSpec(d *schema.ResourceData, config *ProviderConfig) error {
+	var err error
+	if config.SupportVPC {
+		err = changeVpcServerInstanceSpec(d, config)
+	} else {
+		err = changeClassicServerInstanceSpec(d, config)
+	}
+
+	if err != nil {
+		return err
+	}
+
+	stateConf := &resource.StateChangeConf{
+		Pending: []string{"CHNG"},
+		Target:  []string{"NULL"},
+		Refresh: func() (interface{}, string, error) {
+			instance, err := getServerInstance(config, d.Id())
+
+			if err != nil {
+				return 0, "", err
+			}
+
+			return instance, ncloud.StringValue(instance.ServerInstanceOperation), nil
+		},
+		Timeout:    DefaultTimeout,
+		Delay:      2 * time.Second,
+		MinTimeout: 3 * time.Second,
+	}
+
+	_, err = stateConf.WaitForState()
+	if err != nil {
+		return fmt.Errorf("error waiting for ServerInstance operation to be \"NULL\": %s", err)
+	}
+
+	return nil
+}
+
+func changeClassicServerInstanceSpec(d *schema.ResourceData, config *ProviderConfig) error {
+	if d.HasChange("server_product_code") {
+		reqParams := &server.ChangeServerInstanceSpecRequest{
+			ServerInstanceNo:  ncloud.String(d.Get("instance_no").(string)),
+			ServerProductCode: ncloud.String(d.Get("server_product_code").(string)),
+		}
+
+		logCommonRequest("changeClassicServerInstanceSpec", reqParams)
+		resp, err := config.Client.server.V2Api.ChangeServerInstanceSpec(reqParams)
+		if err != nil {
+			logErrorResponse("changeClassicServerInstanceSpec", err, reqParams)
+			return err
+		}
+		logCommonResponse("changeClassicServerInstanceSpec", GetCommonResponse(resp))
+	}
+
+	return nil
+}
+
+func changeVpcServerInstanceSpec(d *schema.ResourceData, config *ProviderConfig) error {
+	if d.HasChange("server_product_code") {
+		reqParams := &vserver.ChangeServerInstanceSpecRequest{
+			RegionCode:        &config.RegionCode,
+			ServerInstanceNo:  ncloud.String(d.Get("instance_no").(string)),
+			ServerProductCode: ncloud.String(d.Get("server_product_code").(string)),
+		}
+
+		logCommonRequest("changeVpcServerInstanceSpec", reqParams)
+		resp, err := config.Client.vserver.V2Api.ChangeServerInstanceSpec(reqParams)
+		if err != nil {
+			logErrorResponse("ChangeServerInstanceSpec", err, reqParams)
+			return err
+		}
+		logResponse("changeVpcServerInstanceSpec", resp)
+	}
+
+	return nil
+}
+
+func startThenWaitServerInstance(config *ProviderConfig, id string) error {
+	var err error
+	if config.SupportVPC {
+		err = startVpcServerInstance(config, id)
+	} else {
+		err = startClassicServerInstance(config, id)
+	}
+
+	if err != nil {
+		return err
+	}
+
+	stateConf := &resource.StateChangeConf{
+		Pending: []string{"NSTOP"},
+		Target:  []string{"RUN"},
+		Refresh: func() (interface{}, string, error) {
+			instance, err := getServerInstance(config, id)
+			if err != nil {
+				return 0, "", err
+			}
+
+			return instance, ncloud.StringValue(instance.ServerInstanceStatus), nil
+		},
+		Timeout:    DefaultTimeout,
+		Delay:      2 * time.Second,
+		MinTimeout: 3 * time.Second,
+	}
+
+	_, err = stateConf.WaitForState()
+	if err != nil {
+		return fmt.Errorf("error waiting for ServerInstance state to be \"RUN\": %s", err)
+	}
+
+	return nil
+}
+
+func startClassicServerInstance(config *ProviderConfig, id string) error {
+	reqParams := &server.StartServerInstancesRequest{
+		ServerInstanceNoList: []*string{ncloud.String(id)},
+	}
+	logCommonRequest("startClassicServerInstance", reqParams)
+	resp, err := config.Client.server.V2Api.StartServerInstances(reqParams)
+	if err != nil {
+		logErrorResponse("startClassicServerInstance", err, reqParams)
+		return err
+	}
+	logResponse("startClassicServerInstance", resp)
+
+	return nil
+}
+
+func startVpcServerInstance(config *ProviderConfig, id string) error {
+	reqParams := &vserver.StartServerInstancesRequest{
+		RegionCode:           &config.RegionCode,
+		ServerInstanceNoList: []*string{ncloud.String(id)},
+	}
+	logCommonRequest("startVpcServerInstance", reqParams)
+	resp, err := config.Client.vserver.V2Api.StartServerInstances(reqParams)
+	if err != nil {
+		logErrorResponse("startVpcServerInstance", err, reqParams)
+		return err
+	}
+	logResponse("startVpcServerInstance", resp)
+
+	return nil
+}
+
+// Read
+func getServerInstance(config *ProviderConfig, id string) (*NcloudServerInstance, error) {
+	if config.SupportVPC {
+		return getVpcServerInstance(config, id)
+	}
+
+	return getClassicServerInstance(config, id)
+}
+
+func getClassicServerInstance(config *ProviderConfig, id string) (*NcloudServerInstance, error) {
+	reqParams := &server.GetServerInstanceListRequest{
+		ServerInstanceNoList: []*string{ncloud.String(id)},
+	}
+
+	logCommonRequest("getClassicServerInstance", reqParams)
+	resp, err := config.Client.server.V2Api.GetServerInstanceList(reqParams)
+
+	if err != nil {
+		logErrorResponse("getClassicServerInstance", err, reqParams)
+		return nil, err
+	}
+
+	logResponse("getClassicServerInstance", resp)
+
+	if len(resp.ServerInstanceList) == 0 {
+		return nil, nil
+	}
+
+	if err := validateOneResult(len(resp.ServerInstanceList)); err != nil {
+		return nil, err
+	}
+
+	r := resp.ServerInstanceList[0]
+
+	instance := &NcloudServerInstance{
+		ZoneNo:                         r.Zone.ZoneNo,
+		ServerImageProductCode:         r.ServerImageProductCode,
+		ServerProductCode:              r.ServerProductCode,
+		ServerName:                     r.ServerName,
+		ServerDescription:              r.ServerDescription,
+		LoginKeyName:                   r.LoginKeyName,
+		IsProtectServerTermination:     r.IsProtectServerTermination,
+		UserData:                       r.UserData,
+		ServerInstanceNo:               r.ServerInstanceNo,
+		ServerInstanceStatusName:       r.ServerInstanceStatusName,
+		ServerImageName:                r.ServerImageName,
+		CpuCount:                       r.CpuCount,
+		MemorySize:                     r.MemorySize,
+		BaseBlockStorageSize:           r.BaseBlockStorageSize,
+		IsFeeChargingMonitoring:        r.IsFeeChargingMonitoring,
+		PublicIp:                       r.PublicIp,
+		PrivateIp:                      r.PrivateIp,
+		PortForwardingPublicIp:         r.PortForwardingPublicIp,
+		PortForwardingExternalPort:     r.PortForwardingExternalPort,
+		PortForwardingInternalPort:     r.PortForwardingInternalPort,
+		ServerInstanceStatus:           r.ServerInstanceStatus.Code,
+		PlatformType:                   r.PlatformType.Code,
+		ServerInstanceOperation:        r.ServerInstanceOperation.Code,
+		Zone:                           r.Zone.ZoneCode,
+		BaseBlockStorageDiskType:       r.BaseBlockStorageDiskType.Code,
+		BaseBlockStorageDiskDetailType: flattenMapByKey(r.BaseBlockStroageDiskDetailType, "code"),
+		InternetLineType:               r.InternetLineType.Code,
+		InstanceTagList:                r.InstanceTagList,
+		NetworkInterfaceNoList:         expandStringInterfaceList([]interface{}{}),
+	}
+
+	return instance, nil
+}
+
+func getVpcServerInstance(config *ProviderConfig, id string) (*NcloudServerInstance, error) {
+	reqParams := &vserver.GetServerInstanceDetailRequest{
+		RegionCode:       &config.RegionCode,
+		ServerInstanceNo: ncloud.String(id),
+	}
+
+	logCommonRequest("getVpcServerInstance", reqParams)
+	resp, err := config.Client.vserver.V2Api.GetServerInstanceDetail(reqParams)
+
+	if err != nil {
+		logErrorResponse("getVpcServerInstance", err, reqParams)
+		return nil, err
+	}
+
+	logResponse("getVpcServerInstance", resp)
+
+	if len(resp.ServerInstanceList) == 0 {
+		return nil, nil
+	}
+
+	if err := validateOneResult(len(resp.ServerInstanceList)); err != nil {
+		return nil, err
+	}
+
+	r := resp.ServerInstanceList[0]
+
+	instance := &NcloudServerInstance{
+		ServerImageProductCode:         r.ServerImageProductCode,
+		ServerProductCode:              r.ServerProductCode,
+		ServerName:                     r.ServerName,
+		ServerDescription:              r.ServerDescription,
+		LoginKeyName:                   r.LoginKeyName,
+		IsProtectServerTermination:     r.IsProtectServerTermination,
+		ServerInstanceNo:               r.ServerInstanceNo,
+		ServerInstanceStatusName:       r.ServerInstanceStatusName,
+		CpuCount:                       r.CpuCount,
+		MemorySize:                     r.MemorySize,
+		PublicIp:                       r.PublicIp,
+		ServerInstanceStatus:           r.ServerInstanceStatus.Code,
+		PlatformType:                   r.PlatformType.Code,
+		ServerInstanceOperation:        r.ServerInstanceOperation.Code,
+		Zone:                           r.ZoneCode,
+		BaseBlockStorageDiskType:       r.BaseBlockStorageDiskType.Code,
+		BaseBlockStorageDiskDetailType: flattenMapByKey(r.BaseBlockStorageDiskDetailType, "code"),
+		VpcNo:                          r.VpcNo,
+		SubnetNo:                       r.SubnetNo,
+		InitScriptNo:                   r.InitScriptNo,
+		PlacementGroupNo:               r.PlacementGroupNo,
+		NetworkInterfaceNoList:         r.NetworkInterfaceNoList,
+	}
+
+	return instance, nil
+}
+
+// Delete
+func stopThenWaitServerInstance(config *ProviderConfig, id string) error {
+	var err error
+
+	if config.SupportVPC {
+		err = stopVpcServerInstance(config, id)
+	} else {
+		err = stopClassicServerInstance(config, id)
+	}
+
+	if err != nil {
+		return err
+	}
+
+	stateConf := &resource.StateChangeConf{
+		Pending: []string{"RUN"},
+		Target:  []string{"NSTOP"},
+		Refresh: func() (interface{}, string, error) {
+			instance, err := getServerInstance(config, id)
+			if err != nil {
+				return 0, "", err
+			}
+
+			return instance, ncloud.StringValue(instance.ServerInstanceStatus), nil
+		},
+		Timeout:    DefaultTimeout,
+		Delay:      2 * time.Second,
+		MinTimeout: 3 * time.Second,
+	}
+
+	_, err = stateConf.WaitForState()
+	if err != nil {
+		return fmt.Errorf("error waiting for ServerInstance state to be \"NSTOP\": %s", err)
+	}
+
+	return nil
+}
+
+func stopClassicServerInstance(config *ProviderConfig, id string) error {
+	reqParams := &server.StopServerInstancesRequest{
+		ServerInstanceNoList: []*string{ncloud.String(id)},
+	}
+	logCommonRequest("stopClassicServerInstance", reqParams)
+	resp, err := config.Client.server.V2Api.StopServerInstances(reqParams)
+	if err != nil {
+		logErrorResponse("stopClassicServerInstance", err, reqParams)
+		return err
+	}
+	logResponse("stopClassicServerInstance", resp)
+
+	return nil
+}
+
+func stopVpcServerInstance(config *ProviderConfig, id string) error {
+	reqParams := &vserver.StopServerInstancesRequest{
+		RegionCode:           &config.RegionCode,
+		ServerInstanceNoList: []*string{ncloud.String(id)},
+	}
+	logCommonRequest("stopVpcServerInstance", reqParams)
+	resp, err := config.Client.vserver.V2Api.StopServerInstances(reqParams)
+	if err != nil {
+		logErrorResponse("stopClassicServerInstance", err, reqParams)
+		return err
+	}
+	logResponse("stopVpcServerInstance", resp)
+
+	return nil
+}
+
+func terminateThenWaitServerInstance(config *ProviderConfig, id string) error {
+	var err error
+	if config.SupportVPC {
+		err = terminateVpcServerInstance(config, id)
+	} else {
+		err = terminateClassicServerInstance(config, id)
+	}
+
+	if err != nil {
 		return err
 	}
 
@@ -526,7 +870,7 @@ func terminateServerInstance(client *NcloudAPIClient, serverInstanceNo string) e
 		Pending: []string{"NSTOP"},
 		Target:  []string{"TERMINATED"},
 		Refresh: func() (interface{}, string, error) {
-			instance, err := getServerInstance(client, serverInstanceNo)
+			instance, err := getServerInstance(config, id)
 
 			if err != nil {
 				return 0, "", err
@@ -534,7 +878,7 @@ func terminateServerInstance(client *NcloudAPIClient, serverInstanceNo string) e
 			if instance == nil { // Instance is terminated.
 				return instance, "TERMINATED", nil
 			}
-			return instance, ncloud.StringValue(instance.ServerInstanceStatus.Code), nil
+			return instance, ncloud.StringValue(instance.ServerInstanceStatus), nil
 		},
 		Timeout:    DefaultTimeout,
 		Delay:      2 * time.Second,
@@ -545,7 +889,108 @@ func terminateServerInstance(client *NcloudAPIClient, serverInstanceNo string) e
 	if err != nil {
 		return fmt.Errorf("Error waiting for ServerInstance state to be \"TERMINATED\": %s", err)
 	}
+
 	return nil
+}
+
+func terminateClassicServerInstance(config *ProviderConfig, id string) error {
+	reqParams := &server.TerminateServerInstancesRequest{
+		ServerInstanceNoList: []*string{ncloud.String(id)},
+	}
+
+	var resp *server.TerminateServerInstancesResponse
+	err := resource.Retry(1*time.Minute, func() *resource.RetryError {
+		var err error
+		logCommonRequest("terminateClassicServerInstance", reqParams)
+		resp, err = config.Client.server.V2Api.TerminateServerInstances(reqParams)
+		if err == nil && resp == nil {
+			return resource.NonRetryableError(err)
+		}
+		if resp != nil && isRetryableErr(GetCommonResponse(resp), []string{ApiErrorUnknown, ApiErrorServerObjectInOperation2}) {
+			logErrorResponse("retry terminateClassicServerInstance", err, reqParams)
+			return resource.RetryableError(err)
+		}
+		logResponse("terminateClassicServerInstance", resp)
+		return resource.NonRetryableError(err)
+	})
+
+	if err != nil {
+		logErrorResponse("terminateClassicServerInstance", err, reqParams)
+		return err
+	}
+
+	return nil
+}
+
+func terminateVpcServerInstance(config *ProviderConfig, id string) error {
+	reqParams := &vserver.TerminateServerInstancesRequest{
+		ServerInstanceNoList: []*string{ncloud.String(id)},
+	}
+
+	var resp *vserver.TerminateServerInstancesResponse
+	err := resource.Retry(1*time.Minute, func() *resource.RetryError {
+		var err error
+		logCommonRequest("terminateVpcServerInstance", reqParams)
+		resp, err = config.Client.vserver.V2Api.TerminateServerInstances(reqParams)
+		if err == nil && resp == nil {
+			return resource.NonRetryableError(err)
+		}
+		if resp != nil && isRetryableErr(GetCommonResponse(resp), []string{ApiErrorUnknown, ApiErrorServerObjectInOperation2}) {
+			logErrorResponse("retry terminateVpcServerInstance", err, reqParams)
+			return resource.RetryableError(err)
+		}
+		logResponse("terminateVpcServerInstance", resp)
+		return resource.NonRetryableError(err)
+	})
+
+	if err != nil {
+		logErrorResponse("terminateVpcServerInstance", err, reqParams)
+		return err
+	}
+
+	return nil
+}
+
+//NcloudServerInstance server instance model
+type NcloudServerInstance struct {
+	// Request
+	ZoneNo                         *string               `json:"zone_no,omitempty"`
+	ServerImageProductCode         *string               `json:"server_image_product_code,omitempty"`
+	ServerProductCode              *string               `json:"server_product_code,omitempty"`
+	MemberServerImageNo            *string               `json:"member_server_image_no,omitempty"`
+	ServerName                     *string               `json:"name,omitempty"`
+	ServerDescription              *string               `json:"description,omitempty"`
+	LoginKeyName                   *string               `json:"login_key_name,omitempty"`
+	IsProtectServerTermination     *bool                 `json:"is_protect_server_termination,omitempty"`
+	FeeSystemTypeCode              *string               `json:"fee_system_type_code,omitempty"`
+	UserData                       *string               `json:"user_data,omitempty"`
+	RaidTypeName                   *string               `json:"raid_type_name,omitempty"`
+	ServerInstanceNo               *string               `json:"instance_no,omitempty"`
+	ServerInstanceStatusName       *string               `json:"instance_status_name,omitempty"`
+	ServerImageName                *string               `json:"server_image_name,omitempty"`
+	CpuCount                       *int32                `json:"cpu_count,omitempty"`
+	MemorySize                     *int64                `json:"memory_size,omitempty"`
+	BaseBlockStorageSize           *int64                `json:"base_block_storage_size,omitempty"`
+	IsFeeChargingMonitoring        *bool                 `json:"is_fee_charging_monitoring,omitempty"`
+	PublicIp                       *string               `json:"public_ip,omitempty"`
+	PrivateIp                      *string               `json:"private_ip,omitempty"`
+	PortForwardingPublicIp         *string               `json:"port_forwarding_public_ip,omitempty"`
+	PortForwardingExternalPort     *int32                `json:"port_forwarding_external_port,omitempty"`
+	PortForwardingInternalPort     *int32                `json:"port_forwarding_internal_port,omitempty"`
+	ServerInstanceStatus           *string               `json:"status,omitempty"`
+	PlatformType                   *string               `json:"platform_type,omitempty"`
+	ServerInstanceOperation        *string               `json:"operation,omitempty"`
+	Zone                           *string               `json:"zone,omitempty"`
+	BaseBlockStorageDiskType       *string               `json:"base_block_storage_disk_type,omitempty"`
+	BaseBlockStorageDiskDetailType *string               `json:"base_block_storage_disk_detail_type,omitempty"`
+	InternetLineType               *string               `json:"internet_line_type,omitempty"`
+	InstanceTagList                []*server.InstanceTag `json:"tag_list,omitempty"`
+	// VPC
+	VpcNo                  *string   `json:"vpc_no,omitempty"`
+	SubnetNo               *string   `json:"subnet_no,omitempty"`
+	InitScriptNo           *string   `json:"init_script_no,omitempty"`
+	PlacementGroupNo       *string   `json:"placement_group_no,omitempty"`
+	NetworkInterfaceNoList []*string `json:"network_interfaces"`
 }
 
 var tagListSchemaResource = &schema.Resource{

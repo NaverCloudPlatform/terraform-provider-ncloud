@@ -65,7 +65,7 @@ func resourceNcloudPortForwadingRule() *schema.Resource {
 }
 
 func resourceNcloudPortForwardingRuleCreate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ProviderConfig).Client
+	config := meta.(*ProviderConfig)
 
 	portForwardingConfigurationNo, err := getPortForwardingConfigurationNo(d, meta)
 	if err != nil {
@@ -82,7 +82,7 @@ func resourceNcloudPortForwardingRuleCreate(d *schema.ResourceData, meta interfa
 	}
 
 	serverInstanceNo := d.Get("server_instance_no").(string)
-	zoneNo, err := getServerZoneNo(client, serverInstanceNo)
+	zoneNo, err := getServerZoneNo(config, serverInstanceNo)
 	newPortForwardingRuleId := PortForwardingRuleId(portForwardingConfigurationNo, zoneNo, portForwardingExternalPort)
 	log.Printf("[DEBUG] AddPortForwardingRules newPortForwardingRuleId: %s", newPortForwardingRuleId)
 
@@ -101,7 +101,7 @@ func resourceNcloudPortForwardingRuleCreate(d *schema.ResourceData, meta interfa
 	err = resource.Retry(d.Timeout(schema.TimeoutCreate), func() *resource.RetryError {
 		var err error
 		logCommonRequest("AddPortForwardingRules", reqParams)
-		resp, err = client.server.V2Api.AddPortForwardingRules(reqParams)
+		resp, err = config.Client.server.V2Api.AddPortForwardingRules(reqParams)
 
 		if resp != nil && isRetryableErr(GetCommonResponse(resp), []string{ApiErrorUnknown, ApiErrorPortForwardingObjectInOperation}) {
 			logErrorResponse("retry AddPortForwardingRules", err, reqParams)
@@ -155,9 +155,9 @@ func resourceNcloudPortForwardingRuleRead(d *schema.ResourceData, meta interface
 }
 
 func resourceNcloudPortForwardingRuleExists(d *schema.ResourceData, meta interface{}) (bool, error) {
-	client := meta.(*ProviderConfig).Client
+	config := meta.(*ProviderConfig)
 
-	zoneNo, err := getServerZoneNo(client, d.Get("server_instance_no").(string))
+	zoneNo, err := getServerZoneNo(config, d.Get("server_instance_no").(string))
 	if err != nil {
 		return false, err
 	}
@@ -165,7 +165,7 @@ func resourceNcloudPortForwardingRuleExists(d *schema.ResourceData, meta interfa
 	if v, ok := d.GetOk("port_forwarding_external_port"); ok {
 		portForwardingExternalPort = int32(v.(int))
 	}
-	return hasPortForwardingRule(client, zoneNo, portForwardingExternalPort)
+	return hasPortForwardingRule(config.Client, zoneNo, portForwardingExternalPort)
 }
 
 func resourceNcloudPortForwardingRuleUpdate(d *schema.ResourceData, meta interface{}) error {
@@ -241,18 +241,18 @@ func parsePortForwardingRuleId(id string) (portForwardingConfigurationNo string,
 }
 
 func getPortForwardingConfigurationNo(d *schema.ResourceData, meta interface{}) (string, error) {
-	client := meta.(*ProviderConfig).Client
+	config := meta.(*ProviderConfig)
 
 	paramPortForwardingConfigurationNo, ok := d.GetOk("port_forwarding_configuration_no")
 	var portForwardingConfigurationNo string
 	if ok {
 		portForwardingConfigurationNo = paramPortForwardingConfigurationNo.(string)
 	} else {
-		zoneNo, err := getServerZoneNo(client, d.Get("server_instance_no").(string))
+		zoneNo, err := getServerZoneNo(config, d.Get("server_instance_no").(string))
 		if err != nil {
 			return "", err
 		}
-		resp, err := getPortForwardingRuleList(client, zoneNo)
+		resp, err := getPortForwardingRuleList(config.Client, zoneNo)
 		if err != nil {
 			return "", err
 		}
