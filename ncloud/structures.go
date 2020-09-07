@@ -281,3 +281,12 @@ func flattenInstanceTagList(tagList []*server.InstanceTag) []map[string]interfac
 
 	return list
 }
+
+func flattenMapByKey(i interface{}, key string) *string {
+	m := ConvertToMap(i)
+	if m[key] != nil {
+		return ncloud.String(m[key].(string))
+	} else {
+		return nil
+	}
+}
