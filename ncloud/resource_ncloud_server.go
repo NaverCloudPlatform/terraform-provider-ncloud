@@ -67,6 +67,7 @@ func resourceNcloudServer() *schema.Resource {
 				Type:     schema.TypeString,
 				Optional: true,
 				Computed: true,
+				ForceNew: true,
 			},
 			"is_protect_server_termination": {
 				Type:     schema.TypeBool,
@@ -96,12 +97,13 @@ func resourceNcloudServer() *schema.Resource {
 				Type:     schema.TypeList,
 				Optional: true,
 				Elem:     &schema.Schema{Type: schema.TypeString},
+				ForceNew: true,
 				MinItems: 1,
 			},
 			"user_data": {
 				Type:     schema.TypeString,
 				Optional: true,
-				Computed: true,
+				ForceNew: true,
 			},
 			"raid_type_name": {
 				Type:     schema.TypeString,
@@ -123,6 +125,7 @@ func resourceNcloudServer() *schema.Resource {
 				Type:     schema.TypeString,
 				Optional: true,
 				Computed: true,
+				ForceNew: true,
 			},
 			"placement_group_no": {
 				Type:     schema.TypeString,
@@ -168,10 +171,6 @@ func resourceNcloudServer() *schema.Resource {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
-			"is_fee_charging_monitoring": {
-				Type:     schema.TypeBool,
-				Computed: true,
-			},
 			"public_ip": {
 				Type:     schema.TypeString,
 				Computed: true,
@@ -204,10 +203,6 @@ func resourceNcloudServer() *schema.Resource {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
-			"region": {
-				Type:     schema.TypeString,
-				Computed: true,
-			},
 			"base_block_storage_disk_type": {
 				Type:     schema.TypeString,
 				Computed: true,
@@ -227,6 +222,16 @@ func resourceNcloudServer() *schema.Resource {
 				Deprecated: "Use `operation` instead",
 			},
 			"instance_status_name": {
+				Type:       schema.TypeString,
+				Computed:   true,
+				Deprecated: "This field no longer support",
+			},
+			"is_fee_charging_monitoring": {
+				Type:       schema.TypeBool,
+				Computed:   true,
+				Deprecated: "This field no longer support",
+			},
+			"region": {
 				Type:       schema.TypeString,
 				Computed:   true,
 				Deprecated: "This field no longer support",
@@ -704,7 +709,6 @@ func getClassicServerInstance(config *ProviderConfig, id string) (*NcloudServerI
 		ServerDescription:              r.ServerDescription,
 		LoginKeyName:                   r.LoginKeyName,
 		IsProtectServerTermination:     r.IsProtectServerTermination,
-		UserData:                       r.UserData,
 		ServerInstanceNo:               r.ServerInstanceNo,
 		ServerInstanceStatusName:       r.ServerInstanceStatusName,
 		ServerImageName:                r.ServerImageName,
