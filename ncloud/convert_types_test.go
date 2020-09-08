@@ -2,7 +2,6 @@ package ncloud
 
 import (
 	"fmt"
-	"log"
 	"reflect"
 	"testing"
 
@@ -78,8 +77,6 @@ func TestConvertToMap(t *testing.T) {
 	}
 
 	m := ConvertToMap(i)
-
-	log.Printf("%+v", m)
 
 	if m["cpu_count"].(float64) != 2 {
 		t.Fatalf("'cpu_count' expected '2' but %s", m["cpu_count"])
