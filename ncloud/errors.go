@@ -9,10 +9,10 @@ func NotSupportClassic(name string) error {
 
 //ErrorRequiredArgOnVpc return error for required on vpc
 func ErrorRequiredArgOnVpc(name string) error {
-	return fmt.Errorf("missing required argument: The argument \"%s\" is required on vpc", "subnet_no")
+	return fmt.Errorf("missing required argument: The argument \"%s\" is required on vpc", name)
 }
 
 //ErrorRequiredOnArgClassic return error for required on classic
 func ErrorRequiredOnArgClassic(name string) error {
-	return fmt.Errorf("missing required argument: The argument \"%s\" is required on classic", "subnet_no")
+	return fmt.Errorf("missing required argument: The argument \"%s\" is required on classic", name)
 }
