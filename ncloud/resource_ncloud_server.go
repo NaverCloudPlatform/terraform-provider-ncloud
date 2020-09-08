@@ -887,7 +887,7 @@ func terminateThenWaitServerInstance(config *ProviderConfig, id string) error {
 
 	_, err = stateConf.WaitForState()
 	if err != nil {
-		return fmt.Errorf("Error waiting for ServerInstance state to be \"TERMINATED\": %s", err)
+		return fmt.Errorf("error waiting for ServerInstance state to be \"TERMINATED\": %s", err)
 	}
 
 	return nil
@@ -924,24 +924,13 @@ func terminateClassicServerInstance(config *ProviderConfig, id string) error {
 
 func terminateVpcServerInstance(config *ProviderConfig, id string) error {
 	reqParams := &vserver.TerminateServerInstancesRequest{
+		RegionCode:           &config.RegionCode,
 		ServerInstanceNoList: []*string{ncloud.String(id)},
 	}
 
-	var resp *vserver.TerminateServerInstancesResponse
-	err := resource.Retry(1*time.Minute, func() *resource.RetryError {
-		var err error
-		logCommonRequest("terminateVpcServerInstance", reqParams)
-		resp, err = config.Client.vserver.V2Api.TerminateServerInstances(reqParams)
-		if err == nil && resp == nil {
-			return resource.NonRetryableError(err)
-		}
-		if resp != nil && isRetryableErr(GetCommonResponse(resp), []string{ApiErrorUnknown, ApiErrorServerObjectInOperation2}) {
-			logErrorResponse("retry terminateVpcServerInstance", err, reqParams)
-			return resource.RetryableError(err)
-		}
-		logResponse("terminateVpcServerInstance", resp)
-		return resource.NonRetryableError(err)
-	})
+	logCommonRequest("terminateVpcServerInstance", reqParams)
+	resp, err := config.Client.vserver.V2Api.TerminateServerInstances(reqParams)
+	logResponse("terminateVpcServerInstance", resp)
 
 	if err != nil {
 		logErrorResponse("terminateVpcServerInstance", err, reqParams)
