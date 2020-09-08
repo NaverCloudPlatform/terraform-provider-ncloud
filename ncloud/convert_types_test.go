@@ -90,7 +90,7 @@ func TestConvertToMap(t *testing.T) {
 		t.Fatalf("'cpu_count' expected '2' but %s", m["name"])
 	}
 
-	if _, ok := m["network_interfaces"]; !ok {
-		t.Fatalf("'network_interfaces' expected 'nil' but %s", m["network_interfaces"])
+	if _, ok := m["network_interface"]; !ok {
+		t.Fatalf("'network_interface' expected 'nil' but %s", m["network_interface"])
 	}
 }
