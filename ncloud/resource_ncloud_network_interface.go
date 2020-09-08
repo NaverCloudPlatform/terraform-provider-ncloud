@@ -49,6 +49,7 @@ func resourceNcloudNetworkInterface() *schema.Resource {
 			"server_instance_no": {
 				Type:     schema.TypeString,
 				Optional: true,
+				Computed: true,
 			},
 			"description": {
 				Type:         schema.TypeString,
