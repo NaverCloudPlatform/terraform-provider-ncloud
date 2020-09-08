@@ -100,14 +100,29 @@ func resourceNcloudSubnetCreate(d *schema.ResourceData, meta interface{}) error 
 		reqParams.UsageTypeCode = ncloud.String(v.(string))
 	}
 
-	logCommonRequest("resource_ncloud_subnet > CreateSubnet", reqParams)
-	resp, err := config.Client.vpc.V2Api.CreateSubnet(reqParams)
+	var resp *vpc.CreateSubnetResponse
+	err := resource.Retry(d.Timeout(schema.TimeoutCreate), func() *resource.RetryError {
+		var err error
+		logCommonRequest("resource_ncloud_subnet > CreateSubnet", reqParams)
+		resp, err = config.Client.vpc.V2Api.CreateSubnet(reqParams)
+
+		if err == nil {
+			return resource.NonRetryableError(err)
+		}
+
+		errBody, _ := GetCommonErrorBody(err)
+		if errBody.ReturnCode == "1001015" {
+			logErrorResponse("retry resource_ncloud_subnet > CreateSubnet", err, reqParams)
+			time.Sleep(time.Second * 5)
+			return resource.RetryableError(err)
+		}
+
+		return resource.NonRetryableError(err)
+	})
+
 	if err != nil {
-		logErrorResponse("resource_ncloud_subnet > CreateSubnet", err, reqParams)
 		return err
 	}
-
-	logResponse("resource_ncloud_subnet > CreateSubnet", resp)
 
 	instance := resp.SubnetList[0]
 	d.SetId(*instance.SubnetNo)
