@@ -5,6 +5,7 @@ import (
 	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/services/vserver"
 	"log"
 	"regexp"
+	"strconv"
 	"time"
 
 	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/ncloud"
@@ -132,13 +133,35 @@ func resourceNcloudServer() *schema.Resource {
 				Optional: true,
 				Computed: true,
 			},
-			"network_interfaces": {
-				Type:     schema.TypeList,
-				Optional: true,
-				Computed: true,
-				Elem:     &schema.Schema{Type: schema.TypeString},
-				MinItems: 1,
-				MaxItems: 3,
+			"network_interface": {
+				Type:          schema.TypeList,
+				ConflictsWith: []string{"access_control_group_configuration_no_list"},
+				Optional:      true,
+				Computed:      true,
+				MinItems:      1,
+				MaxItems:      3,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"network_interface_no": {
+							Type:     schema.TypeString,
+							Required: true,
+							ForceNew: true,
+						},
+						"order": {
+							Type:     schema.TypeInt,
+							Required: true,
+							ForceNew: true,
+						},
+						"subnet_no": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+						"private_ip": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+					},
+				},
 			},
 			"is_encrypted_base_block_storage_volume": {
 				Type:     schema.TypeBool,
@@ -265,6 +288,10 @@ func resourceNcloudServerRead(d *schema.ResourceData, meta interface{}) error {
 
 	if r == nil {
 		d.SetId("")
+	}
+
+	if config.SupportVPC {
+		buildNetworkInterfaceList(config, r)
 	}
 
 	instance := ConvertToMap(r)
@@ -423,7 +450,7 @@ func createVpcServerInstance(d *schema.ResourceData, config *ProviderConfig) (*s
 		IsEncryptedBaseBlockStorageVolume: BoolPtrOrNil(d.GetOk("is_encrypted_base_block_storage_volume")),
 	}
 
-	if networkInterfaceList, ok := d.GetOk("network_interfaces"); !ok {
+	if networkInterfaceList, ok := d.GetOk("network_interface"); !ok {
 		defaultAcgNo, err := getDefaultAccessControlGroup(config, *subnet.VpcNo)
 		if err != nil {
 			return nil, err
@@ -436,22 +463,24 @@ func createVpcServerInstance(d *schema.ResourceData, config *ProviderConfig) (*s
 
 		reqParams.NetworkInterfaceList = []*vserver.NetworkInterfaceParameter{niParam}
 	} else {
-		for i, networkInterfaceNo := range expandStringInterfaceList(networkInterfaceList.([]interface{})) {
-			networkInterface, err := getNetworkInterface(config, *networkInterfaceNo)
+		for _, vi := range networkInterfaceList.([]interface{}) {
+			m := vi.(map[string]interface{})
+			order := m["order"].(int)
+			networkInterfaceNo := m["network_interface_no"].(string)
+
+			networkInterface, err := getNetworkInterface(config, networkInterfaceNo)
 			if err != nil {
 				return nil, err
 			}
 
 			if networkInterface == nil {
-				return nil, fmt.Errorf("no matching network interface [%s] found", *networkInterfaceNo)
+				return nil, fmt.Errorf("no matching network interface [%s] found", networkInterfaceNo)
 			}
 
 			niParam := &vserver.NetworkInterfaceParameter{
-				NetworkInterfaceOrder:    ncloud.Int32(int32(i)),
-				NetworkInterfaceNo:       networkInterface.NetworkInterfaceNo,
-				SubnetNo:                 networkInterface.SubnetNo,
-				Ip:                       networkInterface.Ip,
-				AccessControlGroupNoList: networkInterface.AccessControlGroupNoList,
+				NetworkInterfaceOrder: ncloud.Int32(int32(order)),
+				NetworkInterfaceNo:    networkInterface.NetworkInterfaceNo,
+				SubnetNo:              networkInterface.SubnetNo,
 			}
 
 			reqParams.NetworkInterfaceList = append(reqParams.NetworkInterfaceList, niParam)
@@ -729,7 +758,6 @@ func getClassicServerInstance(config *ProviderConfig, id string) (*NcloudServerI
 		BaseBlockStorageDiskDetailType: flattenMapByKey(r.BaseBlockStroageDiskDetailType, "code"),
 		InternetLineType:               r.InternetLineType.Code,
 		InstanceTagList:                r.InstanceTagList,
-		NetworkInterfaceNoList:         expandStringInterfaceList([]interface{}{}),
 	}
 
 	return instance, nil
@@ -783,10 +811,41 @@ func getVpcServerInstance(config *ProviderConfig, id string) (*NcloudServerInsta
 		SubnetNo:                       r.SubnetNo,
 		InitScriptNo:                   r.InitScriptNo,
 		PlacementGroupNo:               r.PlacementGroupNo,
-		NetworkInterfaceNoList:         r.NetworkInterfaceNoList,
+	}
+
+	for _, networkInterfaceNo := range r.NetworkInterfaceNoList {
+		ni := &NcloudServerInstanceNetworkInterface{
+			NetworkInterfaceNo: networkInterfaceNo,
+		}
+
+		instance.NetworkInterfaceList = append(instance.NetworkInterfaceList, ni)
 	}
 
 	return instance, nil
+}
+
+func buildNetworkInterfaceList(config *ProviderConfig, r *NcloudServerInstance) error {
+	for _, ni := range r.NetworkInterfaceList {
+		networkInterface, err := getNetworkInterface(config, *ni.NetworkInterfaceNo)
+
+		if err != nil {
+			return err
+		}
+
+		if networkInterface == nil {
+			continue
+		}
+
+		re := regexp.MustCompile("[0-9]+")
+		order, err := strconv.Atoi(re.FindString(*networkInterface.DeviceName))
+
+		ni.PrivateIp = networkInterface.Ip
+		ni.SubnetNo = networkInterface.SubnetNo
+		ni.NetworkInterfaceNo = networkInterface.NetworkInterfaceNo
+		ni.Order = ncloud.Int32(int32(order))
+	}
+
+	return nil
 }
 
 // Delete
@@ -979,11 +1038,18 @@ type NcloudServerInstance struct {
 	InternetLineType               *string               `json:"internet_line_type,omitempty"`
 	InstanceTagList                []*server.InstanceTag `json:"tag_list,omitempty"`
 	// VPC
-	VpcNo                  *string   `json:"vpc_no,omitempty"`
-	SubnetNo               *string   `json:"subnet_no,omitempty"`
-	InitScriptNo           *string   `json:"init_script_no,omitempty"`
-	PlacementGroupNo       *string   `json:"placement_group_no,omitempty"`
-	NetworkInterfaceNoList []*string `json:"network_interfaces"`
+	VpcNo                *string                                 `json:"vpc_no,omitempty"`
+	SubnetNo             *string                                 `json:"subnet_no,omitempty"`
+	InitScriptNo         *string                                 `json:"init_script_no,omitempty"`
+	PlacementGroupNo     *string                                 `json:"placement_group_no,omitempty"`
+	NetworkInterfaceList []*NcloudServerInstanceNetworkInterface `json:"network_interface"`
+}
+
+type NcloudServerInstanceNetworkInterface struct {
+	Order              *int32  `json:"order,omitempty"`
+	NetworkInterfaceNo *string `json:"network_interface_no,omitempty"`
+	PrivateIp          *string `json:"private_ip,omitempty"`
+	SubnetNo           *string `json:"subnet_no,omitempty"`
 }
 
 var tagListSchemaResource = &schema.Resource{

@@ -55,7 +55,6 @@ func TestAccResourceNcloudServer_classic_basic(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "operation", "NULL"),
 					resource.TestCheckResourceAttr(resourceName, "status", "RUN"),
 					resource.TestCheckResourceAttr(resourceName, "platform_type", "LNX32"),
-					resource.TestCheckResourceAttr(resourceName, "is_fee_charging_monitoring", "false"),
 					resource.TestCheckResourceAttr(resourceName, "is_protect_server_termination", "false"),
 					resource.TestCheckResourceAttr(resourceName, "server_image_name", "centos-6.3-32"),
 					resource.TestCheckResourceAttr(resourceName, "login_key_name", fmt.Sprintf("%s-key", testServerName)),
@@ -73,7 +72,7 @@ func TestAccResourceNcloudServer_classic_basic(t *testing.T) {
 					config := testAccProvider.Meta().(*ProviderConfig)
 					return config.SupportVPC, nil
 				},
-				ResourceName:            "ncloud_server.server",
+				ResourceName:            resourceName,
 				ImportState:             true,
 				ImportStateVerify:       true,
 				ImportStateVerifyIgnore: []string{"login_key_name", "server_product_code"},
@@ -101,18 +100,17 @@ func TestAccResourceNcloudServer_vpc_basic(t *testing.T) {
 				},
 				Check: resource.ComposeTestCheckFunc(testAccCheckServerExists("ncloud_server.server", &serverInstance),
 					resource.TestMatchResourceAttr(resourceName, "id", regexp.MustCompile(`^\d+$`)),
-					resource.TestCheckResourceAttr(resourceName, "server_image_product_code", "SW.VSVR.OS.LNX64.CNTOS.0708.B050"),
+					resource.TestCheckResourceAttr(resourceName, "server_image_product_code", "SW.VSVR.OS.LNX64.CNTOS.0703.B050"),
 					resource.TestCheckResourceAttr(resourceName, "server_product_code", productCode),
 					resource.TestCheckResourceAttr(resourceName, "name", testServerName),
 					resource.TestCheckResourceAttr(resourceName, "description", ""),
-					resource.TestCheckResourceAttr(resourceName, "zone", "KR-1"),
+					resource.TestCheckResourceAttr(resourceName, "zone", "KR-2"),
 					resource.TestCheckResourceAttr(resourceName, "base_block_storage_disk_type", "NET"),
 					resource.TestCheckResourceAttr(resourceName, "cpu_count", "2"),
 					resource.TestCheckResourceAttr(resourceName, "memory_size", "8589934592"),
 					resource.TestMatchResourceAttr(resourceName, "instance_no", regexp.MustCompile(`^\d+$`)),
-					resource.TestCheckResourceAttr(resourceName, "instance_operation", "NULL"),
-					resource.TestCheckResourceAttr(resourceName, "instance_status", "RUN"),
-					resource.TestCheckResourceAttr(resourceName, "instance_status_name", "running"),
+					resource.TestCheckResourceAttr(resourceName, "operation", "NULL"),
+					resource.TestCheckResourceAttr(resourceName, "status", "RUN"),
 					resource.TestCheckResourceAttr(resourceName, "platform_type", "LNX64"),
 					resource.TestCheckResourceAttr(resourceName, "is_protect_server_termination", "false"),
 					resource.TestCheckResourceAttr(resourceName, "login_key_name", fmt.Sprintf("%s-key", testServerName)),
@@ -121,8 +119,11 @@ func TestAccResourceNcloudServer_vpc_basic(t *testing.T) {
 					// VPC only
 					resource.TestMatchResourceAttr(resourceName, "subnet_no", regexp.MustCompile(`^\d+$`)),
 					resource.TestMatchResourceAttr(resourceName, "vpc_no", regexp.MustCompile(`^\d+$`)),
-					resource.TestCheckResourceAttr(resourceName, "network_interfaces.#", "1"),
-					resource.TestMatchResourceAttr(resourceName, "network_interfaces.0", regexp.MustCompile(`^\d+$`)),
+					resource.TestCheckResourceAttr(resourceName, "network_interface.#", "1"),
+					resource.TestCheckResourceAttrSet(resourceName, "network_interface.0.order"),
+					resource.TestCheckResourceAttrSet(resourceName, "network_interface.0.network_interface_no"),
+					resource.TestCheckResourceAttrSet(resourceName, "network_interface.0.subnet_no"),
+					resource.TestCheckResourceAttrSet(resourceName, "network_interface.0.private_ip"),
 				),
 			},
 			{
@@ -130,10 +131,67 @@ func TestAccResourceNcloudServer_vpc_basic(t *testing.T) {
 					config := testAccProvider.Meta().(*ProviderConfig)
 					return !config.SupportVPC, nil
 				},
-				ResourceName:            "ncloud_server.server",
-				ImportState:             true,
-				ImportStateVerify:       true,
-				ImportStateVerifyIgnore: []string{"login_key_name", "server_product_code"},
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+		},
+	})
+}
+
+func TestAccResourceNcloudServer_vpc_networkInterface(t *testing.T) {
+	var serverInstance NcloudServerInstance
+	testServerName := getTestServerName()
+	resourceName := "ncloud_server.server"
+	productCode := "SVR.VSVR.STAND.C002.M008.NET.HDD.B050.G002"
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckServerDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccServerVpcConfigNetworkInterface(testServerName, productCode),
+				SkipFunc: func() (bool, error) {
+					config := testAccProvider.Meta().(*ProviderConfig)
+					return !config.SupportVPC, nil
+				},
+				Check: resource.ComposeTestCheckFunc(testAccCheckServerExists("ncloud_server.server", &serverInstance),
+					resource.TestMatchResourceAttr(resourceName, "id", regexp.MustCompile(`^\d+$`)),
+					resource.TestCheckResourceAttr(resourceName, "server_image_product_code", "SW.VSVR.OS.LNX64.CNTOS.0703.B050"),
+					resource.TestCheckResourceAttr(resourceName, "server_product_code", productCode),
+					resource.TestCheckResourceAttr(resourceName, "name", testServerName),
+					resource.TestCheckResourceAttr(resourceName, "description", ""),
+					resource.TestCheckResourceAttr(resourceName, "zone", "KR-2"),
+					resource.TestCheckResourceAttr(resourceName, "base_block_storage_disk_type", "NET"),
+					resource.TestCheckResourceAttr(resourceName, "cpu_count", "2"),
+					resource.TestCheckResourceAttr(resourceName, "memory_size", "8589934592"),
+					resource.TestMatchResourceAttr(resourceName, "instance_no", regexp.MustCompile(`^\d+$`)),
+					resource.TestCheckResourceAttr(resourceName, "operation", "NULL"),
+					resource.TestCheckResourceAttr(resourceName, "status", "RUN"),
+					resource.TestCheckResourceAttr(resourceName, "platform_type", "LNX64"),
+					resource.TestCheckResourceAttr(resourceName, "is_protect_server_termination", "false"),
+					resource.TestCheckResourceAttr(resourceName, "login_key_name", fmt.Sprintf("%s-key", testServerName)),
+					resource.TestMatchResourceAttr(resourceName, "instance_no", regexp.MustCompile(`^\d+$`)),
+					resource.TestCheckResourceAttr(resourceName, "public_ip", ""),
+					// VPC only
+					resource.TestMatchResourceAttr(resourceName, "subnet_no", regexp.MustCompile(`^\d+$`)),
+					resource.TestMatchResourceAttr(resourceName, "vpc_no", regexp.MustCompile(`^\d+$`)),
+					resource.TestCheckResourceAttr(resourceName, "network_interface.#", "2"),
+					resource.TestCheckResourceAttrSet(resourceName, "network_interface.0.order"),
+					resource.TestCheckResourceAttrSet(resourceName, "network_interface.0.network_interface_no"),
+					resource.TestCheckResourceAttrSet(resourceName, "network_interface.0.subnet_no"),
+					resource.TestCheckResourceAttrSet(resourceName, "network_interface.0.private_ip"),
+				),
+			},
+			{
+				SkipFunc: func() (bool, error) {
+					config := testAccProvider.Meta().(*ProviderConfig)
+					return !config.SupportVPC, nil
+				},
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
 			},
 		},
 	})
@@ -319,7 +377,7 @@ resource "ncloud_subnet" "test" {
 	vpc_no             = ncloud_vpc.test.vpc_no
 	name               = "%[1]s"
 	subnet             = "10.5.0.0/24"
-	zone               = "KR-1"
+	zone               = "KR-2"
 	network_acl_no     = ncloud_vpc.test.default_network_acl_no
 	subnet_type        = "PUBLIC"
 	usage_type         = "GEN"
@@ -328,9 +386,71 @@ resource "ncloud_subnet" "test" {
 resource "ncloud_server" "server" {
 	subnet_no = ncloud_subnet.test.id
 	name = "%[1]s"
-	server_image_product_code = "SW.VSVR.OS.LNX64.CNTOS.0708.B050"
+	server_image_product_code = "SW.VSVR.OS.LNX64.CNTOS.0703.B050"
 	server_product_code = "%[2]s"
 	login_key_name = ncloud_login_key.loginkey.key_name
+}
+`, testServerName, productCode)
+}
+
+func testAccServerVpcConfigNetworkInterface(testServerName, productCode string) string {
+	return fmt.Sprintf(`
+resource "ncloud_login_key" "loginkey" {
+	key_name = "%[1]s-key"
+}
+
+resource "ncloud_vpc" "test" {
+	name               = "%[1]s"
+	ipv4_cidr_block    = "10.5.0.0/16"
+}
+
+resource "ncloud_subnet" "public_subnet" {
+	vpc_no             = ncloud_vpc.test.vpc_no
+	name               = "%[1]s-pub"
+	subnet             = "10.5.0.0/24"
+	zone               = "KR-2"
+	network_acl_no     = ncloud_vpc.test.default_network_acl_no
+	subnet_type        = "PUBLIC"
+	usage_type         = "GEN"
+}
+
+resource "ncloud_subnet" "private_subnet" {
+	vpc_no             = ncloud_vpc.test.vpc_no
+	name               = "%[1]s-priv"
+	subnet             = "10.5.1.0/24"
+	zone               = "KR-2"
+	network_acl_no     = ncloud_vpc.test.default_network_acl_no
+	subnet_type        = "PRIVATE"
+	usage_type         = "GEN"
+}
+
+resource "ncloud_network_interface" "eth0" {
+	name                  = "%[1]s-eth-0"
+	subnet_no             = ncloud_subnet.public_subnet.id
+	access_control_groups = [ncloud_vpc.test.default_access_control_group_no]
+}
+
+resource "ncloud_network_interface" "eth1" {
+	name                  = "%[1]s-eth-1"
+	subnet_no             = ncloud_subnet.private_subnet.id
+	access_control_groups = [ncloud_vpc.test.default_access_control_group_no]
+}
+
+resource "ncloud_server" "server" {
+	subnet_no = ncloud_subnet.public_subnet.id
+	name = "%[1]s"
+	server_image_product_code = "SW.VSVR.OS.LNX64.CNTOS.0703.B050"
+	server_product_code = "%[2]s"
+	login_key_name = ncloud_login_key.loginkey.key_name
+	network_interface {
+		order = 0
+		network_interface_no = ncloud_network_interface.eth0.id
+	}
+	
+	network_interface {
+		order = 1
+		network_interface_no = ncloud_network_interface.eth1.id
+	}
 }
 `, testServerName, productCode)
 }
