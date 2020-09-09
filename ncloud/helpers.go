@@ -97,10 +97,10 @@ func SetSingularResourceDataFromMapSchema(resourceSchema *schema.Resource, d *sc
 			if fieldSchema.Computed {
 				d.Set(k, resources[k])
 			} else {
-				log.Printf("[DEBUG] SetSingularResourceDataFromMapSchema >> [%s] is not nil but Not Computed", k)
+				log.Printf("[TRACE] SetSingularResourceDataFromMapSchema >> [%s] is not nil but Not Computed", k)
 			}
 		} else {
-			log.Printf("[DEBUG] SetSingularResourceDataFromMapSchema >> [%s] is nil", k)
+			log.Printf("[TRACE] SetSingularResourceDataFromMapSchema >> [%s] is nil", k)
 		}
 	}
 
@@ -110,7 +110,7 @@ func SetSingularResourceDataFromMapSchema(resourceSchema *schema.Resource, d *sc
 		}
 
 		if resourceSchema.Schema[k] == nil {
-			log.Printf("[DEBUG] SetSingularResourceDataFromMapSchema >> [%s] is doesn't have schema", k)
+			log.Printf("[TRACE] SetSingularResourceDataFromMapSchema >> [%s] is doesn't have schema", k)
 		}
 	}
 }
