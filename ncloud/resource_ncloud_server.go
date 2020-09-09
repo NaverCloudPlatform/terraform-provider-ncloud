@@ -346,15 +346,6 @@ func resourceNcloudServerUpdate(d *schema.ResourceData, meta interface{}) error 
 	return resourceNcloudServerRead(d, meta)
 }
 
-func getServerZoneNo(config *ProviderConfig, serverInstanceNo string) (string, error) {
-	instance, err := getServerInstance(config, serverInstanceNo)
-	if err != nil || instance == nil || instance.ZoneNo == nil {
-		return "", err
-	}
-	return *instance.ZoneNo, nil
-}
-
-// Create
 func createServerInstance(d *schema.ResourceData, config *ProviderConfig) (*string, error) {
 	if config.SupportVPC {
 		return createVpcServerInstance(d, config)
@@ -527,7 +518,6 @@ func waitStateNcloudServerForCreation(config *ProviderConfig, id string) error {
 	return nil
 }
 
-// Update
 func updateServerInstance(d *schema.ResourceData, config *ProviderConfig) error {
 	serverInstance, err := getServerInstance(config, d.Id())
 	if err != nil {
@@ -696,7 +686,6 @@ func startVpcServerInstance(config *ProviderConfig, id string) error {
 	return nil
 }
 
-// Read
 func getServerInstance(config *ProviderConfig, id string) (*NcloudServerInstance, error) {
 	if config.SupportVPC {
 		return getVpcServerInstance(config, id)
@@ -852,7 +841,6 @@ func buildNetworkInterfaceList(config *ProviderConfig, r *NcloudServerInstance) 
 	return nil
 }
 
-// Delete
 func stopThenWaitServerInstance(config *ProviderConfig, id string) error {
 	var err error
 
@@ -1007,6 +995,14 @@ func terminateVpcServerInstance(config *ProviderConfig, id string) error {
 	return nil
 }
 
+func getServerZoneNo(config *ProviderConfig, serverInstanceNo string) (string, error) {
+	instance, err := getServerInstance(config, serverInstanceNo)
+	if err != nil || instance == nil || instance.ZoneNo == nil {
+		return "", err
+	}
+	return *instance.ZoneNo, nil
+}
+
 //NcloudServerInstance server instance model
 type NcloudServerInstance struct {
 	// Request
@@ -1049,6 +1045,7 @@ type NcloudServerInstance struct {
 	NetworkInterfaceList []*NcloudServerInstanceNetworkInterface `json:"network_interface"`
 }
 
+//NcloudServerInstanceNetworkInterface network interface model in server instance
 type NcloudServerInstanceNetworkInterface struct {
 	Order              *int32  `json:"order,omitempty"`
 	NetworkInterfaceNo *string `json:"network_interface_no,omitempty"`
