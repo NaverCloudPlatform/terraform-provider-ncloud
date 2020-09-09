@@ -755,7 +755,7 @@ func getClassicServerInstance(config *ProviderConfig, id string) (*NcloudServerI
 		ServerInstanceOperation:        r.ServerInstanceOperation.Code,
 		Zone:                           r.Zone.ZoneCode,
 		BaseBlockStorageDiskType:       r.BaseBlockStorageDiskType.Code,
-		BaseBlockStorageDiskDetailType: flattenMapByKey(r.BaseBlockStroageDiskDetailType, "code"),
+		BaseBlockStorageDiskDetailType: flattenMapByKey(r.BaseBlockStorageDiskDetailType, "code"),
 		InternetLineType:               r.InternetLineType.Code,
 		InstanceTagList:                r.InstanceTagList,
 	}
@@ -839,6 +839,10 @@ func buildNetworkInterfaceList(config *ProviderConfig, r *NcloudServerInstance) 
 		re := regexp.MustCompile("[0-9]+")
 		order, err := strconv.Atoi(re.FindString(*networkInterface.DeviceName))
 
+		if err != nil {
+			return fmt.Errorf("error parsing network interface device name: %s", *networkInterface.DeviceName)
+		}
+
 		ni.PrivateIp = networkInterface.Ip
 		ni.SubnetNo = networkInterface.SubnetNo
 		ni.NetworkInterfaceNo = networkInterface.NetworkInterfaceNo
@@ -873,7 +877,7 @@ func stopThenWaitServerInstance(config *ProviderConfig, id string) error {
 
 			return instance, ncloud.StringValue(instance.ServerInstanceStatus), nil
 		},
-		Timeout:    DefaultTimeout,
+		Timeout:    DefaultStopTimeout,
 		Delay:      2 * time.Second,
 		MinTimeout: 3 * time.Second,
 	}
