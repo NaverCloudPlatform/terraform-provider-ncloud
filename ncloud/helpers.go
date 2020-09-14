@@ -94,7 +94,7 @@ func SetSingularResourceDataFromMap(d *schema.ResourceData, resources map[string
 func SetSingularResourceDataFromMapSchema(resourceSchema *schema.Resource, d *schema.ResourceData, resources map[string]interface{}) {
 	for k, fieldSchema := range resourceSchema.Schema {
 		if resources[k] != nil {
-			if fieldSchema.Computed {
+			if fieldSchema.Computed || fieldSchema.Required {
 				d.Set(k, resources[k])
 			} else {
 				log.Printf("[TRACE] SetSingularResourceDataFromMapSchema >> [%s] is not nil but Not Computed", k)
