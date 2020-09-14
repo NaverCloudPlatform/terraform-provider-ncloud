@@ -69,7 +69,7 @@ func TestGetCommonErrorBody(t *testing.T) {
 }
 
 func TestConvertToMap(t *testing.T) {
-	i := &NcloudServerInstance{
+	i := &ServerInstance{
 		ZoneNo:                     ncloud.String("KR-1"),
 		ServerName:                 ncloud.String("tf-server"),
 		IsProtectServerTermination: ncloud.Bool(true),
@@ -96,13 +96,13 @@ func TestConvertToMap(t *testing.T) {
 }
 
 func TestConvertToArrayMap(t *testing.T) {
-	i := &NcloudServerInstance{
+	i := &ServerInstance{
 		ZoneNo:                     ncloud.String("KR-1"),
 		ServerName:                 ncloud.String("tf-server"),
 		IsProtectServerTermination: ncloud.Bool(true),
 		CpuCount:                   ncloud.Int32(2),
 	}
-	var list []*NcloudServerInstance
+	var list []*ServerInstance
 	list = append(list, i)
 
 	m := ConvertToArrayMap(list)
