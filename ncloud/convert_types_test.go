@@ -94,3 +94,32 @@ func TestConvertToMap(t *testing.T) {
 		t.Fatalf("'network_interface' expected 'nil' but %s", m["network_interface"])
 	}
 }
+
+func TestConvertToArrayMap(t *testing.T) {
+	i := &NcloudServerInstance{
+		ZoneNo:                     ncloud.String("KR-1"),
+		ServerName:                 ncloud.String("tf-server"),
+		IsProtectServerTermination: ncloud.Bool(true),
+		CpuCount:                   ncloud.Int32(2),
+	}
+	var list []*NcloudServerInstance
+	list = append(list, i)
+
+	m := ConvertToArrayMap(list)
+
+	if m[0]["cpu_count"].(float64) != 2 {
+		t.Fatalf("'cpu_count' expected '2' but %s", m[0]["cpu_count"])
+	}
+
+	if m[0]["is_protect_server_termination"].(bool) != true {
+		t.Fatalf("'is_protect_server_termination' expected 'true' but %s", m[0]["is_protect_server_termination"])
+	}
+
+	if m[0]["name"].(string) != "tf-server" {
+		t.Fatalf("'cpu_count' expected '2' but %s", m[0]["name"])
+	}
+
+	if _, ok := m[0]["network_interface"]; !ok {
+		t.Fatalf("'network_interface' expected 'nil' but %s", m[0]["network_interface"])
+	}
+}

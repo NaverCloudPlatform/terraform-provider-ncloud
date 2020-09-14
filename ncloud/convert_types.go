@@ -195,3 +195,19 @@ func ConvertToMap(i interface{}) map[string]interface{} {
 
 	return m
 }
+
+//ConvertToArrayMap convert interface{} to map[string]interface{}
+func ConvertToArrayMap(i interface{}) []map[string]interface{} {
+	if i == nil {
+		return nil
+	}
+
+	b, err := json.Marshal(i)
+	if err != nil {
+		return nil
+	}
+	var m []map[string]interface{}
+	json.Unmarshal(b, &m)
+
+	return m
+}
