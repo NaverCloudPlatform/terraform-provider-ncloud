@@ -321,14 +321,6 @@ func resourceNcloudServerDelete(d *schema.ResourceData, meta interface{}) error 
 		}
 	}
 
-	if !config.SupportVPC {
-		err = detachBlockStorageByServerInstanceNo(d, config.Client, d.Id())
-		if err != nil {
-			log.Printf("[ERROR] detachBlockStorageByServerInstanceNo err: %s", err)
-			return err
-		}
-	}
-
 	if err := terminateThenWaitServerInstance(config, d.Id()); err != nil {
 		return err
 	}
