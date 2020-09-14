@@ -12,7 +12,7 @@ import (
 )
 
 func TestAccResourceNcloudServer_classic_basic(t *testing.T) {
-	var serverInstance NcloudServerInstance
+	var serverInstance ServerInstance
 	testServerName := getTestServerName()
 	resourceName := "ncloud_server.server"
 	productCode := "SPSVRSTAND000004" // vCPU 2EA, Memory 4GB, Disk 50GB
@@ -82,7 +82,7 @@ func TestAccResourceNcloudServer_classic_basic(t *testing.T) {
 }
 
 func TestAccResourceNcloudServer_vpc_basic(t *testing.T) {
-	var serverInstance NcloudServerInstance
+	var serverInstance ServerInstance
 	testServerName := getTestServerName()
 	resourceName := "ncloud_server.server"
 	productCode := "SVR.VSVR.STAND.C002.M008.NET.HDD.B050.G002"
@@ -140,7 +140,7 @@ func TestAccResourceNcloudServer_vpc_basic(t *testing.T) {
 }
 
 func TestAccResourceNcloudServer_vpc_networkInterface(t *testing.T) {
-	var serverInstance NcloudServerInstance
+	var serverInstance ServerInstance
 	testServerName := getTestServerName()
 	resourceName := "ncloud_server.server"
 	productCode := "SVR.VSVR.STAND.C002.M008.NET.HDD.B050.G002"
@@ -198,8 +198,8 @@ func TestAccResourceNcloudServer_vpc_networkInterface(t *testing.T) {
 }
 
 func TestAccResourceNcloudServer_classic_changeSpec(t *testing.T) {
-	var before NcloudServerInstance
-	var after NcloudServerInstance
+	var before ServerInstance
+	var after ServerInstance
 	testServerName := getTestServerName()
 	resourceName := "ncloud_server.server"
 	productCode := "SPSVRSTAND000004"       // vCPU 2EA, Memory 4GB, Disk 50GB
@@ -243,8 +243,8 @@ func TestAccResourceNcloudServer_classic_changeSpec(t *testing.T) {
 }
 
 func TestAccResourceNcloudServer_vpc_changeSpec(t *testing.T) {
-	var before NcloudServerInstance
-	var after NcloudServerInstance
+	var before ServerInstance
+	var after ServerInstance
 	testServerName := getTestServerName()
 	resourceName := "ncloud_server.server"
 	productCode := "SVR.VSVR.STAND.C002.M008.NET.HDD.B050.G002"       // vCPU 2EA, Memory 8GB, Disk 50GB
@@ -287,11 +287,11 @@ func TestAccResourceNcloudServer_vpc_changeSpec(t *testing.T) {
 	})
 }
 
-func testAccCheckServerExists(n string, i *NcloudServerInstance) resource.TestCheckFunc {
+func testAccCheckServerExists(n string, i *ServerInstance) resource.TestCheckFunc {
 	return testAccCheckInstanceExistsWithProvider(n, i, func() *schema.Provider { return testAccProvider })
 }
 
-func testAccCheckInstanceExistsWithProvider(n string, i *NcloudServerInstance, providerF func() *schema.Provider) resource.TestCheckFunc {
+func testAccCheckInstanceExistsWithProvider(n string, i *ServerInstance, providerF func() *schema.Provider) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		rs, ok := s.RootModule().Resources[n]
 		if !ok {
@@ -318,7 +318,7 @@ func testAccCheckInstanceExistsWithProvider(n string, i *NcloudServerInstance, p
 	}
 }
 
-func testAccCheckInstanceNotRecreated(t *testing.T, before, after *NcloudServerInstance) resource.TestCheckFunc {
+func testAccCheckInstanceNotRecreated(t *testing.T, before, after *ServerInstance) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		if *before.ServerInstanceNo != *after.ServerInstanceNo {
 			t.Fatalf("Ncloud Instance IDs have changed. Before %s. After %s", *before.ServerInstanceNo, *after.ServerInstanceNo)

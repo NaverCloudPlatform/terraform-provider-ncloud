@@ -678,7 +678,7 @@ func startVpcServerInstance(config *ProviderConfig, id string) error {
 	return nil
 }
 
-func getServerInstance(config *ProviderConfig, id string) (*NcloudServerInstance, error) {
+func getServerInstance(config *ProviderConfig, id string) (*ServerInstance, error) {
 	if config.SupportVPC {
 		return getVpcServerInstance(config, id)
 	}
@@ -686,7 +686,7 @@ func getServerInstance(config *ProviderConfig, id string) (*NcloudServerInstance
 	return getClassicServerInstance(config, id)
 }
 
-func getClassicServerInstance(config *ProviderConfig, id string) (*NcloudServerInstance, error) {
+func getClassicServerInstance(config *ProviderConfig, id string) (*ServerInstance, error) {
 	reqParams := &server.GetServerInstanceListRequest{
 		ServerInstanceNoList: []*string{ncloud.String(id)},
 	}
@@ -711,7 +711,7 @@ func getClassicServerInstance(config *ProviderConfig, id string) (*NcloudServerI
 
 	r := resp.ServerInstanceList[0]
 
-	instance := &NcloudServerInstance{
+	instance := &ServerInstance{
 		ZoneNo:                         r.Zone.ZoneNo,
 		ServerImageProductCode:         r.ServerImageProductCode,
 		ServerProductCode:              r.ServerProductCode,
@@ -744,7 +744,7 @@ func getClassicServerInstance(config *ProviderConfig, id string) (*NcloudServerI
 	return instance, nil
 }
 
-func getVpcServerInstance(config *ProviderConfig, id string) (*NcloudServerInstance, error) {
+func getVpcServerInstance(config *ProviderConfig, id string) (*ServerInstance, error) {
 	reqParams := &vserver.GetServerInstanceDetailRequest{
 		RegionCode:       &config.RegionCode,
 		ServerInstanceNo: ncloud.String(id),
@@ -770,7 +770,7 @@ func getVpcServerInstance(config *ProviderConfig, id string) (*NcloudServerInsta
 
 	r := resp.ServerInstanceList[0]
 
-	instance := &NcloudServerInstance{
+	instance := &ServerInstance{
 		ServerImageProductCode:         r.ServerImageProductCode,
 		ServerProductCode:              r.ServerProductCode,
 		ServerName:                     r.ServerName,
@@ -795,7 +795,7 @@ func getVpcServerInstance(config *ProviderConfig, id string) (*NcloudServerInsta
 	}
 
 	for _, networkInterfaceNo := range r.NetworkInterfaceNoList {
-		ni := &NcloudServerInstanceNetworkInterface{
+		ni := &ServerInstanceNetworkInterface{
 			NetworkInterfaceNo: networkInterfaceNo,
 		}
 
@@ -805,7 +805,7 @@ func getVpcServerInstance(config *ProviderConfig, id string) (*NcloudServerInsta
 	return instance, nil
 }
 
-func buildNetworkInterfaceList(config *ProviderConfig, r *NcloudServerInstance) error {
+func buildNetworkInterfaceList(config *ProviderConfig, r *ServerInstance) error {
 	for _, ni := range r.NetworkInterfaceList {
 		networkInterface, err := getNetworkInterface(config, *ni.NetworkInterfaceNo)
 
@@ -995,8 +995,8 @@ func getServerZoneNo(config *ProviderConfig, serverInstanceNo string) (string, e
 	return *instance.ZoneNo, nil
 }
 
-//NcloudServerInstance server instance model
-type NcloudServerInstance struct {
+//ServerInstance server instance model
+type ServerInstance struct {
 	// Request
 	ZoneNo                         *string               `json:"zone_no,omitempty"`
 	ServerImageProductCode         *string               `json:"server_image_product_code,omitempty"`
@@ -1030,15 +1030,15 @@ type NcloudServerInstance struct {
 	InternetLineType               *string               `json:"internet_line_type,omitempty"`
 	InstanceTagList                []*server.InstanceTag `json:"tag_list,omitempty"`
 	// VPC
-	VpcNo                *string                                 `json:"vpc_no,omitempty"`
-	SubnetNo             *string                                 `json:"subnet_no,omitempty"`
-	InitScriptNo         *string                                 `json:"init_script_no,omitempty"`
-	PlacementGroupNo     *string                                 `json:"placement_group_no,omitempty"`
-	NetworkInterfaceList []*NcloudServerInstanceNetworkInterface `json:"network_interface"`
+	VpcNo                *string                           `json:"vpc_no,omitempty"`
+	SubnetNo             *string                           `json:"subnet_no,omitempty"`
+	InitScriptNo         *string                           `json:"init_script_no,omitempty"`
+	PlacementGroupNo     *string                           `json:"placement_group_no,omitempty"`
+	NetworkInterfaceList []*ServerInstanceNetworkInterface `json:"network_interface"`
 }
 
-//NcloudServerInstanceNetworkInterface network interface model in server instance
-type NcloudServerInstanceNetworkInterface struct {
+//ServerInstanceNetworkInterface network interface model in server instance
+type ServerInstanceNetworkInterface struct {
 	Order              *int32  `json:"order,omitempty"`
 	NetworkInterfaceNo *string `json:"network_interface_no,omitempty"`
 	PrivateIp          *string `json:"private_ip,omitempty"`
