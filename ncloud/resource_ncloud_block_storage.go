@@ -53,15 +53,18 @@ func resourceNcloudBlockStorage() *schema.Resource {
 				Type:     schema.TypeString,
 				Optional: true,
 				Computed: true,
+				ForceNew: true,
 			},
 			"zone": {
 				Type:     schema.TypeString,
 				Optional: true,
 				Computed: true,
+				ForceNew: true,
 			},
 			"snapshot_no": {
 				Type:     schema.TypeString,
 				Optional: true,
+				ForceNew: true,
 			},
 
 			"block_storage_no": {
@@ -172,6 +175,23 @@ func resourceNcloudBlockStorageDelete(d *schema.ResourceData, meta interface{}) 
 }
 
 func resourceNcloudBlockStorageUpdate(d *schema.ResourceData, meta interface{}) error {
+	config := meta.(*ProviderConfig)
+
+	if d.HasChange("server_instance_no") {
+		o, n := d.GetChange("server_instance_no")
+		if len(o.(string)) > 0 {
+			if err := detachBlockStorage(config, d.Id()); err != nil {
+				return err
+			}
+		}
+
+		if len(n.(string)) > 0 {
+			if err := attachBlockStorage(d, config); err != nil {
+				return err
+			}
+		}
+	}
+
 	return resourceNcloudBlockStorageRead(d, meta)
 }
 
@@ -189,24 +209,8 @@ func createBlockStorage(d *schema.ResourceData, config *ProviderConfig) (*string
 		return nil, err
 	}
 
-	stateConf := &resource.StateChangeConf{
-		Pending: []string{"INIT", "CREAT"},
-		Target:  []string{"ATTAC"},
-		Refresh: func() (interface{}, string, error) {
-			instance, err := getBlockStorage(config, ncloud.StringValue(id))
-			if err != nil {
-				return 0, "", err
-			}
-			return instance, ncloud.StringValue(instance.Status), nil
-		},
-		Timeout:    DefaultCreateTimeout,
-		Delay:      2 * time.Second,
-		MinTimeout: 3 * time.Second,
-	}
-
-	_, err = stateConf.WaitForState()
-	if err != nil {
-		return nil, fmt.Errorf("error waiting for BlockStorageInstance state to be \"ATTAC\": %s", err)
+	if err := waitForBlockStorageAttachment(config, *id); err != nil {
+		return nil, err
 	}
 
 	return id, nil
@@ -228,7 +232,7 @@ func createClassicBlockStorage(d *schema.ResourceData, config *ProviderConfig) (
 		logErrorResponse("createClassicBlockStorage", err, reqParams)
 		return nil, err
 	}
-	logCommonResponse("createClassicBlockStorage", GetCommonResponse(resp))
+	logResponse("createClassicBlockStorage", resp)
 
 	instance := resp.BlockStorageInstanceList[0]
 
@@ -254,7 +258,7 @@ func createVpcBlockStorage(d *schema.ResourceData, config *ProviderConfig) (*str
 		logErrorResponse("createVpcBlockStorage", err, reqParams)
 		return nil, err
 	}
-	logCommonResponse("createVpcBlockStorage", GetCommonResponse(resp))
+	logResponse("createVpcBlockStorage", resp)
 
 	instance := resp.BlockStorageInstanceList[0]
 
@@ -450,6 +454,162 @@ func deleteVpcBlockStorage(d *schema.ResourceData, config *ProviderConfig, id st
 		return err
 	}
 	logResponse("deleteVpcBlockStorage", resp)
+
+	return nil
+}
+
+func detachBlockStorage(config *ProviderConfig, id string) error {
+	var err error
+	if config.SupportVPC {
+		err = detachVpcBlockStorage(config, id)
+	} else {
+		err = detachClassicBlockStorage(config, id)
+	}
+
+	if err != nil {
+		return err
+	}
+
+	if err = waitForBlockStorageDetachment(config, id); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func detachClassicBlockStorage(config *ProviderConfig, id string) error {
+	reqParams := &server.DetachBlockStorageInstancesRequest{
+		BlockStorageInstanceNoList: []*string{ncloud.String(id)},
+	}
+
+	logCommonRequest("detachClassicBlockStorage", reqParams)
+
+	resp, err := config.Client.server.V2Api.DetachBlockStorageInstances(reqParams)
+	if err != nil {
+		logErrorResponse("detachClassicBlockStorage", err, reqParams)
+		return err
+	}
+	logResponse("detachClassicBlockStorage", resp)
+
+	return nil
+}
+
+func detachVpcBlockStorage(config *ProviderConfig, id string) error {
+	reqParams := &vserver.DetachBlockStorageInstancesRequest{
+		BlockStorageInstanceNoList: []*string{ncloud.String(id)},
+	}
+
+	logCommonRequest("detachVpcBlockStorage", reqParams)
+
+	resp, err := config.Client.vserver.V2Api.DetachBlockStorageInstances(reqParams)
+	if err != nil {
+		logErrorResponse("detachVpcBlockStorage", err, reqParams)
+		return err
+	}
+	logResponse("detachVpcBlockStorage", resp)
+
+	return nil
+}
+
+func waitForBlockStorageDetachment(config *ProviderConfig, id string) error {
+	stateConf := &resource.StateChangeConf{
+		Pending: []string{"ATTAC"},
+		Target:  []string{"CREAT"},
+		Refresh: func() (interface{}, string, error) {
+			instance, err := getBlockStorage(config, id)
+			if err != nil {
+				return 0, "", err
+			}
+			return instance, ncloud.StringValue(instance.Status), nil
+		},
+		Timeout:    DefaultUpdateTimeout,
+		Delay:      2 * time.Second,
+		MinTimeout: 3 * time.Second,
+	}
+
+	_, err := stateConf.WaitForState()
+	if err != nil {
+		return fmt.Errorf("error waiting for BlockStorageInstance state to be \"CREAT\": %s", err)
+	}
+
+	return nil
+}
+
+func attachBlockStorage(d *schema.ResourceData, config *ProviderConfig) error {
+	var err error
+	if config.SupportVPC {
+		err = attachVpcBlockStorage(d, config)
+	} else {
+		err = attachClassicBlockStorage(d, config)
+	}
+
+	if err != nil {
+		return err
+	}
+
+	if err = waitForBlockStorageAttachment(config, d.Id()); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func attachClassicBlockStorage(d *schema.ResourceData, config *ProviderConfig) error {
+	reqParams := &server.AttachBlockStorageInstanceRequest{
+		ServerInstanceNo:       ncloud.String(d.Get("server_instance_no").(string)),
+		BlockStorageInstanceNo: ncloud.String(d.Id()),
+	}
+
+	logCommonRequest("attachClassicBlockStorage", reqParams)
+
+	resp, err := config.Client.server.V2Api.AttachBlockStorageInstance(reqParams)
+	if err != nil {
+		logErrorResponse("attachClassicBlockStorage", err, reqParams)
+		return err
+	}
+	logResponse("attachClassicBlockStorage", resp)
+
+	return nil
+}
+
+func attachVpcBlockStorage(d *schema.ResourceData, config *ProviderConfig) error {
+	reqParams := &vserver.AttachBlockStorageInstanceRequest{
+		ServerInstanceNo:       ncloud.String(d.Get("server_instance_no").(string)),
+		BlockStorageInstanceNo: ncloud.String(d.Id()),
+	}
+
+	logCommonRequest("attachVpcBlockStorage", reqParams)
+
+	resp, err := config.Client.vserver.V2Api.AttachBlockStorageInstance(reqParams)
+	if err != nil {
+		logErrorResponse("attachVpcBlockStorage", err, reqParams)
+		return err
+	}
+	logResponse("attachVpcBlockStorage", resp)
+
+	return nil
+}
+
+func waitForBlockStorageAttachment(config *ProviderConfig, id string) error {
+	stateConf := &resource.StateChangeConf{
+		Pending: []string{"INIT", "CREAT"},
+		Target:  []string{"ATTAC"},
+		Refresh: func() (interface{}, string, error) {
+			instance, err := getBlockStorage(config, id)
+			if err != nil {
+				return 0, "", err
+			}
+			return instance, ncloud.StringValue(instance.Status), nil
+		},
+		Timeout:    DefaultUpdateTimeout,
+		Delay:      2 * time.Second,
+		MinTimeout: 3 * time.Second,
+	}
+
+	_, err := stateConf.WaitForState()
+	if err != nil {
+		return fmt.Errorf("error waiting for BlockStorageInstance state to be \"ATTAC\": %s", err)
+	}
 
 	return nil
 }

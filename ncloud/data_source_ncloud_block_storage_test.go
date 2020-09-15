@@ -79,7 +79,7 @@ data "ncloud_block_storage" "by_filter" {
 
 func testAccDataSourceNcloudBlockStorageClassicConfig(name string) string {
 	var buf bytes.Buffer
-	buf.WriteString(testAccBlockStorageConfig(name))
+	buf.WriteString(testAccBlockStorageClassicConfig(name))
 	buf.WriteString(testAccDataSourceNcloudBlockStorageConfig)
 	return buf.String()
 }
