@@ -103,7 +103,7 @@ func resourceNcloudSubnetCreate(d *schema.ResourceData, meta interface{}) error 
 	var resp *vpc.CreateSubnetResponse
 	err := resource.Retry(d.Timeout(schema.TimeoutCreate), func() *resource.RetryError {
 		var err error
-		logCommonRequest("resource_ncloud_subnet > CreateSubnet", reqParams)
+		logCommonRequest("CreateSubnet", reqParams)
 		resp, err = config.Client.vpc.V2Api.CreateSubnet(reqParams)
 
 		if err == nil {
@@ -112,7 +112,7 @@ func resourceNcloudSubnetCreate(d *schema.ResourceData, meta interface{}) error 
 
 		errBody, _ := GetCommonErrorBody(err)
 		if errBody.ReturnCode == "1001015" {
-			logErrorResponse("retry resource_ncloud_subnet > CreateSubnet", err, reqParams)
+			logErrorResponse("retry CreateSubnet", err, reqParams)
 			time.Sleep(time.Second * 5)
 			return resource.RetryableError(err)
 		}
@@ -173,13 +173,13 @@ func resourceNcloudSubnetUpdate(d *schema.ResourceData, meta interface{}) error 
 			NetworkAclNo: ncloud.String(d.Get("network_acl_no").(string)),
 		}
 
-		logCommonRequest("resource_ncloud_subnet > SetSubnetNetworkAcl", reqParams)
+		logCommonRequest("SetSubnetNetworkAcl", reqParams)
 		resp, err := config.Client.vpc.V2Api.SetSubnetNetworkAcl(reqParams)
 		if err != nil {
-			logErrorResponse("resource_ncloud_subnet > SetSubnetNetworkAcl", err, reqParams)
+			logErrorResponse("SetSubnetNetworkAcl", err, reqParams)
 			return err
 		}
-		logResponse("resource_ncloud_subnet > SetSubnetNetworkAcl", resp)
+		logResponse("SetSubnetNetworkAcl", resp)
 
 		if err := waitForNcloudNetworkACLUpdate(config, d.Id()); err != nil {
 			return err
@@ -197,13 +197,13 @@ func resourceNcloudSubnetDelete(d *schema.ResourceData, meta interface{}) error 
 		SubnetNo:   ncloud.String(d.Get("subnet_no").(string)),
 	}
 
-	logCommonRequest("resource_ncloud_subnet > DeleteSubnet", reqParams)
+	logCommonRequest("DeleteSubnet", reqParams)
 	resp, err := config.Client.vpc.V2Api.DeleteSubnet(reqParams)
 	if err != nil {
-		logErrorResponse("resource_ncloud_subnet > DeleteSubnet", err, reqParams)
+		logErrorResponse("DeleteSubnet", err, reqParams)
 		return err
 	}
-	logResponse("resource_ncloud_subnet > DeleteSubnet", resp)
+	logResponse("DeleteSubnet", resp)
 
 	if err := waitForNcloudSubnetDeletion(config, d.Id()); err != nil {
 		return err
@@ -278,13 +278,13 @@ func getSubnetInstance(config *ProviderConfig, id string) (*vpc.Subnet, error) {
 		SubnetNo:   ncloud.String(id),
 	}
 
-	logCommonRequest("resource_ncloud_subnet > GetSubnetDetail", reqParams)
+	logCommonRequest("GetSubnetDetail", reqParams)
 	resp, err := config.Client.vpc.V2Api.GetSubnetDetail(reqParams)
 	if err != nil {
-		logErrorResponse("resource_ncloud_subnet > GetSubnetDetail", err, reqParams)
+		logErrorResponse("GetSubnetDetail", err, reqParams)
 		return nil, err
 	}
-	logResponse("resource_ncloud_subnet > GetSubnetDetail", resp)
+	logResponse("GetSubnetDetail", resp)
 
 	if len(resp.SubnetList) > 0 {
 		instance := resp.SubnetList[0]

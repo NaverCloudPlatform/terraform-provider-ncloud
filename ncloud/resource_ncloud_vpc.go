@@ -69,14 +69,14 @@ func resourceNcloudVpcCreate(d *schema.ResourceData, meta interface{}) error {
 		reqParams.VpcName = ncloud.String(v.(string))
 	}
 
-	logCommonRequest("resource_ncloud_vpc > CreateVpc", reqParams)
+	logCommonRequest("CreateVpc", reqParams)
 	resp, err := config.Client.vpc.V2Api.CreateVpc(reqParams)
 	if err != nil {
-		logErrorResponse("resource_ncloud_vpc > Create Vpc Instance", err, reqParams)
+		logErrorResponse("Create Vpc Instance", err, reqParams)
 		return err
 	}
 
-	logCommonResponse("resource_ncloud_vpc > CreateVpc", GetCommonResponse(resp))
+	logCommonResponse("CreateVpc", GetCommonResponse(resp))
 
 	vpcInstance := resp.VpcList[0]
 	d.SetId(*vpcInstance.VpcNo)
@@ -133,15 +133,15 @@ func getDefaultNetworkACL(config *ProviderConfig, id string) (string, error) {
 		VpcNo:      ncloud.String(id),
 	}
 
-	logCommonRequest("resource_ncloud_vpc > GetNetworkAclList", reqParams)
+	logCommonRequest("GetNetworkAclList", reqParams)
 	resp, err := config.Client.vpc.V2Api.GetNetworkAclList(reqParams)
 
 	if err != nil {
-		logErrorResponse("resource_ncloud_vpc > GetNetworkAclList", err, reqParams)
+		logErrorResponse("GetNetworkAclList", err, reqParams)
 		return "", err
 	}
 
-	logResponse("resource_ncloud_vpc > GetNetworkAclList", resp)
+	logResponse("GetNetworkAclList", resp)
 
 	if resp == nil || len(resp.NetworkAclList) == 0 {
 		return "", fmt.Errorf("no matching Network ACL found")
@@ -197,13 +197,13 @@ func resourceNcloudVpcDelete(d *schema.ResourceData, meta interface{}) error {
 		VpcNo:      ncloud.String(d.Get("vpc_no").(string)),
 	}
 
-	logCommonRequest("resource_ncloud_vpc > DeleteVpc", reqParams)
+	logCommonRequest("DeleteVpc", reqParams)
 	resp, err := config.Client.vpc.V2Api.DeleteVpc(reqParams)
 	if err != nil {
-		logErrorResponse("resource_ncloud_vpc > DeleteVpc Vpc Instance", err, reqParams)
+		logErrorResponse("DeleteVpc Vpc Instance", err, reqParams)
 		return err
 	}
-	logResponse("resource_ncloud_vpc > DeleteVpc", resp)
+	logResponse("DeleteVpc", resp)
 
 	if err := waitForNcloudVpcDeletion(config, d.Id()); err != nil {
 		return err
@@ -260,10 +260,10 @@ func getVpcInstance(config *ProviderConfig, id string) (*vpc.Vpc, error) {
 
 	resp, err := config.Client.vpc.V2Api.GetVpcDetail(reqParams)
 	if err != nil {
-		logErrorResponse("resource_ncloud_vpc > Get Vpc Instance", err, reqParams)
+		logErrorResponse("Get Vpc Instance", err, reqParams)
 		return nil, err
 	}
-	logResponse("resource_ncloud_vpc > GetVpcDetail", resp)
+	logResponse("GetVpcDetail", resp)
 
 	if len(resp.VpcList) > 0 {
 		vpc := resp.VpcList[0]

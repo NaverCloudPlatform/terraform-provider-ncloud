@@ -81,14 +81,14 @@ func resourceNcloudNatGatewayCreate(d *schema.ResourceData, meta interface{}) er
 		reqParams.NatGatewayDescription = ncloud.String(v.(string))
 	}
 
-	logCommonRequest("resource_ncloud_nat_gateway > CreateNatGatewayInstance", reqParams)
+	logCommonRequest("CreateNatGatewayInstance", reqParams)
 	resp, err := config.Client.vpc.V2Api.CreateNatGatewayInstance(reqParams)
 	if err != nil {
-		logErrorResponse("resource_ncloud_nat_gateway > CreateNatGatewayInstance", err, reqParams)
+		logErrorResponse("CreateNatGatewayInstance", err, reqParams)
 		return err
 	}
 
-	logResponse("resource_ncloud_nat_gateway > CreateNatGatewayInstance", resp)
+	logResponse("CreateNatGatewayInstance", resp)
 
 	instance := resp.NatGatewayInstanceList[0]
 	d.SetId(*instance.NatGatewayInstanceNo)
@@ -139,14 +139,14 @@ func resourceNcloudNatGatewayDelete(d *schema.ResourceData, meta interface{}) er
 		NatGatewayInstanceNo: ncloud.String(d.Get("nat_gateway_no").(string)),
 	}
 
-	logCommonRequest("resource_ncloud_nat_gateway > DeleteNatGatewayInstance", reqParams)
+	logCommonRequest("DeleteNatGatewayInstance", reqParams)
 	resp, err := config.Client.vpc.V2Api.DeleteNatGatewayInstance(reqParams)
 	if err != nil {
-		logErrorResponse("resource_ncloud_nat_gateway > DeleteNatGatewayInstance", err, reqParams)
+		logErrorResponse("DeleteNatGatewayInstance", err, reqParams)
 		return err
 	}
 
-	logResponse("resource_ncloud_nat_gateway > DeleteNatGatewayInstance", resp)
+	logResponse("DeleteNatGatewayInstance", resp)
 
 	if err := waitForNcloudNatGatewayDeletion(config, d.Id()); err != nil {
 		return err
@@ -201,13 +201,13 @@ func getNatGatewayInstance(config *ProviderConfig, id string) (*vpc.NatGatewayIn
 		NatGatewayInstanceNo: ncloud.String(id),
 	}
 
-	logCommonRequest("resource_ncloud_nat_gateway > GetNatGatewayInstanceDetail", reqParams)
+	logCommonRequest("GetNatGatewayInstanceDetail", reqParams)
 	resp, err := config.Client.vpc.V2Api.GetNatGatewayInstanceDetail(reqParams)
 	if err != nil {
-		logErrorResponse("resource_ncloud_nat_gateway > GetNatGatewayInstanceDetail", err, reqParams)
+		logErrorResponse("GetNatGatewayInstanceDetail", err, reqParams)
 		return nil, err
 	}
-	logResponse("resource_ncloud_nat_gateway > GetNatGatewayInstanceDetail", resp)
+	logResponse("GetNatGatewayInstanceDetail", resp)
 
 	if len(resp.NatGatewayInstanceList) > 0 {
 		instance := resp.NatGatewayInstanceList[0]

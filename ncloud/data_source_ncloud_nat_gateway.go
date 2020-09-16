@@ -72,15 +72,15 @@ func getNatGatewayListFiltered(d *schema.ResourceData, config *ProviderConfig) (
 		reqParams.NatGatewayInstanceStatusCode = ncloud.String(v.(string))
 	}
 
-	logCommonRequest("data_source_ncloud_nat_gateway > GetNatGatewayInstanceList", reqParams)
+	logCommonRequest("GetNatGatewayInstanceList", reqParams)
 	resp, err := config.Client.vpc.V2Api.GetNatGatewayInstanceList(reqParams)
 
 	if err != nil {
-		logErrorResponse("data_source_ncloud_nat_gateway > GetNatGatewayInstanceList", err, reqParams)
+		logErrorResponse("GetNatGatewayInstanceList", err, reqParams)
 		return nil, err
 	}
 
-	logResponse("data_source_ncloud_nat_gateway > GetNatGatewayInstanceList", resp)
+	logResponse("GetNatGatewayInstanceList", resp)
 
 	resources := []map[string]interface{}{}
 

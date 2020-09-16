@@ -100,14 +100,14 @@ func resourceNcloudVpcPeeringCreate(d *schema.ResourceData, meta interface{}) er
 		reqParams.TargetVpcLoginId = ncloud.String(v.(string))
 	}
 
-	logCommonRequest("resource_ncloud_vpc_peering > CreateVpcPeeringInstance", reqParams)
+	logCommonRequest("CreateVpcPeeringInstance", reqParams)
 	resp, err := config.Client.vpc.V2Api.CreateVpcPeeringInstance(reqParams)
 	if err != nil {
-		logErrorResponse("resource_ncloud_vpc_peering > CreateVpcPeeringInstance", err, reqParams)
+		logErrorResponse("CreateVpcPeeringInstance", err, reqParams)
 		return err
 	}
 
-	logResponse("resource_ncloud_vpc_peering > CreateVpcPeeringInstance", resp)
+	logResponse("CreateVpcPeeringInstance", resp)
 
 	instance := resp.VpcPeeringInstanceList[0]
 	d.SetId(*instance.VpcPeeringInstanceNo)
@@ -161,14 +161,14 @@ func resourceNcloudVpcPeeringDelete(d *schema.ResourceData, meta interface{}) er
 		VpcPeeringInstanceNo: ncloud.String(d.Get("vpc_peering_no").(string)),
 	}
 
-	logCommonRequest("resource_ncloud_vpc_peering > DeleteVpcPeeringInstance", reqParams)
+	logCommonRequest("DeleteVpcPeeringInstance", reqParams)
 	resp, err := config.Client.vpc.V2Api.DeleteVpcPeeringInstance(reqParams)
 	if err != nil {
-		logErrorResponse("resource_ncloud_vpc_peering > DeleteVpcPeeringInstance", err, reqParams)
+		logErrorResponse("DeleteVpcPeeringInstance", err, reqParams)
 		return err
 	}
 
-	logResponse("resource_ncloud_vpc_peering > DeleteVpcPeeringInstance", resp)
+	logResponse("DeleteVpcPeeringInstance", resp)
 
 	if err := waitForNcloudVpcPeeringDeletion(config, d.Id()); err != nil {
 		return err
@@ -223,13 +223,13 @@ func getVpcPeeringInstance(config *ProviderConfig, id string) (*vpc.VpcPeeringIn
 		VpcPeeringInstanceNo: ncloud.String(id),
 	}
 
-	logCommonRequest("resource_ncloud_vpc_peering > GetVpcPeeringInstanceDetail", reqParams)
+	logCommonRequest("GetVpcPeeringInstanceDetail", reqParams)
 	resp, err := config.Client.vpc.V2Api.GetVpcPeeringInstanceDetail(reqParams)
 	if err != nil {
-		logErrorResponse("resource_ncloud_vpc_peering > GetVpcPeeringInstanceDetail", err, reqParams)
+		logErrorResponse("GetVpcPeeringInstanceDetail", err, reqParams)
 		return nil, err
 	}
-	logResponse("resource_ncloud_vpc_peering > GetVpcPeeringInstanceDetail", resp)
+	logResponse("GetVpcPeeringInstanceDetail", resp)
 
 	if len(resp.VpcPeeringInstanceList) > 0 {
 		instance := resp.VpcPeeringInstanceList[0]

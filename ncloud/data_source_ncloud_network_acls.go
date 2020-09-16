@@ -70,14 +70,14 @@ func dataSourceNcloudNetworkAclsRead(d *schema.ResourceData, meta interface{}) e
 		reqParams.NetworkAclStatusCode = ncloud.String(v.(string))
 	}
 
-	logCommonRequest("data_source_ncloud_network_acls > GetNetworkAclList", reqParams)
+	logCommonRequest("GetNetworkAclList", reqParams)
 	resp, err := config.Client.vpc.V2Api.GetNetworkAclList(reqParams)
 
 	if err != nil {
-		logErrorResponse("data_source_ncloud_network_acls > GetNetworkAclList", err, reqParams)
+		logErrorResponse("GetNetworkAclList", err, reqParams)
 		return err
 	}
-	logResponse("data_source_ncloud_network_acls > GetNetworkAclList", resp)
+	logResponse("GetNetworkAclList", resp)
 
 	if resp == nil || len(resp.NetworkAclList) == 0 {
 		return fmt.Errorf("no matching Network ACL found")

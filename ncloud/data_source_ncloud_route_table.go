@@ -73,15 +73,15 @@ func getRouteTableList(d *schema.ResourceData, config *ProviderConfig) (*vpc.Get
 		reqParams.RouteTableNoList = []*string{ncloud.String(v.(string))}
 	}
 
-	logCommonRequest("data_source_ncloud_route_tables > GetRouteTableList", reqParams)
+	logCommonRequest("GetRouteTableList", reqParams)
 	resp, err := config.Client.vpc.V2Api.GetRouteTableList(reqParams)
 
 	if err != nil {
-		logErrorResponse("data_source_ncloud_route_tables > GetRouteTableList", err, reqParams)
+		logErrorResponse("GetRouteTableList", err, reqParams)
 		return nil, err
 	}
 
-	logResponse("data_source_ncloud_route_tables > GetRouteTableList", resp)
+	logResponse("GetRouteTableList", resp)
 	return resp, nil
 }
 

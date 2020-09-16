@@ -78,14 +78,14 @@ func resourceNcloudRouteTableCreate(d *schema.ResourceData, meta interface{}) er
 		reqParams.RouteTableDescription = ncloud.String(v.(string))
 	}
 
-	logCommonRequest("resource_ncloud_route_table > CreateRouteTable", reqParams)
+	logCommonRequest("CreateRouteTable", reqParams)
 	resp, err := config.Client.vpc.V2Api.CreateRouteTable(reqParams)
 	if err != nil {
-		logErrorResponse("resource_ncloud_route_table > CreateRouteTable", err, reqParams)
+		logErrorResponse("CreateRouteTable", err, reqParams)
 		return err
 	}
 
-	logResponse("resource_ncloud_route_table > CreateRouteTable", resp)
+	logResponse("CreateRouteTable", resp)
 
 	instance := resp.RouteTableList[0]
 	d.SetId(*instance.RouteTableNo)
@@ -137,14 +137,14 @@ func resourceNcloudRouteTableDelete(d *schema.ResourceData, meta interface{}) er
 		RouteTableNo: ncloud.String(d.Get("route_table_no").(string)),
 	}
 
-	logCommonRequest("resource_ncloud_route_table > DeleteRouteTable", reqParams)
+	logCommonRequest("DeleteRouteTable", reqParams)
 	resp, err := config.Client.vpc.V2Api.DeleteRouteTable(reqParams)
 	if err != nil {
-		logErrorResponse("resource_ncloud_route_table > DeleteRouteTable", err, reqParams)
+		logErrorResponse("DeleteRouteTable", err, reqParams)
 		return err
 	}
 
-	logResponse("resource_ncloud_route_table > DeleteRouteTable", resp)
+	logResponse("DeleteRouteTable", resp)
 
 	if err := waitForNcloudRouteTableDeletion(config, d.Id()); err != nil {
 		return err
@@ -199,13 +199,13 @@ func getRouteTableInstance(config *ProviderConfig, id string) (*vpc.RouteTable, 
 		RouteTableNo: ncloud.String(id),
 	}
 
-	logCommonRequest("resource_ncloud_route_table > GetRouteTableDetail", reqParams)
+	logCommonRequest("GetRouteTableDetail", reqParams)
 	resp, err := config.Client.vpc.V2Api.GetRouteTableDetail(reqParams)
 	if err != nil {
-		logErrorResponse("resource_ncloud_route_table > GetRouteTableDetail", err, reqParams)
+		logErrorResponse("GetRouteTableDetail", err, reqParams)
 		return nil, err
 	}
-	logResponse("resource_ncloud_route_table > GetRouteTableDetail", resp)
+	logResponse("GetRouteTableDetail", resp)
 
 	if len(resp.RouteTableList) > 0 {
 		return resp.RouteTableList[0], nil

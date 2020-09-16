@@ -64,14 +64,14 @@ func resourceNcloudRouteTableAssociationCreate(d *schema.ResourceData, meta inte
 		SubnetNoList: []*string{ncloud.String(d.Get("subnet_no").(string))},
 	}
 
-	logCommonRequest("resource_ncloud_route_table_association > AddRouteTableSubnet", reqParams)
+	logCommonRequest("AddRouteTableSubnet", reqParams)
 	resp, err := config.Client.vpc.V2Api.AddRouteTableSubnet(reqParams)
 	if err != nil {
-		logErrorResponse("resource_ncloud_route_table_association > AddRouteTableSubnet", err, reqParams)
+		logErrorResponse("AddRouteTableSubnet", err, reqParams)
 		return err
 	}
 
-	logResponse("resource_ncloud_route_table_association > AddRouteTableSubnet", resp)
+	logResponse("AddRouteTableSubnet", resp)
 
 	d.SetId(convAssociationID(d.Get("route_table_no").(string), d.Get("subnet_no").(string)))
 
@@ -137,14 +137,14 @@ func resourceNcloudRouteTableAssociationDelete(d *schema.ResourceData, meta inte
 		SubnetNoList: []*string{ncloud.String(d.Get("subnet_no").(string))},
 	}
 
-	logCommonRequest("resource_ncloud_route_table_association > RemoveRouteTableSubnet", reqParams)
+	logCommonRequest("RemoveRouteTableSubnet", reqParams)
 	resp, err := config.Client.vpc.V2Api.RemoveRouteTableSubnet(reqParams)
 	if err != nil {
-		logErrorResponse("resource_ncloud_route_table_association > RemoveRouteTableSubnet", err, reqParams)
+		logErrorResponse("RemoveRouteTableSubnet", err, reqParams)
 		return err
 	}
 
-	logResponse("resource_ncloud_route_table_association > RemoveRouteTableSubnet", resp)
+	logResponse("RemoveRouteTableSubnet", resp)
 
 	if err := waitForNcloudRouteTableAssociationTableUpdate(config, d.Get("route_table_no").(string)); err != nil {
 		return err
@@ -185,13 +185,13 @@ func getRouteTableAssociationInstance(config *ProviderConfig, id string) (*vpc.S
 		RouteTableNo: ncloud.String(routeTableNo),
 	}
 
-	logCommonRequest("resource_ncloud_route_table_association > GetRouteTableSubnetList", reqParams)
+	logCommonRequest("GetRouteTableSubnetList", reqParams)
 	resp, err := config.Client.vpc.V2Api.GetRouteTableSubnetList(reqParams)
 	if err != nil {
-		logErrorResponse("resource_ncloud_route_table_association > GetRouteTableSubnetList", err, reqParams)
+		logErrorResponse("GetRouteTableSubnetList", err, reqParams)
 		return nil, err
 	}
-	logResponse("resource_ncloud_route_table_association > GetRouteTableSubnetList", resp)
+	logResponse("GetRouteTableSubnetList", resp)
 
 	if resp.SubnetList != nil {
 		for _, i := range resp.SubnetList {
