@@ -131,7 +131,7 @@ func resourceNcloudNetworkACLRuleCreate(d *schema.ResourceData, meta interface{}
 				NetworkAclRuleList: []*vpc.AddNetworkAclRuleParameter{networkACLRule},
 			}
 
-			logCommonRequest("resource_ncloud_network_acl_rule > AddNetworkAclInboundRule", reqParams)
+			logCommonRequest("AddNetworkAclInboundRule", reqParams)
 			resp, err = config.Client.vpc.V2Api.AddNetworkAclInboundRule(reqParams.(*vpc.AddNetworkAclInboundRuleRequest))
 		} else {
 			reqParams = &vpc.AddNetworkAclOutboundRuleRequest{
@@ -140,7 +140,7 @@ func resourceNcloudNetworkACLRuleCreate(d *schema.ResourceData, meta interface{}
 				NetworkAclRuleList: []*vpc.AddNetworkAclRuleParameter{networkACLRule},
 			}
 
-			logCommonRequest("resource_ncloud_network_acl_rule > AddNetworkAclOutboundRule", reqParams)
+			logCommonRequest("AddNetworkAclOutboundRule", reqParams)
 			resp, err = config.Client.vpc.V2Api.AddNetworkAclOutboundRule(reqParams.(*vpc.AddNetworkAclOutboundRuleRequest))
 		}
 
@@ -159,11 +159,11 @@ func resourceNcloudNetworkACLRuleCreate(d *schema.ResourceData, meta interface{}
 	})
 
 	if err != nil {
-		logErrorResponse("resource_ncloud_network_acl_rule > AddNetworkAclRule", err, reqParams)
+		logErrorResponse("AddNetworkAclRule", err, reqParams)
 		return err
 	}
 
-	logResponse("resource_ncloud_network_acl_rule > AddNetworkAclRule", resp)
+	logResponse("AddNetworkAclRule", resp)
 
 	d.SetId(networkACLIdRuleHash(d.Get("network_acl_no").(string), d.Get("rule_type").(string), d.Get("priority").(int)))
 
@@ -231,7 +231,7 @@ func resourceNcloudNetworkACLRuleDelete(d *schema.ResourceData, meta interface{}
 				NetworkAclRuleList: []*vpc.RemoveNetworkAclRuleParameter{networkACLRule},
 			}
 
-			logCommonRequest("resource_ncloud_network_acl_rule > RemoveNetworkAclInboundRule", reqParams)
+			logCommonRequest("RemoveNetworkAclInboundRule", reqParams)
 			resp, err = config.Client.vpc.V2Api.RemoveNetworkAclInboundRule(reqParams)
 		} else {
 			reqParams := &vpc.RemoveNetworkAclOutboundRuleRequest{
@@ -240,7 +240,7 @@ func resourceNcloudNetworkACLRuleDelete(d *schema.ResourceData, meta interface{}
 				NetworkAclRuleList: []*vpc.RemoveNetworkAclRuleParameter{networkACLRule},
 			}
 
-			logCommonRequest("resource_ncloud_network_acl_rule > RemoveNetworkAclOutboundRule", reqParams)
+			logCommonRequest("RemoveNetworkAclOutboundRule", reqParams)
 			resp, err = config.Client.vpc.V2Api.RemoveNetworkAclOutboundRule(reqParams)
 		}
 
@@ -259,11 +259,11 @@ func resourceNcloudNetworkACLRuleDelete(d *schema.ResourceData, meta interface{}
 	})
 
 	if err != nil {
-		logErrorResponse("resource_ncloud_network_acl_rule > RemoveNetworkAclRule", err, reqParams)
+		logErrorResponse("RemoveNetworkAclRule", err, reqParams)
 		return err
 	}
 
-	logResponse("resource_ncloud_network_acl_rule > RemoveNetworkAclRule", resp)
+	logResponse("RemoveNetworkAclRule", resp)
 
 	if err = waitForNcloudNetworkACLRunning(config, d.Get("network_acl_no").(string)); err != nil {
 		return err
@@ -279,13 +279,13 @@ func getNetworkACLRuleInstance(d *schema.ResourceData, config *ProviderConfig) (
 		NetworkAclRuleTypeCode: ncloud.String(d.Get("rule_type").(string)),
 	}
 
-	logCommonRequest("resource_ncloud_network_acl_rule > GetNetworkAclRuleList", reqParams)
+	logCommonRequest("GetNetworkAclRuleList", reqParams)
 	resp, err := config.Client.vpc.V2Api.GetNetworkAclRuleList(reqParams)
 	if err != nil {
-		logErrorResponse("resource_ncloud_network_acl_rule > GetNetworkAclRuleList", err, reqParams)
+		logErrorResponse("GetNetworkAclRuleList", err, reqParams)
 		return nil, err
 	}
-	logResponse("resource_ncloud_network_acl_rule > GetNetworkAclRuleList", resp)
+	logResponse("GetNetworkAclRuleList", resp)
 
 	if resp.NetworkAclRuleList != nil {
 		for _, i := range resp.NetworkAclRuleList {

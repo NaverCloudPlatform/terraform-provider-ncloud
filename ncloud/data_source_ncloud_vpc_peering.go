@@ -72,14 +72,14 @@ func getVpcPeeringListFiltered(d *schema.ResourceData, config *ProviderConfig) (
 		reqParams.VpcPeeringInstanceStatusCode = ncloud.String(v.(string))
 	}
 
-	logCommonRequest("data_source_ncloud_vpc_peering > GetVpcPeeringInstanceList", reqParams)
+	logCommonRequest("GetVpcPeeringInstanceList", reqParams)
 	resp, err := config.Client.vpc.V2Api.GetVpcPeeringInstanceList(reqParams)
 
 	if err != nil {
-		logErrorResponse("data_source_ncloud_vpc_peering > GetVpcPeeringInstanceList", err, reqParams)
+		logErrorResponse("GetVpcPeeringInstanceList", err, reqParams)
 		return nil, err
 	}
-	logResponse("data_source_ncloud_vpc_peering > GetVpcPeeringInstanceList", resp)
+	logResponse("GetVpcPeeringInstanceList", resp)
 
 	resources := []map[string]interface{}{}
 

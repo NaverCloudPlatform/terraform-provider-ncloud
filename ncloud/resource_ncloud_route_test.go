@@ -107,13 +107,13 @@ func testAccCheckRouteExists(n string, route *vpc.Route) resource.TestCheckFunc 
 			RouteTableNo: ncloud.String(rs.Primary.Attributes["route_table_no"]),
 		}
 
-		logCommonRequest("resource_ncloud_route_test > GetRouteList", reqParams)
+		logCommonRequest("GetRouteList", reqParams)
 		resp, err := config.Client.vpc.V2Api.GetRouteList(reqParams)
 		if err != nil {
-			logErrorResponse("resource_ncloud_route_test > GetRouteList", err, reqParams)
+			logErrorResponse("GetRouteList", err, reqParams)
 			return fmt.Errorf("Not found: %s", n)
 		}
-		logResponse("resource_ncloud_route_test > GetRouteList", resp)
+		logResponse("GetRouteList", resp)
 
 		if resp.RouteList != nil {
 			for _, i := range resp.RouteList {
@@ -166,7 +166,7 @@ func testAccCheckRouteDestroy(s *terraform.State) error {
 
 		resp, err := config.Client.vpc.V2Api.GetRouteList(reqParams)
 		if err != nil {
-			logErrorResponse("resource_ncloud_route_test > GetRouteList", err, reqParams)
+			logErrorResponse("GetRouteList", err, reqParams)
 			return err
 		}
 

@@ -74,14 +74,14 @@ func resourceNcloudNetworkACLCreate(d *schema.ResourceData, meta interface{}) er
 		reqParams.NetworkAclDescription = ncloud.String(v.(string))
 	}
 
-	logCommonRequest("resource_ncloud_network_acl > CreateNetworkAcl", reqParams)
+	logCommonRequest("CreateNetworkAcl", reqParams)
 	resp, err := config.Client.vpc.V2Api.CreateNetworkAcl(reqParams)
 	if err != nil {
-		logErrorResponse("resource_ncloud_network_acl > CreateNetworkAcl", err, reqParams)
+		logErrorResponse("CreateNetworkAcl", err, reqParams)
 		return err
 	}
 
-	logResponse("resource_ncloud_network_acl > CreateNetworkAcl", resp)
+	logResponse("CreateNetworkAcl", resp)
 
 	instance := resp.NetworkAclList[0]
 	d.SetId(*instance.NetworkAclNo)
@@ -131,14 +131,14 @@ func resourceNcloudNetworkACLDelete(d *schema.ResourceData, meta interface{}) er
 		NetworkAclNo: ncloud.String(d.Get("network_acl_no").(string)),
 	}
 
-	logCommonRequest("resource_ncloud_network_acl > DeleteNetworkAcl", reqParams)
+	logCommonRequest("DeleteNetworkAcl", reqParams)
 	resp, err := config.Client.vpc.V2Api.DeleteNetworkAcl(reqParams)
 	if err != nil {
-		logErrorResponse("resource_ncloud_network_acl > DeleteNetworkAcl", err, reqParams)
+		logErrorResponse("DeleteNetworkAcl", err, reqParams)
 		return err
 	}
 
-	logResponse("resource_ncloud_network_acl > DeleteNetworkAcl", resp)
+	logResponse("DeleteNetworkAcl", resp)
 
 	if err := waitForNcloudNetworkACLDeletion(config, d.Id()); err != nil {
 		return err
@@ -193,13 +193,13 @@ func getNetworkACLInstance(config *ProviderConfig, id string) (*vpc.NetworkAcl, 
 		NetworkAclNo: ncloud.String(id),
 	}
 
-	logCommonRequest("resource_ncloud_network_acl > GetNetworkAclDetail", reqParams)
+	logCommonRequest("GetNetworkAclDetail", reqParams)
 	resp, err := config.Client.vpc.V2Api.GetNetworkAclDetail(reqParams)
 	if err != nil {
-		logErrorResponse("resource_ncloud_network_acl > GetNetworkAclDetail", err, reqParams)
+		logErrorResponse("GetNetworkAclDetail", err, reqParams)
 		return nil, err
 	}
-	logResponse("resource_ncloud_network_acl > GetNetworkAclDetail", resp)
+	logResponse("GetNetworkAclDetail", resp)
 
 	if len(resp.NetworkAclList) > 0 {
 		instance := resp.NetworkAclList[0]

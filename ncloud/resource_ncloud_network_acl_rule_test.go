@@ -276,7 +276,7 @@ func testAccCheckNetworkACLRuleExists(n string, networkACLRule *vpc.NetworkAclRu
 
 		resp, err := config.Client.vpc.V2Api.GetNetworkAclRuleList(reqParams)
 		if err != nil {
-			logErrorResponse("resource_ncloud_network_acl_rule_test > GetNetworkAclRuleList", err, reqParams)
+			logErrorResponse("GetNetworkAclRuleList", err, reqParams)
 			return err
 		}
 
@@ -338,7 +338,7 @@ func testAccCheckNetworkACLRuleDestroy(s *terraform.State) error {
 
 		resp, err := config.Client.vpc.V2Api.GetNetworkAclRuleList(reqParams)
 		if err != nil {
-			logErrorResponse("resource_ncloud_network_acl_rule_test > GetNetworkAclRuleList", err, reqParams)
+			logErrorResponse("GetNetworkAclRuleList", err, reqParams)
 			return err
 		}
 

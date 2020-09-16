@@ -101,14 +101,14 @@ func resourceNcloudRouteCreate(d *schema.ResourceData, meta interface{}) error {
 		RouteList:    []*vpc.RouteParameter{routeParams},
 	}
 
-	logCommonRequest("resource_ncloud_route > AddRoute", reqParams)
+	logCommonRequest("AddRoute", reqParams)
 	resp, err := config.Client.vpc.V2Api.AddRoute(reqParams)
 	if err != nil {
-		logErrorResponse("resource_ncloud_route > AddRoute", err, reqParams)
+		logErrorResponse("AddRoute", err, reqParams)
 		return err
 	}
 
-	logResponse("resource_ncloud_route > AddRoute", resp)
+	logResponse("AddRoute", resp)
 
 	d.SetId(routeRuleHash(d.Get("route_table_no").(string), d.Get("destination_cidr_block").(string)))
 
@@ -176,14 +176,14 @@ func resourceNcloudRouteDelete(d *schema.ResourceData, meta interface{}) error {
 		RouteList:    []*vpc.RouteParameter{routeParams},
 	}
 
-	logCommonRequest("resource_ncloud_route > RemoveRoute", reqParams)
+	logCommonRequest("RemoveRoute", reqParams)
 	resp, err := config.Client.vpc.V2Api.RemoveRoute(reqParams)
 	if err != nil {
-		logErrorResponse("resource_ncloud_route > RemoveRoute", err, reqParams)
+		logErrorResponse("RemoveRoute", err, reqParams)
 		return err
 	}
 
-	logResponse("resource_ncloud_route > RemoveRoute", resp)
+	logResponse("RemoveRoute", resp)
 
 	if err := waitForNcloudRouteTableUpdate(config, d.Get("route_table_no").(string)); err != nil {
 		return err
@@ -219,13 +219,13 @@ func getRouteInstance(config *ProviderConfig, d *schema.ResourceData) (*vpc.Rout
 		RouteTableNo: ncloud.String(d.Get("route_table_no").(string)),
 	}
 
-	logCommonRequest("resource_ncloud_route > GetRouteList", reqParams)
+	logCommonRequest("GetRouteList", reqParams)
 	resp, err := config.Client.vpc.V2Api.GetRouteList(reqParams)
 	if err != nil {
-		logErrorResponse("resource_ncloud_route > GetRouteList", err, reqParams)
+		logErrorResponse("GetRouteList", err, reqParams)
 		return nil, err
 	}
-	logResponse("resource_ncloud_route > GetRouteList", resp)
+	logResponse("GetRouteList", resp)
 
 	if resp.RouteList != nil {
 		for _, i := range resp.RouteList {

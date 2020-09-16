@@ -56,14 +56,14 @@ func resourceNcloudPlacementGroupCreate(d *schema.ResourceData, meta interface{}
 		reqParams.PlacementGroupTypeCode = ncloud.String(v.(string))
 	}
 
-	logCommonRequest("resource_ncloud_placement_group > CreatePlacementGroup", reqParams)
+	logCommonRequest("CreatePlacementGroup", reqParams)
 	resp, err := config.Client.vserver.V2Api.CreatePlacementGroup(reqParams)
 	if err != nil {
-		logErrorResponse("resource_ncloud_placement_group > CreatePlacementGroup", err, reqParams)
+		logErrorResponse("CreatePlacementGroup", err, reqParams)
 		return err
 	}
 
-	logResponse("resource_ncloud_placement_group > CreatePlacementGroup", resp)
+	logResponse("CreatePlacementGroup", resp)
 
 	instance := resp.PlacementGroupList[0]
 	d.SetId(*instance.PlacementGroupNo)
@@ -107,14 +107,14 @@ func resourceNcloudPlacementGroupDelete(d *schema.ResourceData, meta interface{}
 		PlacementGroupNo: ncloud.String(d.Get("placement_group_no").(string)),
 	}
 
-	logCommonRequest("resource_ncloud_placement_group > DeletePlacementGroup", reqParams)
+	logCommonRequest("DeletePlacementGroup", reqParams)
 	resp, err := config.Client.vserver.V2Api.DeletePlacementGroup(reqParams)
 	if err != nil {
-		logErrorResponse("resource_ncloud_placement_group > DeletePlacementGroup", err, reqParams)
+		logErrorResponse("DeletePlacementGroup", err, reqParams)
 		return err
 	}
 
-	logResponse("resource_ncloud_placement_group > DeletePlacementGroup", resp)
+	logResponse("DeletePlacementGroup", resp)
 
 	return nil
 }
@@ -125,13 +125,13 @@ func getPlacementGroupInstance(config *ProviderConfig, id string) (*vserver.Plac
 		PlacementGroupNo: ncloud.String(id),
 	}
 
-	logCommonRequest("resource_ncloud_placement_group > GetPlacementGroupDetail", reqParams)
+	logCommonRequest("GetPlacementGroupDetail", reqParams)
 	resp, err := config.Client.vserver.V2Api.GetPlacementGroupDetail(reqParams)
 	if err != nil {
-		logErrorResponse("resource_ncloud_placement_group > GetPlacementGroupDetail", err, reqParams)
+		logErrorResponse("GetPlacementGroupDetail", err, reqParams)
 		return nil, err
 	}
-	logResponse("resource_ncloud_placement_group > GetPlacementGroupDetail", resp)
+	logResponse("GetPlacementGroupDetail", resp)
 
 	if len(resp.PlacementGroupList) > 0 {
 		return resp.PlacementGroupList[0], nil

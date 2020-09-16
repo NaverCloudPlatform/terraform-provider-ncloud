@@ -113,14 +113,14 @@ func getSubnetListFiltered(d *schema.ResourceData, config *ProviderConfig) ([]ma
 		reqParams.SubnetStatusCode = ncloud.String(v.(string))
 	}
 
-	logCommonRequest("data_source_ncloud_subnet > GetSubnetList", reqParams)
+	logCommonRequest("GetSubnetList", reqParams)
 	resp, err := config.Client.vpc.V2Api.GetSubnetList(reqParams)
 
 	if err != nil {
-		logErrorResponse("data_source_ncloud_subnet > GetSubnetList", err, reqParams)
+		logErrorResponse("GetSubnetList", err, reqParams)
 		return nil, err
 	}
-	logResponse("data_source_ncloud_subnet > GetSubnetList", resp)
+	logResponse("GetSubnetList", resp)
 
 	resources := []map[string]interface{}{}
 

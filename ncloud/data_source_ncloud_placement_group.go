@@ -63,15 +63,15 @@ func getPlacementGroupList(d *schema.ResourceData, config *ProviderConfig) (*vse
 		reqParams.PlacementGroupName = ncloud.String(v.(string))
 	}
 
-	logCommonRequest("data_source_ncloud_placement_group > GetPlacementGroupList", reqParams)
+	logCommonRequest("GetPlacementGroupList", reqParams)
 	resp, err := config.Client.vserver.V2Api.GetPlacementGroupList(reqParams)
 
 	if err != nil {
-		logErrorResponse("data_source_ncloud_placement_group > GetPlacementGroupList", err, reqParams)
+		logErrorResponse("GetPlacementGroupList", err, reqParams)
 		return nil, err
 	}
 
-	logResponse("data_source_ncloud_placement_group > GetPlacementGroupList", resp)
+	logResponse("GetPlacementGroupList", resp)
 	return resp, nil
 }
 

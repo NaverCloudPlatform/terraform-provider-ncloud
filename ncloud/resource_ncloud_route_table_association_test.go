@@ -115,13 +115,13 @@ func testAccCheckRouteTableAssociationExists(n string, subnet *vpc.Subnet, route
 			RouteTableNo: ncloud.String(rs.Primary.Attributes["route_table_no"]),
 		}
 
-		logCommonRequest("resource_ncloud_route_test > GetRouteTableSubnetList", reqParams)
+		logCommonRequest("GetRouteTableSubnetList", reqParams)
 		resp, err := config.Client.vpc.V2Api.GetRouteTableSubnetList(reqParams)
 		if err != nil {
-			logErrorResponse("resource_ncloud_route_test > GetRouteTableSubnetList", err, reqParams)
+			logErrorResponse("GetRouteTableSubnetList", err, reqParams)
 			return fmt.Errorf("Not found: %s", n)
 		}
-		logResponse("resource_ncloud_route_test > GetRouteTableSubnetList", resp)
+		logResponse("GetRouteTableSubnetList", resp)
 
 		if resp.SubnetList != nil {
 			for _, i := range resp.SubnetList {
