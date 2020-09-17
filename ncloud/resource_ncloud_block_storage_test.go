@@ -41,8 +41,6 @@ func TestAccResourceNcloudBlockStorage_Classic_basic(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "device_name", "/dev/xvdb"),
 					resource.TestCheckResourceAttr(resourceName, "product_code", "SPBSTBSTAD000002"),
 					resource.TestCheckResourceAttr(resourceName, "disk_detail_type", "HDD"),
-					resource.TestMatchResourceAttr(resourceName, "instance_no", regexp.MustCompile(`^\d+$`)),
-					resource.TestCheckResourceAttr(resourceName, "instance_status", "ATTAC"),
 				),
 			},
 			{

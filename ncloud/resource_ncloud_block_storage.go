@@ -99,26 +99,6 @@ func resourceNcloudBlockStorage() *schema.Resource {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
-			"instance_status": {
-				Type:       schema.TypeString,
-				Computed:   true,
-				Deprecated: "Use `status` instead",
-			},
-			"instance_operation": {
-				Type:       schema.TypeString,
-				Computed:   true,
-				Deprecated: "Use `operation` instead",
-			},
-			"instance_status_name": {
-				Type:       schema.TypeString,
-				Computed:   true,
-				Deprecated: "This field no longer support",
-			},
-			"instance_no": {
-				Type:       schema.TypeString,
-				Computed:   true,
-				Deprecated: "Use `block_storage_no` instead",
-			},
 		},
 	}
 }
@@ -152,13 +132,6 @@ func resourceNcloudBlockStorageRead(d *schema.ResourceData, meta interface{}) er
 	instance := ConvertToMap(r)
 
 	SetSingularResourceDataFromMapSchema(resourceNcloudBlockStorage(), d, instance)
-
-	if !config.SupportVPC {
-		// Set deprecated field on classic
-		d.Set("instance_operation", r.Operation)
-		d.Set("instance_status", r.Status)
-		d.Set("instance_no", r.BlockStorageInstanceNo)
-	}
 
 	return nil
 }
