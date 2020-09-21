@@ -1,193 +1,157 @@
 package ncloud
 
 import (
+	"fmt"
+	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/ncloud"
+	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/services/vnas"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 
-	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/ncloud"
 	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/services/server"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
 func dataSourceNcloudNasVolume() *schema.Resource {
-	return &schema.Resource{
-		Read: dataSourceNcloudNasVolumeRead,
-
-		Schema: map[string]*schema.Schema{
-			"volume_allotment_protocol_type_code": {
-				Type:         schema.TypeString,
-				Optional:     true,
-				Computed:     true,
-				ValidateFunc: validation.StringInSlice([]string{"NFS", "CIFS"}, false),
-			},
-			"is_event_configuration": {
-				Type:     schema.TypeBool,
-				Optional: true,
-				Computed: true,
-			},
-			"is_snapshot_configuration": {
-				Type:     schema.TypeBool,
-				Optional: true,
-				Computed: true,
-			},
-			"no_list": {
-				Type:     schema.TypeList,
-				Optional: true,
-				Computed: true,
-				Elem:     &schema.Schema{Type: schema.TypeString},
-			},
-			"region": {
-				Type:        schema.TypeString,
-				Optional:    true,
-				Computed:    true,
-				Description: "Region code. Get available values using the `data ncloud_regions`.",
-			},
-			"zone": {
-				Type:        schema.TypeString,
-				Optional:    true,
-				Computed:    true,
-				Description: "Zone code. Get available values using the `data ncloud_zones`.",
-			},
-
-			"instance_no": {
-				Type:     schema.TypeString,
-				Computed: true,
-			},
-			"volume_name": {
-				Type:     schema.TypeString,
-				Computed: true,
-			},
-			"instance_status": {
-				Type:     schema.TypeString,
-				Computed: true,
-			},
-			"volume_total_size": {
-				Type:     schema.TypeInt,
-				Computed: true,
-			},
-			"volume_size": {
-				Type:     schema.TypeInt,
-				Computed: true,
-			},
-			"volume_use_size": {
-				Type:     schema.TypeInt,
-				Computed: true,
-			},
-			"volume_use_ratio": {
-				Type:     schema.TypeFloat,
-				Computed: true,
-			},
-			"snapshot_volume_size": {
-				Type:     schema.TypeInt,
-				Computed: true,
-			},
-			"snapshot_volume_use_size": {
-				Type:     schema.TypeInt,
-				Computed: true,
-			},
-			"snapshot_volume_use_ratio": {
-				Type:     schema.TypeFloat,
-				Computed: true,
-			},
-			"instance_custom_ip_list": {
-				Type:     schema.TypeList,
-				Computed: true,
-				Elem:     &schema.Schema{Type: schema.TypeString},
-			},
-			"description": {
-				Type:     schema.TypeString,
-				Computed: true,
-			},
+	fieldMap := map[string]*schema.Schema{
+		"nas_volume_no": {
+			Type:     schema.TypeString,
+			Optional: true,
+			Computed: true,
 		},
+		"volume_allotment_protocol_type_code": {
+			Type:         schema.TypeString,
+			Optional:     true,
+			Computed:     true,
+			ValidateFunc: validation.StringInSlice([]string{"NFS", "CIFS"}, false),
+		},
+		"is_event_configuration": {
+			Type:     schema.TypeBool,
+			Optional: true,
+			Computed: true,
+		},
+		"is_snapshot_configuration": {
+			Type:     schema.TypeBool,
+			Optional: true,
+			Computed: true,
+		},
+		"zone": {
+			Type:        schema.TypeString,
+			Optional:    true,
+			Computed:    true,
+			Description: "Zone code. Get available values using the `data ncloud_zones`.",
+		},
+		"filter": dataSourceFiltersSchema(),
 	}
+
+	return GetSingularDataSourceItemSchema(resourceNcloudNasVolume(), fieldMap, dataSourceNcloudNasVolumeRead)
 }
 
 func dataSourceNcloudNasVolumeRead(d *schema.ResourceData, meta interface{}) error {
 	config := meta.(*ProviderConfig)
+
+	instances, err := getNasVolumeList(d, config)
+	if err != nil {
+		return err
+	}
+
+	if len(instances) < 1 {
+		return fmt.Errorf("no results. please change search criteria and try again")
+	}
+
+	resources := ConvertToArrayMap(instances)
+	if f, ok := d.GetOk("filter"); ok {
+		resources = ApplyFilters(f.(*schema.Set), resources, dataSourceNcloudNasVolume().Schema)
+	}
+
+	if err := validateOneResult(len(resources)); err != nil {
+		return err
+	}
+
+	d.SetId(resources[0]["nas_volume_no"].(string))
+	SetSingularResourceDataFromMap(d, resources[0])
+
+	return nil
+}
+
+func getNasVolumeList(d *schema.ResourceData, config *ProviderConfig) ([]*NasVolume, error) {
+	if config.SupportVPC {
+		return getVpcNasVolumeList(d, config)
+	} else {
+		return getClassicNasVolumeList(d, config)
+	}
+}
+
+func getClassicNasVolumeList(d *schema.ResourceData, config *ProviderConfig) ([]*NasVolume, error) {
 	client := config.Client
 
 	regionNo, err := parseRegionNoParameter(client, d)
 	if err != nil {
-		return err
+		return nil, err
 	}
+
 	zoneNo, err := parseZoneNoParameter(config, d)
 	if err != nil {
-		return err
+		return nil, err
 	}
+
 	reqParams := &server.GetNasVolumeInstanceListRequest{
-		RegionNo: regionNo,
-		ZoneNo:   zoneNo,
+		VolumeAllotmentProtocolTypeCode: StringPtrOrNil(d.GetOk("volume_allotment_protocol_type_code")),
+		IsEventConfiguration:            BoolPtrOrNil(d.GetOk("is_event_configuration")),
+		IsSnapshotConfiguration:         BoolPtrOrNil(d.GetOk("is_snapshot_configuration")),
+		RegionNo:                        regionNo,
+		ZoneNo:                          zoneNo,
 	}
 
-	if volumeAllotmentProtocolTypeCode, ok := d.GetOk("volume_allotment_protocol_type_code"); ok {
-		reqParams.VolumeAllotmentProtocolTypeCode = ncloud.String(volumeAllotmentProtocolTypeCode.(string))
+	if v, ok := d.GetOk("nas_volume_no"); ok {
+		reqParams.NasVolumeInstanceNoList = []*string{ncloud.String(v.(string))}
 	}
 
-	if noList, ok := d.GetOk("no_list"); ok {
-		reqParams.NasVolumeInstanceNoList = expandStringInterfaceList(noList.([]interface{}))
-	}
-
-	if isEventConfiguration, ok := d.GetOk("is_event_configuration"); ok {
-		reqParams.IsEventConfiguration = ncloud.Bool(isEventConfiguration.(bool))
-	}
-
-	if isSnapshotConfiguration, ok := d.GetOk("is_snapshot_configuration"); ok {
-		reqParams.IsSnapshotConfiguration = ncloud.Bool(isSnapshotConfiguration.(bool))
-	}
-
-	logCommonRequest("GetNasVolumeInstanceList", reqParams)
+	logCommonRequest("getClassicNasVolumeList", reqParams)
 
 	resp, err := client.server.V2Api.GetNasVolumeInstanceList(reqParams)
 	if err != nil {
-		logErrorResponse("GetNasVolumeInstanceList", err, reqParams)
-		return err
+		logErrorResponse("getClassicNasVolumeList", err, reqParams)
+		return nil, err
 	}
-	logCommonResponse("GetNasVolumeInstanceList", GetCommonResponse(resp))
+	logResponse("getClassicNasVolumeList", resp)
 
-	var nasVolumeInstance *server.NasVolumeInstance
-	nasVolumeInstances := resp.NasVolumeInstanceList
-	if err := validateOneResult(len(nasVolumeInstances)); err != nil {
-		return err
+	var list []*NasVolume
+	for _, r := range resp.NasVolumeInstanceList {
+		list = append(list, convertClassicNasVolume(r))
 	}
-	nasVolumeInstance = nasVolumeInstances[0]
 
-	return nasVolumeInstanceAttributes(d, nasVolumeInstance)
+	return list, nil
 }
 
-func nasVolumeInstanceAttributes(d *schema.ResourceData, nasVolume *server.NasVolumeInstance) error {
-	d.Set("instance_no", nasVolume.NasVolumeInstanceNo)
-	d.Set("description", nasVolume.NasVolumeInstanceDescription)
-	d.Set("volume_name", nasVolume.VolumeName)
-	d.Set("volume_total_size", nasVolume.VolumeTotalSize)
-	d.Set("volume_size", nasVolume.VolumeSize)
-	d.Set("volume_use_size", nasVolume.VolumeUseSize)
-	d.Set("volume_use_ratio", nasVolume.VolumeUseRatio)
-	d.Set("snapshot_volume_size", nasVolume.SnapshotVolumeSize)
-	d.Set("snapshot_volume_use_size", nasVolume.SnapshotVolumeUseSize)
-	d.Set("snapshot_volume_use_ratio", nasVolume.SnapshotVolumeUseRatio)
-	d.Set("is_snapshot_configuration", nasVolume.IsSnapshotConfiguration)
-	d.Set("is_event_configuration", nasVolume.IsEventConfiguration)
+func getVpcNasVolumeList(d *schema.ResourceData, config *ProviderConfig) ([]*NasVolume, error) {
+	client := config.Client
 
-	if instanceStatus := flattenCommonCode(nasVolume.NasVolumeInstanceStatus); instanceStatus["code"] != nil {
-		d.Set("instance_status", instanceStatus["code"])
+	reqParams := &vnas.GetNasVolumeInstanceListRequest{
+		RegionCode:                      &config.RegionCode,
+		VolumeAllotmentProtocolTypeCode: StringPtrOrNil(d.GetOk("volume_allotment_protocol_type_code")),
+		IsEventConfiguration:            BoolPtrOrNil(d.GetOk("is_event_configuration")),
+		IsSnapshotConfiguration:         BoolPtrOrNil(d.GetOk("is_snapshot_configuration")),
+		ZoneCode:                        StringPtrOrNil(d.GetOk("zone")),
 	}
 
-	if typeCode := flattenCommonCode(nasVolume.VolumeAllotmentProtocolType); typeCode["code"] != nil {
-		d.Set("volume_allotment_protocol_type_code", typeCode["code"])
+	if v, ok := d.GetOk("nas_volume_no"); ok {
+		reqParams.NasVolumeInstanceNoList = []*string{ncloud.String(v.(string))}
+	} else if v, ok := d.GetOk("no_list"); ok {
+		reqParams.NasVolumeInstanceNoList = expandStringInterfaceList(v.([]interface{}))
 	}
 
-	if len(nasVolume.NasVolumeInstanceCustomIpList) > 0 {
-		d.Set("instance_custom_ip_list", flattenCustomIPList(nasVolume.NasVolumeInstanceCustomIpList))
+	logCommonRequest("getVpcNasVolumeList", reqParams)
+
+	resp, err := client.vnas.V2Api.GetNasVolumeInstanceList(reqParams)
+	if err != nil {
+		logErrorResponse("getVpcNasVolumeList", err, reqParams)
+		return nil, err
+	}
+	logResponse("getVpcNasVolumeList", resp)
+
+	var list []*NasVolume
+	for _, r := range resp.NasVolumeInstanceList {
+		list = append(list, convertVpcNasVolume(r))
 	}
 
-	if zone := flattenZone(nasVolume.Zone); zone["zone_code"] != nil {
-		d.Set("zone", zone["zone_code"])
-	}
-
-	if region := flattenRegion(nasVolume.Region); region["region_code"] != nil {
-		d.Set("region", region["region_code"])
-	}
-
-	d.SetId(ncloud.StringValue(nasVolume.NasVolumeInstanceNo))
-
-	return nil
+	return list, nil
 }
