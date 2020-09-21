@@ -288,6 +288,7 @@ func resourceNcloudServerRead(d *schema.ResourceData, meta interface{}) error {
 
 	if r == nil {
 		d.SetId("")
+		return nil
 	}
 
 	if config.SupportVPC {
