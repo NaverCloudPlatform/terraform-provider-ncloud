@@ -2,6 +2,7 @@ package ncloud
 
 import (
 	"fmt"
+	"os"
 
 	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/ncloud"
 	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/services/server"
@@ -58,7 +59,9 @@ func getZoneByCode(client *NcloudAPIClient, code string) (*Zone, error) {
 }
 
 func getZones(client *NcloudAPIClient) ([]*Zone, error) {
-	resp, err := client.server.V2Api.GetZoneList(&server.GetZoneListRequest{})
+	regionNo := getRegionNoByCode(client, os.Getenv("NCLOUD_REGION"))
+
+	resp, err := client.server.V2Api.GetZoneList(&server.GetZoneListRequest{RegionNo: regionNo})
 	if err != nil {
 		return nil, err
 	}
