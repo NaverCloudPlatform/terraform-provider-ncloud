@@ -290,3 +290,17 @@ func flattenMapByKey(i interface{}, key string) *string {
 		return nil
 	}
 }
+
+func flattenArrayStructByKey(list interface{}, key string) []*string {
+	s := make([]*string, 0)
+
+	if list == nil {
+		return s
+	}
+	arr := ConvertToArrayMap(list)
+	for _, v := range arr {
+		s = append(s, ncloud.String(v[key].(string)))
+	}
+
+	return s
+}
