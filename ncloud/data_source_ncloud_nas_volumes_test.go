@@ -1,32 +1,46 @@
 package ncloud
 
 import (
+	"fmt"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"testing"
 )
 
 func TestAccDataSourceNcloudNasVolumesBasic(t *testing.T) {
-	t.Parallel()
+	postfix := getTestPrefix()
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:  func() { testAccPreCheck(t) },
 		Providers: testAccProviders,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccDataSourceNcloudNasVolumesConfig,
-				// ignore check: may be empty created data
-				SkipFunc: func() (bool, error) {
-					return skipNoResultsTest, nil
-				},
-				//ExpectError: regexp.MustCompile("no results"), // may be no data
+				Config: testAccDataSourceNcloudNasVolumesConfig(postfix),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckDataSourceID("data.ncloud_nas_volumes.volumes"),
+					testAccCheckDataSourceID("data.ncloud_nas_volumes.by_id"),
+					testAccCheckDataSourceID("data.ncloud_nas_volumes.by_filter"),
 				),
 			},
 		},
 	})
 }
 
-var testAccDataSourceNcloudNasVolumesConfig = `
-data "ncloud_nas_volumes" "volumes" {}
-`
+func testAccDataSourceNcloudNasVolumesConfig(volumeNamePostfix string) string {
+	return fmt.Sprintf(`
+resource "ncloud_nas_volume" "test" {
+	volume_name_postfix = "%s"
+	volume_size = "500"
+	volume_allotment_protocol_type = "NFS"
+}
+
+data "ncloud_nas_volumes" "by_id" {
+	no_list = [ncloud_nas_volume.test.id]
+}
+
+data "ncloud_nas_volumes" "by_filter" {
+	filter {
+		name = "nas_volume_no"
+		values = [ncloud_nas_volume.test.id]
+	}
+}
+`, volumeNamePostfix)
+}

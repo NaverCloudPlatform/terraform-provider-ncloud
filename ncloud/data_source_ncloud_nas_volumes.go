@@ -3,8 +3,6 @@ package ncloud
 import (
 	"fmt"
 
-	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/ncloud"
-	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/services/server"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
@@ -43,11 +41,16 @@ func dataSourceNcloudNasVolumes() *schema.Resource {
 				Optional:    true,
 				Description: "Zone code. Get available values using the `data ncloud_zones`.",
 			},
+			"filter": dataSourceFiltersSchema(),
+			"ids": {
+				Type:     schema.TypeList,
+				Computed: true,
+				Elem:     &schema.Schema{Type: schema.TypeString},
+			},
 			"nas_volumes": {
-				Type:        schema.TypeList,
-				Computed:    true,
-				Description: "A list of NAS Volume Instance no",
-				Elem:        &schema.Schema{Type: schema.TypeString},
+				Type:     schema.TypeList,
+				Computed: true,
+				Elem:     GetDataSourceItemSchema(resourceNcloudNasVolume()),
 			},
 			"output_file": {
 				Type:     schema.TypeString,
@@ -59,62 +62,33 @@ func dataSourceNcloudNasVolumes() *schema.Resource {
 
 func dataSourceNcloudNasVolumesRead(d *schema.ResourceData, meta interface{}) error {
 	config := meta.(*ProviderConfig)
-	client := config.Client
 
-	regionNo, err := parseRegionNoParameter(client, d)
+	instances, err := getNasVolumeList(d, config)
 	if err != nil {
 		return err
 	}
-	zoneNo, err := parseZoneNoParameter(config, d)
-	if err != nil {
-		return err
-	}
-	reqParams := &server.GetNasVolumeInstanceListRequest{
-		RegionNo: regionNo,
-		ZoneNo:   zoneNo,
+
+	resources := ConvertToArrayMap(instances)
+
+	if f, ok := d.GetOk("filter"); ok {
+		resources = ApplyFilters(f.(*schema.Set), resources, dataSourceNcloudNasVolumes().Schema)
 	}
 
-	if volumeAllotmentProtocolTypeCode, ok := d.GetOk("volume_allotment_protocol_type_code"); ok {
-		reqParams.VolumeAllotmentProtocolTypeCode = ncloud.String(volumeAllotmentProtocolTypeCode.(string))
-	}
-
-	if noList, ok := d.GetOk("no_list"); ok {
-		reqParams.NasVolumeInstanceNoList = expandStringInterfaceList(noList.([]interface{}))
-	}
-
-	if isEventConfiguration, ok := d.GetOk("is_event_configuration"); ok {
-		reqParams.IsEventConfiguration = ncloud.Bool(isEventConfiguration.(bool))
-	}
-
-	if isSnapshotConfiguration, ok := d.GetOk("is_snapshot_configuration"); ok {
-		reqParams.IsSnapshotConfiguration = ncloud.Bool(isSnapshotConfiguration.(bool))
-	}
-
-	logCommonRequest("GetNasVolumeInstanceList", reqParams)
-
-	resp, err := client.server.V2Api.GetNasVolumeInstanceList(reqParams)
-	if err != nil {
-		logErrorResponse("GetNasVolumeInstanceList", err, reqParams)
-		return err
-	}
-	logCommonResponse("GetNasVolumeInstanceList", GetCommonResponse(resp))
-
-	nasVolumeInstances := resp.NasVolumeInstanceList
-	if len(nasVolumeInstances) < 1 {
+	if len(resources) < 1 {
 		return fmt.Errorf("no results. please change search criteria and try again")
 	}
-	return nasVolumeInstancesAttributes(d, nasVolumeInstances)
-}
 
-func nasVolumeInstancesAttributes(d *schema.ResourceData, nasVolumeInstances []*server.NasVolumeInstance) error {
 	var ids []string
-
-	for _, nasVolume := range nasVolumeInstances {
-		ids = append(ids, ncloud.StringValue(nasVolume.NasVolumeInstanceNo))
+	for _, r := range resources {
+		ids = append(ids, r["nas_volume_no"].(string))
 	}
 
 	d.SetId(dataResourceIdHash(ids))
-	if err := d.Set("nas_volumes", flattenNasVolumeInstances(nasVolumeInstances)); err != nil {
+	if err := d.Set("ids", ids); err != nil {
+		return err
+	}
+
+	if err := d.Set("nas_volumes", resources); err != nil {
 		return err
 	}
 
