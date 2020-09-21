@@ -127,6 +127,7 @@ func resourceNcloudBlockStorageRead(d *schema.ResourceData, meta interface{}) er
 
 	if r == nil {
 		d.SetId("")
+		return nil
 	}
 
 	instance := ConvertToMap(r)
