@@ -613,3 +613,40 @@ func TestFlattenMapByKey(t *testing.T) {
 		t.Fatalf("result expected 'test' but was %s", *result)
 	}
 }
+
+func TestFlattenArrayStructByKey(t *testing.T) {
+	list := []*server.InstanceTag{
+		{
+			InstanceNo: ncloud.String("foo"),
+		},
+		{
+			InstanceNo: ncloud.String("bar"),
+		},
+	}
+
+	result := flattenArrayStructByKey(list, "instanceNo")
+
+	if result == nil {
+		t.Fatal("result was nil")
+	}
+
+	if *result[0] != "foo" {
+		t.Fatalf("result expected 'foo' but was %s", *result[0])
+	}
+
+	if *result[1] != "bar" {
+		t.Fatalf("result expected 'bar' but was %s", *result[1])
+	}
+
+	list = []*server.InstanceTag{}
+	result = flattenArrayStructByKey(list, "instanceNo")
+
+	if result == nil {
+		t.Fatal("result was nil")
+	}
+
+	if len(result) != 0 {
+		t.Fatalf("result len(result) expected 0 but was %d", len(result))
+	}
+
+}
