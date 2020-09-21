@@ -146,6 +146,24 @@ func StringPtrOrNil(v interface{}, ok bool) *string {
 	return ncloud.String(v.(string))
 }
 
+//Int32PtrOrNil return *int32 from interface{}
+func Int32PtrOrNil(v interface{}, ok bool) *int32 {
+	if !ok {
+		return nil
+	}
+
+	switch i := v.(type) {
+	case int:
+		return ncloud.Int32(int32(i))
+	case int32:
+		return ncloud.Int32(i)
+	case int64:
+		return ncloud.Int32(int32(i))
+	default:
+		return ncloud.Int32(i.(int32))
+	}
+}
+
 //BoolPtrOrNil return *bool from interface{}
 func BoolPtrOrNil(v interface{}, ok bool) *bool {
 	if !ok {
