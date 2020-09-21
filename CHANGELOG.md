@@ -1,4 +1,11 @@
 ## 1.4.0 (Unreleased)
+
+## 1.3.3 (Sep 21, 2020)
+
+FIX:
+
+* fix #79 - Fix to get zone no on all region except Korea.
+
 ## 1.3.0 (July 09, 2020)
 
 ENHANCEMENTS:
