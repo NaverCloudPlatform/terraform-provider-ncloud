@@ -61,15 +61,13 @@ func getServerList(d *schema.ResourceData, config *ProviderConfig) ([]*ServerIns
 }
 
 func getClassicServerList(d *schema.ResourceData, config *ProviderConfig) ([]*ServerInstance, error) {
+	regionNo, err := parseRegionNoParameter(config.Client, d)
+	if err != nil {
+		return nil, err
+	}
+
 	reqParams := &server.GetServerInstanceListRequest{
-		ServerInstanceNoList:               nil,
-		ServerInstanceStatusCode:           nil,
-		InternetLineTypeCode:               nil,
-		RegionNo:                           nil,
-		ZoneNo:                             nil,
-		BaseBlockStorageDiskTypeCode:       nil,
-		BaseBlockStorageDiskDetailTypeCode: nil,
-		ServerInstanceTypeCodeList:         nil,
+		RegionNo: regionNo,
 	}
 
 	if v, ok := d.GetOk("instance_no"); ok {
@@ -98,14 +96,7 @@ func getVpcServerList(d *schema.ResourceData, config *ProviderConfig) ([]*Server
 	client := config.Client
 
 	reqParams := &vserver.GetServerInstanceListRequest{
-		RegionCode:                         &config.RegionCode,
-		VpcNo:                              nil,
-		ServerInstanceStatusCode:           nil,
-		BaseBlockStorageDiskTypeCode:       nil,
-		BaseBlockStorageDiskDetailTypeCode: nil,
-		ServerName:                         nil,
-		Ip:                                 nil,
-		PlacementGroupNoList:               nil,
+		RegionCode: &config.RegionCode,
 	}
 
 	if v, ok := d.GetOk("instance_no"); ok {
