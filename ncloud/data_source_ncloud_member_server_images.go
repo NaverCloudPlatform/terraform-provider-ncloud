@@ -8,7 +8,7 @@ import (
 )
 
 func init() {
-	RegisterDatasource("ncloud_member_server_images", dataSourceNcloudMemberServerImages())
+	RegisterDataSource("ncloud_member_server_images", dataSourceNcloudMemberServerImages())
 }
 
 func dataSourceNcloudMemberServerImages() *schema.Resource {

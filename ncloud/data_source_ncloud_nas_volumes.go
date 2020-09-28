@@ -8,7 +8,7 @@ import (
 )
 
 func init() {
-	RegisterDatasource("ncloud_nas_volumes", dataSourceNcloudNasVolumes())
+	RegisterDataSource("ncloud_nas_volumes", dataSourceNcloudNasVolumes())
 }
 
 func dataSourceNcloudNasVolumes() *schema.Resource {

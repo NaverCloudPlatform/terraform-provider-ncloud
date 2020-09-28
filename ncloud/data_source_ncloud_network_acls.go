@@ -11,7 +11,7 @@ import (
 )
 
 func init() {
-	RegisterDatasource("ncloud_network_acls", dataSourceNcloudNetworkAcls())
+	RegisterDataSource("ncloud_network_acls", dataSourceNcloudNetworkAcls())
 }
 
 func dataSourceNcloudNetworkAcls() *schema.Resource {

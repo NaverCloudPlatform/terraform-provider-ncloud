@@ -9,7 +9,7 @@ import (
 )
 
 func init() {
-	RegisterDatasource("ncloud_server_product", dataSourceNcloudServerProduct())
+	RegisterDataSource("ncloud_server_product", dataSourceNcloudServerProduct())
 }
 
 func dataSourceNcloudServerProduct() *schema.Resource {

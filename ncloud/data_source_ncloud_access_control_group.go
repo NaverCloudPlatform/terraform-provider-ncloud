@@ -9,7 +9,7 @@ import (
 )
 
 func init() {
-	RegisterDatasource("ncloud_access_control_group", dataSourceNcloudAccessControlGroup())
+	RegisterDataSource("ncloud_access_control_group", dataSourceNcloudAccessControlGroup())
 }
 
 func dataSourceNcloudAccessControlGroup() *schema.Resource {

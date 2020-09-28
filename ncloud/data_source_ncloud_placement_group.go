@@ -8,7 +8,7 @@ import (
 )
 
 func init() {
-	RegisterDatasource("ncloud_placement_group", dataSourceNcloudPlacementGroup())
+	RegisterDataSource("ncloud_placement_group", dataSourceNcloudPlacementGroup())
 }
 
 func dataSourceNcloudPlacementGroup() *schema.Resource {

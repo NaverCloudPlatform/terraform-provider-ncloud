@@ -11,7 +11,7 @@ import (
 )
 
 func init() {
-	RegisterDatasource("ncloud_regions", dataSourceNcloudRegions())
+	RegisterDataSource("ncloud_regions", dataSourceNcloudRegions())
 }
 
 func dataSourceNcloudRegions() *schema.Resource {

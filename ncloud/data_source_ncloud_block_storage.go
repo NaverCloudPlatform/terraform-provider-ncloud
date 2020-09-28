@@ -9,7 +9,7 @@ import (
 )
 
 func init() {
-	RegisterDatasource("ncloud_block_storage", dataSourceNcloudBlockStorage())
+	RegisterDataSource("ncloud_block_storage", dataSourceNcloudBlockStorage())
 }
 
 func dataSourceNcloudBlockStorage() *schema.Resource {

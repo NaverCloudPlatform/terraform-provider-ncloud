@@ -10,7 +10,7 @@ import (
 )
 
 func init() {
-	RegisterDatasource("ncloud_zones", dataSourceNcloudZones())
+	RegisterDataSource("ncloud_zones", dataSourceNcloudZones())
 }
 
 func dataSourceNcloudZones() *schema.Resource {
