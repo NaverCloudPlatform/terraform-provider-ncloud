@@ -714,9 +714,15 @@ func getClassicServerInstance(config *ProviderConfig, id string) (*ServerInstanc
 		return nil, err
 	}
 
-	r := resp.ServerInstanceList[0]
+	return convertClassicServerInstance(resp.ServerInstanceList[0]), nil
+}
 
-	instance := &ServerInstance{
+func convertClassicServerInstance(r *server.ServerInstance) *ServerInstance {
+	if r == nil {
+		return nil
+	}
+
+	return &ServerInstance{
 		ZoneNo:                         r.Zone.ZoneNo,
 		ServerImageProductCode:         r.ServerImageProductCode,
 		ServerProductCode:              r.ServerProductCode,
@@ -745,8 +751,6 @@ func getClassicServerInstance(config *ProviderConfig, id string) (*ServerInstanc
 		InternetLineType:               r.InternetLineType.Code,
 		InstanceTagList:                r.InstanceTagList,
 	}
-
-	return instance, nil
 }
 
 func getVpcServerInstance(config *ProviderConfig, id string) (*ServerInstance, error) {
@@ -773,7 +777,13 @@ func getVpcServerInstance(config *ProviderConfig, id string) (*ServerInstance, e
 		return nil, err
 	}
 
-	r := resp.ServerInstanceList[0]
+	return convertVcpServerInstance(resp.ServerInstanceList[0]), nil
+}
+
+func convertVcpServerInstance(r *vserver.ServerInstance) *ServerInstance {
+	if r == nil {
+		return nil
+	}
 
 	instance := &ServerInstance{
 		ServerImageProductCode:         r.ServerImageProductCode,
@@ -807,7 +817,7 @@ func getVpcServerInstance(config *ProviderConfig, id string) (*ServerInstance, e
 		instance.NetworkInterfaceList = append(instance.NetworkInterfaceList, ni)
 	}
 
-	return instance, nil
+	return instance
 }
 
 func buildNetworkInterfaceList(config *ProviderConfig, r *ServerInstance) error {
