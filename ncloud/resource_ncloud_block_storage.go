@@ -14,6 +14,10 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
 
+func init() {
+	RegisterResource("ncloud_block_storage", resourceNcloudBlockStorage())
+}
+
 func resourceNcloudBlockStorage() *schema.Resource {
 	return &schema.Resource{
 		Create: resourceNcloudBlockStorageCreate,

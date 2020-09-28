@@ -7,6 +7,10 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
+func init() {
+	RegisterDatasource("ncloud_route_tables", dataSourceNcloudRouteTables())
+}
+
 func dataSourceNcloudRouteTables() *schema.Resource {
 	return &schema.Resource{
 		Read: dataSourceNcloudRouteTablesRead,

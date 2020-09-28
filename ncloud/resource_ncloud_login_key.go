@@ -13,6 +13,10 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
 
+func init() {
+	RegisterResource("ncloud_login_key", resourceNcloudLoginKey())
+}
+
 func resourceNcloudLoginKey() *schema.Resource {
 	return &schema.Resource{
 		Read:   resourceNcloudLoginKeyRead,

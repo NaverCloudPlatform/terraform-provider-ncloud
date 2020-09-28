@@ -12,6 +12,10 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
 
+func init() {
+	RegisterResource("ncloud_route_table", resourceNcloudRouteTable())
+}
+
 func resourceNcloudRouteTable() *schema.Resource {
 	return &schema.Resource{
 		Create: resourceNcloudRouteTableCreate,

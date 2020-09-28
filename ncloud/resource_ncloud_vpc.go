@@ -13,6 +13,10 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
 
+func init() {
+	RegisterResource("ncloud_vpc", resourceNcloudVpc())
+}
+
 func resourceNcloudVpc() *schema.Resource {
 	return &schema.Resource{
 		Create: resourceNcloudVpcCreate,

@@ -8,6 +8,10 @@ import (
 	"log"
 )
 
+func init() {
+	RegisterResource("ncloud_init_script", resourceNcloudInitScript())
+}
+
 func resourceNcloudInitScript() *schema.Resource {
 	return &schema.Resource{
 		Create: resourceNcloudInitScriptCreate,

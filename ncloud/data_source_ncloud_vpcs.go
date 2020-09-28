@@ -8,6 +8,10 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
 
+func init() {
+	RegisterDatasource("ncloud_vpcs", dataSourceNcloudVpcs())
+}
+
 func dataSourceNcloudVpcs() *schema.Resource {
 	return &schema.Resource{
 		Read: dataSourceNcloudVpcsRead,

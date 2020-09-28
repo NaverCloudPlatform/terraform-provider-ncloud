@@ -12,6 +12,10 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
 
+func init() {
+	RegisterResource("ncloud_network_interface", resourceNcloudNetworkInterface())
+}
+
 func resourceNcloudNetworkInterface() *schema.Resource {
 	return &schema.Resource{
 		Create: resourceNcloudNetworkInterfaceCreate,

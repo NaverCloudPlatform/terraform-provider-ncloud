@@ -16,6 +16,10 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
 
+func init() {
+	RegisterResource("ncloud_network_acl_rule", resourceNcloudNetworkACLRule())
+}
+
 func resourceNcloudNetworkACLRule() *schema.Resource {
 	return &schema.Resource{
 		Create: resourceNcloudNetworkACLRuleCreate,

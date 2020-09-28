@@ -13,6 +13,10 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
 
+func init() {
+	RegisterResource("ncloud_nas_volume", resourceNcloudNasVolume())
+}
+
 func resourceNcloudNasVolume() *schema.Resource {
 	return &schema.Resource{
 		Create: resourceNcloudNasVolumeCreate,

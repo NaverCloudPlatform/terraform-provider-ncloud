@@ -10,6 +10,10 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
 
+func init() {
+	RegisterDatasource("ncloud_access_control_rule", dataSourceNcloudAccessControlRule())
+}
+
 func dataSourceNcloudAccessControlRule() *schema.Resource {
 	return &schema.Resource{
 		Read: dataSourceNcloudAccessControlRuleRead,

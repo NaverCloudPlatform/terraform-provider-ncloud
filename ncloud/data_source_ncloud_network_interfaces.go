@@ -7,6 +7,10 @@ import (
 	"time"
 )
 
+func init() {
+	RegisterDatasource("ncloud_network_interfaces", dataSourceNcloudNetworkInterfaces())
+}
+
 func dataSourceNcloudNetworkInterfaces() *schema.Resource {
 	return &schema.Resource{
 		Read: dataSourceNcloudNetworkInterfacesRead,

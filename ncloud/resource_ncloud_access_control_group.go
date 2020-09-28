@@ -12,6 +12,10 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
 
+func init() {
+	RegisterResource("ncloud_access_control_group", resourceNcloudAccessControlGroup())
+}
+
 func resourceNcloudAccessControlGroup() *schema.Resource {
 	return &schema.Resource{
 		Create: resourceNcloudAccessControlGroupCreate,

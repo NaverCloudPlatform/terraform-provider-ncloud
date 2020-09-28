@@ -8,6 +8,10 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
+func init() {
+	RegisterResource("ncloud_load_balancer_ssl_certificate", resourceNcloudLoadBalancerSSLCertificate())
+}
+
 func resourceNcloudLoadBalancerSSLCertificate() *schema.Resource {
 	return &schema.Resource{
 		Create: resourceNcloudLoadBalancerSSLCertificateCreate,

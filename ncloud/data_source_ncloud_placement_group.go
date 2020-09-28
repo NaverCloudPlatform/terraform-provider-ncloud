@@ -7,6 +7,10 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
 
+func init() {
+	RegisterDatasource("ncloud_placement_group", dataSourceNcloudPlacementGroup())
+}
+
 func dataSourceNcloudPlacementGroup() *schema.Resource {
 	fieldMap := map[string]*schema.Schema{
 		"placement_group_no": {

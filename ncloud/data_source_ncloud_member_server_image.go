@@ -7,6 +7,10 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
 
+func init() {
+	RegisterDatasource("ncloud_member_server_image", dataSourceNcloudMemberServerImage())
+}
+
 func dataSourceNcloudMemberServerImage() *schema.Resource {
 	return &schema.Resource{
 		Read: dataSourceNcloudMemberServerImageRead,

@@ -12,6 +12,10 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
+func init() {
+	RegisterResource("ncloud_route_table_association", resourceNcloudRouteTableAssociation())
+}
+
 func resourceNcloudRouteTableAssociation() *schema.Resource {
 	return &schema.Resource{
 		Create: resourceNcloudRouteTableAssociationCreate,

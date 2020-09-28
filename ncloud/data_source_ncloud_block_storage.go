@@ -8,6 +8,10 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
+func init() {
+	RegisterDatasource("ncloud_block_storage", dataSourceNcloudBlockStorage())
+}
+
 func dataSourceNcloudBlockStorage() *schema.Resource {
 	fieldMap := map[string]*schema.Schema{
 		"block_storage_no": {

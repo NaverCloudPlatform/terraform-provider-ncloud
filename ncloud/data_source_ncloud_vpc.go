@@ -7,6 +7,10 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
 
+func init() {
+	RegisterDatasource("ncloud_vpc", dataSourceNcloudVpc())
+}
+
 func dataSourceNcloudVpc() *schema.Resource {
 	fieldMap := map[string]*schema.Schema{
 		"vpc_no": {

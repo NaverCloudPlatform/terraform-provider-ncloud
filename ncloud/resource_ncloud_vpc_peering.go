@@ -12,6 +12,10 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
 
+func init() {
+	RegisterResource("ncloud_vpc_peering", resourceNcloudVpcPeering())
+}
+
 func resourceNcloudVpcPeering() *schema.Resource {
 	return &schema.Resource{
 		Create: resourceNcloudVpcPeeringCreate,

@@ -9,6 +9,10 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
+func init() {
+	RegisterDatasource("ncloud_zones", dataSourceNcloudZones())
+}
+
 func dataSourceNcloudZones() *schema.Resource {
 	return &schema.Resource{
 		Read: dataSourceNcloudZonesRead,
