@@ -12,6 +12,10 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
+func init() {
+	RegisterResource("ncloud_block_storage_snapshot", resourceNcloudBlockStorageSnapshot())
+}
+
 func resourceNcloudBlockStorageSnapshot() *schema.Resource {
 	return &schema.Resource{
 		Create: resourceNcloudBlockStorageSnapshotCreate,

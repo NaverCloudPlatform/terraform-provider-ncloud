@@ -9,6 +9,10 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
 
+func init() {
+	RegisterResource("ncloud_placement_group", resourceNcloudPlacementGroup())
+}
+
 func resourceNcloudPlacementGroup() *schema.Resource {
 	return &schema.Resource{
 		Create: resourceNcloudPlacementGroupCreate,

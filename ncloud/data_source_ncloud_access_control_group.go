@@ -8,6 +8,10 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
+func init() {
+	RegisterDatasource("ncloud_access_control_group", dataSourceNcloudAccessControlGroup())
+}
+
 func dataSourceNcloudAccessControlGroup() *schema.Resource {
 	return &schema.Resource{
 		Read: dataSourceNcloudAccessControlGroupRead,

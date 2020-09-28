@@ -10,6 +10,10 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
 
+func init() {
+	RegisterDatasource("ncloud_port_forwarding_rules", dataSourceNcloudPortForwardingRules())
+}
+
 func dataSourceNcloudPortForwardingRules() *schema.Resource {
 	return &schema.Resource{
 		Read: dataSourceNcloudPortForwardingRulesRead,

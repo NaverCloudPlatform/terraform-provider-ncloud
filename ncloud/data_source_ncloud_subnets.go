@@ -8,6 +8,10 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
 
+func init() {
+	RegisterDatasource("ncloud_subnets", dataSourceNcloudSubnets())
+}
+
 func dataSourceNcloudSubnets() *schema.Resource {
 	return &schema.Resource{
 		Read: dataSourceNcloudSubnetsRead,

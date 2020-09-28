@@ -6,6 +6,10 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
+func init() {
+	RegisterDatasource("ncloud_route_table", dataSourceNcloudRouteTable())
+}
+
 func dataSourceNcloudRouteTable() *schema.Resource {
 	fieldMap := map[string]*schema.Schema{
 		"route_table_no": {

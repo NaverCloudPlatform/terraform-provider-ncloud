@@ -14,6 +14,10 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
 
+func init() {
+	RegisterResource("ncloud_port_forwarding_rule", resourceNcloudPortForwadingRule())
+}
+
 func resourceNcloudPortForwadingRule() *schema.Resource {
 	return &schema.Resource{
 		Create: resourceNcloudPortForwardingRuleCreate,

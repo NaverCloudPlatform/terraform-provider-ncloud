@@ -8,6 +8,10 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
 
+func init() {
+	RegisterDatasource("ncloud_public_ip", dataSourceNcloudPublicIp())
+}
+
 func dataSourceNcloudPublicIp() *schema.Resource {
 	return &schema.Resource{
 		Read: dataSourceNcloudPublicIpRead,

@@ -12,6 +12,10 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
 
+func init() {
+	RegisterResource("ncloud_subnet", resourceNcloudSubnet())
+}
+
 func resourceNcloudSubnet() *schema.Resource {
 	return &schema.Resource{
 		Create: resourceNcloudSubnetCreate,

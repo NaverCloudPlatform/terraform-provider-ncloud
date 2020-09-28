@@ -6,6 +6,10 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
+func init() {
+	RegisterDatasource("ncloud_network_interface", dataSourceNcloudNetworkInterface())
+}
+
 func dataSourceNcloudNetworkInterface() *schema.Resource {
 	fieldMap := map[string]*schema.Schema{
 		"network_interface_no": {

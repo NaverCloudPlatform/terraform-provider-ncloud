@@ -6,6 +6,10 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
+func init() {
+	RegisterDatasource("ncloud_vpc_peering", dataSourceNcloudVpcPeering())
+}
+
 func dataSourceNcloudVpcPeering() *schema.Resource {
 	fieldMap := map[string]*schema.Schema{
 		"name": {

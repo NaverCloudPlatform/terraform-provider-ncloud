@@ -10,6 +10,10 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
+func init() {
+	RegisterDatasource("ncloud_nas_volume", dataSourceNcloudNasVolume())
+}
+
 func dataSourceNcloudNasVolume() *schema.Resource {
 	fieldMap := map[string]*schema.Schema{
 		"nas_volume_no": {

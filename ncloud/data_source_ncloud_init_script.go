@@ -7,6 +7,10 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
 
+func init() {
+	RegisterDatasource("ncloud_init_script", dataSourceNcloudInitScript())
+}
+
 func dataSourceNcloudInitScript() *schema.Resource {
 	return &schema.Resource{
 		Read: dataSourceNcloudInitScriptRead,

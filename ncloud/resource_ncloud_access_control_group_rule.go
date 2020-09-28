@@ -15,6 +15,10 @@ import (
 	"time"
 )
 
+func init() {
+	RegisterResource("ncloud_access_control_group_rule", resourceNcloudAccessControlGroupRule())
+}
+
 func resourceNcloudAccessControlGroupRule() *schema.Resource {
 	return &schema.Resource{
 		Create: resourceNcloudAccessControlGroupRuleCreate,
