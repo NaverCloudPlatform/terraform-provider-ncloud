@@ -8,7 +8,7 @@ import (
 )
 
 var NcloudResources map[string]*schema.Resource
-var NcloudDatasources map[string]*schema.Resource
+var NcloudDataSources map[string]*schema.Resource
 
 func Provider() terraform.ResourceProvider {
 	return &schema.Provider{
@@ -115,10 +115,10 @@ func init() {
 
 //RegisterDatasource Register data sources terraform for NAVER CLOUD PLATFORM.
 func RegisterDatasource(name string, datasourceSchema *schema.Resource) {
-	if NcloudDatasources == nil {
-		NcloudDatasources = make(map[string]*schema.Resource)
+	if NcloudDataSources == nil {
+		NcloudDataSources = make(map[string]*schema.Resource)
 	}
-	NcloudDatasources[name] = datasourceSchema
+	NcloudDataSources[name] = datasourceSchema
 }
 
 //RegisterResource Register resources terraform for NAVER CLOUD PLATFORM.
@@ -131,7 +131,7 @@ func RegisterResource(name string, resourceSchema *schema.Resource) {
 
 //DataSourcesMap This returns a map of all data sources to register with Terraform
 func DataSourcesMap() map[string]*schema.Resource {
-	return NcloudDatasources
+	return NcloudDataSources
 }
 
 //ResourcesMap This returns a map of all resources to register with Terraform
