@@ -9,7 +9,7 @@ import (
 )
 
 func init() {
-	RegisterDatasource("ncloud_vpcs", dataSourceNcloudVpcs())
+	RegisterDataSource("ncloud_vpcs", dataSourceNcloudVpcs())
 }
 
 func dataSourceNcloudVpcs() *schema.Resource {

@@ -9,7 +9,7 @@ import (
 )
 
 func init() {
-	RegisterDatasource("ncloud_subnets", dataSourceNcloudSubnets())
+	RegisterDataSource("ncloud_subnets", dataSourceNcloudSubnets())
 }
 
 func dataSourceNcloudSubnets() *schema.Resource {

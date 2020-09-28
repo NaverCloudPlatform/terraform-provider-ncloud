@@ -11,7 +11,7 @@ import (
 )
 
 func init() {
-	RegisterDatasource("ncloud_port_forwarding_rules", dataSourceNcloudPortForwardingRules())
+	RegisterDataSource("ncloud_port_forwarding_rules", dataSourceNcloudPortForwardingRules())
 }
 
 func dataSourceNcloudPortForwardingRules() *schema.Resource {

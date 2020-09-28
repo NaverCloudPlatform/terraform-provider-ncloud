@@ -7,7 +7,7 @@ import (
 )
 
 func init() {
-	RegisterDatasource("ncloud_vpc_peering", dataSourceNcloudVpcPeering())
+	RegisterDataSource("ncloud_vpc_peering", dataSourceNcloudVpcPeering())
 }
 
 func dataSourceNcloudVpcPeering() *schema.Resource {

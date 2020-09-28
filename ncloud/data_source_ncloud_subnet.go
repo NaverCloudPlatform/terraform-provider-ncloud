@@ -8,7 +8,7 @@ import (
 )
 
 func init() {
-	RegisterDatasource("ncloud_subnet", dataSourceNcloudSubnet())
+	RegisterDataSource("ncloud_subnet", dataSourceNcloudSubnet())
 }
 
 func dataSourceNcloudSubnet() *schema.Resource {

@@ -7,7 +7,7 @@ import (
 )
 
 func init() {
-	RegisterDatasource("ncloud_nat_gateway", dataSourceNcloudNatGateway())
+	RegisterDataSource("ncloud_nat_gateway", dataSourceNcloudNatGateway())
 }
 
 func dataSourceNcloudNatGateway() *schema.Resource {

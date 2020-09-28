@@ -11,7 +11,7 @@ import (
 )
 
 func init() {
-	RegisterDatasource("ncloud_access_control_rule", dataSourceNcloudAccessControlRule())
+	RegisterDataSource("ncloud_access_control_rule", dataSourceNcloudAccessControlRule())
 }
 
 func dataSourceNcloudAccessControlRule() *schema.Resource {

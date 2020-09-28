@@ -8,7 +8,7 @@ import (
 )
 
 func init() {
-	RegisterDatasource("ncloud_network_interfaces", dataSourceNcloudNetworkInterfaces())
+	RegisterDataSource("ncloud_network_interfaces", dataSourceNcloudNetworkInterfaces())
 }
 
 func dataSourceNcloudNetworkInterfaces() *schema.Resource {

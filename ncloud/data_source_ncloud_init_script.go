@@ -8,7 +8,7 @@ import (
 )
 
 func init() {
-	RegisterDatasource("ncloud_init_script", dataSourceNcloudInitScript())
+	RegisterDataSource("ncloud_init_script", dataSourceNcloudInitScript())
 }
 
 func dataSourceNcloudInitScript() *schema.Resource {

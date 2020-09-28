@@ -9,7 +9,7 @@ import (
 )
 
 func init() {
-	RegisterDatasource("ncloud_public_ip", dataSourceNcloudPublicIp())
+	RegisterDataSource("ncloud_public_ip", dataSourceNcloudPublicIp())
 }
 
 func dataSourceNcloudPublicIp() *schema.Resource {

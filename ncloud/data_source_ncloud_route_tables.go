@@ -8,7 +8,7 @@ import (
 )
 
 func init() {
-	RegisterDatasource("ncloud_route_tables", dataSourceNcloudRouteTables())
+	RegisterDataSource("ncloud_route_tables", dataSourceNcloudRouteTables())
 }
 
 func dataSourceNcloudRouteTables() *schema.Resource {

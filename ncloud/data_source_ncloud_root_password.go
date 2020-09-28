@@ -8,7 +8,7 @@ import (
 )
 
 func init() {
-	RegisterDatasource("ncloud_root_password", dataSourceNcloudRootPassword())
+	RegisterDataSource("ncloud_root_password", dataSourceNcloudRootPassword())
 }
 
 func dataSourceNcloudRootPassword() *schema.Resource {
