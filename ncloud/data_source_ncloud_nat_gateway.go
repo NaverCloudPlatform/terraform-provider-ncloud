@@ -40,6 +40,10 @@ func dataSourceNcloudNatGateway() *schema.Resource {
 func dataSourceNcloudNatGatewayRead(d *schema.ResourceData, meta interface{}) error {
 	config := meta.(*ProviderConfig)
 
+	if !config.SupportVPC {
+		return NotSupportClassic("data source `ncloud_nat_gateway`")
+	}
+
 	resources, err := getNatGatewayListFiltered(d, config)
 
 	if err != nil {

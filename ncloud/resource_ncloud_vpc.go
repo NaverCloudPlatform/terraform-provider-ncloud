@@ -64,6 +64,10 @@ func resourceNcloudVpc() *schema.Resource {
 func resourceNcloudVpcCreate(d *schema.ResourceData, meta interface{}) error {
 	config := meta.(*ProviderConfig)
 
+	if !config.SupportVPC {
+		return NotSupportClassic("resource `ncloud_vpc`")
+	}
+
 	reqParams := &vpc.CreateVpcRequest{
 		RegionCode:    &config.RegionCode,
 		Ipv4CidrBlock: ncloud.String(d.Get("ipv4_cidr_block").(string)),

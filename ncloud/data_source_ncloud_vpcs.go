@@ -43,6 +43,10 @@ func dataSourceNcloudVpcs() *schema.Resource {
 func dataSourceNcloudVpcsRead(d *schema.ResourceData, meta interface{}) error {
 	config := meta.(*ProviderConfig)
 
+	if !config.SupportVPC {
+		return NotSupportClassic("data source `ncloud_vpcs`")
+	}
+
 	resources, err := getVpcListFiltered(d, config)
 
 	if err != nil {

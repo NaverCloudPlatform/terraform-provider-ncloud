@@ -85,6 +85,11 @@ func dataSourceNcloudAccessControlRule() *schema.Resource {
 
 func dataSourceNcloudAccessControlRuleRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ProviderConfig).Client
+	config := meta.(*ProviderConfig)
+
+	if config.SupportVPC {
+		return NotSupportVpc("data source `ncloud_access_control_rule`")
+	}
 
 	var allAccessControlRuleList []*server.AccessControlRule
 	configNo, configNoOk := d.GetOk("access_control_group_configuration_no")

@@ -82,6 +82,10 @@ func resourceNcloudRoute() *schema.Resource {
 func resourceNcloudRouteCreate(d *schema.ResourceData, meta interface{}) error {
 	config := meta.(*ProviderConfig)
 
+	if !config.SupportVPC {
+		return NotSupportClassic("resource `resource_ncloud_route`")
+	}
+
 	routeTable, err := getRouteTableInstance(config, d.Get("route_table_no").(string))
 	if err != nil {
 		return err

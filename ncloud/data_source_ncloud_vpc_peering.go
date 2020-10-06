@@ -41,6 +41,10 @@ func dataSourceNcloudVpcPeering() *schema.Resource {
 func dataSourceNcloudVpcPeeringRead(d *schema.ResourceData, meta interface{}) error {
 	config := meta.(*ProviderConfig)
 
+	if !config.SupportVPC {
+		return NotSupportClassic("data source `ncloud_vpc_peering`")
+	}
+
 	resources, err := getVpcPeeringListFiltered(d, config)
 	if err != nil {
 		return err

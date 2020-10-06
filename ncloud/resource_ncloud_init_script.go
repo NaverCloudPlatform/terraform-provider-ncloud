@@ -112,7 +112,7 @@ func getInitScript(config *ProviderConfig, id string) (*vserver.InitScript, erro
 		return getVpcInitScript(config, id)
 	}
 
-	return nil, NotSupportClassic("Init Script")
+	return nil, NotSupportClassic("resource `ncloud_init_script`")
 }
 
 func getVpcInitScript(config *ProviderConfig, id string) (*vserver.InitScript, error) {
@@ -141,7 +141,7 @@ func createInitScript(d *schema.ResourceData, config *ProviderConfig) (*vserver.
 		return createVpcInitScript(d, config)
 	}
 
-	return nil, NotSupportClassic("Init Script")
+	return nil, NotSupportClassic("resource `ncloud_init_script`")
 }
 
 func createVpcInitScript(d *schema.ResourceData, config *ProviderConfig) (*vserver.InitScript, error) {
@@ -169,7 +169,7 @@ func deleteInitScript(config *ProviderConfig, id string) error {
 		return deleteVpcInitScript(config, id)
 	}
 
-	return NotSupportClassic("Init Script")
+	return NotSupportClassic("resource `ncloud_init_script`")
 }
 
 func deleteVpcInitScript(config *ProviderConfig, id string) error {

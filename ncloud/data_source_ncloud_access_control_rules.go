@@ -48,6 +48,11 @@ func dataSourceNcloudAccessControlRules() *schema.Resource {
 
 func dataSourceNcloudAccessControlRulesRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ProviderConfig).Client
+	config := meta.(*ProviderConfig)
+
+	if config.SupportVPC {
+		return NotSupportVpc("data source `ncloud_access_control_rules`")
+	}
 
 	d.SetId(time.Now().UTC().String())
 

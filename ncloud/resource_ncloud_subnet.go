@@ -86,6 +86,10 @@ func resourceNcloudSubnet() *schema.Resource {
 func resourceNcloudSubnetCreate(d *schema.ResourceData, meta interface{}) error {
 	config := meta.(*ProviderConfig)
 
+	if !config.SupportVPC {
+		return NotSupportClassic("resource `ncloud_subnet`")
+	}
+
 	reqParams := &vpc.CreateSubnetRequest{
 		RegionCode:     &config.RegionCode,
 		Subnet:         ncloud.String(d.Get("subnet").(string)),

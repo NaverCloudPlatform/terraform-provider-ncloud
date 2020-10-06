@@ -108,6 +108,10 @@ func resourceNcloudNetworkACLRule() *schema.Resource {
 func resourceNcloudNetworkACLRuleCreate(d *schema.ResourceData, meta interface{}) error {
 	config := meta.(*ProviderConfig)
 
+	if !config.SupportVPC {
+		return NotSupportClassic("resource `ncloud_network_acl_rule`")
+	}
+
 	networkACLRule := &vpc.AddNetworkAclRuleParameter{
 		IpBlock:          ncloud.String(d.Get("ip_block").(string)),
 		RuleActionCode:   ncloud.String(d.Get("rule_action").(string)),
