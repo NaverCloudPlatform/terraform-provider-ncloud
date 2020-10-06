@@ -32,11 +32,8 @@ func TestAccResourceNcloudServer_classic_basic(t *testing.T) {
 		CheckDestroy: testAccCheckServerDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccServerClassicConfig(testServerName, productCode),
-				SkipFunc: func() (bool, error) {
-					config := testAccProvider.Meta().(*ProviderConfig)
-					return config.SupportVPC, nil
-				},
+				Config:   testAccServerClassicConfig(testServerName, productCode),
+				SkipFunc: testOnlyClassic,
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckServerExists(resourceName, &serverInstance),
 					testCheck(),
@@ -46,7 +43,7 @@ func TestAccResourceNcloudServer_classic_basic(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "name", testServerName),
 					resource.TestCheckResourceAttr(resourceName, "description", ""),
 					resource.TestCheckResourceAttr(resourceName, "internet_line_type", "PUBLC"),
-					resource.TestCheckResourceAttr(resourceName, "zone", "KR-1"),
+					resource.TestMatchResourceAttr(resourceName, "zone", regexp.MustCompile(`^\w+.*$`)),
 					resource.TestCheckResourceAttr(resourceName, "base_block_storage_disk_type", "NET"),
 					resource.TestCheckResourceAttr(resourceName, "base_block_storage_size", "53687091200"),
 					resource.TestCheckResourceAttr(resourceName, "cpu_count", "2"),
@@ -68,10 +65,7 @@ func TestAccResourceNcloudServer_classic_basic(t *testing.T) {
 				),
 			},
 			{
-				SkipFunc: func() (bool, error) {
-					config := testAccProvider.Meta().(*ProviderConfig)
-					return config.SupportVPC, nil
-				},
+				SkipFunc:                testOnlyClassic,
 				ResourceName:            resourceName,
 				ImportState:             true,
 				ImportStateVerify:       true,
@@ -93,11 +87,8 @@ func TestAccResourceNcloudServer_vpc_basic(t *testing.T) {
 		CheckDestroy: testAccCheckServerDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccServerVpcConfig(testServerName, productCode),
-				SkipFunc: func() (bool, error) {
-					config := testAccProvider.Meta().(*ProviderConfig)
-					return !config.SupportVPC, nil
-				},
+				Config:   testAccServerVpcConfig(testServerName, productCode),
+				SkipFunc: testOnlyVpc,
 				Check: resource.ComposeTestCheckFunc(testAccCheckServerExists("ncloud_server.server", &serverInstance),
 					resource.TestMatchResourceAttr(resourceName, "id", regexp.MustCompile(`^\d+$`)),
 					resource.TestCheckResourceAttr(resourceName, "server_image_product_code", "SW.VSVR.OS.LNX64.CNTOS.0703.B050"),
@@ -127,10 +118,7 @@ func TestAccResourceNcloudServer_vpc_basic(t *testing.T) {
 				),
 			},
 			{
-				SkipFunc: func() (bool, error) {
-					config := testAccProvider.Meta().(*ProviderConfig)
-					return !config.SupportVPC, nil
-				},
+				SkipFunc:          testOnlyVpc,
 				ResourceName:      resourceName,
 				ImportState:       true,
 				ImportStateVerify: true,
@@ -151,11 +139,8 @@ func TestAccResourceNcloudServer_vpc_networkInterface(t *testing.T) {
 		CheckDestroy: testAccCheckServerDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccServerVpcConfigNetworkInterface(testServerName, productCode),
-				SkipFunc: func() (bool, error) {
-					config := testAccProvider.Meta().(*ProviderConfig)
-					return !config.SupportVPC, nil
-				},
+				Config:   testAccServerVpcConfigNetworkInterface(testServerName, productCode),
+				SkipFunc: testOnlyVpc,
 				Check: resource.ComposeTestCheckFunc(testAccCheckServerExists("ncloud_server.server", &serverInstance),
 					resource.TestMatchResourceAttr(resourceName, "id", regexp.MustCompile(`^\d+$`)),
 					resource.TestCheckResourceAttr(resourceName, "server_image_product_code", "SW.VSVR.OS.LNX64.CNTOS.0703.B050"),
@@ -185,10 +170,7 @@ func TestAccResourceNcloudServer_vpc_networkInterface(t *testing.T) {
 				),
 			},
 			{
-				SkipFunc: func() (bool, error) {
-					config := testAccProvider.Meta().(*ProviderConfig)
-					return !config.SupportVPC, nil
-				},
+				SkipFunc:          testOnlyVpc,
 				ResourceName:      resourceName,
 				ImportState:       true,
 				ImportStateVerify: true,
@@ -211,22 +193,16 @@ func TestAccResourceNcloudServer_classic_changeSpec(t *testing.T) {
 		CheckDestroy: testAccCheckServerDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccServerClassicConfig(testServerName, productCode),
-				SkipFunc: func() (bool, error) {
-					config := testAccProvider.Meta().(*ProviderConfig)
-					return config.SupportVPC, nil
-				},
+				Config:   testAccServerClassicConfig(testServerName, productCode),
+				SkipFunc: testOnlyClassic,
 				Check: resource.ComposeTestCheckFunc(testAccCheckServerExists(resourceName, &before),
 					resource.TestCheckResourceAttr(resourceName, "cpu_count", "2"),
 					resource.TestCheckResourceAttr(resourceName, "memory_size", "4294967296"),
 				),
 			},
 			{
-				Config: testAccServerClassicConfig(testServerName, targetProductCode),
-				SkipFunc: func() (bool, error) {
-					config := testAccProvider.Meta().(*ProviderConfig)
-					return config.SupportVPC, nil
-				},
+				Config:   testAccServerClassicConfig(testServerName, targetProductCode),
+				SkipFunc: testOnlyClassic,
 				Check: resource.ComposeTestCheckFunc(testAccCheckServerExists(resourceName, &after),
 					resource.TestCheckResourceAttr(resourceName, "cpu_count", "4"),
 					resource.TestCheckResourceAttr(resourceName, "memory_size", "8589934592"),
@@ -234,6 +210,7 @@ func TestAccResourceNcloudServer_classic_changeSpec(t *testing.T) {
 				),
 			},
 			{
+				SkipFunc:          testOnlyClassic,
 				ResourceName:      "ncloud_server.server",
 				ImportState:       true,
 				ImportStateVerify: true,
@@ -256,22 +233,16 @@ func TestAccResourceNcloudServer_vpc_changeSpec(t *testing.T) {
 		CheckDestroy: testAccCheckServerDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccServerVpcConfig(testServerName, productCode),
-				SkipFunc: func() (bool, error) {
-					config := testAccProvider.Meta().(*ProviderConfig)
-					return !config.SupportVPC, nil
-				},
+				Config:   testAccServerVpcConfig(testServerName, productCode),
+				SkipFunc: testOnlyVpc,
 				Check: resource.ComposeTestCheckFunc(testAccCheckServerExists(resourceName, &before),
 					resource.TestCheckResourceAttr(resourceName, "cpu_count", "2"),
 					resource.TestCheckResourceAttr(resourceName, "memory_size", "8589934592"),
 				),
 			},
 			{
-				Config: testAccServerVpcConfig(testServerName, targetProductCode),
-				SkipFunc: func() (bool, error) {
-					config := testAccProvider.Meta().(*ProviderConfig)
-					return !config.SupportVPC, nil
-				},
+				Config:   testAccServerVpcConfig(testServerName, targetProductCode),
+				SkipFunc: testOnlyVpc,
 				Check: resource.ComposeTestCheckFunc(testAccCheckServerExists(resourceName, &after),
 					resource.TestCheckResourceAttr(resourceName, "cpu_count", "4"),
 					resource.TestCheckResourceAttr(resourceName, "memory_size", "17179869184"),
@@ -279,6 +250,7 @@ func TestAccResourceNcloudServer_vpc_changeSpec(t *testing.T) {
 				),
 			},
 			{
+				SkipFunc:          testOnlyVpc,
 				ResourceName:      "ncloud_server.server",
 				ImportState:       true,
 				ImportStateVerify: true,

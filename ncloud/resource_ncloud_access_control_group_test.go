@@ -23,7 +23,8 @@ func TestAccResourceNcloudAccessControlGroup_basic(t *testing.T) {
 		CheckDestroy: testAccCheckAccessControlGroupDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccResourceNcloudAccessControlGroupConfig(name),
+				Config:   testAccResourceNcloudAccessControlGroupConfig(name),
+				SkipFunc: testOnlyVpc,
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckAccessControlGroupExists(resourceName, &AccessControlGroup),
 					resource.TestMatchResourceAttr(resourceName, "id", regexp.MustCompile(`^\d+$`)),
@@ -35,40 +36,10 @@ func TestAccResourceNcloudAccessControlGroup_basic(t *testing.T) {
 				),
 			},
 			{
+				SkipFunc:          testOnlyVpc,
 				ResourceName:      resourceName,
 				ImportState:       true,
 				ImportStateVerify: true,
-			},
-		},
-	})
-}
-
-func TestAccResourceNcloudAccessControlGroup_update(t *testing.T) {
-	var AccessControlGroup vserver.AccessControlGroup
-	resourceName := "ncloud_access_control_group.foo"
-
-	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
-		CheckDestroy: testAccCheckAccessControlGroupDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccResourceNcloudAccessControlGroupUpdate(""),
-				Check: resource.ComposeTestCheckFunc(
-					testAccCheckAccessControlGroupExists(resourceName, &AccessControlGroup),
-				),
-			},
-			{
-				Config: testAccResourceNcloudAccessControlGroupUpdate("1324440"),
-				Check: resource.ComposeTestCheckFunc(
-					testAccCheckAccessControlGroupExists(resourceName, &AccessControlGroup),
-				),
-			},
-			{
-				Config: testAccResourceNcloudAccessControlGroupUpdate(""),
-				Check: resource.ComposeTestCheckFunc(
-					testAccCheckAccessControlGroupExists(resourceName, &AccessControlGroup),
-				),
 			},
 		},
 	})
@@ -85,7 +56,8 @@ func TestAccResourceNcloudAccessControlGroup_disappears(t *testing.T) {
 		CheckDestroy: testAccCheckAccessControlGroupDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccResourceNcloudAccessControlGroupConfig(name),
+				Config:   testAccResourceNcloudAccessControlGroupConfig(name),
+				SkipFunc: testOnlyVpc,
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckAccessControlGroupExists(resourceName, &AccessControlGroup),
 					testAccCheckAccessControlGroupDisappears(&AccessControlGroup),
@@ -109,18 +81,6 @@ resource "ncloud_access_control_group" "foo" {
 	vpc_no                = ncloud_vpc.test.id
 }
 `, name)
-}
-
-// TODO: update test case after vpc server has developed
-func testAccResourceNcloudAccessControlGroupUpdate(instanceNo string) string {
-	return fmt.Sprintf(`
-resource "ncloud_access_control_group" "foo" {
-	description           = "for acc test"
-	subnet_no             = "906"
-	access_control_groups = ["1511"]
-	server_instance_no    = "%s"
-}
-`, instanceNo)
 }
 
 func testAccCheckAccessControlGroupExists(n string, AccessControlGroup *vserver.AccessControlGroup) resource.TestCheckFunc {

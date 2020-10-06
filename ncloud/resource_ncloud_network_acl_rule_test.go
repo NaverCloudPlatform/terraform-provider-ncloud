@@ -24,7 +24,8 @@ func TestAccResourceNcloudNetworkACLRule_basic(t *testing.T) {
 		CheckDestroy: testAccCheckNetworkACLRuleDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccResourceNcloudNetworkACLRuleConfig(name),
+				Config:   testAccResourceNcloudNetworkACLRuleConfig(name),
+				SkipFunc: testOnlyVpc,
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckNetworkACLRuleExists("ncloud_network_acl_rule.nacl_rule_inbound_100", &networkACLRule),
 					testAccCheckNetworkACLRuleExists("ncloud_network_acl_rule.nacl_rule_inbound_110", &networkACLRule),
@@ -33,12 +34,14 @@ func TestAccResourceNcloudNetworkACLRule_basic(t *testing.T) {
 				),
 			},
 			{
+				SkipFunc:          testOnlyVpc,
 				ResourceName:      "ncloud_network_acl_rule.nacl_rule_inbound_100",
 				ImportState:       true,
 				ImportStateIdFunc: testAccNcloudNetworkACLRuleImportStateIDFunc("ncloud_network_acl_rule.nacl_rule_inbound_100"),
 				ImportStateVerify: true,
 			},
 			{
+				SkipFunc:          testOnlyVpc,
 				ResourceName:      "ncloud_network_acl_rule.nacl_rule_outbound_100",
 				ImportState:       true,
 				ImportStateIdFunc: testAccNcloudNetworkACLRuleImportStateIDFunc("ncloud_network_acl_rule.nacl_rule_outbound_100"),
@@ -59,7 +62,8 @@ func TestAccResourceNcloudNetworkACLRule_AssociatedSubnet(t *testing.T) {
 		CheckDestroy: testAccCheckNetworkACLRuleDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccResourceNcloudNetworkACLRuleConfigAssociatedSubnet(name),
+				Config:   testAccResourceNcloudNetworkACLRuleConfigAssociatedSubnet(name),
+				SkipFunc: testOnlyVpc,
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckNetworkACLRuleExists("ncloud_network_acl_rule.nacl_rule_inbound_100", &networkACLRule),
 					testAccCheckNetworkACLRuleExists("ncloud_network_acl_rule.nacl_rule_inbound_110", &networkACLRule),
@@ -82,7 +86,8 @@ func TestAccResourceNcloudNetworkACLRule_disappears(t *testing.T) {
 		CheckDestroy: testAccCheckNetworkACLRuleDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccResourceNcloudNetworkACLRuleConfigDisappear(name),
+				Config:   testAccResourceNcloudNetworkACLRuleConfigDisappear(name),
+				SkipFunc: testOnlyVpc,
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckNetworkACLRuleExists("ncloud_network_acl_rule.test", &networkACLRule),
 					testAccCheckNetworkACLRuleDisappears(&networkACLRule),

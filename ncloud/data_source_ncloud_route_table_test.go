@@ -18,7 +18,8 @@ func TestAccDataSourceNcloudRouteTable_basic(t *testing.T) {
 		Providers: testAccProviders,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccDataSourceNcloudRouteTableConfig(name),
+				Config:   testAccDataSourceNcloudRouteTableConfig(name),
+				SkipFunc: testOnlyVpc,
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrPair(dataName, "name", resourceName, "name"),
 					resource.TestCheckResourceAttrPair(dataName, "description", resourceName, "description"),

@@ -78,7 +78,8 @@ func TestAccResourceNcloudVpcPeering_disappears(t *testing.T) {
 		CheckDestroy: testAccCheckVpcPeeringDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccResourceNcloudVpcPeeringConfig(name),
+				Config:   testAccResourceNcloudVpcPeeringConfig(name),
+				SkipFunc: testOnlyVpc,
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckVpcPeeringExists(resourceName, &vpcPeeringInstance),
 					testAccCheckVpcPeeringDisappears(&vpcPeeringInstance),
@@ -100,20 +101,23 @@ func TestAccResourceNcloudVpcPeering_description(t *testing.T) {
 		CheckDestroy: testAccCheckRouteTableDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccResourceNcloudVpcPeeringConfigDescription(name, "foo"),
+				Config:   testAccResourceNcloudVpcPeeringConfigDescription(name, "foo"),
+				SkipFunc: testOnlyVpc,
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckVpcPeeringExists(resourceName, &vpcPeeringInstance),
 					resource.TestCheckResourceAttr(resourceName, "description", "foo"),
 				),
 			},
 			{
-				Config: testAccResourceNcloudVpcPeeringConfigDescription(name, "bar"),
+				Config:   testAccResourceNcloudVpcPeeringConfigDescription(name, "bar"),
+				SkipFunc: testOnlyVpc,
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckVpcPeeringExists(resourceName, &vpcPeeringInstance),
 					resource.TestCheckResourceAttr(resourceName, "description", "bar"),
 				),
 			},
 			{
+				SkipFunc:          testOnlyVpc,
 				ResourceName:      resourceName,
 				ImportState:       true,
 				ImportStateVerify: true,

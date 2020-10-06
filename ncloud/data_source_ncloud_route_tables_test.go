@@ -2,6 +2,7 @@ package ncloud
 
 import (
 	"fmt"
+	"regexp"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
@@ -14,7 +15,8 @@ func TestAccDataSourceNcloudRouteTablesBasic(t *testing.T) {
 		Providers: testAccProviders,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccDataSourceNcloudRouteTablesConfig(),
+				Config:   testAccDataSourceNcloudRouteTablesConfig(),
+				SkipFunc: testOnlyVpc,
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckDataSourceID("data.ncloud_route_tables.all"),
 				),
@@ -32,11 +34,12 @@ func TestAccDataSourceNcloudRouteTablesFilter(t *testing.T) {
 		Providers: testAccProviders,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccDataSourceNcloudRouteTablesConfigFilter(name),
+				Config:   testAccDataSourceNcloudRouteTablesConfigFilter(name),
+				SkipFunc: testOnlyVpc,
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckDataSourceID(dataName),
 					resource.TestCheckResourceAttr(dataName, "route_tables.#", "1"),
-					resource.TestCheckResourceAttr(dataName, "route_tables.0.name", name),
+					resource.TestMatchResourceAttr(dataName, "route_tables.0.name", regexp.MustCompile(fmt.Sprintf(`^%s.*$`, name))),
 					resource.TestCheckResourceAttr(dataName, "route_tables.0.is_default", "true"),
 					resource.TestCheckResourceAttr(dataName, "route_tables.0.supported_subnet_type", "PRIVATE"),
 				),
@@ -51,7 +54,8 @@ func TestAccDataSourceNcloudRouteTablesName(t *testing.T) {
 		Providers: testAccProviders,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccDataSourceNcloudRouteTablesConfigName("test"),
+				Config:   testAccDataSourceNcloudRouteTablesConfigName("test"),
+				SkipFunc: testOnlyVpc,
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckDataSourceID("data.ncloud_route_tables.by_name"),
 				),
@@ -68,7 +72,8 @@ func TestAccDataSourceNcloudRouteTablesVpcNo(t *testing.T) {
 		Providers: testAccProviders,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccDataSourceNcloudRouteTablesConfigVpcNo(name),
+				Config:   testAccDataSourceNcloudRouteTablesConfigVpcNo(name),
+				SkipFunc: testOnlyVpc,
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckDataSourceID("data.ncloud_route_tables.by_vpc_no"),
 				),
@@ -92,8 +97,8 @@ resource "ncloud_vpc" "vpc" {
 
 data "ncloud_route_tables" "filter" {
 	filter {
-		name = "name"
-		values = ["%[1]s"]
+		name = "vpc_no"
+		values = [ncloud_vpc.vpc.id]
 	}
 
 	filter {
@@ -126,7 +131,10 @@ resource "ncloud_vpc" "vpc" {
 
 data "ncloud_route_tables" "by_vpc_no" {
 	vpc_no          = ncloud_vpc.vpc.id
-	is_default      = true
+	filter {
+		name = "is_default"
+		values = ["true"]
+	}
 }
 `, name)
 }

@@ -54,7 +54,7 @@ func TestAccResourceNcloudPublicIpInstance_basic(t *testing.T) {
 	})
 }
 
-func TestAccResourceNcloudPublicIpInstance_update(t *testing.T) {
+func TestAccResourceNcloudPublicIpInstance_classic_updateServerInstanceNo(t *testing.T) {
 	instance := map[string]interface{}{}
 	serverNameFoo := fmt.Sprintf("test-public-ip-foo-%s", acctest.RandString(5))
 	serverNameBar := fmt.Sprintf("test-public-ip-bar-%s", acctest.RandString(5))
@@ -66,20 +66,59 @@ func TestAccResourceNcloudPublicIpInstance_update(t *testing.T) {
 		CheckDestroy: testAccCheckPublicIpInstanceDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccPublicIpInstanceConfigServer(serverNameFoo, serverNameBar, ""),
-				Check:  resource.ComposeTestCheckFunc(testAccCheckPublicIpInstanceExists(resourceName, instance)),
+				Config:   testAccPublicIpInstanceConfigClassicServer(serverNameFoo, serverNameBar, ""),
+				SkipFunc: testOnlyClassic,
+				Check:    resource.ComposeTestCheckFunc(testAccCheckPublicIpInstanceExists(resourceName, instance)),
 			},
 			{
-				Config: testAccPublicIpInstanceConfigServer(serverNameFoo, serverNameBar, "${ncloud_server.foo.id}"),
-				Check:  resource.ComposeTestCheckFunc(testAccCheckPublicIpInstanceExists(resourceName, instance)),
+				Config:   testAccPublicIpInstanceConfigClassicServer(serverNameFoo, serverNameBar, "${ncloud_server.foo.id}"),
+				SkipFunc: testOnlyClassic,
+				Check:    resource.ComposeTestCheckFunc(testAccCheckPublicIpInstanceExists(resourceName, instance)),
 			},
 			{
-				Config: testAccPublicIpInstanceConfigServer(serverNameFoo, serverNameBar, "${ncloud_server.bar.id}"),
-				Check:  resource.ComposeTestCheckFunc(testAccCheckPublicIpInstanceExists(resourceName, instance)),
+				Config:   testAccPublicIpInstanceConfigClassicServer(serverNameFoo, serverNameBar, "${ncloud_server.bar.id}"),
+				SkipFunc: testOnlyClassic,
+				Check:    resource.ComposeTestCheckFunc(testAccCheckPublicIpInstanceExists(resourceName, instance)),
 			},
 			{
-				Config: testAccPublicIpInstanceConfigServer(serverNameFoo, serverNameBar, ""),
-				Check:  resource.ComposeTestCheckFunc(testAccCheckPublicIpInstanceExists(resourceName, instance)),
+				Config:   testAccPublicIpInstanceConfigClassicServer(serverNameFoo, serverNameBar, ""),
+				SkipFunc: testOnlyClassic,
+				Check:    resource.ComposeTestCheckFunc(testAccCheckPublicIpInstanceExists(resourceName, instance)),
+			},
+		},
+	})
+}
+
+func TestAccResourceNcloudPublicIpInstance_vpc_updateServerInstanceNo(t *testing.T) {
+	instance := map[string]interface{}{}
+	serverNameFoo := fmt.Sprintf("test-public-ip-foo-%s", acctest.RandString(5))
+	serverNameBar := fmt.Sprintf("test-public-ip-bar-%s", acctest.RandString(5))
+	resourceName := "ncloud_public_ip.public_ip"
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckPublicIpInstanceDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config:   testAccPublicIpInstanceConfigVpcServer(serverNameFoo, serverNameBar, ""),
+				SkipFunc: testOnlyVpc,
+				Check:    resource.ComposeTestCheckFunc(testAccCheckPublicIpInstanceExists(resourceName, instance)),
+			},
+			{
+				Config:   testAccPublicIpInstanceConfigVpcServer(serverNameFoo, serverNameBar, "${ncloud_server.foo.id}"),
+				SkipFunc: testOnlyVpc,
+				Check:    resource.ComposeTestCheckFunc(testAccCheckPublicIpInstanceExists(resourceName, instance)),
+			},
+			{
+				Config:   testAccPublicIpInstanceConfigVpcServer(serverNameFoo, serverNameBar, "${ncloud_server.bar.id}"),
+				SkipFunc: testOnlyVpc,
+				Check:    resource.ComposeTestCheckFunc(testAccCheckPublicIpInstanceExists(resourceName, instance)),
+			},
+			{
+				Config:   testAccPublicIpInstanceConfigVpcServer(serverNameFoo, serverNameBar, ""),
+				SkipFunc: testOnlyVpc,
+				Check:    resource.ComposeTestCheckFunc(testAccCheckPublicIpInstanceExists(resourceName, instance)),
 			},
 		},
 	})
@@ -148,7 +187,7 @@ resource "ncloud_public_ip" "public_ip" {
 `, description)
 }
 
-func testAccPublicIpInstanceConfigServer(serverNameFoo, serverNameBar, serverInstanceNo string) string {
+func testAccPublicIpInstanceConfigClassicServer(serverNameFoo, serverNameBar, serverInstanceNo string) string {
 	return fmt.Sprintf(`
 resource "ncloud_login_key" "loginkey" {
 	key_name = "%[1]s-key"
@@ -166,6 +205,50 @@ resource "ncloud_server" "bar" {
 	server_image_product_code = "SPSW0LINUX000032"
 	server_product_code = "SPSVRSTAND000004"
 	login_key_name = "${ncloud_login_key.loginkey.key_name}"
+}
+
+resource "ncloud_public_ip" "public_ip" {
+	description = "%[1]s"
+	server_instance_no = "%[3]s"
+}
+`, serverNameFoo, serverNameBar, serverInstanceNo)
+}
+
+func testAccPublicIpInstanceConfigVpcServer(serverNameFoo, serverNameBar, serverInstanceNo string) string {
+	return fmt.Sprintf(`
+resource "ncloud_login_key" "loginkey" {
+	key_name = "%[1]s-key"
+}
+
+resource "ncloud_vpc" "test" {
+	name               = "%[1]s"
+	ipv4_cidr_block    = "10.5.0.0/16"
+}
+
+resource "ncloud_subnet" "test" {
+	vpc_no             = ncloud_vpc.test.vpc_no
+	name               = "%[1]s"
+	subnet             = "10.5.0.0/24"
+	zone               = "KR-2"
+	network_acl_no     = ncloud_vpc.test.default_network_acl_no
+	subnet_type        = "PUBLIC"
+	usage_type         = "GEN"
+}
+
+resource "ncloud_server" "foo" {
+	subnet_no = ncloud_subnet.test.id
+	name = "%[1]s"
+	server_image_product_code = "SW.VSVR.OS.LNX64.CNTOS.0703.B050"
+	server_product_code = "SVR.VSVR.STAND.C002.M008.NET.HDD.B050.G002"
+	login_key_name = ncloud_login_key.loginkey.key_name
+}
+
+resource "ncloud_server" "bar" {
+	subnet_no = ncloud_subnet.test.id
+	name = "%[2]s"
+	server_image_product_code = "SW.VSVR.OS.LNX64.CNTOS.0703.B050"
+	server_product_code = "SVR.VSVR.STAND.C002.M008.NET.HDD.B050.G002"
+	login_key_name = ncloud_login_key.loginkey.key_name
 }
 
 resource "ncloud_public_ip" "public_ip" {

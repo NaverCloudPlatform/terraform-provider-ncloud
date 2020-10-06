@@ -75,3 +75,13 @@ func getTestPrefix() string {
 	rInt := acctest.RandIntRange(1, 9999)
 	return fmt.Sprintf("tf%d", rInt)
 }
+
+func testOnlyVpc() (bool, error) {
+	config := testAccProvider.Meta().(*ProviderConfig)
+	return !config.SupportVPC, nil
+}
+
+func testOnlyClassic() (bool, error) {
+	config := testAccProvider.Meta().(*ProviderConfig)
+	return config.SupportVPC, nil
+}

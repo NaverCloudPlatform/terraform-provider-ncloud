@@ -23,12 +23,14 @@ func TestAccresourceNcloudRoute_basic(t *testing.T) {
 		CheckDestroy: testAccCheckRouteDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccresourceNcloudRouteConfig(name),
+				Config:   testAccresourceNcloudRouteConfig(name),
+				SkipFunc: testOnlyVpc,
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckRouteExists(resourceName, &route),
 				),
 			},
 			{
+				SkipFunc:          testOnlyVpc,
 				ResourceName:      resourceName,
 				ImportState:       true,
 				ImportStateIdFunc: testAccNcloudRouteImportStateIDFunc(resourceName),
@@ -49,7 +51,8 @@ func TestAccresourceNcloudRoute_disappears(t *testing.T) {
 		CheckDestroy: testAccCheckRouteDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccresourceNcloudRouteConfig(name),
+				Config:   testAccresourceNcloudRouteConfig(name),
+				SkipFunc: testOnlyVpc,
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckRouteExists(resourceName, &route),
 					testAccCheckRouteDisappears(&route),

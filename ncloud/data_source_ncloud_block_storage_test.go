@@ -37,11 +37,8 @@ func TestAccDataSourceNcloudBlockStorage_basic(t *testing.T) {
 		Providers: testAccProviders,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccDataSourceNcloudBlockStorageClassicConfig(name),
-				SkipFunc: func() (bool, error) {
-					config := testAccProvider.Meta().(*ProviderConfig)
-					return config.SupportVPC, nil
-				},
+				Config:   testAccDataSourceNcloudBlockStorageClassicConfig(name),
+				SkipFunc: testOnlyClassic,
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckDataSourceID(dataName),
 					testCheckResourceAttrPair(),
@@ -49,11 +46,8 @@ func TestAccDataSourceNcloudBlockStorage_basic(t *testing.T) {
 				),
 			},
 			{
-				Config: testAccDataSourceNcloudBlockStorageVpcConfig(name),
-				SkipFunc: func() (bool, error) {
-					config := testAccProvider.Meta().(*ProviderConfig)
-					return !config.SupportVPC, nil
-				},
+				Config:   testAccDataSourceNcloudBlockStorageVpcConfig(name),
+				SkipFunc: testOnlyVpc,
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckDataSourceID(dataName),
 					testCheckResourceAttrPair(),

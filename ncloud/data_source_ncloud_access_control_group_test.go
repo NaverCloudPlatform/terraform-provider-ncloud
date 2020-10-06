@@ -19,11 +19,8 @@ func TestAccDataSourceNcloudVpcAccessControlGroupBasic(t *testing.T) {
 		Providers: testAccProviders,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccDataSourceNcloudVpcAccessControlGroupConfig(name),
-				SkipFunc: func() (bool, error) {
-					config := testAccProvider.Meta().(*ProviderConfig)
-					return !config.SupportVPC, nil
-				},
+				Config:   testAccDataSourceNcloudVpcAccessControlGroupConfig(name),
+				SkipFunc: testOnlyVpc,
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckDataSourceID(dataName),
 					resource.TestCheckResourceAttrPair(dataName, "id", resourceName, "id"),
@@ -47,11 +44,8 @@ func TestAccDataSourceNcloudClassicAccessControlGroup_basic(t *testing.T) {
 		Providers: testAccProviders,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccDataSourceNcloudClassicAccessControlConfig,
-				SkipFunc: func() (bool, error) {
-					config := testAccProvider.Meta().(*ProviderConfig)
-					return config.SupportVPC, nil
-				},
+				Config:   testAccDataSourceNcloudClassicAccessControlConfig,
+				SkipFunc: testOnlyClassic,
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckDataSourceID(dataName),
 					resource.TestCheckResourceAttr(dataName, "name", "ncloud-default-acg"),

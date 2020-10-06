@@ -24,7 +24,8 @@ func TestAccResourceNcloudSubnet_basic(t *testing.T) {
 		CheckDestroy: testAccCheckSubnetDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccResourceNcloudSubnetConfig(name, cidr),
+				Config:   testAccResourceNcloudSubnetConfig(name, cidr),
+				SkipFunc: testOnlyVpc,
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckSubnetExists(resourceName, &subnet),
 					resource.TestCheckResourceAttr(resourceName, "name", name),
@@ -36,6 +37,7 @@ func TestAccResourceNcloudSubnet_basic(t *testing.T) {
 				),
 			},
 			{
+				SkipFunc:          testOnlyVpc,
 				ResourceName:      resourceName,
 				ImportState:       true,
 				ImportStateVerify: true,
@@ -56,7 +58,8 @@ func TestAccResourceNcloudSubnet_disappears(t *testing.T) {
 		CheckDestroy: testAccCheckSubnetDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccResourceNcloudSubnetConfig(name, cidr),
+				Config:   testAccResourceNcloudSubnetConfig(name, cidr),
+				SkipFunc: testOnlyVpc,
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckSubnetExists(resourceName, &subnet),
 					testAccCheckSubnetDisappears(&subnet),
@@ -79,19 +82,22 @@ func TestAccResourceNcloudSubnet_updateName(t *testing.T) {
 		CheckDestroy: testAccCheckSubnetDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccResourceNcloudSubnetConfig(name, cidr),
+				Config:   testAccResourceNcloudSubnetConfig(name, cidr),
+				SkipFunc: testOnlyVpc,
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckSubnetExists(resourceName, &subnet),
 				),
 			},
 			{
-				Config: testAccResourceNcloudSubnetConfig("testacc-subnet-update", cidr),
+				Config:   testAccResourceNcloudSubnetConfig("testacc-subnet-update", cidr),
+				SkipFunc: testOnlyVpc,
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckSubnetExists(resourceName, &subnet),
 				),
 				ExpectError: regexp.MustCompile("Change 'name' is not support, Please set `name` as a old value"),
 			},
 			{
+				SkipFunc:          testOnlyVpc,
 				ResourceName:      resourceName,
 				ImportState:       true,
 				ImportStateVerify: true,
@@ -112,13 +118,15 @@ func TestAccResourceNcloudSubnet_updateNetworkACL(t *testing.T) {
 		CheckDestroy: testAccCheckSubnetDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccResourceNcloudSubnetConfig(name, cidr),
+				Config:   testAccResourceNcloudSubnetConfig(name, cidr),
+				SkipFunc: testOnlyVpc,
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckSubnetExists(resourceName, &subnet),
 				),
 			},
 			{
-				Config: testAccResourceNcloudSubnetConfigUpdateNetworkACL(name, cidr),
+				Config:   testAccResourceNcloudSubnetConfigUpdateNetworkACL(name, cidr),
+				SkipFunc: testOnlyVpc,
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckSubnetExists(resourceName, &subnet),
 				),
@@ -138,6 +146,7 @@ func TestAccResourceNcloudSubnet_InvalidCIDR(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				Config:      testAccResourceNcloudSubnetConfigInvalidCIDR(name, cidr),
+				SkipFunc:    testOnlyVpc,
 				ExpectError: regexp.MustCompile("The subnet must belong to the IPv4 CIDR of the specified VPC."),
 			},
 		},
