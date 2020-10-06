@@ -32,19 +32,16 @@ func resourceNcloudNetworkACL() *schema.Resource {
 				Optional:     true,
 				Computed:     true,
 				ValidateFunc: validateInstanceName,
-				Description:  "Network ACL name to create. default: Assigned by NAVER CLOUD PLATFORM.",
 			},
 			"description": {
 				Type:         schema.TypeString,
 				Optional:     true,
 				ValidateFunc: validation.StringLenBetween(0, 1000),
-				Description:  "Description of a Network ACL to create.",
 			},
 			"vpc_no": {
-				Type:        schema.TypeString,
-				Required:    true,
-				ForceNew:    true,
-				Description: "The id of the VPC that the desired acl belongs to.",
+				Type:     schema.TypeString,
+				Required: true,
+				ForceNew: true,
 			},
 			"network_acl_no": {
 				Type:     schema.TypeString,
@@ -124,6 +121,14 @@ func resourceNcloudNetworkACLRead(d *schema.ResourceData, meta interface{}) erro
 }
 
 func resourceNcloudNetworkACLUpdate(d *schema.ResourceData, meta interface{}) error {
+	config := meta.(*ProviderConfig)
+
+	if d.HasChange("description") {
+		if err := setNetworkACLDescription(d, config); err != nil {
+			return err
+		}
+	}
+
 	return resourceNcloudNetworkACLRead(d, meta)
 }
 
@@ -211,4 +216,22 @@ func getNetworkACLInstance(config *ProviderConfig, id string) (*vpc.NetworkAcl, 
 	}
 
 	return nil, nil
+}
+
+func setNetworkACLDescription(d *schema.ResourceData, config *ProviderConfig) error {
+	reqParams := &vpc.SetNetworkAclDescriptionRequest{
+		RegionCode:            &config.RegionCode,
+		NetworkAclNo:          ncloud.String(d.Id()),
+		NetworkAclDescription: StringPtrOrNil(d.GetOk("description")),
+	}
+
+	logCommonRequest("setNetworkAclDescription", reqParams)
+	resp, err := config.Client.vpc.V2Api.SetNetworkAclDescription(reqParams)
+	if err != nil {
+		logErrorResponse("setNetworkAclDescription", err, reqParams)
+		return err
+	}
+	logResponse("setNetworkAclDescription", resp)
+
+	return nil
 }

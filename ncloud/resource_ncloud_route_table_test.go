@@ -124,7 +124,44 @@ func TestAccResourceNcloudRouteTable_updateName(t *testing.T) {
 	})
 }
 
+func TestAccResourceNcloudRouteTable_description(t *testing.T) {
+	var routeTable vpc.RouteTable
+	resourceName := "ncloud_route_table.foo"
+	name := fmt.Sprintf("test-table-desc-%s", acctest.RandString(5))
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckRouteTableDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccResourceNcloudRouteTableConfigDescription(name, "foo"),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckRouteTableExists(resourceName, &routeTable),
+					resource.TestCheckResourceAttr(resourceName, "description", "foo"),
+				),
+			},
+			{
+				Config: testAccResourceNcloudRouteTableConfigDescription(name, "bar"),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckRouteTableExists(resourceName, &routeTable),
+					resource.TestCheckResourceAttr(resourceName, "description", "bar"),
+				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+		},
+	})
+}
+
 func testAccResourceNcloudRouteTableConfig(name string) string {
+	return testAccResourceNcloudRouteTableConfigDescription(name, "for acc test")
+}
+
+func testAccResourceNcloudRouteTableConfigDescription(name, description string) string {
 	return fmt.Sprintf(`
 resource "ncloud_vpc" "vpc" {
 	name            = "%[1]s"
@@ -134,10 +171,10 @@ resource "ncloud_vpc" "vpc" {
 resource "ncloud_route_table" "foo" {
 	vpc_no                = ncloud_vpc.vpc.vpc_no
 	name                  = "%[1]s"
-	description           = "for test"
+	description           = "%[2]s"
 	supported_subnet_type = "PUBLIC"
 }
-`, name)
+`, name, description)
 }
 
 func testAccResourceNcloudRouteTableConfigOnlyRequired(name string) string {

@@ -124,7 +124,44 @@ func TestAccResourceNcloudNetworkACL_updateName(t *testing.T) {
 	})
 }
 
+func TestAccResourceNcloudNetworkACL_description(t *testing.T) {
+	var networkACL vpc.NetworkAcl
+	name := fmt.Sprintf("test-network-acl-desc-%s", acctest.RandString(5))
+	resourceName := "ncloud_network_acl.nacl"
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckNetworkACLDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccResourceNcloudNetworkACLConfigDescription(name, "foo"),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckNetworkACLExists(resourceName, &networkACL),
+					resource.TestCheckResourceAttr(resourceName, "description", "foo"),
+				),
+			},
+			{
+				Config: testAccResourceNcloudNetworkACLConfigDescription(name, "bar"),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckNetworkACLExists(resourceName, &networkACL),
+					resource.TestCheckResourceAttr(resourceName, "description", "bar"),
+				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+		},
+	})
+}
+
 func testAccResourceNcloudNetworkACLConfig(name string) string {
+	return testAccResourceNcloudNetworkACLConfigDescription(name, "for test acc")
+}
+
+func testAccResourceNcloudNetworkACLConfigDescription(name, description string) string {
 	return fmt.Sprintf(`
 resource "ncloud_vpc" "vpc" {
 	name            = "%[1]s"
@@ -134,9 +171,9 @@ resource "ncloud_vpc" "vpc" {
 resource "ncloud_network_acl" "nacl" {
 	vpc_no      = ncloud_vpc.vpc.vpc_no
 	name        = "%[1]s"
-	description = "for test acc"
+	description = "%[2]s"
 }
-`, name)
+`, name, description)
 }
 
 func testAccResourceNcloudNetworkACLConfigOnlyRequired(name string) string {

@@ -89,7 +89,44 @@ func TestAccResourceNcloudVpcPeering_disappears(t *testing.T) {
 	})
 }
 
+func TestAccResourceNcloudVpcPeering_description(t *testing.T) {
+	var vpcPeeringInstance vpc.VpcPeeringInstance
+	resourceName := "ncloud_vpc_peering.foo"
+	name := fmt.Sprintf("test-peering-desc-%s", acctest.RandString(5))
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckRouteTableDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccResourceNcloudVpcPeeringConfigDescription(name, "foo"),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckVpcPeeringExists(resourceName, &vpcPeeringInstance),
+					resource.TestCheckResourceAttr(resourceName, "description", "foo"),
+				),
+			},
+			{
+				Config: testAccResourceNcloudVpcPeeringConfigDescription(name, "bar"),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckVpcPeeringExists(resourceName, &vpcPeeringInstance),
+					resource.TestCheckResourceAttr(resourceName, "description", "bar"),
+				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+		},
+	})
+}
+
 func testAccResourceNcloudVpcPeeringConfig(name string) string {
+	return testAccResourceNcloudVpcPeeringConfigDescription(name, "for acc test")
+}
+
+func testAccResourceNcloudVpcPeeringConfigDescription(name, description string) string {
 	return fmt.Sprintf(`
 resource "ncloud_vpc" "main" {
 	name               = "%[1]s-a"
@@ -105,8 +142,9 @@ resource "ncloud_vpc_peering" "foo" {
 	name          = "%[1]s-foo"
 	source_vpc_no = ncloud_vpc.main.id
 	target_vpc_no = ncloud_vpc.peer.id
+	description   = "%[2]s"
 }
-`, name)
+`, name, description)
 }
 
 func testAccResourceNcloudVpcPeeringConfigAdd(name string) string {
