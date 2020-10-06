@@ -82,6 +82,10 @@ func resourceNcloudVpcPeering() *schema.Resource {
 func resourceNcloudVpcPeeringCreate(d *schema.ResourceData, meta interface{}) error {
 	config := meta.(*ProviderConfig)
 
+	if !config.SupportVPC {
+		return NotSupportClassic("resource `ncloud_vpc_peering`")
+	}
+
 	reqParams := &vpc.CreateVpcPeeringInstanceRequest{
 		RegionCode:  &config.RegionCode,
 		SourceVpcNo: ncloud.String(d.Get("source_vpc_no").(string)),

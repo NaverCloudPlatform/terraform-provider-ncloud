@@ -23,7 +23,8 @@ func testAccDataSourceNcloudAccessControlRulesBasic(t *testing.T) {
 		Providers: testAccProviders,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccDataSourceNcloudAccessControlRulesConfig(testId),
+				Config:   testAccDataSourceNcloudAccessControlRulesConfig(testId),
+				SkipFunc: testOnlyClassic,
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckDataSourceID("data.ncloud_access_control_rules.test"),
 				),

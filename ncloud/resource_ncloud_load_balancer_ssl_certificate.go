@@ -54,6 +54,11 @@ func resourceNcloudLoadBalancerSSLCertificate() *schema.Resource {
 
 func resourceNcloudLoadBalancerSSLCertificateCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ProviderConfig).Client
+	config := meta.(*ProviderConfig)
+
+	if config.SupportVPC {
+		return NotSupportVpc("resource `ncloud_load_balancer_ssl_certificate`")
+	}
 
 	reqParams, err := buildCreateLoadBalancerSSLCertificateParams(d)
 	if err != nil {

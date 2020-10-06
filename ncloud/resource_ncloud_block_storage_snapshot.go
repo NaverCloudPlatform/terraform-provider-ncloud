@@ -110,6 +110,12 @@ func resourceNcloudBlockStorageSnapshot() *schema.Resource {
 func resourceNcloudBlockStorageSnapshotCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ProviderConfig).Client
 
+	config := meta.(*ProviderConfig)
+
+	if config.SupportVPC {
+		return NotSupportVpc("resource `ncloud_block_storage_snapshot`")
+	}
+
 	reqParams := buildRequestBlockStorageSnapshotInstance(d)
 	logCommonRequest("CreateBlockStorageSnapshotInstance", reqParams)
 

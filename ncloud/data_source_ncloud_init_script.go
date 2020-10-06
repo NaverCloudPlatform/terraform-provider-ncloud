@@ -49,7 +49,7 @@ func dataSourceNcloudInitScriptRead(d *schema.ResourceData, meta interface{}) er
 	if config.SupportVPC {
 		resources, err = getVpcInitScriptListFiltered(d, config)
 	} else {
-		return NotSupportClassic("Init Script")
+		return NotSupportClassic("data source `ncloud_init_script`")
 	}
 
 	if err != nil {

@@ -67,6 +67,10 @@ func resourceNcloudNatGateway() *schema.Resource {
 func resourceNcloudNatGatewayCreate(d *schema.ResourceData, meta interface{}) error {
 	config := meta.(*ProviderConfig)
 
+	if !config.SupportVPC {
+		return NotSupportClassic("resource `ncloud_nat_gateway`")
+	}
+
 	reqParams := &vpc.CreateNatGatewayInstanceRequest{
 		RegionCode: &config.RegionCode,
 		VpcNo:      ncloud.String(d.Get("vpc_no").(string)),

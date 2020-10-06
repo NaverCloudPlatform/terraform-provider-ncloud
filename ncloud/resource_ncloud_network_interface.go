@@ -169,7 +169,7 @@ func getNetworkInterface(config *ProviderConfig, id string) (*vserver.NetworkInt
 		return getVpcNetworkInterface(config, id)
 	}
 
-	return nil, NotSupportClassic("Network Interface")
+	return nil, NotSupportClassic("resource `ncloud_network_interface`")
 }
 
 func getVpcNetworkInterface(config *ProviderConfig, id string) (*vserver.NetworkInterface, error) {
@@ -197,7 +197,7 @@ func createNetworkInterface(d *schema.ResourceData, config *ProviderConfig) (*vs
 	if config.SupportVPC {
 		return createVpcNetworkInterface(d, config)
 	} else {
-		return nil, NotSupportClassic("Network Interface")
+		return nil, NotSupportClassic("resource `ncloud_network_interface`")
 	}
 
 	if v, ok := d.GetOk("server_instance_no"); ok && v != "" {
@@ -246,7 +246,7 @@ func deleteNetworkInterface(config *ProviderConfig, id string) error {
 		return deleteVpcNetworkInterface(config, id)
 	}
 
-	return NotSupportClassic("Network Interface")
+	return NotSupportClassic("resource `ncloud_network_interface`")
 }
 
 func deleteVpcNetworkInterface(config *ProviderConfig, id string) error {
@@ -289,7 +289,7 @@ func attachNetworkInterface(d *schema.ResourceData, config *ProviderConfig) erro
 	if config.SupportVPC {
 		err = attachVpcNetworkInterface(d, config)
 	} else {
-		err = NotSupportClassic("Network Interface")
+		err = NotSupportClassic("resource `ncloud_network_interface`")
 	}
 
 	if err != nil {
@@ -346,7 +346,7 @@ func detachNetworkInterface(d *schema.ResourceData, config *ProviderConfig, serv
 	if config.SupportVPC {
 		err = detachVpcNetworkInterface(d, config, serverInstanceNo)
 	} else {
-		err = NotSupportClassic("Network Interface")
+		err = NotSupportClassic("resource `ncloud_network_interface`")
 	}
 
 	if err != nil {
@@ -399,7 +399,7 @@ func waitForNetworkInterfaceAttachment(config *ProviderConfig, id string) error 
 	if config.SupportVPC {
 		err = waitForVpcNetworkInterfaceAttachment(config, id)
 	} else {
-		err = NotSupportClassic("Network Interface")
+		err = NotSupportClassic("resource `ncloud_network_interface`")
 	}
 
 	if err != nil {

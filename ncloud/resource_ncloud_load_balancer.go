@@ -130,6 +130,11 @@ func resourceNcloudLoadBalancer() *schema.Resource {
 
 func resourceNcloudLoadBalancerCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ProviderConfig).Client
+	config := meta.(*ProviderConfig)
+
+	if config.SupportVPC {
+		return NotSupportVpc("resource `ncloud_load_balancer`")
+	}
 
 	reqParams, err := buildCreateLoadBalancerInstanceParams(client, d)
 	if err != nil {

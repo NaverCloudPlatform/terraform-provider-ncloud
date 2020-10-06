@@ -73,6 +73,10 @@ func dataSourceNcloudSubnets() *schema.Resource {
 func dataSourceNcloudSubnetsRead(d *schema.ResourceData, meta interface{}) error {
 	config := meta.(*ProviderConfig)
 
+	if !config.SupportVPC {
+		return NotSupportClassic("data source `ncloud_subnets`")
+	}
+
 	resources, err := getSubnetListFiltered(d, config)
 
 	if err != nil {
