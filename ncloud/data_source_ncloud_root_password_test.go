@@ -16,22 +16,16 @@ func TestAccDataSourceNcloudRootPasswordBasic(t *testing.T) {
 		Providers: testAccProviders,
 		Steps: []resource.TestStep{
 			{
-				SkipFunc: func() (bool, error) {
-					config := testAccProvider.Meta().(*ProviderConfig)
-					return config.SupportVPC, nil
-				},
-				Config: testAccDataSourceRootPasswordClassicConfig(name),
+				Config:   testAccDataSourceRootPasswordClassicConfig(name),
+				SkipFunc: testOnlyClassic,
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet(resourceName, "server_instance_no"),
 					resource.TestCheckResourceAttrSet(resourceName, "private_key"),
 				),
 			},
 			{
-				SkipFunc: func() (bool, error) {
-					config := testAccProvider.Meta().(*ProviderConfig)
-					return !config.SupportVPC, nil
-				},
-				Config: testAccDataSourceRootPasswordVpcConfig(name),
+				Config:   testAccDataSourceRootPasswordVpcConfig(name),
+				SkipFunc: testOnlyVpc,
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet(resourceName, "server_instance_no"),
 					resource.TestCheckResourceAttrSet(resourceName, "private_key"),

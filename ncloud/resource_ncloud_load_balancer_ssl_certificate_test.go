@@ -84,7 +84,8 @@ GTfhUTV7jTQ0dt9U1E+oxRkjqC2HFYlpewXP0rcQxhtK7p6kiaUDIw==
 		CheckDestroy: testAccCheckLoadBalancerSSLCertificateDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccLoadBalancerSSLCertificateConfig(testSSLCertificateName, testPrivateKey, testCertPEM, testLoadBalancerName),
+				Config:   testAccLoadBalancerSSLCertificateConfig(testSSLCertificateName, testPrivateKey, testCertPEM, testLoadBalancerName),
+				SkipFunc: testOnlyClassic,
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckLoadBalancerSSLCertificateExists("ncloud_load_balancer_ssl_certificate.cert", &sc),
 					testCheck(),
@@ -103,6 +104,7 @@ GTfhUTV7jTQ0dt9U1E+oxRkjqC2HFYlpewXP0rcQxhtK7p6kiaUDIw==
 				),
 			},
 			{
+				SkipFunc:          testOnlyClassic,
 				ResourceName:      "ncloud_load_balancer_ssl_certificate.cert",
 				ImportState:       true,
 				ImportStateVerify: true,

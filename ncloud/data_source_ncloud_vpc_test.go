@@ -20,7 +20,8 @@ func TestAccDataSourceNcloudVpc(t *testing.T) {
 		Providers: testAccProviders,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccDataSourceNcloudVpcConfig(name, cidr),
+				Config:   testAccDataSourceNcloudVpcConfig(name, cidr),
+				SkipFunc: testOnlyVpc,
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckDataSourceID(dataName),
 					resource.TestCheckResourceAttrPair(dataName, "vpc_no", resourceName, "vpc_no"),

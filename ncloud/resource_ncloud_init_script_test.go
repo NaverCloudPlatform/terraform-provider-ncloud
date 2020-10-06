@@ -11,7 +11,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 )
 
-func TestAccresourceNcloudInitScript_basic(t *testing.T) {
+func TestAccResourceNcloudInitScript_basic(t *testing.T) {
 	var InitScript vserver.InitScript
 	name := fmt.Sprintf("tf-init-script-basic-%s", acctest.RandString(5))
 	resourceName := "ncloud_init_script.foo"
@@ -22,12 +22,14 @@ func TestAccresourceNcloudInitScript_basic(t *testing.T) {
 		CheckDestroy: testAccCheckInitScriptDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccresourceNcloudInitScriptConfig(name),
+				Config:   testAccResourceNcloudInitScriptConfig(name),
+				SkipFunc: testOnlyVpc,
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckInitScriptExists(resourceName, &InitScript),
 				),
 			},
 			{
+				SkipFunc:          testOnlyVpc,
 				ResourceName:      resourceName,
 				ImportState:       true,
 				ImportStateVerify: true,
@@ -36,7 +38,7 @@ func TestAccresourceNcloudInitScript_basic(t *testing.T) {
 	})
 }
 
-func TestAccresourceNcloudInitScript_disappears(t *testing.T) {
+func TestAccResourceNcloudInitScript_disappears(t *testing.T) {
 	var InitScript vserver.InitScript
 	name := fmt.Sprintf("tf-init-script-disappear-%s", acctest.RandString(5))
 	resourceName := "ncloud_init_script.foo"
@@ -47,7 +49,8 @@ func TestAccresourceNcloudInitScript_disappears(t *testing.T) {
 		CheckDestroy: testAccCheckInitScriptDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccresourceNcloudInitScriptConfig(name),
+				Config:   testAccResourceNcloudInitScriptConfig(name),
+				SkipFunc: testOnlyVpc,
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckInitScriptExists(resourceName, &InitScript),
 					testAccCheckInitScriptDisappears(&InitScript),
@@ -58,7 +61,7 @@ func TestAccresourceNcloudInitScript_disappears(t *testing.T) {
 	})
 }
 
-func testAccresourceNcloudInitScriptConfig(name string) string {
+func testAccResourceNcloudInitScriptConfig(name string) string {
 	return fmt.Sprintf(`
 resource "ncloud_init_script" "foo" {
 	name    = "%s"

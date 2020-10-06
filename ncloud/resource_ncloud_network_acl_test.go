@@ -23,7 +23,8 @@ func TestAccResourceNcloudNetworkACL_basic(t *testing.T) {
 		CheckDestroy: testAccCheckNetworkACLDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccResourceNcloudNetworkACLConfig(name),
+				Config:   testAccResourceNcloudNetworkACLConfig(name),
+				SkipFunc: testOnlyVpc,
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckNetworkACLExists(resourceName, &networkACL),
 					resource.TestMatchResourceAttr(resourceName, "vpc_no", regexp.MustCompile(`^\d+$`)),
@@ -33,6 +34,7 @@ func TestAccResourceNcloudNetworkACL_basic(t *testing.T) {
 				),
 			},
 			{
+				SkipFunc:          testOnlyVpc,
 				ResourceName:      resourceName,
 				ImportState:       true,
 				ImportStateVerify: true,
@@ -52,7 +54,8 @@ func TestAccResourceNcloudNetworkACL_disappears(t *testing.T) {
 		CheckDestroy: testAccCheckNetworkACLDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccResourceNcloudNetworkACLConfig(name),
+				Config:   testAccResourceNcloudNetworkACLConfig(name),
+				SkipFunc: testOnlyVpc,
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckNetworkACLExists(resourceName, &networkACL),
 					testAccCheckNetworkACLDisappears(&networkACL),
@@ -74,7 +77,8 @@ func TestAccResourceNcloudNetworkACL_onlyRequiredParam(t *testing.T) {
 		CheckDestroy: testAccCheckNetworkACLDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccResourceNcloudNetworkACLConfigOnlyRequired(name),
+				Config:   testAccResourceNcloudNetworkACLConfigOnlyRequired(name),
+				SkipFunc: testOnlyVpc,
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckNetworkACLExists(resourceName, &networkACL),
 					resource.TestMatchResourceAttr(resourceName, "vpc_no", regexp.MustCompile(`^\d+$`)),
@@ -84,6 +88,7 @@ func TestAccResourceNcloudNetworkACL_onlyRequiredParam(t *testing.T) {
 				),
 			},
 			{
+				SkipFunc:          testOnlyVpc,
 				ResourceName:      resourceName,
 				ImportState:       true,
 				ImportStateVerify: true,
@@ -103,19 +108,22 @@ func TestAccResourceNcloudNetworkACL_updateName(t *testing.T) {
 		CheckDestroy: testAccCheckNetworkACLDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccResourceNcloudNetworkACLConfigOnlyRequired(name),
+				Config:   testAccResourceNcloudNetworkACLConfigOnlyRequired(name),
+				SkipFunc: testOnlyVpc,
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckNetworkACLExists(resourceName, &networkACL),
 				),
 			},
 			{
-				Config: testAccResourceNcloudNetworkACLConfig(name),
+				Config:   testAccResourceNcloudNetworkACLConfig(name),
+				SkipFunc: testOnlyVpc,
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckNetworkACLExists(resourceName, &networkACL),
 				),
 				ExpectError: regexp.MustCompile("Change 'name' is not support, Please set `name` as a old value"),
 			},
 			{
+				SkipFunc:          testOnlyVpc,
 				ResourceName:      resourceName,
 				ImportState:       true,
 				ImportStateVerify: true,
@@ -135,20 +143,23 @@ func TestAccResourceNcloudNetworkACL_description(t *testing.T) {
 		CheckDestroy: testAccCheckNetworkACLDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccResourceNcloudNetworkACLConfigDescription(name, "foo"),
+				Config:   testAccResourceNcloudNetworkACLConfigDescription(name, "foo"),
+				SkipFunc: testOnlyVpc,
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckNetworkACLExists(resourceName, &networkACL),
 					resource.TestCheckResourceAttr(resourceName, "description", "foo"),
 				),
 			},
 			{
-				Config: testAccResourceNcloudNetworkACLConfigDescription(name, "bar"),
+				Config:   testAccResourceNcloudNetworkACLConfigDescription(name, "bar"),
+				SkipFunc: testOnlyVpc,
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckNetworkACLExists(resourceName, &networkACL),
 					resource.TestCheckResourceAttr(resourceName, "description", "bar"),
 				),
 			},
 			{
+				SkipFunc:          testOnlyVpc,
 				ResourceName:      resourceName,
 				ImportState:       true,
 				ImportStateVerify: true,

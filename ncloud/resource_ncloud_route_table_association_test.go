@@ -25,13 +25,15 @@ func TestAccresourceNcloudRouteTableAssociation_basic(t *testing.T) {
 		CheckDestroy: testAccCheckRouteTableAssociationDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccresourceNcloudRouteTableAssociationConfig(name),
+				Config:   testAccresourceNcloudRouteTableAssociationConfig(name),
+				SkipFunc: testOnlyVpc,
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckRouteTableAssociationExists(resourceName, &association, &routeTableNo),
 					testAccCheckDataSourceID(resourceName),
 				),
 			},
 			{
+				SkipFunc:          testOnlyVpc,
 				ResourceName:      resourceName,
 				ImportState:       true,
 				ImportStateIdFunc: testAccNcloudRouteTableAssociationImportStateIDFunc(resourceName),
@@ -54,7 +56,8 @@ func TestAccresourceNcloudRouteTableAssociation_disappears(t *testing.T) {
 		CheckDestroy: testAccCheckRouteTableAssociationDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccresourceNcloudRouteTableAssociationConfig(name),
+				Config:   testAccresourceNcloudRouteTableAssociationConfig(name),
+				SkipFunc: testOnlyVpc,
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckRouteTableAssociationExists(resourceName, &association, &routeTableNo),
 					testAccCheckRouteTableAssociationDisappears(&association, &routeTableNo),

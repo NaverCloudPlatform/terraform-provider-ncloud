@@ -13,7 +13,8 @@ func TestAccDataSourceNcloudSubnetsBasic(t *testing.T) {
 		Providers: testAccProviders,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccDataSourceNcloudSubnetsConfig(),
+				Config:   testAccDataSourceNcloudSubnetsConfig(),
+				SkipFunc: testOnlyVpc,
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckDataSourceID("data.ncloud_subnets.all"),
 				),
@@ -28,7 +29,8 @@ func TestAccDataSourceNcloudSubnetsName(t *testing.T) {
 		Providers: testAccProviders,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccDataSourceNcloudSubnetsConfigSubnet("10.2.1.0"),
+				Config:   testAccDataSourceNcloudSubnetsConfigSubnet("10.2.1.0"),
+				SkipFunc: testOnlyVpc,
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckDataSourceID("data.ncloud_subnets.by_cidr"),
 				),
@@ -43,7 +45,8 @@ func TestAccDataSourceNcloudSubnetsStatus(t *testing.T) {
 		Providers: testAccProviders,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccDataSourceNcloudSubnetsConfigStatus("RUN"),
+				Config:   testAccDataSourceNcloudSubnetsConfigStatus("RUN"),
+				SkipFunc: testOnlyVpc,
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckDataSourceID("data.ncloud_subnets.by_status"),
 				),
@@ -58,7 +61,8 @@ func TestAccDataSourceNcloudSubnetsVpcNo(t *testing.T) {
 		Providers: testAccProviders,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccDataSourceNcloudSubnetsConfigVpcNo("502"),
+				Config:   testAccDataSourceNcloudSubnetsConfigVpcNo("502"),
+				SkipFunc: testOnlyVpc,
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckDataSourceID("data.ncloud_subnets.by_vpc_no"),
 				),

@@ -19,7 +19,8 @@ func TestAccDataSourceNcloudSubnet(t *testing.T) {
 		Providers: testAccProviders,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccDataSourceNcloudSubnetConfig(name, cidr),
+				Config:   testAccDataSourceNcloudSubnetConfig(name, cidr),
+				SkipFunc: testOnlyVpc,
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckDataSourceID(dataName),
 					resource.TestCheckResourceAttrPair(dataName, "subnet_no", resourceName, "subnet_no"),

@@ -28,7 +28,6 @@ func TestAccResourceNcloudNasVolume_basic(t *testing.T) {
 					resource.TestMatchResourceAttr(resourceName, "name", regexp.MustCompile(fmt.Sprintf(`^n\d+_%s$`, postfix))),
 					resource.TestCheckResourceAttr(resourceName, "volume_size", "500"),
 					resource.TestCheckResourceAttr(resourceName, "volume_total_size", "500"),
-					resource.TestCheckResourceAttr(resourceName, "zone", "KR-1"),
 					resource.TestCheckResourceAttr(resourceName, "snapshot_volume_size", "0"),
 					resource.TestCheckResourceAttr(resourceName, "volume_allotment_protocol_type", "NFS"),
 					resource.TestCheckResourceAttr(resourceName, "is_event_configuration", "false"),
@@ -92,27 +91,22 @@ func TestAccResourceNcloudNasVolume_classic_changeAccessControl(t *testing.T) {
 		CheckDestroy: testAccCheckNasVolumeDestroy,
 		Steps: []resource.TestStep{
 			{
-				SkipFunc: func() (bool, error) {
-					config := testAccProvider.Meta().(*ProviderConfig)
-					return config.SupportVPC, nil
-				},
-				Config: testAccNasVolumeConfig(postfix),
+				SkipFunc: testOnlyClassic,
+				Config:   testAccNasVolumeConfig(postfix),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckNasVolumeExists(resourceName, &before),
 				),
 			},
 			{
-				SkipFunc: func() (bool, error) {
-					config := testAccProvider.Meta().(*ProviderConfig)
-					return config.SupportVPC, nil
-				},
-				Config: testAccNasVolumeChangeAccessControlClassic(postfix),
+				SkipFunc: testOnlyClassic,
+				Config:   testAccNasVolumeChangeAccessControlClassic(postfix),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckNasVolumeExists(resourceName, &after),
 					testAccCheckNasVolumeNotRecreated(t, &before, &after),
 				),
 			},
 			{
+				SkipFunc:                testOnlyClassic,
 				ResourceName:            resourceName,
 				ImportState:             true,
 				ImportStateVerify:       true,
@@ -134,21 +128,15 @@ func TestAccResourceNcloudNasVolume_vpc_changeAccessControl(t *testing.T) {
 		CheckDestroy: testAccCheckNasVolumeDestroy,
 		Steps: []resource.TestStep{
 			{
-				SkipFunc: func() (bool, error) {
-					config := testAccProvider.Meta().(*ProviderConfig)
-					return !config.SupportVPC, nil
-				},
-				Config: testAccNasVolumeConfig(postfix),
+				SkipFunc: testOnlyVpc,
+				Config:   testAccNasVolumeConfig(postfix),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckNasVolumeExists(resourceName, &before),
 				),
 			},
 			{
-				SkipFunc: func() (bool, error) {
-					config := testAccProvider.Meta().(*ProviderConfig)
-					return !config.SupportVPC, nil
-				},
-				Config: testAccNasVolumeChangeAccessControlVpc(postfix),
+				SkipFunc: testOnlyVpc,
+				Config:   testAccNasVolumeChangeAccessControlVpc(postfix),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckNasVolumeExists(resourceName, &after),
 					testAccCheckNasVolumeNotRecreated(t, &before, &after),
@@ -156,6 +144,7 @@ func TestAccResourceNcloudNasVolume_vpc_changeAccessControl(t *testing.T) {
 			},
 			{
 				ResourceName:            resourceName,
+				SkipFunc:                testOnlyVpc,
 				ImportState:             true,
 				ImportStateVerify:       true,
 				ImportStateVerifyIgnore: []string{"volume_name_postfix"},

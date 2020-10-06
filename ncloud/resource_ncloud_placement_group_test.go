@@ -23,7 +23,8 @@ func TestAccResourceNcloudPlacementGroup_basic(t *testing.T) {
 		CheckDestroy: testAccCheckPlacementGroupDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccResourceNcloudPlacementGroupConfig(name),
+				Config:   testAccResourceNcloudPlacementGroupConfig(name),
+				SkipFunc: testOnlyVpc,
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckPlacementGroupExists(resourceName, &PlacementGroup),
 					resource.TestMatchResourceAttr(resourceName, "placement_group_no", regexp.MustCompile(`^\d+$`)),
@@ -32,6 +33,7 @@ func TestAccResourceNcloudPlacementGroup_basic(t *testing.T) {
 				),
 			},
 			{
+				SkipFunc:          testOnlyVpc,
 				ResourceName:      resourceName,
 				ImportState:       true,
 				ImportStateVerify: true,
@@ -51,7 +53,8 @@ func TestAccResourceNcloudPlacementGroup_disappears(t *testing.T) {
 		CheckDestroy: testAccCheckPlacementGroupDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccResourceNcloudPlacementGroupConfig(name),
+				Config:   testAccResourceNcloudPlacementGroupConfig(name),
+				SkipFunc: testOnlyVpc,
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckPlacementGroupExists(resourceName, &PlacementGroup),
 					testAccCheckPlacementGroupDisappears(&PlacementGroup),
@@ -74,19 +77,22 @@ func TestAccResourceNcloudPlacementGroup_updateName(t *testing.T) {
 		CheckDestroy: testAccCheckPlacementGroupDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccResourceNcloudPlacementGroupConfig(name),
+				Config:   testAccResourceNcloudPlacementGroupConfig(name),
+				SkipFunc: testOnlyVpc,
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckPlacementGroupExists(resourceName, &PlacementGroup),
 				),
 			},
 			{
-				Config: testAccResourceNcloudPlacementGroupConfig(updateName),
+				Config:   testAccResourceNcloudPlacementGroupConfig(updateName),
+				SkipFunc: testOnlyVpc,
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckPlacementGroupExists(resourceName, &PlacementGroup),
 				),
 				ExpectError: regexp.MustCompile("Change 'name' is not support, Please set `name` as a old value"),
 			},
 			{
+				SkipFunc:          testOnlyVpc,
 				ResourceName:      resourceName,
 				ImportState:       true,
 				ImportStateVerify: true,

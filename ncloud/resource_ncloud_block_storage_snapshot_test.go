@@ -36,8 +36,8 @@ func ignore_TestAccResourceNcloudBlockStorageSnapshotBasic(t *testing.T) {
 		CheckDestroy: testAccCheckBlockStorageSnapshotDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccBlockStorageSnapshotConfig(testLoginKeyName, testServerInstanceName, testBlockStorageName, testSnapshotName),
-				//SkipFunc: func() (bool, error) { return true, nil }, // TODO: Fix TestAcc ErrorTestAccResourceNcloudBlockStorageBasic
+				Config:   testAccBlockStorageSnapshotConfig(testLoginKeyName, testServerInstanceName, testBlockStorageName, testSnapshotName),
+				SkipFunc: testOnlyClassic,
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckBlockStorageSnapshotExists(
 						"ncloud_block_storage_snapshot.ss", &snapshotInstance),
@@ -49,6 +49,7 @@ func ignore_TestAccResourceNcloudBlockStorageSnapshotBasic(t *testing.T) {
 				),
 			},
 			{
+				SkipFunc:          testOnlyClassic,
 				ResourceName:      "ncloud_block_storage_snapshot.ss",
 				ImportState:       true,
 				ImportStateVerify: true,

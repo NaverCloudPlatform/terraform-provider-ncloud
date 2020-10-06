@@ -40,7 +40,8 @@ func TestAccDataSourceNcloudNetworkInterfaces_privateIp(t *testing.T) {
 		Providers: testAccProviders,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccDataSourceNcloudNetworkInterfacesConfigPrivateIp(name),
+				Config:   testAccDataSourceNcloudNetworkInterfacesConfigPrivateIp(name),
+				SkipFunc: testOnlyVpc,
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckDataSourceID(dataName),
 					resource.TestCheckResourceAttrPair(dataName, "network_interfaces.0.network_interface_no", resourceName, "network_interface_no"),
@@ -68,7 +69,8 @@ func TestAccDataSourceNcloudNetworkInterfaces_filter(t *testing.T) {
 		Providers: testAccProviders,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccDataSourceNcloudNetworkInterfacesConfigFilter(name),
+				Config:   testAccDataSourceNcloudNetworkInterfacesConfigFilter(name),
+				SkipFunc: testOnlyVpc,
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckDataSourceID("data.ncloud_network_interfaces.by_filter"),
 					testAccCheckDataSourceID(dataName),

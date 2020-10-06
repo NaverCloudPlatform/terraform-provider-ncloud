@@ -18,11 +18,8 @@ func TestAccDataSourceNcloudServer_vpc_basic(t *testing.T) {
 		Providers: testAccProviders,
 		Steps: []resource.TestStep{
 			{
-				SkipFunc: func() (bool, error) {
-					config := testAccProvider.Meta().(*ProviderConfig)
-					return !config.SupportVPC, nil
-				},
-				Config: testAccDataSourceServerVpcConfig(testServerName),
+				Config:   testAccDataSourceServerVpcConfig(testServerName),
+				SkipFunc: testOnlyVpc,
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckDataSourceID(dataName),
 					resource.TestMatchResourceAttr(dataName, "id", regexp.MustCompile(`^\d+$`)),
@@ -65,11 +62,8 @@ func TestAccDataSourceNcloudServer_classic_basic(t *testing.T) {
 		Providers: testAccProviders,
 		Steps: []resource.TestStep{
 			{
-				SkipFunc: func() (bool, error) {
-					config := testAccProvider.Meta().(*ProviderConfig)
-					return config.SupportVPC, nil
-				},
-				Config: testAccDataSourceServerClassicConfig(testServerName),
+				Config:   testAccDataSourceServerClassicConfig(testServerName),
+				SkipFunc: testOnlyClassic,
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckDataSourceID(dataName),
 					resource.TestMatchResourceAttr(dataName, "id", regexp.MustCompile(`^\d+$`)),

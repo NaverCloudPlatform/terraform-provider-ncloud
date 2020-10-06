@@ -26,7 +26,8 @@ func TestAccResourceNcloudVpc_basic(t *testing.T) {
 		CheckDestroy: testAccCheckVpcDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccDataSourceNcloudVpcConfig(name, cidr),
+				Config:   testAccDataSourceNcloudVpcConfig(name, cidr),
+				SkipFunc: testOnlyVpc,
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckVpcExists(resourceName, &vpc),
 					resource.TestCheckResourceAttr(resourceName, "ipv4_cidr_block", cidr),
@@ -54,7 +55,8 @@ func TestAccResourceNcloudVpc_disappears(t *testing.T) {
 		CheckDestroy: testAccCheckVpcDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccDataSourceNcloudVpcConfig(name, cidr),
+				Config:   testAccDataSourceNcloudVpcConfig(name, cidr),
+				SkipFunc: testOnlyVpc,
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckVpcExists(resourceName, &vpc),
 					testAccCheckVpcDisappears(&vpc),
@@ -78,13 +80,15 @@ func TestAccResourceNcloudVpc_updateName(t *testing.T) {
 		CheckDestroy: testAccCheckVpcDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccDataSourceNcloudVpcConfig(name, cidr),
+				Config:   testAccResourceNcloudVpcConfig(name, cidr),
+				SkipFunc: testOnlyVpc,
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckVpcExists(resourceName, &vpc),
 				),
 			},
 			{
-				Config: testAccDataSourceNcloudVpcConfig("testacc-vpc-basic-update", cidr),
+				Config:   testAccResourceNcloudVpcConfig("testacc-vpc-basic-update", cidr),
+				SkipFunc: testOnlyVpc,
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckVpcExists(resourceName, &vpc),
 				),

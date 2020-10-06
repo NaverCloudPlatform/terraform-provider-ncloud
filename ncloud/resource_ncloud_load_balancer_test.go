@@ -30,7 +30,8 @@ func TestAccNcloudLoadBalancerBasic(t *testing.T) {
 		CheckDestroy: testAccCheckLoadBalancerDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccLoadBalancerConfig(testLoadBalancerName),
+				Config:   testAccLoadBalancerConfig(testLoadBalancerName),
+				SkipFunc: testOnlyClassic,
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckLoadBalancerExists("ncloud_load_balancer.lb", &loadBalancerInstance),
 					testCheck(),
@@ -45,6 +46,7 @@ func TestAccNcloudLoadBalancerBasic(t *testing.T) {
 				),
 			},
 			{
+				SkipFunc:                testOnlyClassic,
 				ResourceName:            "ncloud_load_balancer.lb",
 				ImportState:             true,
 				ImportStateVerify:       true,
@@ -66,13 +68,15 @@ func TestAccNcloudLoadBalancerChangeConfiguration(t *testing.T) {
 		CheckDestroy: testAccCheckLoadBalancerDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccLoadBalancerConfig(testLoadBalancerName),
+				Config:   testAccLoadBalancerConfig(testLoadBalancerName),
+				SkipFunc: testOnlyClassic,
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckLoadBalancerExists("ncloud_load_balancer.lb", &before),
 				),
 			},
 			{
-				Config: testAccLoadBalancerChangedConfig(testLoadBalancerName),
+				Config:   testAccLoadBalancerChangedConfig(testLoadBalancerName),
+				SkipFunc: testOnlyClassic,
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckLoadBalancerExists("ncloud_load_balancer.lb", &after),
 					resource.TestCheckResourceAttr(
@@ -81,6 +85,7 @@ func TestAccNcloudLoadBalancerChangeConfiguration(t *testing.T) {
 						"tftest_lb change port")),
 			},
 			{
+				SkipFunc:                testOnlyClassic,
 				ResourceName:            "ncloud_load_balancer.lb",
 				ImportState:             true,
 				ImportStateVerify:       true,

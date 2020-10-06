@@ -13,7 +13,8 @@ func TestAccDataSourceNcloudVpcsBasic(t *testing.T) {
 		Providers: testAccProviders,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccDataSourceNcloudVpcsConfig(),
+				Config:   testAccDataSourceNcloudVpcsConfig(),
+				SkipFunc: testOnlyVpc,
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckDataSourceID("data.ncloud_vpcs.all"),
 				),
@@ -28,7 +29,8 @@ func TestAccDataSourceNcloudVpcsName(t *testing.T) {
 		Providers: testAccProviders,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccDataSourceNcloudVpcsConfigName("test"),
+				Config:   testAccDataSourceNcloudVpcsConfigName("test"),
+				SkipFunc: testOnlyVpc,
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckDataSourceID("data.ncloud_vpcs.by_name"),
 				),
@@ -43,7 +45,8 @@ func TestAccDataSourceNcloudVpcsStatus(t *testing.T) {
 		Providers: testAccProviders,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccDataSourceNcloudVpcsConfigStatus("RUN"),
+				Config:   testAccDataSourceNcloudVpcsConfigStatus("RUN"),
+				SkipFunc: testOnlyVpc,
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckDataSourceID("data.ncloud_vpcs.by_status"),
 				),
@@ -58,7 +61,8 @@ func TestAccDataSourceNcloudVpcsVpcNo(t *testing.T) {
 		Providers: testAccProviders,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccDataSourceNcloudVpcsConfigVpcNo("446"),
+				SkipFunc: testOnlyVpc,
+				Config:   testAccDataSourceNcloudVpcsConfigVpcNo("446"),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckDataSourceID("data.ncloud_vpcs.by_vpc_no"),
 					testAccCheckDataSourceID("data.ncloud_vpcs.by_filter"),

@@ -22,11 +22,8 @@ func TestAccResourceNcloudBlockStorage_Classic_basic(t *testing.T) {
 		CheckDestroy: testAccCheckBlockStorageDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccBlockStorageClassicConfig(name),
-				SkipFunc: func() (bool, error) {
-					config := testAccProvider.Meta().(*ProviderConfig)
-					return config.SupportVPC, nil
-				},
+				Config:   testAccBlockStorageClassicConfig(name),
+				SkipFunc: testOnlyClassic,
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckBlockStorageExists(resourceName, &storageInstance),
 					resource.TestMatchResourceAttr(resourceName, "id", regexp.MustCompile(`^\d+$`)),
@@ -44,6 +41,7 @@ func TestAccResourceNcloudBlockStorage_Classic_basic(t *testing.T) {
 				),
 			},
 			{
+				SkipFunc:          testOnlyClassic,
 				ResourceName:      resourceName,
 				ImportState:       true,
 				ImportStateVerify: true,
@@ -63,11 +61,8 @@ func TestAccResourceNcloudBlockStorage_Vpc_basic(t *testing.T) {
 		CheckDestroy: testAccCheckBlockStorageDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccBlockStorageVpcConfig(name),
-				SkipFunc: func() (bool, error) {
-					config := testAccProvider.Meta().(*ProviderConfig)
-					return !config.SupportVPC, nil
-				},
+				Config:   testAccBlockStorageVpcConfig(name),
+				SkipFunc: testOnlyVpc,
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckBlockStorageExists(resourceName, &storageInstance),
 					resource.TestMatchResourceAttr(resourceName, "id", regexp.MustCompile(`^\d+$`)),
@@ -85,6 +80,7 @@ func TestAccResourceNcloudBlockStorage_Vpc_basic(t *testing.T) {
 				),
 			},
 			{
+				SkipFunc:          testOnlyVpc,
 				ResourceName:      resourceName,
 				ImportState:       true,
 				ImportStateVerify: true,
@@ -104,21 +100,15 @@ func TestAccResourceNcloudBlockStorage_Classic_ChangeServerInstance(t *testing.T
 		CheckDestroy: testAccCheckBlockStorageDestroy,
 		Steps: []resource.TestStep{
 			{
-				SkipFunc: func() (bool, error) {
-					config := testAccProvider.Meta().(*ProviderConfig)
-					return config.SupportVPC, nil
-				},
-				Config: testAccBlockStorageClassicConfigUpdate(name, "ncloud_server.foo.id"),
+				Config:   testAccBlockStorageClassicConfigUpdate(name, "ncloud_server.foo.id"),
+				SkipFunc: testOnlyClassic,
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckBlockStorageExists(resourceName, &storageInstance),
 				),
 			},
 			{
-				SkipFunc: func() (bool, error) {
-					config := testAccProvider.Meta().(*ProviderConfig)
-					return config.SupportVPC, nil
-				},
-				Config: testAccBlockStorageClassicConfigUpdate(name, "ncloud_server.bar.id"),
+				Config:   testAccBlockStorageClassicConfigUpdate(name, "ncloud_server.bar.id"),
+				SkipFunc: testOnlyClassic,
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckBlockStorageExists(resourceName, &storageInstance),
 				),
@@ -138,21 +128,15 @@ func TestAccResourceNcloudBlockStorage_Vpc_ChangeServerInstance(t *testing.T) {
 		CheckDestroy: testAccCheckBlockStorageDestroy,
 		Steps: []resource.TestStep{
 			{
-				SkipFunc: func() (bool, error) {
-					config := testAccProvider.Meta().(*ProviderConfig)
-					return !config.SupportVPC, nil
-				},
-				Config: testAccBlockStorageVpcConfigUpdate(name, "ncloud_server.foo.id"),
+				Config:   testAccBlockStorageVpcConfigUpdate(name, "ncloud_server.foo.id"),
+				SkipFunc: testOnlyVpc,
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckBlockStorageExists(resourceName, &storageInstance),
 				),
 			},
 			{
-				SkipFunc: func() (bool, error) {
-					config := testAccProvider.Meta().(*ProviderConfig)
-					return !config.SupportVPC, nil
-				},
-				Config: testAccBlockStorageVpcConfigUpdate(name, "ncloud_server.bar.id"),
+				Config:   testAccBlockStorageVpcConfigUpdate(name, "ncloud_server.bar.id"),
+				SkipFunc: testOnlyVpc,
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckBlockStorageExists(resourceName, &storageInstance),
 				),

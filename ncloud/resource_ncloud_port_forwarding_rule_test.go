@@ -27,7 +27,8 @@ func TestAccResourceNcloudPortForwardingRuleBasic(t *testing.T) {
 		CheckDestroy: testAccCheckPortForwardingRuleDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccPortForwardingRuleBasicConfig(externalPort),
+				Config:   testAccPortForwardingRuleBasicConfig(externalPort),
+				SkipFunc: testOnlyClassic,
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckPortForwardingRuleExists("ncloud_port_forwarding_rule.test", &portForwarding),
 					resource.TestCheckResourceAttr(
