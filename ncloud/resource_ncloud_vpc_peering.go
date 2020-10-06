@@ -154,6 +154,14 @@ func resourceNcloudVpcPeeringRead(d *schema.ResourceData, meta interface{}) erro
 }
 
 func resourceNcloudVpcPeeringUpdate(d *schema.ResourceData, meta interface{}) error {
+	config := meta.(*ProviderConfig)
+
+	if d.HasChange("description") {
+		if err := setVpcPeeringDescription(d, config); err != nil {
+			return err
+		}
+	}
+
 	return resourceNcloudVpcPeeringRead(d, meta)
 }
 
@@ -241,4 +249,22 @@ func getVpcPeeringInstance(config *ProviderConfig, id string) (*vpc.VpcPeeringIn
 	}
 
 	return nil, nil
+}
+
+func setVpcPeeringDescription(d *schema.ResourceData, config *ProviderConfig) error {
+	reqParams := &vpc.SetVpcPeeringDescriptionRequest{
+		RegionCode:            &config.RegionCode,
+		VpcPeeringInstanceNo:  ncloud.String(d.Id()),
+		VpcPeeringDescription: StringPtrOrNil(d.GetOk("description")),
+	}
+
+	logCommonRequest("setVpcPeeringDescription", reqParams)
+	resp, err := config.Client.vpc.V2Api.SetVpcPeeringDescription(reqParams)
+	if err != nil {
+		logErrorResponse("setVpcPeeringDescription", err, reqParams)
+		return err
+	}
+	logResponse("setVpcPeeringDescription", resp)
+
+	return nil
 }

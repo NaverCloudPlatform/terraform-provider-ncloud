@@ -130,6 +130,14 @@ func resourceNcloudRouteTableRead(d *schema.ResourceData, meta interface{}) erro
 }
 
 func resourceNcloudRouteTableUpdate(d *schema.ResourceData, meta interface{}) error {
+	config := meta.(*ProviderConfig)
+
+	if d.HasChange("description") {
+		if err := setRouteTableDescription(d, config); err != nil {
+			return err
+		}
+	}
+
 	return resourceNcloudRouteTableRead(d, meta)
 }
 
@@ -216,4 +224,22 @@ func getRouteTableInstance(config *ProviderConfig, id string) (*vpc.RouteTable, 
 	}
 
 	return nil, nil
+}
+
+func setRouteTableDescription(d *schema.ResourceData, config *ProviderConfig) error {
+	reqParams := &vpc.SetRouteTableDescriptionRequest{
+		RegionCode:            &config.RegionCode,
+		RouteTableNo:          ncloud.String(d.Id()),
+		RouteTableDescription: StringPtrOrNil(d.GetOk("description")),
+	}
+
+	logCommonRequest("setRouteTableDescription", reqParams)
+	resp, err := config.Client.vpc.V2Api.SetRouteTableDescription(reqParams)
+	if err != nil {
+		logErrorResponse("setRouteTableDescription", err, reqParams)
+		return err
+	}
+	logResponse("setRouteTableDescription", resp)
+
+	return nil
 }

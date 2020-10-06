@@ -14,12 +14,5 @@ func ncloudVpcCommonCustomizeDiff(diff *schema.ResourceDiff, v interface{}) erro
 		}
 	}
 
-	if diff.HasChange("description") {
-		old, new := diff.GetChange("description")
-		if len(old.(string)) > 0 {
-			return fmt.Errorf("Change 'description' is not support, Please set `description` as a old value = [%s -> %s]", new, old)
-		}
-	}
-
 	return nil
 }

@@ -121,7 +121,44 @@ func TestAccResourceNcloudNatGateway_updateName(t *testing.T) {
 	})
 }
 
+func TestAccResourceNcloudNatGateway_description(t *testing.T) {
+	var natGateway vpc.NatGatewayInstance
+	name := fmt.Sprintf("test-nat-gateway-%s", acctest.RandString(5))
+	resourceName := "ncloud_nat_gateway.nat_gateway"
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckNatGatewayDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccResourceNcloudNatGatewayConfigDescription(name, "foo"),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckNatGatewayExists(resourceName, &natGateway),
+					resource.TestCheckResourceAttr(resourceName, "description", "foo"),
+				),
+			},
+			{
+				Config: testAccResourceNcloudNatGatewayConfigDescription(name, "bar"),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckNatGatewayExists(resourceName, &natGateway),
+					resource.TestCheckResourceAttr(resourceName, "description", "bar"),
+				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+		},
+	})
+}
+
 func testAccResourceNcloudNatGatewayConfig(name string) string {
+	return testAccResourceNcloudNatGatewayConfigDescription(name, "for acc test")
+}
+
+func testAccResourceNcloudNatGatewayConfigDescription(name, description string) string {
 	return fmt.Sprintf(`
 resource "ncloud_vpc" "vpc" {
 	name            = "%[1]s"
@@ -132,9 +169,9 @@ resource "ncloud_nat_gateway" "nat_gateway" {
   vpc_no      = ncloud_vpc.vpc.vpc_no
   zone        = "KR-1"
   name        = "%[1]s"
-  description = "description"
+  description = "%[2]s"
 }
-`, name)
+`, name, description)
 }
 
 func testAccResourceNcloudNatGatewayConfigUpdate(name, updateName string) string {

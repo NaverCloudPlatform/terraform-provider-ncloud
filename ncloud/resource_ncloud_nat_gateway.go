@@ -32,25 +32,21 @@ func resourceNcloudNatGateway() *schema.Resource {
 				Optional:     true,
 				Computed:     true,
 				ValidateFunc: validateInstanceName,
-				Description:  "NAT Gateway name to create. default: Assigned by NAVER CLOUD PLATFORM.",
 			},
 			"description": {
 				Type:         schema.TypeString,
 				Optional:     true,
 				ValidateFunc: validation.StringLenBetween(0, 1000),
-				Description:  "Description of a NAT Gateway to create.",
 			},
 			"vpc_no": {
-				Type:        schema.TypeString,
-				Required:    true,
-				ForceNew:    true,
-				Description: "The id of the VPC that the desired nat gateway belongs to.",
+				Type:     schema.TypeString,
+				Required: true,
+				ForceNew: true,
 			},
 			"zone": {
-				Type:        schema.TypeString,
-				Required:    true,
-				ForceNew:    true,
-				Description: "Available Zone. Get available values using the `data ncloud_zones`.",
+				Type:     schema.TypeString,
+				Required: true,
+				ForceNew: true,
 			},
 			"nat_gateway_no": {
 				Type:     schema.TypeString,
@@ -132,6 +128,14 @@ func resourceNcloudNatGatewayRead(d *schema.ResourceData, meta interface{}) erro
 }
 
 func resourceNcloudNatGatewayUpdate(d *schema.ResourceData, meta interface{}) error {
+	config := meta.(*ProviderConfig)
+
+	if d.HasChange("description") {
+		if err := setNatGatewayDescription(d, config); err != nil {
+			return err
+		}
+	}
+
 	return resourceNcloudNatGatewayRead(d, meta)
 }
 
@@ -219,4 +223,22 @@ func getNatGatewayInstance(config *ProviderConfig, id string) (*vpc.NatGatewayIn
 	}
 
 	return nil, nil
+}
+
+func setNatGatewayDescription(d *schema.ResourceData, config *ProviderConfig) error {
+	reqParams := &vpc.SetNatGatewayDescriptionRequest{
+		RegionCode:            &config.RegionCode,
+		NatGatewayInstanceNo:  ncloud.String(d.Id()),
+		NatGatewayDescription: StringPtrOrNil(d.GetOk("description")),
+	}
+
+	logCommonRequest("setNatGatewayDescription", reqParams)
+	resp, err := config.Client.vpc.V2Api.SetNatGatewayDescription(reqParams)
+	if err != nil {
+		logErrorResponse("setNatGatewayDescription", err, reqParams)
+		return err
+	}
+	logResponse("setNatGatewayDescription", resp)
+
+	return nil
 }
