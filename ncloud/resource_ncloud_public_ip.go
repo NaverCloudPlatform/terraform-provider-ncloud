@@ -58,15 +58,7 @@ func resourceNcloudPublicIpInstance() *schema.Resource {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
-			"status": {
-				Type:     schema.TypeString,
-				Computed: true,
-			},
 			"kind_type": {
-				Type:     schema.TypeString,
-				Computed: true,
-			},
-			"server_name": {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
@@ -74,21 +66,6 @@ func resourceNcloudPublicIpInstance() *schema.Resource {
 				Type:       schema.TypeString,
 				Computed:   true,
 				Deprecated: "Use 'public_ip_no' instead",
-			},
-			"instance_status_name": {
-				Type:       schema.TypeString,
-				Computed:   true,
-				Deprecated: "This field no longer support",
-			},
-			"instance_status": {
-				Type:       schema.TypeString,
-				Computed:   true,
-				Deprecated: "Use 'status' instead",
-			},
-			"instance_operation": {
-				Type:       schema.TypeString,
-				Computed:   true,
-				Deprecated: "Use 'operation' instead",
 			},
 		},
 	}
@@ -336,11 +313,6 @@ func getClassicPublicIp(config *ProviderConfig, id string) (map[string]interface
 
 	if m := flattenCommonCode(r.PublicIpInstanceStatus); m["code"] != nil {
 		instance["status"] = m["code"]
-		instance["instance_status"] = m["code"] // Deprecated
-	}
-
-	if m := flattenCommonCode(r.PublicIpInstanceOperation); m["code"] != nil {
-		instance["instance_operation"] = m["code"] // Deprecated
 	}
 
 	if m := flattenCommonCode(r.PublicIpKindType); m["code"] != nil {
@@ -349,7 +321,6 @@ func getClassicPublicIp(config *ProviderConfig, id string) (map[string]interface
 
 	if r.ServerInstanceAssociatedWithPublicIp != nil {
 		SetStringIfNotNilAndEmpty(instance, "server_instance_no", r.ServerInstanceAssociatedWithPublicIp.ServerInstanceNo)
-		SetStringIfNotNilAndEmpty(instance, "server_name", r.ServerInstanceAssociatedWithPublicIp.ServerInstanceNo)
 	}
 
 	return instance, nil
@@ -391,7 +362,6 @@ func getVpcPublicIp(config *ProviderConfig, id string) (map[string]interface{}, 
 	}
 
 	SetStringIfNotNilAndEmpty(instance, "server_instance_no", r.ServerInstanceNo)
-	SetStringIfNotNilAndEmpty(instance, "server_name", r.ServerInstanceNo)
 
 	if m := flattenCommonCode(r.PublicIpInstanceStatus); m["code"] != nil {
 		instance["status"] = m["code"]

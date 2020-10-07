@@ -26,11 +26,6 @@ func dataSourceNcloudNatGateway() *schema.Resource {
 			Type:     schema.TypeString,
 			Optional: true,
 		},
-		"status": {
-			Type:     schema.TypeString,
-			Optional: true,
-			Computed: true,
-		},
 		"filter": dataSourceFiltersSchema(),
 	}
 
@@ -76,10 +71,6 @@ func getNatGatewayListFiltered(d *schema.ResourceData, config *ProviderConfig) (
 		reqParams.VpcName = ncloud.String(v.(string))
 	}
 
-	if v, ok := d.GetOk("status"); ok {
-		reqParams.NatGatewayInstanceStatusCode = ncloud.String(v.(string))
-	}
-
 	logCommonRequest("GetNatGatewayInstanceList", reqParams)
 	resp, err := config.Client.vpc.V2Api.GetNatGatewayInstanceList(reqParams)
 
@@ -99,7 +90,6 @@ func getNatGatewayListFiltered(d *schema.ResourceData, config *ProviderConfig) (
 			"name":           *r.NatGatewayName,
 			"description":    *r.NatGatewayDescription,
 			"public_ip":      *r.PublicIp,
-			"status":         *r.NatGatewayInstanceStatus.Code,
 			"vpc_no":         *r.VpcNo,
 			"zone":           *r.ZoneCode,
 		}

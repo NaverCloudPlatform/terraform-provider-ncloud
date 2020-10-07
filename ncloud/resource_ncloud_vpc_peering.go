@@ -63,10 +63,6 @@ func resourceNcloudVpcPeering() *schema.Resource {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
-			"status": {
-				Type:     schema.TypeString,
-				Computed: true,
-			},
 			"has_reverse_vpc_peering": {
 				Type:     schema.TypeBool,
 				Computed: true,

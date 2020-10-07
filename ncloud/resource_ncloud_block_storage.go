@@ -95,10 +95,6 @@ func resourceNcloudBlockStorage() *schema.Resource {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
-			"operation": {
-				Type:     schema.TypeString,
-				Computed: true,
-			},
 			"disk_type": {
 				Type:     schema.TypeString,
 				Computed: true,
@@ -278,8 +274,6 @@ func getClassicBlockStorage(config *ProviderConfig, id string) (*BlockStorage, e
 			DeviceName:              inst.DeviceName,
 			BlockStorageProductCode: inst.BlockStorageProductCode,
 			Status:                  inst.BlockStorageInstanceStatus.Code,
-			Operation:               inst.BlockStorageInstanceOperation.Code,
-			StatusName:              inst.BlockStorageInstanceStatusName,
 			Description:             inst.BlockStorageInstanceDescription,
 			DiskType:                inst.DiskType.Code,
 			DiskDetailType:          inst.DiskDetailType.Code,
@@ -316,8 +310,6 @@ func getVpcBlockStorage(config *ProviderConfig, id string) (*BlockStorage, error
 			DeviceName:              inst.DeviceName,
 			BlockStorageProductCode: inst.BlockStorageProductCode,
 			Status:                  inst.BlockStorageInstanceStatus.Code,
-			Operation:               inst.BlockStorageInstanceOperation.Code,
-			StatusName:              inst.BlockStorageInstanceStatusName,
 			Description:             inst.BlockStorageDescription,
 			DiskType:                inst.BlockStorageDiskType.Code,
 			DiskDetailType:          inst.BlockStorageDiskDetailType.Code,
@@ -603,8 +595,6 @@ type BlockStorage struct {
 	DeviceName              *string `json:"device_name,omitempty"`
 	BlockStorageProductCode *string `json:"product_code,omitempty"`
 	Status                  *string `json:"status,omitempty"`
-	Operation               *string `json:"operation,omitempty"`
-	StatusName              *string `json:"status_name,omitempty"`
 	Description             *string `json:"description,omitempty"`
 	DiskType                *string `json:"disk_type,omitempty"`
 	DiskDetailType          *string `json:"disk_detail_type,omitempty"`

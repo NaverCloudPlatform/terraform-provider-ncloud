@@ -47,14 +47,6 @@ func dataSourceNcloudPublicIp() *schema.Resource {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
-			"status_name": {
-				Type:     schema.TypeString,
-				Computed: true,
-			},
-			"status": {
-				Type:     schema.TypeString,
-				Computed: true,
-			},
 			"kind_type": {
 				Type:     schema.TypeString,
 				Computed: true,
@@ -115,21 +107,6 @@ func dataSourceNcloudPublicIp() *schema.Resource {
 				Type:       schema.TypeString,
 				Computed:   true,
 				Deprecated: "Use 'public_ip_no' instead",
-			},
-			"instance_status_name": {
-				Type:       schema.TypeString,
-				Computed:   true,
-				Deprecated: "Use 'status_name' instead",
-			},
-			"instance_status": {
-				Type:       schema.TypeString,
-				Computed:   true,
-				Deprecated: "Use 'status' instead",
-			},
-			"instance_operation": {
-				Type:       schema.TypeString,
-				Computed:   true,
-				Deprecated: "Use 'operation' instead",
 			},
 			"list": {
 				Type:       schema.TypeList,
@@ -207,11 +184,10 @@ func getClassicPublicIpList(d *schema.ResourceData, config *ProviderConfig) ([]m
 
 	for _, r := range resp.PublicIpInstanceList {
 		instance := map[string]interface{}{
-			"id":                   *r.PublicIpInstanceNo,
-			"instance_no":          *r.PublicIpInstanceNo,
-			"public_ip":            *r.PublicIp,
-			"description":          *r.PublicIpDescription,
-			"instance_status_name": *r.PublicIpInstanceStatusName,
+			"id":          *r.PublicIpInstanceNo,
+			"instance_no": *r.PublicIpInstanceNo,
+			"public_ip":   *r.PublicIp,
+			"description": *r.PublicIpDescription,
 		}
 
 		if m := flattenCommonCode(r.InternetLineType); m["code"] != nil {
@@ -220,11 +196,6 @@ func getClassicPublicIpList(d *schema.ResourceData, config *ProviderConfig) ([]m
 
 		if m := flattenCommonCode(r.PublicIpInstanceStatus); m["code"] != nil {
 			instance["status"] = m["code"]
-			instance["instance_status"] = m["code"] // Deprecated
-		}
-
-		if m := flattenCommonCode(r.PublicIpInstanceOperation); m["code"] != nil {
-			instance["instance_operation"] = m["code"] // Deprecated
 		}
 
 		if m := flattenCommonCode(r.PublicIpKindType); m["code"] != nil {

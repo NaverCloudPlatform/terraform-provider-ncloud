@@ -27,11 +27,6 @@ func dataSourceNcloudVpcPeering() *schema.Resource {
 			Optional: true,
 			Computed: true,
 		},
-		"status": {
-			Type:     schema.TypeString,
-			Optional: true,
-			Computed: true,
-		},
 		"filter": dataSourceFiltersSchema(),
 	}
 
@@ -76,10 +71,6 @@ func getVpcPeeringListFiltered(d *schema.ResourceData, config *ProviderConfig) (
 		reqParams.SourceVpcName = ncloud.String(v.(string))
 	}
 
-	if v, ok := d.GetOk("status"); ok {
-		reqParams.VpcPeeringInstanceStatusCode = ncloud.String(v.(string))
-	}
-
 	logCommonRequest("GetVpcPeeringInstanceList", reqParams)
 	resp, err := config.Client.vpc.V2Api.GetVpcPeeringInstanceList(reqParams)
 
@@ -101,7 +92,6 @@ func getVpcPeeringListFiltered(d *schema.ResourceData, config *ProviderConfig) (
 			"target_vpc_no":           *r.TargetVpcNo,
 			"target_vpc_name":         *r.TargetVpcName,
 			"target_vpc_login_id":     *r.TargetVpcLoginId,
-			"status":                  *r.VpcPeeringInstanceStatus.Code,
 			"has_reverse_vpc_peering": *r.HasReverseVpcPeering,
 			"is_between_accounts":     *r.IsBetweenAccounts,
 		}

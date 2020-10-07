@@ -48,10 +48,6 @@ func resourceNcloudAccessControlGroup() *schema.Resource {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
-			"status": {
-				Type:     schema.TypeString,
-				Computed: true,
-			},
 			"is_default": {
 				Type:     schema.TypeBool,
 				Computed: true,
@@ -94,7 +90,6 @@ func resourceNcloudAccessControlGroupRead(d *schema.ResourceData, meta interface
 	d.Set("name", instance.AccessControlGroupName)
 	d.Set("description", instance.AccessControlGroupDescription)
 	d.Set("vpc_no", instance.VpcNo)
-	d.Set("status", instance.AccessControlGroupStatus.Code)
 	d.Set("is_default", instance.IsDefault)
 
 	return nil

@@ -25,7 +25,6 @@ func TestAccDataSourceNcloudRouteTable_basic(t *testing.T) {
 					resource.TestCheckResourceAttrPair(dataName, "description", resourceName, "description"),
 					resource.TestCheckResourceAttrPair(dataName, "vpc_no", resourceName, "vpc_no"),
 					resource.TestCheckResourceAttrPair(dataName, "route_table_no", resourceName, "route_table_no"),
-					resource.TestCheckResourceAttrPair(dataName, "status", resourceName, "status"),
 					resource.TestCheckResourceAttrPair(dataName, "supported_subnet_type", resourceName, "supported_subnet_type"),
 					resource.TestCheckResourceAttrPair(dataName, "is_default", resourceName, "is_default"),
 				),

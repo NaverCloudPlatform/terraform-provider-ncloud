@@ -55,11 +55,6 @@ func dataSourceNcloudSubnets() *schema.Resource {
 				ValidateFunc: validation.StringInSlice([]string{"GEN", "LOADB", "BM"}, false),
 				Description:  "Usage type. GEN(Normal), LOADB(Load Balance), BM(BareMetal). default : GEN(Normal).",
 			},
-			"status": {
-				Type:         schema.TypeString,
-				Optional:     true,
-				ValidateFunc: validation.StringInSlice([]string{"INIT", "CREATING", "RUN", "TERMTING"}, false),
-			},
 			"filter": dataSourceFiltersSchema(),
 			"subnets": {
 				Type:     schema.TypeList,

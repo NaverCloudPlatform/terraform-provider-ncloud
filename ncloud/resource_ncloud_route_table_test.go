@@ -30,7 +30,6 @@ func TestAccResourceNcloudRouteTable_basic(t *testing.T) {
 					resource.TestMatchResourceAttr(resourceName, "vpc_no", regexp.MustCompile(`^\d+$`)),
 					resource.TestMatchResourceAttr(resourceName, "route_table_no", regexp.MustCompile(`^\d+$`)),
 					resource.TestCheckResourceAttr(resourceName, "name", name),
-					resource.TestCheckResourceAttr(resourceName, "status", "RUN"),
 				),
 			},
 			{
@@ -84,7 +83,6 @@ func TestAccResourceNcloudRouteTable_onlyRequiredParam(t *testing.T) {
 					resource.TestMatchResourceAttr(resourceName, "vpc_no", regexp.MustCompile(`^\d+$`)),
 					resource.TestMatchResourceAttr(resourceName, "route_table_no", regexp.MustCompile(`^\d+$`)),
 					resource.TestMatchResourceAttr(resourceName, "name", regexp.MustCompile(`^[a-z0-9]+$`)),
-					resource.TestCheckResourceAttr(resourceName, "status", "RUN"),
 				),
 			},
 			{

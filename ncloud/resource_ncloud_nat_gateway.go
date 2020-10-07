@@ -56,10 +56,6 @@ func resourceNcloudNatGateway() *schema.Resource {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
-			"status": {
-				Type:     schema.TypeString,
-				Computed: true,
-			},
 		},
 	}
 }
@@ -124,7 +120,6 @@ func resourceNcloudNatGatewayRead(d *schema.ResourceData, meta interface{}) erro
 	d.Set("name", instance.NatGatewayName)
 	d.Set("description", instance.NatGatewayDescription)
 	d.Set("public_ip", instance.PublicIp)
-	d.Set("status", instance.NatGatewayInstanceStatus.Code)
 	d.Set("vpc_no", instance.VpcNo)
 	d.Set("zone", instance.ZoneCode)
 

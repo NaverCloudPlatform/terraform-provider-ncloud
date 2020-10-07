@@ -51,10 +51,6 @@ func resourceNcloudNetworkACL() *schema.Resource {
 				Type:     schema.TypeBool,
 				Computed: true,
 			},
-			"status": {
-				Type:     schema.TypeString,
-				Computed: true,
-			},
 		},
 	}
 }
@@ -119,7 +115,6 @@ func resourceNcloudNetworkACLRead(d *schema.ResourceData, meta interface{}) erro
 	d.Set("description", instance.NetworkAclDescription)
 	d.Set("vpc_no", instance.VpcNo)
 	d.Set("is_default", instance.IsDefault)
-	d.Set("status", instance.NetworkAclStatus.Code)
 
 	return nil
 }

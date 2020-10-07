@@ -49,8 +49,6 @@ func TestAccResourceNcloudServer_classic_basic(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "cpu_count", "2"),
 					resource.TestCheckResourceAttr(resourceName, "memory_size", "4294967296"),
 					resource.TestMatchResourceAttr(resourceName, "instance_no", regexp.MustCompile(`^\d+$`)),
-					resource.TestCheckResourceAttr(resourceName, "operation", "NULL"),
-					resource.TestCheckResourceAttr(resourceName, "status", "RUN"),
 					resource.TestCheckResourceAttr(resourceName, "platform_type", "LNX32"),
 					resource.TestCheckResourceAttr(resourceName, "is_protect_server_termination", "false"),
 					resource.TestCheckResourceAttr(resourceName, "server_image_name", "centos-6.3-32"),
@@ -59,9 +57,6 @@ func TestAccResourceNcloudServer_classic_basic(t *testing.T) {
 					resource.TestMatchResourceAttr(resourceName, "port_forwarding_public_ip", regexp.MustCompile(`^(?:[0-9]{1,3}\.){3}[0-9]{1,3}$`)),
 					resource.TestMatchResourceAttr(resourceName, "private_ip", regexp.MustCompile(`^(?:[0-9]{1,3}\.){3}[0-9]{1,3}$`)),
 					resource.TestCheckResourceAttr(resourceName, "public_ip", ""),
-					resource.TestCheckResourceAttr(resourceName, "instance_operation", "NULL"),
-					resource.TestCheckResourceAttr(resourceName, "instance_status", "RUN"),
-					resource.TestCheckResourceAttr(resourceName, "instance_status_name", "running"),
 				),
 			},
 			{
@@ -100,8 +95,6 @@ func TestAccResourceNcloudServer_vpc_basic(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "cpu_count", "2"),
 					resource.TestCheckResourceAttr(resourceName, "memory_size", "8589934592"),
 					resource.TestMatchResourceAttr(resourceName, "instance_no", regexp.MustCompile(`^\d+$`)),
-					resource.TestCheckResourceAttr(resourceName, "operation", "NULL"),
-					resource.TestCheckResourceAttr(resourceName, "status", "RUN"),
 					resource.TestCheckResourceAttr(resourceName, "platform_type", "LNX64"),
 					resource.TestCheckResourceAttr(resourceName, "is_protect_server_termination", "false"),
 					resource.TestCheckResourceAttr(resourceName, "login_key_name", fmt.Sprintf("%s-key", testServerName)),
@@ -152,8 +145,6 @@ func TestAccResourceNcloudServer_vpc_networkInterface(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "cpu_count", "2"),
 					resource.TestCheckResourceAttr(resourceName, "memory_size", "8589934592"),
 					resource.TestMatchResourceAttr(resourceName, "instance_no", regexp.MustCompile(`^\d+$`)),
-					resource.TestCheckResourceAttr(resourceName, "operation", "NULL"),
-					resource.TestCheckResourceAttr(resourceName, "status", "RUN"),
 					resource.TestCheckResourceAttr(resourceName, "platform_type", "LNX64"),
 					resource.TestCheckResourceAttr(resourceName, "is_protect_server_termination", "false"),
 					resource.TestCheckResourceAttr(resourceName, "login_key_name", fmt.Sprintf("%s-key", testServerName)),
@@ -316,11 +307,7 @@ func testAccCheckInstanceDestroyWithProvider(s *terraform.State, provider *schem
 			return err
 		}
 
-		if instance == nil {
-			continue
-		}
-
-		if *instance.ServerInstanceStatusName != "terminating" {
+		if instance != nil {
 			return fmt.Errorf("found unterminated instance: %s", *instance.ServerInstanceNo)
 		}
 	}

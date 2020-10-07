@@ -108,7 +108,6 @@ func getRouteTableListFiltered(d *schema.ResourceData, config *ProviderConfig) (
 			"route_table_no":        *r.RouteTableNo,
 			"name":                  *r.RouteTableName,
 			"description":           *r.RouteTableDescription,
-			"status":                *r.RouteTableStatus.Code,
 			"vpc_no":                *r.VpcNo,
 			"supported_subnet_type": *r.SupportedSubnetType.Code,
 			"is_default":            *r.IsDefault,

@@ -55,10 +55,6 @@ func dataSourceNcloudAccessControlGroup() *schema.Resource {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
-			"status": {
-				Type:     schema.TypeString,
-				Computed: true,
-			},
 			"filter": dataSourceFiltersSchema(),
 		},
 	}
@@ -121,7 +117,6 @@ func getVpcAccessControlGroupList(d *schema.ResourceData, config *ProviderConfig
 			"description":             *r.AccessControlGroupDescription,
 			"is_default":              *r.IsDefault,
 			"vpc_no":                  *r.VpcNo,
-			"status":                  *r.AccessControlGroupStatus.Code,
 		}
 
 		resources = append(resources, instance)

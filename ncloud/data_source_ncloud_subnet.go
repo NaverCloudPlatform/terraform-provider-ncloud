@@ -50,12 +50,6 @@ func dataSourceNcloudSubnet() *schema.Resource {
 			Computed:     true,
 			ValidateFunc: validation.StringInSlice([]string{"GEN", "LOADB", "BM"}, false),
 		},
-		"status": {
-			Type:         schema.TypeString,
-			Optional:     true,
-			Computed:     true,
-			ValidateFunc: validation.StringInSlice([]string{"INIT", "CREATING", "RUN", "TERMTING"}, false),
-		},
 		"filter": dataSourceFiltersSchema(),
 	}
 
@@ -117,10 +111,6 @@ func getSubnetListFiltered(d *schema.ResourceData, config *ProviderConfig) ([]ma
 		reqParams.UsageTypeCode = ncloud.String(v.(string))
 	}
 
-	if v, ok := d.GetOk("status"); ok {
-		reqParams.SubnetStatusCode = ncloud.String(v.(string))
-	}
-
 	logCommonRequest("GetSubnetList", reqParams)
 	resp, err := config.Client.vpc.V2Api.GetSubnetList(reqParams)
 
@@ -140,7 +130,6 @@ func getSubnetListFiltered(d *schema.ResourceData, config *ProviderConfig) ([]ma
 			"zone":           *r.ZoneCode,
 			"name":           *r.SubnetName,
 			"subnet":         *r.Subnet,
-			"status":         *r.SubnetStatus.Code,
 			"subnet_type":    *r.SubnetType.Code,
 			"usage_type":     *r.UsageType.Code,
 			"network_acl_no": *r.NetworkAclNo,

@@ -210,14 +210,6 @@ func resourceNcloudServer() *schema.Resource {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
-			"status": {
-				Type:     schema.TypeString,
-				Computed: true,
-			},
-			"operation": {
-				Type:     schema.TypeString,
-				Computed: true,
-			},
 			"port_forwarding_public_ip": {
 				Type:     schema.TypeString,
 				Computed: true,
@@ -237,21 +229,6 @@ func resourceNcloudServer() *schema.Resource {
 			"base_block_storage_disk_detail_type": {
 				Type:     schema.TypeString,
 				Computed: true,
-			},
-			"instance_status": {
-				Type:       schema.TypeString,
-				Computed:   true,
-				Deprecated: "Use `status` instead",
-			},
-			"instance_operation": {
-				Type:       schema.TypeString,
-				Computed:   true,
-				Deprecated: "Use `operation` instead",
-			},
-			"instance_status_name": {
-				Type:       schema.TypeString,
-				Computed:   true,
-				Deprecated: "This field no longer support",
 			},
 			"is_fee_charging_monitoring": {
 				Type:       schema.TypeBool,
@@ -302,12 +279,6 @@ func resourceNcloudServerRead(d *schema.ResourceData, meta interface{}) error {
 	instance := ConvertToMap(r)
 
 	SetSingularResourceDataFromMapSchema(resourceNcloudServer(), d, instance)
-
-	if !config.SupportVPC {
-		// Set deprecated field on classic
-		d.Set("instance_operation", r.ServerInstanceOperation)
-		d.Set("instance_status", r.ServerInstanceStatus)
-	}
 
 	return nil
 }
@@ -731,7 +702,6 @@ func convertClassicServerInstance(r *server.ServerInstance) *ServerInstance {
 		LoginKeyName:                   r.LoginKeyName,
 		IsProtectServerTermination:     r.IsProtectServerTermination,
 		ServerInstanceNo:               r.ServerInstanceNo,
-		ServerInstanceStatusName:       r.ServerInstanceStatusName,
 		ServerImageName:                r.ServerImageName,
 		CpuCount:                       r.CpuCount,
 		MemorySize:                     r.MemorySize,
@@ -793,7 +763,6 @@ func convertVcpServerInstance(r *vserver.ServerInstance) *ServerInstance {
 		LoginKeyName:                   r.LoginKeyName,
 		IsProtectServerTermination:     r.IsProtectServerTermination,
 		ServerInstanceNo:               r.ServerInstanceNo,
-		ServerInstanceStatusName:       r.ServerInstanceStatusName,
 		CpuCount:                       r.CpuCount,
 		MemorySize:                     r.MemorySize,
 		PublicIp:                       r.PublicIp,
@@ -1025,7 +994,6 @@ type ServerInstance struct {
 	UserData                       *string               `json:"user_data,omitempty"`
 	RaidTypeName                   *string               `json:"raid_type_name,omitempty"`
 	ServerInstanceNo               *string               `json:"instance_no,omitempty"`
-	ServerInstanceStatusName       *string               `json:"instance_status_name,omitempty"`
 	ServerImageName                *string               `json:"server_image_name,omitempty"`
 	CpuCount                       *int32                `json:"cpu_count,omitempty"`
 	MemorySize                     *int64                `json:"memory_size,omitempty"`

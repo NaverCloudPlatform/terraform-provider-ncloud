@@ -39,22 +39,6 @@ func TestAccDataSourceNcloudSubnetsName(t *testing.T) {
 	})
 }
 
-func TestAccDataSourceNcloudSubnetsStatus(t *testing.T) {
-	resource.Test(t, resource.TestCase{
-		PreCheck:  func() { testAccPreCheck(t) },
-		Providers: testAccProviders,
-		Steps: []resource.TestStep{
-			{
-				Config:   testAccDataSourceNcloudSubnetsConfigStatus("RUN"),
-				SkipFunc: testOnlyVpc,
-				Check: resource.ComposeTestCheckFunc(
-					testAccCheckDataSourceID("data.ncloud_subnets.by_status"),
-				),
-			},
-		},
-	})
-}
-
 func TestAccDataSourceNcloudSubnetsVpcNo(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:  func() { testAccPreCheck(t) },
@@ -83,14 +67,6 @@ data "ncloud_subnets" "by_cidr" {
 	subnet = "%s"
 }
 `, cidr)
-}
-
-func testAccDataSourceNcloudSubnetsConfigStatus(status string) string {
-	return fmt.Sprintf(`
-data "ncloud_subnets" "by_status" {
-	status = "%s"
-}
-`, status)
 }
 
 func testAccDataSourceNcloudSubnetsConfigVpcNo(vpcNo string) string {

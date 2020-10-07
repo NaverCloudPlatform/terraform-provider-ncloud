@@ -27,7 +27,6 @@ func TestAccDataSourceNcloudVpc(t *testing.T) {
 					resource.TestCheckResourceAttrPair(dataName, "vpc_no", resourceName, "vpc_no"),
 					resource.TestCheckResourceAttr(dataName, "ipv4_cidr_block", cidr),
 					resource.TestCheckResourceAttr(dataName, "name", name),
-					resource.TestCheckResourceAttr(dataName, "status", "RUN"),
 					testAccCheckDataSourceID("data.ncloud_vpc.by_filter"),
 				),
 			},
