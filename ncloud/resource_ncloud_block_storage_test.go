@@ -268,14 +268,14 @@ resource "ncloud_login_key" "loginkey" {
 }
 
 resource "ncloud_server" "foo" {
-	name = "%[1]s"
+	name = "%[1]s-foo"
 	server_image_product_code = "SPSW0LINUX000032"
 	server_product_code = "SPSVRSTAND000004"
 	login_key_name = "${ncloud_login_key.loginkey.key_name}"
 }
 
 resource "ncloud_server" "bar" {
-	name = "%[1]s"
+	name = "%[1]s-bar"
 	server_image_product_code = "SPSW0LINUX000032"
 	server_product_code = "SPSVRSTAND000004"
 	login_key_name = "${ncloud_login_key.loginkey.key_name}"

@@ -125,10 +125,6 @@ func resourceNcloudNasVolume() *schema.Resource {
 func resourceNcloudNasVolumeCreate(d *schema.ResourceData, meta interface{}) error {
 	config := meta.(*ProviderConfig)
 
-	if !config.SupportVPC {
-		return NotSupportClassic("resource `ncloud_nas_volume`")
-	}
-
 	id, err := createNasVolume(d, config)
 	if err != nil {
 		return err

@@ -23,7 +23,8 @@ func TestAccResourceNcloudVpcPeering_basic(t *testing.T) {
 		CheckDestroy: testAccCheckVpcPeeringDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccResourceNcloudVpcPeeringConfig(name),
+				Config:   testAccResourceNcloudVpcPeeringConfig(name),
+				SkipFunc: testOnlyVpc,
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckVpcPeeringExists(resourceName, &vpcPeeringInstance),
 					resource.TestMatchResourceAttr(resourceName, "source_vpc_no", regexp.MustCompile(`^\d+$`)),
@@ -33,6 +34,7 @@ func TestAccResourceNcloudVpcPeering_basic(t *testing.T) {
 				),
 			},
 			{
+				SkipFunc:          testOnlyVpc,
 				ResourceName:      resourceName,
 				ImportState:       true,
 				ImportStateVerify: true,
@@ -53,7 +55,8 @@ func TestAccResourceNcloudVpcPeering_Peering(t *testing.T) {
 		CheckDestroy: testAccCheckVpcPeeringDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccResourceNcloudVpcPeeringConfigAdd(name),
+				Config:   testAccResourceNcloudVpcPeeringConfigAdd(name),
+				SkipFunc: testOnlyVpc,
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckVpcPeeringExists(resourceNamePeer, &vpcPeeringInstance),
 					resource.TestMatchResourceAttr(resourceNamePeer, "source_vpc_no", regexp.MustCompile(`^\d+$`)),
