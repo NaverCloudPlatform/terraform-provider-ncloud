@@ -93,21 +93,6 @@ func dataSourceNcloudMemberServerImage() *schema.Resource {
 				Computed:    true,
 				Description: "Original server image name",
 			},
-			"status_name": {
-				Type:        schema.TypeString,
-				Computed:    true,
-				Description: "Member server image status name",
-			},
-			"status": {
-				Type:        schema.TypeString,
-				Computed:    true,
-				Description: "Member server image status",
-			},
-			"operation": {
-				Type:        schema.TypeString,
-				Computed:    true,
-				Description: "Member server image operation",
-			},
 			"platform_type": {
 				Type:        schema.TypeString,
 				Computed:    true,
@@ -195,9 +180,6 @@ func getClassicMemberServerImage(d *schema.ResourceData, config *ProviderConfig)
 			"original_server_image_product_code":    *r.OriginalServerImageProductCode,
 			"original_os_information":               *r.OriginalOsInformation,
 			"original_server_image_name":            *r.OriginalServerImageName,
-			"status_name":                           *r.MemberServerImageStatusName,
-			"status":                                *r.MemberServerImageStatus.Code,
-			"operation":                             *r.MemberServerImageOperation.Code,
 			"platform_type":                         *r.MemberServerImagePlatformType.Code,
 		}
 
@@ -250,9 +232,6 @@ func getVpcMemberServerImage(d *schema.ResourceData, config *ProviderConfig) ([]
 			"description":                        *r.MemberServerImageDescription,
 			"original_server_instance_no":        *r.OriginalServerInstanceNo,
 			"original_server_image_product_code": *r.OriginalServerImageProductCode,
-			"status_name":                        *r.MemberServerImageInstanceStatusName,
-			"status":                             *r.MemberServerImageInstanceStatus.Code,
-			"operation":                          *r.MemberServerImageInstanceOperation.Code,
 		}
 
 		if r.MemberServerImageBlockStorageTotalRows != nil {

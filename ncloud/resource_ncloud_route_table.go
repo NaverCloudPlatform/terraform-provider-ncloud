@@ -57,10 +57,6 @@ func resourceNcloudRouteTable() *schema.Resource {
 				Type:     schema.TypeBool,
 				Computed: true,
 			},
-			"status": {
-				Type:     schema.TypeString,
-				Computed: true,
-			},
 		},
 	}
 }
@@ -128,7 +124,6 @@ func resourceNcloudRouteTableRead(d *schema.ResourceData, meta interface{}) erro
 	d.Set("vpc_no", instance.VpcNo)
 	d.Set("supported_subnet_type", instance.SupportedSubnetType.Code)
 	d.Set("is_default", instance.IsDefault)
-	d.Set("status", instance.RouteTableStatus.Code)
 
 	return nil
 }

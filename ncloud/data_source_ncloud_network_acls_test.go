@@ -39,22 +39,6 @@ func TestAccDataSourceNcloudNetworkAclsName(t *testing.T) {
 	})
 }
 
-func TestAccDataSourceNcloudNetworkAclsStatus(t *testing.T) {
-	resource.Test(t, resource.TestCase{
-		PreCheck:  func() { testAccPreCheck(t) },
-		Providers: testAccProviders,
-		Steps: []resource.TestStep{
-			{
-				Config:   testAccDataSourceNcloudNetworkAclsConfigStatus("RUN"),
-				SkipFunc: testOnlyVpc,
-				Check: resource.ComposeTestCheckFunc(
-					testAccCheckDataSourceID("data.ncloud_network_acls.by_status"),
-				),
-			},
-		},
-	})
-}
-
 func TestAccDataSourceNcloudNetworkAclsVpcNo(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:  func() { testAccPreCheck(t) },
@@ -85,14 +69,6 @@ data "ncloud_network_acls" "by_name" {
 `, name)
 }
 
-func testAccDataSourceNcloudNetworkAclsConfigStatus(status string) string {
-	return fmt.Sprintf(`
-data "ncloud_network_acls" "by_status" {
-	status = "%s"
-}
-`, status)
-}
-
 func testAccDataSourceNcloudNetworkAclsConfigVpcNo() string {
 	return `
 resource "ncloud_vpc" "test" {
@@ -104,12 +80,4 @@ data "ncloud_network_acls" "by_vpc_no" {
 	vpc_no = ncloud_vpc.test.vpc_no
 }
 `
-}
-
-func testAccDataSourceNcloudNetworkAclsConfigNetworkACLNoList(networkACLNo string) string {
-	return fmt.Sprintf(`
-data "ncloud_network_acls" "by_network_acl_no" {
-	network_acl_no_list = ["%s"]
-}
-`, networkACLNo)
 }

@@ -75,10 +75,6 @@ func resourceNcloudSubnet() *schema.Resource {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
-			"status": {
-				Type:     schema.TypeString,
-				Computed: true,
-			},
 		},
 	}
 }
@@ -163,7 +159,6 @@ func resourceNcloudSubnetRead(d *schema.ResourceData, meta interface{}) error {
 	d.Set("zone", instance.ZoneCode)
 	d.Set("name", instance.SubnetName)
 	d.Set("subnet", instance.Subnet)
-	d.Set("status", instance.SubnetStatus.Code)
 	d.Set("subnet_type", instance.SubnetType.Code)
 	d.Set("usage_type", instance.UsageType.Code)
 	d.Set("network_acl_no", instance.NetworkAclNo)

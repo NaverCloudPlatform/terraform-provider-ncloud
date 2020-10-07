@@ -45,10 +45,6 @@ func resourceNcloudVpc() *schema.Resource {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
-			"status": {
-				Type:     schema.TypeString,
-				Computed: true,
-			},
 			"default_network_acl_no": {
 				Type:     schema.TypeString,
 				Computed: true,
@@ -115,7 +111,6 @@ func resourceNcloudVpcRead(d *schema.ResourceData, meta interface{}) error {
 	d.Set("vpc_no", instance.VpcNo)
 	d.Set("name", instance.VpcName)
 	d.Set("ipv4_cidr_block", instance.Ipv4CidrBlock)
-	d.Set("status", instance.VpcStatus.Code)
 
 	if *instance.VpcStatus.Code != "TERMTING" {
 		defaultNetworkACLNo, err := getDefaultNetworkACL(config, d.Id())

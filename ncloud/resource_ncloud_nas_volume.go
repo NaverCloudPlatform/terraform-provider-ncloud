@@ -98,10 +98,6 @@ func resourceNcloudNasVolume() *schema.Resource {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
-			"status": {
-				Type:     schema.TypeString,
-				Computed: true,
-			},
 			"volume_total_size": {
 				Type:     schema.TypeInt,
 				Computed: true,
@@ -572,7 +568,6 @@ func setVpcNasVolumeAccessControl(d *schema.ResourceData, config *ProviderConfig
 //NasVolume Dto for NAS
 type NasVolume struct {
 	NasVolumeInstanceNo           *string   `json:"nas_volume_no,omitempty"`
-	Status                        *string   `json:"status,omitempty"`
 	NasVolumeInstanceDescription  *string   `json:"description,omitempty"`
 	VolumeAllotmentProtocolType   *string   `json:"volume_allotment_protocol_type,omitempty"`
 	VolumeName                    *string   `json:"name,omitempty"`
@@ -585,4 +580,5 @@ type NasVolume struct {
 	NasVolumeInstanceCustomIpList []*string `json:"custom_ip_list"`
 	ServerInstanceNoList          []*string `json:"server_instance_no_list"`
 	IsEncryptedVolume             *bool     `json:"is_encrypted_volume,omitempty"`
+	Status                        *string   `json:"-"`
 }

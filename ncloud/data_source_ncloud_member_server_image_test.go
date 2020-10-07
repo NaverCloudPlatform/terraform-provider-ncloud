@@ -32,7 +32,6 @@ func TestAccDataSourceNcloudMemberServerImageFilter(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				Config: testAccDataSourceNcloudMemberServerImageConfigFilter,
-				// ignore check: may be empty created data
 				SkipFunc: func() (bool, error) {
 					return skipNoResultsTest, nil
 				},
@@ -51,8 +50,8 @@ data "ncloud_member_server_image" "test" {}
 var testAccDataSourceNcloudMemberServerImageConfigFilter = `
 data "ncloud_member_server_image" "member_server_images" {
 	filter {
-		name   = "status"
-		values = ["RUN"]
+		name   = "platform_type"
+		values = ["LNX64"]
 	}
 }
 `

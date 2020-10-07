@@ -32,7 +32,6 @@ func TestAccResourceNcloudNasVolume_basic(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "volume_allotment_protocol_type", "NFS"),
 					resource.TestCheckResourceAttr(resourceName, "is_event_configuration", "false"),
 					resource.TestCheckResourceAttr(resourceName, "is_snapshot_configuration", "false"),
-					resource.TestCheckResourceAttr(resourceName, "status", "CREAT"),
 				),
 			},
 			{

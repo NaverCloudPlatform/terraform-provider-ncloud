@@ -30,7 +30,6 @@ func TestAccResourceNcloudNatGateway_basic(t *testing.T) {
 					resource.TestMatchResourceAttr(resourceName, "vpc_no", regexp.MustCompile(`^\d+$`)),
 					resource.TestMatchResourceAttr(resourceName, "nat_gateway_no", regexp.MustCompile(`^\d+$`)),
 					resource.TestCheckResourceAttr(resourceName, "name", name),
-					resource.TestCheckResourceAttr(resourceName, "status", "RUN"),
 				),
 			},
 			{
@@ -84,7 +83,6 @@ func TestAccResourceNcloudNatGateway_onlyRequiredParam(t *testing.T) {
 					resource.TestMatchResourceAttr(resourceName, "vpc_no", regexp.MustCompile(`^\d+$`)),
 					resource.TestMatchResourceAttr(resourceName, "nat_gateway_no", regexp.MustCompile(`^\d+$`)),
 					resource.TestMatchResourceAttr(resourceName, "name", regexp.MustCompile(`^[a-z0-9]+$`)),
-					resource.TestCheckResourceAttr(resourceName, "status", "RUN"),
 				),
 			},
 			{

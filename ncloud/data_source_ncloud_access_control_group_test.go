@@ -29,7 +29,6 @@ func TestAccDataSourceNcloudVpcAccessControlGroupBasic(t *testing.T) {
 					resource.TestCheckResourceAttrPair(dataName, "description", resourceName, "description"),
 					resource.TestCheckResourceAttrPair(dataName, "vpc_no", resourceName, "vpc_no"),
 					resource.TestCheckResourceAttrPair(dataName, "is_default", resourceName, "is_default"),
-					resource.TestCheckResourceAttrPair(dataName, "status", resourceName, "status"),
 					testAccCheckDataSourceID("data.ncloud_access_control_group.by_filter"),
 				),
 			},

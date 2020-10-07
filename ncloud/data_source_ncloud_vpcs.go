@@ -5,7 +5,6 @@ import (
 	"time"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
 
 func init() {
@@ -24,11 +23,6 @@ func dataSourceNcloudVpcs() *schema.Resource {
 			"name": {
 				Type:     schema.TypeString,
 				Optional: true,
-			},
-			"status": {
-				Type:         schema.TypeString,
-				Optional:     true,
-				ValidateFunc: validation.StringInSlice([]string{"INIT", "CREATING", "RUN", "TERMTING"}, false),
 			},
 			"filter": dataSourceFiltersSchema(),
 			"vpcs": {

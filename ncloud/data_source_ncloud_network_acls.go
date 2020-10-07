@@ -7,7 +7,6 @@ import (
 	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/ncloud"
 	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/services/vpc"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
 
 func init() {
@@ -34,12 +33,6 @@ func dataSourceNcloudNetworkAcls() *schema.Resource {
 				Type:        schema.TypeString,
 				Optional:    true,
 				Description: "The VPC ID that you want to filter from.",
-			},
-			"status": {
-				Type:         schema.TypeString,
-				Optional:     true,
-				Description:  "The status of the field to filter by.",
-				ValidateFunc: validation.StringInSlice([]string{"INIT", "CREATING", "RUN", "TERMTING"}, false),
 			},
 			"ids": {
 				Type:     schema.TypeSet,
@@ -72,10 +65,6 @@ func dataSourceNcloudNetworkAclsRead(d *schema.ResourceData, meta interface{}) e
 
 	if v, ok := d.GetOk("vpc_no"); ok {
 		reqParams.VpcNo = ncloud.String(v.(string))
-	}
-
-	if v, ok := d.GetOk("status"); ok {
-		reqParams.NetworkAclStatusCode = ncloud.String(v.(string))
 	}
 
 	logCommonRequest("GetNetworkAclList", reqParams)

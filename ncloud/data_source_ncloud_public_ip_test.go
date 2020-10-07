@@ -21,7 +21,6 @@ func TestAccDataSourceNcloudPublicIpBasic(t *testing.T) {
 					testAccCheckDataSourceID(dataName),
 					resource.TestCheckResourceAttrPair(dataName, "description", resourceName, "description"),
 					resource.TestCheckResourceAttrPair(dataName, "public_ip", resourceName, "public_ip"),
-					resource.TestCheckResourceAttrPair(dataName, "status", resourceName, "status"),
 					resource.TestCheckResourceAttrPair(dataName, "server_instance_no", resourceName, "server_instance_no"),
 					resource.TestCheckResourceAttrPair(dataName, "server_name", resourceName, "server_name"),
 

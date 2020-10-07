@@ -43,7 +43,6 @@ func testVpcPeeringCheckResourceAttrPair(dataName string, resourceName string) f
 		resource.TestCheckResourceAttrPair(dataName, "target_vpc_no", resourceName, "target_vpc_no"),
 		resource.TestCheckResourceAttrPair(dataName, "target_vpc_name", resourceName, "target_vpc_name"),
 		resource.TestCheckResourceAttrPair(dataName, "target_vpc_login_id", resourceName, "target_vpc_login_id"),
-		resource.TestCheckResourceAttrPair(dataName, "status", resourceName, "status"),
 		resource.TestCheckResourceAttrPair(dataName, "is_between_accounts", resourceName, "is_between_accounts"),
 		resource.TestCheckResourceAttrPair(dataName, "has_reverse_vpc_peering", resourceName, "has_reverse_vpc_peering"),
 	)

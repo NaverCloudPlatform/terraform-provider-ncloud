@@ -27,7 +27,6 @@ func TestAccDataSourceNcloudNatGateway_basic(t *testing.T) {
 					resource.TestCheckResourceAttrPair(dataName, "description", resourceName, "description"),
 					resource.TestCheckResourceAttrPair(dataName, "public_ip", resourceName, "public_ip"),
 					resource.TestCheckResourceAttrPair(dataName, "nat_gateway_no", resourceName, "nat_gateway_no"),
-					resource.TestCheckResourceAttrPair(dataName, "status", resourceName, "status"),
 					resource.TestCheckResourceAttrPair(dataName, "zone", resourceName, "zone"),
 					resource.TestCheckResourceAttrPair(dataName, "vpc_no", resourceName, "vpc_no"),
 				),

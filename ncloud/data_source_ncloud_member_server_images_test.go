@@ -51,8 +51,8 @@ data "ncloud_member_server_images" "member_server_images" {}
 var testAccDataSourceNcloudMemberServerImagesConfigFilter = `
 data "ncloud_member_server_images" "member_server_images" {
 	filter {
-		name   = "status"
-		values = ["RUN"]
+		name   = "platform_type"
+		values = ["LNX64"]
 	}
 }
 `

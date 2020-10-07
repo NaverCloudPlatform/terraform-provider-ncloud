@@ -30,7 +30,6 @@ func TestAccDataSourceNcloudSubnet(t *testing.T) {
 					resource.TestMatchResourceAttr(dataName, "network_acl_no", regexp.MustCompile(`^\d+$`)),
 					resource.TestCheckResourceAttr(dataName, "subnet_type", "PUBLIC"),
 					resource.TestCheckResourceAttr(dataName, "usage_type", "GEN"),
-					resource.TestCheckResourceAttr(dataName, "status", "RUN"),
 					testAccCheckDataSourceID("data.ncloud_subnet.by_filter"),
 				),
 			},

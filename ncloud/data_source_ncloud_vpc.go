@@ -4,7 +4,6 @@ import (
 	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/ncloud"
 	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/services/vpc"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
 
 func init() {
@@ -22,12 +21,6 @@ func dataSourceNcloudVpc() *schema.Resource {
 			Type:     schema.TypeString,
 			Optional: true,
 			Computed: true,
-		},
-		"status": {
-			Type:         schema.TypeString,
-			Optional:     true,
-			Computed:     true,
-			ValidateFunc: validation.StringInSlice([]string{"INIT", "CREATING", "RUN", "TERMTING"}, false),
 		},
 		"filter": dataSourceFiltersSchema(),
 	}
@@ -66,10 +59,6 @@ func getVpcListFiltered(d *schema.ResourceData, config *ProviderConfig) ([]map[s
 		reqParams.VpcName = ncloud.String(v.(string))
 	}
 
-	if v, ok := d.GetOk("status"); ok {
-		reqParams.VpcStatusCode = ncloud.String(v.(string))
-	}
-
 	if v, ok := d.GetOk("vpc_no"); ok {
 		reqParams.VpcNoList = []*string{ncloud.String(v.(string))}
 	}
@@ -91,7 +80,6 @@ func getVpcListFiltered(d *schema.ResourceData, config *ProviderConfig) ([]map[s
 			"vpc_no":          *r.VpcNo,
 			"name":            *r.VpcName,
 			"ipv4_cidr_block": *r.Ipv4CidrBlock,
-			"status":          *r.VpcStatus.Code,
 		}
 
 		resources = append(resources, instance)
