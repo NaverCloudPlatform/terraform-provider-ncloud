@@ -23,12 +23,11 @@ func TestAccResourceNcloudPortForwardingRuleBasic(t *testing.T) {
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    testAccClassicProviders,
 		CheckDestroy: testAccCheckPortForwardingRuleDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config:   testAccPortForwardingRuleBasicConfig(externalPort),
-				SkipFunc: testOnlyClassic,
+				Config: testAccPortForwardingRuleBasicConfig(externalPort),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckPortForwardingRuleExists("ncloud_port_forwarding_rule.test", &portForwarding),
 					resource.TestCheckResourceAttr(
@@ -59,7 +58,7 @@ func ignore_TestAccResourceNcloudPortForwardingRuleExistingServer(t *testing.T) 
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    testAccClassicProviders,
 		CheckDestroy: testAccCheckPortForwardingRuleDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -85,7 +84,7 @@ func ignore_TestAccResourceNcloudPortForwardingRuleExistingServer(t *testing.T) 
 }
 
 func testAccCheckPortForwardingRuleExists(n string, i *server.PortForwardingRule) resource.TestCheckFunc {
-	return testAccCheckPortForwardingRuleExistsWithProvider(n, i, func() *schema.Provider { return testAccProvider })
+	return testAccCheckPortForwardingRuleExistsWithProvider(n, i, func() *schema.Provider { return testAccClassicProvider })
 }
 
 func testAccCheckPortForwardingRuleExistsWithProvider(n string, i *server.PortForwardingRule, providerF func() *schema.Provider) resource.TestCheckFunc {
@@ -117,7 +116,7 @@ func testAccCheckPortForwardingRuleExistsWithProvider(n string, i *server.PortFo
 }
 
 func testAccCheckPortForwardingRuleDestroy(s *terraform.State) error {
-	return testAccCheckPortForwardingRuleDestroyWithProvider(s, testAccProvider)
+	return testAccCheckPortForwardingRuleDestroyWithProvider(s, testAccClassicProvider)
 }
 
 func testAccCheckPortForwardingRuleDestroyWithProvider(s *terraform.State, provider *schema.Provider) error {
@@ -163,7 +162,6 @@ resource "ncloud_port_forwarding_rule" "test" {
 	port_forwarding_external_port = "%d"
 	port_forwarding_internal_port = "22"
 }`, testServerName, testServerName, externalPort)
-
 }
 
 func testAccPortForwardingRuleExistingServerConfig(externalPort int) string {
@@ -173,5 +171,4 @@ resource "ncloud_port_forwarding_rule" "test" {
 	port_forwarding_external_port = "%d"
 	port_forwarding_internal_port = "22"
 }`, externalPort)
-
 }

@@ -13,7 +13,10 @@ import (
 )
 
 var testAccProviders map[string]terraform.ResourceProvider
+var testAccClassicProviders map[string]terraform.ResourceProvider
+
 var testAccProvider *schema.Provider
+var testAccClassicProvider *schema.Provider
 
 var credsEnvVars = []string{
 	"NCLOUD_ACCESS_KEY",
@@ -21,12 +24,50 @@ var credsEnvVars = []string{
 }
 
 var regionEnvVar = "NCLOUD_REGION"
+var supportVpcEnvVar = "NCLOUD_SUPPORT_VPC"
 
 func init() {
-	testAccProvider = Provider().(*schema.Provider)
+	testAccProvider = getTestAccProvider(true).(*schema.Provider)
+	testAccClassicProvider = getTestAccProvider(false).(*schema.Provider)
+
 	testAccProviders = map[string]terraform.ResourceProvider{
 		"ncloud": testAccProvider,
 	}
+
+	testAccClassicProviders = map[string]terraform.ResourceProvider{
+		"ncloud": testAccClassicProvider,
+	}
+}
+
+func getTestProvider(isVpc bool) *schema.Provider {
+	if isVpc {
+		return testAccProvider
+	}
+
+	return testAccClassicProvider
+}
+
+func getTestAccProviders(isVpc bool) map[string]terraform.ResourceProvider {
+	if isVpc {
+		return testAccProviders
+	}
+
+	return testAccClassicProviders
+}
+
+func getTestAccProvider(isVpc bool) terraform.ResourceProvider {
+	testProvider := &schema.Provider{
+		Schema:         schemaMap(),
+		DataSourcesMap: DataSourcesMap(),
+		ResourcesMap:   ResourcesMap(),
+		ConfigureFunc: func(d *schema.ResourceData) (interface{}, error) {
+			d.Set("region", testAccGetRegion())
+			d.Set("support_vpc", fmt.Sprintf("%v", isVpc))
+			return providerConfigure(d)
+		},
+	}
+
+	return testProvider
 }
 
 func TestProvider(t *testing.T) {
@@ -46,12 +87,6 @@ func testAccPreCheck(t *testing.T) {
 
 	region := testAccGetRegion()
 	log.Printf("[INFO] Test: Using %s as test region", region)
-	os.Setenv(regionEnvVar, region)
-
-	err := testAccProvider.Configure(terraform.NewResourceConfigRaw(nil))
-	if err != nil {
-		t.Fatal(err)
-	}
 }
 
 func testAccGetRegion() string {
@@ -72,16 +107,16 @@ func multiEnvSearch(ks []string) string {
 }
 
 func getTestPrefix() string {
-	rInt := acctest.RandIntRange(1, 9999)
-	return fmt.Sprintf("tf%d", rInt)
+	rand := acctest.RandString(5)
+	return fmt.Sprintf("tf%s", rand)
 }
 
-func testOnlyVpc() (bool, error) {
-	config := testAccProvider.Meta().(*ProviderConfig)
-	return !config.SupportVPC, nil
-}
+func composeConfig(config ...string) string {
+	var str strings.Builder
 
-func testOnlyClassic() (bool, error) {
-	config := testAccProvider.Meta().(*ProviderConfig)
-	return config.SupportVPC, nil
+	for _, conf := range config {
+		str.WriteString(conf)
+	}
+
+	return str.String()
 }

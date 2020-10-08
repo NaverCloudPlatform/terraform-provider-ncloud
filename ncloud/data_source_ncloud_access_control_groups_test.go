@@ -5,12 +5,26 @@ import (
 	"testing"
 )
 
-func TestAccDataSourceNcloudAccessControlGroupsBasic(t *testing.T) {
-	t.Parallel()
+func TestAccDataSourceNcloudAccessControlGroups_classic_basic(t *testing.T) {
+	testAccDataSourceNcloudAccessControlGroupsBasic(t, false)
+}
 
-	resource.Test(t, resource.TestCase{
+func TestAccDataSourceNcloudAccessControlGroups_vpc_basic(t *testing.T) {
+	testAccDataSourceNcloudAccessControlGroupsBasic(t, true)
+}
+
+func TestAccDataSourceNcloudAccessControlGroups_classic_default(t *testing.T) {
+	testAccDataSourceNcloudAccessControlGroupsDefault(t, false)
+}
+
+func TestAccDataSourceNcloudAccessControlGroups_vpc_default(t *testing.T) {
+	testAccDataSourceNcloudAccessControlGroupsDefault(t, true)
+}
+
+func testAccDataSourceNcloudAccessControlGroupsBasic(t *testing.T, isVpc bool) {
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:  func() { testAccPreCheck(t) },
-		Providers: testAccProviders,
+		Providers: getTestAccProviders(isVpc),
 		Steps: []resource.TestStep{
 			{
 				Config: testAccDataSourceNcloudAccessControlGroupsConfig,
@@ -22,19 +36,13 @@ func TestAccDataSourceNcloudAccessControlGroupsBasic(t *testing.T) {
 	})
 }
 
-func TestAccDataSourceNcloudAccessControlGroupsDefault(t *testing.T) {
-	t.Parallel()
-
-	resource.Test(t, resource.TestCase{
+func testAccDataSourceNcloudAccessControlGroupsDefault(t *testing.T, isVpc bool) {
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:  func() { testAccPreCheck(t) },
-		Providers: testAccProviders,
+		Providers: getTestAccProviders(isVpc),
 		Steps: []resource.TestStep{
 			{
 				Config: testAccDataSourceNcloudAccessControlGroupsDefaultConfig,
-				// ignore check: may be empty created data
-				SkipFunc: func() (bool, error) {
-					return skipNoResultsTest, nil
-				},
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckDataSourceID("data.ncloud_access_control_groups.default"),
 				),

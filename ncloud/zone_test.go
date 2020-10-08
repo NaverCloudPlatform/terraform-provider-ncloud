@@ -20,14 +20,14 @@ func testZoneSchema() map[string]*schema.Schema {
 func TestParseZoneNoParameterBasic(t *testing.T) {
 	testZoneCode := "KR-2"
 
-	resource.ParallelTest(t, resource.TestCase{
+	resource.Test(t, resource.TestCase{
 		PreCheck:  func() { testAccPreCheck(t) },
-		Providers: testAccProviders,
+		Providers: testAccClassicProviders,
 		Steps: []resource.TestStep{
 			{
-				Config: `data "ncloud_zones" "zones" {}`,
+				Config: zonesConfig,
 				Check: func(*terraform.State) error {
-					config := testAccProvider.Meta().(*ProviderConfig)
+					config := testAccClassicProvider.Meta().(*ProviderConfig)
 					s := testZoneSchema()
 					d := schema.TestResourceDataRaw(t, s, map[string]interface{}{
 						"zone": testZoneCode,
@@ -43,12 +43,12 @@ func TestParseZoneNoParameterBasic(t *testing.T) {
 }
 
 func TestParseZoneNoParameterInputNil(t *testing.T) {
-	resource.ParallelTest(t, resource.TestCase{
+	resource.Test(t, resource.TestCase{
 		PreCheck:  func() { testAccPreCheck(t) },
 		Providers: testAccProviders,
 		Steps: []resource.TestStep{
 			{
-				Config: `data "ncloud_zones" "zones" {}`,
+				Config: zonesConfig,
 				Check: func(*terraform.State) error {
 					config := testAccProvider.Meta().(*ProviderConfig)
 					if zoneNo, _ := parseZoneNoParameter(config, &schema.ResourceData{}); zoneNo != nil {
@@ -62,7 +62,7 @@ func TestParseZoneNoParameterInputNil(t *testing.T) {
 }
 
 func TestParseZoneNoParameterInputUnknownZoneCode(t *testing.T) {
-	resource.ParallelTest(t, resource.TestCase{
+	resource.Test(t, resource.TestCase{
 		PreCheck:  func() { testAccPreCheck(t) },
 		Providers: testAccProviders,
 		Steps: []resource.TestStep{
@@ -86,14 +86,14 @@ func TestParseZoneNoParameterInputUnknownZoneCode(t *testing.T) {
 
 func TestGetZoneNoByCodeBasic(t *testing.T) {
 	testZoneCode := "KR-2"
-	resource.ParallelTest(t, resource.TestCase{
+	resource.Test(t, resource.TestCase{
 		PreCheck:  func() { testAccPreCheck(t) },
-		Providers: testAccProviders,
+		Providers: testAccClassicProviders,
 		Steps: []resource.TestStep{
 			{
-				Config: `data "ncloud_zones" "zones" {}`,
+				Config: zonesConfig,
 				Check: func(*terraform.State) error {
-					config := testAccProvider.Meta().(*ProviderConfig)
+					config := testAccClassicProvider.Meta().(*ProviderConfig)
 					if zoneNo := getZoneNoByCode(config, testZoneCode); zoneNo == "" {
 						t.Fatalf("No zone data for zone_code: %s", testZoneCode)
 					}
@@ -106,14 +106,14 @@ func TestGetZoneNoByCodeBasic(t *testing.T) {
 
 func TestGetZoneNoByCodeInputUnknownZoneCode(t *testing.T) {
 	testZoneCode := "unknown-zone-code"
-	resource.ParallelTest(t, resource.TestCase{
+	resource.Test(t, resource.TestCase{
 		PreCheck:  func() { testAccPreCheck(t) },
-		Providers: testAccProviders,
+		Providers: testAccClassicProviders,
 		Steps: []resource.TestStep{
 			{
-				Config: `data "ncloud_zones" "zones" {}`,
+				Config: zonesConfig,
 				Check: func(*terraform.State) error {
-					config := testAccProvider.Meta().(*ProviderConfig)
+					config := testAccClassicProvider.Meta().(*ProviderConfig)
 					if zoneNo := getZoneNoByCode(config, testZoneCode); zoneNo != "" {
 						t.Fatalf("Unknown zone code must return nil. zone_code: %s", testZoneCode)
 					}
@@ -126,12 +126,12 @@ func TestGetZoneNoByCodeInputUnknownZoneCode(t *testing.T) {
 
 func TestGetZoneByCodeBasic(t *testing.T) {
 	testZoneCode := "KR-2"
-	resource.ParallelTest(t, resource.TestCase{
+	resource.Test(t, resource.TestCase{
 		PreCheck:  func() { testAccPreCheck(t) },
 		Providers: testAccProviders,
 		Steps: []resource.TestStep{
 			{
-				Config: `data "ncloud_zones" "zones" {}`,
+				Config: zonesConfig,
 				Check: func(*terraform.State) error {
 					config := testAccProvider.Meta().(*ProviderConfig)
 					if zone, err := getZoneByCode(config, testZoneCode); err != nil || zone == nil {
@@ -146,12 +146,12 @@ func TestGetZoneByCodeBasic(t *testing.T) {
 
 func TestGetZoneByCodeInputUnknownZoneCode(t *testing.T) {
 	testZoneCode := "unknown-zone-code"
-	resource.ParallelTest(t, resource.TestCase{
+	resource.Test(t, resource.TestCase{
 		PreCheck:  func() { testAccPreCheck(t) },
 		Providers: testAccProviders,
 		Steps: []resource.TestStep{
 			{
-				Config: `data "ncloud_zones" "zones" {}`,
+				Config: zonesConfig,
 				Check: func(*terraform.State) error {
 					config := testAccProvider.Meta().(*ProviderConfig)
 					if zone, _ := getZoneByCode(config, testZoneCode); zone != nil {
@@ -165,12 +165,12 @@ func TestGetZoneByCodeInputUnknownZoneCode(t *testing.T) {
 }
 
 func TestGetZonesBasic(t *testing.T) {
-	resource.ParallelTest(t, resource.TestCase{
+	resource.Test(t, resource.TestCase{
 		PreCheck:  func() { testAccPreCheck(t) },
 		Providers: testAccProviders,
 		Steps: []resource.TestStep{
 			{
-				Config: `data "ncloud_zones" "zones" {}`,
+				Config: zonesConfig,
 				Check: func(*terraform.State) error {
 					config := testAccProvider.Meta().(*ProviderConfig)
 					if zones, err := getZones(config); err != nil || zones == nil || len(zones) == 0 {
@@ -182,3 +182,5 @@ func TestGetZonesBasic(t *testing.T) {
 		},
 	})
 }
+
+var zonesConfig = `data "ncloud_zones" "zones" {}`

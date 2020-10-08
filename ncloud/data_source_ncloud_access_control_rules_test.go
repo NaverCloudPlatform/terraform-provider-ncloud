@@ -10,21 +10,18 @@ import (
 
 // ignore test : should use real access_control_group_configuration_no
 func testAccDataSourceNcloudAccessControlRulesBasic(t *testing.T) {
-	t.Parallel()
-
 	testId := os.Getenv("TEST_ID")
 	if testId == "" {
 		log.Println("[ERROR] ENV 'TEST_ID' is required")
 		return
 	}
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:  func() { testAccPreCheck(t) },
 		Providers: testAccProviders,
 		Steps: []resource.TestStep{
 			{
-				Config:   testAccDataSourceNcloudAccessControlRulesConfig(testId),
-				SkipFunc: testOnlyClassic,
+				Config: testAccDataSourceNcloudAccessControlRulesConfig(testId),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckDataSourceID("data.ncloud_access_control_rules.test"),
 				),

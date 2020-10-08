@@ -26,12 +26,11 @@ func TestAccNcloudLoadBalancerBasic(t *testing.T) {
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    testAccClassicProviders,
 		CheckDestroy: testAccCheckLoadBalancerDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config:   testAccLoadBalancerConfig(testLoadBalancerName),
-				SkipFunc: testOnlyClassic,
+				Config: testAccLoadBalancerConfig(testLoadBalancerName),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckLoadBalancerExists("ncloud_load_balancer.lb", &loadBalancerInstance),
 					testCheck(),
@@ -46,7 +45,6 @@ func TestAccNcloudLoadBalancerBasic(t *testing.T) {
 				),
 			},
 			{
-				SkipFunc:                testOnlyClassic,
 				ResourceName:            "ncloud_load_balancer.lb",
 				ImportState:             true,
 				ImportStateVerify:       true,
@@ -64,19 +62,17 @@ func TestAccNcloudLoadBalancerChangeConfiguration(t *testing.T) {
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    testAccClassicProviders,
 		CheckDestroy: testAccCheckLoadBalancerDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config:   testAccLoadBalancerConfig(testLoadBalancerName),
-				SkipFunc: testOnlyClassic,
+				Config: testAccLoadBalancerConfig(testLoadBalancerName),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckLoadBalancerExists("ncloud_load_balancer.lb", &before),
 				),
 			},
 			{
-				Config:   testAccLoadBalancerChangedConfig(testLoadBalancerName),
-				SkipFunc: testOnlyClassic,
+				Config: testAccLoadBalancerChangedConfig(testLoadBalancerName),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckLoadBalancerExists("ncloud_load_balancer.lb", &after),
 					resource.TestCheckResourceAttr(
@@ -85,7 +81,6 @@ func TestAccNcloudLoadBalancerChangeConfiguration(t *testing.T) {
 						"tftest_lb change port")),
 			},
 			{
-				SkipFunc:                testOnlyClassic,
 				ResourceName:            "ncloud_load_balancer.lb",
 				ImportState:             true,
 				ImportStateVerify:       true,
@@ -96,7 +91,7 @@ func TestAccNcloudLoadBalancerChangeConfiguration(t *testing.T) {
 }
 
 func testAccCheckLoadBalancerExists(n string, i *loadbalancer.LoadBalancerInstance) resource.TestCheckFunc {
-	return testAccCheckLoadBalancerExistsWithProvider(n, i, func() *schema.Provider { return testAccProvider })
+	return testAccCheckLoadBalancerExistsWithProvider(n, i, func() *schema.Provider { return testAccClassicProvider })
 }
 
 func testAccCheckLoadBalancerExistsWithProvider(n string, i *loadbalancer.LoadBalancerInstance, providerF func() *schema.Provider) resource.TestCheckFunc {
@@ -127,7 +122,7 @@ func testAccCheckLoadBalancerExistsWithProvider(n string, i *loadbalancer.LoadBa
 }
 
 func testAccCheckLoadBalancerDestroy(s *terraform.State) error {
-	return testAccCheckLoadBalancerDestroyWithProvider(s, testAccProvider)
+	return testAccCheckLoadBalancerDestroyWithProvider(s, testAccClassicProvider)
 }
 
 func testAccCheckLoadBalancerDestroyWithProvider(s *terraform.State, provider *schema.Provider) error {

@@ -6,15 +6,12 @@ import (
 )
 
 func TestAccDataSourceNcloudAccessControlRuleBasic(t *testing.T) {
-	t.Parallel()
-
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:  func() { testAccPreCheck(t) },
-		Providers: testAccProviders,
+		Providers: testAccClassicProviders,
 		Steps: []resource.TestStep{
 			{
-				Config:   testAccDataSourceNcloudAccessControlRuleConfig,
-				SkipFunc: testOnlyClassic,
+				Config: testAccDataSourceNcloudAccessControlRuleConfig,
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckDataSourceID("data.ncloud_access_control_rule.test"),
 				),

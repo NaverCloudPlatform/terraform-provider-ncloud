@@ -11,21 +11,22 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 )
 
-func TestAccResourceNcloudBlockStorage_Classic_basic(t *testing.T) {
+func TestAccResourceNcloudBlockStorage_classic_basic(t *testing.T) {
 	var storageInstance BlockStorage
 	name := fmt.Sprintf("tf-storage-basic-%s", acctest.RandString(5))
 	resourceName := "ncloud_block_storage.storage"
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
-		CheckDestroy: testAccCheckBlockStorageDestroy,
+		PreCheck:  func() { testAccPreCheck(t) },
+		Providers: testAccClassicProviders,
+		CheckDestroy: func(state *terraform.State) error {
+			return testAccCheckBlockStorageDestroyWithProvider(state, testAccClassicProvider)
+		},
 		Steps: []resource.TestStep{
 			{
-				Config:   testAccBlockStorageClassicConfig(name),
-				SkipFunc: testOnlyClassic,
+				Config: testAccBlockStorageClassicConfig(name),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckBlockStorageExists(resourceName, &storageInstance),
+					testAccCheckBlockStorageExistsWithProvider(resourceName, &storageInstance, testAccClassicProvider),
 					resource.TestMatchResourceAttr(resourceName, "id", regexp.MustCompile(`^\d+$`)),
 					resource.TestCheckResourceAttr(resourceName, "name", name),
 					resource.TestCheckResourceAttr(resourceName, "status", "ATTAC"),
@@ -41,7 +42,6 @@ func TestAccResourceNcloudBlockStorage_Classic_basic(t *testing.T) {
 				),
 			},
 			{
-				SkipFunc:          testOnlyClassic,
 				ResourceName:      resourceName,
 				ImportState:       true,
 				ImportStateVerify: true,
@@ -50,21 +50,22 @@ func TestAccResourceNcloudBlockStorage_Classic_basic(t *testing.T) {
 	})
 }
 
-func TestAccResourceNcloudBlockStorage_Vpc_basic(t *testing.T) {
+func TestAccResourceNcloudBlockStorage_vpc_basic(t *testing.T) {
 	var storageInstance BlockStorage
 	name := fmt.Sprintf("tf-storage-basic-%s", acctest.RandString(5))
 	resourceName := "ncloud_block_storage.storage"
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
-		CheckDestroy: testAccCheckBlockStorageDestroy,
+		PreCheck:  func() { testAccPreCheck(t) },
+		Providers: testAccProviders,
+		CheckDestroy: func(state *terraform.State) error {
+			return testAccCheckBlockStorageDestroyWithProvider(state, testAccProvider)
+		},
 		Steps: []resource.TestStep{
 			{
-				Config:   testAccBlockStorageVpcConfig(name),
-				SkipFunc: testOnlyVpc,
+				Config: testAccBlockStorageVpcConfig(name),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckBlockStorageExists(resourceName, &storageInstance),
+					testAccCheckBlockStorageExistsWithProvider(resourceName, &storageInstance, testAccProvider),
 					resource.TestMatchResourceAttr(resourceName, "id", regexp.MustCompile(`^\d+$`)),
 					resource.TestCheckResourceAttr(resourceName, "name", name),
 					resource.TestCheckResourceAttr(resourceName, "status", "ATTAC"),
@@ -80,7 +81,6 @@ func TestAccResourceNcloudBlockStorage_Vpc_basic(t *testing.T) {
 				),
 			},
 			{
-				SkipFunc:          testOnlyVpc,
 				ResourceName:      resourceName,
 				ImportState:       true,
 				ImportStateVerify: true,
@@ -89,67 +89,63 @@ func TestAccResourceNcloudBlockStorage_Vpc_basic(t *testing.T) {
 	})
 }
 
-func TestAccResourceNcloudBlockStorage_Classic_ChangeServerInstance(t *testing.T) {
+func TestAccResourceNcloudBlockStorage_classic_ChangeServerInstance(t *testing.T) {
 	var storageInstance BlockStorage
 	name := fmt.Sprintf("tf-storage-update-%s", acctest.RandString(5))
 	resourceName := "ncloud_block_storage.storage"
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
-		CheckDestroy: testAccCheckBlockStorageDestroy,
+		PreCheck:  func() { testAccPreCheck(t) },
+		Providers: testAccClassicProviders,
+		CheckDestroy: func(state *terraform.State) error {
+			return testAccCheckBlockStorageDestroyWithProvider(state, testAccClassicProvider)
+		},
 		Steps: []resource.TestStep{
 			{
-				Config:   testAccBlockStorageClassicConfigUpdate(name, "ncloud_server.foo.id"),
-				SkipFunc: testOnlyClassic,
+				Config: testAccBlockStorageClassicConfigUpdate(name, "ncloud_server.foo.id"),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckBlockStorageExists(resourceName, &storageInstance),
+					testAccCheckBlockStorageExistsWithProvider(resourceName, &storageInstance, testAccClassicProvider),
 				),
 			},
 			{
-				Config:   testAccBlockStorageClassicConfigUpdate(name, "ncloud_server.bar.id"),
-				SkipFunc: testOnlyClassic,
+				Config: testAccBlockStorageClassicConfigUpdate(name, "ncloud_server.bar.id"),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckBlockStorageExists(resourceName, &storageInstance),
+					testAccCheckBlockStorageExistsWithProvider(resourceName, &storageInstance, testAccClassicProvider),
 				),
 			},
 		},
 	})
 }
 
-func TestAccResourceNcloudBlockStorage_Vpc_ChangeServerInstance(t *testing.T) {
+func TestAccResourceNcloudBlockStorage_vpc_ChangeServerInstance(t *testing.T) {
 	var storageInstance BlockStorage
 	name := fmt.Sprintf("tf-storage-update-%s", acctest.RandString(5))
 	resourceName := "ncloud_block_storage.storage"
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
-		CheckDestroy: testAccCheckBlockStorageDestroy,
+		PreCheck:  func() { testAccPreCheck(t) },
+		Providers: testAccProviders,
+		CheckDestroy: func(state *terraform.State) error {
+			return testAccCheckBlockStorageDestroyWithProvider(state, testAccProvider)
+		},
 		Steps: []resource.TestStep{
 			{
-				Config:   testAccBlockStorageVpcConfigUpdate(name, "ncloud_server.foo.id"),
-				SkipFunc: testOnlyVpc,
+				Config: testAccBlockStorageVpcConfigUpdate(name, "ncloud_server.foo.id"),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckBlockStorageExists(resourceName, &storageInstance),
+					testAccCheckBlockStorageExistsWithProvider(resourceName, &storageInstance, testAccProvider),
 				),
 			},
 			{
-				Config:   testAccBlockStorageVpcConfigUpdate(name, "ncloud_server.bar.id"),
-				SkipFunc: testOnlyVpc,
+				Config: testAccBlockStorageVpcConfigUpdate(name, "ncloud_server.bar.id"),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckBlockStorageExists(resourceName, &storageInstance),
+					testAccCheckBlockStorageExistsWithProvider(resourceName, &storageInstance, testAccProvider),
 				),
 			},
 		},
 	})
 }
 
-func testAccCheckBlockStorageExists(n string, i *BlockStorage) resource.TestCheckFunc {
-	return testAccCheckBlockStorageExistsWithProvider(n, i, func() *schema.Provider { return testAccProvider })
-}
-
-func testAccCheckBlockStorageExistsWithProvider(n string, i *BlockStorage, providerF func() *schema.Provider) resource.TestCheckFunc {
+func testAccCheckBlockStorageExistsWithProvider(n string, i *BlockStorage, provider *schema.Provider) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		rs, ok := s.RootModule().Resources[n]
 		if !ok {
@@ -160,7 +156,6 @@ func testAccCheckBlockStorageExistsWithProvider(n string, i *BlockStorage, provi
 			return fmt.Errorf("no ID is set")
 		}
 
-		provider := providerF()
 		config := provider.Meta().(*ProviderConfig)
 		storage, err := getBlockStorage(config, rs.Primary.ID)
 		if err != nil {
@@ -174,10 +169,6 @@ func testAccCheckBlockStorageExistsWithProvider(n string, i *BlockStorage, provi
 
 		return fmt.Errorf("block storage not found")
 	}
-}
-
-func testAccCheckBlockStorageDestroy(s *terraform.State) error {
-	return testAccCheckBlockStorageDestroyWithProvider(s, testAccProvider)
 }
 
 func testAccCheckBlockStorageDestroyWithProvider(s *terraform.State, provider *schema.Provider) error {
@@ -312,7 +303,7 @@ resource "ncloud_subnet" "test" {
 
 resource "ncloud_server" "foo" {
 	subnet_no = ncloud_subnet.test.id
-	name = "%[1]s"
+	name = "%[1]s-foo"
 	server_image_product_code = "SW.VSVR.OS.LNX64.CNTOS.0703.B050"
 	server_product_code = "SVR.VSVR.STAND.C002.M008.NET.HDD.B050.G002"
 	login_key_name = ncloud_login_key.loginkey.key_name
@@ -320,7 +311,7 @@ resource "ncloud_server" "foo" {
 
 resource "ncloud_server" "bar" {
 	subnet_no = ncloud_subnet.test.id
-	name = "%[1]s"
+	name = "%[1]s-bar"
 	server_image_product_code = "SW.VSVR.OS.LNX64.CNTOS.0703.B050"
 	server_product_code = "SVR.VSVR.STAND.C002.M008.NET.HDD.B050.G002"
 	login_key_name = ncloud_login_key.loginkey.key_name

@@ -80,12 +80,11 @@ GTfhUTV7jTQ0dt9U1E+oxRkjqC2HFYlpewXP0rcQxhtK7p6kiaUDIw==
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    testAccClassicProviders,
 		CheckDestroy: testAccCheckLoadBalancerSSLCertificateDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config:   testAccLoadBalancerSSLCertificateConfig(testSSLCertificateName, testPrivateKey, testCertPEM, testLoadBalancerName),
-				SkipFunc: testOnlyClassic,
+				Config: testAccLoadBalancerSSLCertificateConfig(testSSLCertificateName, testPrivateKey, testCertPEM, testLoadBalancerName),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckLoadBalancerSSLCertificateExists("ncloud_load_balancer_ssl_certificate.cert", &sc),
 					testCheck(),
@@ -104,7 +103,6 @@ GTfhUTV7jTQ0dt9U1E+oxRkjqC2HFYlpewXP0rcQxhtK7p6kiaUDIw==
 				),
 			},
 			{
-				SkipFunc:          testOnlyClassic,
 				ResourceName:      "ncloud_load_balancer_ssl_certificate.cert",
 				ImportState:       true,
 				ImportStateVerify: true,
@@ -114,7 +112,7 @@ GTfhUTV7jTQ0dt9U1E+oxRkjqC2HFYlpewXP0rcQxhtK7p6kiaUDIw==
 }
 
 func testAccCheckLoadBalancerSSLCertificateExists(n string, i *loadbalancer.SslCertificate) resource.TestCheckFunc {
-	return testAccCheckLoadBalancerSSLCertificateExistsWithProvider(n, i, func() *schema.Provider { return testAccProvider })
+	return testAccCheckLoadBalancerSSLCertificateExistsWithProvider(n, i, func() *schema.Provider { return testAccClassicProvider })
 }
 
 func testAccCheckLoadBalancerSSLCertificateExistsWithProvider(n string, i *loadbalancer.SslCertificate, providerF func() *schema.Provider) resource.TestCheckFunc {
@@ -145,7 +143,7 @@ func testAccCheckLoadBalancerSSLCertificateExistsWithProvider(n string, i *loadb
 }
 
 func testAccCheckLoadBalancerSSLCertificateDestroy(s *terraform.State) error {
-	return testAccCheckLoadBalancerSSLCertificateDestroyWithProvider(s, testAccProvider)
+	return testAccCheckLoadBalancerSSLCertificateDestroyWithProvider(s, testAccClassicProvider)
 }
 
 func testAccCheckLoadBalancerSSLCertificateDestroyWithProvider(s *terraform.State, provider *schema.Provider) error {

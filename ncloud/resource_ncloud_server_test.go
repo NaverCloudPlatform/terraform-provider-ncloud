@@ -28,14 +28,13 @@ func TestAccResourceNcloudServer_classic_basic(t *testing.T) {
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    testAccClassicProviders,
 		CheckDestroy: testAccCheckServerDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config:   testAccServerClassicConfig(testServerName, productCode),
-				SkipFunc: testOnlyClassic,
+				Config: testAccServerClassicConfig(testServerName, productCode),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckServerExists(resourceName, &serverInstance),
+					testAccCheckServerExistsWithProvider(resourceName, &serverInstance, testAccClassicProvider),
 					testCheck(),
 					resource.TestMatchResourceAttr(resourceName, "id", regexp.MustCompile(`^\d+$`)),
 					resource.TestCheckResourceAttr(resourceName, "server_image_product_code", "SPSW0LINUX000032"),
@@ -60,7 +59,6 @@ func TestAccResourceNcloudServer_classic_basic(t *testing.T) {
 				),
 			},
 			{
-				SkipFunc:                testOnlyClassic,
 				ResourceName:            resourceName,
 				ImportState:             true,
 				ImportStateVerify:       true,
@@ -82,9 +80,8 @@ func TestAccResourceNcloudServer_vpc_basic(t *testing.T) {
 		CheckDestroy: testAccCheckServerDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config:   testAccServerVpcConfig(testServerName, productCode),
-				SkipFunc: testOnlyVpc,
-				Check: resource.ComposeTestCheckFunc(testAccCheckServerExists("ncloud_server.server", &serverInstance),
+				Config: testAccServerVpcConfig(testServerName, productCode),
+				Check: resource.ComposeTestCheckFunc(testAccCheckServerExistsWithProvider("ncloud_server.server", &serverInstance, testAccProvider),
 					resource.TestMatchResourceAttr(resourceName, "id", regexp.MustCompile(`^\d+$`)),
 					resource.TestCheckResourceAttr(resourceName, "server_image_product_code", "SW.VSVR.OS.LNX64.CNTOS.0703.B050"),
 					resource.TestCheckResourceAttr(resourceName, "server_product_code", productCode),
@@ -111,7 +108,6 @@ func TestAccResourceNcloudServer_vpc_basic(t *testing.T) {
 				),
 			},
 			{
-				SkipFunc:          testOnlyVpc,
 				ResourceName:      resourceName,
 				ImportState:       true,
 				ImportStateVerify: true,
@@ -132,9 +128,8 @@ func TestAccResourceNcloudServer_vpc_networkInterface(t *testing.T) {
 		CheckDestroy: testAccCheckServerDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config:   testAccServerVpcConfigNetworkInterface(testServerName, productCode),
-				SkipFunc: testOnlyVpc,
-				Check: resource.ComposeTestCheckFunc(testAccCheckServerExists("ncloud_server.server", &serverInstance),
+				Config: testAccServerVpcConfigNetworkInterface(testServerName, productCode),
+				Check: resource.ComposeTestCheckFunc(testAccCheckServerExistsWithProvider("ncloud_server.server", &serverInstance, testAccProvider),
 					resource.TestMatchResourceAttr(resourceName, "id", regexp.MustCompile(`^\d+$`)),
 					resource.TestCheckResourceAttr(resourceName, "server_image_product_code", "SW.VSVR.OS.LNX64.CNTOS.0703.B050"),
 					resource.TestCheckResourceAttr(resourceName, "server_product_code", productCode),
@@ -161,7 +156,6 @@ func TestAccResourceNcloudServer_vpc_networkInterface(t *testing.T) {
 				),
 			},
 			{
-				SkipFunc:          testOnlyVpc,
 				ResourceName:      resourceName,
 				ImportState:       true,
 				ImportStateVerify: true,
@@ -180,28 +174,25 @@ func TestAccResourceNcloudServer_classic_changeSpec(t *testing.T) {
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    testAccClassicProviders,
 		CheckDestroy: testAccCheckServerDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config:   testAccServerClassicConfig(testServerName, productCode),
-				SkipFunc: testOnlyClassic,
-				Check: resource.ComposeTestCheckFunc(testAccCheckServerExists(resourceName, &before),
+				Config: testAccServerClassicConfig(testServerName, productCode),
+				Check: resource.ComposeTestCheckFunc(testAccCheckServerExistsWithProvider(resourceName, &before, testAccClassicProvider),
 					resource.TestCheckResourceAttr(resourceName, "cpu_count", "2"),
 					resource.TestCheckResourceAttr(resourceName, "memory_size", "4294967296"),
 				),
 			},
 			{
-				Config:   testAccServerClassicConfig(testServerName, targetProductCode),
-				SkipFunc: testOnlyClassic,
-				Check: resource.ComposeTestCheckFunc(testAccCheckServerExists(resourceName, &after),
+				Config: testAccServerClassicConfig(testServerName, targetProductCode),
+				Check: resource.ComposeTestCheckFunc(testAccCheckServerExistsWithProvider(resourceName, &after, testAccClassicProvider),
 					resource.TestCheckResourceAttr(resourceName, "cpu_count", "4"),
 					resource.TestCheckResourceAttr(resourceName, "memory_size", "8589934592"),
 					testAccCheckInstanceNotRecreated(t, &before, &after),
 				),
 			},
 			{
-				SkipFunc:          testOnlyClassic,
 				ResourceName:      "ncloud_server.server",
 				ImportState:       true,
 				ImportStateVerify: true,
@@ -224,24 +215,21 @@ func TestAccResourceNcloudServer_vpc_changeSpec(t *testing.T) {
 		CheckDestroy: testAccCheckServerDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config:   testAccServerVpcConfig(testServerName, productCode),
-				SkipFunc: testOnlyVpc,
-				Check: resource.ComposeTestCheckFunc(testAccCheckServerExists(resourceName, &before),
+				Config: testAccServerVpcConfig(testServerName, productCode),
+				Check: resource.ComposeTestCheckFunc(testAccCheckServerExistsWithProvider(resourceName, &before, testAccProvider),
 					resource.TestCheckResourceAttr(resourceName, "cpu_count", "2"),
 					resource.TestCheckResourceAttr(resourceName, "memory_size", "8589934592"),
 				),
 			},
 			{
-				Config:   testAccServerVpcConfig(testServerName, targetProductCode),
-				SkipFunc: testOnlyVpc,
-				Check: resource.ComposeTestCheckFunc(testAccCheckServerExists(resourceName, &after),
+				Config: testAccServerVpcConfig(testServerName, targetProductCode),
+				Check: resource.ComposeTestCheckFunc(testAccCheckServerExistsWithProvider(resourceName, &after, testAccProvider),
 					resource.TestCheckResourceAttr(resourceName, "cpu_count", "4"),
 					resource.TestCheckResourceAttr(resourceName, "memory_size", "17179869184"),
 					testAccCheckInstanceNotRecreated(t, &before, &after),
 				),
 			},
 			{
-				SkipFunc:          testOnlyVpc,
 				ResourceName:      "ncloud_server.server",
 				ImportState:       true,
 				ImportStateVerify: true,
@@ -250,11 +238,7 @@ func TestAccResourceNcloudServer_vpc_changeSpec(t *testing.T) {
 	})
 }
 
-func testAccCheckServerExists(n string, i *ServerInstance) resource.TestCheckFunc {
-	return testAccCheckInstanceExistsWithProvider(n, i, func() *schema.Provider { return testAccProvider })
-}
-
-func testAccCheckInstanceExistsWithProvider(n string, i *ServerInstance, providerF func() *schema.Provider) resource.TestCheckFunc {
+func testAccCheckServerExistsWithProvider(n string, i *ServerInstance, provider *schema.Provider) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		rs, ok := s.RootModule().Resources[n]
 		if !ok {
@@ -265,7 +249,6 @@ func testAccCheckInstanceExistsWithProvider(n string, i *ServerInstance, provide
 			return fmt.Errorf("no ID is set")
 		}
 
-		provider := providerF()
 		config := provider.Meta().(*ProviderConfig)
 		instance, err := getServerInstance(config, rs.Primary.ID)
 		if err != nil {

@@ -7,7 +7,26 @@ import (
 	"testing"
 )
 
-func TestAccDataSourceNcloudRootPasswordBasic(t *testing.T) {
+func TestAccDataSourceNcloudRootPassword_classic_basic(t *testing.T) {
+	resourceName := "data.ncloud_root_password.default"
+	name := fmt.Sprintf("tf-passwd-basic-%s", acctest.RandString(5))
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:  func() { testAccPreCheck(t) },
+		Providers: testAccClassicProviders,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccDataSourceRootPasswordClassicConfig(name),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet(resourceName, "server_instance_no"),
+					resource.TestCheckResourceAttrSet(resourceName, "private_key"),
+				),
+			},
+		},
+	})
+}
+
+func TestAccDataSourceNcloudRootPassword_vpc_basic(t *testing.T) {
 	resourceName := "data.ncloud_root_password.default"
 	name := fmt.Sprintf("tf-passwd-basic-%s", acctest.RandString(5))
 
@@ -16,16 +35,7 @@ func TestAccDataSourceNcloudRootPasswordBasic(t *testing.T) {
 		Providers: testAccProviders,
 		Steps: []resource.TestStep{
 			{
-				Config:   testAccDataSourceRootPasswordClassicConfig(name),
-				SkipFunc: testOnlyClassic,
-				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttrSet(resourceName, "server_instance_no"),
-					resource.TestCheckResourceAttrSet(resourceName, "private_key"),
-				),
-			},
-			{
-				Config:   testAccDataSourceRootPasswordVpcConfig(name),
-				SkipFunc: testOnlyVpc,
+				Config: testAccDataSourceRootPasswordVpcConfig(name),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet(resourceName, "server_instance_no"),
 					resource.TestCheckResourceAttrSet(resourceName, "private_key"),

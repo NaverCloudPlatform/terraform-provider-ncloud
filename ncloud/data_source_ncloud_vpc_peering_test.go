@@ -21,8 +21,7 @@ func TestAccDataSourceNcloudVpcPeering_basic(t *testing.T) {
 		Providers: testAccProviders,
 		Steps: []resource.TestStep{
 			{
-				Config:   testAccDataSourceNcloudVpcPeeringConfig(name),
-				SkipFunc: testOnlyVpc,
+				Config: testAccDataSourceNcloudVpcPeeringConfig(name),
 				Check: resource.ComposeTestCheckFunc(
 					testVpcPeeringCheckResourceAttrPair(dataNameByName, resourceName),
 					testVpcPeeringCheckResourceAttrPair(dataNameBySourceName, resourceName),

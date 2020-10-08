@@ -23,8 +23,7 @@ func TestAccResourceNcloudAccessControlGroup_basic(t *testing.T) {
 		CheckDestroy: testAccCheckAccessControlGroupDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config:   testAccResourceNcloudAccessControlGroupConfig(name),
-				SkipFunc: testOnlyVpc,
+				Config: testAccResourceNcloudAccessControlGroupConfig(name),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckAccessControlGroupExists(resourceName, &AccessControlGroup),
 					resource.TestMatchResourceAttr(resourceName, "id", regexp.MustCompile(`^\d+$`)),
@@ -36,7 +35,6 @@ func TestAccResourceNcloudAccessControlGroup_basic(t *testing.T) {
 				),
 			},
 			{
-				SkipFunc:          testOnlyVpc,
 				ResourceName:      resourceName,
 				ImportState:       true,
 				ImportStateVerify: true,
@@ -56,8 +54,7 @@ func TestAccResourceNcloudAccessControlGroup_disappears(t *testing.T) {
 		CheckDestroy: testAccCheckAccessControlGroupDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config:   testAccResourceNcloudAccessControlGroupConfig(name),
-				SkipFunc: testOnlyVpc,
+				Config: testAccResourceNcloudAccessControlGroupConfig(name),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckAccessControlGroupExists(resourceName, &AccessControlGroup),
 					testAccCheckAccessControlGroupDisappears(&AccessControlGroup),

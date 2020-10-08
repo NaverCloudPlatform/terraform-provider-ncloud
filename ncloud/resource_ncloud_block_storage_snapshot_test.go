@@ -32,12 +32,11 @@ func ignore_TestAccResourceNcloudBlockStorageSnapshotBasic(t *testing.T) {
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    testAccClassicProviders,
 		CheckDestroy: testAccCheckBlockStorageSnapshotDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config:   testAccBlockStorageSnapshotConfig(testLoginKeyName, testServerInstanceName, testBlockStorageName, testSnapshotName),
-				SkipFunc: testOnlyClassic,
+				Config: testAccBlockStorageSnapshotConfig(testLoginKeyName, testServerInstanceName, testBlockStorageName, testSnapshotName),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckBlockStorageSnapshotExists(
 						"ncloud_block_storage_snapshot.ss", &snapshotInstance),
@@ -49,7 +48,6 @@ func ignore_TestAccResourceNcloudBlockStorageSnapshotBasic(t *testing.T) {
 				),
 			},
 			{
-				SkipFunc:          testOnlyClassic,
 				ResourceName:      "ncloud_block_storage_snapshot.ss",
 				ImportState:       true,
 				ImportStateVerify: true,
@@ -59,7 +57,7 @@ func ignore_TestAccResourceNcloudBlockStorageSnapshotBasic(t *testing.T) {
 }
 
 func testAccCheckBlockStorageSnapshotExists(n string, i *server.BlockStorageSnapshotInstance) resource.TestCheckFunc {
-	return testAccCheckBlockStorageSnapshotExistsWithProvider(n, i, func() *schema.Provider { return testAccProvider })
+	return testAccCheckBlockStorageSnapshotExistsWithProvider(n, i, func() *schema.Provider { return testAccClassicProvider })
 }
 
 func testAccCheckBlockStorageSnapshotExistsWithProvider(n string, i *server.BlockStorageSnapshotInstance, providerF func() *schema.Provider) resource.TestCheckFunc {
@@ -92,7 +90,7 @@ func testAccCheckBlockStorageSnapshotExistsWithProvider(n string, i *server.Bloc
 }
 
 func testAccCheckBlockStorageSnapshotDestroy(s *terraform.State) error {
-	return testAccCheckBlockStorageSnapshotDestroyWithProvider(s, testAccProvider)
+	return testAccCheckBlockStorageSnapshotDestroyWithProvider(s, testAccClassicProvider)
 }
 
 func testAccCheckBlockStorageSnapshotDestroyWithProvider(s *terraform.State, provider *schema.Provider) error {

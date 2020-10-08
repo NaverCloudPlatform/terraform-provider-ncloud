@@ -25,15 +25,13 @@ func TestAccresourceNcloudRouteTableAssociation_basic(t *testing.T) {
 		CheckDestroy: testAccCheckRouteTableAssociationDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config:   testAccresourceNcloudRouteTableAssociationConfig(name),
-				SkipFunc: testOnlyVpc,
+				Config: testAccResourceNcloudRouteTableAssociationConfig(name),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckRouteTableAssociationExists(resourceName, &association, &routeTableNo),
 					testAccCheckDataSourceID(resourceName),
 				),
 			},
 			{
-				SkipFunc:          testOnlyVpc,
 				ResourceName:      resourceName,
 				ImportState:       true,
 				ImportStateIdFunc: testAccNcloudRouteTableAssociationImportStateIDFunc(resourceName),
@@ -56,8 +54,7 @@ func TestAccresourceNcloudRouteTableAssociation_disappears(t *testing.T) {
 		CheckDestroy: testAccCheckRouteTableAssociationDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config:   testAccresourceNcloudRouteTableAssociationConfig(name),
-				SkipFunc: testOnlyVpc,
+				Config: testAccResourceNcloudRouteTableAssociationConfig(name),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckRouteTableAssociationExists(resourceName, &association, &routeTableNo),
 					testAccCheckRouteTableAssociationDisappears(&association, &routeTableNo),
@@ -68,7 +65,7 @@ func TestAccresourceNcloudRouteTableAssociation_disappears(t *testing.T) {
 	})
 }
 
-func testAccresourceNcloudRouteTableAssociationConfig(name string) string {
+func testAccResourceNcloudRouteTableAssociationConfig(name string) string {
 	return fmt.Sprintf(`
 resource "ncloud_vpc" "vpc" {
 	name            = "%[1]s"
@@ -89,7 +86,7 @@ resource "ncloud_route_table" "route_table" {
 	vpc_no                = ncloud_vpc.vpc.id
 	name                  = "%[1]s"
 	description           = "for test"
-	supported_subnet_type = "PRIVATE"
+	supported_subnet_type = "PUBLIC"
 }
 
 resource "ncloud_route_table_association" "test" {

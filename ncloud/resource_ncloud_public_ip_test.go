@@ -3,6 +3,7 @@ package ncloud
 import (
 	"fmt"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"regexp"
 	"testing"
 
@@ -10,7 +11,15 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 )
 
-func TestAccResourceNcloudPublicIpInstance_basic(t *testing.T) {
+func TestAccResourceNcloudPublicIpInstance_classic_basic(t *testing.T) {
+	testAccResourceNcloudPublicIpInstanceBasic(t, false)
+}
+
+func TestAccResourceNcloudPublicIpInstance_vpc_basic(t *testing.T) {
+	testAccResourceNcloudPublicIpInstanceBasic(t, true)
+}
+
+func testAccResourceNcloudPublicIpInstanceBasic(t *testing.T, isVpc bool) {
 	instance := map[string]interface{}{}
 
 	description := fmt.Sprintf("test-public-ip-basic-%s", acctest.RandString(5))
@@ -18,7 +27,7 @@ func TestAccResourceNcloudPublicIpInstance_basic(t *testing.T) {
 
 	testCheckAttribute := func() func(*terraform.State) error {
 		return func(*terraform.State) error {
-			config := testAccProvider.Meta().(*ProviderConfig)
+			config := getTestProvider(isVpc).Meta().(*ProviderConfig)
 
 			if instance["status"] != GetValueClassicOrVPC(config, "CREAT", "RUN") {
 				return fmt.Errorf("invalid public ip status: %s ", instance["status"])
@@ -28,15 +37,19 @@ func TestAccResourceNcloudPublicIpInstance_basic(t *testing.T) {
 		}
 	}
 
+	provider := getTestProvider(isVpc)
+
 	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
-		CheckDestroy: testAccCheckPublicIpInstanceDestroy,
+		PreCheck:  func() { testAccPreCheck(t) },
+		Providers: getTestAccProviders(isVpc),
+		CheckDestroy: func(s *terraform.State) error {
+			return testAccCheckPublicIpInstanceDestroy(s, provider)
+		},
 		Steps: []resource.TestStep{
 			{
 				Config: testAccPublicIpInstanceConfig(description),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckPublicIpInstanceExists(resourceName, instance),
+					testAccCheckPublicIpInstanceExists(resourceName, instance, provider),
 					testCheckAttribute(),
 					resource.TestMatchResourceAttr(resourceName, "id", regexp.MustCompile(`^\d+$`)),
 					resource.TestMatchResourceAttr(resourceName, "public_ip_no", regexp.MustCompile(`^\d+$`)),
@@ -61,29 +74,27 @@ func TestAccResourceNcloudPublicIpInstance_classic_updateServerInstanceNo(t *tes
 	resourceName := "ncloud_public_ip.public_ip"
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
-		CheckDestroy: testAccCheckPublicIpInstanceDestroy,
+		PreCheck:  func() { testAccPreCheck(t) },
+		Providers: testAccClassicProviders,
+		CheckDestroy: func(s *terraform.State) error {
+			return testAccCheckPublicIpInstanceDestroy(s, testAccClassicProvider)
+		},
 		Steps: []resource.TestStep{
 			{
-				Config:   testAccPublicIpInstanceConfigClassicServer(serverNameFoo, serverNameBar, ""),
-				SkipFunc: testOnlyClassic,
-				Check:    resource.ComposeTestCheckFunc(testAccCheckPublicIpInstanceExists(resourceName, instance)),
+				Config: testAccPublicIpInstanceConfigClassicServer(serverNameFoo, serverNameBar, ""),
+				Check:  resource.ComposeTestCheckFunc(testAccCheckPublicIpInstanceExists(resourceName, instance, testAccClassicProvider)),
 			},
 			{
-				Config:   testAccPublicIpInstanceConfigClassicServer(serverNameFoo, serverNameBar, "${ncloud_server.foo.id}"),
-				SkipFunc: testOnlyClassic,
-				Check:    resource.ComposeTestCheckFunc(testAccCheckPublicIpInstanceExists(resourceName, instance)),
+				Config: testAccPublicIpInstanceConfigClassicServer(serverNameFoo, serverNameBar, "${ncloud_server.foo.id}"),
+				Check:  resource.ComposeTestCheckFunc(testAccCheckPublicIpInstanceExists(resourceName, instance, testAccClassicProvider)),
 			},
 			{
-				Config:   testAccPublicIpInstanceConfigClassicServer(serverNameFoo, serverNameBar, "${ncloud_server.bar.id}"),
-				SkipFunc: testOnlyClassic,
-				Check:    resource.ComposeTestCheckFunc(testAccCheckPublicIpInstanceExists(resourceName, instance)),
+				Config: testAccPublicIpInstanceConfigClassicServer(serverNameFoo, serverNameBar, "${ncloud_server.bar.id}"),
+				Check:  resource.ComposeTestCheckFunc(testAccCheckPublicIpInstanceExists(resourceName, instance, testAccClassicProvider)),
 			},
 			{
-				Config:   testAccPublicIpInstanceConfigClassicServer(serverNameFoo, serverNameBar, ""),
-				SkipFunc: testOnlyClassic,
-				Check:    resource.ComposeTestCheckFunc(testAccCheckPublicIpInstanceExists(resourceName, instance)),
+				Config: testAccPublicIpInstanceConfigClassicServer(serverNameFoo, serverNameBar, ""),
+				Check:  resource.ComposeTestCheckFunc(testAccCheckPublicIpInstanceExists(resourceName, instance, testAccClassicProvider)),
 			},
 		},
 	})
@@ -96,35 +107,33 @@ func TestAccResourceNcloudPublicIpInstance_vpc_updateServerInstanceNo(t *testing
 	resourceName := "ncloud_public_ip.public_ip"
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
-		CheckDestroy: testAccCheckPublicIpInstanceDestroy,
+		PreCheck:  func() { testAccPreCheck(t) },
+		Providers: testAccProviders,
+		CheckDestroy: func(s *terraform.State) error {
+			return testAccCheckPublicIpInstanceDestroy(s, testAccProvider)
+		},
 		Steps: []resource.TestStep{
 			{
-				Config:   testAccPublicIpInstanceConfigVpcServer(serverNameFoo, serverNameBar, ""),
-				SkipFunc: testOnlyVpc,
-				Check:    resource.ComposeTestCheckFunc(testAccCheckPublicIpInstanceExists(resourceName, instance)),
+				Config: testAccPublicIpInstanceConfigVpcServer(serverNameFoo, serverNameBar, ""),
+				Check:  resource.ComposeTestCheckFunc(testAccCheckPublicIpInstanceExists(resourceName, instance, testAccProvider)),
 			},
 			{
-				Config:   testAccPublicIpInstanceConfigVpcServer(serverNameFoo, serverNameBar, "${ncloud_server.foo.id}"),
-				SkipFunc: testOnlyVpc,
-				Check:    resource.ComposeTestCheckFunc(testAccCheckPublicIpInstanceExists(resourceName, instance)),
+				Config: testAccPublicIpInstanceConfigVpcServer(serverNameFoo, serverNameBar, "${ncloud_server.foo.id}"),
+				Check:  resource.ComposeTestCheckFunc(testAccCheckPublicIpInstanceExists(resourceName, instance, testAccProvider)),
 			},
 			{
-				Config:   testAccPublicIpInstanceConfigVpcServer(serverNameFoo, serverNameBar, "${ncloud_server.bar.id}"),
-				SkipFunc: testOnlyVpc,
-				Check:    resource.ComposeTestCheckFunc(testAccCheckPublicIpInstanceExists(resourceName, instance)),
+				Config: testAccPublicIpInstanceConfigVpcServer(serverNameFoo, serverNameBar, "${ncloud_server.bar.id}"),
+				Check:  resource.ComposeTestCheckFunc(testAccCheckPublicIpInstanceExists(resourceName, instance, testAccProvider)),
 			},
 			{
-				Config:   testAccPublicIpInstanceConfigVpcServer(serverNameFoo, serverNameBar, ""),
-				SkipFunc: testOnlyVpc,
-				Check:    resource.ComposeTestCheckFunc(testAccCheckPublicIpInstanceExists(resourceName, instance)),
+				Config: testAccPublicIpInstanceConfigVpcServer(serverNameFoo, serverNameBar, ""),
+				Check:  resource.ComposeTestCheckFunc(testAccCheckPublicIpInstanceExists(resourceName, instance, testAccProvider)),
 			},
 		},
 	})
 }
 
-func testAccCheckPublicIpInstanceExists(n string, i map[string]interface{}) resource.TestCheckFunc {
+func testAccCheckPublicIpInstanceExists(n string, i map[string]interface{}, provider *schema.Provider) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		rs, ok := s.RootModule().Resources[n]
 		if !ok {
@@ -135,7 +144,7 @@ func testAccCheckPublicIpInstanceExists(n string, i map[string]interface{}) reso
 			return fmt.Errorf("no ID is set")
 		}
 
-		config := testAccProvider.Meta().(*ProviderConfig)
+		config := provider.Meta().(*ProviderConfig)
 
 		instance, err := getPublicIp(config, rs.Primary.ID)
 
@@ -155,9 +164,9 @@ func testAccCheckPublicIpInstanceExists(n string, i map[string]interface{}) reso
 	}
 }
 
-func testAccCheckPublicIpInstanceDestroy(s *terraform.State) error {
+func testAccCheckPublicIpInstanceDestroy(s *terraform.State, provider *schema.Provider) error {
 	for _, rs := range s.RootModule().Resources {
-		config := testAccProvider.Meta().(*ProviderConfig)
+		config := provider.Meta().(*ProviderConfig)
 
 		if rs.Type != "ncloud_public_ip" {
 			continue

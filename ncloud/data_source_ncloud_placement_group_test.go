@@ -19,8 +19,7 @@ func TestAccDataSourceNcloudPlacementGroup_basic(t *testing.T) {
 		Providers: testAccProviders,
 		Steps: []resource.TestStep{
 			{
-				Config:   testAccDataSourceNcloudPlacementGroupConfig(name),
-				SkipFunc: testOnlyVpc,
+				Config: testAccDataSourceNcloudPlacementGroupConfig(name),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckDataSourceID(dataName),
 					testAccCheckDataSourceID(dataNameFilter),
