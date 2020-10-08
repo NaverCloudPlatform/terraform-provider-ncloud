@@ -23,8 +23,7 @@ func TestAccResourceNcloudNatGateway_basic(t *testing.T) {
 		CheckDestroy: testAccCheckNatGatewayDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config:   testAccResourceNcloudNatGatewayConfig(name),
-				SkipFunc: testOnlyVpc,
+				Config: testAccResourceNcloudNatGatewayConfig(name),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckNatGatewayExists(resourceName, &natGateway),
 					resource.TestMatchResourceAttr(resourceName, "vpc_no", regexp.MustCompile(`^\d+$`)),
@@ -33,7 +32,6 @@ func TestAccResourceNcloudNatGateway_basic(t *testing.T) {
 				),
 			},
 			{
-				SkipFunc:          testOnlyVpc,
 				ResourceName:      resourceName,
 				ImportState:       true,
 				ImportStateVerify: true,
@@ -53,8 +51,7 @@ func TestAccResourceNcloudNatGateway_disappears(t *testing.T) {
 		CheckDestroy: testAccCheckNatGatewayDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config:   testAccResourceNcloudNatGatewayConfig(name),
-				SkipFunc: testOnlyVpc,
+				Config: testAccResourceNcloudNatGatewayConfig(name),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckNatGatewayExists(resourceName, &natGateway),
 					testAccCheckNatGatewayDisappears(&natGateway),
@@ -76,8 +73,7 @@ func TestAccResourceNcloudNatGateway_onlyRequiredParam(t *testing.T) {
 		CheckDestroy: testAccCheckNatGatewayDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config:   testAccResourceNcloudNatGatewayConfigOnlyRequiredParam(name),
-				SkipFunc: testOnlyVpc,
+				Config: testAccResourceNcloudNatGatewayConfigOnlyRequiredParam(name),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckNatGatewayExists(resourceName, &natGateway),
 					resource.TestMatchResourceAttr(resourceName, "vpc_no", regexp.MustCompile(`^\d+$`)),
@@ -86,7 +82,6 @@ func TestAccResourceNcloudNatGateway_onlyRequiredParam(t *testing.T) {
 				),
 			},
 			{
-				SkipFunc:          testOnlyVpc,
 				ResourceName:      resourceName,
 				ImportState:       true,
 				ImportStateVerify: true,
@@ -107,16 +102,14 @@ func TestAccResourceNcloudNatGateway_updateName(t *testing.T) {
 		CheckDestroy: testAccCheckNatGatewayDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config:   testAccResourceNcloudNatGatewayConfig(name),
-				SkipFunc: testOnlyVpc,
+				Config: testAccResourceNcloudNatGatewayConfig(name),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckNatGatewayExists(resourceName, &natGateway),
 					resource.TestCheckResourceAttr(resourceName, "name", name),
 				),
 			},
 			{
-				Config:   testAccResourceNcloudNatGatewayConfigUpdate(name, updateName),
-				SkipFunc: testOnlyVpc,
+				Config: testAccResourceNcloudNatGatewayConfigUpdate(name, updateName),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckNatGatewayExists(resourceName, &natGateway),
 				),
@@ -137,23 +130,20 @@ func TestAccResourceNcloudNatGateway_description(t *testing.T) {
 		CheckDestroy: testAccCheckNatGatewayDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config:   testAccResourceNcloudNatGatewayConfigDescription(name, "foo"),
-				SkipFunc: testOnlyVpc,
+				Config: testAccResourceNcloudNatGatewayConfigDescription(name, "foo"),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckNatGatewayExists(resourceName, &natGateway),
 					resource.TestCheckResourceAttr(resourceName, "description", "foo"),
 				),
 			},
 			{
-				Config:   testAccResourceNcloudNatGatewayConfigDescription(name, "bar"),
-				SkipFunc: testOnlyVpc,
+				Config: testAccResourceNcloudNatGatewayConfigDescription(name, "bar"),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckNatGatewayExists(resourceName, &natGateway),
 					resource.TestCheckResourceAttr(resourceName, "description", "bar"),
 				),
 			},
 			{
-				SkipFunc:          testOnlyVpc,
 				ResourceName:      resourceName,
 				ImportState:       true,
 				ImportStateVerify: true,

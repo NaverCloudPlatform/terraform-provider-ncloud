@@ -6,10 +6,18 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 )
 
-func TestAccDataSourceNcloudServerImagesBasic(t *testing.T) {
+func TestAccDataSourceNcloudServerImages_classic_basic(t *testing.T) {
+	testAccDataSourceNcloudServerImagesBasic(t, false)
+}
+
+func TestAccDataSourceNcloudServerImages_vpc_basic(t *testing.T) {
+	testAccDataSourceNcloudServerImagesBasic(t, false)
+}
+
+func testAccDataSourceNcloudServerImagesBasic(t *testing.T, isVpc bool) {
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:  func() { testAccPreCheck(t) },
-		Providers: testAccProviders,
+		Providers: getTestAccProviders(isVpc),
 		Steps: []resource.TestStep{
 			{
 				Config: testAccDataSourceNcloudServerImagesConfig,
@@ -21,10 +29,18 @@ func TestAccDataSourceNcloudServerImagesBasic(t *testing.T) {
 	})
 }
 
-func TestAccDataSourceNcloudServerImagesLinux(t *testing.T) {
+func TestAccDataSourceNcloudServerImages_classic_linux(t *testing.T) {
+	testAccDataSourceNcloudServerImagesLinux(t, false)
+}
+
+func TestAccDataSourceNcloudServerImages_vpc_linux(t *testing.T) {
+	testAccDataSourceNcloudServerImagesLinux(t, false)
+}
+
+func testAccDataSourceNcloudServerImagesLinux(t *testing.T, isVpc bool) {
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:  func() { testAccPreCheck(t) },
-		Providers: testAccProviders,
+		Providers: getTestAccProviders(isVpc),
 		Steps: []resource.TestStep{
 			{
 				Config: testAccDataSourceNcloudServerImagesLinuxConfig,
@@ -36,10 +52,18 @@ func TestAccDataSourceNcloudServerImagesLinux(t *testing.T) {
 	})
 }
 
-func TestAccDataSourceNcloudServerImagesWindows(t *testing.T) {
+func TestAccDataSourceNcloudServerImages_classic_windows(t *testing.T) {
+	testAccDataSourceNcloudServerImagesWindows(t, false)
+}
+
+func TestAccDataSourceNcloudServerImages_vpc_windows(t *testing.T) {
+	testAccDataSourceNcloudServerImagesWindows(t, false)
+}
+
+func testAccDataSourceNcloudServerImagesWindows(t *testing.T, isVpc bool) {
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:  func() { testAccPreCheck(t) },
-		Providers: testAccProviders,
+		Providers: getTestAccProviders(isVpc),
 		Steps: []resource.TestStep{
 			{
 				Config: testAccDataSourceNcloudServerImagesWindowsConfig,
@@ -51,10 +75,18 @@ func TestAccDataSourceNcloudServerImagesWindows(t *testing.T) {
 	})
 }
 
-func TestAccDataSourceNcloudServerImagesBareMetal(t *testing.T) {
+func TestAccDataSourceNcloudServerImages_classic_bareMetal(t *testing.T) {
+	testAccDataSourceNcloudServerImagesBareMetal(t, false)
+}
+
+func TestAccDataSourceNcloudServerImages_vpc_bareMetal(t *testing.T) {
+	testAccDataSourceNcloudServerImagesBareMetal(t, false)
+}
+
+func testAccDataSourceNcloudServerImagesBareMetal(t *testing.T, isVpc bool) {
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:  func() { testAccPreCheck(t) },
-		Providers: testAccProviders,
+		Providers: getTestAccProviders(isVpc),
 		Steps: []resource.TestStep{
 			{
 				Config: testAccDataSourceNcloudServerImagesBareMetalConfig,
@@ -66,10 +98,18 @@ func TestAccDataSourceNcloudServerImagesBareMetal(t *testing.T) {
 	})
 }
 
-func TestAccDataSourceNcloudServerImagesBlockStorageSize(t *testing.T) {
+func TestAccDataSourceNcloudServerImages_classic_blockStorageSize(t *testing.T) {
+	testAccDataSourceNcloudServerImagesBlockStorageSize(t, false)
+}
+
+func TestAccDataSourceNcloudServerImages_vpc_blockStorageSize(t *testing.T) {
+	testAccDataSourceNcloudServerImagesBlockStorageSize(t, false)
+}
+
+func testAccDataSourceNcloudServerImagesBlockStorageSize(t *testing.T, isVpc bool) {
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:  func() { testAccPreCheck(t) },
-		Providers: testAccProviders,
+		Providers: getTestAccProviders(isVpc),
 		Steps: []resource.TestStep{
 			{
 				Config: testAccDataSourceNcloudServerImagesBlockStorageSizeConfig,

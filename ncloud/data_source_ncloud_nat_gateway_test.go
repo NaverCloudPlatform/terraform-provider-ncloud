@@ -18,8 +18,7 @@ func TestAccDataSourceNcloudNatGateway_basic(t *testing.T) {
 		Providers: testAccProviders,
 		Steps: []resource.TestStep{
 			{
-				Config:   testAccDataSourceNcloudNatGatewayConfig(name),
-				SkipFunc: testOnlyVpc,
+				Config: testAccDataSourceNcloudNatGatewayConfig(name),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckDataSourceID(dataName),
 					testAccCheckDataSourceID("data.ncloud_nat_gateway.by_filter"),

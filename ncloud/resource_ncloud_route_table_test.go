@@ -23,8 +23,7 @@ func TestAccResourceNcloudRouteTable_basic(t *testing.T) {
 		CheckDestroy: testAccCheckRouteTableDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config:   testAccResourceNcloudRouteTableConfig(name),
-				SkipFunc: testOnlyVpc,
+				Config: testAccResourceNcloudRouteTableConfig(name),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckRouteTableExists(resourceName, &routeTable),
 					resource.TestMatchResourceAttr(resourceName, "vpc_no", regexp.MustCompile(`^\d+$`)),
@@ -33,7 +32,6 @@ func TestAccResourceNcloudRouteTable_basic(t *testing.T) {
 				),
 			},
 			{
-				SkipFunc:          testOnlyVpc,
 				ResourceName:      resourceName,
 				ImportState:       true,
 				ImportStateVerify: true,
@@ -53,8 +51,7 @@ func TestAccResourceNcloudRouteTable_disappears(t *testing.T) {
 		CheckDestroy: testAccCheckRouteTableDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config:   testAccResourceNcloudRouteTableConfig(name),
-				SkipFunc: testOnlyVpc,
+				Config: testAccResourceNcloudRouteTableConfig(name),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckRouteTableExists(resourceName, &routeTable),
 					testAccCheckRouteTableDisappears(&routeTable),
@@ -76,8 +73,7 @@ func TestAccResourceNcloudRouteTable_onlyRequiredParam(t *testing.T) {
 		CheckDestroy: testAccCheckRouteTableDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config:   testAccResourceNcloudRouteTableConfigOnlyRequired(name),
-				SkipFunc: testOnlyVpc,
+				Config: testAccResourceNcloudRouteTableConfigOnlyRequired(name),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckRouteTableExists(resourceName, &routeTable),
 					resource.TestMatchResourceAttr(resourceName, "vpc_no", regexp.MustCompile(`^\d+$`)),
@@ -86,7 +82,6 @@ func TestAccResourceNcloudRouteTable_onlyRequiredParam(t *testing.T) {
 				),
 			},
 			{
-				SkipFunc:          testOnlyVpc,
 				ResourceName:      resourceName,
 				ImportState:       true,
 				ImportStateVerify: true,
@@ -106,22 +101,19 @@ func TestAccResourceNcloudRouteTable_updateName(t *testing.T) {
 		CheckDestroy: testAccCheckRouteTableDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config:   testAccResourceNcloudRouteTableConfigOnlyRequired(name),
-				SkipFunc: testOnlyVpc,
+				Config: testAccResourceNcloudRouteTableConfigOnlyRequired(name),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckRouteTableExists(resourceName, &routeTable),
 				),
 			},
 			{
-				Config:   testAccResourceNcloudRouteTableConfig(name),
-				SkipFunc: testOnlyVpc,
+				Config: testAccResourceNcloudRouteTableConfig(name),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckRouteTableExists(resourceName, &routeTable),
 				),
 				ExpectError: regexp.MustCompile("Change 'name' is not support, Please set `name` as a old value"),
 			},
 			{
-				SkipFunc:          testOnlyVpc,
 				ResourceName:      resourceName,
 				ImportState:       true,
 				ImportStateVerify: true,
@@ -141,23 +133,20 @@ func TestAccResourceNcloudRouteTable_description(t *testing.T) {
 		CheckDestroy: testAccCheckRouteTableDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config:   testAccResourceNcloudRouteTableConfigDescription(name, "foo"),
-				SkipFunc: testOnlyVpc,
+				Config: testAccResourceNcloudRouteTableConfigDescription(name, "foo"),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckRouteTableExists(resourceName, &routeTable),
 					resource.TestCheckResourceAttr(resourceName, "description", "foo"),
 				),
 			},
 			{
-				Config:   testAccResourceNcloudRouteTableConfigDescription(name, "bar"),
-				SkipFunc: testOnlyVpc,
+				Config: testAccResourceNcloudRouteTableConfigDescription(name, "bar"),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckRouteTableExists(resourceName, &routeTable),
 					resource.TestCheckResourceAttr(resourceName, "description", "bar"),
 				),
 			},
 			{
-				SkipFunc:          testOnlyVpc,
 				ResourceName:      resourceName,
 				ImportState:       true,
 				ImportStateVerify: true,

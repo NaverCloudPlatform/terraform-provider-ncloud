@@ -5,12 +5,18 @@ import (
 	"testing"
 )
 
-func TestAccDataSourceNcloudRegionsBasic(t *testing.T) {
-	t.Parallel()
+func TestAccDataSourceNcloudRegions_classic_basic(t *testing.T) {
+	testAccDataSourceNcloudRegionsBasic(t, false)
+}
 
-	resource.Test(t, resource.TestCase{
+func TestAccDataSourceNcloudRegions_vpc_basic(t *testing.T) {
+	testAccDataSourceNcloudRegionsBasic(t, true)
+}
+
+func testAccDataSourceNcloudRegionsBasic(t *testing.T, isVpc bool) {
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:  func() { testAccPreCheck(t) },
-		Providers: testAccProviders,
+		Providers: getTestAccProviders(isVpc),
 		Steps: []resource.TestStep{
 			{
 				Config: testAccDataSourceNcloudRegionsConfig,

@@ -7,13 +7,21 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 )
 
-func TestAccDataSourceNcloudPublicIpBasic(t *testing.T) {
+func TestAccDataSourceNcloudPublicIp_classic_basic(t *testing.T) {
+	testAccDataSourceNcloudPublicIpBasic(t, false)
+}
+
+func TestAccDataSourceNcloudPublicIp_vpc_basic(t *testing.T) {
+	testAccDataSourceNcloudPublicIpBasic(t, true)
+}
+
+func testAccDataSourceNcloudPublicIpBasic(t *testing.T, isVpc bool) {
 	resourceName := "ncloud_public_ip.public_ip"
 	dataName := "data.ncloud_public_ip.test"
 
-	resource.ParallelTest(t, resource.TestCase{
+	resource.Test(t, resource.TestCase{
 		PreCheck:  func() { testAccPreCheck(t) },
-		Providers: testAccProviders,
+		Providers: getTestAccProviders(isVpc),
 		Steps: []resource.TestStep{
 			{
 				Config: testAccDataSourceNcloudPublicIpConfig,

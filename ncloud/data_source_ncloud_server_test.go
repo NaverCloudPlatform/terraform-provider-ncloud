@@ -18,8 +18,7 @@ func TestAccDataSourceNcloudServer_vpc_basic(t *testing.T) {
 		Providers: testAccProviders,
 		Steps: []resource.TestStep{
 			{
-				Config:   testAccDataSourceServerVpcConfig(testServerName),
-				SkipFunc: testOnlyVpc,
+				Config: testAccDataSourceServerVpcConfig(testServerName),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckDataSourceID(dataName),
 					resource.TestMatchResourceAttr(dataName, "id", regexp.MustCompile(`^\d+$`)),
@@ -57,11 +56,10 @@ func TestAccDataSourceNcloudServer_classic_basic(t *testing.T) {
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:  func() { testAccPreCheck(t) },
-		Providers: testAccProviders,
+		Providers: testAccClassicProviders,
 		Steps: []resource.TestStep{
 			{
-				Config:   testAccDataSourceServerClassicConfig(testServerName),
-				SkipFunc: testOnlyClassic,
+				Config: testAccDataSourceServerClassicConfig(testServerName),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckDataSourceID(dataName),
 					resource.TestMatchResourceAttr(dataName, "id", regexp.MustCompile(`^\d+$`)),

@@ -23,14 +23,12 @@ func TestAccresourceNcloudRoute_basic(t *testing.T) {
 		CheckDestroy: testAccCheckRouteDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config:   testAccresourceNcloudRouteConfig(name),
-				SkipFunc: testOnlyVpc,
+				Config: testAccResourceNcloudRouteConfig(name),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckRouteExists(resourceName, &route),
 				),
 			},
 			{
-				SkipFunc:          testOnlyVpc,
 				ResourceName:      resourceName,
 				ImportState:       true,
 				ImportStateIdFunc: testAccNcloudRouteImportStateIDFunc(resourceName),
@@ -51,8 +49,7 @@ func TestAccresourceNcloudRoute_disappears(t *testing.T) {
 		CheckDestroy: testAccCheckRouteDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config:   testAccresourceNcloudRouteConfig(name),
-				SkipFunc: testOnlyVpc,
+				Config: testAccResourceNcloudRouteConfig(name),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckRouteExists(resourceName, &route),
 					testAccCheckRouteDisappears(&route),
@@ -63,7 +60,7 @@ func TestAccresourceNcloudRoute_disappears(t *testing.T) {
 	})
 }
 
-func testAccresourceNcloudRouteConfig(name string) string {
+func testAccResourceNcloudRouteConfig(name string) string {
 	return fmt.Sprintf(`
 resource "ncloud_vpc" "vpc" {
 	name            = "%[1]s"

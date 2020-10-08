@@ -6,14 +6,22 @@ import (
 	"testing"
 )
 
-func TestAccDataSourceNcloudNasVolumeBasic(t *testing.T) {
+func TestAccDataSourceNcloudNasVolume_classic_basic(t *testing.T) {
+	testAccDataSourceNcloudNasVolumeBasic(t, false)
+}
+
+func TestAccDataSourceNcloudNasVolume_vpc_basic(t *testing.T) {
+	testAccDataSourceNcloudNasVolumeBasic(t, true)
+}
+
+func testAccDataSourceNcloudNasVolumeBasic(t *testing.T, isVpc bool) {
 	dataName := "data.ncloud_nas_volume.by_id"
 	resourceName := "ncloud_nas_volume.test"
 	postfix := getTestPrefix()
 
-	resource.ParallelTest(t, resource.TestCase{
+	resource.Test(t, resource.TestCase{
 		PreCheck:  func() { testAccPreCheck(t) },
-		Providers: testAccProviders,
+		Providers: getTestAccProviders(isVpc),
 		Steps: []resource.TestStep{
 			{
 				Config: testAccDataSourceNcloudNasVolumeConfig(postfix),

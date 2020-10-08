@@ -1,7 +1,9 @@
 package ncloud
 
 import (
+	"fmt"
 	"os"
+	"strconv"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
@@ -12,41 +14,45 @@ var NcloudDataSources map[string]*schema.Resource
 
 func Provider() terraform.ResourceProvider {
 	return &schema.Provider{
-		Schema: map[string]*schema.Schema{
-			"access_key": {
-				Type:        schema.TypeString,
-				Required:    true,
-				DefaultFunc: schema.EnvDefaultFunc("NCLOUD_ACCESS_KEY", nil),
-				Description: descriptions["access_key"],
-			},
-			"secret_key": {
-				Type:        schema.TypeString,
-				Required:    true,
-				DefaultFunc: schema.EnvDefaultFunc("NCLOUD_SECRET_KEY", nil),
-				Description: descriptions["secret_key"],
-			},
-			"region": {
-				Type:        schema.TypeString,
-				Optional:    true,
-				DefaultFunc: schema.EnvDefaultFunc("NCLOUD_REGION", nil),
-				Description: descriptions["region"],
-			},
-			"site": {
-				Type:        schema.TypeString,
-				Optional:    true,
-				DefaultFunc: schema.EnvDefaultFunc("NCLOUD_SITE", nil),
-				Description: descriptions["site"],
-			},
-			"support_vpc": {
-				Type:        schema.TypeBool,
-				Optional:    true,
-				DefaultFunc: schema.EnvDefaultFunc("NCLOUD_SUPPORT_VPC", nil),
-				Description: descriptions["support_vpc"],
-			},
-		},
+		Schema:         schemaMap(),
 		DataSourcesMap: DataSourcesMap(),
 		ResourcesMap:   ResourcesMap(),
 		ConfigureFunc:  providerConfigure,
+	}
+}
+
+func schemaMap() map[string]*schema.Schema {
+	return map[string]*schema.Schema{
+		"access_key": {
+			Type:        schema.TypeString,
+			Required:    true,
+			DefaultFunc: schema.EnvDefaultFunc("NCLOUD_ACCESS_KEY", nil),
+			Description: descriptions["access_key"],
+		},
+		"secret_key": {
+			Type:        schema.TypeString,
+			Required:    true,
+			DefaultFunc: schema.EnvDefaultFunc("NCLOUD_SECRET_KEY", nil),
+			Description: descriptions["secret_key"],
+		},
+		"region": {
+			Type:        schema.TypeString,
+			Optional:    true,
+			DefaultFunc: schema.EnvDefaultFunc("NCLOUD_REGION", nil),
+			Description: descriptions["region"],
+		},
+		"site": {
+			Type:        schema.TypeString,
+			Optional:    true,
+			DefaultFunc: schema.EnvDefaultFunc("NCLOUD_SITE", nil),
+			Description: descriptions["site"],
+		},
+		"support_vpc": {
+			Type:        schema.TypeString,
+			Optional:    true,
+			DefaultFunc: schema.EnvDefaultFunc("NCLOUD_SUPPORT_VPC", nil),
+			Description: descriptions["support_vpc"],
+		},
 	}
 }
 
@@ -75,7 +81,11 @@ func providerConfigure(d *schema.ResourceData) (interface{}, error) {
 	}
 
 	if supportVpc, ok := d.GetOk("support_vpc"); ok {
-		providerConfig.SupportVPC = supportVpc.(bool)
+		b, err := strconv.ParseBool(supportVpc.(string))
+		if err != nil {
+			fmt.Errorf("error to converting bool `support_vpc`: %s", supportVpc)
+		}
+		providerConfig.SupportVPC = b
 	}
 
 	client, err := config.Client()

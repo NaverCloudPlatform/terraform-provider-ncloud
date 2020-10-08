@@ -13,8 +13,7 @@ func TestAccDataSourceNcloudNetworkAclsBasic(t *testing.T) {
 		Providers: testAccProviders,
 		Steps: []resource.TestStep{
 			{
-				Config:   testAccDataSourceNcloudNetworkAclsConfig(),
-				SkipFunc: testOnlyVpc,
+				Config: testAccDataSourceNcloudNetworkAclsConfig(),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckDataSourceID("data.ncloud_network_acls.all"),
 				),
@@ -29,8 +28,7 @@ func TestAccDataSourceNcloudNetworkAclsName(t *testing.T) {
 		Providers: testAccProviders,
 		Steps: []resource.TestStep{
 			{
-				Config:   testAccDataSourceNcloudNetworkAclsConfigName("default"),
-				SkipFunc: testOnlyVpc,
+				Config: testAccDataSourceNcloudNetworkAclsConfigName("default"),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckDataSourceID("data.ncloud_network_acls.by_name"),
 				),
@@ -45,8 +43,7 @@ func TestAccDataSourceNcloudNetworkAclsVpcNo(t *testing.T) {
 		Providers: testAccProviders,
 		Steps: []resource.TestStep{
 			{
-				Config:   testAccDataSourceNcloudNetworkAclsConfigVpcNo(),
-				SkipFunc: testOnlyVpc,
+				Config: testAccDataSourceNcloudNetworkAclsConfigVpcNo(),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckDataSourceID("data.ncloud_network_acls.by_vpc_no"),
 				),

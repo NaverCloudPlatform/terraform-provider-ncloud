@@ -15,8 +15,7 @@ func TestAccDataSourceNcloudInitScriptBasic(t *testing.T) {
 		Providers: testAccProviders,
 		Steps: []resource.TestStep{
 			{
-				Config:   testAccDataSourceNcloudInitScriptConfig,
-				SkipFunc: testOnlyVpc,
+				Config: testAccDataSourceNcloudInitScriptConfig,
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckDataSourceID(dataName),
 					resource.TestCheckResourceAttrPair(dataName, "name", resourceName, "name"),
@@ -32,13 +31,12 @@ func TestAccDataSourceNcloudInitScriptFilter(t *testing.T) {
 	resourceName := "ncloud_init_script.foo"
 	dataName := "data.ncloud_init_script.by_filter"
 
-	resource.ParallelTest(t, resource.TestCase{
+	resource.Test(t, resource.TestCase{
 		PreCheck:  func() { testAccPreCheck(t) },
 		Providers: testAccProviders,
 		Steps: []resource.TestStep{
 			{
-				Config:   testAccDataSourceNcloudInitScriptConfigFilter,
-				SkipFunc: testOnlyVpc,
+				Config: testAccDataSourceNcloudInitScriptConfigFilter,
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckDataSourceID("data.ncloud_init_script.by_filter"),
 					testAccCheckDataSourceID(dataName),

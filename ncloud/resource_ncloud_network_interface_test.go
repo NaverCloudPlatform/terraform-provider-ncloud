@@ -23,8 +23,7 @@ func TestAccresourceNcloudNetworkInterface_basic(t *testing.T) {
 		CheckDestroy: testAccCheckNetworkInterfaceDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config:   testAccresourceNcloudNetworkInterfaceConfig(name),
-				SkipFunc: testOnlyVpc,
+				Config: testAccResourceNcloudNetworkInterfaceConfig(name),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckNetworkInterfaceExists(resourceName, &networkInterface),
 					resource.TestMatchResourceAttr(resourceName, "network_interface_no", regexp.MustCompile(`^\d+$`)),
@@ -39,7 +38,6 @@ func TestAccresourceNcloudNetworkInterface_basic(t *testing.T) {
 				),
 			},
 			{
-				SkipFunc:          testOnlyVpc,
 				ResourceName:      resourceName,
 				ImportState:       true,
 				ImportStateVerify: true,
@@ -59,24 +57,17 @@ func TestAccresourceNcloudNetworkInterface_update(t *testing.T) {
 		CheckDestroy: testAccCheckNetworkInterfaceDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config:   testAccresourceNcloudNetworkInterfaceUpdate(name, ""),
-				SkipFunc: testOnlyVpc,
+				Config: testAccResourceNcloudNetworkInterfaceUpdate(name, ""),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckNetworkInterfaceExists(resourceName, &networkInterface),
+					resource.TestCheckResourceAttr(resourceName, "server_instance_no", ""),
 				),
 			},
 			{
-				Config:   testAccresourceNcloudNetworkInterfaceUpdate(name, "${ncloud_server.server.id}"),
-				SkipFunc: testOnlyVpc,
+				Config: testAccResourceNcloudNetworkInterfaceUpdate(name, "${ncloud_server.server.id}"),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckNetworkInterfaceExists(resourceName, &networkInterface),
-				),
-			},
-			{
-				Config:   testAccresourceNcloudNetworkInterfaceUpdate(name, ""),
-				SkipFunc: testOnlyVpc,
-				Check: resource.ComposeTestCheckFunc(
-					testAccCheckNetworkInterfaceExists(resourceName, &networkInterface),
+					resource.TestMatchResourceAttr(resourceName, "server_instance_no", regexp.MustCompile(`^\d+$`)),
 				),
 			},
 		},
@@ -94,8 +85,7 @@ func TestAccresourceNcloudNetworkInterface_disappears(t *testing.T) {
 		CheckDestroy: testAccCheckNetworkInterfaceDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config:   testAccresourceNcloudNetworkInterfaceConfig(name),
-				SkipFunc: testOnlyVpc,
+				Config: testAccResourceNcloudNetworkInterfaceConfig(name),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckNetworkInterfaceExists(resourceName, &networkInterface),
 					testAccCheckNetworkInterfaceDisappears(&networkInterface),
@@ -106,7 +96,7 @@ func TestAccresourceNcloudNetworkInterface_disappears(t *testing.T) {
 	})
 }
 
-func testAccresourceNcloudNetworkInterfaceConfig(name string) string {
+func testAccResourceNcloudNetworkInterfaceConfig(name string) string {
 	return fmt.Sprintf(`
 resource "ncloud_vpc" "test" {
 	name               = "%[1]s"
@@ -133,7 +123,7 @@ resource "ncloud_network_interface" "foo" {
 `, name)
 }
 
-func testAccresourceNcloudNetworkInterfaceUpdate(name, instanceNo string) string {
+func testAccResourceNcloudNetworkInterfaceUpdate(name, instanceNo string) string {
 	return fmt.Sprintf(`
 resource "ncloud_vpc" "test" {
 	name               = "%[1]s"

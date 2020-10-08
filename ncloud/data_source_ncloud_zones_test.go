@@ -6,12 +6,18 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 )
 
-func TestAccDataSourceNcloudZonesBasic(t *testing.T) {
-	t.Parallel()
+func TestAccDataSourceNcloudZones_classic_basic(t *testing.T) {
+	testAccDataSourceNcloudZonesBasic(t, false)
+}
 
-	resource.Test(t, resource.TestCase{
+func TestAccDataSourceNcloudZones_vpc_basic(t *testing.T) {
+	testAccDataSourceNcloudZonesBasic(t, true)
+}
+
+func testAccDataSourceNcloudZonesBasic(t *testing.T, isVpc bool) {
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:  func() { testAccPreCheck(t) },
-		Providers: testAccProviders,
+		Providers: getTestAccProviders(isVpc),
 		Steps: []resource.TestStep{
 			{
 				Config: testAccDataSourceNcloudZonesConfig,

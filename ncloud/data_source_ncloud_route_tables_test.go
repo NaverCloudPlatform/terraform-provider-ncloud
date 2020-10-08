@@ -15,8 +15,7 @@ func TestAccDataSourceNcloudRouteTablesBasic(t *testing.T) {
 		Providers: testAccProviders,
 		Steps: []resource.TestStep{
 			{
-				Config:   testAccDataSourceNcloudRouteTablesConfig(),
-				SkipFunc: testOnlyVpc,
+				Config: testAccDataSourceNcloudRouteTablesConfig(),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckDataSourceID("data.ncloud_route_tables.all"),
 				),
@@ -34,8 +33,7 @@ func TestAccDataSourceNcloudRouteTablesFilter(t *testing.T) {
 		Providers: testAccProviders,
 		Steps: []resource.TestStep{
 			{
-				Config:   testAccDataSourceNcloudRouteTablesConfigFilter(name),
-				SkipFunc: testOnlyVpc,
+				Config: testAccDataSourceNcloudRouteTablesConfigFilter(name),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckDataSourceID(dataName),
 					resource.TestCheckResourceAttr(dataName, "route_tables.#", "1"),
@@ -54,8 +52,7 @@ func TestAccDataSourceNcloudRouteTablesName(t *testing.T) {
 		Providers: testAccProviders,
 		Steps: []resource.TestStep{
 			{
-				Config:   testAccDataSourceNcloudRouteTablesConfigName("test"),
-				SkipFunc: testOnlyVpc,
+				Config: testAccDataSourceNcloudRouteTablesConfigName("test"),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckDataSourceID("data.ncloud_route_tables.by_name"),
 				),
@@ -72,8 +69,7 @@ func TestAccDataSourceNcloudRouteTablesVpcNo(t *testing.T) {
 		Providers: testAccProviders,
 		Steps: []resource.TestStep{
 			{
-				Config:   testAccDataSourceNcloudRouteTablesConfigVpcNo(name),
-				SkipFunc: testOnlyVpc,
+				Config: testAccDataSourceNcloudRouteTablesConfigVpcNo(name),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckDataSourceID("data.ncloud_route_tables.by_vpc_no"),
 				),

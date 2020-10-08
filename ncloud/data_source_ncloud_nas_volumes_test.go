@@ -6,12 +6,20 @@ import (
 	"testing"
 )
 
-func TestAccDataSourceNcloudNasVolumesBasic(t *testing.T) {
+func TestAccDataSourceNcloudNasVolumes_classic_basic(t *testing.T) {
+	testAccDataSourceNcloudNasVolumesBasic(t, false)
+}
+
+func TestAccDataSourceNcloudNasVolumes_vpc_basic(t *testing.T) {
+	testAccDataSourceNcloudNasVolumesBasic(t, true)
+}
+
+func testAccDataSourceNcloudNasVolumesBasic(t *testing.T, isVpc bool) {
 	postfix := getTestPrefix()
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:  func() { testAccPreCheck(t) },
-		Providers: testAccProviders,
+		Providers: getTestAccProviders(isVpc),
 		Steps: []resource.TestStep{
 			{
 				Config: testAccDataSourceNcloudNasVolumesConfig(postfix),

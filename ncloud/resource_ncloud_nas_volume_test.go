@@ -10,20 +10,31 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 )
 
-func TestAccResourceNcloudNasVolume_basic(t *testing.T) {
+func TestAccResourceNcloudNasVolume_classic_basic(t *testing.T) {
+	testAccResourceNcloudNasVolumeBasic(t, false)
+}
+
+func TestAccResourceNcloudNasVolume_vpc_basic(t *testing.T) {
+	testAccResourceNcloudNasVolumeBasic(t, true)
+}
+
+func testAccResourceNcloudNasVolumeBasic(t *testing.T, isVpc bool) {
 	var volumeInstance NasVolume
 	postfix := getTestPrefix()
 	resourceName := "ncloud_nas_volume.test"
+	provider := getTestProvider(isVpc)
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
-		CheckDestroy: testAccCheckNasVolumeDestroy,
+		PreCheck:  func() { testAccPreCheck(t) },
+		Providers: getTestAccProviders(isVpc),
+		CheckDestroy: func(state *terraform.State) error {
+			return testAccCheckNasVolumeDestroy(state, provider)
+		},
 		Steps: []resource.TestStep{
 			{
 				Config: testAccNasVolumeConfig(postfix),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckNasVolumeExists(resourceName, &volumeInstance),
+					testAccCheckNasVolumeExists(resourceName, &volumeInstance, provider),
 					resource.TestCheckResourceAttr(resourceName, "volume_name_postfix", postfix),
 					resource.TestMatchResourceAttr(resourceName, "name", regexp.MustCompile(fmt.Sprintf(`^n\d+_%s$`, postfix))),
 					resource.TestCheckResourceAttr(resourceName, "volume_size", "500"),
@@ -44,27 +55,38 @@ func TestAccResourceNcloudNasVolume_basic(t *testing.T) {
 	})
 }
 
-func TestAccResourceNcloudNasVolume_resize(t *testing.T) {
+func TestAccResourceNcloudNasVolume_classic_resize(t *testing.T) {
+	testAccResourceNcloudNasVolumeResize(t, false)
+}
+
+func TestAccResourceNcloudNasVolume_vpc_resize(t *testing.T) {
+	testAccResourceNcloudNasVolumeResize(t, true)
+}
+
+func testAccResourceNcloudNasVolumeResize(t *testing.T, isVpc bool) {
 	var before NasVolume
 	var after NasVolume
 	postfix := getTestPrefix()
 	resourceName := "ncloud_nas_volume.test"
+	provider := getTestProvider(isVpc)
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
-		CheckDestroy: testAccCheckNasVolumeDestroy,
+		PreCheck:  func() { testAccPreCheck(t) },
+		Providers: getTestAccProviders(isVpc),
+		CheckDestroy: func(state *terraform.State) error {
+			return testAccCheckNasVolumeDestroy(state, provider)
+		},
 		Steps: []resource.TestStep{
 			{
 				Config: testAccNasVolumeConfig(postfix),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckNasVolumeExists(resourceName, &before),
+					testAccCheckNasVolumeExists(resourceName, &before, provider),
 				),
 			},
 			{
 				Config: testAccNasVolumeResizeConfig(postfix),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckNasVolumeExists(resourceName, &after),
+					testAccCheckNasVolumeExists(resourceName, &after, provider),
 					testAccCheckNasVolumeNotRecreated(t, &before, &after),
 				),
 			},
@@ -85,27 +107,26 @@ func TestAccResourceNcloudNasVolume_classic_changeAccessControl(t *testing.T) {
 	resourceName := "ncloud_nas_volume.test"
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
-		CheckDestroy: testAccCheckNasVolumeDestroy,
+		PreCheck:  func() { testAccPreCheck(t) },
+		Providers: testAccClassicProviders,
+		CheckDestroy: func(state *terraform.State) error {
+			return testAccCheckNasVolumeDestroy(state, testAccClassicProvider)
+		},
 		Steps: []resource.TestStep{
 			{
-				SkipFunc: testOnlyClassic,
-				Config:   testAccNasVolumeConfig(postfix),
+				Config: testAccNasVolumeConfig(postfix),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckNasVolumeExists(resourceName, &before),
+					testAccCheckNasVolumeExists(resourceName, &before, testAccClassicProvider),
 				),
 			},
 			{
-				SkipFunc: testOnlyClassic,
-				Config:   testAccNasVolumeChangeAccessControlClassic(postfix),
+				Config: testAccNasVolumeChangeAccessControlClassic(postfix),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckNasVolumeExists(resourceName, &after),
+					testAccCheckNasVolumeExists(resourceName, &after, testAccClassicProvider),
 					testAccCheckNasVolumeNotRecreated(t, &before, &after),
 				),
 			},
 			{
-				SkipFunc:                testOnlyClassic,
 				ResourceName:            resourceName,
 				ImportState:             true,
 				ImportStateVerify:       true,
@@ -122,28 +143,27 @@ func TestAccResourceNcloudNasVolume_vpc_changeAccessControl(t *testing.T) {
 	resourceName := "ncloud_nas_volume.test"
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
-		CheckDestroy: testAccCheckNasVolumeDestroy,
+		PreCheck:  func() { testAccPreCheck(t) },
+		Providers: testAccProviders,
+		CheckDestroy: func(state *terraform.State) error {
+			return testAccCheckNasVolumeDestroy(state, testAccProvider)
+		},
 		Steps: []resource.TestStep{
 			{
-				SkipFunc: testOnlyVpc,
-				Config:   testAccNasVolumeConfig(postfix),
+				Config: testAccNasVolumeConfig(postfix),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckNasVolumeExists(resourceName, &before),
+					testAccCheckNasVolumeExists(resourceName, &before, testAccProvider),
 				),
 			},
 			{
-				SkipFunc: testOnlyVpc,
-				Config:   testAccNasVolumeChangeAccessControlVpc(postfix),
+				Config: testAccNasVolumeChangeAccessControlVpc(postfix),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckNasVolumeExists(resourceName, &after),
+					testAccCheckNasVolumeExists(resourceName, &after, testAccProvider),
 					testAccCheckNasVolumeNotRecreated(t, &before, &after),
 				),
 			},
 			{
 				ResourceName:            resourceName,
-				SkipFunc:                testOnlyVpc,
 				ImportState:             true,
 				ImportStateVerify:       true,
 				ImportStateVerifyIgnore: []string{"volume_name_postfix"},
@@ -152,11 +172,7 @@ func TestAccResourceNcloudNasVolume_vpc_changeAccessControl(t *testing.T) {
 	})
 }
 
-func testAccCheckNasVolumeExists(n string, i *NasVolume) resource.TestCheckFunc {
-	return testAccCheckNasVolumeExistsWithProvider(n, i, func() *schema.Provider { return testAccProvider })
-}
-
-func testAccCheckNasVolumeExistsWithProvider(n string, i *NasVolume, providerF func() *schema.Provider) resource.TestCheckFunc {
+func testAccCheckNasVolumeExists(n string, i *NasVolume, provider *schema.Provider) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		rs, ok := s.RootModule().Resources[n]
 		if !ok {
@@ -167,7 +183,6 @@ func testAccCheckNasVolumeExistsWithProvider(n string, i *NasVolume, providerF f
 			return fmt.Errorf("no ID is set")
 		}
 
-		provider := providerF()
 		config := provider.Meta().(*ProviderConfig)
 		nasVolumeInstance, err := getNasVolume(config, rs.Primary.ID)
 		if err != nil {
@@ -183,8 +198,8 @@ func testAccCheckNasVolumeExistsWithProvider(n string, i *NasVolume, providerF f
 	}
 }
 
-func testAccCheckNasVolumeDestroy(s *terraform.State) error {
-	config := testAccProvider.Meta().(*ProviderConfig)
+func testAccCheckNasVolumeDestroy(s *terraform.State, provider *schema.Provider) error {
+	config := provider.Meta().(*ProviderConfig)
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "ncloud_nas_volume" {

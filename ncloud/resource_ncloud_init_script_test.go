@@ -22,14 +22,12 @@ func TestAccResourceNcloudInitScript_basic(t *testing.T) {
 		CheckDestroy: testAccCheckInitScriptDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config:   testAccResourceNcloudInitScriptConfig(name),
-				SkipFunc: testOnlyVpc,
+				Config: testAccResourceNcloudInitScriptConfig(name),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckInitScriptExists(resourceName, &InitScript),
 				),
 			},
 			{
-				SkipFunc:          testOnlyVpc,
 				ResourceName:      resourceName,
 				ImportState:       true,
 				ImportStateVerify: true,
@@ -49,8 +47,7 @@ func TestAccResourceNcloudInitScript_disappears(t *testing.T) {
 		CheckDestroy: testAccCheckInitScriptDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config:   testAccResourceNcloudInitScriptConfig(name),
-				SkipFunc: testOnlyVpc,
+				Config: testAccResourceNcloudInitScriptConfig(name),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckInitScriptExists(resourceName, &InitScript),
 					testAccCheckInitScriptDisappears(&InitScript),

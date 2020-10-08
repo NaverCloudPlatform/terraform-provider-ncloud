@@ -14,13 +14,12 @@ func TestAccDataSourceNcloudVpcAccessControlGroupBasic(t *testing.T) {
 	dataName := "data.ncloud_access_control_group.by_id"
 	resourceName := "ncloud_access_control_group.test"
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:  func() { testAccPreCheck(t) },
 		Providers: testAccProviders,
 		Steps: []resource.TestStep{
 			{
-				Config:   testAccDataSourceNcloudVpcAccessControlGroupConfig(name),
-				SkipFunc: testOnlyVpc,
+				Config: testAccDataSourceNcloudVpcAccessControlGroupConfig(name),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckDataSourceID(dataName),
 					resource.TestCheckResourceAttrPair(dataName, "id", resourceName, "id"),
@@ -40,11 +39,10 @@ func TestAccDataSourceNcloudClassicAccessControlGroup_basic(t *testing.T) {
 	dataName := "data.ncloud_access_control_group.by_name"
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:  func() { testAccPreCheck(t) },
-		Providers: testAccProviders,
+		Providers: testAccClassicProviders,
 		Steps: []resource.TestStep{
 			{
-				Config:   testAccDataSourceNcloudClassicAccessControlConfig,
-				SkipFunc: testOnlyClassic,
+				Config: testAccDataSourceNcloudClassicAccessControlConfig,
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckDataSourceID(dataName),
 					resource.TestCheckResourceAttr(dataName, "name", "ncloud-default-acg"),
