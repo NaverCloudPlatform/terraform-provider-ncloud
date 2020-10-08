@@ -820,6 +820,27 @@ func buildNetworkInterfaceList(config *ProviderConfig, r *ServerInstance) error 
 func stopThenWaitServerInstance(config *ProviderConfig, id string) error {
 	var err error
 
+	stateConf := &resource.StateChangeConf{
+		Pending: []string{"SETUP"},
+		Target:  []string{"NULL"},
+		Refresh: func() (interface{}, string, error) {
+			instance, err := getServerInstance(config, id)
+			if err != nil {
+				return 0, "", err
+			}
+
+			return instance, ncloud.StringValue(instance.ServerInstanceOperation), nil
+		},
+		Timeout:    DefaultStopTimeout,
+		Delay:      2 * time.Second,
+		MinTimeout: 3 * time.Second,
+	}
+
+	_, err = stateConf.WaitForState()
+	if err != nil {
+		return fmt.Errorf("error waiting for ServerInstance operation to be \"NULL\": %s", err)
+	}
+
 	if config.SupportVPC {
 		err = stopVpcServerInstance(config, id)
 	} else {
@@ -830,7 +851,7 @@ func stopThenWaitServerInstance(config *ProviderConfig, id string) error {
 		return err
 	}
 
-	stateConf := &resource.StateChangeConf{
+	stateConf = &resource.StateChangeConf{
 		Pending: []string{"RUN"},
 		Target:  []string{"NSTOP"},
 		Refresh: func() (interface{}, string, error) {
