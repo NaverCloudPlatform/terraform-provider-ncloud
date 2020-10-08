@@ -184,7 +184,7 @@ func resourceNcloudSubnetUpdate(d *schema.ResourceData, meta interface{}) error 
 		}
 		logResponse("SetSubnetNetworkAcl", resp)
 
-		if err := waitForNcloudNetworkACLUpdate(config, d.Id()); err != nil {
+		if err := waitForNcloudNetworkACLUpdate(config, d.Get("network_acl_no").(string)); err != nil {
 			return err
 		}
 	}
