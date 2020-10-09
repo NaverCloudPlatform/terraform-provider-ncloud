@@ -24,7 +24,6 @@ var credsEnvVars = []string{
 }
 
 var regionEnvVar = "NCLOUD_REGION"
-var supportVpcEnvVar = "NCLOUD_SUPPORT_VPC"
 
 func init() {
 	testAccProvider = getTestAccProvider(true).(*schema.Provider)
