@@ -1,12 +1,9 @@
 package ncloud
 
 import (
-	"fmt"
-	"os"
-	"strconv"
-
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
+	"os"
 )
 
 var NcloudResources map[string]*schema.Resource
@@ -48,7 +45,7 @@ func schemaMap() map[string]*schema.Schema {
 			Description: descriptions["site"],
 		},
 		"support_vpc": {
-			Type:        schema.TypeString,
+			Type:        schema.TypeBool,
 			Optional:    true,
 			DefaultFunc: schema.EnvDefaultFunc("NCLOUD_SUPPORT_VPC", nil),
 			Description: descriptions["support_vpc"],
@@ -80,13 +77,7 @@ func providerConfigure(d *schema.ResourceData) (interface{}, error) {
 		}
 	}
 
-	if supportVpc, ok := d.GetOk("support_vpc"); ok {
-		b, err := strconv.ParseBool(supportVpc.(string))
-		if err != nil {
-			fmt.Errorf("error to converting bool `support_vpc`: %s", supportVpc)
-		}
-		providerConfig.SupportVPC = b
-	}
+	providerConfig.SupportVPC = d.Get("support_vpc").(bool)
 
 	client, err := config.Client()
 	if err != nil {
