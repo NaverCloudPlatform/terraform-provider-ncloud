@@ -61,7 +61,7 @@ func getTestAccProvider(isVpc bool) terraform.ResourceProvider {
 		ResourcesMap:   ResourcesMap(),
 		ConfigureFunc: func(d *schema.ResourceData) (interface{}, error) {
 			d.Set("region", testAccGetRegion())
-			d.Set("support_vpc", fmt.Sprintf("%v", isVpc))
+			d.Set("support_vpc", isVpc)
 			return providerConfigure(d)
 		},
 	}
