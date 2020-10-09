@@ -54,12 +54,22 @@ func TestAccDataSourceNcloudNetworkAclsVpcNo(t *testing.T) {
 
 func testAccDataSourceNcloudNetworkAclsConfig() string {
 	return `
+resource "ncloud_vpc" "test" {
+	name               = "testacc-data-network-acl"
+	ipv4_cidr_block    = "10.2.0.0/16"
+}
+
 data "ncloud_network_acls" "all" {}
 `
 }
 
 func testAccDataSourceNcloudNetworkAclsConfigName(name string) string {
 	return fmt.Sprintf(`
+resource "ncloud_vpc" "test" {
+	name               = "testacc-data-network-acl"
+	ipv4_cidr_block    = "10.2.0.0/16"
+}
+
 data "ncloud_network_acls" "by_name" {
 	name = "%s"
 }
