@@ -12,6 +12,7 @@ import (
 func TestAccDataSourceNcloudVpcPeering_basic(t *testing.T) {
 	name := fmt.Sprintf("test-perring-data-%s", acctest.RandString(5))
 	resourceName := "ncloud_vpc_peering.foo"
+	dataNameById := "data.ncloud_vpc_peering.by_id"
 	dataNameByName := "data.ncloud_vpc_peering.by_name"
 	dataNameBySourceName := "data.ncloud_vpc_peering.by_source_name"
 	dataNameByTargetName := "data.ncloud_vpc_peering.by_target_name"
@@ -23,6 +24,7 @@ func TestAccDataSourceNcloudVpcPeering_basic(t *testing.T) {
 			{
 				Config: testAccDataSourceNcloudVpcPeeringConfig(name),
 				Check: resource.ComposeTestCheckFunc(
+					testVpcPeeringCheckResourceAttrPair(dataNameById, resourceName),
 					testVpcPeeringCheckResourceAttrPair(dataNameByName, resourceName),
 					testVpcPeeringCheckResourceAttrPair(dataNameBySourceName, resourceName),
 					testVpcPeeringCheckResourceAttrPair(dataNameByTargetName, resourceName),
@@ -65,22 +67,24 @@ resource "ncloud_vpc_peering" "foo" {
 	target_vpc_no  = ncloud_vpc.peer.id
 }
 
-data "ncloud_vpc_peering" "by_name" {
-	name           = ncloud_vpc_peering.foo.name
+data "ncloud_vpc_peering" "by_id" {
+	vpc_peering_no = ncloud_vpc_peering.foo.id
+	depends_on     = [ncloud_vpc_peering.foo]
+}
 
+data "ncloud_vpc_peering" "by_name" {
+	name        = ncloud_vpc_peering.foo.name
 	depends_on  = [ncloud_vpc_peering.foo]
 }
 
 data "ncloud_vpc_peering" "by_source_name" {
 	source_vpc_name = ncloud_vpc.main.name
-
-	depends_on  = [ncloud_vpc_peering.foo]
+	depends_on      = [ncloud_vpc_peering.foo]
 }
 
 data "ncloud_vpc_peering" "by_target_name" {
 	target_vpc_name = ncloud_vpc.peer.name
-
-	depends_on  = [ncloud_vpc_peering.foo]
+	depends_on      = [ncloud_vpc_peering.foo]
 }
 `, name)
 }
