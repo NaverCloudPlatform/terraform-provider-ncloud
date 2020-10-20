@@ -18,7 +18,7 @@ func dataSourceNcloudNetworkAcls() *schema.Resource {
 		Read: dataSourceNcloudNetworkAclsRead,
 
 		Schema: map[string]*schema.Schema{
-			"network_acl_no_list": {
+			"network_acl_no": {
 				Type:        schema.TypeList,
 				Optional:    true,
 				Elem:        &schema.Schema{Type: schema.TypeString},
@@ -34,11 +34,12 @@ func dataSourceNcloudNetworkAcls() *schema.Resource {
 				Optional:    true,
 				Description: "The VPC ID that you want to filter from.",
 			},
-			"ids": {
-				Type:     schema.TypeSet,
+			"filter": dataSourceFiltersSchema(),
+
+			"network_acls": {
+				Type:     schema.TypeList,
 				Computed: true,
-				Elem:     &schema.Schema{Type: schema.TypeString},
-				Set:      schema.HashString,
+				Elem:     GetDataSourceItemSchema(resourceNcloudNetworkACL()),
 			},
 		},
 	}
@@ -55,8 +56,8 @@ func dataSourceNcloudNetworkAclsRead(d *schema.ResourceData, meta interface{}) e
 		RegionCode: &config.RegionCode,
 	}
 
-	if v, ok := d.GetOk("network_acl_no_list"); ok {
-		reqParams.NetworkAclNoList = expandStringInterfaceList(v.([]interface{}))
+	if v, ok := d.GetOk("network_acl_no"); ok {
+		reqParams.NetworkAclNoList = []*string{ncloud.String(v.(string))}
 	}
 
 	if v, ok := d.GetOk("name"); ok {
@@ -80,15 +81,28 @@ func dataSourceNcloudNetworkAclsRead(d *schema.ResourceData, meta interface{}) e
 		return fmt.Errorf("no matching Network ACL found")
 	}
 
-	instances := make([]string, 0)
+	var resources []map[string]interface{}
 
-	for _, vpc := range resp.NetworkAclList {
-		instances = append(instances, ncloud.StringValue(vpc.VpcNo))
+	for _, r := range resp.NetworkAclList {
+		instance := map[string]interface{}{
+			"id":             *r.NetworkAclNo,
+			"network_acl_no": *r.NetworkAclNo,
+			"name":           *r.NetworkAclName,
+			"description":    *r.NetworkAclDescription,
+			"vpc_no":         *r.VpcNo,
+			"is_default":     *r.IsDefault,
+		}
+
+		resources = append(resources, instance)
+	}
+
+	if f, ok := d.GetOk("filter"); ok {
+		resources = ApplyFilters(f.(*schema.Set), resources, resourceNcloudNetworkACL().Schema)
 	}
 
 	d.SetId(time.Now().UTC().String())
-	if err := d.Set("ids", instances); err != nil {
-		return fmt.Errorf("Error setting Network ACL ids: %s", err)
+	if err := d.Set("network_acls", resources); err != nil {
+		return fmt.Errorf("Error setting Network ACLs: %s", err)
 	}
 
 	return nil
