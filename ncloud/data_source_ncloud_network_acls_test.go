@@ -2,12 +2,15 @@ package ncloud
 
 import (
 	"fmt"
+	"regexp"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 )
 
 func TestAccDataSourceNcloudNetworkAclsBasic(t *testing.T) {
+	dataSourceName := "data.ncloud_network_acls.all"
+
 	resource.Test(t, resource.TestCase{
 		PreCheck:  func() { testAccPreCheck(t) },
 		Providers: testAccProviders,
@@ -15,7 +18,11 @@ func TestAccDataSourceNcloudNetworkAclsBasic(t *testing.T) {
 			{
 				Config: testAccDataSourceNcloudNetworkAclsConfig(),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckDataSourceID("data.ncloud_network_acls.all"),
+					testAccCheckDataSourceID(dataSourceName),
+					resource.TestMatchResourceAttr(dataSourceName, "network_acls.#", regexp.MustCompile(`^\d+$`)),
+					resource.TestMatchResourceAttr(dataSourceName, "network_acls.0.id", regexp.MustCompile(`^\d+$`)),
+					resource.TestMatchResourceAttr(dataSourceName, "network_acls.0.vpc_no", regexp.MustCompile(`^\d+$`)),
+					resource.TestMatchResourceAttr(dataSourceName, "network_acls.0.network_acl_no", regexp.MustCompile(`^\d+$`)),
 				),
 			},
 		},
@@ -31,6 +38,7 @@ func TestAccDataSourceNcloudNetworkAclsName(t *testing.T) {
 				Config: testAccDataSourceNcloudNetworkAclsConfigName("default"),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckDataSourceID("data.ncloud_network_acls.by_name"),
+					testAccCheckDataSourceID("data.ncloud_network_acls.by_filter"),
 				),
 			},
 		},
@@ -71,7 +79,14 @@ resource "ncloud_vpc" "test" {
 }
 
 data "ncloud_network_acls" "by_name" {
-	name = "%s"
+	name = "%[1]s"
+}
+
+data "ncloud_network_acls" "by_filter" {
+	filter {
+		name   = "name"
+		values = ["%[1]s"]
+	}
 }
 `, name)
 }
