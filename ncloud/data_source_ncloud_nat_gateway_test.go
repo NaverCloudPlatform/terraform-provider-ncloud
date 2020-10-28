@@ -25,6 +25,7 @@ func TestAccDataSourceNcloudNatGateway_basic(t *testing.T) {
 					resource.TestCheckResourceAttrPair(dataName, "name", resourceName, "name"),
 					resource.TestCheckResourceAttrPair(dataName, "description", resourceName, "description"),
 					resource.TestCheckResourceAttrPair(dataName, "public_ip", resourceName, "public_ip"),
+					resource.TestCheckResourceAttrPair(dataName, "id", resourceName, "id"),
 					resource.TestCheckResourceAttrPair(dataName, "nat_gateway_no", resourceName, "nat_gateway_no"),
 					resource.TestCheckResourceAttrPair(dataName, "zone", resourceName, "zone"),
 					resource.TestCheckResourceAttrPair(dataName, "vpc_no", resourceName, "vpc_no"),
@@ -49,13 +50,13 @@ resource "ncloud_nat_gateway" "nat_gateway" {
 }
 
 data "ncloud_nat_gateway" "by_id" {
-  nat_gateway_no = ncloud_nat_gateway.nat_gateway.nat_gateway_no
+  id = ncloud_nat_gateway.nat_gateway.id
 }
 
 data "ncloud_nat_gateway" "by_filter" {
   filter {
 		name   = "nat_gateway_no"
-		values = [ncloud_nat_gateway.nat_gateway.nat_gateway_no]
+		values = [ncloud_nat_gateway.nat_gateway.id]
 	}
 }
 `, name)

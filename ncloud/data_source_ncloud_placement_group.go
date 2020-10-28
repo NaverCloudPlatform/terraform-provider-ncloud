@@ -13,7 +13,7 @@ func init() {
 
 func dataSourceNcloudPlacementGroup() *schema.Resource {
 	fieldMap := map[string]*schema.Schema{
-		"placement_group_no": {
+		"id": {
 			Type:     schema.TypeString,
 			Optional: true,
 			Computed: true,
@@ -63,7 +63,7 @@ func getPlacementGroupList(d *schema.ResourceData, config *ProviderConfig) (*vse
 		RegionCode: &config.RegionCode,
 	}
 
-	if v, ok := d.GetOk("placement_group_no"); ok {
+	if v, ok := d.GetOk("id"); ok {
 		reqParams.PlacementGroupNoList = []*string{ncloud.String(v.(string))}
 	}
 

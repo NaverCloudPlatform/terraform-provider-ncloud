@@ -55,7 +55,7 @@ resource "ncloud_init_script" "foo" {
 }
 
 data "ncloud_init_script" "by_id" {
-	init_script_no = ncloud_init_script.foo.id
+	id = ncloud_init_script.foo.id
 }
 `
 

@@ -43,7 +43,7 @@ func TestAccDataSourceNcloudNetworkInterfaces_privateIp(t *testing.T) {
 				Config: testAccDataSourceNcloudNetworkInterfacesConfigPrivateIp(name),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckDataSourceID(dataName),
-					resource.TestCheckResourceAttrPair(dataName, "network_interfaces.0.network_interface_no", resourceName, "network_interface_no"),
+					resource.TestCheckResourceAttrPair(dataName, "network_interfaces.0.id", resourceName, "id"),
 					resource.TestCheckResourceAttrPair(dataName, "network_interfaces.0.name", resourceName, "name"),
 					resource.TestCheckResourceAttrPair(dataName, "network_interfaces.0.description", resourceName, "description"),
 					resource.TestCheckResourceAttrPair(dataName, "network_interfaces.0.private_ip", resourceName, "private_ip"),
@@ -72,7 +72,7 @@ func TestAccDataSourceNcloudNetworkInterfaces_filter(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckDataSourceID("data.ncloud_network_interfaces.by_filter"),
 					testAccCheckDataSourceID(dataName),
-					resource.TestCheckResourceAttrPair(dataName, "network_interfaces.0.network_interface_no", resourceName, "network_interface_no"),
+					resource.TestCheckResourceAttrPair(dataName, "network_interfaces.0.id", resourceName, "id"),
 					resource.TestCheckResourceAttrPair(dataName, "network_interfaces.0.name", resourceName, "name"),
 					resource.TestCheckResourceAttrPair(dataName, "network_interfaces.0.description", resourceName, "description"),
 					resource.TestCheckResourceAttrPair(dataName, "network_interfaces.0.private_ip", resourceName, "private_ip"),
@@ -149,7 +149,7 @@ resource "ncloud_network_interface" "foo" {
 
 data "ncloud_network_interfaces" "by_filter" {
 	filter {
-		name   = "network_interface_no"
+		name   = "id"
 		values = [ncloud_network_interface.foo.id]
 	}
 }

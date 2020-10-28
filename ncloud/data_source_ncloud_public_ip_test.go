@@ -22,6 +22,7 @@ func TestAccDataSourceNcloudPublicIp_classic_basic(t *testing.T) {
 				Config: testAccDataSourceNcloudPublicIpClassicConfig(name),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckDataSourceID(dataName),
+					resource.TestCheckResourceAttrPair(dataName, "id", resourceName, "id"),
 					resource.TestCheckResourceAttrPair(dataName, "description", resourceName, "description"),
 					resource.TestCheckResourceAttrPair(dataName, "public_ip", resourceName, "public_ip"),
 					resource.TestCheckResourceAttrPair(dataName, "server_instance_no", resourceName, "server_instance_no"),
@@ -50,6 +51,7 @@ func TestAccDataSourceNcloudPublicIp_vpc_basic(t *testing.T) {
 				Config: testAccDataSourceNcloudPublicIpVpcConfig(name),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckDataSourceID(dataName),
+					resource.TestCheckResourceAttrPair(dataName, "id", resourceName, "id"),
 					resource.TestCheckResourceAttrPair(dataName, "description", resourceName, "description"),
 					resource.TestCheckResourceAttrPair(dataName, "public_ip", resourceName, "public_ip"),
 					resource.TestCheckResourceAttrPair(dataName, "server_instance_no", resourceName, "server_instance_no"),
@@ -121,7 +123,7 @@ resource "ncloud_public_ip" "public_ip" {
 }
 
 data "ncloud_public_ip" "test" {
-	public_ip_no = ncloud_public_ip.public_ip.id
+	id = ncloud_public_ip.public_ip.id
 }
 `, name)
 }
@@ -159,7 +161,7 @@ resource "ncloud_public_ip" "public_ip" {
 }
 
 data "ncloud_public_ip" "test" {
-	public_ip_no = ncloud_public_ip.public_ip.id
+	id = ncloud_public_ip.public_ip.id
 }
 `, name)
 }

@@ -70,7 +70,7 @@ data "ncloud_vpcs" "by_name" {
 func testAccDataSourceNcloudVpcsConfigVpcNo(vpcNo string) string {
 	return fmt.Sprintf(`
 data "ncloud_vpcs" "by_vpc_no" {
-	vpc_no          = "%[1]s"
+	vpc_no = "%[1]s"
 }
 
 data "ncloud_vpcs" "by_filter" {

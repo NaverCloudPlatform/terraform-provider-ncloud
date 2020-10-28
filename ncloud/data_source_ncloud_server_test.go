@@ -114,7 +114,7 @@ resource "ncloud_server" "server" {
 }
 
 data "ncloud_server" "by_id" {
-	instance_no = ncloud_server.server.id
+	id = ncloud_server.server.id
 }
 
 data "ncloud_server" "by_filter" {
@@ -140,7 +140,7 @@ resource "ncloud_server" "server" {
 }
 
 data "ncloud_server" "by_id" {
-	instance_no = ncloud_server.server.id
+	id = ncloud_server.server.id
 }
 
 data "ncloud_server" "by_filter" {

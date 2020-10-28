@@ -37,7 +37,7 @@ func TestAccDataSourceNcloudVpcPeering_basic(t *testing.T) {
 
 func testVpcPeeringCheckResourceAttrPair(dataName string, resourceName string) func(*terraform.State) error {
 	return resource.ComposeTestCheckFunc(
-		resource.TestCheckResourceAttrPair(dataName, "vpc_peering_no", resourceName, "vpc_peering_no"),
+		resource.TestCheckResourceAttrPair(dataName, "id", resourceName, "id"),
 		resource.TestCheckResourceAttrPair(dataName, "name", resourceName, "name"),
 		resource.TestCheckResourceAttrPair(dataName, "description", resourceName, "description"),
 		resource.TestCheckResourceAttrPair(dataName, "source_vpc_no", resourceName, "source_vpc_no"),
@@ -68,7 +68,7 @@ resource "ncloud_vpc_peering" "foo" {
 }
 
 data "ncloud_vpc_peering" "by_id" {
-	vpc_peering_no = ncloud_vpc_peering.foo.id
+	id             = ncloud_vpc_peering.foo.id
 	depends_on     = [ncloud_vpc_peering.foo]
 }
 

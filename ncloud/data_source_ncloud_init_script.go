@@ -15,7 +15,7 @@ func dataSourceNcloudInitScript() *schema.Resource {
 	return &schema.Resource{
 		Read: dataSourceNcloudInitScriptRead,
 		Schema: map[string]*schema.Schema{
-			"init_script_no": {
+			"id": {
 				Type:     schema.TypeString,
 				Optional: true,
 				Computed: true,
@@ -72,7 +72,7 @@ func getVpcInitScriptListFiltered(d *schema.ResourceData, config *ProviderConfig
 		InitScriptName: StringPtrOrNil(d.GetOk("name")),
 	}
 
-	if v, ok := d.GetOk("init_script_no"); ok {
+	if v, ok := d.GetOk("id"); ok {
 		reqParams.InitScriptNoList = []*string{ncloud.String(v.(string))}
 	}
 

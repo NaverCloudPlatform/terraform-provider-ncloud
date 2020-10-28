@@ -23,6 +23,7 @@ func TestAccDataSourceNcloudVpc(t *testing.T) {
 				Config: testAccDataSourceNcloudVpcConfig(name, cidr),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckDataSourceID(dataName),
+					resource.TestCheckResourceAttrPair(dataName, "id", resourceName, "id"),
 					resource.TestCheckResourceAttrPair(dataName, "vpc_no", resourceName, "vpc_no"),
 					resource.TestCheckResourceAttr(dataName, "ipv4_cidr_block", cidr),
 					resource.TestCheckResourceAttr(dataName, "name", name),
@@ -36,16 +37,19 @@ func TestAccDataSourceNcloudVpc(t *testing.T) {
 func testAccDataSourceNcloudVpcConfig(name, cidr string) string {
 	return fmt.Sprintf(`
 resource "ncloud_vpc" "test" {
-	name               = "%s"
+  name               = "%s"
   ipv4_cidr_block    = "%s"
 }
 
 data "ncloud_vpc" "by_id" {
-  vpc_no = "${ncloud_vpc.test.id}"
+  id = ncloud_vpc.test.id
 }
 
 data "ncloud_vpc" "by_filter" {
-  vpc_no = "${ncloud_vpc.test.id}"
+  filter {
+    name = "vpc_no"
+    values = [ncloud_vpc.test.id]
+  }
 }
 `, name, cidr)
 }

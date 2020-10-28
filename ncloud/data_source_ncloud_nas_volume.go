@@ -16,7 +16,7 @@ func init() {
 
 func dataSourceNcloudNasVolume() *schema.Resource {
 	fieldMap := map[string]*schema.Schema{
-		"nas_volume_no": {
+		"id": {
 			Type:     schema.TypeString,
 			Optional: true,
 			Computed: true,
@@ -105,7 +105,7 @@ func getClassicNasVolumeList(d *schema.ResourceData, config *ProviderConfig) ([]
 		ZoneNo:                          zoneNo,
 	}
 
-	if v, ok := d.GetOk("nas_volume_no"); ok {
+	if v, ok := d.GetOk("id"); ok {
 		reqParams.NasVolumeInstanceNoList = []*string{ncloud.String(v.(string))}
 	}
 
@@ -137,10 +137,8 @@ func getVpcNasVolumeList(d *schema.ResourceData, config *ProviderConfig) ([]*Nas
 		ZoneCode:                        StringPtrOrNil(d.GetOk("zone")),
 	}
 
-	if v, ok := d.GetOk("nas_volume_no"); ok {
+	if v, ok := d.GetOk("id"); ok {
 		reqParams.NasVolumeInstanceNoList = []*string{ncloud.String(v.(string))}
-	} else if v, ok := d.GetOk("no_list"); ok {
-		reqParams.NasVolumeInstanceNoList = expandStringInterfaceList(v.([]interface{}))
 	}
 
 	logCommonRequest("getVpcNasVolumeList", reqParams)

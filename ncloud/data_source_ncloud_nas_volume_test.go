@@ -52,7 +52,7 @@ resource "ncloud_nas_volume" "test" {
 }
 
 data "ncloud_nas_volume" "by_id" {
-	nas_volume_no = ncloud_nas_volume.test.id
+	id = ncloud_nas_volume.test.id
 }
 
 data "ncloud_nas_volume" "by_filter" {

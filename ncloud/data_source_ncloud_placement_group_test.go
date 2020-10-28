@@ -23,8 +23,9 @@ func TestAccDataSourceNcloudPlacementGroup_basic(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckDataSourceID(dataName),
 					testAccCheckDataSourceID(dataNameFilter),
-					resource.TestCheckResourceAttrPair(dataName, "name", resourceName, "name"),
+					resource.TestCheckResourceAttrPair(dataName, "id", resourceName, "id"),
 					resource.TestCheckResourceAttrPair(dataName, "placement_group_no", resourceName, "placement_group_no"),
+					resource.TestCheckResourceAttrPair(dataName, "name", resourceName, "name"),
 					resource.TestCheckResourceAttrPair(dataName, "placement_group_type", resourceName, "placement_group_type"),
 				),
 			},
@@ -35,16 +36,16 @@ func TestAccDataSourceNcloudPlacementGroup_basic(t *testing.T) {
 func testAccDataSourceNcloudPlacementGroupConfig(name string) string {
 	return fmt.Sprintf(`
 resource "ncloud_placement_group" "foo" {
-	name            = "%[1]s"
+	name = "%[1]s"
 }
 
 data "ncloud_placement_group" "by_id" {
-	placement_group_no        = ncloud_placement_group.foo.id
+	id = ncloud_placement_group.foo.id
 }
 
 data "ncloud_placement_group" "by_filter" {
 	filter {
-		name   = "placement_group_no"
+		name   = "id"
 		values = [ncloud_placement_group.foo.id]
 	}
 }

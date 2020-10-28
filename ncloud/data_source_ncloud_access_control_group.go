@@ -20,8 +20,8 @@ func dataSourceNcloudAccessControlGroup() *schema.Resource {
 			"configuration_no": {
 				Type:          schema.TypeString,
 				Optional:      true,
-				Deprecated:    "use 'access_control_group_no' instead",
-				ConflictsWith: []string{"access_control_group_no"},
+				Deprecated:    "use 'id' instead",
+				ConflictsWith: []string{"id"},
 			},
 			"is_default_group": {
 				Type:          schema.TypeBool,
@@ -29,7 +29,7 @@ func dataSourceNcloudAccessControlGroup() *schema.Resource {
 				Deprecated:    "use 'is_default' instead",
 				ConflictsWith: []string{"is_default"},
 			},
-			"access_control_group_no": {
+			"id": {
 				Type:          schema.TypeString,
 				Optional:      true,
 				Computed:      true,
@@ -49,6 +49,10 @@ func dataSourceNcloudAccessControlGroup() *schema.Resource {
 			"vpc_no": {
 				Type:     schema.TypeString,
 				Optional: true,
+				Computed: true,
+			},
+			"access_control_group_no": {
+				Type:     schema.TypeString,
 				Computed: true,
 			},
 			"description": {
@@ -95,7 +99,7 @@ func getVpcAccessControlGroupList(d *schema.ResourceData, config *ProviderConfig
 		VpcNo:                  StringPtrOrNil(d.GetOk("vpc_no")),
 	}
 
-	if v, ok := d.GetOk("access_control_group_no"); ok {
+	if v, ok := d.GetOk("id"); ok {
 		reqParams.AccessControlGroupNoList = []*string{ncloud.String(v.(string))}
 	}
 
@@ -132,7 +136,7 @@ func getClassicAccessControlGroupList(d *schema.ResourceData, config *ProviderCo
 		AccessControlGroupName: StringPtrOrNil(d.GetOk("name")),
 	}
 
-	if v, ok := d.GetOk("access_control_group_no"); ok {
+	if v, ok := d.GetOk("id"); ok {
 		reqParams.AccessControlGroupConfigurationNoList = expandStringInterfaceList(v.([]interface{}))
 	} else if v, ok := d.GetOk("configuration_no"); ok {
 		reqParams.AccessControlGroupConfigurationNoList = expandStringInterfaceList(v.([]interface{}))

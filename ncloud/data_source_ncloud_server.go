@@ -14,7 +14,7 @@ func init() {
 
 func dataSourceNcloudServer() *schema.Resource {
 	fieldMap := map[string]*schema.Schema{
-		"instance_no": {
+		"id": {
 			Type:     schema.TypeString,
 			Optional: true,
 			Computed: true,
@@ -70,7 +70,7 @@ func getClassicServerList(d *schema.ResourceData, config *ProviderConfig) ([]*Se
 		RegionNo: regionNo,
 	}
 
-	if v, ok := d.GetOk("instance_no"); ok {
+	if v, ok := d.GetOk("id"); ok {
 		reqParams.ServerInstanceNoList = []*string{ncloud.String(v.(string))}
 	}
 
@@ -99,7 +99,7 @@ func getVpcServerList(d *schema.ResourceData, config *ProviderConfig) ([]*Server
 		RegionCode: &config.RegionCode,
 	}
 
-	if v, ok := d.GetOk("instance_no"); ok {
+	if v, ok := d.GetOk("id"); ok {
 		reqParams.ServerInstanceNoList = []*string{ncloud.String(v.(string))}
 	}
 

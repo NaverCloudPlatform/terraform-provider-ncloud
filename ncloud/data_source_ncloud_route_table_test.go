@@ -20,10 +20,10 @@ func TestAccDataSourceNcloudRouteTable_basic(t *testing.T) {
 			{
 				Config: testAccDataSourceNcloudRouteTableConfig(name),
 				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrPair(dataName, "id", resourceName, "id"),
 					resource.TestCheckResourceAttrPair(dataName, "name", resourceName, "name"),
 					resource.TestCheckResourceAttrPair(dataName, "description", resourceName, "description"),
 					resource.TestCheckResourceAttrPair(dataName, "vpc_no", resourceName, "vpc_no"),
-					resource.TestCheckResourceAttrPair(dataName, "route_table_no", resourceName, "route_table_no"),
 					resource.TestCheckResourceAttrPair(dataName, "supported_subnet_type", resourceName, "supported_subnet_type"),
 					resource.TestCheckResourceAttrPair(dataName, "is_default", resourceName, "is_default"),
 				),
@@ -47,7 +47,7 @@ resource "ncloud_route_table" "foo" {
 }
 
 data "ncloud_route_table" "by_id" {
-	route_table_no        = ncloud_route_table.foo.id
+	id = ncloud_route_table.foo.id
 }
 `, name)
 }

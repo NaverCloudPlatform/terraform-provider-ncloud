@@ -12,7 +12,7 @@ func init() {
 
 func dataSourceNcloudNatGateway() *schema.Resource {
 	fieldMap := map[string]*schema.Schema{
-		"nat_gateway_no": {
+		"id": {
 			Type:     schema.TypeString,
 			Optional: true,
 			Computed: true,
@@ -59,7 +59,7 @@ func getNatGatewayListFiltered(d *schema.ResourceData, config *ProviderConfig) (
 		RegionCode: &config.RegionCode,
 	}
 
-	if v, ok := d.GetOk("nat_gateway_no"); ok {
+	if v, ok := d.GetOk("id"); ok {
 		reqParams.NatGatewayInstanceNoList = []*string{ncloud.String(v.(string))}
 	}
 

@@ -14,7 +14,7 @@ func init() {
 
 func dataSourceNcloudBlockStorage() *schema.Resource {
 	fieldMap := map[string]*schema.Schema{
-		"block_storage_no": {
+		"id": {
 			Type:     schema.TypeString,
 			Optional: true,
 			Computed: true,
@@ -76,7 +76,7 @@ func getClassicBlockStorageList(d *schema.ResourceData, config *ProviderConfig) 
 		ServerInstanceNo: StringPtrOrNil(d.GetOk("server_instance_no")),
 	}
 
-	if v, ok := d.GetOk("block_storage_no"); ok {
+	if v, ok := d.GetOk("id"); ok {
 		reqParams.BlockStorageInstanceNoList = []*string{ncloud.String(v.(string))}
 	}
 
@@ -118,7 +118,7 @@ func getVpcBlockStorageList(d *schema.ResourceData, config *ProviderConfig) ([]*
 		ServerInstanceNo: StringPtrOrNil(d.GetOk("server_instance_no")),
 	}
 
-	if v, ok := d.GetOk("block_storage_no"); ok {
+	if v, ok := d.GetOk("id"); ok {
 		reqParams.BlockStorageInstanceNoList = []*string{ncloud.String(v.(string))}
 	}
 

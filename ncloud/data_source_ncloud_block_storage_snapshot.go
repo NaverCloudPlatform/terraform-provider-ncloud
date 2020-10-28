@@ -17,6 +17,11 @@ func dataSourceNcloudBlockStorageSnapshot() *schema.Resource {
 		Read: dataSourceNcloudBlockStorageSnapshotRead,
 
 		Schema: map[string]*schema.Schema{
+			"id": {
+				Type:     schema.TypeString,
+				Optional: true,
+				Computed: true,
+			},
 			"block_storage_no": {
 				Type:     schema.TypeString,
 				Optional: true,
@@ -24,7 +29,6 @@ func dataSourceNcloudBlockStorageSnapshot() *schema.Resource {
 			},
 			"snapshot_no": {
 				Type:     schema.TypeString,
-				Optional: true,
 				Computed: true,
 			},
 			"name": {
@@ -92,7 +96,7 @@ func getClassicBlockStorageSnapshot(d *schema.ResourceData, config *ProviderConf
 		reqParams.OriginalBlockStorageInstanceNoList = []*string{ncloud.String(v.(string))}
 	}
 
-	if v, ok := d.GetOk("snapshot_no"); ok {
+	if v, ok := d.GetOk("id"); ok {
 		reqParams.BlockStorageSnapshotInstanceNoList = []*string{ncloud.String(v.(string))}
 	}
 
@@ -135,7 +139,7 @@ func getVpcBlockStorageSnapshot(d *schema.ResourceData, config *ProviderConfig) 
 		reqParams.OriginalBlockStorageInstanceNoList = []*string{ncloud.String(v.(string))}
 	}
 
-	if v, ok := d.GetOk("snapshot_no"); ok {
+	if v, ok := d.GetOk("id"); ok {
 		reqParams.BlockStorageSnapshotInstanceNoList = []*string{ncloud.String(v.(string))}
 	}
 
