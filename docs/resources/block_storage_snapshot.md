@@ -10,6 +10,8 @@ description: |-
 
 Provides a ncloud block storage snapshot resource.
 
+~> **NOTE:** This resource only support Classic environment.
+
 ## Example Usage
 
 ```hcl

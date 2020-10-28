@@ -13,33 +13,34 @@ Get NAS volume instance
 ## Example Usage
 
 ```hcl
-data "ncloud_nas_volume" "vol" {}
+variable "nas_volume_no" {}
+
+data "ncloud_nas_volume" "vol" {
+  id = var.nas_volume_no
+}
 ```
 
 ## Argument Reference
 
 The following arguments are supported:
 
-* `volume_allotment_protocol_type_code` - (Optional) Volume allotment protocol type code. All volume instances will be selected if the filter is not specified. (`NFS` | `CIFS`)
-* `is_event_configuration` - (Optional) Indicates whether the event is set. All volume instances will be selected if the filter is not specified. (`true` | `false`)
-* `is_snapshot_configuration` - (Optional) Indicates whether a snapshot volume is set. All volume instances will be selected if the filter is not specified. (`true` | `false`)
-* `no_list` - (Optional) List of nas volume instance numbers.
-* `region` - (Optional) Region code. Get available values using the data source `ncloud_regions`.
-    Default: `KR` region.
+* `id` - (Optional) The ID of specific NAS Volume to retrieve.
+* `volume_allotment_protocol_type_code` - (Optional) Volume allotment protocol type code. All volume instances will be selected if the filter is not specified. (`NFS` | `CIFS`).
+* `is_event_configuration` - (Optional) Indicates whether the event is set. All volume instances will be selected if the filter is not specified. (`true` | `false`).
+* `is_snapshot_configuration` - (Optional) Indicates whether a snapshot volume is set. All volume instances will be selected if the filter is not specified. (`true` | `false`).
 * `zone` - (Optional) Zone code. Get available values using the data source `ncloud_zones`.
-
+* `filter` - (Optional) Custom filter block as described below.
+  * `name` - (Required) The name of the field to filter by
+  * `values` - (Required) Set of values that are accepted for the given field.
+  * `regex` - (Optional) is `values` treated as a regular expression.
+  
 ## Attributes Reference
 
-* `instance_no` - NAS volume instance number
-* `volume_name` - Volume name
-* `instance_status` - NAS volume instance status code
-* `create_date` - Creation date of the NAS Volume instance
-* `volume_total_size` - Volume total size
-* `volume_size` - Volume size
-* `volume_use_size` - Volume use size
-* `volume_use_ratio` - Volume use ratio
-* `snapshot_volume_size` - Snapshot volume size
-* `snapshot_volume_use_size` - Snapshot volume use size
-* `snapshot_volume_use_ratio` - Snapshot volume use ratio
-* `instance_custom_ip_list` - NAS volume instance custom IP list
-* `description` - NAS volume description
+* `nas_volume_no` - The ID of NAS Volume.
+* `name` - Volume name.
+* `volume_total_size` - Volume total size.
+* `volume_size` - Volume size.
+* `snapshot_volume_size` - Snapshot volume size.
+* `custom_ip_list` - NAS volume instance custom IP list.
+* `description` - NAS volume description.
+* `is_encrypted_volume` - Volume encryption. 

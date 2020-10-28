@@ -3,12 +3,12 @@ layout: "ncloud"
 page_title: "NCLOUD: ncloud_login_key"
 sidebar_current: "docs-ncloud-resource-login-key"
 description: |-
-  Provides a ncloud login key resource.
+  Provides a Login key resource.
 ---
 
-# ncloud_login_key
+# Resource: ncloud_login_key
 
-Provides a ncloud login key resource.
+Provides a Login key resource.
 
 ~> **Note:** All arguments including the private key will be stored in the raw state as plain-text.
 [Read more about sensitive data in state](/docs/state/sensitive-data.html).
