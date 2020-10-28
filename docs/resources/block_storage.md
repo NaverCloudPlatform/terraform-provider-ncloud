@@ -3,12 +3,12 @@ layout: "ncloud"
 page_title: "NCLOUD: ncloud_block_storage"
 sidebar_current: "docs-ncloud-resource-block-storage"
 description: |-
-  Provides a ncloud block storage resource.
+  Provides a Block Storage resource.
 ---
 
-# ncloud_block_storage
+# Resource: ncloud_block_storage
 
-Provides a ncloud block storage resource.
+Provides a Block Storage resource.
 
 ## Example Usage
 
@@ -24,21 +24,24 @@ resource "ncloud_block_storage" "storage" {
 
 The following arguments are supported:
 
-* `size` - (Required) Enter a block storage size to ceate. You can enter by the unit of GB. Up to 1000GB you can enter.
-* `server_instance_no` - (Required) Server instance No. to attach. It is required and you can get a server instance No. by calling getServerInstanceList.
-* `name` - (Optional) Block storage name to create default : Ncloud configures it by itself.
-* `description` - (Optional) Block storage descriptions
-* `disk_detail_type` - (Optional) You can choose a disk detail type code of HDD and SSD. default : HDD
+* `size` - (Required) The size of the block storage to create. It is automatically set when you take a snapshot.
+* `server_instance_no` - (Required) Server instance ID to which you want to assign the block storage.
+* `name` - (Optional) The name to create. If omitted, Terraform will assign a random, unique name
+* `description` - (Optional) description to create
+* `disk_detail_type` - (Optional) Type of block storage disk detail to create. Default `SSD`. Accepted values: `SSD` | `HDD` 
+
+~> **NOTE:** Below arguments only support Classic environment.
+
+* `zone` - (Optional) The availability zone in which the block storage instance will be created.
+* `snapshot_no` - (Optional) Create the block storage from the snapshots you take.
 
 ## Attributes Reference
 
-* `instance_no` - Block storage instance no
-* `server_name` - Server name
-* `type` - Block storage type code
-* `device_name` - Device name
-* `product_code` - Block storage product code
-* `instance_status` - Block storage instance status code
-* `instance_operation` - Block storage instance operation
-* `instance_status_name` - Block storage instance status name
-* `create_date` - Creation date of the block storage
-* `disk_type` - Disk type code
+* `id` - The ID of Block storage instance.
+* `block_storage_no` - The ID of Block storage instance. (It is the same result as `id`)
+* `server_name` - Server name.
+* `type` - Block storage type code.
+* `device_name` - Device name.
+* `product_code` - Block storage product code.
+* `status` - Block storage instance status code.
+* `disk_type` - Disk type code.

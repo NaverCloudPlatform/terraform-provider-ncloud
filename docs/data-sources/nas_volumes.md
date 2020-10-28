@@ -28,7 +28,12 @@ The following arguments are supported:
     Default: KR region.
 * `zone` - (Optional) Zone code. Get available values using the data source `ncloud_zones`.
 * `output_file` - (Optional) The name of file that can save data source after running `terraform plan`.
-
+* `filter` - (Optional) Custom filter block as described below.
+  * `name` - (Required) The name of the field to filter by
+  * `values` - (Required) Set of values that are accepted for the given field.
+  * `regex` - (Optional) is `values` treated as a regular expression.
+  
 ## Attributes Reference
 
-* `nas_volumes` - A list of NAS Volume Instance no
+* `ids` - A list of NAS Volume ID.
+* `nas_volumes` - A list of NAS Volume Instance.

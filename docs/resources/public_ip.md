@@ -3,12 +3,12 @@ layout: "ncloud"
 page_title: "NCLOUD: ncloud_public_ip"
 sidebar_current: "docs-ncloud-resource-public-ip"
 description: |-
-  Provides a ncloud public IP instance resource.
+  Provides a Public IP instance resource.
 ---
 
-# ncloud_public_ip
+# Resource: ncloud_public_ip
 
-Provides a ncloud public IP instance resource.
+Provides a Public IP instance resource.
 
 ## Example Usage
 
@@ -24,16 +24,16 @@ The following arguments are supported:
 
 * `server_instance_no` - (Optional) Server instance No. to assign after creating a public IP. You can get one by calling getPublicIpTargetServerInstanceList.
 * `description` - (Optional) Public IP description.
+
+~> **NOTE:** Below arguments only support Classic environment.
+
 * `internet_line_type` - (Optional) Internet line code. PUBLC(Public), GLBL(Global)
 * `zone` - (Optional) Zone code. You can decide a zone where servers are created. You can decide which zone the product list will be requested at. default : Select the first Zone in the specific region
     Get available values using the data source `ncloud_zones`.
 
 ## Attributes Reference
 
-* `instance_no` - Public IP instance No.
+* `id` - The ID of Public IP.
+* `public_ip_no` - The ID of Public IP. (It is the same result as `id`)
 * `public_ip` - Public IP Address.
-* `create_date` - Creation date of the public IP instance
-* `instance_status_name` - Public IP instance status name
-* `instance_status` - Public IP instance status code
-* `instance_operation` - Public IP instance operation code
 * `kind_type` - Public IP kind type
