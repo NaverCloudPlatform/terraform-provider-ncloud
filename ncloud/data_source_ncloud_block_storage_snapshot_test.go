@@ -22,6 +22,7 @@ func TestAccDataSourceNcloudBlockStorageSnapshot_basic(t *testing.T) {
 				Config: testAccDataSourceNcloudBlockStorageSnapshotConfig,
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckDataSourceID(dataName),
+					resource.TestMatchResourceAttr(dataName, "id", regexp.MustCompile(`^\d+$`)),
 					resource.TestMatchResourceAttr(dataName, "snapshot_no", regexp.MustCompile(`^\d+$`)),
 					resource.TestMatchResourceAttr(dataName, "block_storage_no", regexp.MustCompile(`^\d+$`)),
 					resource.TestMatchResourceAttr(dataName, "volume_size", regexp.MustCompile(`^\d+$`)),
@@ -34,7 +35,7 @@ func TestAccDataSourceNcloudBlockStorageSnapshot_basic(t *testing.T) {
 
 var testAccDataSourceNcloudBlockStorageSnapshotConfig = `
 data "ncloud_block_storage_snapshot" "by_id" {
-	snapshot_no = "5192089"
+	id = "5192089"
 }
 
 data "ncloud_block_storage_snapshot" "by_filter" {

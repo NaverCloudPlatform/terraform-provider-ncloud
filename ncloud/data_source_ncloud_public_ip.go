@@ -17,7 +17,7 @@ func dataSourceNcloudPublicIp() *schema.Resource {
 		Read: dataSourceNcloudPublicIpRead,
 
 		Schema: map[string]*schema.Schema{
-			"public_ip_no": {
+			"id": {
 				Type:     schema.TypeString,
 				Optional: true,
 				Computed: true,
@@ -39,6 +39,10 @@ func dataSourceNcloudPublicIp() *schema.Resource {
 			},
 			"filter": dataSourceFiltersSchema(),
 
+			"public_ip_no": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
 			"public_ip": {
 				Type:     schema.TypeString,
 				Computed: true,
@@ -106,7 +110,7 @@ func dataSourceNcloudPublicIp() *schema.Resource {
 			"instance_no": {
 				Type:       schema.TypeString,
 				Computed:   true,
-				Deprecated: "Use 'public_ip_no' instead",
+				Deprecated: "Use 'id' instead",
 			},
 			"list": {
 				Type:       schema.TypeList,
@@ -167,7 +171,7 @@ func getClassicPublicIpList(d *schema.ResourceData, config *ProviderConfig) ([]m
 		reqParams.IsAssociated = ncloud.Bool(isAssociated.(bool))
 	}
 
-	if v, ok := d.GetOk("public_ip_no"); ok {
+	if v, ok := d.GetOk("id"); ok {
 		reqParams.PublicIpInstanceNoList = []*string{ncloud.String(v.(string))}
 	}
 
@@ -184,10 +188,11 @@ func getClassicPublicIpList(d *schema.ResourceData, config *ProviderConfig) ([]m
 
 	for _, r := range resp.PublicIpInstanceList {
 		instance := map[string]interface{}{
-			"id":          *r.PublicIpInstanceNo,
-			"instance_no": *r.PublicIpInstanceNo,
-			"public_ip":   *r.PublicIp,
-			"description": *r.PublicIpDescription,
+			"id":           *r.PublicIpInstanceNo,
+			"instance_no":  *r.PublicIpInstanceNo,
+			"public_ip_no": *r.PublicIpInstanceNo,
+			"public_ip":    *r.PublicIp,
+			"description":  *r.PublicIpDescription,
 		}
 
 		if m := flattenCommonCode(r.InternetLineType); m["code"] != nil {
@@ -237,7 +242,7 @@ func getVpcPublicIpList(d *schema.ResourceData, config *ProviderConfig) ([]map[s
 		reqParams.IsAssociated = ncloud.Bool(v.(bool))
 	}
 
-	if v, ok := d.GetOk("public_ip_no"); ok {
+	if v, ok := d.GetOk("id"); ok {
 		reqParams.PublicIpInstanceNoList = []*string{ncloud.String(v.(string))}
 	}
 

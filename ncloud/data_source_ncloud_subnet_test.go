@@ -22,10 +22,11 @@ func TestAccDataSourceNcloudSubnet(t *testing.T) {
 				Config: testAccDataSourceNcloudSubnetConfig(name, cidr),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckDataSourceID(dataName),
+					resource.TestCheckResourceAttrPair(dataName, "id", resourceName, "id"),
 					resource.TestCheckResourceAttrPair(dataName, "subnet_no", resourceName, "subnet_no"),
 					resource.TestCheckResourceAttr(dataName, "subnet", cidr),
 					resource.TestCheckResourceAttr(dataName, "name", name),
-					resource.TestCheckResourceAttr(dataName, "zone", "KR-1"),
+					resource.TestCheckResourceAttr(dataName, "zone", "KR-2"),
 					resource.TestMatchResourceAttr(dataName, "network_acl_no", regexp.MustCompile(`^\d+$`)),
 					resource.TestCheckResourceAttr(dataName, "subnet_type", "PUBLIC"),
 					resource.TestCheckResourceAttr(dataName, "usage_type", "GEN"),
@@ -47,14 +48,14 @@ resource "ncloud_subnet" "bar" {
 	vpc_no             = ncloud_vpc.foo.vpc_no
 	name               = "%s"
 	subnet             = "%s"
-	zone               = "KR-1"
+	zone               = "KR-2"
 	network_acl_no     = ncloud_vpc.foo.default_network_acl_no
 	subnet_type        = "PUBLIC"
 	usage_type         = "GEN"
 }
 
 data "ncloud_subnet" "by_id" {
-  subnet_no = "${ncloud_subnet.bar.id}"
+	id = "${ncloud_subnet.bar.id}"
 }
 
 data "ncloud_subnet" "by_filter" {

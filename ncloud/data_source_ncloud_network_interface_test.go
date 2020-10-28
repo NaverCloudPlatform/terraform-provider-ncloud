@@ -21,6 +21,7 @@ func TestAccDataSourceNcloudNetworkInterfaceBasic(t *testing.T) {
 				Config: testAccDataSourceNcloudNetworkInterfaceConfig(name),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckDataSourceID(dataName),
+					resource.TestCheckResourceAttrPair(dataName, "id", resourceName, "id"),
 					resource.TestCheckResourceAttrPair(dataName, "network_interface_no", resourceName, "network_interface_no"),
 					resource.TestCheckResourceAttrPair(dataName, "name", resourceName, "name"),
 					resource.TestCheckResourceAttrPair(dataName, "description", resourceName, "description"),
@@ -50,6 +51,7 @@ func TestAccDataSourceNcloudNetworkInterfaceFilter(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckDataSourceID("data.ncloud_network_interface.by_filter"),
 					testAccCheckDataSourceID(dataName),
+					resource.TestCheckResourceAttrPair(dataName, "id", resourceName, "id"),
 					resource.TestCheckResourceAttrPair(dataName, "network_interface_no", resourceName, "network_interface_no"),
 					resource.TestCheckResourceAttrPair(dataName, "name", resourceName, "name"),
 					resource.TestCheckResourceAttrPair(dataName, "description", resourceName, "description"),
@@ -90,7 +92,7 @@ resource "ncloud_network_interface" "foo" {
 }
 
 data "ncloud_network_interface" "by_id" {
-	network_interface_no = ncloud_network_interface.foo.id
+	id = ncloud_network_interface.foo.id
 }
 `, name)
 }

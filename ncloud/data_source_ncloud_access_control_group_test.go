@@ -71,7 +71,7 @@ resource "ncloud_access_control_group" "test" {
 }
 
 data "ncloud_access_control_group" "by_id" {
-	access_control_group_no = ncloud_access_control_group.test.id
+	id = ncloud_access_control_group.test.id
 }
 
 data "ncloud_access_control_group" "by_filter" {

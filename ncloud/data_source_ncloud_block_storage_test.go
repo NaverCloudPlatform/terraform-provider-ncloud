@@ -80,7 +80,7 @@ func TestAccDataSourceNcloudBlockStorage_vpc_basic(t *testing.T) {
 
 var testAccDataSourceNcloudBlockStorageConfig = `
 data "ncloud_block_storage" "by_id" {
-	block_storage_no = ncloud_block_storage.storage.id
+	id = ncloud_block_storage.storage.id
 }
 
 data "ncloud_block_storage" "by_filter" {

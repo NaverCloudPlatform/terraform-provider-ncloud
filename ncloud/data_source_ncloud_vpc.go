@@ -12,7 +12,7 @@ func init() {
 
 func dataSourceNcloudVpc() *schema.Resource {
 	fieldMap := map[string]*schema.Schema{
-		"vpc_no": {
+		"id": {
 			Type:     schema.TypeString,
 			Optional: true,
 			Computed: true,
@@ -59,7 +59,7 @@ func getVpcListFiltered(d *schema.ResourceData, config *ProviderConfig) ([]map[s
 		reqParams.VpcName = ncloud.String(v.(string))
 	}
 
-	if v, ok := d.GetOk("vpc_no"); ok {
+	if v, ok := d.GetOk("id"); ok {
 		reqParams.VpcNoList = []*string{ncloud.String(v.(string))}
 	}
 

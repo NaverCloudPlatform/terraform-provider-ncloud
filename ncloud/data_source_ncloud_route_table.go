@@ -12,7 +12,7 @@ func init() {
 
 func dataSourceNcloudRouteTable() *schema.Resource {
 	fieldMap := map[string]*schema.Schema{
-		"route_table_no": {
+		"id": {
 			Type:     schema.TypeString,
 			Optional: true,
 			Computed: true,
@@ -77,7 +77,7 @@ func getRouteTableList(d *schema.ResourceData, config *ProviderConfig) (*vpc.Get
 		reqParams.SupportedSubnetTypeCode = ncloud.String(v.(string))
 	}
 
-	if v, ok := d.GetOk("route_table_no"); ok {
+	if v, ok := d.GetOk("id"); ok {
 		reqParams.RouteTableNoList = []*string{ncloud.String(v.(string))}
 	}
 

@@ -12,7 +12,7 @@ func init() {
 
 func dataSourceNcloudNetworkInterface() *schema.Resource {
 	fieldMap := map[string]*schema.Schema{
-		"network_interface_no": {
+		"id": {
 			Type:     schema.TypeString,
 			Optional: true,
 			Computed: true,
@@ -64,7 +64,7 @@ func getVpcNetworkInterfaceListFiltered(d *schema.ResourceData, config *Provider
 		NetworkInterfaceName: StringPtrOrNil(d.GetOk("name")),
 	}
 
-	if v, ok := d.GetOk("network_interface_no"); ok {
+	if v, ok := d.GetOk("id"); ok {
 		reqParams.NetworkInterfaceNoList = []*string{ncloud.String(v.(string))}
 	}
 

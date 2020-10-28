@@ -12,7 +12,7 @@ func init() {
 
 func dataSourceNcloudVpcPeering() *schema.Resource {
 	fieldMap := map[string]*schema.Schema{
-		"vpc_peering_no": {
+		"id": {
 			Type:     schema.TypeString,
 			Optional: true,
 			Computed: true,
@@ -64,7 +64,7 @@ func getVpcPeeringListFiltered(d *schema.ResourceData, config *ProviderConfig) (
 		RegionCode: &config.RegionCode,
 	}
 
-	if v, ok := d.GetOk("vpc_peering_no"); ok {
+	if v, ok := d.GetOk("id"); ok {
 		reqParams.VpcPeeringInstanceNoList = []*string{ncloud.String(v.(string))}
 	}
 

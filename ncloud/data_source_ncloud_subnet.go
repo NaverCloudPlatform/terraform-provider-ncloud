@@ -13,7 +13,7 @@ func init() {
 
 func dataSourceNcloudSubnet() *schema.Resource {
 	fieldMap := map[string]*schema.Schema{
-		"subnet_no": {
+		"id": {
 			Type:     schema.TypeString,
 			Optional: true,
 			Computed: true,
@@ -83,7 +83,7 @@ func getSubnetListFiltered(d *schema.ResourceData, config *ProviderConfig) ([]ma
 		RegionCode: &config.RegionCode,
 	}
 
-	if v, ok := d.GetOk("subnet_no"); ok {
+	if v, ok := d.GetOk("id"); ok {
 		reqParams.SubnetNoList = []*string{ncloud.String(v.(string))}
 	}
 
