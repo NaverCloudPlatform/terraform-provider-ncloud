@@ -58,18 +58,18 @@ The following arguments are supported:
 * `vpc_no` - (Required) The ID of the associated VPC.
 * `name` - (Optional) The name to create. If omitted, Terraform will assign a random, unique name.
 * `description` - (Optional) description to create
-* `inbound` - (Optional) Set Inbound(ingress) rules
-  * `priority` - (Required) Priority for rules, Used for ordering. Can be an integer from `1` to `199`.
-  * `protocol` - (Required) Select between TCP, UDP, and ICMP. Accepted values: `TCP` | `UDP` | `ICMP`
-  * `rule_action` - (Required) The action to take. Accepted values: `ALLOW` | `DROP`
-  * `ip_block` - (Required) The CIDR block to match. This must be a valid network mask.
-  * `port_range` - (Optional) Range of ports to apply. You can enter from `1` to `65535`. e.g. set single port: `22` or set range port : `8000-9000`
-* `outbound` - (Optional) Set Outbound(egress) rules
-  * `priority` - (Required) Priority for rules, Used for ordering. Can be an integer from `1` to `199`.
-  * `protocol` - (Required) Select between TCP, UDP, and ICMP. Accepted values: `TCP` | `UDP` | `ICMP`
-  * `rule_action` - (Required) The action to take. Accepted values: `ALLOW` | `DROP`
-  * `ip_block` - (Required) The CIDR block to match. This must be a valid network mask.
-  * `port_range` - (Optional) Range of ports to apply. You can enter from `1` to `65535`. e.g. set single port: `22` or set range port : `8000-9000`
+* `inbound` - (Optional) Specifies an Inbound(ingress) rules. Parameters defined below. This argument is processed in [attriutbe-as-blocks](https://www.terraform.io/docs/configuration/attr-as-blocks.html) mode.
+* `outbound` - (Optional) Specifies an Outbound(egress) rules. Parameters defined below. This argument is processed in [attriutbe-as-blocks](https://www.terraform.io/docs/configuration/attr-as-blocks.html) mode.
+
+### Network ACL Rule Reference
+
+Both `inbound` and `outbound` support  following attributes:
+
+* `priority` - (Required) Priority for rules, Used for ordering. Can be an integer from `1` to `199`.
+* `protocol` - (Required) Select between TCP, UDP, and ICMP. Accepted values: `TCP` | `UDP` | `ICMP`
+* `rule_action` - (Required) The action to take. Accepted values: `ALLOW` | `DROP`
+* `ip_block` - (Required) The CIDR block to match. This must be a valid network mask.
+* `port_range` - (Optional) Range of ports to apply. You can enter from `1` to `65535`. e.g. set single port: `22` or set range port : `8000-9000`
 
 ## Attributes Reference
 
