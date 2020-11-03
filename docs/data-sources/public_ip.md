@@ -1,11 +1,3 @@
----
-layout: "ncloud"
-page_title: "NCLOUD: ncloud_public_ip"
-sidebar_current: "docs-ncloud-datasource-public-ip"
-description: |-
-  Get public IP
----
-
 # Data Source: ncloud_public_ip
 
 Get public IP instance.

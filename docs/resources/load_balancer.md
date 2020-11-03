@@ -1,12 +1,4 @@
----
-layout: "ncloud"
-page_title: "NCLOUD: ncloud_load_balancer"
-sidebar_current: "docs-ncloud-resource-load-balancer"
-description: |-
-  Provides a ncloud load balancer instance resource.
----
-
-# ncloud_load_balancer
+# Resource: ncloud_load_balancer
 Provides a ncloud load balancer instance resource.
 
 ## Example Usage

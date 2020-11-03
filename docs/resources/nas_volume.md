@@ -1,11 +1,3 @@
----
-layout: "ncloud"
-page_title: "NCLOUD: ncloud_nas_volume"
-sidebar_current: "docs-ncloud-resource-nas-volume"
-description: |-
-  Provides a NAS volume.
----
-
 # Resource: ncloud_nas_volume
 
 Provides a NAS volume.

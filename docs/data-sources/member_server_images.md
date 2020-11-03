@@ -1,11 +1,3 @@
----
-layout: "ncloud"
-page_title: "NCLOUD: ncloud_member_server_images"
-sidebar_current: "docs-ncloud-datasource-member-server-images"
-description: |-
-  Get member server image list
----
-
 # Data Source: ncloud_member_server_images
 
 Gets a list of member server images.

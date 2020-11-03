@@ -1,12 +1,4 @@
----
-layout: "ncloud"
-page_title: "NCLOUD: ncloud_placement_group"
-sidebar_current: "docs-ncloud-data-placement-group"
-description: |-
-  Get detail of Placement group resource.
----
-
-# Resource: ncloud_placement_group
+# Data Source: ncloud_placement_group
 
 This module can provide useful for get detail of Placement group created before.
 

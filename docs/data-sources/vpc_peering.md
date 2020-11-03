@@ -1,11 +1,3 @@
----
-layout: "ncloud"
-page_title: "NCLOUD: ncloud_vpc_peering"
-sidebar_current: "docs-ncloud-data-vpc-peering"
-description: |-
-  Get detail of VPC Peering resource.
----
-
 # Data Source: ncloud_vpc_peering
 
 This module can provide useful for get detail of VPC peering created before.

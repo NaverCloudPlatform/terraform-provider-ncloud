@@ -1,12 +1,4 @@
----
-layout: "ncloud"
-page_title: "NCLOUD: ncloud_block_storage_snapshot"
-sidebar_current: "docs-ncloud-resource-block-storage-snapshot"
-description: |-
-  Provides a ncloud block storage snapshot resource.
----
-
-# ncloud_block_storage
+# Resource: ncloud_block_storage
 
 Provides a ncloud block storage snapshot resource.
 

@@ -1,11 +1,3 @@
----
-layout: "ncloud"
-page_title: "NCLOUD: ncloud_public_ip"
-sidebar_current: "docs-ncloud-resource-public-ip"
-description: |-
-  Provides a Public IP instance resource.
----
-
 # Resource: ncloud_public_ip
 
 Provides a Public IP instance resource.

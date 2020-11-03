@@ -1,11 +1,3 @@
----
-layout: "ncloud"
-page_title: "NCLOUD: ncloud_vpc"
-sidebar_current: "docs-ncloud-data-vpc"
-description: |-
-  Get vpc resource.
----
-
 # Data Source: ncloud_vpc
 
 This module can provide useful for get detail of VPC created before. for example, determine the CIDR block of that VPC

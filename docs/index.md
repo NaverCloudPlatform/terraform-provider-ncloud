@@ -1,10 +1,5 @@
 ---
-layout: "ncloud"
 page_title: "Provider: NAVER Cloud Platform"
-sidebar_current: "docs-ncloud-index"
-description: |-
-  The Ncloud provider is used to interact with Ncloud (NAVER Cloud Platform) services. The provider needs to be configured with the proper credentials before it can be used.
-
 ---
 
 # Ncloud Provider
@@ -19,10 +14,11 @@ The provider needs to be configured with the proper credentials before it can be
 ```hcl
 // Configure the ncloud provider
 provider "ncloud" {
-  access_key = var.access_key
-  secret_key = var.secret_key
-  region     = var.region
-  site       = var.site
+  access_key  = var.access_key
+  secret_key  = var.secret_key
+  region      = var.region
+  site        = var.site
+  support_vpc = var.support_vpc
 }
 
 // Create a new server instance
@@ -49,10 +45,11 @@ Usage:
 
 ```hcl
 provider "ncloud" {
-  access_key = var.access_key
-  secret_key = var.secret_key
-  region     = var.region
-  site       = var.site
+  access_key  = var.access_key
+  secret_key  = var.secret_key
+  region      = var.region
+  site        = var.site
+  support_vpc = var.support_vpc
 }
 ```
 
@@ -95,6 +92,9 @@ The following arguments are supported:
 
 ~> **Note** `access_key`, `secret_key` : (Get authentication keys for your account)[http://docs.ncloud.com/en/api_new/api_new-1-1.html#preparation]
 
+* `support_vpc` - (Optional) Whether to use VPC. By default, the value is `false` on "public" site. If you want use VPC environment. Please set this value `true`.  
+
+~> **Note** `support_vpc` is only support if `site` is `public`.
 
 ## Testing
 

@@ -1,11 +1,3 @@
----
-layout: "ncloud"
-page_title: "NCLOUD: ncloud_nat_gateway"
-sidebar_current: "docs-ncloud-resource-nat-gateway"
-description: |-
-  Provides a NAT gateway resource.
----
-
 # Resource: ncloud_nat_gateway
 
 Provides a NAT gateway resource.

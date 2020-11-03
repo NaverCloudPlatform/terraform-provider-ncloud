@@ -1,11 +1,3 @@
----
-layout: "ncloud"
-page_title: "NCLOUD: ncloud_init_script"
-sidebar_current: "docs-ncloud-data-init-script"
-description: |-
-  Get detail of Init script resource.
----
-
 # Data Source: ncloud_init_script
 
 This module can provide useful for get detail of Init script created before.

@@ -1,11 +1,3 @@
----
-layout: "ncloud"
-page_title: "NCLOUD: ncloud_network_interface"
-sidebar_current: "docs-ncloud-resource-network-interface"
-description: |-
-  Provides a Network Interface resource.
----
-
 # Resource: ncloud_network_interface
 
 Provides a Network Interface resource.

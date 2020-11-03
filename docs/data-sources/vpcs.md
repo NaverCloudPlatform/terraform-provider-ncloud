@@ -1,11 +1,3 @@
----
-layout: "ncloud"
-page_title: "NCLOUD: ncloud_vpcs"
-sidebar_current: "docs-ncloud-data-vpcs"
-description: |-
-  Searching a vpc list
----
-
 # Data Source: ncloud_vpcs
 
 This resource is useful for look up the list of VPC in the region.

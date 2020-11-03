@@ -1,11 +1,3 @@
----
-layout: "ncloud"
-page_title: "NCLOUD: ncloud_block_storage_snapshot"
-sidebar_current: "docs-ncloud-data-block-storage-snapshot"
-description: |-
-  Get detail of Snapshot resource.
----
-
 # Data Source: ncloud_block_storage_snapshot
 
 This module can provide useful for get detail of Snapshot (Block Storage) created before.

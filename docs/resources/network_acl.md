@@ -1,11 +1,3 @@
----
-layout: "ncloud"
-page_title: "NCLOUD: ncloud_network_acl"
-sidebar_current: "docs-ncloud-resource-network-acl"
-description: |-
-  Provides a rule of Network ACL resource.
----
-
 # Resource: ncloud_network_acl
 
 Provides a rule of Network ACL resource.

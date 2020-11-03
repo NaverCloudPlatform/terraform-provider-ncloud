@@ -1,11 +1,3 @@
----
-layout: "ncloud"
-page_title: "NCLOUD: ncloud_zones"
-sidebar_current: "docs-ncloud-datasource-zones"
-description: |-
-  Get region list
----
-
 # Data Source: ncloud_zones
 
 Gets a list of available zones.

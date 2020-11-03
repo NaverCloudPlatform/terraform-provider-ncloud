@@ -1,11 +1,3 @@
----
-layout: "ncloud"
-page_title: "NCLOUD: ncloud_vpc_peering"
-sidebar_current: "docs-ncloud-resource-vpc-peering"
-description: |-
-  Provides a VPC Peering resource.
----
-
 # Resource: ncloud_vpc_peering
 
 Provides a VPC Peering resource.

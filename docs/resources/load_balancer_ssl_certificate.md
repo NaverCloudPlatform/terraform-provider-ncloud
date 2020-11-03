@@ -1,12 +1,4 @@
----
-layout: "ncloud"
-page_title: "NCLOUD: load_balancer_ssl_certificate"
-sidebar_current: "docs-ncloud-resource-load-balancer-ssl-certificate"
-description: |-
-  Provides a ncloud load balancer ssl certificate resource.
----
-
-# load_balancer_ssl_certificate
+# Resource: load_balancer_ssl_certificate
 
 Provides a ncloud load balancer ssl certificate resource.
 

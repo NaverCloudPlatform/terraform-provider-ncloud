@@ -1,11 +1,3 @@
----
-layout: "ncloud"
-page_title: "NCLOUD: ncloud_server_products"
-sidebar_current: "docs-ncloud-datasource-server-products"
-description: |-
-  Searching a server product list
----
-
 # Data Source: ncloud_server_products
 
 You should select a server product (server specification) to create a server instance (VM).

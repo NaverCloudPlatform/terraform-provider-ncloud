@@ -1,11 +1,3 @@
----
-layout: "ncloud"
-page_title: "NCLOUD: ncloud_vpc"
-sidebar_current: "docs-ncloud-resource-vpc"
-description: |-
-  Provides a VPC resource.
----
-
 # Resource: ncloud_vpc
 
 Provides a VPC resource.

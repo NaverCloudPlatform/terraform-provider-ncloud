@@ -1,11 +1,3 @@
----
-layout: "ncloud"
-page_title: "NCLOUD: ncloud_nas_volume"
-sidebar_current: "docs-ncloud-datasource-nas-volume"
-description: |-
-  Get NAS volume instance
----
-
 # Data Source: ncloud_nas_volume
 
 Get NAS volume instance

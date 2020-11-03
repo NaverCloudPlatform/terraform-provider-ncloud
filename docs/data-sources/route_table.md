@@ -1,11 +1,3 @@
----
-layout: "ncloud"
-page_title: "NCLOUD: ncloud_route_table"
-sidebar_current: "docs-ncloud-data-route-table"
-description: |-
-  Get route table resource
----
-
 # Data Source: ncloud_route_table
 
 This module can provide useful for get detail of Route Table created before.

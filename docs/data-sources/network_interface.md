@@ -1,11 +1,3 @@
----
-layout: "ncloud"
-page_title: "NCLOUD: ncloud_network_interface"
-sidebar_current: "docs-ncloud-data-network-interface"
-description: |-
-  Get detail of Network Interface resource.
----
-
 # Data Source: ncloud_network_interface
 
 This module can provide useful for get detail of Network Interface created before.
