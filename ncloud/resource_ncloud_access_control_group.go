@@ -43,6 +43,78 @@ func resourceNcloudAccessControlGroup() *schema.Resource {
 				Optional:     true,
 				ValidateFunc: validation.StringLenBetween(0, 1000),
 			},
+			"inbound": {
+				Type:       schema.TypeSet,
+				Optional:   true,
+				ConfigMode: schema.SchemaConfigModeAttr,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"protocol": {
+							Type:         schema.TypeString,
+							Required:     true,
+							ValidateFunc: validation.StringInSlice([]string{"TCP", "UDP", "ICMP"}, false),
+						},
+						"ip_block": {
+							Type:         schema.TypeString,
+							Optional:     true,
+							ForceNew:     true,
+							ValidateFunc: validation.IsCIDRNetwork(0, 32),
+						},
+						"source_access_control_group_no": {
+							Type:     schema.TypeString,
+							Optional: true,
+							ForceNew: true,
+						},
+						"port_range": {
+							Type:         schema.TypeString,
+							Optional:     true,
+							ForceNew:     true,
+							ValidateFunc: validatePortRange,
+						},
+						"description": {
+							Type:         schema.TypeString,
+							Optional:     true,
+							ValidateFunc: validation.StringLenBetween(0, 1000),
+						},
+					},
+				},
+			},
+			"outbound": {
+				Type:       schema.TypeSet,
+				Optional:   true,
+				ConfigMode: schema.SchemaConfigModeAttr,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"protocol": {
+							Type:         schema.TypeString,
+							Required:     true,
+							ValidateFunc: validation.StringInSlice([]string{"TCP", "UDP", "ICMP"}, false),
+						},
+						"ip_block": {
+							Type:         schema.TypeString,
+							Optional:     true,
+							ForceNew:     true,
+							ValidateFunc: validation.IsCIDRNetwork(0, 32),
+						},
+						"source_access_control_group_no": {
+							Type:     schema.TypeString,
+							Optional: true,
+							ForceNew: true,
+						},
+						"port_range": {
+							Type:         schema.TypeString,
+							Optional:     true,
+							ForceNew:     true,
+							ValidateFunc: validatePortRange,
+						},
+						"description": {
+							Type:         schema.TypeString,
+							Optional:     true,
+							ValidateFunc: validation.StringLenBetween(0, 1000),
+						},
+					},
+				},
+			},
 
 			"access_control_group_no": {
 				Type:     schema.TypeString,
@@ -68,7 +140,7 @@ func resourceNcloudAccessControlGroupCreate(d *schema.ResourceData, meta interfa
 	d.SetId(*instance.AccessControlGroupNo)
 	log.Printf("[INFO] ACG ID: %s", d.Id())
 
-	return resourceNcloudAccessControlGroupRead(d, meta)
+	return resourceNcloudAccessControlGroupUpdate(d, meta)
 }
 
 func resourceNcloudAccessControlGroupRead(d *schema.ResourceData, meta interface{}) error {
@@ -92,10 +164,56 @@ func resourceNcloudAccessControlGroupRead(d *schema.ResourceData, meta interface
 	d.Set("vpc_no", instance.VpcNo)
 	d.Set("is_default", instance.IsDefault)
 
+	rules, err := getAccessControlGroupRuleList(d, config)
+	if err != nil {
+		return err
+	}
+
+	var inbound []map[string]interface{}
+	var outbound []map[string]interface{}
+
+	for _, r := range rules {
+		m := map[string]interface{}{
+			"protocol":                       *r.ProtocolType.Code,
+			"port_range":                     *r.PortRange,
+			"ip_block":                       *r.IpBlock,
+			"source_access_control_group_no": *r.AccessControlGroupSequence,
+			"description":                    *r.AccessControlGroupRuleDescription,
+		}
+
+		if *r.AccessControlGroupRuleType.Code == "INBND" {
+			inbound = append(inbound, m)
+		} else {
+			outbound = append(outbound, m)
+		}
+	}
+
+	if err := d.Set("inbound", inbound); err != nil {
+		log.Printf("[WARN] Error setting inbound rule set for (%s): %s", d.Id(), err)
+	}
+
+	if err := d.Set("outbound", outbound); err != nil {
+		log.Printf("[WARN] Error setting outbound rule set for (%s): %s", d.Id(), err)
+	}
+
 	return nil
 }
 
 func resourceNcloudAccessControlGroupUpdate(d *schema.ResourceData, meta interface{}) error {
+	config := meta.(*ProviderConfig)
+
+	if d.HasChange("inbound") {
+		if err := updateAccessControlGroupRule(d, config, "inbound"); err != nil {
+			return err
+		}
+	}
+
+	if d.HasChange("outbound") {
+		if err := updateAccessControlGroupRule(d, config, "outbound"); err != nil {
+			return err
+		}
+	}
+
 	return resourceNcloudAccessControlGroupRead(d, meta)
 }
 
@@ -244,4 +362,202 @@ func waitForVpcAccessControlGroupRunning(config *ProviderConfig, id string) erro
 	}
 
 	return nil
+}
+
+func updateAccessControlGroupRule(d *schema.ResourceData, meta interface{}, ruleType string) error {
+	config := meta.(*ProviderConfig)
+
+	o, n := d.GetChange(ruleType)
+
+	if o == nil {
+		o = new(schema.Set)
+	}
+	if n == nil {
+		n = new(schema.Set)
+	}
+
+	os := o.(*schema.Set)
+	ns := n.(*schema.Set)
+
+	add := ns.Difference(os).List()
+	remove := os.Difference(ns).List()
+
+	removeAccessControlGroupRuleList := expandRemoveAccessControlGroupRule(remove)
+	addAccessControlGroupRuleList := expandAddAccessControlGroupRule(add)
+
+	if len(removeAccessControlGroupRuleList) > 0 {
+		if err := removeAccessControlGroupRule(d, config, ruleType, removeAccessControlGroupRuleList); err != nil {
+			return err
+		}
+	}
+
+	if len(addAccessControlGroupRuleList) > 0 {
+		if err := addAccessControlGroupRule(d, config, ruleType, addAccessControlGroupRuleList); err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+func addAccessControlGroupRule(d *schema.ResourceData, config *ProviderConfig, ruleType string, accessControlGroupRule []*vserver.AddAccessControlGroupRuleParameter) error {
+	var reqParams interface{}
+	var resp interface{}
+
+	err := resource.Retry(d.Timeout(schema.TimeoutCreate), func() *resource.RetryError {
+		var err error
+
+		var reqParams interface{}
+		if ruleType == "inbound" {
+			reqParams = &vserver.AddAccessControlGroupInboundRuleRequest{
+				RegionCode:                 &config.RegionCode,
+				AccessControlGroupNo:       ncloud.String(d.Id()),
+				VpcNo:                      ncloud.String(d.Get("vpc_no").(string)),
+				AccessControlGroupRuleList: accessControlGroupRule,
+			}
+
+			logCommonRequest("AddAccessControlGroupInboundRule", reqParams)
+			resp, err = config.Client.vserver.V2Api.AddAccessControlGroupInboundRule(reqParams.(*vserver.AddAccessControlGroupInboundRuleRequest))
+		} else {
+			reqParams = &vserver.AddAccessControlGroupOutboundRuleRequest{
+				RegionCode:                 &config.RegionCode,
+				AccessControlGroupNo:       ncloud.String(d.Id()),
+				VpcNo:                      ncloud.String(d.Get("vpc_no").(string)),
+				AccessControlGroupRuleList: accessControlGroupRule,
+			}
+
+			logCommonRequest("AddAccessControlGroupOutboundRule", reqParams)
+			resp, err = config.Client.vserver.V2Api.AddAccessControlGroupOutboundRule(reqParams.(*vserver.AddAccessControlGroupOutboundRuleRequest))
+		}
+
+		if err == nil {
+			return resource.NonRetryableError(err)
+		}
+
+		errBody, _ := GetCommonErrorBody(err)
+		if errBody.ReturnCode == ApiErrorAcgCantChangeSameTime {
+			logErrorResponse("retry AddAccessControlGroupRule", err, reqParams)
+			time.Sleep(time.Second * 5)
+			return resource.RetryableError(err)
+		}
+
+		return resource.NonRetryableError(err)
+	})
+
+	if err != nil {
+		logErrorResponse("AddAccessControlGroupRule", err, reqParams)
+		return err
+	}
+
+	logResponse("AddAccessControlGroupRule", resp)
+
+	return nil
+}
+
+func removeAccessControlGroupRule(d *schema.ResourceData, config *ProviderConfig, ruleType string, accessControlGroupRule []*vserver.RemoveAccessControlGroupRuleParameter) error {
+	var reqParams interface{}
+	var resp interface{}
+
+	err := resource.Retry(d.Timeout(schema.TimeoutCreate), func() *resource.RetryError {
+		var err error
+
+		var reqParams interface{}
+		if ruleType == "inbound" {
+			reqParams = &vserver.RemoveAccessControlGroupInboundRuleRequest{
+				RegionCode:                 &config.RegionCode,
+				AccessControlGroupNo:       ncloud.String(d.Id()),
+				VpcNo:                      ncloud.String(d.Get("vpc_no").(string)),
+				AccessControlGroupRuleList: accessControlGroupRule,
+			}
+
+			logCommonRequest("RemoveAccessControlGroupInboundRule", reqParams)
+			resp, err = config.Client.vserver.V2Api.RemoveAccessControlGroupInboundRule(reqParams.(*vserver.RemoveAccessControlGroupInboundRuleRequest))
+		} else {
+			reqParams = &vserver.RemoveAccessControlGroupOutboundRuleRequest{
+				RegionCode:                 &config.RegionCode,
+				AccessControlGroupNo:       ncloud.String(d.Id()),
+				VpcNo:                      ncloud.String(d.Get("vpc_no").(string)),
+				AccessControlGroupRuleList: accessControlGroupRule,
+			}
+
+			logCommonRequest("RemoveAccessControlGroupOutboundRule", reqParams)
+			resp, err = config.Client.vserver.V2Api.RemoveAccessControlGroupOutboundRule(reqParams.(*vserver.RemoveAccessControlGroupOutboundRuleRequest))
+		}
+
+		if err == nil {
+			return resource.NonRetryableError(err)
+		}
+
+		errBody, _ := GetCommonErrorBody(err)
+		if errBody.ReturnCode == ApiErrorAcgCantChangeSameTime {
+			logErrorResponse("retry RemoveAccessControlGroupRule", err, reqParams)
+			time.Sleep(time.Second * 5)
+			return resource.RetryableError(err)
+		}
+
+		return resource.NonRetryableError(err)
+	})
+
+	if err != nil {
+		logErrorResponse("RemoveAccessControlGroupRule", err, reqParams)
+		return err
+	}
+
+	logResponse("RemoveAccessControlGroupRule", resp)
+
+	return nil
+}
+
+func expandAddAccessControlGroupRule(rules []interface{}) []*vserver.AddAccessControlGroupRuleParameter {
+	var acgRuleList []*vserver.AddAccessControlGroupRuleParameter
+
+	for _, vi := range rules {
+		m := vi.(map[string]interface{})
+		acgRule := &vserver.AddAccessControlGroupRuleParameter{
+			AccessControlGroupRuleDescription: ncloud.String(m["description"].(string)),
+			IpBlock:                           ncloud.String(m["ip_block"].(string)),
+			AccessControlGroupSequence:        ncloud.String(m["source_access_control_group_no"].(string)),
+			ProtocolTypeCode:                  ncloud.String(m["protocol"].(string)),
+			PortRange:                         ncloud.String(m["port_range"].(string)),
+		}
+
+		acgRuleList = append(acgRuleList, acgRule)
+	}
+
+	return acgRuleList
+}
+
+func expandRemoveAccessControlGroupRule(rules []interface{}) []*vserver.RemoveAccessControlGroupRuleParameter {
+	var acgRuleList []*vserver.RemoveAccessControlGroupRuleParameter
+
+	for _, vi := range rules {
+		m := vi.(map[string]interface{})
+		acgRule := &vserver.RemoveAccessControlGroupRuleParameter{
+			IpBlock:                    ncloud.String(m["ip_block"].(string)),
+			AccessControlGroupSequence: ncloud.String(m["source_access_control_group_no"].(string)),
+			ProtocolTypeCode:           ncloud.String(m["protocol"].(string)),
+			PortRange:                  ncloud.String(m["port_range"].(string)),
+		}
+
+		acgRuleList = append(acgRuleList, acgRule)
+	}
+
+	return acgRuleList
+}
+
+func getAccessControlGroupRuleList(d *schema.ResourceData, config *ProviderConfig) ([]*vserver.AccessControlGroupRule, error) {
+	reqParams := &vserver.GetAccessControlGroupRuleListRequest{
+		RegionCode:           &config.RegionCode,
+		AccessControlGroupNo: ncloud.String(d.Id()),
+	}
+
+	logCommonRequest("getAccessControlGroupRuleList", reqParams)
+	resp, err := config.Client.vserver.V2Api.GetAccessControlGroupRuleList(reqParams)
+	if err != nil {
+		logErrorResponse("getAccessControlGroupRuleList", err, reqParams)
+		return nil, err
+	}
+	logResponse("getAccessControlGroupRuleList", resp)
+
+	return resp.AccessControlGroupRuleList, nil
 }

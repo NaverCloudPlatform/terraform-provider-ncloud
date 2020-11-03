@@ -32,6 +32,8 @@ func TestAccResourceNcloudAccessControlGroup_basic(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "description", "for acc test"),
 					resource.TestMatchResourceAttr(resourceName, "vpc_no", regexp.MustCompile(`^\d+$`)),
 					resource.TestCheckResourceAttr(resourceName, "is_default", "false"),
+					resource.TestCheckResourceAttr(resourceName, "inbound.#", "2"),
+					resource.TestCheckResourceAttr(resourceName, "outbound.#", "1"),
 				),
 			},
 			{
@@ -76,6 +78,24 @@ resource "ncloud_access_control_group" "foo" {
 	name                  = "%[1]s"
 	description           = "for acc test"
 	vpc_no                = ncloud_vpc.test.id
+
+	inbound {
+		protocol    = "TCP"
+		port_range  = "80"
+		ip_block    = "0.0.0.0/0"
+	}
+	
+	inbound {
+		protocol    = "TCP"
+		port_range  = "443"
+		ip_block    = "0.0.0.0/0"
+	}
+
+	outbound {
+		protocol    = "TCP"
+		port_range  = "80"
+		ip_block    = "0.0.0.0/0"
+	}
 }
 `, name)
 }
