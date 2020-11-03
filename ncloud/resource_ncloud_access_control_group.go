@@ -383,7 +383,10 @@ func updateAccessControlGroupRule(d *schema.ResourceData, meta interface{}, rule
 	remove := os.Difference(ns).List()
 
 	removeAccessControlGroupRuleList := expandRemoveAccessControlGroupRule(remove)
-	addAccessControlGroupRuleList := expandAddAccessControlGroupRule(add)
+	addAccessControlGroupRuleList, err := expandAddAccessControlGroupRule(add)
+	if err != nil {
+		return err
+	}
 
 	if len(removeAccessControlGroupRuleList) > 0 {
 		if err := removeAccessControlGroupRule(d, config, ruleType, removeAccessControlGroupRuleList); err != nil {
@@ -451,6 +454,10 @@ func addAccessControlGroupRule(d *schema.ResourceData, config *ProviderConfig, r
 
 	logResponse("AddAccessControlGroupRule", resp)
 
+	if err = waitForVpcAccessControlGroupRunning(config, d.Id()); err != nil {
+		return err
+	}
+
 	return nil
 }
 
@@ -505,14 +512,27 @@ func removeAccessControlGroupRule(d *schema.ResourceData, config *ProviderConfig
 
 	logResponse("RemoveAccessControlGroupRule", resp)
 
+	if err = waitForVpcAccessControlGroupRunning(config, d.Id()); err != nil {
+		return err
+	}
+
 	return nil
 }
 
-func expandAddAccessControlGroupRule(rules []interface{}) []*vserver.AddAccessControlGroupRuleParameter {
+func expandAddAccessControlGroupRule(rules []interface{}) ([]*vserver.AddAccessControlGroupRuleParameter, error) {
 	var acgRuleList []*vserver.AddAccessControlGroupRuleParameter
 
 	for _, vi := range rules {
 		m := vi.(map[string]interface{})
+
+		if len(m["ip_block"].(string)) == 0 && len(m["source_access_control_group_no"].(string)) == 0 {
+			return nil, fmt.Errorf("one of either `ip_block` or `source_access_control_group_no` is required")
+		}
+
+		if len(m["ip_block"].(string)) > 0 && len(m["source_access_control_group_no"].(string)) > 0 {
+			return nil, fmt.Errorf("cannot be specified with `ip_block` and `source_access_control_group_no`")
+		}
+
 		acgRule := &vserver.AddAccessControlGroupRuleParameter{
 			AccessControlGroupRuleDescription: ncloud.String(m["description"].(string)),
 			IpBlock:                           ncloud.String(m["ip_block"].(string)),
@@ -524,7 +544,7 @@ func expandAddAccessControlGroupRule(rules []interface{}) []*vserver.AddAccessCo
 		acgRuleList = append(acgRuleList, acgRule)
 	}
 
-	return acgRuleList
+	return acgRuleList, nil
 }
 
 func expandRemoveAccessControlGroupRule(rules []interface{}) []*vserver.RemoveAccessControlGroupRuleParameter {
@@ -532,6 +552,7 @@ func expandRemoveAccessControlGroupRule(rules []interface{}) []*vserver.RemoveAc
 
 	for _, vi := range rules {
 		m := vi.(map[string]interface{})
+
 		acgRule := &vserver.RemoveAccessControlGroupRuleParameter{
 			IpBlock:                    ncloud.String(m["ip_block"].(string)),
 			AccessControlGroupSequence: ncloud.String(m["source_access_control_group_no"].(string)),
