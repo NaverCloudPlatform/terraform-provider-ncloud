@@ -3,10 +3,9 @@ package ncloud
 import (
 	"errors"
 	"fmt"
-	"strconv"
+	"regexp"
 	"testing"
 
-	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/ncloud"
 	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/services/vpc"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
@@ -14,8 +13,9 @@ import (
 )
 
 func TestAccResourceNcloudNetworkACLRule_basic(t *testing.T) {
-	var networkACLRule vpc.NetworkAclRule
+	var networkACLRule []*vpc.NetworkAclRule
 
+	resourceName := "ncloud_network_acl_rule.nacl_rule"
 	name := fmt.Sprintf("test-network-acl-rule-%s", acctest.RandString(5))
 
 	resource.Test(t, resource.TestCase{
@@ -26,22 +26,15 @@ func TestAccResourceNcloudNetworkACLRule_basic(t *testing.T) {
 			{
 				Config: testAccResourceNcloudNetworkACLRuleConfig(name),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckNetworkACLRuleExists("ncloud_network_acl_rule.nacl_rule_inbound_100", &networkACLRule),
-					testAccCheckNetworkACLRuleExists("ncloud_network_acl_rule.nacl_rule_inbound_110", &networkACLRule),
-					testAccCheckNetworkACLRuleExists("ncloud_network_acl_rule.nacl_rule_inbound_120", &networkACLRule),
-					testAccCheckNetworkACLRuleExists("ncloud_network_acl_rule.nacl_rule_outbound_100", &networkACLRule),
+					testAccCheckNetworkACLRuleExists(resourceName, &networkACLRule),
+					resource.TestMatchResourceAttr(resourceName, "network_acl_no", regexp.MustCompile(`^\d+$`)),
+					resource.TestCheckResourceAttr(resourceName, "inbound.#", "2"),
+					resource.TestCheckResourceAttr(resourceName, "outbound.#", "1"),
 				),
 			},
 			{
-				ResourceName:      "ncloud_network_acl_rule.nacl_rule_inbound_100",
+				ResourceName:      resourceName,
 				ImportState:       true,
-				ImportStateIdFunc: testAccNcloudNetworkACLRuleImportStateIDFunc("ncloud_network_acl_rule.nacl_rule_inbound_100"),
-				ImportStateVerify: true,
-			},
-			{
-				ResourceName:      "ncloud_network_acl_rule.nacl_rule_outbound_100",
-				ImportState:       true,
-				ImportStateIdFunc: testAccNcloudNetworkACLRuleImportStateIDFunc("ncloud_network_acl_rule.nacl_rule_outbound_100"),
 				ImportStateVerify: true,
 			},
 		},
@@ -49,7 +42,7 @@ func TestAccResourceNcloudNetworkACLRule_basic(t *testing.T) {
 }
 
 func TestAccResourceNcloudNetworkACLRule_AssociatedSubnet(t *testing.T) {
-	var networkACLRule vpc.NetworkAclRule
+	var networkACLRule []*vpc.NetworkAclRule
 
 	name := fmt.Sprintf("test-nacl-rule-subnet-%s", acctest.RandString(5))
 
@@ -61,10 +54,7 @@ func TestAccResourceNcloudNetworkACLRule_AssociatedSubnet(t *testing.T) {
 			{
 				Config: testAccResourceNcloudNetworkACLRuleConfigAssociatedSubnet(name),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckNetworkACLRuleExists("ncloud_network_acl_rule.nacl_rule_inbound_100", &networkACLRule),
-					testAccCheckNetworkACLRuleExists("ncloud_network_acl_rule.nacl_rule_inbound_110", &networkACLRule),
-					testAccCheckNetworkACLRuleExists("ncloud_network_acl_rule.nacl_rule_inbound_120", &networkACLRule),
-					testAccCheckNetworkACLRuleExists("ncloud_network_acl_rule.nacl_rule_outbound_100", &networkACLRule),
+					testAccCheckNetworkACLRuleExists("ncloud_network_acl_rule.nacl_rule", &networkACLRule),
 				),
 			},
 		},
@@ -72,7 +62,7 @@ func TestAccResourceNcloudNetworkACLRule_AssociatedSubnet(t *testing.T) {
 }
 
 func TestAccResourceNcloudNetworkACLRule_disappears(t *testing.T) {
-	var networkACLRule vpc.NetworkAclRule
+	var networkACLRule []*vpc.NetworkAclRule
 
 	name := fmt.Sprintf("test-network-acl-rule-%s", acctest.RandString(5))
 
@@ -106,49 +96,34 @@ resource "ncloud_network_acl" "nacl" {
 	description = "test acc for network acl"
 }
 
-resource "ncloud_network_acl_rule" "nacl_rule_inbound_100" {
+resource "ncloud_network_acl_rule" "nacl_rule" {
 	network_acl_no    = ncloud_network_acl.nacl.network_acl_no
-	priority          = 100
-	protocol          = "TCP"
-	rule_action       = "ALLOW"
-	port_range        = "22"
-	ip_block          = "0.0.0.0/0"
-	rule_type         = "INBND"
-	description       = "%[1]s"
-}
 
-resource "ncloud_network_acl_rule" "nacl_rule_inbound_110" {
-	network_acl_no    = ncloud_network_acl.nacl.network_acl_no
-	priority          = 110
-	protocol          = "TCP"
-	rule_action       = "ALLOW"
-	port_range        = "80"
-	ip_block          = "0.0.0.0/0"
-	rule_type         = "INBND"
-	description       = "tf-testacc-network-acl-rule"
-}
+	inbound {
+		priority    = 1
+		protocol    = "TCP"
+		rule_action = "ALLOW"
+		port_range  = "80"
+		ip_block    = "0.0.0.0/0"
+	}
+	
+	inbound {
+		priority    = 2
+		protocol    = "TCP"
+		rule_action = "ALLOW"
+		port_range  = "443"
+		ip_block    = "0.0.0.0/0"
+	}
 
-resource "ncloud_network_acl_rule" "nacl_rule_inbound_120" {
-	network_acl_no    = ncloud_network_acl.nacl.network_acl_no
-	priority          = 120
-	protocol          = "TCP"
-	rule_action       = "ALLOW"
-	port_range        = "443"
-	ip_block          = "0.0.0.0/0"
-	rule_type         = "INBND"
-	description       = "tf-testacc-network-acl-rule"
+	outbound {
+		priority    = 3
+		protocol    = "TCP"
+		rule_action = "ALLOW"
+		port_range  = "80"
+		ip_block    = "0.0.0.0/0"
+	}
 }
-
-resource "ncloud_network_acl_rule" "nacl_rule_outbound_100" {
-	network_acl_no    = ncloud_network_acl.nacl.network_acl_no
-	priority          = 100
-	protocol          = "TCP"
-	rule_action       = "ALLOW"
-	port_range        = "1-65535"
-	ip_block          = "0.0.0.0/0"
-	rule_type         = "OTBND"
-	description       = "tf-testacc-network-acl-rule"
-}`, name)
+`, name)
 }
 
 func testAccResourceNcloudNetworkACLRuleConfigAssociatedSubnet(name string) string {
@@ -174,53 +149,34 @@ resource "ncloud_network_acl" "nacl" {
 	description = "test acc for network acl"
 }
 
-resource "ncloud_network_acl_rule" "nacl_rule_inbound_100" {
+resource "ncloud_network_acl_rule" "nacl_rule" {
 	network_acl_no    = ncloud_network_acl.nacl.network_acl_no
-	priority          = 100
-	protocol          = "TCP"
-	rule_action       = "ALLOW"
-	port_range        = "22"
-	ip_block          = "0.0.0.0/0"
-	rule_type         = "INBND"
-	description       = "%[1]s"
+	inbound {
+		priority    = 1
+		protocol    = "TCP"
+		rule_action = "ALLOW"
+		port_range  = "80"
+		ip_block    = "0.0.0.0/0"
+	}
+	
+	inbound {
+		priority    = 2
+		protocol    = "TCP"
+		rule_action = "ALLOW"
+		port_range  = "443"
+		ip_block    = "0.0.0.0/0"
+	}
+
+	outbound {
+		priority    = 3
+		protocol    = "TCP"
+		rule_action = "ALLOW"
+		port_range  = "80"
+		ip_block    = "0.0.0.0/0"
+	}
 	depends_on        = [ncloud_subnet.subnet]
 }
-
-resource "ncloud_network_acl_rule" "nacl_rule_inbound_110" {
-	network_acl_no    = ncloud_network_acl.nacl.network_acl_no
-	priority          = 110
-	protocol          = "TCP"
-	rule_action       = "ALLOW"
-	port_range        = "80"
-	ip_block          = "0.0.0.0/0"
-	rule_type         = "INBND"
-	description       = "tf-testacc-network-acl-rule"
-	depends_on        = [ncloud_subnet.subnet]
-}
-
-resource "ncloud_network_acl_rule" "nacl_rule_inbound_120" {
-	network_acl_no    = ncloud_network_acl.nacl.network_acl_no
-	priority          = 120
-	protocol          = "TCP"
-	rule_action       = "ALLOW"
-	port_range        = "443"
-	ip_block          = "0.0.0.0/0"
-	rule_type         = "INBND"
-	description       = "tf-testacc-network-acl-rule"
-	depends_on        = [ncloud_subnet.subnet]
-}
-
-resource "ncloud_network_acl_rule" "nacl_rule_outbound_100" {
-	network_acl_no    = ncloud_network_acl.nacl.network_acl_no
-	priority          = 100
-	protocol          = "TCP"
-	rule_action       = "ALLOW"
-	port_range        = "1-65535"
-	ip_block          = "0.0.0.0/0"
-	rule_type         = "OTBND"
-	description       = "tf-testacc-network-acl-rule"
-	depends_on        = [ncloud_subnet.subnet]
-}`, name)
+`, name)
 }
 
 func testAccResourceNcloudNetworkACLRuleConfigDisappear(name string) string {
@@ -238,17 +194,36 @@ resource "ncloud_network_acl" "nacl" {
 
 resource "ncloud_network_acl_rule" "test" {
 	network_acl_no    = ncloud_network_acl.nacl.network_acl_no
-	priority          = 100
-	protocol          = "TCP"
-	rule_action       = "ALLOW"
-	port_range        = "22"
-	ip_block          = "0.0.0.0/0"
-	rule_type         = "INBND"
-	description       = "%[1]s"
+	inbound {
+		priority    = 1
+		protocol    = "TCP"
+		rule_action = "ALLOW"
+		port_range  = "80"
+		ip_block    = "0.0.0.0/0"
+		description       = "%[1]s"
+	}
+	
+	inbound {
+		priority    = 2
+		protocol    = "TCP"
+		rule_action = "ALLOW"
+		port_range  = "443"
+		ip_block    = "0.0.0.0/0"
+		description       = "%[1]s"
+	}
+
+	outbound {
+		priority    = 3
+		protocol    = "TCP"
+		rule_action = "ALLOW"
+		port_range  = "80"
+		ip_block    = "0.0.0.0/0"
+		description       = "%[1]s"
+	}	
 }`, name)
 }
 
-func testAccCheckNetworkACLRuleExists(n string, networkACLRule *vpc.NetworkAclRule) resource.TestCheckFunc {
+func testAccCheckNetworkACLRuleExists(n string, networkACLRule *[]*vpc.NetworkAclRule) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		rs, ok := s.RootModule().Resources[n]
 		if !ok {
@@ -261,47 +236,19 @@ func testAccCheckNetworkACLRuleExists(n string, networkACLRule *vpc.NetworkAclRu
 
 		config := testAccProvider.Meta().(*ProviderConfig)
 
-		priority, err := strconv.ParseInt(rs.Primary.Attributes["priority"], 10, 32)
+		rules, err := getNetworkACLRuleList(config, rs.Primary.ID)
+
 		if err != nil {
 			return err
 		}
 
-		networkRuleType := ncloud.String(rs.Primary.Attributes["rule_type"])
-
-		reqParams := &vpc.GetNetworkAclRuleListRequest{
-			RegionCode:             &config.RegionCode,
-			NetworkAclNo:           ncloud.String(rs.Primary.Attributes["network_acl_no"]),
-			NetworkAclRuleTypeCode: networkRuleType,
+		if len(rules) == 0 {
+			return fmt.Errorf("Entry not found: %s", rs.Primary.ID)
 		}
 
-		resp, err := config.Client.vpc.V2Api.GetNetworkAclRuleList(reqParams)
-		if err != nil {
-			logErrorResponse("GetNetworkAclRuleList", err, reqParams)
-			return err
-		}
+		*networkACLRule = rules
 
-		for _, i := range resp.NetworkAclRuleList {
-			if *i.Priority == int32(priority) && *i.NetworkAclRuleType.Code == *networkRuleType {
-				*networkACLRule = *i
-				return nil
-			}
-		}
-
-		return fmt.Errorf("Entry not found: %v", resp.NetworkAclRuleList)
-	}
-}
-
-func testAccNcloudNetworkACLRuleImportStateIDFunc(resourceName string) resource.ImportStateIdFunc {
-	return func(s *terraform.State) (string, error) {
-		rs, ok := s.RootModule().Resources[resourceName]
-		if !ok {
-			return "", fmt.Errorf("not found: %s", resourceName)
-		}
-		networkACLNo := rs.Primary.Attributes["network_acl_no"]
-		networkRuleType := rs.Primary.Attributes["rule_type"]
-		priority := rs.Primary.Attributes["priority"]
-
-		return fmt.Sprintf("%s:%s:%s", networkACLNo, networkRuleType, priority), nil
+		return nil
 	}
 }
 
@@ -313,73 +260,63 @@ func testAccCheckNetworkACLRuleDestroy(s *terraform.State) error {
 			continue
 		}
 
-		instance, err := getNetworkACLInstance(config, rs.Primary.Attributes["network_acl_no"])
+		rules, err := getNetworkACLRuleList(config, rs.Primary.Attributes["network_acl_no"])
 
 		if err != nil {
 			return err
 		}
 
-		if instance == nil {
-			return nil
-		}
-
-		priority, err := strconv.ParseInt(rs.Primary.Attributes["priority"], 10, 32)
-		if err != nil {
-			return err
-		}
-
-		networkRuleType := ncloud.String(rs.Primary.Attributes["rule_type"])
-
-		reqParams := &vpc.GetNetworkAclRuleListRequest{
-			RegionCode:             &config.RegionCode,
-			NetworkAclNo:           ncloud.String(rs.Primary.Attributes["network_acl_no"]),
-			NetworkAclRuleTypeCode: networkRuleType,
-		}
-
-		resp, err := config.Client.vpc.V2Api.GetNetworkAclRuleList(reqParams)
-		if err != nil {
-			logErrorResponse("GetNetworkAclRuleList", err, reqParams)
-			return err
-		}
-
-		for _, i := range resp.NetworkAclRuleList {
-			if *i.Priority == int32(priority) && *i.NetworkAclRuleType.Code == *networkRuleType {
-				return errors.New("Network ACL Rule still exists")
-			}
+		if len(rules) > 0 {
+			return errors.New("Network ACL Rule still exists")
 		}
 	}
 
 	return nil
 }
 
-func testAccCheckNetworkACLRuleDisappears(instance *vpc.NetworkAclRule) resource.TestCheckFunc {
+func testAccCheckNetworkACLRuleDisappears(instance *[]*vpc.NetworkAclRule) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		config := testAccProvider.Meta().(*ProviderConfig)
 
-		networkACLRule := &vpc.RemoveNetworkAclRuleParameter{
-			IpBlock:          instance.IpBlock,
-			RuleActionCode:   instance.RuleAction.Code,
-			PortRange:        instance.PortRange,
-			Priority:         instance.Priority,
-			ProtocolTypeCode: instance.ProtocolType.Code,
+		var inbound []*vpc.RemoveNetworkAclRuleParameter
+		var outbound []*vpc.RemoveNetworkAclRuleParameter
+
+		if len(*instance) == 0 {
+			return nil
 		}
 
-		if *instance.NetworkAclRuleType.Code == "INBND" {
+		for _, r := range *instance {
+			networkACLRule := &vpc.RemoveNetworkAclRuleParameter{
+				IpBlock:          r.IpBlock,
+				RuleActionCode:   r.RuleAction.Code,
+				PortRange:        r.PortRange,
+				Priority:         r.Priority,
+				ProtocolTypeCode: r.ProtocolType.Code,
+			}
+
+			if *r.NetworkAclRuleType.Code == "INBND" {
+				inbound = append(inbound, networkACLRule)
+			} else {
+				outbound = append(outbound, networkACLRule)
+			}
+		}
+
+		if len(inbound) > 0 {
 			reqParams := &vpc.RemoveNetworkAclInboundRuleRequest{
 				RegionCode:         &config.RegionCode,
-				NetworkAclNo:       instance.NetworkAclNo,
-				NetworkAclRuleList: []*vpc.RemoveNetworkAclRuleParameter{networkACLRule},
+				NetworkAclNo:       (*instance)[0].NetworkAclNo,
+				NetworkAclRuleList: inbound,
 			}
 
 			_, err := config.Client.vpc.V2Api.RemoveNetworkAclInboundRule(reqParams)
 			if err != nil {
 				return err
 			}
-		} else {
+		} else if len(outbound) > 0 {
 			reqParams := &vpc.RemoveNetworkAclOutboundRuleRequest{
 				RegionCode:         &config.RegionCode,
-				NetworkAclNo:       instance.NetworkAclNo,
-				NetworkAclRuleList: []*vpc.RemoveNetworkAclRuleParameter{networkACLRule},
+				NetworkAclNo:       (*instance)[0].NetworkAclNo,
+				NetworkAclRuleList: outbound,
 			}
 
 			_, err := config.Client.vpc.V2Api.RemoveNetworkAclOutboundRule(reqParams)
