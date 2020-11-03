@@ -29,8 +29,6 @@ func TestAccResourceNcloudNetworkACL_basic(t *testing.T) {
 					resource.TestMatchResourceAttr(resourceName, "vpc_no", regexp.MustCompile(`^\d+$`)),
 					resource.TestMatchResourceAttr(resourceName, "network_acl_no", regexp.MustCompile(`^\d+$`)),
 					resource.TestCheckResourceAttr(resourceName, "name", name),
-					resource.TestCheckResourceAttr(resourceName, "inbound.#", "2"),
-					resource.TestCheckResourceAttr(resourceName, "outbound.#", "1"),
 				),
 			},
 			{
@@ -172,30 +170,6 @@ resource "ncloud_network_acl" "nacl" {
 	vpc_no      = ncloud_vpc.vpc.vpc_no
 	name        = "%[1]s"
 	description = "%[2]s"
-
-	inbound {
-		priority    = 1
-		protocol    = "TCP"
-		rule_action = "ALLOW"
-		port_range  = "80"
-		ip_block    = "0.0.0.0/0"
-	}
-	
-	inbound {
-		priority    = 2
-		protocol    = "TCP"
-		rule_action = "ALLOW"
-		port_range  = "443"
-		ip_block    = "0.0.0.0/0"
-	}
-
-	outbound {
-		priority    = 3
-		protocol    = "TCP"
-		rule_action = "ALLOW"
-		port_range  = "80"
-		ip_block    = "0.0.0.0/0"
-	}
 }
 `, name, description)
 }
