@@ -71,6 +71,10 @@ Both `inbound` and `outbound` support  following attributes:
 * `ip_block` - (Required) The CIDR block to match. This must be a valid network mask.
 * `port_range` - (Optional) Range of ports to apply. You can enter from `1` to `65535`. e.g. set single port: `22` or set range port : `8000-9000`
 
+~> **NOTE:** If the value of protocol is `ICMP`, the `port_range` values will be ignored and the rule will apply to all ports.
+
+* `description` - (Optional) description to create.
+
 ## Attributes Reference
 
 In addition to all arguments above, the following attributes are exported:
