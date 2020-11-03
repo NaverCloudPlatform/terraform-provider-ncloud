@@ -25,22 +25,29 @@ resource "ncloud_access_control_group" "acg" {
   vpc_no      = ncloud_vpc.vpc.id
 }
 
-resource "ncloud_access_control_group_rule" "inbound-tcp-22" {
+resource "ncloud_access_control_group_rule" "acg-rule" {
   access_control_group_no = ncloud_access_control_group.acg.id
-  description             = "accept 22 port"
-  rule_type               = "INBND"
-  protocol                = "TCP"
-  ip_block                = "0.0.0.0/0"
-  port_range              = "22"
-}
+  
+  inbound {
+    protocol    = "TCP"
+    ip_block    = "0.0.0.0/0"
+    port_range  = "22"
+    description = "accept 22 port"
+  }
 
-resource "ncloud_access_control_group_rule" "inbound-tcp-8080" {
-  access_control_group_no = ncloud_access_control_group.acg.id
-  description             = "accept 8080 port"
-  rule_type               = "INBND"
-  protocol                = "TCP"
-  ip_block                = "0.0.0.0/0"
-  port_range              = "8080"
+  inbound {
+    protocol    = "TCP"
+    ip_block    = "0.0.0.0/0"
+    port_range  = "80"
+    description = "accept 80 port"
+  }
+
+  outbound {
+    protocol    = "TCP"
+    ip_block    = "0.0.0.0/0" 
+    port_range  = "1-65535"
+    description = "accept 1-65535 port"
+  }
 }
 ```
 
@@ -51,7 +58,13 @@ resource "ncloud_access_control_group_rule" "inbound-tcp-8080" {
 The following arguments are supported:
 
 * `access_control_group_no` - (Required) The ID of the ACG.
-* `rule_type` - (Required) Specifies an inbound(INBND) or outbound(OTBND) rule. Accepted values: `INBND` (inbound) | `OTBND` (outboud).
+* `inbound` - (Optional) Specifies an Inbound(ingress) rules. Parameters defined below. This argument is processed in [attriutbe-as-blocks](https://www.terraform.io/docs/configuration/attr-as-blocks.html) mode.
+* `outbound` - (Optional) Specifies an Outbound(egress) rules. Parameters defined below. This argument is processed in [attriutbe-as-blocks](https://www.terraform.io/docs/configuration/attr-as-blocks.html) mode.
+
+### Access Control Group Rule Reference
+
+Both `inbound` and `outbound` support  following attributes:
+
 * `protocol` - (Required) Select between TCP, UDP, and ICMP. Accepted values: `TCP` | `UDP` | `ICMP`
 * `ip_block` - (Optional) The CIDR block to match. This must be a valid network mask. Cannot be specified with `source_access_control_group_no`.
 * `source_access_control_group_no` - (Optional) The ID of specific ACG to apply this rule to. Cannot be specified with `ip_block`.
@@ -60,3 +73,7 @@ The following arguments are supported:
 ~> **NOTE:** If the value of protocol is `ICMP`, the `port_range` values will be ignored and the rule will apply to all ports.
 
 * `description` - (Optional) description to create.
+
+## Attributes Reference
+
+* `id` - The ID of ACG(Access Control Group) rule
