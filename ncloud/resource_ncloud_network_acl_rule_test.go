@@ -261,6 +261,10 @@ func testAccCheckNetworkACLRuleDestroy(s *terraform.State) error {
 		}
 
 		rules, err := getNetworkACLRuleList(config, rs.Primary.Attributes["network_acl_no"])
+		errBody, _ := GetCommonErrorBody(err)
+		if errBody.ReturnCode == ApiErrorNetworkAclCantAccessaApropriate {
+			return nil
+		}
 
 		if err != nil {
 			return err
