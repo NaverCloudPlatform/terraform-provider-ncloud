@@ -1,11 +1,3 @@
----
-layout: "ncloud"
-page_title: "NCLOUD: ncloud_nas_volumes"
-sidebar_current: "docs-ncloud-datasource-nas-volumes"
-description: |-
-  Get NAS volume instance list
----
-
 # Data Source: ncloud_nas_volumes
 
 Gets a list of NAS volume instances.

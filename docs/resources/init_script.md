@@ -1,11 +1,3 @@
----
-layout: "ncloud"
-page_title: "NCLOUD: ncloud_init_script"
-sidebar_current: "docs-ncloud-resource-init-script"
-description: |-
-  Provides an Init script resource.
----
-
 # Resource: ncloud_init_script
 
 Provides an Init script resource.

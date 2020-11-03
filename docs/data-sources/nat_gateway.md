@@ -1,11 +1,3 @@
----
-layout: "ncloud"
-page_title: "NCLOUD: ncloud_nat_gateway"
-sidebar_current: "docs-ncloud-data-nat_gateway"
-description: |-
-  Get detail of NAT gateway resource.
----
-
 # Data Source: ncloud_nat_gateway
 
 This module can provide useful for get detail of NAT Gateway created before.

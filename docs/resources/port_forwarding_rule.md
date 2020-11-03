@@ -1,11 +1,3 @@
----
-layout: "ncloud"
-page_title: "NCLOUD: ncloud_port_forwarding_rule"
-sidebar_current: "docs-ncloud-resource-port-forwarding-rule"
-description: |-
-  Provides a ncloud port forwarding rule resource.
----
-
 # ncloud_port_forwarding_rule
 
 Provides a ncloud port forwarding rule resource.

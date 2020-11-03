@@ -1,11 +1,3 @@
----
-layout: "ncloud"
-page_title: "NCLOUD: ncloud_subnet"
-sidebar_current: "docs-ncloud-data-subnet"
-description: |-
-  Get subnet resource
----
-
 # Data Source: ncloud_subnet
 
 This module can provide useful for get detail of Subnet created before. for example, determine the CIDR block of that Subnet

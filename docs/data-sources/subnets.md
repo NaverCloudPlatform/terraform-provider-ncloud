@@ -1,11 +1,3 @@
----
-layout: "ncloud"
-page_title: "NCLOUD: ncloud_subnets"
-sidebar_current: "docs-ncloud-data-subnets"
-description: |-
-  Searching a subnet list
----
-
 # Data Source: ncloud_subnet
 
 This resource is useful for look up the list of Subnet in the region.

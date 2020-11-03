@@ -1,11 +1,3 @@
----
-layout: "ncloud"
-page_title: "NCLOUD: ncloud_placement_group"
-sidebar_current: "docs-ncloud-resource-placement-group"
-description: |-
-  Provides Placement group resource.
----
-
 # Resource: ncloud_placement_group
 
 Provides a Placement group resource.

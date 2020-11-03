@@ -1,11 +1,3 @@
----
-layout: "ncloud"
-page_title: "NCLOUD: ncloud_root_password"
-sidebar_current: "docs-ncloud-datasource-root-password"
-description: |-
-  Get root password
----
-
 # Data Source: ncloud_root_password
 
 Gets the password of a root account with the server's login key.

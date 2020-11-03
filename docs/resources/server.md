@@ -1,11 +1,3 @@
----
-layout: "ncloud"
-page_title: "NCLOUD: ncloud_server"
-sidebar_current: "docs-ncloud-resource-server"
-description: |-
-  Provides a Server instance resource.
----
-
 # Resource: ncloud_server
 
 Provides a Server instance resource.

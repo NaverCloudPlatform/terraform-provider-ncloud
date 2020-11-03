@@ -1,11 +1,3 @@
----
-layout: "ncloud"
-page_title: "NCLOUD: ncloud_port_forwarding_rules"
-sidebar_current: "docs-ncloud-datasource-port-forwarding-rules"
-description: |-
-  Get port forwarding rule list
----
-
 # Data Source: ncloud_port_forwarding_rules
 
 Gets a list of port forwarding rules.

@@ -1,11 +1,3 @@
----
-layout: "ncloud"
-page_title: "NCLOUD: ncloud_network_acls"
-sidebar_current: "docs-ncloud-data-network_acls"
-description: |-
-  Searching a Network ACL list.
----
-
 # Data Source: ncloud_network_acls
 
 This resource is useful for look up the list of Network ACL in the region.

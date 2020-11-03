@@ -1,11 +1,3 @@
----
-layout: "ncloud"
-page_title: "NCLOUD: ncloud_block_storage"
-sidebar_current: "docs-ncloud-data-block-storage"
-description: |-
-  Get detail of Block Storage resource.
----
-
 # Data Source: ncloud_block_storage
 
 This module can provide useful for get detail of Block Storage created before.

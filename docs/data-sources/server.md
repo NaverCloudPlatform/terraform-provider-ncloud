@@ -1,11 +1,3 @@
----
-layout: "ncloud"
-page_title: "NCLOUD: ncloud_server"
-sidebar_current: "docs-ncloud-resource-server"
-description: |-
-  Provides a ncloud server instance resource.
----
-
 # Data Source: ncloud_server
 
 This module can provide useful for get detail of Server instance created before.

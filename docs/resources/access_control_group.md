@@ -1,11 +1,3 @@
----
-layout: "ncloud"
-page_title: "NCLOUD: ncloud_access_control_group"
-sidebar_current: "docs-ncloud-resource-access-control-group"
-description: |-
-  Provides an ACG(Access Control Group) resource.
----
-
 # Resource: ncloud_access_control_group
 
 Provides an ACG(Access Control Group) resource.

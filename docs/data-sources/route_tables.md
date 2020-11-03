@@ -1,11 +1,3 @@
----
-layout: "ncloud"
-page_title: "NCLOUD: ncloud_route_tables"
-sidebar_current: "docs-ncloud-data-route-tables"
-description: |-
-  Searching a route table list
----
-
 # Data Source: ncloud_route_tables
 
 This resource is useful for look up the list of Route table in the region.

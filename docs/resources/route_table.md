@@ -1,11 +1,3 @@
----
-layout: "ncloud"
-page_title: "NCLOUD: ncloud_route_table"
-sidebar_current: "docs-ncloud-resource-route_table"
-description: |-
-  Provides a Route Table resource.
----
-
 # Resource: ncloud_route_table
 
 Provides a Route Table resource.

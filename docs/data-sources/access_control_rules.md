@@ -1,11 +1,3 @@
----
-layout: "ncloud"
-page_title: "NCLOUD: ncloud_access_control_rules"
-sidebar_current: "docs-ncloud-datasource-access-control-rules"
-description: |-
-  Get access control rule list
----
-
 # Data Source: ncloud_access_control_rules
 
 List of access configuration rules you want to get

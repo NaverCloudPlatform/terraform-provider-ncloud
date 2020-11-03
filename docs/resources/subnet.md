@@ -1,11 +1,3 @@
----
-layout: "ncloud"
-page_title: "NCLOUD: ncloud_subnet"
-sidebar_current: "docs-ncloud-resource-subnet"
-description: |-
-  Provides a Subnet resource.
----
-
 # Resource: ncloud_subnet
 
 Provides a Subnet resource.

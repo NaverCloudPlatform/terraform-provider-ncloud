@@ -1,11 +1,3 @@
----
-layout: "ncloud"
-page_title: "NCLOUD: ncloud_block_storage"
-sidebar_current: "docs-ncloud-resource-block-storage"
-description: |-
-  Provides a Block Storage resource.
----
-
 # Resource: ncloud_block_storage
 
 Provides a Block Storage resource.
