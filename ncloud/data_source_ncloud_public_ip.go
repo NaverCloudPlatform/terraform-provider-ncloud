@@ -184,15 +184,16 @@ func getClassicPublicIpList(d *schema.ResourceData, config *ProviderConfig) ([]m
 	}
 	logCommonResponse("getClassicPublicIpList", GetCommonResponse(resp))
 
-	resources := []map[string]interface{}{}
-
+	var resources []map[string]interface{}
 	for _, r := range resp.PublicIpInstanceList {
 		instance := map[string]interface{}{
-			"id":           *r.PublicIpInstanceNo,
-			"instance_no":  *r.PublicIpInstanceNo,
-			"public_ip_no": *r.PublicIpInstanceNo,
-			"public_ip":    *r.PublicIp,
-			"description":  *r.PublicIpDescription,
+			"id":                 *r.PublicIpInstanceNo,
+			"instance_no":        *r.PublicIpInstanceNo,
+			"public_ip_no":       *r.PublicIpInstanceNo,
+			"public_ip":          *r.PublicIp,
+			"description":        *r.PublicIpDescription,
+			"server_instance_no": nil,
+			"server_name":        nil,
 		}
 
 		if m := flattenCommonCode(r.InternetLineType); m["code"] != nil {
@@ -255,14 +256,15 @@ func getVpcPublicIpList(d *schema.ResourceData, config *ProviderConfig) ([]map[s
 	}
 	logCommonResponse("getVpcPublicIpList", GetCommonResponse(resp))
 
-	resources := []map[string]interface{}{}
-
+	var resources []map[string]interface{}
 	for _, r := range resp.PublicIpInstanceList {
 		instance := map[string]interface{}{
-			"id":           *r.PublicIpInstanceNo,
-			"public_ip_no": *r.PublicIpInstanceNo,
-			"public_ip":    *r.PublicIp,
-			"description":  *r.PublicIpDescription,
+			"id":                 *r.PublicIpInstanceNo,
+			"public_ip_no":       *r.PublicIpInstanceNo,
+			"public_ip":          *r.PublicIp,
+			"description":        *r.PublicIpDescription,
+			"server_instance_no": nil,
+			"server_name":        nil,
 		}
 
 		SetStringIfNotNilAndEmpty(instance, "server_instance_no", r.ServerInstanceNo)

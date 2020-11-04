@@ -31,10 +31,12 @@ func resourceNcloudPublicIpInstance() *schema.Resource {
 			"server_instance_no": {
 				Type:     schema.TypeString,
 				Optional: true,
+				Computed: true,
 			},
 			"description": {
 				Type:         schema.TypeString,
 				Optional:     true,
+				Computed:     true,
 				ValidateFunc: validation.StringLenBetween(1, 10000),
 			},
 
@@ -299,12 +301,13 @@ func getClassicPublicIp(config *ProviderConfig, id string) (map[string]interface
 	r := resp.PublicIpInstanceList[0]
 
 	instance := map[string]interface{}{
-		"id":           *r.PublicIpInstanceNo,
-		"public_ip_no": *r.PublicIpInstanceNo,
-		"public_ip":    *r.PublicIp,
-		"description":  *r.PublicIpDescription,
-		"zone":         *r.Zone.ZoneCode,
-		"instance_no":  *r.PublicIpInstanceNo, // Deprecated
+		"id":                 *r.PublicIpInstanceNo,
+		"public_ip_no":       *r.PublicIpInstanceNo,
+		"public_ip":          *r.PublicIp,
+		"description":        *r.PublicIpDescription,
+		"zone":               *r.Zone.ZoneCode,
+		"instance_no":        *r.PublicIpInstanceNo, // Deprecated
+		"server_instance_no": nil,
 	}
 
 	if m := flattenCommonCode(r.InternetLineType); m["code"] != nil {
@@ -355,10 +358,11 @@ func getVpcPublicIp(config *ProviderConfig, id string) (map[string]interface{}, 
 	r := resp.PublicIpInstanceList[0]
 
 	instance := map[string]interface{}{
-		"id":           *r.PublicIpInstanceNo,
-		"public_ip_no": *r.PublicIpInstanceNo,
-		"public_ip":    *r.PublicIp,
-		"description":  *r.PublicIpDescription,
+		"id":                 *r.PublicIpInstanceNo,
+		"public_ip_no":       *r.PublicIpInstanceNo,
+		"public_ip":          *r.PublicIp,
+		"description":        *r.PublicIpDescription,
+		"server_instance_no": nil,
 	}
 
 	SetStringIfNotNilAndEmpty(instance, "server_instance_no", r.ServerInstanceNo)
