@@ -22,9 +22,6 @@ func resourceNcloudNetworkACLRule() *schema.Resource {
 		Read:   resourceNcloudNetworkACLRuleRead,
 		Update: resourceNcloudNetworkACLRuleUpdate,
 		Delete: resourceNcloudNetworkACLRuleDelete,
-		Importer: &schema.ResourceImporter{
-			State: schema.ImportStatePassthrough,
-		},
 		Schema: map[string]*schema.Schema{
 			"network_acl_no": {
 				Type:     schema.TypeString,
@@ -149,11 +146,16 @@ func resourceNcloudNetworkACLRuleRead(d *schema.ResourceData, meta interface{}) 
 
 	d.Set("network_acl_no", d.Id())
 
-	var inbound []map[string]interface{}
-	var outbound []map[string]interface{}
+	i := d.Get("inbound").(*schema.Set)
+	o := d.Get("outbound").(*schema.Set)
+
+	// Create empty set for getNetworkACLRuleList
+	iSet := schema.NewSet(schema.HashResource(resourceNcloudNetworkACLRule().Schema["inbound"].Elem.(*schema.Resource)), []interface{}{})
+	oSet := schema.NewSet(schema.HashResource(resourceNcloudNetworkACLRule().Schema["outbound"].Elem.(*schema.Resource)), []interface{}{})
+
 	for _, r := range rules {
 		m := map[string]interface{}{
-			"priority":    *r.Priority,
+			"priority":    int(*r.Priority),
 			"protocol":    *r.ProtocolType.Code,
 			"port_range":  *r.PortRange,
 			"rule_action": *r.RuleAction.Code,
@@ -162,17 +164,18 @@ func resourceNcloudNetworkACLRuleRead(d *schema.ResourceData, meta interface{}) 
 		}
 
 		if *r.NetworkAclRuleType.Code == "INBND" {
-			inbound = append(inbound, m)
+			iSet.Add(m)
 		} else {
-			outbound = append(outbound, m)
+			oSet.Add(m)
 		}
 	}
 
-	if err := d.Set("inbound", inbound); err != nil {
+	// Only set data intersection between resource and list
+	if err := d.Set("inbound", i.Intersection(iSet).List()); err != nil {
 		log.Printf("[WARN] Error setting inbound rule set for (%s): %s", d.Id(), err)
 	}
 
-	if err := d.Set("outbound", outbound); err != nil {
+	if err := d.Set("outbound", o.Intersection(oSet).List()); err != nil {
 		log.Printf("[WARN] Error setting outbound rule set for (%s): %s", d.Id(), err)
 	}
 
