@@ -17,13 +17,10 @@ func init() {
 
 func resourceNcloudAccessControlGroupRule() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceNcloudAccessControlGroupRuleCreate,
-		Read:   resourceNcloudAccessControlGroupRuleRead,
-		Update: resourceNcloudAccessControlGroupRuleUpdate,
-		Delete: resourceNcloudAccessControlGroupRuleDelete,
-		Importer: &schema.ResourceImporter{
-			State: schema.ImportStatePassthrough,
-		},
+		Create:        resourceNcloudAccessControlGroupRuleCreate,
+		Read:          resourceNcloudAccessControlGroupRuleRead,
+		Update:        resourceNcloudAccessControlGroupRuleUpdate,
+		Delete:        resourceNcloudAccessControlGroupRuleDelete,
 		CustomizeDiff: ncloudVpcCommonCustomizeDiff,
 		Schema: map[string]*schema.Schema{
 			"access_control_group_no": {
@@ -40,31 +37,30 @@ func resourceNcloudAccessControlGroupRule() *schema.Resource {
 						"protocol": {
 							Type:         schema.TypeString,
 							Required:     true,
-							ForceNew:     true,
 							ValidateFunc: validation.StringInSlice([]string{"TCP", "UDP", "ICMP"}, false),
 						},
 						"port_range": {
 							Type:         schema.TypeString,
 							Optional:     true,
-							ForceNew:     true,
 							ValidateFunc: validatePortRange,
+							Default:      "",
 						},
 						"ip_block": {
 							Type:         schema.TypeString,
 							Optional:     true,
-							ForceNew:     true,
 							ValidateFunc: validation.IsCIDRNetwork(0, 32),
+							Default:      "",
 						},
 						"source_access_control_group_no": {
 							Type:     schema.TypeString,
 							Optional: true,
-							ForceNew: true,
+							Default:  "",
 						},
 						"description": {
 							Type:         schema.TypeString,
 							Optional:     true,
-							ForceNew:     true,
 							ValidateFunc: validation.StringLenBetween(0, 1000),
+							Default:      "",
 						},
 					},
 				},
@@ -145,8 +141,12 @@ func resourceNcloudAccessControlGroupRuleRead(d *schema.ResourceData, meta inter
 
 	d.Set("access_control_group_no", d.Id())
 
-	var inbound []map[string]interface{}
-	var outbound []map[string]interface{}
+	i := d.Get("inbound").(*schema.Set)
+	o := d.Get("outbound").(*schema.Set)
+
+	// Create empty set for getAccessControlGroupRuleList
+	iSet := schema.NewSet(schema.HashResource(resourceNcloudAccessControlGroupRule().Schema["inbound"].Elem.(*schema.Resource)), []interface{}{})
+	oSet := schema.NewSet(schema.HashResource(resourceNcloudAccessControlGroupRule().Schema["outbound"].Elem.(*schema.Resource)), []interface{}{})
 
 	for _, r := range rules {
 		m := map[string]interface{}{
@@ -158,17 +158,18 @@ func resourceNcloudAccessControlGroupRuleRead(d *schema.ResourceData, meta inter
 		}
 
 		if *r.AccessControlGroupRuleType.Code == "INBND" {
-			inbound = append(inbound, m)
+			iSet.Add(m)
 		} else {
-			outbound = append(outbound, m)
+			oSet.Add(m)
 		}
 	}
 
-	if err := d.Set("inbound", inbound); err != nil {
+	// Only set data intersection between resource and list
+	if err := d.Set("inbound", i.Intersection(iSet).List()); err != nil {
 		log.Printf("[WARN] Error setting inbound rule set for (%s): %s", d.Id(), err)
 	}
 
-	if err := d.Set("outbound", outbound); err != nil {
+	if err := d.Set("outbound", o.Intersection(oSet).List()); err != nil {
 		log.Printf("[WARN] Error setting outbound rule set for (%s): %s", d.Id(), err)
 	}
 

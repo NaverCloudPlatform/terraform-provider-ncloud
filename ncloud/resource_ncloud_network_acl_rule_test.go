@@ -32,11 +32,6 @@ func TestAccResourceNcloudNetworkACLRule_basic(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "outbound.#", "1"),
 				),
 			},
-			{
-				ResourceName:      resourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
 		},
 	})
 }

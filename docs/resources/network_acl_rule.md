@@ -2,6 +2,8 @@
 
 Provides a rule of Network ACL  resource.
 
+~> **NOTE:** To performance, we recommend using one resource per Network ACL. If you use multiple resources in a single Network ACL, then can cause a slowdown.
+
 ## Example Usage
 
 ### Basic Usage
