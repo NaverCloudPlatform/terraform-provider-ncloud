@@ -100,7 +100,6 @@ func resourceNcloudNetworkACLRead(d *schema.ResourceData, meta interface{}) erro
 
 	instance, err := getNetworkACLInstance(config, d.Id())
 	if err != nil {
-		d.SetId("")
 		return err
 	}
 

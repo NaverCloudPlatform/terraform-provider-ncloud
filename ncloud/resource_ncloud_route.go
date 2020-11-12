@@ -139,11 +139,17 @@ func resourceNcloudRouteRead(d *schema.ResourceData, meta interface{}) error {
 
 	if routeTable != nil {
 		d.Set("vpc_no", routeTable.VpcNo)
+	} else {
+		d.SetId("")
+		return nil
 	}
 
 	instance, err := getRouteInstance(config, d)
 	if err != nil {
-		d.SetId("")
+		errBody, _ := GetCommonErrorBody(err)
+		if errBody.ReturnCode == "1017007" { // Route Table was not found
+			d.SetId("")
+		}
 		return err
 	}
 

@@ -140,7 +140,6 @@ func resourceNcloudSubnetRead(d *schema.ResourceData, meta interface{}) error {
 
 	instance, err := getSubnetInstance(config, d.Id())
 	if err != nil {
-		d.SetId("")
 		return err
 	}
 

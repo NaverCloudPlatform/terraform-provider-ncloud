@@ -86,7 +86,6 @@ func resourceNcloudPlacementGroupRead(d *schema.ResourceData, meta interface{}) 
 
 	instance, err := getPlacementGroupInstance(config, d.Id())
 	if err != nil {
-		d.SetId("")
 		return err
 	}
 
