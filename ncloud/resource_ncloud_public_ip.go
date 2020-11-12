@@ -109,6 +109,11 @@ func resourceNcloudPublicIpRead(d *schema.ResourceData, meta interface{}) error 
 		return err
 	}
 
+	if resource == nil {
+		d.SetId("")
+		return nil
+	}
+
 	SetSingularResourceDataFromMap(d, resource)
 
 	return nil
