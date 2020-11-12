@@ -107,7 +107,6 @@ func resourceNcloudNetworkInterfaceRead(d *schema.ResourceData, meta interface{}
 
 	instance, err := getNetworkInterface(config, d.Id())
 	if err != nil {
-		d.SetId("")
 		return err
 	}
 

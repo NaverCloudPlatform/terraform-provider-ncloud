@@ -74,7 +74,6 @@ func resourceNcloudInitScriptRead(d *schema.ResourceData, meta interface{}) erro
 
 	instance, err := getInitScript(config, d.Id())
 	if err != nil {
-		d.SetId("")
 		return err
 	}
 

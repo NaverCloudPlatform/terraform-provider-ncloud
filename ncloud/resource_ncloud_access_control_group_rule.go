@@ -134,7 +134,10 @@ func resourceNcloudAccessControlGroupRuleRead(d *schema.ResourceData, meta inter
 	rules, err := getAccessControlGroupRuleList(config, d.Id())
 
 	if err != nil {
-		d.SetId("")
+		errBody, _ := GetCommonErrorBody(err)
+		if errBody.ReturnCode == "1007000" { // Acg was not found
+			d.SetId("")
+		}
 		return err
 	}
 

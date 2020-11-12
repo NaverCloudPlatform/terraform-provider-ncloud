@@ -98,7 +98,6 @@ func resourceNcloudVpcRead(d *schema.ResourceData, meta interface{}) error {
 
 	instance, err := getVpcInstance(config, d.Id())
 	if err != nil {
-		d.SetId("")
 		return err
 	}
 

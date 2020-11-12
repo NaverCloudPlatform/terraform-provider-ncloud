@@ -135,6 +135,10 @@ func resourceNcloudNetworkACLRuleRead(d *schema.ResourceData, meta interface{}) 
 
 	rules, err := getNetworkACLRuleList(config, d.Id())
 	if err != nil {
+		errBody, _ := GetCommonErrorBody(err)
+		if errBody.ReturnCode == "1011002" { // You cannot access the appropriate Network ACL
+			d.SetId("")
+		}
 		return err
 	}
 

@@ -108,7 +108,6 @@ func resourceNcloudRouteTableRead(d *schema.ResourceData, meta interface{}) erro
 
 	instance, err := getRouteTableInstance(config, d.Id())
 	if err != nil {
-		d.SetId("")
 		return err
 	}
 

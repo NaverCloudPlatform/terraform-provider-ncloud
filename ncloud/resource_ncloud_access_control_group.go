@@ -76,7 +76,6 @@ func resourceNcloudAccessControlGroupRead(d *schema.ResourceData, meta interface
 
 	instance, err := getAccessControlGroup(config, d.Id())
 	if err != nil {
-		d.SetId("")
 		return err
 	}
 

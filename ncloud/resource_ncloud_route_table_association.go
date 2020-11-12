@@ -106,7 +106,6 @@ func resourceNcloudRouteTableAssociationRead(d *schema.ResourceData, meta interf
 
 	instance, err := getRouteTableAssociationInstance(config, d.Id())
 	if err != nil {
-		d.SetId("")
 		return err
 	}
 
