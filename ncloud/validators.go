@@ -89,7 +89,7 @@ func validateOneResult(resultCount int) error {
 		return fmt.Errorf("no results. please change search criteria and try again")
 	}
 	if resultCount > 1 {
-		return fmt.Errorf("more than one found results. please change search criteria and try again")
+		return fmt.Errorf("more than one found results(%d). please change search criteria and try again", resultCount)
 	}
 	return nil
 }
