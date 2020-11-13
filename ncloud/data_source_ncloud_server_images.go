@@ -16,80 +16,65 @@ func dataSourceNcloudServerImages() *schema.Resource {
 		Read: dataSourceNcloudServerImagesRead,
 
 		Schema: map[string]*schema.Schema{
+			"product_code": {
+				Type:     schema.TypeString,
+				Optional: true,
+				Computed: true,
+			},
+			"platform_type_code_list": {
+				Type:     schema.TypeList,
+				Optional: true,
+				Elem:     &schema.Schema{Type: schema.TypeString},
+			},
+			"infra_resource_detail_type_code": {
+				Type:     schema.TypeString,
+				Optional: true,
+				Computed: true,
+			},
+			"output_file": {
+				Type:     schema.TypeString,
+				Optional: true,
+			},
+			"filter": dataSourceFiltersSchema(),
+
+			"server_images": {
+				Type:     schema.TypeList,
+				Computed: true,
+				Elem:     GetDataSourceItemSchema(dataSourceNcloudServerImage()),
+			},
+			// Deprecated
 			"product_name_regex": {
 				Type:         schema.TypeString,
 				Optional:     true,
 				ForceNew:     true,
 				ValidateFunc: validation.ValidateRegexp,
-				Description:  "A regex string to apply to the server image list returned by ncloud.",
-				Deprecated:   "use filter instead",
+				Deprecated:   "use `filter` instead",
 			},
 			"exclusion_product_code": {
-				Type:        schema.TypeString,
-				Optional:    true,
-				Description: "Product code you want to exclude from the list.",
-			},
-			"product_code": {
-				Type:        schema.TypeString,
-				Optional:    true,
-				Computed:    true,
-				Description: "Product code you want to view on the list. Use this when searching for 1 product.",
-			},
-			"platform_type_code_list": {
-				Type:        schema.TypeList,
-				Optional:    true,
-				Elem:        &schema.Schema{Type: schema.TypeString},
-				Description: "Values required for identifying platforms in list-type.",
+				Type:       schema.TypeString,
+				Optional:   true,
+				Deprecated: "This field no longer support",
 			},
 			"block_storage_size": {
 				Type:         schema.TypeInt,
 				Optional:     true,
 				ValidateFunc: validation.IntInSlice([]int{50, 100}),
-				Description:  "Block storage size.",
+				Deprecated:   "use `filter` instead",
 			},
 			"region": {
-				Type:        schema.TypeString,
-				Optional:    true,
-				Description: "Region code. Get available values using the `data ncloud_regions`.",
-				Deprecated:  "use region attribute of provider instead",
-			},
-			"infra_resource_detail_type_code": {
-				Type:        schema.TypeString,
-				Optional:    true,
-				Computed:    true,
-				Description: "infra resource detail type code.",
-			},
-			"server_images": {
-				Type:        schema.TypeList,
-				Optional:    true,
-				Description: "A list of server image product code.",
-				Elem:        &schema.Schema{Type: schema.TypeString},
-			},
-			"filter": dataSourceFiltersSchema(),
-			"output_file": {
-				Type:     schema.TypeString,
-				Optional: true,
+				Type:       schema.TypeString,
+				Optional:   true,
+				Deprecated: "use provider config instead",
 			},
 		},
 	}
 }
 
 func dataSourceNcloudServerImagesRead(d *schema.ResourceData, meta interface{}) error {
-	var resources []map[string]interface{}
-	var err error
-
-	if meta.(*ProviderConfig).SupportVPC == true {
-		resources, err = getVpcServerImageProductList(d, meta.(*ProviderConfig))
-	} else {
-		resources, err = getClassicServerImageProductList(d, meta.(*ProviderConfig))
-	}
+	resources, err := getServerImageProductListFiltered(d, meta.(*ProviderConfig))
 
 	if err != nil {
 		return err
-	}
-
-	if f, ok := d.GetOk("filter"); ok {
-		resources = ApplyFilters(f.(*schema.Set), resources, dataSourceNcloudServerImage().Schema)
 	}
 
 	if len(resources) < 1 {
@@ -99,10 +84,10 @@ func dataSourceNcloudServerImagesRead(d *schema.ResourceData, meta interface{}) 
 	return serverImagesAttributes(d, resources)
 }
 
-func serverImagesAttributes(d *schema.ResourceData, serverImages []map[string]interface{}) error {
+func serverImagesAttributes(d *schema.ResourceData, resources []map[string]interface{}) error {
 	var ids []string
 
-	for _, r := range serverImages {
+	for _, r := range resources {
 		for k, v := range r {
 			if k == "id" {
 				ids = append(ids, v.(string))

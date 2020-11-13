@@ -1,6 +1,7 @@
 package ncloud
 
 import (
+	"fmt"
 	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/ncloud"
 	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/services/server"
 	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/services/vserver"
@@ -17,125 +18,75 @@ func dataSourceNcloudServerImage() *schema.Resource {
 		Read: dataSourceNcloudServerImageRead,
 
 		Schema: map[string]*schema.Schema{
-			"product_name_regex": {
-				Type:         schema.TypeString,
-				Optional:     true,
-				ForceNew:     true,
-				ValidateFunc: validation.ValidateRegexp,
-				Description:  "A regex string to apply to the server image list returned by ncloud.",
-				Deprecated:   "use filter instead",
-			},
-			"exclusion_product_code": {
-				Type:        schema.TypeString,
-				Optional:    true,
-				Description: "Product code you want to exclude from the list.",
-			},
 			"product_code": {
-				Type:        schema.TypeString,
-				Optional:    true,
-				Computed:    true,
-				Description: "Product code you want to view on the list. Use this when searching for 1 product.",
+				Type:     schema.TypeString,
+				Optional: true,
+				Computed: true,
 			},
 			"product_type": {
-				Type:        schema.TypeString,
-				Computed:    true,
-				Description: "Product type code",
+				Type:     schema.TypeString,
+				Optional: true,
+				Computed: true,
 			},
-			"platform_type_code_list": {
-				Type:        schema.TypeList,
-				Optional:    true,
-				Elem:        &schema.Schema{Type: schema.TypeString},
-				Description: "Values required for identifying platforms in list-type.",
-			},
-			"block_storage_size": {
-				Type:         schema.TypeInt,
-				Optional:     true,
-				ValidateFunc: validation.IntInSlice([]int{50, 100}),
-				Description:  "Block storage size.",
-			},
-			"region": {
-				Type:        schema.TypeString,
-				Optional:    true,
-				Description: "Region code. Get available values using the `data ncloud_regions`.",
-				Deprecated:  "use region attribute of provider instead",
+			"platform_type": {
+				Type:     schema.TypeString,
+				Optional: true,
+				Computed: true,
 			},
 			"infra_resource_detail_type_code": {
-				Type:        schema.TypeString,
-				Optional:    true,
-				Computed:    true,
-				Description: "infra resource detail type code.",
+				Type:     schema.TypeString,
+				Optional: true,
+				Computed: true,
 			},
 			"filter": dataSourceFiltersSchema(),
 
 			"product_name": {
-				Type:        schema.TypeString,
-				Computed:    true,
-				Description: "Product name",
-			},
-			"product_description": {
-				Type:        schema.TypeString,
-				Computed:    true,
-				Description: "Product description",
-			},
-			"infra_resource_type": {
-				Type:        schema.TypeString,
-				Computed:    true,
-				Description: "Infra resource type",
-			},
-			"cpu_count": {
-				Type:        schema.TypeInt,
-				Computed:    true,
-				Description: "CPU count",
-			},
-			"memory_size": {
-				Type:        schema.TypeInt,
-				Computed:    true,
-				Description: "Memory size",
-			},
-			"base_block_storage_size": {
-				Type:        schema.TypeInt,
-				Computed:    true,
-				Description: "Base block storage size",
-			},
-			"platform_type": {
-				Type:        schema.TypeString,
-				Computed:    true,
-				Description: "Platform type",
-			},
-			"os_information": {
-				Type:        schema.TypeString,
-				Computed:    true,
-				Description: "OS Information",
-			},
-			"add_block_storage_size": {
-				Type:        schema.TypeInt,
-				Computed:    true,
-				Description: "Additional block storage size",
-			},
-			"generation_code": {
 				Type:     schema.TypeString,
 				Computed: true,
+			},
+			"product_description": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+			"infra_resource_type": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+			"base_block_storage_size": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+			"os_information": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+			// Deprecated
+			"product_name_regex": {
+				Type:         schema.TypeString,
+				Optional:     true,
+				ValidateFunc: validation.ValidateRegexp,
+				Deprecated:   "use `filter` instead",
+			},
+			"exclusion_product_code": {
+				Type:       schema.TypeString,
+				Optional:   true,
+				Deprecated: "This field no longer support",
+			},
+			"platform_type_code_list": {
+				Type:       schema.TypeList,
+				Optional:   true,
+				Elem:       &schema.Schema{Type: schema.TypeString},
+				Deprecated: "use `filter` or `product_type` instead",
 			},
 		},
 	}
 }
 
 func dataSourceNcloudServerImageRead(d *schema.ResourceData, meta interface{}) error {
-	var resources []map[string]interface{}
-	var err error
-
-	if meta.(*ProviderConfig).SupportVPC == true {
-		resources, err = getVpcServerImageProductList(d, meta.(*ProviderConfig))
-	} else {
-		resources, err = getClassicServerImageProductList(d, meta.(*ProviderConfig))
-	}
+	resources, err := getServerImageProductListFiltered(d, meta.(*ProviderConfig))
 
 	if err != nil {
 		return err
-	}
-
-	if f, ok := d.GetOk("filter"); ok {
-		resources = ApplyFilters(f.(*schema.Set), resources, dataSourceNcloudServerImage().Schema)
 	}
 
 	if err := validateOneResult(len(resources)); err != nil {
@@ -147,19 +98,38 @@ func dataSourceNcloudServerImageRead(d *schema.ResourceData, meta interface{}) e
 	return nil
 }
 
+func getServerImageProductListFiltered(d *schema.ResourceData, config *ProviderConfig) ([]map[string]interface{}, error) {
+	var resources []map[string]interface{}
+	var err error
+
+	if config.SupportVPC == true {
+		resources, err = getVpcServerImageProductList(d, config)
+	} else {
+		resources, err = getClassicServerImageProductList(d, config)
+	}
+
+	if err != nil {
+		return nil, err
+	}
+
+	if f, ok := d.GetOk("filter"); ok {
+		resources = ApplyFilters(f.(*schema.Set), resources, dataSourceNcloudServerImage().Schema)
+	}
+
+	return resources, nil
+}
+
 func getClassicServerImageProductList(d *schema.ResourceData, config *ProviderConfig) ([]map[string]interface{}, error) {
 	client := config.Client
 	regionNo := config.RegionNo
 
 	reqParams := &server.GetServerImageProductListRequest{
-		ExclusionProductCode:        StringPtrOrNil(d.GetOk("exclusion_product_code")),
-		ProductCode:                 StringPtrOrNil(d.GetOk("product_code")),
-		RegionNo:                    &regionNo,
-		InfraResourceDetailTypeCode: StringPtrOrNil(d.GetOk("infra_resource_detail_type_code")),
+		RegionNo:    &regionNo,
+		ProductCode: StringPtrOrNil(d.GetOk("product_code")),
 	}
 
-	if platformTypeCodeList, ok := d.GetOk("platform_type_code_list"); ok {
-		reqParams.PlatformTypeCodeList = expandStringInterfaceList(platformTypeCodeList.([]interface{}))
+	if v, ok := d.GetOk("platform_type"); ok {
+		reqParams.PlatformTypeCodeList = []*string{ncloud.String(v.(string))}
 	}
 
 	if d.HasChange("block_storage_size") {
@@ -174,7 +144,7 @@ func getClassicServerImageProductList(d *schema.ResourceData, config *ProviderCo
 	}
 	logResponse("GetServerImageProductList", resp)
 
-	resources := []map[string]interface{}{}
+	var resources []map[string]interface{}
 
 	for _, r := range resp.ProductList {
 		instance := map[string]interface{}{
@@ -184,12 +154,9 @@ func getClassicServerImageProductList(d *schema.ResourceData, config *ProviderCo
 			"product_type":            *r.ProductType.Code,
 			"product_description":     *r.ProductDescription,
 			"infra_resource_type":     *r.InfraResourceType.Code,
-			"cpu_count":               *r.CpuCount,
-			"memory_size":             *r.MemorySize,
-			"base_block_storage_size": *r.BaseBlockStorageSize,
+			"base_block_storage_size": fmt.Sprintf("%dGB", *r.BaseBlockStorageSize/GIGABYTE),
 			"platform_type":           *r.PlatformType.Code,
 			"os_information":          *r.OsInformation,
-			"add_block_storage_size":  *r.AddBlockStorageSize,
 		}
 
 		if r.InfraResourceDetailType != nil {
@@ -207,9 +174,8 @@ func getVpcServerImageProductList(d *schema.ResourceData, config *ProviderConfig
 	regionCode := config.RegionCode
 
 	reqParams := &vserver.GetServerImageProductListRequest{
-		ExclusionProductCode: StringPtrOrNil(d.GetOk("exclusion_product_code")),
-		ProductCode:          StringPtrOrNil(d.GetOk("product_code")),
-		RegionCode:           &regionCode,
+		ProductCode: StringPtrOrNil(d.GetOk("product_code")),
+		RegionCode:  &regionCode,
 	}
 
 	if platformTypeCodeList, ok := d.GetOk("platform_type_code_list"); ok {
@@ -226,9 +192,9 @@ func getVpcServerImageProductList(d *schema.ResourceData, config *ProviderConfig
 		logErrorResponse("GetServerImageProductList", err, reqParams)
 		return nil, err
 	}
-	logCommonResponse("GetServerImageProductList", GetCommonResponse(resp))
+	logResponse("GetServerImageProductList", resp)
 
-	resources := []map[string]interface{}{}
+	var resources []map[string]interface{}
 
 	for _, r := range resp.ProductList {
 		instance := map[string]interface{}{
@@ -238,13 +204,9 @@ func getVpcServerImageProductList(d *schema.ResourceData, config *ProviderConfig
 			"product_type":            *r.ProductType.Code,
 			"product_description":     *r.ProductDescription,
 			"infra_resource_type":     *r.InfraResourceType.Code,
-			"cpu_count":               *r.CpuCount,
-			"memory_size":             *r.MemorySize,
-			"base_block_storage_size": *r.BaseBlockStorageSize,
+			"base_block_storage_size": fmt.Sprintf("%dGB", *r.BaseBlockStorageSize/GIGABYTE),
 			"platform_type":           *r.PlatformType.Code,
 			"os_information":          *r.OsInformation,
-			"add_block_storage_size":  *r.AddBlockStorageSize,
-			"generation_code":         *r.GenerationCode,
 		}
 
 		if r.InfraResourceDetailType != nil {

@@ -16,58 +16,46 @@ func dataSourceNcloudServerProducts() *schema.Resource {
 		Read: dataSourceNcloudServerProductsRead,
 
 		Schema: map[string]*schema.Schema{
-			"product_name_regex": {
-				Type:         schema.TypeString,
-				Optional:     true,
-				ForceNew:     true,
-				ValidateFunc: validation.ValidateRegexp,
-				Description:  "A regex string to apply to the Server Product list returned.",
-				Deprecated:   "use filter instead",
-			},
-			"exclusion_product_code": {
-				Type:        schema.TypeString,
-				Optional:    true,
-				Description: "Enter a product code to exclude from the list.",
-				Deprecated:  "use filter instead",
-			},
 			"product_code": {
-				Type:        schema.TypeString,
-				Optional:    true,
-				Computed:    true,
-				Description: "Enter a product code to search from the list. Use it for a single search.",
+				Type:     schema.TypeString,
+				Optional: true,
+				Computed: true,
 			},
 			"server_image_product_code": {
-				Type:        schema.TypeString,
-				Required:    true,
-				Description: "You can get one from `data ncloud_server_images`. This is a required value, and each available server's specification varies depending on the server image product.",
-			},
-			"region": {
-				Type:        schema.TypeString,
-				Optional:    true,
-				Description: "Region code. Get available values using the `data ncloud_regions`.",
-				Deprecated:  "use region attribute of provider instead",
+				Type:     schema.TypeString,
+				Required: true,
 			},
 			"zone": {
-				Type:        schema.TypeString,
-				Optional:    true,
-				Description: "Zone code. You can decide a zone where servers are created. You can decide which zone the product list will be requested at. You can get one by calling `data ncloud_zones`. default : Select the first Zone in the specific region",
+				Type:     schema.TypeString,
+				Optional: true,
 			},
 			"internet_line_type_code": {
 				Type:         schema.TypeString,
 				Optional:     true,
 				ValidateFunc: validation.StringInSlice([]string{"PUBLC", "GLBL"}, false),
-				Description:  "Internet line identification code. PUBLC(Public), GLBL(Global). default : PUBLC(Public)",
 			},
 			"server_products": {
-				Type:        schema.TypeList,
-				Optional:    true,
-				Description: "A list of server product code.",
-				Elem:        &schema.Schema{Type: schema.TypeString},
+				Type:     schema.TypeList,
+				Optional: true,
+				Elem:     &schema.Schema{Type: schema.TypeString},
 			},
 			"filter": dataSourceFiltersSchema(),
 			"output_file": {
 				Type:     schema.TypeString,
 				Optional: true,
+			},
+			// Deprecated
+			"product_name_regex": {
+				Type:         schema.TypeString,
+				Optional:     true,
+				ForceNew:     true,
+				ValidateFunc: validation.ValidateRegexp,
+				Deprecated:   "use filter instead",
+			},
+			"exclusion_product_code": {
+				Type:       schema.TypeString,
+				Optional:   true,
+				Deprecated: "use filter instead",
 			},
 		},
 	}
