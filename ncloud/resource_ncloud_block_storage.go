@@ -174,8 +174,21 @@ func resourceNcloudBlockStorageUpdate(d *schema.ResourceData, meta interface{}) 
 			return fmt.Errorf("The storage size is only expandable, not shrinking. new size(%d) must be greater than the existing size(%d)", n, o)
 		}
 
+		// If server instance attached block storage, detach first
+		if len(d.Get("server_instance_no").(string)) > 0 {
+			if err := detachBlockStorage(config, d.Id()); err != nil {
+				return err
+			}
+		}
+
 		if err := changeBlockStorageSize(d, config); err != nil {
 			return err
+		}
+
+		if len(d.Get("server_instance_no").(string)) > 0 {
+			if err := attachBlockStorage(d, config); err != nil {
+				return err
+			}
 		}
 	}
 
@@ -287,6 +300,7 @@ func getClassicBlockStorage(config *ProviderConfig, id string) (*BlockStorage, e
 			DeviceName:              inst.DeviceName,
 			BlockStorageProductCode: inst.BlockStorageProductCode,
 			Status:                  inst.BlockStorageInstanceStatus.Code,
+			Operation:               inst.BlockStorageInstanceOperation.Code,
 			Description:             inst.BlockStorageInstanceDescription,
 			DiskType:                inst.DiskType.Code,
 			DiskDetailType:          inst.DiskDetailType.Code,
@@ -323,6 +337,7 @@ func getVpcBlockStorage(config *ProviderConfig, id string) (*BlockStorage, error
 			DeviceName:              inst.DeviceName,
 			BlockStorageProductCode: inst.BlockStorageProductCode,
 			Status:                  inst.BlockStorageInstanceStatus.Code,
+			Operation:               inst.BlockStorageInstanceOperation.Code,
 			Description:             inst.BlockStorageDescription,
 			DiskType:                inst.BlockStorageDiskType.Code,
 			DiskDetailType:          inst.BlockStorageDiskDetailType.Code,

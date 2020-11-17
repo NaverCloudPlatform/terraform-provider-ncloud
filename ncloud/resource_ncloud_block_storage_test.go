@@ -177,7 +177,7 @@ func TestAccResourceNcloudBlockStorage_classic_size(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckBlockStorageExistsWithProvider(resourceName, &storageInstance, testAccClassicProvider),
 				),
-				ExpectError: regexp.MustCompile("The storage size is only expandable, not shrinking. new size(\\d+) must be greater than the existing size(\\d+)"),
+				ExpectError: regexp.MustCompile("The storage size is only expandable, not shrinking."),
 			},
 		},
 	})
@@ -214,7 +214,7 @@ func TestAccResourceNcloudBlockStorage_vpc_size(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckBlockStorageExistsWithProvider(resourceName, &storageInstance, testAccClassicProvider),
 				),
-				ExpectError: regexp.MustCompile("new size(\\d+) must be greater than the existing size(\\d+)"),
+				ExpectError: regexp.MustCompile("The storage size is only expandable, not shrinking."),
 			},
 		},
 	})
