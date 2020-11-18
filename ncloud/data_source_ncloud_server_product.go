@@ -85,14 +85,14 @@ func dataSourceNcloudServerProduct() *schema.Resource {
 			"exclusion_product_code": {
 				Type:       schema.TypeString,
 				Optional:   true,
-				Deprecated: "This field no longer support",
+				Deprecated: "This field is no longer support",
 			},
 		},
 	}
 }
 
 func dataSourceNcloudServerProductRead(d *schema.ResourceData, meta interface{}) error {
-	resources, err := getClassicServerProductListFiltered(d, meta.(*ProviderConfig))
+	resources, err := getServerProductListFiltered(d, meta.(*ProviderConfig))
 	if err != nil {
 		return err
 	}
@@ -107,7 +107,7 @@ func dataSourceNcloudServerProductRead(d *schema.ResourceData, meta interface{})
 	return nil
 }
 
-func getClassicServerProductListFiltered(d *schema.ResourceData, config *ProviderConfig) ([]map[string]interface{}, error) {
+func getServerProductListFiltered(d *schema.ResourceData, config *ProviderConfig) ([]map[string]interface{}, error) {
 	var resources []map[string]interface{}
 	var err error
 
