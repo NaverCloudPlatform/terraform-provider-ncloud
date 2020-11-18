@@ -54,11 +54,13 @@ The following arguments are supported:
 
 ## Attributes Reference
 
-* `product_name` - Product name
-* `product_type` - Product type code
-* `product_description` - Product description
-* `infra_resource_type` - Infra resource type code
-* `cpu_count` - CPU count
-* `memory_size` - Memory size
-* `base_block_storage_size` - Base block storage size
-* `generation_code` - Generation Code
+* `id` - The ID of server product.
+* `product_name` - Product name.
+* `product_type` - Product type code.
+* `product_description` - Product description.
+* `infra_resource_type` - Infra resource type code.
+* `cpu_count` - CPU count.
+* `memory_size` - Memory size.
+* `disk_type` - Disk type.
+* `base_block_storage_size` - Base block storage size.
+* `generation_code` - Generation Code.

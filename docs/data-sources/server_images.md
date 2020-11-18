@@ -49,4 +49,21 @@ The following arguments are supported:
 
 ## Attributes Reference
 
-* `server_images` - A List of server image product code
+* `ids` - A List of server image product code.
+* `server_images` - A List of server image product.
+
+### Server Image Product Reference
+
+`server_images` are also exported with the following attributes, when there are relevant: Each element supports the following:
+
+* `id` - The ID of server image product.
+* `product_code` - The ID of server image product. (It is the same result as `id`)
+* `product_name` - Product name.
+* `product_type` - Product type code.
+* `product_description` - Product description.
+* `platform_type` - Platform type code.
+    The available values are as follows: Linux 32Bit(LNX32) | Linux 64Bit(LNX64) | Windows 32Bit(WND32) | Windows 64Bit(WND64) | Ubuntu Desktop 64Bit(UBD64) | Ubuntu Server 64Bit(UBS64).
+* `infra_resource_detail_type_code` - infra resource detail type code.
+* `infra_resource_type` - Infra resource type code.
+* `base_block_storage_size` - Base block storage size.
+* `os_information` - OS Information.
