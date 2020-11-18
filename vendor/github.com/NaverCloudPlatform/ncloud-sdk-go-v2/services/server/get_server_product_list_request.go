@@ -19,6 +19,9 @@ InternetLineTypeCode *string `json:"internetLineTypeCode,omitempty"`
 	// 조회할상품코드
 ProductCode *string `json:"productCode,omitempty"`
 
+	// 세대코드
+GenerationCode *string `json:"generationCode,omitempty"`
+
 	// 리전번호
 RegionNo *string `json:"regionNo,omitempty"`
 

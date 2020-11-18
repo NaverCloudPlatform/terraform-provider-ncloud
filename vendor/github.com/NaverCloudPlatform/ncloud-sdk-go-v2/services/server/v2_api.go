@@ -399,6 +399,80 @@ func (a *V2ApiService) AttachNetworkInterface(attachNetworkInterfaceRequest *Att
 }
 
 /* V2ApiService 
+ 블록스토리지볼륨사이즈변경
+ @param changeBlockStorageVolumeSizeRequest changeBlockStorageVolumeSizeRequest
+ @return *ChangeBlockStorageVolumeSizeResponse*/
+func (a *V2ApiService) ChangeBlockStorageVolumeSize(changeBlockStorageVolumeSizeRequest *ChangeBlockStorageVolumeSizeRequest) (*ChangeBlockStorageVolumeSizeResponse, error) {
+	var (
+		localVarHttpMethod = strings.ToUpper("Post")
+		localVarPostBody interface{}
+		localVarFileName string
+		localVarFileBytes []byte
+	 	successPayload  ChangeBlockStorageVolumeSizeResponse
+	)
+
+	// create path and map variables
+	localVarPath := a.client.cfg.BasePath + "/changeBlockStorageVolumeSize"
+
+	localVarHeaderParams := make(map[string]string)
+	localVarQueryParams := url.Values{}
+	localVarFormParams := url.Values{}
+
+
+	// to determine the Content-Type header
+	localVarHttpContentTypes := []string{ "application/x-www-form-urlencoded",  }
+
+	// set Content-Type header
+	localVarHttpContentType := selectHeaderContentType(localVarHttpContentTypes)
+	if localVarHttpContentType != "" {
+		localVarHeaderParams["Content-Type"] = localVarHttpContentType
+	}
+
+	// to determine the Accept header
+	localVarHttpHeaderAccepts := []string{
+		}
+
+	// set Accept header
+	localVarHttpHeaderAccept := selectHeaderAccept(localVarHttpHeaderAccepts)
+	if localVarHttpHeaderAccept != "" {
+		localVarHeaderParams["Accept"] = localVarHttpHeaderAccept
+	}
+	// body params
+	localVarPostBody = changeBlockStorageVolumeSizeRequest
+	v := reflect.ValueOf(localVarPostBody).Elem().FieldByName("UserData")
+	if v.IsValid() && v.CanAddr() {
+		ptr := v.Addr().Interface().(**string)
+		if *ptr != nil {
+			**ptr = base64.StdEncoding.EncodeToString([]byte(**ptr))
+		}
+	}
+	r, err := a.client.prepareRequest(localVarPath, localVarHttpMethod, localVarPostBody, localVarHeaderParams, localVarQueryParams, localVarFormParams, localVarFileName, localVarFileBytes)
+	if err != nil {
+		return &successPayload, err
+	}
+
+	localVarHttpResponse, err := a.client.callAPI(r)
+	if err != nil || localVarHttpResponse == nil {
+		return &successPayload, err
+	}
+	defer localVarHttpResponse.Body.Close()
+	bodyBytes, _ := ioutil.ReadAll(localVarHttpResponse.Body)
+
+	if localVarHttpResponse.StatusCode >= 300 || (localVarHttpResponse.StatusCode < 300 && !strings.HasPrefix(string(bodyBytes), `{`)) {
+		return &successPayload, reportError("Status: %v, Body: %s", localVarHttpResponse.Status, bodyBytes)
+	}
+
+	if !strings.Contains(string(bodyBytes), `{"error"`) && strings.HasPrefix(string(bodyBytes), `{`) {
+		if err = json.Unmarshal(bodyBytes[bytes.IndexAny(bytes.Trim(bodyBytes, "{"), "{"):len(bodyBytes)-1], &successPayload); err != nil {
+			return &successPayload, err
+		}
+	}
+
+
+	return &successPayload, err
+}
+
+/* V2ApiService 
  NAS볼륨사이즈변경
  @param changeNasVolumeSizeRequest changeNasVolumeSizeRequest
  @return *ChangeNasVolumeSizeResponse*/
