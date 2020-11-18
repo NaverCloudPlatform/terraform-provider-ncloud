@@ -2,8 +2,9 @@ package ncloud
 
 import (
 	"fmt"
-	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/services/vserver"
 	"time"
+
+	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/services/vserver"
 
 	"log"
 
@@ -166,6 +167,31 @@ func resourceNcloudBlockStorageUpdate(d *schema.ResourceData, meta interface{}) 
 		}
 	}
 
+	if d.HasChange("size") {
+		o, n := d.GetChange("size")
+
+		if o.(int) >= n.(int) {
+			return fmt.Errorf("The storage size is only expandable, not shrinking. new size(%d) must be greater than the existing size(%d)", n, o)
+		}
+
+		// If server instance attached block storage, detach first
+		if len(d.Get("server_instance_no").(string)) > 0 {
+			if err := detachBlockStorage(config, d.Id()); err != nil {
+				return err
+			}
+		}
+
+		if err := changeBlockStorageSize(d, config); err != nil {
+			return err
+		}
+
+		if len(d.Get("server_instance_no").(string)) > 0 {
+			if err := attachBlockStorage(d, config); err != nil {
+				return err
+			}
+		}
+	}
+
 	return resourceNcloudBlockStorageRead(d, meta)
 }
 
@@ -274,6 +300,7 @@ func getClassicBlockStorage(config *ProviderConfig, id string) (*BlockStorage, e
 			DeviceName:              inst.DeviceName,
 			BlockStorageProductCode: inst.BlockStorageProductCode,
 			Status:                  inst.BlockStorageInstanceStatus.Code,
+			Operation:               inst.BlockStorageInstanceOperation.Code,
 			Description:             inst.BlockStorageInstanceDescription,
 			DiskType:                inst.DiskType.Code,
 			DiskDetailType:          inst.DiskDetailType.Code,
@@ -310,6 +337,7 @@ func getVpcBlockStorage(config *ProviderConfig, id string) (*BlockStorage, error
 			DeviceName:              inst.DeviceName,
 			BlockStorageProductCode: inst.BlockStorageProductCode,
 			Status:                  inst.BlockStorageInstanceStatus.Code,
+			Operation:               inst.BlockStorageInstanceOperation.Code,
 			Description:             inst.BlockStorageDescription,
 			DiskType:                inst.BlockStorageDiskType.Code,
 			DiskDetailType:          inst.BlockStorageDiskDetailType.Code,
@@ -584,6 +612,84 @@ func waitForBlockStorageAttachment(config *ProviderConfig, id string) error {
 	return nil
 }
 
+func changeBlockStorageSize(d *schema.ResourceData, config *ProviderConfig) error {
+	var err error
+	if config.SupportVPC {
+		err = changeVpcBlockStorageSize(d, config)
+	} else {
+		err = changeClassicBlockStorageSize(d, config)
+	}
+
+	if err != nil {
+		return err
+	}
+
+	if err = waitForBlockStorageOperationIsNull(config, d.Id()); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func changeVpcBlockStorageSize(d *schema.ResourceData, config *ProviderConfig) error {
+	reqParams := &vserver.ChangeBlockStorageVolumeSizeRequest{
+		RegionCode:             &config.RegionCode,
+		BlockStorageInstanceNo: ncloud.String(d.Id()),
+		BlockStorageSize:       ncloud.Int32(int32(d.Get("size").(int))),
+	}
+
+	logCommonRequest("changeVpcBlockStorageSize", reqParams)
+	resp, err := config.Client.vserver.V2Api.ChangeBlockStorageVolumeSize(reqParams)
+	if err != nil {
+		logErrorResponse("changeVpcBlockStorageSize", err, reqParams)
+		return err
+	}
+	logResponse("changeVpcBlockStorageSize", resp)
+
+	return nil
+}
+
+func changeClassicBlockStorageSize(d *schema.ResourceData, config *ProviderConfig) error {
+	reqParams := &server.ChangeBlockStorageVolumeSizeRequest{
+		BlockStorageInstanceNo: ncloud.String(d.Id()),
+		BlockStorageSize:       ncloud.Int64(int64(d.Get("size").(int))),
+	}
+
+	logCommonRequest("changeClassicBlockStorageSize", reqParams)
+	resp, err := config.Client.server.V2Api.ChangeBlockStorageVolumeSize(reqParams)
+	if err != nil {
+		logErrorResponse("changeClassicBlockStorageSize", err, reqParams)
+		return err
+	}
+	logResponse("changeClassicBlockStorageSize", resp)
+
+	return nil
+}
+
+func waitForBlockStorageOperationIsNull(config *ProviderConfig, id string) error {
+	stateConf := &resource.StateChangeConf{
+		Pending: []string{"CHNG"},
+		Target:  []string{"NULL"},
+		Refresh: func() (interface{}, string, error) {
+			instance, err := getBlockStorage(config, id)
+			if err != nil {
+				return 0, "", err
+			}
+			return instance, ncloud.StringValue(instance.Operation), nil
+		},
+		Timeout:    DefaultUpdateTimeout,
+		Delay:      2 * time.Second,
+		MinTimeout: 3 * time.Second,
+	}
+
+	_, err := stateConf.WaitForState()
+	if err != nil {
+		return fmt.Errorf("error waiting for BlockStorageInstance operation to be \"NULL\": %s", err)
+	}
+
+	return nil
+}
+
 //BlockStorage Dto for block storage
 type BlockStorage struct {
 	BlockStorageInstanceNo  *string `json:"block_storage_no,omitempty"`
@@ -595,6 +701,7 @@ type BlockStorage struct {
 	DeviceName              *string `json:"device_name,omitempty"`
 	BlockStorageProductCode *string `json:"product_code,omitempty"`
 	Status                  *string `json:"status,omitempty"`
+	Operation               *string `json:"operation,omitempty"`
 	Description             *string `json:"description,omitempty"`
 	DiskType                *string `json:"disk_type,omitempty"`
 	DiskDetailType          *string `json:"disk_detail_type,omitempty"`

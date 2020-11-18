@@ -2,9 +2,10 @@ package ncloud
 
 import (
 	"fmt"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
 	"regexp"
 	"testing"
+
+	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
@@ -145,6 +146,80 @@ func TestAccResourceNcloudBlockStorage_vpc_ChangeServerInstance(t *testing.T) {
 	})
 }
 
+func TestAccResourceNcloudBlockStorage_classic_size(t *testing.T) {
+	var storageInstance BlockStorage
+	name := fmt.Sprintf("tf-storage-size-%s", acctest.RandString(5))
+	resourceName := "ncloud_block_storage.storage"
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:  func() { testAccPreCheck(t) },
+		Providers: testAccClassicProviders,
+		CheckDestroy: func(state *terraform.State) error {
+			return testAccCheckBlockStorageDestroyWithProvider(state, testAccClassicProvider)
+		},
+		Steps: []resource.TestStep{
+			{
+				Config: testAccBlockStorageClassicConfigWithSize(name, 10),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckBlockStorageExistsWithProvider(resourceName, &storageInstance, testAccClassicProvider),
+					resource.TestCheckResourceAttr(resourceName, "size", "10"),
+				),
+			},
+			{
+				Config: testAccBlockStorageClassicConfigWithSize(name, 20),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckBlockStorageExistsWithProvider(resourceName, &storageInstance, testAccClassicProvider),
+					resource.TestCheckResourceAttr(resourceName, "size", "20"),
+				),
+			},
+			{
+				Config: testAccBlockStorageClassicConfigWithSize(name, 10),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckBlockStorageExistsWithProvider(resourceName, &storageInstance, testAccClassicProvider),
+				),
+				ExpectError: regexp.MustCompile("The storage size is only expandable, not shrinking."),
+			},
+		},
+	})
+}
+
+func TestAccResourceNcloudBlockStorage_vpc_size(t *testing.T) {
+	var storageInstance BlockStorage
+	name := fmt.Sprintf("tf-storage-size-%s", acctest.RandString(5))
+	resourceName := "ncloud_block_storage.storage"
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:  func() { testAccPreCheck(t) },
+		Providers: testAccProviders,
+		CheckDestroy: func(state *terraform.State) error {
+			return testAccCheckBlockStorageDestroyWithProvider(state, testAccProvider)
+		},
+		Steps: []resource.TestStep{
+			{
+				Config: testAccBlockStorageVpcConfigWithSize(name, 10),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckBlockStorageExistsWithProvider(resourceName, &storageInstance, testAccProvider),
+					resource.TestCheckResourceAttr(resourceName, "size", "10"),
+				),
+			},
+			{
+				Config: testAccBlockStorageVpcConfigWithSize(name, 20),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckBlockStorageExistsWithProvider(resourceName, &storageInstance, testAccProvider),
+					resource.TestCheckResourceAttr(resourceName, "size", "20"),
+				),
+			},
+			{
+				Config: testAccBlockStorageVpcConfigWithSize(name, 10),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckBlockStorageExistsWithProvider(resourceName, &storageInstance, testAccClassicProvider),
+				),
+				ExpectError: regexp.MustCompile("The storage size is only expandable, not shrinking."),
+			},
+		},
+	})
+}
+
 func testAccCheckBlockStorageExistsWithProvider(n string, i *BlockStorage, provider *schema.Provider) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		rs, ok := s.RootModule().Resources[n]
@@ -194,7 +269,7 @@ func testAccCheckBlockStorageDestroyWithProvider(s *terraform.State, provider *s
 	return nil
 }
 
-func testAccBlockStorageClassicConfig(name string) string {
+func testAccBlockStorageClassicConfigWithSize(name string, size int) string {
 	return fmt.Sprintf(`
 resource "ncloud_login_key" "loginkey" {
 	key_name = "%[1]s-key"
@@ -210,12 +285,16 @@ resource "ncloud_server" "server" {
 resource "ncloud_block_storage" "storage" {
 	server_instance_no = ncloud_server.server.id
 	name = "%[1]s"
-	size = "10"
+	size = "%[2]d"
 }
-`, name)
+`, name, size)
 }
 
-func testAccBlockStorageVpcConfig(name string) string {
+func testAccBlockStorageClassicConfig(name string) string {
+	return testAccBlockStorageClassicConfigWithSize(name, 10)
+}
+
+func testAccBlockStorageVpcConfigWithSize(name string, size int) string {
 	return fmt.Sprintf(`
 resource "ncloud_login_key" "loginkey" {
 	key_name = "%[1]s-key"
@@ -247,11 +326,14 @@ resource "ncloud_server" "server" {
 resource "ncloud_block_storage" "storage" {
 	server_instance_no = ncloud_server.server.id
 	name = "%[1]s"
-	size = "10"
+	size = "%[2]d"
 }
-`, name)
+`, name, size)
 }
 
+func testAccBlockStorageVpcConfig(name string) string {
+	return testAccBlockStorageVpcConfigWithSize(name, 10)
+}
 func testAccBlockStorageClassicConfigUpdate(name, serverInstanceNo string) string {
 	return fmt.Sprintf(`
 resource "ncloud_login_key" "loginkey" {
