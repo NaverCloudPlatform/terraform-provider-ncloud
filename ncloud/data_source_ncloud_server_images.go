@@ -42,6 +42,11 @@ func dataSourceNcloudServerImages() *schema.Resource {
 				Computed: true,
 				Elem:     GetDataSourceItemSchema(dataSourceNcloudServerImage()),
 			},
+			"ids": {
+				Type:     schema.TypeList,
+				Computed: true,
+				Elem:     &schema.Schema{Type: schema.TypeString},
+			},
 			// Deprecated
 			"product_name_regex": {
 				Type:         schema.TypeString,
@@ -96,7 +101,8 @@ func serverImagesAttributes(d *schema.ResourceData, resources []map[string]inter
 	}
 
 	d.SetId(dataResourceIdHash(ids))
-	d.Set("server_images", ids)
+	d.Set("ids", ids)
+	d.Set("server_images", resources)
 
 	if output, ok := d.GetOk("output_file"); ok && output.(string) != "" {
 		return writeToFile(output.(string), d.Get("server_images"))

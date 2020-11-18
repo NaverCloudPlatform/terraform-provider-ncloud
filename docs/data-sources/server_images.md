@@ -5,13 +5,31 @@ To create a server instance (VM), you should select a server image. This data so
 ## Example Usage
 
 ```hcl
-data "ncloud_server_images" "all" {
+data "ncloud_server_images" "images" {
   filter {
     name = "product_name"
     values = ["CentOS 7.3 (64-bit)"]
   }
 
-  output_file = "server_images.json"
+  output_file = "image.json" 
+}
+
+output "list_image" {
+  value = {
+    for image in data.ncloud_server_images.images.server_images:
+    image.id => image.product_name
+  }
+}
+```
+
+Outputs: 
+```hcl
+list_image = {
+  "SW.VSVR.APP.LNX64.CNTOS.0703.PINPT.173.B050" = "Pinpoint(1.7.3)-centos-7.3-64"
+  "SW.VSVR.OS.LNX64.CNTOS.0703.B050" = "centos-7.3-64"
+  "SW.VSVR.OS.LNX64.CNTOS.0708.B050" = "CentOS 7.8 (64-bit)"
+  "SW.VSVR.OS.LNX64.UBNTU.SVR1604.B050" = "ubuntu-16.04-64-server"
+  "SW.VSVR.OS.WND64.WND.SVR2016EN.B100" = "Windows Server 2016 (64-bit) English Edition"
 }
 ```
 

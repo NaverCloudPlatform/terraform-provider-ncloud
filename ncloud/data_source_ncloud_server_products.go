@@ -36,7 +36,12 @@ func dataSourceNcloudServerProducts() *schema.Resource {
 			},
 			"server_products": {
 				Type:     schema.TypeList,
-				Optional: true,
+				Computed: true,
+				Elem:     GetDataSourceItemSchema(dataSourceNcloudServerProduct()),
+			},
+			"ids": {
+				Type:     schema.TypeList,
+				Computed: true,
 				Elem:     &schema.Schema{Type: schema.TypeString},
 			},
 			"filter": dataSourceFiltersSchema(),
@@ -98,7 +103,8 @@ func serverProductsAttributes(d *schema.ResourceData, serverProduct []map[string
 	}
 
 	d.SetId(dataResourceIdHash(ids))
-	d.Set("server_products", ids)
+	d.Set("ids", ids)
+	d.Set("server_products", serverProduct)
 
 	if output, ok := d.GetOk("output_file"); ok && output.(string) != "" {
 		return writeToFile(output.(string), d.Get("server_products"))

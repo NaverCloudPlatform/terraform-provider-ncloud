@@ -56,7 +56,9 @@ func GetSingularDataSourceItemSchema(resourceSchema *schema.Resource, addFieldMa
 // This is mainly used to ensure that fields of a datasource item are compliant with Terraform schema validation
 // All datasource return items should have computed-only fields; and not require Diff, Validation, or Default settings.
 func convertResourceFieldsToDatasourceFields(resourceSchema *schema.Resource) *schema.Resource {
-	for _, fieldSchema := range resourceSchema.Schema {
+	resultSchema := map[string]*schema.Schema{}
+	for k, fieldSchema := range resourceSchema.Schema {
+		isComputed := fieldSchema.Required || fieldSchema.Computed
 		fieldSchema.Computed = true
 		fieldSchema.Required = false
 		fieldSchema.Optional = false
@@ -74,8 +76,13 @@ func convertResourceFieldsToDatasourceFields(resourceSchema *schema.Resource) *s
 				fieldSchema.Elem = convertResourceFieldsToDatasourceFields(resource)
 			}
 		}
+
+		if isComputed {
+			resultSchema[k] = fieldSchema
+		}
 	}
 
+	resourceSchema.Schema = resultSchema
 	return resourceSchema
 }
 
