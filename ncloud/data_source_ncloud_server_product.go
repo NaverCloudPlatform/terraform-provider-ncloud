@@ -1,6 +1,7 @@
 package ncloud
 
 import (
+	"fmt"
 	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/ncloud"
 	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/services/server"
 	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/services/vserver"
@@ -18,140 +19,113 @@ func dataSourceNcloudServerProduct() *schema.Resource {
 
 		Schema: map[string]*schema.Schema{
 			"server_image_product_code": {
-				Type:        schema.TypeString,
-				Required:    true,
-				Description: "You can get one from `data ncloud_server_images`. This is a required value, and each available server's specification varies depending on the server image product.",
-			},
-			"product_name_regex": {
-				Type:         schema.TypeString,
-				Optional:     true,
-				ForceNew:     true,
-				ValidateFunc: validation.ValidateRegexp,
-				Description:  "A regex string to apply to the Server Product list returned.",
-				Deprecated:   "use filter instead",
-			},
-			"exclusion_product_code": {
-				Type:        schema.TypeString,
-				Optional:    true,
-				Description: "Enter a product code to exclude from the list.",
+				Type:     schema.TypeString,
+				Required: true,
 			},
 			"product_code": {
-				Type:        schema.TypeString,
-				Optional:    true,
-				Computed:    true,
-				Description: "Enter a product code to search from the list. Use it for a single search.",
-			},
-			"region": {
-				Type:        schema.TypeString,
-				Optional:    true,
-				Description: "Region code. Get available values using the `data ncloud_regions`.",
-				Deprecated:  "use region attribute of provider instead",
+				Type:     schema.TypeString,
+				Optional: true,
+				Computed: true,
 			},
 			"zone": {
-				Type:        schema.TypeString,
-				Optional:    true,
-				Description: "Zone code. Get available values using the `data ncloud_zones`.",
+				Type:     schema.TypeString,
+				Optional: true,
 			},
 			"internet_line_type_code": {
 				Type:         schema.TypeString,
 				Optional:     true,
 				ValidateFunc: validation.StringInSlice([]string{"PUBLC", "GLBL"}, false),
-				Description:  "Internet line identification code. PUBLC(Public), GLBL(Global). default : PUBLC(Public)",
 			},
 			"filter": dataSourceFiltersSchema(),
 
 			"product_name": {
-				Type:        schema.TypeString,
-				Computed:    true,
-				Description: "Product name",
+				Type:     schema.TypeString,
+				Computed: true,
 			},
 			"product_type": {
-				Type:        schema.TypeString,
-				Computed:    true,
-				Description: "Product type",
+				Type:     schema.TypeString,
+				Computed: true,
 			},
 			"product_description": {
-				Type:        schema.TypeString,
-				Computed:    true,
-				Description: "Product description",
+				Type:     schema.TypeString,
+				Computed: true,
 			},
 			"infra_resource_type": {
-				Type:        schema.TypeString,
-				Computed:    true,
-				Description: "Infra resource type",
-			},
-			"infra_resource_detail_type_code": {
-				Type:        schema.TypeString,
-				Computed:    true,
-				Description: "infra resource detail type code.",
+				Type:     schema.TypeString,
+				Computed: true,
 			},
 			"cpu_count": {
-				Type:        schema.TypeInt,
-				Computed:    true,
-				Description: "CPU count",
+				Type:     schema.TypeInt,
+				Computed: true,
 			},
 			"memory_size": {
-				Type:        schema.TypeInt,
-				Computed:    true,
-				Description: "Memory size",
+				Type:     schema.TypeString,
+				Computed: true,
 			},
 			"base_block_storage_size": {
-				Type:        schema.TypeInt,
-				Computed:    true,
-				Description: "Base block storage size",
-			},
-			"platform_type": {
-				Type:        schema.TypeString,
-				Computed:    true,
-				Description: "Platform type",
-			},
-			"os_information": {
-				Type:        schema.TypeString,
-				Computed:    true,
-				Description: "OS Information",
+				Type:     schema.TypeString,
+				Computed: true,
 			},
 			"disk_type": {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
-			"add_block_storage_size": {
-				Type:        schema.TypeInt,
-				Computed:    true,
-				Description: "Additional block storage size",
-			},
 			"generation_code": {
 				Type:     schema.TypeString,
 				Computed: true,
+			},
+			// Deprecated
+			"product_name_regex": {
+				Type:         schema.TypeString,
+				Optional:     true,
+				ForceNew:     true,
+				ValidateFunc: validation.ValidateRegexp,
+				Deprecated:   "use filter instead",
+			},
+			"exclusion_product_code": {
+				Type:       schema.TypeString,
+				Optional:   true,
+				Deprecated: "This field is no longer support",
 			},
 		},
 	}
 }
 
 func dataSourceNcloudServerProductRead(d *schema.ResourceData, meta interface{}) error {
-	var resources []map[string]interface{}
-	var err error
-
-	if meta.(*ProviderConfig).SupportVPC == true {
-		resources, err = getVpcServerProductList(d, meta.(*ProviderConfig))
-	} else {
-		resources, err = getClassicServerProductList(d, meta.(*ProviderConfig))
-	}
-
+	resources, err := getServerProductListFiltered(d, meta.(*ProviderConfig))
 	if err != nil {
 		return err
 	}
 
-	if f, ok := d.GetOk("filter"); ok {
-		resources = ApplyFilters(f.(*schema.Set), resources, dataSourceNcloudServerProduct().Schema)
-	}
-
 	if err := validateOneResult(len(resources)); err != nil {
+
 		return err
 	}
 
 	SetSingularResourceDataFromMap(d, resources[0])
 
 	return nil
+}
+
+func getServerProductListFiltered(d *schema.ResourceData, config *ProviderConfig) ([]map[string]interface{}, error) {
+	var resources []map[string]interface{}
+	var err error
+
+	if config.SupportVPC == true {
+		resources, err = getVpcServerProductList(d, config)
+	} else {
+		resources, err = getClassicServerProductList(d, config)
+	}
+
+	if err != nil {
+		return nil, err
+	}
+
+	if f, ok := d.GetOk("filter"); ok {
+		resources = ApplyFilters(f.(*schema.Set), resources, dataSourceNcloudServerProduct().Schema)
+	}
+
+	return resources, nil
 }
 
 func getClassicServerProductList(d *schema.ResourceData, config *ProviderConfig) ([]map[string]interface{}, error) {
@@ -177,9 +151,9 @@ func getClassicServerProductList(d *schema.ResourceData, config *ProviderConfig)
 		logErrorResponse("getClassicServerProductList", err, reqParams)
 		return nil, err
 	}
-	logCommonResponse("getClassicServerProductList", GetCommonResponse(resp))
+	logResponse("getClassicServerProductList", resp)
 
-	resources := []map[string]interface{}{}
+	var resources []map[string]interface{}
 
 	for _, r := range resp.ProductList {
 		instance := map[string]interface{}{
@@ -190,18 +164,10 @@ func getClassicServerProductList(d *schema.ResourceData, config *ProviderConfig)
 			"product_description":     *r.ProductDescription,
 			"infra_resource_type":     *r.InfraResourceType.Code,
 			"cpu_count":               *r.CpuCount,
-			"memory_size":             *r.MemorySize,
-			"base_block_storage_size": *r.BaseBlockStorageSize,
-			"os_information":          *r.OsInformation,
+			"memory_size":             fmt.Sprintf("%dGB", *r.MemorySize/GIGABYTE),
+			"base_block_storage_size": fmt.Sprintf("%dGB", *r.BaseBlockStorageSize/GIGABYTE),
 			"disk_type":               *r.DiskType.Code,
-			"add_block_storage_size":  *r.AddBlockStorageSize,
-		}
-
-		if r.InfraResourceDetailType != nil {
-			instance["infra_resource_detail_type_code"] = *r.InfraResourceDetailType.Code
-		}
-		if r.PlatformType != nil {
-			instance["platform_type"] = *r.PlatformType.Code
+			"generation_code":         *r.GenerationCode,
 		}
 
 		resources = append(resources, instance)
@@ -228,9 +194,9 @@ func getVpcServerProductList(d *schema.ResourceData, config *ProviderConfig) ([]
 		logErrorResponse("getVpcServerProductList", err, reqParams)
 		return nil, err
 	}
-	logCommonResponse("getVpcServerProductList", GetCommonResponse(resp))
+	logResponse("getVpcServerProductList", resp)
 
-	resources := []map[string]interface{}{}
+	var resources []map[string]interface{}
 
 	for _, r := range resp.ProductList {
 		instance := map[string]interface{}{
@@ -241,19 +207,10 @@ func getVpcServerProductList(d *schema.ResourceData, config *ProviderConfig) ([]
 			"product_description":     *r.ProductDescription,
 			"infra_resource_type":     *r.InfraResourceType.Code,
 			"cpu_count":               *r.CpuCount,
-			"memory_size":             *r.MemorySize,
-			"base_block_storage_size": *r.BaseBlockStorageSize,
-			"os_information":          *r.OsInformation,
+			"memory_size":             fmt.Sprintf("%dGB", *r.MemorySize/GIGABYTE),
+			"base_block_storage_size": fmt.Sprintf("%dGB", *r.BaseBlockStorageSize/GIGABYTE),
 			"disk_type":               *r.DiskType.Code,
-			"add_block_storage_size":  *r.AddBlockStorageSize,
 			"generation_code":         *r.GenerationCode,
-		}
-
-		if r.InfraResourceDetailType != nil {
-			instance["infra_resource_detail_type_code"] = *r.InfraResourceDetailType.Code
-		}
-		if r.PlatformType != nil {
-			instance["platform_type"] = *r.PlatformType.Code
 		}
 
 		resources = append(resources, instance)

@@ -8,6 +8,7 @@ import (
 )
 
 func TestAccDataSourceNcloudServerProduct_classic_basic(t *testing.T) {
+	dataName := "data.ncloud_server_product.test1"
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:  func() { testAccPreCheck(t) },
 		Providers: testAccClassicProviders,
@@ -15,7 +16,17 @@ func TestAccDataSourceNcloudServerProduct_classic_basic(t *testing.T) {
 			{
 				Config: testAccDataSourceNcloudServerProductConfig("SPSW0LINUX000032", "SPSVRSTAND000056"),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckDataSourceID("data.ncloud_server_product.test1"),
+					testAccCheckDataSourceID(dataName),
+					resource.TestCheckResourceAttr(dataName, "server_image_product_code", "SPSW0LINUX000032"),
+					resource.TestCheckResourceAttr(dataName, "product_code", "SPSVRSTAND000056"),
+					resource.TestCheckResourceAttr(dataName, "product_name", "vCPU 1EA, Memory 1GB, Disk 50GB"),
+					resource.TestCheckResourceAttr(dataName, "product_description", "vCPU 1EA, Memory 1GB, Disk 50GB"),
+					resource.TestCheckResourceAttr(dataName, "infra_resource_type", "SVR"),
+					resource.TestCheckResourceAttr(dataName, "cpu_count", "1"),
+					resource.TestCheckResourceAttr(dataName, "memory_size", "1GB"),
+					resource.TestCheckResourceAttr(dataName, "disk_type", "NET"),
+					resource.TestCheckResourceAttr(dataName, "generation_code", "G1"),
+					resource.TestCheckResourceAttr(dataName, "base_block_storage_size", "50GB"),
 				),
 			},
 		},
@@ -23,6 +34,8 @@ func TestAccDataSourceNcloudServerProduct_classic_basic(t *testing.T) {
 }
 
 func TestAccDataSourceNcloudServerProduct_vpc_basic(t *testing.T) {
+	dataName := "data.ncloud_server_product.test1"
+
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:  func() { testAccPreCheck(t) },
 		Providers: testAccProviders,
@@ -30,7 +43,17 @@ func TestAccDataSourceNcloudServerProduct_vpc_basic(t *testing.T) {
 			{
 				Config: testAccDataSourceNcloudServerProductConfig("SW.VSVR.OS.LNX64.CNTOS.0703.B050", "SVR.VSVR.STAND.C002.M008.NET.HDD.B050.G002"),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckDataSourceID("data.ncloud_server_product.test1"),
+					testAccCheckDataSourceID(dataName),
+					resource.TestCheckResourceAttr(dataName, "server_image_product_code", "SW.VSVR.OS.LNX64.CNTOS.0703.B050"),
+					resource.TestCheckResourceAttr(dataName, "product_code", "SVR.VSVR.STAND.C002.M008.NET.HDD.B050.G002"),
+					resource.TestCheckResourceAttr(dataName, "product_name", "vCPU 2EA, Memory 8GB, Disk 50GB"),
+					resource.TestCheckResourceAttr(dataName, "product_description", "vCPU 2EA, Memory 8GB, Disk 50GB"),
+					resource.TestCheckResourceAttr(dataName, "infra_resource_type", "VSVR"),
+					resource.TestCheckResourceAttr(dataName, "cpu_count", "2"),
+					resource.TestCheckResourceAttr(dataName, "memory_size", "8GB"),
+					resource.TestCheckResourceAttr(dataName, "disk_type", "NET"),
+					resource.TestCheckResourceAttr(dataName, "generation_code", "G2"),
+					resource.TestCheckResourceAttr(dataName, "base_block_storage_size", "50GB"),
 				),
 			},
 		},
@@ -73,11 +96,7 @@ func TestAccDataSourceNcloudServerProduct_classic_FilterByProductNameProductType
 		Providers: testAccClassicProviders,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccDataSourceNcloudServerProductFilterByProductNameProductTypeConfig("SPSW0LINUX000032"),
-				// ignore check: `generation_code` is will be added classic env.
-				SkipFunc: func() (bool, error) {
-					return skipNoResultsTest, nil
-				},
+				Config: testAccDataSourceNcloudServerProductFilterByProductNameProductTypeConfig("SPSW0LINUX000032", "G1"),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckDataSourceID("data.ncloud_server_product.test3"),
 				),
@@ -92,7 +111,7 @@ func TestAccDataSourceNcloudServerProduct_vpc_FilterByProductNameProductType(t *
 		Providers: testAccProviders,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccDataSourceNcloudServerProductFilterByProductNameProductTypeConfig("SW.VSVR.OS.LNX64.CNTOS.0703.B050"),
+				Config: testAccDataSourceNcloudServerProductFilterByProductNameProductTypeConfig("SW.VSVR.OS.LNX64.CNTOS.0703.B050", "G2"),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckDataSourceID("data.ncloud_server_product.test3"),
 				),
@@ -122,13 +141,30 @@ func testAccDataSourceNcloudServerProductFilterByProductCodeConfig(imageProductC
 `, imageProductCode, productCode)
 }
 
-func testAccDataSourceNcloudServerProductFilterByProductNameProductTypeConfig(imageProductCode string) string {
+func testAccDataSourceNcloudServerProductFilterByProductNameProductTypeConfig(imageProductCode, generation string) string {
 	return fmt.Sprintf(`
 data "ncloud_server_product" "test3" {
-	server_image_product_code = "%s"
+	server_image_product_code = "%[1]s"
+
 	filter {
-		name = "product_name"
-		values = ["vCPU 2EA, Memory 8GB, Disk 50GB"]
+		name = "product_code"
+		values = ["SSD"]
+		regex = true
+	}
+
+	filter {
+		name = "cpu_count"
+		values = ["2"]
+	}
+
+	filter {
+		name = "memory_size"
+		values = ["8GB"]
+	}
+
+	filter {
+		name = "base_block_storage_size"
+		values = ["50GB"]
 	}
 
 	filter {
@@ -138,7 +174,7 @@ data "ncloud_server_product" "test3" {
 
 	filter {
 		name = "generation_code"
-		values = ["G2"]
+		values = ["%[2]s"]
 	}
-}`, imageProductCode)
+}`, imageProductCode, generation)
 }

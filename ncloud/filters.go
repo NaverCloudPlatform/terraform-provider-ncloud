@@ -238,7 +238,7 @@ func orComparator(target interface{}, filters []interface{}, stringsEqual String
 			if val.Bool() == fBool {
 				return true
 			}
-		case reflect.Int:
+		case reflect.Int, reflect.Int32, reflect.Int64:
 			// the target field is of type int, but the filter values list element type is string, users can supply string
 			// or int like `values = [300, "3600"]` but terraform will converts to string, so use ParseInt
 			fInt, err := strconv.ParseInt(fVal.(string), 10, 64)

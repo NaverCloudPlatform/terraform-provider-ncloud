@@ -8,14 +8,23 @@ import (
 )
 
 func TestAccDataSourceNcloudServerImage_classic_byCode(t *testing.T) {
+	dataName := "data.ncloud_server_image.test1"
+
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:  func() { testAccPreCheck(t) },
 		Providers: testAccClassicProviders,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccDataSourceNcloudServerImageByCodeConfig("SPSW0LINUX000139"),
+				Config: testAccDataSourceNcloudServerImageByCodeConfig("SPSW0LINUX000046"),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckDataSourceID("data.ncloud_server_image.test1"),
+					testAccCheckDataSourceID(dataName),
+					resource.TestCheckResourceAttr(dataName, "product_code", "SPSW0LINUX000046"),
+					resource.TestCheckResourceAttr(dataName, "product_name", "CentOS 7.3 (64-bit)"),
+					resource.TestCheckResourceAttr(dataName, "product_description", "CentOS 7.3 (64-bit)"),
+					resource.TestCheckResourceAttr(dataName, "infra_resource_type", "SW"),
+					resource.TestCheckResourceAttr(dataName, "os_information", "CentOS 7.3 (64-bit)"),
+					resource.TestCheckResourceAttr(dataName, "platform_type", "LNX64"),
+					resource.TestCheckResourceAttr(dataName, "base_block_storage_size", "50GB"),
 				),
 			},
 		},
@@ -23,6 +32,8 @@ func TestAccDataSourceNcloudServerImage_classic_byCode(t *testing.T) {
 }
 
 func TestAccDataSourceNcloudServerImage_vpc_byCode(t *testing.T) {
+	dataName := "data.ncloud_server_image.test1"
+
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:  func() { testAccPreCheck(t) },
 		Providers: testAccProviders,
@@ -30,7 +41,14 @@ func TestAccDataSourceNcloudServerImage_vpc_byCode(t *testing.T) {
 			{
 				Config: testAccDataSourceNcloudServerImageByCodeConfig("SW.VSVR.OS.LNX64.CNTOS.0703.B050"),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckDataSourceID("data.ncloud_server_image.test1"),
+					testAccCheckDataSourceID(dataName),
+					resource.TestCheckResourceAttr(dataName, "product_code", "SW.VSVR.OS.LNX64.CNTOS.0703.B050"),
+					resource.TestCheckResourceAttr(dataName, "product_name", "CentOS 7.3 (64-bit)"),
+					resource.TestCheckResourceAttr(dataName, "product_description", "CentOS 7.3 (64-bit)"),
+					resource.TestCheckResourceAttr(dataName, "infra_resource_type", "SW"),
+					resource.TestCheckResourceAttr(dataName, "os_information", "CentOS 7.3 (64-bit)"),
+					resource.TestCheckResourceAttr(dataName, "platform_type", "LNX64"),
+					resource.TestCheckResourceAttr(dataName, "base_block_storage_size", "50GB"),
 				),
 			},
 		},
@@ -136,17 +154,21 @@ var testAccDataSourceNcloudServerImageByFilterProductNameConfig = `
 data "ncloud_server_image" "test3" {
   filter {
     name = "product_name"
-    values = ["CentOS 7.8 (64-bit)"]
+    values = ["CentOS 7.3 (64-bit)"]
   }
 }
 `
 
 var testAccDataSourceNcloudServerImageByBlockStorageSizeConfig = `
 data "ncloud_server_image" "test4" {
-	block_storage_size = 50
 	filter {
-    name = "product_name"
-    values = ["CentOS 7.8 (64-bit)"]
-  }
+		name = "product_name"
+		values = ["CentOS 7.3 (64-bit)"]
+	}
+
+	filter {
+		name = "base_block_storage_size"
+		values = ["50GB"]
+	}
 }
 `
