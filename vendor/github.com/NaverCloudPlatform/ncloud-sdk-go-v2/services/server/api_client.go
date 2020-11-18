@@ -36,7 +36,7 @@ var (
 	xmlCheck  = regexp.MustCompile("(?i:[application|text]/xml)")
 )
 
-// APIClient manages communication with the server API v2020-09-09T12:03:56Z
+// APIClient manages communication with the server API v2020-11-18T09:44:01Z
 // In most cases there should be only one, shared, APIClient.
 type APIClient struct {
 	cfg    *ncloud.Configuration
