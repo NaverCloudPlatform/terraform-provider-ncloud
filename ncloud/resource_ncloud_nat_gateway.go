@@ -36,6 +36,7 @@ func resourceNcloudNatGateway() *schema.Resource {
 			"description": {
 				Type:         schema.TypeString,
 				Optional:     true,
+				Computed:     true,
 				ValidateFunc: validation.StringLenBetween(0, 1000),
 			},
 			"vpc_no": {

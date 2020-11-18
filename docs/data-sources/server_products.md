@@ -6,8 +6,7 @@ To this end, we provide data source by which you can search a server product.
 ## Example Usage
 
 ```hcl
-# Classic
-data "ncloud_server_products" "product_ids" {
+data "ncloud_server_products" "products" {
   server_image_product_code = "SW.VSVR.OS.LNX64.CNTOS.0703.B050"  // Search by 'CentOS 7.3 (64-bit)' image vpc
   // server_image_product_code = "SPSW0LINUX000032"  // Search by 'CentOS 7.3 (64-bit)' image classic
   
@@ -36,6 +35,22 @@ data "ncloud_server_products" "product_ids" {
     name   = "product_type"
     values = ["STAND"]
   }
+
+  output_file = "product.json"
+}
+
+output "products" {
+  value = {
+    for product in data.ncloud_server_products.products.server_products:
+    product.id => product.product_name
+  }
+}
+```
+
+Outputs: 
+```hcl
+products = {
+  "SVR.VSVR.STAND.C002.M008.NET.SSD.B050.G002" = "vCPU 2EA, Memory 8GB, [SSD]Disk 50GB"
 }
 ```
 
