@@ -71,4 +71,21 @@ The following arguments are supported:
 
 ## Attributes Reference
 
-* `server_products` - A List of server product code
+* `ids` - A List of server product code.
+* `server_products` - A List of server product.
+
+### Server Product Reference
+
+`server_products` are also exported with the following attributes, when there are relevant: Each element supports the following:
+
+* `id` - The ID of server product.
+* `product_code` - The ID of server product. (It is the same result as `id`)
+* `product_name` - Product name.
+* `product_type` - Product type code.
+* `product_description` - Product description.
+* `infra_resource_type` - Infra resource type code.
+* `cpu_count` - CPU count.
+* `memory_size` - Memory size.
+* `disk_type` - Disk type.
+* `base_block_storage_size` - Base block storage size.
+* `generation_code` - Generation Code.
