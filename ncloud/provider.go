@@ -73,7 +73,7 @@ func providerConfigure(d *schema.ResourceData) (interface{}, error) {
 		case "gov":
 			os.Setenv("NCLOUD_API_GW", "https://ncloud.apigw.gov-ntruss.com")
 		case "fin":
-			os.Setenv("NCLOUD_API_GW", "https://ncloud.apigw.fin-ntruss.com")
+			os.Setenv("NCLOUD_API_GW", "https://fin-ncloud.apigw.fin-ntruss.com")
 		}
 	}
 
