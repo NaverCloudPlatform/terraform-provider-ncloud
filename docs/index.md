@@ -36,7 +36,7 @@ The following methods are supported, in this order, and explained below:
 - Static credentials
 - Environment variables
 
-### Static credentials ###
+### Static credentials
 
 Static credentials can be provided by adding an `access_key` `secret_key` `region` and `site` in-line in the
 ncloud provider block:
@@ -54,7 +54,7 @@ provider "ncloud" {
 ```
 
 
-###Environment variables
+### Environment variables
 
 You can provide your credentials via `NCLOUD_ACCESS_KEY` and `NCLOUD_SECRET_KEY`,
 environment variables, representing your Ncloud Access Key and Secret Key, respectively.
