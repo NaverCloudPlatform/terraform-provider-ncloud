@@ -2,7 +2,7 @@
 
 Provides an ACG(Access Control Group) resource.
 
-~> **NOTE:** This resource only support VPC environment.
+~> **NOTE:** This resource only supports VPC environment.
 
 ## Example Usage
 
@@ -23,7 +23,7 @@ The following arguments are supported:
 
 * `vpc_no` - (Required) The ID of the associated VPC.
 * `name` - (Optional) The name to create. If omitted, Terraform will assign a random, unique name.
-* `description` - (Optional) Indicates whether to get default group only
+* `description` - (Optional) Indicates whether to get default group only.
 
 ## Attributes Reference
 

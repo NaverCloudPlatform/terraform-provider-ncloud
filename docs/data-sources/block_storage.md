@@ -1,6 +1,6 @@
 # Data Source: ncloud_block_storage
 
-This module can provide useful for get detail of Block Storage created before.
+This module can be useful for getting detail of Block Storage created before.
 
 ## Example Usage
 
@@ -19,7 +19,7 @@ The following arguments are supported:
 * `id` - (Optional) The ID of the specific block storage to retrieve.
 * `server_instance_no` - (Optional) The ID of the server instance associated with block storage to retrieve.
 * `filter` - (Optional) Custom filter block as described below.
-  * `name` - (Required) The name of the field to filter by
+  * `name` - (Required) The name of the field to filter by.
   * `values` - (Required) Set of values that are accepted for the given field.
   * `regex` - (Optional) is `values` treated as a regular expression.
   
@@ -37,7 +37,7 @@ The following arguments are supported:
 * `status` - Block Storage instance status code.
 * `disk_type` - Disk type code.
 
-~> **NOTE:** Below arguments only support Classic environment.
+~> **NOTE:** Arguments below only support Classic environment.
 
 * `zone` - Available zone where the Block Storage placed.
 * `snapshot_no` - The ID of Block Storage Snapshot.

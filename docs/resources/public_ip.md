@@ -14,13 +14,13 @@ resource "ncloud_public_ip" "public_ip" {
 
 The following arguments are supported:
 
-* `server_instance_no` - (Optional) Server instance No. to assign after creating a public IP. You can get one by calling getPublicIpTargetServerInstanceList.
+* `server_instance_no` - (Optional) Server instance number to assign after creating a public IP. You can get one by calling getPublicIpTargetServerInstanceList.
 * `description` - (Optional) Public IP description.
 
 ~> **NOTE:** Below arguments only support Classic environment.
 
 * `internet_line_type` - (Optional) Internet line code. PUBLC(Public), GLBL(Global)
-* `zone` - (Optional) Zone code. You can decide a zone where servers are created. You can decide which zone the product list will be requested at. default : Select the first Zone in the specific region
+* `zone` - (Optional) Zone code. You can decide a zone where servers are created. You can decide in which zone the product list will be requested. default : Select the first Zone in the specific region
     Get available values using the data source `ncloud_zones`.
 
 ## Attributes Reference

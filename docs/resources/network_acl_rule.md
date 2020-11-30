@@ -68,4 +68,4 @@ Both `inbound` and `outbound` support  following attributes:
 
 ~> **NOTE:** If the value of protocol is `ICMP`, the `port_range` values will be ignored and the rule will apply to all ports.
 
-* `description` - (Optional) description to create
+* `description` - (Optional) description to create.

@@ -2,7 +2,7 @@
 
 Provides an rule of ACG(Access Control Group) resource.
 
-~> **NOTE:** This resource only support VPC environment.
+~> **NOTE:** This resource only supports VPC environment.
 
 ~> **NOTE:** To performance, we recommend using one resource per ACG(Access Control Group). If you use multiple resources in a single ACG(Access Control Group), then can cause a slowdown.
 

@@ -31,7 +31,7 @@ The following arguments are supported:
 * `subnet` - (Optional) The CIDR block of subnet to retrieve. 
 * `zone` - (Optional) Available zone where the subnet will be placed physically.
 * `network_acl_no` - (Optional) The ID of Network ACL.
-* `subnet_type` - (Optional) Internet connectivity. If you use `PUBLIC` all VMs created within Subnet will be assigned a certified IP by default and will be able to communicate directly over the Internet. Considering the characteristics of Subnet, you can choose Subnet for the purpose of use. Accepted values: `PUBLIC` (Public) | `PRIVATE` (Private).
+* `subnet_type` - (Optional) Internet connectivity. If you use `PUBLIC`, all VMs created within Subnet will be assigned a certified IP by default and will be able to communicate directly over the Internet. Considering the characteristics of Subnet, you can choose Subnet for the purpose of use. Accepted values: `PUBLIC` (Public) | `PRIVATE` (Private).
 * `usage_type` - (Optional) Usage type, Accepted values: `GEN` (General) | `LOADB` (For load balancer).
 * `filter` - (Optional) Custom filter block as described below.
   * `name` - (Required) The name of the field to filter by
@@ -46,7 +46,7 @@ The following attributes are exported:
 
 ### Subnet Reference
 
-`subnets` are also exported with the following attributes, when there are relevant: Each element supports the following:
+`subnets` are also exported with the following attributes, where relevant: Each element supports the following:
 
 * `id` - The ID of Subnet.
 * `subnet_no` - The ID of Subnet. (It is the same result as `id`)

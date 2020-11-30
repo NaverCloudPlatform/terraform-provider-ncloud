@@ -4,7 +4,7 @@ This resource is useful for look up the list of Network ACL in the region.
 
 ## Example Usage
 
-The example below is how to register allow 2 port rule using an existing Network ACLs.
+The example below is how to register 2 port rule using an existing Network ACLs.
 
 ```hcl
 data "ncloud_network_acls" "nacl" {}
@@ -42,11 +42,11 @@ The following attributes are exported:
 
 ### Network ACL Reference
 
-`network_acls` are also exported with the following attributes, when there are relevant: Each element supports the following:
+`network_acls` are also exported with the following attributes, where are relevant: Each element supports the following:
 
 * `id` - The ID of Network ACL.
 * `network_acl_no` - The ID of Network ACL. (It is the same result as `id`)
 * `vpc_no` - The ID of the associated VPC.
-* `is_default` - Whether is default or not by VPC creation.
+* `is_default` - Whether default or not by VPC creation.
 * `name` - The name of Network ACL.
 * `description` - Description of Network ACL.

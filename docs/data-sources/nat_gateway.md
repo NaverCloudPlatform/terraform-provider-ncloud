@@ -35,7 +35,7 @@ The following arguments are supported:
 * `name` - (Optional) The name of the specific NAT gateway to retrieve.
 * `vpc_name` - (Optional) name of the specific associated VPC to retrieve.
 * `filter` - (Optional) Custom filter block as described below.
-  * `name` - (Required) The name of the field to filter by
+  * `name` - (Required) The name of the field to filter by.
   * `values` - (Required) Set of values that are accepted for the given field.
   * `regex` - (Optional) is `values` treated as a regular expression.
   
@@ -46,5 +46,5 @@ In addition to all arguments above, the following attributes are exported:
 * `nat_gateway_no` - The ID of NAT gateway. (It is the same result as `id`)
 * `vpc_no` - The ID of the associated VPC.
 * `zone` - Available zone where the NAT gateway placed.
-* `public_ip` - Public IP on created NAT Gateway.
+* `public_ip` - Public IP on NAT Gateway created.
 * `description` - Description of NAT Gateway.

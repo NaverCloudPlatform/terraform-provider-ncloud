@@ -21,9 +21,9 @@ output "cidr_list" {
 The following arguments are supported:
 
 * `vpc_no` - The ID of the specific VPC to retrieve.
-* `name` - (Optional) name of the specific VPC to retrieve
+* `name` - (Optional) name of the specific VPC to retrieve.
 * `filter` - (Optional) Custom filter block as described below.
-  * `name` - (Required) The name of the field to filter by
+  * `name` - (Required) The name of the field to filter by.
   * `values` - (Required) Set of values that are accepted for the given field.
   * `regex` - (Optional) is `values` treated as a regular expression.
 
@@ -35,7 +35,7 @@ The following attributes are exported:
 
 ### VPC Reference
 
-`vpcs` are also exported with the following attributes, when there are relevant: Each element supports the following:
+`vpcs` are also exported with the following attributes, where relevant: Each element supports the following:
 
 * `id` - The ID of VPC.
 * `vpc_no` - The ID of VPC. (It is the same result as `id`)

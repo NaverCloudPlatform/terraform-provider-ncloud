@@ -1,6 +1,6 @@
 # Data Source: ncloud_server
 
-This module can provide useful for get detail of Server instance created before.
+This module can be useful for getting detail of Server instance created before.
 
 ## Example Usage
 

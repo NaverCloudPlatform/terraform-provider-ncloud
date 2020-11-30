@@ -25,9 +25,9 @@ resource "ncloud_server" "server" {
 
 The following arguments are supported:
 
-* `content` - (Required) Initialization script content. Scripts such as Python, Perl, Shell are available for Linux environments. However, on the first line you must specify the script path you want to run in the form of `#!/usr/bin/env` python, `#!/bin/perl`, `#!/bin/bash`, etc. Windows environments can only write Visual Basic scripts. 
+* `content` - (Required) Initialization script content. Scripts such as Python, Perl, Shell are available for Linux environments. However, on the first line, you must specify the script path you want to run in the form of `#!/usr/bin/env` python, `#!/bin/perl`, `#!/bin/bash`, etc. Windows environments can only write Visual Basic scripts.
 * `name` - (Optional) The name to create. If omitted, Terraform will assign a random, unique name.
-* `description` - (Optional) description to create
+* `description` - (Optional) description to create.
 * `os_type` - (Optional) Type of O/S to apply server instance. Default `LNX`. Accepted values: `LNX` (LINUX) | `WND` (WINDOWS)
 
 ## Attributes Reference

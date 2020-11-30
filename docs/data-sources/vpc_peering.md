@@ -1,6 +1,6 @@
 # Data Source: ncloud_vpc_peering
 
-This module can provide useful for get detail of VPC peering created before.
+This module can be useful for getting detail of VPC peering created before.
 
 ## Example Usage
 
@@ -21,7 +21,7 @@ The following arguments are supported:
 * `source_vpc_name `- (Optional) The name of VPC to which the request to retrieve.
 * `target_vpc_name `- (Optional) The name of the VPC that receives the request.
 * `filter` - (Optional) Custom filter block as described below.
-  * `name` - (Required) The name of the field to filter by
+  * `name` - (Required) The name of the field to filter by.
   * `values` - (Required) Set of values that are accepted for the given field.
   * `regex` - (Optional) is `values` treated as a regular expression.
   

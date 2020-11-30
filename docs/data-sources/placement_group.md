@@ -1,6 +1,6 @@
 # Data Source: ncloud_placement_group
 
-This module can provide useful for get detail of Placement group created before.
+This module can be useful for getting detail of Placement group created before.
 
 ## Example Usage
 

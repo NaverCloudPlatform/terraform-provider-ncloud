@@ -80,7 +80,7 @@ The following arguments are supported:
 
 * `access_key` - (Required) Ncloud access key.
   it can also be sourced from the `NCLOUD_ACCESS_KEY` environment variable.
-  Ref to : (Get authentication keys for your account)[http://docs.ncloud.com/en/api_new/api_new-1-1.html#preparation]
+  Ref to : [Get authentication keys for your account](http://docs.ncloud.com/en/api_new/api_new-1-1.html#preparation)
 
 * `secret_key` - (Required) Ncloud secret key.
   it can also be sourced from the `NCLOUD_SECRET_KEY` environment variable.
@@ -90,9 +90,9 @@ The following arguments are supported:
 
 * `site` - (Optional) Ncloud site. By default, the value is "public". You can specify only the following value: "public", "gov", "fin". "public" is for `www.ncloud.com`. "gov" is for `www.gov-ncloud.com`. "fin" is for `www.fin-ncloud.com`.
 
-~> **Note** `access_key`, `secret_key` : (Get authentication keys for your account)[http://docs.ncloud.com/en/api_new/api_new-1-1.html#preparation]
+~> **Note** `access_key`, `secret_key` : [Get authentication keys for your account](http://docs.ncloud.com/en/api_new/api_new-1-1.html#preparation)
 
-* `support_vpc` - (Optional) Whether to use VPC. By default, the value is `false` on "public" site. If you want use VPC environment. Please set this value `true`.  
+* `support_vpc` - (Optional) Whether to use VPC. By default, the value is `false` on "public" site. If you want to use VPC environment. Please set this value `true`.  
 
 ~> **Note** `support_vpc` is only support if `site` is `public`.
 

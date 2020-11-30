@@ -28,12 +28,12 @@ resource "ncloud_vpc_peering" "foo" {
 
 The following arguments are supported:
 
-* `source_vpc_no` - (Required) The ID of VPC to which the request.
+* `source_vpc_no` - (Required) The ID of VPC from which the request is sent.
 * `target_vpc_no `- (Required) The ID of VPC to receive requests.
 * `target_vpc_name `- (Optional) The name of the VPC that receives the request.
 * `target_vpc_login_id `- (Optional) VPC Owner ID to receive requests (If the account receiving the request is different from the account you send, you must enter the account receiving the request. Must match E-mail format).
 * `name` - (Optional) The name to create. If omitted, Terraform will assign a random, unique name.
-* `description` - (Optional) description to create
+* `description` - (Optional) description to create.
 
 
 ## Attributes Reference
