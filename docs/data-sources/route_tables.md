@@ -4,7 +4,7 @@ This resource is useful for look up the list of Route table in the region.
 
 ## Example Usage
 
-In the example below, how to make multiple   private default route tables.
+The example below shows how to make multiple private default route tables.
 
 ```hcl
 data "ncloud_route_tables" "private_route_tables" {
@@ -52,7 +52,7 @@ The following attributes are exported:
 
 ### Route Table Reference
 
-`route_tables` are also exported with the following attributes, when there are relevant: Each element supports the following:
+`route_tables` are also exported with the following attributes, where relevant: Each element supports the following:
 
 * `id` - The ID of Route Table.
 * `route_table_no` - The ID of Route Table. (It is the same result as `id`)

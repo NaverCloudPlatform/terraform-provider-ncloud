@@ -28,7 +28,7 @@ The following arguments are supported:
 * `vpc_no` - (Required) The ID of the associated VPC.
 * `supported_subnet_type` - (Required) Subnet type. Accepted values : `PUBLIC` (Public) | `PRIVATE` (Private). 
 * `name` - (Optional) The name to create. If omitted, Terraform will assign a random, unique name.
-* `description` - (Optional) description to create
+* `description` - (Optional) description to create.
 
 ## Attributes Reference
 

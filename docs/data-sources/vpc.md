@@ -1,6 +1,6 @@
 # Data Source: ncloud_vpc
 
-This module can provide useful for get detail of VPC created before. for example, determine the CIDR block of that VPC
+This module can be useful for getting detail of VPC created before, such as determining the CIDR block of that VPC.
 
 ## Example Usage
 

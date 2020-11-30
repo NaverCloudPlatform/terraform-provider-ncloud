@@ -2,7 +2,7 @@
 
 Provides a ncloud block storage snapshot resource.
 
-~> **NOTE:** This resource only support Classic environment.
+~> **NOTE:** This resource only supports Classic environment.
 
 ## Example Usage
 
@@ -18,7 +18,7 @@ resource "ncloud_block_storage_snapshot" "snapshot" {
 
 The following arguments are supported:
 
-* `block_storage_instance_no` - (Required) Block storage instance No for creating snapshot.
+* `block_storage_instance_no` - (Required) Block storage instance Number for creating snapshot.
 * `name` - (Optional) Block storage snapshot name to create. default : Ncloud assigns default values.
 * `description` - (Optional) Descriptions on a snapshot to create.
 

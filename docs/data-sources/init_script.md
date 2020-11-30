@@ -1,6 +1,6 @@
 # Data Source: ncloud_init_script
 
-This module can provide useful for get detail of Init script created before.
+This module can be useful for getting detail of Init script created before.
 
 ## Example Usage
 
@@ -20,7 +20,7 @@ The following arguments are supported:
 * `name` - (Optional) The name of the specific Init script to retrieve. 
 * `os_type` - (Optional) Type of O/S to apply server instance. Accepted values: `LNX` (LINUX) | `WND` (WINDOWS)
 * `filter` - (Optional) Custom filter block as described below.
-  * `name` - (Required) The name of the field to filter by
+  * `name` - (Required) The name of the field to filter by.
   * `values` - (Required) Set of values that are accepted for the given field.
   * `regex` - (Optional) is `values` treated as a regular expression.
   
