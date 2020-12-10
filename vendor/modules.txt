@@ -6,7 +6,7 @@ cloud.google.com/go/internal/optional
 cloud.google.com/go/internal/trace
 cloud.google.com/go/internal/version
 cloud.google.com/go/storage
-# github.com/NaverCloudPlatform/ncloud-sdk-go-v2 v1.1.7
+# github.com/NaverCloudPlatform/ncloud-sdk-go-v2 v1.1.8-0.20201202021714-c5ea5219fa39
 github.com/NaverCloudPlatform/ncloud-sdk-go-v2/hmac
 github.com/NaverCloudPlatform/ncloud-sdk-go-v2/ncloud
 github.com/NaverCloudPlatform/ncloud-sdk-go-v2/services/autoscaling
