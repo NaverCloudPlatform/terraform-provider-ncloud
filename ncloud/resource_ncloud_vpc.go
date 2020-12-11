@@ -54,6 +54,14 @@ func resourceNcloudVpc() *schema.Resource {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
+			"default_public_route_table_no": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+			"default_private_route_table_no": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
 		},
 	}
 }
@@ -115,16 +123,23 @@ func resourceNcloudVpcRead(d *schema.ResourceData, meta interface{}) error {
 	if *instance.VpcStatus.Code != "TERMTING" {
 		defaultNetworkACLNo, err := getDefaultNetworkACL(config, d.Id())
 		if err != nil {
-			return fmt.Errorf("Error get default network acl for VPC (%s): %s", d.Id(), err)
+			return fmt.Errorf("error get default network acl for VPC (%s): %s", d.Id(), err)
 		}
 
 		d.Set("default_network_acl_no", defaultNetworkACLNo)
 
 		defaultAcgNo, err := getDefaultAccessControlGroup(config, d.Id())
 		if err != nil {
-			return fmt.Errorf("Error get default Access Control Group for VPC (%s): %s", d.Id(), err)
+			return fmt.Errorf("error get default Access Control Group for VPC (%s): %s", d.Id(), err)
 		}
 		d.Set("default_access_control_group_no", defaultAcgNo)
+
+		publicRouteTableNo, privateRouteTableNo, err := getDefaultRouteTable(config, d.Id())
+		if err != nil {
+			return fmt.Errorf("error get default Route Table for VPC (%s): %s", d.Id(), err)
+		}
+		d.Set("default_public_route_table_no", publicRouteTableNo)
+		d.Set("default_private_route_table_no", privateRouteTableNo)
 	}
 
 	return nil
@@ -186,6 +201,33 @@ func getDefaultAccessControlGroup(config *ProviderConfig, id string) (string, er
 	}
 
 	return "", fmt.Errorf("No matching default Access Control Group found")
+}
+
+func getDefaultRouteTable(config *ProviderConfig, id string) (publicRouteTableNo string, privateRouteTableNo string, error error) {
+	reqParams := &vpc.GetRouteTableListRequest{
+		RegionCode: &config.RegionCode,
+		VpcNo:      ncloud.String(id),
+	}
+
+	logCommonRequest("getDefaultRouteTable", reqParams)
+	resp, err := config.Client.vpc.V2Api.GetRouteTableList(reqParams)
+
+	if err != nil {
+		logErrorResponse("getDefaultRouteTable", err, reqParams)
+		return "", "", err
+	}
+
+	logResponse("getDefaultRouteTable", resp)
+
+	for _, i := range resp.RouteTableList {
+		if *i.IsDefault && *i.SupportedSubnetType.Code == "PRIVATE" {
+			privateRouteTableNo = *i.RouteTableNo
+		} else if *i.IsDefault && *i.SupportedSubnetType.Code == "PUBLIC" {
+			publicRouteTableNo = *i.RouteTableNo
+		}
+	}
+
+	return publicRouteTableNo, privateRouteTableNo, nil
 }
 
 func resourceNcloudVpcUpdate(d *schema.ResourceData, meta interface{}) error {

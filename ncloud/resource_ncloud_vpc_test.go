@@ -34,6 +34,8 @@ func TestAccResourceNcloudVpc_basic(t *testing.T) {
 					resource.TestMatchResourceAttr(resourceName, "vpc_no", regexp.MustCompile(`^\d+$`)),
 					resource.TestMatchResourceAttr(resourceName, "default_network_acl_no", regexp.MustCompile(`^\d+$`)),
 					resource.TestMatchResourceAttr(resourceName, "default_access_control_group_no", regexp.MustCompile(`^\d+$`)),
+					resource.TestMatchResourceAttr(resourceName, "default_public_route_table_no", regexp.MustCompile(`^\d+$`)),
+					resource.TestMatchResourceAttr(resourceName, "default_private_route_table_no", regexp.MustCompile(`^\d+$`)),
 				),
 			},
 		},
