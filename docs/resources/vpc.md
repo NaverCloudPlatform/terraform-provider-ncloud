@@ -31,3 +31,5 @@ In addition to all arguments above, the following attributes are exported:
 * `vpc_no` - The ID of VPC. (It is the same result as `id`)
 * `default_network_acl_no` - The ID of the network ACL created by default on VPC creation.
 * `default_access_control_group_no` - The ID of the ACG created by default on VPC creation.
+* `default_public_route_table_no` - The ID of the Public Route Table created by default on VPC creation.
+* `default_private_route_table_no` - The ID of the Private Route Table created by default on VPC creation.
