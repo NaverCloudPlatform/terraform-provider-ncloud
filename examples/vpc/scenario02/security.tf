@@ -5,7 +5,7 @@ locals {
     [2, "TCP", "0.0.0.0/0", "443", "ALLOW"],
     [3, "TCP", "${var.client_ip}/32", "22", "ALLOW"],
     [4, "TCP", "${var.client_ip}/32", "3389", "ALLOW"],
-    [5, "TCP", "0.0.0.0/0", "9001-65535", "ALLOW"],
+    [5, "TCP", "0.0.0.0/0", "32768-65535", "ALLOW"],
     [197, "TCP", "0.0.0.0/0", "1-65535", "DROP"],
     [198, "UDP", "0.0.0.0/0", "1-65535", "DROP"],
     [199, "ICMP", "0.0.0.0/0", null, "DROP"],
@@ -14,7 +14,7 @@ locals {
   public_subnet_outbound = [
     [1, "TCP", "0.0.0.0/0", "80", "ALLOW"],
     [2, "TCP", "0.0.0.0/0", "443", "ALLOW"],
-    [3, "TCP", "0.0.0.0/0", "32768-65535", "ALLOW"],
+    [3, "TCP", "0.0.0.0/0", "9001-65535", "ALLOW"],
     [4, "TCP", "${ncloud_server.server_scn_02_private.network_interface[0].private_ip}/32", "8080", "ALLOW"],
     // Allow 8080 port to private server
     [197, "TCP", "0.0.0.0/0", "1-65535", "DROP"],
