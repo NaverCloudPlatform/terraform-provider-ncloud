@@ -109,8 +109,24 @@ func resourceNcloudRouteCreate(d *schema.ResourceData, meta interface{}) error {
 		RouteList:    []*vpc.RouteParameter{routeParams},
 	}
 
-	logCommonRequest("AddRoute", reqParams)
-	resp, err := config.Client.vpc.V2Api.AddRoute(reqParams)
+	var resp *vpc.AddRouteResponse
+	err = resource.Retry(d.Timeout(schema.TimeoutCreate), func() *resource.RetryError {
+		var err error
+
+		logCommonRequest("AddRoute", reqParams)
+		resp, err = config.Client.vpc.V2Api.AddRoute(reqParams)
+
+		if err != nil {
+			errBody, _ := GetCommonErrorBody(err)
+			if errBody.ReturnCode == "1017013" {
+				logErrorResponse("retry add Route", err, reqParams)
+				time.Sleep(time.Second * 5)
+				return resource.RetryableError(err)
+			}
+		}
+		return resource.NonRetryableError(err)
+	})
+
 	if err != nil {
 		logErrorResponse("AddRoute", err, reqParams)
 		return err
@@ -190,8 +206,24 @@ func resourceNcloudRouteDelete(d *schema.ResourceData, meta interface{}) error {
 		RouteList:    []*vpc.RouteParameter{routeParams},
 	}
 
-	logCommonRequest("RemoveRoute", reqParams)
-	resp, err := config.Client.vpc.V2Api.RemoveRoute(reqParams)
+	var resp *vpc.RemoveRouteResponse
+	err := resource.Retry(d.Timeout(schema.TimeoutCreate), func() *resource.RetryError {
+		var err error
+
+		logCommonRequest("RemoveRoute", reqParams)
+		resp, err = config.Client.vpc.V2Api.RemoveRoute(reqParams)
+
+		if err != nil {
+			errBody, _ := GetCommonErrorBody(err)
+			if errBody.ReturnCode == "1017013" {
+				logErrorResponse("retry remove Route", err, reqParams)
+				time.Sleep(time.Second * 5)
+				return resource.RetryableError(err)
+			}
+		}
+		return resource.NonRetryableError(err)
+	})
+
 	if err != nil {
 		logErrorResponse("RemoveRoute", err, reqParams)
 		return err
