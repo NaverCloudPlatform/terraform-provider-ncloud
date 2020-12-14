@@ -207,7 +207,7 @@ func resourceNcloudRouteDelete(d *schema.ResourceData, meta interface{}) error {
 	}
 
 	var resp *vpc.RemoveRouteResponse
-	err := resource.Retry(d.Timeout(schema.TimeoutCreate), func() *resource.RetryError {
+	err := resource.Retry(d.Timeout(schema.TimeoutDelete), func() *resource.RetryError {
 		var err error
 
 		logCommonRequest("RemoveRoute", reqParams)
