@@ -142,8 +142,6 @@ func resourceNcloudServer() *schema.Resource {
 				ConflictsWith: []string{"access_control_group_configuration_no_list"},
 				Optional:      true,
 				Computed:      true,
-				MinItems:      1,
-				MaxItems:      3,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"network_interface_no": {

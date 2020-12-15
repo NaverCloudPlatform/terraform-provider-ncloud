@@ -64,7 +64,7 @@ func dataSourceNcloudPublicIp() *schema.Resource {
 				Computed: true,
 			},
 			"server_instance": {
-				Type:       schema.TypeMap,
+				Type:       schema.TypeList,
 				Computed:   true,
 				Deprecated: "use 'server_instance_no' instead",
 				Elem: &schema.Resource{

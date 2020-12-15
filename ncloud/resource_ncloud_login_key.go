@@ -42,14 +42,6 @@ func resourceNcloudLoginKey() *schema.Resource {
 				Type:      schema.TypeString,
 				Computed:  true,
 				Sensitive: true,
-				StateFunc: func(v interface{}) string {
-					switch v.(type) {
-					case string:
-						return strings.TrimSpace(v.(string))
-					default:
-						return ""
-					}
-				},
 			},
 			"fingerprint": {
 				Type:     schema.TypeString,
