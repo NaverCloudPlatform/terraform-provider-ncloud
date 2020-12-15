@@ -9,11 +9,10 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 )
 
-var testAccProviders map[string]terraform.ResourceProvider
-var testAccClassicProviders map[string]terraform.ResourceProvider
+var testAccProviders map[string]*schema.Provider
+var testAccClassicProviders map[string]*schema.Provider
 
 var testAccProvider *schema.Provider
 var testAccClassicProvider *schema.Provider
@@ -26,14 +25,14 @@ var credsEnvVars = []string{
 var regionEnvVar = "NCLOUD_REGION"
 
 func init() {
-	testAccProvider = getTestAccProvider(true).(*schema.Provider)
-	testAccClassicProvider = getTestAccProvider(false).(*schema.Provider)
+	testAccProvider = getTestAccProvider(true)
+	testAccClassicProvider = getTestAccProvider(false)
 
-	testAccProviders = map[string]terraform.ResourceProvider{
+	testAccProviders = map[string]*schema.Provider{
 		"ncloud": testAccProvider,
 	}
 
-	testAccClassicProviders = map[string]terraform.ResourceProvider{
+	testAccClassicProviders = map[string]*schema.Provider{
 		"ncloud": testAccClassicProvider,
 	}
 }
@@ -46,7 +45,7 @@ func getTestProvider(isVpc bool) *schema.Provider {
 	return testAccClassicProvider
 }
 
-func getTestAccProviders(isVpc bool) map[string]terraform.ResourceProvider {
+func getTestAccProviders(isVpc bool) map[string]*schema.Provider {
 	if isVpc {
 		return testAccProviders
 	}
@@ -54,7 +53,7 @@ func getTestAccProviders(isVpc bool) map[string]terraform.ResourceProvider {
 	return testAccClassicProviders
 }
 
-func getTestAccProvider(isVpc bool) terraform.ResourceProvider {
+func getTestAccProvider(isVpc bool) *schema.Provider {
 	testProvider := &schema.Provider{
 		Schema:         schemaMap(),
 		DataSourcesMap: DataSourcesMap(),
@@ -70,7 +69,7 @@ func getTestAccProvider(isVpc bool) terraform.ResourceProvider {
 }
 
 func TestProvider(t *testing.T) {
-	if err := Provider().(*schema.Provider).InternalValidate(); err != nil {
+	if err := Provider().InternalValidate(); err != nil {
 		t.Fatalf("err: %s", err)
 	}
 }
