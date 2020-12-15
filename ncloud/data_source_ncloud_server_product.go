@@ -79,7 +79,7 @@ func dataSourceNcloudServerProduct() *schema.Resource {
 				Type:         schema.TypeString,
 				Optional:     true,
 				ForceNew:     true,
-				ValidateFunc: validation.ValidateRegexp,
+				ValidateFunc: validation.StringIsValidRegExp,
 				Deprecated:   "use filter instead",
 			},
 			"exclusion_product_code": {
