@@ -7,8 +7,6 @@ import (
 	"io/ioutil"
 	"log"
 	"os"
-
-	"github.com/hashicorp/terraform-plugin-sdk/helper/hashcode"
 )
 
 // Generates a hash for the set hash function used by the ID
@@ -19,7 +17,7 @@ func dataResourceIdHash(ids []string) string {
 		buf.WriteString(fmt.Sprintf("%s-", id))
 	}
 
-	return fmt.Sprintf("%d", hashcode.String(buf.String()))
+	return fmt.Sprintf("%d", String(buf.String()))
 }
 
 func writeToFile(filePath string, data interface{}) error {

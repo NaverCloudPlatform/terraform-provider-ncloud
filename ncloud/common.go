@@ -3,6 +3,7 @@ package ncloud
 import (
 	"encoding/json"
 	"fmt"
+	"hash/crc32"
 	"log"
 
 	"strings"
@@ -79,4 +80,16 @@ func isRetryableErr(commResp *CommonResponse, code []string) bool {
 	}
 
 	return false
+}
+
+func String(s string) int {
+	v := int(crc32.ChecksumIEEE([]byte(s)))
+	if v >= 0 {
+		return v
+	}
+	if -v >= 0 {
+		return -v
+	}
+	// v == MinInt
+	return 0
 }

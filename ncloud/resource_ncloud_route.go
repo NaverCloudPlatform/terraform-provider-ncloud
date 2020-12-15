@@ -9,7 +9,6 @@ import (
 
 	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/ncloud"
 	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/services/vpc"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/hashcode"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
@@ -289,5 +288,5 @@ func routeRuleHash(routeTableNo, destinationCidrBlock string) string {
 	var buf bytes.Buffer
 	buf.WriteString(fmt.Sprintf("%s-", routeTableNo))
 	buf.WriteString(fmt.Sprintf("%s-", destinationCidrBlock))
-	return fmt.Sprintf("route-%d", hashcode.String(buf.String()))
+	return fmt.Sprintf("route-%d", String(buf.String()))
 }
