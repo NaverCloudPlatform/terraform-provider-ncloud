@@ -1,6 +1,7 @@
 package ncloud
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"time"
@@ -556,7 +557,7 @@ func associatedVpcPublicIp(d *schema.ResourceData, config *ProviderConfig) error
 	return nil
 }
 
-func resourceNcloudPublicIpCustomizeDiff(diff *schema.ResourceDiff, meta interface{}) error {
+func resourceNcloudPublicIpCustomizeDiff(_ context.Context, diff *schema.ResourceDiff, meta interface{}) error {
 	config := meta.(*ProviderConfig)
 
 	if config.SupportVPC {

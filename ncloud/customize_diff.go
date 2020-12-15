@@ -1,12 +1,13 @@
 package ncloud
 
 import (
+	"context"
 	"fmt"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
-func ncloudVpcCommonCustomizeDiff(diff *schema.ResourceDiff, v interface{}) error {
+func ncloudVpcCommonCustomizeDiff(_ context.Context, diff *schema.ResourceDiff, v interface{}) error {
 	if diff.HasChange("name") {
 		old, new := diff.GetChange("name")
 		if len(old.(string)) > 0 {
