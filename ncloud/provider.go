@@ -1,15 +1,15 @@
 package ncloud
 
 import (
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 	"os"
+
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
 var NcloudResources map[string]*schema.Resource
 var NcloudDataSources map[string]*schema.Resource
 
-func Provider() terraform.ResourceProvider {
+func Provider() *schema.Provider {
 	return &schema.Provider{
 		Schema:         schemaMap(),
 		DataSourcesMap: DataSourcesMap(),
