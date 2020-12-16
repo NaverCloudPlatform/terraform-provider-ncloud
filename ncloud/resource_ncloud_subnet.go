@@ -106,18 +106,16 @@ func resourceNcloudSubnetCreate(d *schema.ResourceData, meta interface{}) error 
 		logCommonRequest("CreateSubnet", reqParams)
 		resp, err = config.Client.vpc.V2Api.CreateSubnet(reqParams)
 
-		if err == nil {
+		if err != nil {
+			errBody, _ := GetCommonErrorBody(err)
+			if errBody.ReturnCode == "1001015" {
+				logErrorResponse("retry CreateSubnet", err, reqParams)
+				time.Sleep(time.Second * 5)
+				return resource.RetryableError(err)
+			}
 			return resource.NonRetryableError(err)
 		}
-
-		errBody, _ := GetCommonErrorBody(err)
-		if errBody.ReturnCode == "1001015" {
-			logErrorResponse("retry CreateSubnet", err, reqParams)
-			time.Sleep(time.Second * 5)
-			return resource.RetryableError(err)
-		}
-
-		return resource.NonRetryableError(err)
+		return nil
 	})
 
 	if err != nil {

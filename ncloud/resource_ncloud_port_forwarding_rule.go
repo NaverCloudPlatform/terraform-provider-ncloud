@@ -104,17 +104,18 @@ func resourceNcloudPortForwardingRuleCreate(d *schema.ResourceData, meta interfa
 	var resp *server.AddPortForwardingRulesResponse
 	err = resource.Retry(d.Timeout(schema.TimeoutCreate), func() *resource.RetryError {
 		var err error
+
 		logCommonRequest("AddPortForwardingRules", reqParams)
 		resp, err = config.Client.server.V2Api.AddPortForwardingRules(reqParams)
-
-		if resp != nil && isRetryableErr(GetCommonResponse(resp), []string{ApiErrorUnknown, ApiErrorPortForwardingObjectInOperation}) {
-			logErrorResponse("retry AddPortForwardingRules", err, reqParams)
-			time.Sleep(time.Second * 5)
-			return resource.RetryableError(err)
+		if err != nil {
+			if resp != nil && isRetryableErr(GetCommonResponse(resp), []string{ApiErrorUnknown, ApiErrorPortForwardingObjectInOperation}) {
+				logErrorResponse("retry AddPortForwardingRules", err, reqParams)
+				time.Sleep(time.Second * 5)
+				return resource.RetryableError(err)
+			}
+			return resource.NonRetryableError(err)
 		}
-		logCommonResponse("AddPortForwardingRules", GetCommonResponse(resp))
-
-		return resource.NonRetryableError(err)
+		return nil
 	})
 
 	if err != nil {
@@ -209,19 +210,18 @@ func resourceNcloudPortForwardingRuleDelete(d *schema.ResourceData, meta interfa
 		var err error
 
 		logCommonRequest("DeletePortForwardingRules", reqParams)
-
 		resp, err = client.server.V2Api.DeletePortForwardingRules(reqParams)
 		log.Printf("=================> DeletePortForwardingRules resp: %#v, err: %#v", resp, err)
-		if err == nil && resp == nil {
+		if err != nil {
+			if resp != nil && isRetryableErr(GetCommonResponse(resp), []string{ApiErrorUnknown, ApiErrorPortForwardingObjectInOperation}) {
+				logErrorResponse("DeletePortForwardingRules Retry", err, reqParams)
+				time.Sleep(time.Second * 5)
+				return resource.RetryableError(err)
+			}
 			return resource.NonRetryableError(err)
 		}
-		if resp != nil && isRetryableErr(GetCommonResponse(resp), []string{ApiErrorUnknown, ApiErrorPortForwardingObjectInOperation}) {
-			logErrorResponse("DeletePortForwardingRules Retry", err, reqParams)
-			time.Sleep(time.Second * 5)
-			return resource.RetryableError(err)
-		}
 		logCommonResponse("DeletePortForwardingRules", GetCommonResponse(resp))
-		return resource.NonRetryableError(err)
+		return nil
 	})
 
 	if err != nil {

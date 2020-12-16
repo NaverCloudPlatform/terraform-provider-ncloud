@@ -319,18 +319,16 @@ func addNetworkACLRule(d *schema.ResourceData, config *ProviderConfig, ruleType 
 			resp, err = config.Client.vpc.V2Api.AddNetworkAclOutboundRule(reqParams.(*vpc.AddNetworkAclOutboundRuleRequest))
 		}
 
-		if err == nil {
+		if err != nil {
+			errBody, _ := GetCommonErrorBody(err)
+			if errBody.ReturnCode == ApiErrorNetworkAclCantAccessaApropriate {
+				logErrorResponse("retry AddNetworkAclRule", err, reqParams)
+				time.Sleep(time.Second * 5)
+				return resource.RetryableError(err)
+			}
 			return resource.NonRetryableError(err)
 		}
-
-		errBody, _ := GetCommonErrorBody(err)
-		if errBody.ReturnCode == ApiErrorNetworkAclCantAccessaApropriate {
-			logErrorResponse("retry AddNetworkAclRule", err, reqParams)
-			time.Sleep(time.Second * 5)
-			return resource.RetryableError(err)
-		}
-
-		return resource.NonRetryableError(err)
+		return nil
 	})
 
 	if err != nil {
@@ -374,18 +372,16 @@ func removeNetworkACLRule(d *schema.ResourceData, config *ProviderConfig, ruleTy
 			resp, err = config.Client.vpc.V2Api.RemoveNetworkAclOutboundRule(reqParams.(*vpc.RemoveNetworkAclOutboundRuleRequest))
 		}
 
-		if err == nil {
+		if err != nil {
+			errBody, _ := GetCommonErrorBody(err)
+			if errBody.ReturnCode == ApiErrorNetworkAclCantAccessaApropriate {
+				logErrorResponse("retry RemoveNetworkAclRule", err, reqParams)
+				time.Sleep(time.Second * 5)
+				return resource.RetryableError(err)
+			}
 			return resource.NonRetryableError(err)
 		}
-
-		errBody, _ := GetCommonErrorBody(err)
-		if errBody.ReturnCode == ApiErrorNetworkAclCantAccessaApropriate {
-			logErrorResponse("retry RemoveNetworkAclRule", err, reqParams)
-			time.Sleep(time.Second * 5)
-			return resource.RetryableError(err)
-		}
-
-		return resource.NonRetryableError(err)
+		return nil
 	})
 
 	if err != nil {

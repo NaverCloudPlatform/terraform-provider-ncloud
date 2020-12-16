@@ -122,8 +122,9 @@ func resourceNcloudRouteCreate(d *schema.ResourceData, meta interface{}) error {
 				time.Sleep(time.Second * 5)
 				return resource.RetryableError(err)
 			}
+			return resource.NonRetryableError(err)
 		}
-		return resource.NonRetryableError(err)
+		return nil
 	})
 
 	if err != nil {
@@ -219,8 +220,9 @@ func resourceNcloudRouteDelete(d *schema.ResourceData, meta interface{}) error {
 				time.Sleep(time.Second * 5)
 				return resource.RetryableError(err)
 			}
+			return resource.NonRetryableError(err)
 		}
-		return resource.NonRetryableError(err)
+		return nil
 	})
 
 	if err != nil {

@@ -320,18 +320,16 @@ func addAccessControlGroupRule(d *schema.ResourceData, config *ProviderConfig, r
 			resp, err = config.Client.vserver.V2Api.AddAccessControlGroupOutboundRule(reqParams.(*vserver.AddAccessControlGroupOutboundRuleRequest))
 		}
 
-		if err == nil {
+		if err != nil {
+			errBody, _ := GetCommonErrorBody(err)
+			if errBody.ReturnCode == ApiErrorAcgCantChangeSameTime {
+				logErrorResponse("retry AddAccessControlGroupRule", err, reqParams)
+				time.Sleep(time.Second * 5)
+				return resource.RetryableError(err)
+			}
 			return resource.NonRetryableError(err)
 		}
-
-		errBody, _ := GetCommonErrorBody(err)
-		if errBody.ReturnCode == ApiErrorAcgCantChangeSameTime {
-			logErrorResponse("retry AddAccessControlGroupRule", err, reqParams)
-			time.Sleep(time.Second * 5)
-			return resource.RetryableError(err)
-		}
-
-		return resource.NonRetryableError(err)
+		return nil
 	})
 
 	if err != nil {
@@ -378,18 +376,16 @@ func removeAccessControlGroupRule(d *schema.ResourceData, config *ProviderConfig
 			resp, err = config.Client.vserver.V2Api.RemoveAccessControlGroupOutboundRule(reqParams.(*vserver.RemoveAccessControlGroupOutboundRuleRequest))
 		}
 
-		if err == nil {
+		if err != nil {
+			errBody, _ := GetCommonErrorBody(err)
+			if errBody.ReturnCode == ApiErrorAcgCantChangeSameTime {
+				logErrorResponse("retry RemoveAccessControlGroupRule", err, reqParams)
+				time.Sleep(time.Second * 5)
+				return resource.RetryableError(err)
+			}
 			return resource.NonRetryableError(err)
 		}
-
-		errBody, _ := GetCommonErrorBody(err)
-		if errBody.ReturnCode == ApiErrorAcgCantChangeSameTime {
-			logErrorResponse("retry RemoveAccessControlGroupRule", err, reqParams)
-			time.Sleep(time.Second * 5)
-			return resource.RetryableError(err)
-		}
-
-		return resource.NonRetryableError(err)
+		return nil
 	})
 
 	if err != nil {
