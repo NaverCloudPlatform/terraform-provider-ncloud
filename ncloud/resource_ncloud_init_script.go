@@ -89,7 +89,7 @@ func resourceNcloudInitScriptRead(d *schema.ResourceData, meta interface{}) erro
 	d.Set("name", instance.InitScriptName)
 	d.Set("description", instance.InitScriptDescription)
 	d.Set("content", instance.InitScriptContent)
-	d.Set("os_type", instance.OsType)
+	d.Set("os_type", instance.OsType.Code)
 
 	return nil
 }
