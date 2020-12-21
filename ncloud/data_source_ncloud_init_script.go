@@ -20,6 +20,10 @@ func dataSourceNcloudInitScript() *schema.Resource {
 				Optional: true,
 				Computed: true,
 			},
+			"init_script_no": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
 			"name": {
 				Type:     schema.TypeString,
 				Optional: true,
@@ -32,7 +36,6 @@ func dataSourceNcloudInitScript() *schema.Resource {
 				ValidateFunc: validation.StringInSlice([]string{"LNX", "WND"}, false),
 			},
 			"filter": dataSourceFiltersSchema(),
-
 			"description": {
 				Type:     schema.TypeString,
 				Computed: true,
