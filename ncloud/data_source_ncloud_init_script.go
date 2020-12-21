@@ -96,7 +96,7 @@ func getVpcInitScriptListFiltered(d *schema.ResourceData, config *ProviderConfig
 			"init_script_no": *r.InitScriptNo,
 			"name":           *r.InitScriptName,
 			"description":    *r.InitScriptDescription,
-			"os_type":        *r.OsType,
+			"os_type":        *r.OsType.Code,
 		}
 
 		resources = append(resources, instance)
