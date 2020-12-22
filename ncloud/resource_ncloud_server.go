@@ -213,11 +213,11 @@ func resourceNcloudServer() *schema.Resource {
 				Computed: true,
 			},
 			"port_forwarding_external_port": {
-				Type:     schema.TypeString,
+				Type:     schema.TypeInt,
 				Computed: true,
 			},
 			"port_forwarding_internal_port": {
-				Type:     schema.TypeString,
+				Type:     schema.TypeInt,
 				Computed: true,
 			},
 			"base_block_storage_disk_type": {
