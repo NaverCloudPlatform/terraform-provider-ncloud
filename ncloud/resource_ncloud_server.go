@@ -238,6 +238,16 @@ func resourceNcloudServer() *schema.Resource {
 				Computed:   true,
 				Deprecated: "This field no longer support",
 			},
+			"operation": {
+				Type:     schema.TypeString,
+				Optional: true,
+				Computed: true,
+			},
+			"status": {
+				Type:     schema.TypeString,
+				Optional: true,
+				Computed: true,
+			},
 		},
 	}
 }
