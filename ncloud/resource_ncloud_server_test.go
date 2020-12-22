@@ -27,9 +27,11 @@ func TestAccResourceNcloudServer_classic_basic(t *testing.T) {
 	}
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccClassicProviders,
-		CheckDestroy: testAccCheckServerDestroy,
+		PreCheck:  func() { testAccPreCheck(t) },
+		Providers: testAccClassicProviders,
+		CheckDestroy: func(state *terraform.State) error {
+			return testAccCheckInstanceDestroyWithProvider(state, testAccClassicProvider)
+		},
 		Steps: []resource.TestStep{
 			{
 				Config: testAccServerClassicConfig(testServerName, productCode),
@@ -173,9 +175,11 @@ func TestAccResourceNcloudServer_classic_changeSpec(t *testing.T) {
 	targetProductCode := "SPSVRSTAND000005" // vCPU 4EA, Memory 8GB, Disk 50GB
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccClassicProviders,
-		CheckDestroy: testAccCheckServerDestroy,
+		PreCheck:  func() { testAccPreCheck(t) },
+		Providers: testAccClassicProviders,
+		CheckDestroy: func(state *terraform.State) error {
+			return testAccCheckInstanceDestroyWithProvider(state, testAccClassicProvider)
+		},
 		Steps: []resource.TestStep{
 			{
 				Config: testAccServerClassicConfig(testServerName, productCode),
