@@ -46,7 +46,7 @@ func TestAccResourceNcloudVpc_disappears(t *testing.T) {
 	var vpc vpc.Vpc
 	rInt := rand.Intn(16)
 	cidr := fmt.Sprintf("10.%d.0.0/16", rInt)
-	name := fmt.Sprintf("test-vpc-basic-%s", acctest.RandString(5))
+	name := fmt.Sprintf("test-vpc-disapr-%s", acctest.RandString(5))
 	resourceName := "ncloud_vpc.test"
 
 	resource.Test(t, resource.TestCase{
@@ -55,7 +55,7 @@ func TestAccResourceNcloudVpc_disappears(t *testing.T) {
 		CheckDestroy: testAccCheckVpcDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccDataSourceNcloudVpcConfig(name, cidr),
+				Config: testAccResourceNcloudVpcConfig(name, cidr),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckVpcExists(resourceName, &vpc),
 					testAccCheckVpcDisappears(&vpc),

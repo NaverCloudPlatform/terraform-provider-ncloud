@@ -30,6 +30,7 @@ func resourceNcloudSubnet() *schema.Resource {
 			"name": {
 				Type:         schema.TypeString,
 				Optional:     true,
+				Computed:     true,
 				ValidateFunc: validateInstanceName,
 				Description:  "Subnet name to create. default: Assigned by NAVER CLOUD PLATFORM.",
 			},

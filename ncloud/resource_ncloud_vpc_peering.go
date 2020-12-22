@@ -146,7 +146,6 @@ func resourceNcloudVpcPeeringRead(d *schema.ResourceData, meta interface{}) erro
 	d.Set("target_vpc_no", instance.TargetVpcNo)
 	d.Set("target_vpc_name", instance.TargetVpcName)
 	d.Set("target_vpc_login_id", instance.TargetVpcLoginId)
-	d.Set("status", instance.VpcPeeringInstanceStatus.Code)
 	d.Set("has_reverse_vpc_peering", instance.HasReverseVpcPeering)
 	d.Set("is_between_accounts", instance.IsBetweenAccounts)
 

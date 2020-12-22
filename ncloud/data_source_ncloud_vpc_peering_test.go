@@ -29,7 +29,6 @@ func TestAccDataSourceNcloudVpcPeering_basic(t *testing.T) {
 					testVpcPeeringCheckResourceAttrPair(dataNameBySourceName, resourceName),
 					testVpcPeeringCheckResourceAttrPair(dataNameByTargetName, resourceName),
 				),
-				ExpectNonEmptyPlan: true,
 			},
 		},
 	})
