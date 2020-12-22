@@ -47,8 +47,7 @@ func dataSourceNcloudServerRead(d *schema.ResourceData, meta interface{}) error 
 	}
 
 	d.SetId(resources[0]["instance_no"].(string))
-	SetSingularResourceDataFromMap(d, resources[0])
-
+	SetSingularResourceDataFromMapSchema(dataSourceNcloudServer(), d, resources[0])
 	return nil
 }
 
