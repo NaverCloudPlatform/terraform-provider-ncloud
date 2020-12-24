@@ -17,7 +17,7 @@ func dataResourceIdHash(ids []string) string {
 		buf.WriteString(fmt.Sprintf("%s-", id))
 	}
 
-	return fmt.Sprintf("%d", String(buf.String()))
+	return fmt.Sprintf("%d", hashcode(buf.String()))
 }
 
 func writeToFile(filePath string, data interface{}) error {

@@ -290,5 +290,5 @@ func routeRuleHash(routeTableNo, destinationCidrBlock string) string {
 	var buf bytes.Buffer
 	buf.WriteString(fmt.Sprintf("%s-", routeTableNo))
 	buf.WriteString(fmt.Sprintf("%s-", destinationCidrBlock))
-	return fmt.Sprintf("route-%d", String(buf.String()))
+	return fmt.Sprintf("route-%d", hashcode(buf.String()))
 }
