@@ -18,11 +18,6 @@ func dataSourceNcloudSubnet() *schema.Resource {
 			Optional: true,
 			Computed: true,
 		},
-		"name": {
-			Type:     schema.TypeString,
-			Optional: true,
-			Computed: true,
-		},
 		"vpc_no": {
 			Type:     schema.TypeString,
 			Optional: true,
