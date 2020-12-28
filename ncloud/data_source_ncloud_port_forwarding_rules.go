@@ -20,11 +20,11 @@ func dataSourceNcloudPortForwardingRules() *schema.Resource {
 
 		Schema: map[string]*schema.Schema{
 			"internet_line_type_code": {
-				Type:         schema.TypeString,
-				Optional:     true,
-				ForceNew:     true,
-				ValidateFunc: validation.StringInSlice([]string{"PUBLC", "GLBL"}, false),
-				Description:  "Internet line code. PUBLC(Public), GLBL(Global)",
+				Type:             schema.TypeString,
+				Optional:         true,
+				ForceNew:         true,
+				ValidateDiagFunc: ToDiagFunc(validation.StringInSlice([]string{"PUBLC", "GLBL"}, false)),
+				Description:      "Internet line code. PUBLC(Public), GLBL(Global)",
 			},
 			"region": {
 				Type:        schema.TypeString,

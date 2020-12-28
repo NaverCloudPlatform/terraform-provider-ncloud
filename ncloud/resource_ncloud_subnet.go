@@ -28,11 +28,11 @@ func resourceNcloudSubnet() *schema.Resource {
 		CustomizeDiff: ncloudVpcCommonCustomizeDiff,
 		Schema: map[string]*schema.Schema{
 			"name": {
-				Type:         schema.TypeString,
-				Optional:     true,
-				Computed:     true,
-				ValidateFunc: validateInstanceName,
-				Description:  "Subnet name to create. default: Assigned by NAVER CLOUD PLATFORM.",
+				Type:             schema.TypeString,
+				Optional:         true,
+				Computed:         true,
+				ValidateDiagFunc: ToDiagFunc(validateInstanceName),
+				Description:      "Subnet name to create. default: Assigned by NAVER CLOUD PLATFORM.",
 			},
 			"vpc_no": {
 				Type:        schema.TypeString,
@@ -41,10 +41,10 @@ func resourceNcloudSubnet() *schema.Resource {
 				Description: "The id of the VPC that the desired subnet belongs to.",
 			},
 			"subnet": {
-				Type:         schema.TypeString,
-				Required:     true,
-				ForceNew:     true,
-				ValidateFunc: validation.IsCIDRNetwork(16, 28),
+				Type:             schema.TypeString,
+				Required:         true,
+				ForceNew:         true,
+				ValidateDiagFunc: ToDiagFunc(validation.IsCIDRNetwork(16, 28)),
 			},
 			"zone": {
 				Type:     schema.TypeString,
@@ -56,17 +56,17 @@ func resourceNcloudSubnet() *schema.Resource {
 				Required: true,
 			},
 			"subnet_type": {
-				Type:         schema.TypeString,
-				Required:     true,
-				ForceNew:     true,
-				ValidateFunc: validation.StringInSlice([]string{"PUBLIC", "PRIVATE"}, false),
+				Type:             schema.TypeString,
+				Required:         true,
+				ForceNew:         true,
+				ValidateDiagFunc: ToDiagFunc(validation.StringInSlice([]string{"PUBLIC", "PRIVATE"}, false)),
 			},
 			"usage_type": {
-				Type:         schema.TypeString,
-				Optional:     true,
-				ForceNew:     true,
-				ValidateFunc: validation.StringInSlice([]string{"GEN", "LOADB", "BM"}, false),
-				Default:      "GEN",
+				Type:             schema.TypeString,
+				Optional:         true,
+				ForceNew:         true,
+				ValidateDiagFunc: ToDiagFunc(validation.StringInSlice([]string{"GEN", "LOADB", "BM"}, false)),
+				Default:          "GEN",
 			},
 			"subnet_no": {
 				Type:     schema.TypeString,

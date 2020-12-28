@@ -63,10 +63,10 @@ func dataSourceNcloudServerImage() *schema.Resource {
 			},
 			// Deprecated
 			"product_name_regex": {
-				Type:         schema.TypeString,
-				Optional:     true,
-				ValidateFunc: validation.StringIsValidRegExp,
-				Deprecated:   "use `filter` instead",
+				Type:             schema.TypeString,
+				Optional:         true,
+				ValidateDiagFunc: ToDiagFunc(validation.StringIsValidRegExp),
+				Deprecated:       "use `filter` instead",
 			},
 			"exclusion_product_code": {
 				Type:       schema.TypeString,

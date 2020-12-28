@@ -22,10 +22,10 @@ func dataSourceNcloudNasVolume() *schema.Resource {
 			Computed: true,
 		},
 		"volume_allotment_protocol_type_code": {
-			Type:         schema.TypeString,
-			Optional:     true,
-			Computed:     true,
-			ValidateFunc: validation.StringInSlice([]string{"NFS", "CIFS"}, false),
+			Type:             schema.TypeString,
+			Optional:         true,
+			Computed:         true,
+			ValidateDiagFunc: ToDiagFunc(validation.StringInSlice([]string{"NFS", "CIFS"}, false)),
 		},
 		"is_event_configuration": {
 			Type:     schema.TypeBool,

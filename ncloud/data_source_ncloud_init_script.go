@@ -30,10 +30,10 @@ func dataSourceNcloudInitScript() *schema.Resource {
 				Computed: true,
 			},
 			"os_type": {
-				Type:         schema.TypeString,
-				Optional:     true,
-				Computed:     true,
-				ValidateFunc: validation.StringInSlice([]string{"LNX", "WND"}, false),
+				Type:             schema.TypeString,
+				Optional:         true,
+				Computed:         true,
+				ValidateDiagFunc: ToDiagFunc(validation.StringInSlice([]string{"LNX", "WND"}, false)),
 			},
 			"filter": dataSourceFiltersSchema(),
 			"description": {

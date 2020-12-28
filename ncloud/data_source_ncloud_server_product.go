@@ -32,9 +32,9 @@ func dataSourceNcloudServerProduct() *schema.Resource {
 				Optional: true,
 			},
 			"internet_line_type_code": {
-				Type:         schema.TypeString,
-				Optional:     true,
-				ValidateFunc: validation.StringInSlice([]string{"PUBLC", "GLBL"}, false),
+				Type:             schema.TypeString,
+				Optional:         true,
+				ValidateDiagFunc: ToDiagFunc(validation.StringInSlice([]string{"PUBLC", "GLBL"}, false)),
 			},
 			"filter": dataSourceFiltersSchema(),
 
@@ -76,11 +76,11 @@ func dataSourceNcloudServerProduct() *schema.Resource {
 			},
 			// Deprecated
 			"product_name_regex": {
-				Type:         schema.TypeString,
-				Optional:     true,
-				ForceNew:     true,
-				ValidateFunc: validation.StringIsValidRegExp,
-				Deprecated:   "use filter instead",
+				Type:             schema.TypeString,
+				Optional:         true,
+				ForceNew:         true,
+				ValidateDiagFunc: ToDiagFunc(validation.StringIsValidRegExp),
+				Deprecated:       "use filter instead",
 			},
 			"exclusion_product_code": {
 				Type:       schema.TypeString,

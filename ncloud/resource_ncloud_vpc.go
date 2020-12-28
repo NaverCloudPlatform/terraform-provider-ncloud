@@ -29,18 +29,18 @@ func resourceNcloudVpc() *schema.Resource {
 		CustomizeDiff: ncloudVpcCommonCustomizeDiff,
 		Schema: map[string]*schema.Schema{
 			"name": {
-				Type:         schema.TypeString,
-				Optional:     true,
-				Computed:     true,
-				ValidateFunc: validateInstanceName,
-				Description:  "Subnet name to create. default: Assigned by NAVER CLOUD PLATFORM.",
+				Type:             schema.TypeString,
+				Optional:         true,
+				Computed:         true,
+				ValidateDiagFunc: ToDiagFunc(validateInstanceName),
+				Description:      "Subnet name to create. default: Assigned by NAVER CLOUD PLATFORM.",
 			},
 			"ipv4_cidr_block": {
-				Type:         schema.TypeString,
-				Required:     true,
-				ForceNew:     true,
-				ValidateFunc: validation.IsCIDRNetwork(16, 28),
-				Description:  "The CIDR block for the vpc.",
+				Type:             schema.TypeString,
+				Required:         true,
+				ForceNew:         true,
+				ValidateDiagFunc: ToDiagFunc(validation.IsCIDRNetwork(16, 28)),
+				Description:      "The CIDR block for the vpc.",
 			},
 			"vpc_no": {
 				Type:     schema.TypeString,

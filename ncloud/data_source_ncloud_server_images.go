@@ -49,11 +49,11 @@ func dataSourceNcloudServerImages() *schema.Resource {
 			},
 			// Deprecated
 			"product_name_regex": {
-				Type:         schema.TypeString,
-				Optional:     true,
-				ForceNew:     true,
-				ValidateFunc: validation.StringIsValidRegExp,
-				Deprecated:   "use `filter` instead",
+				Type:             schema.TypeString,
+				Optional:         true,
+				ForceNew:         true,
+				ValidateDiagFunc: ToDiagFunc(validation.StringIsValidRegExp),
+				Deprecated:       "use `filter` instead",
 			},
 			"exclusion_product_code": {
 				Type:       schema.TypeString,
@@ -61,10 +61,10 @@ func dataSourceNcloudServerImages() *schema.Resource {
 				Deprecated: "This field no longer support",
 			},
 			"block_storage_size": {
-				Type:         schema.TypeInt,
-				Optional:     true,
-				ValidateFunc: validation.IntInSlice([]int{50, 100}),
-				Deprecated:   "use `filter` instead",
+				Type:             schema.TypeInt,
+				Optional:         true,
+				ValidateDiagFunc: ToDiagFunc(validation.IntInSlice([]int{50, 100})),
+				Deprecated:       "use `filter` instead",
 			},
 			"region": {
 				Type:       schema.TypeString,

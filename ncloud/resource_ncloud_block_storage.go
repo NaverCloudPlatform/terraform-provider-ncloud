@@ -40,9 +40,9 @@ func resourceNcloudBlockStorage() *schema.Resource {
 				Required: true,
 			},
 			"size": {
-				Type:         schema.TypeInt,
-				Required:     true,
-				ValidateFunc: validation.IntBetween(10, 1000),
+				Type:             schema.TypeInt,
+				Required:         true,
+				ValidateDiagFunc: ToDiagFunc(validation.IntBetween(10, 1000)),
 			},
 			"name": {
 				Type:     schema.TypeString,

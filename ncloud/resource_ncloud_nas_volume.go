@@ -34,21 +34,21 @@ func resourceNcloudNasVolume() *schema.Resource {
 
 		Schema: map[string]*schema.Schema{
 			"volume_name_postfix": {
-				Type:         schema.TypeString,
-				Required:     true,
-				ForceNew:     true,
-				ValidateFunc: validation.StringLenBetween(3, 30),
+				Type:             schema.TypeString,
+				Required:         true,
+				ForceNew:         true,
+				ValidateDiagFunc: ToDiagFunc(validation.StringLenBetween(3, 30)),
 			},
 			"volume_size": {
-				Type:         schema.TypeInt,
-				Required:     true,
-				ValidateFunc: validation.IntBetween(500, 10000),
+				Type:             schema.TypeInt,
+				Required:         true,
+				ValidateDiagFunc: ToDiagFunc(validation.IntBetween(500, 10000)),
 			},
 			"volume_allotment_protocol_type": {
-				Type:         schema.TypeString,
-				Required:     true,
-				ForceNew:     true,
-				ValidateFunc: validation.StringLenBetween(1, 5),
+				Type:             schema.TypeString,
+				Required:         true,
+				ForceNew:         true,
+				ValidateDiagFunc: ToDiagFunc(validation.StringLenBetween(1, 5)),
 			},
 			"server_instance_no_list": {
 				Type:     schema.TypeList,
@@ -73,10 +73,10 @@ func resourceNcloudNasVolume() *schema.Resource {
 				ForceNew: true,
 			},
 			"description": {
-				Type:         schema.TypeString,
-				Optional:     true,
-				Computed:     true,
-				ValidateFunc: validation.StringLenBetween(1, 1000),
+				Type:             schema.TypeString,
+				Optional:         true,
+				Computed:         true,
+				ValidateDiagFunc: ToDiagFunc(validation.StringLenBetween(1, 1000)),
 			},
 			"zone": {
 				Type:     schema.TypeString,

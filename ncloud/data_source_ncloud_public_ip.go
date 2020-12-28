@@ -23,10 +23,10 @@ func dataSourceNcloudPublicIp() *schema.Resource {
 				Computed: true,
 			},
 			"internet_line_type": {
-				Type:         schema.TypeString,
-				Computed:     true,
-				Optional:     true,
-				ValidateFunc: validation.StringInSlice([]string{"PUBLC", "GLBL"}, false),
+				Type:             schema.TypeString,
+				Computed:         true,
+				Optional:         true,
+				ValidateDiagFunc: ToDiagFunc(validation.StringInSlice([]string{"PUBLC", "GLBL"}, false)),
 			},
 			"is_associated": {
 				Type:     schema.TypeBool,
