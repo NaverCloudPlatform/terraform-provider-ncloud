@@ -57,11 +57,11 @@ func resourceNcloudServer() *schema.Resource {
 				Type:     schema.TypeString,
 				Optional: true,
 				Computed: true,
-				ValidateDiagFunc: ToDiagFuncAll(
-					ToDiagFunc(validation.StringLenBetween(3, 30)),
-					ToDiagFunc(validation.StringMatch(regexp.MustCompile(`^[A-Za-z0-9-*]+$`), "Composed of alphabets, numbers, hyphen (-) and wild card (*).")),
-					ToDiagFunc(validation.StringMatch(regexp.MustCompile(`.*[^\\-]$`), "Hyphen (-) cannot be used for the last character and if wild card (*) is used, other characters cannot be input.")),
-				),
+				ValidateDiagFunc: ToDiagFunc(validation.All(
+					validation.StringLenBetween(3, 30),
+					validation.StringMatch(regexp.MustCompile(`^[A-Za-z0-9-*]+$`), "Composed of alphabets, numbers, hyphen (-) and wild card (*)."),
+					validation.StringMatch(regexp.MustCompile(`.*[^\\-]$`), "Hyphen (-) cannot be used for the last character and if wild card (*) is used, other characters cannot be input."),
+				)),
 			},
 			"description": {
 				Type:     schema.TypeString,

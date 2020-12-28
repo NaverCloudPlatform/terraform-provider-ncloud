@@ -121,19 +121,3 @@ func ToDiagFunc(validator schema.SchemaValidateFunc) schema.SchemaValidateDiagFu
 		return diags
 	}
 }
-
-// All returns a SchemaValidateDiagFunc which tests if the provided value
-// passes all provided SchemaValidateDiagFunc
-func ToDiagFuncAll(validators ...schema.SchemaValidateDiagFunc) schema.SchemaValidateDiagFunc {
-	return func(v interface{}, path cty.Path) diag.Diagnostics {
-		var diags diag.Diagnostics
-
-		for _, validator := range validators {
-			validatorDiags := validator(v, path)
-			for _, d := range validatorDiags {
-				diags = append(diags, d)
-			}
-		}
-		return diags
-	}
-}
