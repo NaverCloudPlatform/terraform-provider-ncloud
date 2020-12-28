@@ -64,6 +64,7 @@ func convertResourceFieldsToDatasourceFields(resourceSchema *schema.Resource) *s
 		fieldSchema.Optional = false
 		fieldSchema.DiffSuppressFunc = nil
 		fieldSchema.ValidateFunc = nil
+		fieldSchema.ValidateDiagFunc = nil
 		fieldSchema.ConflictsWith = nil
 		fieldSchema.Default = nil
 		if fieldSchema.Type == schema.TypeSet {
