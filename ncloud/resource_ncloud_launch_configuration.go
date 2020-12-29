@@ -219,7 +219,6 @@ func getClassicLaunchConfiguration(d *schema.ResourceData, config *ProviderConfi
 		"member_server_image_no":    *configuration.MemberServerImageNo,
 		"login_key_name":            *configuration.LoginKeyName,
 		"user_data":                 *configuration.UserData,
-		"create_date":               *configuration.CreateDate,
 	}
 	d.Set("region", &config.RegionCode)
 	SetSingularResourceDataFromMapSchema(resourceNcloudLaunchConfiguration(), d, instance)
@@ -228,5 +227,32 @@ func getClassicLaunchConfiguration(d *schema.ResourceData, config *ProviderConfi
 
 // TODO : Implementation
 func getVpcLaunchConfiguration(d *schema.ResourceData, config *ProviderConfig) error {
+	reqParams := &vautoscaling.GetLaunchConfigurationListRequest{
+		RegionCode:                  &config.RegionCode,
+		LaunchConfigurationNameList: []*string{ncloud.String(d.Id())},
+	}
+
+	logCommonRequest("getVpcLaunchConfiguration", reqParams)
+	res, err := config.Client.vautoscaling.V2Api.GetLaunchConfigurationList(reqParams)
+	if err != nil {
+		logErrorResponse("getVpcLaunchConfiguration", err, reqParams)
+		return err
+	}
+	logResponse("getVpcLaunchConfiguration", res)
+
+	configuration := res.LaunchConfiguration[0]
+	instance := map[string]interface{}{
+		"region":                    *configuration.RegionCode,
+		"name":                      *configuration.LaunchConfigurationName,
+		"server_image_product_code": *configuration.ServerImageProductCode,
+		"member_server_image_no":    *configuration.MemberServerImageInstanceNo,
+		"server_product_code":       *configuration.ServerProductCode,
+		"login_key_name":            *configuration.LoginKeyName,
+		"status":                    *configuration.LaunchConfigurationStatus.Code,
+		"init_script_no":            *configuration.InitScriptNo,
+		"is_encrypted_volume":       *configuration.IsEncryptedVolume,
+	}
+
+	SetSingularResourceDataFromMapSchema(resourceNcloudLaunchConfiguration(), d, instance)
 	return nil
 }
