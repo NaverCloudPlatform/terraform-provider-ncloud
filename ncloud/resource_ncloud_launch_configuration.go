@@ -3,6 +3,7 @@ package ncloud
 import (
 	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/ncloud"
 	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/services/autoscaling"
+	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/services/vautoscaling"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
@@ -60,6 +61,19 @@ func resourceNcloudLaunchConfiguration() *schema.Resource {
 				Type:     schema.TypeString,
 				ForceNew: true,
 				Optional: true,
+			},
+			"is_encrypted_volume": {
+				Type:     schema.TypeBool,
+				Optional: true,
+				Computed: true,
+			},
+			"status": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+			"init_script_no": {
+				Type:     schema.TypeString,
+				Computed: true,
 			},
 		},
 	}
@@ -162,9 +176,26 @@ func createClassicLaunchConfiguration(d *schema.ResourceData, config *ProviderCo
 	return res.LaunchConfigurationList[0].LaunchConfigurationName, nil
 }
 
-// TODO : Implementation
 func createVpcLaunchConfiguration(d *schema.ResourceData, config *ProviderConfig) (*string, error) {
-	return nil, nil
+	reqParams := &vautoscaling.CreateLaunchConfigurationRequest{
+		RegionCode:                  &config.RegionCode,
+		ServerImageProductCode:      StringPtrOrNil(d.GetOk("server_image_product_code")),
+		MemberServerImageInstanceNo: StringPtrOrNil(d.GetOk("member_server_image_no")),
+		ServerProductCode:           StringPtrOrNil(d.GetOk("server_product_code")),
+		IsEncryptedVolume:           BoolPtrOrNil(d.GetOk("is_encrypted_volume")),
+		InitScriptNo:                StringPtrOrNil(d.GetOk("init_script_no")),
+		LaunchConfigurationName:     StringPtrOrNil(d.GetOk("name")),
+		LoginKeyName:                StringPtrOrNil(d.GetOk("login_key_name")),
+	}
+
+	logCommonRequest("createVpcLaunchConfiguration", reqParams)
+	res, err := config.Client.vautoscaling.V2Api.CreateLaunchConfiguration(reqParams)
+	if err != nil {
+		logErrorResponse("createVpcLaunchConfiguration", err, reqParams)
+		return nil, err
+	}
+	logResponse("createVpcLaunchConfiguration", res)
+	return res.LaunchConfigurationList[0].LaunchConfigurationName, nil
 }
 
 func getClassicLaunchConfiguration(d *schema.ResourceData, config *ProviderConfig) error {
