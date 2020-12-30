@@ -20,7 +20,6 @@ func resourceNcloudLaunchConfiguration() *schema.Resource {
 		Schema: map[string]*schema.Schema{
 			"name": {
 				Type:     schema.TypeString,
-				Computed: true,
 				ForceNew: true,
 				Optional: true,
 			},
@@ -44,12 +43,14 @@ func resourceNcloudLaunchConfiguration() *schema.Resource {
 			"login_key_name": {
 				Type:     schema.TypeString,
 				ForceNew: true,
+				Computed: true,
 				Optional: true,
 			},
 			"user_data": {
 				Type:     schema.TypeString,
 				ForceNew: true,
 				Optional: true,
+				Computed: true,
 			},
 			"access_control_group_configuration_no_list": {
 				Type:     schema.TypeList,
@@ -61,6 +62,7 @@ func resourceNcloudLaunchConfiguration() *schema.Resource {
 				Type:     schema.TypeString,
 				ForceNew: true,
 				Optional: true,
+				Computed: true,
 			},
 			"is_encrypted_volume": {
 				Type:     schema.TypeBool,
@@ -101,7 +103,7 @@ func resourceNcloudLaunchConfigurationRead(d *schema.ResourceData, meta interfac
 	var err error
 
 	if config.SupportVPC {
-		err = getVpcLaunchConfiguration(d, config)
+		_, err = getVpcLaunchConfiguration(d, config)
 	} else {
 		err = getClassicLaunchConfiguration(d, config)
 	}
@@ -113,12 +115,15 @@ func resourceNcloudLaunchConfigurationRead(d *schema.ResourceData, meta interfac
 	return nil
 }
 
-// TODO : Implementation
 func resourceNcloudLaunchConfigurationDelete(d *schema.ResourceData, meta interface{}) error {
 	config := meta.(*ProviderConfig)
 	var err error
 	if config.SupportVPC {
-		err = deleteVpcLaunchConfiguration(d, config)
+		launchConfigNo, err := getVpcLaunchConfiguration(d, config)
+		if err != nil {
+			return err
+		}
+		err = deleteVpcLaunchConfiguration(config, launchConfigNo)
 	} else {
 		err = deleteClassicLaunchConfiguration(d, config)
 	}
@@ -129,7 +134,6 @@ func resourceNcloudLaunchConfigurationDelete(d *schema.ResourceData, meta interf
 	return nil
 }
 
-// TODO : Implementation
 func deleteClassicLaunchConfiguration(d *schema.ResourceData, config *ProviderConfig) error {
 	reqParams := &autoscaling.DeleteAutoScalingLaunchConfigurationRequest{
 		LaunchConfigurationName: ncloud.String(d.Id()),
@@ -146,8 +150,18 @@ func deleteClassicLaunchConfiguration(d *schema.ResourceData, config *ProviderCo
 	return nil
 }
 
-// TODO : Implementation
-func deleteVpcLaunchConfiguration(d *schema.ResourceData, config *ProviderConfig) error {
+func deleteVpcLaunchConfiguration(config *ProviderConfig, launchConfigNo *string) error {
+	reqParams := &vautoscaling.DeleteLaunchConfigurationRequest{
+		LaunchConfigurationNo: launchConfigNo,
+	}
+
+	logCommonRequest("deleteVpcLaunchConfiguration", reqParams)
+	res, err := config.Client.vautoscaling.V2Api.DeleteLaunchConfiguration(reqParams)
+	if err != nil {
+		logErrorResponse("deleteVpcLaunchConfiguration", err, reqParams)
+		return err
+	}
+	logResponse("deleteVpcLaunchConfiguration", res)
 	return nil
 }
 
@@ -225,8 +239,7 @@ func getClassicLaunchConfiguration(d *schema.ResourceData, config *ProviderConfi
 	return nil
 }
 
-// TODO : Implementation
-func getVpcLaunchConfiguration(d *schema.ResourceData, config *ProviderConfig) error {
+func getVpcLaunchConfiguration(d *schema.ResourceData, config *ProviderConfig) (*string, error) {
 	reqParams := &vautoscaling.GetLaunchConfigurationListRequest{
 		RegionCode:                  &config.RegionCode,
 		LaunchConfigurationNameList: []*string{ncloud.String(d.Id())},
@@ -236,11 +249,11 @@ func getVpcLaunchConfiguration(d *schema.ResourceData, config *ProviderConfig) e
 	res, err := config.Client.vautoscaling.V2Api.GetLaunchConfigurationList(reqParams)
 	if err != nil {
 		logErrorResponse("getVpcLaunchConfiguration", err, reqParams)
-		return err
+		return nil, err
 	}
 	logResponse("getVpcLaunchConfiguration", res)
 
-	configuration := res.LaunchConfiguration[0]
+	configuration := res.LaunchConfigurationList[0]
 	instance := map[string]interface{}{
 		"region":                    *configuration.RegionCode,
 		"name":                      *configuration.LaunchConfigurationName,
@@ -254,5 +267,5 @@ func getVpcLaunchConfiguration(d *schema.ResourceData, config *ProviderConfig) e
 	}
 
 	SetSingularResourceDataFromMapSchema(resourceNcloudLaunchConfiguration(), d, instance)
-	return nil
+	return configuration.LaunchConfigurationNo, nil
 }
