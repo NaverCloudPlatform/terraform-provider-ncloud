@@ -15,52 +15,48 @@ func resourceNcloudLaunchConfiguration() *schema.Resource {
 	return &schema.Resource{
 		Create: resourceNcloudLaunchConfigurationCreate,
 		Read:   resourceNcloudLaunchConfigurationRead,
-		Update: nil,
 		Delete: resourceNcloudLaunchConfigurationDelete,
 		Schema: map[string]*schema.Schema{
 			"name": {
 				Type:     schema.TypeString,
-				ForceNew: true,
+				Computed: true,
 				Optional: true,
 			},
 			"server_image_product_code": {
 				Type:          schema.TypeString,
 				Optional:      true,
-				ForceNew:      true,
 				ConflictsWith: []string{"member_server_image_no"},
+				ForceNew:      true,
 			},
 			"server_product_code": {
 				Type:     schema.TypeString,
-				ForceNew: true,
+				Computed: true,
 				Optional: true,
 			},
 			"member_server_image_no": {
 				Type:          schema.TypeString,
-				ForceNew:      true,
 				Optional:      true,
 				ConflictsWith: []string{"server_image_product_code"},
+				ForceNew:      true,
 			},
 			"login_key_name": {
 				Type:     schema.TypeString,
-				ForceNew: true,
 				Computed: true,
 				Optional: true,
 			},
 			"user_data": {
 				Type:     schema.TypeString,
-				ForceNew: true,
 				Optional: true,
 				Computed: true,
 			},
 			"access_control_group_configuration_no_list": {
 				Type:     schema.TypeList,
-				ForceNew: true,
 				Optional: true,
 				Elem:     &schema.Schema{Type: schema.TypeString},
+				ForceNew: true,
 			},
 			"region": {
 				Type:     schema.TypeString,
-				ForceNew: true,
 				Optional: true,
 				Computed: true,
 			},
@@ -69,11 +65,12 @@ func resourceNcloudLaunchConfiguration() *schema.Resource {
 				Optional: true,
 				Computed: true,
 			},
-			"status": {
+			"init_script_no": {
 				Type:     schema.TypeString,
+				Optional: true,
 				Computed: true,
 			},
-			"init_script_no": {
+			"status": {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
@@ -102,16 +99,18 @@ func resourceNcloudLaunchConfigurationRead(d *schema.ResourceData, meta interfac
 	config := meta.(*ProviderConfig)
 	var err error
 
+	var launchConfig *LaunchConfiguration
 	if config.SupportVPC {
-		_, err = getVpcLaunchConfiguration(d, config)
+		launchConfig, err = getVpcLaunchConfiguration(d, config)
 	} else {
-		err = getClassicLaunchConfiguration(d, config)
+		launchConfig, err = getClassicLaunchConfiguration(d, config)
 	}
-
+	launchConfigMap := ConvertToMap(launchConfig)
 	if err != nil {
 		return err
 	}
 
+	SetSingularResourceDataFromMapSchema(resourceNcloudLaunchConfiguration(), d, launchConfigMap)
 	return nil
 }
 
@@ -119,11 +118,12 @@ func resourceNcloudLaunchConfigurationDelete(d *schema.ResourceData, meta interf
 	config := meta.(*ProviderConfig)
 	var err error
 	if config.SupportVPC {
-		launchConfigNo, err := getVpcLaunchConfiguration(d, config)
-		if err != nil {
+		var launchConfig *LaunchConfiguration
+		if launchConfig, err = getVpcLaunchConfiguration(d, config); err != nil {
 			return err
 		}
-		err = deleteVpcLaunchConfiguration(config, launchConfigNo)
+
+		err = deleteVpcLaunchConfiguration(config, launchConfig.LaunchConfigurationNo)
 	} else {
 		err = deleteClassicLaunchConfiguration(d, config)
 	}
@@ -212,37 +212,37 @@ func createVpcLaunchConfiguration(d *schema.ResourceData, config *ProviderConfig
 	return res.LaunchConfigurationList[0].LaunchConfigurationName, nil
 }
 
-func getClassicLaunchConfiguration(d *schema.ResourceData, config *ProviderConfig) error {
+func getClassicLaunchConfiguration(d *schema.ResourceData, config *ProviderConfig) (*LaunchConfiguration, error) {
 	reqParams := &autoscaling.GetLaunchConfigurationListRequest{
-		LaunchConfigurationNameList: []*string{ncloud.String(d.Id())},
+		LaunchConfigurationNameList: []*string{StringPtrOrNil(d.GetOk("name"))},
 	}
 
 	logCommonRequest("getClassicLaunchConfiguration", reqParams)
 	res, err := config.Client.autoscaling.V2Api.GetLaunchConfigurationList(reqParams)
 	if err != nil {
 		logErrorResponse("getClassicLaunchConfiguration", err, reqParams)
-		return err
+		return nil, err
 	}
 	logResponse("getClassicLaunchConfiguration", res)
 
-	configuration := res.LaunchConfigurationList[0]
-	instance := map[string]interface{}{
-		"name":                      *configuration.LaunchConfigurationName,
-		"server_image_product_code": *configuration.ServerImageProductCode,
-		"server_product_code":       *configuration.ServerProductCode,
-		"member_server_image_no":    *configuration.MemberServerImageNo,
-		"login_key_name":            *configuration.LoginKeyName,
-		"user_data":                 *configuration.UserData,
+	if err := validateOneResult(len(res.LaunchConfigurationList)); err != nil {
+		return nil, err
 	}
-	d.Set("region", &config.RegionCode)
-	SetSingularResourceDataFromMapSchema(resourceNcloudLaunchConfiguration(), d, instance)
-	return nil
+	configuration := res.LaunchConfigurationList[0]
+	return &LaunchConfiguration{
+		LaunchConfigurationName:     configuration.LaunchConfigurationName,
+		ServerImageProductCode:      configuration.ServerImageProductCode,
+		MemberServerImageInstanceNo: configuration.MemberServerImageNo,
+		ServerProductCode:           configuration.ServerProductCode,
+		LoginKeyName:                configuration.LoginKeyName,
+		Region:                      &config.RegionCode,
+	}, nil
 }
 
-func getVpcLaunchConfiguration(d *schema.ResourceData, config *ProviderConfig) (*string, error) {
+func getVpcLaunchConfiguration(d *schema.ResourceData, config *ProviderConfig) (*LaunchConfiguration, error) {
 	reqParams := &vautoscaling.GetLaunchConfigurationListRequest{
 		RegionCode:                  &config.RegionCode,
-		LaunchConfigurationNameList: []*string{ncloud.String(d.Id())},
+		LaunchConfigurationNameList: []*string{StringPtrOrNil(d.GetOk("name"))},
 	}
 
 	logCommonRequest("getVpcLaunchConfiguration", reqParams)
@@ -253,19 +253,33 @@ func getVpcLaunchConfiguration(d *schema.ResourceData, config *ProviderConfig) (
 	}
 	logResponse("getVpcLaunchConfiguration", res)
 
-	configuration := res.LaunchConfigurationList[0]
-	instance := map[string]interface{}{
-		"region":                    *configuration.RegionCode,
-		"name":                      *configuration.LaunchConfigurationName,
-		"server_image_product_code": *configuration.ServerImageProductCode,
-		"member_server_image_no":    *configuration.MemberServerImageInstanceNo,
-		"server_product_code":       *configuration.ServerProductCode,
-		"login_key_name":            *configuration.LoginKeyName,
-		"status":                    *configuration.LaunchConfigurationStatus.Code,
-		"init_script_no":            *configuration.InitScriptNo,
-		"is_encrypted_volume":       *configuration.IsEncryptedVolume,
+	if err := validateOneResult(len(res.LaunchConfigurationList)); err != nil {
+		return nil, err
 	}
+	configuration := res.LaunchConfigurationList[0]
+	return &LaunchConfiguration{
+		LaunchConfigurationName:     configuration.LaunchConfigurationName,
+		ServerImageProductCode:      configuration.ServerImageProductCode,
+		MemberServerImageInstanceNo: configuration.MemberServerImageInstanceNo,
+		ServerProductCode:           configuration.ServerProductCode,
+		LoginKeyName:                configuration.LoginKeyName,
+		Region:                      configuration.RegionCode,
+		Status:                      configuration.LaunchConfigurationStatus.Code,
+		InitScriptNo:                configuration.InitScriptNo,
+		IsEncryptedVolume:           configuration.IsEncryptedVolume,
+		LaunchConfigurationNo:       configuration.LaunchConfigurationNo,
+	}, nil
+}
 
-	SetSingularResourceDataFromMapSchema(resourceNcloudLaunchConfiguration(), d, instance)
-	return configuration.LaunchConfigurationNo, nil
+type LaunchConfiguration struct {
+	LaunchConfigurationName     *string `json:"name,omitempty"`
+	ServerImageProductCode      *string `json:"server_image_product_code,omitempty"`
+	MemberServerImageInstanceNo *string `json:"member_server_image_no,omitempty"`
+	ServerProductCode           *string `json:"server_product_code,omitempty"`
+	LoginKeyName                *string `json:"login_key_name,omitempty"`
+	Region                      *string `json:"region,omitempty"`
+	Status                      *string `json:"status,omitempty"`
+	InitScriptNo                *string `json:"init_script_no,omitempty"`
+	IsEncryptedVolume           *bool   `json:"is_encrypted_volume"`
+	LaunchConfigurationNo       *string `json:"no,omitempty,omitempty"`
 }
