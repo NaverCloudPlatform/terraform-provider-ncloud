@@ -2,7 +2,6 @@ package ncloud
 
 import (
 	"fmt"
-	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/ncloud"
 	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/services/server"
 	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/services/vserver"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
@@ -124,16 +123,15 @@ func getClassicServerImageProductList(d *schema.ResourceData, config *ProviderCo
 	regionNo := config.RegionNo
 
 	reqParams := &server.GetServerImageProductListRequest{
-		RegionNo:    &regionNo,
-		ProductCode: StringPtrOrNil(d.GetOk("product_code")),
+		ProductCode:                 StringPtrOrNil(d.GetOk("product_code")),
+		RegionNo:                    &regionNo,
+		ExclusionProductCode:        StringPtrOrNil(d.GetOk("exclusion_product_code")),
+		BlockStorageSize:            Int32PtrOrNil(d.GetOk("block_storage_size")),
+		InfraResourceDetailTypeCode: StringPtrOrNil(d.GetOk("infra_resource_detail_type_code")),
 	}
 
-	if v, ok := d.GetOk("platform_type"); ok {
-		reqParams.PlatformTypeCodeList = []*string{ncloud.String(v.(string))}
-	}
-
-	if d.HasChange("block_storage_size") {
-		reqParams.BlockStorageSize = ncloud.Int32(int32(d.Get("block_storage_size").(int)))
+	if v, ok := d.GetOk("platform_type_code_list"); ok {
+		reqParams.PlatformTypeCodeList = expandStringInterfaceList(v.([]interface{}))
 	}
 
 	logCommonRequest("GetServerImageProductList", reqParams)
@@ -174,16 +172,14 @@ func getVpcServerImageProductList(d *schema.ResourceData, config *ProviderConfig
 	regionCode := config.RegionCode
 
 	reqParams := &vserver.GetServerImageProductListRequest{
-		ProductCode: StringPtrOrNil(d.GetOk("product_code")),
-		RegionCode:  &regionCode,
+		ProductCode:          StringPtrOrNil(d.GetOk("product_code")),
+		RegionCode:           &regionCode,
+		ExclusionProductCode: StringPtrOrNil(d.GetOk("exclusion_product_code")),
+		BlockStorageSize:     Int32PtrOrNil(d.GetOk("block_storage_size")),
 	}
 
-	if platformTypeCodeList, ok := d.GetOk("platform_type_code_list"); ok {
-		reqParams.PlatformTypeCodeList = expandStringInterfaceList(platformTypeCodeList.([]interface{}))
-	}
-
-	if d.HasChange("block_storage_size") {
-		reqParams.BlockStorageSize = ncloud.Int32(int32(d.Get("block_storage_size").(int)))
+	if v, ok := d.GetOk("platform_type_code_list"); ok {
+		reqParams.PlatformTypeCodeList = expandStringInterfaceList(v.([]interface{}))
 	}
 
 	logCommonRequest("GetServerImageProductList", reqParams)
@@ -207,10 +203,6 @@ func getVpcServerImageProductList(d *schema.ResourceData, config *ProviderConfig
 			"base_block_storage_size": fmt.Sprintf("%dGB", *r.BaseBlockStorageSize/GIGABYTE),
 			"platform_type":           *r.PlatformType.Code,
 			"os_information":          *r.OsInformation,
-		}
-
-		if r.InfraResourceDetailType != nil {
-			instance["infra_resource_detail_type_code"] = *r.InfraResourceDetailType.Code
 		}
 
 		resources = append(resources, instance)
