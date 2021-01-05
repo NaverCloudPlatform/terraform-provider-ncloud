@@ -2,7 +2,6 @@ package ncloud
 
 import (
 	"fmt"
-	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/ncloud"
 	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/services/server"
 	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/services/vserver"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
@@ -23,11 +22,6 @@ func dataSourceNcloudServerImage() *schema.Resource {
 				Optional: true,
 				Computed: true,
 			},
-			"product_type": {
-				Type:     schema.TypeString,
-				Optional: true,
-				Computed: true,
-			},
 			"platform_type": {
 				Type:     schema.TypeString,
 				Optional: true,
@@ -41,6 +35,10 @@ func dataSourceNcloudServerImage() *schema.Resource {
 			"filter": dataSourceFiltersSchema(),
 
 			"product_name": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+			"product_type": {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
@@ -76,7 +74,7 @@ func dataSourceNcloudServerImage() *schema.Resource {
 				Type:       schema.TypeList,
 				Optional:   true,
 				Elem:       &schema.Schema{Type: schema.TypeString},
-				Deprecated: "use `filter` or `product_type` instead",
+				Deprecated: "use `filter` or `platform_type` instead",
 			},
 		},
 	}
@@ -124,16 +122,13 @@ func getClassicServerImageProductList(d *schema.ResourceData, config *ProviderCo
 	regionNo := config.RegionNo
 
 	reqParams := &server.GetServerImageProductListRequest{
-		RegionNo:    &regionNo,
-		ProductCode: StringPtrOrNil(d.GetOk("product_code")),
+		ProductCode:                 StringPtrOrNil(d.GetOk("product_code")),
+		RegionNo:                    &regionNo,
+		InfraResourceDetailTypeCode: StringPtrOrNil(d.GetOk("infra_resource_detail_type_code")),
 	}
 
 	if v, ok := d.GetOk("platform_type"); ok {
-		reqParams.PlatformTypeCodeList = []*string{ncloud.String(v.(string))}
-	}
-
-	if d.HasChange("block_storage_size") {
-		reqParams.BlockStorageSize = ncloud.Int32(int32(d.Get("block_storage_size").(int)))
+		reqParams.PlatformTypeCodeList = expandStringInterfaceList(v.([]interface{}))
 	}
 
 	logCommonRequest("GetServerImageProductList", reqParams)
@@ -178,12 +173,8 @@ func getVpcServerImageProductList(d *schema.ResourceData, config *ProviderConfig
 		RegionCode:  &regionCode,
 	}
 
-	if platformTypeCodeList, ok := d.GetOk("platform_type_code_list"); ok {
-		reqParams.PlatformTypeCodeList = expandStringInterfaceList(platformTypeCodeList.([]interface{}))
-	}
-
-	if d.HasChange("block_storage_size") {
-		reqParams.BlockStorageSize = ncloud.Int32(int32(d.Get("block_storage_size").(int)))
+	if v, ok := d.GetOk("platform_type"); ok {
+		reqParams.PlatformTypeCodeList = expandStringInterfaceList(v.([]interface{}))
 	}
 
 	logCommonRequest("GetServerImageProductList", reqParams)
@@ -212,7 +203,6 @@ func getVpcServerImageProductList(d *schema.ResourceData, config *ProviderConfig
 		if r.InfraResourceDetailType != nil {
 			instance["infra_resource_detail_type_code"] = *r.InfraResourceDetailType.Code
 		}
-
 		resources = append(resources, instance)
 	}
 
