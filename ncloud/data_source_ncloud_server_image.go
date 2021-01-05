@@ -22,11 +22,6 @@ func dataSourceNcloudServerImage() *schema.Resource {
 				Optional: true,
 				Computed: true,
 			},
-			"product_type": {
-				Type:     schema.TypeString,
-				Optional: true,
-				Computed: true,
-			},
 			"platform_type": {
 				Type:     schema.TypeString,
 				Optional: true,
@@ -40,6 +35,10 @@ func dataSourceNcloudServerImage() *schema.Resource {
 			"filter": dataSourceFiltersSchema(),
 
 			"product_name": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+			"product_type": {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
@@ -75,7 +74,7 @@ func dataSourceNcloudServerImage() *schema.Resource {
 				Type:       schema.TypeList,
 				Optional:   true,
 				Elem:       &schema.Schema{Type: schema.TypeString},
-				Deprecated: "use `filter` or `product_type` instead",
+				Deprecated: "use `filter` or `platform_type` instead",
 			},
 		},
 	}
@@ -125,12 +124,10 @@ func getClassicServerImageProductList(d *schema.ResourceData, config *ProviderCo
 	reqParams := &server.GetServerImageProductListRequest{
 		ProductCode:                 StringPtrOrNil(d.GetOk("product_code")),
 		RegionNo:                    &regionNo,
-		ExclusionProductCode:        StringPtrOrNil(d.GetOk("exclusion_product_code")),
-		BlockStorageSize:            Int32PtrOrNil(d.GetOk("block_storage_size")),
 		InfraResourceDetailTypeCode: StringPtrOrNil(d.GetOk("infra_resource_detail_type_code")),
 	}
 
-	if v, ok := d.GetOk("platform_type_code_list"); ok {
+	if v, ok := d.GetOk("platform_type"); ok {
 		reqParams.PlatformTypeCodeList = expandStringInterfaceList(v.([]interface{}))
 	}
 
@@ -172,13 +169,11 @@ func getVpcServerImageProductList(d *schema.ResourceData, config *ProviderConfig
 	regionCode := config.RegionCode
 
 	reqParams := &vserver.GetServerImageProductListRequest{
-		ProductCode:          StringPtrOrNil(d.GetOk("product_code")),
-		RegionCode:           &regionCode,
-		ExclusionProductCode: StringPtrOrNil(d.GetOk("exclusion_product_code")),
-		BlockStorageSize:     Int32PtrOrNil(d.GetOk("block_storage_size")),
+		ProductCode: StringPtrOrNil(d.GetOk("product_code")),
+		RegionCode:  &regionCode,
 	}
 
-	if v, ok := d.GetOk("platform_type_code_list"); ok {
+	if v, ok := d.GetOk("platform_type"); ok {
 		reqParams.PlatformTypeCodeList = expandStringInterfaceList(v.([]interface{}))
 	}
 
@@ -205,6 +200,9 @@ func getVpcServerImageProductList(d *schema.ResourceData, config *ProviderConfig
 			"os_information":          *r.OsInformation,
 		}
 
+		if r.InfraResourceDetailType != nil {
+			instance["infra_resource_detail_type_code"] = *r.InfraResourceDetailType.Code
+		}
 		resources = append(resources, instance)
 	}
 
