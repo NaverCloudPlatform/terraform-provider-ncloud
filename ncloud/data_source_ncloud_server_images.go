@@ -21,10 +21,10 @@ func dataSourceNcloudServerImages() *schema.Resource {
 				Optional: true,
 				Computed: true,
 			},
-			"platform_type_code_list": {
-				Type:     schema.TypeList,
+			"platform_type": {
+				Type:     schema.TypeString,
 				Optional: true,
-				Elem:     &schema.Schema{Type: schema.TypeString},
+				Computed: true,
 			},
 			"infra_resource_detail_type_code": {
 				Type:     schema.TypeString,

@@ -349,7 +349,7 @@ func removeNetworkACLRule(d *schema.ResourceData, config *ProviderConfig, ruleTy
 	var reqParams interface{}
 	var resp interface{}
 
-	err := resource.Retry(d.Timeout(schema.TimeoutCreate), func() *resource.RetryError {
+	err := resource.Retry(d.Timeout(schema.TimeoutDelete), func() *resource.RetryError {
 		var err error
 
 		if ruleType == "inbound" {

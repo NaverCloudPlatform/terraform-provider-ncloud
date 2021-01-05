@@ -43,7 +43,6 @@ data "ncloud_server_image" "image_by_filter" {
 The following arguments are supported:
 
 * `product_code` - (Optional) Product code you want to view on the list. Use this when searching for 1 product.
-* `product_type` - (Optional) Product type code.
 * `platform_type` - (Optional) Values required for identifying platform.
     The available values are as follows: Linux 32Bit(LNX32) | Linux 64Bit(LNX64) | Windows 32Bit(WND32) | Windows 64Bit(WND64) | Ubuntu Desktop 64Bit(UBD64) | Ubuntu Server 64Bit(UBS64)
 * `infra_resource_detail_type_code` - (Optional) infra resource detail type code.
@@ -56,6 +55,7 @@ The following arguments are supported:
 
 * `id` - The ID of server image product.
 * `product_name` - Product name
+* `product_type` - Product type code.
 * `product_description` - Product description.
 * `infra_resource_type` - Infra resource type code.
 * `base_block_storage_size` - Base block storage size.
