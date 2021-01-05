@@ -10,9 +10,9 @@ import (
 
 	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/ncloud"
 	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/services/server"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 )
 
 func init() {
@@ -40,9 +40,9 @@ func resourceNcloudBlockStorage() *schema.Resource {
 				Required: true,
 			},
 			"size": {
-				Type:         schema.TypeInt,
-				Required:     true,
-				ValidateFunc: validation.IntBetween(10, 1000),
+				Type:             schema.TypeInt,
+				Required:         true,
+				ValidateDiagFunc: ToDiagFunc(validation.IntBetween(10, 1000)),
 			},
 			"name": {
 				Type:     schema.TypeString,
@@ -394,22 +394,19 @@ func deleteClassicBlockStorage(d *schema.ResourceData, config *ProviderConfig, i
 	var resp *server.DeleteBlockStorageInstancesResponse
 	err := resource.Retry(d.Timeout(schema.TimeoutDelete), func() *resource.RetryError {
 		var err error
-		logCommonRequest("deleteClassicBlockStorage", reqParams)
 
+		logCommonRequest("deleteClassicBlockStorage", reqParams)
 		resp, err = config.Client.server.V2Api.DeleteBlockStorageInstances(&reqParams)
-		if err == nil {
+		if err != nil {
+			errBody, _ := GetCommonErrorBody(err)
+			if errBody.ReturnCode == ApiErrorDetachingMountedStorage {
+				logErrorResponse("retry deleteClassicBlockStorage", err, reqParams)
+				time.Sleep(time.Second * 5)
+				return resource.RetryableError(err)
+			}
 			return resource.NonRetryableError(err)
 		}
-
-		errBody, _ := GetCommonErrorBody(err)
-
-		if errBody.ReturnCode == ApiErrorDetachingMountedStorage {
-			logErrorResponse("retry deleteClassicBlockStorage", err, reqParams)
-			time.Sleep(time.Second * 5)
-			return resource.RetryableError(err)
-		}
-
-		return resource.NonRetryableError(err)
+		return nil
 	})
 
 	if err != nil {
@@ -429,22 +426,19 @@ func deleteVpcBlockStorage(d *schema.ResourceData, config *ProviderConfig, id st
 	var resp *vserver.DeleteBlockStorageInstancesResponse
 	err := resource.Retry(d.Timeout(schema.TimeoutDelete), func() *resource.RetryError {
 		var err error
-		logCommonRequest("deleteVpcBlockStorage", reqParams)
 
+		logCommonRequest("deleteVpcBlockStorage", reqParams)
 		resp, err = config.Client.vserver.V2Api.DeleteBlockStorageInstances(&reqParams)
-		if err == nil {
+		if err != nil {
+			errBody, _ := GetCommonErrorBody(err)
+			if errBody.ReturnCode == ApiErrorDetachingMountedStorage {
+				logErrorResponse("retry deleteVpcBlockStorage", err, reqParams)
+				time.Sleep(time.Second * 5)
+				return resource.RetryableError(err)
+			}
 			return resource.NonRetryableError(err)
 		}
-
-		errBody, _ := GetCommonErrorBody(err)
-
-		if errBody.ReturnCode == ApiErrorDetachingMountedStorage {
-			logErrorResponse("retry deleteVpcBlockStorage", err, reqParams)
-			time.Sleep(time.Second * 5)
-			return resource.RetryableError(err)
-		}
-
-		return resource.NonRetryableError(err)
+		return nil
 	})
 
 	if err != nil {

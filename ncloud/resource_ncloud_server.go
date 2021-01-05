@@ -10,9 +10,9 @@ import (
 
 	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/ncloud"
 	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/services/server"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 )
 
 func init() {
@@ -57,11 +57,11 @@ func resourceNcloudServer() *schema.Resource {
 				Type:     schema.TypeString,
 				Optional: true,
 				Computed: true,
-				ValidateFunc: validation.All(
+				ValidateDiagFunc: ToDiagFunc(validation.All(
 					validation.StringLenBetween(3, 30),
 					validation.StringMatch(regexp.MustCompile(`^[A-Za-z0-9-*]+$`), "Composed of alphabets, numbers, hyphen (-) and wild card (*)."),
 					validation.StringMatch(regexp.MustCompile(`.*[^\\-]$`), "Hyphen (-) cannot be used for the last character and if wild card (*) is used, other characters cannot be input."),
-				),
+				)),
 			},
 			"description": {
 				Type:     schema.TypeString,
@@ -81,11 +81,11 @@ func resourceNcloudServer() *schema.Resource {
 				ForceNew: true,
 			},
 			"internet_line_type": {
-				Type:         schema.TypeString,
-				Optional:     true,
-				Computed:     true,
-				ForceNew:     true,
-				ValidateFunc: validation.StringInSlice([]string{"PUBLC", "GLBL"}, false),
+				Type:             schema.TypeString,
+				Optional:         true,
+				Computed:         true,
+				ForceNew:         true,
+				ValidateDiagFunc: ToDiagFunc(validation.StringInSlice([]string{"PUBLC", "GLBL"}, false)),
 			},
 			"fee_system_type_code": {
 				Type:     schema.TypeString,
@@ -142,8 +142,6 @@ func resourceNcloudServer() *schema.Resource {
 				ConflictsWith: []string{"access_control_group_configuration_no_list"},
 				Optional:      true,
 				Computed:      true,
-				MinItems:      1,
-				MaxItems:      3,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"network_interface_no": {
@@ -215,11 +213,11 @@ func resourceNcloudServer() *schema.Resource {
 				Computed: true,
 			},
 			"port_forwarding_external_port": {
-				Type:     schema.TypeString,
+				Type:     schema.TypeInt,
 				Computed: true,
 			},
 			"port_forwarding_internal_port": {
-				Type:     schema.TypeString,
+				Type:     schema.TypeInt,
 				Computed: true,
 			},
 			"base_block_storage_disk_type": {
@@ -357,10 +355,13 @@ func createClassicServerInstance(d *schema.ResourceData, config *ProviderConfig)
 		logCommonRequest("createClassicServerInstance", reqParams)
 		resp, err = config.Client.server.V2Api.CreateServerInstances(reqParams)
 
-		if resp != nil && isRetryableErr(GetCommonResponse(resp), []string{ApiErrorUnknown, ApiErrorAuthorityParameter, ApiErrorServerObjectInOperation, ApiErrorPreviousServersHaveNotBeenEntirelyTerminated}) {
-			return resource.RetryableError(err)
+		if err != nil {
+			if resp != nil && isRetryableErr(GetCommonResponse(resp), []string{ApiErrorUnknown, ApiErrorAuthorityParameter, ApiErrorServerObjectInOperation, ApiErrorPreviousServersHaveNotBeenEntirelyTerminated}) {
+				return resource.RetryableError(err)
+			}
+			return resource.NonRetryableError(err)
 		}
-		return resource.NonRetryableError(err)
+		return nil
 	})
 
 	if err != nil {
@@ -955,15 +956,14 @@ func terminateClassicServerInstance(config *ProviderConfig, id string) error {
 		var err error
 		logCommonRequest("terminateClassicServerInstance", reqParams)
 		resp, err = config.Client.server.V2Api.TerminateServerInstances(reqParams)
-		if err == nil && resp == nil {
+		if err != nil {
+			if resp != nil && isRetryableErr(GetCommonResponse(resp), []string{ApiErrorUnknown, ApiErrorServerObjectInOperation2}) {
+				logErrorResponse("retry terminateClassicServerInstance", err, reqParams)
+				return resource.RetryableError(err)
+			}
 			return resource.NonRetryableError(err)
 		}
-		if resp != nil && isRetryableErr(GetCommonResponse(resp), []string{ApiErrorUnknown, ApiErrorServerObjectInOperation2}) {
-			logErrorResponse("retry terminateClassicServerInstance", err, reqParams)
-			return resource.RetryableError(err)
-		}
-		logResponse("terminateClassicServerInstance", resp)
-		return resource.NonRetryableError(err)
+		return nil
 	})
 
 	if err != nil {

@@ -9,10 +9,9 @@ import (
 
 	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/ncloud"
 	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/services/vpc"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/hashcode"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 )
 
 func init() {
@@ -47,16 +46,16 @@ func resourceNcloudRoute() *schema.Resource {
 				ForceNew: true,
 			},
 			"destination_cidr_block": {
-				Type:         schema.TypeString,
-				Required:     true,
-				ForceNew:     true,
-				ValidateFunc: validation.IsCIDRNetwork(0, 32),
+				Type:             schema.TypeString,
+				Required:         true,
+				ForceNew:         true,
+				ValidateDiagFunc: ToDiagFunc(validation.IsCIDRNetwork(0, 32)),
 			},
 			"target_type": {
-				Type:         schema.TypeString,
-				Required:     true,
-				ForceNew:     true,
-				ValidateFunc: validation.StringInSlice([]string{"NATGW", "VPCPEERING", "VGW"}, false),
+				Type:             schema.TypeString,
+				Required:         true,
+				ForceNew:         true,
+				ValidateDiagFunc: ToDiagFunc(validation.StringInSlice([]string{"NATGW", "VPCPEERING", "VGW"}, false)),
 			},
 			"target_no": {
 				Type:     schema.TypeString,
@@ -123,8 +122,9 @@ func resourceNcloudRouteCreate(d *schema.ResourceData, meta interface{}) error {
 				time.Sleep(time.Second * 5)
 				return resource.RetryableError(err)
 			}
+			return resource.NonRetryableError(err)
 		}
-		return resource.NonRetryableError(err)
+		return nil
 	})
 
 	if err != nil {
@@ -220,8 +220,9 @@ func resourceNcloudRouteDelete(d *schema.ResourceData, meta interface{}) error {
 				time.Sleep(time.Second * 5)
 				return resource.RetryableError(err)
 			}
+			return resource.NonRetryableError(err)
 		}
-		return resource.NonRetryableError(err)
+		return nil
 	})
 
 	if err != nil {
@@ -289,5 +290,5 @@ func routeRuleHash(routeTableNo, destinationCidrBlock string) string {
 	var buf bytes.Buffer
 	buf.WriteString(fmt.Sprintf("%s-", routeTableNo))
 	buf.WriteString(fmt.Sprintf("%s-", destinationCidrBlock))
-	return fmt.Sprintf("route-%d", hashcode.String(buf.String()))
+	return fmt.Sprintf("route-%d", hashcode(buf.String()))
 }

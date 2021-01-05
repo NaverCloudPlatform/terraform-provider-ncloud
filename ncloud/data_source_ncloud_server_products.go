@@ -3,8 +3,8 @@ package ncloud
 import (
 	"fmt"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 )
 
 func init() {
@@ -30,9 +30,9 @@ func dataSourceNcloudServerProducts() *schema.Resource {
 				Optional: true,
 			},
 			"internet_line_type_code": {
-				Type:         schema.TypeString,
-				Optional:     true,
-				ValidateFunc: validation.StringInSlice([]string{"PUBLC", "GLBL"}, false),
+				Type:             schema.TypeString,
+				Optional:         true,
+				ValidateDiagFunc: ToDiagFunc(validation.StringInSlice([]string{"PUBLC", "GLBL"}, false)),
 			},
 			"server_products": {
 				Type:     schema.TypeList,
@@ -51,11 +51,11 @@ func dataSourceNcloudServerProducts() *schema.Resource {
 			},
 			// Deprecated
 			"product_name_regex": {
-				Type:         schema.TypeString,
-				Optional:     true,
-				ForceNew:     true,
-				ValidateFunc: validation.ValidateRegexp,
-				Deprecated:   "use filter instead",
+				Type:             schema.TypeString,
+				Optional:         true,
+				ForceNew:         true,
+				ValidateDiagFunc: ToDiagFunc(validation.StringIsValidRegExp),
+				Deprecated:       "use filter instead",
 			},
 			"exclusion_product_code": {
 				Type:       schema.TypeString,

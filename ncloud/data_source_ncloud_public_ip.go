@@ -4,8 +4,8 @@ import (
 	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/ncloud"
 	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/services/server"
 	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/services/vserver"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 )
 
 func init() {
@@ -23,10 +23,10 @@ func dataSourceNcloudPublicIp() *schema.Resource {
 				Computed: true,
 			},
 			"internet_line_type": {
-				Type:         schema.TypeString,
-				Computed:     true,
-				Optional:     true,
-				ValidateFunc: validation.StringInSlice([]string{"PUBLC", "GLBL"}, false),
+				Type:             schema.TypeString,
+				Computed:         true,
+				Optional:         true,
+				ValidateDiagFunc: ToDiagFunc(validation.StringInSlice([]string{"PUBLC", "GLBL"}, false)),
 			},
 			"is_associated": {
 				Type:     schema.TypeBool,
@@ -62,25 +62,6 @@ func dataSourceNcloudPublicIp() *schema.Resource {
 			"server_name": {
 				Type:     schema.TypeString,
 				Computed: true,
-			},
-			"server_instance": {
-				Type:       schema.TypeMap,
-				Computed:   true,
-				Deprecated: "use 'server_instance_no' instead",
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
-						"server_instance_no": {
-							Type:       schema.TypeString,
-							Computed:   true,
-							Deprecated: "use 'server_instance_no' instead",
-						},
-						"server_name": {
-							Type:       schema.TypeString,
-							Computed:   true,
-							Deprecated: "This field no longer support",
-						},
-					},
-				},
 			},
 			"search_filter_name": {
 				Type:       schema.TypeString,
@@ -152,7 +133,7 @@ func dataSourceNcloudPublicIpRead(d *schema.ResourceData, meta interface{}) erro
 		return err
 	}
 
-	SetSingularResourceDataFromMap(d, resources[0])
+	SetSingularResourceDataFromMapSchema(dataSourceNcloudPublicIp(), d, resources[0])
 
 	return nil
 }
@@ -215,14 +196,6 @@ func getClassicPublicIpList(d *schema.ResourceData, config *ProviderConfig) ([]m
 		if serverInstance := r.ServerInstanceAssociatedWithPublicIp; serverInstance != nil {
 			SetStringIfNotNilAndEmpty(instance, "server_instance_no", serverInstance.ServerInstanceNo)
 			SetStringIfNotNilAndEmpty(instance, "server_name", serverInstance.ServerName)
-
-			// Deprecated
-			mapping := map[string]interface{}{
-				"server_instance_no": ncloud.StringValue(serverInstance.ServerInstanceNo),
-				"server_name":        ncloud.StringValue(serverInstance.ServerName),
-			}
-
-			instance["server_instance"] = mapping
 		}
 
 		resources = append(resources, instance)

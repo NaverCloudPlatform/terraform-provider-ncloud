@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 )
 
 func init() {
@@ -44,16 +44,16 @@ func dataSourceNcloudSubnets() *schema.Resource {
 				Description: "Network ACL No. Get available values using the `default_network_acl_no` from Resource `ncloud_vpc` or Data source `data.ncloud_network_acls`.",
 			},
 			"subnet_type": {
-				Type:         schema.TypeString,
-				Optional:     true,
-				ValidateFunc: validation.StringInSlice([]string{"PUBLIC", "PRIVATE"}, false),
-				Description:  "Internet Gateway Only. PUBLC(Yes/Public), PRIVATE(No/Private).",
+				Type:             schema.TypeString,
+				Optional:         true,
+				ValidateDiagFunc: ToDiagFunc(validation.StringInSlice([]string{"PUBLIC", "PRIVATE"}, false)),
+				Description:      "Internet Gateway Only. PUBLC(Yes/Public), PRIVATE(No/Private).",
 			},
 			"usage_type": {
-				Type:         schema.TypeString,
-				Optional:     true,
-				ValidateFunc: validation.StringInSlice([]string{"GEN", "LOADB", "BM"}, false),
-				Description:  "Usage type. GEN(Normal), LOADB(Load Balance), BM(BareMetal). default : GEN(Normal).",
+				Type:             schema.TypeString,
+				Optional:         true,
+				ValidateDiagFunc: ToDiagFunc(validation.StringInSlice([]string{"GEN", "LOADB", "BM"}, false)),
+				Description:      "Usage type. GEN(Normal), LOADB(Load Balance), BM(BareMetal). default : GEN(Normal).",
 			},
 			"filter": dataSourceFiltersSchema(),
 			"subnets": {

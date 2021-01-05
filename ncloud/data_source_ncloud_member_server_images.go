@@ -3,8 +3,8 @@ package ncloud
 import (
 	"fmt"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 )
 
 func init() {
@@ -30,11 +30,11 @@ func dataSourceNcloudMemberServerImages() *schema.Resource {
 			},
 			"filter": dataSourceFiltersSchema(),
 			"name_regex": {
-				Type:         schema.TypeString,
-				Optional:     true,
-				ValidateFunc: validation.ValidateRegexp,
-				Deprecated:   "use filter instead",
-				Description:  "A regex string to apply to the member server image list returned by ncloud",
+				Type:             schema.TypeString,
+				Optional:         true,
+				ValidateDiagFunc: ToDiagFunc(validation.StringIsValidRegExp),
+				Deprecated:       "use filter instead",
+				Description:      "A regex string to apply to the member server image list returned by ncloud",
 			},
 			"region": {
 				Type:        schema.TypeString,

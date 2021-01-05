@@ -3,8 +3,8 @@ package ncloud
 import (
 	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/ncloud"
 	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/services/vserver"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 )
 
 func init() {
@@ -19,16 +19,16 @@ func dataSourceNcloudPlacementGroup() *schema.Resource {
 			Computed: true,
 		},
 		"name": {
-			Type:         schema.TypeString,
-			Optional:     true,
-			Computed:     true,
-			ValidateFunc: validateInstanceName,
+			Type:             schema.TypeString,
+			Optional:         true,
+			Computed:         true,
+			ValidateDiagFunc: ToDiagFunc(validateInstanceName),
 		},
 		"placement_group_type": {
-			Type:         schema.TypeString,
-			Optional:     true,
-			Computed:     true,
-			ValidateFunc: validation.StringInSlice([]string{"AA"}, false),
+			Type:             schema.TypeString,
+			Optional:         true,
+			Computed:         true,
+			ValidateDiagFunc: ToDiagFunc(validation.StringInSlice([]string{"AA"}, false)),
 		},
 		"filter": dataSourceFiltersSchema(),
 	}
