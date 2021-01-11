@@ -2,6 +2,7 @@ package ncloud
 
 import (
 	"fmt"
+	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/services/vserver"
 	"os"
 
 	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/ncloud"
@@ -16,6 +17,7 @@ type Region struct {
 }
 
 var regionCache = make(map[string]string)
+var regionCacheByCode = make(map[string]Region)
 
 func parseRegionNoParameter(client *NcloudAPIClient, d *schema.ResourceData) (*string, error) {
 	if regionCode, regionCodeOk := d.GetOk("region"); regionCodeOk {
@@ -86,4 +88,73 @@ func getRegionByCode(client *NcloudAPIClient, code string) (*server.Region, erro
 	}
 
 	return filteredRegion, nil
+}
+
+func setRegionCache(client *NcloudAPIClient, supportVPC bool) error {
+	var regionList []*Region
+	var err error
+	if supportVPC {
+		regionList, err = getVpcRegionList(client)
+	} else {
+		regionList, err = getClassicRegionList(client)
+	}
+
+	if err != nil {
+		return err
+	}
+
+	for _, r := range regionList {
+		region := Region{
+			RegionCode: r.RegionCode,
+			RegionName: r.RegionName,
+		}
+		if !supportVPC {
+			region.RegionNo = r.RegionNo
+		}
+
+		regionCacheByCode[*region.RegionCode] = region
+	}
+
+	return nil
+}
+
+func getClassicRegionList(client *NcloudAPIClient) ([]*Region, error) {
+	resp, err := client.server.V2Api.GetRegionList(&server.GetRegionListRequest{})
+	if err != nil {
+		return nil, err
+	}
+
+	var regionList []*Region
+	for _, r := range resp.RegionList {
+		region := &Region{
+			RegionNo:  r.RegionNo,
+			RegionCode: r.RegionCode,
+			RegionName: r.RegionName,
+		}
+		regionList = append(regionList, region)
+	}
+
+	return regionList, nil
+}
+
+func getVpcRegionList(client *NcloudAPIClient) ([]*Region, error) {
+	resp, err := client.vserver.V2Api.GetRegionList(&vserver.GetRegionListRequest{})
+	if err != nil {
+		return nil, err
+	}
+	var regionList []*Region
+	for _, r := range resp.RegionList {
+		region := &Region{
+			RegionCode: r.RegionCode,
+			RegionName: r.RegionName,
+		}
+		regionList = append(regionList, region)
+	}
+
+	return regionList, nil
+}
+
+func isValidRegionCode(code string) bool {
+	_, ok := regionCacheByCode[code]
+	return ok
 }
