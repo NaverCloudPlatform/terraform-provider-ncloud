@@ -85,7 +85,7 @@ The following arguments are supported:
 * `secret_key` - (Required) Ncloud secret key.
   it can also be sourced from the `NCLOUD_SECRET_KEY` environment variable.
 
-* `region` - (Required) Ncloud region. default 'KR'
+* `region` - (Required) Ncloud region.
   it can also be sourced from the `NCLOUD_REGION` environment variables.
 
 * `site` - (Optional) Ncloud site. By default, the value is "public". You can specify only the following value: "public", "gov", "fin". "public" is for `www.ncloud.com`. "gov" is for `www.gov-ncloud.com`. "fin" is for `www.fin-ncloud.com`.
