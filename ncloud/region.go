@@ -127,7 +127,7 @@ func getClassicRegionList(client *NcloudAPIClient) ([]*Region, error) {
 	var regionList []*Region
 	for _, r := range resp.RegionList {
 		region := &Region{
-			RegionNo:  r.RegionNo,
+			RegionNo:   r.RegionNo,
 			RegionCode: r.RegionCode,
 			RegionName: r.RegionName,
 		}
