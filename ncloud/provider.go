@@ -34,7 +34,7 @@ func schemaMap() map[string]*schema.Schema {
 		},
 		"region": {
 			Type:        schema.TypeString,
-			Optional:    true,
+			Required: true,
 			DefaultFunc: schema.EnvDefaultFunc("NCLOUD_REGION", nil),
 			Description: descriptions["region"],
 		},
