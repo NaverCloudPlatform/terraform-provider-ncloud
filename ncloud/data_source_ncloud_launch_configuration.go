@@ -13,8 +13,8 @@ func dataSourceNcloudLaunchConfiguration() *schema.Resource {
 	fieldMap := map[string]*schema.Schema{
 		"name": {
 			Type:     schema.TypeString,
-			Computed: true,
 			Optional: true,
+			Computed: true,
 		},
 		"filter": dataSourceFiltersSchema(),
 	}

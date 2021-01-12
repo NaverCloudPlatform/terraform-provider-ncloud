@@ -19,30 +19,30 @@ func resourceNcloudLaunchConfiguration() *schema.Resource {
 		Schema: map[string]*schema.Schema{
 			"name": {
 				Type:     schema.TypeString,
-				Computed: true,
 				Optional: true,
+				Computed: true,
 			},
 			"server_image_product_code": {
 				Type:          schema.TypeString,
 				Optional:      true,
-				ConflictsWith: []string{"member_server_image_no"},
 				ForceNew:      true,
+				ConflictsWith: []string{"member_server_image_no"},
 			},
 			"server_product_code": {
 				Type:     schema.TypeString,
-				Computed: true,
 				Optional: true,
+				Computed: true,
 			},
 			"member_server_image_no": {
 				Type:          schema.TypeString,
 				Optional:      true,
-				ConflictsWith: []string{"server_image_product_code"},
 				ForceNew:      true,
+				ConflictsWith: []string{"server_image_product_code"},
 			},
 			"login_key_name": {
 				Type:     schema.TypeString,
-				Computed: true,
 				Optional: true,
+				Computed: true,
 			},
 			"user_data": {
 				Type:     schema.TypeString,
@@ -52,12 +52,11 @@ func resourceNcloudLaunchConfiguration() *schema.Resource {
 			"access_control_group_configuration_no_list": {
 				Type:     schema.TypeList,
 				Optional: true,
-				Elem:     &schema.Schema{Type: schema.TypeString},
 				ForceNew: true,
+				Elem:     &schema.Schema{Type: schema.TypeString},
 			},
 			"region": {
 				Type:     schema.TypeString,
-				Optional: true,
 				Computed: true,
 			},
 			"is_encrypted_volume": {
@@ -68,6 +67,10 @@ func resourceNcloudLaunchConfiguration() *schema.Resource {
 			"init_script_no": {
 				Type:     schema.TypeString,
 				Optional: true,
+				Computed: true,
+			},
+			"launch_configuration_no": {
+				Type:     schema.TypeString,
 				Computed: true,
 			},
 			"status": {
@@ -92,6 +95,7 @@ func resourceNcloudLaunchConfigurationCreate(d *schema.ResourceData, meta interf
 	}
 
 	d.SetId(ncloud.StringValue(id))
+	d.Set("name", d.Id())
 	return resourceNcloudLaunchConfigurationRead(d, meta)
 }
 
@@ -213,8 +217,9 @@ func createVpcLaunchConfiguration(d *schema.ResourceData, config *ProviderConfig
 }
 
 func getClassicLaunchConfiguration(d *schema.ResourceData, config *ProviderConfig) (*LaunchConfiguration, error) {
-	reqParams := &autoscaling.GetLaunchConfigurationListRequest{
-		LaunchConfigurationNameList: []*string{StringPtrOrNil(d.GetOk("name"))},
+	reqParams := &autoscaling.GetLaunchConfigurationListRequest{}
+	if v, ok := d.GetOk("name"); ok {
+		reqParams.LaunchConfigurationNameList = []*string{ncloud.String(v.(string))}
 	}
 
 	logCommonRequest("getClassicLaunchConfiguration", reqParams)
@@ -280,6 +285,6 @@ type LaunchConfiguration struct {
 	Region                      *string `json:"region,omitempty"`
 	Status                      *string `json:"status,omitempty"`
 	InitScriptNo                *string `json:"init_script_no,omitempty"`
-	IsEncryptedVolume           *bool   `json:"is_encrypted_volume"`
-	LaunchConfigurationNo       *string `json:"no,omitempty,omitempty"`
+	IsEncryptedVolume           *bool   `json:"is_encrypted_volume,omitempty"`
+	LaunchConfigurationNo       *string `json:"launch_configuration_no,omitempty,omitempty"`
 }
