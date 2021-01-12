@@ -298,7 +298,7 @@ func createNasVolume(d *schema.ResourceData, config *ProviderConfig) (*string, e
 }
 
 func createClassicNasVolume(d *schema.ResourceData, config *ProviderConfig) (*string, error) {
-	regionNo, err := parseRegionNoParameter(config.Client, d)
+	regionNo, err := parseRegionNoParameter(d)
 	if err != nil {
 		return nil, err
 	}

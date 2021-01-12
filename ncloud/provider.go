@@ -1,6 +1,7 @@
 package ncloud
 
 import (
+	"fmt"
 	"os"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
@@ -34,7 +35,7 @@ func schemaMap() map[string]*schema.Schema {
 		},
 		"region": {
 			Type:        schema.TypeString,
-			Optional:    true,
+			Required:    true,
 			DefaultFunc: schema.EnvDefaultFunc("NCLOUD_REGION", nil),
 			Description: descriptions["region"],
 		},
@@ -54,18 +55,11 @@ func schemaMap() map[string]*schema.Schema {
 }
 
 func providerConfigure(d *schema.ResourceData) (interface{}, error) {
-	var providerConfig ProviderConfig
-
-	config := Config{
-		AccessKey: d.Get("access_key").(string),
-		SecretKey: d.Get("secret_key").(string),
+	providerConfig := ProviderConfig{
+		SupportVPC: d.Get("support_vpc").(bool),
 	}
 
-	if region, ok := d.GetOk("region"); ok {
-		os.Setenv("NCLOUD_REGION", region.(string))
-		providerConfig.RegionCode = region.(string)
-	}
-
+	// Set site
 	if site, ok := d.GetOk("site"); ok {
 		providerConfig.Site = site.(string)
 
@@ -77,27 +71,37 @@ func providerConfigure(d *schema.ResourceData) (interface{}, error) {
 		}
 	}
 
-	providerConfig.SupportVPC = d.Get("support_vpc").(bool)
-
-	client, err := config.Client()
-	if err != nil {
-		return nil, err
-	}
-
 	// Fin only supports VPC
 	if providerConfig.Site == "fin" {
 		providerConfig.SupportVPC = true
 	}
 
-	if providerConfig.SupportVPC == false {
-		if regionNo, err := parseRegionNoParameter(client, d); err != nil {
-			return nil, err
-		} else {
-			providerConfig.RegionNo = *regionNo
-		}
+	// Set client
+	config := Config{
+		AccessKey: d.Get("access_key").(string),
+		SecretKey: d.Get("secret_key").(string),
 	}
 
-	providerConfig.Client = client
+	if client, err := config.Client(); err != nil {
+		return nil, err
+	} else {
+		providerConfig.Client = client
+	}
+
+	// Set region
+	if err := setRegionCache(providerConfig.Client, providerConfig.SupportVPC); err != nil {
+		return nil, err
+	}
+
+	if region, ok := d.GetOk("region"); ok && isValidRegionCode(region.(string)) {
+		os.Setenv("NCLOUD_REGION", region.(string))
+		providerConfig.RegionCode = region.(string)
+		if !providerConfig.SupportVPC {
+			providerConfig.RegionNo = *regionCacheByCode[region.(string)].RegionNo
+		}
+	} else {
+		return nil, fmt.Errorf("no region data for region_code `%s`. please change region_code and try again", region)
+	}
 
 	return &providerConfig, nil
 }
