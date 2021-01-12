@@ -5,7 +5,6 @@ import (
 	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/services/vserver"
 	"os"
 
-	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/ncloud"
 	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/services/server"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
@@ -16,12 +15,11 @@ type Region struct {
 	RegionName *string `json:"regionName,omitempty"`
 }
 
-var regionCache = make(map[string]string)
 var regionCacheByCode = make(map[string]Region)
 
 func parseRegionNoParameter(client *NcloudAPIClient, d *schema.ResourceData) (*string, error) {
 	if regionCode, regionCodeOk := d.GetOk("region"); regionCodeOk {
-		regionNo := getRegionNoByCode(client, regionCode.(string))
+		regionNo := getRegionNoByCode(regionCode.(string))
 		if regionNo == nil {
 			return nil, fmt.Errorf("no region data for region_code `%s`. please change region_code and try again", regionCode.(string))
 		}
@@ -30,7 +28,7 @@ func parseRegionNoParameter(client *NcloudAPIClient, d *schema.ResourceData) (*s
 
 	// provider region
 	if regionCode := os.Getenv("NCLOUD_REGION"); regionCode != "" {
-		regionNo := getRegionNoByCode(client, regionCode)
+		regionNo := getRegionNoByCode(regionCode)
 		if regionNo == nil {
 			return nil, fmt.Errorf("no region data for region_code `%s`. please change region_code and try again", regionCode)
 		}
@@ -61,12 +59,8 @@ func parseRegionCodeParameter(client *NcloudAPIClient, d *schema.ResourceData) (
 	return nil, nil
 }
 
-func getRegionNoByCode(client *NcloudAPIClient, code string) *string {
-	if regionNo := regionCache[code]; regionNo != "" {
-		return ncloud.String(regionNo)
-	}
-	if region, err := getRegionByCode(client, code); err == nil && region != nil {
-		regionCache[code] = *region.RegionNo
+func getRegionNoByCode(code string) *string {
+	if region, ok := regionCacheByCode[code]; ok {
 		return region.RegionNo
 	}
 	return nil
