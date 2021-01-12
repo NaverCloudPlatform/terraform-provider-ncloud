@@ -17,7 +17,7 @@ type Region struct {
 
 var regionCacheByCode = make(map[string]Region)
 
-func parseRegionNoParameter(client *NcloudAPIClient, d *schema.ResourceData) (*string, error) {
+func parseRegionNoParameter(d *schema.ResourceData) (*string, error) {
 	if regionCode, regionCodeOk := d.GetOk("region"); regionCodeOk {
 		regionNo := getRegionNoByCode(regionCode.(string))
 		if regionNo == nil {
