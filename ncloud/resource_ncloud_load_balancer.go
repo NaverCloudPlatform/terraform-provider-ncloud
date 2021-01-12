@@ -136,7 +136,7 @@ func resourceNcloudLoadBalancerCreate(d *schema.ResourceData, meta interface{}) 
 		return NotSupportVpc("resource `ncloud_load_balancer`")
 	}
 
-	reqParams, err := buildCreateLoadBalancerInstanceParams(client, d)
+	reqParams, err := buildCreateLoadBalancerInstanceParams(d)
 	if err != nil {
 		return err
 	}
@@ -351,8 +351,8 @@ func changeLoadBalancedServerInstances(client *NcloudAPIClient, d *schema.Resour
 	return nil
 }
 
-func buildCreateLoadBalancerInstanceParams(client *NcloudAPIClient, d *schema.ResourceData) (*loadbalancer.CreateLoadBalancerInstanceRequest, error) {
-	regionNo, err := parseRegionNoParameter(client, d)
+func buildCreateLoadBalancerInstanceParams(d *schema.ResourceData) (*loadbalancer.CreateLoadBalancerInstanceRequest, error) {
+	regionNo, err := parseRegionNoParameter(d)
 	if err != nil {
 		return nil, err
 	}

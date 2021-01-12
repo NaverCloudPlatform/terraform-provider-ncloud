@@ -60,7 +60,7 @@ func getServerList(d *schema.ResourceData, config *ProviderConfig) ([]*ServerIns
 }
 
 func getClassicServerList(d *schema.ResourceData, config *ProviderConfig) ([]*ServerInstance, error) {
-	regionNo, err := parseRegionNoParameter(config.Client, d)
+	regionNo, err := parseRegionNoParameter(d)
 	if err != nil {
 		return nil, err
 	}

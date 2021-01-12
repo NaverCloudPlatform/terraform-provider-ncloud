@@ -66,7 +66,7 @@ func getBlockStorageList(d *schema.ResourceData, config *ProviderConfig) ([]*Blo
 }
 
 func getClassicBlockStorageList(d *schema.ResourceData, config *ProviderConfig) ([]*BlockStorage, error) {
-	regionNo, err := parseRegionNoParameter(config.Client, d)
+	regionNo, err := parseRegionNoParameter(d)
 	if err != nil {
 		return nil, err
 	}
