@@ -83,7 +83,7 @@ func getBlockStorageSnapshot(d *schema.ResourceData, config *ProviderConfig) ([]
 }
 
 func getClassicBlockStorageSnapshot(d *schema.ResourceData, config *ProviderConfig) ([]*BlockStorageSnapshot, error) {
-	regionNo, err := parseRegionNoParameter(config.Client, d)
+	regionNo, err := parseRegionNoParameter(d)
 	if err != nil {
 		return nil, err
 	}

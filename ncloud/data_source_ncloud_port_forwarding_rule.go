@@ -76,7 +76,7 @@ func dataSourceNcloudPortForwardingRuleRead(d *schema.ResourceData, meta interfa
 		return NotSupportVpc("data source `ncloud_port_forwarding_rule`")
 	}
 
-	regionNo, err := parseRegionNoParameter(client, d)
+	regionNo, err := parseRegionNoParameter(d)
 	if err != nil {
 		return err
 	}

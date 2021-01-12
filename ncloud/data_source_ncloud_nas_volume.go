@@ -87,7 +87,7 @@ func getNasVolumeList(d *schema.ResourceData, config *ProviderConfig) ([]*NasVol
 func getClassicNasVolumeList(d *schema.ResourceData, config *ProviderConfig) ([]*NasVolume, error) {
 	client := config.Client
 
-	regionNo, err := parseRegionNoParameter(client, d)
+	regionNo, err := parseRegionNoParameter(d)
 	if err != nil {
 		return nil, err
 	}
