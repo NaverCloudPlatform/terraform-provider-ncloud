@@ -9,9 +9,9 @@ import (
 
 	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/ncloud"
 	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/services/server"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 )
 
 func init() {
@@ -43,16 +43,16 @@ func resourceNcloudPortForwadingRule() *schema.Resource {
 				Description: "Server instance number for which port forwarding is set",
 			},
 			"port_forwarding_external_port": {
-				Type:         schema.TypeInt,
-				Required:     true,
-				ValidateFunc: validation.IntBetween(1024, 65534),
-				Description:  "External port for port forwarding",
+				Type:             schema.TypeInt,
+				Required:         true,
+				ValidateDiagFunc: ToDiagFunc(validation.IntBetween(1024, 65534)),
+				Description:      "External port for port forwarding",
 			},
 			"port_forwarding_internal_port": {
-				Type:         schema.TypeInt,
-				Required:     true,
-				ValidateFunc: validation.IntInSlice([]int{22, 3389}), // [Linux : 22 |Windows : 3389]
-				Description:  "Internal port for port forwarding. Only the following ports are available. [Linux: `22` | Windows: `3389`]",
+				Type:             schema.TypeInt,
+				Required:         true,
+				ValidateDiagFunc: ToDiagFunc(validation.IntInSlice([]int{22, 3389})), // [Linux : 22 |Windows : 3389]
+				Description:      "Internal port for port forwarding. Only the following ports are available. [Linux: `22` | Windows: `3389`]",
 			},
 			"port_forwarding_public_ip": {
 				Type:        schema.TypeString,
@@ -104,17 +104,18 @@ func resourceNcloudPortForwardingRuleCreate(d *schema.ResourceData, meta interfa
 	var resp *server.AddPortForwardingRulesResponse
 	err = resource.Retry(d.Timeout(schema.TimeoutCreate), func() *resource.RetryError {
 		var err error
+
 		logCommonRequest("AddPortForwardingRules", reqParams)
 		resp, err = config.Client.server.V2Api.AddPortForwardingRules(reqParams)
-
-		if resp != nil && isRetryableErr(GetCommonResponse(resp), []string{ApiErrorUnknown, ApiErrorPortForwardingObjectInOperation}) {
-			logErrorResponse("retry AddPortForwardingRules", err, reqParams)
-			time.Sleep(time.Second * 5)
-			return resource.RetryableError(err)
+		if err != nil {
+			if resp != nil && isRetryableErr(GetCommonResponse(resp), []string{ApiErrorUnknown, ApiErrorPortForwardingObjectInOperation}) {
+				logErrorResponse("retry AddPortForwardingRules", err, reqParams)
+				time.Sleep(time.Second * 5)
+				return resource.RetryableError(err)
+			}
+			return resource.NonRetryableError(err)
 		}
-		logCommonResponse("AddPortForwardingRules", GetCommonResponse(resp))
-
-		return resource.NonRetryableError(err)
+		return nil
 	})
 
 	if err != nil {
@@ -209,19 +210,18 @@ func resourceNcloudPortForwardingRuleDelete(d *schema.ResourceData, meta interfa
 		var err error
 
 		logCommonRequest("DeletePortForwardingRules", reqParams)
-
 		resp, err = client.server.V2Api.DeletePortForwardingRules(reqParams)
 		log.Printf("=================> DeletePortForwardingRules resp: %#v, err: %#v", resp, err)
-		if err == nil && resp == nil {
+		if err != nil {
+			if resp != nil && isRetryableErr(GetCommonResponse(resp), []string{ApiErrorUnknown, ApiErrorPortForwardingObjectInOperation}) {
+				logErrorResponse("DeletePortForwardingRules Retry", err, reqParams)
+				time.Sleep(time.Second * 5)
+				return resource.RetryableError(err)
+			}
 			return resource.NonRetryableError(err)
 		}
-		if resp != nil && isRetryableErr(GetCommonResponse(resp), []string{ApiErrorUnknown, ApiErrorPortForwardingObjectInOperation}) {
-			logErrorResponse("DeletePortForwardingRules Retry", err, reqParams)
-			time.Sleep(time.Second * 5)
-			return resource.RetryableError(err)
-		}
 		logCommonResponse("DeletePortForwardingRules", GetCommonResponse(resp))
-		return resource.NonRetryableError(err)
+		return nil
 	})
 
 	if err != nil {

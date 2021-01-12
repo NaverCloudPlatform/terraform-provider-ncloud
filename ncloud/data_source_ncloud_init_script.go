@@ -3,8 +3,8 @@ package ncloud
 import (
 	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/ncloud"
 	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/services/vserver"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 )
 
 func init() {
@@ -20,19 +20,22 @@ func dataSourceNcloudInitScript() *schema.Resource {
 				Optional: true,
 				Computed: true,
 			},
+			"init_script_no": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
 			"name": {
 				Type:     schema.TypeString,
 				Optional: true,
 				Computed: true,
 			},
 			"os_type": {
-				Type:         schema.TypeString,
-				Optional:     true,
-				Computed:     true,
-				ValidateFunc: validation.StringInSlice([]string{"LNX", "WND"}, false),
+				Type:             schema.TypeString,
+				Optional:         true,
+				Computed:         true,
+				ValidateDiagFunc: ToDiagFunc(validation.StringInSlice([]string{"LNX", "WND"}, false)),
 			},
 			"filter": dataSourceFiltersSchema(),
-
 			"description": {
 				Type:     schema.TypeString,
 				Computed: true,
@@ -93,7 +96,7 @@ func getVpcInitScriptListFiltered(d *schema.ResourceData, config *ProviderConfig
 			"init_script_no": *r.InitScriptNo,
 			"name":           *r.InitScriptName,
 			"description":    *r.InitScriptDescription,
-			"os_type":        *r.OsType,
+			"os_type":        *r.OsType.Code,
 		}
 
 		resources = append(resources, instance)

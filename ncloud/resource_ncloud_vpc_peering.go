@@ -7,9 +7,9 @@ import (
 
 	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/ncloud"
 	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/services/vpc"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 )
 
 func init() {
@@ -28,16 +28,16 @@ func resourceNcloudVpcPeering() *schema.Resource {
 		CustomizeDiff: ncloudVpcCommonCustomizeDiff,
 		Schema: map[string]*schema.Schema{
 			"name": {
-				Type:         schema.TypeString,
-				Optional:     true,
-				Computed:     true,
-				ValidateFunc: validateInstanceName,
+				Type:             schema.TypeString,
+				Optional:         true,
+				Computed:         true,
+				ValidateDiagFunc: ToDiagFunc(validateInstanceName),
 			},
 			"description": {
-				Type:         schema.TypeString,
-				Optional:     true,
-				Computed:     true,
-				ValidateFunc: validation.StringLenBetween(0, 1000),
+				Type:             schema.TypeString,
+				Optional:         true,
+				Computed:         true,
+				ValidateDiagFunc: ToDiagFunc(validation.StringLenBetween(0, 1000)),
 			},
 			"source_vpc_no": {
 				Type:     schema.TypeString,
@@ -146,7 +146,6 @@ func resourceNcloudVpcPeeringRead(d *schema.ResourceData, meta interface{}) erro
 	d.Set("target_vpc_no", instance.TargetVpcNo)
 	d.Set("target_vpc_name", instance.TargetVpcName)
 	d.Set("target_vpc_login_id", instance.TargetVpcLoginId)
-	d.Set("status", instance.VpcPeeringInstanceStatus.Code)
 	d.Set("has_reverse_vpc_peering", instance.HasReverseVpcPeering)
 	d.Set("is_between_accounts", instance.IsBetweenAccounts)
 

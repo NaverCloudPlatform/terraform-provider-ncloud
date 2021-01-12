@@ -3,8 +3,8 @@ package ncloud
 import (
 	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/services/server"
 	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/services/vserver"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 )
 
 func init() {
@@ -30,11 +30,11 @@ func dataSourceNcloudMemberServerImage() *schema.Resource {
 			},
 			"filter": dataSourceFiltersSchema(),
 			"name_regex": {
-				Type:         schema.TypeString,
-				Optional:     true,
-				ValidateFunc: validation.ValidateRegexp,
-				Description:  "A regex string to apply to the member server image list returned by ncloud",
-				Deprecated:   "use filter instead",
+				Type:             schema.TypeString,
+				Optional:         true,
+				ValidateDiagFunc: ToDiagFunc(validation.StringIsValidRegExp),
+				Description:      "A regex string to apply to the member server image list returned by ncloud",
+				Deprecated:       "use filter instead",
 			},
 			"region": {
 				Type:        schema.TypeString,

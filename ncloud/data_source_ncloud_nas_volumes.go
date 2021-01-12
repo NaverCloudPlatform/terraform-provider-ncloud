@@ -3,8 +3,8 @@ package ncloud
 import (
 	"fmt"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 )
 
 func init() {
@@ -17,9 +17,9 @@ func dataSourceNcloudNasVolumes() *schema.Resource {
 
 		Schema: map[string]*schema.Schema{
 			"volume_allotment_protocol_type_code": {
-				Type:         schema.TypeString,
-				Optional:     true,
-				ValidateFunc: validation.StringInSlice([]string{"NFS", "CIFS"}, false),
+				Type:             schema.TypeString,
+				Optional:         true,
+				ValidateDiagFunc: ToDiagFunc(validation.StringInSlice([]string{"NFS", "CIFS"}, false)),
 			},
 			"is_event_configuration": {
 				Type:     schema.TypeBool,

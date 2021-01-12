@@ -4,9 +4,9 @@ import (
 	"fmt"
 	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/ncloud"
 	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/services/vserver"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 	"log"
 	"time"
 )
@@ -35,21 +35,21 @@ func resourceNcloudAccessControlGroupRule() *schema.Resource {
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"protocol": {
-							Type:         schema.TypeString,
-							Required:     true,
-							ValidateFunc: validation.StringInSlice([]string{"TCP", "UDP", "ICMP"}, false),
+							Type:             schema.TypeString,
+							Required:         true,
+							ValidateDiagFunc: ToDiagFunc(validation.StringInSlice([]string{"TCP", "UDP", "ICMP"}, false)),
 						},
 						"port_range": {
-							Type:         schema.TypeString,
-							Optional:     true,
-							ValidateFunc: validatePortRange,
-							Default:      "",
+							Type:             schema.TypeString,
+							Optional:         true,
+							ValidateDiagFunc: ToDiagFunc(validatePortRange),
+							Default:          "",
 						},
 						"ip_block": {
-							Type:         schema.TypeString,
-							Optional:     true,
-							ValidateFunc: validation.IsCIDRNetwork(0, 32),
-							Default:      "",
+							Type:             schema.TypeString,
+							Optional:         true,
+							ValidateDiagFunc: ToDiagFunc(validation.IsCIDRNetwork(0, 32)),
+							Default:          "",
 						},
 						"source_access_control_group_no": {
 							Type:     schema.TypeString,
@@ -57,10 +57,10 @@ func resourceNcloudAccessControlGroupRule() *schema.Resource {
 							Default:  "",
 						},
 						"description": {
-							Type:         schema.TypeString,
-							Optional:     true,
-							ValidateFunc: validation.StringLenBetween(0, 1000),
-							Default:      "",
+							Type:             schema.TypeString,
+							Optional:         true,
+							ValidateDiagFunc: ToDiagFunc(validation.StringLenBetween(0, 1000)),
+							Default:          "",
 						},
 					},
 				},
@@ -72,21 +72,21 @@ func resourceNcloudAccessControlGroupRule() *schema.Resource {
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"protocol": {
-							Type:         schema.TypeString,
-							Required:     true,
-							ValidateFunc: validation.StringInSlice([]string{"TCP", "UDP", "ICMP"}, false),
+							Type:             schema.TypeString,
+							Required:         true,
+							ValidateDiagFunc: ToDiagFunc(validation.StringInSlice([]string{"TCP", "UDP", "ICMP"}, false)),
 						},
 						"port_range": {
-							Type:         schema.TypeString,
-							Optional:     true,
-							ValidateFunc: validatePortRange,
-							Default:      "",
+							Type:             schema.TypeString,
+							Optional:         true,
+							ValidateDiagFunc: ToDiagFunc(validatePortRange),
+							Default:          "",
 						},
 						"ip_block": {
-							Type:         schema.TypeString,
-							Optional:     true,
-							ValidateFunc: validation.IsCIDRNetwork(0, 32),
-							Default:      "",
+							Type:             schema.TypeString,
+							Optional:         true,
+							ValidateDiagFunc: ToDiagFunc(validation.IsCIDRNetwork(0, 32)),
+							Default:          "",
 						},
 						"source_access_control_group_no": {
 							Type:     schema.TypeString,
@@ -94,10 +94,10 @@ func resourceNcloudAccessControlGroupRule() *schema.Resource {
 							Default:  "",
 						},
 						"description": {
-							Type:         schema.TypeString,
-							Optional:     true,
-							ValidateFunc: validation.StringLenBetween(0, 1000),
-							Default:      "",
+							Type:             schema.TypeString,
+							Optional:         true,
+							ValidateDiagFunc: ToDiagFunc(validation.StringLenBetween(0, 1000)),
+							Default:          "",
 						},
 					},
 				},
@@ -320,18 +320,16 @@ func addAccessControlGroupRule(d *schema.ResourceData, config *ProviderConfig, r
 			resp, err = config.Client.vserver.V2Api.AddAccessControlGroupOutboundRule(reqParams.(*vserver.AddAccessControlGroupOutboundRuleRequest))
 		}
 
-		if err == nil {
+		if err != nil {
+			errBody, _ := GetCommonErrorBody(err)
+			if errBody.ReturnCode == ApiErrorAcgCantChangeSameTime {
+				logErrorResponse("retry AddAccessControlGroupRule", err, reqParams)
+				time.Sleep(time.Second * 5)
+				return resource.RetryableError(err)
+			}
 			return resource.NonRetryableError(err)
 		}
-
-		errBody, _ := GetCommonErrorBody(err)
-		if errBody.ReturnCode == ApiErrorAcgCantChangeSameTime {
-			logErrorResponse("retry AddAccessControlGroupRule", err, reqParams)
-			time.Sleep(time.Second * 5)
-			return resource.RetryableError(err)
-		}
-
-		return resource.NonRetryableError(err)
+		return nil
 	})
 
 	if err != nil {
@@ -378,18 +376,16 @@ func removeAccessControlGroupRule(d *schema.ResourceData, config *ProviderConfig
 			resp, err = config.Client.vserver.V2Api.RemoveAccessControlGroupOutboundRule(reqParams.(*vserver.RemoveAccessControlGroupOutboundRuleRequest))
 		}
 
-		if err == nil {
+		if err != nil {
+			errBody, _ := GetCommonErrorBody(err)
+			if errBody.ReturnCode == ApiErrorAcgCantChangeSameTime {
+				logErrorResponse("retry RemoveAccessControlGroupRule", err, reqParams)
+				time.Sleep(time.Second * 5)
+				return resource.RetryableError(err)
+			}
 			return resource.NonRetryableError(err)
 		}
-
-		errBody, _ := GetCommonErrorBody(err)
-		if errBody.ReturnCode == ApiErrorAcgCantChangeSameTime {
-			logErrorResponse("retry RemoveAccessControlGroupRule", err, reqParams)
-			time.Sleep(time.Second * 5)
-			return resource.RetryableError(err)
-		}
-
-		return resource.NonRetryableError(err)
+		return nil
 	})
 
 	if err != nil {

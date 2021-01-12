@@ -3,7 +3,7 @@ package ncloud
 import (
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
 )
 
 func Test_validateInstanceName(t *testing.T) {

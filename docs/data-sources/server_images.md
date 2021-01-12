@@ -38,8 +38,8 @@ list_image = {
 The following arguments are supported:
 
 * `product_code` - (Optional) Product code you want to view on the list. Use this when searching for 1 product.
-* `platform_type_code_list` - (Optional) Values required for identifying platforms in list-type.
-    The available values are as follows: Linux 32Bit(LNX32) | Linux 64Bit(LNX64) | Windows 32Bit(WND32) | Windows 64Bit(WND64) | Ubuntu Desktop 64Bit(UBD64) | Ubuntu Server 64Bit(UBS64)
+* `platform_type` - (Optional) Values required for identifying platform.
+  The available values are as follows: Linux 32Bit(LNX32) | Linux 64Bit(LNX64) | Windows 32Bit(WND32) | Windows 64Bit(WND64) | Ubuntu Desktop 64Bit(UBD64) | Ubuntu Server 64Bit(UBS64)
 * `infra_resource_detail_type_code` - (Optional) infra resource detail type code.
 * `output_file` - (Optional) The name of file that can save data source after running `terraform plan`.
 * `filter` - (Optional) Custom filter block as described below.

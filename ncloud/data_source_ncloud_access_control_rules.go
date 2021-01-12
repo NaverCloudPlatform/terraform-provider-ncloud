@@ -7,8 +7,8 @@ import (
 
 	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/ncloud"
 	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/services/server"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 )
 
 func init() {
@@ -26,11 +26,11 @@ func dataSourceNcloudAccessControlRules() *schema.Resource {
 				Description: "Access control group setting number to search",
 			},
 			"source_name_regex": {
-				Type:         schema.TypeString,
-				Optional:     true,
-				ForceNew:     true,
-				ValidateFunc: validation.ValidateRegexp,
-				Description:  "A regex string to apply to the ACG rule list returned by ncloud",
+				Type:             schema.TypeString,
+				Optional:         true,
+				ForceNew:         true,
+				ValidateDiagFunc: ToDiagFunc(validation.StringIsValidRegExp),
+				Description:      "A regex string to apply to the ACG rule list returned by ncloud",
 			},
 			"access_control_rules": {
 				Type:        schema.TypeList,

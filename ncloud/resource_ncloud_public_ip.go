@@ -1,6 +1,7 @@
 package ncloud
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"time"
@@ -8,9 +9,9 @@ import (
 	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/ncloud"
 	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/services/server"
 	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/services/vserver"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 )
 
 func init() {
@@ -34,10 +35,10 @@ func resourceNcloudPublicIpInstance() *schema.Resource {
 				Computed: true,
 			},
 			"description": {
-				Type:         schema.TypeString,
-				Optional:     true,
-				Computed:     true,
-				ValidateFunc: validation.StringLenBetween(1, 10000),
+				Type:             schema.TypeString,
+				Optional:         true,
+				Computed:         true,
+				ValidateDiagFunc: ToDiagFunc(validation.StringLenBetween(1, 10000)),
 			},
 
 			"public_ip_no": {
@@ -45,11 +46,11 @@ func resourceNcloudPublicIpInstance() *schema.Resource {
 				Computed: true,
 			},
 			"internet_line_type": {
-				Type:         schema.TypeString,
-				Optional:     true,
-				Computed:     true,
-				ForceNew:     true,
-				ValidateFunc: validation.StringInSlice([]string{"PUBLC", "GLBL"}, false),
+				Type:             schema.TypeString,
+				Optional:         true,
+				Computed:         true,
+				ForceNew:         true,
+				ValidateDiagFunc: ToDiagFunc(validation.StringInSlice([]string{"PUBLC", "GLBL"}, false)),
 			},
 			"zone": {
 				Type:     schema.TypeString,
@@ -114,7 +115,7 @@ func resourceNcloudPublicIpRead(d *schema.ResourceData, meta interface{}) error 
 		return nil
 	}
 
-	SetSingularResourceDataFromMap(d, resource)
+	SetSingularResourceDataFromMapSchema(resourceNcloudPublicIpInstance(), d, resource)
 
 	return nil
 }
@@ -556,7 +557,7 @@ func associatedVpcPublicIp(d *schema.ResourceData, config *ProviderConfig) error
 	return nil
 }
 
-func resourceNcloudPublicIpCustomizeDiff(diff *schema.ResourceDiff, meta interface{}) error {
+func resourceNcloudPublicIpCustomizeDiff(_ context.Context, diff *schema.ResourceDiff, meta interface{}) error {
 	config := meta.(*ProviderConfig)
 
 	if config.SupportVPC {

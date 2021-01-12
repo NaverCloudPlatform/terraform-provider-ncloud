@@ -1,11 +1,12 @@
 package ncloud
 
 import (
+	"log"
+
 	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/ncloud"
 	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/services/vserver"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
-	"log"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 )
 
 func init() {
@@ -24,10 +25,10 @@ func resourceNcloudInitScript() *schema.Resource {
 		CustomizeDiff: ncloudVpcCommonCustomizeDiff,
 		Schema: map[string]*schema.Schema{
 			"name": {
-				Type:         schema.TypeString,
-				Optional:     true,
-				Computed:     true,
-				ValidateFunc: validateInstanceName,
+				Type:             schema.TypeString,
+				Optional:         true,
+				Computed:         true,
+				ValidateDiagFunc: ToDiagFunc(validateInstanceName),
 			},
 			"content": {
 				Type:     schema.TypeString,
@@ -35,16 +36,16 @@ func resourceNcloudInitScript() *schema.Resource {
 				ForceNew: true,
 			},
 			"description": {
-				Type:         schema.TypeString,
-				Optional:     true,
-				Computed:     true,
-				ValidateFunc: validation.StringLenBetween(0, 1000),
+				Type:             schema.TypeString,
+				Optional:         true,
+				Computed:         true,
+				ValidateDiagFunc: ToDiagFunc(validation.StringLenBetween(0, 1000)),
 			},
 			"os_type": {
-				Type:         schema.TypeString,
-				Optional:     true,
-				Computed:     true,
-				ValidateFunc: validation.StringInSlice([]string{"LNX", "WND"}, false),
+				Type:             schema.TypeString,
+				Optional:         true,
+				Computed:         true,
+				ValidateDiagFunc: ToDiagFunc(validation.StringInSlice([]string{"LNX", "WND"}, false)),
 			},
 
 			"init_script_no": {
@@ -88,7 +89,7 @@ func resourceNcloudInitScriptRead(d *schema.ResourceData, meta interface{}) erro
 	d.Set("name", instance.InitScriptName)
 	d.Set("description", instance.InitScriptDescription)
 	d.Set("content", instance.InitScriptContent)
-	d.Set("os_type", instance.OsType)
+	d.Set("os_type", instance.OsType.Code)
 
 	return nil
 }

@@ -2,14 +2,14 @@ package ncloud
 
 import (
 	"fmt"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"log"
 	"time"
 
 	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/ncloud"
 	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/services/vpc"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 )
 
 func init() {
@@ -35,36 +35,36 @@ func resourceNcloudNetworkACLRule() *schema.Resource {
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"priority": {
-							Type:         schema.TypeInt,
-							Required:     true,
-							ValidateFunc: validation.IntBetween(0, 199),
+							Type:             schema.TypeInt,
+							Required:         true,
+							ValidateDiagFunc: ToDiagFunc(validation.IntBetween(0, 199)),
 						},
 						"protocol": {
-							Type:         schema.TypeString,
-							Required:     true,
-							ValidateFunc: validation.StringInSlice([]string{"TCP", "UDP", "ICMP"}, false),
+							Type:             schema.TypeString,
+							Required:         true,
+							ValidateDiagFunc: ToDiagFunc(validation.StringInSlice([]string{"TCP", "UDP", "ICMP"}, false)),
 						},
 						"ip_block": {
-							Type:         schema.TypeString,
-							Required:     true,
-							ValidateFunc: validation.IsCIDRNetwork(0, 32),
+							Type:             schema.TypeString,
+							Required:         true,
+							ValidateDiagFunc: ToDiagFunc(validation.IsCIDRNetwork(0, 32)),
 						},
 						"rule_action": {
-							Type:         schema.TypeString,
-							Required:     true,
-							ValidateFunc: validation.StringInSlice([]string{"ALLOW", "DROP"}, false),
+							Type:             schema.TypeString,
+							Required:         true,
+							ValidateDiagFunc: ToDiagFunc(validation.StringInSlice([]string{"ALLOW", "DROP"}, false)),
 						},
 						"port_range": {
-							Type:         schema.TypeString,
-							Optional:     true,
-							ValidateFunc: validatePortRange,
-							Default:      "",
+							Type:             schema.TypeString,
+							Optional:         true,
+							ValidateDiagFunc: ToDiagFunc(validatePortRange),
+							Default:          "",
 						},
 						"description": {
-							Type:         schema.TypeString,
-							Optional:     true,
-							ValidateFunc: validation.StringLenBetween(0, 1000),
-							Default:      "",
+							Type:             schema.TypeString,
+							Optional:         true,
+							ValidateDiagFunc: ToDiagFunc(validation.StringLenBetween(0, 1000)),
+							Default:          "",
 						},
 					},
 				},
@@ -76,36 +76,36 @@ func resourceNcloudNetworkACLRule() *schema.Resource {
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"priority": {
-							Type:         schema.TypeInt,
-							Required:     true,
-							ValidateFunc: validation.IntBetween(0, 199),
+							Type:             schema.TypeInt,
+							Required:         true,
+							ValidateDiagFunc: ToDiagFunc(validation.IntBetween(0, 199)),
 						},
 						"protocol": {
-							Type:         schema.TypeString,
-							Required:     true,
-							ValidateFunc: validation.StringInSlice([]string{"TCP", "UDP", "ICMP"}, false),
+							Type:             schema.TypeString,
+							Required:         true,
+							ValidateDiagFunc: ToDiagFunc(validation.StringInSlice([]string{"TCP", "UDP", "ICMP"}, false)),
 						},
 						"ip_block": {
-							Type:         schema.TypeString,
-							Required:     true,
-							ValidateFunc: validation.IsCIDRNetwork(0, 32),
+							Type:             schema.TypeString,
+							Required:         true,
+							ValidateDiagFunc: ToDiagFunc(validation.IsCIDRNetwork(0, 32)),
 						},
 						"rule_action": {
-							Type:         schema.TypeString,
-							Required:     true,
-							ValidateFunc: validation.StringInSlice([]string{"ALLOW", "DROP"}, false),
+							Type:             schema.TypeString,
+							Required:         true,
+							ValidateDiagFunc: ToDiagFunc(validation.StringInSlice([]string{"ALLOW", "DROP"}, false)),
 						},
 						"port_range": {
-							Type:         schema.TypeString,
-							Optional:     true,
-							ValidateFunc: validatePortRange,
-							Default:      "",
+							Type:             schema.TypeString,
+							Optional:         true,
+							ValidateDiagFunc: ToDiagFunc(validatePortRange),
+							Default:          "",
 						},
 						"description": {
-							Type:         schema.TypeString,
-							Optional:     true,
-							ValidateFunc: validation.StringLenBetween(0, 1000),
-							Default:      "",
+							Type:             schema.TypeString,
+							Optional:         true,
+							ValidateDiagFunc: ToDiagFunc(validation.StringLenBetween(0, 1000)),
+							Default:          "",
 						},
 					},
 				},
@@ -319,18 +319,16 @@ func addNetworkACLRule(d *schema.ResourceData, config *ProviderConfig, ruleType 
 			resp, err = config.Client.vpc.V2Api.AddNetworkAclOutboundRule(reqParams.(*vpc.AddNetworkAclOutboundRuleRequest))
 		}
 
-		if err == nil {
+		if err != nil {
+			errBody, _ := GetCommonErrorBody(err)
+			if errBody.ReturnCode == ApiErrorNetworkAclCantAccessaApropriate {
+				logErrorResponse("retry AddNetworkAclRule", err, reqParams)
+				time.Sleep(time.Second * 5)
+				return resource.RetryableError(err)
+			}
 			return resource.NonRetryableError(err)
 		}
-
-		errBody, _ := GetCommonErrorBody(err)
-		if errBody.ReturnCode == ApiErrorNetworkAclCantAccessaApropriate {
-			logErrorResponse("retry AddNetworkAclRule", err, reqParams)
-			time.Sleep(time.Second * 5)
-			return resource.RetryableError(err)
-		}
-
-		return resource.NonRetryableError(err)
+		return nil
 	})
 
 	if err != nil {
@@ -374,18 +372,16 @@ func removeNetworkACLRule(d *schema.ResourceData, config *ProviderConfig, ruleTy
 			resp, err = config.Client.vpc.V2Api.RemoveNetworkAclOutboundRule(reqParams.(*vpc.RemoveNetworkAclOutboundRuleRequest))
 		}
 
-		if err == nil {
+		if err != nil {
+			errBody, _ := GetCommonErrorBody(err)
+			if errBody.ReturnCode == ApiErrorNetworkAclCantAccessaApropriate {
+				logErrorResponse("retry RemoveNetworkAclRule", err, reqParams)
+				time.Sleep(time.Second * 5)
+				return resource.RetryableError(err)
+			}
 			return resource.NonRetryableError(err)
 		}
-
-		errBody, _ := GetCommonErrorBody(err)
-		if errBody.ReturnCode == ApiErrorNetworkAclCantAccessaApropriate {
-			logErrorResponse("retry RemoveNetworkAclRule", err, reqParams)
-			time.Sleep(time.Second * 5)
-			return resource.RetryableError(err)
-		}
-
-		return resource.NonRetryableError(err)
+		return nil
 	})
 
 	if err != nil {

@@ -4,7 +4,7 @@
 package ncloud
 
 import (
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"log"
 )
 
@@ -64,6 +64,7 @@ func convertResourceFieldsToDatasourceFields(resourceSchema *schema.Resource) *s
 		fieldSchema.Optional = false
 		fieldSchema.DiffSuppressFunc = nil
 		fieldSchema.ValidateFunc = nil
+		fieldSchema.ValidateDiagFunc = nil
 		fieldSchema.ConflictsWith = nil
 		fieldSchema.Default = nil
 		if fieldSchema.Type == schema.TypeSet {
@@ -102,7 +103,11 @@ func SetSingularResourceDataFromMapSchema(resourceSchema *schema.Resource, d *sc
 	for k, fieldSchema := range resourceSchema.Schema {
 		if resources[k] != nil {
 			if fieldSchema.Computed || fieldSchema.Required {
-				d.Set(k, resources[k])
+				if k == "id" {
+					d.SetId(resources[k].(string))
+				} else {
+					d.Set(k, resources[k])
+				}
 			} else {
 				log.Printf("[TRACE] SetSingularResourceDataFromMapSchema >> [%s] is not nil but Not Computed", k)
 			}

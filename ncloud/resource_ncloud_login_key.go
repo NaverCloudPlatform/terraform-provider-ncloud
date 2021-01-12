@@ -8,9 +8,9 @@ import (
 
 	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/services/server"
 	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/services/vserver"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 )
 
 func init() {
@@ -33,23 +33,15 @@ func resourceNcloudLoginKey() *schema.Resource {
 		},
 		Schema: map[string]*schema.Schema{
 			"key_name": {
-				Type:         schema.TypeString,
-				Required:     true,
-				ValidateFunc: validation.StringLenBetween(3, 30),
-				Description:  "Key name to generate. If the generated key name exists, an error occurs.",
+				Type:             schema.TypeString,
+				Required:         true,
+				ValidateDiagFunc: ToDiagFunc(validation.StringLenBetween(3, 30)),
+				Description:      "Key name to generate. If the generated key name exists, an error occurs.",
 			},
 			"private_key": {
 				Type:      schema.TypeString,
 				Computed:  true,
 				Sensitive: true,
-				StateFunc: func(v interface{}) string {
-					switch v.(type) {
-					case string:
-						return strings.TrimSpace(v.(string))
-					default:
-						return ""
-					}
-				},
 			},
 			"fingerprint": {
 				Type:     schema.TypeString,

@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 )
 
 func TestAccDataSourceNcloudServerImage_classic_byCode(t *testing.T) {
@@ -19,7 +19,7 @@ func TestAccDataSourceNcloudServerImage_classic_byCode(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckDataSourceID(dataName),
 					resource.TestCheckResourceAttr(dataName, "product_code", "SPSW0LINUX000046"),
-					resource.TestCheckResourceAttr(dataName, "product_name", "CentOS 7.3 (64-bit)"),
+					resource.TestCheckResourceAttr(dataName, "product_name", "centos-7.3-64"),
 					resource.TestCheckResourceAttr(dataName, "product_description", "CentOS 7.3 (64-bit)"),
 					resource.TestCheckResourceAttr(dataName, "infra_resource_type", "SW"),
 					resource.TestCheckResourceAttr(dataName, "os_information", "CentOS 7.3 (64-bit)"),
@@ -43,7 +43,7 @@ func TestAccDataSourceNcloudServerImage_vpc_byCode(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckDataSourceID(dataName),
 					resource.TestCheckResourceAttr(dataName, "product_code", "SW.VSVR.OS.LNX64.CNTOS.0703.B050"),
-					resource.TestCheckResourceAttr(dataName, "product_name", "CentOS 7.3 (64-bit)"),
+					resource.TestCheckResourceAttr(dataName, "product_name", "centos-7.3-64"),
 					resource.TestCheckResourceAttr(dataName, "product_description", "CentOS 7.3 (64-bit)"),
 					resource.TestCheckResourceAttr(dataName, "infra_resource_type", "SW"),
 					resource.TestCheckResourceAttr(dataName, "os_information", "CentOS 7.3 (64-bit)"),
@@ -154,7 +154,7 @@ var testAccDataSourceNcloudServerImageByFilterProductNameConfig = `
 data "ncloud_server_image" "test3" {
   filter {
     name = "product_name"
-    values = ["CentOS 7.3 (64-bit)"]
+    values = ["centos-7.3-64"]
   }
 }
 `
@@ -163,7 +163,7 @@ var testAccDataSourceNcloudServerImageByBlockStorageSizeConfig = `
 data "ncloud_server_image" "test4" {
 	filter {
 		name = "product_name"
-		values = ["CentOS 7.3 (64-bit)"]
+		values = ["centos-7.3-64"]
 	}
 
 	filter {
