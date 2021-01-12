@@ -172,6 +172,24 @@ func BoolPtrOrNil(v interface{}, ok bool) *bool {
 	return ncloud.Bool(v.(bool))
 }
 
+func StringListPtrOrNil(i interface{}, ok bool) []*string {
+	if !ok {
+		return nil
+	}
+
+	il := i.([]interface{})
+	vs := make([]*string, 0, len(il))
+	for _, v := range il {
+		switch v.(type) {
+		case *string:
+			vs = append(vs, v.(*string))
+		default:
+			vs = append(vs, ncloud.String(v.(string)))
+		}
+	}
+	return vs
+}
+
 //StringOrEmpty Get string from *pointer
 func StringOrEmpty(v *string) string {
 	if v != nil {
