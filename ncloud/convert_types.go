@@ -172,9 +172,16 @@ func BoolPtrOrNil(v interface{}, ok bool) *bool {
 	return ncloud.Bool(v.(bool))
 }
 
+// StringListPtrOrNil Convert from interface to []*string
 func StringListPtrOrNil(i interface{}, ok bool) []*string {
 	if !ok {
 		return nil
+	}
+
+	// Handling when not slice type
+	if r := reflect.ValueOf(i); r.Kind() != reflect.Slice {
+		tmp := []interface{}{r.String()}
+		i = tmp
 	}
 
 	il := i.([]interface{})
@@ -184,6 +191,7 @@ func StringListPtrOrNil(i interface{}, ok bool) []*string {
 		case *string:
 			vs = append(vs, v.(*string))
 		default:
+			// TODO: if the value is "" in list, occur crash error.
 			vs = append(vs, ncloud.String(v.(string)))
 		}
 	}
