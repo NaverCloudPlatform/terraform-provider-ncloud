@@ -8,6 +8,7 @@ import (
 	"regexp"
 	"strconv"
 	"strings"
+	"time"
 )
 
 func validateInstanceName(v interface{}, k string) (ws []string, errors []error) {
@@ -95,6 +96,20 @@ func validateOneResult(resultCount int) error {
 		return fmt.Errorf("more than one found results(%d). please change search criteria and try again", resultCount)
 	}
 	return nil
+}
+
+func validateParseDuration(v interface{}, k string) (ws []string, errors []error) {
+	value := v.(string)
+	duration, err := time.ParseDuration(value)
+	if err != nil {
+		errors = append(errors, fmt.Errorf(
+			"%q cannot be parsed as a duration: %s", k, err))
+	}
+	if duration < 0 {
+		errors = append(errors, fmt.Errorf(
+			"%q must be greater than zero", k))
+	}
+	return
 }
 
 func ToDiagFunc(validator schema.SchemaValidateFunc) schema.SchemaValidateDiagFunc {
