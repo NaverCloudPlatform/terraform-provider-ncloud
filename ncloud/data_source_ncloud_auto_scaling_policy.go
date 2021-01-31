@@ -63,10 +63,6 @@ func getVpcAutoScalingPolicyList(config *ProviderConfig, id string) ([]*AutoScal
 		RegionCode: &config.RegionCode,
 	}
 
-	if id != "" {
-		reqParams.PolicyNoList = []*string{ncloud.String(id)}
-	}
-
 	resp, err := config.Client.vautoscaling.V2Api.GetAutoScalingPolicyList(reqParams)
 	if err != nil {
 		return nil, err
