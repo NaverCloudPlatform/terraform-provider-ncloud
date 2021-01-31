@@ -143,8 +143,8 @@ func getAutoScalingPolicy(config *ProviderConfig, id string, autoScalingGroupNo 
 
 func getVpcAutoScalingPolicy(config *ProviderConfig, id string, autoScalingGroupNo string) (*AutoScalingPolicy, error) {
 	reqParams := &vautoscaling.GetAutoScalingPolicyListRequest{
+		RegionCode:         &config.RegionCode,
 		AutoScalingGroupNo: ncloud.String(autoScalingGroupNo),
-		PolicyNoList:       nil,
 	}
 	resp, err := config.Client.vautoscaling.V2Api.GetAutoScalingPolicyList(reqParams)
 	if err != nil {
@@ -240,11 +240,7 @@ func deleteVpcAutoScalingPolicy(config *ProviderConfig, id string, autoScalingGr
 }
 
 func deleteClassicAutoScalingPolicy(config *ProviderConfig, id string, autoScalingGroupNo string) error {
-	p, err := getClassicAutoScalingPolicy(config, id, autoScalingGroupNo)
-	if err != nil {
-		return err
-	}
-	asg, err := getClassicAutoScalingGroup(config, *p.AutoScalingGroupNo)
+	asg, err := getClassicAutoScalingGroup(config, autoScalingGroupNo)
 	if err != nil {
 		return err
 	}

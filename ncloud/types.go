@@ -37,6 +37,19 @@ type AutoScalingPolicy struct {
 	MinAdjustmentStep     *int32  `json:"min_adjustment_step,omitempty"`
 }
 
+type AutoScalingSchedule struct {
+	ScheduledActionNo   *string `json:"auto_scaling_schedule_no,omitempty"`
+	ScheduledActionName *string `json:"name,omitempty"`
+	AutoScalingGroupNo  *string `json:"auto_scaling_group_no,omitempty"`
+	DesiredCapacity     *int32  `json:"desired_capacity,omitempty"`
+	MinSize             *int32  `json:"min_size,omitempty"`
+	MaxSize             *int32  `json:"max_size,omitempty"`
+	StartTime           *string `json:"start_time,omitempty"`
+	EndTime             *string `json:"end_time,omitempty"`
+	RecurrenceInKST     *string `json:"recurrence,omitempty"`
+	TimeZone            *string `json:"time_zone,omitempty"`
+}
+
 type InAutoScalingGroupServerInstance struct {
 	HealthStatus        *string `json:"health_status,omitempty"`
 	LifecycleState      *string `json:"lifecycle_state,omitempty"`
