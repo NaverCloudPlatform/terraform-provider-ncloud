@@ -5,6 +5,7 @@ import (
 	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/services/autoscaling"
 	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/services/vautoscaling"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 )
 
 func init() {
@@ -26,8 +27,9 @@ func resourceNcloudAutoScalingPolicy() *schema.Resource {
 				Required: true,
 			},
 			"adjustment_type_code": {
-				Type:     schema.TypeString,
-				Required: true,
+				Type:             schema.TypeString,
+				Required:         true,
+				ValidateDiagFunc: ToDiagFunc(validation.StringInSlice([]string{"CHANG", "EXACT", "PRCNT"}, false)),
 			},
 			"scaling_adjustment": {
 				Type:     schema.TypeInt,

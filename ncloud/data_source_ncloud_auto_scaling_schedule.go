@@ -18,6 +18,11 @@ func dataSourceNcloudAutoScalingSchedule() *schema.Resource {
 			Optional: true,
 			Computed: true,
 		},
+		"auto_scaling_group_no": {
+			Type:     schema.TypeString,
+			Optional: true,
+			Computed: true,
+		},
 		"filter": dataSourceFiltersSchema(),
 	}
 
@@ -31,7 +36,7 @@ func dataSourceNcloudAutoScalingScheduleRead(d *schema.ResourceData, meta interf
 		d.SetId(v.(string))
 	}
 
-	scheduleList, err := getAutoScalingScheduleList(config, d.Id())
+	scheduleList, err := getAutoScalingScheduleList(d, config)
 	if err != nil {
 		return err
 	}
@@ -50,20 +55,21 @@ func dataSourceNcloudAutoScalingScheduleRead(d *schema.ResourceData, meta interf
 	return nil
 }
 
-func getAutoScalingScheduleList(config *ProviderConfig, id string) ([]*AutoScalingSchedule, error) {
+func getAutoScalingScheduleList(d *schema.ResourceData, config *ProviderConfig) ([]*AutoScalingSchedule, error) {
 	if config.SupportVPC {
-		return getVpcAutoScalingScheduleList(config, id)
+		return getVpcAutoScalingScheduleList(d, config)
 	} else {
-		return getClassicAutoScalingScheduleList(config, id)
+		return getClassicAutoScalingScheduleList(d, config)
 	}
 }
 
-func getVpcAutoScalingScheduleList(config *ProviderConfig, id string) ([]*AutoScalingSchedule, error) {
+func getVpcAutoScalingScheduleList(d *schema.ResourceData, config *ProviderConfig) ([]*AutoScalingSchedule, error) {
 	reqParams := &vautoscaling.GetScheduledActionListRequest{
-		RegionCode: &config.RegionCode,
+		RegionCode:         &config.RegionCode,
+		AutoScalingGroupNo: ncloud.String(d.Get("auto_scaling_group_no").(string)),
 	}
-	if id != "" {
-		reqParams.ScheduledActionNameList = []*string{ncloud.String(id)}
+	if d.Id() != "" {
+		reqParams.ScheduledActionNameList = []*string{ncloud.String(d.Id())}
 	}
 
 	resp, err := config.Client.vautoscaling.V2Api.GetScheduledActionList(reqParams)
@@ -94,11 +100,11 @@ func getVpcAutoScalingScheduleList(config *ProviderConfig, id string) ([]*AutoSc
 	return list, nil
 }
 
-func getClassicAutoScalingScheduleList(config *ProviderConfig, id string) ([]*AutoScalingSchedule, error) {
+func getClassicAutoScalingScheduleList(d *schema.ResourceData, config *ProviderConfig) ([]*AutoScalingSchedule, error) {
 	reqParams := &autoscaling.GetScheduledActionListRequest{}
 
-	if id != "" {
-		reqParams.ScheduledActionNameList = []*string{ncloud.String(id)}
+	if d.Id() != "" {
+		reqParams.ScheduledActionNameList = []*string{ncloud.String(d.Id())}
 	}
 
 	resp, err := config.Client.autoscaling.V2Api.GetScheduledActionList(reqParams)

@@ -18,6 +18,11 @@ func dataSourceNcloudAutoScalingPolicy() *schema.Resource {
 			Optional: true,
 			Computed: true,
 		},
+		"auto_scaling_group_no": {
+			Type:     schema.TypeString,
+			Optional: true,
+			Computed: true,
+		},
 		"filter": dataSourceFiltersSchema(),
 	}
 
@@ -31,7 +36,7 @@ func dataSourceNcloudAutoScalingPolicyRead(d *schema.ResourceData, meta interfac
 		d.SetId(v.(string))
 	}
 
-	policyList, err := getAutoScalingPolicyList(config, d.Id())
+	policyList, err := getAutoScalingPolicyList(d, config)
 	if err != nil {
 		return err
 	}
@@ -50,17 +55,18 @@ func dataSourceNcloudAutoScalingPolicyRead(d *schema.ResourceData, meta interfac
 	return nil
 }
 
-func getAutoScalingPolicyList(config *ProviderConfig, id string) ([]*AutoScalingPolicy, error) {
+func getAutoScalingPolicyList(d *schema.ResourceData, config *ProviderConfig) ([]*AutoScalingPolicy, error) {
 	if config.SupportVPC {
-		return getVpcAutoScalingPolicyList(config, id)
+		return getVpcAutoScalingPolicyList(d, config)
 	} else {
-		return getClassicAutoScalingPolicyList(config, id)
+		return getClassicAutoScalingPolicyList(d, config)
 	}
 }
 
-func getVpcAutoScalingPolicyList(config *ProviderConfig, id string) ([]*AutoScalingPolicy, error) {
+func getVpcAutoScalingPolicyList(d *schema.ResourceData, config *ProviderConfig) ([]*AutoScalingPolicy, error) {
 	reqParams := &vautoscaling.GetAutoScalingPolicyListRequest{
-		RegionCode: &config.RegionCode,
+		RegionCode:         &config.RegionCode,
+		AutoScalingGroupNo: ncloud.String(d.Get("auto_scaling_group_no").(string)),
 	}
 
 	resp, err := config.Client.vautoscaling.V2Api.GetAutoScalingPolicyList(reqParams)
@@ -71,30 +77,31 @@ func getVpcAutoScalingPolicyList(config *ProviderConfig, id string) ([]*AutoScal
 	list := make([]*AutoScalingPolicy, 0)
 	for _, p := range resp.ScalingPolicyList {
 		policy := &AutoScalingPolicy{
-			AutoScalingPolicyNo: p.PolicyNo,
-			AutoScalingGroupNo:  p.AutoScalingGroupNo,
-			AdjustmentTypeCode:  p.AdjustmentType.Code,
-			ScalingAdjustment:   p.ScalingAdjustment,
-			Cooldown:            p.CoolDown,
-			MinAdjustmentStep:   p.MinAdjustmentStep,
+			AutoScalingPolicyName: p.PolicyName,
+			AutoScalingPolicyNo:   p.PolicyNo,
+			AutoScalingGroupNo:    p.AutoScalingGroupNo,
+			AdjustmentTypeCode:    p.AdjustmentType.Code,
+			ScalingAdjustment:     p.ScalingAdjustment,
+			Cooldown:              p.CoolDown,
+			MinAdjustmentStep:     p.MinAdjustmentStep,
 		}
-		if *p.PolicyName == id {
+		if *p.PolicyName == d.Id() {
 			return []*AutoScalingPolicy{policy}, nil
 		}
 		list = append(list, policy)
 	}
 
-	if id == "" {
+	if d.Id() == "" {
 		return nil, nil
 	}
 	return list, nil
 }
 
-func getClassicAutoScalingPolicyList(config *ProviderConfig, id string) ([]*AutoScalingPolicy, error) {
+func getClassicAutoScalingPolicyList(d *schema.ResourceData, config *ProviderConfig) ([]*AutoScalingPolicy, error) {
 	reqParams := &autoscaling.GetAutoScalingPolicyListRequest{}
 
-	if id != "" {
-		reqParams.PolicyNameList = []*string{ncloud.String(id)}
+	if d.Id() != "" {
+		reqParams.PolicyNameList = []*string{ncloud.String(d.Id())}
 	}
 
 	resp, err := config.Client.autoscaling.V2Api.GetAutoScalingPolicyList(reqParams)

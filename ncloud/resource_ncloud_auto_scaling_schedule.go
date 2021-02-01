@@ -11,6 +11,8 @@ func init() {
 	RegisterResource("ncloud_auto_scaling_schedule", resourceNcloudAutoScalingSchedule())
 }
 
+const SCHEDULE_TIME_FORMAT = "2006-01-02T15:04:05Z0700"
+
 func resourceNcloudAutoScalingSchedule() *schema.Resource {
 	return &schema.Resource{
 		Create: resourceNcloudAutoScalingScheduleCreate,
@@ -28,6 +30,7 @@ func resourceNcloudAutoScalingSchedule() *schema.Resource {
 			"desired_capacity": {
 				Type:     schema.TypeInt,
 				Optional: true,
+				Computed: true,
 			},
 			"min_size": {
 				Type:     schema.TypeInt,
@@ -40,14 +43,17 @@ func resourceNcloudAutoScalingSchedule() *schema.Resource {
 			"start_time": {
 				Type:     schema.TypeString,
 				Optional: true,
+				Computed: true,
 			},
 			"end_time": {
 				Type:     schema.TypeString,
 				Optional: true,
+				Computed: true,
 			},
 			"recurrence": {
 				Type:     schema.TypeString,
 				Optional: true,
+				Computed: true,
 			},
 			"auto_scaling_group_no": {
 				Type:     schema.TypeString,
@@ -57,6 +63,7 @@ func resourceNcloudAutoScalingSchedule() *schema.Resource {
 			"time_zone": {
 				Type:     schema.TypeString,
 				Optional: true,
+				Computed: true,
 			},
 		},
 	}

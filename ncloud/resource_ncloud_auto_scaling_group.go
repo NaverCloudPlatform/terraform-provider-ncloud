@@ -80,7 +80,6 @@ func resourceNcloudAutoScalingGroup() *schema.Resource {
 			"zone_no_list": {
 				Type:     schema.TypeList,
 				Optional: true,
-				Computed: true,
 				Elem:     &schema.Schema{Type: schema.TypeString},
 			},
 			"vpc_no": {
@@ -97,7 +96,6 @@ func resourceNcloudAutoScalingGroup() *schema.Resource {
 			"access_control_group_no_list": {
 				Type:     schema.TypeList,
 				Optional: true,
-				Computed: true,
 				Elem:     &schema.Schema{Type: schema.TypeString},
 			},
 			// TODO: healthCheckTypeCode 가 LOADB 인 경우에만 유효
