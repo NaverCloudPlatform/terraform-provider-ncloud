@@ -20,10 +20,10 @@ func dataSourceNcloudAutoScalingGroup() *schema.Resource {
 		},
 		"filter": dataSourceFiltersSchema(),
 	}
-	return GetSingularDataSourceItemSchema(resourceNcloudAutoScalingGroup(), fieldMap, dataSourceNcloudAUtoScalingGroupRead)
+	return GetSingularDataSourceItemSchema(resourceNcloudAutoScalingGroup(), fieldMap, dataSourceNcloudAutoScalingGroupRead)
 }
 
-func dataSourceNcloudAUtoScalingGroupRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceNcloudAutoScalingGroupRead(d *schema.ResourceData, meta interface{}) error {
 	config := meta.(*ProviderConfig)
 
 	if v, ok := d.GetOk("auto_scaling_group_no"); ok {

@@ -80,7 +80,6 @@ func resourceNcloudAutoScalingGroup() *schema.Resource {
 			"zone_no_list": {
 				Type:     schema.TypeList,
 				Optional: true,
-				Computed: true,
 				Elem:     &schema.Schema{Type: schema.TypeString},
 			},
 			"vpc_no": {
@@ -97,7 +96,6 @@ func resourceNcloudAutoScalingGroup() *schema.Resource {
 			"access_control_group_no_list": {
 				Type:     schema.TypeList,
 				Optional: true,
-				Computed: true,
 				Elem:     &schema.Schema{Type: schema.TypeString},
 			},
 			// TODO: healthCheckTypeCode 가 LOADB 인 경우에만 유효
@@ -757,4 +755,35 @@ func waitForClassicAutoScalingGroupCapacity(d *schema.ResourceData, config *Prov
 		}
 		return nil
 	})
+}
+
+func getClassicAutoScalingGroupByName(config *ProviderConfig, name string) (*AutoScalingGroup, error) {
+	reqParams := &autoscaling.GetAutoScalingGroupListRequest{
+		RegionNo:                 &config.RegionCode,
+		AutoScalingGroupNameList: []*string{ncloud.String(name)},
+	}
+	resp, err := config.Client.autoscaling.V2Api.GetAutoScalingGroupList(reqParams)
+	if err != nil {
+		return nil, err
+	}
+	if len(resp.AutoScalingGroupList) < 1 {
+		return nil, nil
+	}
+
+	a := resp.AutoScalingGroupList[0]
+	return &AutoScalingGroup{
+		AutoScalingGroupNo:                   a.AutoScalingGroupNo,
+		AutoScalingGroupName:                 a.AutoScalingGroupName,
+		LaunchConfigurationNo:                a.LaunchConfigurationNo,
+		DesiredCapacity:                      a.DesiredCapacity,
+		MinSize:                              a.MinSize,
+		MaxSize:                              a.MaxSize,
+		DefaultCooldown:                      a.DefaultCooldown,
+		LoadBalancerInstanceSummaryList:      flattenLoadBalancerInstanceSummaryList(a.LoadBalancerInstanceSummaryList),
+		HealthCheckGracePeriod:               a.HealthCheckGracePeriod,
+		HealthCheckTypeCode:                  a.HealthCheckType.Code,
+		InAutoScalingGroupServerInstanceList: flattenClassicAutoScalingGroupServerInstanceList(a.InAutoScalingGroupServerInstanceList),
+		SuspendedProcessList:                 flattenClassicSuspendedProcessList(a.SuspendedProcessList),
+		ZoneList:                             flattenZoneList(a.ZoneList),
+	}, nil
 }
