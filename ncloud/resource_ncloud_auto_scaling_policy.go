@@ -38,10 +38,12 @@ func resourceNcloudAutoScalingPolicy() *schema.Resource {
 			"cooldown": {
 				Type:     schema.TypeInt,
 				Optional: true,
+				Computed: true,
 			},
 			"min_adjustment_step": {
 				Type:     schema.TypeInt,
 				Optional: true,
+				Computed: true,
 			},
 			"auto_scaling_group_no": {
 				Type:     schema.TypeString,
