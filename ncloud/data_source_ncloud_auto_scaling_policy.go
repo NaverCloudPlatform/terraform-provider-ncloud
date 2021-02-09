@@ -13,15 +13,14 @@ func init() {
 
 func dataSourceNcloudAutoScalingPolicy() *schema.Resource {
 	fieldMap := map[string]*schema.Schema{
-		"name": {
+		"id": {
 			Type:     schema.TypeString,
 			Optional: true,
 			Computed: true,
 		},
 		"auto_scaling_group_no": {
 			Type:     schema.TypeString,
-			Optional: true,
-			Computed: true,
+			Required: true,
 		},
 		"filter": dataSourceFiltersSchema(),
 	}
@@ -32,7 +31,7 @@ func dataSourceNcloudAutoScalingPolicy() *schema.Resource {
 func dataSourceNcloudAutoScalingPolicyRead(d *schema.ResourceData, meta interface{}) error {
 	config := meta.(*ProviderConfig)
 
-	if v, ok := d.GetOk("name"); ok {
+	if v, ok := d.GetOk("id"); ok {
 		d.SetId(v.(string))
 	}
 
@@ -91,7 +90,7 @@ func getVpcAutoScalingPolicyList(d *schema.ResourceData, config *ProviderConfig)
 		list = append(list, policy)
 	}
 
-	if d.Id() == "" {
+	if d.Id() != "" {
 		return nil, nil
 	}
 	return list, nil
