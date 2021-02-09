@@ -2,14 +2,15 @@ package ncloud
 
 import (
 	"fmt"
+	"strings"
+	"time"
+
 	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/ncloud"
 	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/services/autoscaling"
 	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/services/vautoscaling"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
-	"strings"
-	"time"
 )
 
 func init() {
@@ -28,7 +29,6 @@ func resourceNcloudAutoScalingGroup() *schema.Resource {
 		Schema: map[string]*schema.Schema{
 			"auto_scaling_group_no": {
 				Type:     schema.TypeString,
-				Optional: true,
 				Computed: true,
 			},
 			"name": {
