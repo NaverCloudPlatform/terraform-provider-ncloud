@@ -52,5 +52,7 @@ It must be a time later than the current time and a time later than the startTim
 
 ## Attributes Reference
 
+In addition to all arguments above, the following attributes are exported:
+
 * `id` - The ID of Auto Scaling Schedule
 * `name` - The ID of Auto Scaling Schedule (It is the same result as id)

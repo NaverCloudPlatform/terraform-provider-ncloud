@@ -41,5 +41,7 @@ The following arguments are supported:
 
 ## Attributes Reference
 
+In addition to all arguments above, the following attributes are exported:
+
 * `id` - The ID of Auto Scaling Policy
 * `name` - The ID of Auto Scaling Policy (It is the same result as id)

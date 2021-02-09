@@ -55,24 +55,27 @@ func resourceNcloudLaunchConfiguration() *schema.Resource {
 				Optional: true,
 				Computed: true,
 			},
+			"init_script_no": {
+				Type:     schema.TypeString,
+				Optional: true,
+				Computed: true,
+			},
+			// Support only Classic
 			"user_data": {
 				Type:     schema.TypeString,
 				Optional: true,
 				Computed: true,
 			},
+			// Support only Classic
 			"access_control_group_no_list": {
 				Type:     schema.TypeList,
 				Optional: true,
 				ForceNew: true,
 				Elem:     &schema.Schema{Type: schema.TypeString},
 			},
+			// Support only VPC
 			"is_encrypted_volume": {
 				Type:     schema.TypeBool,
-				Optional: true,
-				Computed: true,
-			},
-			"init_script_no": {
-				Type:     schema.TypeString,
 				Optional: true,
 				Computed: true,
 			},

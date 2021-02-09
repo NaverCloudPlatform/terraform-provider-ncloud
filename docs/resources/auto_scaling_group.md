@@ -33,10 +33,11 @@ This value must be more than the minimum capacity and less than the maximum capa
 * `max_size` - (Required) The maximum size of the Auto Scaling Group. valid from `0` to `30`
 * `default_cooldown` - (Optional) The amount of time, in seconds, after a scaling activity completes before another scaling activity can start.
 * `health_check_type_code` - (Optional) `SVR` or `LOADB`. Controls how health checking is done.
+* `wait_for_capacity_timeout` - (Optional) The maximum amount of time Terraform should wait for an ASG instance to become healthy. Setting this to "0" causes Terraform to skip all Capacity Waiting behavior.
+* `health_check_grace_period` - (Optional) Set the time to hold health check after the server instance is put into the service with the health check hold period.
 
-~> **NOTE:** Below arguments only support if the `health_check_type_code` value is `LOADB`.
+~> **NOTE:** If the `health_check_type_code` is `LOADB`, `health_check_grace_period` is required.
 
-* `health_check_grace_period` - (Required) Set the time to hold health check after the server instance is put into the service with the health check hold period.
 
 ~> **NOTE:** Below arguments only support Classic environment.
 
@@ -45,23 +46,21 @@ This value must be more than the minimum capacity and less than the maximum capa
 ~> **NOTE:** Below arguments only support VPC environment.
 
 * `subnet_no` - (Required) The ID of the associated Subnet.
-
-~> **NOTE:** Below arguments only support VPC environment.
-
 * `access_control_group_no_list` - (Optional) The ID of the ACG.
+* `target_group_list` - (Optional) - Target Group number list of Load Balancer.
 
-~> **NOTE:** Below arguments only support VPC environment.
-
-* `target_group_list` - (Optional) - A set of aws_alb_target_group ARNs, for use with Application or Network Load Balancing.
-
-~> **NOTE:** Below arguments only support VPC environment.
+~> **NOTE:** `target_group_list` is valid only if the `health_check_type_code` is `LOADB`  
 
 * `server_name_prefix` - (Optional) Create name beginning with the specified prefix.
-* `wait_for_capacity_timeout` - (Optional) The maximum amount of time Terraform should wait for an ASG instance to become healthy. Setting this to "0" causes Terraform to skip all Capacity Waiting behavior.
 
 ## Attributes Reference
+
+In addition to all arguments above, the following attributes are exported:
 
 * `id` - The ID of Auto Scaling Group
 * `auto_scaling_group_no` - The ID of Auto Scaling Group (It is the same result as id)
 * `server_instance_no_list` - List of server instances belonging to Auto Scaling Group
+
+~> **NOTE:** Below attributes only support VPC environment.
+
 * `vpc_no` - The ID of the associated VPC.

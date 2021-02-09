@@ -21,21 +21,20 @@ The following arguments are supported:
 * `server_product_code` - (Optional) Server product code to determine the server specification to create. It can be obtained through the getServerProductList action. Default : Selected as minimum specification. The minimum standards are 1. memory 2. CPU 3. basic block storage size 4. disk type (NET,LOCAL)
 * `member_server_image_no` - (Optional) Required value when creating a server from a manually created server image. It can be obtained through the getMemberServerImageList action.
 * `login_key_name` - (Optional) The login key name to encrypt with the public key. Default : Uses the login key name most recently created.
+* `init_script_no` - (Optional) Set init script ID, The server can run a user-set initialization script at first boot.
 
 ~> **NOTE:** Below arguments only support Classic environment.
 
 * `user_data` - (Optional) The server will execute the user data script set by the user at first boot. To view the column, it is returned only when viewing the server instance.
-
-~> **NOTE:** Below arguments only support Classic environment.
-
 * `access_control_group_no_list` - (Optional) You can set the ACG created when creating the server. ACG setting number can be obtained through the getAccessControlGroupList action. Default : Default ACG number.
 
 ~> **NOTE:** Below arguments only support VPC environment.
 
-* `is_encrypted_volume`  - (Optional) you can set whether to encrypt basic block storage if server image is RHV. Default false.
-* `init_script_no` - (Optional) Set init script ID, The server can run a user-set initialization script at first boot.
+* `is_encrypted_volume` - (Optional) you can set whether to encrypt basic block storage if server image is RHV. Default false.
 
 ## Attributes Reference
+
+In addition to all arguments above, the following attributes are exported:
 
 * `id` - The ID of Launch Configuration
 * `launch_configuration_no` - The ID of Launch Configuration (It is the same result as id)
