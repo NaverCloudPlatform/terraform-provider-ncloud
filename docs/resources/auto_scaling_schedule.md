@@ -3,7 +3,7 @@
 Provides a ncloud auto scaling schedule resource.
 
 ## Example Usage
-
+### Classic environment
 ```hcl
 resource "ncloud_launch_configuration" "lc" {
   name = "my-lc"
@@ -28,6 +28,45 @@ resource "ncloud_auto_scaling_schedule" "schedule" {
   start_time = "" # 2021-02-02T15:00:00+0900
   end_time = "" # 2021-02-02T17:00:00+0900
   auto_scaling_group_no = ncloud_auto_scaling_group.asg.auto_scaling_group_no
+}
+```
+### VPC environment
+```hcl
+resource "ncloud_launch_configuration" "lc" {
+  name = "my-lc"
+  server_image_product_code = "SW.VSVR.OS.LNX64.CNTOS.0703.B050"
+  server_product_code = "SVR.VSVR.HICPU.C002.M004.NET.SSD.B050.G002"
+}
+
+resource "ncloud_vpc" "example" {
+  ipv4_cidr_block    = "10.0.0.0/16"
+}
+
+resource "ncloud_subnet" "example" {
+  vpc_no             = ncloud_vpc.example.vpc_no
+  subnet             = "10.0.0.0/24"
+  zone               = "KR-2"
+  network_acl_no     = ncloud_vpc.example.default_network_acl_no
+  subnet_type        = "PUBLIC"
+  usage_type         = "GEN"
+}
+
+resource "ncloud_auto_scaling_group" "auto" {
+  access_control_group_no_list = [ncloud_vpc.example.default_access_control_group_no]
+  subnet_no = ncloud_subnet.example.subnet_no
+  launch_configuration_no = ncloud_launch_configuration.lc.launch_configuration_no
+  min_size = 1
+  max_size = 1
+}
+
+resource "ncloud_auto_scaling_schedule" "schedule" {
+  name = "tf-schedule"
+  min_size = 1
+  max_size = 1
+  desired_capacity = 1
+  start_time = "" # 2021-02-02T15:00:00+0900
+  end_time = "" # 2021-02-02T17:00:00+0900
+  auto_scaling_group_no = ncloud_auto_scaling_group.auto.auto_scaling_group_no
 }
 ```
 
