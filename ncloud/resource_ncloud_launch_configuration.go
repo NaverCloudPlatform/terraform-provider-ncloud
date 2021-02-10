@@ -34,9 +34,8 @@ func resourceNcloudLaunchConfiguration() *schema.Resource {
 			"server_image_product_code": {
 				Type:          schema.TypeString,
 				Optional:      true,
-				Computed:      true,
-				ForceNew:      true,
 				ConflictsWith: []string{"member_server_image_no"},
+				ForceNew:      true,
 			},
 			"server_product_code": {
 				Type:     schema.TypeString,
@@ -46,9 +45,8 @@ func resourceNcloudLaunchConfiguration() *schema.Resource {
 			"member_server_image_no": {
 				Type:          schema.TypeString,
 				Optional:      true,
-				Computed:      true,
-				ForceNew:      true,
 				ConflictsWith: []string{"server_image_product_code"},
+				ForceNew:      true,
 			},
 			"login_key_name": {
 				Type:     schema.TypeString,
@@ -58,19 +56,19 @@ func resourceNcloudLaunchConfiguration() *schema.Resource {
 			"init_script_no": {
 				Type:     schema.TypeString,
 				Optional: true,
-				Computed: true,
+				ForceNew: true,
 			},
 			// Support only Classic
 			"user_data": {
 				Type:     schema.TypeString,
 				Optional: true,
-				Computed: true,
+				ForceNew: true,
 			},
 			// Support only Classic
 			"access_control_group_no_list": {
 				Type:     schema.TypeList,
 				Optional: true,
-				ForceNew: true,
+				Computed: true,
 				Elem:     &schema.Schema{Type: schema.TypeString},
 			},
 			// Support only VPC
@@ -163,6 +161,7 @@ func resourceNcloudLaunchConfigurationRead(d *schema.ResourceData, meta interfac
 	}
 
 	launchConfigMap := ConvertToMap(launchConfig)
+	d.Set("server_image_product_code", launchConfig.ServerImageProductCode)
 	SetSingularResourceDataFromMapSchema(resourceNcloudLaunchConfiguration(), d, launchConfigMap)
 	return nil
 }
@@ -207,6 +206,7 @@ func getVpcLaunchConfiguration(config *ProviderConfig, id string) (*LaunchConfig
 		InitScriptNo:                l.InitScriptNo,
 		IsEncryptedVolume:           l.IsEncryptedVolume,
 		LaunchConfigurationNo:       l.LaunchConfigurationNo,
+		AccessControlGroupNoList:    []*string{},
 	}, nil
 }
 
@@ -335,5 +335,5 @@ type LaunchConfiguration struct {
 	InitScriptNo                *string   `json:"init_script_no,omitempty"`
 	IsEncryptedVolume           *bool     `json:"is_encrypted_volume,omitempty"`
 	UserData                    *string   `json:"user_data,omitempty"`
-	AccessControlGroupNoList    []*string `json:"access_control_group_no_list,omitempty"`
+	AccessControlGroupNoList    []*string `json:"access_control_group_no_list"`
 }

@@ -30,7 +30,6 @@ func resourceNcloudAutoScalingSchedule() *schema.Resource {
 			"desired_capacity": {
 				Type:     schema.TypeInt,
 				Optional: true,
-				Computed: true,
 			},
 			"min_size": {
 				Type:     schema.TypeInt,
@@ -43,17 +42,14 @@ func resourceNcloudAutoScalingSchedule() *schema.Resource {
 			"start_time": {
 				Type:     schema.TypeString,
 				Optional: true,
-				Computed: true,
 			},
 			"end_time": {
 				Type:     schema.TypeString,
 				Optional: true,
-				Computed: true,
 			},
 			"recurrence": {
 				Type:     schema.TypeString,
 				Optional: true,
-				Computed: true,
 			},
 			"auto_scaling_group_no": {
 				Type:     schema.TypeString,

@@ -17,7 +17,7 @@ func ErrorRequiredArgOnVpc(name string) error {
 	return fmt.Errorf("missing required argument: The argument \"%s\" is required on vpc", name)
 }
 
-//ErrorRequiredOnArgClassic return error for required on classic
-func ErrorRequiredOnArgClassic(name string) error {
+//ErrorRequiredArgOnClassic return error for required on classic
+func ErrorRequiredArgOnClassic(name string) error {
 	return fmt.Errorf("missing required argument: The argument \"%s\" is required on classic", name)
 }

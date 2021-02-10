@@ -24,14 +24,15 @@ func TestAccResourceNcloudAutoScalingGroup_classic_basic(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckAutoScalingGroupExists(resourceName, &autoScalingGroup, testAccClassicProvider),
 				),
-				ExpectNonEmptyPlan: true,
 			},
 			{
-				ResourceName:            resourceName,
-				ImportState:             true,
-				ImportStateVerify:       true,
-				ImportStateVerifyIgnore: []string{"server_instance_no_list"},
-				ExpectNonEmptyPlan:      true,
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+				ImportStateVerifyIgnore: []string{
+					"wait_for_capacity_timeout",
+					"zone_no_list",
+				},
 			},
 		},
 	})
@@ -52,13 +53,16 @@ func TestAccResourceNcloudAutoScalingGroup_vpc_basic(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckAutoScalingGroupExists(resourceName, &autoScalingGroup, testAccProvider),
 				),
-				ExpectNonEmptyPlan: true,
 			},
 			{
-				ResourceName:       resourceName,
-				ImportState:        true,
-				ImportStateVerify:  true,
-				ExpectNonEmptyPlan: true,
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+				ImportStateVerifyIgnore: []string{
+					"wait_for_capacity_timeout",
+					"access_control_group_no_list",
+					"subnet_no",
+				},
 			},
 		},
 	})

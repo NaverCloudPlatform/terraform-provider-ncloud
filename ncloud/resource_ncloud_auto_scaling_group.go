@@ -102,7 +102,6 @@ func resourceNcloudAutoScalingGroup() *schema.Resource {
 			"subnet_no": {
 				Type:     schema.TypeString,
 				Optional: true,
-				Computed: true,
 			},
 			// Support only VPC (Required)
 			"access_control_group_no_list": {
@@ -121,6 +120,7 @@ func resourceNcloudAutoScalingGroup() *schema.Resource {
 			"server_name_prefix": {
 				Type:     schema.TypeString,
 				Optional: true,
+				Computed: true,
 			},
 		},
 	}
@@ -151,6 +151,14 @@ func createAutoScalingGroup(d *schema.ResourceData, config *ProviderConfig) (*st
 }
 
 func createVpcAutoScalingGroup(d *schema.ResourceData, config *ProviderConfig) (*string, error) {
+
+	if _, ok := d.GetOk("subnet_no"); !ok {
+		return nil, ErrorRequiredArgOnVpc("subnet_no")
+	}
+
+	if _, ok := d.GetOk("access_control_group_no_list"); !ok {
+		return nil, ErrorRequiredArgOnVpc("access_control_group_no_list")
+	}
 
 	subnetNo := d.Get("subnet_no").(string)
 	subnet, err := getSubnetInstance(config, subnetNo)
@@ -188,6 +196,9 @@ func createVpcAutoScalingGroup(d *schema.ResourceData, config *ProviderConfig) (
 }
 
 func createClassicAutoScalingGroup(d *schema.ResourceData, config *ProviderConfig) (*string, error) {
+	if _, ok := d.GetOk("zone_no_list"); !ok {
+		return nil, ErrorRequiredArgOnClassic("zone_no_list")
+	}
 	// TODO : Zero value 핸들링
 	l, err := getClassicLaunchConfigurationNameByNo(StringPtrOrNil(d.GetOk("launch_configuration_no")), config)
 	if err != nil {
