@@ -60,7 +60,8 @@ func TestAccDataSourceNcloudAutoScalingPolicy_vpc_basic(t *testing.T) {
 func testAccDataSourceNcloudAutoScalingPolicyClassicConfig(name string) string {
 	return testAccNcloudAutoScalingPolicyClassicConfig(name) + fmt.Sprintf(`
 data "ncloud_auto_scaling_policy" "policy" {
-	name = ncloud_auto_scaling_policy.test-policy-CHANG.name
+	id = ncloud_auto_scaling_policy.test-policy-CHANG.name
+	auto_scaling_group_no = ncloud_auto_scaling_group.test.auto_scaling_group_no
 	depends_on = [ncloud_auto_scaling_policy.test-policy-CHANG]
 }
 `)
@@ -69,7 +70,7 @@ data "ncloud_auto_scaling_policy" "policy" {
 func testAccDataSourceNcloudAutoScalingPolicyVpcConfig(name string) string {
 	return testAccNcloudAutoScalingPolicyVpcConfig(name) + fmt.Sprintf(`
 data "ncloud_auto_scaling_policy" "policy" {
-	name = ncloud_auto_scaling_policy.test-policy-CHANG.name
+	id = ncloud_auto_scaling_policy.test-policy-CHANG.name
 	auto_scaling_group_no = ncloud_auto_scaling_group.test.auto_scaling_group_no
 	depends_on = [ncloud_auto_scaling_policy.test-policy-CHANG]
 }

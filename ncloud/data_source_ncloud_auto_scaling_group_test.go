@@ -34,9 +34,7 @@ func TestAccDataSourceNcloudAutoScalingGroup_classic_basic(t *testing.T) {
 					resource.TestCheckResourceAttrPair(dataName, "target_group_list", resourceName, "target_group_list"),
 					resource.TestCheckResourceAttrPair(dataName, "server_name_prefix", resourceName, "server_name_prefix"),
 					resource.TestCheckResourceAttrPair(dataName, "server_instance_no_list", resourceName, "server_instance_no_list"),
-					resource.TestCheckResourceAttrPair(dataName, "wait_for_capacity_timeout", resourceName, "wait_for_capacity_timeout"),
 				),
-				ExpectNonEmptyPlan: true,
 			},
 		},
 	})
@@ -63,16 +61,12 @@ func TestAccDataSourceNcloudAutoScalingGroup_vpc_basic(t *testing.T) {
 					resource.TestCheckResourceAttrPair(dataName, "default_cooldown", resourceName, "default_cooldown"),
 					resource.TestCheckResourceAttrPair(dataName, "health_check_grace_period", resourceName, "health_check_grace_period"),
 					resource.TestCheckResourceAttrPair(dataName, "health_check_type_code", resourceName, "health_check_type_code"),
-					resource.TestCheckResourceAttrPair(dataName, "zone_no_list", resourceName, "zone_no_list"),
 					resource.TestCheckResourceAttrPair(dataName, "vpc_no", resourceName, "vpc_no"),
 					resource.TestCheckResourceAttrPair(dataName, "subnet_no", resourceName, "subnet_no"),
 					resource.TestCheckResourceAttrPair(dataName, "access_control_group_no_list", resourceName, "access_control_group_no_list"),
-					resource.TestCheckResourceAttrPair(dataName, "target_group_list", resourceName, "target_group_list"),
 					resource.TestCheckResourceAttrPair(dataName, "server_name_prefix", resourceName, "server_name_prefix"),
 					resource.TestCheckResourceAttrPair(dataName, "server_instance_no_list", resourceName, "server_instance_no_list"),
-					resource.TestCheckResourceAttrPair(dataName, "wait_for_capacity_timeout", resourceName, "wait_for_capacity_timeout"),
 				),
-				ExpectNonEmptyPlan: true,
 			},
 		},
 	})
@@ -92,7 +86,7 @@ func testAccDataSourceNcloudAutoScalingGroupClassicConfig() string {
 	}
 
 	data "ncloud_auto_scaling_group" "auto" {
-		auto_scaling_group_no = ncloud_auto_scaling_group.auto.auto_scaling_group_no
+		id = ncloud_auto_scaling_group.auto.auto_scaling_group_no
 	}
 `)
 }
@@ -125,7 +119,7 @@ resource "ncloud_auto_scaling_group" "auto" {
 }
 
 data "ncloud_auto_scaling_group" "auto" {
-	auto_scaling_group_no = ncloud_auto_scaling_group.auto.auto_scaling_group_no
+	id = ncloud_auto_scaling_group.auto.auto_scaling_group_no
 }
 `)
 }
