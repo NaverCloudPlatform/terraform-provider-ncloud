@@ -67,7 +67,7 @@ resource "ncloud_launch_configuration" "lc" {
 }
 
 data "ncloud_launch_configuration" "lc" {
-	launch_configuration_no = ncloud_launch_configuration.lc.launch_configuration_no
+	id = ncloud_launch_configuration.lc.launch_configuration_no
 }
 `)
 }
@@ -79,7 +79,7 @@ resource "ncloud_launch_configuration" "lc" {
 }
 
 data "ncloud_launch_configuration" "lc" {
-	launch_configuration_no = ncloud_launch_configuration.lc.launch_configuration_no
+	id = ncloud_launch_configuration.lc.launch_configuration_no
 }
 `)
 }

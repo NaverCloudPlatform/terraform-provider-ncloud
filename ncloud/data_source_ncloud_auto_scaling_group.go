@@ -13,7 +13,7 @@ func init() {
 
 func dataSourceNcloudAutoScalingGroup() *schema.Resource {
 	fieldMap := map[string]*schema.Schema{
-		"auto_scaling_group_no": {
+		"id": {
 			Type:     schema.TypeString,
 			Optional: true,
 			Computed: true,
@@ -26,7 +26,7 @@ func dataSourceNcloudAutoScalingGroup() *schema.Resource {
 func dataSourceNcloudAutoScalingGroupRead(d *schema.ResourceData, meta interface{}) error {
 	config := meta.(*ProviderConfig)
 
-	if v, ok := d.GetOk("auto_scaling_group_no"); ok {
+	if v, ok := d.GetOk("id"); ok {
 		d.SetId(v.(string))
 	}
 

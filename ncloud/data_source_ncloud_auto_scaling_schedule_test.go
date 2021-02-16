@@ -67,7 +67,7 @@ func TestAccDataSourceNcloudAutoScalingSchedule_vpc_basic(t *testing.T) {
 func testAccDataSourceNcloudAutoScalingScheduleVpcConfig(name string, start string, end string) string {
 	return testAccNcloudAutoScalingScheduleVpcConfig(name, start, end) + `
 data "ncloud_auto_scaling_schedule" "schedule" {
-	name = ncloud_auto_scaling_schedule.test-schedule.name
+	id = ncloud_auto_scaling_schedule.test-schedule.name
 	auto_scaling_group_no = ncloud_auto_scaling_group.test.auto_scaling_group_no
 	depends_on = [ncloud_auto_scaling_schedule.test-schedule]
 }`
@@ -76,7 +76,8 @@ data "ncloud_auto_scaling_schedule" "schedule" {
 func testAccDataSourceNcloudAutoScalingScheduleClassicConfig(name string, start string, end string) string {
 	return testAccNcloudAutoScalingScheduleClassicConfig(name, start, end) + `
 data "ncloud_auto_scaling_schedule" "schedule" {
-	name = ncloud_auto_scaling_schedule.test-schedule.name
+	id = ncloud_auto_scaling_schedule.test-schedule.name
+	auto_scaling_group_no = ncloud_auto_scaling_group.test.auto_scaling_group_no
 	depends_on = [ncloud_auto_scaling_schedule.test-schedule]
 }`
 }

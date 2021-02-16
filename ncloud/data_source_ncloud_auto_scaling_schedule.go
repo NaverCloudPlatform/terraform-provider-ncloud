@@ -13,15 +13,14 @@ func init() {
 
 func dataSourceNcloudAutoScalingSchedule() *schema.Resource {
 	fieldMap := map[string]*schema.Schema{
-		"name": {
+		"id": {
 			Type:     schema.TypeString,
 			Optional: true,
 			Computed: true,
 		},
 		"auto_scaling_group_no": {
 			Type:     schema.TypeString,
-			Optional: true,
-			Computed: true,
+			Required: true,
 		},
 		"filter": dataSourceFiltersSchema(),
 	}
@@ -32,7 +31,7 @@ func dataSourceNcloudAutoScalingSchedule() *schema.Resource {
 func dataSourceNcloudAutoScalingScheduleRead(d *schema.ResourceData, meta interface{}) error {
 	config := meta.(*ProviderConfig)
 
-	if v, ok := d.GetOk("name"); ok {
+	if v, ok := d.GetOk("id"); ok {
 		d.SetId(v.(string))
 	}
 

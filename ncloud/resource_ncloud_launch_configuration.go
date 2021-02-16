@@ -2,6 +2,7 @@ package ncloud
 
 import (
 	"fmt"
+
 	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/ncloud"
 	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/services/autoscaling"
 	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/services/vautoscaling"
@@ -33,9 +34,8 @@ func resourceNcloudLaunchConfiguration() *schema.Resource {
 			"server_image_product_code": {
 				Type:          schema.TypeString,
 				Optional:      true,
-				Computed:      true,
-				ForceNew:      true,
 				ConflictsWith: []string{"member_server_image_no"},
+				ForceNew:      true,
 			},
 			"server_product_code": {
 				Type:     schema.TypeString,
@@ -45,33 +45,35 @@ func resourceNcloudLaunchConfiguration() *schema.Resource {
 			"member_server_image_no": {
 				Type:          schema.TypeString,
 				Optional:      true,
-				Computed:      true,
-				ForceNew:      true,
 				ConflictsWith: []string{"server_image_product_code"},
+				ForceNew:      true,
 			},
 			"login_key_name": {
 				Type:     schema.TypeString,
 				Optional: true,
 				Computed: true,
 			},
+			"init_script_no": {
+				Type:     schema.TypeString,
+				Optional: true,
+				ForceNew: true,
+			},
+			// Support only Classic
 			"user_data": {
 				Type:     schema.TypeString,
 				Optional: true,
-				Computed: true,
+				ForceNew: true,
 			},
-			"access_control_group_configuration_no_list": {
+			// Support only Classic
+			"access_control_group_no_list": {
 				Type:     schema.TypeList,
 				Optional: true,
-				ForceNew: true,
+				Computed: true,
 				Elem:     &schema.Schema{Type: schema.TypeString},
 			},
+			// Support only VPC
 			"is_encrypted_volume": {
 				Type:     schema.TypeBool,
-				Optional: true,
-				Computed: true,
-			},
-			"init_script_no": {
-				Type:     schema.TypeString,
 				Optional: true,
 				Computed: true,
 			},
@@ -131,7 +133,7 @@ func createClassicLaunchConfiguration(d *schema.ResourceData, config *ProviderCo
 		RegionNo:                &config.RegionNo,
 	}
 
-	if param, ok := d.GetOk("access_control_group_configuration_no_list"); ok {
+	if param, ok := d.GetOk("access_control_group_no_list"); ok {
 		reqParams.AccessControlGroupConfigurationNoList = expandStringInterfaceList(param.([]interface{}))
 	}
 
@@ -159,6 +161,7 @@ func resourceNcloudLaunchConfigurationRead(d *schema.ResourceData, meta interfac
 	}
 
 	launchConfigMap := ConvertToMap(launchConfig)
+	d.Set("server_image_product_code", launchConfig.ServerImageProductCode)
 	SetSingularResourceDataFromMapSchema(resourceNcloudLaunchConfiguration(), d, launchConfigMap)
 	return nil
 }
@@ -203,6 +206,7 @@ func getVpcLaunchConfiguration(config *ProviderConfig, id string) (*LaunchConfig
 		InitScriptNo:                l.InitScriptNo,
 		IsEncryptedVolume:           l.IsEncryptedVolume,
 		LaunchConfigurationNo:       l.LaunchConfigurationNo,
+		AccessControlGroupNoList:    []*string{},
 	}, nil
 }
 
@@ -228,6 +232,8 @@ func getClassicLaunchConfiguration(config *ProviderConfig, id string) (*LaunchCo
 				MemberServerImageInstanceNo: l.MemberServerImageNo,
 				ServerProductCode:           l.ServerProductCode,
 				LoginKeyName:                l.LoginKeyName,
+				UserData:                    l.UserData,
+				AccessControlGroupNoList:    flattenAccessControlGroupList(l.AccessControlGroupList),
 			}, nil
 		}
 	}
@@ -312,6 +318,7 @@ func getClassicLaunchConfigurationNameByNo(no *string, config *ProviderConfig) (
 				MemberServerImageInstanceNo: l.MemberServerImageNo,
 				ServerProductCode:           l.ServerProductCode,
 				LoginKeyName:                l.LoginKeyName,
+				UserData:                    l.UserData,
 			}, nil
 		}
 	}
@@ -319,12 +326,14 @@ func getClassicLaunchConfigurationNameByNo(no *string, config *ProviderConfig) (
 }
 
 type LaunchConfiguration struct {
-	LaunchConfigurationNo       *string `json:"launch_configuration_no,omitempty,omitempty"`
-	LaunchConfigurationName     *string `json:"name,omitempty"`
-	ServerImageProductCode      *string `json:"server_image_product_code,omitempty"`
-	MemberServerImageInstanceNo *string `json:"member_server_image_no,omitempty"`
-	ServerProductCode           *string `json:"server_product_code,omitempty"`
-	LoginKeyName                *string `json:"login_key_name,omitempty"`
-	InitScriptNo                *string `json:"init_script_no,omitempty"`
-	IsEncryptedVolume           *bool   `json:"is_encrypted_volume,omitempty"`
+	LaunchConfigurationNo       *string   `json:"launch_configuration_no,omitempty,omitempty"`
+	LaunchConfigurationName     *string   `json:"name,omitempty"`
+	ServerImageProductCode      *string   `json:"server_image_product_code,omitempty"`
+	MemberServerImageInstanceNo *string   `json:"member_server_image_no,omitempty"`
+	ServerProductCode           *string   `json:"server_product_code,omitempty"`
+	LoginKeyName                *string   `json:"login_key_name,omitempty"`
+	InitScriptNo                *string   `json:"init_script_no,omitempty"`
+	IsEncryptedVolume           *bool     `json:"is_encrypted_volume,omitempty"`
+	UserData                    *string   `json:"user_data,omitempty"`
+	AccessControlGroupNoList    []*string `json:"access_control_group_no_list"`
 }

@@ -13,7 +13,7 @@ func init() {
 
 func dataSourceNcloudLaunchConfiguration() *schema.Resource {
 	fieldMap := map[string]*schema.Schema{
-		"launch_configuration_no": {
+		"id": {
 			Type:     schema.TypeString,
 			Optional: true,
 			Computed: true,
@@ -26,7 +26,7 @@ func dataSourceNcloudLaunchConfiguration() *schema.Resource {
 func dataSourceNcloudLaunchConfigurationRead(d *schema.ResourceData, meta interface{}) error {
 	config := meta.(*ProviderConfig)
 
-	if v, ok := d.GetOk("launch_configuration_no"); ok {
+	if v, ok := d.GetOk("id"); ok {
 		d.SetId(v.(string))
 	}
 
@@ -121,6 +121,8 @@ func getClassicLaunchConfigurationList(config *ProviderConfig, id string) ([]*La
 			MemberServerImageInstanceNo: l.MemberServerImageNo,
 			ServerProductCode:           l.ServerProductCode,
 			LoginKeyName:                l.LoginKeyName,
+			UserData:                    l.UserData,
+			AccessControlGroupNoList:    flattenAccessControlGroupList(l.AccessControlGroupList),
 		}
 
 		if *l.LaunchConfigurationNo == *no {

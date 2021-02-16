@@ -105,3 +105,11 @@ func flattenLoadBalancerInstanceSummaryList(lbs []*autoscaling.LoadBalancerInsta
 	}
 	return noList
 }
+
+func flattenAccessControlGroupList(asgs []*autoscaling.AccessControlGroup) []*string {
+	l := make([]*string, 0)
+	for _, asg := range asgs {
+		l = append(l, asg.AccessControlGroupConfigurationNo)
+	}
+	return l
+}

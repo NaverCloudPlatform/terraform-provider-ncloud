@@ -2,14 +2,15 @@ package ncloud
 
 import (
 	"fmt"
+	"strings"
+	"time"
+
 	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/ncloud"
 	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/services/autoscaling"
 	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/services/vautoscaling"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
-	"strings"
-	"time"
 )
 
 func init() {
@@ -28,7 +29,6 @@ func resourceNcloudAutoScalingGroup() *schema.Resource {
 		Schema: map[string]*schema.Schema{
 			"auto_scaling_group_no": {
 				Type:     schema.TypeString,
-				Optional: true,
 				Computed: true,
 			},
 			"name": {
@@ -63,50 +63,18 @@ func resourceNcloudAutoScalingGroup() *schema.Resource {
 				Computed:         true,
 				ValidateDiagFunc: ToDiagFunc(validation.IntBetween(0, 2147483647)),
 			},
-			// TODO: healthCheckTypeCode 값이 LOADB(로드밸런서) 경우 필수
-			"health_check_grace_period": {
-				Type:             schema.TypeInt,
-				Optional:         true,
-				Computed:         true,
-				ValidateDiagFunc: ToDiagFunc(validation.IntBetween(0, 2147483647)),
-			},
 			"health_check_type_code": {
 				Type:             schema.TypeString,
 				Optional:         true,
 				Computed:         true,
 				ValidateDiagFunc: ToDiagFunc(validation.StringInSlice([]string{"SVR", "LOADB"}, false)),
 			},
-			// required Only Classic
-			"zone_no_list": {
-				Type:     schema.TypeList,
-				Optional: true,
-				Elem:     &schema.Schema{Type: schema.TypeString},
-			},
-			"vpc_no": {
-				Type:     schema.TypeString,
-				Computed: true,
-			},
-			// required Only VPC
-			"subnet_no": {
-				Type:     schema.TypeString,
-				Optional: true,
-				Computed: true,
-			},
-			// required Only VPC
-			"access_control_group_no_list": {
-				Type:     schema.TypeList,
-				Optional: true,
-				Elem:     &schema.Schema{Type: schema.TypeString},
-			},
-			// TODO: healthCheckTypeCode 가 LOADB 인 경우에만 유효
-			"target_group_list": {
-				Type:     schema.TypeList,
-				Optional: true,
-				Elem:     &schema.Schema{Type: schema.TypeString},
-			},
-			"server_name_prefix": {
-				Type:     schema.TypeString,
-				Optional: true,
+			// TODO: healthCheckTypeCode 값이 LOADB(로드밸런서) 경우 필수
+			"health_check_grace_period": {
+				Type:             schema.TypeInt,
+				Optional:         true,
+				Computed:         true,
+				ValidateDiagFunc: ToDiagFunc(validation.IntBetween(0, 2147483647)),
 			},
 			"server_instance_no_list": {
 				Type:     schema.TypeList,
@@ -118,6 +86,41 @@ func resourceNcloudAutoScalingGroup() *schema.Resource {
 				Optional:         true,
 				Default:          "10m",
 				ValidateDiagFunc: ToDiagFunc(validateParseDuration),
+			},
+			// Support only Classic (Required)
+			"zone_no_list": {
+				Type:     schema.TypeList,
+				Optional: true,
+				Elem:     &schema.Schema{Type: schema.TypeString},
+			},
+			// Support only VPC
+			"vpc_no": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+			// Support only VPC (Required)
+			"subnet_no": {
+				Type:     schema.TypeString,
+				Optional: true,
+			},
+			// Support only VPC (Required)
+			"access_control_group_no_list": {
+				Type:     schema.TypeList,
+				Optional: true,
+				Elem:     &schema.Schema{Type: schema.TypeString},
+			},
+			// Support only VPC (Conditional)
+			// TODO: healthCheckTypeCode 가 LOADB 인 경우에만 유효
+			"target_group_list": {
+				Type:     schema.TypeList,
+				Optional: true,
+				Elem:     &schema.Schema{Type: schema.TypeString},
+			},
+			// Support only VPC
+			"server_name_prefix": {
+				Type:     schema.TypeString,
+				Optional: true,
+				Computed: true,
 			},
 		},
 	}
@@ -148,6 +151,14 @@ func createAutoScalingGroup(d *schema.ResourceData, config *ProviderConfig) (*st
 }
 
 func createVpcAutoScalingGroup(d *schema.ResourceData, config *ProviderConfig) (*string, error) {
+
+	if _, ok := d.GetOk("subnet_no"); !ok {
+		return nil, ErrorRequiredArgOnVpc("subnet_no")
+	}
+
+	if _, ok := d.GetOk("access_control_group_no_list"); !ok {
+		return nil, ErrorRequiredArgOnVpc("access_control_group_no_list")
+	}
 
 	subnetNo := d.Get("subnet_no").(string)
 	subnet, err := getSubnetInstance(config, subnetNo)
@@ -185,6 +196,9 @@ func createVpcAutoScalingGroup(d *schema.ResourceData, config *ProviderConfig) (
 }
 
 func createClassicAutoScalingGroup(d *schema.ResourceData, config *ProviderConfig) (*string, error) {
+	if _, ok := d.GetOk("zone_no_list"); !ok {
+		return nil, ErrorRequiredArgOnClassic("zone_no_list")
+	}
 	// TODO : Zero value 핸들링
 	l, err := getClassicLaunchConfigurationNameByNo(StringPtrOrNil(d.GetOk("launch_configuration_no")), config)
 	if err != nil {
