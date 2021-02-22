@@ -84,3 +84,12 @@ func isRetryableErr(commResp *CommonResponse, code []string) bool {
 
 	return false
 }
+
+func containsInStringList(s []string, str string) bool {
+	for _, v := range s {
+		if v == str {
+			return true
+		}
+	}
+	return false
+}

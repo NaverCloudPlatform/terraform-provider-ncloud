@@ -2,6 +2,7 @@ package ncloud
 
 import (
 	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/services/vautoscaling"
+	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/services/vloadbalancer"
 	"time"
 
 	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/services/vnas"
@@ -32,16 +33,17 @@ type Config struct {
 }
 
 type NcloudAPIClient struct {
-	server       *server.APIClient
-	autoscaling  *autoscaling.APIClient
-	loadbalancer *loadbalancer.APIClient
-	cdn          *cdn.APIClient
-	clouddb      *clouddb.APIClient
-	monitoring   *monitoring.APIClient
-	vpc          *vpc.APIClient
-	vserver      *vserver.APIClient
-	vnas         *vnas.APIClient
-	vautoscaling *vautoscaling.APIClient
+	server        *server.APIClient
+	autoscaling   *autoscaling.APIClient
+	loadbalancer  *loadbalancer.APIClient
+	cdn           *cdn.APIClient
+	clouddb       *clouddb.APIClient
+	monitoring    *monitoring.APIClient
+	vpc           *vpc.APIClient
+	vserver       *vserver.APIClient
+	vnas          *vnas.APIClient
+	vautoscaling  *vautoscaling.APIClient
+	vloadbalancer *vloadbalancer.APIClient
 }
 
 func (c *Config) Client() (*NcloudAPIClient, error) {
@@ -50,16 +52,17 @@ func (c *Config) Client() (*NcloudAPIClient, error) {
 		SecretKey: c.SecretKey,
 	}
 	return &NcloudAPIClient{
-		server:       server.NewAPIClient(server.NewConfiguration(apiKey)),
-		autoscaling:  autoscaling.NewAPIClient(autoscaling.NewConfiguration(apiKey)),
-		loadbalancer: loadbalancer.NewAPIClient(loadbalancer.NewConfiguration(apiKey)),
-		cdn:          cdn.NewAPIClient(cdn.NewConfiguration(apiKey)),
-		clouddb:      clouddb.NewAPIClient(clouddb.NewConfiguration(apiKey)),
-		monitoring:   monitoring.NewAPIClient(monitoring.NewConfiguration(apiKey)),
-		vpc:          vpc.NewAPIClient(vpc.NewConfiguration(apiKey)),
-		vserver:      vserver.NewAPIClient(vserver.NewConfiguration(apiKey)),
-		vnas:         vnas.NewAPIClient(vnas.NewConfiguration(apiKey)),
-		vautoscaling: vautoscaling.NewAPIClient(vautoscaling.NewConfiguration(apiKey)),
+		server:        server.NewAPIClient(server.NewConfiguration(apiKey)),
+		autoscaling:   autoscaling.NewAPIClient(autoscaling.NewConfiguration(apiKey)),
+		loadbalancer:  loadbalancer.NewAPIClient(loadbalancer.NewConfiguration(apiKey)),
+		cdn:           cdn.NewAPIClient(cdn.NewConfiguration(apiKey)),
+		clouddb:       clouddb.NewAPIClient(clouddb.NewConfiguration(apiKey)),
+		monitoring:    monitoring.NewAPIClient(monitoring.NewConfiguration(apiKey)),
+		vpc:           vpc.NewAPIClient(vpc.NewConfiguration(apiKey)),
+		vserver:       vserver.NewAPIClient(vserver.NewConfiguration(apiKey)),
+		vnas:          vnas.NewAPIClient(vnas.NewConfiguration(apiKey)),
+		vautoscaling:  vautoscaling.NewAPIClient(vautoscaling.NewConfiguration(apiKey)),
+		vloadbalancer: vloadbalancer.NewAPIClient(vloadbalancer.NewConfiguration(apiKey)),
 	}, nil
 }
 

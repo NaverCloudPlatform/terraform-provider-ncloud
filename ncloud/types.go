@@ -58,6 +58,32 @@ type InAutoScalingGroupServerInstance struct {
 	ServerInstanceName  *string `json:"server_instance_name,omitempty"`
 }
 
+type TargetGroup struct {
+	TargetGroupNo           *string        `json:"target_group_no,omitempty"`
+	TargetGroupName         *string        `json:"name,omitempty"`
+	TargetType              *string        `json:"target_type,omitempty"`
+	VpcNo                   *string        `json:"vpc_no,omitempty"`
+	TargetGroupProtocolType *string        `json:"protocol,omitempty"`
+	TargetGroupPort         *int32         `json:"port,omitempty"`
+	TargetGroupDescription  *string        `json:"description,omitempty"`
+	UseStickySession        *bool          `json:"use_sticky_session,omitempty"`
+	UseProxyProtocol        *bool          `json:"use_proxy_protocol,omitempty"`
+	AlgorithmType           *string        `json:"algorithm_type,omitempty"`
+	LoadBalancerInstanceNo  *string        `json:"load_balancer_instance_no,omitempty"`
+	TargetNoList            []*string      `json:"target_no_list"`
+	HealthCheck             []*HealthCheck `json:"health_check"`
+}
+
+type HealthCheck struct {
+	HealthCheckProtocolType   *string `json:"protocol,omitempty"`
+	HealthCheckPort           *int32  `json:"port,omitempty"`
+	HealthCheckUrlPath        *string `json:"url_path,omitempty"`
+	HealthCheckHttpMethodType *string `json:"http_method,omitempty"`
+	HealthCheckCycle          *int32  `json:"cycle,omitempty"`
+	HealthCheckUpThreshold    *int32  `json:"up_threshold,omitempty"`
+	HealthCheckDownThreshold  *int32  `json:"down_threshold,omitempty"`
+}
+
 func flattenZoneList(zoneList []*autoscaling.Zone) []*string {
 	noList := make([]*string, 0)
 	for _, z := range zoneList {
