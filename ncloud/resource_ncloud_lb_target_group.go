@@ -144,7 +144,9 @@ func resourceNcloudLbTargetGroup() *schema.Resource {
 
 func resourceNcloudTargetGroupCreate(d *schema.ResourceData, meta interface{}) error {
 	config := meta.(*ProviderConfig)
-
+	if !config.SupportVPC {
+		return NotSupportClassic("resource `ncloud_lb_target_group`")
+	}
 	reqParams := &vloadbalancer.CreateTargetGroupRequest{
 		RegionCode: &config.RegionCode,
 		// Optional
@@ -195,6 +197,9 @@ func resourceNcloudTargetGroupCreate(d *schema.ResourceData, meta interface{}) e
 
 func resourceNcloudTargetGroupRead(d *schema.ResourceData, meta interface{}) error {
 	config := meta.(*ProviderConfig)
+	if !config.SupportVPC {
+		return NotSupportClassic("resource `ncloud_lb_target_group`")
+	}
 	reqParams := &vloadbalancer.GetTargetGroupListRequest{
 		RegionCode:        &config.RegionCode,
 		TargetGroupNoList: []*string{ncloud.String(d.Id())},
@@ -236,7 +241,9 @@ func resourceNcloudTargetGroupRead(d *schema.ResourceData, meta interface{}) err
 
 func resourceNcloudTargetGroupUpdate(d *schema.ResourceData, meta interface{}) error {
 	config := meta.(*ProviderConfig)
-
+	if !config.SupportVPC {
+		return NotSupportClassic("resource `ncloud_lb_target_group`")
+	}
 	if d.HasChange("health_check") {
 		reqParams := &vloadbalancer.ChangeTargetGroupHealthCheckConfigurationRequest{
 			RegionCode:    &config.RegionCode,
@@ -244,7 +251,7 @@ func resourceNcloudTargetGroupUpdate(d *schema.ResourceData, meta interface{}) e
 		}
 		healthChecks := d.Get("health_check").([]interface{})
 		if len(healthChecks) == 1 {
-			healthCheck := d.Get("health_check").([]interface{})[0].(map[string]interface{})
+			healthCheck := healthChecks[0].(map[string]interface{})
 			healthCheckProtocol := healthCheck["protocol"].(string)
 
 			reqParams.HealthCheckCycle = ncloud.Int32(int32(healthCheck["cycle"].(int)))
@@ -292,7 +299,9 @@ func resourceNcloudTargetGroupUpdate(d *schema.ResourceData, meta interface{}) e
 
 func resourceNcloudTargetGroupDelete(d *schema.ResourceData, meta interface{}) error {
 	config := meta.(*ProviderConfig)
-
+	if !config.SupportVPC {
+		return NotSupportClassic("resource `ncloud_lb_target_group`")
+	}
 	reqParams := &vloadbalancer.DeleteTargetGroupsRequest{
 		RegionCode:        &config.RegionCode,
 		TargetGroupNoList: []*string{ncloud.String(d.Id())},

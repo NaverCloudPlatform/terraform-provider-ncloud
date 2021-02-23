@@ -47,6 +47,9 @@ func resourceNcloudLbTargetGroupAttachment() *schema.Resource {
 
 func resourceNcloudLbTargetGroupAttachmentCreate(d *schema.ResourceData, meta interface{}) error {
 	config := meta.(*ProviderConfig)
+	if !config.SupportVPC {
+		return NotSupportClassic("resource `ncloud_lb_target_group`")
+	}
 	reqParams := &vloadbalancer.AddTargetRequest{
 		RegionCode:    &config.RegionCode,
 		TargetGroupNo: ncloud.String(d.Get("target_group_no").(string)),
@@ -61,6 +64,9 @@ func resourceNcloudLbTargetGroupAttachmentCreate(d *schema.ResourceData, meta in
 
 func resourceNcloudLbTargetGroupAttachmentRead(d *schema.ResourceData, meta interface{}) error {
 	config := meta.(*ProviderConfig)
+	if !config.SupportVPC {
+		return NotSupportClassic("resource `ncloud_lb_target_group`")
+	}
 	reqParams := &vloadbalancer.GetTargetListRequest{
 		RegionCode:    &config.RegionCode,
 		TargetGroupNo: ncloud.String(d.Get("target_group_no").(string)),
@@ -97,6 +103,9 @@ func resourceNcloudLbTargetGroupAttachmentRead(d *schema.ResourceData, meta inte
 
 func resourceNcloudLbTargetGroupAttachmentDelete(d *schema.ResourceData, meta interface{}) error {
 	config := meta.(*ProviderConfig)
+	if !config.SupportVPC {
+		return NotSupportClassic("resource `ncloud_lb_target_group`")
+	}
 	reqParams := &vloadbalancer.RemoveTargetRequest{
 		RegionCode:    &config.RegionCode,
 		TargetGroupNo: ncloud.String(d.Get("target_group_no").(string)),
