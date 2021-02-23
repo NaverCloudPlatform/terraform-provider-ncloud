@@ -24,7 +24,6 @@ func resourceNcloudLbTargetGroup() *schema.Resource {
 		Schema: map[string]*schema.Schema{
 			"target_group_no": {
 				Type:     schema.TypeString,
-				Optional: true,
 				Computed: true,
 			},
 			"name": {
@@ -61,19 +60,19 @@ func resourceNcloudLbTargetGroup() *schema.Resource {
 						"cycle": {
 							Type:             schema.TypeInt,
 							Optional:         true,
-							Computed:         true,
+							Default:          30,
 							ValidateDiagFunc: ToDiagFunc(validation.IntBetween(5, 300)),
 						},
 						"down_threshold": {
 							Type:             schema.TypeInt,
 							Optional:         true,
-							Computed:         true,
+							Default:          2,
 							ValidateDiagFunc: ToDiagFunc(validation.IntBetween(2, 10)),
 						},
 						"up_threshold": {
 							Type:             schema.TypeInt,
 							Optional:         true,
-							Computed:         true,
+							Default:          2,
 							ValidateDiagFunc: ToDiagFunc(validation.IntBetween(2, 10)),
 						},
 						"http_method": {
@@ -84,7 +83,7 @@ func resourceNcloudLbTargetGroup() *schema.Resource {
 						"port": {
 							Type:             schema.TypeInt,
 							Optional:         true,
-							Computed:         true,
+							Default:          80,
 							ValidateDiagFunc: ToDiagFunc(validation.IntBetween(1, 65534)),
 						},
 						"protocol": {
@@ -117,6 +116,7 @@ func resourceNcloudLbTargetGroup() *schema.Resource {
 			"vpc_no": {
 				Type:     schema.TypeString,
 				Required: true,
+				ForceNew: true,
 			},
 			"use_sticky_session": {
 				Type:     schema.TypeBool,
@@ -192,7 +192,7 @@ func resourceNcloudTargetGroupCreate(d *schema.ResourceData, meta interface{}) e
 	}
 
 	d.SetId(ncloud.StringValue(resp.TargetGroupList[0].TargetGroupNo))
-	return resourceNcloudTargetGroupRead(d, meta)
+	return resourceNcloudTargetGroupUpdate(d, meta)
 }
 
 func resourceNcloudTargetGroupRead(d *schema.ResourceData, meta interface{}) error {
@@ -272,26 +272,27 @@ func resourceNcloudTargetGroupUpdate(d *schema.ResourceData, meta interface{}) e
 		}
 	}
 
-	reqParams := &vloadbalancer.ChangeTargetGroupConfigurationRequest{
-		RegionCode:        &config.RegionCode,
-		TargetGroupNo:     ncloud.String(d.Id()),
-		AlgorithmTypeCode: ncloud.String(d.Get("algorithm_type").(string)),
-	}
+	if d.HasChange("algorithm_type") || d.HasChange("use_sticky_session") || d.HasChange("use_proxy_protocol") {
+		reqParams := &vloadbalancer.ChangeTargetGroupConfigurationRequest{
+			RegionCode:        &config.RegionCode,
+			TargetGroupNo:     ncloud.String(d.Id()),
+			AlgorithmTypeCode: ncloud.String(d.Get("algorithm_type").(string)),
+		}
 
-	targetGroupProtocol := d.Get("protocol").(string)
-	switch targetGroupProtocol {
-	case "HTTP", "HTTPS", "TCP":
-		reqParams.UseStickySession = ncloud.Bool(d.Get("use_sticky_session").(bool))
-	case "PROXY_TCP":
-		reqParams.UseProxyProtocol = ncloud.Bool(d.Get("use_proxy_protocol").(bool))
-	}
+		targetGroupProtocol := d.Get("protocol").(string)
+		switch targetGroupProtocol {
+		case "HTTP", "HTTPS", "TCP":
+			reqParams.UseStickySession = ncloud.Bool(d.Get("use_sticky_session").(bool))
+		case "PROXY_TCP":
+			reqParams.UseProxyProtocol = ncloud.Bool(d.Get("use_proxy_protocol").(bool))
+		}
 
-	if err := validateAlgorithmTypeByTargetGroupProtocol(*reqParams.AlgorithmTypeCode, targetGroupProtocol); err != nil {
-		return err
-	}
-
-	if _, err := config.Client.vloadbalancer.V2Api.ChangeTargetGroupConfiguration(reqParams); err != nil {
-		return err
+		if err := validateAlgorithmTypeByTargetGroupProtocol(*reqParams.AlgorithmTypeCode, targetGroupProtocol); err != nil {
+			return err
+		}
+		if _, err := config.Client.vloadbalancer.V2Api.ChangeTargetGroupConfiguration(reqParams); err != nil {
+			return err
+		}
 	}
 
 	return resourceNcloudTargetGroupRead(d, meta)
