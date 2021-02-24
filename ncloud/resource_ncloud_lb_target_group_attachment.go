@@ -9,12 +9,6 @@ import (
 )
 
 const (
-	TargetHealthResponseEnumHealthUp     = "UP"
-	TargetHealthResponseEnumHealthDown   = "DOWN"
-	TargetHealthResponseEnumHealthUnused = "UNUSED"
-)
-
-const (
 	ErrorCodeInvalidTargetGroupNo = "1205009"
 )
 
@@ -83,14 +77,11 @@ func resourceNcloudLbTargetGroupAttachmentRead(d *schema.ResourceData, meta inte
 	}
 
 	var exist bool
+	targetNo := d.Get("target_no").(string)
 	for _, target := range resp.TargetList {
-		if ncloud.StringValue(target.TargetNo) == d.Get("target_no").(string) {
+		if ncloud.StringValue(target.TargetNo) == targetNo {
 			exist = true
-			status := ncloud.StringValue(target.HealthCheckStatus.Code)
-			if status == TargetHealthResponseEnumHealthDown {
-				d.SetId("")
-				return nil
-			}
+			break
 		}
 	}
 

@@ -204,8 +204,11 @@ func resourceNcloudTargetGroupRead(d *schema.ResourceData, meta interface{}) err
 		RegionCode:        &config.RegionCode,
 		TargetGroupNoList: []*string{ncloud.String(d.Id())},
 	}
+	logCommonRequest("resourceNcloudTargetGroupRead", reqParams)
 	resp, err := config.Client.vloadbalancer.V2Api.GetTargetGroupList(reqParams)
+	logResponse("resourceNcloudTargetGroupRead", resp)
 	if err != nil {
+		logErrorResponse("resourceNcloudTargetGroupRead", err, reqParams)
 		return err
 	}
 	respTg := resp.TargetGroupList[0]
@@ -267,7 +270,9 @@ func resourceNcloudTargetGroupUpdate(d *schema.ResourceData, meta interface{}) e
 				reqParams.HealthCheckHttpMethodTypeCode = ncloud.String(healthCheck["http_method"].(string))
 			}
 		}
+		logCommonRequest("resourceNcloudTargetGroupUpdate", reqParams)
 		if _, err := config.Client.vloadbalancer.V2Api.ChangeTargetGroupHealthCheckConfiguration(reqParams); err != nil {
+			logErrorResponse("resourceNcloudTargetGroupUpdate", err, reqParams)
 			return err
 		}
 	}
@@ -290,7 +295,9 @@ func resourceNcloudTargetGroupUpdate(d *schema.ResourceData, meta interface{}) e
 		if err := validateAlgorithmTypeByTargetGroupProtocol(*reqParams.AlgorithmTypeCode, targetGroupProtocol); err != nil {
 			return err
 		}
+		logCommonRequest("resourceNcloudTargetGroupUpdate", reqParams)
 		if _, err := config.Client.vloadbalancer.V2Api.ChangeTargetGroupConfiguration(reqParams); err != nil {
+			logErrorResponse("resourceNcloudTargetGroupUpdate", err, reqParams)
 			return err
 		}
 	}
