@@ -297,7 +297,6 @@ func resourceNcloudTargetGroupUpdate(d *schema.ResourceData, meta interface{}) e
 		}
 		logCommonRequest("resourceNcloudTargetGroupUpdate", reqParams)
 		if _, err := config.Client.vloadbalancer.V2Api.ChangeTargetGroupConfiguration(reqParams); err != nil {
-			logErrorResponse("resourceNcloudTargetGroupUpdate", err, reqParams)
 			return err
 		}
 	}

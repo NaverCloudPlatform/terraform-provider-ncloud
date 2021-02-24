@@ -111,9 +111,7 @@ func resourceNcloudLb() *schema.Resource {
 			},
 			"listener_list": {
 				Type:     schema.TypeList,
-				Optional: true,
-				Computed: true,
-				MinItems: 1,
+				Required: true,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"target_group_no": {
