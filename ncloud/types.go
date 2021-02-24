@@ -110,6 +110,7 @@ type LoadBalancerListener struct {
 	SslCertificateNo       *string   `json:"ssl_certificate_no,omitempty"`
 	TlsMinVersionType      *string   `json:"tls_min_version_type,omitempty"`
 	LoadBalancerRuleNoList []*string `json:"rule_no_list"`
+	TargetGroupNo          *string   `json:"target_group_no,omitempty"`
 }
 
 func flattenZoneList(zoneList []*autoscaling.Zone) []*string {

@@ -1,7 +1,6 @@
 package ncloud
 
 import (
-	"bytes"
 	"fmt"
 	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/ncloud"
 	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/services/vloadbalancer"
@@ -10,6 +9,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 	"log"
 	"reflect"
+	"sort"
+	"strconv"
 	"time"
 )
 
@@ -109,72 +110,53 @@ func resourceNcloudLb() *schema.Resource {
 				Elem:     &schema.Schema{Type: schema.TypeString},
 			},
 			"listener_list": {
-				Type:     schema.TypeSet,
-				Required: true,
+				Type:     schema.TypeList,
+				Optional: true,
+				Computed: true,
+				MinItems: 1,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
+						"target_group_no": {
+							Type:     schema.TypeString,
+							Optional: true,
+						},
 						"listener_no": {
 							Type:     schema.TypeString,
 							Computed: true,
 						},
-						"target_group_no": {
-							//타겟 그룹 번호
-							//선택한 타겟 그룹은 각 리스너의 DEFAULT 규칙에 적용됩니다.
-							//다른 로드밸런서에서 이미 사용중인 타겟 그룹은 이용할 수 없습니다.
-							//로드밸런서 유형과 타겟 그룹 프로토콜 유형에 따라서 사용 가능한 타겟 그룹이 제한됩니다.
-							//NETWORK : TCP
-							//NETWORK_PROXY : PROXY_TCP
-							//APPLICATION : HTTP / HTTPS
-							Type:     schema.TypeString,
-							Required: true,
-						},
 						"protocol": {
-							//로드밸런서 리스너 프로토콜 유형 코드
-							//최소 한개의 리스너를 등록해야 합니다.
-							//로드밸런서 유형에 따라서 사용 가능한 리스너 프로토콜 유형과 기본값이 결정됩니다.
-							//APPLICATION : HTTP (Default) / HTTPS
-							//NETWORK : TCP (Default)
-							//NETWORK_PROXY : TCP (Default) / TLS
 							Type:             schema.TypeString,
 							Optional:         true,
-							Default:          80,
+							Computed:         true,
 							ValidateDiagFunc: ToDiagFunc(validation.StringInSlice([]string{"HTTP", "HTTPS", "TCP", "TLS"}, false)),
 						},
 						"port": {
-							//로드밸런서 리스너 포트
-							//리스너 프로토콜 유형에 따라서 포트 기본값이 결정됩니다.
-							//Default :
-							//HTTP / TCP : 80
-							//HTTPS / TLS : 443
-							//포트 번호는 중복될 수 없습니다.
 							Type:             schema.TypeInt,
 							Optional:         true,
 							Computed:         true,
 							ValidateDiagFunc: ToDiagFunc(validation.IntBetween(1, 65534)),
 						},
 						"use_http2": {
-							//HTTP/2 프로토콜 사용 여부
-							//Options : true | false
-							//Default : false
-							//리스너 프로토콜 유형이 HTTPS 인 경우에만 유효합니다.
 							Type:     schema.TypeBool,
 							Optional: true,
 							Computed: true,
 						},
 						"ssl_certificate_no": {
-							//SSL 인증서 번호
-							//리스너 프로토콜 유형이 HTTPS 또는 TLS 인 경우 SSL 인증서를 반드시 설정해야 합니다.
-							//sslCertificateNo는 GET https://certificatemanager.apigw.ntruss.com/api/v1/certificates 액션을 통해서 획득할 수 있습니다.
 							Type:     schema.TypeString,
 							Optional: true,
+							Computed: true,
 						},
 						"tls_min_version_type": {
-							//TLS 최소 지원 버전 유형 코드
-							//리스너 프로토콜 유형이 HTTPS 또는 TLS 인 경우에만 유효합니다.
 							Type:             schema.TypeString,
 							Optional:         true,
 							Computed:         true,
 							ValidateDiagFunc: ToDiagFunc(validation.StringInSlice([]string{"TLSV10", "TLSV11", "TLSV12"}, false)),
+						},
+						"rule_no_list": {
+							Type:     schema.TypeList,
+							Optional: true,
+							Computed: true,
+							Elem:     &schema.Schema{Type: schema.TypeString},
 						},
 					},
 				},
@@ -200,46 +182,16 @@ func resourceNcloudLbCreate(d *schema.ResourceData, meta interface{}) error {
 		// Required
 		LoadBalancerTypeCode:     ncloud.String(d.Get("type").(string)),
 		SubnetNoList:             ncloud.StringInterfaceList(d.Get("subnet_no_list").([]interface{})),
-		LoadBalancerListenerList: expandLoadBalancerListenerList(d.Get("listener_list").(*schema.Set)),
+		LoadBalancerListenerList: expandLoadBalancerListenerList(d.Get("listener_list").([]interface{})),
 	}
-
-	//var listenerParameterList []*vloadbalancer.LoadBalancerListenerParameter
-	//for _, listener := range d.Get("listener_list").([]interface{}) {
-	//	listenerMap := listener.(map[string]interface{})
-	//
-	//	fmt.Print(listenerMap)
-	//	listenerParameter := &vloadbalancer.LoadBalancerListenerParameter{
-	//		SslCertificateNo: ncloud.String(listenerMap["ssl_certificate_no"].(string)),
-	//		UseHttp2:         ncloud.Bool(listenerMap["use_http2"].(bool)),
-	//		TargetGroupNo:    ncloud.String(listenerMap["target_group_no"].(string)),
-	//	}
-	//
-	//	if ok := reflect.Value.IsZero(reflect.ValueOf(listenerMap["protocol"])); !ok {
-	//		listenerParameter.ProtocolTypeCode = ncloud.String(listenerMap["protocol"].(string))
-	//	}
-	//
-	//	if ok := reflect.Value.IsZero(reflect.ValueOf(listenerMap["port"])); !ok {
-	//		listenerParameter.Port = ncloud.Int32(int32(listenerMap["port"].(int)))
-	//	}
-	//
-	//	if ok := reflect.Value.IsZero(reflect.ValueOf(listenerMap["tls_min_version_type"])); !ok {
-	//		listenerParameter.TlsMinVersionTypeCode = ncloud.String(listenerMap["tls_min_version_type"].(string))
-	//	}
-	//
-	//	listenerParameterList = append(listenerParameterList, listenerParameter)
-	//}
-	//reqParams.LoadBalancerListenerList = listenerParameterList
 	subnet, err := getSubnetInstance(config, *reqParams.SubnetNoList[0])
 	if err != nil {
 		return err
 	}
 
 	reqParams.VpcNo = subnet.VpcNo
-	logCommonRequest("resourceNcloudLbCreate", reqParams)
 	resp, err := config.Client.vloadbalancer.V2Api.CreateLoadBalancerInstance(reqParams)
-	logResponse("resourceNcloudLbCreate", resp)
 	if err != nil {
-		logErrorResponse("resourceNcloudLbCreate", err, reqParams)
 		return err
 	}
 	if err := waitForLoadBalancerActive(d, config, resp.LoadBalancerInstanceList[0].LoadBalancerInstanceNo); err != nil {
@@ -250,87 +202,68 @@ func resourceNcloudLbCreate(d *schema.ResourceData, meta interface{}) error {
 }
 
 func resourceNcloudLbRead(d *schema.ResourceData, meta interface{}) error {
+
+	//It is used to maintain the diff Sync of target_group_no
+	dataListenerList := d.Get("listener_list").([]interface{})
+	targetGroupMap := make(map[int32]string, 0)
+	for _, listener := range dataListenerList {
+		listenerMap := listener.(map[string]interface{})
+		targetGroupMap[int32(listenerMap["port"].(int))] = listenerMap["target_group_no"].(string)
+	}
+
+	// received Load Balancer instance detail from API
 	config := meta.(*ProviderConfig)
 	reqParams := &vloadbalancer.GetLoadBalancerInstanceDetailRequest{
 		RegionCode:             &config.RegionCode,
 		LoadBalancerInstanceNo: ncloud.String(d.Id()),
 	}
-	logCommonRequest("resourceNcloudLbRead", reqParams)
 	resp, err := config.Client.vloadbalancer.V2Api.GetLoadBalancerInstanceDetail(reqParams)
-	logResponse("resourceNcloudLbRead", resp)
 	if err != nil {
-		logErrorResponse("resourceNcloudLbRead", err, reqParams)
 		return err
 	}
-
 	lb := convertLbInstance(resp.LoadBalancerInstanceList[0])
 
+	// receive all Listener belonging to Load Balancer from API
 	listenerReqParams := &vloadbalancer.GetLoadBalancerListenerListRequest{
 		RegionCode:             &config.RegionCode,
 		LoadBalancerInstanceNo: lb.LoadBalancerInstanceNo,
 	}
+
 	logCommonRequest("resourceNcloudLbRead Listener", listenerReqParams)
 	listenerResp, err := config.Client.vloadbalancer.V2Api.GetLoadBalancerListenerList(listenerReqParams)
 	if err != nil {
+		logErrorResponse("resourceNcloudLbRead Listener", err, reqParams)
 		return err
 	}
 	logResponse("resourceNcloudLbRead Listener", listenerResp)
 
 	listenerList := make([]*LoadBalancerListener, 0)
+	sort.Slice(listenerResp.LoadBalancerListenerList, func(i, j int) bool {
+		a, _ := strconv.Atoi(*listenerResp.LoadBalancerListenerList[i].LoadBalancerListenerNo)
+		b, _ := strconv.Atoi(*listenerResp.LoadBalancerListenerList[j].LoadBalancerListenerNo)
+		return a < b
+	})
 	for _, respListener := range listenerResp.LoadBalancerListenerList {
 		listener := convertListener(respListener)
+		listener.TargetGroupNo = ncloud.String(targetGroupMap[ncloud.Int32Value(listener.Port)])
 		listenerList = append(listenerList, listener)
 	}
 
+	sort.Slice(listenerList, func(i, j int) bool {
+		a, _ := strconv.Atoi(*listenerList[i].LoadBalancerListenerNo)
+		b, _ := strconv.Atoi(*listenerList[j].LoadBalancerListenerNo)
+		return a < b
+	})
 	lb.LoadBalancerListenerList = listenerList
-	l := d.Get("listener_list").(*schema.Set)
-
-	// Create empty set for getAccessControlGroupRuleList
-	lSet := schema.NewSet(schema.HashResource(resourceNcloudLb().Schema["listener_list"].Elem.(*schema.Resource)), []interface{}{})
-
-	for _, listener := range lb.LoadBalancerListenerList {
-		m := map[string]interface{}{
-			"listener_no":          ncloud.StringValue(listener.LoadBalancerListenerNo),
-			"protocol":             ncloud.StringValue(listener.ProtocolType),
-			"port":                 int(ncloud.Int32Value(listener.Port)),
-			"use_http2":            ncloud.BoolValue(listener.UseHttp2),
-			"ssl_certificate_no":   ncloud.StringValue(listener.SslCertificateNo),
-			"tls_min_version_type": ncloud.StringValue(listener.TlsMinVersionType),
-			//"rule_no_list":         ncloud.StringListValue(listener.LoadBalancerRuleNoList),
-		}
-
-		logResponse("yoogle-test-4", m)
-		lSet.Add(m)
-	}
-
-	if err := d.Set("listener_list", l.Intersection(lSet).List()); err != nil {
-		log.Printf("[WARN] Error setting outbound rule set for (%s): %s", d.Id(), err)
-	}
-
-	//lbMap := ConvertToMap(lb)
-	//SetSingularResourceDataFromMapSchema(resourceNcloudLb(), d, lbMap)
-	//if err := d.Set("listener_list", flattenLoadBalancerListenerList(lb.LoadBalancerListenerList)); err != nil {
-	//	return err
-	//}
+	lbMap := ConvertToMap(lb)
+	SetSingularResourceDataFromMapSchema(resourceNcloudLb(), d, lbMap)
 	return nil
-}
-
-func convertListener(listener *vloadbalancer.LoadBalancerListener) *LoadBalancerListener {
-	return &LoadBalancerListener{
-		LoadBalancerListenerNo: listener.LoadBalancerListenerNo,
-		ProtocolType:           listener.ProtocolType.Code,
-		Port:                   listener.Port,
-		UseHttp2:               listener.UseHttp2,
-		SslCertificateNo:       listener.SslCertificateNo,
-		TlsMinVersionType:      listener.TlsMinVersionType.Code,
-		LoadBalancerRuleNoList: listener.LoadBalancerRuleNoList,
-	}
 }
 
 func resourceNcloudLbUpdate(d *schema.ResourceData, meta interface{}) error {
 	config := meta.(*ProviderConfig)
 
-	if d.HasChange("idle_timeout") || d.HasChange("throughput_type") {
+	if d.HasChanges("idle_timeout", "throughput_type") {
 		_, err := config.Client.vloadbalancer.V2Api.ChangeLoadBalancerInstanceConfiguration(&vloadbalancer.ChangeLoadBalancerInstanceConfigurationRequest{
 			RegionCode:             &config.RegionCode,
 			LoadBalancerInstanceNo: ncloud.String(d.Id()),
@@ -342,17 +275,118 @@ func resourceNcloudLbUpdate(d *schema.ResourceData, meta interface{}) error {
 		}
 	}
 
-	//if d.HasChange("listener_list") {
-	//	_, err := config.Client.vloadbalancer.V2Api.ChangeLoadBalancerListenerConfiguration(&vloadbalancer.ChangeLoadBalancerListenerConfigurationRequest{
-	//		RegionCode:             &config.RegionCode,
-	//		SslCertificateNo:       nil,
-	//		UseHttp2:               nil,
-	//		LoadBalancerListenerNo: nil,
-	//		Port:                   nil,
-	//		ProtocolTypeCode:       nil,
-	//		TlsMinVersionTypeCode:  nil,
-	//	})
-	//}
+	if d.HasChange("listener_list") {
+		listenerList := d.Get("listener_list").([]interface{})
+
+		o, n := d.GetChange("listener_list")
+
+		oldListenerNoMap := make(map[string]bool)
+		ol := o.([]interface{})
+		for _, old := range ol {
+			oldMap := old.(map[string]interface{})
+			oldListenerNoMap[oldMap["listener_no"].(string)] = true
+		}
+
+		nl := n.([]interface{})
+		newListenerNoMap := make(map[string]bool)
+		for _, newInterface := range nl {
+			newMap := newInterface.(map[string]interface{})
+			newListenerNoMap[newMap["listener_no"].(string)] = true
+		}
+
+		for k, _ := range oldListenerNoMap {
+			if newListenerNoMap[k] {
+				delete(oldListenerNoMap, k)
+			}
+		}
+
+		for k, v := range oldListenerNoMap {
+			log.Printf("Removed listener (%s)", k)
+			if v {
+				if err := waitForLoadBalancerActive(d, config, ncloud.String(d.Id())); err != nil {
+					return err
+				}
+				reqParams := &vloadbalancer.DeleteLoadBalancerListenersRequest{
+					RegionCode:                 &config.RegionCode,
+					LoadBalancerListenerNoList: []*string{ncloud.String(k)},
+				}
+				if _, err := config.Client.vloadbalancer.V2Api.DeleteLoadBalancerListeners(reqParams); err != nil {
+					return err
+				}
+			}
+		}
+
+		for _, listener := range listenerList {
+			listenerMap := listener.(map[string]interface{})
+			if err := waitForLoadBalancerActive(d, config, ncloud.String(d.Id())); err != nil {
+				return err
+			}
+			// non listener_no is new
+			if reflect.Value.IsZero(reflect.ValueOf(listenerMap["listener_no"])) {
+				reqParams := &vloadbalancer.CreateLoadBalancerListenerRequest{
+					RegionCode:             &config.RegionCode,
+					LoadBalancerInstanceNo: ncloud.String(d.Id()),
+				}
+
+				if ok := reflect.Value.IsZero(reflect.ValueOf(listenerMap["target_group_no"])); !ok {
+					reqParams.TargetGroupNo = ncloud.String(listenerMap["target_group_no"].(string))
+				}
+
+				if ok := reflect.Value.IsZero(reflect.ValueOf(listenerMap["protocol"])); !ok {
+					reqParams.ProtocolTypeCode = ncloud.String(listenerMap["protocol"].(string))
+				}
+
+				if ok := reflect.Value.IsZero(reflect.ValueOf(listenerMap["port"])); !ok {
+					reqParams.Port = ncloud.Int32(int32(listenerMap["port"].(int)))
+				}
+
+				if ok := reflect.Value.IsZero(reflect.ValueOf(listenerMap["ssl_certificate_no"])); !ok {
+					reqParams.SslCertificateNo = ncloud.String(listenerMap["ssl_certificate_no"].(string))
+				}
+
+				if ok := reflect.Value.IsZero(reflect.ValueOf(listenerMap["use_http2"])); !ok {
+					reqParams.UseHttp2 = ncloud.Bool(listenerMap["use_http2"].(bool))
+				}
+
+				if ok := reflect.Value.IsZero(reflect.ValueOf(listenerMap["tls_min_version_type"])); !ok {
+					reqParams.TlsMinVersionTypeCode = ncloud.String(listenerMap["tls_min_version_type"].(string))
+				}
+
+				if _, err := config.Client.vloadbalancer.V2Api.CreateLoadBalancerListener(reqParams); err != nil {
+					return err
+				}
+			} else {
+				reqParams := &vloadbalancer.ChangeLoadBalancerListenerConfigurationRequest{
+					RegionCode:             &config.RegionCode,
+					LoadBalancerListenerNo: ncloud.String(listenerMap["listener_no"].(string)),
+				}
+
+				if ok := reflect.Value.IsZero(reflect.ValueOf(listenerMap["protocol"])); !ok {
+					reqParams.ProtocolTypeCode = ncloud.String(listenerMap["protocol"].(string))
+				}
+
+				if ok := reflect.Value.IsZero(reflect.ValueOf(listenerMap["port"])); !ok {
+					reqParams.Port = ncloud.Int32(int32(listenerMap["port"].(int)))
+				}
+
+				if ok := reflect.Value.IsZero(reflect.ValueOf(listenerMap["ssl_certificate_no"])); !ok {
+					reqParams.SslCertificateNo = ncloud.String(listenerMap["ssl_certificate_no"].(string))
+				}
+
+				if ok := reflect.Value.IsZero(reflect.ValueOf(listenerMap["use_http2"])); !ok {
+					reqParams.UseHttp2 = ncloud.Bool(listenerMap["use_http2"].(bool))
+				}
+
+				if ok := reflect.Value.IsZero(reflect.ValueOf(listenerMap["tls_min_version_type"])); !ok {
+					reqParams.TlsMinVersionTypeCode = ncloud.String(listenerMap["tls_min_version_type"].(string))
+				}
+
+				if _, err := config.Client.vloadbalancer.V2Api.ChangeLoadBalancerListenerConfiguration(reqParams); err != nil {
+					return err
+				}
+			}
+		}
+	}
 	return nil
 }
 
@@ -409,7 +443,7 @@ func waitForLoadBalancerDeletion(d *schema.ResourceData, config *ProviderConfig)
 
 func waitForLoadBalancerActive(d *schema.ResourceData, config *ProviderConfig, no *string) error {
 	stateConf := &resource.StateChangeConf{
-		Pending: []string{LoadBalancerInstanceStatusNameCreating},
+		Pending: []string{LoadBalancerInstanceStatusNameCreating, LoadBalancerInstanceStatusNameChanging},
 		Target:  []string{LoadBalancerInstanceStatusNameRunning},
 		Refresh: func() (result interface{}, state string, err error) {
 			reqParams := &vloadbalancer.GetLoadBalancerInstanceDetailRequest{
@@ -438,16 +472,14 @@ func waitForLoadBalancerActive(d *schema.ResourceData, config *ProviderConfig, n
 	return nil
 }
 
-func expandLoadBalancerListenerList(listeners *schema.Set) []*vloadbalancer.LoadBalancerListenerParameter {
+func expandLoadBalancerListenerList(listeners []interface{}) []*vloadbalancer.LoadBalancerListenerParameter {
 	listenerParameterList := make([]*vloadbalancer.LoadBalancerListenerParameter, 0)
 
-	for _, listenerParameter := range listeners.List() {
+	for _, listenerParameter := range listeners {
 		parameterMap := listenerParameter.(map[string]interface{})
 
 		parameter := &vloadbalancer.LoadBalancerListenerParameter{
-			TargetGroupNo:    ncloud.String(parameterMap["target_group_no"].(string)),
-			SslCertificateNo: ncloud.String(parameterMap["ssl_certificate_no"].(string)),
-			UseHttp2:         ncloud.Bool(parameterMap["use_http2"].(bool)),
+			TargetGroupNo: ncloud.String(parameterMap["target_group_no"].(string)),
 		}
 
 		if ok := reflect.Value.IsZero(reflect.ValueOf(parameterMap["protocol"])); !ok {
@@ -458,6 +490,14 @@ func expandLoadBalancerListenerList(listeners *schema.Set) []*vloadbalancer.Load
 			parameter.Port = ncloud.Int32(int32(parameterMap["port"].(int)))
 		}
 
+		if ok := reflect.Value.IsZero(reflect.ValueOf(parameterMap["ssl_certificate_no"])); !ok {
+			parameter.SslCertificateNo = ncloud.String(parameterMap["ssl_certificate_no"].(string))
+		}
+
+		if ok := reflect.Value.IsZero(reflect.ValueOf(parameterMap["use_http2"])); !ok {
+			parameter.UseHttp2 = ncloud.Bool(parameterMap["use_http2"].(bool))
+		}
+
 		if ok := reflect.Value.IsZero(reflect.ValueOf(parameterMap["tls_min_version_type"])); !ok {
 			parameter.TlsMinVersionTypeCode = ncloud.String(parameterMap["tls_min_version_type"].(string))
 		}
@@ -466,67 +506,6 @@ func expandLoadBalancerListenerList(listeners *schema.Set) []*vloadbalancer.Load
 	}
 
 	return listenerParameterList
-}
-
-func flattenLoadBalancerListenerList(listenerList []*LoadBalancerListener) *schema.Set {
-	vListener := make([]interface{}, 0)
-
-	for _, listener := range listenerList {
-		mListener := map[string]interface{}{
-			"listener_no":          ncloud.StringValue(listener.LoadBalancerListenerNo),
-			"protocol":             ncloud.StringValue(listener.ProtocolType),
-			"port":                 int(ncloud.Int32Value(listener.Port)),
-			"use_http2":            ncloud.BoolValue(listener.UseHttp2),
-			"ssl_certificate_no":   ncloud.StringValue(listener.SslCertificateNo),
-			"tls_min_version_type": ncloud.StringValue(listener.TlsMinVersionType),
-			"rule_no_list":         ncloud.StringListValue(listener.LoadBalancerRuleNoList),
-		}
-		vListener = append(vListener, mListener)
-	}
-
-	logResponse("yoogle-test-2", vListener)
-	return schema.NewSet(LbHash, vListener)
-}
-
-func LbHash(vLb interface{}) int {
-	var buf bytes.Buffer
-
-	mRb := vLb.(map[string]interface{})
-
-	if v, ok := mRb["listener_no"].(string); ok {
-		buf.WriteString(fmt.Sprintf("%s-", v))
-	}
-
-	if v, ok := mRb["target_group_no"].(string); ok {
-		buf.WriteString(fmt.Sprintf("%s-", v))
-	}
-
-	if v, ok := mRb["protocol"].(string); ok {
-		buf.WriteString(fmt.Sprintf("%s-", v))
-	}
-
-	if v, ok := mRb["port"].(int); ok {
-		buf.WriteString(fmt.Sprintf("%d-", v))
-
-	}
-
-	if v, ok := mRb["use_http2"].(bool); ok {
-		buf.WriteString(fmt.Sprintf("%t-", v))
-	}
-
-	if v, ok := mRb["ssl_certificate_no"].(string); ok {
-		buf.WriteString(fmt.Sprintf("%s-", v))
-	}
-
-	if v, ok := mRb["tls_min_version_type"].(string); ok {
-		buf.WriteString(fmt.Sprintf("%s-", v))
-	}
-
-	//if v, ok := mRb["use_http2"].(string); ok {
-	//	buf.WriteString(fmt.Sprintf("%s-", v))
-	//}
-
-	return hashcode(buf.String())
 }
 
 func convertLbInstance(instance *vloadbalancer.LoadBalancerInstance) *LoadBalancerInstance {
@@ -545,5 +524,17 @@ func convertLbInstance(instance *vloadbalancer.LoadBalancerInstance) *LoadBalanc
 		IdleTimeout:                    instance.IdleTimeout,
 		VpcNo:                          instance.VpcNo,
 		SubnetNoList:                   instance.SubnetNoList,
+	}
+}
+
+func convertListener(listener *vloadbalancer.LoadBalancerListener) *LoadBalancerListener {
+	return &LoadBalancerListener{
+		LoadBalancerListenerNo: listener.LoadBalancerListenerNo,
+		ProtocolType:           listener.ProtocolType.Code,
+		Port:                   listener.Port,
+		UseHttp2:               listener.UseHttp2,
+		SslCertificateNo:       listener.SslCertificateNo,
+		TlsMinVersionType:      listener.TlsMinVersionType.Code,
+		LoadBalancerRuleNoList: listener.LoadBalancerRuleNoList,
 	}
 }
