@@ -166,7 +166,7 @@ func resourceNcloudLb() *schema.Resource {
 func resourceNcloudLbCreate(d *schema.ResourceData, meta interface{}) error {
 	config := meta.(*ProviderConfig)
 	if !config.SupportVPC {
-		return NotSupportClassic("resource `ncloud_lb_target_group`")
+		return NotSupportClassic("resource `ncloud_lb`")
 	}
 	reqParams := &vloadbalancer.CreateLoadBalancerInstanceRequest{
 		RegionCode: &config.RegionCode,
@@ -200,6 +200,10 @@ func resourceNcloudLbCreate(d *schema.ResourceData, meta interface{}) error {
 }
 
 func resourceNcloudLbRead(d *schema.ResourceData, meta interface{}) error {
+	config := meta.(*ProviderConfig)
+	if !config.SupportVPC {
+		return NotSupportClassic("resource `ncloud_lb`")
+	}
 
 	//It is used to maintain the diff Sync of target_group_no
 	dataListenerList := d.Get("listener_list").([]interface{})
@@ -210,7 +214,6 @@ func resourceNcloudLbRead(d *schema.ResourceData, meta interface{}) error {
 	}
 
 	// received Load Balancer instance detail from API
-	config := meta.(*ProviderConfig)
 	reqParams := &vloadbalancer.GetLoadBalancerInstanceDetailRequest{
 		RegionCode:             &config.RegionCode,
 		LoadBalancerInstanceNo: ncloud.String(d.Id()),
@@ -260,7 +263,9 @@ func resourceNcloudLbRead(d *schema.ResourceData, meta interface{}) error {
 
 func resourceNcloudLbUpdate(d *schema.ResourceData, meta interface{}) error {
 	config := meta.(*ProviderConfig)
-
+	if !config.SupportVPC {
+		return NotSupportClassic("resource `ncloud_lb`")
+	}
 	if d.HasChanges("idle_timeout", "throughput_type") {
 		_, err := config.Client.vloadbalancer.V2Api.ChangeLoadBalancerInstanceConfiguration(&vloadbalancer.ChangeLoadBalancerInstanceConfigurationRequest{
 			RegionCode:             &config.RegionCode,
@@ -390,6 +395,9 @@ func resourceNcloudLbUpdate(d *schema.ResourceData, meta interface{}) error {
 
 func resourceNcloudLbDelete(d *schema.ResourceData, meta interface{}) error {
 	config := meta.(*ProviderConfig)
+	if !config.SupportVPC {
+		return NotSupportClassic("resource `ncloud_lb`")
+	}
 	deleteInstanceReqParams := &vloadbalancer.DeleteLoadBalancerInstancesRequest{
 		RegionCode:                 &config.RegionCode,
 		LoadBalancerInstanceNoList: ncloud.StringList([]string{d.Id()}),

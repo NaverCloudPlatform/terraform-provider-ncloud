@@ -28,6 +28,9 @@ func dataSourceNcloudLb() *schema.Resource {
 
 func dataSourceNcloudLbRead(d *schema.ResourceData, meta interface{}) error {
 	config := meta.(*ProviderConfig)
+	if !config.SupportVPC {
+		return NotSupportClassic("datasource `ncloud_lb`")
+	}
 
 	if v, ok := d.GetOk("id"); ok {
 		d.SetId(v.(string))

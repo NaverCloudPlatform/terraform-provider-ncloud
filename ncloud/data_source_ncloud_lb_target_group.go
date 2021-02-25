@@ -64,6 +64,9 @@ func dataSourceNcloudLbTargetGroup() *schema.Resource {
 
 func dataSourceNcloudLbTargetGroupRead(d *schema.ResourceData, meta interface{}) error {
 	config := meta.(*ProviderConfig)
+	if !config.SupportVPC {
+		return NotSupportClassic("datasource `ncloud_lb_target_group`")
+	}
 
 	if v, ok := d.GetOk("id"); ok {
 		d.SetId(v.(string))
