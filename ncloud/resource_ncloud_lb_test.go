@@ -27,6 +27,8 @@ func TestAccResourceNcloudLb_vpc_basic(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckLbExists(resourceName, &lb, testAccProvider),
 				),
+				// Temporary setting
+				ExpectNonEmptyPlan: true,
 			},
 			{
 				ResourceName:            resourceName,
