@@ -1,8 +1,10 @@
 package ncloud
 
 import (
+	"context"
 	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/ncloud"
 	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/services/vloadbalancer"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
@@ -59,13 +61,13 @@ func dataSourceNcloudLbTargetGroup() *schema.Resource {
 		},
 		"filter": dataSourceFiltersSchema(),
 	}
-	return GetSingularDataSourceItemSchema(resourceNcloudLbTargetGroup(), fieldMap, dataSourceNcloudLbTargetGroupRead)
+	return GetSingularDataSourceItemSchemaContext(resourceNcloudLbTargetGroup(), fieldMap, dataSourceNcloudLbTargetGroupRead)
 }
 
-func dataSourceNcloudLbTargetGroupRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceNcloudLbTargetGroupRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	config := meta.(*ProviderConfig)
 	if !config.SupportVPC {
-		return NotSupportClassic("datasource `ncloud_lb_target_group`")
+		return diag.FromErr(NotSupportClassic("datasource `ncloud_lb_target_group`"))
 	}
 
 	if v, ok := d.GetOk("id"); ok {
@@ -82,7 +84,7 @@ func dataSourceNcloudLbTargetGroupRead(d *schema.ResourceData, meta interface{})
 
 	resp, err := config.Client.vloadbalancer.V2Api.GetTargetGroupList(reqParams)
 	if err != nil {
-		return err
+		return diag.FromErr(err)
 	}
 
 	targetGroupList := make([]*TargetGroup, 0)
@@ -120,7 +122,7 @@ func dataSourceNcloudLbTargetGroupRead(d *schema.ResourceData, meta interface{})
 	}
 
 	if err := validateOneResult(len(targetGroupListMap)); err != nil {
-		return err
+		return diag.FromErr(err)
 	}
 
 	d.SetId(targetGroupListMap[0]["target_group_no"].(string))

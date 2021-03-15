@@ -1,8 +1,10 @@
 package ncloud
 
 import (
+	"context"
 	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/ncloud"
 	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/services/vloadbalancer"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
@@ -20,10 +22,10 @@ const (
 
 func resourceNcloudLbListener() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceNcloudLbListenerCreate,
-		Read:   resourceNcloudLbListenerRead,
-		Update: resourceNcloudLbListenerUpdate,
-		Delete: resourceNcloudLbListenerDelete,
+		CreateContext: resourceNcloudLbListenerCreate,
+		ReadContext:   resourceNcloudLbListenerRead,
+		UpdateContext: resourceNcloudLbListenerUpdate,
+		DeleteContext: resourceNcloudLbListenerDelete,
 		Importer: &schema.ResourceImporter{
 			StateContext: schema.ImportStatePassthroughContext,
 		},
@@ -79,10 +81,10 @@ func resourceNcloudLbListener() *schema.Resource {
 	}
 }
 
-func resourceNcloudLbListenerCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceNcloudLbListenerCreate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	config := meta.(*ProviderConfig)
 	if !config.SupportVPC {
-		return NotSupportClassic("resource `ncloud_lb_listener`")
+		return diag.FromErr(NotSupportClassic("resource `ncloud_lb_listener`"))
 	}
 
 	reqParams := &vloadbalancer.CreateLoadBalancerListenerRequest{
@@ -100,7 +102,7 @@ func resourceNcloudLbListenerCreate(d *schema.ResourceData, meta interface{}) er
 	}
 
 	listener := &vloadbalancer.LoadBalancerListener{}
-	err := resource.Retry(5*time.Minute, func() *resource.RetryError {
+	err := resource.RetryContext(ctx, 5*time.Minute, func() *resource.RetryError {
 		resp, err := config.Client.vloadbalancer.V2Api.CreateLoadBalancerListener(reqParams)
 		if err != nil {
 			errBody, _ := GetCommonErrorBody(err)
@@ -114,17 +116,17 @@ func resourceNcloudLbListenerCreate(d *schema.ResourceData, meta interface{}) er
 	})
 
 	if err != nil {
-		return err
+		return diag.FromErr(err)
 	}
 
 	d.SetId(ncloud.StringValue(listener.LoadBalancerListenerNo))
-	return resourceNcloudLbListenerRead(d, meta)
+	return resourceNcloudLbListenerRead(ctx, d, meta)
 }
 
-func resourceNcloudLbListenerRead(d *schema.ResourceData, meta interface{}) error {
+func resourceNcloudLbListenerRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	config := meta.(*ProviderConfig)
 	if !config.SupportVPC {
-		return NotSupportClassic("resource `ncloud_lb_listener`")
+		return diag.FromErr(NotSupportClassic("resource `ncloud_lb_listener`"))
 	}
 	reqParams := &vloadbalancer.GetLoadBalancerListenerListRequest{
 		RegionCode:             &config.RegionCode,
@@ -132,7 +134,7 @@ func resourceNcloudLbListenerRead(d *schema.ResourceData, meta interface{}) erro
 	}
 	resp, err := config.Client.vloadbalancer.V2Api.GetLoadBalancerListenerList(reqParams)
 	if err != nil {
-		return err
+		return diag.FromErr(err)
 	}
 
 	listener := &LoadBalancerListener{}
@@ -153,10 +155,10 @@ func resourceNcloudLbListenerRead(d *schema.ResourceData, meta interface{}) erro
 	return nil
 }
 
-func resourceNcloudLbListenerUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceNcloudLbListenerUpdate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	config := meta.(*ProviderConfig)
 	if !config.SupportVPC {
-		return NotSupportClassic("resource `ncloud_lb_listener`")
+		return diag.FromErr(NotSupportClassic("resource `ncloud_lb_listener`"))
 	}
 	reqParams := &vloadbalancer.ChangeLoadBalancerListenerConfigurationRequest{
 		RegionCode: &config.RegionCode,
@@ -184,23 +186,23 @@ func resourceNcloudLbListenerUpdate(d *schema.ResourceData, meta interface{}) er
 	})
 
 	if err != nil {
-		return err
+		return diag.FromErr(err)
 	}
 
-	return resourceNcloudLbListenerRead(d, config)
+	return resourceNcloudLbListenerRead(ctx, d, config)
 }
 
-func resourceNcloudLbListenerDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceNcloudLbListenerDelete(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	config := meta.(*ProviderConfig)
 	if !config.SupportVPC {
-		return NotSupportClassic("resource `ncloud_lb_listener`")
+		return diag.FromErr(NotSupportClassic("resource `ncloud_lb_listener`"))
 	}
 	reqParams := &vloadbalancer.DeleteLoadBalancerListenersRequest{
 		RegionCode:                 &config.RegionCode,
 		LoadBalancerListenerNoList: []*string{ncloud.String(d.Id())},
 	}
 
-	err := resource.Retry(5*time.Minute, func() *resource.RetryError {
+	err := resource.RetryContext(ctx, 5*time.Minute, func() *resource.RetryError {
 		_, err := config.Client.vloadbalancer.V2Api.DeleteLoadBalancerListeners(reqParams)
 		if err != nil {
 			errBody, _ := GetCommonErrorBody(err)
@@ -213,7 +215,7 @@ func resourceNcloudLbListenerDelete(d *schema.ResourceData, meta interface{}) er
 	})
 
 	if err != nil {
-		return err
+		return diag.FromErr(err)
 	}
 	d.SetId("")
 	return nil

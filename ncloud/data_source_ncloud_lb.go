@@ -1,8 +1,10 @@
 package ncloud
 
 import (
+	"context"
 	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/ncloud"
 	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/services/vloadbalancer"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
@@ -23,13 +25,13 @@ func dataSourceNcloudLb() *schema.Resource {
 		},
 		"filter": dataSourceFiltersSchema(),
 	}
-	return GetSingularDataSourceItemSchema(resourceNcloudLb(), fieldMap, dataSourceNcloudLbRead)
+	return GetSingularDataSourceItemSchemaContext(resourceNcloudLb(), fieldMap, dataSourceNcloudLbRead)
 }
 
-func dataSourceNcloudLbRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceNcloudLbRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	config := meta.(*ProviderConfig)
 	if !config.SupportVPC {
-		return NotSupportClassic("datasource `ncloud_lb`")
+		return diag.FromErr(NotSupportClassic("datasource `ncloud_lb`"))
 	}
 
 	if v, ok := d.GetOk("id"); ok {
@@ -46,7 +48,7 @@ func dataSourceNcloudLbRead(d *schema.ResourceData, meta interface{}) error {
 
 	resp, err := config.Client.vloadbalancer.V2Api.GetLoadBalancerInstanceList(reqParams)
 	if err != nil {
-		return err
+		return diag.FromErr(err)
 	}
 
 	lbList := make([]*LoadBalancerInstance, 0)
@@ -56,7 +58,7 @@ func dataSourceNcloudLbRead(d *schema.ResourceData, meta interface{}) error {
 			LoadBalancerInstanceNo: lb.LoadBalancerInstanceNo,
 		})
 		if err != nil {
-			return err
+			return diag.FromErr(err)
 		}
 		listenerList := make([]*LoadBalancerListener, 0)
 		for _, listener := range resp.LoadBalancerListenerList {
@@ -95,7 +97,7 @@ func dataSourceNcloudLbRead(d *schema.ResourceData, meta interface{}) error {
 	}
 
 	if err := validateOneResult(len(lbListMap)); err != nil {
-		return err
+		return diag.FromErr(err)
 	}
 
 	d.SetId(lbListMap[0]["load_balancer_no"].(string))

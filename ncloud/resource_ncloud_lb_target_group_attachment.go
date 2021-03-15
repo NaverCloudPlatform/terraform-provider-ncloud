@@ -1,8 +1,10 @@
 package ncloud
 
 import (
+	"context"
 	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/ncloud"
 	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/services/vloadbalancer"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"log"
 	"time"
@@ -18,9 +20,9 @@ func init() {
 
 func resourceNcloudLbTargetGroupAttachment() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceNcloudLbTargetGroupAttachmentCreate,
-		Read:   resourceNcloudLbTargetGroupAttachmentRead,
-		Delete: resourceNcloudLbTargetGroupAttachmentDelete,
+		CreateContext: resourceNcloudLbTargetGroupAttachmentCreate,
+		ReadContext:   resourceNcloudLbTargetGroupAttachmentRead,
+		DeleteContext: resourceNcloudLbTargetGroupAttachmentDelete,
 		Importer: &schema.ResourceImporter{
 			StateContext: schema.ImportStatePassthroughContext,
 		},
@@ -39,10 +41,10 @@ func resourceNcloudLbTargetGroupAttachment() *schema.Resource {
 	}
 }
 
-func resourceNcloudLbTargetGroupAttachmentCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceNcloudLbTargetGroupAttachmentCreate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	config := meta.(*ProviderConfig)
 	if !config.SupportVPC {
-		return NotSupportClassic("resource `ncloud_lb_target_group_attachment`")
+		return diag.FromErr(NotSupportClassic("resource `ncloud_lb_target_group_attachment`"))
 	}
 	reqParams := &vloadbalancer.AddTargetRequest{
 		RegionCode:    &config.RegionCode,
@@ -50,16 +52,16 @@ func resourceNcloudLbTargetGroupAttachmentCreate(d *schema.ResourceData, meta in
 		TargetNoList:  ncloud.StringList([]string{d.Get("target_no").(string)}),
 	}
 	if _, err := config.Client.vloadbalancer.V2Api.AddTarget(reqParams); err != nil {
-		return err
+		return diag.FromErr(err)
 	}
 	d.SetId(time.Now().UTC().String())
 	return nil
 }
 
-func resourceNcloudLbTargetGroupAttachmentRead(d *schema.ResourceData, meta interface{}) error {
+func resourceNcloudLbTargetGroupAttachmentRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	config := meta.(*ProviderConfig)
 	if !config.SupportVPC {
-		return NotSupportClassic("resource `ncloud_lb_target_group`")
+		return diag.FromErr(NotSupportClassic("resource `ncloud_lb_target_group`"))
 	}
 	reqParams := &vloadbalancer.GetTargetListRequest{
 		RegionCode:    &config.RegionCode,
@@ -73,7 +75,7 @@ func resourceNcloudLbTargetGroupAttachmentRead(d *schema.ResourceData, meta inte
 			d.SetId("")
 			return nil
 		}
-		return err
+		return diag.FromErr(err)
 	}
 
 	var exist bool
@@ -92,10 +94,10 @@ func resourceNcloudLbTargetGroupAttachmentRead(d *schema.ResourceData, meta inte
 	return nil
 }
 
-func resourceNcloudLbTargetGroupAttachmentDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceNcloudLbTargetGroupAttachmentDelete(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	config := meta.(*ProviderConfig)
 	if !config.SupportVPC {
-		return NotSupportClassic("resource `ncloud_lb_target_group_attachment`")
+		return diag.FromErr(NotSupportClassic("resource `ncloud_lb_target_group_attachment`"))
 	}
 	reqParams := &vloadbalancer.RemoveTargetRequest{
 		RegionCode:    &config.RegionCode,
@@ -103,7 +105,7 @@ func resourceNcloudLbTargetGroupAttachmentDelete(d *schema.ResourceData, meta in
 		TargetNoList:  ncloud.StringList([]string{d.Get("target_no").(string)}),
 	}
 	if _, err := config.Client.vloadbalancer.V2Api.RemoveTarget(reqParams); err != nil {
-		return err
+		return diag.FromErr(err)
 	}
 	return nil
 }

@@ -1,9 +1,11 @@
 package ncloud
 
 import (
+	"context"
 	"fmt"
 	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/ncloud"
 	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/services/vloadbalancer"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 )
@@ -14,10 +16,10 @@ func init() {
 
 func resourceNcloudLbTargetGroup() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceNcloudTargetGroupCreate,
-		Read:   resourceNcloudTargetGroupRead,
-		Update: resourceNcloudTargetGroupUpdate,
-		Delete: resourceNcloudTargetGroupDelete,
+		CreateContext: resourceNcloudTargetGroupCreate,
+		ReadContext:   resourceNcloudTargetGroupRead,
+		UpdateContext: resourceNcloudTargetGroupUpdate,
+		DeleteContext: resourceNcloudTargetGroupDelete,
 		Importer: &schema.ResourceImporter{
 			StateContext: schema.ImportStatePassthroughContext,
 		},
@@ -142,10 +144,10 @@ func resourceNcloudLbTargetGroup() *schema.Resource {
 	}
 }
 
-func resourceNcloudTargetGroupCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceNcloudTargetGroupCreate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	config := meta.(*ProviderConfig)
 	if !config.SupportVPC {
-		return NotSupportClassic("resource `ncloud_lb_target_group`")
+		return diag.FromErr(NotSupportClassic("resource `ncloud_lb_target_group`"))
 	}
 	reqParams := &vloadbalancer.CreateTargetGroupRequest{
 		RegionCode: &config.RegionCode,
@@ -171,13 +173,13 @@ func resourceNcloudTargetGroupCreate(d *schema.ResourceData, meta interface{}) e
 		// Required
 		reqParams.HealthCheckProtocolTypeCode = ncloud.String(healthCheck["protocol"].(string))
 		if err := validateHealthCheckProtocolByTargetGroupProtocol(*reqParams.TargetGroupProtocolTypeCode, *reqParams.HealthCheckProtocolTypeCode); err != nil {
-			return err
+			return diag.FromErr(err)
 		}
 
 		if *reqParams.HealthCheckProtocolTypeCode == "HTTP" || *reqParams.HealthCheckProtocolTypeCode == "HTTPS" {
 			reqParams.HealthCheckUrlPath = ncloud.String(healthCheck["url_path"].(string))
 			if healthCheck["http_method"] == "" {
-				return fmt.Errorf("http_method is required if the health check protocol type is HTTP or HTTPS.")
+				return diag.FromErr(fmt.Errorf("http_method is required if the health check protocol type is HTTP or HTTPS."))
 			}
 			reqParams.HealthCheckHttpMethodTypeCode = ncloud.String(healthCheck["http_method"].(string))
 		}
@@ -188,17 +190,17 @@ func resourceNcloudTargetGroupCreate(d *schema.ResourceData, meta interface{}) e
 	logResponse("resourceNcloudTargetGroupCreate", resp)
 	if err != nil {
 		logErrorResponse("resourceNcloudTargetGroupCreate", err, reqParams)
-		return err
+		return diag.FromErr(err)
 	}
 
 	d.SetId(ncloud.StringValue(resp.TargetGroupList[0].TargetGroupNo))
-	return resourceNcloudTargetGroupUpdate(d, meta)
+	return resourceNcloudTargetGroupUpdate(ctx, d, meta)
 }
 
-func resourceNcloudTargetGroupRead(d *schema.ResourceData, meta interface{}) error {
+func resourceNcloudTargetGroupRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	config := meta.(*ProviderConfig)
 	if !config.SupportVPC {
-		return NotSupportClassic("resource `ncloud_lb_target_group`")
+		return diag.FromErr(NotSupportClassic("resource `ncloud_lb_target_group`"))
 	}
 	reqParams := &vloadbalancer.GetTargetGroupListRequest{
 		RegionCode:        &config.RegionCode,
@@ -209,7 +211,7 @@ func resourceNcloudTargetGroupRead(d *schema.ResourceData, meta interface{}) err
 	logResponse("resourceNcloudTargetGroupRead", resp)
 	if err != nil {
 		logErrorResponse("resourceNcloudTargetGroupRead", err, reqParams)
-		return err
+		return diag.FromErr(err)
 	}
 	respTg := resp.TargetGroupList[0]
 	tg := &TargetGroup{
@@ -242,10 +244,10 @@ func resourceNcloudTargetGroupRead(d *schema.ResourceData, meta interface{}) err
 	return nil
 }
 
-func resourceNcloudTargetGroupUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceNcloudTargetGroupUpdate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	config := meta.(*ProviderConfig)
 	if !config.SupportVPC {
-		return NotSupportClassic("resource `ncloud_lb_target_group`")
+		return diag.FromErr(NotSupportClassic("resource `ncloud_lb_target_group`"))
 	}
 	if d.HasChange("health_check") {
 		reqParams := &vloadbalancer.ChangeTargetGroupHealthCheckConfigurationRequest{
@@ -265,7 +267,7 @@ func resourceNcloudTargetGroupUpdate(d *schema.ResourceData, meta interface{}) e
 			if healthCheckProtocol == "HTTP" || healthCheckProtocol == "HTTPS" {
 				reqParams.HealthCheckUrlPath = ncloud.String(healthCheck["url_path"].(string))
 				if healthCheck["http_method"] == "" {
-					return fmt.Errorf("http_method is required if the health check protocol type is HTTP or HTTPS.")
+					return diag.FromErr(fmt.Errorf("http_method is required if the health check protocol type is HTTP or HTTPS."))
 				}
 				reqParams.HealthCheckHttpMethodTypeCode = ncloud.String(healthCheck["http_method"].(string))
 			}
@@ -273,7 +275,7 @@ func resourceNcloudTargetGroupUpdate(d *schema.ResourceData, meta interface{}) e
 		logCommonRequest("resourceNcloudTargetGroupUpdate", reqParams)
 		if _, err := config.Client.vloadbalancer.V2Api.ChangeTargetGroupHealthCheckConfiguration(reqParams); err != nil {
 			logErrorResponse("resourceNcloudTargetGroupUpdate", err, reqParams)
-			return err
+			return diag.FromErr(err)
 		}
 	}
 
@@ -293,28 +295,28 @@ func resourceNcloudTargetGroupUpdate(d *schema.ResourceData, meta interface{}) e
 		}
 
 		if err := validateAlgorithmTypeByTargetGroupProtocol(*reqParams.AlgorithmTypeCode, targetGroupProtocol); err != nil {
-			return err
+			return diag.FromErr(err)
 		}
 		logCommonRequest("resourceNcloudTargetGroupUpdate", reqParams)
 		if _, err := config.Client.vloadbalancer.V2Api.ChangeTargetGroupConfiguration(reqParams); err != nil {
-			return err
+			return diag.FromErr(err)
 		}
 	}
 
-	return resourceNcloudTargetGroupRead(d, meta)
+	return resourceNcloudTargetGroupRead(ctx, d, meta)
 }
 
-func resourceNcloudTargetGroupDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceNcloudTargetGroupDelete(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	config := meta.(*ProviderConfig)
 	if !config.SupportVPC {
-		return NotSupportClassic("resource `ncloud_lb_target_group`")
+		return diag.FromErr(NotSupportClassic("resource `ncloud_lb_target_group`"))
 	}
 	reqParams := &vloadbalancer.DeleteTargetGroupsRequest{
 		RegionCode:        &config.RegionCode,
 		TargetGroupNoList: []*string{ncloud.String(d.Id())},
 	}
 	if _, err := config.Client.vloadbalancer.V2Api.DeleteTargetGroups(reqParams); err != nil {
-		return err
+		return diag.FromErr(err)
 	}
 
 	return nil

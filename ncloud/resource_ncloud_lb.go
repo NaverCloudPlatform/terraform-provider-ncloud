@@ -1,9 +1,11 @@
 package ncloud
 
 import (
+	"context"
 	"fmt"
 	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/ncloud"
 	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/services/vloadbalancer"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
@@ -25,10 +27,10 @@ const (
 
 func resourceNcloudLb() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceNcloudLbCreate,
-		Read:   resourceNcloudLbRead,
-		Update: resourceNcloudLbUpdate,
-		Delete: resourceNcloudLbDelete,
+		CreateContext: resourceNcloudLbCreate,
+		ReadContext:   resourceNcloudLbRead,
+		UpdateContext: resourceNcloudLbUpdate,
+		DeleteContext: resourceNcloudLbDelete,
 		Importer: &schema.ResourceImporter{
 			StateContext: schema.ImportStatePassthroughContext,
 		},
@@ -109,10 +111,10 @@ func resourceNcloudLb() *schema.Resource {
 	}
 }
 
-func resourceNcloudLbCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceNcloudLbCreate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	config := meta.(*ProviderConfig)
 	if !config.SupportVPC {
-		return NotSupportClassic("resource `ncloud_lb`")
+		return diag.FromErr(NotSupportClassic("resource `ncloud_lb`"))
 	}
 	reqParams := &vloadbalancer.CreateLoadBalancerInstanceRequest{
 		RegionCode: &config.RegionCode,
@@ -129,7 +131,7 @@ func resourceNcloudLbCreate(d *schema.ResourceData, meta interface{}) error {
 	}
 	subnet, err := getSubnetInstance(config, *reqParams.SubnetNoList[0])
 	if err != nil {
-		return err
+		return diag.FromErr(err)
 	}
 
 	reqParams.VpcNo = subnet.VpcNo
@@ -137,20 +139,20 @@ func resourceNcloudLbCreate(d *schema.ResourceData, meta interface{}) error {
 	resp, err := config.Client.vloadbalancer.V2Api.CreateLoadBalancerInstance(reqParams)
 	if err != nil {
 		logErrorResponse("resourceNcloudLbCreate", err, reqParams)
-		return err
+		return diag.FromErr(err)
 	}
 	logResponse("resourceNcloudLbCreate", resp)
-	if err := waitForLoadBalancerActive(d, config, resp.LoadBalancerInstanceList[0].LoadBalancerInstanceNo); err != nil {
-		return err
+	if err := waitForLoadBalancerActive(ctx, d, config, resp.LoadBalancerInstanceList[0].LoadBalancerInstanceNo); err != nil {
+		return diag.FromErr(err)
 	}
 	d.SetId(ncloud.StringValue(resp.LoadBalancerInstanceList[0].LoadBalancerInstanceNo))
-	return resourceNcloudLbRead(d, meta)
+	return resourceNcloudLbRead(ctx, d, meta)
 }
 
-func resourceNcloudLbRead(d *schema.ResourceData, meta interface{}) error {
+func resourceNcloudLbRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	config := meta.(*ProviderConfig)
 	if !config.SupportVPC {
-		return NotSupportClassic("resource `ncloud_lb`")
+		return diag.FromErr(NotSupportClassic("resource `ncloud_lb`"))
 	}
 
 	reqParams := &vloadbalancer.GetLoadBalancerInstanceDetailRequest{
@@ -159,7 +161,7 @@ func resourceNcloudLbRead(d *schema.ResourceData, meta interface{}) error {
 	}
 	resp, err := config.Client.vloadbalancer.V2Api.GetLoadBalancerInstanceDetail(reqParams)
 	if err != nil {
-		return err
+		return diag.FromErr(err)
 	}
 	lb := convertLbInstance(resp.LoadBalancerInstanceList[0])
 	lbMap := ConvertToMap(lb)
@@ -167,10 +169,10 @@ func resourceNcloudLbRead(d *schema.ResourceData, meta interface{}) error {
 	return nil
 }
 
-func resourceNcloudLbUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceNcloudLbUpdate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	config := meta.(*ProviderConfig)
 	if !config.SupportVPC {
-		return NotSupportClassic("resource `ncloud_lb`")
+		return diag.FromErr(NotSupportClassic("resource `ncloud_lb`"))
 	}
 	if d.HasChanges("idle_timeout", "throughput_type") {
 		_, err := config.Client.vloadbalancer.V2Api.ChangeLoadBalancerInstanceConfiguration(&vloadbalancer.ChangeLoadBalancerInstanceConfigurationRequest{
@@ -180,7 +182,7 @@ func resourceNcloudLbUpdate(d *schema.ResourceData, meta interface{}) error {
 			ThroughputTypeCode:     StringPtrOrNil(d.GetOk("throughput_type")),
 		})
 		if err != nil {
-			return err
+			return diag.FromErr(err)
 		}
 	}
 
@@ -191,16 +193,16 @@ func resourceNcloudLbUpdate(d *schema.ResourceData, meta interface{}) error {
 			LoadBalancerDescription: StringPtrOrNil(d.GetOk("description")),
 		})
 		if err != nil {
-			return err
+			return diag.FromErr(err)
 		}
 	}
-	return resourceNcloudLbRead(d, config)
+	return resourceNcloudLbRead(ctx, d, config)
 }
 
-func resourceNcloudLbDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceNcloudLbDelete(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	config := meta.(*ProviderConfig)
 	if !config.SupportVPC {
-		return NotSupportClassic("resource `ncloud_lb`")
+		return diag.FromErr(NotSupportClassic("resource `ncloud_lb`"))
 	}
 	deleteInstanceReqParams := &vloadbalancer.DeleteLoadBalancerInstancesRequest{
 		RegionCode:                 &config.RegionCode,
@@ -210,17 +212,17 @@ func resourceNcloudLbDelete(d *schema.ResourceData, meta interface{}) error {
 	logCommonRequest("resourceNcloudLbDelete", deleteInstanceReqParams)
 	if _, err := config.Client.vloadbalancer.V2Api.DeleteLoadBalancerInstances(deleteInstanceReqParams); err != nil {
 		logErrorResponse("resourceNcloudLbDelete", err, deleteInstanceReqParams)
-		return err
+		return diag.FromErr(err)
 	}
 
-	if err := waitForLoadBalancerDeletion(d, config); err != nil {
-		return err
+	if err := waitForLoadBalancerDeletion(ctx, d, config); err != nil {
+		return diag.FromErr(err)
 	}
 
 	return nil
 }
 
-func waitForLoadBalancerDeletion(d *schema.ResourceData, config *ProviderConfig) error {
+func waitForLoadBalancerDeletion(ctx context.Context, d *schema.ResourceData, config *ProviderConfig) error {
 	stateConf := &resource.StateChangeConf{
 		Pending: []string{LoadBalancerInstanceStatusNameTerminating},
 		Target:  []string{LoadBalancerInstanceStatusNameTerminated},
@@ -231,7 +233,7 @@ func waitForLoadBalancerDeletion(d *schema.ResourceData, config *ProviderConfig)
 			}
 			resp, err := config.Client.vloadbalancer.V2Api.GetLoadBalancerInstanceDetail(reqParams)
 			if err != nil {
-				return nil, "", nil
+				return nil, "", err
 			}
 
 			if len(resp.LoadBalancerInstanceList) < 1 {
@@ -245,13 +247,13 @@ func waitForLoadBalancerDeletion(d *schema.ResourceData, config *ProviderConfig)
 		MinTimeout: 3 * time.Second,
 		Delay:      2 * time.Second,
 	}
-	if _, err := stateConf.WaitForState(); err != nil {
+	if _, err := stateConf.WaitForStateContext(ctx); err != nil {
 		return fmt.Errorf("Error waiting for Load Balancer instance (%s) to become terminating: %s", d.Id(), err)
 	}
 	return nil
 }
 
-func waitForLoadBalancerActive(d *schema.ResourceData, config *ProviderConfig, no *string) error {
+func waitForLoadBalancerActive(ctx context.Context, d *schema.ResourceData, config *ProviderConfig, no *string) error {
 	stateConf := &resource.StateChangeConf{
 		Pending: []string{LoadBalancerInstanceStatusNameCreating, LoadBalancerInstanceStatusNameChanging},
 		Target:  []string{LoadBalancerInstanceStatusNameRunning},
@@ -262,7 +264,7 @@ func waitForLoadBalancerActive(d *schema.ResourceData, config *ProviderConfig, n
 			}
 			resp, err := config.Client.vloadbalancer.V2Api.GetLoadBalancerInstanceDetail(reqParams)
 			if err != nil {
-				return nil, "", nil
+				return nil, "", err
 			}
 
 			if len(resp.LoadBalancerInstanceList) < 1 {
@@ -276,7 +278,7 @@ func waitForLoadBalancerActive(d *schema.ResourceData, config *ProviderConfig, n
 		MinTimeout: 3 * time.Second,
 		Delay:      2 * time.Second,
 	}
-	if _, err := stateConf.WaitForState(); err != nil {
+	if _, err := stateConf.WaitForStateContext(ctx); err != nil {
 		return fmt.Errorf("Error waiting for Load Balancer instance (%s) to become activating: %s", *no, err)
 	}
 	return nil

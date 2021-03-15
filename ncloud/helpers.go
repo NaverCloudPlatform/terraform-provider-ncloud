@@ -53,6 +53,38 @@ func GetSingularDataSourceItemSchema(resourceSchema *schema.Resource, addFieldMa
 	return dataSourceSchema
 }
 
+// Get the Singular DataSource Schema from Resource Schema with additional fields and ReadContext Function
+func GetSingularDataSourceItemSchemaContext(resourceSchema *schema.Resource, addFieldMap map[string]*schema.Schema, readFunc schema.ReadContextFunc) *schema.Resource {
+	if _, idExists := resourceSchema.Schema["id"]; !idExists {
+		resourceSchema.Schema["id"] = &schema.Schema{
+			Type:     schema.TypeString,
+			Computed: true,
+		}
+	}
+
+	// Ensure Create,Read, Update and Delete are not set for data source schemas. Otherwise, terraform will validate them
+	// as though they were resources.
+	resourceSchema.CreateContext = nil
+	resourceSchema.ReadContext = readFunc
+	resourceSchema.UpdateContext = nil
+	resourceSchema.DeleteContext = nil
+	resourceSchema.Create = nil
+	resourceSchema.Update = nil
+	resourceSchema.Delete = nil
+	resourceSchema.Read = nil
+	resourceSchema.Importer = nil
+	resourceSchema.Timeouts = nil
+	resourceSchema.CustomizeDiff = nil
+
+	var dataSourceSchema *schema.Resource = convertResourceFieldsToDatasourceFields(resourceSchema)
+
+	for key, value := range addFieldMap {
+		dataSourceSchema.Schema[key] = value
+	}
+
+	return dataSourceSchema
+}
+
 // This is mainly used to ensure that fields of a datasource item are compliant with Terraform schema validation
 // All datasource return items should have computed-only fields; and not require Diff, Validation, or Default settings.
 func convertResourceFieldsToDatasourceFields(resourceSchema *schema.Resource) *schema.Resource {
