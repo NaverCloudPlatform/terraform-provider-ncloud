@@ -2,9 +2,11 @@ package ncloud
 
 import (
 	"context"
+	"fmt"
 	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/ncloud"
 	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/services/vloadbalancer"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"log"
 	"time"
@@ -51,9 +53,27 @@ func resourceNcloudLbTargetGroupAttachmentCreate(ctx context.Context, d *schema.
 		TargetGroupNo: ncloud.String(d.Get("target_group_no").(string)),
 		TargetNoList:  ncloud.StringList([]string{d.Get("target_no").(string)}),
 	}
-	if _, err := config.Client.vloadbalancer.V2Api.AddTarget(reqParams); err != nil {
+
+	err := resource.RetryContext(ctx, 5*time.Minute, func() *resource.RetryError {
+		logCommonRequest("resourceNcloudLbTargetGroupAttachmentCreate", reqParams)
+		resp, err := config.Client.vloadbalancer.V2Api.AddTarget(reqParams)
+		if err != nil {
+			logErrorResponse("resourceNcloudLbTargetGroupAttachmentCreate", err, reqParams)
+			return resource.NonRetryableError(err)
+		}
+
+		logResponse("resourceNcloudLbTargetGroupAttachmentCreate", resp)
+		target := getTargetFromList(resp.TargetList, ncloud.StringValue(reqParams.TargetNoList[0]))
+		if target == nil {
+			return resource.RetryableError(fmt.Errorf("target has not been created yet"))
+		}
+		return nil
+	})
+
+	if err != nil {
 		return diag.FromErr(err)
 	}
+
 	d.SetId(time.Now().UTC().String())
 	return nil
 }
@@ -104,8 +124,34 @@ func resourceNcloudLbTargetGroupAttachmentDelete(ctx context.Context, d *schema.
 		TargetGroupNo: ncloud.String(d.Get("target_group_no").(string)),
 		TargetNoList:  ncloud.StringList([]string{d.Get("target_no").(string)}),
 	}
-	if _, err := config.Client.vloadbalancer.V2Api.RemoveTarget(reqParams); err != nil {
+
+	err := resource.RetryContext(ctx, 5*time.Minute, func() *resource.RetryError {
+		logCommonRequest("resourceNcloudLbTargetGroupAttachmentDelete", reqParams)
+		resp, err := config.Client.vloadbalancer.V2Api.RemoveTarget(reqParams)
+		if err != nil {
+			logErrorResponse("resourceNcloudLbTargetGroupAttachmentDelete", err, reqParams)
+			return resource.NonRetryableError(err)
+		}
+		logResponse("resourceNcloudLbTargetGroupAttachmentDelete", resp)
+
+		target := getTargetFromList(resp.TargetList, ncloud.StringValue(reqParams.TargetNoList[0]))
+		if target != nil {
+			return resource.RetryableError(fmt.Errorf("target has not been removed yet"))
+		}
+		return nil
+	})
+
+	if err != nil {
 		return diag.FromErr(err)
+	}
+	return nil
+}
+
+func getTargetFromList(list []*vloadbalancer.Target, targetNo string) *vloadbalancer.Target {
+	for _, target := range list {
+		if ncloud.StringValue(target.TargetNo) == targetNo {
+			return target
+		}
 	}
 	return nil
 }

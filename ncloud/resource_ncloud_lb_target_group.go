@@ -213,6 +213,11 @@ func resourceNcloudTargetGroupRead(ctx context.Context, d *schema.ResourceData, 
 		logErrorResponse("resourceNcloudTargetGroupRead", err, reqParams)
 		return diag.FromErr(err)
 	}
+
+	if len(resp.TargetGroupList) < 1 {
+		return nil
+	}
+
 	respTg := resp.TargetGroupList[0]
 	tg := &TargetGroup{
 		TargetGroupNo:           respTg.TargetGroupNo,
