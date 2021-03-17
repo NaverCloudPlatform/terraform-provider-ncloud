@@ -215,6 +215,7 @@ func resourceNcloudTargetGroupRead(ctx context.Context, d *schema.ResourceData, 
 	}
 
 	if len(resp.TargetGroupList) < 1 {
+		d.SetId("")
 		return nil
 	}
 

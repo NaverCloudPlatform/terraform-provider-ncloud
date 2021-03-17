@@ -17,12 +17,13 @@ func init() {
 }
 
 const (
-	LoadBalancerInstanceStatusNameCreating    = "Creating"
-	LoadBalancerInstanceStatusNameRunning     = "Running"
-	LoadBalancerInstanceStatusNameChanging    = "Changing"
-	LoadBalancerInstanceStatusNameTerminating = "Terminating"
-	LoadBalancerInstanceStatusNameTerminated  = "Terminated"
-	LoadBalancerInstanceStatusNameRepairing   = "Repairing"
+	LoadBalancerInstanceOperationChangeCode             = "CHANG"
+	LoadBalancerInstanceOperationCreateCode             = "CREAT"
+	LoadBalancerInstanceOperationDisUseCode             = "DISUS"
+	LoadBalancerInstanceOperationNullCode               = "NULL"
+	LoadBalancerInstanceOperationPendingTerminationCode = "PTERM"
+	LoadBalancerInstanceOperationTerminateCode          = "TERMT"
+	LoadBalancerInstanceOperationUseCode                = "USE"
 )
 
 func resourceNcloudLb() *schema.Resource {
@@ -42,13 +43,13 @@ func resourceNcloudLb() *schema.Resource {
 		Schema: map[string]*schema.Schema{
 			"load_balancer_no": {
 				Type:     schema.TypeString,
-				Optional: true,
 				Computed: true,
 			},
 			"name": {
 				Type:     schema.TypeString,
 				Optional: true,
 				Computed: true,
+				ForceNew: true,
 			},
 			"description": {
 				Type:     schema.TypeString,
@@ -75,6 +76,7 @@ func resourceNcloudLb() *schema.Resource {
 				Optional:         true,
 				Computed:         true,
 				ValidateDiagFunc: ToDiagFunc(validation.StringInSlice([]string{"PUBLIC", "PRIVATE"}, false)),
+				ForceNew:         true,
 			},
 			"idle_timeout": {
 				Type:             schema.TypeInt,
@@ -86,6 +88,7 @@ func resourceNcloudLb() *schema.Resource {
 				Type:             schema.TypeString,
 				Required:         true,
 				ValidateDiagFunc: ToDiagFunc(validation.StringInSlice([]string{"APPLICATION", "NETWORK", "NETWORK_PROXY"}, false)),
+				ForceNew:         true,
 			},
 			"throughput_type": {
 				Type:             schema.TypeString,
@@ -101,6 +104,7 @@ func resourceNcloudLb() *schema.Resource {
 				Type:     schema.TypeList,
 				Required: true,
 				Elem:     &schema.Schema{Type: schema.TypeString},
+				ForceNew: true,
 			},
 			"ip_list": {
 				Type:     schema.TypeList,
@@ -142,7 +146,7 @@ func resourceNcloudLbCreate(ctx context.Context, d *schema.ResourceData, meta in
 		return diag.FromErr(err)
 	}
 	logResponse("resourceNcloudLbCreate", resp)
-	if err := waitForLoadBalancerActive(ctx, d, config, resp.LoadBalancerInstanceList[0].LoadBalancerInstanceNo); err != nil {
+	if err := waitForLoadBalancerActive(ctx, d, config, ncloud.StringValue(resp.LoadBalancerInstanceList[0].LoadBalancerInstanceNo)); err != nil {
 		return diag.FromErr(err)
 	}
 	d.SetId(ncloud.StringValue(resp.LoadBalancerInstanceList[0].LoadBalancerInstanceNo))
@@ -163,6 +167,10 @@ func resourceNcloudLbRead(ctx context.Context, d *schema.ResourceData, meta inte
 	if err != nil {
 		return diag.FromErr(err)
 	}
+	if len(resp.LoadBalancerInstanceList) < 1 {
+		d.SetId("")
+		return nil
+	}
 	lb := convertLbInstance(resp.LoadBalancerInstanceList[0])
 	lbMap := ConvertToMap(lb)
 	SetSingularResourceDataFromMapSchema(resourceNcloudLb(), d, lbMap)
@@ -175,6 +183,9 @@ func resourceNcloudLbUpdate(ctx context.Context, d *schema.ResourceData, meta in
 		return diag.FromErr(NotSupportClassic("resource `ncloud_lb`"))
 	}
 	if d.HasChanges("idle_timeout", "throughput_type") {
+		if err := waitForLoadBalancerActive(ctx, d, config, d.Id()); err != nil {
+			return diag.FromErr(err)
+		}
 		_, err := config.Client.vloadbalancer.V2Api.ChangeLoadBalancerInstanceConfiguration(&vloadbalancer.ChangeLoadBalancerInstanceConfigurationRequest{
 			RegionCode:             &config.RegionCode,
 			LoadBalancerInstanceNo: ncloud.String(d.Id()),
@@ -187,6 +198,9 @@ func resourceNcloudLbUpdate(ctx context.Context, d *schema.ResourceData, meta in
 	}
 
 	if d.HasChanges("description") {
+		if err := waitForLoadBalancerActive(ctx, d, config, d.Id()); err != nil {
+			return diag.FromErr(err)
+		}
 		_, err := config.Client.vloadbalancer.V2Api.SetLoadBalancerDescription(&vloadbalancer.SetLoadBalancerDescriptionRequest{
 			RegionCode:              &config.RegionCode,
 			LoadBalancerInstanceNo:  ncloud.String(d.Id()),
@@ -224,8 +238,8 @@ func resourceNcloudLbDelete(ctx context.Context, d *schema.ResourceData, meta in
 
 func waitForLoadBalancerDeletion(ctx context.Context, d *schema.ResourceData, config *ProviderConfig) error {
 	stateConf := &resource.StateChangeConf{
-		Pending: []string{LoadBalancerInstanceStatusNameTerminating},
-		Target:  []string{LoadBalancerInstanceStatusNameTerminated},
+		Pending: []string{LoadBalancerInstanceOperationTerminateCode},
+		Target:  []string{LoadBalancerInstanceOperationNullCode},
 		Refresh: func() (result interface{}, state string, err error) {
 			reqParams := &vloadbalancer.GetLoadBalancerInstanceDetailRequest{
 				RegionCode:             &config.RegionCode,
@@ -237,11 +251,11 @@ func waitForLoadBalancerDeletion(ctx context.Context, d *schema.ResourceData, co
 			}
 
 			if len(resp.LoadBalancerInstanceList) < 1 {
-				return resp, LoadBalancerInstanceStatusNameTerminated, nil
+				return resp, LoadBalancerInstanceOperationNullCode, nil
 			}
 
 			lb := resp.LoadBalancerInstanceList[0]
-			return resp, ncloud.StringValue(lb.LoadBalancerInstanceStatusName), nil
+			return resp, ncloud.StringValue(lb.LoadBalancerInstanceOperation.Code), nil
 		},
 		Timeout:    d.Timeout(schema.TimeoutDelete),
 		MinTimeout: 3 * time.Second,
@@ -253,14 +267,14 @@ func waitForLoadBalancerDeletion(ctx context.Context, d *schema.ResourceData, co
 	return nil
 }
 
-func waitForLoadBalancerActive(ctx context.Context, d *schema.ResourceData, config *ProviderConfig, no *string) error {
+func waitForLoadBalancerActive(ctx context.Context, d *schema.ResourceData, config *ProviderConfig, id string) error {
 	stateConf := &resource.StateChangeConf{
-		Pending: []string{LoadBalancerInstanceStatusNameCreating, LoadBalancerInstanceStatusNameChanging},
-		Target:  []string{LoadBalancerInstanceStatusNameRunning},
+		Pending: []string{LoadBalancerInstanceOperationCreateCode, LoadBalancerInstanceOperationChangeCode},
+		Target:  []string{LoadBalancerInstanceOperationNullCode},
 		Refresh: func() (result interface{}, state string, err error) {
 			reqParams := &vloadbalancer.GetLoadBalancerInstanceDetailRequest{
 				RegionCode:             &config.RegionCode,
-				LoadBalancerInstanceNo: no,
+				LoadBalancerInstanceNo: ncloud.String(id),
 			}
 			resp, err := config.Client.vloadbalancer.V2Api.GetLoadBalancerInstanceDetail(reqParams)
 			if err != nil {
@@ -268,18 +282,18 @@ func waitForLoadBalancerActive(ctx context.Context, d *schema.ResourceData, conf
 			}
 
 			if len(resp.LoadBalancerInstanceList) < 1 {
-				return nil, "", fmt.Errorf("Not found load balancer instance(%s)", *no)
+				return nil, "", fmt.Errorf("not found load balancer instance(%s)", id)
 			}
 
 			lb := resp.LoadBalancerInstanceList[0]
-			return resp, ncloud.StringValue(lb.LoadBalancerInstanceStatusName), nil
+			return resp, ncloud.StringValue(lb.LoadBalancerInstanceOperation.Code), nil
 		},
 		Timeout:    d.Timeout(schema.TimeoutCreate),
 		MinTimeout: 3 * time.Second,
 		Delay:      2 * time.Second,
 	}
 	if _, err := stateConf.WaitForStateContext(ctx); err != nil {
-		return fmt.Errorf("Error waiting for Load Balancer instance (%s) to become activating: %s", *no, err)
+		return fmt.Errorf("error waiting for Load Balancer instance (%s) to become activating: %s", id, err)
 	}
 	return nil
 }

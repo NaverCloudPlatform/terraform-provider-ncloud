@@ -25,8 +25,9 @@ func resourceNcloudLbTargetGroupAttachment() *schema.Resource {
 		CreateContext: resourceNcloudLbTargetGroupAttachmentCreate,
 		ReadContext:   resourceNcloudLbTargetGroupAttachmentRead,
 		DeleteContext: resourceNcloudLbTargetGroupAttachmentDelete,
-		Importer: &schema.ResourceImporter{
-			StateContext: schema.ImportStatePassthroughContext,
+		Timeouts: &schema.ResourceTimeout{
+			Create: schema.DefaultTimeout(DefaultCreateTimeout),
+			Delete: schema.DefaultTimeout(DefaultTimeout),
 		},
 		Schema: map[string]*schema.Schema{
 			"target_group_no": {
@@ -54,7 +55,7 @@ func resourceNcloudLbTargetGroupAttachmentCreate(ctx context.Context, d *schema.
 		TargetNoList:  ncloud.StringList([]string{d.Get("target_no").(string)}),
 	}
 
-	err := resource.RetryContext(ctx, 5*time.Minute, func() *resource.RetryError {
+	err := resource.RetryContext(ctx, d.Timeout(schema.TimeoutCreate), func() *resource.RetryError {
 		logCommonRequest("resourceNcloudLbTargetGroupAttachmentCreate", reqParams)
 		resp, err := config.Client.vloadbalancer.V2Api.AddTarget(reqParams)
 		if err != nil {
@@ -125,7 +126,7 @@ func resourceNcloudLbTargetGroupAttachmentDelete(ctx context.Context, d *schema.
 		TargetNoList:  ncloud.StringList([]string{d.Get("target_no").(string)}),
 	}
 
-	err := resource.RetryContext(ctx, 5*time.Minute, func() *resource.RetryError {
+	err := resource.RetryContext(ctx, d.Timeout(schema.TimeoutDelete), func() *resource.RetryError {
 		logCommonRequest("resourceNcloudLbTargetGroupAttachmentDelete", reqParams)
 		resp, err := config.Client.vloadbalancer.V2Api.RemoveTarget(reqParams)
 		if err != nil {

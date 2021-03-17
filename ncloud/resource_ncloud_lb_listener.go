@@ -8,7 +8,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
-	"time"
 )
 
 func init() {
@@ -37,12 +36,12 @@ func resourceNcloudLbListener() *schema.Resource {
 		Schema: map[string]*schema.Schema{
 			"listener_no": {
 				Type:     schema.TypeString,
-				Optional: true,
 				Computed: true,
 			},
 			"load_balancer_no": {
 				Type:     schema.TypeString,
 				Required: true,
+				ForceNew: true,
 			},
 			"target_group_no": {
 				Type:     schema.TypeString,
@@ -102,7 +101,7 @@ func resourceNcloudLbListenerCreate(ctx context.Context, d *schema.ResourceData,
 	}
 
 	listener := &vloadbalancer.LoadBalancerListener{}
-	err := resource.RetryContext(ctx, 5*time.Minute, func() *resource.RetryError {
+	err := resource.RetryContext(ctx, d.Timeout(schema.TimeoutCreate), func() *resource.RetryError {
 		resp, err := config.Client.vloadbalancer.V2Api.CreateLoadBalancerListener(reqParams)
 		if err != nil {
 			errBody, _ := GetCommonErrorBody(err)
@@ -138,8 +137,10 @@ func resourceNcloudLbListenerRead(ctx context.Context, d *schema.ResourceData, m
 	}
 
 	listener := &LoadBalancerListener{}
+	exist := false
 	for _, l := range resp.LoadBalancerListenerList {
 		if d.Id() == *l.LoadBalancerListenerNo {
+			exist = true
 			listener.LoadBalancerListenerNo = l.LoadBalancerListenerNo
 			listener.ProtocolType = l.ProtocolType.Code
 			listener.Port = l.Port
@@ -148,6 +149,11 @@ func resourceNcloudLbListenerRead(ctx context.Context, d *schema.ResourceData, m
 			listener.TlsMinVersionType = l.TlsMinVersionType.Code
 			listener.LoadBalancerRuleNoList = l.LoadBalancerRuleNoList
 		}
+	}
+
+	if !exist {
+		d.SetId("")
+		return nil
 	}
 
 	listerMap := ConvertToMap(listener)
@@ -173,7 +179,7 @@ func resourceNcloudLbListenerUpdate(ctx context.Context, d *schema.ResourceData,
 		TlsMinVersionTypeCode: StringPtrOrNil(d.GetOk("tls_min_version_type")),
 	}
 
-	err := resource.Retry(5*time.Minute, func() *resource.RetryError {
+	err := resource.RetryContext(ctx, d.Timeout(schema.TimeoutUpdate), func() *resource.RetryError {
 		_, err := config.Client.vloadbalancer.V2Api.ChangeLoadBalancerListenerConfiguration(reqParams)
 		if err != nil {
 			errBody, _ := GetCommonErrorBody(err)
@@ -202,7 +208,7 @@ func resourceNcloudLbListenerDelete(ctx context.Context, d *schema.ResourceData,
 		LoadBalancerListenerNoList: []*string{ncloud.String(d.Id())},
 	}
 
-	err := resource.RetryContext(ctx, 5*time.Minute, func() *resource.RetryError {
+	err := resource.RetryContext(ctx, d.Timeout(schema.TimeoutDelete), func() *resource.RetryError {
 		_, err := config.Client.vloadbalancer.V2Api.DeleteLoadBalancerListeners(reqParams)
 		if err != nil {
 			errBody, _ := GetCommonErrorBody(err)
