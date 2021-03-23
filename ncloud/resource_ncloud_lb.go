@@ -223,6 +223,10 @@ func resourceNcloudLbDelete(ctx context.Context, d *schema.ResourceData, meta in
 		LoadBalancerInstanceNoList: ncloud.StringList([]string{d.Id()}),
 	}
 
+	if err := waitForLoadBalancerActive(ctx, d, config, d.Id()); err != nil {
+		return diag.FromErr(err)
+	}
+
 	logCommonRequest("resourceNcloudLbDelete", deleteInstanceReqParams)
 	if _, err := config.Client.vloadbalancer.V2Api.DeleteLoadBalancerInstances(deleteInstanceReqParams); err != nil {
 		logErrorResponse("resourceNcloudLbDelete", err, deleteInstanceReqParams)

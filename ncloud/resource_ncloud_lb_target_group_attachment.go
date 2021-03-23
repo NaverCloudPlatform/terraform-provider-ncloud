@@ -13,7 +13,9 @@ import (
 )
 
 const (
-	ErrorCodeInvalidTargetGroupNo = "1205009"
+	TargetGroupAttachmentBusyStateErrorCode            = "1200004"
+	TargetGroupAttachmentPleaseTryAgainErrorCode       = "1250000"
+	TargetGroupAttachmentInvalidTargetGroupNoErrorCode = "1205009"
 )
 
 func init() {
@@ -59,6 +61,10 @@ func resourceNcloudLbTargetGroupAttachmentCreate(ctx context.Context, d *schema.
 		logCommonRequest("resourceNcloudLbTargetGroupAttachmentCreate", reqParams)
 		resp, err := config.Client.vloadbalancer.V2Api.AddTarget(reqParams)
 		if err != nil {
+			errBody, _ := GetCommonErrorBody(err)
+			if errBody.ReturnCode == TargetGroupAttachmentBusyStateErrorCode || errBody.ReturnCode == TargetGroupAttachmentPleaseTryAgainErrorCode {
+				return resource.RetryableError(err)
+			}
 			logErrorResponse("resourceNcloudLbTargetGroupAttachmentCreate", err, reqParams)
 			return resource.NonRetryableError(err)
 		}
@@ -91,7 +97,7 @@ func resourceNcloudLbTargetGroupAttachmentRead(ctx context.Context, d *schema.Re
 	resp, err := config.Client.vloadbalancer.V2Api.GetTargetList(reqParams)
 	if err != nil {
 		errorBody, _ := GetCommonErrorBody(err)
-		if errorBody.ReturnCode == ErrorCodeInvalidTargetGroupNo {
+		if errorBody.ReturnCode == TargetGroupAttachmentInvalidTargetGroupNoErrorCode {
 			log.Printf("[WARN] Target group does not exist, removing target attachment %s", d.Id())
 			d.SetId("")
 			return nil
@@ -130,6 +136,10 @@ func resourceNcloudLbTargetGroupAttachmentDelete(ctx context.Context, d *schema.
 		logCommonRequest("resourceNcloudLbTargetGroupAttachmentDelete", reqParams)
 		resp, err := config.Client.vloadbalancer.V2Api.RemoveTarget(reqParams)
 		if err != nil {
+			errBody, _ := GetCommonErrorBody(err)
+			if errBody.ReturnCode == TargetGroupAttachmentBusyStateErrorCode || errBody.ReturnCode == TargetGroupAttachmentPleaseTryAgainErrorCode {
+				return resource.RetryableError(err)
+			}
 			logErrorResponse("resourceNcloudLbTargetGroupAttachmentDelete", err, reqParams)
 			return resource.NonRetryableError(err)
 		}

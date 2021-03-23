@@ -6,8 +6,13 @@ import (
 	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/ncloud"
 	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/services/vloadbalancer"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
+)
+
+const (
+	TargetGroupPleaseTryAgainErrorCode = "1250000"
 )
 
 func init() {
@@ -206,20 +211,34 @@ func resourceNcloudTargetGroupRead(ctx context.Context, d *schema.ResourceData, 
 		RegionCode:        &config.RegionCode,
 		TargetGroupNoList: []*string{ncloud.String(d.Id())},
 	}
-	logCommonRequest("resourceNcloudTargetGroupRead", reqParams)
-	resp, err := config.Client.vloadbalancer.V2Api.GetTargetGroupList(reqParams)
-	logResponse("resourceNcloudTargetGroupRead", resp)
+
+	targetGroupListResponse := &vloadbalancer.GetTargetGroupListResponse{}
+	err := resource.RetryContext(ctx, d.Timeout(schema.TimeoutRead), func() *resource.RetryError {
+		logCommonRequest("resourceNcloudTargetGroupRead", reqParams)
+		resp, err := config.Client.vloadbalancer.V2Api.GetTargetGroupList(reqParams)
+		if err != nil {
+			errBody, _ := GetCommonErrorBody(err)
+			if errBody.ReturnCode == TargetGroupPleaseTryAgainErrorCode {
+				return resource.RetryableError(err)
+			}
+			logErrorResponse("resourceNcloudTargetGroupRead", err, reqParams)
+			return resource.NonRetryableError(err)
+		}
+		logResponse("resourceNcloudTargetGroupRead", resp)
+		targetGroupListResponse = resp
+		return nil
+	})
+
 	if err != nil {
-		logErrorResponse("resourceNcloudTargetGroupRead", err, reqParams)
 		return diag.FromErr(err)
 	}
 
-	if len(resp.TargetGroupList) < 1 {
+	if len(targetGroupListResponse.TargetGroupList) < 1 {
 		d.SetId("")
 		return nil
 	}
 
-	respTg := resp.TargetGroupList[0]
+	respTg := targetGroupListResponse.TargetGroupList[0]
 	tg := &TargetGroup{
 		TargetGroupNo:           respTg.TargetGroupNo,
 		TargetGroupName:         respTg.TargetGroupName,
