@@ -14,7 +14,7 @@ import (
 func TestAccResourceNcloudLbTargetGroup_basic(t *testing.T) {
 	var tg vloadbalancer.TargetGroup
 	name := fmt.Sprintf("terraform-testacc-tg-%s", acctest.RandString(5))
-	resourceName := "ncloud_lb_target_group.my-tg"
+	resourceName := "ncloud_lb_target_group.test"
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:  func() { testAccPreCheck(t) },
 		Providers: testAccProviders,
@@ -24,8 +24,24 @@ func TestAccResourceNcloudLbTargetGroup_basic(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				Config: testAccResourceNcloudLbTargetGroupConfig(name),
-				Check: resource.ComposeTestCheckFunc(
+				Check: resource.ComposeAggregateTestCheckFunc(
 					testAccCheckLbTargetGroupExists(resourceName, &tg, testAccProvider),
+					resource.TestCheckResourceAttr(resourceName, "port", "8080"),
+					resource.TestCheckResourceAttr(resourceName, "protocol", "HTTP"),
+					resource.TestCheckResourceAttr(resourceName, "target_type", "VSVR"),
+					resource.TestCheckResourceAttr(resourceName, "name", name),
+					resource.TestCheckResourceAttr(resourceName, "description", "for test"),
+					resource.TestCheckResourceAttr(resourceName, "health_check.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "health_check.0.protocol", "HTTP"),
+					resource.TestCheckResourceAttr(resourceName, "health_check.0.http_method", "GET"),
+					resource.TestCheckResourceAttr(resourceName, "health_check.0.port", "8080"),
+					resource.TestCheckResourceAttr(resourceName, "health_check.0.url_path", "/monitor/l7check"),
+					resource.TestCheckResourceAttr(resourceName, "health_check.0.cycle", "30"),
+					resource.TestCheckResourceAttr(resourceName, "health_check.0.up_threshold", "2"),
+					resource.TestCheckResourceAttr(resourceName, "health_check.0.down_threshold", "2"),
+					resource.TestCheckResourceAttr(resourceName, "algorithm_type", "RR"),
+					resource.TestCheckResourceAttr(resourceName, "use_sticky_session", "true"),
+					resource.TestCheckResourceAttrSet(resourceName, "vpc_no"),
 				),
 			},
 		},
@@ -99,7 +115,7 @@ resource "ncloud_subnet" "test" {
 	usage_type         = "LOADB"
 }
 
-resource "ncloud_lb_target_group" "my-tg" {
+resource "ncloud_lb_target_group" "test" {
   vpc_no   = ncloud_vpc.test.vpc_no
   protocol = "HTTP"
   target_type = "VSVR"

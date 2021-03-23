@@ -15,7 +15,7 @@ func TestAccResourceNcloudLbTargetGroupAttachment_basic(t *testing.T) {
 	var target vloadbalancer.Target
 	targetGroupName := fmt.Sprintf("terraform-testacc-tga-%s", acctest.RandString(5))
 	testServerName := getTestServerName()
-	resourceName := "ncloud_lb_target_group_attachment.my-tg-attach"
+	resourceName := "ncloud_lb_target_group_attachment.test"
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:  func() { testAccPreCheck(t) },
 		Providers: testAccProviders,
@@ -25,7 +25,11 @@ func TestAccResourceNcloudLbTargetGroupAttachment_basic(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				Config: testAccResourceNcloudLbTargetGroupAttachmentConfig(targetGroupName, testServerName),
-				Check:  resource.ComposeTestCheckFunc(testAccCheckLbTargetGroupAttachmentExists(resourceName, &target, testAccProvider)),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					testAccCheckLbTargetGroupAttachmentExists(resourceName, &target, testAccProvider),
+					resource.TestCheckResourceAttrSet(resourceName, "target_group_no"),
+					resource.TestCheckResourceAttrSet(resourceName, "target_no"),
+				),
 			},
 		},
 	})
@@ -98,19 +102,19 @@ resource "ncloud_subnet" "test" {
 	usage_type         = "GEN"
 }
 
-resource "ncloud_login_key" "loginkey" {
+resource "ncloud_login_key" "test" {
 	key_name = "%[1]s-key"
 }
 
-resource "ncloud_server" "server" {
+resource "ncloud_server" "test" {
 	subnet_no = ncloud_subnet.test.subnet_no
 	name = "%[1]s"
 	server_image_product_code = "SW.VSVR.OS.LNX64.CNTOS.0703.B050"
 	server_product_code = "SVR.VSVR.STAND.C002.M008.NET.HDD.B050.G002"
-	login_key_name = ncloud_login_key.loginkey.key_name
+	login_key_name = ncloud_login_key.test.key_name
 }
 
-resource "ncloud_lb_target_group" "my-tg" {
+resource "ncloud_lb_target_group" "test" {
   vpc_no   = ncloud_vpc.test.vpc_no
   protocol = "HTTP"
   target_type = "VSVR"
@@ -132,9 +136,9 @@ resource "ncloud_lb_target_group" "my-tg" {
   use_sticky_session = true
 }
 
-resource "ncloud_lb_target_group_attachment" "my-tg-attach" {
-  target_group_no = ncloud_lb_target_group.my-tg.target_group_no
-  target_no = ncloud_server.server.instance_no
+resource "ncloud_lb_target_group_attachment" "test" {
+  target_group_no = ncloud_lb_target_group.test.target_group_no
+  target_no = ncloud_server.test.instance_no
 }
 
 `, serverName, targetGroupName)

@@ -14,7 +14,7 @@ import (
 func TestAccResourceNcloudLb_vpc_basic(t *testing.T) {
 	var lb vloadbalancer.LoadBalancerInstance
 	lbName := fmt.Sprintf("terraform-testacc-lb-%s", acctest.RandString(5))
-	resourceName := "ncloud_lb.foo"
+	resourceName := "ncloud_lb.test"
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:  func() { testAccPreCheck(t) },
 		Providers: testAccProviders,
@@ -24,11 +24,20 @@ func TestAccResourceNcloudLb_vpc_basic(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				Config: testAccResourceNcloudLbConfig(lbName),
-				Check: resource.ComposeTestCheckFunc(
+				Check: resource.ComposeAggregateTestCheckFunc(
 					testAccCheckLbExists(resourceName, &lb, testAccProvider),
+					resource.TestCheckResourceAttr(resourceName, "name", lbName),
+					resource.TestCheckResourceAttr(resourceName, "description", "tf test description"),
+					resource.TestCheckResourceAttr(resourceName, "network_type", "PRIVATE"),
+					resource.TestCheckResourceAttr(resourceName, "idle_timeout", "30"),
+					resource.TestCheckResourceAttr(resourceName, "type", "APPLICATION"),
+					resource.TestCheckResourceAttr(resourceName, "throughput_type", "SMALL"),
+					resource.TestCheckResourceAttr(resourceName, "subnet_no_list.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "operation", "NULL"),
+					resource.TestCheckResourceAttr(resourceName, "status_code", "USED"),
+					resource.TestCheckResourceAttr(resourceName, "status_name", "Running"),
+					resource.TestCheckResourceAttrSet(resourceName, "vpc_no"),
 				),
-				// Temporary setting
-				ExpectNonEmptyPlan: true,
 			},
 			{
 				ResourceName:            resourceName,
@@ -107,7 +116,7 @@ resource "ncloud_subnet" "test" {
 	usage_type         = "LOADB"
 }
 
-resource "ncloud_lb_target_group" "my-tg" {
+resource "ncloud_lb_target_group" "test" {
   vpc_no   = ncloud_vpc.test.vpc_no
   protocol = "HTTP"
   target_type = "VSVR"
@@ -129,7 +138,7 @@ resource "ncloud_lb_target_group" "my-tg" {
   use_sticky_session = true
 }
 
-resource "ncloud_lb" "foo" {
+resource "ncloud_lb" "test" {
     name = "%s"
     description = "tf test description"
     network_type = "PRIVATE"
@@ -137,9 +146,6 @@ resource "ncloud_lb" "foo" {
     type = "APPLICATION"
     throughput_type = "SMALL"
     subnet_no_list = [ ncloud_subnet.test.subnet_no ]
-    listener_list {
-        target_group_no = ncloud_lb_target_group.my-tg.target_group_no
-    }
 }
 `, name)
 }

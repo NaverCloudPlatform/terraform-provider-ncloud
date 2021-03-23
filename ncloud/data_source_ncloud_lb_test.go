@@ -9,15 +9,15 @@ import (
 
 func TestAccDataSourceNcloudLb_basic(t *testing.T) {
 	name := fmt.Sprintf("terraform-testacc-lb-%s", acctest.RandString(5))
-	dataName := "data.ncloud_lb.lb_test"
-	resourceName := "ncloud_lb.foo"
+	dataName := "data.ncloud_lb.test"
+	resourceName := "ncloud_lb.test"
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:  func() { testAccPreCheck(t) },
 		Providers: testAccProviders,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccDataSourceNcloudLbConfig(name),
-				Check: resource.ComposeTestCheckFunc(
+				Check: resource.ComposeAggregateTestCheckFunc(
 					testAccCheckDataSourceID(dataName),
 					resource.TestCheckResourceAttrPair(dataName, "name", resourceName, "name"),
 					resource.TestCheckResourceAttrPair(dataName, "description", resourceName, "description"),
@@ -26,9 +26,11 @@ func TestAccDataSourceNcloudLb_basic(t *testing.T) {
 					resource.TestCheckResourceAttrPair(dataName, "type", resourceName, "type"),
 					resource.TestCheckResourceAttrPair(dataName, "throughput_type", resourceName, "throughput_type"),
 					resource.TestCheckResourceAttrPair(dataName, "subnet_no_list", resourceName, "subnet_no_list"),
-					resource.TestCheckResourceAttrPair(dataName, "listener_list", resourceName, "listener_list"),
+					resource.TestCheckResourceAttrPair(dataName, "operation", resourceName, "operation"),
+					resource.TestCheckResourceAttrPair(dataName, "status_code", resourceName, "status_code"),
+					resource.TestCheckResourceAttrPair(dataName, "status_name", resourceName, "status_name"),
+					resource.TestCheckResourceAttrPair(dataName, "vpc_no", resourceName, "vpc_no"),
 				),
-				ExpectNonEmptyPlan: true,
 			},
 		},
 	})
@@ -36,8 +38,8 @@ func TestAccDataSourceNcloudLb_basic(t *testing.T) {
 
 func testAccDataSourceNcloudLbConfig(name string) string {
 	return testAccResourceNcloudLbConfig(name) + fmt.Sprintf(`
-data "ncloud_lb" "lb_test" {
-	id = ncloud_lb.foo.load_balancer_no
+data "ncloud_lb" "test" {
+	id = ncloud_lb.test.load_balancer_no
 }
 `)
 }

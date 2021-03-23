@@ -9,8 +9,8 @@ import (
 
 func TestAccDataSourceNcloudLbTargetGroup_basic(t *testing.T) {
 	name := fmt.Sprintf("terraform-testacc-tg-%s", acctest.RandString(5))
-	dataName := "data.ncloud_lb_target_group.tg_test"
-	resourceName := "ncloud_lb_target_group.my-tg"
+	dataName := "data.ncloud_lb_target_group.test"
+	resourceName := "ncloud_lb_target_group.test"
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:  func() { testAccPreCheck(t) },
@@ -18,7 +18,7 @@ func TestAccDataSourceNcloudLbTargetGroup_basic(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				Config: testAccDataSourceNcloudLbTargetGroupConfig(name),
-				Check: resource.ComposeTestCheckFunc(
+				Check: resource.ComposeAggregateTestCheckFunc(
 					testAccCheckDataSourceID(dataName),
 					resource.TestCheckResourceAttrPair(dataName, "name", resourceName, "name"),
 					resource.TestCheckResourceAttrPair(dataName, "protocol", resourceName, "protocol"),
@@ -28,8 +28,8 @@ func TestAccDataSourceNcloudLbTargetGroup_basic(t *testing.T) {
 					resource.TestCheckResourceAttrPair(dataName, "health_check", resourceName, "health_check"),
 					resource.TestCheckResourceAttrPair(dataName, "algorithm_type", resourceName, "algorithm_type"),
 					resource.TestCheckResourceAttrPair(dataName, "use_sticky_session", resourceName, "use_sticky_session"),
+					resource.TestCheckResourceAttrPair(dataName, "vpc_no", resourceName, "vpc_no"),
 				),
-				SkipFunc: nil,
 			},
 		},
 	})
@@ -37,8 +37,8 @@ func TestAccDataSourceNcloudLbTargetGroup_basic(t *testing.T) {
 
 func testAccDataSourceNcloudLbTargetGroupConfig(name string) string {
 	return testAccResourceNcloudLbTargetGroupConfig(name) + fmt.Sprintf(`
-data "ncloud_lb_target_group" "tg_test" {
-	id = ncloud_lb_target_group.my-tg.target_group_no
+data "ncloud_lb_target_group" "test" {
+	id = ncloud_lb_target_group.test.target_group_no
 }
 `)
 }
