@@ -34,13 +34,13 @@ func resourceNcloudLbTargetGroupAttachment() *schema.Resource {
 		Schema: map[string]*schema.Schema{
 			"target_group_no": {
 				Type:     schema.TypeString,
-				ForceNew: true,
 				Required: true,
+				ForceNew: true,
 			},
 			"target_no": {
 				Type:     schema.TypeString,
-				ForceNew: true,
 				Required: true,
+				ForceNew: true,
 			},
 		},
 	}

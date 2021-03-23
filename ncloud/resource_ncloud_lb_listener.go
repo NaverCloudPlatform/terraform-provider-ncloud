@@ -46,6 +46,7 @@ func resourceNcloudLbListener() *schema.Resource {
 			"target_group_no": {
 				Type:     schema.TypeString,
 				Required: true,
+				ForceNew: true,
 			},
 			"port": {
 				Type:             schema.TypeInt,

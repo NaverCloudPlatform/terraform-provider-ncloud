@@ -112,6 +112,7 @@ func resourceNcloudLbTargetGroup() *schema.Resource {
 				Optional: true,
 				Computed: true,
 				Elem:     &schema.Schema{Type: schema.TypeString},
+				ForceNew: true,
 			},
 			"target_type": {
 				Type:             schema.TypeString,
