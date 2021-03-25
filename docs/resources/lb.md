@@ -31,8 +31,5 @@ In addition to all arguments above, the following attributes are exported:
 * `id` - The ID of load balancer.
 * `load_balancer_no` - The ID of load balancer (It is the same result as id).
 * `domain` - Domain name of load balancer.
-* `status_code` - The status code of load balancer.
-* `operation` - The operation code of load balancer.
-* `status_name` - The status name of load balancer.
 * `vpc_no` - The ID of the associated VPC.
 * `ip_list` - A list of IP address of load balancer.

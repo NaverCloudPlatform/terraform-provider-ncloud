@@ -39,7 +39,6 @@ The following arguments are supported:
     * `port` - (Optional) The port to use for health checks. Default: 80.
     * `protocol` - (Required) The type of protocol to use for health checks. If the target group protocol type is `TCP` or `PROXY_TCP`, Heal Check Protocol is only valid for `TCP`. If the target group protocol type is `HTTP` or `HTTPS`, Heal Check Protocol is valid only for `HTTP` and `HTTPS`.
     * `url_path` - (Optional) The URL path of the health check. Valid only if Health Check protocol type is `HTTP` or `HTTPS`. URL path must begin with `/`.
-* `target_no_list` - (Optional) The list of target number to bind to the target group.
 * `target_type` - (Optional) The type of target to be added to the target group.
 * `vpc_no` - (Required) The ID of the VPC in to create the target group.
 * `use_sticky_session` - (Optional) Whether to use session specific access. 
@@ -53,3 +52,4 @@ In addition to all arguments above, the following attributes are exported:
 * `id` - The ID of target group.
 * `target_group_no` - The ID of target group (It is the same result as id).
 * `load_balancer_instance_no` - The ID of the Load Balancer associated with the Target Group.
+* `target_no_list` - The list of target number to bind to the target group.

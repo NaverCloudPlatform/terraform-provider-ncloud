@@ -109,7 +109,6 @@ func resourceNcloudLbTargetGroup() *schema.Resource {
 			},
 			"target_no_list": {
 				Type:     schema.TypeList,
-				Optional: true,
 				Computed: true,
 				Elem:     &schema.Schema{Type: schema.TypeString},
 				ForceNew: true,
@@ -161,7 +160,6 @@ func resourceNcloudTargetGroupCreate(ctx context.Context, d *schema.ResourceData
 		TargetGroupPort:        Int32PtrOrNil(d.GetOk("port")),
 		TargetGroupDescription: StringPtrOrNil(d.GetOk("description")),
 		TargetGroupName:        StringPtrOrNil(d.GetOk("name")),
-		TargetNoList:           StringListPtrOrNil(d.GetOk("target_no_list")),
 		// Required
 		TargetTypeCode:              ncloud.String(d.Get("target_type").(string)),
 		VpcNo:                       ncloud.String(d.Get("vpc_no").(string)),

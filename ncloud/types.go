@@ -85,21 +85,18 @@ type HealthCheck struct {
 }
 
 type LoadBalancerInstance struct {
-	LoadBalancerInstanceNo         *string                 `json:"load_balancer_no,omitempty"`
-	LoadBalancerInstanceStatus     *string                 `json:"status_code,omitempty"`
-	LoadBalancerInstanceOperation  *string                 `json:"operation,omitempty"`
-	LoadBalancerInstanceStatusName *string                 `json:"status_name,omitempty"`
-	LoadBalancerDescription        *string                 `json:"description,omitempty"`
-	LoadBalancerName               *string                 `json:"name,omitempty"`
-	LoadBalancerDomain             *string                 `json:"domain,omitempty"`
-	LoadBalancerIpList             []*string               `json:"ip_list,omitempty"`
-	LoadBalancerType               *string                 `json:"type,omitempty"`
-	LoadBalancerNetworkType        *string                 `json:"network_type,omitempty"`
-	ThroughputType                 *string                 `json:"throughput_type,omitempty"`
-	IdleTimeout                    *int32                  `json:"idle_timeout,omitempty"`
-	VpcNo                          *string                 `json:"vpc_no,omitempty"`
-	SubnetNoList                   []*string               `json:"subnet_no_list,omitempty"`
-	LoadBalancerListenerList       []*LoadBalancerListener `json:"listener_list"`
+	LoadBalancerInstanceNo   *string                 `json:"load_balancer_no,omitempty"`
+	LoadBalancerDescription  *string                 `json:"description,omitempty"`
+	LoadBalancerName         *string                 `json:"name,omitempty"`
+	LoadBalancerDomain       *string                 `json:"domain,omitempty"`
+	LoadBalancerIpList       []*string               `json:"ip_list,omitempty"`
+	LoadBalancerType         *string                 `json:"type,omitempty"`
+	LoadBalancerNetworkType  *string                 `json:"network_type,omitempty"`
+	ThroughputType           *string                 `json:"throughput_type,omitempty"`
+	IdleTimeout              *int32                  `json:"idle_timeout,omitempty"`
+	VpcNo                    *string                 `json:"vpc_no,omitempty"`
+	SubnetNoList             []*string               `json:"subnet_no_list,omitempty"`
+	LoadBalancerListenerList []*LoadBalancerListener `json:"listener_list"`
 }
 
 type LoadBalancerListener struct {

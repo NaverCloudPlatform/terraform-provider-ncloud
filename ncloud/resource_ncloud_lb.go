@@ -59,18 +59,6 @@ func resourceNcloudLb() *schema.Resource {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
-			"status_code": {
-				Type:     schema.TypeString,
-				Computed: true,
-			},
-			"operation": {
-				Type:     schema.TypeString,
-				Computed: true,
-			},
-			"status_name": {
-				Type:     schema.TypeString,
-				Computed: true,
-			},
 			"network_type": {
 				Type:             schema.TypeString,
 				Optional:         true,
@@ -304,19 +292,16 @@ func waitForLoadBalancerActive(ctx context.Context, d *schema.ResourceData, conf
 
 func convertLbInstance(instance *vloadbalancer.LoadBalancerInstance) *LoadBalancerInstance {
 	return &LoadBalancerInstance{
-		LoadBalancerInstanceNo:         instance.LoadBalancerInstanceNo,
-		LoadBalancerInstanceStatus:     instance.LoadBalancerInstanceStatus.Code,
-		LoadBalancerInstanceOperation:  instance.LoadBalancerInstanceOperation.Code,
-		LoadBalancerInstanceStatusName: instance.LoadBalancerInstanceStatusName,
-		LoadBalancerDescription:        instance.LoadBalancerDescription,
-		LoadBalancerName:               instance.LoadBalancerName,
-		LoadBalancerDomain:             instance.LoadBalancerDomain,
-		LoadBalancerIpList:             instance.LoadBalancerIpList,
-		LoadBalancerType:               instance.LoadBalancerType.Code,
-		LoadBalancerNetworkType:        instance.LoadBalancerNetworkType.Code,
-		ThroughputType:                 instance.ThroughputType.Code,
-		IdleTimeout:                    instance.IdleTimeout,
-		VpcNo:                          instance.VpcNo,
-		SubnetNoList:                   instance.SubnetNoList,
+		LoadBalancerInstanceNo:  instance.LoadBalancerInstanceNo,
+		LoadBalancerDescription: instance.LoadBalancerDescription,
+		LoadBalancerName:        instance.LoadBalancerName,
+		LoadBalancerDomain:      instance.LoadBalancerDomain,
+		LoadBalancerIpList:      instance.LoadBalancerIpList,
+		LoadBalancerType:        instance.LoadBalancerType.Code,
+		LoadBalancerNetworkType: instance.LoadBalancerNetworkType.Code,
+		ThroughputType:          instance.ThroughputType.Code,
+		IdleTimeout:             instance.IdleTimeout,
+		VpcNo:                   instance.VpcNo,
+		SubnetNoList:            instance.SubnetNoList,
 	}
 }

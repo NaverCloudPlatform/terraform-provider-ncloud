@@ -73,21 +73,18 @@ func dataSourceNcloudLbRead(ctx context.Context, d *schema.ResourceData, meta in
 			})
 		}
 		lbList = append(lbList, &LoadBalancerInstance{
-			LoadBalancerInstanceNo:         lb.LoadBalancerInstanceNo,
-			LoadBalancerInstanceStatus:     lb.LoadBalancerInstanceStatus.Code,
-			LoadBalancerInstanceOperation:  lb.LoadBalancerInstanceOperation.Code,
-			LoadBalancerInstanceStatusName: lb.LoadBalancerInstanceStatusName,
-			LoadBalancerDescription:        lb.LoadBalancerDescription,
-			LoadBalancerName:               lb.LoadBalancerName,
-			LoadBalancerDomain:             lb.LoadBalancerDomain,
-			LoadBalancerIpList:             lb.LoadBalancerIpList,
-			LoadBalancerType:               lb.LoadBalancerType.Code,
-			LoadBalancerNetworkType:        lb.LoadBalancerNetworkType.Code,
-			ThroughputType:                 lb.ThroughputType.Code,
-			IdleTimeout:                    lb.IdleTimeout,
-			VpcNo:                          lb.VpcNo,
-			SubnetNoList:                   lb.SubnetNoList,
-			LoadBalancerListenerList:       listenerList,
+			LoadBalancerInstanceNo:   lb.LoadBalancerInstanceNo,
+			LoadBalancerDescription:  lb.LoadBalancerDescription,
+			LoadBalancerName:         lb.LoadBalancerName,
+			LoadBalancerDomain:       lb.LoadBalancerDomain,
+			LoadBalancerIpList:       lb.LoadBalancerIpList,
+			LoadBalancerType:         lb.LoadBalancerType.Code,
+			LoadBalancerNetworkType:  lb.LoadBalancerNetworkType.Code,
+			ThroughputType:           lb.ThroughputType.Code,
+			IdleTimeout:              lb.IdleTimeout,
+			VpcNo:                    lb.VpcNo,
+			SubnetNoList:             lb.SubnetNoList,
+			LoadBalancerListenerList: listenerList,
 		})
 	}
 
