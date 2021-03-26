@@ -99,6 +99,11 @@ func resourceNcloudLb() *schema.Resource {
 				Computed: true,
 				Elem:     &schema.Schema{Type: schema.TypeString},
 			},
+			"listener_no_list": {
+				Type:     schema.TypeList,
+				Computed: true,
+				Elem:     &schema.Schema{Type: schema.TypeString},
+			},
 		},
 	}
 }
@@ -292,16 +297,17 @@ func waitForLoadBalancerActive(ctx context.Context, d *schema.ResourceData, conf
 
 func convertLbInstance(instance *vloadbalancer.LoadBalancerInstance) *LoadBalancerInstance {
 	return &LoadBalancerInstance{
-		LoadBalancerInstanceNo:  instance.LoadBalancerInstanceNo,
-		LoadBalancerDescription: instance.LoadBalancerDescription,
-		LoadBalancerName:        instance.LoadBalancerName,
-		LoadBalancerDomain:      instance.LoadBalancerDomain,
-		LoadBalancerIpList:      instance.LoadBalancerIpList,
-		LoadBalancerType:        instance.LoadBalancerType.Code,
-		LoadBalancerNetworkType: instance.LoadBalancerNetworkType.Code,
-		ThroughputType:          instance.ThroughputType.Code,
-		IdleTimeout:             instance.IdleTimeout,
-		VpcNo:                   instance.VpcNo,
-		SubnetNoList:            instance.SubnetNoList,
+		LoadBalancerInstanceNo:   instance.LoadBalancerInstanceNo,
+		LoadBalancerDescription:  instance.LoadBalancerDescription,
+		LoadBalancerName:         instance.LoadBalancerName,
+		LoadBalancerDomain:       instance.LoadBalancerDomain,
+		LoadBalancerIpList:       instance.LoadBalancerIpList,
+		LoadBalancerType:         instance.LoadBalancerType.Code,
+		LoadBalancerNetworkType:  instance.LoadBalancerNetworkType.Code,
+		ThroughputType:           instance.ThroughputType.Code,
+		IdleTimeout:              instance.IdleTimeout,
+		VpcNo:                    instance.VpcNo,
+		SubnetNoList:             instance.SubnetNoList,
+		LoadBalancerListenerList: instance.LoadBalancerListenerNoList,
 	}
 }

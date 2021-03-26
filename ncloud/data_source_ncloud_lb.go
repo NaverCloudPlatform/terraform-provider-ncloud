@@ -53,25 +53,6 @@ func dataSourceNcloudLbRead(ctx context.Context, d *schema.ResourceData, meta in
 
 	lbList := make([]*LoadBalancerInstance, 0)
 	for _, lb := range resp.LoadBalancerInstanceList {
-		resp, err := config.Client.vloadbalancer.V2Api.GetLoadBalancerListenerList(&vloadbalancer.GetLoadBalancerListenerListRequest{
-			RegionCode:             &config.RegionCode,
-			LoadBalancerInstanceNo: lb.LoadBalancerInstanceNo,
-		})
-		if err != nil {
-			return diag.FromErr(err)
-		}
-		listenerList := make([]*LoadBalancerListener, 0)
-		for _, listener := range resp.LoadBalancerListenerList {
-			listenerList = append(listenerList, &LoadBalancerListener{
-				LoadBalancerListenerNo: listener.LoadBalancerListenerNo,
-				ProtocolType:           listener.ProtocolType.Code,
-				Port:                   listener.Port,
-				UseHttp2:               listener.UseHttp2,
-				SslCertificateNo:       listener.SslCertificateNo,
-				TlsMinVersionType:      listener.TlsMinVersionType.Code,
-				LoadBalancerRuleNoList: listener.LoadBalancerRuleNoList,
-			})
-		}
 		lbList = append(lbList, &LoadBalancerInstance{
 			LoadBalancerInstanceNo:   lb.LoadBalancerInstanceNo,
 			LoadBalancerDescription:  lb.LoadBalancerDescription,
@@ -84,7 +65,7 @@ func dataSourceNcloudLbRead(ctx context.Context, d *schema.ResourceData, meta in
 			IdleTimeout:              lb.IdleTimeout,
 			VpcNo:                    lb.VpcNo,
 			SubnetNoList:             lb.SubnetNoList,
-			LoadBalancerListenerList: listenerList,
+			LoadBalancerListenerList: lb.LoadBalancerListenerNoList,
 		})
 	}
 
