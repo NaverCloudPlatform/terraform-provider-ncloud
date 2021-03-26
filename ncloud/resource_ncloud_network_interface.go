@@ -47,8 +47,8 @@ func resourceNcloudNetworkInterface() *schema.Resource {
 			},
 			"access_control_groups": {
 				Type:     schema.TypeList,
-				Optional: true,
-				Computed: true,
+				Required: true,
+				ForceNew: true,
 				Elem:     &schema.Schema{Type: schema.TypeString},
 			},
 			"server_instance_no": {
