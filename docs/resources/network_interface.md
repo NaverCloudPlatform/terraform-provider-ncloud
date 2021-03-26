@@ -34,10 +34,13 @@ resource "ncloud_network_interface" "nic" {
 The following arguments are supported:
 
 * `subnet_no` - (Required) The ID of the associated Subnet.
+* `access_control_groups` - (Required) List of ACG ID to apply to network interfaces. A maximum of three ACGs can be
+  applied.
 * `name` - (Optional) The name to create. If omitted, Terraform will assign a random, unique name.
 * `description` - (Optional) description to create.
-* `private_ip` - (Optional) Set the IP addresses that you want to assign to the network interface. Must be in the IP address range of the subnet where the network interface is created. The last `0` to `5' IP address of the Subnet is not available and duplicate IP addresses are not available at the Subnet scope.  
-* `access_control_groups` - (Optional) List of ACG ID to apply to network interfaces. A maximum of three ACGs can be applied.
+* `private_ip` - (Optional) Set the IP addresses that you want to assign to the network interface. Must be in the IP
+  address range of the subnet where the network interface is created. The last `0` to `5' IP address of the Subnet is
+  not available and duplicate IP addresses are not available at the Subnet scope.
 * `server_instance_no` - (Optional) The ID of server instance to assign network interface.
 
 ## Attributes Reference
