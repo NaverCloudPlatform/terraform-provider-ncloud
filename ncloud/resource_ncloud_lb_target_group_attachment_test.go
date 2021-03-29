@@ -3,7 +3,6 @@ package ncloud
 import (
 	"fmt"
 	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/ncloud"
-	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/services/vloadbalancer"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
@@ -12,7 +11,7 @@ import (
 )
 
 func TestAccResourceNcloudLbTargetGroupAttachment_basic(t *testing.T) {
-	var target vloadbalancer.Target
+	var target string
 	targetGroupName := fmt.Sprintf("terraform-testacc-tga-%s", acctest.RandString(5))
 	testServerName := getTestServerName()
 	resourceName := "ncloud_lb_target_group_attachment.test"
@@ -28,14 +27,14 @@ func TestAccResourceNcloudLbTargetGroupAttachment_basic(t *testing.T) {
 				Check: resource.ComposeAggregateTestCheckFunc(
 					testAccCheckLbTargetGroupAttachmentExists(resourceName, &target, testAccProvider),
 					resource.TestCheckResourceAttrSet(resourceName, "target_group_no"),
-					resource.TestCheckResourceAttrSet(resourceName, "target_no"),
+					resource.TestCheckResourceAttr(resourceName, "target_no_list.#", "1"),
 				),
 			},
 		},
 	})
 }
 
-func testAccCheckLbTargetGroupAttachmentExists(n string, t *vloadbalancer.Target, provider *schema.Provider) resource.TestCheckFunc {
+func testAccCheckLbTargetGroupAttachmentExists(n string, t *string, provider *schema.Provider) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		rs, ok := s.RootModule().Resources[n]
 		if !ok {
@@ -47,19 +46,17 @@ func testAccCheckLbTargetGroupAttachmentExists(n string, t *vloadbalancer.Target
 		}
 
 		config := provider.Meta().(*ProviderConfig)
-		resp, err := config.Client.vloadbalancer.V2Api.GetTargetList(&vloadbalancer.GetTargetListRequest{
-			RegionCode:    &config.RegionCode,
-			TargetGroupNo: ncloud.String(rs.Primary.Attributes["target_group_no"]),
-		})
+		targetNoList, err := getVpcLoadBalancerTargetGroupAttachment(config, rs.Primary.Attributes["target_group_no"], []string{rs.Primary.Attributes["target_no_list.0"]})
+
 		if err != nil {
 			return err
 		}
 
-		if len(resp.TargetList) < 1 {
-			return fmt.Errorf("Not found Target : %s", rs.Primary.ID)
+		if targetNoList == nil {
+			return fmt.Errorf("Not found Target : %s, %s", rs.Primary.ID, rs.Primary.Attributes["target_no_list.1"])
 		}
 
-		*t = *resp.TargetList[0]
+		t = ncloud.String(targetNoList[0])
 		return nil
 	}
 }
@@ -72,16 +69,14 @@ func testAccCheckLbTargetGroupAttachmentDestroy(s *terraform.State, provider *sc
 			continue
 		}
 
-		resp, err := config.Client.vloadbalancer.V2Api.GetTargetList(&vloadbalancer.GetTargetListRequest{
-			RegionCode:    &config.RegionCode,
-			TargetGroupNo: ncloud.String(rs.Primary.Attributes["target_group_no"]),
-		})
+		targetNoList, err := getVpcLoadBalancerTargetGroupAttachment(config, rs.Primary.Attributes["target_group_no"], []string{rs.Primary.Attributes["target_no_list.0"]})
+
 		if err != nil {
 			return err
 		}
 
-		if len(resp.TargetList) > 0 {
-			return fmt.Errorf("Target (%s) still exists in Target Group (%s)", ncloud.StringValue(resp.TargetList[0].TargetNo), rs.Primary.Attributes["target_group_no"])
+		if targetNoList != nil {
+			return fmt.Errorf("Target (%s) still exists in Target Group (%s)", targetNoList, rs.Primary.Attributes["target_group_no.0"])
 		}
 	}
 	return nil
@@ -138,7 +133,7 @@ resource "ncloud_lb_target_group" "test" {
 
 resource "ncloud_lb_target_group_attachment" "test" {
   target_group_no = ncloud_lb_target_group.test.target_group_no
-  target_no = ncloud_server.test.instance_no
+  target_no_list = [ncloud_server.test.instance_no]
 }
 
 `, serverName, targetGroupName)

@@ -6,13 +6,8 @@ import (
 	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/ncloud"
 	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/services/vloadbalancer"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
-)
-
-const (
-	TargetGroupPleaseTryAgainErrorCode = "1250000"
 )
 
 func init() {
@@ -205,63 +200,17 @@ func resourceNcloudTargetGroupRead(ctx context.Context, d *schema.ResourceData, 
 	if !config.SupportVPC {
 		return diag.FromErr(NotSupportClassic("resource `ncloud_lb_target_group`"))
 	}
-	reqParams := &vloadbalancer.GetTargetGroupListRequest{
-		RegionCode:        &config.RegionCode,
-		TargetGroupNoList: []*string{ncloud.String(d.Id())},
-	}
 
-	targetGroupListResponse := &vloadbalancer.GetTargetGroupListResponse{}
-	err := resource.RetryContext(ctx, d.Timeout(schema.TimeoutRead), func() *resource.RetryError {
-		logCommonRequest("resourceNcloudTargetGroupRead", reqParams)
-		resp, err := config.Client.vloadbalancer.V2Api.GetTargetGroupList(reqParams)
-		if err != nil {
-			errBody, _ := GetCommonErrorBody(err)
-			if errBody.ReturnCode == TargetGroupPleaseTryAgainErrorCode {
-				return resource.RetryableError(err)
-			}
-			logErrorResponse("resourceNcloudTargetGroupRead", err, reqParams)
-			return resource.NonRetryableError(err)
-		}
-		logResponse("resourceNcloudTargetGroupRead", resp)
-		targetGroupListResponse = resp
-		return nil
-	})
-
+	tg, err := getVpcLoadBalancerTargetGroup(config, d.Id())
 	if err != nil {
 		return diag.FromErr(err)
 	}
 
-	if len(targetGroupListResponse.TargetGroupList) < 1 {
+	if tg == nil {
 		d.SetId("")
 		return nil
 	}
 
-	respTg := targetGroupListResponse.TargetGroupList[0]
-	tg := &TargetGroup{
-		TargetGroupNo:           respTg.TargetGroupNo,
-		TargetGroupName:         respTg.TargetGroupName,
-		TargetType:              respTg.TargetType.Code,
-		VpcNo:                   respTg.VpcNo,
-		TargetGroupProtocolType: respTg.TargetGroupProtocolType.Code,
-		TargetGroupPort:         respTg.TargetGroupPort,
-		TargetGroupDescription:  respTg.TargetGroupDescription,
-		UseStickySession:        respTg.UseStickySession,
-		UseProxyProtocol:        respTg.UseProxyProtocol,
-		AlgorithmType:           respTg.AlgorithmType.Code,
-		LoadBalancerInstanceNo:  respTg.LoadBalancerInstanceNo,
-		TargetNoList:            respTg.TargetNoList,
-		HealthCheck: []*HealthCheck{
-			{
-				HealthCheckProtocolType:   respTg.HealthCheckProtocolType.Code,
-				HealthCheckPort:           respTg.HealthCheckPort,
-				HealthCheckUrlPath:        respTg.HealthCheckUrlPath,
-				HealthCheckHttpMethodType: respTg.HealthCheckHttpMethodType.Code,
-				HealthCheckCycle:          respTg.HealthCheckCycle,
-				HealthCheckUpThreshold:    respTg.HealthCheckUpThreshold,
-				HealthCheckDownThreshold:  respTg.HealthCheckDownThreshold,
-			},
-		},
-	}
 	tgMap := ConvertToMap(tg)
 	SetSingularResourceDataFromMapSchema(resourceNcloudLbTargetGroup(), d, tgMap)
 	return nil
@@ -343,6 +292,54 @@ func resourceNcloudTargetGroupDelete(ctx context.Context, d *schema.ResourceData
 	}
 
 	return nil
+}
+
+func getVpcLoadBalancerTargetGroup(config *ProviderConfig, id string) (*TargetGroup, error) {
+	reqParams := &vloadbalancer.GetTargetGroupListRequest{
+		RegionCode:        &config.RegionCode,
+		TargetGroupNoList: []*string{ncloud.String(id)},
+	}
+
+	logCommonRequest("getLbTargetGroup", reqParams)
+	resp, err := config.Client.vloadbalancer.V2Api.GetTargetGroupList(reqParams)
+	if err != nil {
+		logErrorResponse("getLbTargetGroup", err, reqParams)
+		return nil, err
+	}
+	logResponse("getLbTargetGroup", resp)
+	if len(resp.TargetGroupList) < 1 {
+		return nil, nil
+	}
+	tg := convertVpcTargetGroup(resp.TargetGroupList[0])
+	return tg, nil
+}
+
+func convertVpcTargetGroup(tg *vloadbalancer.TargetGroup) *TargetGroup {
+	return &TargetGroup{
+		TargetGroupNo:           tg.TargetGroupNo,
+		TargetGroupName:         tg.TargetGroupName,
+		TargetType:              tg.TargetType.Code,
+		VpcNo:                   tg.VpcNo,
+		TargetGroupProtocolType: tg.TargetGroupProtocolType.Code,
+		TargetGroupPort:         tg.TargetGroupPort,
+		TargetGroupDescription:  tg.TargetGroupDescription,
+		UseStickySession:        tg.UseStickySession,
+		UseProxyProtocol:        tg.UseProxyProtocol,
+		AlgorithmType:           tg.AlgorithmType.Code,
+		LoadBalancerInstanceNo:  tg.LoadBalancerInstanceNo,
+		TargetNoList:            tg.TargetNoList,
+		HealthCheck: []*HealthCheck{
+			{
+				HealthCheckProtocolType:   tg.HealthCheckProtocolType.Code,
+				HealthCheckPort:           tg.HealthCheckPort,
+				HealthCheckUrlPath:        tg.HealthCheckUrlPath,
+				HealthCheckHttpMethodType: tg.HealthCheckHttpMethodType.Code,
+				HealthCheckCycle:          tg.HealthCheckCycle,
+				HealthCheckUpThreshold:    tg.HealthCheckUpThreshold,
+				HealthCheckDownThreshold:  tg.HealthCheckDownThreshold,
+			},
+		},
+	}
 }
 
 func validateAlgorithmTypeByTargetGroupProtocol(algorithmType string, protocol string) error {

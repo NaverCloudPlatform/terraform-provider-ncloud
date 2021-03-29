@@ -2,8 +2,6 @@ package ncloud
 
 import (
 	"fmt"
-	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/ncloud"
-	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/services/vloadbalancer"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
@@ -12,7 +10,7 @@ import (
 )
 
 func TestAccResourceNcloudLbListener_vpc_basic(t *testing.T) {
-	var listener vloadbalancer.LoadBalancerListener
+	var listener LoadBalancerListener
 	lbName := fmt.Sprintf("terraform-testacc-lb-%s", acctest.RandString(5))
 	resourceName := "ncloud_lb_listener.test"
 	resource.ParallelTest(t, resource.TestCase{
@@ -37,7 +35,7 @@ func TestAccResourceNcloudLbListener_vpc_basic(t *testing.T) {
 	})
 }
 
-func testAccCheckLbListenerExists(n string, l *vloadbalancer.LoadBalancerListener, provider *schema.Provider) resource.TestCheckFunc {
+func testAccCheckLbListenerExists(n string, l *LoadBalancerListener, provider *schema.Provider) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		rs, ok := s.RootModule().Resources[n]
 		if !ok {
@@ -49,28 +47,16 @@ func testAccCheckLbListenerExists(n string, l *vloadbalancer.LoadBalancerListene
 		}
 
 		config := provider.Meta().(*ProviderConfig)
-		resp, err := config.Client.vloadbalancer.V2Api.GetLoadBalancerListenerList(&vloadbalancer.GetLoadBalancerListenerListRequest{
-			RegionCode:             &config.RegionCode,
-			LoadBalancerInstanceNo: ncloud.String(rs.Primary.Attributes["load_balancer_no"]),
-		})
-
+		listener, err := getVpcLoadBalancerListener(config, rs.Primary.ID, rs.Primary.Attributes["load_balancer_no"])
 		if err != nil {
 			return err
 		}
 
-		exist := false
-		for _, l := range resp.LoadBalancerListenerList {
-			if rs.Primary.ID == *l.LoadBalancerListenerNo {
-				exist = true
-				break
-			}
-		}
-
-		if !exist {
+		if listener == nil {
 			return fmt.Errorf("Not found LB Listener : %s", rs.Primary.ID)
 		}
 
-		*l = *resp.LoadBalancerListenerList[0]
+		l = listener
 		return nil
 	}
 }
@@ -83,24 +69,12 @@ func testAccCheckLbListenerDestroy(s *terraform.State, provider *schema.Provider
 			continue
 		}
 
-		resp, err := config.Client.vloadbalancer.V2Api.GetLoadBalancerListenerList(&vloadbalancer.GetLoadBalancerListenerListRequest{
-			RegionCode:             &config.RegionCode,
-			LoadBalancerInstanceNo: ncloud.String(rs.Primary.Attributes["load_balancer_no"]),
-		})
-
+		listener, err := getVpcLoadBalancerListener(config, rs.Primary.ID, rs.Primary.Attributes["load_balancer_no"])
 		if err != nil {
 			return err
 		}
 
-		exist := false
-		for _, l := range resp.LoadBalancerListenerList {
-			if rs.Primary.ID == *l.LoadBalancerListenerNo {
-				exist = true
-				break
-			}
-		}
-
-		if exist {
+		if listener != nil {
 			return fmt.Errorf("LB Listener(%s) still exists", rs.Primary.ID)
 		}
 	}

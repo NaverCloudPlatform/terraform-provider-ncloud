@@ -152,19 +152,17 @@ func resourceNcloudLbRead(ctx context.Context, d *schema.ResourceData, meta inte
 		return diag.FromErr(NotSupportClassic("resource `ncloud_lb`"))
 	}
 
-	reqParams := &vloadbalancer.GetLoadBalancerInstanceDetailRequest{
-		RegionCode:             &config.RegionCode,
-		LoadBalancerInstanceNo: ncloud.String(d.Id()),
-	}
-	resp, err := config.Client.vloadbalancer.V2Api.GetLoadBalancerInstanceDetail(reqParams)
+	lb, err := getVpcLoadBalancer(config, d.Id())
+
 	if err != nil {
 		return diag.FromErr(err)
 	}
-	if len(resp.LoadBalancerInstanceList) < 1 {
+
+	if lb == nil {
 		d.SetId("")
 		return nil
 	}
-	lb := convertLbInstance(resp.LoadBalancerInstanceList[0])
+
 	lbMap := ConvertToMap(lb)
 	SetSingularResourceDataFromMapSchema(resourceNcloudLb(), d, lbMap)
 	return nil
@@ -295,7 +293,24 @@ func waitForLoadBalancerActive(ctx context.Context, d *schema.ResourceData, conf
 	return nil
 }
 
-func convertLbInstance(instance *vloadbalancer.LoadBalancerInstance) *LoadBalancerInstance {
+func getVpcLoadBalancer(config *ProviderConfig, id string) (*LoadBalancerInstance, error) {
+	reqParams := &vloadbalancer.GetLoadBalancerInstanceDetailRequest{
+		RegionCode:             &config.RegionCode,
+		LoadBalancerInstanceNo: ncloud.String(id),
+	}
+	resp, err := config.Client.vloadbalancer.V2Api.GetLoadBalancerInstanceDetail(reqParams)
+	if err != nil {
+		return nil, err
+	}
+
+	if len(resp.LoadBalancerInstanceList) < 1 {
+		return nil, nil
+	}
+
+	return convertVpcLoadBalancer(resp.LoadBalancerInstanceList[0]), nil
+}
+
+func convertVpcLoadBalancer(instance *vloadbalancer.LoadBalancerInstance) *LoadBalancerInstance {
 	return &LoadBalancerInstance{
 		LoadBalancerInstanceNo:   instance.LoadBalancerInstanceNo,
 		LoadBalancerDescription:  instance.LoadBalancerDescription,

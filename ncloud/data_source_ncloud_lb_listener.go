@@ -42,7 +42,11 @@ func dataSourceNcloudLbListenerRead(ctx context.Context, d *schema.ResourceData,
 		return diag.FromErr(NotSupportClassic("datasource `ncloud_lb_listener`"))
 	}
 
-	listenerList, err := getLbListenerList(d, config)
+	if v, ok := d.GetOk("id"); ok {
+		d.SetId(v.(string))
+	}
+
+	listenerList, err := getVpcLoadBalancerListenerList(config, d.Id(), d.Get("load_balancer_no").(string))
 
 	if err != nil {
 		return diag.FromErr(err)
@@ -62,14 +66,10 @@ func dataSourceNcloudLbListenerRead(ctx context.Context, d *schema.ResourceData,
 	return nil
 }
 
-func getLbListenerList(d *schema.ResourceData, config *ProviderConfig) ([]*LoadBalancerListener, error) {
-	if v, ok := d.GetOk("id"); ok {
-		d.SetId(v.(string))
-	}
-
+func getVpcLoadBalancerListenerList(config *ProviderConfig, id string, loadBalancerNo string) ([]*LoadBalancerListener, error) {
 	reqParams := &vloadbalancer.GetLoadBalancerListenerListRequest{
 		RegionCode:             &config.RegionCode,
-		LoadBalancerInstanceNo: ncloud.String(d.Get("load_balancer_no").(string)),
+		LoadBalancerInstanceNo: ncloud.String(loadBalancerNo),
 	}
 
 	resp, err := config.Client.vloadbalancer.V2Api.GetLoadBalancerListenerList(reqParams)
@@ -88,7 +88,7 @@ func getLbListenerList(d *schema.ResourceData, config *ProviderConfig) ([]*LoadB
 			TlsMinVersionType:      l.TlsMinVersionType.Code,
 			LoadBalancerRuleNoList: l.LoadBalancerRuleNoList,
 		}
-		if d.Id() == *listener.LoadBalancerListenerNo {
+		if id == *listener.LoadBalancerListenerNo {
 			return []*LoadBalancerListener{listener}, nil
 		}
 		listenerList = append(listenerList, listener)

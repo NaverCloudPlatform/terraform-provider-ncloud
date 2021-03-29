@@ -74,11 +74,8 @@ func resourceNcloudLbTargetGroupAttachmentRead(ctx context.Context, d *schema.Re
 	if !config.SupportVPC {
 		return diag.FromErr(NotSupportClassic("resource `ncloud_lb_target_group`"))
 	}
-	reqParams := &vloadbalancer.GetTargetListRequest{
-		RegionCode:    &config.RegionCode,
-		TargetGroupNo: ncloud.String(d.Get("target_group_no").(string)),
-	}
-	resp, err := config.Client.vloadbalancer.V2Api.GetTargetList(reqParams)
+
+	targetNoList, err := getVpcLoadBalancerTargetGroupAttachment(config, d.Get("target_group_no").(string), ncloud.StringListValue(ncloud.StringInterfaceList(d.Get("target_no_list").([]interface{}))))
 	if err != nil {
 		errorBody, _ := GetCommonErrorBody(err)
 		if errorBody.ReturnCode == TargetGroupAttachmentInvalidTargetGroupNoErrorCode {
@@ -88,15 +85,13 @@ func resourceNcloudLbTargetGroupAttachmentRead(ctx context.Context, d *schema.Re
 		}
 		return diag.FromErr(err)
 	}
-	targetNoList := ncloud.StringInterfaceList(d.Get("target_no_list").([]interface{}))
-	matchTargetNoList := getMatchTargetNoListFromResponse(resp.TargetList, ncloud.StringListValue(targetNoList))
 
-	if len(matchTargetNoList) < 1 {
+	if targetNoList == nil {
 		log.Printf("[WARN] Target dose not exist, removing target attachment %s", d.Id())
 		d.SetId("")
 	}
 
-	d.Set("target_no_list", matchTargetNoList)
+	d.Set("target_no_list", targetNoList)
 	return nil
 }
 
@@ -184,6 +179,24 @@ func resourceNcloudLbTargetGroupAttachmentDelete(ctx context.Context, d *schema.
 		return diag.FromErr(err)
 	}
 	return nil
+}
+
+func getVpcLoadBalancerTargetGroupAttachment(config *ProviderConfig, targetGroupNo string, targetNoList []string) ([]string, error) {
+	reqParams := &vloadbalancer.GetTargetListRequest{
+		RegionCode:    &config.RegionCode,
+		TargetGroupNo: ncloud.String(targetGroupNo),
+	}
+	resp, err := config.Client.vloadbalancer.V2Api.GetTargetList(reqParams)
+	if err != nil {
+		return nil, err
+	}
+	matchTargetNoList := getMatchTargetNoListFromResponse(resp.TargetList, targetNoList)
+
+	if len(matchTargetNoList) < 1 {
+		return nil, nil
+	}
+
+	return matchTargetNoList, nil
 }
 
 func getMatchTargetNoListFromResponse(respTargetList []*vloadbalancer.Target, targetNoList []string) []string {

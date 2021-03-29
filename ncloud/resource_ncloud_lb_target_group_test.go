@@ -3,7 +3,6 @@ package ncloud
 import (
 	"fmt"
 	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/ncloud"
-	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/services/vloadbalancer"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
@@ -12,7 +11,7 @@ import (
 )
 
 func TestAccResourceNcloudLbTargetGroup_basic(t *testing.T) {
-	var tg vloadbalancer.TargetGroup
+	var tg TargetGroup
 	name := fmt.Sprintf("terraform-testacc-tg-%s", acctest.RandString(5))
 	resourceName := "ncloud_lb_target_group.test"
 	resource.ParallelTest(t, resource.TestCase{
@@ -48,7 +47,7 @@ func TestAccResourceNcloudLbTargetGroup_basic(t *testing.T) {
 	})
 }
 
-func testAccCheckLbTargetGroupExists(n string, t *vloadbalancer.TargetGroup, provider *schema.Provider) resource.TestCheckFunc {
+func testAccCheckLbTargetGroupExists(n string, t *TargetGroup, provider *schema.Provider) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		rs, ok := s.RootModule().Resources[n]
 		if !ok {
@@ -60,19 +59,17 @@ func testAccCheckLbTargetGroupExists(n string, t *vloadbalancer.TargetGroup, pro
 		}
 
 		config := provider.Meta().(*ProviderConfig)
-		resp, err := config.Client.vloadbalancer.V2Api.GetTargetGroupList(&vloadbalancer.GetTargetGroupListRequest{
-			RegionCode:        &config.RegionCode,
-			TargetGroupNoList: []*string{ncloud.String(rs.Primary.ID)},
-		})
+		tg, err := getVpcLoadBalancerTargetGroup(config, rs.Primary.ID)
+
 		if err != nil {
 			return err
 		}
 
-		if len(resp.TargetGroupList) < 1 {
+		if tg == nil {
 			return fmt.Errorf("Not found Target Group : %s", rs.Primary.ID)
 		}
 
-		*t = *resp.TargetGroupList[0]
+		t = tg
 		return nil
 	}
 }
@@ -85,16 +82,14 @@ func testAccCheckLbTargetGroupDestroy(s *terraform.State, provider *schema.Provi
 			continue
 		}
 
-		resp, err := config.Client.vloadbalancer.V2Api.GetTargetGroupList(&vloadbalancer.GetTargetGroupListRequest{
-			RegionCode:        &config.RegionCode,
-			TargetGroupNoList: []*string{ncloud.String(rs.Primary.ID)},
-		})
+		tg, err := getVpcLoadBalancerTargetGroup(config, rs.Primary.ID)
+
 		if err != nil {
 			return err
 		}
 
-		if len(resp.TargetGroupList) > 0 {
-			return fmt.Errorf("Target Group(%s) still exists", ncloud.StringValue(resp.TargetGroupList[0].TargetGroupNo))
+		if tg != nil {
+			return fmt.Errorf("Target Group(%s) still exists", ncloud.StringValue(tg.TargetGroupNo))
 		}
 	}
 	return nil

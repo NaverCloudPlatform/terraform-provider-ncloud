@@ -128,31 +128,13 @@ func resourceNcloudLbListenerRead(ctx context.Context, d *schema.ResourceData, m
 	if !config.SupportVPC {
 		return diag.FromErr(NotSupportClassic("resource `ncloud_lb_listener`"))
 	}
-	reqParams := &vloadbalancer.GetLoadBalancerListenerListRequest{
-		RegionCode:             &config.RegionCode,
-		LoadBalancerInstanceNo: ncloud.String(d.Get("load_balancer_no").(string)),
-	}
-	resp, err := config.Client.vloadbalancer.V2Api.GetLoadBalancerListenerList(reqParams)
+
+	listener, err := getVpcLoadBalancerListener(config, d.Id(), d.Get("load_balancer_no").(string))
 	if err != nil {
 		return diag.FromErr(err)
 	}
 
-	listener := &LoadBalancerListener{}
-	exist := false
-	for _, l := range resp.LoadBalancerListenerList {
-		if d.Id() == *l.LoadBalancerListenerNo {
-			exist = true
-			listener.LoadBalancerListenerNo = l.LoadBalancerListenerNo
-			listener.ProtocolType = l.ProtocolType.Code
-			listener.Port = l.Port
-			listener.UseHttp2 = l.UseHttp2
-			listener.SslCertificateNo = l.SslCertificateNo
-			listener.TlsMinVersionType = l.TlsMinVersionType.Code
-			listener.LoadBalancerRuleNoList = l.LoadBalancerRuleNoList
-		}
-	}
-
-	if !exist {
+	if listener == nil {
 		d.SetId("")
 		return nil
 	}
@@ -237,4 +219,31 @@ func getListenerFromCreateResponseByPort(listenerList []*vloadbalancer.LoadBalan
 		}
 	}
 	return nil
+}
+
+func getVpcLoadBalancerListener(config *ProviderConfig, id string, loadBalancerNo string) (*LoadBalancerListener, error) {
+	reqParams := &vloadbalancer.GetLoadBalancerListenerListRequest{
+		RegionCode:             &config.RegionCode,
+		LoadBalancerInstanceNo: ncloud.String(loadBalancerNo),
+	}
+	resp, err := config.Client.vloadbalancer.V2Api.GetLoadBalancerListenerList(reqParams)
+	if err != nil {
+		return nil, err
+	}
+
+	for _, l := range resp.LoadBalancerListenerList {
+		if id == *l.LoadBalancerListenerNo {
+			return &LoadBalancerListener{
+				LoadBalancerListenerNo: l.LoadBalancerListenerNo,
+				ProtocolType:           l.ProtocolType.Code,
+				Port:                   l.Port,
+				UseHttp2:               l.UseHttp2,
+				SslCertificateNo:       l.SslCertificateNo,
+				TlsMinVersionType:      l.TlsMinVersionType.Code,
+				LoadBalancerRuleNoList: l.LoadBalancerRuleNoList,
+			}, nil
+		}
+	}
+
+	return nil, nil
 }

@@ -3,7 +3,6 @@ package ncloud
 import (
 	"fmt"
 	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/ncloud"
-	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/services/vloadbalancer"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
@@ -12,7 +11,7 @@ import (
 )
 
 func TestAccResourceNcloudLb_vpc_basic(t *testing.T) {
-	var lb vloadbalancer.LoadBalancerInstance
+	var lb LoadBalancerInstance
 	lbName := fmt.Sprintf("terraform-testacc-lb-%s", acctest.RandString(5))
 	resourceName := "ncloud_lb.test"
 	resource.ParallelTest(t, resource.TestCase{
@@ -46,7 +45,7 @@ func TestAccResourceNcloudLb_vpc_basic(t *testing.T) {
 	})
 }
 
-func testAccCheckLbExists(n string, lb *vloadbalancer.LoadBalancerInstance, provider *schema.Provider) resource.TestCheckFunc {
+func testAccCheckLbExists(n string, lb *LoadBalancerInstance, provider *schema.Provider) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		rs, ok := s.RootModule().Resources[n]
 		if !ok {
@@ -58,19 +57,16 @@ func testAccCheckLbExists(n string, lb *vloadbalancer.LoadBalancerInstance, prov
 		}
 
 		config := provider.Meta().(*ProviderConfig)
-		resp, err := config.Client.vloadbalancer.V2Api.GetLoadBalancerInstanceDetail(&vloadbalancer.GetLoadBalancerInstanceDetailRequest{
-			RegionCode:             &config.RegionCode,
-			LoadBalancerInstanceNo: ncloud.String(rs.Primary.ID),
-		})
+		loadBalancer, err := getVpcLoadBalancer(config, rs.Primary.ID)
 		if err != nil {
 			return err
 		}
 
-		if len(resp.LoadBalancerInstanceList) < 1 {
+		if loadBalancer == nil {
 			return fmt.Errorf("Not found LB : %s", rs.Primary.ID)
 		}
 
-		*lb = *resp.LoadBalancerInstanceList[0]
+		lb = loadBalancer
 		return nil
 	}
 }
@@ -83,16 +79,13 @@ func testAccCheckLbDestroy(s *terraform.State, provider *schema.Provider) error 
 			continue
 		}
 
-		resp, err := config.Client.vloadbalancer.V2Api.GetLoadBalancerInstanceDetail(&vloadbalancer.GetLoadBalancerInstanceDetailRequest{
-			RegionCode:             &config.RegionCode,
-			LoadBalancerInstanceNo: ncloud.String(rs.Primary.ID),
-		})
+		loadBalancer, err := getVpcLoadBalancer(config, rs.Primary.ID)
 		if err != nil {
 			return err
 		}
 
-		if len(resp.LoadBalancerInstanceList) > 0 {
-			return fmt.Errorf("LB(%s) still exists", ncloud.StringValue(resp.LoadBalancerInstanceList[0].LoadBalancerInstanceNo))
+		if loadBalancer != nil {
+			return fmt.Errorf("LB(%s) still exists", ncloud.StringValue(loadBalancer.LoadBalancerInstanceNo))
 		}
 	}
 	return nil

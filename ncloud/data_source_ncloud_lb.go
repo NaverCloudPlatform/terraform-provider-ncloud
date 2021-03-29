@@ -38,35 +38,9 @@ func dataSourceNcloudLbRead(ctx context.Context, d *schema.ResourceData, meta in
 		d.SetId(v.(string))
 	}
 
-	reqParams := &vloadbalancer.GetLoadBalancerInstanceListRequest{
-		RegionCode: &config.RegionCode,
-	}
-
-	if d.Id() != "" {
-		reqParams.LoadBalancerInstanceNoList = []*string{ncloud.String(d.Id())}
-	}
-
-	resp, err := config.Client.vloadbalancer.V2Api.GetLoadBalancerInstanceList(reqParams)
+	lbList, err := getVpcLoadBalancerList(config, d.Id())
 	if err != nil {
 		return diag.FromErr(err)
-	}
-
-	lbList := make([]*LoadBalancerInstance, 0)
-	for _, lb := range resp.LoadBalancerInstanceList {
-		lbList = append(lbList, &LoadBalancerInstance{
-			LoadBalancerInstanceNo:   lb.LoadBalancerInstanceNo,
-			LoadBalancerDescription:  lb.LoadBalancerDescription,
-			LoadBalancerName:         lb.LoadBalancerName,
-			LoadBalancerDomain:       lb.LoadBalancerDomain,
-			LoadBalancerIpList:       lb.LoadBalancerIpList,
-			LoadBalancerType:         lb.LoadBalancerType.Code,
-			LoadBalancerNetworkType:  lb.LoadBalancerNetworkType.Code,
-			ThroughputType:           lb.ThroughputType.Code,
-			IdleTimeout:              lb.IdleTimeout,
-			VpcNo:                    lb.VpcNo,
-			SubnetNoList:             lb.SubnetNoList,
-			LoadBalancerListenerList: lb.LoadBalancerListenerNoList,
-		})
 	}
 
 	lbListMap := ConvertToArrayMap(lbList)
@@ -81,4 +55,26 @@ func dataSourceNcloudLbRead(ctx context.Context, d *schema.ResourceData, meta in
 	d.SetId(lbListMap[0]["load_balancer_no"].(string))
 	SetSingularResourceDataFromMapSchema(dataSourceNcloudLb(), d, lbListMap[0])
 	return nil
+}
+
+func getVpcLoadBalancerList(config *ProviderConfig, id string) ([]*LoadBalancerInstance, error) {
+	reqParams := &vloadbalancer.GetLoadBalancerInstanceListRequest{
+		RegionCode: &config.RegionCode,
+	}
+
+	if id != "" {
+		reqParams.LoadBalancerInstanceNoList = []*string{ncloud.String(id)}
+	}
+
+	resp, err := config.Client.vloadbalancer.V2Api.GetLoadBalancerInstanceList(reqParams)
+	if err != nil {
+		return nil, err
+	}
+
+	lbList := make([]*LoadBalancerInstance, 0)
+	for _, lb := range resp.LoadBalancerInstanceList {
+		lbList = append(lbList, convertVpcLoadBalancer(lb))
+	}
+
+	return lbList, nil
 }

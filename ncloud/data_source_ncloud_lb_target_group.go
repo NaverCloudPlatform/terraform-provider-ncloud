@@ -74,46 +74,9 @@ func dataSourceNcloudLbTargetGroupRead(ctx context.Context, d *schema.ResourceDa
 		d.SetId(v.(string))
 	}
 
-	reqParams := &vloadbalancer.GetTargetGroupListRequest{
-		RegionCode: &config.RegionCode,
-	}
-
-	if d.Id() != "" {
-		reqParams.TargetGroupNoList = []*string{ncloud.String(d.Id())}
-	}
-
-	resp, err := config.Client.vloadbalancer.V2Api.GetTargetGroupList(reqParams)
+	targetGroupList, err := getVpcLoadBalancerTargetGroupList(config, d.Id())
 	if err != nil {
 		return diag.FromErr(err)
-	}
-
-	targetGroupList := make([]*TargetGroup, 0)
-	for _, tg := range resp.TargetGroupList {
-		targetGroupList = append(targetGroupList, &TargetGroup{
-			TargetGroupNo:           tg.TargetGroupNo,
-			TargetGroupName:         tg.TargetGroupName,
-			TargetType:              tg.TargetType.Code,
-			VpcNo:                   tg.VpcNo,
-			TargetGroupProtocolType: tg.TargetGroupProtocolType.Code,
-			TargetGroupPort:         tg.TargetGroupPort,
-			TargetGroupDescription:  tg.TargetGroupDescription,
-			UseStickySession:        tg.UseStickySession,
-			UseProxyProtocol:        tg.UseProxyProtocol,
-			AlgorithmType:           tg.AlgorithmType.Code,
-			LoadBalancerInstanceNo:  tg.LoadBalancerInstanceNo,
-			TargetNoList:            tg.TargetNoList,
-			HealthCheck: []*HealthCheck{
-				{
-					HealthCheckProtocolType:   tg.HealthCheckProtocolType.Code,
-					HealthCheckPort:           tg.HealthCheckPort,
-					HealthCheckUrlPath:        tg.HealthCheckUrlPath,
-					HealthCheckHttpMethodType: tg.HealthCheckHttpMethodType.Code,
-					HealthCheckCycle:          tg.HealthCheckCycle,
-					HealthCheckUpThreshold:    tg.HealthCheckUpThreshold,
-					HealthCheckDownThreshold:  tg.HealthCheckDownThreshold,
-				},
-			},
-		})
 	}
 
 	targetGroupListMap := ConvertToArrayMap(targetGroupList)
@@ -128,4 +91,26 @@ func dataSourceNcloudLbTargetGroupRead(ctx context.Context, d *schema.ResourceDa
 	d.SetId(targetGroupListMap[0]["target_group_no"].(string))
 	SetSingularResourceDataFromMapSchema(dataSourceNcloudLbTargetGroup(), d, targetGroupListMap[0])
 	return nil
+}
+
+func getVpcLoadBalancerTargetGroupList(config *ProviderConfig, id string) ([]*TargetGroup, error) {
+	reqParams := &vloadbalancer.GetTargetGroupListRequest{
+		RegionCode: &config.RegionCode,
+	}
+
+	if id != "" {
+		reqParams.TargetGroupNoList = []*string{ncloud.String(id)}
+	}
+
+	resp, err := config.Client.vloadbalancer.V2Api.GetTargetGroupList(reqParams)
+	if err != nil {
+		return nil, err
+	}
+
+	targetGroupList := make([]*TargetGroup, 0)
+	for _, tg := range resp.TargetGroupList {
+		targetGroupList = append(targetGroupList, convertVpcTargetGroup(tg))
+	}
+
+	return targetGroupList, nil
 }
