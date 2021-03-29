@@ -167,33 +167,36 @@ func resourceNcloudLbListenerUpdate(ctx context.Context, d *schema.ResourceData,
 	if !config.SupportVPC {
 		return diag.FromErr(NotSupportClassic("resource `ncloud_lb_listener`"))
 	}
-	reqParams := &vloadbalancer.ChangeLoadBalancerListenerConfigurationRequest{
-		RegionCode: &config.RegionCode,
-		// Required
-		LoadBalancerListenerNo: ncloud.String(d.Id()),
-		Port:                   ncloud.Int32(int32(d.Get("port").(int))),
-		ProtocolTypeCode:       ncloud.String(d.Get("protocol").(string)),
 
-		// Optional
-		SslCertificateNo:      StringPtrOrNil(d.GetOk("ssl_certificate_no")),
-		UseHttp2:              BoolPtrOrNil(d.GetOk("use_http2")),
-		TlsMinVersionTypeCode: StringPtrOrNil(d.GetOk("tls_min_version_type")),
-	}
+	if d.HasChanges("port", "protocol", "ssl_certificate_no", "use_http2", "tls_min_version_type") {
+		reqParams := &vloadbalancer.ChangeLoadBalancerListenerConfigurationRequest{
+			RegionCode: &config.RegionCode,
+			// Required
+			LoadBalancerListenerNo: ncloud.String(d.Id()),
+			Port:                   ncloud.Int32(int32(d.Get("port").(int))),
+			ProtocolTypeCode:       ncloud.String(d.Get("protocol").(string)),
 
-	err := resource.RetryContext(ctx, d.Timeout(schema.TimeoutUpdate), func() *resource.RetryError {
-		_, err := config.Client.vloadbalancer.V2Api.ChangeLoadBalancerListenerConfiguration(reqParams)
-		if err != nil {
-			errBody, _ := GetCommonErrorBody(err)
-			if errBody.ReturnCode == LoadBalancerListenerBusyStateErrorCode || errBody.ReturnCode == LoadBalancerListenerServerErrorCode {
-				return resource.RetryableError(err)
-			}
-			return resource.NonRetryableError(err)
+			// Optional
+			SslCertificateNo:      StringPtrOrNil(d.GetOk("ssl_certificate_no")),
+			UseHttp2:              BoolPtrOrNil(d.GetOk("use_http2")),
+			TlsMinVersionTypeCode: StringPtrOrNil(d.GetOk("tls_min_version_type")),
 		}
-		return nil
-	})
 
-	if err != nil {
-		return diag.FromErr(err)
+		err := resource.RetryContext(ctx, d.Timeout(schema.TimeoutUpdate), func() *resource.RetryError {
+			_, err := config.Client.vloadbalancer.V2Api.ChangeLoadBalancerListenerConfiguration(reqParams)
+			if err != nil {
+				errBody, _ := GetCommonErrorBody(err)
+				if errBody.ReturnCode == LoadBalancerListenerBusyStateErrorCode || errBody.ReturnCode == LoadBalancerListenerServerErrorCode {
+					return resource.RetryableError(err)
+				}
+				return resource.NonRetryableError(err)
+			}
+			return nil
+		})
+
+		if err != nil {
+			return diag.FromErr(err)
+		}
 	}
 
 	return resourceNcloudLbListenerRead(ctx, d, config)
