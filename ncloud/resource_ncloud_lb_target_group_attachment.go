@@ -26,6 +26,7 @@ func resourceNcloudLbTargetGroupAttachment() *schema.Resource {
 	return &schema.Resource{
 		CreateContext: resourceNcloudLbTargetGroupAttachmentCreate,
 		ReadContext:   resourceNcloudLbTargetGroupAttachmentRead,
+		UpdateContext: resourceNcloudLbTargetGroupAttachmentUpdate,
 		DeleteContext: resourceNcloudLbTargetGroupAttachmentDelete,
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(DefaultCreateTimeout),
@@ -37,10 +38,11 @@ func resourceNcloudLbTargetGroupAttachment() *schema.Resource {
 				Required: true,
 				ForceNew: true,
 			},
-			"target_no": {
-				Type:     schema.TypeString,
+			"target_no_list": {
+				Type:     schema.TypeList,
 				Required: true,
-				ForceNew: true,
+				MinItems: 1,
+				Elem:     &schema.Schema{Type: schema.TypeString},
 			},
 		},
 	}
@@ -54,28 +56,10 @@ func resourceNcloudLbTargetGroupAttachmentCreate(ctx context.Context, d *schema.
 	reqParams := &vloadbalancer.AddTargetRequest{
 		RegionCode:    &config.RegionCode,
 		TargetGroupNo: ncloud.String(d.Get("target_group_no").(string)),
-		TargetNoList:  ncloud.StringList([]string{d.Get("target_no").(string)}),
+		TargetNoList:  ncloud.StringInterfaceList(d.Get("target_no_list").([]interface{})),
 	}
 
-	err := resource.RetryContext(ctx, d.Timeout(schema.TimeoutCreate), func() *resource.RetryError {
-		logCommonRequest("resourceNcloudLbTargetGroupAttachmentCreate", reqParams)
-		resp, err := config.Client.vloadbalancer.V2Api.AddTarget(reqParams)
-		if err != nil {
-			errBody, _ := GetCommonErrorBody(err)
-			if errBody.ReturnCode == TargetGroupAttachmentBusyStateErrorCode || errBody.ReturnCode == TargetGroupAttachmentPleaseTryAgainErrorCode {
-				return resource.RetryableError(err)
-			}
-			logErrorResponse("resourceNcloudLbTargetGroupAttachmentCreate", err, reqParams)
-			return resource.NonRetryableError(err)
-		}
-
-		logResponse("resourceNcloudLbTargetGroupAttachmentCreate", resp)
-		target := getTargetFromList(resp.TargetList, ncloud.StringValue(reqParams.TargetNoList[0]))
-		if target == nil {
-			return resource.RetryableError(fmt.Errorf("target has not been created yet"))
-		}
-		return nil
-	})
+	err := waitForAddTarget(ctx, d, config, reqParams)
 
 	if err != nil {
 		return diag.FromErr(err)
@@ -104,21 +88,83 @@ func resourceNcloudLbTargetGroupAttachmentRead(ctx context.Context, d *schema.Re
 		}
 		return diag.FromErr(err)
 	}
+	targetNoList := ncloud.StringInterfaceList(d.Get("target_no_list").([]interface{}))
+	matchTargetNoList := getMatchTargetNoListFromResponse(resp.TargetList, ncloud.StringListValue(targetNoList))
 
-	var exist bool
-	targetNo := d.Get("target_no").(string)
-	for _, target := range resp.TargetList {
-		if ncloud.StringValue(target.TargetNo) == targetNo {
-			exist = true
-			break
-		}
-	}
-
-	if !exist {
+	if len(matchTargetNoList) < 1 {
 		log.Printf("[WARN] Target dose not exist, removing target attachment %s", d.Id())
 		d.SetId("")
 	}
+
+	d.Set("target_no_list", matchTargetNoList)
 	return nil
+}
+
+func resourceNcloudLbTargetGroupAttachmentUpdate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+	config := meta.(*ProviderConfig)
+	if !config.SupportVPC {
+		return diag.FromErr(NotSupportClassic("resource `ncloud_lb_target_group`"))
+	}
+	if d.HasChange("target_no_list") {
+		o, n := d.GetChange("target_no_list")
+		oldTargetNoList := ncloud.StringInterfaceList(o.([]interface{}))
+		newTargetNoList := ncloud.StringInterfaceList(n.([]interface{}))
+
+		oldTargetNoMap := make(map[string]bool)
+		newTargetNoMap := make(map[string]bool)
+
+		for _, oldTargetNo := range oldTargetNoList {
+			oldTargetNoMap[*oldTargetNo] = true
+		}
+
+		for _, newTargetNo := range newTargetNoList {
+			newTargetNoMap[*newTargetNo] = true
+		}
+
+		removeTargetNoList := make([]string, 0)
+		addTargetNoList := make([]string, 0)
+
+		for key, _ := range newTargetNoMap {
+			if oldTargetNoMap[key] {
+				delete(oldTargetNoMap, key)
+			} else {
+				addTargetNoList = append(addTargetNoList, key)
+			}
+		}
+
+		for key, _ := range oldTargetNoMap {
+			removeTargetNoList = append(removeTargetNoList, key)
+		}
+
+		if len(addTargetNoList) >= 1 {
+			addReqParams := &vloadbalancer.AddTargetRequest{
+				RegionCode:    &config.RegionCode,
+				TargetGroupNo: ncloud.String(d.Get("target_group_no").(string)),
+				TargetNoList:  ncloud.StringList(addTargetNoList),
+			}
+
+			addErr := waitForAddTarget(ctx, d, config, addReqParams)
+
+			if addErr != nil {
+				return diag.FromErr(addErr)
+			}
+		}
+
+		if len(removeTargetNoList) >= 1 {
+			removeReqParams := &vloadbalancer.RemoveTargetRequest{
+				RegionCode:    &config.RegionCode,
+				TargetGroupNo: ncloud.String(d.Get("target_group_no").(string)),
+				TargetNoList:  ncloud.StringList(removeTargetNoList),
+			}
+
+			removeErr := waitForRemoveTarget(ctx, d, config, removeReqParams)
+
+			if removeErr != nil {
+				return diag.FromErr(removeErr)
+			}
+		}
+	}
+	return resourceNcloudLbTargetGroupAttachmentRead(ctx, d, config)
 }
 
 func resourceNcloudLbTargetGroupAttachmentDelete(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
@@ -129,10 +175,54 @@ func resourceNcloudLbTargetGroupAttachmentDelete(ctx context.Context, d *schema.
 	reqParams := &vloadbalancer.RemoveTargetRequest{
 		RegionCode:    &config.RegionCode,
 		TargetGroupNo: ncloud.String(d.Get("target_group_no").(string)),
-		TargetNoList:  ncloud.StringList([]string{d.Get("target_no").(string)}),
+		TargetNoList:  ncloud.StringInterfaceList(d.Get("target_no_list").([]interface{})),
 	}
 
-	err := resource.RetryContext(ctx, d.Timeout(schema.TimeoutDelete), func() *resource.RetryError {
+	err := waitForRemoveTarget(ctx, d, config, reqParams)
+
+	if err != nil {
+		return diag.FromErr(err)
+	}
+	return nil
+}
+
+func getMatchTargetNoListFromResponse(respTargetList []*vloadbalancer.Target, targetNoList []string) []string {
+	matchTargetNoList := make([]string, 0)
+	respTargetNoList := make([]string, 0)
+
+	for _, respTarget := range respTargetList {
+		respTargetNoList = append(respTargetNoList, ncloud.StringValue(respTarget.TargetNo))
+	}
+
+	for _, targetNo := range targetNoList {
+		if containsInStringList(respTargetNoList, targetNo) {
+			matchTargetNoList = append(matchTargetNoList, targetNo)
+		}
+	}
+
+	return matchTargetNoList
+}
+
+func waitForAddTarget(ctx context.Context, d *schema.ResourceData, config *ProviderConfig, reqParams *vloadbalancer.AddTargetRequest) error {
+	return resource.RetryContext(ctx, d.Timeout(schema.TimeoutCreate), func() *resource.RetryError {
+		logCommonRequest("resourceNcloudLbTargetGroupAttachmentCreate", reqParams)
+		resp, err := config.Client.vloadbalancer.V2Api.AddTarget(reqParams)
+		if err != nil {
+			errBody, _ := GetCommonErrorBody(err)
+			if errBody.ReturnCode == TargetGroupAttachmentBusyStateErrorCode || errBody.ReturnCode == TargetGroupAttachmentPleaseTryAgainErrorCode {
+				return resource.RetryableError(err)
+			}
+			logErrorResponse("resourceNcloudLbTargetGroupAttachmentCreate", err, reqParams)
+			return resource.NonRetryableError(err)
+		}
+
+		logResponse("resourceNcloudLbTargetGroupAttachmentCreate", resp)
+		return nil
+	})
+}
+
+func waitForRemoveTarget(ctx context.Context, d *schema.ResourceData, config *ProviderConfig, reqParams *vloadbalancer.RemoveTargetRequest) error {
+	return resource.RetryContext(ctx, d.Timeout(schema.TimeoutDelete), func() *resource.RetryError {
 		logCommonRequest("resourceNcloudLbTargetGroupAttachmentDelete", reqParams)
 		resp, err := config.Client.vloadbalancer.V2Api.RemoveTarget(reqParams)
 		if err != nil {
@@ -145,24 +235,10 @@ func resourceNcloudLbTargetGroupAttachmentDelete(ctx context.Context, d *schema.
 		}
 		logResponse("resourceNcloudLbTargetGroupAttachmentDelete", resp)
 
-		target := getTargetFromList(resp.TargetList, ncloud.StringValue(reqParams.TargetNoList[0]))
-		if target != nil {
+		matchTargetNoList := getMatchTargetNoListFromResponse(resp.TargetList, ncloud.StringListValue(reqParams.TargetNoList))
+		if len(matchTargetNoList) > 0 {
 			return resource.RetryableError(fmt.Errorf("target has not been removed yet"))
 		}
 		return nil
 	})
-
-	if err != nil {
-		return diag.FromErr(err)
-	}
-	return nil
-}
-
-func getTargetFromList(list []*vloadbalancer.Target, targetNo string) *vloadbalancer.Target {
-	for _, target := range list {
-		if ncloud.StringValue(target.TargetNo) == targetNo {
-			return target
-		}
-	}
-	return nil
 }
