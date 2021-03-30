@@ -47,6 +47,10 @@ github.com/NaverCloudPlatform/ncloud-sdk-go-v2 v1.1.8-0.20210118013926-b75704e46
 github.com/NaverCloudPlatform/ncloud-sdk-go-v2 v1.1.8-0.20210118013926-b75704e46cc0/go.mod h1:P+3VS0ETiQPyWOx3vB/oeC8J3qd7jnVZLYAFwWgGRt8=
 github.com/NaverCloudPlatform/ncloud-sdk-go-v2 v1.1.8-0.20210118091224-8ad0144f2dd2 h1:yIWXDcLT+MeYZU+fDo/j2edYqaGLfKkEuiwB06ap5LY=
 github.com/NaverCloudPlatform/ncloud-sdk-go-v2 v1.1.8-0.20210118091224-8ad0144f2dd2/go.mod h1:P+3VS0ETiQPyWOx3vB/oeC8J3qd7jnVZLYAFwWgGRt8=
+github.com/NaverCloudPlatform/ncloud-sdk-go-v2 v1.1.8-0.20210222073629-a722f5c7a2c8 h1:7aOvbyjCeBHYb+Gc1TrlfRkClIjN7mEM1V4srzK6Hf4=
+github.com/NaverCloudPlatform/ncloud-sdk-go-v2 v1.1.8-0.20210222073629-a722f5c7a2c8/go.mod h1:P+3VS0ETiQPyWOx3vB/oeC8J3qd7jnVZLYAFwWgGRt8=
+github.com/NaverCloudPlatform/ncloud-sdk-go-v2 v1.1.8-0.20210321150712-d6d9971cab1a h1:elp6JiAu6xYKignnaEXIXsAt2fang0Os9mM67Iu7TSQ=
+github.com/NaverCloudPlatform/ncloud-sdk-go-v2 v1.1.8-0.20210321150712-d6d9971cab1a/go.mod h1:P+3VS0ETiQPyWOx3vB/oeC8J3qd7jnVZLYAFwWgGRt8=
 github.com/NaverCloudPlatform/ncloud-sdk-go-v2 v1.2.0/go.mod h1:P+3VS0ETiQPyWOx3vB/oeC8J3qd7jnVZLYAFwWgGRt8=
 github.com/agext/levenshtein v1.2.1/go.mod h1:JEDfjyjHDjOF/1e4FlBE/PkbqA9OfWu2ki2W0IB5558=
 github.com/agext/levenshtein v1.2.2 h1:0S/Yg6LYmFJ5stwQeRp6EeOcCbj7xiqQSdNelsXvaqE=
