@@ -26,6 +26,7 @@ func resourceNcloudAutoScalingSchedule() *schema.Resource {
 			"name": {
 				Type:     schema.TypeString,
 				Required: true,
+				ForceNew: true,
 			},
 			"desired_capacity": {
 				Type:     schema.TypeInt,
@@ -54,8 +55,8 @@ func resourceNcloudAutoScalingSchedule() *schema.Resource {
 			"auto_scaling_group_no": {
 				Type:     schema.TypeString,
 				Required: true,
+				ForceNew: true,
 			},
-			// VPC Only
 			"time_zone": {
 				Type:     schema.TypeString,
 				Optional: true,

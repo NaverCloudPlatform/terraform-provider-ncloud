@@ -86,12 +86,12 @@ It must be a time later than the current time and a time later than the startTim
 
 ~> **NOTE:** Below arguments only support VPC environment.
 
-* `time_zone` - (Optional) the time band for the repeat settings. Valid values are `KST` and `UTC`. Default : `KST`
+* `time_zone` - (Optional) the time band for the repeat settings. Valid values are `KST` and `UTC`. Default : `KST`.
 
 
 ## Attributes Reference
 
 In addition to all arguments above, the following attributes are exported:
 
-* `id` - The ID of Auto Scaling Schedule
-* `name` - The ID of Auto Scaling Schedule (It is the same result as id)
+* `id` - The ID of Auto Scaling Schedule.
+* `name` - The ID of Auto Scaling Schedule (It is the same result as id).
