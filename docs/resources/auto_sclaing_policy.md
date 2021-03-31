@@ -69,9 +69,9 @@ resource "ncloud_auto_scaling_policy" "test-policy-CHANG" {
 The following arguments are supported:
 
 * `name` - (Required) Auto Scaling Policy name to create.
-* `adjustment_type_code` - (Required) Determines how the number of servers is scaled when the scaling policy is performed. Valid values are `CHANG`, `EXACT`, and `PRCNT`
+* `adjustment_type_code` - (Required) Determines how the number of servers is scaled when the scaling policy is performed. Valid values are `CHANG`, `EXACT`, and `PRCNT`.
 * `scaling_adjustment` - (Required) Specify the adjustment value for the adjustment type. Enter a negative value to decrease when adjustTypeCode is `CHANG` or `PRCNT`.
-* `cooldown` - (Optional) The amount of time, in seconds, after a scaling activity completes and before the next scaling activity can start.
+* `cooldown` - (Optional) The cooldown time is the period set to ignore even if the monitoring event alarm occurs after the actual scaling is being performed or is completed.
 * `min_adjustment_step` - (Optional) Change the number of server instances by the minimum adjustment width.
 * `auto_scaling_group_no` - (Required) The number of the auto scaling group.
 
@@ -79,5 +79,5 @@ The following arguments are supported:
 
 In addition to all arguments above, the following attributes are exported:
 
-* `id` - The ID of Auto Scaling Policy
-* `name` - The ID of Auto Scaling Policy (It is the same result as id)
+* `id` - The ID of Auto Scaling Policy.
+* `name` - The ID of Auto Scaling Policy (It is the same result as id).

@@ -29,8 +29,8 @@ The following arguments are supported:
 
 In addition to all arguments above, the following attributes are exported:
 
-* `name` - The name of Auto Scaling Policy
+* `name` - The name of Auto Scaling Policy.
 * `adjustment_type_code` - how the number of servers is scaled when the scaling policy is performed.
 * `scaling_adjustment` - Specify the adjustment value for the adjustment type.
-* `cooldown` - The amount of time, in seconds, after a scaling activity completes and before the next scaling activity can start.
+* `cooldown` - The cooldown time is the period set to ignore even if the monitoring event alarm occurs after the actual scaling is being performed or is completed.
 * `min_adjustment_step` - Change the number of server instances by the minimum adjustment width.

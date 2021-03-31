@@ -27,16 +27,16 @@ The following arguments are supported:
 In addition to all arguments above, the following attributes are exported:
 
 * `auto_scaling_group_no` - The ID of Auto Scaling Group. (It is the same result as `id`)
-* `name` - The name of Auto Scaling Group
+* `name` - The name of Auto Scaling Group.
 * `launch_configuration_no` - The number of the associated launch configuration.
 * `desired_capacity` - The number of servers is adjusted according to the desired capacity value.
 * `min_size` - The minimum size of the Auto Scaling Group.
 * `max_size` - The maximum size of the Auto Scaling Group.
-* `default_cooldown` - The amount of time, in seconds, after a scaling activity completes before another scaling activity can start.
+* `default_cooldown` - The cooldown time is the period set to ignore even if the monitoring event alarm occurs after the actual scaling is being performed or is completed.
 * `health_check_type_code` - `SVR` or `LOADB`. Controls how health checking is done.
 * `wait_for_capacity_timeout` - The maximum amount of time Terraform should wait for an ASG instance to become healthy.
 * `health_check_grace_period` - time to hold health check after the server instance is put into the service with the health check hold period.
-* `server_instance_no_list` - List of server instances belonging to Auto Scaling Group
+* `server_instance_no_list` - List of server instances belonging to Auto Scaling Group.
 
 ~> **NOTE:** Below attributes only support Classic environment.
 

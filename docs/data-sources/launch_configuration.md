@@ -28,8 +28,8 @@ In addition to all arguments above, the following attributes are exported:
 
 * `launch_configuration_no` - The ID of Launch Configuration. (It is the same result as `id`)
 * `name` - The name of Launch Configuration.
-* `server_image_product_code` - Server image product code
-* `server_product_code` - Server product code
+* `server_image_product_code` - Server image product code.
+* `server_product_code` - Server product code.
 * `member_server_image_no` - The ID of Member server image.
 * `login_key_name` - The login key name to encrypt with the public key.
 * `init_script_no` - Set init script ID, The server can run a user-set initialization script at first boot.
