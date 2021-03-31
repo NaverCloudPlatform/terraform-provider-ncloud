@@ -30,6 +30,7 @@ func resourceNcloudLaunchConfiguration() *schema.Resource {
 				Type:     schema.TypeString,
 				Optional: true,
 				Computed: true,
+				ForceNew: true,
 			},
 			"server_image_product_code": {
 				Type:          schema.TypeString,
@@ -41,6 +42,7 @@ func resourceNcloudLaunchConfiguration() *schema.Resource {
 				Type:     schema.TypeString,
 				Optional: true,
 				Computed: true,
+				ForceNew: true,
 			},
 			"member_server_image_no": {
 				Type:          schema.TypeString,
@@ -52,30 +54,30 @@ func resourceNcloudLaunchConfiguration() *schema.Resource {
 				Type:     schema.TypeString,
 				Optional: true,
 				Computed: true,
+				ForceNew: true,
 			},
 			"init_script_no": {
 				Type:     schema.TypeString,
 				Optional: true,
 				ForceNew: true,
 			},
-			// Support only Classic
 			"user_data": {
 				Type:     schema.TypeString,
 				Optional: true,
 				ForceNew: true,
 			},
-			// Support only Classic
 			"access_control_group_no_list": {
 				Type:     schema.TypeList,
 				Optional: true,
 				Computed: true,
 				Elem:     &schema.Schema{Type: schema.TypeString},
+				ForceNew: true,
 			},
-			// Support only VPC
 			"is_encrypted_volume": {
 				Type:     schema.TypeBool,
 				Optional: true,
 				Computed: true,
+				ForceNew: true,
 			},
 		},
 	}
@@ -300,7 +302,7 @@ func deleteClassicLaunchConfiguration(config *ProviderConfig, id string) error {
 	return nil
 }
 
-func getClassicLaunchConfigurationNameByNo(no *string, config *ProviderConfig) (*LaunchConfiguration, error) {
+func getClassicLaunchConfigurationByNo(no *string, config *ProviderConfig) (*LaunchConfiguration, error) {
 	reqParams := &autoscaling.GetLaunchConfigurationListRequest{
 		RegionNo: &config.RegionNo,
 	}

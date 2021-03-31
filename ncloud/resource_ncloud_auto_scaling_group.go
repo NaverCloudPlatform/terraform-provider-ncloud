@@ -36,6 +36,7 @@ func resourceNcloudAutoScalingGroup() *schema.Resource {
 				Optional:         true,
 				Computed:         true,
 				ValidateDiagFunc: ToDiagFunc(validation.StringLenBetween(0, 255)),
+				ForceNew:         true,
 			},
 			"launch_configuration_no": {
 				Type:     schema.TypeString,
@@ -69,7 +70,6 @@ func resourceNcloudAutoScalingGroup() *schema.Resource {
 				Computed:         true,
 				ValidateDiagFunc: ToDiagFunc(validation.StringInSlice([]string{"SVR", "LOADB"}, false)),
 			},
-			// TODO: healthCheckTypeCode 값이 LOADB(로드밸런서) 경우 필수
 			"health_check_grace_period": {
 				Type:             schema.TypeInt,
 				Optional:         true,
@@ -87,36 +87,32 @@ func resourceNcloudAutoScalingGroup() *schema.Resource {
 				Default:          "10m",
 				ValidateDiagFunc: ToDiagFunc(validateParseDuration),
 			},
-			// Support only Classic (Required)
 			"zone_no_list": {
 				Type:     schema.TypeList,
 				Optional: true,
 				Elem:     &schema.Schema{Type: schema.TypeString},
 			},
-			// Support only VPC
 			"vpc_no": {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
-			// Support only VPC (Required)
 			"subnet_no": {
 				Type:     schema.TypeString,
 				Optional: true,
+				ForceNew: true,
 			},
-			// Support only VPC (Required)
 			"access_control_group_no_list": {
 				Type:     schema.TypeList,
 				Optional: true,
 				Elem:     &schema.Schema{Type: schema.TypeString},
+				ForceNew: true,
 			},
-			// Support only VPC (Conditional)
-			// TODO: healthCheckTypeCode 가 LOADB 인 경우에만 유효
 			"target_group_list": {
 				Type:     schema.TypeList,
 				Optional: true,
 				Elem:     &schema.Schema{Type: schema.TypeString},
+				ForceNew: true,
 			},
-			// Support only VPC
 			"server_name_prefix": {
 				Type:     schema.TypeString,
 				Optional: true,
@@ -200,7 +196,7 @@ func createClassicAutoScalingGroup(d *schema.ResourceData, config *ProviderConfi
 		return nil, ErrorRequiredArgOnClassic("zone_no_list")
 	}
 	// TODO : Zero value 핸들링
-	l, err := getClassicLaunchConfigurationNameByNo(StringPtrOrNil(d.GetOk("launch_configuration_no")), config)
+	l, err := getClassicLaunchConfigurationByNo(StringPtrOrNil(d.GetOk("launch_configuration_no")), config)
 	if err != nil {
 		return nil, err
 	}
@@ -352,9 +348,12 @@ func changeVpcAutoScalingGroup(d *schema.ResourceData, config *ProviderConfig) e
 		return nil
 	}
 
-	// TODO: LaunchConfiguration
 	reqParams := &vautoscaling.UpdateAutoScalingGroupRequest{
 		AutoScalingGroupNo: asg.AutoScalingGroupNo,
+	}
+
+	if d.HasChange("launch_configuration_no") {
+		reqParams.LaunchConfigurationNo = ncloud.String(d.Get("launch_configuration_no").(string))
 	}
 
 	if d.HasChange("desired_capacity") {
@@ -405,6 +404,15 @@ func changeClassicAutoScalingGroup(d *schema.ResourceData, config *ProviderConfi
 	reqParams := &autoscaling.UpdateAutoScalingGroupRequest{
 		AutoScalingGroupName: asg.AutoScalingGroupName,
 	}
+
+	if d.HasChange("launch_configuration_no") {
+		launchConfiguration, err := getClassicLaunchConfigurationByNo(ncloud.String(d.Get("launch_configuration_no").(string)), config)
+		if err != nil {
+			return err
+		}
+		reqParams.LaunchConfigurationName = launchConfiguration.LaunchConfigurationName
+	}
+
 	if d.HasChange("desired_capacity") {
 		reqParams.DesiredCapacity = Int32PtrOrNil(d.GetOk("desired_capacity"))
 	}

@@ -25,6 +25,7 @@ func resourceNcloudAutoScalingPolicy() *schema.Resource {
 			"name": {
 				Type:     schema.TypeString,
 				Required: true,
+				ForceNew: true,
 			},
 			"adjustment_type_code": {
 				Type:             schema.TypeString,
@@ -47,6 +48,7 @@ func resourceNcloudAutoScalingPolicy() *schema.Resource {
 			"auto_scaling_group_no": {
 				Type:     schema.TypeString,
 				Required: true,
+				ForceNew: true,
 			},
 		},
 	}
