@@ -16,6 +16,10 @@ func init() {
 	RegisterResource("ncloud_subnet", resourceNcloudSubnet())
 }
 
+const (
+	SubnetPleaseTryAgainErrorCode = "3000"
+)
+
 func resourceNcloudSubnet() *schema.Resource {
 	return &schema.Resource{
 		Create: resourceNcloudSubnetCreate,
@@ -109,7 +113,7 @@ func resourceNcloudSubnetCreate(d *schema.ResourceData, meta interface{}) error 
 
 		if err != nil {
 			errBody, _ := GetCommonErrorBody(err)
-			if errBody.ReturnCode == "1001015" {
+			if errBody.ReturnCode == "1001015" || errBody.ReturnCode == SubnetPleaseTryAgainErrorCode {
 				logErrorResponse("retry CreateSubnet", err, reqParams)
 				time.Sleep(time.Second * 5)
 				return resource.RetryableError(err)
