@@ -8,23 +8,22 @@ resource "ncloud_load_balancer" "lb" {
   name           = "tftest_lb"
   algorithm_type = "SIPHS"
   description    = "tftest_lb description"
-
-  rule_list = [
-    {
-      protocol_type        = "HTTP"
-      load_balancer_port   = 80
-      server_port          = 80
-      l7_health_check_path = "/monitor/l7check"
-    },
-    {
-      protocol_type        = "HTTPS"
-      load_balancer_port   = 443
-      server_port          = 443
-      l7_health_check_path = "/monitor/l7check"
-      certificate_name     = "cert"
-    },
-  ]
-
+  
+  rule_list {
+    protocol_type        = "HTTP"
+    load_balancer_port   = 80
+    server_port          = 80
+    l7_health_check_path = "/monitor/l7check"
+  }
+  
+  rule_list {
+    protocol_type        = "HTTPS"
+    load_balancer_port   = 443
+    server_port          = 443
+    l7_health_check_path = "/monitor/l7check"
+    certificate_name     = "cert"
+  }
+  
   server_instance_no_list = ["812345", "812346"]
   internet_line_type      = "PUBLC"
   network_usage_type      = "PBLIP"

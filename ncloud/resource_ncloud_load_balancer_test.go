@@ -152,14 +152,12 @@ func testAccLoadBalancerConfig(lbName string) string {
 			algorithm_type = "SIPHS"
 			description    = "tftest_lb description"
 
-			rule_list = [
-				{
-					protocol_type        = "HTTP"
-					load_balancer_port   = 80
-					server_port          = 80
-					l7_health_check_path = "/monitor/l7check"
-				},
-			]
+		rule_list {
+    		protocol_type        = "HTTP"
+    		load_balancer_port   = 80
+    		server_port          = 80
+    		l7_health_check_path = "/monitor/l7check"
+  		}
 
 			internet_line_type = "PUBLC"
 			network_usage_type = "PBLIP"
@@ -175,14 +173,12 @@ func testAccLoadBalancerChangedConfig(lbName string) string {
 			algorithm_type = "SIPHS"
 			description    = "tftest_lb change port"
 
-			rule_list = [
-				{
-					protocol_type        = "HTTP"
-					load_balancer_port   = 8080
-					server_port          = 8080
-					l7_health_check_path = "/monitor/l7check"
-				},
-			]
+		rule_list {
+    		protocol_type        = "HTTP"
+    		load_balancer_port   = 8080
+    		server_port          = 8080
+    		l7_health_check_path = "/monitor/l7check"
+  		}
 
 			internet_line_type = "PUBLC"
 			network_usage_type = "PBLIP"
