@@ -118,7 +118,18 @@ func resourceNcloudServer() *schema.Resource {
 			"tag_list": {
 				Type:     schema.TypeList,
 				Optional: true,
-				Elem:     tagListSchemaResource,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"tag_key": {
+							Type:     schema.TypeString,
+							Optional: true,
+						},
+						"tag_value": {
+							Type:     schema.TypeString,
+							Optional: true,
+						},
+					},
+				},
 			},
 			"subnet_no": {
 				Type:     schema.TypeString,
@@ -1047,19 +1058,4 @@ type ServerInstanceNetworkInterface struct {
 	NetworkInterfaceNo *string `json:"network_interface_no,omitempty"`
 	PrivateIp          *string `json:"private_ip,omitempty"`
 	SubnetNo           *string `json:"subnet_no,omitempty"`
-}
-
-var tagListSchemaResource = &schema.Resource{
-	Schema: map[string]*schema.Schema{
-		"tag_key": {
-			Type:        schema.TypeString,
-			Required:    true,
-			Description: "Instance Tag Key",
-		},
-		"tag_value": {
-			Type:        schema.TypeString,
-			Required:    true,
-			Description: "Instance Tag Value",
-		},
-	},
 }
