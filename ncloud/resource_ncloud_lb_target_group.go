@@ -160,13 +160,12 @@ func resourceNcloudTargetGroupCreate(ctx context.Context, d *schema.ResourceData
 		TargetGroupProtocolTypeCode: ncloud.String(d.Get("protocol").(string)),
 	}
 
-	vpc, err := getVpcInstance(config, *reqParams.VpcNo)
-	if err != nil {
+	if err := validateVpcTargetGroupVpc(config, *reqParams.VpcNo); err != nil {
 		return diag.FromErr(err)
 	}
 
-	if vpc == nil {
-		return diag.FromErr(fmt.Errorf("not found vpc(%s)", *reqParams.VpcNo))
+	if err := validateVpcTargetGroupDuplicateName(config, *reqParams.TargetGroupName); err != nil {
+		return diag.FromErr(err)
 	}
 
 	if healthChecks, ok := d.GetOk("health_check"); ok {
@@ -373,5 +372,36 @@ func validateHealthCheckProtocolByTargetGroupProtocol(targetGroupProtocol string
 			return fmt.Errorf("Health check protocol is only support HTTP, HTTPS when target group protocol is %s.", targetGroupProtocol)
 		}
 	}
+	return nil
+}
+
+func validateVpcTargetGroupVpc(config *ProviderConfig, vpcNo string) error {
+	vpc, err := getVpcInstance(config, vpcNo)
+
+	if err != nil {
+		return err
+	}
+
+	if vpc == nil {
+		return fmt.Errorf("not found vpc(%s)", vpcNo)
+	}
+
+	return nil
+}
+
+func validateVpcTargetGroupDuplicateName(config *ProviderConfig, newName string) error {
+	// Get All target groups from api
+	targetGroupList, err := getVpcLoadBalancerTargetGroupList(config, "")
+
+	if err != nil {
+		return err
+	}
+
+	for _, targetGroup := range targetGroupList {
+		if *targetGroup.TargetGroupName == newName {
+			return fmt.Errorf("%s is duplicated name", newName)
+		}
+	}
+
 	return nil
 }
