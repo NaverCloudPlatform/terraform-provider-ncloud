@@ -160,6 +160,15 @@ func resourceNcloudTargetGroupCreate(ctx context.Context, d *schema.ResourceData
 		TargetGroupProtocolTypeCode: ncloud.String(d.Get("protocol").(string)),
 	}
 
+	vpc, err := getVpcInstance(config, *reqParams.VpcNo)
+	if err != nil {
+		return diag.FromErr(err)
+	}
+
+	if vpc == nil {
+		return diag.FromErr(fmt.Errorf("not found vpc(%s)", *reqParams.VpcNo))
+	}
+
 	if healthChecks, ok := d.GetOk("health_check"); ok {
 		healthCheck := healthChecks.([]interface{})[0].(map[string]interface{})
 
