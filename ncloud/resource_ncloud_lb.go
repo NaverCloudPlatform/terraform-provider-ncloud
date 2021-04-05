@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/ncloud"
 	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/services/vloadbalancer"
+	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/services/vpc"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
@@ -126,12 +127,28 @@ func resourceNcloudLbCreate(ctx context.Context, d *schema.ResourceData, meta in
 		LoadBalancerTypeCode: ncloud.String(d.Get("type").(string)),
 		SubnetNoList:         ncloud.StringInterfaceList(d.Get("subnet_no_list").([]interface{})),
 	}
-	subnet, err := getSubnetInstance(config, *reqParams.SubnetNoList[0])
-	if err != nil {
-		return diag.FromErr(err)
+
+	// The subnet must be the same VPC, so the size of vpcNoMap must be 1.
+	vpcNoMap := make(map[string]int)
+	subnetList := make([]*vpc.Subnet, 0)
+	for _, subnetNo := range reqParams.SubnetNoList {
+		subnet, err := getSubnetInstance(config, *subnetNo)
+		if err != nil {
+			return diag.FromErr(err)
+		}
+		if subnet == nil {
+			return diag.FromErr(fmt.Errorf("not found subnet(%s)", *subnetNo))
+		}
+		subnetList = append(subnetList, subnet)
+		vpcNoMap[*subnet.VpcNo]++
 	}
 
-	reqParams.VpcNo = subnet.VpcNo
+	if len(vpcNoMap) > 1 {
+		return diag.FromErr(fmt.Errorf("subnet must be set to the subnet of the same vpc"))
+	}
+
+	reqParams.VpcNo = subnetList[0].VpcNo
+
 	logCommonRequest("resourceNcloudLbCreate", reqParams)
 	resp, err := config.Client.vloadbalancer.V2Api.CreateLoadBalancerInstance(reqParams)
 	if err != nil {
