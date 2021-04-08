@@ -1,6 +1,6 @@
 module github.com/terraform-providers/terraform-provider-ncloud
 
-go 1.13
+go 1.16
 
 require (
 	github.com/NaverCloudPlatform/ncloud-sdk-go-v2 v1.1.8-0.20210321150712-d6d9971cab1a
