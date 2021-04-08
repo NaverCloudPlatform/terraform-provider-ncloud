@@ -12,6 +12,15 @@ The provider needs to be configured with the proper credentials before it can be
 ## Example Usage
 
 ```hcl
+terraform {
+  required_providers {
+    ncloud = {
+      source = "NaverCloudPlatform/ncloud"
+    }
+  }
+  required_version = ">= 0.13"
+}
+
 // Configure the ncloud provider
 provider "ncloud" {
   access_key  = var.access_key
@@ -44,6 +53,15 @@ ncloud provider block:
 Usage:
 
 ```hcl
+terraform {
+  required_providers {
+    ncloud = {
+      source = "NaverCloudPlatform/ncloud"
+    }
+  }
+  required_version = ">= 0.13"
+}
+
 provider "ncloud" {
   access_key  = var.access_key
   secret_key  = var.secret_key
@@ -61,6 +79,15 @@ environment variables, representing your Ncloud Access Key and Secret Key, respe
 `NCLOUD_REGION` is also used, if applicable:
 
 ```hcl
+terraform {
+  required_providers {
+    ncloud = {
+      source = "NaverCloudPlatform/ncloud"
+    }
+  }
+  required_version = ">= 0.13"
+}
+
 provider "ncloud" {}
 ```
 
