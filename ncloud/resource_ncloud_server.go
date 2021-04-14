@@ -299,6 +299,24 @@ func resourceNcloudServerDelete(d *schema.ResourceData, meta interface{}) error 
 		return err
 	}
 
+	blockStorageList, err := getAdditionalBlockStorageList(config, d.Id())
+
+	if err != nil {
+		return err
+	}
+
+	if len(blockStorageList) > 0 {
+		for _, blockStorage := range blockStorageList {
+			if err := disconnectBlockStorage(config, blockStorage); err != nil {
+				return err
+			}
+
+			if err := waitForDisconnectBlockStorage(config, d, blockStorage); err != nil {
+				return err
+			}
+		}
+	}
+
 	if ncloud.StringValue(serverInstance.ServerInstanceStatus) != "NSTOP" {
 		log.Printf("[INFO] Stopping Instance %q for terminate", d.Id())
 		if err := stopThenWaitServerInstance(config, d.Id()); err != nil {
@@ -1001,6 +1019,143 @@ func terminateVpcServerInstance(config *ProviderConfig, id string) error {
 	}
 
 	return nil
+}
+
+func getAdditionalBlockStorageList(config *ProviderConfig, id string) ([]*BlockStorage, error) {
+	if config.SupportVPC {
+		return getVpcAdditionalBlockStorageList(config, id)
+	} else {
+		return getClassicAdditionalBlockStorageList(config, id)
+	}
+}
+
+func getVpcAdditionalBlockStorageList(config *ProviderConfig, id string) ([]*BlockStorage, error) {
+	resp, err := config.Client.vserver.V2Api.GetBlockStorageInstanceList(&vserver.GetBlockStorageInstanceListRequest{
+		RegionCode:               &config.RegionCode,
+		ServerInstanceNo:         ncloud.String(id),
+		BlockStorageTypeCodeList: []*string{ncloud.String("SVRBS")},
+	})
+
+	if err != nil {
+		return nil, err
+	}
+
+	if len(resp.BlockStorageInstanceList) < 1 {
+		return nil, nil
+	}
+
+	blockStorageList := make([]*BlockStorage, 0)
+	for _, blockStorage := range resp.BlockStorageInstanceList {
+		blockStorageList = append(blockStorageList, convertVpcBlockStorage(blockStorage))
+	}
+
+	return blockStorageList, nil
+}
+
+func getClassicAdditionalBlockStorageList(config *ProviderConfig, id string) ([]*BlockStorage, error) {
+	resp, err := config.Client.server.V2Api.GetBlockStorageInstanceList(&server.GetBlockStorageInstanceListRequest{
+		RegionNo:                 &config.RegionCode,
+		ServerInstanceNo:         ncloud.String(id),
+		BlockStorageTypeCodeList: []*string{ncloud.String("SVRBS")},
+	})
+
+	if err != nil {
+		return nil, err
+	}
+
+	if len(resp.BlockStorageInstanceList) < 1 {
+		return nil, nil
+	}
+
+	blockStorageList := make([]*BlockStorage, 0)
+	for _, blockStorage := range resp.BlockStorageInstanceList {
+		blockStorageList = append(blockStorageList, convertClassicBlockStorage(blockStorage))
+	}
+
+	return blockStorageList, nil
+}
+
+func convertVpcBlockStorage(storage *vserver.BlockStorageInstance) *BlockStorage {
+	return &BlockStorage{
+		BlockStorageInstanceNo:  storage.BlockStorageInstanceNo,
+		ServerInstanceNo:        storage.ServerInstanceNo,
+		BlockStorageType:        storage.BlockStorageType.Code,
+		BlockStorageName:        storage.BlockStorageName,
+		BlockStorageSize:        storage.BlockStorageSize,
+		DeviceName:              storage.DeviceName,
+		BlockStorageProductCode: storage.BlockStorageProductCode,
+		Status:                  storage.BlockStorageInstanceStatus.Code,
+		Operation:               storage.BlockStorageInstanceOperation.Code,
+		Description:             storage.BlockStorageDescription,
+		DiskType:                storage.BlockStorageDiskType.Code,
+		DiskDetailType:          storage.BlockStorageDiskDetailType.Code,
+		ZoneCode:                storage.ZoneCode,
+	}
+}
+
+func convertClassicBlockStorage(storage *server.BlockStorageInstance) *BlockStorage {
+	return &BlockStorage{
+		BlockStorageInstanceNo:  storage.BlockStorageInstanceNo,
+		ServerInstanceNo:        storage.ServerInstanceNo,
+		ServerName:              storage.ServerName,
+		BlockStorageType:        storage.BlockStorageType.Code,
+		BlockStorageName:        storage.BlockStorageName,
+		BlockStorageSize:        storage.BlockStorageSize,
+		DeviceName:              storage.DeviceName,
+		BlockStorageProductCode: storage.BlockStorageProductCode,
+		Status:                  storage.BlockStorageInstanceStatus.Code,
+		Operation:               storage.BlockStorageInstanceOperation.Code,
+		Description:             storage.BlockStorageInstanceDescription,
+		DiskType:                storage.DiskType.Code,
+		DiskDetailType:          storage.DiskDetailType.Code,
+		ZoneCode:                storage.Zone.ZoneCode,
+	}
+}
+
+func disconnectBlockStorage(config *ProviderConfig, storage *BlockStorage) error {
+	if config.SupportVPC {
+		return disconnectVpcBlockStorage(config, storage)
+	} else {
+		return disconnectClassicBlockStorage(config, storage)
+	}
+}
+
+func disconnectVpcBlockStorage(config *ProviderConfig, storage *BlockStorage) error {
+	_, err := config.Client.vserver.V2Api.DetachBlockStorageInstances(&vserver.DetachBlockStorageInstancesRequest{
+		RegionCode:                 &config.RegionCode,
+		BlockStorageInstanceNoList: []*string{storage.BlockStorageInstanceNo},
+	})
+
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func disconnectClassicBlockStorage(config *ProviderConfig, storage *BlockStorage) error {
+	_, err := config.Client.server.V2Api.DetachBlockStorageInstances(&server.DetachBlockStorageInstancesRequest{
+		BlockStorageInstanceNoList: []*string{storage.BlockStorageInstanceNo},
+	})
+
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func waitForDisconnectBlockStorage(config *ProviderConfig, d *schema.ResourceData, storage *BlockStorage) error {
+	return resource.Retry(d.Timeout(schema.TimeoutDelete), func() *resource.RetryError {
+		blockStorage, err := getBlockStorage(config, *storage.BlockStorageInstanceNo)
+		if err != nil {
+			return resource.RetryableError(err)
+		}
+		if *blockStorage.Status != BlockStorageStatusCodeCreate {
+			return resource.RetryableError(fmt.Errorf("sill connected block storage(%s)", *blockStorage.BlockStorageInstanceNo))
+		}
+		return nil
+	})
 }
 
 func getServerZoneNo(config *ProviderConfig, serverInstanceNo string) (string, error) {
