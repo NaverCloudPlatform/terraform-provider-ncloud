@@ -19,6 +19,12 @@ func init() {
 	RegisterResource("ncloud_block_storage", resourceNcloudBlockStorage())
 }
 
+const (
+	BlockStorageStatusCodeCreate = "CREAT"
+	BlockStorageStatusCodeInit   = "INIT"
+	BlockStorageStatusCodeAttach = "ATTAC"
+)
+
 func resourceNcloudBlockStorage() *schema.Resource {
 	return &schema.Resource{
 		Create: resourceNcloudBlockStorageCreate,
@@ -361,7 +367,7 @@ func deleteBlockStorage(d *schema.ResourceData, config *ProviderConfig, id strin
 	}
 
 	stateConf := &resource.StateChangeConf{
-		Pending: []string{"INIT", "ATTAC"},
+		Pending: []string{BlockStorageStatusCodeInit, BlockStorageStatusCodeAttach},
 		Target:  []string{"TERMINATED"},
 		Refresh: func() (interface{}, string, error) {
 			instance, err := getBlockStorage(config, id)
@@ -505,8 +511,8 @@ func detachVpcBlockStorage(config *ProviderConfig, id string) error {
 
 func waitForBlockStorageDetachment(config *ProviderConfig, id string) error {
 	stateConf := &resource.StateChangeConf{
-		Pending: []string{"ATTAC"},
-		Target:  []string{"CREAT"},
+		Pending: []string{BlockStorageStatusCodeAttach},
+		Target:  []string{BlockStorageStatusCodeCreate},
 		Refresh: func() (interface{}, string, error) {
 			instance, err := getBlockStorage(config, id)
 			if err != nil {
@@ -584,8 +590,8 @@ func attachVpcBlockStorage(d *schema.ResourceData, config *ProviderConfig) error
 
 func waitForBlockStorageAttachment(config *ProviderConfig, id string) error {
 	stateConf := &resource.StateChangeConf{
-		Pending: []string{"INIT", "CREAT"},
-		Target:  []string{"ATTAC"},
+		Pending: []string{BlockStorageStatusCodeInit, BlockStorageStatusCodeCreate},
+		Target:  []string{BlockStorageStatusCodeAttach},
 		Refresh: func() (interface{}, string, error) {
 			instance, err := getBlockStorage(config, id)
 			if err != nil {
