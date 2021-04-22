@@ -14,7 +14,7 @@ resource "ncloud_lb_target_group" "test" {
 
 resource "ncloud_lb_target_group_attachment" "test" {
   target_group_no = ncloud_lb_target_group.test.target_group_no
-  target_no = ncloud_server.test.instance_no
+  target_no_list = [ncloud_server.test.instance_no]
 }
 ```
 
@@ -23,7 +23,7 @@ resource "ncloud_lb_target_group_attachment" "test" {
 The following arguments are supported:
 
 * `target_group_no` - (Required) The ID of target group.
-* `target_no` - (Required) The ID of server instance.
+* `target_no_list` - (Required) The List of server instance ID.
 
 ## Attributes Reference
 
