@@ -28,12 +28,10 @@ func resourceNcloudServer() *schema.Resource {
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
-
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(DefaultCreateTimeout),
 			Delete: schema.DefaultTimeout(DefaultTimeout),
 		},
-		CustomizeDiff: ncloudVpcCommonCustomizeDiff,
 		Schema: map[string]*schema.Schema{
 			"server_image_product_code": {
 				Type:          schema.TypeString,
@@ -57,6 +55,7 @@ func resourceNcloudServer() *schema.Resource {
 				Type:     schema.TypeString,
 				Optional: true,
 				Computed: true,
+				ForceNew: true,
 				ValidateDiagFunc: ToDiagFunc(validation.All(
 					validation.StringLenBetween(3, 30),
 					validation.StringMatch(regexp.MustCompile(`^[A-Za-z0-9-*]+$`), "Composed of alphabets, numbers, hyphen (-) and wild card (*)."),
@@ -67,6 +66,7 @@ func resourceNcloudServer() *schema.Resource {
 				Type:     schema.TypeString,
 				Optional: true,
 				Computed: true,
+				ForceNew: true,
 			},
 			"login_key_name": {
 				Type:     schema.TypeString,
@@ -123,10 +123,12 @@ func resourceNcloudServer() *schema.Resource {
 						"tag_key": {
 							Type:     schema.TypeString,
 							Optional: true,
+							ForceNew: true,
 						},
 						"tag_value": {
 							Type:     schema.TypeString,
 							Optional: true,
+							ForceNew: true,
 						},
 					},
 				},

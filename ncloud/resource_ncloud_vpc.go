@@ -26,12 +26,12 @@ func resourceNcloudVpc() *schema.Resource {
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
-		CustomizeDiff: ncloudVpcCommonCustomizeDiff,
 		Schema: map[string]*schema.Schema{
 			"name": {
 				Type:             schema.TypeString,
 				Optional:         true,
 				Computed:         true,
+				ForceNew:         true,
 				ValidateDiagFunc: ToDiagFunc(validateInstanceName),
 				Description:      "Subnet name to create. default: Assigned by NAVER CLOUD PLATFORM.",
 			},

@@ -25,7 +25,6 @@ func resourceNcloudNetworkInterface() *schema.Resource {
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
-		CustomizeDiff: ncloudVpcCommonCustomizeDiff,
 		Schema: map[string]*schema.Schema{
 			"subnet_no": {
 				Type:     schema.TypeString,
@@ -36,6 +35,7 @@ func resourceNcloudNetworkInterface() *schema.Resource {
 				Type:             schema.TypeString,
 				Optional:         true,
 				Computed:         true,
+				ForceNew:         true,
 				ValidateDiagFunc: ToDiagFunc(validateInstanceName),
 			},
 			"private_ip": {
@@ -60,9 +60,9 @@ func resourceNcloudNetworkInterface() *schema.Resource {
 				Type:             schema.TypeString,
 				Optional:         true,
 				Computed:         true,
+				ForceNew:         true,
 				ValidateDiagFunc: ToDiagFunc(validation.StringLenBetween(0, 1000)),
 			},
-
 			"network_interface_no": {
 				Type:     schema.TypeString,
 				Computed: true,
