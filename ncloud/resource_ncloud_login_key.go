@@ -19,14 +19,13 @@ func init() {
 
 func resourceNcloudLoginKey() *schema.Resource {
 	return &schema.Resource{
-		Read:   resourceNcloudLoginKeyRead,
 		Create: resourceNcloudLoginKeyCreate,
+		Read:   resourceNcloudLoginKeyRead,
 		Update: resourceNcloudLoginKeyUpdate,
 		Delete: resourceNcloudLoginKeyDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
-
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(DefaultTimeout),
 			Delete: schema.DefaultTimeout(DefaultTimeout),

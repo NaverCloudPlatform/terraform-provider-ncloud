@@ -23,8 +23,8 @@ func resourceNcloudServer() *schema.Resource {
 	return &schema.Resource{
 		Create: resourceNcloudServerCreate,
 		Read:   resourceNcloudServerRead,
-		Delete: resourceNcloudServerDelete,
 		Update: resourceNcloudServerUpdate,
+		Delete: resourceNcloudServerDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},

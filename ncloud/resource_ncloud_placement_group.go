@@ -17,7 +17,6 @@ func resourceNcloudPlacementGroup() *schema.Resource {
 	return &schema.Resource{
 		Create: resourceNcloudPlacementGroupCreate,
 		Read:   resourceNcloudPlacementGroupRead,
-		Update: resourceNcloudPlacementGroupUpdate,
 		Delete: resourceNcloudPlacementGroupDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
@@ -100,10 +99,6 @@ func resourceNcloudPlacementGroupRead(d *schema.ResourceData, meta interface{}) 
 	d.Set("name", instance.PlacementGroupName)
 
 	return nil
-}
-
-func resourceNcloudPlacementGroupUpdate(d *schema.ResourceData, meta interface{}) error {
-	return resourceNcloudPlacementGroupRead(d, meta)
 }
 
 func resourceNcloudPlacementGroupDelete(d *schema.ResourceData, meta interface{}) error {

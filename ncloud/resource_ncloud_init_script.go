@@ -17,7 +17,6 @@ func resourceNcloudInitScript() *schema.Resource {
 	return &schema.Resource{
 		Create: resourceNcloudInitScriptCreate,
 		Read:   resourceNcloudInitScriptRead,
-		Update: resourceNcloudInitScriptUpdate,
 		Delete: resourceNcloudInitScriptDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
@@ -94,10 +93,6 @@ func resourceNcloudInitScriptRead(d *schema.ResourceData, meta interface{}) erro
 	d.Set("os_type", instance.OsType.Code)
 
 	return nil
-}
-
-func resourceNcloudInitScriptUpdate(d *schema.ResourceData, meta interface{}) error {
-	return resourceNcloudInitScriptRead(d, meta)
 }
 
 func resourceNcloudInitScriptDelete(d *schema.ResourceData, meta interface{}) error {

@@ -22,8 +22,8 @@ func resourceNcloudPublicIpInstance() *schema.Resource {
 	return &schema.Resource{
 		Create: resourceNcloudPublicIpCreate,
 		Read:   resourceNcloudPublicIpRead,
-		Delete: resourceNcloudPublicIpDelete,
 		Update: resourceNcloudPublicIpUpdate,
+		Delete: resourceNcloudPublicIpDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -38,6 +38,7 @@ func resourceNcloudPublicIpInstance() *schema.Resource {
 				Type:             schema.TypeString,
 				Optional:         true,
 				Computed:         true,
+				ForceNew:         true,
 				ValidateDiagFunc: ToDiagFunc(validation.StringLenBetween(1, 10000)),
 			},
 
@@ -570,13 +571,5 @@ func resourceNcloudPublicIpCustomizeDiff(_ context.Context, diff *schema.Resourc
 			return fmt.Errorf("You don't use 'internet_line_type' if SupportVPC is true. Please remove this value [%s]", v)
 		}
 	}
-
-	if diff.HasChange("description") {
-		old, new := diff.GetChange("description")
-		if len(old.(string)) > 0 {
-			return fmt.Errorf("Change 'description' is not support, Please set `description` as a old value = [%s -> %s]", new, old)
-		}
-	}
-
 	return nil
 }

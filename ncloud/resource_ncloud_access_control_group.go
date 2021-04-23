@@ -20,7 +20,6 @@ func resourceNcloudAccessControlGroup() *schema.Resource {
 	return &schema.Resource{
 		Create: resourceNcloudAccessControlGroupCreate,
 		Read:   resourceNcloudAccessControlGroupRead,
-		Update: resourceNcloudAccessControlGroupUpdate,
 		Delete: resourceNcloudAccessControlGroupDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
@@ -93,10 +92,6 @@ func resourceNcloudAccessControlGroupRead(d *schema.ResourceData, meta interface
 	d.Set("is_default", instance.IsDefault)
 
 	return nil
-}
-
-func resourceNcloudAccessControlGroupUpdate(d *schema.ResourceData, meta interface{}) error {
-	return resourceNcloudAccessControlGroupRead(d, meta)
 }
 
 func resourceNcloudAccessControlGroupDelete(d *schema.ResourceData, meta interface{}) error {

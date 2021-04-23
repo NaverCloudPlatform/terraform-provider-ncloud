@@ -29,8 +29,8 @@ func resourceNcloudBlockStorage() *schema.Resource {
 	return &schema.Resource{
 		Create: resourceNcloudBlockStorageCreate,
 		Read:   resourceNcloudBlockStorageRead,
-		Delete: resourceNcloudBlockStorageDelete,
 		Update: resourceNcloudBlockStorageUpdate,
+		Delete: resourceNcloudBlockStorageDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},

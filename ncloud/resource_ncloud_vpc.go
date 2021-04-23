@@ -21,7 +21,6 @@ func resourceNcloudVpc() *schema.Resource {
 	return &schema.Resource{
 		Create: resourceNcloudVpcCreate,
 		Read:   resourceNcloudVpcRead,
-		Update: resourceNcloudVpcUpdate,
 		Delete: resourceNcloudVpcDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
@@ -228,10 +227,6 @@ func getDefaultRouteTable(config *ProviderConfig, id string) (publicRouteTableNo
 	}
 
 	return publicRouteTableNo, privateRouteTableNo, nil
-}
-
-func resourceNcloudVpcUpdate(d *schema.ResourceData, meta interface{}) error {
-	return resourceNcloudVpcRead(d, meta)
 }
 
 func resourceNcloudVpcDelete(d *schema.ResourceData, meta interface{}) error {
