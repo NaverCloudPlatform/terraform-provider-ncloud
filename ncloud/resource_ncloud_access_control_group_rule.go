@@ -17,11 +17,10 @@ func init() {
 
 func resourceNcloudAccessControlGroupRule() *schema.Resource {
 	return &schema.Resource{
-		Create:        resourceNcloudAccessControlGroupRuleCreate,
-		Read:          resourceNcloudAccessControlGroupRuleRead,
-		Update:        resourceNcloudAccessControlGroupRuleUpdate,
-		Delete:        resourceNcloudAccessControlGroupRuleDelete,
-		CustomizeDiff: ncloudVpcCommonCustomizeDiff,
+		Create: resourceNcloudAccessControlGroupRuleCreate,
+		Read:   resourceNcloudAccessControlGroupRuleRead,
+		Update: resourceNcloudAccessControlGroupRuleUpdate,
+		Delete: resourceNcloudAccessControlGroupRuleDelete,
 		Schema: map[string]*schema.Schema{
 			"access_control_group_no": {
 				Type:     schema.TypeString,

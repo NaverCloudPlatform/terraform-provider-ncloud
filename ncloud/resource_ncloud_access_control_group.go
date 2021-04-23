@@ -20,12 +20,10 @@ func resourceNcloudAccessControlGroup() *schema.Resource {
 	return &schema.Resource{
 		Create: resourceNcloudAccessControlGroupCreate,
 		Read:   resourceNcloudAccessControlGroupRead,
-		Update: resourceNcloudAccessControlGroupUpdate,
 		Delete: resourceNcloudAccessControlGroupDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
-		CustomizeDiff: ncloudVpcCommonCustomizeDiff,
 		Schema: map[string]*schema.Schema{
 			"vpc_no": {
 				Type:     schema.TypeString,
@@ -36,15 +34,16 @@ func resourceNcloudAccessControlGroup() *schema.Resource {
 				Type:             schema.TypeString,
 				Optional:         true,
 				Computed:         true,
+				ForceNew:         true,
 				ValidateDiagFunc: ToDiagFunc(validateInstanceName),
 			},
 			"description": {
 				Type:             schema.TypeString,
 				Optional:         true,
 				Computed:         true,
+				ForceNew:         true,
 				ValidateDiagFunc: ToDiagFunc(validation.StringLenBetween(0, 1000)),
 			},
-
 			"access_control_group_no": {
 				Type:     schema.TypeString,
 				Computed: true,
@@ -93,10 +92,6 @@ func resourceNcloudAccessControlGroupRead(d *schema.ResourceData, meta interface
 	d.Set("is_default", instance.IsDefault)
 
 	return nil
-}
-
-func resourceNcloudAccessControlGroupUpdate(d *schema.ResourceData, meta interface{}) error {
-	return resourceNcloudAccessControlGroupRead(d, meta)
 }
 
 func resourceNcloudAccessControlGroupDelete(d *schema.ResourceData, meta interface{}) error {

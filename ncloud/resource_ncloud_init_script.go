@@ -17,17 +17,16 @@ func resourceNcloudInitScript() *schema.Resource {
 	return &schema.Resource{
 		Create: resourceNcloudInitScriptCreate,
 		Read:   resourceNcloudInitScriptRead,
-		Update: resourceNcloudInitScriptUpdate,
 		Delete: resourceNcloudInitScriptDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
-		CustomizeDiff: ncloudVpcCommonCustomizeDiff,
 		Schema: map[string]*schema.Schema{
 			"name": {
 				Type:             schema.TypeString,
 				Optional:         true,
 				Computed:         true,
+				ForceNew:         true,
 				ValidateDiagFunc: ToDiagFunc(validateInstanceName),
 			},
 			"content": {
@@ -39,12 +38,14 @@ func resourceNcloudInitScript() *schema.Resource {
 				Type:             schema.TypeString,
 				Optional:         true,
 				Computed:         true,
+				ForceNew:         true,
 				ValidateDiagFunc: ToDiagFunc(validation.StringLenBetween(0, 1000)),
 			},
 			"os_type": {
 				Type:             schema.TypeString,
 				Optional:         true,
 				Computed:         true,
+				ForceNew:         true,
 				ValidateDiagFunc: ToDiagFunc(validation.StringInSlice([]string{"LNX", "WND"}, false)),
 			},
 
@@ -92,10 +93,6 @@ func resourceNcloudInitScriptRead(d *schema.ResourceData, meta interface{}) erro
 	d.Set("os_type", instance.OsType.Code)
 
 	return nil
-}
-
-func resourceNcloudInitScriptUpdate(d *schema.ResourceData, meta interface{}) error {
-	return resourceNcloudInitScriptRead(d, meta)
 }
 
 func resourceNcloudInitScriptDelete(d *schema.ResourceData, meta interface{}) error {

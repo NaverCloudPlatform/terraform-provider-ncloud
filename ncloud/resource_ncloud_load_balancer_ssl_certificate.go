@@ -16,17 +16,15 @@ func resourceNcloudLoadBalancerSSLCertificate() *schema.Resource {
 	return &schema.Resource{
 		Create: resourceNcloudLoadBalancerSSLCertificateCreate,
 		Read:   resourceNcloudLoadBalancerSSLCertificateRead,
-		Delete: resourceNcloudLoadBalancerSSLCertificateDelete,
 		Update: resourceNcloudLoadBalancerSSLCertificateUpdate,
+		Delete: resourceNcloudLoadBalancerSSLCertificateDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
-
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(DefaultCreateTimeout),
 			Delete: schema.DefaultTimeout(DefaultTimeout),
 		},
-
 		Schema: map[string]*schema.Schema{
 			"certificate_name": {
 				Type:        schema.TypeString,

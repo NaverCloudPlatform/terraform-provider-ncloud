@@ -20,18 +20,16 @@ func resourceNcloudLoadBalancer() *schema.Resource {
 	return &schema.Resource{
 		Create: resourceNcloudLoadBalancerCreate,
 		Read:   resourceNcloudLoadBalancerRead,
-		Delete: resourceNcloudLoadBalancerDelete,
 		Update: resourceNcloudLoadBalancerUpdate,
+		Delete: resourceNcloudLoadBalancerDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
-
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(DefaultCreateTimeout),
 			Update: schema.DefaultTimeout(DefaultUpdateTimeout),
 			Delete: schema.DefaultTimeout(DefaultTimeout),
 		},
-
 		Schema: map[string]*schema.Schema{
 			"name": {
 				Type:             schema.TypeString,

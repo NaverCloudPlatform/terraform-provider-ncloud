@@ -21,17 +21,16 @@ func resourceNcloudVpc() *schema.Resource {
 	return &schema.Resource{
 		Create: resourceNcloudVpcCreate,
 		Read:   resourceNcloudVpcRead,
-		Update: resourceNcloudVpcUpdate,
 		Delete: resourceNcloudVpcDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
-		CustomizeDiff: ncloudVpcCommonCustomizeDiff,
 		Schema: map[string]*schema.Schema{
 			"name": {
 				Type:             schema.TypeString,
 				Optional:         true,
 				Computed:         true,
+				ForceNew:         true,
 				ValidateDiagFunc: ToDiagFunc(validateInstanceName),
 				Description:      "Subnet name to create. default: Assigned by NAVER CLOUD PLATFORM.",
 			},
@@ -228,10 +227,6 @@ func getDefaultRouteTable(config *ProviderConfig, id string) (publicRouteTableNo
 	}
 
 	return publicRouteTableNo, privateRouteTableNo, nil
-}
-
-func resourceNcloudVpcUpdate(d *schema.ResourceData, meta interface{}) error {
-	return resourceNcloudVpcRead(d, meta)
 }
 
 func resourceNcloudVpcDelete(d *schema.ResourceData, meta interface{}) error {
