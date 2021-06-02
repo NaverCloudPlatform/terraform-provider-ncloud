@@ -75,7 +75,7 @@ This value must be more than the minimum capacity and less than the maximum capa
 ~> **NOTE:** Below arguments only support VPC environment.
 
 * `subnet_no` - (Required) The ID of the associated Subnet.
-* `access_control_group_no_list` - (Optional) The ID of the ACG.
+* `access_control_group_no_list` - (Required) The ID of the ACG.
 * `target_group_list` - (Optional) - Target Group number list of Load Balancer.
 
 ~> **NOTE:** `target_group_list` is valid only if the `health_check_type_code` is `LOADB`.
