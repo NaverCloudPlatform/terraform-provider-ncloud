@@ -356,7 +356,7 @@ func validateAlgorithmTypeByTargetGroupProtocol(algorithmType string, protocol s
 	protocolMap["HTTP"] = []string{"RR", "SIPHS", "LC"}
 	protocolMap["HTTPS"] = []string{"RR", "SIPHS", "LC"}
 	protocolMap["TCP"] = []string{"MH", "RR"}
-	if ok := containsInStringList(protocolMap[protocol], algorithmType); !ok {
+	if ok := containsInStringList(algorithmType, protocolMap[protocol]); !ok {
 		return fmt.Errorf("%s protocol is only suppoort %s algorithm types", protocol, protocolMap[protocol])
 	}
 	return nil
