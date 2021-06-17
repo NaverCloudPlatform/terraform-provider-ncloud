@@ -208,7 +208,7 @@ func getMatchTargetNoListFromResponse(respTargetList []*vloadbalancer.Target, ta
 	}
 
 	for _, targetNo := range targetNoList {
-		if containsInStringList(respTargetNoList, targetNo) {
+		if containsInStringList(targetNo, respTargetNoList) {
 			matchTargetNoList = append(matchTargetNoList, targetNo)
 		}
 	}

@@ -387,7 +387,7 @@ func createClassicServerInstance(d *schema.ResourceData, config *ProviderConfig)
 		resp, err = config.Client.server.V2Api.CreateServerInstances(reqParams)
 		if err != nil {
 			errBody, _ := GetCommonErrorBody(err)
-			if containsInStringList([]string{ApiErrorUnknown, ApiErrorAuthorityParameter, ApiErrorServerObjectInOperation, ApiErrorPreviousServersHaveNotBeenEntirelyTerminated}, errBody.ReturnCode) {
+			if containsInStringList(errBody.ReturnCode, []string{ApiErrorUnknown, ApiErrorAuthorityParameter, ApiErrorServerObjectInOperation, ApiErrorPreviousServersHaveNotBeenEntirelyTerminated}) {
 				return resource.RetryableError(err)
 			}
 			return resource.NonRetryableError(err)
@@ -990,7 +990,7 @@ func terminateClassicServerInstance(config *ProviderConfig, id string) error {
 		resp, err = config.Client.server.V2Api.TerminateServerInstances(reqParams)
 		if err != nil {
 			errBody, _ := GetCommonErrorBody(err)
-			if containsInStringList([]string{ApiErrorUnknown, ApiErrorServerObjectInOperation2}, errBody.ReturnCode) {
+			if containsInStringList(errBody.ReturnCode, []string{ApiErrorUnknown, ApiErrorServerObjectInOperation2}) {
 				logErrorResponse("retry terminateClassicServerInstance", err, reqParams)
 				return resource.RetryableError(err)
 			}

@@ -108,7 +108,7 @@ func resourceNcloudPortForwardingRuleCreate(d *schema.ResourceData, meta interfa
 		resp, err = config.Client.server.V2Api.AddPortForwardingRules(reqParams)
 		if err != nil {
 			errBody, _ := GetCommonErrorBody(err)
-			if containsInStringList([]string{ApiErrorUnknown, ApiErrorPortForwardingObjectInOperation}, errBody.ReturnCode) {
+			if containsInStringList(errBody.ReturnCode, []string{ApiErrorUnknown, ApiErrorPortForwardingObjectInOperation}) {
 				logErrorResponse("retry AddPortForwardingRules", err, reqParams)
 				time.Sleep(time.Second * 5)
 				return resource.RetryableError(err)
@@ -213,7 +213,7 @@ func resourceNcloudPortForwardingRuleDelete(d *schema.ResourceData, meta interfa
 		resp, err = client.server.V2Api.DeletePortForwardingRules(reqParams)
 		if err != nil {
 			errBody, _ := GetCommonErrorBody(err)
-			if containsInStringList([]string{ApiErrorUnknown, ApiErrorPortForwardingObjectInOperation}, errBody.ReturnCode) {
+			if containsInStringList(errBody.ReturnCode, []string{ApiErrorUnknown, ApiErrorPortForwardingObjectInOperation}) {
 				logErrorResponse("retry DeletePortForwardingRules", err, reqParams)
 				time.Sleep(time.Second * 5)
 				return resource.RetryableError(err)
