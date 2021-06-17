@@ -104,17 +104,18 @@ func resourceNcloudPortForwardingRuleCreate(d *schema.ResourceData, meta interfa
 	var resp *server.AddPortForwardingRulesResponse
 	err = resource.Retry(d.Timeout(schema.TimeoutCreate), func() *resource.RetryError {
 		var err error
-
 		logCommonRequest("AddPortForwardingRules", reqParams)
 		resp, err = config.Client.server.V2Api.AddPortForwardingRules(reqParams)
 		if err != nil {
-			if resp != nil && isRetryableErr(GetCommonResponse(resp), []string{ApiErrorUnknown, ApiErrorPortForwardingObjectInOperation}) {
+			errBody, _ := GetCommonErrorBody(err)
+			if containsInStringList([]string{ApiErrorUnknown, ApiErrorPortForwardingObjectInOperation}, errBody.ReturnCode) {
 				logErrorResponse("retry AddPortForwardingRules", err, reqParams)
 				time.Sleep(time.Second * 5)
 				return resource.RetryableError(err)
 			}
 			return resource.NonRetryableError(err)
 		}
+		logResponse("AddPortForwardingRules", resp)
 		return nil
 	})
 
@@ -206,21 +207,20 @@ func resourceNcloudPortForwardingRuleDelete(d *schema.ResourceData, meta interfa
 	}
 
 	var resp *server.DeletePortForwardingRulesResponse
-	err = resource.Retry(d.Timeout(schema.TimeoutDelete), func() *resource.RetryError {
+	err = resource.Retry(d.Timeout(schema.TimeoutCreate), func() *resource.RetryError {
 		var err error
-
 		logCommonRequest("DeletePortForwardingRules", reqParams)
 		resp, err = client.server.V2Api.DeletePortForwardingRules(reqParams)
-		log.Printf("=================> DeletePortForwardingRules resp: %#v, err: %#v", resp, err)
 		if err != nil {
-			if resp != nil && isRetryableErr(GetCommonResponse(resp), []string{ApiErrorUnknown, ApiErrorPortForwardingObjectInOperation}) {
-				logErrorResponse("DeletePortForwardingRules Retry", err, reqParams)
+			errBody, _ := GetCommonErrorBody(err)
+			if containsInStringList([]string{ApiErrorUnknown, ApiErrorPortForwardingObjectInOperation}, errBody.ReturnCode) {
+				logErrorResponse("retry DeletePortForwardingRules", err, reqParams)
 				time.Sleep(time.Second * 5)
 				return resource.RetryableError(err)
 			}
 			return resource.NonRetryableError(err)
 		}
-		logCommonResponse("DeletePortForwardingRules", GetCommonResponse(resp))
+		logResponse("DeletePortForwardingRules", resp)
 		return nil
 	})
 

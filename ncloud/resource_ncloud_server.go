@@ -385,13 +385,14 @@ func createClassicServerInstance(d *schema.ResourceData, config *ProviderConfig)
 		var err error
 		logCommonRequest("createClassicServerInstance", reqParams)
 		resp, err = config.Client.server.V2Api.CreateServerInstances(reqParams)
-
 		if err != nil {
-			if resp != nil && isRetryableErr(GetCommonResponse(resp), []string{ApiErrorUnknown, ApiErrorAuthorityParameter, ApiErrorServerObjectInOperation, ApiErrorPreviousServersHaveNotBeenEntirelyTerminated}) {
+			errBody, _ := GetCommonErrorBody(err)
+			if containsInStringList([]string{ApiErrorUnknown, ApiErrorAuthorityParameter, ApiErrorServerObjectInOperation, ApiErrorPreviousServersHaveNotBeenEntirelyTerminated}, errBody.ReturnCode) {
 				return resource.RetryableError(err)
 			}
 			return resource.NonRetryableError(err)
 		}
+		logResponse("createClassicServerInstance", resp)
 		return nil
 	})
 
@@ -988,12 +989,14 @@ func terminateClassicServerInstance(config *ProviderConfig, id string) error {
 		logCommonRequest("terminateClassicServerInstance", reqParams)
 		resp, err = config.Client.server.V2Api.TerminateServerInstances(reqParams)
 		if err != nil {
-			if resp != nil && isRetryableErr(GetCommonResponse(resp), []string{ApiErrorUnknown, ApiErrorServerObjectInOperation2}) {
+			errBody, _ := GetCommonErrorBody(err)
+			if containsInStringList([]string{ApiErrorUnknown, ApiErrorServerObjectInOperation2}, errBody.ReturnCode) {
 				logErrorResponse("retry terminateClassicServerInstance", err, reqParams)
 				return resource.RetryableError(err)
 			}
 			return resource.NonRetryableError(err)
 		}
+		logResponse("terminateClassicServerInstance", resp)
 		return nil
 	})
 
