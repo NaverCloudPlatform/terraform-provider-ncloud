@@ -9,7 +9,7 @@ This module can be useful for getting detail of Network Interface created before
 ```hcl
 variable "network_interface_no" {}
 
-data "ncloud_network_interface_no" "nic" {
+data "ncloud_network_interface" "nic" {
   id = var.network_interface_no
 }
 ```
