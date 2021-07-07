@@ -46,3 +46,4 @@ The following arguments are supported:
 * `snapshot_volume_size` - Snapshot volume size, in GiB
 * `is_snapshot_configuration` - Indicates whether a snapshot volume is set.
 * `is_event_configuration` - Indicates whether the event is set.
+* `mount_information` - Mount information for NAS volume.

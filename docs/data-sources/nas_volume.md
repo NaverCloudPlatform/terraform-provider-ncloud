@@ -36,3 +36,4 @@ The following arguments are supported:
 * `custom_ip_list` - NAS volume instance custom IP list.
 * `description` - NAS volume description.
 * `is_encrypted_volume` - Volume encryption. 
+* `mount_information` - Mount information for NAS volume.
