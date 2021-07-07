@@ -37,6 +37,7 @@ func testAccDataSourceNcloudNasVolumeBasic(t *testing.T, isVpc bool) {
 					resource.TestCheckResourceAttrPair(dataName, "volume_allotment_protocol_type", resourceName, "volume_allotment_protocol_type"),
 					resource.TestCheckResourceAttrPair(dataName, "is_event_configuration", resourceName, "is_event_configuration"),
 					resource.TestCheckResourceAttrPair(dataName, "is_snapshot_configuration", resourceName, "is_snapshot_configuration"),
+					resource.TestCheckResourceAttrPair(dataName, "mount_information", resourceName, "mount_information"),
 				),
 			},
 		},

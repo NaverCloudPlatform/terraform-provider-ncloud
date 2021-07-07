@@ -112,6 +112,10 @@ func resourceNcloudNasVolume() *schema.Resource {
 				Type:     schema.TypeBool,
 				Computed: true,
 			},
+			"mount_information": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
 		},
 	}
 }
@@ -227,6 +231,7 @@ func convertClassicNasVolume(inst *server.NasVolumeInstance) *NasVolume {
 		Zone:                          inst.Zone.ZoneCode,
 		NasVolumeInstanceCustomIpList: flattenArrayStructByKey(inst.NasVolumeInstanceCustomIpList, "customIp"),
 		ServerInstanceNoList:          flattenArrayStructByKey(inst.NasVolumeServerInstanceList, "serverInstanceNo"),
+		MountInformation:              inst.MountInformation,
 	}
 }
 
@@ -271,6 +276,7 @@ func convertVpcNasVolume(inst *vnas.NasVolumeInstance) *NasVolume {
 		IsEncryptedVolume:             inst.IsEncryptedVolume,
 		ServerInstanceNoList:          inst.NasVolumeServerInstanceNoList,
 		NasVolumeInstanceCustomIpList: []*string{},
+		MountInformation:              inst.MountInformation,
 	}
 }
 
@@ -579,4 +585,5 @@ type NasVolume struct {
 	ServerInstanceNoList          []*string `json:"server_instance_no_list"`
 	IsEncryptedVolume             *bool     `json:"is_encrypted_volume,omitempty"`
 	Status                        *string   `json:"-"`
+	MountInformation              *string   `json:"mount_information,omitempty"`
 }
