@@ -119,6 +119,10 @@ The following arguments are supported:
 
 ~> **Note** `access_key`, `secret_key` : [Get authentication keys for your account](http://docs.ncloud.com/en/api_new/api_new-1-1.html#preparation)
 
+~> **Note** If the `access_key` and `secret_key` are externally exposed, then others may use them to access users' accounts.
+Therefore, please carefully manage `access_key` and `secret_key`. Take special care to keep `access_key` and `secret_key` from being uploaded to the public version control system
+
+
 * `support_vpc` - (Optional) Whether to use VPC. By default, the value is `false` on "public" site. If you want to use VPC environment. Please set this value `true`.  
 
 ~> **Note** `support_vpc` is only support if `site` is `public`.
