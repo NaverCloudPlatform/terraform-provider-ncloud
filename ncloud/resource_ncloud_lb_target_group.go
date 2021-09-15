@@ -164,7 +164,7 @@ func resourceNcloudTargetGroupCreate(ctx context.Context, d *schema.ResourceData
 		return diag.FromErr(err)
 	}
 
-	if err := validateVpcTargetGroupDuplicateName(config, *reqParams.TargetGroupName); err != nil {
+	if err := validateVpcTargetGroupDuplicateName(config, ncloud.StringValue(reqParams.TargetGroupName)); err != nil {
 		return diag.FromErr(err)
 	}
 
