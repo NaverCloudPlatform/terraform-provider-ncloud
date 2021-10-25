@@ -21,7 +21,6 @@ func resourceNcloudLoginKey() *schema.Resource {
 	return &schema.Resource{
 		Create: resourceNcloudLoginKeyCreate,
 		Read:   resourceNcloudLoginKeyRead,
-		Update: resourceNcloudLoginKeyUpdate,
 		Delete: resourceNcloudLoginKeyDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
@@ -67,10 +66,6 @@ func resourceNcloudLoginKeyRead(d *schema.ResourceData, meta interface{}) error 
 	}
 
 	return nil
-}
-
-func resourceNcloudLoginKeyUpdate(d *schema.ResourceData, meta interface{}) error {
-	return resourceNcloudLoginKeyRead(d, meta)
 }
 
 func resourceNcloudLoginKeyCreate(d *schema.ResourceData, meta interface{}) error {
