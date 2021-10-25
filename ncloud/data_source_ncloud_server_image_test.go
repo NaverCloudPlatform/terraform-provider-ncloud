@@ -131,6 +131,30 @@ func testAccDataSourceNcloudServerImageByBlockStorageSize(t *testing.T, isVpc bo
 	})
 }
 
+func TestAccDataSourceNcloudServerImage_vpc_by_platform_type(t *testing.T) {
+	dataName := "data.ncloud_server_image.test5"
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:  func() { testAccPreCheck(t) },
+		Providers: testAccProviders,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccDataSourceNcloudServerImageByPlatformTypeConfig("LNX64"),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckDataSourceID(dataName),
+					resource.TestCheckResourceAttr(dataName, "product_code", "SW.VSVR.APP.LNX64.CNTOS.0708.PINPT.LATEST.B050"),
+					resource.TestCheckResourceAttr(dataName, "product_name", "Pinpoint-centos-7.8-64"),
+					resource.TestCheckResourceAttr(dataName, "product_description", "CentOS 7.8 with Pinpoint"),
+					resource.TestCheckResourceAttr(dataName, "infra_resource_type", "SW"),
+					resource.TestCheckResourceAttr(dataName, "os_information", "CentOS 7.8 with Pinpoint"),
+					resource.TestCheckResourceAttr(dataName, "platform_type", "LNX64"),
+					resource.TestCheckResourceAttr(dataName, "base_block_storage_size", "50GB"),
+				),
+			},
+		},
+	})
+}
+
 func testAccDataSourceNcloudServerImageByCodeConfig(productCode string) string {
 	return fmt.Sprintf(`
 data "ncloud_server_image" "test1" {
@@ -172,3 +196,12 @@ data "ncloud_server_image" "test4" {
 	}
 }
 `
+
+func testAccDataSourceNcloudServerImageByPlatformTypeConfig(platformType string) string {
+	return fmt.Sprintf(`
+data "ncloud_server_image" "test5" {
+  product_code = "SW.VSVR.APP.LNX64.CNTOS.0708.PINPT.LATEST.B050"
+  platform_type = "%s"
+}
+`, platformType)
+}

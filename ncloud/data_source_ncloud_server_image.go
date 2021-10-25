@@ -2,6 +2,7 @@ package ncloud
 
 import (
 	"fmt"
+	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/ncloud"
 	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/services/server"
 	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/services/vserver"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
@@ -128,7 +129,7 @@ func getClassicServerImageProductList(d *schema.ResourceData, config *ProviderCo
 	}
 
 	if v, ok := d.GetOk("platform_type"); ok {
-		reqParams.PlatformTypeCodeList = expandStringInterfaceList(v.([]interface{}))
+		reqParams.PlatformTypeCodeList = []*string{ncloud.String(v.(string))}
 	}
 
 	logCommonRequest("GetServerImageProductList", reqParams)
@@ -174,7 +175,7 @@ func getVpcServerImageProductList(d *schema.ResourceData, config *ProviderConfig
 	}
 
 	if v, ok := d.GetOk("platform_type"); ok {
-		reqParams.PlatformTypeCodeList = expandStringInterfaceList(v.([]interface{}))
+		reqParams.PlatformTypeCodeList = []*string{ncloud.String(v.(string))}
 	}
 
 	logCommonRequest("GetServerImageProductList", reqParams)
