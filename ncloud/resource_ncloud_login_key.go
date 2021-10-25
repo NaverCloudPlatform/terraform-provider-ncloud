@@ -34,6 +34,7 @@ func resourceNcloudLoginKey() *schema.Resource {
 			"key_name": {
 				Type:             schema.TypeString,
 				Required:         true,
+				ForceNew:         true,
 				ValidateDiagFunc: ToDiagFunc(validation.StringLenBetween(3, 30)),
 				Description:      "Key name to generate. If the generated key name exists, an error occurs.",
 			},
