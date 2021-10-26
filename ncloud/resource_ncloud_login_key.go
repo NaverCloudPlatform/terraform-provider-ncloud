@@ -21,7 +21,6 @@ func resourceNcloudLoginKey() *schema.Resource {
 	return &schema.Resource{
 		Create: resourceNcloudLoginKeyCreate,
 		Read:   resourceNcloudLoginKeyRead,
-		Update: resourceNcloudLoginKeyUpdate,
 		Delete: resourceNcloudLoginKeyDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
@@ -34,6 +33,7 @@ func resourceNcloudLoginKey() *schema.Resource {
 			"key_name": {
 				Type:             schema.TypeString,
 				Required:         true,
+				ForceNew:         true,
 				ValidateDiagFunc: ToDiagFunc(validation.StringLenBetween(3, 30)),
 				Description:      "Key name to generate. If the generated key name exists, an error occurs.",
 			},
@@ -66,10 +66,6 @@ func resourceNcloudLoginKeyRead(d *schema.ResourceData, meta interface{}) error 
 	}
 
 	return nil
-}
-
-func resourceNcloudLoginKeyUpdate(d *schema.ResourceData, meta interface{}) error {
-	return resourceNcloudLoginKeyRead(d, meta)
 }
 
 func resourceNcloudLoginKeyCreate(d *schema.ResourceData, meta interface{}) error {
