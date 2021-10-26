@@ -131,7 +131,7 @@ func testAccDataSourceNcloudServerImageByBlockStorageSize(t *testing.T, isVpc bo
 	})
 }
 
-func TestAccDataSourceNcloudServerImage_vpc_by_platform_type(t *testing.T) {
+func TestAccDataSourceNcloudServerImage_vpc_byPlatformType(t *testing.T) {
 	dataName := "data.ncloud_server_image.test5"
 
 	resource.ParallelTest(t, resource.TestCase{
