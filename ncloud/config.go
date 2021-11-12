@@ -3,6 +3,7 @@ package ncloud
 import (
 	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/services/vautoscaling"
 	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/services/vloadbalancer"
+	"github.com/terraform-providers/terraform-provider-ncloud/sdk/vnks"
 	"time"
 
 	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/services/vnas"
@@ -30,6 +31,7 @@ const DefaultStopTimeout = 5 * time.Minute
 type Config struct {
 	AccessKey string
 	SecretKey string
+	Region    string
 }
 
 type NcloudAPIClient struct {
@@ -44,6 +46,7 @@ type NcloudAPIClient struct {
 	vnas          *vnas.APIClient
 	vautoscaling  *vautoscaling.APIClient
 	vloadbalancer *vloadbalancer.APIClient
+	vnks          *vnks.APIClient
 }
 
 func (c *Config) Client() (*NcloudAPIClient, error) {
@@ -63,6 +66,7 @@ func (c *Config) Client() (*NcloudAPIClient, error) {
 		vnas:          vnas.NewAPIClient(vnas.NewConfiguration(apiKey)),
 		vautoscaling:  vautoscaling.NewAPIClient(vautoscaling.NewConfiguration(apiKey)),
 		vloadbalancer: vloadbalancer.NewAPIClient(vloadbalancer.NewConfiguration(apiKey)),
+		vnks:          vnks.NewAPIClient(vnks.NewConfiguration(c.Region, apiKey)),
 	}, nil
 }
 
