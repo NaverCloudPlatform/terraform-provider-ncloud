@@ -284,12 +284,13 @@ func (a *V2ApiService) ClustersUuidGet(ctx context.Context, uuid *string) (*Clus
 /* V2ApiService
 @param uuid uuid
 @return */
-func (a *V2ApiService) ClustersUuidKubeconfigGet(ctx context.Context, uuid *string) error {
+func (a *V2ApiService) ClustersUuidKubeconfigGet(ctx context.Context, uuid *string) (*KubeConfigRes, error) {
 	var (
 		localVarHttpMethod = strings.ToUpper("Get")
 		localVarPostBody   interface{}
 		localVarFileName   string
 		localVarFileBytes  []byte
+		successPayload     KubeConfigRes
 	)
 
 	// create path and map variables
@@ -321,21 +322,27 @@ func (a *V2ApiService) ClustersUuidKubeconfigGet(ctx context.Context, uuid *stri
 	}
 	r, err := a.client.prepareRequest(ctx, localVarPath, localVarHttpMethod, localVarPostBody, localVarHeaderParams, localVarQueryParams, localVarFormParams, localVarFileName, localVarFileBytes)
 	if err != nil {
-		return err
+		return &successPayload, err
 	}
 
 	localVarHttpResponse, err := a.client.callAPI(r)
 	if err != nil || localVarHttpResponse == nil {
-		return err
+		return &successPayload, err
 	}
 	defer localVarHttpResponse.Body.Close()
 	bodyBytes, _ := ioutil.ReadAll(localVarHttpResponse.Body)
 
 	if localVarHttpResponse.StatusCode >= 300 || (localVarHttpResponse.StatusCode < 300 && !strings.HasPrefix(string(bodyBytes), `{`)) && localVarHttpResponse.StatusCode != 204 {
-		return reportError("Status: %v, Body: %s", localVarHttpResponse.Status, bodyBytes)
+		return &successPayload, reportError("Status: %v, Body: %s", localVarHttpResponse.Status, bodyBytes)
 	}
 
-	return err
+	if !strings.Contains(string(bodyBytes), `{"error"`) && strings.HasPrefix(string(bodyBytes), `{`) {
+		if err = json.Unmarshal(bodyBytes, &successPayload); err != nil {
+			return &successPayload, err
+		}
+	}
+
+	return &successPayload, err
 }
 
 /* V2ApiService

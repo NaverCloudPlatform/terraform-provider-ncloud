@@ -51,47 +51,49 @@ resource "ncloud_nks_cluster" "cluster" {
   subnet_no_list              = [ ncloud_subnet.subnet.id ]
   vpc_no                      = ncloud_vpc.vpc.id
   zone_no                     = "2"
+
+  node_pool {
+    is_default     = true
+    name           = "default-node-pool"
+    node_count     = 1
+    product_code   = "SVR.VSVR.STAND.C002.M008.NET.SSD.B050.G002"
+    subnet_no_list = [ ncloud_subnet.subnet.id ]
+  }
+
+  node_pool {
+    is_default     = false
+    name           = "add-node-pool"
+    node_count     = 1
+    product_code   = "SVR.VSVR.STAND.C002.M008.NET.SSD.B050.G002"
+  }
 }
 
-
+resource "ncloud_nks_node_pool" "np" {
+  cluster_no = ncloud_nks_cluster.cluster.id
+  name       = "sample-node-pool"
+  node_count = 1
+  product_code = "SVR.VSVR.STAND.C002.M008.NET.SSD.B050.G002"
+  subnet_no_list = [ ncloud_subnet.subnet.id ]
+  
+}
 ```
 
 ## Argument Reference
 
 The following arguments are supported:
 
-* `name` - (Required) The name to create.
-* `cluster_type` - (Required) Cluster type. 
-  * 10 nodes : `SVR.VNKS.STAND.C002.M008.NET.SSD.B050.G002`
-  * 50 nodes : `SVR.VNKS.STAND.C004.M016.NET.SSD.B050.G002`
-* `login_key_name` - (Required) Key name to configure worker nodes.
-* `zone_no` - (Required) Available zone nubmer where the cluster will be placed physically.
-* `vpc_no` - (Required) The ID of the VPC where you want to place the cluster.
-* `subnet_no_list` - (Required) The ID list of the Subnet where you want to place the cluster.
-* `subnet_lb` - (Required) The ID the Subnet where you want to place the Loadbalancer.
-* `log` - (Optional) Use Log.
-    * `audit` - (Required) `Boolean`.
-* `k8s_version` - (Optional) NKS Version to create.
+* `is_Default` - (Optional) `Boolean` Default node YN. Only one default nodepool is allowed.
+* `name` - (Required) The name of node pool.
+* `node_count` - (Required) Number of worker nodes in nodepool.
+* `product_code` - (Required) Product code of worker nodes in node pool
 
 ## Attributes Reference
 
 In addition to all arguments above, the following attributes are exported:
-
-* `id` - The ID of Cluster.
-* `acg_name` - Name of the ACG, which is configured in the cluster.
-* `capacity` - Worker node Capacity.
-* `cpu_count` - Worker node CPU cores.
-* `created_at` - Cluster creation time.
-* `endpoint` - Cluster endpoint.
-* `memory_size` - Worker node memory size
-* `node_count` - Total number of worker nodes in the cluster.
-* `node_max_count` - ??
-* `region_code` - Resion code.
-* `status` - Cluster status.
-* `subnet_lb_name` - Name of Lb Subnet.
-* `subnet_name` - Name of Subnet.
-* `updated_at` - Cluster updated time.
-* `uuid` - The ID of the Cluster. (It is the same result as `id`)
-* `vpc_name` - The name of VPC.
-
+* `autoscale`- Autoscale Config.
+  * `enable` - Autoscale enable YN.
+  * `max` - Max node count.
+  * `min` - Min node count.
+* `instance_no` - Instance number of node pool.
+* `status` - Node pool status.
 

@@ -13,22 +13,13 @@ func init() {
 	RegisterDataSource("ncloud_nks_cluster", dataSourceNcloudNKSCluster())
 }
 
-const (
-//NKSOperationChangeCode             = "CHANG"
-//NKSOperationCreateCode             = "CREAT"
-//NKSOperationDisUseCode             = "DISUS"
-//NKSOperationNullCode               = "NULL"
-//NKSOperationPendingTerminationCode = "PTERM"
-//NKSOperationTerminateCode          = "TERMT"
-//NKSOperationUseCode                = "USE"
-)
-
 func dataSourceNcloudNKSCluster() *schema.Resource {
 	return &schema.Resource{
 		ReadContext: dataSourceNcloudNKSClusterRead,
 		Schema: map[string]*schema.Schema{
 			"uuid": {
 				Type:     schema.TypeString,
+				Optional: true,
 				Computed: true,
 			},
 			"acg_name": {
@@ -89,23 +80,19 @@ func dataSourceNcloudNKSCluster() *schema.Resource {
 			},
 			"login_key_name": {
 				Type:     schema.TypeString,
-				Required: true,
-				ForceNew: true,
+				Computed: true,
 			},
 			"k8s_version": {
 				Type:     schema.TypeString,
-				Required: true,
-				ForceNew: true,
+				Computed: true,
 			},
 			"zone_no": {
 				Type:     schema.TypeString,
-				Required: true,
-				ForceNew: true,
+				Computed: true,
 			},
 			"vpc_no": {
 				Type:     schema.TypeString,
-				Required: true,
-				ForceNew: true,
+				Computed: true,
 			},
 			"vpc_name": {
 				Type:     schema.TypeString,
@@ -113,14 +100,12 @@ func dataSourceNcloudNKSCluster() *schema.Resource {
 			},
 			"subnet_no_list": {
 				Type:     schema.TypeList,
-				Required: true,
-				ForceNew: true,
+				Computed: true,
 				Elem:     &schema.Schema{Type: schema.TypeString},
 			},
 			"subnet_lb_no": {
 				Type:     schema.TypeString,
-				Required: true,
-				ForceNew: true,
+				Computed: true,
 			},
 			"subnet_lb_name": {
 				Type:     schema.TypeString,
@@ -216,8 +201,9 @@ func dataSourceNcloudNKSClusterRead(ctx context.Context, d *schema.ResourceData,
 	if !config.SupportVPC {
 		return diag.FromErr(NotSupportClassic("dataSource `ncloud_nks_cluster`"))
 	}
+	uuid := d.Get("uuid").(string)
 
-	cluster, err := getNKSClusterCluster(ctx, config, d.Id())
+	cluster, err := getNKSClusterCluster(ctx, config, uuid)
 	if err != nil {
 		return diag.FromErr(err)
 	}
