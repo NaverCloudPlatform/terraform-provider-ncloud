@@ -81,18 +81,18 @@ resource "ncloud_nks_node_pool" "np" {
 
 The following arguments are supported:
 
-- `is_Default` - (Optional) `Boolean` Default node YN. Only one default nodepool is allowed.
-- `name` - (Required) The name of nodepool.
-- `node_count` - (Required) Number of worker nodes in nodepool.
-- `product_code` - (Required) Product code of worker nodes in node pool
+* `is_Default` - (Optional) `Boolean` Default node YN. Only one default nodepool is allowed.
+* `name` - (Required) The name of nodepool.
+* `node_count` - (Required) Number of worker nodes in nodepool.
+* `product_code` - (Required) Product code of worker nodes in node pool
 
 ## Attributes Reference
 
 In addition to all arguments above, the following attributes are exported:
 
-- `autoscale`- Autoscale config.
-  - `enable` - Autoscale enable YN.
-  - `max` - Max node count.
-  - `min` - Min node count.
-- `instance_no` - Instance number of nodepool.
-- `status` - Nodepool status.
+* `autoscale`- Autoscale config.
+  * `enable` - Autoscale enable YN.
+  * `max` - Max node count.
+  * `min` - Min node count.
+* `instance_no` - Instance number of nodepool.
+* `status` - Nodepool status.

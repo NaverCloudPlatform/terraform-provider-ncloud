@@ -34,11 +34,11 @@ output "ns-present" {
 
 The following arguments are supported:
 
-- `id` - (Required) Cluster UUID.
+* `id` - (Required) Cluster UUID.
 
 ## Attributes Reference
 
-- `host` - Host on kubeconfig.
-- `client_certificate` - Client certificate on kubeconfig.
-- `client_key` - Client key on kubeconfig.
-- `cluster_ca_certificate` - Cluster CA certificate on kubeconfig.
+* `host` - Host on kubeconfig.
+* `client_certificate` - Client certificate on kubeconfig.
+* `client_key` - Client key on kubeconfig.
+* `cluster_ca_certificate` - Cluster CA certificate on kubeconfig.
