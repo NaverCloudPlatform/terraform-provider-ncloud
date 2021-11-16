@@ -21,4 +21,6 @@ type NodePoolCreationBody struct {
 
 	// 상품 코드
 	ProductCode *string `json:"productCode"`
+
+	AutoscalerUpdate *AutoscalerUpdate `json:"autoscale,omitempty"`
 }

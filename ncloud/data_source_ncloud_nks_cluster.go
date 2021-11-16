@@ -19,7 +19,6 @@ func dataSourceNcloudNKSCluster() *schema.Resource {
 		Schema: map[string]*schema.Schema{
 			"uuid": {
 				Type:     schema.TypeString,
-				Optional: true,
 				Computed: true,
 			},
 			"acg_name": {
@@ -28,7 +27,7 @@ func dataSourceNcloudNKSCluster() *schema.Resource {
 			},
 			"name": {
 				Type:     schema.TypeString,
-				Computed: true,
+				Required: true,
 			},
 			"cluster_type": {
 				Type:     schema.TypeString,
@@ -201,9 +200,9 @@ func dataSourceNcloudNKSClusterRead(ctx context.Context, d *schema.ResourceData,
 	if !config.SupportVPC {
 		return diag.FromErr(NotSupportClassic("dataSource `ncloud_nks_cluster`"))
 	}
-	uuid := d.Get("uuid").(string)
+	name := d.Get("name").(string)
 
-	cluster, err := getNKSClusterCluster(ctx, config, uuid)
+	cluster, err := getNKSClusterWithName(ctx, config, name)
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -213,7 +212,8 @@ func dataSourceNcloudNKSClusterRead(ctx context.Context, d *schema.ResourceData,
 		return nil
 	}
 
-	d.SetId(ncloud.StringValue(cluster.Uuid))
+	d.SetId(ncloud.StringValue(cluster.Name))
+	d.Set("uuid", cluster.Uuid)
 	d.Set("acg_name", cluster.AcgName)
 	d.Set("name", cluster.Name)
 	d.Set("cluster_type", cluster.ClusterType)
@@ -238,10 +238,6 @@ func dataSourceNcloudNKSClusterRead(ctx context.Context, d *schema.ResourceData,
 
 	if err := d.Set("subnet_no_list", flattenSubnetNoList(cluster.SubnetNoList)); err != nil {
 		log.Printf("[WARN] Error setting subet no list set for (%s): %s", d.Id(), err)
-	}
-
-	if err := d.Set("node_pool", flattenNksNodePoolList(cluster.NodePool)); err != nil {
-		log.Printf("[WARN] Error setting node pool set for (%s): %s", d.Id(), err)
 	}
 
 	return nil

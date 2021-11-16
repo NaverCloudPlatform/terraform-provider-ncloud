@@ -1,57 +1,18 @@
 # Data Source: ncloud_nks_cluster
 
-Provides a Kubernetes Service cluster resource.
+Provides a Kubernetes Service cluster data.
 
 ## Example Usage
 
 ### Basic Usage
 
 ```hcl
-resource "ncloud_vpc" "vpc" {
-  name            = "vpc"
-  ipv4_cidr_block = "10.0.0.0/16"
+variable "cluster_name" {}
+
+data "ncloud_nks_cluster" "node_pool"{
+  node_pool_name = var.node_pool_name
+  cluster_name = var.cluster_name
 }
-
-resource "ncloud_subnet" "subnet" {
-  vpc_no         = ncloud_vpc.vpc.id
-  subnet         = "10.0.1.0/24"
-  zone           = "KR-1"
-  network_acl_no = ncloud_vpc.vpc.default_network_acl_no
-  subnet_type    = "PRIVATE"
-  name           = "subnet-01"
-  usage_type     = "GEN"
-}
-
-resource "ncloud_subnet" "subnet_lb" {
-  vpc_no         = ncloud_vpc.vpc.id
-  subnet         = "10.0.100.0/24"
-  zone           = "KR-1"
-  network_acl_no = ncloud_vpc.vpc.default_network_acl_no
-  subnet_type    = "PUBLIC"
-  name           = "subnet-lb"
-  usage_type     = "LOADB"
-}
-
-
-data "ncloud_nks_version" "version"{
-}
-
-resource "ncloud_login_key" "loginkey" {
-  key_name = "sample-login-key"
-}
-
-
-resource "ncloud_nks_cluster" "cluster" {
-  cluster_type                = "SVR.VNKS.STAND.C002.M008.NET.SSD.B050.G002"
-  k8s_version                 = data.ncloud_nks_version.version.versions.0.value
-  login_key_name              = ncloud_login_key.loginkey.key_name
-  name                        = "sample-cluster"
-  subnet_lb_no                = ncloud_subnet.subnet_lb.id
-  subnet_no_list              = [ ncloud_subnet.subnet.id ]
-  vpc_no                      = ncloud_vpc.vpc.id
-  zone_no                     = "2"
-}
-
 
 ```
 

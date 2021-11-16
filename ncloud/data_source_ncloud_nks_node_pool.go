@@ -16,7 +16,7 @@ func dataSourceNcloudNKSNodePool() *schema.Resource {
 	return &schema.Resource{
 		ReadContext: dataSourceNcloudNKSNodePoolRead,
 		Schema: map[string]*schema.Schema{
-			"cluster_id": {
+			"cluster_name": {
 				Type:     schema.TypeString,
 				Required: true,
 			},
@@ -28,9 +28,9 @@ func dataSourceNcloudNKSNodePool() *schema.Resource {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
-			"name": {
+			"node_pool_name": {
 				Type:     schema.TypeString,
-				Computed: true,
+				Required: true,
 			},
 			"node_count": {
 				Type:     schema.TypeInt,
@@ -84,9 +84,16 @@ func dataSourceNcloudNKSNodePoolRead(ctx context.Context, d *schema.ResourceData
 		return diag.FromErr(NotSupportClassic("dataSource `ncloud_nks_node_pool`"))
 	}
 
-	clusterId := StringPtrOrNil(d.GetOk("cluster_id"))
-	name := ncloud.String(d.Id())
-	nodePool, err := getNKSNodePool(ctx, config, clusterId, name)
+	clusterName := d.Get("cluster_name").(string)
+	nodePoolName := d.Get("node_pool_name").(string)
+	id := NodePoolCreateResourceID(clusterName, nodePoolName)
+
+	cluster, err := getNKSClusterWithName(ctx, config, clusterName)
+	if err != nil {
+		return diag.FromErr(err)
+	}
+
+	nodePool, err := getNKSNodePool(ctx, config, cluster.Uuid, &nodePoolName)
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -96,7 +103,7 @@ func dataSourceNcloudNKSNodePoolRead(ctx context.Context, d *schema.ResourceData
 		return nil
 	}
 
-	d.SetId(ncloud.StringValue(nodePool.Name))
+	d.SetId(ncloud.StringValue(&id))
 
 	d.Set("instance_no", nodePool.InstanceNo)
 	d.Set("name", nodePool.Name)

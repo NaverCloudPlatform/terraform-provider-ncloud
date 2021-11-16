@@ -24,6 +24,9 @@ type NodePoolRes struct {
 	// 서브넷 No 목록
 	SubnetNoList []*int32 `json:"subnetNoList,omitempty"`
 
+	// 서브넷 No 목록
+	SubnetNameList []*string `json:"subnetNameList,omitempty"`
+
 	// 상품 코드
 	ProductCode *string `json:"productCode"`
 

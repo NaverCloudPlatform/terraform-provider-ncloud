@@ -7,7 +7,7 @@ Provides a Kubernetes Service nodepool resource.
 ### Basic Usage
 
 ```hcl
-resource "ncloud_vpc" "vpc" {
+esource "ncloud_vpc" "vpc" {
   name            = "vpc"
   ipv4_cidr_block = "10.0.0.0/16"
 }
@@ -27,7 +27,7 @@ resource "ncloud_subnet" "subnet_lb" {
   subnet         = "10.0.100.0/24"
   zone           = "KR-1"
   network_acl_no = ncloud_vpc.vpc.default_network_acl_no
-  subnet_type    = "PUBLIC"
+  subnet_type    = "PRIVATE"
   name           = "subnet-lb"
   usage_type     = "LOADB"
 }
@@ -42,38 +42,28 @@ resource "ncloud_login_key" "loginkey" {
 
 
 resource "ncloud_nks_cluster" "cluster" {
-  cluster_type                = "SVR.VNKS.STAND.C002.M008.NET.SSD.B050.G002"
-  k8s_version                 = data.ncloud_nks_version.version.versions.0.value
-  login_key_name              = ncloud_login_key.loginkey.key_name
-  name                        = "sample-cluster"
-  subnet_lb_no                = ncloud_subnet.subnet_lb.id
-  subnet_no_list              = [ ncloud_subnet.subnet.id ]
-  vpc_no                      = ncloud_vpc.vpc.id
-  zone_no                     = "2"
+  cluster_type   = "SVR.VNKS.STAND.C002.M008.NET.SSD.B050.G002"
+  k8s_version    = data.ncloud_nks_version.version.versions.0.value
+  login_key_name = ncloud_login_key.loginkey.key_name
+  name           = "sample-cluster"
+  subnet_lb_no   = ncloud_subnet.subnet_lb.id
+  subnet_no_list = [ ncloud_subnet.subnet.id ]
+  vpc_no         = ncloud_vpc.vpc.id
+  zone_no        = "2"
 
-  node_pool {
-    is_default     = true
-    name           = "default-node-pool"
-    node_count     = 1
-    product_code   = "SVR.VSVR.STAND.C002.M008.NET.SSD.B050.G002"
-    subnet_no_list = [ ncloud_subnet.subnet.id ]
-  }
-
-  node_pool {
-    is_default     = false
-    name           = "add-node-pool"
-    node_count     = 1
-    product_code   = "SVR.VSVR.STAND.C002.M008.NET.SSD.B050.G002"
-  }
 }
 
-resource "ncloud_nks_node_pool" "np" {
-  cluster_no = ncloud_nks_cluster.cluster.id
-  name       = "sample-node-pool"
-  node_count = 1
-  product_code = "SVR.VSVR.STAND.C002.M008.NET.SSD.B050.G002"
+resource "ncloud_nks_node_pool" "node_pool" {
+  cluster_name   = ncloud_nks_cluster.cluster.name
+  node_pool_name = "sample-node-pool"
+  node_count     = 1
+  product_code   = "SVR.VSVR.STAND.C002.M008.NET.SSD.B050.G002"
   subnet_no_list = [ ncloud_subnet.subnet.id ]
-
+  autoscale {
+    enabled = true
+    min = 1
+    max = 2
+  }
 }
 ```
 
@@ -81,18 +71,27 @@ resource "ncloud_nks_node_pool" "np" {
 
 The following arguments are supported:
 
-* `is_Default` - (Optional) `Boolean` Default node YN. Only one default nodepool is allowed.
-* `name` - (Required) The name of nodepool.
+* `node_pool_name` - (Required) The name of nodepool. 
+* `cluster_name` - (Required) The name of Cluster.
 * `node_count` - (Required) Number of worker nodes in nodepool.
 * `product_code` - (Required) Product code of worker nodes in node pool
+* `autoscale`- (Optional) Autoscale config.
+  * `enable` - (Required) Autoscale enable YN.
+  * `max` - (Required) Max node count.
+  * `min` - (Required) Min node count.
+* `subnet_no_list` - (Optional) The ID list of the Subnet where you want to place the nodepool.
 
 ## Attributes Reference
 
 In addition to all arguments above, the following attributes are exported:
 
-* `autoscale`- Autoscale config.
-  * `enable` - Autoscale enable YN.
-  * `max` - Max node count.
-  * `min` - Min node count.
+* `id` - The ID of nodepool.`CusterName:NodePoolName` 
 * `instance_no` - Instance number of nodepool.
+* `subnet_name_list` - The name list of the Subnet where you want to place the nodepool.
 * `status` - Nodepool status.
+
+## Import
+
+NKS Node Pools can be imported using the cluster_name and node_pool_name separated by a colon (:), e.g.,
+
+$ terraform import ncloud_nks_node_pool.my_node_pool my_cluster:my_node_pool

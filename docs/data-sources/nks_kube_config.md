@@ -5,12 +5,14 @@ Gets a kubeconfig from Kubernetes Service cluster.
 ## Example Usage
 
 ```hcl
-variable "cluster_id" {}
+variable "cluster_name" {}
 
-data "ncloud_nks_kube_config" "kc"{
-  id = var.cluster_id
+data "ncloud_nks_kube_config" "example"{
+  cluster_name = var.cluster_name
 }
 
+
+// Todo: 아래 k8s provider 사용 부분은 추가할지 논의 필요
 // Need Kubenetes Provider Below
 provider "kubernetes" {
   host                   = "${data.ncloud_nks_kube_config.kc.host}"
@@ -34,10 +36,11 @@ output "ns-present" {
 
 The following arguments are supported:
 
-* `id` - (Required) Cluster UUID.
+* `cluster_name` - (Required) Cluster Name. (It is the same result as `id`)
 
 ## Attributes Reference
 
+* `id` - Cluster Name.
 * `host` - Host on kubeconfig.
 * `client_certificate` - Client certificate on kubeconfig.
 * `client_key` - Client key on kubeconfig.

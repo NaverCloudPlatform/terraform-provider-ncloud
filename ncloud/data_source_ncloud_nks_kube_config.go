@@ -17,7 +17,7 @@ func dataSourceNcloudNKSKubeConfig() *schema.Resource {
 	return &schema.Resource{
 		ReadContext: dataSourceNcloudNKSKubeConfigRead,
 		Schema: map[string]*schema.Schema{
-			"cluster_id": {
+			"cluster_name": {
 				Type:     schema.TypeString,
 				Required: true,
 			},
@@ -46,9 +46,13 @@ func dataSourceNcloudNKSKubeConfigRead(ctx context.Context, d *schema.ResourceDa
 	if !config.SupportVPC {
 		return diag.FromErr(NotSupportClassic("dataSource `ncloud_nks_kube_config`"))
 	}
-	clusterId := d.Get("cluster_id").(string)
+	clusterName := d.Get("cluster_name").(string)
+	cluster, err := getNKSClusterWithName(ctx, config, clusterName)
+	if err != nil {
+		return diag.FromErr(err)
+	}
 
-	kubeConfig, err := getNKSKubeConfig(ctx, config, clusterId)
+	kubeConfig, err := getNKSKubeConfig(ctx, config, cluster.Uuid)
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -58,7 +62,7 @@ func dataSourceNcloudNKSKubeConfigRead(ctx context.Context, d *schema.ResourceDa
 		return nil
 	}
 
-	d.SetId(clusterId)
+	d.SetId(clusterName)
 
 	d.Set("host", kubeConfig.Clusters[0].Cluster.Server)
 	d.Set("client_certificate", kubeConfig.Users[0].User.ClientCertificateData)
@@ -68,8 +72,8 @@ func dataSourceNcloudNKSKubeConfigRead(ctx context.Context, d *schema.ResourceDa
 	return nil
 }
 
-func getNKSKubeConfig(ctx context.Context, config *ProviderConfig, uuid string) (kc *KubeConfig, err error) {
-	resp, err := config.Client.vnks.V2Api.ClustersUuidKubeconfigGet(ctx, &uuid)
+func getNKSKubeConfig(ctx context.Context, config *ProviderConfig, uuid *string) (kc *KubeConfig, err error) {
+	resp, err := config.Client.vnks.V2Api.ClustersUuidKubeconfigGet(ctx, uuid)
 	if err != nil {
 		return nil, err
 	}

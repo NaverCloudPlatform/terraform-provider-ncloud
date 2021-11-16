@@ -10,6 +10,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 	"github.com/terraform-providers/terraform-provider-ncloud/sdk/vnks"
 	"log"
+	"strings"
 	"time"
 )
 
@@ -42,7 +43,7 @@ func resourceNcloudNKSNodePool() *schema.Resource {
 			Delete: schema.DefaultTimeout(DefaultUpdateTimeout),
 		},
 		Schema: map[string]*schema.Schema{
-			"cluster_id": {
+			"cluster_name": {
 				Type:     schema.TypeString,
 				Required: true,
 			},
@@ -54,7 +55,7 @@ func resourceNcloudNKSNodePool() *schema.Resource {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
-			"name": {
+			"node_pool_name": {
 				Type:             schema.TypeString,
 				ForceNew:         true,
 				Required:         true,
@@ -68,6 +69,7 @@ func resourceNcloudNKSNodePool() *schema.Resource {
 				Type:     schema.TypeList,
 				Optional: true,
 				Computed: true,
+				MaxItems: 1,
 				Elem:     &schema.Schema{Type: schema.TypeString},
 			},
 			"subnet_name_list": {
@@ -85,8 +87,9 @@ func resourceNcloudNKSNodePool() *schema.Resource {
 			},
 			"autoscale": {
 				Type:     schema.TypeList,
-				Computed: true,
 				Optional: true,
+				Computed: true,
+				MaxItems: 1,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"enabled": {
@@ -114,27 +117,42 @@ func resourceNcloudNKSNodePoolCreate(ctx context.Context, d *schema.ResourceData
 		return diag.FromErr(NotSupportClassic("resource `ncloud_nks_node_pool`"))
 	}
 
-	clusterId := StringPtrOrNil(d.GetOk("cluster_id"))
+	clusterName := d.Get("cluster_name").(string)
+	nodePoolName := d.Get("node_pool_name").(string)
+	id := NodePoolCreateResourceID(clusterName, nodePoolName)
+	cluster, err := getNKSClusterWithName(ctx, config, clusterName)
+	if err != nil {
+		return diag.FromErr(err)
+	}
+
 	reqParams := &vnks.NodePoolCreationBody{
-		Name:        StringPtrOrNil(d.GetOk("name")),
+		Name:        ncloud.String(nodePoolName),
 		NodeCount:   Int32PtrOrNil(d.GetOk("node_count")),
-		SubnetNo:    nil,
 		ProductCode: StringPtrOrNil(d.GetOk("product_code")),
 	}
 
-	logCommonRequest("resourceNcloudNKSNodePoolCreate", reqParams)
-	err := config.Client.vnks.V2Api.ClustersUuidNodePoolPost(ctx, reqParams, clusterId)
+	if _, ok := d.GetOk("autoscale"); ok {
+		reqParams.AutoscalerUpdate = expandAutoScaleUpdate(d.Get("autoscale").([]interface{}))
+	}
 
+	// Todo: SubnetNo 로직 추가
+	//if _, ok := d.GetOk("subnet_no_list"); ok {
+	//	reqParams.SubnetNo = expandAutoScaleUpdate(d.Get("autoscale").([]interface{}))
+	//}
+
+	logCommonRequest("resourceNcloudNKSNodePoolCreate", reqParams)
+	err = config.Client.vnks.V2Api.ClustersUuidNodePoolPost(ctx, reqParams, cluster.Uuid)
 	if err != nil {
 		logErrorResponse("resourceNcloudNKSNodePoolCreate", err, reqParams)
 		return diag.FromErr(err)
 	}
 
 	logResponse("resourceNcloudNKSNodePoolCreate", reqParams)
-	if err := waitForNKSNodePoolActive(ctx, d, config, clusterId, reqParams.Name); err != nil {
+	if err := waitForNKSNodePoolActive(ctx, d, config, cluster.Uuid, reqParams.Name); err != nil {
 		return diag.FromErr(err)
 	}
-	d.SetId(ncloud.StringValue(reqParams.Name))
+
+	d.SetId(id)
 	return resourceNcloudNKSNodePoolRead(ctx, d, meta)
 }
 
@@ -144,9 +162,13 @@ func resourceNcloudNKSNodePoolRead(ctx context.Context, d *schema.ResourceData, 
 		return diag.FromErr(NotSupportClassic("resource `ncloud_nks_node_pool`"))
 	}
 
-	clusterId := StringPtrOrNil(d.GetOk("cluster_id"))
-	name := ncloud.String(d.Id())
-	nodePool, err := getNKSNodePool(ctx, config, clusterId, name)
+	clusterName, nodePoolName, err := NodePoolParseResourceID(d.Id())
+	cluster, err := getNKSClusterWithName(ctx, config, clusterName)
+	if err != nil {
+		return diag.FromErr(err)
+	}
+
+	nodePool, err := getNKSNodePool(ctx, config, cluster.Uuid, &nodePoolName)
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -156,12 +178,11 @@ func resourceNcloudNKSNodePoolRead(ctx context.Context, d *schema.ResourceData, 
 		return nil
 	}
 
-	d.SetId(ncloud.StringValue(nodePool.Name))
-
 	d.Set("instance_no", nodePool.InstanceNo)
-	d.Set("name", nodePool.Name)
+	d.Set("node_pool_name", nodePool.Name)
 	d.Set("status", nodePool.Status)
 	d.Set("product_code", nodePool.ProductCode)
+	d.Set("subnet_name_list", nodePool.SubnetNameList)
 
 	if err := d.Set("subnet_no_list", flattenSubnetNoList(nodePool.SubnetNoList)); err != nil {
 		log.Printf("[WARN] Error setting subet no list set for (%s): %s", d.Id(), err)
@@ -178,13 +199,17 @@ func resourceNcloudNKSNodePoolUpdate(ctx context.Context, d *schema.ResourceData
 		return diag.FromErr(NotSupportClassic("resource `ncloud_nks_node_pool`"))
 	}
 
-	clusterId := StringPtrOrNil(d.GetOk("cluster_id"))
-	name := ncloud.String(d.Id())
+	clusterName, nodePoolName, err := NodePoolParseResourceID(d.Id())
+	cluster, err := getNKSClusterWithName(ctx, config, clusterName)
+	if err != nil {
+		return diag.FromErr(err)
+	}
+
 	instanceNo := Int32PtrOrNil(d.GetOk("instance_no"))
 	strInstanceNo := ncloud.String(fmt.Sprintf("%d", *instanceNo))
 
 	if d.HasChanges("node_count", "autoscale") {
-		if err := waitForNKSNodePoolActive(ctx, d, config, clusterId, name); err != nil {
+		if err := waitForNKSNodePoolActive(ctx, d, config, cluster.Uuid, &nodePoolName); err != nil {
 			return diag.FromErr(err)
 		}
 		reqParams := &vnks.NodePoolUpdateBody{
@@ -195,14 +220,14 @@ func resourceNcloudNKSNodePoolUpdate(ctx context.Context, d *schema.ResourceData
 			reqParams.Autoscale = expandAutoScaleUpdate(d.Get("autoscale").([]interface{}))
 		}
 
-		err := config.Client.vnks.V2Api.ClustersUuidNodePoolInstanceNoPatch(ctx, reqParams, clusterId, strInstanceNo)
+		err := config.Client.vnks.V2Api.ClustersUuidNodePoolInstanceNoPatch(ctx, reqParams, cluster.Uuid, strInstanceNo)
 		if err != nil {
 			logErrorResponse("resourceNcloudNKSNodePoolUpdate", err, reqParams)
 			return diag.FromErr(err)
 		}
 
 		logResponse("resourceNcloudNKSNodePoolUpdate", reqParams)
-		if err := waitForNKSNodePoolActive(ctx, d, config, clusterId, name); err != nil {
+		if err := waitForNKSNodePoolActive(ctx, d, config, cluster.Uuid, &nodePoolName); err != nil {
 			return diag.FromErr(err)
 		}
 	}
@@ -215,17 +240,21 @@ func resourceNcloudNKSNodePoolDelete(ctx context.Context, d *schema.ResourceData
 		return diag.FromErr(NotSupportClassic("resource `ncloud_nks_node_pool`"))
 	}
 
-	clusterId := StringPtrOrNil(d.GetOk("cluster_id"))
-	name := ncloud.String(d.Id())
+	clusterName, nodePoolName, err := NodePoolParseResourceID(d.Id())
+	cluster, err := getNKSClusterWithName(ctx, config, clusterName)
+	if err != nil {
+		return diag.FromErr(err)
+	}
+
 	instanceNo := Int32PtrOrNil(d.GetOk("instance_no"))
 	strInstanceNo := ncloud.String(fmt.Sprintf("%d", *instanceNo))
 
-	if err := waitForNKSNodePoolActive(ctx, d, config, clusterId, name); err != nil {
+	if err := waitForNKSNodePoolActive(ctx, d, config, cluster.Uuid, &nodePoolName); err != nil {
 		return diag.FromErr(err)
 	}
 
 	logCommonRequest("resourceNcloudNKSNodePoolDelete", d.Id())
-	if err := config.Client.vnks.V2Api.ClustersUuidNodePoolInstanceNoDelete(ctx, clusterId, strInstanceNo); err != nil {
+	if err := config.Client.vnks.V2Api.ClustersUuidNodePoolInstanceNoDelete(ctx, cluster.Uuid, strInstanceNo); err != nil {
 		logErrorResponse("resourceNcloudNKSNodePoolDelete", err, strInstanceNo)
 		return diag.FromErr(err)
 	}
@@ -239,18 +268,25 @@ func resourceNcloudNKSNodePoolDelete(ctx context.Context, d *schema.ResourceData
 
 func waitForNKSNodePoolDeletion(ctx context.Context, d *schema.ResourceData, config *ProviderConfig) error {
 	stateConf := &resource.StateChangeConf{
-		Pending: []string{"NODE_SCALE_DOWN"},
+		Pending: []string{"NODE_SCALE_DOWN", "DELETING"},
 		Target:  []string{"NULL"},
 		Refresh: func() (result interface{}, state string, err error) {
-			clusterId := StringPtrOrNil(d.GetOk("cluster_id"))
-			name := ncloud.String(d.Id())
-			np, err := getNKSNodePool(ctx, config, clusterId, name)
+
+			clusterName, nodePoolName, err := NodePoolParseResourceID(d.Id())
+			cluster, err := getNKSClusterWithName(ctx, config, clusterName)
 			if err != nil {
 				return nil, "", err
 			}
-			if np == nil {
-				return name, "NULL", nil
+
+			np, err := getNKSNodePool(ctx, config, cluster.Uuid, &nodePoolName)
+			if err != nil {
+				return nil, "", err
 			}
+
+			if np == nil {
+				return nodePoolName, "NULL", nil
+			}
+
 			return np, ncloud.StringValue(np.Status), nil
 
 		},
@@ -259,7 +295,7 @@ func waitForNKSNodePoolDeletion(ctx context.Context, d *schema.ResourceData, con
 		Delay:      2 * time.Second,
 	}
 	if _, err := stateConf.WaitForStateContext(ctx); err != nil {
-		return fmt.Errorf("Error waiting for NKS Cluster (%s) to become terminating: %s", d.Id(), err)
+		return fmt.Errorf("Error waiting for NKS NodePool (%s) to become terminating: %s", d.Id(), err)
 	}
 	return nil
 }
@@ -341,4 +377,23 @@ func expandAutoScaleUpdate(as []interface{}) *vnks.AutoscalerUpdate {
 		Min:     ncloud.Int32(int32(autoScale["min"].(int))),
 		Max:     ncloud.Int32(int32(autoScale["max"].(int))),
 	}
+}
+
+const nodePoolResourceIDSeparator = ":"
+
+func NodePoolCreateResourceID(clusterName, nodeGroupName string) string {
+	parts := []string{clusterName, nodeGroupName}
+	id := strings.Join(parts, nodePoolResourceIDSeparator)
+
+	return id
+}
+
+func NodePoolParseResourceID(id string) (string, string, error) {
+	parts := strings.Split(id, nodePoolResourceIDSeparator)
+
+	if len(parts) == 2 && parts[0] != "" && parts[1] != "" {
+		return parts[0], parts[1], nil
+	}
+
+	return "", "", fmt.Errorf("unexpected format for ID (%[1]s), expected cluster-name%[2]snode-pool-name", id, nodePoolResourceIDSeparator)
 }

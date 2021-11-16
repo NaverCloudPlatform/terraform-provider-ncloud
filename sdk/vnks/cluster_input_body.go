@@ -41,7 +41,7 @@ type ClusterInputBody struct {
 	Log *ClusterLogInput `json:"log,omitempty"`
 
 	// 기본 노드풀
-	DefaultNodePool *DefaultNodePoolParam `json:"defaultNodePool"`
+	DefaultNodePool *DefaultNodePoolParam `json:"defaultNodePool,omitempty"`
 
 	// 추가 노드풀
 	NodePool []*NodePool `json:"nodePool,omitempty"`

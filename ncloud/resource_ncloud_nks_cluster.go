@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/ncloud"
-	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/services/vloadbalancer"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
@@ -33,7 +32,6 @@ func resourceNcloudNKSCluster() *schema.Resource {
 	return &schema.Resource{
 		CreateContext: resourceNcloudNKSClusterCreate,
 		ReadContext:   resourceNcloudNKSClusterRead,
-		//UpdateContext: resourceNcloudNKSClusterUpdate,
 		DeleteContext: resourceNcloudNKSClusterDelete,
 		Importer: &schema.ResourceImporter{
 			StateContext: schema.ImportStatePassthroughContext,
@@ -64,36 +62,12 @@ func resourceNcloudNKSCluster() *schema.Resource {
 				Required:         true,
 				ForceNew:         true,
 			},
-			"capacity": {
-				Type:     schema.TypeString,
-				Computed: true,
-			},
-			"node_count": {
-				Type:     schema.TypeInt,
-				Computed: true,
-			},
-			"node_max_count": {
-				Type:     schema.TypeInt,
-				Computed: true,
-			},
 			"created_at": {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
-			"updated_at": {
-				Type:     schema.TypeString,
-				Computed: true,
-			},
-			"cpu_count": {
-				Type:     schema.TypeInt,
-				Computed: true,
-			},
 			"endpoint": {
 				Type:     schema.TypeString,
-				Computed: true,
-			},
-			"memory_size": {
-				Type:     schema.TypeInt,
 				Computed: true,
 			},
 			"region_code": {
@@ -161,82 +135,6 @@ func resourceNcloudNKSCluster() *schema.Resource {
 					},
 				},
 			},
-			"init_script_no": {
-				Type:     schema.TypeString,
-				Optional: true,
-				Computed: true,
-			},
-			"init_script_name": {
-				Type:     schema.TypeString,
-				Computed: true,
-			},
-			"pod_security_policy_enabled": {
-				Type:     schema.TypeBool,
-				Optional: true,
-				Computed: true,
-			},
-			"node_pool": {
-				Type:     schema.TypeList,
-				Required: true,
-				//MinItems: 1,
-				ForceNew: true,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
-						"instance_no": {
-							Type:     schema.TypeInt,
-							Computed: true,
-						},
-						"is_default": {
-							Type:     schema.TypeBool,
-							Computed: true,
-							Optional: true,
-						},
-						"name": {
-							Type:             schema.TypeString,
-							ForceNew:         true,
-							Required:         true,
-							ValidateDiagFunc: ToDiagFunc(validation.StringLenBetween(3, 30)),
-						},
-						"node_count": {
-							Type:     schema.TypeInt,
-							Required: true,
-						},
-						"subnet_no_list": {
-							Type:     schema.TypeList,
-							Optional: true,
-							Elem:     &schema.Schema{Type: schema.TypeString},
-						},
-						"product_code": {
-							Type:     schema.TypeString,
-							Required: true,
-						},
-						"status": {
-							Type:     schema.TypeString,
-							Computed: true,
-						},
-						"autoscale": {
-							Type:     schema.TypeList,
-							Computed: true,
-							Elem: &schema.Resource{
-								Schema: map[string]*schema.Schema{
-									"enabled": {
-										Type:     schema.TypeBool,
-										Computed: true,
-									},
-									"max": {
-										Type:     schema.TypeInt,
-										Computed: true,
-									},
-									"min": {
-										Type:     schema.TypeInt,
-										Computed: true,
-									},
-								},
-							},
-						},
-					},
-				},
-			},
 		},
 	}
 }
@@ -287,58 +185,10 @@ func resourceNcloudNKSClusterCreate(ctx context.Context, d *schema.ResourceData,
 		VpcNo:        getInt32(d, "vpc_no"),
 		SubnetNoList: getInt32List(d, "subnet_no_list"),
 		SubnetLbNo:   getInt32(d, "subnet_lb_no"),
-		//DefaultNodePool: readDefaultNodePoolParam(d.Get("default_node_pool").(*schema.Set)),
-		//Optional
-		//Log: &vnks.ClusterLogInput{
-		//	Audit: BoolPtrOrNil(d.GetOk("log")),
-		//},
-		//NodePool: nil,
 	}
 
 	if _, ok := d.GetOk("log"); ok {
 		reqParams.Log = expandLogInput(d.Get("log").([]interface{}))
-	}
-
-	nodePoolList := d.Get("node_pool").([]interface{})
-	if len(nodePoolList) == 0 {
-		return diag.FromErr(fmt.Errorf("missing required argument: The argument node_pool is required"))
-	}
-
-	var defaultNpCount int32
-	for _, v := range nodePoolList {
-		np := v.(map[string]interface{})
-		if np["is_default"].(bool) {
-			nodePool := &vnks.DefaultNodePoolParam{
-				Name:        ncloud.String(np["name"].(string)),
-				NodeCount:   Int32PtrOrNil(np["node_count"], np["node_count"] != nil),
-				ProductCode: ncloud.String(np["product_code"].(string)),
-			}
-			if l, ok := np["subnet_no_list"]; ok {
-				li := l.(([]interface{}))
-				if len(li) > 0 {
-					nodePool.SubnetNo = stringListToInt32List(li)[0]
-				}
-			}
-			reqParams.DefaultNodePool = nodePool
-			defaultNpCount++
-		} else {
-			nodePool := &vnks.NodePool{
-				Name:        ncloud.String(np["name"].(string)),
-				NodeCount:   Int32PtrOrNil(np["node_count"], np["node_count"] != nil),
-				ProductCode: ncloud.String(np["product_code"].(string)),
-			}
-			if l, ok := np["subnet_no_list"]; ok {
-				li := l.(([]interface{}))
-				if len(li) > 0 {
-					nodePool.SubnetNo = stringListToInt32List(li)[0]
-				}
-			}
-			reqParams.NodePool = append(reqParams.NodePool, nodePool)
-		}
-	}
-
-	if defaultNpCount > 1 {
-		return diag.FromErr(fmt.Errorf("default node pool count is %d, expected 1", defaultNpCount))
 	}
 
 	logCommonRequest("resourceNcloudNKSClusterCreate", reqParams)
@@ -352,7 +202,7 @@ func resourceNcloudNKSClusterCreate(ctx context.Context, d *schema.ResourceData,
 	if err := waitForNKSClusterActive(ctx, d, config, ncloud.StringValue(resp.Uuid)); err != nil {
 		return diag.FromErr(err)
 	}
-	d.SetId(ncloud.StringValue(resp.Uuid))
+	d.SetId(ncloud.StringValue(reqParams.Name))
 	return resourceNcloudNKSClusterRead(ctx, d, meta)
 }
 
@@ -362,7 +212,7 @@ func resourceNcloudNKSClusterRead(ctx context.Context, d *schema.ResourceData, m
 		return diag.FromErr(NotSupportClassic("resource `ncloud_nks_cluster`"))
 	}
 
-	cluster, err := getNKSClusterCluster(ctx, config, d.Id())
+	cluster, err := getNKSClusterWithName(ctx, config, d.Id())
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -372,23 +222,18 @@ func resourceNcloudNKSClusterRead(ctx context.Context, d *schema.ResourceData, m
 		return nil
 	}
 
-	d.SetId(ncloud.StringValue(cluster.Uuid))
+	d.SetId(ncloud.StringValue(cluster.Name))
+	d.Set("uuid", cluster.Uuid)
 	d.Set("acg_name", cluster.AcgName)
 	d.Set("name", cluster.Name)
 	d.Set("cluster_type", cluster.ClusterType)
-	d.Set("capacity", cluster.Capacity)
-	d.Set("node_count", cluster.NodeCount)
-	d.Set("node_max_count", cluster.NodeMaxCount)
 	d.Set("created_at", cluster.CreatedAt)
-	d.Set("updated_at", cluster.UpdatedAt)
-	d.Set("cpu_count", cluster.CpuCount)
 	d.Set("endpoint", cluster.Endpoint)
-	d.Set("memory_size", cluster.MemorySize)
 	d.Set("region_code", cluster.RegionCode)
 	d.Set("status", cluster.Status)
 	d.Set("subnet_name", cluster.SubnetName)
 	d.Set("login_key_name", cluster.LoginKeyName)
-	d.Set("k8s_version", fmt.Sprintf("%s-nks.1", cluster.K8sVersion))
+	d.Set("k8s_version", cluster.K8sVersion)
 	d.Set("zone_no", fmt.Sprintf("%d", *cluster.ZoneNo))
 	d.Set("vpc_no", fmt.Sprintf("%d", *cluster.VpcNo))
 	d.Set("vpc_name", cluster.VpcName)
@@ -399,47 +244,7 @@ func resourceNcloudNKSClusterRead(ctx context.Context, d *schema.ResourceData, m
 		log.Printf("[WARN] Error setting subet no list set for (%s): %s", d.Id(), err)
 	}
 
-	if err := d.Set("node_pool", flattenNksNodePoolList(cluster.NodePool)); err != nil {
-		log.Printf("[WARN] Error setting node pool set for (%s): %s", d.Id(), err)
-	}
-
 	return nil
-}
-
-func resourceNcloudNKSClusterUpdate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
-	config := meta.(*ProviderConfig)
-	if !config.SupportVPC {
-		return diag.FromErr(NotSupportClassic("resource `ncloud_nks_cluster`"))
-	}
-	if d.HasChanges("idle_timeout", "throughput_type") {
-		if err := waitForLoadBalancerActive(ctx, d, config, d.Id()); err != nil {
-			return diag.FromErr(err)
-		}
-		_, err := config.Client.vloadbalancer.V2Api.ChangeLoadBalancerInstanceConfiguration(&vloadbalancer.ChangeLoadBalancerInstanceConfigurationRequest{
-			RegionCode:             &config.RegionCode,
-			LoadBalancerInstanceNo: ncloud.String(d.Id()),
-			IdleTimeout:            Int32PtrOrNil(d.GetOk("idle_timeout")),
-			ThroughputTypeCode:     StringPtrOrNil(d.GetOk("throughput_type")),
-		})
-		if err != nil {
-			return diag.FromErr(err)
-		}
-	}
-
-	if d.HasChanges("description") {
-		if err := waitForLoadBalancerActive(ctx, d, config, d.Id()); err != nil {
-			return diag.FromErr(err)
-		}
-		_, err := config.Client.vloadbalancer.V2Api.SetLoadBalancerDescription(&vloadbalancer.SetLoadBalancerDescriptionRequest{
-			RegionCode:              &config.RegionCode,
-			LoadBalancerInstanceNo:  ncloud.String(d.Id()),
-			LoadBalancerDescription: StringPtrOrNil(d.GetOk("description")),
-		})
-		if err != nil {
-			return diag.FromErr(err)
-		}
-	}
-	return resourceNcloudNKSClusterRead(ctx, d, config)
 }
 
 func resourceNcloudNKSClusterDelete(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
@@ -472,7 +277,7 @@ func waitForNKSClusterDeletion(ctx context.Context, d *schema.ResourceData, conf
 		Pending: []string{"DELETING"},
 		Target:  []string{"NULL"},
 		Refresh: func() (result interface{}, state string, err error) {
-			cluster, err := getNKSClusterCluster(ctx, config, d.Id())
+			cluster, err := getNKSCluster(ctx, config, d.Id())
 			if err != nil {
 				return nil, "", err
 			}
@@ -496,7 +301,7 @@ func waitForNKSClusterActive(ctx context.Context, d *schema.ResourceData, config
 		Pending: []string{"CREATING", "WORKING"},
 		Target:  []string{"RUNNING"},
 		Refresh: func() (result interface{}, state string, err error) {
-			cluster, err := getNKSClusterCluster(ctx, config, id)
+			cluster, err := getNKSCluster(ctx, config, id)
 			if err != nil {
 				return nil, "", err
 			}
@@ -516,9 +321,23 @@ func waitForNKSClusterActive(ctx context.Context, d *schema.ResourceData, config
 	return nil
 }
 
-func getNKSClusterCluster(ctx context.Context, config *ProviderConfig, uuid string) (*vnks.Cluster, error) {
+func getNKSClusterWithName(ctx context.Context, config *ProviderConfig, name string) (*vnks.Cluster, error) {
 
-	clusters, err := getNKSClusterClusters(ctx, config)
+	clusters, err := getNKSClusters(ctx, config)
+	if err != nil {
+		return nil, err
+	}
+	for _, cluster := range clusters {
+		if ncloud.StringValue(cluster.Name) == name {
+			return cluster, nil
+		}
+	}
+	return nil, nil
+}
+
+func getNKSCluster(ctx context.Context, config *ProviderConfig, uuid string) (*vnks.Cluster, error) {
+
+	clusters, err := getNKSClusters(ctx, config)
 	if err != nil {
 		return nil, err
 	}
@@ -530,38 +349,12 @@ func getNKSClusterCluster(ctx context.Context, config *ProviderConfig, uuid stri
 	return nil, nil
 }
 
-func getNKSClusterClusters(ctx context.Context, config *ProviderConfig) ([]*vnks.Cluster, error) {
+func getNKSClusters(ctx context.Context, config *ProviderConfig) ([]*vnks.Cluster, error) {
 	resp, err := config.Client.vnks.V2Api.ClustersGet(ctx)
 	if err != nil {
 		return nil, err
 	}
 	return resp.Clusters, nil
-}
-
-func flattenNksNodePoolList(nodePoolList []*vnks.NodePoolRes) (npList []map[string]interface{}) {
-	if nodePoolList == nil {
-		return []map[string]interface{}{}
-	}
-	for _, r := range nodePoolList {
-		m := map[string]interface{}{
-			"is_default":     ncloud.BoolValue(r.IsDefault),
-			"instance_no":    ncloud.Int32Value(r.InstanceNo),
-			"name":           ncloud.StringValue(r.Name),
-			"status":         ncloud.StringValue(r.Status),
-			"product_code":   ncloud.StringValue(r.ProductCode),
-			"subnet_no_list": ncloud.StringListValue(flattenSubnetNoList(r.SubnetNoList)),
-			"autoscale": []map[string]interface{}{
-				{
-					"enabled": ncloud.BoolValue(r.Autoscale.Enabled),
-					"min":     ncloud.Int32Value(r.Autoscale.Min),
-					"max":     ncloud.Int32Value(r.Autoscale.Max),
-				},
-			},
-		}
-
-		npList = append(npList, m)
-	}
-	return
 }
 
 func expandLogInput(logList []interface{}) *vnks.ClusterLogInput {

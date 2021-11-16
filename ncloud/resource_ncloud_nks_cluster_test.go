@@ -278,7 +278,7 @@ func testAccCheckNKSClusterExists(n string, cluster *vnks.Cluster) resource.Test
 		}
 
 		config := testAccProvider.Meta().(*ProviderConfig)
-		resp, err := getNKSClusterCluster(context.Background(), config, rs.Primary.ID)
+		resp, err := getNKSCluster(context.Background(), config, rs.Primary.ID)
 		if err != nil {
 			return err
 		}
@@ -297,7 +297,7 @@ func testAccCheckNKSClusterDestroy(s *terraform.State) error {
 			continue
 		}
 
-		cluster, err := getNKSClusterCluster(context.Background(), config, rs.Primary.ID)
+		cluster, err := getNKSCluster(context.Background(), config, rs.Primary.ID)
 
 		if err != nil {
 			return err
