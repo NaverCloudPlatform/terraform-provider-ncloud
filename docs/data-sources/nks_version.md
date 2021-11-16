@@ -1,6 +1,6 @@
 # Data Source: ncloud_nks_version
 
-Gets a list of available nks versions.
+Gets a list of available Kubernetes Service versions.
 
 ## Example Usage
 
@@ -19,6 +19,6 @@ The following arguments are supported:
 
 ## Attributes Reference
 
-* `versions` - A List of NKS Verions
-    * `label` - NKS Version label
-    * `value` - NKS Version value
+* `versions` - A list of verions
+  * `label` - Version label
+  * `value` - Version value

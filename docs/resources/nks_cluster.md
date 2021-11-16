@@ -1,13 +1,12 @@
 # Resource: ncloud_nks_cluster
 
-Provides a NKS Cluster resource.
+Provides a Kubernetes Service cluster resource.
 
 ## Example Usage
 
 ### Basic Usage
 
 ```hcl
-
 resource "ncloud_vpc" "vpc" {
   name            = "vpc"
   ipv4_cidr_block = "10.0.0.0/16"
@@ -16,21 +15,21 @@ resource "ncloud_vpc" "vpc" {
 resource "ncloud_subnet" "subnet" {
   vpc_no         = ncloud_vpc.vpc.id
   subnet         = "10.0.1.0/24"
-  zone           = "KR-2"
+  zone           = "KR-1"
   network_acl_no = ncloud_vpc.vpc.default_network_acl_no
   subnet_type    = "PRIVATE"
   name           = "subnet-01"
-  usage_type     = "GEN" 
+  usage_type     = "GEN"
 }
 
 resource "ncloud_subnet" "subnet_lb" {
   vpc_no         = ncloud_vpc.vpc.id
   subnet         = "10.0.100.0/24"
-  zone           = "KR-2"
+  zone           = "KR-1"
   network_acl_no = ncloud_vpc.vpc.default_network_acl_no
   subnet_type    = "PUBLIC"
   name           = "subnet-lb"
-  usage_type     = "LOADB"   
+  usage_type     = "LOADB"
 }
 
 
@@ -61,17 +60,17 @@ resource "ncloud_nks_cluster" "cluster" {
 The following arguments are supported:
 
 * `name` - (Required) The name to create.
-* `cluster_type` - (Required) Cluster type. 
+* `cluster_type` - (Required) Cluster type.
   * 10 nodes : `SVR.VNKS.STAND.C002.M008.NET.SSD.B050.G002`
   * 50 nodes : `SVR.VNKS.STAND.C004.M016.NET.SSD.B050.G002`
 * `login_key_name` - (Required) Key name to configure worker nodes.
-* `zone_no` - (Required) Available zone nubmer where the cluster will be placed physically.
+* `zone_no` - (Required) Available zone number where the cluster will be placed physically.
 * `vpc_no` - (Required) The ID of the VPC where you want to place the cluster.
 * `subnet_no_list` - (Required) The ID list of the Subnet where you want to place the cluster.
 * `subnet_lb` - (Required) The ID the Subnet where you want to place the Loadbalancer.
 * `log` - (Optional) Use Log.
-    * `audit` - (Required) `Boolean`.
-* `k8s_version` - (Optional) NKS Version to create.
+  * `audit` - (Required) `Boolean`.
+* `k8s_version` - (Optional) Kubenretes version to create.
 
 ## Attributes Reference
 
@@ -85,13 +84,12 @@ In addition to all arguments above, the following attributes are exported:
 * `endpoint` - Cluster endpoint.
 * `memory_size` - Worker node memory size
 * `node_count` - Total number of worker nodes in the cluster.
-* `node_max_count` - ??
+* `node_max_count` - Maximum number of cluster nodes
 * `region_code` - Resion code.
 * `status` - Cluster status.
 * `subnet_lb_name` - Name of Lb Subnet.
 * `subnet_name` - Name of Subnet.
 * `updated_at` - Cluster updated time.
-* `uuid` - The ID of the Cluster. (It is the same result as `id`)
+* `uuid` - The ID of the cluster. (It is the same result as `id`)
 * `vpc_name` - The name of VPC.
-
-
+* `log` - Audit log.

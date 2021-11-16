@@ -1,13 +1,12 @@
-# Resource: ncloud_nks_cluster
+# Resource: ncloud_nks_node_pool
 
-Provides a NKS Cluster resource.
+Provides a Kubernetes Service nodepool resource.
 
 ## Example Usage
 
 ### Basic Usage
 
 ```hcl
-
 resource "ncloud_vpc" "vpc" {
   name            = "vpc"
   ipv4_cidr_block = "10.0.0.0/16"
@@ -16,21 +15,21 @@ resource "ncloud_vpc" "vpc" {
 resource "ncloud_subnet" "subnet" {
   vpc_no         = ncloud_vpc.vpc.id
   subnet         = "10.0.1.0/24"
-  zone           = "KR-2"
+  zone           = "KR-1"
   network_acl_no = ncloud_vpc.vpc.default_network_acl_no
   subnet_type    = "PRIVATE"
   name           = "subnet-01"
-  usage_type     = "GEN" 
+  usage_type     = "GEN"
 }
 
 resource "ncloud_subnet" "subnet_lb" {
   vpc_no         = ncloud_vpc.vpc.id
   subnet         = "10.0.100.0/24"
-  zone           = "KR-2"
+  zone           = "KR-1"
   network_acl_no = ncloud_vpc.vpc.default_network_acl_no
   subnet_type    = "PUBLIC"
   name           = "subnet-lb"
-  usage_type     = "LOADB"   
+  usage_type     = "LOADB"
 }
 
 
@@ -74,7 +73,7 @@ resource "ncloud_nks_node_pool" "np" {
   node_count = 1
   product_code = "SVR.VSVR.STAND.C002.M008.NET.SSD.B050.G002"
   subnet_no_list = [ ncloud_subnet.subnet.id ]
-  
+
 }
 ```
 
@@ -83,17 +82,17 @@ resource "ncloud_nks_node_pool" "np" {
 The following arguments are supported:
 
 * `is_Default` - (Optional) `Boolean` Default node YN. Only one default nodepool is allowed.
-* `name` - (Required) The name of node pool.
+* `name` - (Required) The name of nodepool.
 * `node_count` - (Required) Number of worker nodes in nodepool.
 * `product_code` - (Required) Product code of worker nodes in node pool
 
 ## Attributes Reference
 
 In addition to all arguments above, the following attributes are exported:
-* `autoscale`- Autoscale Config.
+
+* `autoscale`- Autoscale config.
   * `enable` - Autoscale enable YN.
   * `max` - Max node count.
   * `min` - Min node count.
-* `instance_no` - Instance number of node pool.
-* `status` - Node pool status.
-
+* `instance_no` - Instance number of nodepool.
+* `status` - Nodepool status.

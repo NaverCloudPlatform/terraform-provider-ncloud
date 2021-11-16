@@ -1,6 +1,6 @@
 # Data Source: ncloud_nks_version
 
-Gets a KubeConfig from nks cluster.
+Gets a kubeconfig from Kubernetes Service cluster.
 
 ## Example Usage
 
@@ -34,11 +34,11 @@ output "ns-present" {
 
 The following arguments are supported:
 
-* `id` - (Required) NKS Cluster UUID.
+* `id` - (Required) Cluster UUID.
 
 ## Attributes Reference
 
-* `host` -Host on KubeConfig.
-* `client_certificate` - ClientCertificate on KubeConfig.
-* `client_key` - ClientKey on KubeConfig.
-* `cluster_ca_certificate` - Cluster CA Certificate on KubeConfig.
+* `host` - Host on kubeconfig.
+* `client_certificate` - Client certificate on kubeconfig.
+* `client_key` - Client key on kubeconfig.
+* `cluster_ca_certificate` - Cluster CA certificate on kubeconfig.
