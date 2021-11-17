@@ -15,7 +15,7 @@ func TestAccDataSourceNcloudServerProducts_classic_basic(t *testing.T) {
 
 		Steps: []resource.TestStep{
 			{
-				Config: testAccDataSourceNcloudServerProductsConfig("SPSW0LINUX000032"),
+				Config: testAccDataSourceNcloudServerProductsConfig("SPSW0LINUX000045"),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckDataSourceID("data.ncloud_server_products.all"),
 				),
