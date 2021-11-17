@@ -321,7 +321,7 @@ func addNetworkACLRule(d *schema.ResourceData, config *ProviderConfig, ruleType 
 
 		if err != nil {
 			errBody, _ := GetCommonErrorBody(err)
-			if errBody.ReturnCode == ApiErrorNetworkAclCantAccessaApropriate {
+			if containsInStringList(errBody.ReturnCode, []string{ApiErrorNetworkAclCantAccessaApropriate, ApiErrorNetworkAclRuleChangeIngRules}) {
 				logErrorResponse("retry AddNetworkAclRule", err, reqParams)
 				time.Sleep(time.Second * 5)
 				return resource.RetryableError(err)

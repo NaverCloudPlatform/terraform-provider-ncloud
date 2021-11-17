@@ -24,6 +24,7 @@ const (
 
 	ApiErrorAcgCantChangeSameTime           = "1007009"
 	ApiErrorNetworkAclCantAccessaApropriate = "1011002"
+	ApiErrorNetworkAclRuleChangeIngRules    = "1012005"
 
 	ApiErrorASGIsUsingPolicyOrLaunchConfiguration      = "50150" // This is returned when you cannot delete a launch configuration, scaling policy, or auto scaling group because it is being used.
 	ApiErrorASGScalingIsActive                         = "50160" // You cannot request actions while there are scaling activities in progress for that group.
