@@ -43,7 +43,6 @@ func TestAccResourceNcloudServer_classic_basic(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "server_product_code", productCode),
 					resource.TestCheckResourceAttr(resourceName, "name", testServerName),
 					resource.TestCheckResourceAttr(resourceName, "description", ""),
-					resource.TestCheckResourceAttr(resourceName, "internet_line_type", "PUBLC"),
 					resource.TestMatchResourceAttr(resourceName, "zone", regexp.MustCompile(`^\w+.*$`)),
 					resource.TestCheckResourceAttr(resourceName, "base_block_storage_disk_type", "NET"),
 					resource.TestCheckResourceAttr(resourceName, "base_block_storage_size", "53687091200"),

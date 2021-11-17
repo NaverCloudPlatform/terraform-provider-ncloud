@@ -30,7 +30,6 @@ func TestAccDataSourceNcloudPublicIp_classic_basic(t *testing.T) {
 
 					// Classic only
 					resource.TestCheckResourceAttrPair(dataName, "zone", resourceName, "zone"),
-					resource.TestCheckResourceAttrPair(dataName, "internet_line_type", resourceName, "internet_line_type"),
 					resource.TestCheckResourceAttrPair(dataName, "kind_type", resourceName, "kind_type"),
 				),
 			},

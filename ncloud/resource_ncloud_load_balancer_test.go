@@ -159,7 +159,6 @@ func testAccLoadBalancerConfig(lbName string) string {
     		l7_health_check_path = "/monitor/l7check"
   		}
 
-			internet_line_type = "PUBLC"
 			network_usage_type = "PBLIP"
 			region             = "KR"
 		}
@@ -180,7 +179,6 @@ func testAccLoadBalancerChangedConfig(lbName string) string {
     		l7_health_check_path = "/monitor/l7check"
   		}
 
-			internet_line_type = "PUBLC"
 			network_usage_type = "PBLIP"
 			region             = "KR"
 		}
