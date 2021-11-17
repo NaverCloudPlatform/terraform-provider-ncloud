@@ -7,7 +7,7 @@ Gets a kubeconfig from Kubernetes Service cluster.
 ```hcl
 variable "cluster_name" {}
 
-data "ncloud_nks_kube_config" "example"{
+data "ncloud_nks_kube_config" "kube_config"{
   cluster_name = var.cluster_name
 }
 
@@ -15,10 +15,10 @@ data "ncloud_nks_kube_config" "example"{
 // Todo: 아래 k8s provider 사용 부분은 추가할지 논의 필요
 // Need Kubenetes Provider Below
 provider "kubernetes" {
-  host                   = "${data.ncloud_nks_kube_config.kc.host}"
-  client_certificate     = "${base64decode(data.ncloud_nks_kube_config.kc.client_certificate)}"
-  client_key             = "${base64decode(data.ncloud_nks_kube_config.kc.client_key)}"
-  cluster_ca_certificate = "${base64decode(data.ncloud_nks_kube_config.kc.cluster_ca_certificate)}"
+  host                   = "${data.ncloud_nks_kube_config.kube_config.host}"
+  client_certificate     = "${base64decode(data.ncloud_nks_kube_config.kube_config.client_certificate)}"
+  client_key             = "${base64decode(data.ncloud_nks_kube_config.kube_config.client_key)}"
+  cluster_ca_certificate = "${base64decode(data.ncloud_nks_kube_config.kube_config.cluster_ca_certificate)}"
 }
 
 data "kubernetes_all_namespaces" "allns" {}

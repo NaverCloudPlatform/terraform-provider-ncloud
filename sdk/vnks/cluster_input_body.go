@@ -26,7 +26,10 @@ type ClusterInputBody struct {
 	RegionCode *string `json:"regionCode"`
 
 	// Zone 번호
-	ZoneNo *int32 `json:"zoneNo"`
+	ZoneNo *int32 `json:"zoneNo,omitempty"`
+
+	// Zone
+	ZoneCode *string `json:"zoneCode,omitempty"`
 
 	// vpc의 No
 	VpcNo *int32 `json:"vpcNo"`

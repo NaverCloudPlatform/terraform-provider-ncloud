@@ -194,10 +194,18 @@ resource "ncloud_subnet" "subnet_lb" {
 	usage_type         = "LOADB"
 }
 
+data "ncloud_nks_version" "version" {
+  filter {
+    name = "value"
+    values = ["%[3]s"]
+    regex = true
+  }
+}
+
 resource "ncloud_nks_cluster" "test" {
   name                        = "%[1]s"
   cluster_type                = "%[2]s"
-  k8s_version                 = "%[3]s"
+  k8s_version                 = data.ncloud_nks_version.version.versions.0.value
   login_key_name              = ncloud_login_key.loginkey.key_name
   subnet_lb_no                = ncloud_subnet.subnet_lb.id
   subnet_no_list              = [
@@ -205,18 +213,7 @@ resource "ncloud_nks_cluster" "test" {
     ncloud_subnet.subnet2.id,
   ]
   vpc_no                      = ncloud_vpc.vpc.vpc_no
-  zone_no                     = "2"
-
-  node_pool {
-    is_default     = true
-    name           = "%[1]s"
-    node_count     = 1
-    product_code   = "SVR.VSVR.STAND.C002.M008.NET.SSD.B050.G002"
-    subnet_no_list              = [
-    ncloud_subnet.subnet1.id,
-    ncloud_subnet.subnet2.id,
-    ]
-  }
+  zone                        = "KR-1"
 }
 `, name, clusterType, k8sVersion, productCode)
 }
@@ -274,11 +271,11 @@ func testAccCheckNKSClusterExists(n string, cluster *vnks.Cluster) resource.Test
 		}
 
 		if rs.Primary.ID == "" {
-			return fmt.Errorf("No cluster uuid is set")
+			return fmt.Errorf("No cluster name is set")
 		}
 
 		config := testAccProvider.Meta().(*ProviderConfig)
-		resp, err := getNKSCluster(context.Background(), config, rs.Primary.ID)
+		resp, err := getNKSClusterWithName(context.Background(), config, rs.Primary.ID)
 		if err != nil {
 			return err
 		}
@@ -297,7 +294,7 @@ func testAccCheckNKSClusterDestroy(s *terraform.State) error {
 			continue
 		}
 
-		cluster, err := getNKSCluster(context.Background(), config, rs.Primary.ID)
+		cluster, err := getNKSClusterWithName(context.Background(), config, rs.Primary.ID)
 
 		if err != nil {
 			return err
@@ -325,4 +322,10 @@ func testAccCheckNKSClusterDisappears(cluster *vnks.Cluster) resource.TestCheckF
 
 		return err
 	}
+}
+
+func getTestClusterName() string {
+	rInt := acctest.RandIntRange(1, 9999)
+	testClusterName := fmt.Sprintf("tf-%d-cluster", rInt)
+	return testClusterName
 }

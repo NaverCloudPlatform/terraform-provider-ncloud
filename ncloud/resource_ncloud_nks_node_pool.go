@@ -381,8 +381,8 @@ func expandAutoScaleUpdate(as []interface{}) *vnks.AutoscalerUpdate {
 
 const nodePoolResourceIDSeparator = ":"
 
-func NodePoolCreateResourceID(clusterName, nodeGroupName string) string {
-	parts := []string{clusterName, nodeGroupName}
+func NodePoolCreateResourceID(clusterName, nodePoolName string) string {
+	parts := []string{clusterName, nodePoolName}
 	id := strings.Join(parts, nodePoolResourceIDSeparator)
 
 	return id

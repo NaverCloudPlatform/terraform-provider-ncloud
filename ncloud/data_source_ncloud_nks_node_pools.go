@@ -2,6 +2,7 @@ package ncloud
 
 import (
 	"context"
+	"fmt"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
@@ -36,10 +37,12 @@ func dataSourceNcloudNKSNodePoolsRead(ctx context.Context, d *schema.ResourceDat
 	}
 
 	clusterName := d.Get("cluster_name").(string)
-
 	cluster, err := getNKSClusterWithName(ctx, config, clusterName)
 	if err != nil {
 		return diag.FromErr(err)
+	}
+	if cluster == nil {
+		return diag.FromErr(fmt.Errorf("cluster \"%s\"  not found ", clusterName))
 	}
 
 	nodePools, err := getNKSNodePools(ctx, config, cluster.Uuid)

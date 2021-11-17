@@ -76,6 +76,9 @@ type Cluster struct {
 	// zone 번호
 	ZoneNo *int32 `json:"zoneNo"`
 
+	// zone
+	ZoneCode *string `json:"zoneCode"`
+
 	// 로그인 키 이름
 	LoginKeyName *string `json:"loginKeyName"`
 

@@ -2,6 +2,7 @@ package ncloud
 
 import (
 	"context"
+	"fmt"
 	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/ncloud"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
@@ -92,6 +93,9 @@ func dataSourceNcloudNKSNodePoolRead(ctx context.Context, d *schema.ResourceData
 	if err != nil {
 		return diag.FromErr(err)
 	}
+	if cluster == nil {
+		return diag.FromErr(fmt.Errorf("cluster \"%s\"  not found ", clusterName))
+	}
 
 	nodePool, err := getNKSNodePool(ctx, config, cluster.Uuid, &nodePoolName)
 	if err != nil {
@@ -106,7 +110,7 @@ func dataSourceNcloudNKSNodePoolRead(ctx context.Context, d *schema.ResourceData
 	d.SetId(ncloud.StringValue(&id))
 
 	d.Set("instance_no", nodePool.InstanceNo)
-	d.Set("name", nodePool.Name)
+	d.Set("node_pool_name", nodePool.Name)
 	d.Set("status", nodePool.Status)
 	d.Set("product_code", nodePool.ProductCode)
 

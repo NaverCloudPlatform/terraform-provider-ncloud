@@ -7,12 +7,12 @@ Retrieve the NKS Node Pools associated with a named NKS cluster. This will allow
 ```hcl
 var cluster_name {}
 
-data "ncloud_nks_node_pools" "example"{
+data "ncloud_nks_node_pools" "node_pools"{
   cluster_name = var.cluster_name
 }
 
 data "ncloud_nks_node_pool" "example"{
-  for_each = data.ncloud_nks_node_pools.example.node_pool_names
+  for_each = data.ncloud_nks_node_pools.node_pools.node_pool_names
 
   cluster_name    = var.cluster_name
   node_pool_name = each.value

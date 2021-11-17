@@ -5,10 +5,10 @@ Retrieve NKS Clusters list
 ## Example Usage
 
 ```hcl
-data "ncloud_nks_clusters" "example"{
+data "ncloud_nks_clusters" "clusters"{
 }
 
-data "ncloud_nks_cluster" "example"{
+data "ncloud_nks_cluster" "cluster"{
   for_each = toset(data.ncloud_nks_clusters.example.cluster_names)
   name     = each.value
 }

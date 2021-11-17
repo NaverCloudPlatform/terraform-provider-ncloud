@@ -87,3 +87,8 @@ In addition to all arguments above, the following attributes are exported:
 * `subnet_name` - Name of Subnet.
 * `vpc_name` - The name of VPC.
 
+## Import
+
+Kubernetes Service Cluster can be imported using the name, e.g.,
+
+$ terraform import ncloud_nks_cluster.my_cluster my_cluster

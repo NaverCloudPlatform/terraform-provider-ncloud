@@ -92,7 +92,7 @@ func resourceNcloudNKSCluster() *schema.Resource {
 				Required: true,
 				ForceNew: true,
 			},
-			"zone_no": {
+			"zone": {
 				Type:     schema.TypeString,
 				Required: true,
 				ForceNew: true,
@@ -180,8 +180,7 @@ func resourceNcloudNKSClusterCreate(ctx context.Context, d *schema.ResourceData,
 		ClusterType:  StringPtrOrNil(d.GetOk("cluster_type")),
 		LoginKeyName: StringPtrOrNil(d.GetOk("login_key_name")),
 		K8sVersion:   StringPtrOrNil(d.GetOk("k8s_version")),
-
-		ZoneNo:       getInt32(d, "zone_no"),
+		ZoneCode:     StringPtrOrNil(d.GetOk("zone")),
 		VpcNo:        getInt32(d, "vpc_no"),
 		SubnetNoList: getInt32List(d, "subnet_no_list"),
 		SubnetLbNo:   getInt32(d, "subnet_lb_no"),
@@ -199,7 +198,7 @@ func resourceNcloudNKSClusterCreate(ctx context.Context, d *schema.ResourceData,
 	}
 
 	logResponse("resourceNcloudNKSClusterCreate", resp)
-	if err := waitForNKSClusterActive(ctx, d, config, ncloud.StringValue(resp.Uuid)); err != nil {
+	if err := waitForNKSClusterActive(ctx, d, config, ncloud.StringValue(reqParams.Name)); err != nil {
 		return diag.FromErr(err)
 	}
 	d.SetId(ncloud.StringValue(reqParams.Name))
@@ -234,7 +233,7 @@ func resourceNcloudNKSClusterRead(ctx context.Context, d *schema.ResourceData, m
 	d.Set("subnet_name", cluster.SubnetName)
 	d.Set("login_key_name", cluster.LoginKeyName)
 	d.Set("k8s_version", cluster.K8sVersion)
-	d.Set("zone_no", fmt.Sprintf("%d", *cluster.ZoneNo))
+	d.Set("zone", cluster.ZoneCode)
 	d.Set("vpc_no", fmt.Sprintf("%d", *cluster.VpcNo))
 	d.Set("vpc_name", cluster.VpcName)
 	d.Set("subnet_lb_no", fmt.Sprintf("%d", *cluster.SubnetLbNo))
@@ -253,14 +252,14 @@ func resourceNcloudNKSClusterDelete(ctx context.Context, d *schema.ResourceData,
 		return diag.FromErr(NotSupportClassic("resource `ncloud_nks_cluster`"))
 	}
 
-	uuid := ncloud.String(d.Id())
+	uuid := d.Get("uuid").(string)
 
 	if err := waitForNKSClusterActive(ctx, d, config, d.Id()); err != nil {
 		return diag.FromErr(err)
 	}
 
 	logCommonRequest("resourceNcloudNKSClusterDelete", d.Id())
-	if err := config.Client.vnks.V2Api.ClustersUuidDelete(ctx, uuid); err != nil {
+	if err := config.Client.vnks.V2Api.ClustersUuidDelete(ctx, &uuid); err != nil {
 		logErrorResponse("resourceNcloudNKSClusterDelete", err, uuid)
 		return diag.FromErr(err)
 	}
@@ -277,7 +276,7 @@ func waitForNKSClusterDeletion(ctx context.Context, d *schema.ResourceData, conf
 		Pending: []string{"DELETING"},
 		Target:  []string{"NULL"},
 		Refresh: func() (result interface{}, state string, err error) {
-			cluster, err := getNKSCluster(ctx, config, d.Id())
+			cluster, err := getNKSClusterWithName(ctx, config, d.Id())
 			if err != nil {
 				return nil, "", err
 			}
@@ -296,17 +295,17 @@ func waitForNKSClusterDeletion(ctx context.Context, d *schema.ResourceData, conf
 	return nil
 }
 
-func waitForNKSClusterActive(ctx context.Context, d *schema.ResourceData, config *ProviderConfig, id string) error {
+func waitForNKSClusterActive(ctx context.Context, d *schema.ResourceData, config *ProviderConfig, name string) error {
 	stateConf := &resource.StateChangeConf{
 		Pending: []string{"CREATING", "WORKING"},
 		Target:  []string{"RUNNING"},
 		Refresh: func() (result interface{}, state string, err error) {
-			cluster, err := getNKSCluster(ctx, config, id)
+			cluster, err := getNKSClusterWithName(ctx, config, name)
 			if err != nil {
 				return nil, "", err
 			}
 			if cluster == nil {
-				return id, "NULL", nil
+				return name, "NULL", nil
 			}
 			return cluster, ncloud.StringValue(cluster.Status), nil
 
@@ -316,7 +315,7 @@ func waitForNKSClusterActive(ctx context.Context, d *schema.ResourceData, config
 		Delay:      2 * time.Second,
 	}
 	if _, err := stateConf.WaitForStateContext(ctx); err != nil {
-		return fmt.Errorf("error waiting for NKS Cluster (%s) to become activating: %s", id, err)
+		return fmt.Errorf("error waiting for NKS Cluster (%s) to become activating: %s", name, err)
 	}
 	return nil
 }
