@@ -22,11 +22,13 @@ func dataSourceNcloudPublicIp() *schema.Resource {
 				Optional: true,
 				Computed: true,
 			},
+			// Deprecated
 			"internet_line_type": {
 				Type:             schema.TypeString,
 				Computed:         true,
 				Optional:         true,
 				ValidateDiagFunc: ToDiagFunc(validation.StringInSlice([]string{"PUBLC", "GLBL"}, false)),
+				Deprecated:       "This parameter is no longer used.",
 			},
 			"is_associated": {
 				Type:     schema.TypeBool,
@@ -143,9 +145,8 @@ func getClassicPublicIpList(d *schema.ResourceData, config *ProviderConfig) ([]m
 	regionNo := config.RegionNo
 
 	reqParams := &server.GetPublicIpInstanceListRequest{
-		RegionNo:             &regionNo,
-		ZoneNo:               StringPtrOrNil(d.GetOk("zone")),
-		InternetLineTypeCode: StringPtrOrNil(d.GetOk("internet_line_type")),
+		RegionNo: &regionNo,
+		ZoneNo:   StringPtrOrNil(d.GetOk("zone")),
 	}
 
 	if isAssociated, ok := d.GetOk("is_associated"); ok {
@@ -175,10 +176,6 @@ func getClassicPublicIpList(d *schema.ResourceData, config *ProviderConfig) ([]m
 			"description":        *r.PublicIpDescription,
 			"server_instance_no": nil,
 			"server_name":        nil,
-		}
-
-		if m := flattenCommonCode(r.InternetLineType); m["code"] != nil {
-			instance["internet_line_type"] = m["code"]
 		}
 
 		if m := flattenCommonCode(r.PublicIpInstanceStatus); m["code"] != nil {

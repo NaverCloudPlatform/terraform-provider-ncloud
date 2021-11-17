@@ -46,12 +46,14 @@ func resourceNcloudPublicIpInstance() *schema.Resource {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
+			// Deprecated
 			"internet_line_type": {
 				Type:             schema.TypeString,
 				Optional:         true,
 				Computed:         true,
 				ForceNew:         true,
 				ValidateDiagFunc: ToDiagFunc(validation.StringInSlice([]string{"PUBLC", "GLBL"}, false)),
+				Deprecated:       "This parameter is no longer used.",
 			},
 			"zone": {
 				Type:     schema.TypeString,
@@ -179,11 +181,10 @@ func createClassicPublicIp(d *schema.ResourceData, config *ProviderConfig) (*str
 	}
 
 	reqParams := &server.CreatePublicIpInstanceRequest{
-		RegionNo:             &config.RegionNo,
-		ZoneNo:               zoneNo,
-		InternetLineTypeCode: StringPtrOrNil(d.GetOk("internet_line_type")),
-		ServerInstanceNo:     StringPtrOrNil(d.GetOk("server_instance_no")),
-		PublicIpDescription:  StringPtrOrNil(d.GetOk("description")),
+		RegionNo:            &config.RegionNo,
+		ZoneNo:              zoneNo,
+		ServerInstanceNo:    StringPtrOrNil(d.GetOk("server_instance_no")),
+		PublicIpDescription: StringPtrOrNil(d.GetOk("description")),
 	}
 
 	logCommonRequest("createClassicPublicIp", reqParams)
@@ -315,10 +316,6 @@ func getClassicPublicIp(config *ProviderConfig, id string) (map[string]interface
 		"zone":               *r.Zone.ZoneCode,
 		"instance_no":        *r.PublicIpInstanceNo, // Deprecated
 		"server_instance_no": nil,
-	}
-
-	if m := flattenCommonCode(r.InternetLineType); m["code"] != nil {
-		instance["internet_line_type"] = m["code"]
 	}
 
 	if m := flattenCommonCode(r.PublicIpInstanceStatus); m["code"] != nil {
@@ -565,10 +562,6 @@ func resourceNcloudPublicIpCustomizeDiff(_ context.Context, diff *schema.Resourc
 		if v, ok := diff.GetOk("zone"); ok {
 			diff.Clear("zone")
 			return fmt.Errorf("You don't use 'zone' if SupportVPC is true. Please remove this value [%s]", v)
-		}
-
-		if v, ok := diff.GetOk("internet_line_type"); ok {
-			return fmt.Errorf("You don't use 'internet_line_type' if SupportVPC is true. Please remove this value [%s]", v)
 		}
 	}
 	return nil

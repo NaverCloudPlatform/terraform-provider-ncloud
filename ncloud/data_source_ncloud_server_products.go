@@ -29,10 +29,12 @@ func dataSourceNcloudServerProducts() *schema.Resource {
 				Type:     schema.TypeString,
 				Optional: true,
 			},
+			// Deprecated
 			"internet_line_type_code": {
 				Type:             schema.TypeString,
 				Optional:         true,
 				ValidateDiagFunc: ToDiagFunc(validation.StringInSlice([]string{"PUBLC", "GLBL"}, false)),
+				Deprecated:       "This parameter is no longer used.",
 			},
 			"server_products": {
 				Type:     schema.TypeList,

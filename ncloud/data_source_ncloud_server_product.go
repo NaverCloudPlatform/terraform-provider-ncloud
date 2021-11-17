@@ -31,10 +31,12 @@ func dataSourceNcloudServerProduct() *schema.Resource {
 				Type:     schema.TypeString,
 				Optional: true,
 			},
+			// Deprecated
 			"internet_line_type_code": {
 				Type:             schema.TypeString,
 				Optional:         true,
 				ValidateDiagFunc: ToDiagFunc(validation.StringInSlice([]string{"PUBLC", "GLBL"}, false)),
+				Deprecated:       "This parameter is no longer used.",
 			},
 			"filter": dataSourceFiltersSchema(),
 
@@ -142,7 +144,6 @@ func getClassicServerProductList(d *schema.ResourceData, config *ProviderConfig)
 		ProductCode:            StringPtrOrNil(d.GetOk("product_code")),
 		RegionNo:               &regionNo,
 		ZoneNo:                 zoneNo,
-		InternetLineTypeCode:   StringPtrOrNil(d.GetOk("internet_line_type_code")),
 	}
 
 	logCommonRequest("getClassicServerProductList", reqParams)

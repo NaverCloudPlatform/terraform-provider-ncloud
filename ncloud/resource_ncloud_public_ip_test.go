@@ -206,7 +206,7 @@ resource "ncloud_login_key" "loginkey" {
 
 resource "ncloud_server" "server" {
 	name = "%[1]s"
-	server_image_product_code = "SPSW0LINUX000032"
+	server_image_product_code = "SPSW0LINUX000045"
 	server_product_code = "SPSVRSTAND000004"
 	login_key_name = "${ncloud_login_key.loginkey.key_name}"
 }
@@ -260,14 +260,14 @@ resource "ncloud_login_key" "loginkey" {
 
 resource "ncloud_server" "foo" {
 	name = "%[1]s"
-	server_image_product_code = "SPSW0LINUX000032"
+	server_image_product_code = "SPSW0LINUX000045"
 	server_product_code = "SPSVRSTAND000004"
 	login_key_name = "${ncloud_login_key.loginkey.key_name}"
 }
 
 resource "ncloud_server" "bar" {
 	name = "%[2]s"
-	server_image_product_code = "SPSW0LINUX000032"
+	server_image_product_code = "SPSW0LINUX000045"
 	server_product_code = "SPSVRSTAND000004"
 	login_key_name = "${ncloud_login_key.loginkey.key_name}"
 }

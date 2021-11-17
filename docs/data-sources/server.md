@@ -67,7 +67,6 @@ The following arguments are supported:
 * `port_forwarding_public_ip` - Port forwarding public ip
 * `port_forwarding_external_port` - Port forwarding external port
 * `port_forwarding_internal_port` - Port forwarding internal port
-* `internet_line_type` - Internet line identification code. PUBLC(Public), GLBL(Global).
 
 ~> **NOTE:** Below attributes only provide VPC environment.
 

@@ -46,7 +46,6 @@ The following arguments are supported:
 * `product_code` - (Optional) Enter a product code to search from the list. Use it for a single search.
 * `zone` - (Optional) Zone code. You can decide a zone where servers are created. You can decide which zone the product list will be requested in. default : Select the first Zone in the specific region.
     Get available values using the data source `ncloud_zones`.
-* `internet_line_type_code` - (Optional) Internet line code. PUBLC(Public), GLBL(Global)
 * `filter` - (Optional) Custom filter block as described below.
   * `name` - (Required) The name of the field to filter by
   * `values` - (Required) Set of values that are accepted for the given field.

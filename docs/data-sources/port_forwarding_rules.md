@@ -15,7 +15,6 @@ data "ncloud_port_forwarding_rules" "rules" {
 
 The following arguments are supported:
 
-* `internet_line_type_code` - (Optional) Internet line code. PUBLC(Public), GLBL(Global)
 * `region` - (Optional) Region code. Get available values using the data source `ncloud_regions`.
     Default: KR region.
 * `zone` - (Optional) Zone code. You can decide a zone where servers are created. You can decide which zone the product list will be requested in. Default : Select the first Zone in the specific region

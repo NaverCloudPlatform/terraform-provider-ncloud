@@ -62,12 +62,14 @@ func resourceNcloudLoadBalancer() *schema.Resource {
 				Elem:        &schema.Schema{Type: schema.TypeString},
 				Description: "List of server instance numbers to be bound to the load balancer",
 			},
+			// Deprecated
 			"internet_line_type": {
 				Type:             schema.TypeString,
 				Optional:         true,
 				Computed:         true,
 				ValidateDiagFunc: ToDiagFunc(validation.StringInSlice([]string{"PUBLC", "GLBL"}, false)),
 				Description:      "Internet line identification code. PUBLC(Public), GLBL(Global). default : PUBLC(Public)",
+				Deprecated:       "This parameter is no longer used.",
 			},
 			"network_usage_type": {
 				Type:             schema.TypeString,
@@ -197,10 +199,6 @@ func resourceNcloudLoadBalancerRead(d *schema.ResourceData, meta interface{}) er
 
 		if algorithmType := flattenCommonCode(lb.LoadBalancerAlgorithmType); algorithmType["code"] != nil {
 			d.Set("algorithm_type", algorithmType["code"])
-		}
-
-		if internetLineType := flattenCommonCode(lb.InternetLineType); internetLineType["code"] != nil {
-			d.Set("internet_line_type", internetLineType["code"])
 		}
 
 		if instanceStatus := flattenCommonCode(lb.LoadBalancerInstanceStatus); instanceStatus["code"] != nil {
@@ -356,8 +354,7 @@ func buildCreateLoadBalancerInstanceParams(d *schema.ResourceData) (*loadbalance
 	}
 
 	reqParams := &loadbalancer.CreateLoadBalancerInstanceRequest{
-		InternetLineTypeCode: StringPtrOrNil(d.GetOk("internet_line_type")),
-		RegionNo:             regionNo,
+		RegionNo: regionNo,
 	}
 
 	if loadBalancerName, ok := d.GetOk("name"); ok {
