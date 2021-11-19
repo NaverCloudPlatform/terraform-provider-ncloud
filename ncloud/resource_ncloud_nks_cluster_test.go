@@ -17,7 +17,7 @@ import (
 
 func TestAccResourceNcloudNKSCluster_basic(t *testing.T) {
 	var cluster vnks.Cluster
-	name := fmt.Sprintf("test-nksbasic-%s", acctest.RandString(5))
+	name := getTestClusterName()
 	clusterType := "SVR.VNKS.STAND.C002.M008.NET.SSD.B050.G002"
 	k8sVersion := "1.20.11"
 	productCode := "SVR.VSVR.STAND.C002.M008.NET.SSD.B050.G002"
@@ -51,7 +51,7 @@ func TestAccResourceNcloudNKSCluster_basic(t *testing.T) {
 
 func TestAccResourceNcloudNKSCluster_disappears(t *testing.T) {
 	var cluster vnks.Cluster
-	name := fmt.Sprintf("test-nksdisappears-%s", acctest.RandString(5))
+	name := getTestClusterName()
 	clusterType := "SVR.VNKS.STAND.C002.M008.NET.SSD.B050.G002"
 	k8sVersion := "1.20.11"
 	productCode := "SVR.VSVR.STAND.C002.M008.NET.SSD.B050.G002"
@@ -74,84 +74,61 @@ func TestAccResourceNcloudNKSCluster_disappears(t *testing.T) {
 	})
 }
 
-//func TestAccResourceNcloudNKSCluster_updateName(t *testing.T) {
-//	var subnet vpc.Subnet
-//	name := fmt.Sprintf("test-nksname-%s", acctest.RandString(5))
-//	cidr := "10.2.2.0/24"
-//	resourceName := "ncloud_nks_cluster.bar"
-//
-//	resource.Test(t, resource.TestCase{
-//		PreCheck:     func() { testAccPreCheck(t) },
-//		Providers:    testAccProviders,
-//		CheckDestroy: testAccCheckNKSClusterDestroy,
-//		Steps: []resource.TestStep{
-//			{
-//				Config: TestAccResourceNcloudNKSClusterConfig(name),
-//
-//				Check: resource.ComposeTestCheckFunc(
-//					testAccCheckNKSClusterExists(resourceName, &subnet),
-//				),
-//			},
-//			{
-//				Config: TestAccResourceNcloudNKSClusterConfig("testacc-subnet-update"),
-//
-//				Check: resource.ComposeTestCheckFunc(
-//					testAccCheckNKSClusterExists(resourceName, &subnet),
-//				),
-//				ExpectError: regexp.MustCompile("Change 'name' is not support, Please set `name` as a old value"),
-//			},
-//			{
-//				ResourceName:      resourceName,
-//				ImportState:       true,
-//				ImportStateVerify: true,
-//			},
-//		},
-//	})
-//}
-//
-//func TestAccResourceNcloudNKSCluster_updateNetworkACL(t *testing.T) {
-//	var subnet vpc.Subnet
-//	name := fmt.Sprintf("test-nksupdate-nacl-%s", acctest.RandString(5))
-//	cidr := "10.2.2.0/24"
-//	resourceName := "ncloud_nks_cluster.bar"
-//
-//	resource.Test(t, resource.TestCase{
-//		PreCheck:     func() { testAccPreCheck(t) },
-//		Providers:    testAccProviders,
-//		CheckDestroy: testAccCheckNKSClusterDestroy,
-//		Steps: []resource.TestStep{
-//			{
-//				Config: TestAccResourceNcloudNKSClusterConfig(name),
-//				Check: resource.ComposeTestCheckFunc(
-//					testAccCheckNKSClusterExists(resourceName, &subnet),
-//				),
-//			},
-//			{
-//				Config: TestAccResourceNcloudNKSClusterConfigUpdateNetworkACL(name, cidr),
-//				Check: resource.ComposeTestCheckFunc(
-//					testAccCheckNKSClusterExists(resourceName, &subnet),
-//				),
-//			},
-//		},
-//	})
-//}
-//
-//func TestAccResourceNcloudNKSCluster_InvalidCIDR(t *testing.T) {
-//	name := fmt.Sprintf("test-nksupdate-nacl-%s", acctest.RandString(5))
-//	cidr := "10.3.2.0/24"
-//
-//	resource.Test(t, resource.TestCase{
-//		PreCheck:     func() { testAccPreCheck(t) },
-//		Providers:    testAccProviders,
-//		CheckDestroy: testAccCheckNKSClusterDestroy,
-//		Steps: []resource.TestStep{
-//			{
-//				Config:      TestAccResourceNcloudNKSClusterConfigInvalidCIDR(name, cidr),
-//				ExpectError: regexp.MustCompile("The subnet must belong to the IPv4 CIDR of the specified VPC."),
-//			},
-//		},
-//	})
-//}
+func TestAccResourceNcloudNKSCluster_updateName(t *testing.T) {
+	var cluster vnks.Cluster
+	name := getTestClusterName()
+	clusterType := "SVR.VNKS.STAND.C002.M008.NET.SSD.B050.G002"
+	k8sVersion := "1.20.11"
+	productCode := "SVR.VSVR.STAND.C002.M008.NET.SSD.B050.G002"
+	resourceName := "ncloud_nks_cluster.bar"
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckNKSClusterDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccResourceNcloudNKSClusterConfig(name, clusterType, k8sVersion, productCode),
+
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckNKSClusterExists(resourceName, &cluster),
+				),
+			},
+			{
+				Config: testAccResourceNcloudNKSClusterConfig("update-name-cluster", clusterType, k8sVersion, productCode),
+
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckNKSClusterExists(resourceName, &cluster),
+				),
+				ExpectError: regexp.MustCompile("Change 'name' is not support, Please set `name` as a old value"),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+		},
+	})
+}
+
+func TestAccResourceNcloudNKSCluster_InvalidSubnet(t *testing.T) {
+	name := fmt.Sprintf("test-nksdisappears-%s", acctest.RandString(5))
+	clusterType := "SVR.VNKS.STAND.C002.M008.NET.SSD.B050.G002"
+	k8sVersion := "1.20.11"
+	productCode := "SVR.VSVR.STAND.C002.M008.NET.SSD.B050.G002"
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckNKSClusterDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config:      testAccResourceNcloudNKSCluster_InvalidSubnetConfig(name, clusterType, k8sVersion, productCode),
+				ExpectError: regexp.MustCompile("The subnet must belong to the IPv4 CIDR of the specified VPC."),
+			},
+		},
+	})
+}
 
 func testAccResourceNcloudNKSClusterConfig(name string, clusterType string, k8sVersion string, productCode string) string {
 	return fmt.Sprintf(`
@@ -218,50 +195,70 @@ resource "ncloud_nks_cluster" "test" {
 `, name, clusterType, k8sVersion, productCode)
 }
 
-//
-//func TestAccResourceNcloudNKSClusterConfigUpdateNetworkACL(name, cidr string) string {
-//	return fmt.Sprintf(`
-//resource "ncloud_vpc" "foo" {
-//	name               = "%[1]s"
-//	ipv4_cidr_block    = "10.2.0.0/16"
-//}
-//
-//resource "ncloud_network_acl" "nacl" {
-//	vpc_no      = ncloud_vpc.foo.vpc_no
-//	name        = "%[1]s"
-//	description = "for test acc"
-//}
-//
-//resource "ncloud_nks_cluster" "bar" {
-//	vpc_no             = ncloud_vpc.foo.vpc_no
-//	name               = "%[1]s"
-//	subnet             = "%[2]s"
-//	zone               = "KR-1"
-//	network_acl_no     = ncloud_network_acl.nacl.network_acl_no
-//	subnet_type        = "PUBLIC"
-//	usage_type         = "GEN"
-//}
-//`, name, cidr)
-//}
-//
-//func TestAccResourceNcloudNKSClusterConfigInvalidCIDR(name, cidr string) string {
-//	return fmt.Sprintf(`
-//resource "ncloud_vpc" "foo" {
-//	name               = "%[1]s"
-//	ipv4_cidr_block    = "10.2.0.0/16"
-//}
-//
-//resource "ncloud_nks_cluster" "bar" {
-//	vpc_no             = ncloud_vpc.foo.vpc_no
-//	name               = "%[1]s"
-//	subnet             = "%s"
-//	zone               = "KR-1"
-//	network_acl_no     = ncloud_vpc.foo.default_network_acl_no
-//	subnet_type        = "PUBLIC"
-//	usage_type         = "GEN"
-//}
-//`, name, cidr)
-//}
+func testAccResourceNcloudNKSCluster_InvalidSubnetConfig(name string, clusterType string, k8sVersion string, productCode string) string {
+	return fmt.Sprintf(`
+resource "ncloud_login_key" "loginkey" {
+  key_name = "%[1]s"
+}
+
+resource "ncloud_vpc" "vpc" {
+	name               = "%[1]s"
+	ipv4_cidr_block    = "10.2.0.0/16"
+}
+
+resource "ncloud_subnet" "subnet1" {
+	vpc_no             = ncloud_vpc.vpc.vpc_no
+	name               = "%[1]s-1"
+	subnet             = "10.2.1.0/24"
+	zone               = "KR-2"
+	network_acl_no     = ncloud_vpc.vpc.default_network_acl_no
+	subnet_type        = "PRIVATE"
+	usage_type         = "GEN"
+}
+
+resource "ncloud_subnet" "subnet2" {
+	vpc_no             = ncloud_vpc.vpc.vpc_no
+	name               = "%[1]s-2"
+	subnet             = "10.2.2.0/24"
+	zone               = "KR-2"
+	network_acl_no     = ncloud_vpc.vpc.default_network_acl_no
+	subnet_type        = "PRIVATE"
+	usage_type         = "GEN"
+}
+
+resource "ncloud_subnet" "subnet_lb" {
+	vpc_no             = ncloud_vpc.vpc.vpc_no
+	name               = "%[1]s-lb"
+	subnet             = "10.2.100.0/24"
+	zone               = "KR-2"
+	network_acl_no     = ncloud_vpc.vpc.default_network_acl_no
+	subnet_type        = "PRIVATE"
+	usage_type         = "LOADB"
+}
+
+data "ncloud_nks_version" "version" {
+  filter {
+    name = "value"
+    values = ["%[3]s"]
+    regex = true
+  }
+}
+
+resource "ncloud_nks_cluster" "test" {
+  name                        = "%[1]s"
+  cluster_type                = "%[2]s"
+  k8s_version                 = data.ncloud_nks_version.version.versions.0.value
+  login_key_name              = ncloud_login_key.loginkey.key_name
+  subnet_lb_no                = ncloud_subnet.subnet_lb.id
+  subnet_no_list              = [
+    ncloud_subnet.subnet1.id,
+    ncloud_subnet.subnet2.id,
+  ]
+  vpc_no                      = ncloud_vpc.vpc.vpc_no
+  zone                        = "KR-1"
+}
+`, name, clusterType, k8sVersion, productCode)
+}
 
 func testAccCheckNKSClusterExists(n string, cluster *vnks.Cluster) resource.TestCheckFunc {
 	return func(s *terraform.State) error {

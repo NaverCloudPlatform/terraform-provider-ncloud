@@ -183,6 +183,7 @@ func resourceNcloudNKSNodePoolRead(ctx context.Context, d *schema.ResourceData, 
 	d.Set("status", nodePool.Status)
 	d.Set("product_code", nodePool.ProductCode)
 	d.Set("subnet_name_list", nodePool.SubnetNameList)
+	d.Set("node_count", nodePool.NodeCount)
 
 	if err := d.Set("subnet_no_list", flattenSubnetNoList(nodePool.SubnetNoList)); err != nil {
 		log.Printf("[WARN] Error setting subet no list set for (%s): %s", d.Id(), err)

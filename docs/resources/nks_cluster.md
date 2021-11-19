@@ -4,8 +4,6 @@ Provides a Kubernetes Service cluster resource.
 
 ## Example Usage
 
-### Basic Usage
-
 ```hcl
 resource "ncloud_vpc" "vpc" {
   name            = "vpc"
@@ -33,7 +31,12 @@ resource "ncloud_subnet" "subnet_lb" {
 }
 
 
-data "ncloud_nks_version" "version"{
+data "ncloud_nks_version" "version" {
+  filter {
+    name = "value"
+    values = ["1.20"]
+    regex = true
+  }
 }
 
 resource "ncloud_login_key" "loginkey" {
@@ -49,7 +52,7 @@ resource "ncloud_nks_cluster" "cluster" {
   subnet_lb_no                = ncloud_subnet.subnet_lb.id
   subnet_no_list              = [ ncloud_subnet.subnet.id ]
   vpc_no                      = ncloud_vpc.vpc.id
-  zone_no                     = "2"
+  zone                        = "KR-1"
 }
 
 
@@ -59,36 +62,37 @@ resource "ncloud_nks_cluster" "cluster" {
 
 The following arguments are supported:
 
-* `name` - (Required) The Name of Cluster. (It is the same result as `id`)
-* `cluster_type` - (Required) Cluster type.
-  * 10 nodes : `SVR.VNKS.STAND.C002.M008.NET.SSD.B050.G002`
-  * 50 nodes : `SVR.VNKS.STAND.C004.M016.NET.SSD.B050.G002`
-* `login_key_name` - (Required) Key name to configure worker nodes.
-* `zone_no` - (Required) Available zone number where the cluster will be placed physically.
-* `vpc_no` - (Required) The ID of the VPC where you want to place the cluster.
-* `subnet_no_list` - (Required) The ID list of the Subnet where you want to place the cluster.
-* `subnet_lb` - (Required) The ID the Subnet where you want to place the Loadbalancer.
-* `log` - (Optional) Use Log.
-  * `audit` - (Required) `Boolean`.
-* `k8s_version` - (Optional) Kubenretes version to create.
+* `name` - (Required) Cluster name. (It is the same result as `id`)
+* `cluster_type` -(Required) Cluster type. `Maximum number of nodes`
+  * 10 ea : `SVR.VNKS.STAND.C002.M008.NET.SSD.B050.G002`
+  * 50 ea : `SVR.VNKS.STAND.C004.M016.NET.SSD.B050.G002`
+* `login_key_name` - (Required) Login key name.
+* `zone` - (Required) zone Code.
+* `vpc_no` - (Required) VPC No.
+* `subnet_no_list` - (Required) Subnet No. list.
+* `subnet_lb` - (Required) Subnet No. for loadbalancer only.
+* `log` - (Optional)
+  * `audit` - (Required) Audit log availability.
+* `k8s_version` - (Optional) Kubenretes version .
 
 ## Attributes Reference
 
 In addition to all arguments above, the following attributes are exported:
 
 * `id` - The Name of Cluster.
-* `uuid` - The UUID of Cluster.
-* `acg_name` - Name of the ACG, which is configured in the cluster.
-* `created_at` - Cluster creation time.
-* `endpoint` - Cluster endpoint.
-* `region_code` - Resion code.
+* `uuid` - Cluster uuid.
+* `acg_name` - Cluster ACG name.
+* `created_at` - Created date.
+* `endpoint` - Control Plane API address.
+* `region_code` - Region code.
 * `status` - Cluster status.
-* `subnet_lb_name` - Name of Lb Subnet.
-* `subnet_name` - Name of Subnet.
-* `vpc_name` - The name of VPC.
+* `subnet_lb_name` - Subnet Name for loadbalancer only.
+* `subnet_name` - Subnet Name list.
+* `vpc_name` - VPC name.
 
 ## Import
 
 Kubernetes Service Cluster can be imported using the name, e.g.,
 
 $ terraform import ncloud_nks_cluster.my_cluster my_cluster
+

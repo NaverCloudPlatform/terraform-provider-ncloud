@@ -29,13 +29,13 @@ The following arguments are supported:
 In addition to all arguments above, the following attributes are exported:
 
 * `id` - The ID of nodepool.`CusterName:NodePoolName`
-* `node_count` - Number of worker nodes in nodepool.
-* `product_code` - Product code of worker nodes in node pool
-* `autoscale`- Autoscale config.
-  * `enable` - Autoscale enable YN.
-  * `max` - Max node count.
-  * `min` - Min node count.
-* `subnet_no_list` - The ID list of the Subnet where you want to place the nodepool.
-* `instance_no` - Instance number of nodepool.
-* `subnet_name_list` - The name list of the Subnet where you want to place the nodepool.
+* `node_count` - Number of nodes.
+* `product_code` - Product code.
+* `autoscale`
+  * `enable` - Auto scaling availability.
+  * `max` - Maximum number of nodes available for auto scaling.
+  * `min` - Minimum number of nodes available for auto scaling.
+* `subnet_no_list` - Subnet No. list.
+* `instance_no` - Instance No.
+* `subnet_name_list` - Subnet name list.
 * `status` - Nodepool status.

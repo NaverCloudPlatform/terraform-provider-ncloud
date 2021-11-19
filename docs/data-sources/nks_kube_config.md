@@ -36,7 +36,7 @@ output "ns-present" {
 
 The following arguments are supported:
 
-* `cluster_name` - (Required) Cluster Name. (It is the same result as `id`)
+* `cluster_name` - (Required) Cluster Name.
 
 ## Attributes Reference
 

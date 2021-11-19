@@ -4,8 +4,6 @@ Provides a Kubernetes Service nodepool resource.
 
 ## Example Usage
 
-### Basic Usage
-
 ```hcl
 esource "ncloud_vpc" "vpc" {
   name            = "vpc"
@@ -32,14 +30,17 @@ resource "ncloud_subnet" "subnet_lb" {
   usage_type     = "LOADB"
 }
 
-
-data "ncloud_nks_version" "version"{
+data "ncloud_nks_version" "version" {
+  filter {
+    name = "value"
+    values = ["1.20"]
+    regex = true
+  }
 }
 
 resource "ncloud_login_key" "loginkey" {
   key_name = "sample-login-key"
 }
-
 
 resource "ncloud_nks_cluster" "cluster" {
   cluster_type   = "SVR.VNKS.STAND.C002.M008.NET.SSD.B050.G002"
@@ -71,23 +72,23 @@ resource "ncloud_nks_node_pool" "node_pool" {
 
 The following arguments are supported:
 
-* `node_pool_name` - (Required) The name of nodepool. 
-* `cluster_name` - (Required) The name of Cluster.
-* `node_count` - (Required) Number of worker nodes in nodepool.
-* `product_code` - (Required) Product code of worker nodes in node pool
-* `autoscale`- (Optional) Autoscale config.
-  * `enable` - (Required) Autoscale enable YN.
-  * `max` - (Required) Max node count.
-  * `min` - (Required) Min node count.
-* `subnet_no_list` - (Optional) The ID list of the Subnet where you want to place the nodepool.
+* `node_pool_name` - (Required) Nodepool name. 
+* `cluster_name` - (Required) Cluster name.
+* `node_count` - (Required) Number of nodes.
+* `product_code` - (Required) Product code.
+* `autoscale`- (Optional) 
+  * `enable` - (Required) Auto scaling availability.
+  * `max` - (Required) Maximum number of nodes available for auto scaling.
+  * `min` - (Required) Minimum number of nodes available for auto scaling.
+* `subnet_no_list` - (Optional) Subnet name list.
 
 ## Attributes Reference
 
 In addition to all arguments above, the following attributes are exported:
 
 * `id` - The ID of nodepool.`CusterName:NodePoolName` 
-* `instance_no` - Instance number of nodepool.
-* `subnet_name_list` - The name list of the Subnet where you want to place the nodepool.
+* `instance_no` - Instance No.
+* `subnet_name_list` - Subnet name list.
 * `status` - Nodepool status.
 
 ## Import

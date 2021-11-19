@@ -26,6 +26,6 @@ data "ncloud_nks_node_pool" "example"{
 ## Attributes Reference
 
 * `id` - Cluster name.
-* `node_pool_names` - Set of all node pool naems in NKS Clusters.
+* `node_pool_names` - Set of all node pool names in NKS Clusters.
 
 

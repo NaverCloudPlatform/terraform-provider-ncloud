@@ -8,8 +8,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 )
 
-func TestAccDataSourceNcloudNKSCluster(t *testing.T) {
-	dataName := "data.ncloud_nks_cluster.cluster"
+func TestAccDataSourceNcloudNKSKubeConfig(t *testing.T) {
+	dataName := "data.ncloud_nks_kube_config.kube_config"
 	resourceName := "ncloud_nks_cluster.cluster"
 	testClusterName := getTestClusterName()
 	clusterType := "SVR.VNKS.STAND.C002.M008.NET.SSD.B050.G002"
@@ -20,35 +20,18 @@ func TestAccDataSourceNcloudNKSCluster(t *testing.T) {
 		Providers: testAccProviders,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccDataSourceNKSClusterConfig(testClusterName, clusterType, nksVersion),
+				Config: testAccDataSourceNKSKubeConfigConfig(testClusterName, clusterType, nksVersion),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckDataSourceID(dataName),
-					resource.TestCheckResourceAttrPair(dataName, "id", resourceName, "id"),
-					resource.TestCheckResourceAttrPair(dataName, "uuid", resourceName, "uuid"),
-					resource.TestCheckResourceAttrPair(dataName, "acg_name", resourceName, "acg_name"),
-					resource.TestCheckResourceAttrPair(dataName, "name", resourceName, "name"),
-					resource.TestCheckResourceAttrPair(dataName, "cluster_type", resourceName, "cluster_type"),
-					resource.TestCheckResourceAttrPair(dataName, "created_at", resourceName, "created_at"),
-					resource.TestCheckResourceAttrPair(dataName, "endpoint", resourceName, "endpoint"),
-					resource.TestCheckResourceAttrPair(dataName, "region_code", resourceName, "region_code"),
-					resource.TestCheckResourceAttrPair(dataName, "status", resourceName, "status"),
-					resource.TestCheckResourceAttrPair(dataName, "subnet_name", resourceName, "subnet_name"),
-					resource.TestCheckResourceAttrPair(dataName, "login_key_name", resourceName, "login_key_name"),
-					resource.TestCheckResourceAttrPair(dataName, "k8s_version", resourceName, "k8s_version"),
-					resource.TestCheckResourceAttrPair(dataName, "zone", resourceName, "zone"),
-					resource.TestCheckResourceAttrPair(dataName, "vpc_no", resourceName, "vpc_no"),
-					resource.TestCheckResourceAttrPair(dataName, "vpc_name", resourceName, "vpc_name"),
-					resource.TestCheckResourceAttrPair(dataName, "subnet_lb_no", resourceName, "subnet_lb_no"),
-					resource.TestCheckResourceAttrPair(dataName, "subnet_lb_name", resourceName, "subnet_lb_name"),
-					resource.TestCheckResourceAttrPair(dataName, "subnet_no_list.#", resourceName, "subnet_no_list.#"),
-					resource.TestCheckResourceAttrPair(dataName, "subnet_no_list.0", resourceName, "subnet_no_list.0"),
+					resource.TestCheckResourceAttrPair(dataName, "cluster_name", resourceName, "name"),
+					resource.TestCheckResourceAttrPair(dataName, "host", resourceName, "endpoint"),
 				),
 			},
 		},
 	})
 }
 
-func testAccDataSourceNKSClusterConfig(testClusterName string, clusterType string, nksVersion string) string {
+func testAccDataSourceNKSKubeConfigConfig(testClusterName string, clusterType string, nksVersion string) string {
 	return fmt.Sprintf(`
 resource "ncloud_login_key" "loginkey" {
   key_name = "%[1]s"
@@ -111,8 +94,8 @@ resource "ncloud_nks_cluster" "cluster" {
   zone                     	  = "KR-1"
 }
 
-data "ncloud_nks_cluster" "cluster" {
-	name = ncloud_nks_cluster.cluster.name
+data "ncloud_nks_kube_config" "kube_config" {
+	cluster_name = ncloud_nks_cluster.cluster.name
 }
 
 

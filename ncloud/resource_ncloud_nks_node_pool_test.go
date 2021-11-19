@@ -336,7 +336,7 @@ func testAccCheckNKSNodePoolExists(n string, nodePool *vnks.NodePoolRes) resourc
 
 		clusterName, nodePoolName, err := NodePoolParseResourceID(rs.Primary.ID)
 		if err != nil {
-			return fmt.Errorf("Id is not [ClusterName:NodePoolName] ", rs.Primary.ID)
+			return fmt.Errorf("Id(%s) is not [ClusterName:NodePoolName] ", rs.Primary.ID)
 		}
 		config := testAccProvider.Meta().(*ProviderConfig)
 		np, err := getNKSNodePool(context.Background(), config, &clusterName, &nodePoolName)
@@ -360,7 +360,7 @@ func testAccCheckNKSNodePoolDestroy(s *terraform.State) error {
 
 		clusterName, nodePoolName, err := NodePoolParseResourceID(rs.Primary.ID)
 		if err != nil {
-			return fmt.Errorf("Id is not [ClusterName:NodePoolName] ", rs.Primary.ID)
+			return fmt.Errorf("Id(%s) is not [ClusterName:NodePoolName] ", rs.Primary.ID)
 		}
 		np, err := getNKSNodePool(context.Background(), config, &clusterName, &nodePoolName)
 		if err != nil {

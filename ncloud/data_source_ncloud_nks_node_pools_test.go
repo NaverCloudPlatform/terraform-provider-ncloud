@@ -11,13 +11,14 @@ func TestAccDataSourceNcloudNKSNodePoolsBasic(t *testing.T) {
 
 	testClusterName := getTestClusterName()
 	clusterType := "SVR.VNKS.STAND.C002.M008.NET.SSD.B050.G002"
+	nksVersion := "1.20"
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:  func() { testAccPreCheck(t) },
 		Providers: testAccProviders,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccDataSourceNcloudNKSNodePoolsConfig(testClusterName, clusterType),
+				Config: testAccDataSourceNcloudNKSNodePoolsConfig(testClusterName, clusterType, nksVersion),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckDataSourceID("data.ncloud_nks_node_pools.all"),
 				),
@@ -26,7 +27,7 @@ func TestAccDataSourceNcloudNKSNodePoolsBasic(t *testing.T) {
 	})
 }
 
-func testAccDataSourceNcloudNKSNodePoolsConfig(testClusterName string, clusterType string) string {
+func testAccDataSourceNcloudNKSNodePoolsConfig(testClusterName string, clusterType string, nksVersion string) string {
 	return fmt.Sprintf(`
 resource "ncloud_login_key" "loginkey" {
   key_name = "%[1]s"
@@ -67,10 +68,13 @@ resource "ncloud_subnet" "subnet_lb" {
 	usage_type         = "LOADB"
 }
 
-data "ncloud_nks_version" "version"{
+data "ncloud_nks_version" "version" {
+  filter {
+    name = "value"
+    values = ["%[3]s"]
+    regex = true
+  }
 }
-
-
 resource "ncloud_nks_cluster" "cluster" {
   name                        = "%[1]s"
   cluster_type                = "%[2]s"
@@ -98,14 +102,8 @@ resource "ncloud_nks_node_pool" "node_pool" {
   }
 }
 
-data "ncloud_nks_node_pool" "node_pool"{
-  cluster_name    = ncloud_nks_cluster.cluster.name
-  node_pool_name = "%[1]s"
-}
-
-
 data "ncloud_nks_node_pools" "all" {
-	cluster_name = "%[1]s"
+	cluster_name = ncloud_nks_cluster.cluster.name
 }
-`, testClusterName, clusterType)
+`, testClusterName, clusterType, nksVersion)
 }
