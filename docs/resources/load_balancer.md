@@ -25,7 +25,6 @@ resource "ncloud_load_balancer" "lb" {
   }
   
   server_instance_no_list = ["812345", "812346"]
-  internet_line_type      = "PUBLC"
   network_usage_type      = "PBLIP"
 
   region = "KR"
@@ -47,7 +46,6 @@ The following arguments are supported:
 * `algorithm_type` - (Optional) Load balancer algorithm type code. The available algorithms are as follows: [ROUND ROBIN (RR) | LEAST_CONNECTION (LC)]. Default: ROUND ROBIN (RR)
 * `description` - (Optional) Description of a load balancer instance.
 * `server_instance_no_list` - (Optional) List of server instance numbers to be bound to the load balancer
-* `internet_line_type` - (Optional) Internet line identification code. PUBLC(Public), GLBL(Global). default : PUBLC(Public)
 * `network_usage_type` - (Optional) Network usage identification code. PBLIP(PublicIP), PRVT(PrivateIP). default : PBLIP(PublicIP)
 * `region` - (Optional) Region code. Get available values using the data source `ncloud_regions`.
     Default: KR region.

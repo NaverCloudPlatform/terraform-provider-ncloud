@@ -19,7 +19,6 @@ The following arguments are supported:
 
 ~> **NOTE:** Below arguments only support Classic environment.
 
-* `internet_line_type` - (Optional) Internet line code. PUBLC(Public), GLBL(Global)
 * `zone` - (Optional) Zone code. You can decide a zone where servers are created. You can decide in which zone the product list will be requested. default : Select the first Zone in the specific region
     Get available values using the data source `ncloud_zones`.
 

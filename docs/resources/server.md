@@ -69,7 +69,6 @@ The following arguments are supported:
 
 ~> **NOTE:** Below arguments only support Classic environment.
 
-* `internet_line_type` - (Optional) Internet line identification code. PUBLC(Public), GLBL(Global). default : PUBLC(Public)
 * `access_control_group_configuration_no_list` - (Optional) You can set the ACG created when creating the server. ACG setting number can be obtained through the getAccessControlGroupList action. Default : Default ACG number
 * `user_data` - (Optional) The server will execute the user data script set by the user at first boot. To view the column, it is returned only when viewing the server instance.
 * `raid_type_name` - (Optional) Raid Type Name.

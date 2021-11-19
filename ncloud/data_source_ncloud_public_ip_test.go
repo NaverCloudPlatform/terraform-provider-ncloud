@@ -30,7 +30,6 @@ func TestAccDataSourceNcloudPublicIp_classic_basic(t *testing.T) {
 
 					// Classic only
 					resource.TestCheckResourceAttrPair(dataName, "zone", resourceName, "zone"),
-					resource.TestCheckResourceAttrPair(dataName, "internet_line_type", resourceName, "internet_line_type"),
 					resource.TestCheckResourceAttrPair(dataName, "kind_type", resourceName, "kind_type"),
 				),
 			},
@@ -112,7 +111,7 @@ resource "ncloud_login_key" "loginkey" {
 
 resource "ncloud_server" "server" {
 	name = "%[1]s"
-	server_image_product_code = "SPSW0LINUX000032"
+	server_image_product_code = "SPSW0LINUX000045"
 	server_product_code = "SPSVRSTAND000004"
 	login_key_name = "${ncloud_login_key.loginkey.key_name}"
 }

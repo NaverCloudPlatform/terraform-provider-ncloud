@@ -39,20 +39,19 @@ func TestAccResourceNcloudServer_classic_basic(t *testing.T) {
 					testAccCheckServerExistsWithProvider(resourceName, &serverInstance, testAccClassicProvider),
 					testCheck(),
 					resource.TestMatchResourceAttr(resourceName, "id", regexp.MustCompile(`^\d+$`)),
-					resource.TestCheckResourceAttr(resourceName, "server_image_product_code", "SPSW0LINUX000032"),
+					resource.TestCheckResourceAttr(resourceName, "server_image_product_code", "SPSW0LINUX000045"),
 					resource.TestCheckResourceAttr(resourceName, "server_product_code", productCode),
 					resource.TestCheckResourceAttr(resourceName, "name", testServerName),
 					resource.TestCheckResourceAttr(resourceName, "description", ""),
-					resource.TestCheckResourceAttr(resourceName, "internet_line_type", "PUBLC"),
 					resource.TestMatchResourceAttr(resourceName, "zone", regexp.MustCompile(`^\w+.*$`)),
 					resource.TestCheckResourceAttr(resourceName, "base_block_storage_disk_type", "NET"),
 					resource.TestCheckResourceAttr(resourceName, "base_block_storage_size", "53687091200"),
 					resource.TestCheckResourceAttr(resourceName, "cpu_count", "2"),
 					resource.TestCheckResourceAttr(resourceName, "memory_size", "4294967296"),
 					resource.TestMatchResourceAttr(resourceName, "instance_no", regexp.MustCompile(`^\d+$`)),
-					resource.TestCheckResourceAttr(resourceName, "platform_type", "LNX32"),
+					resource.TestCheckResourceAttr(resourceName, "platform_type", "LNX64"),
 					resource.TestCheckResourceAttr(resourceName, "is_protect_server_termination", "false"),
-					resource.TestCheckResourceAttr(resourceName, "server_image_name", "centos-6.3-32"),
+					resource.TestCheckResourceAttr(resourceName, "server_image_name", "centos-7.2-64"),
 					resource.TestCheckResourceAttr(resourceName, "login_key_name", fmt.Sprintf("%s-key", testServerName)),
 					resource.TestMatchResourceAttr(resourceName, "instance_no", regexp.MustCompile(`^\d+$`)),
 					resource.TestMatchResourceAttr(resourceName, "port_forwarding_public_ip", regexp.MustCompile(`^(?:[0-9]{1,3}\.){3}[0-9]{1,3}$`)),
@@ -409,7 +408,7 @@ resource "ncloud_login_key" "loginkey" {
 
 resource "ncloud_server" "server" {
 	name = "%[1]s"
-	server_image_product_code = "SPSW0LINUX000032"
+	server_image_product_code = "SPSW0LINUX000045"
 	server_product_code = "%[2]s"
 	login_key_name = "${ncloud_login_key.loginkey.key_name}"
 }
