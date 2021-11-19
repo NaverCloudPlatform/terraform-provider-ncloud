@@ -108,12 +108,14 @@ func dataSourceNcloudNKSNodePoolRead(ctx context.Context, d *schema.ResourceData
 
 	d.SetId(id)
 
+	d.Set("cluster_name", clusterName)
 	d.Set("instance_no", nodePool.InstanceNo)
 	d.Set("node_pool_name", nodePool.Name)
 	d.Set("status", nodePool.Status)
 	d.Set("product_code", nodePool.ProductCode)
 	d.Set("subnet_name_list", nodePool.SubnetNameList)
 	d.Set("node_count", nodePool.NodeCount)
+	d.Set("k8s_version", nodePool.K8sVersion)
 
 	if err := d.Set("subnet_no_list", flattenSubnetNoList(nodePool.SubnetNoList)); err != nil {
 		log.Printf("[WARN] Error setting subet no list set for (%s): %s", d.Id(), err)

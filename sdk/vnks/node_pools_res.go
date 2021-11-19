@@ -8,8 +8,8 @@
 
 package vnks
 
-type CreateClusterRes struct {
+type NodePoolsRes struct {
 
-	// 클러스터 UUID
-	Uuid *string `json:"uuid"`
+	// 노드풀 목록
+	NodePool []*NodePoolRes `json:"nodePool"`
 }

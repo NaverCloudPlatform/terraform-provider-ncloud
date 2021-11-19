@@ -8,10 +8,8 @@
 
 package vnks
 
-type GetOptionVersion200Response struct {
-}
+type KubeconfigRes struct {
 
-type Version struct {
-	Value string `json:"value"`
-	Label string `json:"label"`
+	// Kubeconfig
+	Kubeconfig *string `json:"kubeconfig"`
 }

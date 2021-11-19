@@ -132,7 +132,7 @@ func resourceNcloudNKSNodePoolCreate(ctx context.Context, d *schema.ResourceData
 	}
 
 	if _, ok := d.GetOk("autoscale"); ok {
-		reqParams.AutoscalerUpdate = expandAutoScaleUpdate(d.Get("autoscale").([]interface{}))
+		reqParams.Autoscale = expandAutoScaleUpdate(d.Get("autoscale").([]interface{}))
 	}
 
 	// Todo: SubnetNo 로직 추가
@@ -178,12 +178,14 @@ func resourceNcloudNKSNodePoolRead(ctx context.Context, d *schema.ResourceData, 
 		return nil
 	}
 
+	d.Set("cluster_name", clusterName)
 	d.Set("instance_no", nodePool.InstanceNo)
 	d.Set("node_pool_name", nodePool.Name)
 	d.Set("status", nodePool.Status)
 	d.Set("product_code", nodePool.ProductCode)
 	d.Set("subnet_name_list", nodePool.SubnetNameList)
 	d.Set("node_count", nodePool.NodeCount)
+	d.Set("k8s_version", nodePool.K8sVersion)
 
 	if err := d.Set("subnet_no_list", flattenSubnetNoList(nodePool.SubnetNoList)); err != nil {
 		log.Printf("[WARN] Error setting subet no list set for (%s): %s", d.Id(), err)

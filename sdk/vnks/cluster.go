@@ -73,17 +73,17 @@ type Cluster struct {
 	// vpc 번호
 	VpcNo *int32 `json:"vpcNo"`
 
-	// zone 번호
-	ZoneNo *int32 `json:"zoneNo"`
+	// zone 코드
+	ZoneCode *string `json:"zoneCode,omitempty"`
 
-	// zone
-	ZoneCode *string `json:"zoneCode"`
+	// zone 번호
+	ZoneNo *int32 `json:"zoneNo,omitempty"`
 
 	// 로그인 키 이름
 	LoginKeyName *string `json:"loginKeyName"`
 
 	// log
-	Log *ClusterLogInput `json:"log,omitempty"`
+	Log *ClusterLogInput `json:"log"`
 
 	// 노드풀
 	NodePool []*NodePoolRes `json:"nodePool"`

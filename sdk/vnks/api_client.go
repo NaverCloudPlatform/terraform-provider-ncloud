@@ -39,7 +39,7 @@ var (
 	xmlCheck  = regexp.MustCompile("(?i:[application|text]/xml)")
 )
 
-// APIClient manages communication with the vnks API v2021-11-12T02:17:20Z
+// APIClient manages communication with the vnks API v2021-11-19T03:00:34Z
 // In most cases there should be only one, shared, APIClient.
 type APIClient struct {
 	cfg    *ncloud.Configuration

@@ -3,6 +3,7 @@ package ncloud
 import (
 	"context"
 	"fmt"
+	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/ncloud"
 	"time"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
@@ -78,8 +79,8 @@ func getNKSVersion(config *ProviderConfig) ([]map[string]interface{}, error) {
 
 	for _, r := range *resp {
 		instance := map[string]interface{}{
-			"value": r.Value,
-			"label": r.Label,
+			"value": ncloud.StringValue(r.Value),
+			"label": ncloud.StringValue(r.Label),
 		}
 
 		resources = append(resources, instance)

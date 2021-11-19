@@ -8,10 +8,5 @@
 
 package vnks
 
-type OptionRes struct {
-	Label *string `json:"label"`
-
-	Value *string `json:"value"`
-
-	Disabled *bool `json:"disabled"`
-}
+// 옵션 목록
+type OptionsRes []*OptionRes

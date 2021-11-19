@@ -77,7 +77,7 @@ func getNKSKubeConfig(ctx context.Context, config *ProviderConfig, uuid *string)
 	if err != nil {
 		return nil, err
 	}
-	err = yaml.Unmarshal([]byte(ncloud.StringValue(resp.KubeConfig)), &kc)
+	err = yaml.Unmarshal([]byte(ncloud.StringValue(resp.Kubeconfig)), &kc)
 	if err != nil {
 		fmt.Printf("%s", err)
 	}
