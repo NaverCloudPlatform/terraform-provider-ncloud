@@ -70,7 +70,6 @@ resource "ncloud_load_balancer" "lb" {
   }
 
   server_instance_no_list = [ncloud_server.bm.id]
-  internet_line_type      = "PUBLC"
   network_usage_type      = "PBLIP"
 }
 

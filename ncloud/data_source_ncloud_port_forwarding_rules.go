@@ -19,12 +19,14 @@ func dataSourceNcloudPortForwardingRules() *schema.Resource {
 		Read: dataSourceNcloudPortForwardingRulesRead,
 
 		Schema: map[string]*schema.Schema{
+			// Deprecated
 			"internet_line_type_code": {
 				Type:             schema.TypeString,
 				Optional:         true,
 				ForceNew:         true,
 				ValidateDiagFunc: ToDiagFunc(validation.StringInSlice([]string{"PUBLC", "GLBL"}, false)),
 				Description:      "Internet line code. PUBLC(Public), GLBL(Global)",
+				Deprecated:       "This parameter is no longer used.",
 			},
 			"region": {
 				Type:        schema.TypeString,
@@ -100,9 +102,8 @@ func dataSourceNcloudPortForwardingRulesRead(d *schema.ResourceData, meta interf
 		return err
 	}
 	reqParams := &server.GetPortForwardingRuleListRequest{
-		InternetLineTypeCode: StringPtrOrNil(d.GetOk("internet_line_type_code")),
-		RegionNo:             regionNo,
-		ZoneNo:               zoneNo,
+		RegionNo: regionNo,
+		ZoneNo:   zoneNo,
 	}
 
 	logCommonRequest("GetPortForwardingRuleList", reqParams)

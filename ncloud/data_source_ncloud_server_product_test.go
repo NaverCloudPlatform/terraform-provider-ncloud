@@ -14,16 +14,16 @@ func TestAccDataSourceNcloudServerProduct_classic_basic(t *testing.T) {
 		Providers: testAccClassicProviders,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccDataSourceNcloudServerProductConfig("SPSW0LINUX000032", "SPSVRSTAND000056"),
+				Config: testAccDataSourceNcloudServerProductConfig("SPSW0LINUX000045", "SPSVRSTAND000004"),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckDataSourceID(dataName),
-					resource.TestCheckResourceAttr(dataName, "server_image_product_code", "SPSW0LINUX000032"),
-					resource.TestCheckResourceAttr(dataName, "product_code", "SPSVRSTAND000056"),
-					resource.TestCheckResourceAttr(dataName, "product_name", "vCPU 1EA, Memory 1GB, Disk 50GB"),
-					resource.TestCheckResourceAttr(dataName, "product_description", "vCPU 1EA, Memory 1GB, Disk 50GB"),
+					resource.TestCheckResourceAttr(dataName, "server_image_product_code", "SPSW0LINUX000045"),
+					resource.TestCheckResourceAttr(dataName, "product_code", "SPSVRSTAND000004"),
+					resource.TestCheckResourceAttr(dataName, "product_name", "vCPU 2EA, Memory 4GB, Disk 50GB"),
+					resource.TestCheckResourceAttr(dataName, "product_description", "vCPU 2개, 메모리 4GB, 디스크 50GB"),
 					resource.TestCheckResourceAttr(dataName, "infra_resource_type", "SVR"),
-					resource.TestCheckResourceAttr(dataName, "cpu_count", "1"),
-					resource.TestCheckResourceAttr(dataName, "memory_size", "1GB"),
+					resource.TestCheckResourceAttr(dataName, "cpu_count", "2"),
+					resource.TestCheckResourceAttr(dataName, "memory_size", "4GB"),
 					resource.TestCheckResourceAttr(dataName, "disk_type", "NET"),
 					resource.TestCheckResourceAttr(dataName, "generation_code", "G1"),
 					resource.TestCheckResourceAttr(dataName, "base_block_storage_size", "50GB"),
@@ -66,7 +66,7 @@ func TestAccDataSourceNcloudServerProduct_classic_FilterByProductCode(t *testing
 		Providers: testAccClassicProviders,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccDataSourceNcloudServerProductFilterByProductCodeConfig("SPSW0LINUX000032", "SPSVRSTAND000056"),
+				Config: testAccDataSourceNcloudServerProductFilterByProductCodeConfig("SPSW0LINUX000045", "SPSVRSTAND000056"),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckDataSourceID("data.ncloud_server_product.test2"),
 				),
@@ -96,7 +96,7 @@ func TestAccDataSourceNcloudServerProduct_classic_FilterByProductNameProductType
 		Providers: testAccClassicProviders,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccDataSourceNcloudServerProductFilterByProductNameProductTypeConfig("SPSW0LINUX000032", "G1"),
+				Config: testAccDataSourceNcloudServerProductFilterByProductNameProductTypeConfig("SPSW0LINUX000045", "G1"),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckDataSourceID("data.ncloud_server_product.test3"),
 				),

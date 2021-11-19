@@ -80,12 +80,14 @@ func resourceNcloudServer() *schema.Resource {
 				Computed: true,
 				ForceNew: true,
 			},
+			// Deprecated
 			"internet_line_type": {
 				Type:             schema.TypeString,
 				Optional:         true,
 				Computed:         true,
 				ForceNew:         true,
 				ValidateDiagFunc: ToDiagFunc(validation.StringInSlice([]string{"PUBLC", "GLBL"}, false)),
+				Deprecated:       "This parameter is no longer used.",
 			},
 			"fee_system_type_code": {
 				Type:     schema.TypeString,
@@ -366,7 +368,6 @@ func createClassicServerInstance(d *schema.ResourceData, config *ProviderConfig)
 		ServerDescription:          StringPtrOrNil(d.GetOk("description")),
 		LoginKeyName:               StringPtrOrNil(d.GetOk("login_key_name")),
 		IsProtectServerTermination: BoolPtrOrNil(d.GetOk("is_protect_server_termination")),
-		InternetLineTypeCode:       StringPtrOrNil(d.GetOk("internet_line_type")),
 		FeeSystemTypeCode:          StringPtrOrNil(d.GetOk("fee_system_type_code")),
 		UserData:                   StringPtrOrNil(d.GetOk("user_data")),
 		RaidTypeName:               StringPtrOrNil(d.GetOk("raid_type_name")),
@@ -751,7 +752,6 @@ func convertClassicServerInstance(r *server.ServerInstance) *ServerInstance {
 		Zone:                           r.Zone.ZoneCode,
 		BaseBlockStorageDiskType:       r.BaseBlockStorageDiskType.Code,
 		BaseBlockStorageDiskDetailType: flattenMapByKey(r.BaseBlockStorageDiskDetailType, "code"),
-		InternetLineType:               r.InternetLineType.Code,
 		InstanceTagList:                r.InstanceTagList,
 	}
 }
@@ -1202,7 +1202,6 @@ type ServerInstance struct {
 	Zone                           *string               `json:"zone,omitempty"`
 	BaseBlockStorageDiskType       *string               `json:"base_block_storage_disk_type,omitempty"`
 	BaseBlockStorageDiskDetailType *string               `json:"base_block_storage_disk_detail_type,omitempty"`
-	InternetLineType               *string               `json:"internet_line_type,omitempty"`
 	InstanceTagList                []*server.InstanceTag `json:"tag_list,omitempty"`
 	// VPC
 	VpcNo                *string                           `json:"vpc_no,omitempty"`

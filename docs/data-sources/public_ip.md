@@ -21,7 +21,6 @@ The following arguments are supported:
 
 ~> **NOTE:** Below arguments only support Classic environment.
 
-* `internet_line_type` - (Optional) Internet line type code. `PUBLC` (Public), `GLBL` (Global)
 * `zone` - (Optional) Zone code. You can filter the list of public IP instances by zone. All the public IP addresses in the zone of the region will be selected if the filter is not specified.
     Get available values using the data source `ncloud_zones`.
 
