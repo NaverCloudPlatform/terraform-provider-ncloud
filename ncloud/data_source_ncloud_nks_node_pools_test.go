@@ -86,7 +86,7 @@ resource "ncloud_nks_cluster" "cluster" {
     ncloud_subnet.subnet2.id,
   ]
   vpc_no                      = ncloud_vpc.vpc.vpc_no
-  zone_no                     = "2"
+  zone                        = "KR-1"
 }
 
 resource "ncloud_nks_node_pool" "node_pool" {

@@ -298,7 +298,7 @@ func waitForNKSClusterDeletion(ctx context.Context, d *schema.ResourceData, conf
 func waitForNKSClusterActive(ctx context.Context, d *schema.ResourceData, config *ProviderConfig, name string) error {
 	stateConf := &resource.StateChangeConf{
 		Pending: []string{"CREATING", "WORKING"},
-		Target:  []string{"RUNNING"},
+		Target:  []string{"RUNNING", "NO_NODE"},
 		Refresh: func() (result interface{}, state string, err error) {
 			cluster, err := getNKSClusterWithName(ctx, config, name)
 			if err != nil {

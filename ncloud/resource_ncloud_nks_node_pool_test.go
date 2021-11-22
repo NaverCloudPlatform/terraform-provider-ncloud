@@ -66,6 +66,7 @@ func TestAccResourceNcloudNKSNodePool_updateNodeCountAndAutoScale(t *testing.T) 
 					testAccCheckNKSNodePoolExists(resourceName, &nodePool),
 					resource.TestCheckResourceAttr(resourceName, "node_count", "2"),
 				),
+				Destroy: false,
 			},
 			{
 				Config: testAccResourceNcloudNKSNodePoolUpdateAutoScaleConfig(clusterName, clusterType, k8sVersion, productCode, 1),
@@ -260,7 +261,7 @@ func testAccCheckNKSNodePoolExists(n string, nodePool *vnks.NodePoolRes) resourc
 			return err
 		}
 		if cluster == nil {
-			return nil
+			return fmt.Errorf("Cluster(%s) not exists [ClusterName:NodePoolName] ", clusterName)
 		}
 
 		np, err := getNKSNodePool(context.Background(), config, cluster.Uuid, &nodePoolName)
@@ -291,6 +292,9 @@ func testAccCheckNKSNodePoolDestroy(s *terraform.State) error {
 		if err != nil {
 			return err
 		}
+		if cluster == nil {
+			return nil
+		}
 
 		np, err := getNKSNodePool(context.Background(), config, cluster.Uuid, &nodePoolName)
 		if err != nil {
@@ -298,7 +302,7 @@ func testAccCheckNKSNodePoolDestroy(s *terraform.State) error {
 		}
 
 		if np != nil {
-			return errors.New("Subnet still exists")
+			return errors.New("NodePool still exists")
 		}
 	}
 
