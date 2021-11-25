@@ -59,7 +59,7 @@ resource "ncloud_nks_node_pool" "node_pool" {
   node_pool_name = "sample-node-pool"
   node_count     = 1
   product_code   = "SVR.VSVR.STAND.C002.M008.NET.SSD.B050.G002"
-  subnet_no_list = [ ncloud_subnet.subnet.id ]
+  subnet_no      = ncloud_subnet.subnet.id
   autoscale {
     enabled = true
     min = 1
@@ -80,7 +80,7 @@ The following arguments are supported:
   * `enable` - (Required) Auto scaling availability.
   * `max` - (Required) Maximum number of nodes available for auto scaling.
   * `min` - (Required) Minimum number of nodes available for auto scaling.
-* `subnet_no_list` - (Optional) Subnet name list.
+* `subnet_no` - (Optional) Subnet No.
 
 ## Attributes Reference
 

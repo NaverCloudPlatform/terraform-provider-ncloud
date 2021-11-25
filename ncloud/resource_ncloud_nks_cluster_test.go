@@ -17,7 +17,7 @@ func TestAccResourceNcloudNKSCluster_basic(t *testing.T) {
 	var cluster vnks.Cluster
 	name := getTestClusterName()
 	clusterType := "SVR.VNKS.STAND.C002.M008.NET.SSD.B050.G002"
-	k8sVersion := "1.20.11-nks.1"
+	k8sVersion := "1.19.14-nks.1"
 	resourceName := "ncloud_nks_cluster.cluster"
 
 	resource.Test(t, resource.TestCase{
@@ -50,7 +50,7 @@ func TestAccResourceNcloudNKSCluster_basic(t *testing.T) {
 func TestAccResourceNcloudNKSCluster_InvalidSubnet(t *testing.T) {
 	name := fmt.Sprintf("test-nksdisappears-%s", acctest.RandString(5))
 	clusterType := "SVR.VNKS.STAND.C002.M008.NET.SSD.B050.G002"
-	k8sVersion := "1.20.11"
+	k8sVersion := "1.19.14"
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },

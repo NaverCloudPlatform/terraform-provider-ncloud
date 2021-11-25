@@ -16,7 +16,6 @@ func TestAccResourceNcloudNKSNodePool_basic(t *testing.T) {
 	var nodePool vnks.NodePoolRes
 	clusterName := getTestClusterName()
 	clusterType := "SVR.VNKS.STAND.C002.M008.NET.SSD.B050.G002"
-	k8sVersion := "1.20.11"
 	productCode := "SVR.VSVR.STAND.C002.M008.NET.SSD.B050.G002"
 	resourceName := "ncloud_nks_node_pool.node_pool"
 
@@ -26,7 +25,7 @@ func TestAccResourceNcloudNKSNodePool_basic(t *testing.T) {
 		CheckDestroy: testAccCheckNKSClusterDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccResourceNcloudNKSNodePoolConfig(clusterName, clusterType, k8sVersion, productCode, 2),
+				Config: testAccResourceNcloudNKSNodePoolConfig(clusterName, clusterType, productCode, 2),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckNKSNodePoolExists(resourceName, &nodePool),
 					resource.TestCheckResourceAttr(resourceName, "cluster_name", clusterName),
@@ -51,7 +50,6 @@ func TestAccResourceNcloudNKSNodePool_updateNodeCountAndAutoScale(t *testing.T) 
 	var nodePool vnks.NodePoolRes
 	clusterName := getTestClusterName()
 	clusterType := "SVR.VNKS.STAND.C002.M008.NET.SSD.B050.G002"
-	k8sVersion := "1.20.11"
 	productCode := "SVR.VSVR.STAND.C002.M008.NET.SSD.B050.G002"
 	resourceName := "ncloud_nks_node_pool.node_pool"
 
@@ -61,7 +59,7 @@ func TestAccResourceNcloudNKSNodePool_updateNodeCountAndAutoScale(t *testing.T) 
 		CheckDestroy: testAccCheckNKSNodePoolDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccResourceNcloudNKSNodePoolConfig(clusterName, clusterType, k8sVersion, productCode, 2),
+				Config: testAccResourceNcloudNKSNodePoolConfig(clusterName, clusterType, productCode, 2),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckNKSNodePoolExists(resourceName, &nodePool),
 					resource.TestCheckResourceAttr(resourceName, "node_count", "2"),
@@ -69,7 +67,7 @@ func TestAccResourceNcloudNKSNodePool_updateNodeCountAndAutoScale(t *testing.T) 
 				Destroy: false,
 			},
 			{
-				Config: testAccResourceNcloudNKSNodePoolUpdateAutoScaleConfig(clusterName, clusterType, k8sVersion, productCode, 1),
+				Config: testAccResourceNcloudNKSNodePoolUpdateAutoScaleConfig(clusterName, clusterType, productCode, 1),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckNKSNodePoolExists(resourceName, &nodePool),
 					resource.TestCheckResourceAttr(resourceName, "node_count", "1"),
@@ -88,7 +86,6 @@ func TestAccResourceNcloudNKSNodePool_updateNodeCountAndAutoScale(t *testing.T) 
 func TestAccResourceNcloudNodePool_InvalidNodeCount(t *testing.T) {
 	clusterName := getTestClusterName()
 	clusterType := "SVR.VNKS.STAND.C002.M008.NET.SSD.B050.G002"
-	k8sVersion := "1.20.11"
 	productCode := "SVR.VSVR.STAND.C002.M008.NET.SSD.B050.G002"
 
 	resource.Test(t, resource.TestCase{
@@ -97,14 +94,14 @@ func TestAccResourceNcloudNodePool_InvalidNodeCount(t *testing.T) {
 		CheckDestroy: testAccCheckSubnetDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config:      testAccResourceNcloudNKSNodePoolConfig(clusterName, clusterType, k8sVersion, productCode, 0),
-				ExpectError: regexp.MustCompile("Invalid Node Count"),
+				Config:      testAccResourceNcloudNKSNodePoolConfig(clusterName, clusterType, productCode, 0),
+				ExpectError: regexp.MustCompile("nodeCount must not be less than 1"),
 			},
 		},
 	})
 }
 
-func testAccResourceNcloudNKSNodePoolConfig(name string, clusterType string, k8sVersion string, productCode string, nodeCount int) string {
+func testAccResourceNcloudNKSNodePoolConfig(name string, clusterType string, productCode string, nodeCount int) string {
 	return fmt.Sprintf(`
 resource "ncloud_login_key" "loginkey" {
   key_name = "%[1]s"
@@ -136,11 +133,6 @@ resource "ncloud_subnet" "subnet_lb" {
 }
 
 data "ncloud_nks_version" "version" {
-  filter {
-    name = "value"
-    values = ["%[3]s"]
-    regex = true
-  }
 }
 
 resource "ncloud_nks_cluster" "cluster" {
@@ -159,9 +151,9 @@ resource "ncloud_nks_cluster" "cluster" {
 resource "ncloud_nks_node_pool" "node_pool" {
   cluster_name = ncloud_nks_cluster.cluster.name
   node_pool_name = "%[1]s"
-  node_count     = %[5]d
-  product_code   = "%[4]s"
-  subnet_no_list              = [ ncloud_subnet.subnet.id ]
+  node_count     = %[4]d
+  product_code   = "%[3]s"
+  subnet_no      = ncloud_subnet.subnet.id
   autoscale {
     enabled = true
     min = 2
@@ -169,10 +161,10 @@ resource "ncloud_nks_node_pool" "node_pool" {
   }
 }
 
-`, name, clusterType, k8sVersion, productCode, nodeCount)
+`, name, clusterType, productCode, nodeCount)
 }
 
-func testAccResourceNcloudNKSNodePoolUpdateAutoScaleConfig(name string, clusterType string, k8sVersion string, productCode string, nodeCount int) string {
+func testAccResourceNcloudNKSNodePoolUpdateAutoScaleConfig(name string, clusterType string, productCode string, nodeCount int) string {
 	return fmt.Sprintf(`
 resource "ncloud_login_key" "loginkey" {
   key_name = "%[1]s"
@@ -204,11 +196,6 @@ resource "ncloud_subnet" "subnet_lb" {
 }
 
 data "ncloud_nks_version" "version" {
-  filter {
-    name = "value"
-    values = ["%[3]s"]
-    regex = true
-  }
 }
 
 resource "ncloud_nks_cluster" "cluster" {
@@ -227,16 +214,16 @@ resource "ncloud_nks_cluster" "cluster" {
 resource "ncloud_nks_node_pool" "node_pool" {
   cluster_name = ncloud_nks_cluster.cluster.name
   node_pool_name = "%[1]s"
-  node_count     = %[5]d
-  product_code   = "%[4]s"
-  subnet_no_list              = [ ncloud_subnet.subnet.id ]
+  node_count     = %[4]d
+  product_code   = "%[3]s"
+  subnet_no      = ncloud_subnet.subnet.id
   autoscale {
     enabled = false
     min = 0
     max = 0
   }
 }
-`, name, clusterType, k8sVersion, productCode, nodeCount)
+`, name, clusterType, productCode, nodeCount)
 }
 
 func testAccCheckNKSNodePoolExists(n string, nodePool *vnks.NodePoolRes) resource.TestCheckFunc {
