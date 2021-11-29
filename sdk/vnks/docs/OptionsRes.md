@@ -1,4 +1,4 @@
-# GetOptionVersion200Response
+# OptionsRes
 
 ## Properties
 Name | Type | Description | Notes

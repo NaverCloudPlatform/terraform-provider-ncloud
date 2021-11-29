@@ -62,7 +62,7 @@ resource "ncloud_nks_node_pool" "node_pool" {
   node_pool_name = "sample-nodepool"
   node_count     = 2
   product_code   = "SVR.VSVR.STAND.C002.M008.NET.SSD.B050.G002"
-  subnet_no_list = [ ncloud_subnet.subnet.id ]
+  subnet_no      = ncloud_subnet.subnet.id
   autoscale {
     enabled = true
     min = 1

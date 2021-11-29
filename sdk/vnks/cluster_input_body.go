@@ -25,11 +25,11 @@ type ClusterInputBody struct {
 	// Region의 코드
 	RegionCode *string `json:"regionCode"`
 
+	// zone 코드
+	ZoneCode *string `json:"zoneCode,omitempty"`
+
 	// Zone 번호
 	ZoneNo *int32 `json:"zoneNo,omitempty"`
-
-	// Zone
-	ZoneCode *string `json:"zoneCode,omitempty"`
 
 	// vpc의 No
 	VpcNo *int32 `json:"vpcNo"`
@@ -48,4 +48,10 @@ type ClusterInputBody struct {
 
 	// 추가 노드풀
 	NodePool []*NodePool `json:"nodePool,omitempty"`
+
+	// InitScript 번호
+	InitScriptNo *int32 `json:"initScriptNo,omitempty"`
+
+	// Pod Security Policy 설정 여부
+	PodSecurityPolicyEnabled *bool `json:"podSecurityPolicyEnabled,omitempty"`
 }

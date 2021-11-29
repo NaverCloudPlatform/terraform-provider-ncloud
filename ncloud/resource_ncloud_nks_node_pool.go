@@ -10,6 +10,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 	"github.com/terraform-providers/terraform-provider-ncloud/sdk/vnks"
 	"log"
+	"strconv"
 	"strings"
 	"time"
 )
@@ -65,17 +66,14 @@ func resourceNcloudNKSNodePool() *schema.Resource {
 				Type:     schema.TypeInt,
 				Required: true,
 			},
-			"subnet_no_list": {
-				Type:     schema.TypeList,
+			"subnet_no": {
+				Type:     schema.TypeString,
 				Optional: true,
 				Computed: true,
-				MaxItems: 1,
-				Elem:     &schema.Schema{Type: schema.TypeString},
 			},
-			"subnet_name_list": {
-				Type:     schema.TypeList,
+			"subnet_name": {
+				Type:     schema.TypeString,
 				Computed: true,
-				Elem:     &schema.Schema{Type: schema.TypeString},
 			},
 			"product_code": {
 				Type:     schema.TypeString,
@@ -129,16 +127,12 @@ func resourceNcloudNKSNodePoolCreate(ctx context.Context, d *schema.ResourceData
 		Name:        ncloud.String(nodePoolName),
 		NodeCount:   Int32PtrOrNil(d.GetOk("node_count")),
 		ProductCode: StringPtrOrNil(d.GetOk("product_code")),
+		SubnetNo:    getInt32FromString(d, "subnet_no"),
 	}
 
 	if _, ok := d.GetOk("autoscale"); ok {
-		reqParams.AutoscalerUpdate = expandAutoScaleUpdate(d.Get("autoscale").([]interface{}))
+		reqParams.Autoscale = expandAutoScale(d.Get("autoscale").([]interface{}))
 	}
-
-	// Todo: SubnetNo 로직 추가
-	//if _, ok := d.GetOk("subnet_no_list"); ok {
-	//	reqParams.SubnetNo = expandAutoScaleUpdate(d.Get("autoscale").([]interface{}))
-	//}
 
 	logCommonRequest("resourceNcloudNKSNodePoolCreate", reqParams)
 	err = config.Client.vnks.V2Api.ClustersUuidNodePoolPost(ctx, reqParams, cluster.Uuid)
@@ -178,16 +172,16 @@ func resourceNcloudNKSNodePoolRead(ctx context.Context, d *schema.ResourceData, 
 		return nil
 	}
 
+	d.Set("cluster_name", clusterName)
 	d.Set("instance_no", nodePool.InstanceNo)
 	d.Set("node_pool_name", nodePool.Name)
 	d.Set("status", nodePool.Status)
 	d.Set("product_code", nodePool.ProductCode)
-	d.Set("subnet_name_list", nodePool.SubnetNameList)
 	d.Set("node_count", nodePool.NodeCount)
+	d.Set("k8s_version", nodePool.K8sVersion)
+	d.Set("subnet_name", nodePool.SubnetNameList[0])
+	d.Set("subnet_no", strconv.Itoa(int(ncloud.Int32Value(nodePool.SubnetNoList[0]))))
 
-	if err := d.Set("subnet_no_list", flattenSubnetNoList(nodePool.SubnetNoList)); err != nil {
-		log.Printf("[WARN] Error setting subet no list set for (%s): %s", d.Id(), err)
-	}
 	if err := d.Set("autoscale", flattenAutoscale(nodePool.Autoscale)); err != nil {
 		log.Printf("[WARN] Error setting Autoscale set for (%s): %s", d.Id(), err)
 	}
@@ -218,7 +212,7 @@ func resourceNcloudNKSNodePoolUpdate(ctx context.Context, d *schema.ResourceData
 		}
 
 		if _, ok := d.GetOk("autoscale"); ok {
-			reqParams.Autoscale = expandAutoScaleUpdate(d.Get("autoscale").([]interface{}))
+			reqParams.Autoscale = expandAutoScale(d.Get("autoscale").([]interface{}))
 		}
 
 		err := config.Client.vnks.V2Api.ClustersUuidNodePoolInstanceNoPatch(ctx, reqParams, cluster.Uuid, strInstanceNo)
@@ -348,13 +342,6 @@ func getNKSNodePools(ctx context.Context, config *ProviderConfig, uuid *string) 
 	return resp.NodePool, nil
 }
 
-func flattenSubnetNoList(list []*int32) (res []*string) {
-	for _, v := range list {
-		res = append(res, ncloud.IntString(int(ncloud.Int32Value(v))))
-	}
-	return
-}
-
 func flattenAutoscale(ao *vnks.AutoscaleOption) (res []map[string]interface{}) {
 	if ao == nil {
 		return
@@ -368,7 +355,7 @@ func flattenAutoscale(ao *vnks.AutoscaleOption) (res []map[string]interface{}) {
 	return
 }
 
-func expandAutoScaleUpdate(as []interface{}) *vnks.AutoscalerUpdate {
+func expandAutoScale(as []interface{}) *vnks.AutoscalerUpdate {
 	if len(as) == 0 {
 		return nil
 	}

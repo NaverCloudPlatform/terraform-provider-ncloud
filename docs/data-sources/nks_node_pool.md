@@ -35,7 +35,7 @@ In addition to all arguments above, the following attributes are exported:
   * `enable` - Auto scaling availability.
   * `max` - Maximum number of nodes available for auto scaling.
   * `min` - Minimum number of nodes available for auto scaling.
-* `subnet_no_list` - Subnet No. list.
+* `subnet_no` - Subnet No.
 * `instance_no` - Instance No.
-* `subnet_name_list` - Subnet name list.
+* `subnet_name` - Subnet name.
 * `status` - Nodepool status.

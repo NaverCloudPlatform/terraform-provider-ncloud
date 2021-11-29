@@ -8,6 +8,10 @@
 
 package vnks
 
-type KubeConfigRes struct {
-	KubeConfig *string `json:"kubeconfig"`
+type OptionRes struct {
+	Label *string `json:"label"`
+
+	Value *string `json:"value"`
+
+	Disabled *bool `json:"disabled"`
 }

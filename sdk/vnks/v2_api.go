@@ -283,14 +283,14 @@ func (a *V2ApiService) ClustersUuidGet(ctx context.Context, uuid *string) (*Clus
 
 /* V2ApiService
 @param uuid uuid
-@return */
-func (a *V2ApiService) ClustersUuidKubeconfigGet(ctx context.Context, uuid *string) (*KubeConfigRes, error) {
+@return *KubeconfigRes*/
+func (a *V2ApiService) ClustersUuidKubeconfigGet(ctx context.Context, uuid *string) (*KubeconfigRes, error) {
 	var (
 		localVarHttpMethod = strings.ToUpper("Get")
 		localVarPostBody   interface{}
 		localVarFileName   string
 		localVarFileBytes  []byte
-		successPayload     KubeConfigRes
+		successPayload     KubeconfigRes
 	)
 
 	// create path and map variables
@@ -404,14 +404,14 @@ func (a *V2ApiService) ClustersUuidKubeconfigResetPatch(ctx context.Context, uui
 
 /* V2ApiService
 @param uuid uuid
-@return *NodePoolRes*/
-func (a *V2ApiService) ClustersUuidNodePoolGet(ctx context.Context, uuid *string) (*NodePoolResList, error) {
+@return *NodePoolsRes*/
+func (a *V2ApiService) ClustersUuidNodePoolGet(ctx context.Context, uuid *string) (*NodePoolsRes, error) {
 	var (
 		localVarHttpMethod = strings.ToUpper("Get")
 		localVarPostBody   interface{}
 		localVarFileName   string
 		localVarFileBytes  []byte
-		successPayload     NodePoolResList
+		successPayload     NodePoolsRes
 	)
 
 	// create path and map variables
@@ -726,14 +726,14 @@ func (a *V2ApiService) ClustersUuidNodesGet(ctx context.Context, uuid *string) (
 }
 
 /* V2ApiService
-@return *GetOptionVersion200Response*/
-func (a *V2ApiService) OptionVersionGet(ctx context.Context) (*[]Version, error) {
+@return *OptionsRes*/
+func (a *V2ApiService) OptionVersionGet(ctx context.Context) (*OptionsRes, error) {
 	var (
 		localVarHttpMethod = strings.ToUpper("Get")
 		localVarPostBody   interface{}
 		localVarFileName   string
 		localVarFileBytes  []byte
-		successPayload     []Version
+		successPayload     OptionsRes
 	)
 
 	// create path and map variables
@@ -774,7 +774,7 @@ func (a *V2ApiService) OptionVersionGet(ctx context.Context) (*[]Version, error)
 	defer localVarHttpResponse.Body.Close()
 	bodyBytes, _ := ioutil.ReadAll(localVarHttpResponse.Body)
 
-	if localVarHttpResponse.StatusCode >= 300 {
+	if localVarHttpResponse.StatusCode >= 300 && localVarHttpResponse.StatusCode != 204 {
 		return &successPayload, reportError("Status: %v, Body: %s", localVarHttpResponse.Status, bodyBytes)
 	}
 

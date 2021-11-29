@@ -13,14 +13,13 @@ func TestAccDataSourceNcloudNKSNodePool(t *testing.T) {
 	resourceName := "ncloud_nks_node_pool.node_pool"
 	testClusterName := getTestClusterName()
 	clusterType := "SVR.VNKS.STAND.C002.M008.NET.SSD.B050.G002"
-	nksVersion := "1.20"
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:  func() { testAccPreCheck(t) },
 		Providers: testAccProviders,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccDataSourceNKSNodePoolConfig(testClusterName, clusterType, nksVersion),
+				Config: testAccDataSourceNKSNodePoolConfig(testClusterName, clusterType),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckDataSourceID(dataName),
 					resource.TestCheckResourceAttrPair(dataName, "cluster_name", resourceName, "cluster_name"),
@@ -41,7 +40,7 @@ func TestAccDataSourceNcloudNKSNodePool(t *testing.T) {
 	})
 }
 
-func testAccDataSourceNKSNodePoolConfig(testClusterName string, clusterType string, nksVersion string) string {
+func testAccDataSourceNKSNodePoolConfig(testClusterName string, clusterType string) string {
 	return fmt.Sprintf(`
 resource "ncloud_login_key" "loginkey" {
   key_name = "%[1]s"
@@ -73,11 +72,7 @@ resource "ncloud_subnet" "subnet_lb" {
 }
 
 data "ncloud_nks_version" "version" {
-  filter {
-    name = "value"
-    values = ["%[3]s"]
-    regex = true
-  }
+
 }
 
 resource "ncloud_nks_cluster" "cluster" {
@@ -98,7 +93,7 @@ resource "ncloud_nks_node_pool" "node_pool" {
   node_pool_name = "%[1]s"
   node_count     = 1
   product_code   = "SVR.VSVR.STAND.C002.M008.NET.SSD.B050.G002"
-  subnet_no_list              = [ ncloud_subnet.subnet1.id ]
+  subnet_no      = ncloud_subnet.subnet1.id 
   autoscale {
     enabled = true
     min = 1
@@ -110,5 +105,5 @@ data "ncloud_nks_node_pool" "node_pool"{
   cluster_name    = ncloud_nks_node_pool.node_pool.cluster_name
   node_pool_name = ncloud_nks_node_pool.node_pool.node_pool_name
 }
-`, testClusterName, clusterType, nksVersion)
+`, testClusterName, clusterType)
 }

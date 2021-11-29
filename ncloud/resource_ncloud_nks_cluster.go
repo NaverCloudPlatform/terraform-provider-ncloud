@@ -139,34 +139,6 @@ func resourceNcloudNKSCluster() *schema.Resource {
 	}
 }
 
-func getInt32(d *schema.ResourceData, key string) *int32 {
-
-	if v, ok := d.GetOk(key); ok {
-		intV, err := strconv.Atoi(v.(string))
-		if err == nil {
-			return ncloud.Int32(int32(intV))
-		}
-	}
-	return nil
-}
-
-func getInt32List(d *schema.ResourceData, key string) (int32List []*int32) {
-	if list, ok := d.GetOk(key); ok {
-		int32List = stringListToInt32List(list.([]interface{}))
-	}
-	return
-}
-
-func stringListToInt32List(list []interface{}) (int32List []*int32) {
-	for _, v := range list {
-		intV, err := strconv.Atoi(v.(string))
-		if err == nil {
-			int32List = append(int32List, ncloud.Int32(int32(intV)))
-		}
-	}
-	return
-}
-
 func resourceNcloudNKSClusterCreate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	config := meta.(*ProviderConfig)
 	if !config.SupportVPC {
@@ -181,13 +153,16 @@ func resourceNcloudNKSClusterCreate(ctx context.Context, d *schema.ResourceData,
 		LoginKeyName: StringPtrOrNil(d.GetOk("login_key_name")),
 		K8sVersion:   StringPtrOrNil(d.GetOk("k8s_version")),
 		ZoneCode:     StringPtrOrNil(d.GetOk("zone")),
-		VpcNo:        getInt32(d, "vpc_no"),
-		SubnetNoList: getInt32List(d, "subnet_no_list"),
-		SubnetLbNo:   getInt32(d, "subnet_lb_no"),
+		VpcNo:        getInt32FromString(d, "vpc_no"),
+		SubnetLbNo:   getInt32FromString(d, "subnet_lb_no"),
 	}
 
-	if _, ok := d.GetOk("log"); ok {
-		reqParams.Log = expandLogInput(d.Get("log").([]interface{}))
+	if list, ok := d.GetOk("subnet_no_list"); ok {
+		reqParams.SubnetNoList = expandSubnetNoList(list.([]interface{}))
+	}
+
+	if log, ok := d.GetOk("log"); ok {
+		reqParams.Log = expandLogInput(log.([]interface{}))
 	}
 
 	logCommonRequest("resourceNcloudNKSClusterCreate", reqParams)
@@ -234,9 +209,9 @@ func resourceNcloudNKSClusterRead(ctx context.Context, d *schema.ResourceData, m
 	d.Set("login_key_name", cluster.LoginKeyName)
 	d.Set("k8s_version", cluster.K8sVersion)
 	d.Set("zone", cluster.ZoneCode)
-	d.Set("vpc_no", fmt.Sprintf("%d", *cluster.VpcNo))
+	d.Set("vpc_no", strconv.Itoa(int(ncloud.Int32Value(cluster.VpcNo))))
 	d.Set("vpc_name", cluster.VpcName)
-	d.Set("subnet_lb_no", fmt.Sprintf("%d", *cluster.SubnetLbNo))
+	d.Set("subnet_lb_no", strconv.Itoa(int(ncloud.Int32Value(cluster.SubnetLbNo))))
 	d.Set("subnet_lb_name", cluster.SubnetLbName)
 
 	if err := d.Set("subnet_no_list", flattenSubnetNoList(cluster.SubnetNoList)); err != nil {
@@ -298,7 +273,7 @@ func waitForNKSClusterDeletion(ctx context.Context, d *schema.ResourceData, conf
 func waitForNKSClusterActive(ctx context.Context, d *schema.ResourceData, config *ProviderConfig, name string) error {
 	stateConf := &resource.StateChangeConf{
 		Pending: []string{"CREATING", "WORKING"},
-		Target:  []string{"RUNNING"},
+		Target:  []string{"RUNNING", "NO_NODE"},
 		Refresh: func() (result interface{}, state string, err error) {
 			cluster, err := getNKSClusterWithName(ctx, config, name)
 			if err != nil {
@@ -334,26 +309,39 @@ func getNKSClusterWithName(ctx context.Context, config *ProviderConfig, name str
 	return nil, nil
 }
 
-func getNKSCluster(ctx context.Context, config *ProviderConfig, uuid string) (*vnks.Cluster, error) {
-
-	clusters, err := getNKSClusters(ctx, config)
-	if err != nil {
-		return nil, err
-	}
-	for _, cluster := range clusters {
-		if ncloud.StringValue(cluster.Uuid) == uuid {
-			return cluster, nil
-		}
-	}
-	return nil, nil
-}
-
 func getNKSClusters(ctx context.Context, config *ProviderConfig) ([]*vnks.Cluster, error) {
 	resp, err := config.Client.vnks.V2Api.ClustersGet(ctx)
 	if err != nil {
 		return nil, err
 	}
 	return resp.Clusters, nil
+}
+
+func getInt32FromString(d *schema.ResourceData, key string) *int32 {
+	if v, ok := d.GetOk(key); ok {
+		intV, err := strconv.Atoi(v.(string))
+		if err == nil {
+			return ncloud.Int32(int32(intV))
+		}
+	}
+	return nil
+}
+
+func expandSubnetNoList(list []interface{}) (res []*int32) {
+	for _, v := range list {
+		intV, err := strconv.Atoi(v.(string))
+		if err == nil {
+			res = append(res, ncloud.Int32(int32(intV)))
+		}
+	}
+	return res
+}
+
+func flattenSubnetNoList(list []*int32) (res []*string) {
+	for _, v := range list {
+		res = append(res, ncloud.IntString(int(ncloud.Int32Value(v))))
+	}
+	return
 }
 
 func expandLogInput(logList []interface{}) *vnks.ClusterLogInput {

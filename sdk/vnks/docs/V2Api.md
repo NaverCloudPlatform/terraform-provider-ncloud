@@ -117,7 +117,7 @@ Name | Type | Description  | Notes
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 
 # **ClustersUuidKubeconfigGet**
-> ClustersUuidKubeconfigGet(uuid)
+> KubeconfigRes ClustersUuidKubeconfigGet(uuid)
 
 
 ### Required Parameters
@@ -128,7 +128,7 @@ Name | Type | Description  | Notes
 
 ### Return type
 
- (empty response body)
+*[**KubeconfigRes**](KubeconfigRes.md)
 
 ### Authorization
 
@@ -167,7 +167,7 @@ Name | Type | Description  | Notes
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 
 # **ClustersUuidNodePoolGet**
-> NodePoolRes ClustersUuidNodePoolGet(uuid)
+> NodePoolsRes ClustersUuidNodePoolGet(uuid)
 
 
 ### Required Parameters
@@ -178,7 +178,7 @@ Name | Type | Description  | Notes
 
 ### Return type
 
-*[**NodePoolRes**](NodePoolRes.md)
+*[**NodePoolsRes**](NodePoolsRes.md)
 
 ### Authorization
 
@@ -292,7 +292,7 @@ Name | Type | Description  | Notes
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 
 # **OptionVersionGet**
-> GetOptionVersion200Response OptionVersionGet()
+> OptionsRes OptionVersionGet()
 
 
 ### Required Parameters
@@ -300,7 +300,7 @@ This endpoint does not need any parameter.
 
 ### Return type
 
-*[**GetOptionVersion200Response**](GetOptionVersion200Response.md)
+*[**OptionsRes**](OptionsRes.md)
 
 ### Authorization
 

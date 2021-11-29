@@ -13,7 +13,7 @@ func TestAccDataSourceNcloudVersionBasic(t *testing.T) {
 			{
 				Config: testAccDataSourceNcloudVersionConfig,
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckDataSourceID("data.ncloud_version.version"),
+					testAccCheckDataSourceID("data.ncloud_nks_version.versions"),
 				),
 			},
 		},
@@ -21,5 +21,5 @@ func TestAccDataSourceNcloudVersionBasic(t *testing.T) {
 }
 
 var testAccDataSourceNcloudVersionConfig = `
-data "ncloud_version" "versions" {}
+data "ncloud_nks_version" "versions" {}
 `
