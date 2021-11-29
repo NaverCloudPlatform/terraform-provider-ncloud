@@ -1,6 +1,6 @@
 # \V2Api
 
-All URIs are relative to *https://test0423.test-apigw.ntruss.com/vnks/v2*
+All URIs are relative to *https://nks.apigw.ntruss.com/vnks/v2*
 
 Method | HTTP request | Description
 ------------- | ------------- | -------------
