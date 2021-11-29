@@ -11,6 +11,7 @@ Name | Type | Description | Notes
 **SubnetNameList** | **[]\*string** | Subnet name list | [optional] [default to null]
 **ProductCode** | ***string** | 상품 코드 | [default to null]
 **Status** | ***string** | 노드풀 상태 | [default to null]
+**K8sVersion** | ***string** | k8s version | [optional] [default to null]
 **Autoscale** | **[*AutoscaleOption](AutoscaleOption.md)** | 오토스케일 | [default to null]
 
 [[Back to Model list]](../README.md#documentation-for-models) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to README]](../README.md)
