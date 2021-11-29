@@ -4,7 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"github.com/terraform-providers/terraform-provider-ncloud/sdk/vnks"
+	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/services/vnks"
 	"regexp"
 	"testing"
 

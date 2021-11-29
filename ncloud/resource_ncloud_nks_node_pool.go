@@ -4,11 +4,11 @@ import (
 	"context"
 	"fmt"
 	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/ncloud"
+	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/services/vnks"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
-	"github.com/terraform-providers/terraform-provider-ncloud/sdk/vnks"
 	"log"
 	"strconv"
 	"strings"
@@ -20,13 +20,10 @@ func init() {
 }
 
 const (
-//NKSOperationChangeCode             = "CHANG"
-//NKSOperationCreateCode             = "CREAT"
-//NKSOperationDisUseCode             = "DISUS"
-//NKSOperationNullCode               = "NULL"
-//NKSOperationPendingTerminationCode = "PTERM"
-//NKSOperationTerminateCode          = "TERMT"
-//NKSOperationUseCode                = "USE"
+	NKSNodePoolStatusRunCode       = "RUN"
+	NKSNodePoolStatusNodeScaleDown = "NODE_SCALE_DOWN"
+	NKSNodePoolStatusNodeScaleOut  = "NODE_SCALE_OUT"
+	NKSNodePoolIDSeparator         = ":"
 )
 
 func resourceNcloudNKSNodePool() *schema.Resource {
@@ -263,8 +260,8 @@ func resourceNcloudNKSNodePoolDelete(ctx context.Context, d *schema.ResourceData
 
 func waitForNKSNodePoolDeletion(ctx context.Context, d *schema.ResourceData, config *ProviderConfig) error {
 	stateConf := &resource.StateChangeConf{
-		Pending: []string{"NODE_SCALE_DOWN", "DELETING"},
-		Target:  []string{"NULL"},
+		Pending: []string{NKSNodePoolStatusNodeScaleDown, NKSStatusDeletingCode},
+		Target:  []string{NKSStatusNullCode},
 		Refresh: func() (result interface{}, state string, err error) {
 
 			clusterName, nodePoolName, err := NodePoolParseResourceID(d.Id())
@@ -279,7 +276,7 @@ func waitForNKSNodePoolDeletion(ctx context.Context, d *schema.ResourceData, con
 			}
 
 			if np == nil {
-				return nodePoolName, "NULL", nil
+				return nodePoolName, NKSStatusNullCode, nil
 			}
 
 			return np, ncloud.StringValue(np.Status), nil
@@ -297,15 +294,15 @@ func waitForNKSNodePoolDeletion(ctx context.Context, d *schema.ResourceData, con
 
 func waitForNKSNodePoolActive(ctx context.Context, d *schema.ResourceData, config *ProviderConfig, clusterId *string, name *string) error {
 	stateConf := &resource.StateChangeConf{
-		Pending: []string{"CREATING", "NODE_SCALE_OUT", "NODE_SCALE_DOWN"},
-		Target:  []string{"RUN"},
+		Pending: []string{NKSStatusCreatingCode, NKSNodePoolStatusNodeScaleOut, NKSNodePoolStatusNodeScaleDown},
+		Target:  []string{NKSNodePoolStatusRunCode},
 		Refresh: func() (result interface{}, state string, err error) {
 			np, err := getNKSNodePool(ctx, config, clusterId, name)
 			if err != nil {
 				return nil, "", err
 			}
 			if np == nil {
-				return np, "NULL", nil
+				return np, NKSStatusNullCode, nil
 			}
 			return np, ncloud.StringValue(np.Status), nil
 
@@ -367,21 +364,19 @@ func expandAutoScale(as []interface{}) *vnks.AutoscalerUpdate {
 	}
 }
 
-const nodePoolResourceIDSeparator = ":"
-
 func NodePoolCreateResourceID(clusterName, nodePoolName string) string {
 	parts := []string{clusterName, nodePoolName}
-	id := strings.Join(parts, nodePoolResourceIDSeparator)
+	id := strings.Join(parts, NKSNodePoolIDSeparator)
 
 	return id
 }
 
 func NodePoolParseResourceID(id string) (string, string, error) {
-	parts := strings.Split(id, nodePoolResourceIDSeparator)
+	parts := strings.Split(id, NKSNodePoolIDSeparator)
 
 	if len(parts) == 2 && parts[0] != "" && parts[1] != "" {
 		return parts[0], parts[1], nil
 	}
 
-	return "", "", fmt.Errorf("unexpected format for ID (%[1]s), expected cluster-name%[2]snode-pool-name", id, nodePoolResourceIDSeparator)
+	return "", "", fmt.Errorf("unexpected format for ID (%[1]s), expected cluster-name%[2]snode-pool-name", id, NKSNodePoolIDSeparator)
 }

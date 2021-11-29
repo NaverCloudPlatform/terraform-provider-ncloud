@@ -3,7 +3,7 @@ package ncloud
 import (
 	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/services/vautoscaling"
 	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/services/vloadbalancer"
-	"github.com/terraform-providers/terraform-provider-ncloud/sdk/vnks"
+	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/services/vnks"
 	"time"
 
 	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/services/vnas"

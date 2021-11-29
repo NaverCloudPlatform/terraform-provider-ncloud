@@ -4,11 +4,11 @@ import (
 	"context"
 	"fmt"
 	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/ncloud"
+	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/services/vnks"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
-	"github.com/terraform-providers/terraform-provider-ncloud/sdk/vnks"
 	"log"
 	"strconv"
 	"time"
@@ -19,13 +19,12 @@ func init() {
 }
 
 const (
-//NKSOperationChangeCode             = "CHANG"
-//NKSOperationCreateCode             = "CREAT"
-//NKSOperationDisUseCode             = "DISUS"
-//NKSOperationNullCode               = "NULL"
-//NKSOperationPendingTerminationCode = "PTERM"
-//NKSOperationTerminateCode          = "TERMT"
-//NKSOperationUseCode                = "USE"
+	NKSStatusCreatingCode = "CREATING"
+	NKSStatusWorkingCode  = "WORKING"
+	NKSStatusRunningCode  = "RUNNING"
+	NKSStatusDeletingCode = "DELETING"
+	NKSStatusNoNodeCode   = "NO_NODE"
+	NKSStatusNullCode     = "NULL"
 )
 
 func resourceNcloudNKSCluster() *schema.Resource {
@@ -248,15 +247,15 @@ func resourceNcloudNKSClusterDelete(ctx context.Context, d *schema.ResourceData,
 
 func waitForNKSClusterDeletion(ctx context.Context, d *schema.ResourceData, config *ProviderConfig) error {
 	stateConf := &resource.StateChangeConf{
-		Pending: []string{"DELETING"},
-		Target:  []string{"NULL"},
+		Pending: []string{NKSStatusDeletingCode},
+		Target:  []string{NKSStatusNullCode},
 		Refresh: func() (result interface{}, state string, err error) {
 			cluster, err := getNKSClusterWithName(ctx, config, d.Id())
 			if err != nil {
 				return nil, "", err
 			}
 			if cluster == nil {
-				return d.Id(), "NULL", nil
+				return d.Id(), NKSStatusNullCode, nil
 			}
 			return cluster, ncloud.StringValue(cluster.Status), nil
 		},
@@ -272,15 +271,15 @@ func waitForNKSClusterDeletion(ctx context.Context, d *schema.ResourceData, conf
 
 func waitForNKSClusterActive(ctx context.Context, d *schema.ResourceData, config *ProviderConfig, name string) error {
 	stateConf := &resource.StateChangeConf{
-		Pending: []string{"CREATING", "WORKING"},
-		Target:  []string{"RUNNING", "NO_NODE"},
+		Pending: []string{NKSStatusCreatingCode, NKSStatusWorkingCode},
+		Target:  []string{NKSStatusRunningCode, NKSStatusNoNodeCode},
 		Refresh: func() (result interface{}, state string, err error) {
 			cluster, err := getNKSClusterWithName(ctx, config, name)
 			if err != nil {
 				return nil, "", err
 			}
 			if cluster == nil {
-				return name, "NULL", nil
+				return name, NKSStatusNullCode, nil
 			}
 			return cluster, ncloud.StringValue(cluster.Status), nil
 
