@@ -81,14 +81,8 @@ In addition to all arguments above, the following attributes are exported:
 
 * `id` - The Name of Cluster.
 * `uuid` - Cluster uuid.
-* `acg_name` - Cluster ACG name.
-* `created_at` - Created date.
 * `endpoint` - Control Plane API address.
 * `region_code` - Region code.
-* `status` - Cluster status.
-* `subnet_lb_name` - Subnet Name for loadbalancer only.
-* `subnet_name` - Subnet Name list.
-* `vpc_name` - VPC name.
 
 ## Import
 

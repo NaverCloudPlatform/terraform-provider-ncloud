@@ -37,7 +37,7 @@ func resourceNcloudNKSNodePool() *schema.Resource {
 		},
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(DefaultCreateTimeout),
-			Update: schema.DefaultTimeout(DefaultUpdateTimeout),
+			Update: schema.DefaultTimeout(DefaultCreateTimeout),
 			Delete: schema.DefaultTimeout(DefaultUpdateTimeout),
 		},
 		Schema: map[string]*schema.Schema{
@@ -68,17 +68,9 @@ func resourceNcloudNKSNodePool() *schema.Resource {
 				Optional: true,
 				Computed: true,
 			},
-			"subnet_name": {
-				Type:     schema.TypeString,
-				Computed: true,
-			},
 			"product_code": {
 				Type:     schema.TypeString,
 				Required: true,
-			},
-			"status": {
-				Type:     schema.TypeString,
-				Computed: true,
 			},
 			"autoscale": {
 				Type:     schema.TypeList,
@@ -172,11 +164,9 @@ func resourceNcloudNKSNodePoolRead(ctx context.Context, d *schema.ResourceData, 
 	d.Set("cluster_name", clusterName)
 	d.Set("instance_no", nodePool.InstanceNo)
 	d.Set("node_pool_name", nodePool.Name)
-	d.Set("status", nodePool.Status)
 	d.Set("product_code", nodePool.ProductCode)
 	d.Set("node_count", nodePool.NodeCount)
 	d.Set("k8s_version", nodePool.K8sVersion)
-	d.Set("subnet_name", nodePool.SubnetNameList[0])
 	d.Set("subnet_no", strconv.Itoa(int(ncloud.Int32Value(nodePool.SubnetNoList[0]))))
 
 	if err := d.Set("autoscale", flattenAutoscale(nodePool.Autoscale)); err != nil {

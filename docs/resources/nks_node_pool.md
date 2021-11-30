@@ -88,8 +88,6 @@ In addition to all arguments above, the following attributes are exported:
 
 * `id` - The ID of nodepool.`CusterName:NodePoolName` 
 * `instance_no` - Instance No.
-* `subnet_name_list` - Subnet name list.
-* `status` - Nodepool status.
 
 ## Import
 

@@ -7,7 +7,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 )
 
-func TestAccDataSourceNcloudNKSNodePoolsBasic(t *testing.T) {
+func TestAccDataSourceNcloudNKSNodePools(t *testing.T) {
 
 	testClusterName := getTestClusterName()
 	clusterType := "SVR.VNKS.STAND.C002.M008.NET.SSD.B050.G002"

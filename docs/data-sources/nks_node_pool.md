@@ -37,5 +37,3 @@ In addition to all arguments above, the following attributes are exported:
   * `min` - Minimum number of nodes available for auto scaling.
 * `subnet_no` - Subnet No.
 * `instance_no` - Instance No.
-* `subnet_name` - Subnet name.
-* `status` - Nodepool status.

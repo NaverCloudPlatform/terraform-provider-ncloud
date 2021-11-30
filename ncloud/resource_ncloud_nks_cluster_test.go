@@ -48,7 +48,7 @@ func TestAccResourceNcloudNKSCluster_basic(t *testing.T) {
 }
 
 func TestAccResourceNcloudNKSCluster_InvalidSubnet(t *testing.T) {
-	name := fmt.Sprintf("test-nksdisappears-%s", acctest.RandString(5))
+	name := getTestClusterName()
 	clusterType := "SVR.VNKS.STAND.C002.M008.NET.SSD.B050.G002"
 	k8sVersion := "1.19.14"
 

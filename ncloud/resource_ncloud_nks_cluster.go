@@ -45,10 +45,6 @@ func resourceNcloudNKSCluster() *schema.Resource {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
-			"acg_name": {
-				Type:     schema.TypeString,
-				Computed: true,
-			},
 			"name": {
 				Type:             schema.TypeString,
 				ForceNew:         true,
@@ -61,23 +57,11 @@ func resourceNcloudNKSCluster() *schema.Resource {
 				Required:         true,
 				ForceNew:         true,
 			},
-			"created_at": {
-				Type:     schema.TypeString,
-				Computed: true,
-			},
 			"endpoint": {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
 			"region_code": {
-				Type:     schema.TypeString,
-				Computed: true,
-			},
-			"status": {
-				Type:     schema.TypeString,
-				Computed: true,
-			},
-			"subnet_name": {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
@@ -101,10 +85,6 @@ func resourceNcloudNKSCluster() *schema.Resource {
 				Required: true,
 				ForceNew: true,
 			},
-			"vpc_name": {
-				Type:     schema.TypeString,
-				Computed: true,
-			},
 			"subnet_no_list": {
 				Type:     schema.TypeList,
 				Required: true,
@@ -115,10 +95,6 @@ func resourceNcloudNKSCluster() *schema.Resource {
 				Type:     schema.TypeString,
 				Required: true,
 				ForceNew: true,
-			},
-			"subnet_lb_name": {
-				Type:     schema.TypeString,
-				Computed: true,
 			},
 			"log": {
 				Type:     schema.TypeList,
@@ -197,21 +173,15 @@ func resourceNcloudNKSClusterRead(ctx context.Context, d *schema.ResourceData, m
 
 	d.SetId(ncloud.StringValue(cluster.Name))
 	d.Set("uuid", cluster.Uuid)
-	d.Set("acg_name", cluster.AcgName)
 	d.Set("name", cluster.Name)
 	d.Set("cluster_type", cluster.ClusterType)
-	d.Set("created_at", cluster.CreatedAt)
 	d.Set("endpoint", cluster.Endpoint)
 	d.Set("region_code", cluster.RegionCode)
-	d.Set("status", cluster.Status)
-	d.Set("subnet_name", cluster.SubnetName)
 	d.Set("login_key_name", cluster.LoginKeyName)
 	d.Set("k8s_version", cluster.K8sVersion)
 	d.Set("zone", cluster.ZoneCode)
 	d.Set("vpc_no", strconv.Itoa(int(ncloud.Int32Value(cluster.VpcNo))))
-	d.Set("vpc_name", cluster.VpcName)
 	d.Set("subnet_lb_no", strconv.Itoa(int(ncloud.Int32Value(cluster.SubnetLbNo))))
-	d.Set("subnet_lb_name", cluster.SubnetLbName)
 
 	if err := d.Set("subnet_no_list", flattenSubnetNoList(cluster.SubnetNoList)); err != nil {
 		log.Printf("[WARN] Error setting subet no list set for (%s): %s", d.Id(), err)
