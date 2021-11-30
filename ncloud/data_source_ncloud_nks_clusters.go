@@ -14,7 +14,7 @@ func dataSourceNcloudNKSClusters() *schema.Resource {
 	return &schema.Resource{
 		ReadContext: dataSourceNcloudNKSClustersRead,
 		Schema: map[string]*schema.Schema{
-			"cluster_names": {
+			"cluster_uuids": {
 				Type:     schema.TypeSet,
 				Computed: true,
 				Elem:     &schema.Schema{Type: schema.TypeString},
@@ -34,13 +34,13 @@ func dataSourceNcloudNKSClustersRead(ctx context.Context, d *schema.ResourceData
 		return diag.FromErr(err)
 	}
 
-	var cNames []*string
+	var cUuids []*string
 	for _, cluster := range clusters {
-		cNames = append(cNames, cluster.Name)
+		cUuids = append(cUuids, cluster.Uuid)
 	}
 
 	d.SetId(config.RegionCode)
-	d.Set("cluster_names", cNames)
+	d.Set("cluster_uuids", cUuids)
 
 	return nil
 }

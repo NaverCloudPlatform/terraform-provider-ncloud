@@ -2,10 +2,8 @@ package ncloud
 
 import (
 	"context"
-	"fmt"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 )
 
 func init() {
@@ -16,10 +14,9 @@ func dataSourceNcloudNKSNodePools() *schema.Resource {
 	return &schema.Resource{
 		ReadContext: dataSourceNcloudNKSNodePoolsRead,
 		Schema: map[string]*schema.Schema{
-			"cluster_name": {
-				Type:             schema.TypeString,
-				Required:         true,
-				ValidateDiagFunc: ToDiagFunc(validation.StringLenBetween(3, 30)),
+			"cluster_uuid": {
+				Type:     schema.TypeString,
+				Required: true,
 			},
 			"node_pool_names": {
 				Type:     schema.TypeSet,
@@ -36,16 +33,9 @@ func dataSourceNcloudNKSNodePoolsRead(ctx context.Context, d *schema.ResourceDat
 		return diag.FromErr(NotSupportClassic("dataSource `ncloud_nks_node_pools`"))
 	}
 
-	clusterName := d.Get("cluster_name").(string)
-	cluster, err := getNKSClusterWithName(ctx, config, clusterName)
-	if err != nil {
-		return diag.FromErr(err)
-	}
-	if cluster == nil {
-		return diag.FromErr(fmt.Errorf("cluster \"%s\"  not found ", clusterName))
-	}
+	clusterUuid := d.Get("cluster_uuid").(string)
 
-	nodePools, err := getNKSNodePools(ctx, config, cluster.Uuid)
+	nodePools, err := getNKSNodePools(ctx, config, clusterUuid)
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -55,9 +45,9 @@ func dataSourceNcloudNKSNodePoolsRead(ctx context.Context, d *schema.ResourceDat
 		npNames = append(npNames, nodePool.Name)
 	}
 
-	d.SetId(clusterName)
+	d.SetId(clusterUuid)
 
-	d.Set("cluster_name", clusterName)
+	d.Set("cluster_uuid", clusterUuid)
 	d.Set("node_pool_names", npNames)
 
 	return nil

@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/ncloud"
 	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/services/vnks"
 	"regexp"
 	"testing"
@@ -19,16 +20,15 @@ func TestAccResourceNcloudNKSNodePool_basic(t *testing.T) {
 	productCode := "SVR.VSVR.STAND.C002.M008.NET.SSD.B050.G002"
 	resourceName := "ncloud_nks_node_pool.node_pool"
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckNKSClusterDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccResourceNcloudNKSNodePoolConfig(clusterName, clusterType, productCode, 2),
+				Config: testAccResourceNcloudNKSNodePoolConfig(clusterName, clusterType, productCode, 2, TF_TEST_NKS_LOGIN_KEY),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckNKSNodePoolExists(resourceName, &nodePool),
-					resource.TestCheckResourceAttr(resourceName, "cluster_name", clusterName),
 					resource.TestCheckResourceAttr(resourceName, "node_pool_name", clusterName),
 					resource.TestCheckResourceAttr(resourceName, "node_count", "2"),
 					resource.TestCheckResourceAttr(resourceName, "product_code", productCode),
@@ -53,13 +53,13 @@ func TestAccResourceNcloudNKSNodePool_updateNodeCountAndAutoScale(t *testing.T) 
 	productCode := "SVR.VSVR.STAND.C002.M008.NET.SSD.B050.G002"
 	resourceName := "ncloud_nks_node_pool.node_pool"
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckNKSNodePoolDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccResourceNcloudNKSNodePoolConfig(clusterName, clusterType, productCode, 2),
+				Config: testAccResourceNcloudNKSNodePoolConfig(clusterName, clusterType, productCode, 2, TF_TEST_NKS_LOGIN_KEY),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckNKSNodePoolExists(resourceName, &nodePool),
 					resource.TestCheckResourceAttr(resourceName, "node_count", "2"),
@@ -67,7 +67,7 @@ func TestAccResourceNcloudNKSNodePool_updateNodeCountAndAutoScale(t *testing.T) 
 				Destroy: false,
 			},
 			{
-				Config: testAccResourceNcloudNKSNodePoolUpdateAutoScaleConfig(clusterName, clusterType, productCode, 1),
+				Config: testAccResourceNcloudNKSNodePoolUpdateAutoScaleConfig(clusterName, clusterType, productCode, 1, TF_TEST_NKS_LOGIN_KEY),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckNKSNodePoolExists(resourceName, &nodePool),
 					resource.TestCheckResourceAttr(resourceName, "node_count", "1"),
@@ -83,30 +83,26 @@ func TestAccResourceNcloudNKSNodePool_updateNodeCountAndAutoScale(t *testing.T) 
 	})
 }
 
-func TestAccResourceNcloudNodePool_InvalidNodeCount(t *testing.T) {
+func TestAccResourceNcloudNKSNodePool_invalidNodeCount(t *testing.T) {
 	clusterName := getTestClusterName()
 	clusterType := "SVR.VNKS.STAND.C002.M008.NET.SSD.B050.G002"
 	productCode := "SVR.VSVR.STAND.C002.M008.NET.SSD.B050.G002"
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckSubnetDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config:      testAccResourceNcloudNKSNodePoolConfig(clusterName, clusterType, productCode, 0),
+				Config:      testAccResourceNcloudNKSNodePoolConfig(clusterName, clusterType, productCode, 0, TF_TEST_NKS_LOGIN_KEY),
 				ExpectError: regexp.MustCompile("nodeCount must not be less than 1"),
 			},
 		},
 	})
 }
 
-func testAccResourceNcloudNKSNodePoolConfig(name string, clusterType string, productCode string, nodeCount int) string {
+func testAccResourceNcloudNKSNodePoolConfig(name string, clusterType string, productCode string, nodeCount int, loginKey string) string {
 	return fmt.Sprintf(`
-resource "ncloud_login_key" "loginkey" {
-  key_name = "%[1]s"
-}
-
 resource "ncloud_vpc" "vpc" {
 	name               = "%[1]s"
 	ipv4_cidr_block    = "10.2.0.0/16"
@@ -132,14 +128,14 @@ resource "ncloud_subnet" "subnet_lb" {
 	usage_type         = "LOADB"
 }
 
-data "ncloud_nks_version" "version" {
+data "ncloud_nks_versions" "version" {
 }
 
 resource "ncloud_nks_cluster" "cluster" {
   name                        = "%[1]s"
   cluster_type                = "%[2]s"
-  k8s_version                 = data.ncloud_nks_version.version.versions.0.value
-  login_key_name              = ncloud_login_key.loginkey.key_name
+  k8s_version                 = data.ncloud_nks_versions.version.versions.0.value
+  login_key_name              = "%[5]s"
   subnet_lb_no                = ncloud_subnet.subnet_lb.id
   subnet_no_list              = [
     ncloud_subnet.subnet.id,
@@ -149,7 +145,7 @@ resource "ncloud_nks_cluster" "cluster" {
 }
 
 resource "ncloud_nks_node_pool" "node_pool" {
-  cluster_name = ncloud_nks_cluster.cluster.name
+  cluster_uuid   = ncloud_nks_cluster.cluster.uuid
   node_pool_name = "%[1]s"
   node_count     = %[4]d
   product_code   = "%[3]s"
@@ -161,15 +157,11 @@ resource "ncloud_nks_node_pool" "node_pool" {
   }
 }
 
-`, name, clusterType, productCode, nodeCount)
+`, name, clusterType, productCode, nodeCount, loginKey)
 }
 
-func testAccResourceNcloudNKSNodePoolUpdateAutoScaleConfig(name string, clusterType string, productCode string, nodeCount int) string {
+func testAccResourceNcloudNKSNodePoolUpdateAutoScaleConfig(name string, clusterType string, productCode string, nodeCount int, loginkey string) string {
 	return fmt.Sprintf(`
-resource "ncloud_login_key" "loginkey" {
-  key_name = "%[1]s"
-}
-
 resource "ncloud_vpc" "vpc" {
 	name               = "%[1]s"
 	ipv4_cidr_block    = "10.2.0.0/16"
@@ -195,14 +187,14 @@ resource "ncloud_subnet" "subnet_lb" {
 	usage_type         = "LOADB"
 }
 
-data "ncloud_nks_version" "version" {
+data "ncloud_nks_versions" "version" {
 }
 
 resource "ncloud_nks_cluster" "cluster" {
   name                        = "%[1]s"
   cluster_type                = "%[2]s"
-  k8s_version                 = data.ncloud_nks_version.version.versions.0.value
-  login_key_name              = ncloud_login_key.loginkey.key_name
+  k8s_version                 = data.ncloud_nks_versions.version.versions.0.value
+  login_key_name              = "%[5]s"
   subnet_lb_no                = ncloud_subnet.subnet_lb.id
   subnet_no_list              = [
     ncloud_subnet.subnet.id,
@@ -212,7 +204,7 @@ resource "ncloud_nks_cluster" "cluster" {
 }
 
 resource "ncloud_nks_node_pool" "node_pool" {
-  cluster_name = ncloud_nks_cluster.cluster.name
+  cluster_uuid   = ncloud_nks_cluster.cluster.uuid
   node_pool_name = "%[1]s"
   node_count     = %[4]d
   product_code   = "%[3]s"
@@ -223,7 +215,7 @@ resource "ncloud_nks_node_pool" "node_pool" {
     max = 0
   }
 }
-`, name, clusterType, productCode, nodeCount)
+`, name, clusterType, productCode, nodeCount, loginkey)
 }
 
 func testAccCheckNKSNodePoolExists(n string, nodePool *vnks.NodePoolRes) resource.TestCheckFunc {
@@ -237,21 +229,17 @@ func testAccCheckNKSNodePoolExists(n string, nodePool *vnks.NodePoolRes) resourc
 			return fmt.Errorf("No nodepool no is set")
 		}
 
-		clusterName, nodePoolName, err := NodePoolParseResourceID(rs.Primary.ID)
+		clusterUuid, nodePoolName, err := NodePoolParseResourceID(rs.Primary.ID)
 		if err != nil {
 			return fmt.Errorf("Id(%s) is not [ClusterName:NodePoolName] ", rs.Primary.ID)
 		}
-		config := testAccProvider.Meta().(*ProviderConfig)
 
-		cluster, err := getNKSClusterWithName(context.Background(), config, clusterName)
+		config := testAccProvider.Meta().(*ProviderConfig)
 		if err != nil {
 			return err
 		}
-		if cluster == nil {
-			return fmt.Errorf("Cluster(%s) not exists [ClusterName:NodePoolName] ", clusterName)
-		}
 
-		np, err := getNKSNodePool(context.Background(), config, cluster.Uuid, &nodePoolName)
+		np, err := getNKSNodePool(context.Background(), config, clusterUuid, nodePoolName)
 		if err != nil {
 			return err
 		}
@@ -270,27 +258,29 @@ func testAccCheckNKSNodePoolDestroy(s *terraform.State) error {
 			continue
 		}
 
-		clusterName, nodePoolName, err := NodePoolParseResourceID(rs.Primary.ID)
+		clusterUuid, nodePoolName, err := NodePoolParseResourceID(rs.Primary.ID)
 		if err != nil {
 			return fmt.Errorf("Id(%s) is not [ClusterName:NodePoolName] ", rs.Primary.ID)
 		}
 
-		cluster, err := getNKSClusterWithName(context.Background(), config, clusterName)
-		if err != nil {
-			return err
-		}
-		if cluster == nil {
-			return nil
-		}
-
-		np, err := getNKSNodePool(context.Background(), config, cluster.Uuid, &nodePoolName)
+		clusters, err := getNKSClusters(context.Background(), config)
 		if err != nil {
 			return err
 		}
 
-		if np != nil {
-			return errors.New("NodePool still exists")
+		for _, cluster := range clusters {
+			if ncloud.StringValue(cluster.Uuid) == clusterUuid {
+				np, err := getNKSNodePool(context.Background(), config, clusterUuid, nodePoolName)
+				if err != nil {
+					return err
+				}
+
+				if np != nil {
+					return errors.New("NodePool still exists")
+				}
+			}
 		}
+
 	}
 
 	return nil

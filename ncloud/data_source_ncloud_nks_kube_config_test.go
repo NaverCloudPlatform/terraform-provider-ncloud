@@ -14,15 +14,15 @@ func TestAccDataSourceNcloudNKSKubeConfig(t *testing.T) {
 	testClusterName := getTestClusterName()
 	clusterType := "SVR.VNKS.STAND.C002.M008.NET.SSD.B050.G002"
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:  func() { testAccPreCheck(t) },
 		Providers: testAccProviders,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccDataSourceNKSKubeConfigConfig(testClusterName, clusterType),
+				Config: testAccDataSourceNKSKubeConfigConfig(testClusterName, clusterType, TF_TEST_NKS_LOGIN_KEY),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckDataSourceID(dataName),
-					resource.TestCheckResourceAttrPair(dataName, "cluster_name", resourceName, "name"),
+					resource.TestCheckResourceAttrPair(dataName, "cluster_uuid", resourceName, "uuid"),
 					resource.TestCheckResourceAttrPair(dataName, "host", resourceName, "endpoint"),
 				),
 			},
@@ -30,12 +30,8 @@ func TestAccDataSourceNcloudNKSKubeConfig(t *testing.T) {
 	})
 }
 
-func testAccDataSourceNKSKubeConfigConfig(testClusterName string, clusterType string) string {
+func testAccDataSourceNKSKubeConfigConfig(testClusterName string, clusterType string, loginKey string) string {
 	return fmt.Sprintf(`
-resource "ncloud_login_key" "loginkey" {
-  key_name = "%[1]s"
-}
-
 resource "ncloud_vpc" "vpc" {
 	name               = "%[1]s"
 	ipv4_cidr_block    = "10.2.0.0/16"
@@ -71,15 +67,15 @@ resource "ncloud_subnet" "subnet_lb" {
 	usage_type         = "LOADB"
 }
 
-data "ncloud_nks_version" "version" {
+data "ncloud_nks_versions" "version" {
 
 }
 
 resource "ncloud_nks_cluster" "cluster" {
   name                        = "%[1]s"
   cluster_type                = "%[2]s"
-  k8s_version                 = data.ncloud_nks_version.version.versions.0.value
-  login_key_name              = ncloud_login_key.loginkey.key_name
+  k8s_version                 = data.ncloud_nks_versions.version.versions.0.value
+  login_key_name              = "%[3]s"
   subnet_lb_no                = ncloud_subnet.subnet_lb.id
   subnet_no_list              = [
     ncloud_subnet.subnet1.id,
@@ -90,9 +86,9 @@ resource "ncloud_nks_cluster" "cluster" {
 }
 
 data "ncloud_nks_kube_config" "kube_config" {
-	cluster_name = ncloud_nks_cluster.cluster.name
+	cluster_uuid = ncloud_nks_cluster.cluster.uuid
 }
 
 
-`, testClusterName, clusterType)
+`, testClusterName, clusterType, loginKey)
 }

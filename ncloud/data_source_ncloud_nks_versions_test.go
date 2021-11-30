@@ -5,7 +5,7 @@ import (
 	"testing"
 )
 
-func TestAccDataSourceNcloudVersionBasic(t *testing.T) {
+func TestAccDataSourceNcloudVersions(t *testing.T) {
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:  func() { testAccPreCheck(t) },
 		Providers: getTestAccProviders(true),
@@ -13,7 +13,7 @@ func TestAccDataSourceNcloudVersionBasic(t *testing.T) {
 			{
 				Config: testAccDataSourceNcloudVersionConfig,
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckDataSourceID("data.ncloud_nks_version.versions"),
+					testAccCheckDataSourceID("data.ncloud_nks_versions.versions"),
 				),
 			},
 		},
@@ -21,5 +21,5 @@ func TestAccDataSourceNcloudVersionBasic(t *testing.T) {
 }
 
 var testAccDataSourceNcloudVersionConfig = `
-data "ncloud_nks_version" "versions" {}
+data "ncloud_nks_versions" "versions" {}
 `

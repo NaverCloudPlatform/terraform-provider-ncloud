@@ -2,11 +2,11 @@ package ncloud
 
 import (
 	"context"
-	"fmt"
 	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/ncloud"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"log"
+	"strconv"
 )
 
 func init() {
@@ -19,11 +19,11 @@ func dataSourceNcloudNKSCluster() *schema.Resource {
 		Schema: map[string]*schema.Schema{
 			"uuid": {
 				Type:     schema.TypeString,
-				Computed: true,
+				Required: true,
 			},
 			"name": {
 				Type:     schema.TypeString,
-				Required: true,
+				Computed: true,
 			},
 			"cluster_type": {
 				Type:     schema.TypeString,
@@ -83,9 +83,9 @@ func dataSourceNcloudNKSClusterRead(ctx context.Context, d *schema.ResourceData,
 	if !config.SupportVPC {
 		return diag.FromErr(NotSupportClassic("dataSource `ncloud_nks_cluster`"))
 	}
-	name := d.Get("name").(string)
 
-	cluster, err := getNKSClusterWithName(ctx, config, name)
+	uuid := d.Get("uuid").(string)
+	cluster, err := getNKSCluster(ctx, config, uuid)
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -95,7 +95,7 @@ func dataSourceNcloudNKSClusterRead(ctx context.Context, d *schema.ResourceData,
 		return nil
 	}
 
-	d.SetId(ncloud.StringValue(cluster.Name))
+	d.SetId(ncloud.StringValue(cluster.Uuid))
 	d.Set("uuid", cluster.Uuid)
 	d.Set("name", cluster.Name)
 	d.Set("cluster_type", cluster.ClusterType)
@@ -104,10 +104,10 @@ func dataSourceNcloudNKSClusterRead(ctx context.Context, d *schema.ResourceData,
 	d.Set("login_key_name", cluster.LoginKeyName)
 	d.Set("k8s_version", cluster.K8sVersion)
 	d.Set("zone", cluster.ZoneCode)
-	d.Set("vpc_no", fmt.Sprintf("%d", *cluster.VpcNo))
-	d.Set("subnet_lb_no", fmt.Sprintf("%d", *cluster.SubnetLbNo))
+	d.Set("vpc_no", strconv.Itoa(int(ncloud.Int32Value(cluster.VpcNo))))
+	d.Set("subnet_lb_no", strconv.Itoa(int(ncloud.Int32Value(cluster.SubnetLbNo))))
 
-	if err := d.Set("subnet_no_list", flattenSubnetNoList(cluster.SubnetNoList)); err != nil {
+	if err := d.Set("subnet_no_list", flattenInt32ListToStringList(cluster.SubnetNoList)); err != nil {
 		log.Printf("[WARN] Error setting subet no list set for (%s): %s", d.Id(), err)
 	}
 

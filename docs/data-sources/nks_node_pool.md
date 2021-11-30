@@ -7,12 +7,12 @@ Provides a Kubernetes Service nodepool data.
 ### Basic Usage
 
 ```hcl
-variable "cluster_name" {}
+variable "cluster_uuid" {}
 variable "node_pool_name" {}
 
 data "ncloud_nks_node_pool" "node_pool"{
   node_pool_name = var.node_pool_name
-  cluster_name = var.cluster_name
+  cluster_uuid   = var.cluster_uuid
 }
 ```
 
@@ -21,14 +21,14 @@ data "ncloud_nks_node_pool" "node_pool"{
 The following arguments are supported:
 
 * `node_pool_name` - (Required) The name of nodepool.
-* `cluster_name` - (Required) The name of Cluster.
+* `cluster_uuid` - (Required) Cluster uuid.
 
 
 ## Attributes Reference
 
 In addition to all arguments above, the following attributes are exported:
 
-* `id` - The ID of nodepool.`CusterName:NodePoolName`
+* `id` - The ID of nodepool.`CusterUuid:NodePoolName`
 * `node_count` - Number of nodes.
 * `product_code` - Product code.
 * `autoscale`

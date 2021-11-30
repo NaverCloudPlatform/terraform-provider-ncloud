@@ -10,12 +10,12 @@ import (
 )
 
 func init() {
-	RegisterDataSource("ncloud_nks_version", dataSourceNcloudNKSVersion())
+	RegisterDataSource("ncloud_nks_versions", dataSourceNcloudNKSVersions())
 }
 
-func dataSourceNcloudNKSVersion() *schema.Resource {
+func dataSourceNcloudNKSVersions() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceNcloudVersionRead,
+		Read: dataSourceNcloudVersionsRead,
 
 		Schema: map[string]*schema.Schema{
 			"filter": dataSourceFiltersSchema(),
@@ -39,10 +39,10 @@ func dataSourceNcloudNKSVersion() *schema.Resource {
 	}
 }
 
-func dataSourceNcloudVersionRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceNcloudVersionsRead(d *schema.ResourceData, meta interface{}) error {
 	config := meta.(*ProviderConfig)
 	if !config.SupportVPC {
-		return NotSupportClassic("datasource `ncloud_nks_version`")
+		return NotSupportClassic("datasource `ncloud_nks_versions`")
 	}
 
 	resources, err := getNKSVersion(config)
@@ -51,7 +51,7 @@ func dataSourceNcloudVersionRead(d *schema.ResourceData, meta interface{}) error
 	}
 
 	if f, ok := d.GetOk("filter"); ok {
-		resources = ApplyFilters(f.(*schema.Set), resources, dataSourceNcloudNKSVersion().Schema["versions"].Elem.(*schema.Resource).Schema)
+		resources = ApplyFilters(f.(*schema.Set), resources, dataSourceNcloudNKSVersions().Schema["versions"].Elem.(*schema.Resource).Schema)
 	}
 
 	d.SetId(time.Now().UTC().String())

@@ -1,34 +1,14 @@
-# Data Source: ncloud_nks_version
+# Data Source: ncloud_nks_versions
 
 Gets a kubeconfig from Kubernetes Service cluster.
 
 ## Example Usage
 
 ```hcl
-variable "cluster_name" {}
+variable "cluster_uuid" {}
 
 data "ncloud_nks_kube_config" "kube_config"{
-  cluster_name = var.cluster_name
-}
-
-
-// Todo: 아래 k8s provider 사용 부분은 추가할지 논의 필요
-// Need Kubenetes Provider Below
-provider "kubernetes" {
-  host                   = "${data.ncloud_nks_kube_config.kube_config.host}"
-  client_certificate     = "${base64decode(data.ncloud_nks_kube_config.kube_config.client_certificate)}"
-  client_key             = "${base64decode(data.ncloud_nks_kube_config.kube_config.client_key)}"
-  cluster_ca_certificate = "${base64decode(data.ncloud_nks_kube_config.kube_config.cluster_ca_certificate)}"
-}
-
-data "kubernetes_all_namespaces" "allns" {}
-
-output "all-ns" {
-  value = data.kubernetes_all_namespaces.allns.namespaces
-}
-
-output "ns-present" {
-  value = contains(data.kubernetes_all_namespaces.allns.namespaces, "kube-system")
+  cluster_uuid = var.cluster_uuid
 }
 ```
 
@@ -36,11 +16,11 @@ output "ns-present" {
 
 The following arguments are supported:
 
-* `cluster_name` - (Required) Cluster Name.
+* `cluster_uuid` - (Required) Cluster uuid.
 
 ## Attributes Reference
 
-* `id` - Cluster Name.
+* `id` - Cluster uuid.
 * `host` - Host on kubeconfig.
 * `client_certificate` - Client certificate on kubeconfig.
 * `client_key` - Client key on kubeconfig.

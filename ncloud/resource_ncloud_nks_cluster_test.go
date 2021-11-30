@@ -2,8 +2,8 @@ package ncloud
 
 import (
 	"context"
-	"errors"
 	"fmt"
+	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/ncloud"
 	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/services/vnks"
 	"regexp"
 	"testing"
@@ -13,6 +13,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 )
 
+// Create LoginKey Before NKS Test
+const TF_TEST_NKS_LOGIN_KEY = "tf-test-nks-login-key"
+
 func TestAccResourceNcloudNKSCluster_basic(t *testing.T) {
 	var cluster vnks.Cluster
 	name := getTestClusterName()
@@ -20,19 +23,19 @@ func TestAccResourceNcloudNKSCluster_basic(t *testing.T) {
 	k8sVersion := "1.19.14-nks.1"
 	resourceName := "ncloud_nks_cluster.cluster"
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckNKSClusterDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccResourceNcloudNKSClusterConfig(name, clusterType, k8sVersion),
+				Config: testAccResourceNcloudNKSClusterConfig(name, clusterType, k8sVersion, TF_TEST_NKS_LOGIN_KEY),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckNKSClusterExists(resourceName, &cluster),
 					resource.TestCheckResourceAttr(resourceName, "name", name),
 					resource.TestCheckResourceAttr(resourceName, "cluster_type", clusterType),
 					resource.TestCheckResourceAttr(resourceName, "k8s_version", k8sVersion),
-					resource.TestCheckResourceAttr(resourceName, "login_key_name", name),
+					resource.TestCheckResourceAttr(resourceName, "login_key_name", TF_TEST_NKS_LOGIN_KEY),
 					resource.TestCheckResourceAttr(resourceName, "zone", "KR-1"),
 					resource.TestCheckResourceAttr(resourceName, "region_code", "KR"),
 					resource.TestMatchResourceAttr(resourceName, "vpc_no", regexp.MustCompile(`^\d+$`)),
@@ -52,25 +55,21 @@ func TestAccResourceNcloudNKSCluster_InvalidSubnet(t *testing.T) {
 	clusterType := "SVR.VNKS.STAND.C002.M008.NET.SSD.B050.G002"
 	k8sVersion := "1.19.14"
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckNKSClusterDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config:      testAccResourceNcloudNKSCluster_InvalidSubnetConfig(name, clusterType, k8sVersion),
+				Config:      testAccResourceNcloudNKSCluster_InvalidSubnetConfig(name, clusterType, k8sVersion, TF_TEST_NKS_LOGIN_KEY),
 				ExpectError: regexp.MustCompile("중 하나여야 합니다."),
 			},
 		},
 	})
 }
 
-func testAccResourceNcloudNKSClusterConfig(name string, clusterType string, k8sVersion string) string {
+func testAccResourceNcloudNKSClusterConfig(name string, clusterType string, k8sVersion string, loginKeyName string) string {
 	return fmt.Sprintf(`
-resource "ncloud_login_key" "loginkey" {
-  key_name = "%[1]s"
-}
-
 resource "ncloud_vpc" "vpc" {
 	name               = "%[1]s"
 	ipv4_cidr_block    = "10.2.0.0/16"
@@ -106,7 +105,7 @@ resource "ncloud_subnet" "subnet_lb" {
 	usage_type         = "LOADB"
 }
 
-data "ncloud_nks_version" "version" {
+data "ncloud_nks_versions" "version" {
   filter {
     name = "value"
     values = ["%[3]s"]
@@ -117,8 +116,8 @@ data "ncloud_nks_version" "version" {
 resource "ncloud_nks_cluster" "cluster" {
   name                        = "%[1]s"
   cluster_type                = "%[2]s"
-  k8s_version                 = data.ncloud_nks_version.version.versions.0.value
-  login_key_name              = ncloud_login_key.loginkey.key_name
+  k8s_version                 = data.ncloud_nks_versions.version.versions.0.value
+  login_key_name              = "%[4]s"
   subnet_lb_no                = ncloud_subnet.subnet_lb.id
   subnet_no_list              = [
     ncloud_subnet.subnet1.id,
@@ -127,15 +126,11 @@ resource "ncloud_nks_cluster" "cluster" {
   vpc_no                      = ncloud_vpc.vpc.vpc_no
   zone                        = "KR-1"
 }
-`, name, clusterType, k8sVersion)
+`, name, clusterType, k8sVersion, loginKeyName)
 }
 
-func testAccResourceNcloudNKSCluster_InvalidSubnetConfig(name string, clusterType string, k8sVersion string) string {
+func testAccResourceNcloudNKSCluster_InvalidSubnetConfig(name string, clusterType string, k8sVersion string, loginKeyName string) string {
 	return fmt.Sprintf(`
-resource "ncloud_login_key" "loginkey" {
-  key_name = "%[1]s"
-}
-
 resource "ncloud_vpc" "vpc" {
 	name               = "%[1]s"
 	ipv4_cidr_block    = "10.2.0.0/16"
@@ -171,7 +166,7 @@ resource "ncloud_subnet" "subnet_lb" {
 	usage_type         = "LOADB"
 }
 
-data "ncloud_nks_version" "version" {
+data "ncloud_nks_versions" "version" {
   filter {
     name = "value"
     values = ["%[3]s"]
@@ -182,8 +177,8 @@ data "ncloud_nks_version" "version" {
 resource "ncloud_nks_cluster" "cluster" {
   name                        = "%[1]s"
   cluster_type                = "%[2]s"
-  k8s_version                 = data.ncloud_nks_version.version.versions.0.value
-  login_key_name              = ncloud_login_key.loginkey.key_name
+  k8s_version                 = data.ncloud_nks_versions.version.versions.0.value
+  login_key_name              = "%[4]s"
   subnet_lb_no                = ncloud_subnet.subnet_lb.id
   subnet_no_list              = [
     ncloud_subnet.subnet1.id,
@@ -192,7 +187,7 @@ resource "ncloud_nks_cluster" "cluster" {
   vpc_no                      = ncloud_vpc.vpc.vpc_no
   zone                        = "KR-1"
 }
-`, name, clusterType, k8sVersion)
+`, name, clusterType, k8sVersion, loginKeyName)
 }
 
 func testAccCheckNKSClusterExists(n string, cluster *vnks.Cluster) resource.TestCheckFunc {
@@ -203,11 +198,11 @@ func testAccCheckNKSClusterExists(n string, cluster *vnks.Cluster) resource.Test
 		}
 
 		if rs.Primary.ID == "" {
-			return fmt.Errorf("No cluster name is set")
+			return fmt.Errorf("No cluster uuid is set")
 		}
 
 		config := testAccProvider.Meta().(*ProviderConfig)
-		resp, err := getNKSClusterWithName(context.Background(), config, rs.Primary.ID)
+		resp, err := getNKSCluster(context.Background(), config, rs.Primary.ID)
 		if err != nil {
 			return err
 		}
@@ -226,14 +221,15 @@ func testAccCheckNKSClusterDestroy(s *terraform.State) error {
 			continue
 		}
 
-		cluster, err := getNKSClusterWithName(context.Background(), config, rs.Primary.ID)
-
+		clusters, err := getNKSClusters(context.Background(), config)
 		if err != nil {
 			return err
 		}
 
-		if cluster != nil {
-			return errors.New("Cluster still exists")
+		for _, cluster := range clusters {
+			if ncloud.StringValue(cluster.Uuid) == rs.Primary.ID {
+				return fmt.Errorf("Cluster still exists")
+			}
 		}
 	}
 

@@ -1,13 +1,13 @@
-# Data Source: ncloud_nks_version
+# Data Source: ncloud_nks_versions
 
 Gets a list of available Kubernetes Service versions.
 
 ## Example Usage
 
 ```hcl
-data "ncloud_version" "versions" {}
+data "ncloud_nks_versions" "versions" {}
 
-data "ncloud_nks_version" "v1_20" {
+data "ncloud_nks_versions" "v1_20" {
   filter {
     name = "value"
     values = ["1.20"]

@@ -5,10 +5,10 @@ Provides a Kubernetes Service cluster data.
 ## Example Usage
 
 ```hcl
-variable "cluster_name" {}
+variable "cluster_uuid" {}
 
 data "ncloud_nks_cluster" "cluster"{
-  name = var.cluster_name
+  uuid = var.cluster_uuid
 }
 
 ```
@@ -17,14 +17,14 @@ data "ncloud_nks_cluster" "cluster"{
 
 The following arguments are supported:
 
-* `name` - (Required) Cluster name.
+* `uuid` - (Required) Cluster uuid.
 
 ## Attributes Reference
 
 In addition to all arguments above, the following attributes are exported:
 
-* `id` - Cluster name.
-* `uuid` - Cluster uuid.
+* `name` - Cluster name.
+* `id` - Cluster uuid.
 * `endpoint` - Control Plane API address.
 * `region_code` - Region code.
 * `subnet_lb` - Subnet No. for loadbalancer only.

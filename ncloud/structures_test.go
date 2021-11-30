@@ -1,6 +1,7 @@
 package ncloud
 
 import (
+	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/services/vnks"
 	"reflect"
 	"testing"
 
@@ -649,4 +650,144 @@ func TestFlattenArrayStructByKey(t *testing.T) {
 		t.Fatalf("result len(result) expected 0 but was %d", len(result))
 	}
 
+}
+
+func TestGetInt32FromString(t *testing.T) {
+
+	var tests = []struct {
+		input    string
+		expected int32
+	}{
+		{"1", 1},
+		{"-1", -1},
+		{"0", 0},
+		{"", 0},
+		{"foo", 0},
+	}
+
+	for k, v := range tests {
+		result := getInt32FromString(v.input, true)
+		if ncloud.Int32Value(result) != v.expected {
+			t.Fatalf("case %d: expected %d, but got %d", k, v.expected, result)
+		}
+	}
+
+	result := getInt32FromString("1", false)
+
+	if ncloud.Int32Value(result) != 0 {
+		t.Fatalf("result expected '0' but was %d", *result)
+	}
+}
+
+func TestExpandStringInterfaceListToInt32List(t *testing.T) {
+	initialList := []string{"1111", "2222", "3333"}
+	l := make([]interface{}, len(initialList))
+	for i, v := range initialList {
+		l[i] = v
+	}
+	int32List := expandStringInterfaceListToInt32List(l)
+	expected := []*int32{
+		ncloud.Int32(int32(1111)),
+		ncloud.Int32(int32(2222)),
+		ncloud.Int32(int32(3333)),
+	}
+	if !reflect.DeepEqual(int32List, expected) {
+		t.Fatalf(
+			"Got:\n\n%#v\n\nExpected:\n\n%#v\n",
+			int32List,
+			expected)
+	}
+}
+
+func TestFlattenInt32ListToStringList(t *testing.T) {
+	initialList := []*int32{
+		ncloud.Int32(int32(1111)),
+		ncloud.Int32(int32(2222)),
+		ncloud.Int32(int32(3333)),
+	}
+
+	stringList := flattenInt32ListToStringList(initialList)
+	expected := []*string{
+		ncloud.String("1111"),
+		ncloud.String("2222"),
+		ncloud.String("3333")}
+	if !reflect.DeepEqual(stringList, expected) {
+		t.Fatalf(
+			"Got:\n\n%#v\n\nExpected:\n\n%#v\n",
+			stringList,
+			expected)
+	}
+}
+
+func TestExpandNKSClusterLogInput(t *testing.T) {
+	log := []interface{}{
+		map[string]interface{}{
+			"audit": false,
+		},
+	}
+
+	result := expandNKSClusterLogInput(log)
+
+	if result == nil {
+		t.Fatal("result was nil")
+	}
+
+	if ncloud.BoolValue(result.Audit) != false {
+		t.Fatalf("expected false , but got %v", ncloud.BoolValue(result.Audit))
+	}
+}
+
+func TestFlattenNKSNodePoolAutoscale(t *testing.T) {
+	expanded := &vnks.AutoscaleOption{
+		Enabled: ncloud.Bool(true),
+		Max:     ncloud.Int32(2),
+		Min:     ncloud.Int32(2),
+	}
+
+	result := flattenNKSNodePoolAutoScale(expanded)
+
+	if result == nil {
+		t.Fatal("result was nil")
+	}
+
+	r := result[0]
+	if r["enabled"].(bool) != true {
+		t.Fatalf("expected result enabled to be true, but was %v", r["enabled"])
+	}
+
+	if r["min"].(int32) != 2 {
+		t.Fatalf("expected result min to be 2, but was %d", r["min"])
+	}
+
+	if r["max"].(int32) != 2 {
+		t.Fatalf("expected result max to be 2, but was %d", r["max"])
+	}
+}
+
+func TestExpandNKSNodePoolAutoScale(t *testing.T) {
+	autoscaleList := []interface{}{
+		map[string]interface{}{
+			"enabled": true,
+			"min":     2,
+			"max":     2,
+		},
+	}
+
+	result := expandNKSNodePoolAutoScale(autoscaleList)
+
+	if result == nil {
+		t.Fatal("result was nil")
+	}
+
+	if ncloud.BoolValue(result.Enabled) != true {
+		t.Fatalf("expected result true, but got %v", ncloud.BoolValue(result.Enabled))
+	}
+
+	if ncloud.Int32Value(result.Min) != int32(2) {
+		t.Fatalf("expected result 2, but got %d", ncloud.Int32Value(result.Min))
+	}
+
+	if ncloud.Int32Value(result.Max) != int32(2) {
+		t.Fatalf("expected result 2, but got %d", ncloud.Int32Value(result.Max))
+	}
 }

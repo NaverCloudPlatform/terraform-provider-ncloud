@@ -30,7 +30,7 @@ resource "ncloud_subnet" "subnet_lb" {
   usage_type     = "LOADB"
 }
 
-data "ncloud_nks_version" "version" {
+data "ncloud_nks_versions" "version" {
   filter {
     name = "value"
     values = ["1.20"]
@@ -44,7 +44,7 @@ resource "ncloud_login_key" "loginkey" {
 
 resource "ncloud_nks_cluster" "cluster" {
   cluster_type   = "SVR.VNKS.STAND.C002.M008.NET.SSD.B050.G002"
-  k8s_version    = data.ncloud_nks_version.version.versions.0.value
+  k8s_version    = data.ncloud_nks_versions.version.versions.0.value
   login_key_name = ncloud_login_key.loginkey.key_name
   name           = "sample-cluster"
   subnet_lb_no   = ncloud_subnet.subnet_lb.id
@@ -55,7 +55,7 @@ resource "ncloud_nks_cluster" "cluster" {
 }
 
 resource "ncloud_nks_node_pool" "node_pool" {
-  cluster_name   = ncloud_nks_cluster.cluster.name
+  cluster_uuid   = ncloud_nks_cluster.cluster.uuid
   node_pool_name = "sample-node-pool"
   node_count     = 1
   product_code   = "SVR.VSVR.STAND.C002.M008.NET.SSD.B050.G002"
@@ -73,7 +73,7 @@ resource "ncloud_nks_node_pool" "node_pool" {
 The following arguments are supported:
 
 * `node_pool_name` - (Required) Nodepool name. 
-* `cluster_name` - (Required) Cluster name.
+* `cluster_uuid` - (Required) Cluster uuid.
 * `node_count` - (Required) Number of nodes.
 * `product_code` - (Required) Product code.
 * `autoscale`- (Optional) 
@@ -86,11 +86,11 @@ The following arguments are supported:
 
 In addition to all arguments above, the following attributes are exported:
 
-* `id` - The ID of nodepool.`CusterName:NodePoolName` 
+* `id` - The ID of nodepool.`CusterUuid:NodePoolName` 
 * `instance_no` - Instance No.
 
 ## Import
 
 NKS Node Pools can be imported using the cluster_name and node_pool_name separated by a colon (:), e.g.,
 
-$ terraform import ncloud_nks_node_pool.my_node_pool my_cluster:my_node_pool
+$ terraform import ncloud_nks_node_pool.my_node_pool uuid:my_node_pool

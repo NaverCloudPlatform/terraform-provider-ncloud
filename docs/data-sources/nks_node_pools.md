@@ -5,27 +5,27 @@ Retrieve the NKS Node Pools associated with a named NKS cluster. This will allow
 ## Example Usage
 
 ```hcl
-var cluster_name {}
+var cluster_uuid {}
 
 data "ncloud_nks_node_pools" "node_pools"{
-  cluster_name = var.cluster_name
+  cluster_uuid = var.cluster_uuid
 }
 
 data "ncloud_nks_node_pool" "example"{
   for_each = data.ncloud_nks_node_pools.node_pools.node_pool_names
 
-  cluster_name    = var.cluster_name
+  cluster_uuid    = var.cluster_uuid
   node_pool_name = each.value
 }
 
 ```
 ## Argument Reference
 
-* `cluster_name` - (Required) The name of the cluster.
+* `cluster_uuid` - (Required) Cluster uuid.
 
 ## Attributes Reference
 
-* `id` - Cluster name.
+* `id` - Cluster uuid.
 * `node_pool_names` - Set of all node pool names in NKS Clusters.
 
 

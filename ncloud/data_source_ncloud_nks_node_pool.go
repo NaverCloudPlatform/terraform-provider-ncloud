@@ -2,7 +2,6 @@ package ncloud
 
 import (
 	"context"
-	"fmt"
 	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/ncloud"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
@@ -18,7 +17,7 @@ func dataSourceNcloudNKSNodePool() *schema.Resource {
 	return &schema.Resource{
 		ReadContext: dataSourceNcloudNKSNodePoolRead,
 		Schema: map[string]*schema.Schema{
-			"cluster_name": {
+			"cluster_uuid": {
 				Type:     schema.TypeString,
 				Required: true,
 			},
@@ -76,19 +75,11 @@ func dataSourceNcloudNKSNodePoolRead(ctx context.Context, d *schema.ResourceData
 		return diag.FromErr(NotSupportClassic("dataSource `ncloud_nks_node_pool`"))
 	}
 
-	clusterName := d.Get("cluster_name").(string)
+	clusterUuid := d.Get("cluster_uuid").(string)
 	nodePoolName := d.Get("node_pool_name").(string)
-	id := NodePoolCreateResourceID(clusterName, nodePoolName)
+	id := NodePoolCreateResourceID(clusterUuid, nodePoolName)
 
-	cluster, err := getNKSClusterWithName(ctx, config, clusterName)
-	if err != nil {
-		return diag.FromErr(err)
-	}
-	if cluster == nil {
-		return diag.FromErr(fmt.Errorf("cluster \"%s\"  not found ", clusterName))
-	}
-
-	nodePool, err := getNKSNodePool(ctx, config, cluster.Uuid, &nodePoolName)
+	nodePool, err := getNKSNodePool(ctx, config, clusterUuid, nodePoolName)
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -100,7 +91,7 @@ func dataSourceNcloudNKSNodePoolRead(ctx context.Context, d *schema.ResourceData
 
 	d.SetId(id)
 
-	d.Set("cluster_name", clusterName)
+	d.Set("cluster_uuid", clusterUuid)
 	d.Set("instance_no", nodePool.InstanceNo)
 	d.Set("node_pool_name", nodePool.Name)
 	d.Set("product_code", nodePool.ProductCode)
@@ -108,7 +99,7 @@ func dataSourceNcloudNKSNodePoolRead(ctx context.Context, d *schema.ResourceData
 	d.Set("k8s_version", nodePool.K8sVersion)
 	d.Set("subnet_no", strconv.Itoa(int(ncloud.Int32Value(nodePool.SubnetNoList[0]))))
 
-	if err := d.Set("autoscale", flattenAutoscale(nodePool.Autoscale)); err != nil {
+	if err := d.Set("autoscale", flattenNKSNodePoolAutoScale(nodePool.Autoscale)); err != nil {
 		log.Printf("[WARN] Error setting Autoscale set for (%s): %s", d.Id(), err)
 	}
 	return nil

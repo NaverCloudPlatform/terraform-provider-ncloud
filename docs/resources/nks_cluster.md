@@ -31,7 +31,7 @@ resource "ncloud_subnet" "subnet_lb" {
 }
 
 
-data "ncloud_nks_version" "version" {
+data "ncloud_nks_versions" "version" {
   filter {
     name = "value"
     values = ["1.20"]
@@ -46,7 +46,7 @@ resource "ncloud_login_key" "loginkey" {
 
 resource "ncloud_nks_cluster" "cluster" {
   cluster_type                = "SVR.VNKS.STAND.C002.M008.NET.SSD.B050.G002"
-  k8s_version                 = data.ncloud_nks_version.version.versions.0.value
+  k8s_version                 = data.ncloud_nks_versions.version.versions.0.value
   login_key_name              = ncloud_login_key.loginkey.key_name
   name                        = "sample-cluster"
   subnet_lb_no                = ncloud_subnet.subnet_lb.id
@@ -62,7 +62,7 @@ resource "ncloud_nks_cluster" "cluster" {
 
 The following arguments are supported:
 
-* `name` - (Required) Cluster name. (It is the same result as `id`)
+* `name` - (Required) Cluster name.
 * `cluster_type` -(Required) Cluster type. `Maximum number of nodes`
   * 10 ea : `SVR.VNKS.STAND.C002.M008.NET.SSD.B050.G002`
   * 50 ea : `SVR.VNKS.STAND.C004.M016.NET.SSD.B050.G002`
@@ -79,8 +79,8 @@ The following arguments are supported:
 
 In addition to all arguments above, the following attributes are exported:
 
-* `id` - The Name of Cluster.
-* `uuid` - Cluster uuid.
+* `id` - Cluster uuid.
+* `uuid` - Cluster uuid.  (It is the same result as `id`)
 * `endpoint` - Control Plane API address.
 * `region_code` - Region code.
 
@@ -88,5 +88,5 @@ In addition to all arguments above, the following attributes are exported:
 
 Kubernetes Service Cluster can be imported using the name, e.g.,
 
-$ terraform import ncloud_nks_cluster.my_cluster my_cluster
+$ terraform import ncloud_nks_cluster.my_cluster uuid
 

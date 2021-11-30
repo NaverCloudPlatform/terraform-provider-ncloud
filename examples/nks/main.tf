@@ -34,7 +34,7 @@ resource "ncloud_subnet" "lb_subnet" {
 }
 
 
-data "ncloud_nks_version" "version" {
+data "ncloud_nks_versions" "version" {
   filter {
     name = "value"
     values = [var.nks_version]
@@ -48,7 +48,7 @@ resource "ncloud_login_key" "loginkey" {
 
 resource "ncloud_nks_cluster" "cluster" {
   cluster_type                = "SVR.VNKS.STAND.C002.M008.NET.SSD.B050.G002"
-  k8s_version                 = data.ncloud_nks_version.version.versions.0.value
+  k8s_version                 = data.ncloud_nks_versions.version.versions.0.value
   login_key_name              = ncloud_login_key.loginkey.key_name
   name                        = "sample-cluster"
   subnet_lb_no                = ncloud_subnet.subnet_lb.id
@@ -58,7 +58,7 @@ resource "ncloud_nks_cluster" "cluster" {
 
 }
 resource "ncloud_nks_node_pool" "node_pool" {
-  cluster_name = ncloud_nks_cluster.cluster.name
+  cluster_uuid = ncloud_nks_cluster.cluster.uuid
   node_pool_name = "sample-nodepool"
   node_count     = 2
   product_code   = "SVR.VSVR.STAND.C002.M008.NET.SSD.B050.G002"
