@@ -72,7 +72,7 @@ func resourceNcloudNKSCluster() *schema.Resource {
 			},
 			"k8s_version": {
 				Type:     schema.TypeString,
-				Required: true,
+				Optional: true,
 				ForceNew: true,
 			},
 			"zone": {
