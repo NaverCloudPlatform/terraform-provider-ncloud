@@ -27,7 +27,6 @@ func TestAccDataSourceNcloudNKSCluster(t *testing.T) {
 					resource.TestCheckResourceAttrPair(dataName, "name", resourceName, "name"),
 					resource.TestCheckResourceAttrPair(dataName, "cluster_type", resourceName, "cluster_type"),
 					resource.TestCheckResourceAttrPair(dataName, "endpoint", resourceName, "endpoint"),
-					resource.TestCheckResourceAttrPair(dataName, "region_code", resourceName, "region_code"),
 					resource.TestCheckResourceAttrPair(dataName, "login_key_name", resourceName, "login_key_name"),
 					resource.TestCheckResourceAttrPair(dataName, "k8s_version", resourceName, "k8s_version"),
 					resource.TestCheckResourceAttrPair(dataName, "zone", resourceName, "zone"),

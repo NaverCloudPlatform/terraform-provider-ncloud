@@ -82,7 +82,6 @@ In addition to all arguments above, the following attributes are exported:
 * `id` - Cluster uuid.
 * `uuid` - Cluster uuid.  (It is the same result as `id`)
 * `endpoint` - Control Plane API address.
-* `region_code` - Region code.
 
 ## Import
 

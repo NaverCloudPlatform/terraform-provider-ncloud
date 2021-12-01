@@ -26,7 +26,6 @@ In addition to all arguments above, the following attributes are exported:
 * `name` - Cluster name.
 * `id` - Cluster uuid.
 * `endpoint` - Control Plane API address.
-* `region_code` - Region code.
 * `subnet_lb` - Subnet No. for loadbalancer only.
 * `subnet_no_list` - Subnet No. list.
 * `cluster_type` - Cluster type. `Maximum number of nodes`

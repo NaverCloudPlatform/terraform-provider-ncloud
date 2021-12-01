@@ -61,10 +61,6 @@ func resourceNcloudNKSCluster() *schema.Resource {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
-			"region_code": {
-				Type:     schema.TypeString,
-				Computed: true,
-			},
 			"login_key_name": {
 				Type:     schema.TypeString,
 				Required: true,
@@ -177,7 +173,6 @@ func resourceNcloudNKSClusterRead(ctx context.Context, d *schema.ResourceData, m
 	d.Set("name", cluster.Name)
 	d.Set("cluster_type", cluster.ClusterType)
 	d.Set("endpoint", cluster.Endpoint)
-	d.Set("region_code", cluster.RegionCode)
 	d.Set("login_key_name", cluster.LoginKeyName)
 	d.Set("k8s_version", cluster.K8sVersion)
 	d.Set("zone", cluster.ZoneCode)

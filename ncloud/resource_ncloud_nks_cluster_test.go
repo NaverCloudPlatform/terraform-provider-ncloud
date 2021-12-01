@@ -37,7 +37,6 @@ func TestAccResourceNcloudNKSCluster_basic(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "k8s_version", k8sVersion),
 					resource.TestCheckResourceAttr(resourceName, "login_key_name", TF_TEST_NKS_LOGIN_KEY),
 					resource.TestCheckResourceAttr(resourceName, "zone", "KR-1"),
-					resource.TestCheckResourceAttr(resourceName, "region_code", "KR"),
 					resource.TestMatchResourceAttr(resourceName, "vpc_no", regexp.MustCompile(`^\d+$`)),
 				),
 			},
