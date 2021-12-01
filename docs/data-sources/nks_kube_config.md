@@ -1,6 +1,6 @@
 # Data Source: ncloud_nks_versions
 
-Gets a kubeconfig from Kubernetes Service cluster.
+Provides a kubeconfig from Kubernetes Service cluster.
 
 ## Example Usage
 

@@ -1,6 +1,6 @@
 # Data Source: ncloud_nks_versions
 
-Gets a list of available Kubernetes Service versions.
+Provides list of available Kubernetes Service versions.
 
 ## Example Usage
 

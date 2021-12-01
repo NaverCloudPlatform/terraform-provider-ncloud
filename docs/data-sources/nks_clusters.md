@@ -1,6 +1,6 @@
 # Data Source: ncloud_nks_clusters
 
-Retrieve NKS Clusters list
+Provides list of Kubernetes Service cluster uuid.
 
 ## Example Usage
 

@@ -1,6 +1,6 @@
 # Data Source: ncloud_nks_clusters
 
-Retrieve the NKS Node Pools associated with a named NKS cluster. This will allow you to pass a list of Node Pool names to other resources.
+Provides list of Kubernetes Service nodepool name.
 
 ## Example Usage
 
