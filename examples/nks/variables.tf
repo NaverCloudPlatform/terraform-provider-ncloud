@@ -17,3 +17,7 @@ variable access_key {
 variable secret_key {
   default = "YOUR_SECRET_KEY"
 }
+
+variable login_key {
+  default = "YOUR_LOGIN_KEY"
+}

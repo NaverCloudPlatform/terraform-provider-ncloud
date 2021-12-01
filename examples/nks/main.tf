@@ -42,27 +42,26 @@ data "ncloud_nks_versions" "version" {
   }
 }
 resource "ncloud_login_key" "loginkey" {
-  key_name = "login-key"
+  key_name = var.login_key
 }
-
 
 resource "ncloud_nks_cluster" "cluster" {
   cluster_type                = "SVR.VNKS.STAND.C002.M008.NET.SSD.B050.G002"
   k8s_version                 = data.ncloud_nks_versions.version.versions.0.value
   login_key_name              = ncloud_login_key.loginkey.key_name
   name                        = "sample-cluster"
-  subnet_lb_no                = ncloud_subnet.subnet_lb.id
-  subnet_no_list              = [ ncloud_subnet.subnet.id ]
+  subnet_lb_no                = ncloud_subnet.lb_subnet.id
+  subnet_no_list              = [ ncloud_subnet.node_subnet.id ]
   vpc_no                      = ncloud_vpc.vpc.id
   zone                        = "KR-1"
 
 }
 resource "ncloud_nks_node_pool" "node_pool" {
   cluster_uuid = ncloud_nks_cluster.cluster.uuid
-  node_pool_name = "sample-nodepool"
-  node_count     = 2
+  node_pool_name = "pool1"
+  node_count     = 1
   product_code   = "SVR.VSVR.STAND.C002.M008.NET.SSD.B050.G002"
-  subnet_no      = ncloud_subnet.subnet.id
+  subnet_no      = ncloud_subnet.node_subnet.id
   autoscale {
     enabled = true
     min = 1
