@@ -44,9 +44,10 @@ func resourceNcloudNKSNodePool() *schema.Resource {
 			"cluster_uuid": {
 				Type:     schema.TypeString,
 				Required: true,
+				ForceNew: true,
 			},
 			"instance_no": {
-				Type:     schema.TypeInt,
+				Type:     schema.TypeString,
 				Computed: true,
 			},
 			"k8s_version": {
@@ -153,7 +154,7 @@ func resourceNcloudNKSNodePoolRead(ctx context.Context, d *schema.ResourceData, 
 	}
 
 	d.Set("cluster_uuid", clusterUuid)
-	d.Set("instance_no", nodePool.InstanceNo)
+	d.Set("instance_no", strconv.Itoa(int(ncloud.Int32Value(nodePool.InstanceNo))))
 	d.Set("node_pool_name", nodePool.Name)
 	d.Set("product_code", nodePool.ProductCode)
 	d.Set("node_count", nodePool.NodeCount)
@@ -177,7 +178,7 @@ func resourceNcloudNKSNodePoolUpdate(ctx context.Context, d *schema.ResourceData
 		return diag.FromErr(err)
 	}
 
-	instanceNo := strconv.Itoa(int(ncloud.Int32Value(Int32PtrOrNil(d.GetOk("instance_no")))))
+	instanceNo := StringPtrOrNil(d.GetOk("instance_no"))
 
 	if d.HasChanges("node_count", "autoscale") {
 		if err := waitForNKSNodePoolActive(ctx, d, config, clusterUuid, nodePoolName); err != nil {
@@ -191,7 +192,7 @@ func resourceNcloudNKSNodePoolUpdate(ctx context.Context, d *schema.ResourceData
 			reqParams.Autoscale = expandNKSNodePoolAutoScale(d.Get("autoscale").([]interface{}))
 		}
 
-		err := config.Client.vnks.V2Api.ClustersUuidNodePoolInstanceNoPatch(ctx, reqParams, ncloud.String(clusterUuid), ncloud.String(instanceNo))
+		err := config.Client.vnks.V2Api.ClustersUuidNodePoolInstanceNoPatch(ctx, reqParams, ncloud.String(clusterUuid), instanceNo)
 		if err != nil {
 			logErrorResponse("resourceNcloudNKSNodePoolUpdate", err, reqParams)
 			return diag.FromErr(err)
@@ -216,13 +217,13 @@ func resourceNcloudNKSNodePoolDelete(ctx context.Context, d *schema.ResourceData
 		return diag.FromErr(err)
 	}
 
-	instanceNo := strconv.Itoa(int(ncloud.Int32Value(Int32PtrOrNil(d.GetOk("instance_no")))))
+	instanceNo := StringPtrOrNil(d.GetOk("instance_no"))
 	if err := waitForNKSNodePoolActive(ctx, d, config, clusterUuid, nodePoolName); err != nil {
 		return diag.FromErr(err)
 	}
 
 	logCommonRequest("resourceNcloudNKSNodePoolDelete", d.Id())
-	if err := config.Client.vnks.V2Api.ClustersUuidNodePoolInstanceNoDelete(ctx, ncloud.String(clusterUuid), ncloud.String(instanceNo)); err != nil {
+	if err := config.Client.vnks.V2Api.ClustersUuidNodePoolInstanceNoDelete(ctx, ncloud.String(clusterUuid), instanceNo); err != nil {
 		logErrorResponse("resourceNcloudNKSNodePoolDelete", err, instanceNo)
 		return diag.FromErr(err)
 	}

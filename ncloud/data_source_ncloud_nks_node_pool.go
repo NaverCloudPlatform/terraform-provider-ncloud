@@ -22,7 +22,7 @@ func dataSourceNcloudNKSNodePool() *schema.Resource {
 				Required: true,
 			},
 			"instance_no": {
-				Type:     schema.TypeInt,
+				Type:     schema.TypeString,
 				Computed: true,
 			},
 			"k8s_version": {
@@ -92,7 +92,7 @@ func dataSourceNcloudNKSNodePoolRead(ctx context.Context, d *schema.ResourceData
 	d.SetId(id)
 
 	d.Set("cluster_uuid", clusterUuid)
-	d.Set("instance_no", nodePool.InstanceNo)
+	d.Set("instance_no", strconv.Itoa(int(ncloud.Int32Value(nodePool.InstanceNo))))
 	d.Set("node_pool_name", nodePool.Name)
 	d.Set("product_code", nodePool.ProductCode)
 	d.Set("node_count", nodePool.NodeCount)
