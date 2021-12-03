@@ -28,10 +28,6 @@ func TestAccDataSourceNcloudNKSNodePools(t *testing.T) {
 
 func testAccDataSourceNcloudNKSNodePoolsConfig(testClusterName string, clusterType string, loginKey string) string {
 	return fmt.Sprintf(`
-resource "ncloud_login_key" "loginkey" {
-  key_name = "%[1]s"
-}
-
 resource "ncloud_vpc" "vpc" {
 	name               = "%[1]s"
 	ipv4_cidr_block    = "10.2.0.0/16"
@@ -74,7 +70,7 @@ resource "ncloud_nks_cluster" "cluster" {
   cluster_type                = "%[2]s"
   k8s_version                 = data.ncloud_nks_versions.version.versions.0.value
   login_key_name              = "%[3]s"
-  subnet_lb_no                = ncloud_subnet.subnet_lb.id
+  lb_subnet_no                = ncloud_subnet.subnet_lb.id
   subnet_no_list              = [
     ncloud_subnet.subnet1.id,
     ncloud_subnet.subnet2.id,

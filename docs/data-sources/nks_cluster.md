@@ -26,7 +26,8 @@ In addition to all arguments above, the following attributes are exported:
 * `name` - Cluster name.
 * `id` - Cluster uuid.
 * `endpoint` - Control Plane API address.
-* `subnet_lb` - Subnet No. for loadbalancer only.
+* `lb_subnet_no` - Subnet No. for loadbalancer only.
+* `lb_public_subnet_no` - Subnet No. for Public loadbalancer only. (Available only `SGN` region`)
 * `subnet_no_list` - Subnet No. list.
 * `cluster_type` - Cluster type. `Maximum number of nodes`
   * 10 ea : `SVR.VNKS.STAND.C002.M008.NET.SSD.B050.G002`

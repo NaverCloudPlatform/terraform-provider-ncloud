@@ -20,7 +20,7 @@ func TestAccResourceNcloudNKSCluster_basic(t *testing.T) {
 	var cluster vnks.Cluster
 	name := getTestClusterName()
 	clusterType := "SVR.VNKS.STAND.C002.M008.NET.SSD.B050.G002"
-	k8sVersion := "1.19.14-nks.1"
+	k8sVersion := "1.19"
 	resourceName := "ncloud_nks_cluster.cluster"
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -34,7 +34,7 @@ func TestAccResourceNcloudNKSCluster_basic(t *testing.T) {
 					testAccCheckNKSClusterExists(resourceName, &cluster),
 					resource.TestCheckResourceAttr(resourceName, "name", name),
 					resource.TestCheckResourceAttr(resourceName, "cluster_type", clusterType),
-					resource.TestCheckResourceAttr(resourceName, "k8s_version", k8sVersion),
+					resource.TestMatchResourceAttr(resourceName, "k8s_version", regexp.MustCompile(k8sVersion)),
 					resource.TestCheckResourceAttr(resourceName, "login_key_name", TF_TEST_NKS_LOGIN_KEY),
 					resource.TestCheckResourceAttr(resourceName, "zone", "KR-1"),
 					resource.TestMatchResourceAttr(resourceName, "vpc_no", regexp.MustCompile(`^\d+$`)),
@@ -52,7 +52,7 @@ func TestAccResourceNcloudNKSCluster_basic(t *testing.T) {
 func TestAccResourceNcloudNKSCluster_InvalidSubnet(t *testing.T) {
 	name := getTestClusterName()
 	clusterType := "SVR.VNKS.STAND.C002.M008.NET.SSD.B050.G002"
-	k8sVersion := "1.19.14"
+	k8sVersion := "1.19"
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -117,7 +117,7 @@ resource "ncloud_nks_cluster" "cluster" {
   cluster_type                = "%[2]s"
   k8s_version                 = data.ncloud_nks_versions.version.versions.0.value
   login_key_name              = "%[4]s"
-  subnet_lb_no                = ncloud_subnet.subnet_lb.id
+  lb_subnet_no                = ncloud_subnet.subnet_lb.id
   subnet_no_list              = [
     ncloud_subnet.subnet1.id,
     ncloud_subnet.subnet2.id,
@@ -178,7 +178,7 @@ resource "ncloud_nks_cluster" "cluster" {
   cluster_type                = "%[2]s"
   k8s_version                 = data.ncloud_nks_versions.version.versions.0.value
   login_key_name              = "%[4]s"
-  subnet_lb_no                = ncloud_subnet.subnet_lb.id
+  lb_subnet_no                = ncloud_subnet.subnet_lb.id
   subnet_no_list              = [
     ncloud_subnet.subnet1.id,
     ncloud_subnet.subnet2.id,

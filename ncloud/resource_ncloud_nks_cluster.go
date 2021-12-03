@@ -69,6 +69,7 @@ func resourceNcloudNKSCluster() *schema.Resource {
 			"k8s_version": {
 				Type:     schema.TypeString,
 				Optional: true,
+				Computed: true,
 				ForceNew: true,
 			},
 			"zone": {
@@ -87,9 +88,14 @@ func resourceNcloudNKSCluster() *schema.Resource {
 				ForceNew: true,
 				Elem:     &schema.Schema{Type: schema.TypeString},
 			},
-			"subnet_lb_no": {
+			"lb_subnet_no": {
 				Type:     schema.TypeString,
 				Required: true,
+				ForceNew: true,
+			},
+			"lb_public_subnet_no": {
+				Type:     schema.TypeString,
+				Optional: true,
 				ForceNew: true,
 			},
 			"log": {
@@ -119,13 +125,14 @@ func resourceNcloudNKSClusterCreate(ctx context.Context, d *schema.ResourceData,
 	reqParams := &vnks.ClusterInputBody{
 		RegionCode: &config.RegionCode,
 		//Required
-		Name:         StringPtrOrNil(d.GetOk("name")),
-		ClusterType:  StringPtrOrNil(d.GetOk("cluster_type")),
-		LoginKeyName: StringPtrOrNil(d.GetOk("login_key_name")),
-		K8sVersion:   StringPtrOrNil(d.GetOk("k8s_version")),
-		ZoneCode:     StringPtrOrNil(d.GetOk("zone")),
-		VpcNo:        getInt32FromString(d.GetOk("vpc_no")),
-		SubnetLbNo:   getInt32FromString(d.GetOk("subnet_lb_no")),
+		Name:             StringPtrOrNil(d.GetOk("name")),
+		ClusterType:      StringPtrOrNil(d.GetOk("cluster_type")),
+		LoginKeyName:     StringPtrOrNil(d.GetOk("login_key_name")),
+		K8sVersion:       StringPtrOrNil(d.GetOk("k8s_version")),
+		ZoneCode:         StringPtrOrNil(d.GetOk("zone")),
+		VpcNo:            getInt32FromString(d.GetOk("vpc_no")),
+		SubnetLbNo:       getInt32FromString(d.GetOk("lb_subnet_no")),
+		LbPublicSubnetNo: getInt32FromString(d.GetOk("lb_public_subnet_no")),
 	}
 
 	if list, ok := d.GetOk("subnet_no_list"); ok {
@@ -177,7 +184,10 @@ func resourceNcloudNKSClusterRead(ctx context.Context, d *schema.ResourceData, m
 	d.Set("k8s_version", cluster.K8sVersion)
 	d.Set("zone", cluster.ZoneCode)
 	d.Set("vpc_no", strconv.Itoa(int(ncloud.Int32Value(cluster.VpcNo))))
-	d.Set("subnet_lb_no", strconv.Itoa(int(ncloud.Int32Value(cluster.SubnetLbNo))))
+	d.Set("lb_subnet_no", strconv.Itoa(int(ncloud.Int32Value(cluster.SubnetLbNo))))
+	if cluster.LbPublicSubnetNo != nil {
+		d.Set("lb_public_subnet_no", strconv.Itoa(int(ncloud.Int32Value(cluster.LbPublicSubnetNo))))
+	}
 
 	if err := d.Set("subnet_no_list", flattenInt32ListToStringList(cluster.SubnetNoList)); err != nil {
 		log.Printf("[WARN] Error setting subet no list set for (%s): %s", d.Id(), err)
