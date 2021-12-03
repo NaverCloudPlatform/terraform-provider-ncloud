@@ -49,7 +49,7 @@ resource "ncloud_nks_cluster" "cluster" {
   k8s_version                 = data.ncloud_nks_versions.version.versions.0.value
   login_key_name              = ncloud_login_key.loginkey.key_name
   name                        = "sample-cluster"
-  subnet_lb_no                = ncloud_subnet.subnet_lb.id
+  lb_subnet_no                = ncloud_subnet.subnet_lb.id
   subnet_no_list              = [ ncloud_subnet.subnet.id ]
   vpc_no                      = ncloud_vpc.vpc.id
   zone                        = "KR-1"
@@ -70,7 +70,8 @@ The following arguments are supported:
 * `zone` - (Required) zone Code.
 * `vpc_no` - (Required) VPC No.
 * `subnet_no_list` - (Required) Subnet No. list.
-* `subnet_lb` - (Required) Subnet No. for loadbalancer only.
+* `lb_subnet_no` - (Required) Subnet No. for loadbalancer only.
+* `lb_public_subnet_no` - (Optional) Subnet No. for Public loadbalancer only. (Available only `SGN` region`)
 * `log` - (Optional)
   * `audit` - (Required) Audit log availability.
 * `k8s_version` - (Optional) Kubenretes version .

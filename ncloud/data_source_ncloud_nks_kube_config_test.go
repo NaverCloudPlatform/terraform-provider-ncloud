@@ -76,7 +76,7 @@ resource "ncloud_nks_cluster" "cluster" {
   cluster_type                = "%[2]s"
   k8s_version                 = data.ncloud_nks_versions.version.versions.0.value
   login_key_name              = "%[3]s"
-  subnet_lb_no                = ncloud_subnet.subnet_lb.id
+  lb_subnet_no                = ncloud_subnet.subnet_lb.id
   subnet_no_list              = [
     ncloud_subnet.subnet1.id,
     ncloud_subnet.subnet2.id,
