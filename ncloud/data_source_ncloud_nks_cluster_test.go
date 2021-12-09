@@ -33,6 +33,7 @@ func TestAccDataSourceNcloudNKSCluster(t *testing.T) {
 					resource.TestCheckResourceAttrPair(dataName, "vpc_no", resourceName, "vpc_no"),
 					resource.TestCheckResourceAttrPair(dataName, "lb_subnet_no", resourceName, "lb_subnet_no"),
 					resource.TestCheckResourceAttrPair(dataName, "lb_public_subnet_no", resourceName, "lb_public_subnet_no"),
+					resource.TestCheckResourceAttrPair(dataName, "kube_network_plugin", resourceName, "kube_network_plugin"),
 					resource.TestCheckResourceAttrPair(dataName, "subnet_no_list.#", resourceName, "subnet_no_list.#"),
 					resource.TestCheckResourceAttrPair(dataName, "subnet_no_list.0", resourceName, "subnet_no_list.0"),
 				),
@@ -87,6 +88,7 @@ resource "ncloud_nks_cluster" "cluster" {
   k8s_version                 = data.ncloud_nks_versions.version.versions.0.value
   login_key_name              = "%[3]s"
   lb_subnet_no                = ncloud_subnet.subnet_lb.id
+  kube_network_plugin         = "cilium"
   subnet_no_list              = [
     ncloud_subnet.subnet1.id,
     ncloud_subnet.subnet2.id,

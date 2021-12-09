@@ -62,6 +62,12 @@ func dataSourceNcloudNKSCluster() *schema.Resource {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
+			"kube_network_plugin": {
+				Type:     schema.TypeString,
+				Optional: true,
+				Computed: true,
+				ForceNew: true,
+			},
 			"log": {
 				Type:     schema.TypeList,
 				Computed: true,
@@ -105,6 +111,7 @@ func dataSourceNcloudNKSClusterRead(ctx context.Context, d *schema.ResourceData,
 	d.Set("zone", cluster.ZoneCode)
 	d.Set("vpc_no", strconv.Itoa(int(ncloud.Int32Value(cluster.VpcNo))))
 	d.Set("lb_subnet_no", strconv.Itoa(int(ncloud.Int32Value(cluster.SubnetLbNo))))
+	d.Set("kube_network_plugin", cluster.KubeNetworkPlugin)
 	if cluster.LbPublicSubnetNo != nil {
 		d.Set("lb_public_subnet_no", strconv.Itoa(int(ncloud.Int32Value(cluster.LbPublicSubnetNo))))
 	}

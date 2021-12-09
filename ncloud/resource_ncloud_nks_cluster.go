@@ -98,6 +98,12 @@ func resourceNcloudNKSCluster() *schema.Resource {
 				Optional: true,
 				ForceNew: true,
 			},
+			"kube_network_plugin": {
+				Type:     schema.TypeString,
+				Optional: true,
+				Computed: true,
+				ForceNew: true,
+			},
 			"log": {
 				Type:     schema.TypeList,
 				MaxItems: 1,
@@ -125,14 +131,15 @@ func resourceNcloudNKSClusterCreate(ctx context.Context, d *schema.ResourceData,
 	reqParams := &vnks.ClusterInputBody{
 		RegionCode: &config.RegionCode,
 		//Required
-		Name:             StringPtrOrNil(d.GetOk("name")),
-		ClusterType:      StringPtrOrNil(d.GetOk("cluster_type")),
-		LoginKeyName:     StringPtrOrNil(d.GetOk("login_key_name")),
-		K8sVersion:       StringPtrOrNil(d.GetOk("k8s_version")),
-		ZoneCode:         StringPtrOrNil(d.GetOk("zone")),
-		VpcNo:            getInt32FromString(d.GetOk("vpc_no")),
-		SubnetLbNo:       getInt32FromString(d.GetOk("lb_subnet_no")),
-		LbPublicSubnetNo: getInt32FromString(d.GetOk("lb_public_subnet_no")),
+		Name:              StringPtrOrNil(d.GetOk("name")),
+		ClusterType:       StringPtrOrNil(d.GetOk("cluster_type")),
+		LoginKeyName:      StringPtrOrNil(d.GetOk("login_key_name")),
+		K8sVersion:        StringPtrOrNil(d.GetOk("k8s_version")),
+		ZoneCode:          StringPtrOrNil(d.GetOk("zone")),
+		VpcNo:             getInt32FromString(d.GetOk("vpc_no")),
+		SubnetLbNo:        getInt32FromString(d.GetOk("lb_subnet_no")),
+		LbPublicSubnetNo:  getInt32FromString(d.GetOk("lb_public_subnet_no")),
+		KubeNetworkPlugin: StringPtrOrNil(d.GetOk("kube_network_plugin")),
 	}
 
 	if list, ok := d.GetOk("subnet_no_list"); ok {
@@ -185,6 +192,7 @@ func resourceNcloudNKSClusterRead(ctx context.Context, d *schema.ResourceData, m
 	d.Set("zone", cluster.ZoneCode)
 	d.Set("vpc_no", strconv.Itoa(int(ncloud.Int32Value(cluster.VpcNo))))
 	d.Set("lb_subnet_no", strconv.Itoa(int(ncloud.Int32Value(cluster.SubnetLbNo))))
+	d.Set("kube_network_plugin", cluster.KubeNetworkPlugin)
 	if cluster.LbPublicSubnetNo != nil {
 		d.Set("lb_public_subnet_no", strconv.Itoa(int(ncloud.Int32Value(cluster.LbPublicSubnetNo))))
 	}
