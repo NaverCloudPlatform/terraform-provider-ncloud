@@ -118,6 +118,7 @@ resource "ncloud_nks_cluster" "cluster" {
   k8s_version                 = data.ncloud_nks_versions.version.versions.0.value
   login_key_name              = "%[4]s"
   lb_subnet_no                = ncloud_subnet.subnet_lb.id
+  kube_network_plugin         = "cilium"
   subnet_no_list              = [
     ncloud_subnet.subnet1.id,
     ncloud_subnet.subnet2.id,

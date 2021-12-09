@@ -72,6 +72,7 @@ The following arguments are supported:
 * `subnet_no_list` - (Required) Subnet No. list.
 * `lb_subnet_no` - (Required) Subnet No. for loadbalancer only.
 * `lb_public_subnet_no` - (Optional) Subnet No. for Public loadbalancer only. (Available only `SGN` region`)
+* `kube_network_plugin` - Kubernetes network plugin.
 * `log` - (Optional)
   * `audit` - (Required) Audit log availability.
 * `k8s_version` - (Optional) Kubenretes version .
