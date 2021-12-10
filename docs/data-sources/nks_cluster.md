@@ -26,8 +26,8 @@ In addition to all arguments above, the following attributes are exported:
 * `name` - Cluster name.
 * `id` - Cluster uuid.
 * `endpoint` - Control Plane API address.
-* `lb_subnet_no` - Subnet No. for loadbalancer only.
-* `lb_public_subnet_no` - Subnet No. for Public loadbalancer only. (Available only `SGN` region`)
+* `lb_private_subnet_no` - Subnet No. for private loadbalancer only.
+* `lb_public_subnet_no` - Subnet No. for public loadbalancer only. (Available only `SGN` region`)
 * `subnet_no_list` - Subnet No. list.
 * `kube_network_plugin` - Kubernetes network plugin.
 * `cluster_type` - Cluster type. `Maximum number of nodes`

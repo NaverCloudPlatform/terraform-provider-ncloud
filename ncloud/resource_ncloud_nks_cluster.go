@@ -88,7 +88,7 @@ func resourceNcloudNKSCluster() *schema.Resource {
 				ForceNew: true,
 				Elem:     &schema.Schema{Type: schema.TypeString},
 			},
-			"lb_subnet_no": {
+			"lb_private_subnet_no": {
 				Type:     schema.TypeString,
 				Required: true,
 				ForceNew: true,
@@ -137,7 +137,7 @@ func resourceNcloudNKSClusterCreate(ctx context.Context, d *schema.ResourceData,
 		K8sVersion:        StringPtrOrNil(d.GetOk("k8s_version")),
 		ZoneCode:          StringPtrOrNil(d.GetOk("zone")),
 		VpcNo:             getInt32FromString(d.GetOk("vpc_no")),
-		SubnetLbNo:        getInt32FromString(d.GetOk("lb_subnet_no")),
+		SubnetLbNo:        getInt32FromString(d.GetOk("lb_private_subnet_no")),
 		LbPublicSubnetNo:  getInt32FromString(d.GetOk("lb_public_subnet_no")),
 		KubeNetworkPlugin: StringPtrOrNil(d.GetOk("kube_network_plugin")),
 	}
@@ -191,7 +191,7 @@ func resourceNcloudNKSClusterRead(ctx context.Context, d *schema.ResourceData, m
 	d.Set("k8s_version", cluster.K8sVersion)
 	d.Set("zone", cluster.ZoneCode)
 	d.Set("vpc_no", strconv.Itoa(int(ncloud.Int32Value(cluster.VpcNo))))
-	d.Set("lb_subnet_no", strconv.Itoa(int(ncloud.Int32Value(cluster.SubnetLbNo))))
+	d.Set("lb_private_subnet_no", strconv.Itoa(int(ncloud.Int32Value(cluster.SubnetLbNo))))
 	d.Set("kube_network_plugin", cluster.KubeNetworkPlugin)
 	if cluster.LbPublicSubnetNo != nil {
 		d.Set("lb_public_subnet_no", strconv.Itoa(int(ncloud.Int32Value(cluster.LbPublicSubnetNo))))

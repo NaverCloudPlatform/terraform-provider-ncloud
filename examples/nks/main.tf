@@ -50,7 +50,8 @@ resource "ncloud_nks_cluster" "cluster" {
   k8s_version                 = data.ncloud_nks_versions.version.versions.0.value
   login_key_name              = ncloud_login_key.loginkey.key_name
   name                        = "sample-cluster"
-  lb_subnet_no                = ncloud_subnet.lb_subnet.id
+  lb_private_subnet_no        = ncloud_subnet.lb_subnet.id
+  kube_network_plugin         = "cilium"
   subnet_no_list              = [ ncloud_subnet.node_subnet.id ]
   vpc_no                      = ncloud_vpc.vpc.id
   zone                        = "KR-1"
