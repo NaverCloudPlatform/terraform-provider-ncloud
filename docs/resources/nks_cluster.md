@@ -1,4 +1,4 @@
-# Data Source: ncloud_nks_cluster
+# Resource: ncloud_nks_cluster
 
 Provides a Kubernetes Service cluster resource.
 
@@ -54,6 +54,9 @@ resource "ncloud_nks_cluster" "cluster" {
   subnet_no_list              = [ ncloud_subnet.subnet.id ]
   vpc_no                      = ncloud_vpc.vpc.id
   zone                        = "KR-1"
+  log {
+    audit = true
+  }
 }
 
 
@@ -72,10 +75,9 @@ The following arguments are supported:
 * `vpc_no` - (Required) VPC No.
 * `subnet_no_list` - (Required) Subnet No. list.
 * `lb_private_subnet_no` - (Required) Subnet No. for private loadbalancer only.
-* `lb_public_subnet_no` - (Optional) Subnet No. for public loadbalancer only. (Available only `SGN` region`)
-* `kube_network_plugin` - Kubernetes network plugin.
+* `lb_public_subnet_no` - (Optional) Subnet No. for public loadbalancer only. (Available only `SGN` region)
 * `log` - (Optional)
-  * `audit` - (Required) Audit log availability.
+  * `audit` - (Required) Audit log availability. (`boolean`)
 * `k8s_version` - (Optional) Kubenretes version .
 
 ## Attributes Reference
