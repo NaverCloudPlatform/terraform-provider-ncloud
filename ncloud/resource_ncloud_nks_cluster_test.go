@@ -187,6 +187,9 @@ resource "ncloud_nks_cluster" "cluster" {
   ]
   vpc_no                      = ncloud_vpc.vpc.vpc_no
   zone                        = "KR-1"
+  log {
+	audit = true
+  }
 }
 `, name, clusterType, k8sVersion, loginKeyName)
 }

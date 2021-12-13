@@ -55,7 +55,9 @@ resource "ncloud_nks_cluster" "cluster" {
   subnet_no_list              = [ ncloud_subnet.node_subnet.id ]
   vpc_no                      = ncloud_vpc.vpc.id
   zone                        = "KR-1"
-
+  log {
+    audit = true
+  }
 }
 resource "ncloud_nks_node_pool" "node_pool" {
   cluster_uuid = ncloud_nks_cluster.cluster.uuid
