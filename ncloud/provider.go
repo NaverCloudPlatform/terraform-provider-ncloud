@@ -80,6 +80,7 @@ func providerConfigure(d *schema.ResourceData) (interface{}, error) {
 	config := Config{
 		AccessKey: d.Get("access_key").(string),
 		SecretKey: d.Get("secret_key").(string),
+		Region:    d.Get("region").(string),
 	}
 
 	if client, err := config.Client(); err != nil {

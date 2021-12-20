@@ -1,7 +1,9 @@
 package ncloud
 
 import (
+	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/services/vnks"
 	"reflect"
+	"strconv"
 
 	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/ncloud"
 	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/services/loadbalancer"
@@ -303,4 +305,69 @@ func flattenArrayStructByKey(list interface{}, key string) []*string {
 	}
 
 	return s
+}
+
+func getInt32FromString(v interface{}, ok bool) *int32 {
+	if !ok {
+		return nil
+	}
+
+	intV, err := strconv.Atoi(v.(string))
+	if err == nil {
+		return ncloud.Int32(int32(intV))
+	} else {
+		return nil
+	}
+}
+
+func expandStringInterfaceListToInt32List(list []interface{}) (res []*int32) {
+	for _, v := range list {
+		intV, err := strconv.Atoi(v.(string))
+		if err == nil {
+			res = append(res, ncloud.Int32(int32(intV)))
+		}
+	}
+	return res
+}
+
+func flattenInt32ListToStringList(list []*int32) (res []*string) {
+	for _, v := range list {
+		res = append(res, ncloud.IntString(int(ncloud.Int32Value(v))))
+	}
+	return
+}
+
+func expandNKSClusterLogInput(logList []interface{}) *vnks.ClusterLogInput {
+	if len(logList) == 0 {
+		return nil
+	}
+	log := logList[0].(map[string]interface{})
+	return &vnks.ClusterLogInput{
+		Audit: ncloud.Bool(log["audit"].(bool)),
+	}
+}
+
+func flattenNKSNodePoolAutoScale(ao *vnks.AutoscaleOption) (res []map[string]interface{}) {
+	if ao == nil {
+		return
+	}
+	m := map[string]interface{}{
+		"enabled": ncloud.BoolValue(ao.Enabled),
+		"min":     ncloud.Int32Value(ao.Min),
+		"max":     ncloud.Int32Value(ao.Max),
+	}
+	res = append(res, m)
+	return
+}
+
+func expandNKSNodePoolAutoScale(as []interface{}) *vnks.AutoscalerUpdate {
+	if len(as) == 0 {
+		return nil
+	}
+	autoScale := as[0].(map[string]interface{})
+	return &vnks.AutoscalerUpdate{
+		Enabled: ncloud.Bool(autoScale["enabled"].(bool)),
+		Min:     ncloud.Int32(int32(autoScale["min"].(int))),
+		Max:     ncloud.Int32(int32(autoScale["max"].(int))),
+	}
 }

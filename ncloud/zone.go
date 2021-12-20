@@ -41,6 +41,33 @@ func getZoneNoByCode(config *ProviderConfig, code string) string {
 	return ""
 }
 
+func getZoneCodeByNo(config *ProviderConfig, no string) string {
+	if zoneCode := zoneCache[no]; zoneCode != "" {
+		return zoneCode
+	}
+	if zone, err := getZoneByNo(config, no); err == nil && zone != nil {
+		zoneCache[no] = *zone.ZoneCode
+		return *zone.ZoneCode
+	}
+	return ""
+}
+
+func getZoneByNo(config *ProviderConfig, no string) (*Zone, error) {
+	zonesList, err := getZones(config)
+	if err != nil {
+		return nil, err
+	}
+
+	var filteredZone *Zone
+	for _, zone := range zonesList {
+		if zone.ZoneNo != nil && no == *zone.ZoneNo {
+			filteredZone = zone
+			break
+		}
+	}
+	return filteredZone, nil
+}
+
 func getZoneByCode(config *ProviderConfig, code string) (*Zone, error) {
 	zonesList, err := getZones(config)
 	if err != nil {
