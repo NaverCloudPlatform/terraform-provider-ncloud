@@ -49,13 +49,12 @@ func resourceNcloudNKSCluster() *schema.Resource {
 				Type:             schema.TypeString,
 				ForceNew:         true,
 				Required:         true,
-				ValidateDiagFunc: ToDiagFunc(validation.StringLenBetween(3, 30)),
+				ValidateDiagFunc: ToDiagFunc(validation.StringLenBetween(3, 20)),
 			},
 			"cluster_type": {
-				Type:             schema.TypeString,
-				ValidateDiagFunc: ToDiagFunc(validation.StringInSlice([]string{"SVR.VNKS.STAND.C002.M008.NET.SSD.B050.G002", "SVR.VNKS.STAND.C004.M016.NET.SSD.B050.G002"}, false)),
-				Required:         true,
-				ForceNew:         true,
+				Type:     schema.TypeString,
+				Required: true,
+				ForceNew: true,
 			},
 			"endpoint": {
 				Type:     schema.TypeString,
