@@ -68,7 +68,7 @@ func TestAccResourceNcloudBlockStorage_vpc_basic(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckBlockStorageExistsWithProvider(resourceName, &storageInstance, testAccProvider),
 					resource.TestMatchResourceAttr(resourceName, "id", regexp.MustCompile(`^\d+$`)),
-					resource.TestCheckResourceAttr(resourceName, "name", name),
+					resource.TestCheckResourceAttr(resourceName, "name", name+"tf"),
 					resource.TestCheckResourceAttr(resourceName, "status", "ATTAC"),
 					resource.TestCheckResourceAttr(resourceName, "size", "10"),
 					resource.TestCheckResourceAttr(resourceName, "type", "SVRBS"),
@@ -179,6 +179,17 @@ func TestAccResourceNcloudBlockStorage_classic_size(t *testing.T) {
 				),
 				ExpectError: regexp.MustCompile("The storage size is only expandable, not shrinking."),
 			},
+			{
+				Config: testAccBlockStorageClassicConfigWithSize(name, 2000),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckBlockStorageExistsWithProvider(resourceName, &storageInstance, testAccClassicProvider),
+					resource.TestCheckResourceAttr(resourceName, "size", "2000"),
+				),
+			},
+			{
+				Config:      testAccBlockStorageClassicConfigWithSize(name, 2500),
+				ExpectError: regexp.MustCompile(""),
+			},
 		},
 	})
 }
@@ -215,6 +226,17 @@ func TestAccResourceNcloudBlockStorage_vpc_size(t *testing.T) {
 					testAccCheckBlockStorageExistsWithProvider(resourceName, &storageInstance, testAccClassicProvider),
 				),
 				ExpectError: regexp.MustCompile("The storage size is only expandable, not shrinking."),
+			},
+			{
+				Config: testAccBlockStorageVpcConfigWithSize(name+acctest.RandString(5), 2000),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckBlockStorageExistsWithProvider(resourceName, &storageInstance, testAccProvider),
+					resource.TestCheckResourceAttr(resourceName, "size", "2000"),
+				),
+			},
+			{
+				Config:      testAccBlockStorageVpcConfigWithSize(name+acctest.RandString(5), 2500),
+				ExpectError: regexp.MustCompile("expected size to be in the range (10 - 2000), got 2500"),
 			},
 		},
 	})
@@ -277,8 +299,8 @@ resource "ncloud_login_key" "loginkey" {
 
 resource "ncloud_server" "server" {
 	name = "%[1]s"
-	server_image_product_code = "SPSW0LINUX000032"
-	server_product_code = "SPSVRSTAND000004"
+	server_image_product_code = "SPSW0LINUX000046"
+	server_product_code = "SPSVRHICPU000001"
 	login_key_name = "${ncloud_login_key.loginkey.key_name}"
 }
 
@@ -295,6 +317,7 @@ func testAccBlockStorageClassicConfig(name string) string {
 }
 
 func testAccBlockStorageVpcConfigWithSize(name string, size int) string {
+	fmt.Printf(name)
 	return fmt.Sprintf(`
 resource "ncloud_login_key" "loginkey" {
 	key_name = "%[1]s-key"
@@ -325,7 +348,7 @@ resource "ncloud_server" "server" {
 
 resource "ncloud_block_storage" "storage" {
 	server_instance_no = ncloud_server.server.id
-	name = "%[1]s"
+	name = "%[1]s-tf"
 	size = "%[2]d"
 }
 `, name, size)
@@ -342,15 +365,15 @@ resource "ncloud_login_key" "loginkey" {
 
 resource "ncloud_server" "foo" {
 	name = "%[1]s-foo"
-	server_image_product_code = "SPSW0LINUX000032"
-	server_product_code = "SPSVRSTAND000004"
+	server_image_product_code = "SPSW0LINUX000046"
+	server_product_code = "SPSVRHICPU000001"
 	login_key_name = "${ncloud_login_key.loginkey.key_name}"
 }
 
 resource "ncloud_server" "bar" {
 	name = "%[1]s-bar"
-	server_image_product_code = "SPSW0LINUX000032"
-	server_product_code = "SPSVRSTAND000004"
+	server_image_product_code = "SPSW0LINUX000046"
+	server_product_code = "SPSVRHICPU000001"
 	login_key_name = "${ncloud_login_key.loginkey.key_name}"
 }
 
@@ -401,7 +424,7 @@ resource "ncloud_server" "bar" {
 
 resource "ncloud_block_storage" "storage" {
 	server_instance_no = %[2]s
-	name = "%[1]s"
+	name = "%[1]s-tf"
 	size = "10"
 }
 `, name, serverInstanceNo)
