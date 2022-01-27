@@ -46,9 +46,8 @@ func resourceNcloudNetworkInterface() *schema.Resource {
 				ValidateDiagFunc: ToDiagFunc(validation.IsIPv4Address),
 			},
 			"access_control_groups": {
-				Type:     schema.TypeList,
+				Type:     schema.TypeSet,
 				Required: true,
-				ForceNew: true,
 				Elem:     &schema.Schema{Type: schema.TypeString},
 			},
 			"server_instance_no": {
@@ -152,7 +151,98 @@ func resourceNcloudNetworkInterfaceUpdate(d *schema.ResourceData, meta interface
 			}
 		}
 	}
+
+	if d.HasChange("access_control_groups") {
+		o, n := d.GetChange("access_control_groups")
+		os := o.(*schema.Set)
+		ns := n.(*schema.Set)
+
+		add := ns.Difference(os).List()
+		remove := os.Difference(ns).List()
+
+		removeAcgList := expandStringInterfaceList(remove)
+		addAcgList := expandStringInterfaceList(add)
+
+		// First do add ACG prevent error '[1002035] At least one Acg must remain on the network interface.'
+		if len(addAcgList) > 0 {
+			if err := addNetworkInterfaceAccessControlGroup(d, config, addAcgList); err != nil {
+				return err
+			}
+		}
+
+		if len(removeAcgList) > 0 {
+			if err := removeNetworkInterfaceAccessControlGroup(d, config, removeAcgList); err != nil {
+				return err
+			}
+		}
+	}
+
 	return resourceNcloudNetworkInterfaceRead(d, meta)
+}
+
+func removeNetworkInterfaceAccessControlGroup(d *schema.ResourceData, config *ProviderConfig, accessControlGroupNoList []*string) error {
+	var resp *vserver.RemoveNetworkInterfaceAccessControlGroupResponse
+	var reqParams *vserver.RemoveNetworkInterfaceAccessControlGroupRequest
+
+	err := resource.Retry(d.Timeout(schema.TimeoutDelete), func() *resource.RetryError {
+		var err error
+		reqParams = &vserver.RemoveNetworkInterfaceAccessControlGroupRequest{
+			RegionCode:               &config.RegionCode,
+			AccessControlGroupNoList: accessControlGroupNoList,
+			NetworkInterfaceNo:       ncloud.String(d.Id()),
+		}
+
+		logCommonRequest("RemoveNetworkInterfaceAccessControlGroup", reqParams)
+		resp, err = config.Client.vserver.V2Api.RemoveNetworkInterfaceAccessControlGroup(reqParams)
+
+		if err != nil {
+			errBody, _ := GetCommonErrorBody(err)
+			if errBody.ReturnCode == ApiErrorNetworkInterfaceAtLeastOneAcgMustRemain {
+				logErrorResponse("retry RemoveNetworkInterfaceAccessControlGroup", err, reqParams)
+				time.Sleep(time.Second * 5)
+				return resource.RetryableError(err)
+			}
+			return resource.NonRetryableError(err)
+		}
+		return nil
+	})
+
+	if err != nil {
+		logErrorResponse("RemoveNetworkInterfaceAccessControlGroup", err, reqParams)
+		return err
+	}
+
+	logResponse("RemoveNetworkInterfaceAccessControlGroup", resp)
+
+	if err = waitForNetworkInterfaceAttachment(config, d.Id()); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func addNetworkInterfaceAccessControlGroup(d *schema.ResourceData, config *ProviderConfig, accessControlGroupNoList []*string) error {
+	reqParams := &vserver.AddNetworkInterfaceAccessControlGroupRequest{
+		RegionCode:               &config.RegionCode,
+		AccessControlGroupNoList: accessControlGroupNoList,
+		NetworkInterfaceNo:       ncloud.String(d.Id()),
+	}
+
+	logCommonRequest("AddNetworkInterfaceAccessControlGroup", reqParams)
+	resp, err := config.Client.vserver.V2Api.AddNetworkInterfaceAccessControlGroup(reqParams)
+
+	if err != nil {
+		logErrorResponse("AddNetworkInterfaceAccessControlGroup", err, reqParams)
+		return err
+	}
+
+	logResponse("AddNetworkInterfaceAccessControlGroup", resp)
+
+	if err = waitForNetworkInterfaceAttachment(config, d.Id()); err != nil {
+		return err
+	}
+
+	return nil
 }
 
 func resourceNcloudNetworkInterfaceDelete(d *schema.ResourceData, meta interface{}) error {
@@ -222,7 +312,7 @@ func createVpcNetworkInterface(d *schema.ResourceData, config *ProviderConfig) (
 
 	reqParams := &vserver.CreateNetworkInterfaceRequest{
 		RegionCode:                  &config.RegionCode,
-		AccessControlGroupNoList:    expandStringInterfaceList(d.Get("access_control_groups").([]interface{})),
+		AccessControlGroupNoList:    expandStringInterfaceList(d.Get("access_control_groups").(*schema.Set).List()),
 		SubnetNo:                    ncloud.String(d.Get("subnet_no").(string)),
 		VpcNo:                       subnet.VpcNo,
 		NetworkInterfaceName:        StringPtrOrNil(d.GetOk("name")),
