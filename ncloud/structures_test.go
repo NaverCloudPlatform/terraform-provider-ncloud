@@ -327,12 +327,8 @@ func TestFlattenNasVolumeInstances(t *testing.T) {
 			VolumeName:                       ncloud.String("n003666_aaa"),
 			VolumeTotalSize:                  ncloud.Int64(536870912000),
 			VolumeSize:                       ncloud.Int64(536870912000),
-			VolumeUseSize:                    ncloud.Int64(1314816),
-			VolumeUseRatio:                   ncloud.Float32(0.0),
 			SnapshotVolumeConfigurationRatio: ncloud.Float32(0.0),
 			SnapshotVolumeSize:               ncloud.Int64(0),
-			SnapshotVolumeUseSize:            ncloud.Int64(0),
-			SnapshotVolumeUseRatio:           ncloud.Float32(0.0),
 			IsSnapshotConfiguration:          ncloud.Bool(false),
 			IsEventConfiguration:             ncloud.Bool(false),
 			Region: &server.Region{

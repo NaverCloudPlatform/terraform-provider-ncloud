@@ -32,28 +32,33 @@ func resourceNcloudPortForwadingRule() *schema.Resource {
 		},
 
 		Schema: map[string]*schema.Schema{
-			"port_forwarding_configuration_no": {
-				Type:        schema.TypeString,
-				Optional:    true,
-				Description: "Port forwarding configuration number.",
-			},
 			"server_instance_no": {
 				Type:        schema.TypeString,
 				Required:    true,
+				ForceNew:    true,
 				Description: "Server instance number for which port forwarding is set",
 			},
 			"port_forwarding_external_port": {
 				Type:             schema.TypeInt,
 				Required:         true,
+				ForceNew:         true,
 				ValidateDiagFunc: ToDiagFunc(validation.IntBetween(1024, 65534)),
 				Description:      "External port for port forwarding",
 			},
 			"port_forwarding_internal_port": {
 				Type:             schema.TypeInt,
 				Required:         true,
+				ForceNew:         true,
 				ValidateDiagFunc: ToDiagFunc(validation.IntInSlice([]int{22, 3389})), // [Linux : 22 |Windows : 3389]
 				Description:      "Internal port for port forwarding. Only the following ports are available. [Linux: `22` | Windows: `3389`]",
 			},
+			"port_forwarding_configuration_no": {
+				Type:        schema.TypeString,
+				Optional:    true,
+				Computed:    true,
+				Description: "Port forwarding configuration number.",
+			},
+
 			"port_forwarding_public_ip": {
 				Type:        schema.TypeString,
 				Computed:    true,
@@ -148,8 +153,9 @@ func resourceNcloudPortForwardingRuleRead(d *schema.ResourceData, meta interface
 		d.Set("server_instance_no", portForwardingRule.ServerInstance.ServerInstanceNo)
 		d.Set("port_forwarding_external_port", portForwardingRule.PortForwardingExternalPort)
 		d.Set("port_forwarding_internal_port", portForwardingRule.PortForwardingInternalPort)
+		d.Set("port_forwarding_configuration_no", portForwardingRule.PortForwardingConfigurationNo)
 
-		if zone := flattenZone(resp.Zone); zone["zone_code"] != nil {
+		if zone := flattenZone(portForwardingRule.Zone); zone["zone_code"] != nil {
 			d.Set("zone", zone["zone_code"])
 		}
 	} else {
@@ -252,17 +258,29 @@ func getPortForwardingConfigurationNo(d *schema.ResourceData, meta interface{}) 
 	if ok {
 		portForwardingConfigurationNo = paramPortForwardingConfigurationNo.(string)
 	} else {
-		zoneNo, err := getServerZoneNo(config, d.Get("server_instance_no").(string))
+		resp, err := getPortForwardingConfigurationList(d, config)
 		if err != nil {
 			return "", err
 		}
-		resp, err := getPortForwardingRuleList(config.Client, zoneNo)
-		if err != nil {
-			return "", err
-		}
-		portForwardingConfigurationNo = ncloud.StringValue(resp.PortForwardingConfigurationNo)
+		portForwardingConfigurationNo = ncloud.StringValue(resp.PortForwardingConfigurationList[0].PortForwardingConfigurationNo)
 	}
 	return portForwardingConfigurationNo, nil
+}
+
+func getPortForwardingConfigurationList(d *schema.ResourceData, config *ProviderConfig) (*server.GetPortForwardingConfigurationListResponse, error) {
+	reqParams := &server.GetPortForwardingConfigurationListRequest{
+		RegionNo:             ncloud.String(config.RegionNo),
+		ServerInstanceNoList: []*string{ncloud.String(d.Get("server_instance_no").(string))},
+	}
+	logCommonRequest("GetPortForwardingConfigurationList", reqParams)
+	resp, err := config.Client.server.V2Api.GetPortForwardingConfigurationList(reqParams)
+	if err != nil {
+		logErrorResponse("GetPortForwardingConfigurationList", err, reqParams)
+		return nil, err
+	}
+	logCommonResponse("GetPortForwardingConfigurationList", GetCommonResponse(resp))
+
+	return resp, nil
 }
 
 func getPortForwardingRuleList(client *NcloudAPIClient, zoneNo string) (*server.GetPortForwardingRuleListResponse, error) {
