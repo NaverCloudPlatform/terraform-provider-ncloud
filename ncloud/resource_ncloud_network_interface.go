@@ -16,6 +16,14 @@ func init() {
 	RegisterResource("ncloud_network_interface", resourceNcloudNetworkInterface())
 }
 
+const (
+	NetworkInterfaceStateNotUsed    = "NOTUSED"
+	NetworkInterfaceStateUsed       = "USED"
+	NetworkInterfaceStateSet        = "SET"
+	NetworkInterfaceStateUnSet      = "UNSET"
+	NetworkInterfaceStateTerminated = "TERMINATED"
+)
+
 func resourceNcloudNetworkInterface() *schema.Resource {
 	return &schema.Resource{
 		Create: resourceNcloudNetworkInterfaceCreate,
@@ -214,7 +222,7 @@ func removeNetworkInterfaceAccessControlGroup(d *schema.ResourceData, config *Pr
 
 	logResponse("RemoveNetworkInterfaceAccessControlGroup", resp)
 
-	if err = waitForNetworkInterfaceAttachment(config, d.Id()); err != nil {
+	if err = waitForVpcNetworkInterfaceState(config, d.Id(), []string{NetworkInterfaceStateSet}, []string{NetworkInterfaceStateNotUsed, NetworkInterfaceStateUsed}); err != nil {
 		return err
 	}
 
@@ -238,7 +246,7 @@ func addNetworkInterfaceAccessControlGroup(d *schema.ResourceData, config *Provi
 
 	logResponse("AddNetworkInterfaceAccessControlGroup", resp)
 
-	if err = waitForNetworkInterfaceAttachment(config, d.Id()); err != nil {
+	if err = waitForVpcNetworkInterfaceState(config, d.Id(), []string{NetworkInterfaceStateSet}, []string{NetworkInterfaceStateNotUsed, NetworkInterfaceStateUsed}); err != nil {
 		return err
 	}
 
@@ -290,14 +298,6 @@ func createNetworkInterface(d *schema.ResourceData, config *ProviderConfig) (*vs
 	} else {
 		return nil, NotSupportClassic("resource `ncloud_network_interface`")
 	}
-
-	if v, ok := d.GetOk("server_instance_no"); ok && v != "" {
-		if err := waitForVpcNetworkInterfaceAttachment(config, d.Id()); err != nil {
-			return nil, err
-		}
-	}
-
-	return nil, nil
 }
 
 func createVpcNetworkInterface(d *schema.ResourceData, config *ProviderConfig) (*vserver.NetworkInterface, error) {
@@ -354,21 +354,8 @@ func deleteVpcNetworkInterface(config *ProviderConfig, id string) error {
 	}
 	logResponse("deleteVpcNetworkInterface", resp)
 
-	stateConf := &resource.StateChangeConf{
-		Pending: []string{"USED", "NOTUSED", "UNSET"},
-		Target:  []string{"TERMINATED"},
-		Refresh: func() (interface{}, string, error) {
-			instance, err := getNetworkInterface(config, id)
-			return VpcCommonStateRefreshFunc(instance, err, "NetworkInterfaceStatus")
-		},
-		Timeout:    DefaultTimeout,
-		Delay:      2 * time.Second,
-		MinTimeout: 3 * time.Second,
-	}
-
-	_, err = stateConf.WaitForState()
-	if err != nil {
-		return fmt.Errorf("error waiting for Network Interface (%s) to become terminated: %s", id, err)
+	if err := waitForVpcNetworkInterfaceState(config, id, []string{NetworkInterfaceStateUsed, NetworkInterfaceStateNotUsed, NetworkInterfaceStateUnSet}, []string{NetworkInterfaceStateTerminated}); err != nil {
+		return err
 	}
 
 	return nil
@@ -411,21 +398,8 @@ func attachVpcNetworkInterface(d *schema.ResourceData, config *ProviderConfig) e
 	}
 	logCommonResponse("attachVpcNetworkInterface", GetCommonResponse(resp))
 
-	stateConf := &resource.StateChangeConf{
-		Pending: []string{"SET"},
-		Target:  []string{"USED"},
-		Refresh: func() (interface{}, string, error) {
-			instance, err := getNetworkInterface(config, d.Id())
-			return VpcCommonStateRefreshFunc(instance, err, "NetworkInterfaceStatus")
-		},
-		Timeout:    DefaultTimeout,
-		Delay:      2 * time.Second,
-		MinTimeout: 3 * time.Second,
-	}
-
-	_, err = stateConf.WaitForState()
-	if err != nil {
-		return fmt.Errorf("error waiting for Network Interface (%s) to become attachmented: %s", d.Id(), err)
+	if err := waitForNetworkInterfaceAttachment(config, d.Id()); err != nil {
+		return err
 	}
 
 	return nil
@@ -464,21 +438,8 @@ func detachVpcNetworkInterface(d *schema.ResourceData, config *ProviderConfig, s
 	}
 	logCommonResponse("detachVpcNetworkInterface", GetCommonResponse(resp))
 
-	stateConf := &resource.StateChangeConf{
-		Pending: []string{"UNSET"},
-		Target:  []string{"NOTUSED"},
-		Refresh: func() (interface{}, string, error) {
-			instance, err := getNetworkInterface(config, d.Id())
-			return VpcCommonStateRefreshFunc(instance, err, "NetworkInterfaceStatus")
-		},
-		Timeout:    DefaultTimeout,
-		Delay:      2 * time.Second,
-		MinTimeout: 3 * time.Second,
-	}
-
-	_, err = stateConf.WaitForState()
-	if err != nil {
-		return fmt.Errorf("error waiting for Network Interface (%s) to become detachmented: %s", d.Id(), err)
+	if err := waitForVpcNetworkInterfaceState(config, d.Id(), []string{NetworkInterfaceStateUnSet}, []string{NetworkInterfaceStateNotUsed}); err != nil {
+		return err
 	}
 
 	return nil
@@ -488,7 +449,7 @@ func waitForNetworkInterfaceAttachment(config *ProviderConfig, id string) error 
 	var err error
 
 	if config.SupportVPC {
-		err = waitForVpcNetworkInterfaceAttachment(config, id)
+		err = waitForVpcNetworkInterfaceState(config, id, []string{NetworkInterfaceStateSet}, []string{NetworkInterfaceStateUsed})
 	} else {
 		err = NotSupportClassic("resource `ncloud_network_interface`")
 	}
@@ -500,10 +461,10 @@ func waitForNetworkInterfaceAttachment(config *ProviderConfig, id string) error 
 	return nil
 }
 
-func waitForVpcNetworkInterfaceAttachment(config *ProviderConfig, id string) error {
+func waitForVpcNetworkInterfaceState(config *ProviderConfig, id string, pending []string, target []string) error {
 	stateConf := &resource.StateChangeConf{
-		Pending: []string{"SET"},
-		Target:  []string{"USED"},
+		Pending: pending,
+		Target:  target,
 		Refresh: func() (interface{}, string, error) {
 			instance, err := getNetworkInterface(config, id)
 			return VpcCommonStateRefreshFunc(instance, err, "NetworkInterfaceStatus")
@@ -515,7 +476,7 @@ func waitForVpcNetworkInterfaceAttachment(config *ProviderConfig, id string) err
 
 	_, err := stateConf.WaitForState()
 	if err != nil {
-		return fmt.Errorf("error waiting for Network Interface (%s) to become attachmented: %s", id, err)
+		return fmt.Errorf("error waiting for Network Interface (%s) to become (%v): %s", id, target, err)
 	}
 
 	return nil
