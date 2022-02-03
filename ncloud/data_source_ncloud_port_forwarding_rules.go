@@ -131,7 +131,7 @@ func dataSourceNcloudPortForwardingRulesRead(d *schema.ResourceData, meta interf
 	if len(filteredPortForwardingRuleList) < 1 {
 		return fmt.Errorf("no results. please change search criteria and try again")
 	}
-	return portForwardingRulesAttributes(d, resp.PortForwardingConfigurationNo, filteredPortForwardingRuleList)
+	return portForwardingRulesAttributes(d, resp.PortForwardingRuleList[0].PortForwardingConfigurationNo, filteredPortForwardingRuleList)
 }
 
 func portForwardingRulesAttributes(d *schema.ResourceData, portForwardingConfigurationNo *string, portForwardingRuleList []*server.PortForwardingRule) error {

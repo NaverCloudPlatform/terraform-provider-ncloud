@@ -1,7 +1,7 @@
 package ncloud
 
 import (
-	"fmt"
+	"log"
 	"strconv"
 
 	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/ncloud"
@@ -97,7 +97,7 @@ func dataSourceNcloudPortForwardingRuleRead(d *schema.ResourceData, meta interfa
 		logErrorResponse("GetPortForwardingRuleList", err, reqParams)
 		return err
 	}
-	logCommonResponse("GetPortForwardingRuleList", GetCommonResponse(resp), fmt.Sprintf("TotalRows: %d", ncloud.Int32Value(resp.TotalRows)))
+	logResponse("GetPortForwardingRuleList", resp)
 
 	allPortForwardingRules := resp.PortForwardingRuleList
 	var filteredPortForwardingRuleList []*server.PortForwardingRule
@@ -125,16 +125,17 @@ func dataSourceNcloudPortForwardingRuleRead(d *schema.ResourceData, meta interfa
 	}
 	portForwardingRule = filteredPortForwardingRuleList[0]
 
-	return portForwardingRuleAttributes(d, resp.PortForwardingConfigurationNo, portForwardingRule)
+	return portForwardingRuleAttributes(d, resp.PortForwardingRuleList[0].PortForwardingConfigurationNo, portForwardingRule)
 }
 
 func portForwardingRuleAttributes(d *schema.ResourceData, portForwardingConfigurationNo *string, rule *server.PortForwardingRule) error {
+	log.Printf("rule: %+v", rule.PortForwardingExternalPort)
 	d.SetId(ncloud.StringValue(portForwardingConfigurationNo))
 	d.Set("port_forwarding_configuration_no", portForwardingConfigurationNo)
 	d.Set("port_forwarding_public_ip", rule.ServerInstance.PortForwardingPublicIp)
 	d.Set("server_instance_no", rule.ServerInstance.ServerInstanceNo)
-	d.Set("port_forwarding_external_port", rule.PortForwardingExternalPort)
-	d.Set("port_forwarding_internal_port", rule.PortForwardingInternalPort)
+	d.Set("port_forwarding_external_port", strconv.Itoa(int(ncloud.Int32Value(rule.PortForwardingExternalPort))))
+	d.Set("port_forwarding_internal_port", strconv.Itoa(int(ncloud.Int32Value(rule.PortForwardingInternalPort))))
 
 	return nil
 }

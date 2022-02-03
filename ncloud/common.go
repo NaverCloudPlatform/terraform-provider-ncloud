@@ -22,6 +22,8 @@ const (
 
 	ApiErrorDetachingMountedStorage = "24002"
 
+	ApiErrorNetworkInterfaceAtLeastOneAcgMustRemain = "1002035"
+
 	ApiErrorAcgCantChangeSameTime           = "1007009"
 	ApiErrorNetworkAclCantAccessaApropriate = "1011002"
 	ApiErrorNetworkAclRuleChangeIngRules    = "1012005"
