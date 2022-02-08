@@ -78,7 +78,6 @@ func resourceNcloudServer() *schema.Resource {
 				Type:     schema.TypeBool,
 				Optional: true,
 				Computed: true,
-				ForceNew: true,
 			},
 			// Deprecated
 			"internet_line_type": {
@@ -338,8 +337,16 @@ func resourceNcloudServerDelete(d *schema.ResourceData, meta interface{}) error 
 func resourceNcloudServerUpdate(d *schema.ResourceData, meta interface{}) error {
 	config := meta.(*ProviderConfig)
 
-	if err := updateServerInstance(d, config); err != nil {
-		return err
+	if d.HasChange("server_product_code") {
+		if err := updateServerInstanceSpec(d, config); err != nil {
+			return err
+		}
+	}
+
+	if d.HasChange("is_protect_server_termination") {
+		if err := updateServerProtectionTermination(d, config); err != nil {
+			return err
+		}
 	}
 
 	return resourceNcloudServerRead(d, meta)
@@ -415,6 +422,14 @@ func createClassicServerInstance(d *schema.ResourceData, config *ProviderConfig)
 func createVpcServerInstance(d *schema.ResourceData, config *ProviderConfig) (*string, error) {
 	if _, ok := d.GetOk("subnet_no"); !ok {
 		return nil, ErrorRequiredArgOnVpc("subnet_no")
+	}
+
+	if _, ok := d.GetOk("access_control_group_configuration_no_list"); ok {
+		return nil, NotSupportVpc("`access_control_group_configuration_no_list` of ncloud_server")
+	}
+
+	if _, ok := d.GetOk("user_data"); ok {
+		return nil, NotSupportVpc("`user_data` of ncloud_server")
 	}
 
 	subnet, err := getSubnetInstance(config, d.Get("subnet_no").(string))
@@ -520,7 +535,7 @@ func waitStateNcloudServerForCreation(config *ProviderConfig, id string) error {
 	return nil
 }
 
-func updateServerInstance(d *schema.ResourceData, config *ProviderConfig) error {
+func updateServerInstanceSpec(d *schema.ResourceData, config *ProviderConfig) error {
 	serverInstance, err := getServerInstance(config, d.Id())
 	if err != nil {
 		return err
@@ -583,40 +598,79 @@ func changeServerInstanceSpec(d *schema.ResourceData, config *ProviderConfig) er
 }
 
 func changeClassicServerInstanceSpec(d *schema.ResourceData, config *ProviderConfig) error {
-	if d.HasChange("server_product_code") {
-		reqParams := &server.ChangeServerInstanceSpecRequest{
-			ServerInstanceNo:  ncloud.String(d.Get("instance_no").(string)),
-			ServerProductCode: ncloud.String(d.Get("server_product_code").(string)),
-		}
-
-		logCommonRequest("changeClassicServerInstanceSpec", reqParams)
-		resp, err := config.Client.server.V2Api.ChangeServerInstanceSpec(reqParams)
-		if err != nil {
-			logErrorResponse("changeClassicServerInstanceSpec", err, reqParams)
-			return err
-		}
-		logCommonResponse("changeClassicServerInstanceSpec", GetCommonResponse(resp))
+	reqParams := &server.ChangeServerInstanceSpecRequest{
+		ServerInstanceNo:  ncloud.String(d.Get("instance_no").(string)),
+		ServerProductCode: ncloud.String(d.Get("server_product_code").(string)),
 	}
+
+	logCommonRequest("changeClassicServerInstanceSpec", reqParams)
+	resp, err := config.Client.server.V2Api.ChangeServerInstanceSpec(reqParams)
+	if err != nil {
+		logErrorResponse("changeClassicServerInstanceSpec", err, reqParams)
+		return err
+	}
+	logCommonResponse("changeClassicServerInstanceSpec", GetCommonResponse(resp))
 
 	return nil
 }
 
 func changeVpcServerInstanceSpec(d *schema.ResourceData, config *ProviderConfig) error {
-	if d.HasChange("server_product_code") {
-		reqParams := &vserver.ChangeServerInstanceSpecRequest{
-			RegionCode:        &config.RegionCode,
-			ServerInstanceNo:  ncloud.String(d.Get("instance_no").(string)),
-			ServerProductCode: ncloud.String(d.Get("server_product_code").(string)),
-		}
-
-		logCommonRequest("changeVpcServerInstanceSpec", reqParams)
-		resp, err := config.Client.vserver.V2Api.ChangeServerInstanceSpec(reqParams)
-		if err != nil {
-			logErrorResponse("ChangeServerInstanceSpec", err, reqParams)
-			return err
-		}
-		logResponse("changeVpcServerInstanceSpec", resp)
+	reqParams := &vserver.ChangeServerInstanceSpecRequest{
+		RegionCode:        &config.RegionCode,
+		ServerInstanceNo:  ncloud.String(d.Get("instance_no").(string)),
+		ServerProductCode: ncloud.String(d.Get("server_product_code").(string)),
 	}
+
+	logCommonRequest("changeVpcServerInstanceSpec", reqParams)
+	resp, err := config.Client.vserver.V2Api.ChangeServerInstanceSpec(reqParams)
+	if err != nil {
+		logErrorResponse("ChangeServerInstanceSpec", err, reqParams)
+		return err
+	}
+	logResponse("changeVpcServerInstanceSpec", resp)
+
+	return nil
+}
+
+func updateServerProtectionTermination(d *schema.ResourceData, config *ProviderConfig) error {
+	if config.SupportVPC {
+		return updateVpcServerProtectionTermination(d, config)
+	}
+
+	return updateClassicServerProtectionTermination(d, config)
+}
+
+func updateVpcServerProtectionTermination(d *schema.ResourceData, config *ProviderConfig) error {
+	reqParams := &vserver.SetProtectServerTerminationRequest{
+		RegionCode:                 &config.RegionCode,
+		ServerInstanceNo:           ncloud.String(d.Id()),
+		IsProtectServerTermination: ncloud.Bool(d.Get("is_protect_server_termination").(bool)),
+	}
+
+	logCommonRequest("SetProtectServerTermination", reqParams)
+	resp, err := config.Client.vserver.V2Api.SetProtectServerTermination(reqParams)
+	if err != nil {
+		logErrorResponse("SetProtectServerTermination", err, reqParams)
+		return err
+	}
+	logResponse("SetProtectServerTermination", resp)
+
+	return nil
+}
+
+func updateClassicServerProtectionTermination(d *schema.ResourceData, config *ProviderConfig) error {
+	reqParams := &server.SetProtectServerTerminationRequest{
+		ServerInstanceNo:           ncloud.String(d.Id()),
+		IsProtectServerTermination: ncloud.Bool(d.Get("is_protect_server_termination").(bool)),
+	}
+
+	logCommonRequest("SetProtectServerTermination", reqParams)
+	resp, err := config.Client.server.V2Api.SetProtectServerTermination(reqParams)
+	if err != nil {
+		logErrorResponse("SetProtectServerTermination", err, reqParams)
+		return err
+	}
+	logResponse("SetProtectServerTermination", resp)
 
 	return nil
 }
