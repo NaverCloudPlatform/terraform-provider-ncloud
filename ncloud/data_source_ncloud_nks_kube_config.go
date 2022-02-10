@@ -59,11 +59,13 @@ func dataSourceNcloudNKSKubeConfigRead(ctx context.Context, d *schema.ResourceDa
 	}
 
 	d.SetId(clusterUuid)
-
 	d.Set("host", kubeConfig.Clusters[0].Cluster.Server)
-	d.Set("client_certificate", kubeConfig.Users[0].User.ClientCertificateData)
-	d.Set("client_key", kubeConfig.Users[0].User.ClientKeyData)
 	d.Set("cluster_ca_certificate", kubeConfig.Clusters[0].Cluster.ClusterCaCertificate)
+
+	if kubeConfig.Users != nil {
+		d.Set("client_certificate", kubeConfig.Users[0].User.ClientCertificateData)
+		d.Set("client_key", kubeConfig.Users[0].User.ClientKeyData)
+	}
 
 	return nil
 }
