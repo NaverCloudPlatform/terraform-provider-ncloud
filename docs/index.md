@@ -109,13 +109,15 @@ The following arguments are supported:
   it can also be sourced from the `NCLOUD_ACCESS_KEY` environment variable.
   Ref to : [Get authentication keys for your account](http://docs.ncloud.com/en/api_new/api_new-1-1.html#preparation)
 
-* `secret_key` - (Required) Ncloud secret key.
-  it can also be sourced from the `NCLOUD_SECRET_KEY` environment variable.
+* `secret_key` - (Required) Ncloud secret key. it can also be sourced from the `NCLOUD_SECRET_KEY` environment variable.
 
-* `region` - (Required) Ncloud region.
-  it can also be sourced from the `NCLOUD_REGION` environment variables.
+* `region` - (Required) Ncloud region. it can also be sourced from the `NCLOUD_REGION` environment variables. It can be
+  obtained through `data.ncloud_regions`
+  - [`ncloud_regions` data source](/docs/data-sources/regions.md)
 
-* `site` - (Optional) Ncloud site. By default, the value is "public". You can specify only the following value: "public", "gov", "fin". "public" is for `www.ncloud.com`. "gov" is for `www.gov-ncloud.com`. "fin" is for `www.fin-ncloud.com`.
+* `site` - (Optional) Ncloud site. By default, the value is "public". You can specify only the following value: "public"
+  , "gov", "fin". "public" is for `www.ncloud.com`. "gov" is for `www.gov-ncloud.com`. "fin" is for `www.fin-ncloud.com`
+  .
 
 ~> **Note** `access_key`, `secret_key` : [Get authentication keys for your account](http://docs.ncloud.com/en/api_new/api_new-1-1.html#preparation)
 
