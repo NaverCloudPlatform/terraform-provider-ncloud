@@ -51,6 +51,7 @@ func resourceNcloudNetworkACLDenyAllowGroup() *schema.Resource {
 			"ip_list": {
 				Type:     schema.TypeList,
 				Elem:     &schema.Schema{Type: schema.TypeString},
+				MaxItems: 100,
 				Optional: true,
 				Computed: true,
 			},
