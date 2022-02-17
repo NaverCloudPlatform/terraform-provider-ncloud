@@ -2,9 +2,10 @@ package ncloud
 
 import (
 	"fmt"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"log"
 	"time"
+
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 
 	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/ncloud"
 	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/services/vpc"
@@ -46,8 +47,12 @@ func resourceNcloudNetworkACLRule() *schema.Resource {
 						},
 						"ip_block": {
 							Type:             schema.TypeString,
-							Required:         true,
+							Optional:         true,
 							ValidateDiagFunc: ToDiagFunc(validation.IsCIDRNetwork(0, 32)),
+						},
+						"deny_allow_group_no": {
+							Type:     schema.TypeString,
+							Optional: true,
 						},
 						"rule_action": {
 							Type:             schema.TypeString,
@@ -87,8 +92,12 @@ func resourceNcloudNetworkACLRule() *schema.Resource {
 						},
 						"ip_block": {
 							Type:             schema.TypeString,
-							Required:         true,
+							Optional:         true,
 							ValidateDiagFunc: ToDiagFunc(validation.IsCIDRNetwork(0, 32)),
+						},
+						"deny_allow_group_no": {
+							Type:     schema.TypeString,
+							Optional: true,
 						},
 						"rule_action": {
 							Type:             schema.TypeString,
@@ -155,12 +164,13 @@ func resourceNcloudNetworkACLRuleRead(d *schema.ResourceData, meta interface{}) 
 
 	for _, r := range rules {
 		m := map[string]interface{}{
-			"priority":    int(*r.Priority),
-			"protocol":    *r.ProtocolType.Code,
-			"port_range":  *r.PortRange,
-			"rule_action": *r.RuleAction.Code,
-			"ip_block":    *r.IpBlock,
-			"description": *r.NetworkAclRuleDescription,
+			"priority":            int(*r.Priority),
+			"protocol":            *r.ProtocolType.Code,
+			"port_range":          *r.PortRange,
+			"rule_action":         *r.RuleAction.Code,
+			"ip_block":            *r.IpBlock,
+			"deny_allow_group_no": *r.DenyAllowGroupNo,
+			"description":         *r.NetworkAclRuleDescription,
 		}
 
 		if *r.NetworkAclRuleType.Code == "INBND" {
@@ -405,6 +415,7 @@ func expandAddNetworkAclRule(rules []interface{}) []*vpc.AddNetworkAclRuleParame
 		m := vi.(map[string]interface{})
 		networkACLRule := &vpc.AddNetworkAclRuleParameter{
 			IpBlock:                   ncloud.String(m["ip_block"].(string)),
+			DenyAllowGroupNo:          ncloud.String(m["deny_allow_group_no"].(string)),
 			RuleActionCode:            ncloud.String(m["rule_action"].(string)),
 			Priority:                  ncloud.Int32(int32(m["priority"].(int))),
 			ProtocolTypeCode:          ncloud.String(m["protocol"].(string)),
@@ -425,6 +436,7 @@ func expandRemoveNetworkAclRule(rules []interface{}) []*vpc.RemoveNetworkAclRule
 		m := vi.(map[string]interface{})
 		networkACLRule := &vpc.RemoveNetworkAclRuleParameter{
 			IpBlock:          ncloud.String(m["ip_block"].(string)),
+			DenyAllowGroupNo: ncloud.String(m["deny_allow_group_no"].(string)),
 			RuleActionCode:   ncloud.String(m["rule_action"].(string)),
 			Priority:         ncloud.Int32(int32(m["priority"].(int))),
 			ProtocolTypeCode: ncloud.String(m["protocol"].(string)),
