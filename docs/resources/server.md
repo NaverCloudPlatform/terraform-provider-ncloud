@@ -113,17 +113,17 @@ The following arguments are supported:
 
 * `server_image_product_code` - (Optional, Required if `member_server_image_no` is not provided) Server image product code to determine which server image to create. It can be obtained through `data.ncloud_server_image(s)`.
   - [Docs server Image Products](https://github.com/NaverCloudPlatform/terraform-ncloud-docs/blob/main/docs/server_image_product.md)
-  - [`ncloud_server_image` data source](/docs/data-sources/server_image.md)
-  - [`ncloud_server_images` data source](/docs/data-sources/server_images.md)
+  - [`ncloud_server_image` data source](../data-sources/server_image.md)
+  - [`ncloud_server_images` data source](../data-sources/server_images.md)
 
 * `server_product_code` - (Optional) Server product code to determine the server specification to create. It can be obtained through the `data.ncloud_server_product(s)` action. Default : Selected as minimum specification. The minimum standards are 1. memory 2. CPU 3. basic block storage size 4. disk type (NET,LOCAL)
   - [Docs server Image Products](https://github.com/NaverCloudPlatform/terraform-ncloud-docs/blob/main/docs/server_image_product.md)
-  - [`ncloud_server_product` data source](/docs/data-sources/server_product.md)
-  - [`ncloud_server_products` data source](/docs/data-sources/server_products.md)
+  - [`ncloud_server_product` data source](../data-sources/server_product.md)
+  - [`ncloud_server_products` data source](../data-sources/server_products.md)
 
 * `member_server_image_no` - (Optional, Required if `server_image_product_code` is not provided) Required value when creating a server from a manually created server image. It can be obtained through the `data.ncloud_member_server_image(s)` action.
-  - [`ncloud_member_server_image` data source](/docs/data-sources/member_server_image.md)
-  - [`ncloud_member_server_images` data source](/docs/data-sources/member_server_images.md)
+  - [`ncloud_member_server_image` data source](../data-sources/member_server_image.md)
+  - [`ncloud_member_server_images` data source](../data-sources/member_server_images.md)
 
 * `name` - (Optional) Server name to create. default: Assigned by ncloud
 * `description` - (Optional) Server description to create.
