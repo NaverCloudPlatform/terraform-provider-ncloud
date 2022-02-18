@@ -110,7 +110,6 @@ The following arguments are supported:
   Ref to : [Get authentication keys for your account](http://docs.ncloud.com/en/api_new/api_new-1-1.html#preparation)
 
 * `secret_key` - (Required) Ncloud secret key. it can also be sourced from the `NCLOUD_SECRET_KEY` environment variable.
-
 * `region` - (Required) Ncloud region. it can also be sourced from the `NCLOUD_REGION` environment variables. It can be
   obtained through `data.ncloud_regions`
   - [`ncloud_regions` data source](/docs/data-sources/regions.md)
