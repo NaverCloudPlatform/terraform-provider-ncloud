@@ -3,6 +3,7 @@ package ncloud
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"reflect"
 	"strings"
 
@@ -254,4 +255,21 @@ func ConvertToArrayMap(i interface{}) []map[string]interface{} {
 	json.Unmarshal(b, &m)
 
 	return m
+}
+
+//ExpandStringSet Takes the result of schema.Set of strings and returns a []*string
+func ExpandStringSet(configured *schema.Set) []*string {
+	return ExpandStringList(configured.List())
+}
+
+//ExpandStringList Takes the result of flatmap.Expand for an array of strings and returns a []*string
+func ExpandStringList(configured []interface{}) []*string {
+	vs := make([]*string, 0, len(configured))
+	for _, v := range configured {
+		val, ok := v.(string)
+		if ok && val != "" {
+			vs = append(vs, ncloud.String(v.(string)))
+		}
+	}
+	return vs
 }

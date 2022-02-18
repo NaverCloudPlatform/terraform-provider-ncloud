@@ -43,10 +43,10 @@ resource "ncloud_network_acl_rule" "nacl_rule" {
 The following arguments are supported:
 
 * `vpc_no` - (Required) The ID of the associated VPC.
+* `ip_list` - (Required) Enter the IP addresses as list to be registered in the Deny-Allow Group.
+  Up to 100 IPs can be registered. Duplicate IP addresses are not allowed.
 * `name` - (Optional) The name to create. If omitted, terraform will assign a random, unique name.
 * `description` - (Optional) Description to create
-* `ip_list` - (Optional) Enter the IP addresses as list to be registered in the Deny-Allow Group. 
-  Up to 100 IPs can be registered. Duplicate IP addresses are not allowed.
 
 ## Attributes Reference
 
