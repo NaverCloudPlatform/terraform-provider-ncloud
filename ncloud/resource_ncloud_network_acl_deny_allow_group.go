@@ -49,11 +49,11 @@ func resourceNcloudNetworkACLDenyAllowGroup() *schema.Resource {
 				ValidateDiagFunc: ToDiagFunc(validation.StringLenBetween(0, 1000)),
 			},
 			"ip_list": {
-				Type:     schema.TypeList,
+				Type:     schema.TypeSet,
 				Elem:     &schema.Schema{Type: schema.TypeString},
+				Set:      schema.HashString,
 				MaxItems: 100,
-				Optional: true,
-				Computed: true,
+				Required: true,
 			},
 		},
 	}
@@ -244,7 +244,7 @@ func setNetworkAclDenyAllowGroupIpList(d *schema.ResourceData, config *ProviderC
 	reqParams := &vpc.SetNetworkAclDenyAllowGroupIpListRequest{
 		RegionCode:                 &config.RegionCode,
 		NetworkAclDenyAllowGroupNo: ncloud.String(d.Id()),
-		IpList:                     ncloud.StringInterfaceList(d.Get("ip_list").([]interface{})),
+		IpList:                     ExpandStringSet(d.Get("ip_list").(*schema.Set)),
 	}
 
 	logCommonRequest("SetNetworkAclDenyAllowGroupIpList", reqParams)

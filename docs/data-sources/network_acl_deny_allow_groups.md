@@ -64,6 +64,6 @@ supports the following:
 * `id` - The ID of Deny-Allow Group.
 * `network_acl_deny_allow_group_no` - The ID of Deny-Allow Group. (It is the same result as `id`)
 * `vpc_no` - The ID of the associated VPC.
+* `ip_list` - list of IP address that registered in the Deny-Allow Group.
 * `name` - The name of Deny-Allow Group.
 * `description` - Description of Deny-Allow Group.
-* `ip_list` - list of IP address that registered in the Deny-Allow Group.
