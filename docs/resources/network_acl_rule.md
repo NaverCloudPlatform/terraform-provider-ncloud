@@ -48,13 +48,13 @@ resource "ncloud_network_acl_rule" "nacl_rule" {
 }
 ```
 
-### Network ACL Deny Allow Group
+### Network ACL Deny-Allow Group
 
 ```hcl
-resource "ncloud_network_acl_deny_allow_group" "allow_group" {
+resource "ncloud_network_acl_deny_allow_group" "deny_allow_group" {
   vpc_no         = ncloud_vpc.vpc.id
   // below fields is optional
-  name      = "allow-group-test" 
+  name      = "deny-allow-group-test" 
   description = "by terraform"
   ip_list = ["10.0.0.1", "10.0.0.2"]
 }
@@ -74,7 +74,7 @@ resource "ncloud_network_acl_rule" "nacl_rule" {
     priority    = 110
     protocol    = "TCP"
     rule_action = "ALLOW"
-    deny_allow_group_no = ncloud_network_acl_deny_allow_group.allow_group.id
+    deny_allow_group_no = ncloud_network_acl_deny_allow_group.deny_allow_group.id
     port_range  = "22"
   }
 }
@@ -101,7 +101,7 @@ Both `inbound` and `outbound` support  following attributes:
 * `ip_block` - (Optional, Required if `deny_allow_group_no` is not provided) The CIDR block to match. This must be a
   valid network mask.
 * `deny_allow_group_no` - (Optional, Required if `ip_block` is not provided) The access source Deny-Allow Group number
-  of network ACL rules. You can specify a Deny-Allow group instead of an IP address block as the access
+  of network ACL rules. You can specify a Deny-Allow Group instead of an IP address block as the access
   source. `deny_allow_group_no` can be obtained through the Data source `ncloud_network_acl_deny_allow_group`
 * `port_range` - (Optional) Range of ports to apply. You can enter from `1` to `65535`. e.g. set single port: `22` or
   set range port : `8000-9000`

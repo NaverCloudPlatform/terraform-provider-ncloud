@@ -7,11 +7,11 @@ This resource is useful for look up the list of Network ACL Deny-Allow Group in 
 ### Retrieve by Deny-Allow Group ID
 
 ```hcl
-data "ncloud_network_acl_deny_allow_groups" "nacl_deny_allow_groups" {
-  network_acl_deny_allow_group_no_list = [ncloud_network_acl_deny_allow_group.allow_group.id]
+data "ncloud_network_acl_deny_allow_groups" "deny_allow_groups" {
+  network_acl_deny_allow_group_no_list = [ncloud_network_acl_deny_allow_group.deny_allow_group.id]
 }
 
-resource "ncloud_network_acl_deny_allow_group" "allow_group" {
+resource "ncloud_network_acl_deny_allow_group" "deny_allow_group" {
   vpc_no         = ncloud_vpc.vpc.id
   ip_list = ["10.0.0.1", "10.0.0.2"]
 }
@@ -20,19 +20,19 @@ resource "ncloud_network_acl_deny_allow_group" "allow_group" {
 ### Retrieve by Specific VPC and name
 
 ```hcl
-data "ncloud_network_acl_deny_allow_groups" "nacl_deny_allow_groups" {
+data "ncloud_network_acl_deny_allow_groups" "deny_allow_groups" {
   vpc_no = ncloud_vpc.vpc.id
-  name   = "allow-test"
+  name   = "deny-allow-test"
 }
 ```
 
 ### Retrieve by filter
 
 ```hcl
-data "ncloud_network_acl_deny_allow_groups" "nacl_deny_allow_groups" {
+data "ncloud_network_acl_deny_allow_groups" "deny_allow_groups" {
   filter {
     name = "name"
-    values = ["allow-test"]
+    values = ["deny-allow-test"]
     regex = false
   }
 }
