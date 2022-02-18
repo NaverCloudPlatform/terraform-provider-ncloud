@@ -34,6 +34,15 @@ const (
 )
 
 const (
+	InstanceStatusInit        = "INIT"
+	InstanceStatusCreate      = "CREATING"
+	InstanceStatusRunning     = "RUN"
+	InstanceStatusSetting     = "SET"
+	InstanceStatusTerminating = "TERMTING"
+	InstanceStatusTerminated  = "TERMINATED"
+)
+
+const (
 	BYTE = 1 << (10 * iota)
 	KILOBYTE
 	MEGABYTE
