@@ -4,7 +4,7 @@ Provides a Server instance resource.
 
 ## Example Usage
 
-#### Basic usage of Classic server instance
+#### Basic (Classic)
 
 ```hcl
 resource "ncloud_server" "server" {
@@ -24,7 +24,7 @@ resource "ncloud_server" "server" {
 }
 ```
 
-#### Basic usage of VPC server instance
+#### Basic (VPC)
 
 ```hcl
 resource "ncloud_login_key" "loginkey" {
@@ -52,20 +52,85 @@ resource "ncloud_server" "server" {
 }
 ```
 
+#### Create VPC instance reference by data source  (retrieve image and product code)
+
+```hcl
+resource "ncloud_login_key" "loginkey" {
+  key_name = "test-key"
+}
+
+resource "ncloud_vpc" "test" {
+  ipv4_cidr_block = "10.0.0.0/16"
+}
+
+resource "ncloud_subnet" "test" {
+  vpc_no         = ncloud_vpc.test.vpc_no
+  subnet         = cidrsubnet(ncloud_vpc.test.ipv4_cidr_block, 8, 1)
+  zone           = "KR-2"
+  network_acl_no = ncloud_vpc.test.default_network_acl_no
+  subnet_type    = "PUBLIC"
+  usage_type     = "GEN"
+}
+
+resource "ncloud_server" "server" {
+  subnet_no                 = ncloud_subnet.test.id
+  name                      = "my-tf-server"
+  server_image_product_code = data.ncloud_server_image.server_image.id
+  server_product_code       = data.ncloud_server_product.product.id
+  login_key_name            = ncloud_login_key.loginkey.key_name
+}
+
+data "ncloud_server_image" "server_image" {
+  filter {
+    name = "os_information"
+    values = ["CentOS 7.3 (64-bit)"]
+  }
+}
+
+data "ncloud_server_product" "product" {
+  server_image_product_code = data.ncloud_server_image.server_image.id
+
+  filter {
+    name   = "product_code"
+    values = ["SSD"]
+  }
+
+  filter {
+    name   = "cpu_count"
+    values = ["2"]
+  }
+
+  filter {
+    name   = "memory_size"
+    values = ["8GB"]
+  }
+}
+```
+
 ## Argument Reference
 
 The following arguments are supported:
 
-* `server_image_product_code` - (Optional) Server image product code to determine which server image to create. It can be obtained through `data ncloud_server_images`. You are required to select one between two parameters: server image product code (server_image_product_code) and member server image number(member_server_image_no).
-* `server_product_code` - (Optional) Server product code to determine the server specification to create. It can be obtained through the getServerProductList action. Default : Selected as minimum specification. The minimum standards are 1. memory 2. CPU 3. basic block storage size 4. disk type (NET,LOCAL)
-* `member_server_image_no` - (Optional) Required value when creating a server from a manually created server image. It can be obtained through the getMemberServerImageList action.
+* `server_image_product_code` - (Optional, Required if `member_server_image_no` is not provided) Server image product code to determine which server image to create. It can be obtained through `data.ncloud_server_image(s)`.
+  - [Docs server Image Products](https://github.com/NaverCloudPlatform/terraform-ncloud-docs/blob/main/docs/server_image_product.md)
+  - [`ncloud_server_image` data source](/docs/data-sources/server_image.md)
+  - [`ncloud_server_images` data source](/docs/data-sources/server_images.md)
+
+* `server_product_code` - (Optional) Server product code to determine the server specification to create. It can be obtained through the `data.ncloud_server_product(s)` action. Default : Selected as minimum specification. The minimum standards are 1. memory 2. CPU 3. basic block storage size 4. disk type (NET,LOCAL)
+  - [Docs server Image Products](https://github.com/NaverCloudPlatform/terraform-ncloud-docs/blob/main/docs/server_image_product.md)
+  - [`ncloud_server_product` data source](/docs/data-sources/server_product.md)
+  - [`ncloud_server_products` data source](/docs/data-sources/server_products.md)
+
+* `member_server_image_no` - (Optional, Required if `server_image_product_code` is not provided) Required value when creating a server from a manually created server image. It can be obtained through the `data.ncloud_member_server_image(s)` action.
+  - [`ncloud_member_server_image` data source](/docs/data-sources/member_server_image.md)
+  - [`ncloud_member_server_images` data source](/docs/data-sources/member_server_images.md)
+
 * `name` - (Optional) Server name to create. default: Assigned by ncloud
 * `description` - (Optional) Server description to create.
 * `login_key_name` - (Optional) The login key name to encrypt with the public key. Default : Uses the login key name most recently created.
-* `is_protect_server_termination` - (Optional) You can set whether or not to protect return when creating. default : false
+* `is_protect_server_termination` - (Optional) You can set whether or not to protect return when creating. default :false
 * `fee_system_type_code` - (Optional) A rate system identification code. There are time plan(MTRAT) and flat rate (FXSUM). Default : Time plan(MTRAT)
-* `zone` - (Optional) Zone code. You can determine the ZONE where the server will be created. Default : Assigned by NAVER Cloud Platform.
-    Get available values using the data source `ncloud_zones`.
+* `zone` - (Optional) Zone code. You can determine the ZONE where the server will be created. Default : Assigned by NAVER Cloud Platform. Get available values using the data source `ncloud_zones`.
 
 ~> **NOTE:** Below arguments only support Classic environment.
 
