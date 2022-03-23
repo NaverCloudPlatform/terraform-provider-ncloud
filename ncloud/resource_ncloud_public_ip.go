@@ -118,7 +118,11 @@ func resourceNcloudPublicIpRead(d *schema.ResourceData, meta interface{}) error 
 		return nil
 	}
 
-	SetSingularResourceDataFromMapSchema(resourceNcloudPublicIpInstance(), d, resource)
+	instance := ConvertToMap(resource)
+	SetSingularResourceDataFromMapSchema(resourceNcloudPublicIpInstance(), d, instance)
+	if err := d.Set("public_ip_no", resource.PublicIpInstanceNo); err != nil {
+		return err
+	}
 
 	return nil
 }
@@ -263,24 +267,23 @@ func deleteVpcPublicIp(d *schema.ResourceData, config *ProviderConfig) error {
 	return nil
 }
 
-func getPublicIp(config *ProviderConfig, id string) (map[string]interface{}, error) {
-	var resource map[string]interface{}
+func getPublicIp(config *ProviderConfig, id string) (*PublicIpInstance, error) {
+	var r *PublicIpInstance
 	var err error
-
 	if config.SupportVPC {
-		resource, err = getVpcPublicIp(config, id)
+		r, err = getVpcPublicIp(config, id)
 	} else {
-		resource, err = getClassicPublicIp(config, id)
+		r, err = getClassicPublicIp(config, id)
 	}
 
 	if err != nil {
 		return nil, err
 	}
 
-	return resource, nil
+	return r, nil
 }
 
-func getClassicPublicIp(config *ProviderConfig, id string) (map[string]interface{}, error) {
+func getClassicPublicIp(config *ProviderConfig, id string) (*PublicIpInstance, error) {
 	client := config.Client
 	regionNo := config.RegionNo
 
@@ -308,32 +311,25 @@ func getClassicPublicIp(config *ProviderConfig, id string) (map[string]interface
 
 	r := resp.PublicIpInstanceList[0]
 
-	instance := map[string]interface{}{
-		"id":                 *r.PublicIpInstanceNo,
-		"public_ip_no":       *r.PublicIpInstanceNo,
-		"public_ip":          *r.PublicIp,
-		"description":        *r.PublicIpDescription,
-		"zone":               *r.Zone.ZoneCode,
-		"instance_no":        *r.PublicIpInstanceNo, // Deprecated
-		"server_instance_no": nil,
-	}
-
-	if m := flattenCommonCode(r.PublicIpInstanceStatus); m["code"] != nil {
-		instance["status"] = m["code"]
-	}
-
-	if m := flattenCommonCode(r.PublicIpKindType); m["code"] != nil {
-		instance["kind_type"] = m["code"]
+	p := &PublicIpInstance{
+		PublicIpInstanceNo:            r.PublicIpInstanceNo,
+		PublicIp:                      r.PublicIp,
+		PublicIpDescription:           r.PublicIpDescription,
+		PublicIpKindTypeCode:          r.PublicIpKindType.Code,
+		ZoneCode:                      r.Zone.ZoneCode,
+		PublicIpInstanceStatusCode:    r.PublicIpInstanceStatus.Code,
+		PublicIpInstanceOperationCode: r.PublicIpInstanceOperation.Code,
 	}
 
 	if r.ServerInstanceAssociatedWithPublicIp != nil {
-		SetStringIfNotNilAndEmpty(instance, "server_instance_no", r.ServerInstanceAssociatedWithPublicIp.ServerInstanceNo)
+		p.ServerInstanceNo = r.ServerInstanceAssociatedWithPublicIp.ServerInstanceNo
+		p.PrivateIp = r.ServerInstanceAssociatedWithPublicIp.PrivateIp
 	}
 
-	return instance, nil
+	return p, nil
 }
 
-func getVpcPublicIp(config *ProviderConfig, id string) (map[string]interface{}, error) {
+func getVpcPublicIp(config *ProviderConfig, id string) (*PublicIpInstance, error) {
 	client := config.Client
 	regionCode := config.RegionCode
 
@@ -361,21 +357,19 @@ func getVpcPublicIp(config *ProviderConfig, id string) (map[string]interface{}, 
 
 	r := resp.PublicIpInstanceList[0]
 
-	instance := map[string]interface{}{
-		"id":                 *r.PublicIpInstanceNo,
-		"public_ip_no":       *r.PublicIpInstanceNo,
-		"public_ip":          *r.PublicIp,
-		"description":        *r.PublicIpDescription,
-		"server_instance_no": nil,
+	p := &PublicIpInstance{
+		PublicIpInstanceNo:            r.PublicIpInstanceNo,
+		PublicIp:                      r.PublicIp,
+		PublicIpDescription:           r.PublicIpDescription,
+		PublicIpInstanceStatusCode:    r.PublicIpInstanceStatus.Code,
+		ServerInstanceNo:              r.ServerInstanceNo,
+		PrivateIp:                     r.PrivateIp,
+		LastModifyDate:                r.LastModifyDate,
+		PublicIpInstanceOperationCode: r.PublicIpInstanceOperation.Code,
+		ZoneCode:                      nil,
 	}
 
-	SetStringIfNotNilAndEmpty(instance, "server_instance_no", r.ServerInstanceNo)
-
-	if m := flattenCommonCode(r.PublicIpInstanceStatus); m["code"] != nil {
-		instance["status"] = m["code"]
-	}
-
-	return instance, nil
+	return p, nil
 }
 
 func checkAssociatedPublicIP(config *ProviderConfig, id string) (bool, error) {
@@ -385,7 +379,7 @@ func checkAssociatedPublicIP(config *ProviderConfig, id string) (bool, error) {
 		return false, err
 	}
 
-	return instance["server_instance_no"] != nil && instance["server_instance_no"] != "", nil
+	return instance.ServerInstanceNo != nil && *instance.ServerInstanceNo != "", nil
 }
 
 func disassociatedPublicIp(config *ProviderConfig, id string) error {
@@ -444,12 +438,13 @@ func waitForPublicIpDisassociation(config *ProviderConfig, id string) error {
 		Target:  []string{"OK"},
 		Refresh: func() (interface{}, string, error) {
 			isAssociated, err := checkAssociatedPublicIP(config, id)
+			opCode, opErr := getPublicIpInstanceOperationCode(config, id)
 
-			if err != nil {
+			if err != nil || opErr != nil {
 				return 0, "", err
 			}
 
-			if !isAssociated {
+			if !isAssociated && opCode == "NULL" {
 				return 0, "OK", nil
 			}
 
@@ -466,6 +461,14 @@ func waitForPublicIpDisassociation(config *ProviderConfig, id string) error {
 	}
 
 	return nil
+}
+
+func getPublicIpInstanceOperationCode(config *ProviderConfig, id string) (string, error) {
+	instance, err := getPublicIp(config, id)
+	if err != nil {
+		return "", err
+	}
+	return *instance.PublicIpInstanceOperationCode, nil
 }
 
 func waitForPublicIpAssociation(config *ProviderConfig, id string) error {
@@ -565,4 +568,19 @@ func resourceNcloudPublicIpCustomizeDiff(_ context.Context, diff *schema.Resourc
 		}
 	}
 	return nil
+}
+
+type PublicIpInstance struct {
+	PublicIpInstanceNo   *string `json:"instance_no,omitempty"`
+	PublicIp             *string `json:"public_ip,omitempty"`
+	PublicIpDescription  *string `json:"description,omitempty"`
+	ServerInstanceNo     *string `json:"server_instance_no,omitempty"`
+	PublicIpKindTypeCode *string `json:"kind_type,omitempty"`
+	ZoneCode             *string `json:"zone,omitempty"`
+
+	PublicIpInstanceStatusCode    *string
+	PublicIpInstanceOperationCode *string
+	// Server Instance
+	PrivateIp      *string
+	LastModifyDate *string
 }
