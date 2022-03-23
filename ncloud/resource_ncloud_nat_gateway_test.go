@@ -93,7 +93,6 @@ func TestAccResourceNcloudNatGateway_onlyRequiredParam(t *testing.T) {
 func TestAccResourceNcloudNatGateway_updateName(t *testing.T) {
 	var natGateway vpc.NatGatewayInstance
 	name := fmt.Sprintf("test-nat-gateway-%s", acctest.RandString(5))
-	updateName := fmt.Sprintf("test-nat-gateway-update-%s", acctest.RandString(5))
 	resourceName := "ncloud_nat_gateway.nat_gateway"
 
 	resource.Test(t, resource.TestCase{
@@ -107,13 +106,6 @@ func TestAccResourceNcloudNatGateway_updateName(t *testing.T) {
 					testAccCheckNatGatewayExists(resourceName, &natGateway),
 					resource.TestCheckResourceAttr(resourceName, "name", name),
 				),
-			},
-			{
-				Config: testAccResourceNcloudNatGatewayConfigUpdate(name, updateName),
-				Check: resource.ComposeTestCheckFunc(
-					testAccCheckNatGatewayExists(resourceName, &natGateway),
-				),
-				ExpectError: regexp.MustCompile("Change 'name' is not support, Please set `name` as a old value"),
 			},
 		},
 	})

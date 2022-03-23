@@ -68,9 +68,9 @@ func resourceNcloudSubnet() *schema.Resource {
 			"usage_type": {
 				Type:             schema.TypeString,
 				Optional:         true,
+				Computed:         true,
 				ForceNew:         true,
 				ValidateDiagFunc: ToDiagFunc(validation.StringInSlice([]string{"GEN", "LOADB", "BM"}, false)),
-				Default:          "GEN",
 			},
 			"subnet_no": {
 				Type:     schema.TypeString,

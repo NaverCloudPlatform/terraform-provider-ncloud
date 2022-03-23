@@ -84,13 +84,6 @@ func TestAccResourceNcloudVpc_updateName(t *testing.T) {
 					testAccCheckVpcExists(resourceName, &vpc),
 				),
 			},
-			{
-				Config: testAccResourceNcloudVpcConfig("testacc-vpc-basic-update", cidr),
-				Check: resource.ComposeTestCheckFunc(
-					testAccCheckVpcExists(resourceName, &vpc),
-				),
-				ExpectError: regexp.MustCompile("Change 'name' is not support, Please set `name` as a old value"),
-			},
 		},
 	})
 }

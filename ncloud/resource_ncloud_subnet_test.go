@@ -85,14 +85,6 @@ func TestAccResourceNcloudSubnet_updateName(t *testing.T) {
 				),
 			},
 			{
-				Config: testAccResourceNcloudSubnetConfig("testacc-subnet-update", cidr),
-
-				Check: resource.ComposeTestCheckFunc(
-					testAccCheckSubnetExists(resourceName, &subnet),
-				),
-				ExpectError: regexp.MustCompile("Change 'name' is not support, Please set `name` as a old value"),
-			},
-			{
 				ResourceName:      resourceName,
 				ImportState:       true,
 				ImportStateVerify: true,
