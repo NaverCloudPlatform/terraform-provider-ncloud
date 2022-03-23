@@ -66,7 +66,6 @@ func TestAccResourceNcloudPlacementGroup_updateName(t *testing.T) {
 	var PlacementGroup vserver.PlacementGroup
 	resourceName := "ncloud_placement_group.test"
 	name := fmt.Sprintf("tf-pl-group-update-%s", acctest.RandString(5))
-	updateName := fmt.Sprintf("tf-pl-group-update-%s", acctest.RandString(5))
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -78,13 +77,6 @@ func TestAccResourceNcloudPlacementGroup_updateName(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckPlacementGroupExists(resourceName, &PlacementGroup),
 				),
-			},
-			{
-				Config: testAccResourceNcloudPlacementGroupConfig(updateName),
-				Check: resource.ComposeTestCheckFunc(
-					testAccCheckPlacementGroupExists(resourceName, &PlacementGroup),
-				),
-				ExpectError: regexp.MustCompile("Change 'name' is not support, Please set `name` as a old value"),
 			},
 			{
 				ResourceName:      resourceName,

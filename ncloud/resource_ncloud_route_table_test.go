@@ -107,13 +107,6 @@ func TestAccResourceNcloudRouteTable_updateName(t *testing.T) {
 				),
 			},
 			{
-				Config: testAccResourceNcloudRouteTableConfig(name),
-				Check: resource.ComposeTestCheckFunc(
-					testAccCheckRouteTableExists(resourceName, &routeTable),
-				),
-				ExpectError: regexp.MustCompile("Change 'name' is not support, Please set `name` as a old value"),
-			},
-			{
 				ResourceName:      resourceName,
 				ImportState:       true,
 				ImportStateVerify: true,
