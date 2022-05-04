@@ -40,7 +40,7 @@ func resourceNcloudNasVolume() *schema.Resource {
 			"volume_size": {
 				Type:             schema.TypeInt,
 				Required:         true,
-				ValidateDiagFunc: ToDiagFunc(validation.IntBetween(500, 10000)),
+				ValidateDiagFunc: ToDiagFunc(validation.IntBetween(100, 10000)),
 			},
 			"volume_allotment_protocol_type": {
 				Type:             schema.TypeString,
