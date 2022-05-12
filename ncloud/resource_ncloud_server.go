@@ -302,8 +302,14 @@ func resourceNcloudServerDelete(d *schema.ResourceData, meta interface{}) error 
 		return err
 	}
 
-	blockStorageList, err := getAdditionalBlockStorageList(config, d.Id())
+	if ncloud.StringValue(serverInstance.ServerInstanceStatus) != "NSTOP" {
+		log.Printf("[INFO] Stopping Instance %q for terminate", d.Id())
+		if err := stopThenWaitServerInstance(config, d.Id()); err != nil {
+			return err
+		}
+	}
 
+	blockStorageList, err := getAdditionalBlockStorageList(config, d.Id())
 	if err != nil {
 		return err
 	}
@@ -317,13 +323,6 @@ func resourceNcloudServerDelete(d *schema.ResourceData, meta interface{}) error 
 			if err := waitForDisconnectBlockStorage(config, d, blockStorage); err != nil {
 				return err
 			}
-		}
-	}
-
-	if ncloud.StringValue(serverInstance.ServerInstanceStatus) != "NSTOP" {
-		log.Printf("[INFO] Stopping Instance %q for terminate", d.Id())
-		if err := stopThenWaitServerInstance(config, d.Id()); err != nil {
-			return err
 		}
 	}
 
