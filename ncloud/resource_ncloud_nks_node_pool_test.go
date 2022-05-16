@@ -158,7 +158,7 @@ resource "ncloud_nks_cluster" "cluster" {
   ]
   vpc_no                      = ncloud_vpc.vpc.vpc_no
   zone                        = "KR-1"
-  public_network              = "%[6]t"
+  public_network              = "%[7]t"
 }
 
 resource "ncloud_nks_node_pool" "node_pool" {
