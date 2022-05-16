@@ -13,13 +13,14 @@ func TestAccDataSourceNcloudNKSCluster(t *testing.T) {
 	resourceName := "ncloud_nks_cluster.cluster"
 	testClusterName := getTestClusterName()
 	clusterType := "SVR.VNKS.STAND.C002.M008.NET.SSD.B050.G002"
+	k8sVersion := "1.21"
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:  func() { testAccPreCheck(t) },
 		Providers: testAccProviders,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccDataSourceNKSClusterConfig(testClusterName, clusterType, TF_TEST_NKS_LOGIN_KEY),
+				Config: testAccDataSourceNKSClusterConfig(testClusterName, clusterType, TF_TEST_NKS_LOGIN_KEY, k8sVersion),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckDataSourceID(dataName),
 					resource.TestCheckResourceAttrPair(dataName, "id", resourceName, "id"),
@@ -34,6 +35,7 @@ func TestAccDataSourceNcloudNKSCluster(t *testing.T) {
 					resource.TestCheckResourceAttrPair(dataName, "lb_private_subnet_no", resourceName, "lb_private_subnet_no"),
 					resource.TestCheckResourceAttrPair(dataName, "lb_public_subnet_no", resourceName, "lb_public_subnet_no"),
 					resource.TestCheckResourceAttrPair(dataName, "kube_network_plugin", resourceName, "kube_network_plugin"),
+					resource.TestCheckResourceAttrPair(dataName, "public_network", resourceName, "public_network"),
 					resource.TestCheckResourceAttrPair(dataName, "subnet_no_list.#", resourceName, "subnet_no_list.#"),
 					resource.TestCheckResourceAttrPair(dataName, "subnet_no_list.0", resourceName, "subnet_no_list.0"),
 				),
@@ -42,7 +44,7 @@ func TestAccDataSourceNcloudNKSCluster(t *testing.T) {
 	})
 }
 
-func testAccDataSourceNKSClusterConfig(testClusterName string, clusterType string, loginKey string) string {
+func testAccDataSourceNKSClusterConfig(testClusterName string, clusterType string, loginKey string, version string) string {
 	return fmt.Sprintf(`
 resource "ncloud_vpc" "vpc" {
 	name               = "%[1]s"
@@ -79,9 +81,14 @@ resource "ncloud_subnet" "subnet_lb" {
 	usage_type         = "LOADB"
 }
 
-data "ncloud_nks_versions" "version" {
-}
 
+data "ncloud_nks_versions" "version" {
+  filter {
+    name = "value"
+    values = ["%[4]s"]
+    regex = true
+  }
+}
 resource "ncloud_nks_cluster" "cluster" {
   name                        = "%[1]s"
   cluster_type                = "%[2]s"
@@ -102,5 +109,5 @@ data "ncloud_nks_cluster" "cluster" {
 }
 
 
-`, testClusterName, clusterType, loginKey)
+`, testClusterName, clusterType, loginKey, version)
 }

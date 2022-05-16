@@ -11,13 +11,14 @@ func TestAccDataSourceNcloudNKSNodePools(t *testing.T) {
 
 	testClusterName := getTestClusterName()
 	clusterType := "SVR.VNKS.STAND.C002.M008.NET.SSD.B050.G002"
+	k8sVersion := "1.21"
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:  func() { testAccPreCheck(t) },
 		Providers: testAccProviders,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccDataSourceNcloudNKSNodePoolsConfig(testClusterName, clusterType, TF_TEST_NKS_LOGIN_KEY),
+				Config: testAccDataSourceNcloudNKSNodePoolsConfig(testClusterName, clusterType, TF_TEST_NKS_LOGIN_KEY, k8sVersion),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckDataSourceID("data.ncloud_nks_node_pools.all"),
 				),
@@ -26,7 +27,7 @@ func TestAccDataSourceNcloudNKSNodePools(t *testing.T) {
 	})
 }
 
-func testAccDataSourceNcloudNKSNodePoolsConfig(testClusterName string, clusterType string, loginKey string) string {
+func testAccDataSourceNcloudNKSNodePoolsConfig(testClusterName string, clusterType string, loginKey string, version string) string {
 	return fmt.Sprintf(`
 resource "ncloud_vpc" "vpc" {
 	name               = "%[1]s"
@@ -64,7 +65,13 @@ resource "ncloud_subnet" "subnet_lb" {
 }
 
 data "ncloud_nks_versions" "version" {
+  filter {
+    name = "value"
+    values = ["%[4]s"]
+    regex = true
+  }
 }
+
 resource "ncloud_nks_cluster" "cluster" {
   name                        = "%[1]s"
   cluster_type                = "%[2]s"
@@ -95,5 +102,5 @@ resource "ncloud_nks_node_pool" "node_pool" {
 data "ncloud_nks_node_pools" "all" {
 	cluster_uuid = ncloud_nks_cluster.cluster.uuid
 }
-`, testClusterName, clusterType, loginKey)
+`, testClusterName, clusterType, loginKey, version)
 }

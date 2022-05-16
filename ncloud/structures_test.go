@@ -715,6 +715,21 @@ func TestFlattenInt32ListToStringList(t *testing.T) {
 	}
 }
 
+func TestFlattenNKSClusterLogInput(t *testing.T) {
+	logInput := &vnks.ClusterLogInput{Audit: ncloud.Bool(true)}
+
+	result := flattenNKSClusterLogInput(logInput)
+
+	if result == nil {
+		t.Fatal("result was nil")
+	}
+
+	r := result[0]
+	if r["audit"].(bool) != true {
+		t.Fatalf("expected result enabled to be true, but was %v", r["enabled"])
+	}
+}
+
 func TestExpandNKSClusterLogInput(t *testing.T) {
 	log := []interface{}{
 		map[string]interface{}{

@@ -81,6 +81,12 @@ func resourceNcloudNKSCluster() *schema.Resource {
 				Required: true,
 				ForceNew: true,
 			},
+			"public_network": {
+				Type:     schema.TypeBool,
+				Optional: true,
+				ForceNew: true,
+				Computed: true,
+			},
 			"subnet_no_list": {
 				Type:     schema.TypeList,
 				Required: true,
@@ -108,6 +114,7 @@ func resourceNcloudNKSCluster() *schema.Resource {
 				MaxItems: 1,
 				Optional: true,
 				ForceNew: true,
+				Computed: true,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"audit": {
@@ -139,6 +146,10 @@ func resourceNcloudNKSClusterCreate(ctx context.Context, d *schema.ResourceData,
 		SubnetLbNo:        getInt32FromString(d.GetOk("lb_private_subnet_no")),
 		LbPublicSubnetNo:  getInt32FromString(d.GetOk("lb_public_subnet_no")),
 		KubeNetworkPlugin: StringPtrOrNil(d.GetOk("kube_network_plugin")),
+	}
+
+	if publicNetwork, ok := d.GetOk("public_network"); ok {
+		reqParams.PublicNetwork = ncloud.Bool(publicNetwork.(bool))
 	}
 
 	if list, ok := d.GetOk("subnet_no_list"); ok {
@@ -195,9 +206,16 @@ func resourceNcloudNKSClusterRead(ctx context.Context, d *schema.ResourceData, m
 	if cluster.LbPublicSubnetNo != nil {
 		d.Set("lb_public_subnet_no", strconv.Itoa(int(ncloud.Int32Value(cluster.LbPublicSubnetNo))))
 	}
+	if cluster.PublicNetwork != nil {
+		d.Set("public_network", cluster.PublicNetwork)
+	}
+
+	if err := d.Set("log", flattenNKSClusterLogInput(cluster.Log)); err != nil {
+		log.Printf("[WARN] Error setting cluster log for (%s): %s", d.Id(), err)
+	}
 
 	if err := d.Set("subnet_no_list", flattenInt32ListToStringList(cluster.SubnetNoList)); err != nil {
-		log.Printf("[WARN] Error setting subet no list set for (%s): %s", d.Id(), err)
+		log.Printf("[WARN] Error setting subnet no list set for (%s): %s", d.Id(), err)
 	}
 
 	return nil
