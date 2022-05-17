@@ -12,15 +12,15 @@ func TestAccDataSourceNcloudNKSCluster(t *testing.T) {
 	dataName := "data.ncloud_nks_cluster.cluster"
 	resourceName := "ncloud_nks_cluster.cluster"
 	testClusterName := getTestClusterName()
-	clusterType := "SVR.VNKS.STAND.C002.M008.NET.SSD.B050.G002"
 	k8sVersion := "1.21"
+	region, clusterType, _ := getRegionAndNKSType()
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:  func() { testAccPreCheck(t) },
 		Providers: testAccProviders,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccDataSourceNKSClusterConfig(testClusterName, clusterType, TF_TEST_NKS_LOGIN_KEY, k8sVersion),
+				Config: testAccDataSourceNKSClusterConfig(testClusterName, clusterType, TF_TEST_NKS_LOGIN_KEY, k8sVersion, region),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckDataSourceID(dataName),
 					resource.TestCheckResourceAttrPair(dataName, "id", resourceName, "id"),
@@ -44,7 +44,7 @@ func TestAccDataSourceNcloudNKSCluster(t *testing.T) {
 	})
 }
 
-func testAccDataSourceNKSClusterConfig(testClusterName string, clusterType string, loginKey string, version string) string {
+func testAccDataSourceNKSClusterConfig(testClusterName string, clusterType string, loginKey string, version string, region string) string {
 	return fmt.Sprintf(`
 resource "ncloud_vpc" "vpc" {
 	name               = "%[1]s"
@@ -55,7 +55,7 @@ resource "ncloud_subnet" "subnet1" {
 	vpc_no             = ncloud_vpc.vpc.vpc_no
 	name               = "%[1]s-1"
 	subnet             = "10.2.1.0/24"
-	zone               = "KR-1"
+	zone               = "%[5]s-1"
 	network_acl_no     = ncloud_vpc.vpc.default_network_acl_no
 	subnet_type        = "PRIVATE"
 	usage_type         = "GEN"
@@ -65,7 +65,7 @@ resource "ncloud_subnet" "subnet2" {
 	vpc_no             = ncloud_vpc.vpc.vpc_no
 	name               = "%[1]s-2"
 	subnet             = "10.2.2.0/24"
-	zone               = "KR-1"
+	zone               = "%[5]s-1"
 	network_acl_no     = ncloud_vpc.vpc.default_network_acl_no
 	subnet_type        = "PRIVATE"
 	usage_type         = "GEN"
@@ -75,7 +75,7 @@ resource "ncloud_subnet" "subnet_lb" {
 	vpc_no             = ncloud_vpc.vpc.vpc_no
 	name               = "%[1]s-lb"
 	subnet             = "10.2.100.0/24"
-	zone               = "KR-1"
+	zone               = "%[5]s-1"
 	network_acl_no     = ncloud_vpc.vpc.default_network_acl_no
 	subnet_type        = "PRIVATE"
 	usage_type         = "LOADB"
@@ -101,7 +101,7 @@ resource "ncloud_nks_cluster" "cluster" {
     ncloud_subnet.subnet2.id,
   ]
   vpc_no                      = ncloud_vpc.vpc.vpc_no
-  zone                     	  = "KR-1"
+  zone                     	  = "%[5]s-1"
 }
 
 data "ncloud_nks_cluster" "cluster" {
@@ -109,5 +109,5 @@ data "ncloud_nks_cluster" "cluster" {
 }
 
 
-`, testClusterName, clusterType, loginKey, version)
+`, testClusterName, clusterType, loginKey, version, region)
 }
