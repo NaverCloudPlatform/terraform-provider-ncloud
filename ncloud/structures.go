@@ -337,6 +337,17 @@ func flattenInt32ListToStringList(list []*int32) (res []*string) {
 	return
 }
 
+func flattenNKSClusterLogInput(logInput *vnks.ClusterLogInput) []map[string]interface{} {
+	if logInput == nil {
+		return nil
+	}
+
+	return []map[string]interface{}{
+		{
+			"audit": ncloud.BoolValue(logInput.Audit),
+		},
+	}
+}
 func expandNKSClusterLogInput(logList []interface{}) *vnks.ClusterLogInput {
 	if len(logList) == 0 {
 		return nil

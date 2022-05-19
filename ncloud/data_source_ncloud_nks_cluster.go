@@ -49,6 +49,10 @@ func dataSourceNcloudNKSCluster() *schema.Resource {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
+			"public_network": {
+				Type:     schema.TypeBool,
+				Computed: true,
+			},
 			"subnet_no_list": {
 				Type:     schema.TypeList,
 				Computed: true,
@@ -115,7 +119,12 @@ func dataSourceNcloudNKSClusterRead(ctx context.Context, d *schema.ResourceData,
 	if cluster.LbPublicSubnetNo != nil {
 		d.Set("lb_public_subnet_no", strconv.Itoa(int(ncloud.Int32Value(cluster.LbPublicSubnetNo))))
 	}
-
+	if cluster.PublicNetwork != nil {
+		d.Set("public_network", cluster.PublicNetwork)
+	}
+	if err := d.Set("log", flattenNKSClusterLogInput(cluster.Log)); err != nil {
+		log.Printf("[WARN] Error setting cluster log for (%s): %s", d.Id(), err)
+	}
 	if err := d.Set("subnet_no_list", flattenInt32ListToStringList(cluster.SubnetNoList)); err != nil {
 		log.Printf("[WARN] Error setting subet no list set for (%s): %s", d.Id(), err)
 	}
