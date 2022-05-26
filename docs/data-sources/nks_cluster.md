@@ -29,6 +29,7 @@ In addition to all arguments above, the following attributes are exported:
 * `lb_private_subnet_no` - Subnet No. for private loadbalancer only.
 * `lb_public_subnet_no` - Subnet No. for public loadbalancer only. (Available only `SGN` region`)
 * `subnet_no_list` - Subnet No. list.
+* `public_network` - Public Subnet Network
 * `kube_network_plugin` - Kubernetes network plugin.
 * `cluster_type` - Cluster type. `Maximum number of nodes`
   * 10 ea : `SVR.VNKS.STAND.C002.M008.NET.SSD.B050.G002`
