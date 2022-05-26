@@ -73,7 +73,7 @@ The following arguments are supported:
 * `login_key_name` - (Required) Login key name.
 * `zone` - (Required) zone Code.
 * `vpc_no` - (Required) VPC No.
-* `subnet_no_list` - (Required) Subnet No. list. (For now, `public subnet` is not supported. Will be supported soon)
+* `subnet_no_list` - (Required) Subnet No. list.
 * `lb_private_subnet_no` - (Required) Subnet No. for private loadbalancer only.
 * `lb_public_subnet_no` - (Optional) Subnet No. for public loadbalancer only. (Available only `SGN` region)
 * `log` - (Optional)
