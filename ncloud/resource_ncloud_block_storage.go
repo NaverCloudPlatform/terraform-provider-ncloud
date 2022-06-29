@@ -486,7 +486,7 @@ func deleteVpcBlockStorage(d *schema.ResourceData, config *ProviderConfig, id st
 	return nil
 }
 
-func detachBlockStorage(d *schema.ResourceData, config *ProviderConfig, id string) error {
+func detachBlockStorage(config *ProviderConfig, id string) error {
 	var err error
 
 	if config.SupportVPC {
