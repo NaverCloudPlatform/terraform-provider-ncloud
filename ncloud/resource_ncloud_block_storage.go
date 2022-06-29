@@ -176,13 +176,13 @@ func resourceNcloudBlockStorageUpdate(d *schema.ResourceData, meta interface{}) 
 		// If server instance attached block storage, detach first
 		if len(o.(string)) > 0 {
 			if d.Get("stop_instance_before_detaching").(bool) {
-				log.Printf("[INFO] Start Instance %q after detaching block storage", *ncloud.String(o.(string)))
+				log.Printf("[INFO] Start Instance %s after detaching block storage", *ncloud.String(o.(string)))
 				if err := stopThenWaitServerInstance(config, *ncloud.String(o.(string))); err != nil {
 					return err
 				}
 			}
 
-			if err := detachBlockStorage(d, config, d.Id()); err != nil {
+			if err := detachBlockStorage(config, d.Id()); err != nil {
 				return err
 			}
 		}
@@ -204,13 +204,13 @@ func resourceNcloudBlockStorageUpdate(d *schema.ResourceData, meta interface{}) 
 		// If server instance attached block storage, detach first
 		if len(d.Get("server_instance_no").(string)) > 0 {
 			if d.Get("stop_instance_before_detaching").(bool) {
-				log.Printf("[INFO] Start Instance %q after detaching block storage", *ncloud.String(d.Get("server_instance_no").(string)))
+				log.Printf("[INFO] Start Instance %s after detaching block storage", *ncloud.String(d.Get("server_instance_no").(string)))
 				if err := stopThenWaitServerInstance(config, *ncloud.String(d.Get("server_instance_no").(string))); err != nil {
 					return err
 				}
 			}
 
-			if err := detachBlockStorage(d, config, d.Id()); err != nil {
+			if err := detachBlockStorage(config, d.Id()); err != nil {
 				return err
 			}
 		}
