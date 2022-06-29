@@ -153,8 +153,8 @@ func resourceNcloudBlockStorageDelete(d *schema.ResourceData, meta interface{}) 
 	config := meta.(*ProviderConfig)
 
 	if d.Get("stop_instance_before_detaching").(bool) {
-		log.Printf("[INFO] Stopping Instance %q for destroying block storage", *ncloud.String(d.Get("server_instance_no").(string)))
-		if err := stopThenWaitServerInstance(config, *ncloud.String(d.Get("server_instance_no").(string))); err != nil {
+		log.Printf("[INFO] Stopping Instance %s for destroying block storage", d.Get("server_instance_no").(string))
+		if err := stopThenWaitServerInstance(config, d.Get("server_instance_no").(string)); err != nil {
 			return err
 		}
 	}
