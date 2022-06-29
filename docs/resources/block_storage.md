@@ -21,6 +21,8 @@ The following arguments are supported:
 * `name` - (Optional) The name to create. If omitted, Terraform will assign a random, unique name.
 * `description` - (Optional) description to create.
 * `disk_detail_type` - (Optional) Type of block storage disk detail to create. Default `SSD`. Accepted values: `SSD` | `HDD` 
+* `stop_instance_before_detaching` - (Optional, Boolean) Set this to true to ensure that the target instance is stopped before trying to detach the volume. Stops the instance, if it is not already stopped.
+	> If `stop_instance_before_detaching` is `true`, server will be stopped and **will not start automatically**. User must start server instance manually via NCLOUD console or API.
 
 ~> **NOTE:** Below arguments only support Classic environment.
 
