@@ -106,6 +106,11 @@ func resourceNcloudBlockStorage() *schema.Resource {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
+			"stop_instance_before_detaching": {
+				Type:     schema.TypeBool,
+				Optional: true,
+				Default:  false,
+			},
 		},
 	}
 }
@@ -147,6 +152,13 @@ func resourceNcloudBlockStorageRead(d *schema.ResourceData, meta interface{}) er
 func resourceNcloudBlockStorageDelete(d *schema.ResourceData, meta interface{}) error {
 	config := meta.(*ProviderConfig)
 
+	if d.Get("stop_instance_before_detaching").(bool) {
+		log.Printf("[INFO] Stopping Instance %s for destroying block storage", d.Get("server_instance_no").(string))
+		if err := stopThenWaitServerInstance(config, d.Get("server_instance_no").(string)); err != nil {
+			return err
+		}
+	}
+
 	if err := deleteBlockStorage(d, config, d.Id()); err != nil {
 		return err
 	}
@@ -160,7 +172,16 @@ func resourceNcloudBlockStorageUpdate(d *schema.ResourceData, meta interface{}) 
 
 	if d.HasChange("server_instance_no") {
 		o, n := d.GetChange("server_instance_no")
+
+		// If server instance attached block storage, detach first
 		if len(o.(string)) > 0 {
+			if d.Get("stop_instance_before_detaching").(bool) {
+				log.Printf("[INFO] Start Instance %s after detaching block storage", *ncloud.String(o.(string)))
+				if err := stopThenWaitServerInstance(config, *ncloud.String(o.(string))); err != nil {
+					return err
+				}
+			}
+
 			if err := detachBlockStorage(config, d.Id()); err != nil {
 				return err
 			}
@@ -182,6 +203,13 @@ func resourceNcloudBlockStorageUpdate(d *schema.ResourceData, meta interface{}) 
 
 		// If server instance attached block storage, detach first
 		if len(d.Get("server_instance_no").(string)) > 0 {
+			if d.Get("stop_instance_before_detaching").(bool) {
+				log.Printf("[INFO] Start Instance %s after detaching block storage", *ncloud.String(d.Get("server_instance_no").(string)))
+				if err := stopThenWaitServerInstance(config, *ncloud.String(d.Get("server_instance_no").(string))); err != nil {
+					return err
+				}
+			}
+
 			if err := detachBlockStorage(config, d.Id()); err != nil {
 				return err
 			}
@@ -355,7 +383,9 @@ func getVpcBlockStorage(config *ProviderConfig, id string) (*BlockStorage, error
 }
 
 func deleteBlockStorage(d *schema.ResourceData, config *ProviderConfig, id string) error {
+
 	var err error
+
 	if config.SupportVPC {
 		err = deleteVpcBlockStorage(d, config, id)
 	} else {
@@ -458,6 +488,7 @@ func deleteVpcBlockStorage(d *schema.ResourceData, config *ProviderConfig, id st
 
 func detachBlockStorage(config *ProviderConfig, id string) error {
 	var err error
+
 	if config.SupportVPC {
 		err = detachVpcBlockStorage(config, id)
 	} else {
