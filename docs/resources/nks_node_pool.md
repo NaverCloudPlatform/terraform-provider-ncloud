@@ -5,7 +5,7 @@ Provides a Kubernetes Service nodepool resource.
 ## Example Usage
 
 ```hcl
-esource "ncloud_vpc" "vpc" {
+resource "ncloud_vpc" "vpc" {
   name            = "vpc"
   ipv4_cidr_block = "10.0.0.0/16"
 }
