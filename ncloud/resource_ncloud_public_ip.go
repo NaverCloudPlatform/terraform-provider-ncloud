@@ -192,17 +192,6 @@ func resourceNcloudPublicIpUpdate(d *schema.ResourceData, meta interface{}) erro
 				}); err != nil {
 					return err
 				}
-				// for i := 0; i < 3; i++ {
-				// 	if err = associatedPublicIp(d, config); err != nil {
-				// 		errBody, _ := GetCommonErrorBody(err)
-				// 		if errBody.ReturnCode != "1003016" {
-				// 			return err
-				// 		}
-				// 	} else {
-				// 		break
-				// 	}
-				// 	time.Sleep(1)
-				// }
 			} else if isAssociated {
 				if instance, err := getPublicIp(config, d.Id()); *instance.ServerInstanceNo != n.(string) {
 					d.Set("server_instance_no", "")
