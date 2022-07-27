@@ -18,14 +18,14 @@ func TestAccResourceNcloudLoginKey_vpc_basic(t *testing.T) {
 }
 
 func testAccResourceNcloudLoginKeyBasic(t *testing.T, isVpc bool) {
-	var fingerprint *string
+	var loginKey *LoginKey
 	prefix := getTestPrefix()
 	testKeyName := prefix + "-key"
 
 	testCheck := func() func(*terraform.State) error {
 		return func(*terraform.State) error {
-			if fingerprint != nil {
-				return fmt.Errorf("fingerprint must not be nil")
+			if loginKey != nil {
+				return fmt.Errorf("loginkey must not be nil")
 			}
 			return nil
 		}
@@ -42,7 +42,7 @@ func testAccResourceNcloudLoginKeyBasic(t *testing.T, isVpc bool) {
 			{
 				Config: testAccLoginKeyConfig(testKeyName),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckLoginKeyExistsWithProvider("ncloud_login_key.loginkey", fingerprint, provider),
+					testAccCheckLoginKeyExistsWithProvider("ncloud_login_key.loginkey", loginKey, provider),
 					testCheck(),
 					resource.TestCheckResourceAttr(
 						"ncloud_login_key.loginkey",
@@ -60,7 +60,7 @@ func testAccResourceNcloudLoginKeyBasic(t *testing.T, isVpc bool) {
 	})
 }
 
-func testAccCheckLoginKeyExistsWithProvider(n string, i *string, provider *schema.Provider) resource.TestCheckFunc {
+func testAccCheckLoginKeyExistsWithProvider(n string, l *LoginKey, provider *schema.Provider) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		rs, ok := s.RootModule().Resources[n]
 		if !ok {
@@ -72,17 +72,17 @@ func testAccCheckLoginKeyExistsWithProvider(n string, i *string, provider *schem
 		}
 
 		config := provider.Meta().(*ProviderConfig)
-		fingerPrint, err := getFingerPrint(config, &rs.Primary.ID)
+		loginKey, err := getLoginKey(config, rs.Primary.ID)
 		if err != nil {
 			return nil
 		}
 
-		if fingerPrint != nil {
-			i = fingerPrint
+		if loginKey != nil {
+			l = loginKey
 			return nil
 		}
 
-		return fmt.Errorf("fingerprint is not found")
+		return fmt.Errorf("loginKey is not found")
 	}
 }
 
@@ -93,15 +93,15 @@ func testAccCheckLoginKeyDestroyWithProvider(s *terraform.State, provider *schem
 		if rs.Type != "ncloud_login_key" {
 			continue
 		}
-		fingerPrint, err := getFingerPrint(config, &rs.Primary.ID)
+		loginKey, err := getLoginKey(config, rs.Primary.ID)
 
-		if fingerPrint == nil {
+		if loginKey == nil {
 			continue
 		}
 		if err != nil {
 			return err
 		}
-		if fingerPrint != nil && *fingerPrint != "" {
+		if loginKey != nil && *loginKey.Fingerprint != "" {
 			return fmt.Errorf("found not deleted login key: %s", rs.Primary.ID)
 		}
 	}

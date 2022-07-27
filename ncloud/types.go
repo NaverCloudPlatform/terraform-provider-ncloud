@@ -110,6 +110,11 @@ type LoadBalancerListener struct {
 	TargetGroupNo          *string   `json:"target_group_no,omitempty"`
 }
 
+type LoginKey struct {
+	KeyName     *string `json:"key_name,omitempty"`
+	Fingerprint *string `json:"fingerprint,omitempty"`
+}
+
 func flattenZoneList(zoneList []*autoscaling.Zone) []*string {
 	noList := make([]*string, 0)
 	for _, z := range zoneList {
