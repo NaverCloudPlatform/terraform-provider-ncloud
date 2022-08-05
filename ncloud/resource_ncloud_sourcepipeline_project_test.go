@@ -4,10 +4,8 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"strconv"
 	"testing"
 
-	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/services/sourcepipeline"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
@@ -243,7 +241,7 @@ resource "ncloud_sourcecommit_repository" "test-repo" {
 }
 
 resource "ncloud_sourcebuild_project" "test-project" {
-	name        = "souceBuild"
+	name        = "sourceBuild"
 	description = "my build project"
 	source {
 		type = "SourceCommit"
@@ -302,6 +300,7 @@ resource "ncloud_sourcepipeline_project" "foo" {
 		setting = true
 		sourcecommit {
 		  repository = ncloud_sourcecommit_repository.test-repo.name
+		  branch     = "master"
 		}
 	}
 }
@@ -313,6 +312,21 @@ func testAccResourceNcloudSourcePipelineProjectClassicConfigUpdateTaskName(name,
 data "ncloud_sourcebuild_compute" "compute" {
 }
 
+data "ncloud_sourcebuild_os" "os" {
+}
+
+data "ncloud_sourcebuild_runtime" "runtime" {
+	os_id = data.ncloud_sourcebuild_os.os.os[0].id
+}
+
+data "ncloud_sourcebuild_runtime_version" "runtime_version" {
+	os_id      = data.ncloud_sourcebuild_os.os.os[0].id
+	runtime_id = data.ncloud_sourcebuild_runtime.runtime.runtime[0].id
+}
+
+data "ncloud_sourcebuild_docker" "docker" {
+}
+		
 resource "ncloud_sourcecommit_repository" "test-repo" {
 	name = "sourceCommit"
 }
@@ -332,20 +346,31 @@ resource "ncloud_sourcebuild_project" "test-project" {
 			id = data.ncloud_sourcebuild_compute.compute.compute[0].id
 		}
 		platform {
-			type = "PublicRegistry"
+			type = "SourceBuild"
 			config {
-				image    = "ubuntu"
-				tag      = "latest"
+				os {
+					id = data.ncloud_sourcebuild_os.os.os[0].id
+				}
+				runtime {
+					id = data.ncloud_sourcebuild_runtime.runtime.runtime[0].id
+					version {
+						id = data.ncloud_sourcebuild_runtime_version.runtime_version.runtime_version[0].id
+					}
+				}
 			}
 		}
-		timeout = 100
+		docker {
+			use = true
+			id = data.ncloud_sourcebuild_docker.docker.docker[0].id
+		}
+		timeout = 500
 		env_vars {
-			key   = "k2"
-			value = "v2"
+			key   = "k1"
+			value = "v1"
 		}
 	}
 	cmd {
-		pre   = [""]
+		pre   = ["pwd", "ls"]
 		build = ["pwd", "ls"]
 		post  = ["pwd", "ls"]
 	}
@@ -366,6 +391,7 @@ resource "ncloud_sourcepipeline_project" "foo" {
 		setting = true
 		sourcecommit {
 			repository = ncloud_sourcecommit_repository.test-repo.name
+			branch     = "master"
 		}
 	}
 }
@@ -377,6 +403,21 @@ func testAccResourceNcloudSourcePipelineProjectClassicConfigUpdateDescription(na
 data "ncloud_sourcebuild_compute" "compute" {
 }
 
+data "ncloud_sourcebuild_os" "os" {
+}
+
+data "ncloud_sourcebuild_runtime" "runtime" {
+	os_id = data.ncloud_sourcebuild_os.os.os[0].id
+}
+
+data "ncloud_sourcebuild_runtime_version" "runtime_version" {
+	os_id      = data.ncloud_sourcebuild_os.os.os[0].id
+	runtime_id = data.ncloud_sourcebuild_runtime.runtime.runtime[0].id
+}
+
+data "ncloud_sourcebuild_docker" "docker" {
+}
+		
 resource "ncloud_sourcecommit_repository" "test-repo" {
 	name = "sourceCommit"
 }
@@ -396,20 +437,31 @@ resource "ncloud_sourcebuild_project" "test-project" {
 			id = data.ncloud_sourcebuild_compute.compute.compute[0].id
 		}
 		platform {
-			type = "PublicRegistry"
+			type = "SourceBuild"
 			config {
-				image    = "ubuntu"
-				tag      = "latest"
+				os {
+					id = data.ncloud_sourcebuild_os.os.os[0].id
+				}
+				runtime {
+					id = data.ncloud_sourcebuild_runtime.runtime.runtime[0].id
+					version {
+						id = data.ncloud_sourcebuild_runtime_version.runtime_version.runtime_version[0].id
+					}
+				}
 			}
 		}
-		timeout = 100
+		docker {
+			use = true
+			id = data.ncloud_sourcebuild_docker.docker.docker[0].id
+		}
+		timeout = 500
 		env_vars {
-			key   = "k2"
-			value = "v2"
+			key   = "k1"
+			value = "v1"
 		}
 	}
 	cmd {
-		pre   = [""]
+		pre   = ["pwd", "ls"]
 		build = ["pwd", "ls"]
 		post  = ["pwd", "ls"]
 	}
@@ -430,6 +482,7 @@ resource "ncloud_sourcepipeline_project" "foo" {
 		setting = true
 		sourcecommit {
 			repository = ncloud_sourcecommit_repository.test-repo.name
+			branch     = "master"
 		}
 	}
 }
@@ -461,7 +514,7 @@ resource "ncloud_sourcecommit_repository" "test-repo" {
 }
 
 resource "ncloud_sourcebuild_project" "test-project" {
-	name        = "souceBuild"
+	name        = "sourceBuild"
 	description = "my build project"
 	source {
 		type = "SourceCommit"
@@ -520,6 +573,7 @@ resource "ncloud_sourcepipeline_project" "foo" {
 		setting = true
 		sourcecommit {
 			repository = ncloud_sourcecommit_repository.test-repo.name
+			branch     = "master"
 		}
 	}
 }
@@ -531,6 +585,21 @@ func testAccResourceNcloudSourcePipelineProjectVpcConfigUpdateTaskName(name, tas
 data "ncloud_sourcebuild_compute" "compute" {
 }
 
+data "ncloud_sourcebuild_os" "os" {
+}
+
+data "ncloud_sourcebuild_runtime" "runtime" {
+	os_id = data.ncloud_sourcebuild_os.os.os[0].id
+}
+
+data "ncloud_sourcebuild_runtime_version" "runtime_version" {
+	os_id      = data.ncloud_sourcebuild_os.os.os[0].id
+	runtime_id = data.ncloud_sourcebuild_runtime.runtime.runtime[0].id
+}
+
+data "ncloud_sourcebuild_docker" "docker" {
+}
+	  
 resource "ncloud_sourcecommit_repository" "test-repo" {
 	name = "sourceCommit"
 }
@@ -550,20 +619,31 @@ resource "ncloud_sourcebuild_project" "test-project" {
 			id = data.ncloud_sourcebuild_compute.compute.compute[0].id
 		}
 		platform {
-			type = "PublicRegistry"
+			type = "SourceBuild"
 			config {
-				image    = "ubuntu"
-				tag      = "latest"
+				os {
+					id = data.ncloud_sourcebuild_os.os.os[0].id
+				}
+				runtime {
+					id = data.ncloud_sourcebuild_runtime.runtime.runtime[0].id
+					version {
+						id = data.ncloud_sourcebuild_runtime_version.runtime_version.runtime_version[0].id
+					}
+				}
 			}
 		}
-		timeout = 100
+		docker {
+			use = true
+			id = data.ncloud_sourcebuild_docker.docker.docker[0].id
+		}
+		timeout = 500
 		env_vars {
-			key   = "k2"
-			value = "v2"
+			key   = "k1"
+			value = "v1"
 		}
 	}
 	cmd {
-		pre   = [""]
+		pre   = ["pwd", "ls"]
 		build = ["pwd", "ls"]
 		post  = ["pwd", "ls"]
 	}
@@ -584,6 +664,7 @@ resource "ncloud_sourcepipeline_project" "foo" {
 		setting = true
 		sourcecommit {
 			repository = ncloud_sourcecommit_repository.test-repo.name
+			branch     = "master"
 		}
 	}
 }
@@ -595,6 +676,21 @@ func testAccResourceNcloudSourcePipelineProjectVpcConfigUpdateDescription(name, 
 data "ncloud_sourcebuild_compute" "compute" {
 }
 
+data "ncloud_sourcebuild_os" "os" {
+}
+
+data "ncloud_sourcebuild_runtime" "runtime" {
+	os_id = data.ncloud_sourcebuild_os.os.os[0].id
+}
+
+data "ncloud_sourcebuild_runtime_version" "runtime_version" {
+	os_id      = data.ncloud_sourcebuild_os.os.os[0].id
+	runtime_id = data.ncloud_sourcebuild_runtime.runtime.runtime[0].id
+}
+
+data "ncloud_sourcebuild_docker" "docker" {
+}
+		
 resource "ncloud_sourcecommit_repository" "test-repo" {
 	name = "sourceCommit"
 }
@@ -614,20 +710,31 @@ resource "ncloud_sourcebuild_project" "test-project" {
 			id = data.ncloud_sourcebuild_compute.compute.compute[0].id
 		}
 		platform {
-			type = "PublicRegistry"
+			type = "SourceBuild"
 			config {
-				image    = "ubuntu"
-				tag      = "latest"
+				os {
+					id = data.ncloud_sourcebuild_os.os.os[0].id
+				}
+				runtime {
+					id = data.ncloud_sourcebuild_runtime.runtime.runtime[0].id
+					version {
+						id = data.ncloud_sourcebuild_runtime_version.runtime_version.runtime_version[0].id
+					}
+				}
 			}
 		}
-		timeout = 100
+		docker {
+			use = true
+			id = data.ncloud_sourcebuild_docker.docker.docker[0].id
+		}
+		timeout = 500
 		env_vars {
-			key   = "k2"
-			value = "v2"
+			key   = "k1"
+			value = "v1"
 		}
 	}
 	cmd {
-		pre   = [""]
+		pre   = ["pwd", "ls"]
 		build = ["pwd", "ls"]
 		post  = ["pwd", "ls"]
 	}
@@ -648,6 +755,7 @@ resource "ncloud_sourcepipeline_project" "foo" {
 		setting = true
 		sourcecommit {
 			repository = ncloud_sourcecommit_repository.test-repo.name
+			branch     = "master"
 		}
 	}
 }
@@ -693,18 +801,4 @@ func testAccCheckSourcePipelineProjectDestroy(s *terraform.State, provider *sche
 	}
 
 	return nil
-}
-
-func testAccCheckSourcePipelineProjectDisappears_vpc(project *sourcepipeline.GetProjectDetailResponse) resource.TestCheckFunc {
-	return func(s *terraform.State) error {
-		config := testAccProvider.Meta().(*ProviderConfig)
-		id := *project.Id
-
-		err := deletePipelineProject(context.Background(), config, strconv.Itoa(int(id)))
-		if err != nil {
-			return err
-		}
-
-		return nil
-	}
 }

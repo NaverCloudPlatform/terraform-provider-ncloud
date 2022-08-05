@@ -68,13 +68,13 @@ data "ncloud_sourcebuild_runtime_version" "runtime_version" {
 
 data "ncloud_sourcebuild_docker" "docker" {
 }
-		
+
 resource "ncloud_sourcecommit_repository" "test-repo" {
 	name = "sourceCommit"
 }
 
 resource "ncloud_sourcebuild_project" "test-project" {
-	name        = "souceBuild"
+	name        = "sourceBuild"
 	description = "my build project"
 	source {
 		type = "SourceCommit"
@@ -133,6 +133,7 @@ resource "ncloud_sourcepipeline_project" "test-project" {
 		setting = true
 		sourcecommit {
 			repository = ncloud_sourcecommit_repository.test-repo.name
+			branch = "master"
 		}
 	}
 }
