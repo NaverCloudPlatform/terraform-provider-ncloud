@@ -426,6 +426,7 @@ func deleteClassicBlockStorage(d *schema.ResourceData, config *ProviderConfig, i
 
 func deleteVpcBlockStorage(d *schema.ResourceData, config *ProviderConfig, id string) error {
 	reqParams := vserver.DeleteBlockStorageInstancesRequest{
+		RegionCode:                 &config.RegionCode,
 		BlockStorageInstanceNoList: []*string{ncloud.String(id)},
 	}
 
