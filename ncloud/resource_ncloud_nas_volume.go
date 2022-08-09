@@ -436,7 +436,10 @@ func deleteClassicNasVolume(config *ProviderConfig, id string) error {
 }
 
 func deleteVpcNasVolume(config *ProviderConfig, id string) error {
-	reqParams := &vnas.DeleteNasVolumeInstancesRequest{NasVolumeInstanceNoList: []*string{ncloud.String(id)}}
+	reqParams := &vnas.DeleteNasVolumeInstancesRequest{
+		RegionCode:              &config.RegionCode,
+		NasVolumeInstanceNoList: []*string{ncloud.String(id)},
+	}
 	logCommonRequest("deleteVpcNasVolume", reqParams)
 
 	resp, err := config.Client.vnas.V2Api.DeleteNasVolumeInstances(reqParams)
