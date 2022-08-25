@@ -24,8 +24,7 @@ data "ncloud_sourcedeploy_scenarioes" "test-sourcedeploy_scenarioes" {
 }
 
 resource "ncloud_sourcepipeline_project" "test-sourcepipeline" {
-  name        = "tf-sourcepipeline_project-test"
-  description = ""
+  name = "tf-sourcepipeline_project-test"
   tasks {
     name = "task_name_1"
     type = "SourceBuild"
@@ -51,6 +50,7 @@ resource "ncloud_sourcepipeline_project" "test-sourcepipeline" {
     setting = true
     sourcecommit {
       repository = ncloud_sourcecommit_repository.test-sourcecommit.name
+      branch     = "master"
     }
   }
 }
