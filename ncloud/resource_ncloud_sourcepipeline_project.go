@@ -449,7 +449,7 @@ func makeClassicPipelineTaskParams(d *schema.ResourceData) ([]*sourcepipeline.Cr
 		})
 	}
 
-	return pipelineTaskParams
+	return pipelineTaskParams, nil
 }
 
 func makeVpcPipelineTaskParams(d *schema.ResourceData) ([]*vsourcepipeline.CreateProjectTasks, diag.Diagnostics) {
