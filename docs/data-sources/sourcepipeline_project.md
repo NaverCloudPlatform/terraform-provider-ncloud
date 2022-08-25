@@ -45,6 +45,7 @@ The following attributes are exported:
             *   `file` - Target file name of the Sourcedeploy task.
             *   `manifest` - Target manifest file name of the Sourcedeploy task.
             *   `full_manifest` - List of target manifest files name of the Sourcedeploy task.
+    *   `linked_tasks` - List of linked tasks.
 *   `trigger`
     *   `setting` - Trigger setting option.
     *   `sourcecommit`

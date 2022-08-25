@@ -11,7 +11,6 @@ resource "ncloud_sourcecommit_repository" "test-sourcecommit" {
 
 resource "ncloud_sourcepipeline_project" "test-sourcepipeline" {
     name = "tf-sourcepipeline_project-test"
-    description = ""
     tasks {
         name = "task_name_1"
         type = "SourceBuild"
@@ -37,12 +36,14 @@ resource "ncloud_sourcepipeline_project" "test-sourcepipeline" {
         setting = true
         sourcecommit {
             repository = ncloud_sourcecommit_repository.test-sourcecommit.name
+            branch = "master"
         }
     }
 }
 ```
 
-Create Sourcepipeline project by referring to data sources (retrieve sourcebuild_projects, sourcedeploy_projects, sourcedeploy_stages, sourcedeploy_sceanrioes)
+Create Sourcepipeline project by referring to data sources (retrieve sourcebuild_projects, sourcedeploy_projects, sourcedeploy_stages, sourcedeploy_sceanrioes).
+
 ```hcl
 resource "ncloud_sourcecommit_repository" "test-sourcecommit" {
     name = "sourceCommit"
@@ -65,7 +66,6 @@ data "ncloud_sourcedeploy_scenarioes" "test-sourcedeploy_scenarioes" {
 
 resource "ncloud_sourcepipeline_project" "test-sourcepipeline" {
     name = "tf-sourcepipeline_project-test"
-    description = ""
     tasks {
         name = "task_name_1"
         type = "SourceBuild"
@@ -91,6 +91,7 @@ resource "ncloud_sourcepipeline_project" "test-sourcepipeline" {
         setting = true
         sourcecommit {
             repository = ncloud_sourcecommit_repository.test-sourcecommit.name
+            branch = "master"
         }
     }
 }
@@ -111,6 +112,7 @@ The following arguments are supported:
         *   `scenario_id` - (Optional, Required if `tasks.type` value is SourceDeploy) Scenario Id of a task. Get avaliable values using the datasource `ncloud_sourcedeploy_scenarioes`
         *   `target`- (Optional) Target of a task job.
             *   `repository_branch` - (Optional) Target repository branch of SourceBuild task. Default : main branch of target repository
+    *   `linked_tasks` - (Required) Linked tasks which has to be executed before.
 *   `trigger` - (Required) `trigger` block describes trigger configuration.
     *   `setting` - (Required) Trigger setting option. You can decide whether to set trigger or not.
     *   `sourcecommit` - (Optional)
