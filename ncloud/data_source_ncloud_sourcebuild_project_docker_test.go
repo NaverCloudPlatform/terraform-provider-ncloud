@@ -6,23 +6,23 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 )
 
-func TestAccDataSourceNcloudSourceBuildCompute(t *testing.T) {
+func TestAccDataSourceNcloudSourceBuildDocker(t *testing.T) {
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:  func() { testAccPreCheck(t) },
 		Providers: testAccProviders,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccDataSourceNcloudSourceBuildComputeConfig(),
+				Config: testAccDataSourceNcloudSourceBuildDockerConfig(),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckDataSourceID("data.ncloud_sourcebuild_compute.compute"),
+					testAccCheckDataSourceID("data.ncloud_sourcebuild_project_docker.docker"),
 				),
 			},
 		},
 	})
 }
 
-func testAccDataSourceNcloudSourceBuildComputeConfig() string {
+func testAccDataSourceNcloudSourceBuildDockerConfig() string {
 	return `
-data "ncloud_sourcebuild_compute" "compute" {}
+data "ncloud_sourcebuild_project_docker" "docker" {}
 `
 }

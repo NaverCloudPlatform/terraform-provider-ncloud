@@ -8,19 +8,19 @@ import (
 )
 
 func init() {
-	RegisterDataSource("ncloud_sourcebuild_docker", dataSourceNcloudSourceBuildDocker())
+	RegisterDataSource("ncloud_sourcebuild_project_os", dataSourceNcloudSourceBuildOs())
 }
 
-func dataSourceNcloudSourceBuildDocker() *schema.Resource {
+func dataSourceNcloudSourceBuildOs() *schema.Resource {
 	return &schema.Resource{
-		ReadContext: dataSourceNcloudSourceBuildDockerRead,
+		ReadContext: dataSourceNcloudSourceBuildOsRead,
 		Schema: map[string]*schema.Schema{
 			"output_file": {
 				Type:     schema.TypeString,
 				Optional: true,
 			},
 			"filter": dataSourceFiltersSchema(),
-			"docker": {
+			"os": {
 				Type:     schema.TypeList,
 				Computed: true,
 				Elem: &schema.Resource{
@@ -33,6 +33,14 @@ func dataSourceNcloudSourceBuildDocker() *schema.Resource {
 							Type:     schema.TypeString,
 							Computed: true,
 						},
+						"archi": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+						"version": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
 					},
 				},
 			},
@@ -40,34 +48,36 @@ func dataSourceNcloudSourceBuildDocker() *schema.Resource {
 	}
 }
 
-func dataSourceNcloudSourceBuildDockerRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+func dataSourceNcloudSourceBuildOsRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	config := meta.(*ProviderConfig)
 
-	logCommonRequest("GetDockerEnv", "")
-	resp, err := config.Client.sourcebuild.V1Api.GetDockerEnv(context.Background())
+	logCommonRequest("GetOsEnv", "")
+	resp, err := config.Client.sourcebuild.V1Api.GetOsEnv(ctx)
 	if err != nil {
-		logErrorResponse("GetDockerEnv", err, "")
+		logErrorResponse("GetOsEnv", err, "")
 		return diag.FromErr(err)
 	}
-	logResponse("GetDockerEnv", resp)
+	logResponse("GetOsEnv", resp)
 
 	resources := []map[string]interface{}{}
 
-	for _, r := range resp.Docker {
-		docker := map[string]interface{}{
-			"id":   *r.Id,
-			"name": *r.Name,
+	for _, r := range resp.Os {
+		os := map[string]interface{}{
+			"id":      *r.Id,
+			"name":    *r.Name,
+			"archi":   *r.Archi,
+			"version": *r.Version,
 		}
 
-		resources = append(resources, docker)
+		resources = append(resources, os)
 	}
 
 	if f, ok := d.GetOk("filter"); ok {
-		resources = ApplyFilters(f.(*schema.Set), resources, dataSourceNcloudSourceBuildDocker().Schema)
+		resources = ApplyFilters(f.(*schema.Set), resources, dataSourceNcloudSourceBuildOs().Schema)
 	}
 
 	d.SetId(config.RegionCode)
-	d.Set("docker", resources)
+	d.Set("os", resources)
 
 	if output, ok := d.GetOk("output_file"); ok && output.(string) != "" {
 		return diag.FromErr(writeToFile(output.(string), resources))

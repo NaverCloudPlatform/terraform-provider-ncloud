@@ -1,4 +1,6 @@
-# Data Source: ncloud_sourcebuild_os
+# Data Source: ncloud_sourcebuild_project_os
+
+-> **Note:** This data source is a beta release. Some features may change in the future.
 
 This data source is useful for look up the list of Sourcebuild os in the region.
 
@@ -7,7 +9,7 @@ This data source is useful for look up the list of Sourcebuild os in the region.
 In the example below, Retrieves all os environments with "ubuntu" in their names.
 
 ```hcl
-data "ncloud_sourcebuild_os" "os" {
+data "ncloud_sourcebuild_project_os" "os" {
   filter {
     name   = "name"
     values = ["ubuntu"]
@@ -15,7 +17,7 @@ data "ncloud_sourcebuild_os" "os" {
 }
 
 output "lookup-os-output" {
-  value = data.ncloud_sourcebuild_os.os.os
+  value = data.ncloud_sourcebuild_project_os.os.os
 }
 ```
 

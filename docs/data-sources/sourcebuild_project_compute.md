@@ -1,4 +1,6 @@
-# Data Source: ncloud_sourcebuild_compute
+# Data Source: ncloud_sourcebuild_project_compute
+
+-> **Note:** This data source is a beta release. Some features may change in the future.
 
 This data source is useful for look up the list of Sourcebuild compute in the region.
 
@@ -7,7 +9,7 @@ This data source is useful for look up the list of Sourcebuild compute in the re
 In the example below, Retrieves all compute environments with the number of cpu is '2'.
 
 ```hcl
-data "ncloud_sourcebuild_compute" "compute" {
+data "ncloud_sourcebuild_project_compute" "compute" {
   filter {
     name   = "cpu"
     values = [2]
@@ -15,7 +17,7 @@ data "ncloud_sourcebuild_compute" "compute" {
 }
 
 output "lookup-compute-output" {
-  value = data.ncloud_sourcebuild_compute.compute.compute
+  value = data.ncloud_sourcebuild_project_compute.compute.compute
 }
 ```
 

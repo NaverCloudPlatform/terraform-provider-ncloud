@@ -1,5 +1,7 @@
 # Resource: ncloud_sourcebuild_project
 
+-> **Note:** This resource is a beta release. Some features may change in the future.
+
 Provides a Sourcebuild project resource.
 
 ## Example Usage
@@ -72,26 +74,26 @@ resource "ncloud_sourcebuild_project" "test-build-project" {
 Create Sourcebuild project by referring to data sources (retrieve compute, os, runtime, runtime version and docker).
 
 ```hcl
-data "ncloud_sourcebuild_compute" "compute" {
+data "ncloud_sourcebuild_project_compute" "compute" {
 }
 
-data "ncloud_sourcebuild_os" "os" {
+data "ncloud_sourcebuild_project_os" "os" {
   filter {
     name   = "name"
     values = ["ubuntu"]
   }
 }
 
-data "ncloud_sourcebuild_runtime" "runtime" {
-  os_id = data.ncloud_sourcebuild_os.os.os[0].id
+data "ncloud_sourcebuild_project_runtime" "runtime" {
+  os_id = data.ncloud_sourcebuild_project_os.os.os[0].id
 }
 
-data "ncloud_sourcebuild_runtime_version" "runtime_version" {
-  os_id      = data.ncloud_sourcebuild_os.os.os[0].id
-  runtime_id = data.ncloud_sourcebuild_runtime.runtime.runtime[0].id
+data "ncloud_sourcebuild_project_runtime_version" "runtime_version" {
+  os_id      = data.ncloud_sourcebuild_project_os.os.os[0].id
+  runtime_id = data.ncloud_sourcebuild_project_runtime.runtime.runtime[0].id
 }
 
-data "ncloud_sourcebuild_docker" "docker" {
+data "ncloud_sourcebuild_project_docker" "docker" {
   filter {
     name   = "name"
     values = ["Docker:18.09.1"]
@@ -110,25 +112,25 @@ resource "ncloud_sourcebuild_project" "test-build-project" {
   }
   env {
     compute {
-      id = data.ncloud_sourcebuild_compute.compute.compute[0].id
+      id = data.ncloud_sourcebuild_project_compute.compute.compute[0].id
     }
     platform {
       type = "SourceBuild"
       config {
         os {
-          id = data.ncloud_sourcebuild_os.os.os[0].id
+          id = data.ncloud_sourcebuild_project_os.os.os[0].id
         }
         runtime {
-          id = data.ncloud_sourcebuild_runtime.runtime.runtime[0].id
+          id = data.ncloud_sourcebuild_project_runtime.runtime.runtime[0].id
           version {
-            id = data.ncloud_sourcebuild_runtime_version.runtime_version.runtime_version[0].id
+            id = data.ncloud_sourcebuild_project_runtime_version.runtime_version.runtime_version[0].id
           }
         }
       }
     }
     docker {
       use = true
-      id  = data.ncloud_sourcebuild_docker.docker.docker[0].id
+      id  = data.ncloud_sourcebuild_project_docker.docker.docker[0].id
     }
   }
 }
@@ -148,25 +150,25 @@ The following arguments are supported:
         * `branch` - (Required) Branch to build.
 * `env` - (Required) Build environment.
     * `compute` - (Required) Computing environment to build.
-        * [`ncloud_sourcebuild_compute` data source](../data-sources/sourcebuild_compute.md)
+        * [`ncloud_sourcebuild_project_compute` data source](../data-sources/sourcebuild_project_compute.md)
         * `id` - (Required) Computing type id.
     * `platform` - (Required) Information about the build environment image.
         * `type` - (Required) Build environment image type. Accepted values: `SourceBuild`, `ContainerRegistry` `PublicRegistry`.
         * `config` - (Required) Build environment image config.
             * `os` - (Optional, Required if `env.platform.type` is set to `SourceBuild`) OS config.
-                * [`ncloud_sourcebuild_os` data source](../data-sources/sourcebuild_os.md)
+                * [`ncloud_sourcebuild_project_os` data source](../data-sources/sourcebuild_project_os.md)
                 * `id` - (Required) OS id.
             * `runtime` - (Optional, Required if `env.platform.type` is set to `SourceBuild`) Runtime config.
-                * [`ncloud_sourcebuild_runtime` data source](../data-sources/sourcebuild_runtime.md)
+                * [`ncloud_sourcebuild_project_runtime` data source](../data-sources/sourcebuild_project_runtime.md)
                 * `id` - (Required) runtime id.
                 * `version` - (Required) runtime version.
-                    * [`ncloud_sourcebuild_runtime_version` data source](../data-sources/sourcebuild_runtime_version.md)
+                    * [`ncloud_sourcebuild_project_runtime_version` data source](../data-sources/sourcebuild_project_runtime_version.md)
                     * `id` - (Required) runtime version id.
             * `registry` - (Optional, Required if `env.platform.type` is set to `ContainerRegistry`) Registry name of NCP Container Registry where the image to build is located.
             * `image` - (Optional, Required if `env.platform.type` is set to `ContainerRegistry` or `PublicRegistry`) Container image name to build.
             * `tag` - (Optional, Required if `env.platform.type` is set to `ContainerRegistry` or `PublicRegistry`) Container image tag to build.
     * `docker` - (Optional) Docker engine to use when building docker image.
-        * [`ncloud_sourcebuild_docker` data source](../data-sources/sourcebuild_docker.md)
+        * [`ncloud_sourcebuild_project_docker` data source](../data-sources/sourcebuild_project_docker.md)
         * `use` - (Required) Whether or not to use of docker engine. (Default `false`)
         * `id` - (Optional) Docker engine id.
     * `timeout` - (Optional) Build timeout (in Minutes). Specify it between `5` and `540`. Default `60`.

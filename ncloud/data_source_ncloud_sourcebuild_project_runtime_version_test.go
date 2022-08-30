@@ -14,7 +14,7 @@ func TestAccDataSourceNcloudSourceBuildRuntimeVersion(t *testing.T) {
 			{
 				Config: testAccDataSourceNcloudSourceBuildRuntimeVersionConfig(),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckDataSourceID("data.ncloud_sourcebuild_runtime_version.runtime_version"),
+					testAccCheckDataSourceID("data.ncloud_sourcebuild_project_runtime_version.runtime_version"),
 				),
 			},
 		},
@@ -23,16 +23,16 @@ func TestAccDataSourceNcloudSourceBuildRuntimeVersion(t *testing.T) {
 
 func testAccDataSourceNcloudSourceBuildRuntimeVersionConfig() string {
 	return `
-data "ncloud_sourcebuild_os" "os" {
+data "ncloud_sourcebuild_project_os" "os" {
 }
 
-data "ncloud_sourcebuild_runtime" "runtime" {
-	os_id = data.ncloud_sourcebuild_os.os.os[0].id
+data "ncloud_sourcebuild_project_runtime" "runtime" {
+	os_id = data.ncloud_sourcebuild_project_os.os.os[0].id
 }
 
-data "ncloud_sourcebuild_runtime_version" "runtime_version" {
-	os_id      = data.ncloud_sourcebuild_os.os.os[0].id
-	runtime_id = data.ncloud_sourcebuild_runtime.runtime.runtime[0].id
+data "ncloud_sourcebuild_project_runtime_version" "runtime_version" {
+	os_id      = data.ncloud_sourcebuild_project_os.os.os[0].id
+	runtime_id = data.ncloud_sourcebuild_project_runtime.runtime.runtime[0].id
 }
 `
 }

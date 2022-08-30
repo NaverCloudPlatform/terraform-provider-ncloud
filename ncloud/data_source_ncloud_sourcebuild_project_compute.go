@@ -8,7 +8,7 @@ import (
 )
 
 func init() {
-	RegisterDataSource("ncloud_sourcebuild_compute", dataSourceNcloudSourceBuildCompute())
+	RegisterDataSource("ncloud_sourcebuild_project_compute", dataSourceNcloudSourceBuildCompute())
 }
 
 func dataSourceNcloudSourceBuildCompute() *schema.Resource {

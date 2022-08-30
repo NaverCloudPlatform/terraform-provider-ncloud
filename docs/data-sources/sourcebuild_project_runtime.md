@@ -1,4 +1,6 @@
-# Data Source: ncloud_sourcebuild_runtime
+# Data Source: ncloud_sourcebuild_project_runtime
+
+-> **Note:** This data source is a beta release. Some features may change in the future.
 
 This data source is useful for look up the list of Sourcebuild runtime environment in the region.
 
@@ -7,15 +9,15 @@ This data source is useful for look up the list of Sourcebuild runtime environme
 In the example below, Retrieves all Sourcebuild runtime environments with the os name is "ubuntu" and runtime name is "base".
 
 ```hcl
-data "ncloud_sourcebuild_os" "os" {
+data "ncloud_sourcebuild_project_os" "os" {
   filter {
     name   = "name"
     values = ["ubuntu"]
   }
 }
 
-data "ncloud_sourcebuild_runtime" "runtime" {
-  os_id = data.ncloud_sourcebuild_os.os.os[0].id
+data "ncloud_sourcebuild_project_runtime" "runtime" {
+  os_id = data.ncloud_sourcebuild_project_os.os.os[0].id
 
   filter {
     name   = "name"
@@ -24,7 +26,7 @@ data "ncloud_sourcebuild_runtime" "runtime" {
 }
 
 output "lookup-runtime-output" {
-  value = data.ncloud_sourcebuild_runtime.runtime.runtime
+  value = data.ncloud_sourcebuild_project_runtime.runtime.runtime
 }
 ```
 
@@ -33,7 +35,7 @@ output "lookup-runtime-output" {
 The following arguments are supported:
 
 * `os_id` - (Required) OS ID which runtime belongs.
-    * [`ncloud_sourcebuild_os` data source](./data-sources/sourcebuild_os.md)
+    * [`ncloud_sourcebuild_project_os` data source](./data-sources/sourcebuild_project_os.md)
 * `output_file` - (Optional) The name of file that can save data source after running `terraform plan`.
 * `filter` - (Optional) Custom filter block as described below.
     * `name` - (Required) The name of the field to filter by.

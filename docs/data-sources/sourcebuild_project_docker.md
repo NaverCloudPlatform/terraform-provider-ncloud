@@ -1,4 +1,6 @@
-# Data Source: ncloud_sourcebuild_docker
+# Data Source: ncloud_sourcebuild_project_docker
+
+-> **Note:** This data source is a beta release. Some features may change in the future.
 
 This data source is useful for look up the list of Sourcebuild docker engine in the region.
 
@@ -7,7 +9,7 @@ This data source is useful for look up the list of Sourcebuild docker engine in 
 In the example below, Retrieves all docker engines with "Docker:18.09.1" in their names.
 
 ```hcl
-data "ncloud_sourcebuild_docker" "docker" {
+data "ncloud_sourcebuild_project_docker" "docker" {
   filter {
     name   = "name"
     values = ["Docker:18.09.1"]
@@ -15,7 +17,7 @@ data "ncloud_sourcebuild_docker" "docker" {
 }
 
 output "lookup-docker-output" {
-  value = data.ncloud_sourcebuild_docker.docker.docker
+  value = data.ncloud_sourcebuild_project_docker.docker.docker
 }
 ```
 

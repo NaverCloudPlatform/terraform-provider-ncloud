@@ -14,7 +14,7 @@ func TestAccDataSourceNcloudSourceBuildOs(t *testing.T) {
 			{
 				Config: testAccDataSourceNcloudSourceBuildOsConfig(),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckDataSourceID("data.ncloud_sourcebuild_os.os"),
+					testAccCheckDataSourceID("data.ncloud_sourcebuild_project_os.os"),
 				),
 			},
 		},
@@ -23,6 +23,6 @@ func TestAccDataSourceNcloudSourceBuildOs(t *testing.T) {
 
 func testAccDataSourceNcloudSourceBuildOsConfig() string {
 	return `
-data "ncloud_sourcebuild_os" "os" {}
+data "ncloud_sourcebuild_project_os" "os" {}
 `
 }

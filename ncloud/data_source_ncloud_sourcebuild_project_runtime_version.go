@@ -9,7 +9,7 @@ import (
 )
 
 func init() {
-	RegisterDataSource("ncloud_sourcebuild_runtime_version", dataSourceNcloudSourceBuildRuntimeVersion())
+	RegisterDataSource("ncloud_sourcebuild_project_runtime_version", dataSourceNcloudSourceBuildRuntimeVersion())
 }
 
 func dataSourceNcloudSourceBuildRuntimeVersion() *schema.Resource {

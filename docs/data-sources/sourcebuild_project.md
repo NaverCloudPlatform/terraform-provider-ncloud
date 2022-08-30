@@ -1,5 +1,7 @@
 # Data Source: ncloud_sourcebuild_project
 
+-> **Note:** This data source is a beta release. Some features may change in the future.
+
 This data source is useful for look up Sourcebuild project detail in the region.
 
 ## Example Usage
