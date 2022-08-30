@@ -2,6 +2,7 @@ package ncloud
 
 import (
 	"context"
+	"regexp"
 
 	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/ncloud"
 	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/services/vsourcedeploy"
@@ -35,6 +36,7 @@ func resourceNcloudSourceDeployProject() *schema.Resource {
 				ForceNew: true,
 				ValidateDiagFunc: ToDiagFunc(validation.All(
 					validation.StringLenBetween(1, 100),
+					validation.StringMatch(regexp.MustCompile(`^[^ !@#$%^&*()+\=\[\]{};':"\\|,.<>\/?]+$`), `Cannot contain special characters ( !@#$%^&*()+\=\[\]{};':"\\|,.<>\/?).`),
 				)),
 			},
 		},

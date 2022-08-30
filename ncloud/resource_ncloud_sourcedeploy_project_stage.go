@@ -3,6 +3,7 @@ package ncloud
 import (
 	"fmt"
 	"context"
+	"regexp"
 
 	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/ncloud"
 	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/services/vsourcedeploy"
@@ -41,11 +42,13 @@ func resourceNcloudSourceDeployStage() *schema.Resource {
 				Required: true,
 				ValidateDiagFunc: ToDiagFunc(validation.All(
 					validation.StringLenBetween(1, 100),
+					validation.StringMatch(regexp.MustCompile(`^[^ !@#$%^&*()+\=\[\]{};':"\\|,.<>\/?]+$`), `Cannot contain special characters ( !@#$%^&*()+\=\[\]{};':"\\|,.<>\/?).`),
 				)),
 			},
 			"type": {
 				Type:     schema.TypeString,
 				Required: true,
+				ValidateDiagFunc: ToDiagFunc(validation.StringInSlice([]string{"Server", "AutoScalingGroup", "KubernetesService", "ObjectStorage"}, false)),
 			},
 			"config": {
 				Type:     schema.TypeList,

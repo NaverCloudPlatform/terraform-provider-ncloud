@@ -3,6 +3,7 @@ package ncloud
 import (
 	"context"
 	"fmt"
+	"regexp"
 
 	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/ncloud"
 	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/services/vsourcedeploy"
@@ -47,11 +48,15 @@ func resourceNcloudSourceDeployScenario() *schema.Resource {
 				ForceNew: true,
 				ValidateDiagFunc: ToDiagFunc(validation.All(
 					validation.StringLenBetween(1, 100),
+					validation.StringMatch(regexp.MustCompile(`^[^ !@#$%^&*()+\=\[\]{};':"\\|,.<>\/?]+$`), `Cannot contain special characters ( !@#$%^&*()+\=\[\]{};':"\\|,.<>\/?).`),
 				)),
 			},
 			"description": {
 				Type:     schema.TypeString,
-				Required: true,
+				Optional: true,
+				ValidateDiagFunc: ToDiagFunc(validation.All(
+					validation.StringLenBetween(0, 500),
+				)),
 			},
 			"config": {
 				Type:     schema.TypeList,
@@ -62,6 +67,7 @@ func resourceNcloudSourceDeployScenario() *schema.Resource {
 						"strategy": {
 							Type:     schema.TypeString,
 							Optional: true,
+							ValidateDiagFunc: ToDiagFunc(validation.StringInSlice([]string{"normal", "blueGreen", "rolling", "canary"}, false)),
 						},
 						"file": {
 							Type:     schema.TypeList,
@@ -72,6 +78,7 @@ func resourceNcloudSourceDeployScenario() *schema.Resource {
 									"type": {
 										Type:     schema.TypeString,
 										Optional: true,
+										ValidateDiagFunc: ToDiagFunc(validation.StringInSlice([]string{"SourceBuild", "ObjectStorage", "later"}, false)),
 									},
 									"object_storage": {
 										Type:     schema.TypeList,
@@ -201,6 +208,7 @@ func resourceNcloudSourceDeployScenario() *schema.Resource {
 									"type": {
 										Type:     schema.TypeString,
 										Optional: true,
+										ValidateDiagFunc: ToDiagFunc(validation.StringInSlice([]string{"SourceCommit"}, false)),
 									},
 									"repository": {
 										Type:     schema.TypeString,
@@ -227,14 +235,17 @@ func resourceNcloudSourceDeployScenario() *schema.Resource {
 									"canary_count": {
 										Type:     schema.TypeInt,
 										Optional: true,
+										ValidateDiagFunc: ToDiagFunc(validation.IntBetween(1, 10)),
 									},
 									"analysis_type": {
 										Type:     schema.TypeString,
 										Optional: true,
+										ValidateDiagFunc: ToDiagFunc(validation.StringInSlice([]string{"manual", "auto"}, false)),
 									},
 									"timeout": {
 										Type:     schema.TypeInt,
 										Optional: true,
+										ValidateDiagFunc: ToDiagFunc(validation.IntBetween(1, 360)),
 									},
 									"prometheus": {
 										Type:     schema.TypeString,
@@ -249,10 +260,12 @@ func resourceNcloudSourceDeployScenario() *schema.Resource {
 												"baseline": {
 													Type:     schema.TypeString,
 													Optional: true,
+													ValidateDiagFunc: ToDiagFunc(validation.StringLenBetween(0, 64)),
 												},
 												"canary": {
 													Type:     schema.TypeString,
 													Optional: true,
+													ValidateDiagFunc: ToDiagFunc(validation.StringLenBetween(0, 64)),									
 												},
 											},
 										},
@@ -269,10 +282,12 @@ func resourceNcloudSourceDeployScenario() *schema.Resource {
 												"success_criteria": {
 													Type:             schema.TypeString,
 													Optional:         true,
+													ValidateDiagFunc: ToDiagFunc(validation.StringInSlice([]string{"base", "canary"}, false)),
 												},
 												"query_type": {
 													Type:             schema.TypeString,
 													Optional:         true,
+													ValidateDiagFunc: ToDiagFunc(validation.StringInSlice([]string{"default", "promQL"}, false)),
 												},
 												"weight": {
 													Type:             schema.TypeInt,
@@ -302,18 +317,22 @@ func resourceNcloudSourceDeployScenario() *schema.Resource {
 												"duration": {
 													Type:     schema.TypeInt,
 													Optional: true,
+													ValidateDiagFunc: ToDiagFunc(validation.IntBetween(10, 360)),
 												},
 												"delay": {
 													Type:     schema.TypeInt,
 													Optional: true,
+													ValidateDiagFunc: ToDiagFunc(validation.IntBetween(0, 60)),
 												},
 												"interval": {
 													Type:     schema.TypeInt,
 													Optional: true,
+													ValidateDiagFunc: ToDiagFunc(validation.IntBetween(1, 360)),
 												},
 												"step": {
 													Type:     schema.TypeInt,
 													Optional: true,
+													ValidateDiagFunc: ToDiagFunc(validation.IntBetween(10, 360)),
 												},
 											},
 										},
@@ -321,6 +340,7 @@ func resourceNcloudSourceDeployScenario() *schema.Resource {
 									"pass_score": {
 										Type:     schema.TypeInt,
 										Optional: true,
+										ValidateDiagFunc: ToDiagFunc(validation.IntBetween(1, 100)),
 									},
 								},
 							},
