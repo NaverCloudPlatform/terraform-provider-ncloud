@@ -34,11 +34,11 @@ func resourceNcloudSourceDeployStage() *schema.Resource {
 			"project_id":{
 				Type:     schema.TypeInt,
 				Required: true,
+				ForceNew: true,
 			},
 			"name": {
 				Type:     schema.TypeString,
 				Required: true,
-				// ForceNew: true,
 				ValidateDiagFunc: ToDiagFunc(validation.All(
 					validation.StringLenBetween(1, 100),
 				)),

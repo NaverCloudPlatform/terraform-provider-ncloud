@@ -18,7 +18,6 @@ func resourceNcloudSourceDeployProject() *schema.Resource {
 	return &schema.Resource{
 		CreateContext: resourceNcloudSourceDeployProjectCreate,
 		ReadContext:   resourceNcloudSourceDeployProjectRead,
-		UpdateContext: resourceNcloudSourceDeployProjectUpdate,
 		DeleteContext: resourceNcloudSourceDeployProjectDelete,
 		Importer: &schema.ResourceImporter{
 			StateContext: schema.ImportStatePassthroughContext,
@@ -33,6 +32,7 @@ func resourceNcloudSourceDeployProject() *schema.Resource {
 			"name": {
 				Type:     schema.TypeString,
 				Required: true,
+				ForceNew: true,
 				ValidateDiagFunc: ToDiagFunc(validation.All(
 					validation.StringLenBetween(1, 100),
 				)),
@@ -85,10 +85,6 @@ func resourceNcloudSourceDeployProjectRead(ctx context.Context, d *schema.Resour
 	d.Set("name", project.Name)
 
 	return nil
-}
-
-func resourceNcloudSourceDeployProjectUpdate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
-	return resourceNcloudSourceDeployProjectRead(ctx,d, meta)
 }
 
 func resourceNcloudSourceDeployProjectDelete(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
