@@ -14,13 +14,13 @@ import (
 )
 
 // Create Server Before SourceDeploy Test
-const TF_TEST_SD_SERVER_NAME = "test-w-wwf"
+const TF_TEST_SD_SERVER_NAME = "server-name"
 // Create AutoScalingGroup Before SourceDeploy Test
-const TF_TEST_SD_ASG_NAME = "sourcedeploy-bluegreen-12860"
+const TF_TEST_SD_ASG_NAME = "asg-name"
 // Create KubernetesService cluster Before SourceDeploy Test
-const TF_TEST_SD_NKS_CLUSTER_UUID = "9c9e529a-cc10-42fe-8a34-8f6156456b15"
+const TF_TEST_SD_NKS_CLUSTER_UUID = "cluster-uuid"
 // Create ObjectStorage bucket cluster Before SourceDeploy Test
-const TF_TEST_SD_OBJECTSTORAGE_BUCKET_NAME = "dev"
+const TF_TEST_SD_OBJECTSTORAGE_BUCKET_NAME = "bucket-name"
 
 func TestAccResourceNcloudSourceDeployStage_basic(t *testing.T) {
 	var stage vsourcedeploy.GetStageDetailResponse
@@ -28,10 +28,10 @@ func TestAccResourceNcloudSourceDeployStage_basic(t *testing.T) {
 	stageNameAsg := getTestSourceDeployStageName() + "-asg"
 	stageNameNks := getTestSourceDeployStageName() + "-nks"
 	stageNameObj := getTestSourceDeployStageName() + "-obj"
-	resourceNameSvr := "ncloud_sourcedeploy_stage.svr_stage"
-	resourceNameAsg := "ncloud_sourcedeploy_stage.asg_stage"
-	resourceNameNks := "ncloud_sourcedeploy_stage.nks_stage"
-	resourceNameObj := "ncloud_sourcedeploy_stage.obj_stage"
+	resourceNameSvr := "ncloud_sourcedeploy_project_stage.svr_stage"
+	resourceNameAsg := "ncloud_sourcedeploy_project_stage.asg_stage"
+	resourceNameNks := "ncloud_sourcedeploy_project_stage.nks_stage"
+	resourceNameObj := "ncloud_sourcedeploy_project_stage.obj_stage"
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) }, 
@@ -83,7 +83,7 @@ func testAccCheckSourceDeployStageDestroy(s *terraform.State) error {
 	config := testAccProvider.Meta().(*ProviderConfig) 
 
 	for _, rs := range s.RootModule().Resources {
-		if rs.Type != "ncloud_sourcedeploy_stage" {
+		if rs.Type != "ncloud_sourcedeploy_project_stage" {
 			continue
 		}
 
@@ -132,7 +132,7 @@ resource "ncloud_sourcedeploy_project" "project" {
 	name    							= "tf-test-project"
 }
 
-resource "ncloud_sourcedeploy_stage" "svr_stage" {
+resource "ncloud_sourcedeploy_project_stage" "svr_stage" {
 	project_id  						= ncloud_sourcedeploy_project.project.id
 	name    							= "%[5]s"
 	type    							= "Server"
@@ -140,7 +140,7 @@ resource "ncloud_sourcedeploy_stage" "svr_stage" {
 		server_no  						= [data.ncloud_server.server.id]
 	}
 }
-resource "ncloud_sourcedeploy_stage" "asg_stage" {
+resource "ncloud_sourcedeploy_project_stage" "asg_stage" {
 	project_id  						= ncloud_sourcedeploy_project.project.id
 	name    							= "%[6]s"
 	type    							= "AutoScalingGroup"
@@ -148,7 +148,7 @@ resource "ncloud_sourcedeploy_stage" "asg_stage" {
 		auto_scaling_group_no  			= data.ncloud_auto_scaling_group.asg.id
 	}
 }
-resource "ncloud_sourcedeploy_stage" "nks_stage" {
+resource "ncloud_sourcedeploy_project_stage" "nks_stage" {
 	project_id  						= ncloud_sourcedeploy_project.project.id
 	name    							= "%[7]s"
 	type    							= "KubernetesService"
@@ -156,7 +156,7 @@ resource "ncloud_sourcedeploy_stage" "nks_stage" {
 		cluster_uuid   					= "%[3]s"
 	}
 }
-resource "ncloud_sourcedeploy_stage" "obj_stage" {
+resource "ncloud_sourcedeploy_project_stage" "obj_stage" {
 	project_id  						= ncloud_sourcedeploy_project.project.id
 	name    							= "%[8]s"
 	type    							= "ObjectStorage"

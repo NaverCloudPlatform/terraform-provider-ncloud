@@ -7,13 +7,13 @@ This resource is useful for look up the list of Sourcedeploy stage detail in the
 In the example below, Retrieves Sourcedeploy stage detail with the project id is '1234'.
 
 ```hcl
-data "ncloud_sourcedeploy_stage" "deploy_stage" {
+data "ncloud_sourcedeploy_project_stage" "deploy_project_stage" {
   project_id    = 1234
   id            = 1234
 }
 
-output "output_stage"{
-  value = data.ncloud_sourcedeploy_stage.deploy_stage
+output "output_project_stage"{
+  value = data.ncloud_sourcedeploy_project_stage.deploy_project_stage
 }
 ```
 

@@ -10,7 +10,7 @@ import (
 )
 
 func init() {
-	RegisterDataSource("ncloud_sourcedeploy_stages", dataSourceNcloudSourceDeployStagesContext())
+	RegisterDataSource("ncloud_sourcedeploy_project_stages", dataSourceNcloudSourceDeployStagesContext())
 }
 
 func dataSourceNcloudSourceDeployStagesContext() *schema.Resource {
@@ -51,7 +51,7 @@ func dataSourceNcloudSourceDeployStagesReadContext(ctx context.Context, d *schem
 
 
 	if !config.SupportVPC {
-		return diag.FromErr(NotSupportClassic("dataSource `ncloud_sourcedeploy_stages`"))
+		return diag.FromErr(NotSupportClassic("dataSource `ncloud_sourcedeploy_project_stages`"))
 	}
 
 	projectId := ncloud.IntString(d.Get("project_id").(int))

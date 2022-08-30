@@ -7,16 +7,17 @@ This resource is useful for look up the list of Sourcedeploy scenario in the reg
 In the example below, specific Sourcedeploy scenario name.
 
 ```hcl
-data "ncloud_sourcedeploy_scenario" "deploy_scenario" {
+data "ncloud_sourcedeploy_project_stage_scenario" "deploy_scenario" {
   project_id        = 1234
   stage_id          = 1234
   id                = 1234
 }
 
 output "output_scenario"{
-  value             = data.ncloud_sourcedeploy_scenario.deploy_scenario
+  value             = data.ncloud_sourcedeploy_project_stage_scenario.deploy_scenario
 }
 ```
+
 
 ## Argument Reference
 

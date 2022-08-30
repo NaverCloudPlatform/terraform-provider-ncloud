@@ -15,7 +15,7 @@ func TestAccDataSourceNcloudSourceDeployStages(t *testing.T) {
 			{
 				Config: testAccDataSourceNcloudSourceDeployStagesConfig(),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckDataSourceID("data.ncloud_sourcedeploy_stages.stages"),
+					testAccCheckDataSourceID("data.ncloud_sourcedeploy_project_stages.stages"),
 				),
 			},
 		},
@@ -28,7 +28,7 @@ resource "ncloud_sourcedeploy_project" "sd_project" {
 	name 			= "tf-test-project"
 }
 
-data "ncloud_sourcedeploy_stages" stages{
+data "ncloud_sourcedeploy_project_stages" stages{
 	project_id		= ncloud_sourcedeploy_project.sd_project.id
 }
 `)

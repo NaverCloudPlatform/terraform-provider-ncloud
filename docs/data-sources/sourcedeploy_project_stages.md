@@ -7,7 +7,7 @@ This resource is useful for look up the list of Sourcedeploy stage in the region
 In the example below, specific Sourcedeploy stages name.
 
 ```hcl
-data "ncloud_sourcedeploy_stages" "deploy_stages" {
+data "ncloud_sourcedeploy_project_stages" "deploy_stages" {
   project_id = 1234
   filter {
     name    = "name"
@@ -16,7 +16,7 @@ data "ncloud_sourcedeploy_stages" "deploy_stages" {
 }
 
 output "output_stages"{
-  value = data.ncloud_sourcedeploy_stages.deploy_stages.stages
+  value = data.ncloud_sourcedeploy_project_stages.deploy_stages.stages
 }
 ```
 

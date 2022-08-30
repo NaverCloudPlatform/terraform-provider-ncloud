@@ -9,7 +9,7 @@ import (
 )
 
 func init() {
-	RegisterDataSource("ncloud_sourcedeploy_stage", dataSourceNcloudSourceDeployStageContext())
+	RegisterDataSource("ncloud_sourcedeploy_project_stage", dataSourceNcloudSourceDeployStageContext())
 }
 
 func dataSourceNcloudSourceDeployStageContext() *schema.Resource {

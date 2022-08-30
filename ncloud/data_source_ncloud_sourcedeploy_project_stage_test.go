@@ -7,22 +7,23 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 )
 
-func TestAccDataSourceNcloudSourceDeployScenarioes(t *testing.T) {
+func TestAccDataSourceNcloudSourceDeployStage(t *testing.T) {
+	stageNameSvr := getTestSourceDeployStageName() + "svr"
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:  func() { testAccPreCheck(t) },
 		Providers: testAccProviders,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccDataSourceNcloudSourceDeployScenarioesConfig(),
+				Config: testAccDataSourceNcloudSourceDeployStageConfig(stageNameSvr),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckDataSourceID("data.ncloud_sourcedeploy_scenarioes.scenarioes"),
+					testAccCheckDataSourceID("data.ncloud_sourcedeploy_project_stage.stage"),
 				),
 			},
 		},
 	})
 }
 
-func testAccDataSourceNcloudSourceDeployScenarioesConfig() string{
+func testAccDataSourceNcloudSourceDeployStageConfig(stageNameSvr string) string{
 	return fmt.Sprintf(`
 data "ncloud_server" "server" {
 	filter {
@@ -35,18 +36,18 @@ resource "ncloud_sourcedeploy_project" "sd_project" {
 	name = "tf-test-project"
 }
 
-resource "ncloud_sourcedeploy_stage" "svr_stage" {
+resource "ncloud_sourcedeploy_project_stage" "svr_stage" {
 	project_id  						= ncloud_sourcedeploy_project.sd_project.id
-	name    							= "svr"
+	name    							= "%[2]s"
 	type    							= "Server"
 	config {
 		server_no  						= [data.ncloud_server.server.id]
 	}
 }
 
-data "ncloud_sourcedeploy_scenarioes" "scenarioes"{
+data "ncloud_sourcedeploy_project_stage" "stage"{
 	project_id		= ncloud_sourcedeploy_project.sd_project.id
-	stage_id		= ncloud_sourcedeploy_stage.svr_stage.id
+	id		= ncloud_sourcedeploy_project_stage.svr_stage.id
 }
-`, TF_TEST_SD_SERVER_NAME)
+`, TF_TEST_SD_SERVER_NAME, stageNameSvr)
 }

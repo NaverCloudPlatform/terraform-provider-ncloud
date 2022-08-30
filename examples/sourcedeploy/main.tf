@@ -18,7 +18,7 @@ data "ncloud_server" "server" {
 }
 
 
-resource "ncloud_sourcedeploy_stage" "svr_stage" {
+resource "ncloud_sourcedeploy_project_stage" "svr_stage" {
 	project_id  						= ncloud_sourcedeploy_project.project.id
 	name    							  = "test-deploy-stage"
 	type    							  = "Server"
@@ -30,7 +30,7 @@ resource "ncloud_sourcedeploy_stage" "svr_stage" {
 data "ncloud_sourcebuild_projects" "test-sourcebuild" {
 }
 
-resource "ncloud_sourcedeploy_scenario" "server_normal" {
+resource "ncloud_sourcedeploy_project_stage_scenario" "server_normal" {
 	project_id  							= ncloud_sourcedeploy_project.project.id
 	stage_id    							= ncloud_sourcedeploy_stage.svr_stage.id
 	name    								  = "test-deploy-scenario"

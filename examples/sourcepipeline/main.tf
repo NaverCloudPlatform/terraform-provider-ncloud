@@ -14,13 +14,13 @@ data "ncloud_sourcebuild_projects" "test-sourcebuild" {
 data "ncloud_sourcedeploy_projects" "test-sourcedeploy_projects" {
 }
 
-data "ncloud_sourcedeploy_stages" "test-sourcedeploy_stages" {
+data "ncloud_sourcedeploy_project_stages" "test-sourcedeploy_stages" {
   project_id = data.ncloud_sourcedeploy_projects.test-sourcedeploy_projects.projects[0].id
 }
 
-data "ncloud_sourcedeploy_scenarioes" "test-sourcedeploy_scenarioes" {
+data "ncloud_sourcedeploy_project_stage_scenarios" "test-sourcedeploy_scenarios" {
   project_id = data.ncloud_sourcedeploy_projects.test-sourcedeploy_projects.projects[0].id
-  stage_id   = data.ncloud_sourcedeploy_stages.test-sourcedeploy_stages.stages[0].id
+  stage_id   = data.ncloud_sourcedeploy_project_stages.test-sourcedeploy_stages.stages[0].id
 }
 
 resource "ncloud_sourcepipeline_project" "test-sourcepipeline" {
@@ -41,8 +41,8 @@ resource "ncloud_sourcepipeline_project" "test-sourcepipeline" {
     type = "SourceDeploy"
     config {
       project_id  = data.ncloud_sourcedeploy_projects.test-sourcedeploy_projects.projects[0].id
-      stage_id    = data.ncloud_sourcedeploy_stages.test-sourcedeploy_stages.stages[0].id
-      scenario_id = data.ncloud_sourcedeploy_scenarioes.test-sourcedeploy_scenarioes.scenarioes[0].id
+      stage_id    = data.ncloud_sourcedeploy_project_stages.test-sourcedeploy_stages.stages[0].id
+      scenario_id = data.ncloud_sourcedeploy_project_stage_scenarios.test-sourcedeploy_scenarios.scenarios[0].id
     }
     linked_tasks = ["task_name_1"]
   }

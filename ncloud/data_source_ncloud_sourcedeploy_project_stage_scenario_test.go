@@ -16,14 +16,14 @@ func TestAccDataSourceNcloudSourceDeployScenario(t *testing.T) {
 			{
 				Config: testAccDataSourceNcloudSourceDeployScenarioConfig(stageNameSvr),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckDataSourceID("data.ncloud_sourcedeploy_scenario.scenario"),
+					testAccCheckDataSourceID("data.ncloud_sourcedeploy_project_stage_scenario.scenario"),
 				),
 			},
 		},
 	})
 }
 
-func testAccDataSourceNcloudSourceDeployScenarioConfig(scenarioNameSvr string) string {
+func testAccDataSourceNcloudSourceDeployScenarioConfig(scenarioNameSvr string) string{
 	return fmt.Sprintf(`
 data "ncloud_server" "server" {
 	filter {
@@ -102,7 +102,7 @@ resource "ncloud_sourcedeploy_project" "project" {
 	name    								= "tf-test-project"
 }
 
-resource "ncloud_sourcedeploy_stage" "svr_stage" {
+resource "ncloud_sourcedeploy_project_stage" "svr_stage" {
 	project_id  							= ncloud_sourcedeploy_project.project.id
 	name    								= "svr"
 	type    								= "Server"
@@ -111,9 +111,9 @@ resource "ncloud_sourcedeploy_stage" "svr_stage" {
 	}
 }
 
-resource "ncloud_sourcedeploy_scenario" "server_normal" {
+resource "ncloud_sourcedeploy_project_stage_scenario" "server_normal" {
 	project_id  							= ncloud_sourcedeploy_project.project.id
-	stage_id    							= ncloud_sourcedeploy_stage.svr_stage.id
+	stage_id    							= ncloud_sourcedeploy_project_stage.svr_stage.id
 	name    								= "%[2]s"
 	description   	 						= "test"
 	config {
@@ -142,10 +142,10 @@ resource "ncloud_sourcedeploy_scenario" "server_normal" {
 	}
 }
 
-data "ncloud_sourcedeploy_scenario" "scenario"{
+data "ncloud_sourcedeploy_project_stage_scenario" "scenario"{
 	project_id		= ncloud_sourcedeploy_project.project.id
-	stage_id		= ncloud_sourcedeploy_stage.svr_stage.id
-	id				= ncloud_sourcedeploy_scenario.server_normal.id
+	stage_id		= ncloud_sourcedeploy_project_stage.svr_stage.id
+	id				= ncloud_sourcedeploy_project_stage_scenario.server_normal.id
 }
 
 `, TF_TEST_SD_SERVER_NAME, scenarioNameSvr)

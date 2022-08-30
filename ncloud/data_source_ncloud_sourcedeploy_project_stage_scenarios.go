@@ -10,10 +10,10 @@ import (
 )
 
 func init() {
-	RegisterDataSource("ncloud_sourcedeploy_scenarioes", dataSourceNcloudSourceDeployscenarioesContext())
+	RegisterDataSource("ncloud_sourcedeploy_project_stage_scenarios", dataSourceNcloudSourceDeployscenariosContext())
 }
 
-func dataSourceNcloudSourceDeployscenarioesContext() *schema.Resource {
+func dataSourceNcloudSourceDeployscenariosContext() *schema.Resource {
 	return &schema.Resource{
 		ReadContext: dataSourceNcloudSourceDeployScenarioesReadContext,
 		Schema: map[string]*schema.Schema{
@@ -30,7 +30,7 @@ func dataSourceNcloudSourceDeployscenarioesContext() *schema.Resource {
 				Optional: true,
 			},
 			"filter": dataSourceFiltersSchema(),
-			"scenarioes": {
+			"scenarios": {
 				Type:     schema.TypeList,
 				Computed: true,
 				Elem: &schema.Resource{
@@ -54,7 +54,7 @@ func dataSourceNcloudSourceDeployScenarioesReadContext(ctx context.Context, d *s
 	config := meta.(*ProviderConfig)
 
 	if !config.SupportVPC {
-		return diag.FromErr(NotSupportClassic("dataSource `ncloud_sourcedeploy_scenarioes`"))
+		return diag.FromErr(NotSupportClassic("dataSource `ncloud_sourcedeploy_project_stage_scenarios`"))
 	}
 
 	projectId := ncloud.IntString(d.Get("project_id").(int))
@@ -76,10 +76,10 @@ func dataSourceNcloudSourceDeployScenarioesReadContext(ctx context.Context, d *s
 	}
 
 	if f, ok := d.GetOk("filter"); ok {
-		resources = ApplyFilters(f.(*schema.Set), resources, dataSourceNcloudSourceDeployscenarioesContext().Schema)
+		resources = ApplyFilters(f.(*schema.Set), resources, dataSourceNcloudSourceDeployscenariosContext().Schema)
 	}
 	d.SetId(config.RegionCode)
-	d.Set("scenarioes", resources)
+	d.Set("scenarios", resources)
 
 	if output, ok := d.GetOk("output_file"); ok && output.(string) != "" {
 		return diag.FromErr(writeToFile(output.(string), resources))

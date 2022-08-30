@@ -12,7 +12,7 @@ import (
 )
 
 func init() {
-	RegisterResource("ncloud_sourcedeploy_stage", resourceNcloudSourceDeployStage())
+	RegisterResource("ncloud_sourcedeploy_project_stage", resourceNcloudSourceDeployStage())
 }
 
 func resourceNcloudSourceDeployStage() *schema.Resource {
@@ -94,7 +94,7 @@ func resourceNcloudSourceDeployStageCreate(ctx context.Context, d *schema.Resour
 	config := meta.(*ProviderConfig)
 	
 	if !config.SupportVPC {
-		return diag.FromErr(NotSupportClassic("resource `ncloud_sourcedeploy_stage`"))
+		return diag.FromErr(NotSupportClassic("resource `ncloud_sourcedeploy_project_stage`"))
 	}
 
 	reqParams, paramsErr := getStage(d)
@@ -121,7 +121,7 @@ func resourceNcloudSourceDeployStageRead(ctx context.Context, d *schema.Resource
 	config := meta.(*ProviderConfig)
 
 	if !config.SupportVPC {
-		return diag.FromErr(NotSupportClassic("resource `ncloud_sourcedeploy_stage`"))
+		return diag.FromErr(NotSupportClassic("resource `ncloud_sourcedeploy_project_stage`"))
 	}
 	projectId := ncloud.IntString(d.Get("project_id").(int))
 	stage, err := getSourceDeployStageById(ctx, config, projectId, ncloud.String(d.Id()))
@@ -157,7 +157,7 @@ func resourceNcloudSourceDeployStageUpdate(ctx context.Context, d *schema.Resour
 func resourceNcloudSourceDeployStageDelete(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	config := meta.(*ProviderConfig)
 	if !config.SupportVPC {
-		return diag.FromErr(NotSupportClassic("resource `ncloud_sourcedeploy_stage`"))
+		return diag.FromErr(NotSupportClassic("resource `ncloud_sourcedeploy_project_stage`"))
 	}
 
 	projectId := ncloud.IntString(d.Get("project_id").(int))
@@ -259,13 +259,13 @@ func changeDeployStage(ctx context.Context, d *schema.ResourceData, config *Prov
 	projectId := ncloud.IntString(d.Get("project_id").(int))
 	id := ncloud.String(d.Id())
 
-	logCommonRequest("chageSourceDeployStage", reqParams)
+	logCommonRequest("changeSourceDeployStage", reqParams)
 	resp, err := config.Client.vsourcedeploy.V1Api.ChangeStage(ctx, reqParams, projectId, id)
 	if err != nil {
-		logErrorResponse("chageSourceDeployStage", err, reqParams)
+		logErrorResponse("changeSourceDeployStage", err, reqParams)
 		return err
 	}
-	logResponse("chageSourceDeployStage", resp)
+	logResponse("changeSourceDeployStage", resp)
 
 	return nil
 }

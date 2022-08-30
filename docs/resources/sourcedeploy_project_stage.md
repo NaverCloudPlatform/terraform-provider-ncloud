@@ -1,16 +1,15 @@
-# Resource : ncloud_sourcedeploy_stage
+# Resource : ncloud_sourcedeploy_project_stage
 
 Provides a Sourcedeploy stage resource.
 
 ## Example Usage
-
 
 ```hcl
 resource "ncloud_sourcedeploy_project" "project" {
 	name    							= "test-deploy-project"
 }
 
-resource "ncloud_sourcedeploy_stage" "svr_stage" {
+resource "ncloud_sourcedeploy_project_stage" "svr_stage" {
 	project_id  						= ncloud_sourcedeploy_project.project.id
 	name    							  = "test-deploy-stage"
 	type    							  = "Server"
@@ -20,6 +19,7 @@ resource "ncloud_sourcedeploy_stage" "svr_stage" {
 }
 
 ```
+
 ```hcl
 Create Sourcedeploy stage by referring to data sources (retrieve server).
 
@@ -30,7 +30,7 @@ data "ncloud_server" "server" {
 	}
 }
 
-resource "ncloud_sourcedeploy_stage" "svr_stage" {
+resource "ncloud_sourcedeploy_project_stage" "svr_stage" {
 	project_id  						= ncloud_sourcedeploy_project.project.id
 	name    							  = "test-deploy-stage"
 	type    							  = "Server"
