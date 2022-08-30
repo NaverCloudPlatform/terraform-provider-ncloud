@@ -44,6 +44,7 @@ func resourceNcloudSourceCommitRepository() *schema.Resource {
 				Type:     schema.TypeString,
 				Optional: true,
 				Computed: true,
+				ValidateDiagFunc: ToDiagFunc(validation.StringLenBetween(0, 500)),
 			},
 			"creator": {
 				Type:     schema.TypeString,

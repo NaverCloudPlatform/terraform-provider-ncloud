@@ -1,6 +1,8 @@
 # Data Source: ncloud_sourcecommit_repositories
 
-This resource is useful for look up the list of Sourcecommit repository in the region.
+-> **Note:** This data source is a beta release. Some features may change in the future.
+
+This data source is useful for look up the list of Sourcecommit repository in the region.
 
 ## Example Usage
 

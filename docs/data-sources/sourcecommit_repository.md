@@ -1,6 +1,8 @@
 # Data Source: ncloud_sourcecommit_repository
 
-This module can be useful for getting detail of Sourcecommit repository created before, such as check the git address of that Sourcecommit repository.
+-> **Note:** This data source is a beta release. Some features may change in the future.
+
+This data source is  useful for getting detail of Sourcecommit repository which is already created, such as getting git address of Sourcecommit repository.
 
 ## Example Usage
 
