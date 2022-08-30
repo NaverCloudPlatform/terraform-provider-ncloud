@@ -808,13 +808,13 @@ func changeDeployScenario(ctx context.Context, d *schema.ResourceData, config *P
 		return paramsErr
 	}
 
-	logCommonRequest("chageSourceDeployScenario", reqParams)
+	logCommonRequest("changeSourceDeployScenario", reqParams)
 	resp, err := config.Client.vsourcedeploy.V1Api.ChangeScenario(ctx, reqParams, projectId, stageId, ncloud.String(d.Id()))
 	if err != nil {
-		logErrorResponse("chageSourceDeployScenario", err, reqParams)
+		logErrorResponse("changeSourceDeployScenario", err, reqParams)
 		return err
 	}
-	logResponse("chageSourceDeployScenario", resp)
+	logResponse("changeSourceDeployScenario", resp)
 
 	return nil
 }
