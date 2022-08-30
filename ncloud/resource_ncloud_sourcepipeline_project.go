@@ -3,6 +3,7 @@ package ncloud
 import (
 	"context"
 	"fmt"
+	"regexp"
 	"strings"
 
 	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/ncloud"
@@ -35,10 +36,13 @@ func resourceNcloudSourcePipeline() *schema.Resource {
 		},
 		Schema: map[string]*schema.Schema{
 			"name": {
-				Type:             schema.TypeString,
-				Required:         true,
-				ForceNew:         true,
-				ValidateDiagFunc: ToDiagFunc(validation.StringLenBetween(1, 30)),
+				Type:     schema.TypeString,
+				Required: true,
+				ForceNew: true,
+				ValidateDiagFunc: ToDiagFunc(validation.All(
+					validation.StringLenBetween(1, 30),
+					validation.StringMatch(regexp.MustCompile(`^[A-Za-z0-9_-]+$`), "Composed of alphabets, numbers, hyphen (-) and underbar (_)"),
+				)),
 			},
 			"description": {
 				Type:             schema.TypeString,
@@ -51,9 +55,12 @@ func resourceNcloudSourcePipeline() *schema.Resource {
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"name": {
-							Type:             schema.TypeString,
-							Required:         true,
-							ValidateDiagFunc: ToDiagFunc(validation.StringLenBetween(1, 50)),
+							Type:     schema.TypeString,
+							Required: true,
+							ValidateDiagFunc: ToDiagFunc(validation.All(
+								validation.StringLenBetween(1, 50),
+								validation.StringMatch(regexp.MustCompile(`^[A-Za-z0-9_-]+$`), "Composed of alphabets, numbers, hyphen (-) and underbar (_)"),
+							)),
 						},
 						"type": {
 							Type:     schema.TypeString,
@@ -149,11 +156,11 @@ func resourceNcloudSourcePipeline() *schema.Resource {
 								Schema: map[string]*schema.Schema{
 									"repository": {
 										Type:     schema.TypeString,
-										Optional: true,
+										Required: true,
 									},
 									"branch": {
 										Type:     schema.TypeString,
-										Optional: true,
+										Required: true,
 									},
 								},
 							},
