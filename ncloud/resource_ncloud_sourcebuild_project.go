@@ -38,6 +38,7 @@ func resourceNcloudSourceBuildProject() *schema.Resource {
 				Required: true,
 				ForceNew: true,
 				ValidateDiagFunc: ToDiagFunc(validation.All(
+					validation.StringLenBetween(1, 80),
 					validation.StringMatch(regexp.MustCompile(`^[A-Za-z0-9_-]+$`), "Composed of alphabets, numbers, hyphen (-) and underbar (_)"),
 				)),
 			},
@@ -45,6 +46,9 @@ func resourceNcloudSourceBuildProject() *schema.Resource {
 				Type:     schema.TypeString,
 				Optional: true,
 				Computed: true,
+				ValidateDiagFunc: ToDiagFunc(validation.All(
+					validation.StringLenBetween(0, 200),
+				)),
 			},
 			"source": {
 				Type:     schema.TypeList,
@@ -190,6 +194,11 @@ func resourceNcloudSourceBuildProject() *schema.Resource {
 												"tag": {
 													Type:     schema.TypeString,
 													Optional: true,
+													ValidateDiagFunc: ToDiagFunc(validation.All(
+														validation.StringLenBetween(1, 80),
+														validation.StringMatch(regexp.MustCompile(`^([\w#][\w#.-]*)$`),
+															"Composed of alphabets, numbers, hash (#), dot (.), hyphen (-) and underbar (_)"),
+													)),
 												},
 											},
 										},
@@ -344,6 +353,7 @@ func resourceNcloudSourceBuildProject() *schema.Resource {
 						"storage": {
 							Type:     schema.TypeList,
 							Optional: true,
+							MaxItems: 1,
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
 									"bucket": {
@@ -386,10 +396,18 @@ func resourceNcloudSourceBuildProject() *schema.Resource {
 						"image": {
 							Type:     schema.TypeString,
 							Optional: true,
+							ValidateDiagFunc: ToDiagFunc(validation.All(
+								validation.StringLenBetween(1, 200),
+							)),
 						},
 						"tag": {
 							Type:     schema.TypeString,
 							Optional: true,
+							ValidateDiagFunc: ToDiagFunc(validation.All(
+								validation.StringLenBetween(1, 80),
+								validation.StringMatch(regexp.MustCompile(`^([\w#][\w#.-]*)$`),
+									"Composed of alphabets, numbers, hash (#), dot (.), hyphen (-) and underbar (_)"),
+							)),
 						},
 						"latest": {
 							Type:     schema.TypeBool,
