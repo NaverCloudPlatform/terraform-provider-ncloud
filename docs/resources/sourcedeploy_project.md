@@ -1,5 +1,7 @@
 # Resource: ncloud_sourcedeploy_project
 
+-> **Note:** This resource is a beta release. Some features may change in the future.
+
 Provides a Sourcedeploy project resource.
 
 ## Example Usage

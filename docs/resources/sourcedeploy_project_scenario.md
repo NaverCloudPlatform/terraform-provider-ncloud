@@ -1,5 +1,7 @@
 # Resource : ncloud_Sourcedeploy_projects
 
+-> **Note:** This resource is a beta release. Some features may change in the future.
+
 This resource is useful for look up the list of Sourcedeploy scenario in the region.
 
 ## Example Usage

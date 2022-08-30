@@ -1,5 +1,7 @@
 # Data Source: ncloud_Sourcedeploy_projects
 
+-> **Note:** This data source is a beta release. Some features may change in the future.
+
 This data source is useful for look up the list of Sourcedeploy project in the region.
 
 ## Example Usage
