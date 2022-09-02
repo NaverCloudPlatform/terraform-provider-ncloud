@@ -20,6 +20,10 @@ func dataSourceNcloudSourceBuildProject() *schema.Resource {
 				Type:     schema.TypeInt,
 				Required: true,
 			},
+			"project_no": {
+				Type:     schema.TypeInt,
+				Computed: true,
+			},
 			"name": {
 				Type:     schema.TypeString,
 				Computed: true,

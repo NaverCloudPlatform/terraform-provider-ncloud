@@ -207,6 +207,7 @@ The following arguments are supported:
 ## Attributes Reference
 
 * `id` - Sourcebuild Project ID.
+* `project_no` - Sourcebuild Project ID. (It is the same result as `id`)
 * `env`
     * `compute`
         * `cpu` - CPU of build environment.

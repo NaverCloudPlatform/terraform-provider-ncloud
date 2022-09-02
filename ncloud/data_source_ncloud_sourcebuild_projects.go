@@ -30,6 +30,10 @@ func dataSourceNcloudSourceBuildProjects() *schema.Resource {
 							Type:     schema.TypeInt,
 							Computed: true,
 						},
+						"project_no": {
+							Type:     schema.TypeInt,
+							Computed: true,
+						},
 						"name": {
 							Type:     schema.TypeString,
 							Computed: true,
@@ -68,6 +72,7 @@ func dataSourceNcloudSourceBuildProjectsRead(ctx context.Context, d *schema.Reso
 	for _, r := range resp.Project {
 		project := map[string]interface{}{
 			"id":          *r.Id,
+			"project_no":  *r.Id,
 			"name":        *r.Name,
 			"permission":  *r.Permission,
 			"action_name": *r.ActionName,

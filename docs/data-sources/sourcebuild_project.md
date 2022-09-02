@@ -26,6 +26,7 @@ The following arguments are supported:
 
 ## Attributes Reference
 
+* `project_no` - Sourcebuild Project ID. (It is the same result as `id`)
 * `name` - Name of the Sourcebuild Project.
 * `description` - Sourcebuild project description.
 * `source` - Build target's type and config.

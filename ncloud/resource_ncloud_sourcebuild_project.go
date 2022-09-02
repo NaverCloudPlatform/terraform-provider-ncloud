@@ -33,6 +33,10 @@ func resourceNcloudSourceBuildProject() *schema.Resource {
 			Delete: schema.DefaultTimeout(DefaultTimeout),
 		},
 		Schema: map[string]*schema.Schema{
+			"project_no": {
+				Type:     schema.TypeInt,
+				Computed: true,
+			},
 			"name": {
 				Type:     schema.TypeString,
 				Required: true,
@@ -800,6 +804,7 @@ func setProjectData(d *schema.ResourceData, project *sourcebuild.GetProjectDetai
 	d.Set("linked", makeLinked(project.Linked))
 	d.Set("last_build", makeLastBuild(project.LastBuild))
 	d.Set("created", makeCreated(project.Created))
+	d.Set("project_no", ncloud.Int32Value(project.Id))
 }
 
 /* for deep copy */
