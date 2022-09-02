@@ -24,10 +24,6 @@ func dataSourceNcloudSourceBuildRuntimeVersion() *schema.Resource {
 				Type:     schema.TypeInt,
 				Required: true,
 			},
-			"output_file": {
-				Type:     schema.TypeString,
-				Optional: true,
-			},
 			"filter": dataSourceFiltersSchema(),
 			"runtime_version": {
 				Type:     schema.TypeList,
@@ -82,10 +78,6 @@ func dataSourceNcloudSourceBuildRuntimeVersionRead(ctx context.Context, d *schem
 
 	d.SetId(config.RegionCode)
 	d.Set("runtime_version", resources)
-
-	if output, ok := d.GetOk("output_file"); ok && output.(string) != "" {
-		return diag.FromErr(writeToFile(output.(string), resources))
-	}
 
 	return nil
 }

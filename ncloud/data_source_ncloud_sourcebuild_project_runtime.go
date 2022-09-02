@@ -20,10 +20,6 @@ func dataSourceNcloudSourceBuildRuntime() *schema.Resource {
 				Type:     schema.TypeInt,
 				Required: true,
 			},
-			"output_file": {
-				Type:     schema.TypeString,
-				Optional: true,
-			},
 			"filter": dataSourceFiltersSchema(),
 			"runtime": {
 				Type:     schema.TypeList,
@@ -76,10 +72,6 @@ func dataSourceNcloudSourceBuildRuntimeRead(ctx context.Context, d *schema.Resou
 
 	d.SetId(config.RegionCode)
 	d.Set("runtime", resources)
-
-	if output, ok := d.GetOk("output_file"); ok && output.(string) != "" {
-		return diag.FromErr(writeToFile(output.(string), resources))
-	}
 
 	return nil
 }

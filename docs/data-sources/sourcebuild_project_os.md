@@ -25,7 +25,6 @@ output "lookup-os-output" {
 
 The following arguments are supported:
 
-* `output_file` - (Optional) The name of file that can save data source after running `terraform plan`.
 * `filter` - (Optional) Custom filter block as described below.
     * `name` - (Required) The name of the field to filter by.
     * `values` - (Required) Set of values that are accepted for the given field.

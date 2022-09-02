@@ -15,10 +15,6 @@ func dataSourceNcloudSourceBuildCompute() *schema.Resource {
 	return &schema.Resource{
 		ReadContext: dataSourceNcloudSourceBuildComputeRead,
 		Schema: map[string]*schema.Schema{
-			"output_file": {
-				Type:     schema.TypeString,
-				Optional: true,
-			},
 			"filter": dataSourceFiltersSchema(),
 			"compute": {
 				Type:     schema.TypeList,
@@ -73,10 +69,6 @@ func dataSourceNcloudSourceBuildComputeRead(ctx context.Context, d *schema.Resou
 
 	d.SetId(config.RegionCode)
 	d.Set("compute", resources)
-
-	if output, ok := d.GetOk("output_file"); ok && output.(string) != "" {
-		return diag.FromErr(writeToFile(output.(string), resources))
-	}
 
 	return nil
 }

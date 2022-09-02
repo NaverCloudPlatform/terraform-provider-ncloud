@@ -15,10 +15,6 @@ func dataSourceNcloudSourceBuildDocker() *schema.Resource {
 	return &schema.Resource{
 		ReadContext: dataSourceNcloudSourceBuildDockerRead,
 		Schema: map[string]*schema.Schema{
-			"output_file": {
-				Type:     schema.TypeString,
-				Optional: true,
-			},
 			"filter": dataSourceFiltersSchema(),
 			"docker": {
 				Type:     schema.TypeList,
@@ -68,10 +64,6 @@ func dataSourceNcloudSourceBuildDockerRead(ctx context.Context, d *schema.Resour
 
 	d.SetId(config.RegionCode)
 	d.Set("docker", resources)
-
-	if output, ok := d.GetOk("output_file"); ok && output.(string) != "" {
-		return diag.FromErr(writeToFile(output.(string), resources))
-	}
 
 	return nil
 }
