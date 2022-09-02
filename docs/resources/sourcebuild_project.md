@@ -40,7 +40,7 @@ resource "ncloud_sourcebuild_project" "test-build-project" {
       }
     }
     timeout = 200
-    docker {
+    docker_engine {
       use = true
       id  = 1
     }
@@ -53,10 +53,10 @@ resource "ncloud_sourcebuild_project" "test-build-project" {
       value = "VALUE2"
     }
   }
-  cmd {
-    pre   = ["pwd"]
-    build = ["make"]
-    dockerbuild {
+  build_command {
+    pre_build   = ["pwd"]
+    in_build = ["make"]
+    docker_image_build {
       use        = true
       registry   = "test-registry"
       dockerfile = "/Dockerfile"
@@ -71,10 +71,10 @@ resource "ncloud_sourcebuild_project" "test-build-project" {
 }
 ```
 
-Create Sourcebuild project by referring to data sources (retrieve compute, os, runtime, runtime version and docker).
+Create Sourcebuild project by referring to data sources (retrieve compute, os, runtime, runtime version and docker engine).
 
 ```hcl
-data "ncloud_sourcebuild_project_compute" "compute" {
+data "ncloud_sourcebuild_project_computes" "computes" {
 }
 
 data "ncloud_sourcebuild_project_os" "os" {
@@ -84,16 +84,16 @@ data "ncloud_sourcebuild_project_os" "os" {
   }
 }
 
-data "ncloud_sourcebuild_project_runtime" "runtime" {
+data "ncloud_sourcebuild_project_os_runtimes" "runtimes" {
   os_id = data.ncloud_sourcebuild_project_os.os.os[0].id
 }
 
-data "ncloud_sourcebuild_project_runtime_version" "runtime_version" {
+data "ncloud_sourcebuild_project_os_runtime_versions" "runtime_versions" {
   os_id      = data.ncloud_sourcebuild_project_os.os.os[0].id
-  runtime_id = data.ncloud_sourcebuild_project_runtime.runtime.runtime[0].id
+  runtime_id = data.ncloud_sourcebuild_project_os_runtimes.runtimes.runtimes[0].id
 }
 
-data "ncloud_sourcebuild_project_docker" "docker" {
+data "ncloud_sourcebuild_project_docker_engines" "docker_engines" {
   filter {
     name   = "name"
     values = ["Docker:18.09.1"]
@@ -112,7 +112,7 @@ resource "ncloud_sourcebuild_project" "test-build-project" {
   }
   env {
     compute {
-      id = data.ncloud_sourcebuild_project_compute.compute.compute[0].id
+      id = data.ncloud_sourcebuild_project_computes.computes.computes[0].id
     }
     platform {
       type = "SourceBuild"
@@ -121,16 +121,16 @@ resource "ncloud_sourcebuild_project" "test-build-project" {
           id = data.ncloud_sourcebuild_project_os.os.os[0].id
         }
         runtime {
-          id = data.ncloud_sourcebuild_project_runtime.runtime.runtime[0].id
+          id = data.ncloud_sourcebuild_project_os_runtimes.runtimes.runtimes[0].id
           version {
-            id = data.ncloud_sourcebuild_project_runtime_version.runtime_version.runtime_version[0].id
+            id = data.ncloud_sourcebuild_project_os_runtime_versions.runtime_versions.runtime_versions[0].id
           }
         }
       }
     }
-    docker {
+    docker_engine {
       use = true
-      id  = data.ncloud_sourcebuild_project_docker.docker.docker[0].id
+      id  = data.ncloud_sourcebuild_project_docker_engines.docker_engines.docker_engines[0].id
     }
   }
 }
@@ -159,32 +159,32 @@ The following arguments are supported:
                 * [`ncloud_sourcebuild_project_os` data source](../data-sources/sourcebuild_project_os.md)
                 * `id` - (Required) OS id.
             * `runtime` - (Optional, Required if `env.platform.type` is set to `SourceBuild`) Runtime config.
-                * [`ncloud_sourcebuild_project_runtime` data source](../data-sources/sourcebuild_project_os_runtimes.md)
+                * [`ncloud_sourcebuild_project_os_runtimes` data source](../data-sources/sourcebuild_project_os_runtimes.md)
                 * `id` - (Required) runtime id.
                 * `version` - (Required) runtime version.
-                    * [`ncloud_sourcebuild_project_runtime_version` data source](../data-sources/sourcebuild_project_os_runtime_versions.md)
+                    * [`ncloud_sourcebuild_project_os_runtime_versions` data source](../data-sources/sourcebuild_project_os_runtime_versions.md)
                     * `id` - (Required) runtime version id.
             * `registry` - (Optional, Required if `env.platform.type` is set to `ContainerRegistry`) Registry name of NCP Container Registry where the image to build is located.
             * `image` - (Optional, Required if `env.platform.type` is set to `ContainerRegistry` or `PublicRegistry`) Container image name to build.
             * `tag` - (Optional, Required if `env.platform.type` is set to `ContainerRegistry` or `PublicRegistry`) Container image tag to build.
-    * `docker` - (Optional) Docker engine to use when building docker image.
-        * [`ncloud_sourcebuild_project_docker` data source](../data-sources/sourcebuild_project_dockers.md)
+    * `docker_engine` - (Optional) Docker engine to use when building docker image.
+        * [`ncloud_sourcebuild_project_docker` data source](../data-sources/sourcebuild_project_docker_engines.md)
         * `use` - (Required) Whether or not to use of docker engine. (Default `false`)
         * `id` - (Optional) Docker engine id.
     * `timeout` - (Optional) Build timeout (in Minutes). Specify it between `5` and `540`. Default `60`.
     * `env_vars` - (Optional) Environment variables to use for build.
         * `key` - (Required) Key of environment variable.
         * `value` - (Required) Value of environment variable.
-* `cmd` - (Optional) Commands to execute in build.
-    * `pre` - (Optional) Commands before build.
-    * `build` - (Optional) Commands during build.
-    * `post` - (Optional) Commands after build.
-    * `dockerbuild` - (Optional) Docker image build config.
+* `build_command` - (Optional) Commands to execute in build.
+    * `pre_build` - (Optional) Commands before build.
+    * `in_build` - (Optional) Commands during build.
+    * `post_build` - (Optional) Commands after build.
+    * `docker_image_build` - (Optional) Docker image build config.
         * `use` - (Optional) Whether or not to use of dockerbuild. (Default `false`)
-        * `dockerfile` - (Optional, Required if `cmd.dockerbuild.use` is set to `true`) Dockerfile path in build source folder.
-        * `registry` - (Optional, Required if `cmd.dockerbuild.use` is set to `true`) Registry name of NCP Container Registry to store the image.
-        * `image` - (Optional, Required if `cmd.dockerbuild.use` is set to `true`) Image name to upload to registry.
-        * `tag` - (Optional, Required if `cmd.dockerbuild.use` is set to `true`) Image tag to upload to registry.
+        * `dockerfile` - (Optional, Required if `build_command.docker_image_build.use` is set to `true`) Dockerfile path in build source folder.
+        * `registry` - (Optional, Required if `build_command.docker_image_build.use` is set to `true`) Registry name of NCP Container Registry to store the image.
+        * `image` - (Optional, Required if `build_command.docker_image_build.use` is set to `true`) Image name to upload to registry.
+        * `tag` - (Optional, Required if `build_command.docker_image_build.use` is set to `true`) Image tag to upload to registry.
         * `latest` - (Optional) Save status of the latest tag. (Default `false`)
 * `artifact` - (Optional) Artifact to save build results.
     * `use` - (Optional) Whether or not to save build results. (Default `false`)
@@ -194,11 +194,11 @@ The following arguments are supported:
         * `path` - (Required) path in the NCP Object Storage bucket to save build results.
         * `filename` - (Required) File name to save build results.
     * `backup` - (Optional) Whether or not to backup build results.
-* `cache` - (Optional) Save build environment after completing this build.
+* `build_image_upload` - (Optional) Save build environment after completing this build.
     * `use` - (Optional) Whether or not to save build environment. (Default `false`)
-    * `registry` - (Optional, Required if `cache.use` is set to `true`) Registry name of NCP Container Registry to store the image of the build environment after completing the build.
-    * `image` - (Optional, Required if `cache.use` is set to `true`) Image name to upload to registry.
-    * `tag` - (Optional, Required if `cache.use` is set to `true`) Image tag to upload to registry.
+    * `container_registry_name` - (Optional, Required if `build_image_upload.use` is set to `true`) Registry name of NCP Container Registry to store the image of the build environment after completing the build.
+    * `image_name` - (Optional, Required if `build_image_upload.use` is set to `true`) Image name to upload to registry.
+    * `tag` - (Optional, Required if `build_image_upload.use` is set to `true`) Image tag to upload to registry.
     * `latest` - (Optional)  Save status of the latest tag. (Default `false`)
 * `linked` - (Optional) Set up linkage with other services related this build.
     * `cloud_log_analytics` - (Optional) Whether or not to save build log in the NCP Cloud Log Analytics. (Default `false`)
@@ -207,7 +207,7 @@ The following arguments are supported:
 ## Attributes Reference
 
 * `id` - Sourcebuild Project ID.
-* `project_no` - Sourcebuild Project ID. (It is the same result as `id`)
+* `project_no` - Sourcebuild Project ID.
 * `env`
     * `compute`
         * `cpu` - CPU of build environment.
@@ -222,7 +222,7 @@ The following arguments are supported:
                 * `name` - Runtime name of build environment.
                 * `version`
                     * `name` - Runtime version name of build environment.
-    * `docker`
+    * `docker_engine`
         * `name` - Docker engine name.
 * `lastbuild` - Information of last build.
     * `id` - ID of last build.

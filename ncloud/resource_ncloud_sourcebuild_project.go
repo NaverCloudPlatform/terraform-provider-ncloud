@@ -210,7 +210,7 @@ func resourceNcloudSourceBuildProject() *schema.Resource {
 								},
 							},
 						},
-						"docker": {
+						"docker_engine": {
 							Type:     schema.TypeList,
 							Optional: true,
 							Computed: true,
@@ -259,35 +259,35 @@ func resourceNcloudSourceBuildProject() *schema.Resource {
 					},
 				},
 			},
-			"cmd": {
+			"build_command": {
 				Type:     schema.TypeList,
 				Optional: true,
 				Computed: true,
 				MaxItems: 1,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
-						"pre": {
+						"pre_build": {
 							Type:     schema.TypeList,
 							Optional: true,
 							Elem: &schema.Schema{
 								Type: schema.TypeString,
 							},
 						},
-						"build": {
+						"in_build": {
 							Type:     schema.TypeList,
 							Optional: true,
 							Elem: &schema.Schema{
 								Type: schema.TypeString,
 							},
 						},
-						"post": {
+						"post_build": {
 							Type:     schema.TypeList,
 							Optional: true,
 							Elem: &schema.Schema{
 								Type: schema.TypeString,
 							},
 						},
-						"dockerbuild": {
+						"docker_image_build": {
 							Type:     schema.TypeList,
 							Optional: true,
 							Computed: true,
@@ -382,7 +382,7 @@ func resourceNcloudSourceBuildProject() *schema.Resource {
 					},
 				},
 			},
-			"cache": {
+			"build_image_upload": {
 				Type:     schema.TypeList,
 				Optional: true,
 				Computed: true,
@@ -393,11 +393,11 @@ func resourceNcloudSourceBuildProject() *schema.Resource {
 							Type:     schema.TypeBool,
 							Optional: true,
 						},
-						"registry": {
+						"container_registry_name": {
 							Type:     schema.TypeString,
 							Optional: true,
 						},
-						"image": {
+						"image_name": {
 							Type:     schema.TypeString,
 							Optional: true,
 							ValidateDiagFunc: ToDiagFunc(validation.All(
@@ -644,11 +644,11 @@ func getCommonProjectParams(d *schema.ResourceData) (*sourcebuild.ChangeProject,
 	envPlatform.Config = envPlatformConfig
 
 	envDocker := sourcebuild.ProjectEnvDocker{
-		Use: ncloud.Bool(d.Get("env.0.docker.0.use").(bool)),
-		Id:  Int32PtrOrNil(d.GetOk("env.0.docker.0.id")),
+		Use: ncloud.Bool(d.Get("env.0.docker_engine.0.use").(bool)),
+		Id:  Int32PtrOrNil(d.GetOk("env.0.docker_engine.0.id")),
 	}
 	if *envDocker.Use && envDocker.Id == nil {
-		return nil, fmt.Errorf("env.docker.id is required if env.docker.use is true")
+		return nil, fmt.Errorf("env.docker_engine.id is required if env.docker_engine.use is true")
 	}
 
 	envVars, envErr := expandSourceBuildEnvVarsParams(d.Get("env.0.env_vars").([]interface{}))
@@ -665,31 +665,31 @@ func getCommonProjectParams(d *schema.ResourceData) (*sourcebuild.ChangeProject,
 	}
 
 	cmdDockerbuild := sourcebuild.ProjectCmdDockerbuild{
-		Use:        ncloud.Bool(d.Get("cmd.0.dockerbuild.0.use").(bool)),
-		Dockerfile: StringPtrOrNil(d.GetOk("cmd.0.dockerbuild.0.dockerfile")),
-		Registry:   StringPtrOrNil(d.GetOk("cmd.0.dockerbuild.0.registry")),
-		Image:      StringPtrOrNil(d.GetOk("cmd.0.dockerbuild.0.image")),
-		Tag:        StringPtrOrNil(d.GetOk("cmd.0.dockerbuild.0.tag")),
-		Latest:     ncloud.Bool(d.Get("cmd.0.dockerbuild.0.latest").(bool)),
+		Use:        ncloud.Bool(d.Get("build_command.0.docker_image_build.0.use").(bool)),
+		Dockerfile: StringPtrOrNil(d.GetOk("build_command.0.docker_image_build.0.dockerfile")),
+		Registry:   StringPtrOrNil(d.GetOk("build_command.0.docker_image_build.0.registry")),
+		Image:      StringPtrOrNil(d.GetOk("build_command.0.docker_image_build.0.image")),
+		Tag:        StringPtrOrNil(d.GetOk("build_command.0.docker_image_build.0.tag")),
+		Latest:     ncloud.Bool(d.Get("build_command.0.docker_image_build.0.latest").(bool)),
 	}
 
 	if *cmdDockerbuild.Use && (cmdDockerbuild.Dockerfile == nil || cmdDockerbuild.Registry == nil || cmdDockerbuild.Image == nil || cmdDockerbuild.Tag == nil) {
-		return nil, fmt.Errorf("cmd.dockerbuild parameters(dockerfile, registry, image, tag) are required if cmd.dockerbuild.use is true")
+		return nil, fmt.Errorf("build_command.docker_image_build parameters(dockerfile, registry, image, tag) are required if cmd.docker_image_build.use is true")
 	}
 
 	cmd := sourcebuild.ProjectCmd{
 		Dockerbuild: &cmdDockerbuild,
 	}
 
-	if param, ok := d.GetOk("cmd.0.pre"); ok {
+	if param, ok := d.GetOk("build_command.0.pre_build"); ok {
 		cmd.Pre = expandStringInterfaceList(param.([]interface{}))
 	}
 
-	if param, ok := d.GetOk("cmd.0.build"); ok {
+	if param, ok := d.GetOk("build_command.0.in_build"); ok {
 		cmd.Build = expandStringInterfaceList(param.([]interface{}))
 	}
 
-	if param, ok := d.GetOk("cmd.0.post"); ok {
+	if param, ok := d.GetOk("build_command.0.post_build"); ok {
 		cmd.Post = expandStringInterfaceList(param.([]interface{}))
 	}
 
@@ -714,11 +714,11 @@ func getCommonProjectParams(d *schema.ResourceData) (*sourcebuild.ChangeProject,
 	}
 
 	cache := sourcebuild.ProjectCache{
-		Use:      ncloud.Bool(d.Get("cache.0.use").(bool)),
-		Registry: StringPtrOrNil(d.GetOk("cache.0.registry")),
-		Image:    StringPtrOrNil(d.GetOk("cache.0.image")),
-		Tag:      StringPtrOrNil(d.GetOk("cache.0.tag")),
-		Latest:   ncloud.Bool(d.Get("cache.0.latest").(bool)),
+		Use:      ncloud.Bool(d.Get("build_image_upload.0.use").(bool)),
+		Registry: StringPtrOrNil(d.GetOk("build_image_upload.0.container_registry_name")),
+		Image:    StringPtrOrNil(d.GetOk("build_image_upload.0.image_name")),
+		Tag:      StringPtrOrNil(d.GetOk("build_image_upload.0.tag")),
+		Latest:   ncloud.Bool(d.Get("build_image_upload.0.latest").(bool)),
 	}
 
 	if *cache.Use && (cache.Registry == nil || cache.Image == nil || cache.Tag == nil) {
@@ -798,8 +798,8 @@ func setProjectData(d *schema.ResourceData, project *sourcebuild.GetProjectDetai
 	d.Set("description", ncloud.StringValue(project.Description))
 	d.Set("source", makeSource(project.Source))
 	d.Set("artifact", makeArtifact(project.Artifact))
-	d.Set("cache", makeCache(project.Cache))
-	d.Set("cmd", makeCmd(project.Cmd))
+	d.Set("build_image_upload", makeBuildImageUpload(project.Cache))
+	d.Set("build_command", makeCmd(project.Cmd))
 	d.Set("env", makeEnv(project.Env))
 	d.Set("linked", makeLinked(project.Linked))
 	d.Set("last_build", makeLastBuild(project.LastBuild))
@@ -859,15 +859,15 @@ func makeArtifactStorage(storage *sourcebuild.GetProjectDetailResponseArtifactSt
 	return []interface{}{values}
 }
 
-func makeCache(cache *sourcebuild.ProjectCache) []interface{} {
+func makeBuildImageUpload(cache *sourcebuild.ProjectCache) []interface{} {
 	if cache == nil {
 		return nil
 	}
 
 	values := map[string]interface{}{}
 	values["use"] = ncloud.BoolValue(cache.Use)
-	values["registry"] = ncloud.StringValue(cache.Registry)
-	values["image"] = ncloud.StringValue(cache.Image)
+	values["container_registry_name"] = ncloud.StringValue(cache.Registry)
+	values["image_name"] = ncloud.StringValue(cache.Image)
 	values["tag"] = ncloud.StringValue(cache.Tag)
 	values["latest"] = ncloud.BoolValue(cache.Latest)
 
@@ -880,10 +880,10 @@ func makeCmd(cmd *sourcebuild.ProjectCmd) []interface{} {
 	}
 
 	values := map[string]interface{}{}
-	values["pre"] = ncloud.StringListValue(cmd.Pre)
-	values["build"] = ncloud.StringListValue(cmd.Build)
-	values["post"] = ncloud.StringListValue(cmd.Post)
-	values["dockerbuild"] = makeCmdDockerbuild(cmd.Dockerbuild)
+	values["pre_build"] = ncloud.StringListValue(cmd.Pre)
+	values["in_build"] = ncloud.StringListValue(cmd.Build)
+	values["post_build"] = ncloud.StringListValue(cmd.Post)
+	values["docker_image_build"] = makeCmdDockerbuild(cmd.Dockerbuild)
 
 	return []interface{}{values}
 }
@@ -912,7 +912,7 @@ func makeEnv(env *sourcebuild.GetProjectDetailResponseEnv) []interface{} {
 	values := map[string]interface{}{}
 	values["compute"] = makeEnvCompute(env.Compute)
 	values["platform"] = makeEnvPlatform(env.Platform)
-	values["docker"] = makeEnvDocker(env.Docker)
+	values["docker_engine"] = makeEnvDocker(env.Docker)
 	values["timeout"] = ncloud.Int32Value(env.Timeout)
 	values["env_vars"] = makeEnvEnvVars(env.EnvVars)
 

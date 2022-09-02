@@ -14,7 +14,7 @@ func TestAccDataSourceNcloudSourceBuildRuntimes(t *testing.T) {
 			{
 				Config: testAccDataSourceNcloudSourceBuildRuntimesConfig(),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckDataSourceID("data.ncloud_sourcebuild_project_runtimes.runtimes"),
+					testAccCheckDataSourceID("data.ncloud_sourcebuild_project_os_runtimes.runtimes"),
 				),
 			},
 		},
@@ -26,7 +26,7 @@ func testAccDataSourceNcloudSourceBuildRuntimesConfig() string {
 data "ncloud_sourcebuild_project_os" "os" {
 }
 
-data "ncloud_sourcebuild_project_runtimes" "runtimes" {
+data "ncloud_sourcebuild_project_os_runtimes" "runtimes" {
 	os_id = data.ncloud_sourcebuild_project_os.os.os[0].id
 }
 `

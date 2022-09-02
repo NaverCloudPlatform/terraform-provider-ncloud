@@ -224,16 +224,16 @@ data "ncloud_sourcebuild_project_computes" "computes" {
 data "ncloud_sourcebuild_project_os" "os" {
 }
 
-data "ncloud_sourcebuild_project_runtimes" "runtimes" {
+data "ncloud_sourcebuild_project_os_runtimes" "runtimes" {
 	os_id = data.ncloud_sourcebuild_project_os.os.os[0].id
 }
 
-data "ncloud_sourcebuild_project_runtime_versions" "runtime_versions" {
+data "ncloud_sourcebuild_project_os_runtime_versions" "runtime_versions" {
 	os_id      = data.ncloud_sourcebuild_project_os.os.os[0].id
-	runtime_id = data.ncloud_sourcebuild_project_runtimes.runtimes.runtimes[0].id
+	runtime_id = data.ncloud_sourcebuild_project_os_runtimes.runtimes.runtimes[0].id
 }
 
-data "ncloud_sourcebuild_project_dockers" "dockers" {
+data "ncloud_sourcebuild_project_docker_engines" "docker_engines" {
 }
 	  
 resource "ncloud_sourcecommit_repository" "test-repo" {
@@ -261,16 +261,16 @@ resource "ncloud_sourcebuild_project" "test-project" {
 					id = data.ncloud_sourcebuild_project_os.os.os[0].id
 				}
 				runtime {
-					id = data.ncloud_sourcebuild_project_runtimes.runtimes.runtimes[0].id
+					id = data.ncloud_sourcebuild_project_os_runtimes.runtimes.runtimes[0].id
 					version {
-						id = data.ncloud_sourcebuild_project_runtime_versions.runtime_versions.runtime_versions[0].id
+						id = data.ncloud_sourcebuild_project_os_runtime_versions.runtime_versions.runtime_versions[0].id
 					}
 				}
 			}
 		}
-		docker {
+		docker_engine {
 			use = true
-			id = data.ncloud_sourcebuild_project_dockers.dockers.dockers[0].id
+			id = data.ncloud_sourcebuild_project_docker_engines.docker_engines.docker_engines[0].id
 		}
 		timeout = 500
 		env_vars {
@@ -278,10 +278,10 @@ resource "ncloud_sourcebuild_project" "test-project" {
 			value = "v1"
 		}
 	}
-	cmd {
-		pre   = ["pwd", "ls"]
-		build = ["pwd", "ls"]
-		post  = ["pwd", "ls"]
+	build_command {
+		pre_build   = ["pwd", "ls"]
+		in_build = ["pwd", "ls"]
+		post_build  = ["pwd", "ls"]
 	}
 }
 
@@ -315,16 +315,16 @@ data "ncloud_sourcebuild_project_computes" "computes" {
 data "ncloud_sourcebuild_project_os" "os" {
 }
 
-data "ncloud_sourcebuild_project_runtimes" "runtimes" {
+data "ncloud_sourcebuild_project_os_runtimes" "runtimes" {
 	os_id = data.ncloud_sourcebuild_project_os.os.os[0].id
 }
 
-data "ncloud_sourcebuild_project_runtime_versions" "runtime_versions" {
+data "ncloud_sourcebuild_project_os_runtime_versions" "runtime_versions" {
 	os_id      = data.ncloud_sourcebuild_project_os.os.os[0].id
-	runtime_id = data.ncloud_sourcebuild_project_runtimes.runtimes.runtimes[0].id
+	runtime_id = data.ncloud_sourcebuild_project_os_runtimes.runtimes.runtimes[0].id
 }
 
-data "ncloud_sourcebuild_project_dockers" "dockers" {
+data "ncloud_sourcebuild_project_docker_engines" "docker_engines" {
 }
 		
 resource "ncloud_sourcecommit_repository" "test-repo" {
@@ -352,16 +352,16 @@ resource "ncloud_sourcebuild_project" "test-project" {
 					id = data.ncloud_sourcebuild_project_os.os.os[0].id
 				}
 				runtime {
-					id = data.ncloud_sourcebuild_project_runtimes.runtimes.runtimes[0].id
+					id = data.ncloud_sourcebuild_project_os_runtimes.runtimes.runtimes[0].id
 					version {
-						id = data.ncloud_sourcebuild_project_runtime_versions.runtime_versions.runtime_versions[0].id
+						id = data.ncloud_sourcebuild_project_os_runtime_versions.runtime_versions.runtime_versions[0].id
 					}
 				}
 			}
 		}
-		docker {
+		docker_engine {
 			use = true
-			id = data.ncloud_sourcebuild_project_dockers.dockers.dockers[0].id
+			id = data.ncloud_sourcebuild_project_docker_engines.docker_engines.docker_engines[0].id
 		}
 		timeout = 500
 		env_vars {
@@ -369,10 +369,10 @@ resource "ncloud_sourcebuild_project" "test-project" {
 			value = "v1"
 		}
 	}
-	cmd {
-		pre   = ["pwd", "ls"]
-		build = ["pwd", "ls"]
-		post  = ["pwd", "ls"]
+	build_command {
+		pre_build   = ["pwd", "ls"]
+		in_build = ["pwd", "ls"]
+		post_build  = ["pwd", "ls"]
 	}
 }
 
@@ -406,16 +406,16 @@ data "ncloud_sourcebuild_project_computes" "computes" {
 data "ncloud_sourcebuild_project_os" "os" {
 }
 
-data "ncloud_sourcebuild_project_runtimes" "runtimes" {
+data "ncloud_sourcebuild_project_os_runtimes" "runtimes" {
 	os_id = data.ncloud_sourcebuild_project_os.os.os[0].id
 }
 
-data "ncloud_sourcebuild_project_runtime_versions" "runtime_versions" {
+data "ncloud_sourcebuild_project_os_runtime_versions" "runtime_versions" {
 	os_id      = data.ncloud_sourcebuild_project_os.os.os[0].id
-	runtime_id = data.ncloud_sourcebuild_project_runtimes.runtimes.runtimes[0].id
+	runtime_id = data.ncloud_sourcebuild_project_os_runtimes.runtimes.runtimes[0].id
 }
 
-data "ncloud_sourcebuild_project_dockers" "dockers" {
+data "ncloud_sourcebuild_project_docker_engines" "docker_engines" {
 }
 		
 resource "ncloud_sourcecommit_repository" "test-repo" {
@@ -443,16 +443,16 @@ resource "ncloud_sourcebuild_project" "test-project" {
 					id = data.ncloud_sourcebuild_project_os.os.os[0].id
 				}
 				runtime {
-					id = data.ncloud_sourcebuild_project_runtimes.runtimes.runtimes[0].id
+					id = data.ncloud_sourcebuild_project_os_runtimes.runtimes.runtimes[0].id
 					version {
-						id = data.ncloud_sourcebuild_project_runtime_versions.runtime_versions.runtime_versions[0].id
+						id = data.ncloud_sourcebuild_project_os_runtime_versions.runtime_versions.runtime_versions[0].id
 					}
 				}
 			}
 		}
-		docker {
+		docker_engine {
 			use = true
-			id = data.ncloud_sourcebuild_project_dockers.dockers.dockers[0].id
+			id = data.ncloud_sourcebuild_project_docker_engines.docker_engines.docker_engines[0].id
 		}
 		timeout = 500
 		env_vars {
@@ -460,10 +460,10 @@ resource "ncloud_sourcebuild_project" "test-project" {
 			value = "v1"
 		}
 	}
-	cmd {
-		pre   = ["pwd", "ls"]
-		build = ["pwd", "ls"]
-		post  = ["pwd", "ls"]
+	build_command {
+		pre_build   = ["pwd", "ls"]
+		in_build = ["pwd", "ls"]
+		post_build  = ["pwd", "ls"]
 	}
 }
 
@@ -497,16 +497,16 @@ data "ncloud_sourcebuild_project_computes" "computes" {
 data "ncloud_sourcebuild_project_os" "os" {
 }
 
-data "ncloud_sourcebuild_project_runtimes" "runtimes" {
+data "ncloud_sourcebuild_project_os_runtimes" "runtimes" {
 	os_id = data.ncloud_sourcebuild_project_os.os.os[0].id
 }
 
-data "ncloud_sourcebuild_project_runtime_versions" "runtime_versions" {
+data "ncloud_sourcebuild_project_os_runtime_versions" "runtime_versions" {
 	os_id      = data.ncloud_sourcebuild_project_os.os.os[0].id
-	runtime_id = data.ncloud_sourcebuild_project_runtimes.runtimes.runtimes[0].id
+	runtime_id = data.ncloud_sourcebuild_project_os_runtimes.runtimes.runtimes[0].id
 }
 
-data "ncloud_sourcebuild_project_dockers" "dockers" {
+data "ncloud_sourcebuild_project_docker_engines" "docker_engines" {
 }
 		
 resource "ncloud_sourcecommit_repository" "test-repo" {
@@ -534,16 +534,16 @@ resource "ncloud_sourcebuild_project" "test-project" {
 					id = data.ncloud_sourcebuild_project_os.os.os[0].id
 				}
 				runtime {
-					id = data.ncloud_sourcebuild_project_runtimes.runtimes.runtimes[0].id
+					id = data.ncloud_sourcebuild_project_os_runtimes.runtimes.runtimes[0].id
 					version {
-						id = data.ncloud_sourcebuild_project_runtime_versions.runtime_versions.runtime_versions[0].id
+						id = data.ncloud_sourcebuild_project_os_runtime_versions.runtime_versions.runtime_versions[0].id
 					}
 				}
 			}
 		}
-		docker {
+		docker_engine {
 			use = true
-			id = data.ncloud_sourcebuild_project_dockers.dockers.dockers[0].id
+			id = data.ncloud_sourcebuild_project_docker_engines.docker_engines.docker_engines[0].id
 		}
 		timeout = 500
 		env_vars {
@@ -551,10 +551,10 @@ resource "ncloud_sourcebuild_project" "test-project" {
 			value = "v1"
 		}
 	}
-	cmd {
-		pre   = ["pwd", "ls"]
-		build = ["pwd", "ls"]
-		post  = ["pwd", "ls"]
+	build_command {
+		pre_build   = ["pwd", "ls"]
+		in_build = ["pwd", "ls"]
+		post_build  = ["pwd", "ls"]
 	}
 }	
 
@@ -588,16 +588,16 @@ data "ncloud_sourcebuild_project_computes" "computes" {
 data "ncloud_sourcebuild_project_os" "os" {
 }
 
-data "ncloud_sourcebuild_project_runtimes" "runtimes" {
+data "ncloud_sourcebuild_project_os_runtimes" "runtimes" {
 	os_id = data.ncloud_sourcebuild_project_os.os.os[0].id
 }
 
-data "ncloud_sourcebuild_project_runtime_versions" "runtime_versions" {
+data "ncloud_sourcebuild_project_os_runtime_versions" "runtime_versions" {
 	os_id      = data.ncloud_sourcebuild_project_os.os.os[0].id
-	runtime_id = data.ncloud_sourcebuild_project_runtimes.runtimes.runtimes[0].id
+	runtime_id = data.ncloud_sourcebuild_project_os_runtimes.runtimes.runtimes[0].id
 }
 
-data "ncloud_sourcebuild_project_dockers" "dockers" {
+data "ncloud_sourcebuild_project_docker_engines" "docker_engines" {
 }
 	  
 resource "ncloud_sourcecommit_repository" "test-repo" {
@@ -625,16 +625,16 @@ resource "ncloud_sourcebuild_project" "test-project" {
 					id = data.ncloud_sourcebuild_project_os.os.os[0].id
 				}
 				runtime {
-					id = data.ncloud_sourcebuild_project_runtimes.runtimes.runtimes[0].id
+					id = data.ncloud_sourcebuild_project_os_runtimes.runtimes.runtimes[0].id
 					version {
-						id = data.ncloud_sourcebuild_project_runtime_versions.runtime_versions.runtime_versions[0].id
+						id = data.ncloud_sourcebuild_project_os_runtime_versions.runtime_versions.runtime_versions[0].id
 					}
 				}
 			}
 		}
-		docker {
+		docker_engine {
 			use = true
-			id = data.ncloud_sourcebuild_project_dockers.dockers.dockers[0].id
+			id = data.ncloud_sourcebuild_project_docker_engines.docker_engines.docker_engines[0].id
 		}
 		timeout = 500
 		env_vars {
@@ -642,10 +642,10 @@ resource "ncloud_sourcebuild_project" "test-project" {
 			value = "v1"
 		}
 	}
-	cmd {
-		pre   = ["pwd", "ls"]
-		build = ["pwd", "ls"]
-		post  = ["pwd", "ls"]
+	build_command {
+		pre_build   = ["pwd", "ls"]
+		in_build = ["pwd", "ls"]
+		post_build  = ["pwd", "ls"]
 	}
 }
 
@@ -679,16 +679,16 @@ data "ncloud_sourcebuild_project_computes" "computes" {
 data "ncloud_sourcebuild_project_os" "os" {
 }
 
-data "ncloud_sourcebuild_project_runtimes" "runtimes" {
+data "ncloud_sourcebuild_project_os_runtimes" "runtimes" {
 	os_id = data.ncloud_sourcebuild_project_os.os.os[0].id
 }
 
-data "ncloud_sourcebuild_project_runtime_versions" "runtime_versions" {
+data "ncloud_sourcebuild_project_os_runtime_versions" "runtime_versions" {
 	os_id      = data.ncloud_sourcebuild_project_os.os.os[0].id
-	runtime_id = data.ncloud_sourcebuild_project_runtimes.runtimes.runtimes[0].id
+	runtime_id = data.ncloud_sourcebuild_project_os_runtimes.runtimes.runtimes[0].id
 }
 
-data "ncloud_sourcebuild_project_dockers" "dockers" {
+data "ncloud_sourcebuild_project_docker_engines" "docker_engines" {
 }
 		
 resource "ncloud_sourcecommit_repository" "test-repo" {
@@ -716,16 +716,16 @@ resource "ncloud_sourcebuild_project" "test-project" {
 					id = data.ncloud_sourcebuild_project_os.os.os[0].id
 				}
 				runtime {
-					id = data.ncloud_sourcebuild_project_runtimes.runtimes.runtimes[0].id
+					id = data.ncloud_sourcebuild_project_os_runtimes.runtimes.runtimes[0].id
 					version {
-						id = data.ncloud_sourcebuild_project_runtime_versions.runtime_versions.runtime_versions[0].id
+						id = data.ncloud_sourcebuild_project_os_runtime_versions.runtime_versions.runtime_versions[0].id
 					}
 				}
 			}
 		}
-		docker {
+		docker_engine {
 			use = true
-			id = data.ncloud_sourcebuild_project_dockers.dockers.dockers[0].id
+			id = data.ncloud_sourcebuild_project_docker_engines.docker_engines.docker_engines[0].id
 		}
 		timeout = 500
 		env_vars {
@@ -733,10 +733,10 @@ resource "ncloud_sourcebuild_project" "test-project" {
 			value = "v1"
 		}
 	}
-	cmd {
-		pre   = ["pwd", "ls"]
-		build = ["pwd", "ls"]
-		post  = ["pwd", "ls"]
+	build_command {
+		pre_build   = ["pwd", "ls"]
+		in_build = ["pwd", "ls"]
+		post_build  = ["pwd", "ls"]
 	}
 }
 

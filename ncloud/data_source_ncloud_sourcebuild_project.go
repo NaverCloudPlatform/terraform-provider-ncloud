@@ -173,7 +173,7 @@ func dataSourceNcloudSourceBuildProject() *schema.Resource {
 								},
 							},
 						},
-						"docker": {
+						"docker_engine": {
 							Type:     schema.TypeList,
 							Computed: true,
 							Elem: &schema.Resource{
@@ -216,33 +216,33 @@ func dataSourceNcloudSourceBuildProject() *schema.Resource {
 					},
 				},
 			},
-			"cmd": {
+			"build_command": {
 				Type:     schema.TypeList,
 				Computed: true,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
-						"pre": {
+						"pre_build": {
 							Type:     schema.TypeList,
 							Computed: true,
 							Elem: &schema.Schema{
 								Type: schema.TypeString,
 							},
 						},
-						"build": {
+						"in_build": {
 							Type:     schema.TypeList,
 							Computed: true,
 							Elem: &schema.Schema{
 								Type: schema.TypeString,
 							},
 						},
-						"post": {
+						"post_build": {
 							Type:     schema.TypeList,
 							Computed: true,
 							Elem: &schema.Schema{
 								Type: schema.TypeString,
 							},
 						},
-						"dockerbuild": {
+						"docker_image_build": {
 							Type:     schema.TypeList,
 							Computed: true,
 							Elem: &schema.Resource{
@@ -320,7 +320,7 @@ func dataSourceNcloudSourceBuildProject() *schema.Resource {
 					},
 				},
 			},
-			"cache": {
+			"build_image_upload": {
 				Type:     schema.TypeList,
 				Computed: true,
 				Elem: &schema.Resource{
@@ -329,11 +329,11 @@ func dataSourceNcloudSourceBuildProject() *schema.Resource {
 							Type:     schema.TypeBool,
 							Computed: true,
 						},
-						"registry": {
+						"container_registry_name": {
 							Type:     schema.TypeString,
 							Computed: true,
 						},
-						"image": {
+						"image_name": {
 							Type:     schema.TypeString,
 							Computed: true,
 						},

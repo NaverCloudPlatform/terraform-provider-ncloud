@@ -56,7 +56,7 @@ The following arguments are supported:
             * `registry` - Registry name of NCP Container Registry where the image to build is located.
             * `image` - Container image name to build.
             * `tag` - Container image tag to build.
-    * `docker` - Docker engine to use when building docker image.
+    * `docker_engine` - Docker engine to use when building docker image.
         * `use` - Whether or not to use of docker engine.
         * `id` - Docker engine id.
         * `name` - Docker engine name.
@@ -64,11 +64,11 @@ The following arguments are supported:
     * `env_vars` - Environment variables to use for build.
         * `key` - Key of environment variable.
         * `value` - Value of environment variable.
-* `cmd` - Commands to execute in build.
-    * `pre` - Commands before build.
-    * `build` - Commands during build.
-    * `post` - Commands after build.
-    * `dockerbuild` - Docker image build config.
+* `build_command` - Commands to execute in build.
+    * `pre_build` - Commands before build.
+    * `in_build` - Commands during build.
+    * `post_build` - Commands after build.
+    * `docker_image_build` - Docker image build config.
         * `use` - Whether or not to use of dockerbuild.
         * `dockerfile` - Dockerfile path in build source folder.
         * `registry` - Registry name of NCP Container Registry to store the image.
@@ -83,10 +83,10 @@ The following arguments are supported:
         * `path` - path in the NCP Object Storage bucket to save build results.
         * `filename` - File name to save build results.
     * `backup` - Whether or not to backup build results.
-* `cache` - Save build environment after completing this build.
+* `build_image_upload` - Save build environment after completing this build.
     * `use` - Whether or not to save build environment.
-    * `registry` - Registry name of NCP Container Registry to store the image of the build environment after completing the build.
-    * `image` - Image name to upload to registry.
+    * `container_registry_name` - Registry name of NCP Container Registry to store the image of the build environment after completing the build.
+    * `image_name` - Image name to upload to registry.
     * `tag` - Image tag to upload to registry.
     * `latest` -  Save status of the latest tag.
 * `linked` - Set up linkage with other services related this build.

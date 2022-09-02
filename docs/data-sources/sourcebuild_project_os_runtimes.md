@@ -1,4 +1,4 @@
-# Data Source: ncloud_sourcebuild_project_runtimes
+# Data Source: ncloud_sourcebuild_project_os_runtimes
 
 -> **Note:** This data source is a beta release. Some features may change in the future.
 
@@ -16,7 +16,7 @@ data "ncloud_sourcebuild_project_os" "os" {
   }
 }
 
-data "ncloud_sourcebuild_project_runtimes" "runtimes" {
+data "ncloud_sourcebuild_project_os_runtimes" "runtimes" {
   os_id = data.ncloud_sourcebuild_project_os.os.os[0].id
 
   filter {
@@ -26,7 +26,7 @@ data "ncloud_sourcebuild_project_runtimes" "runtimes" {
 }
 
 output "lookup-runtimes-output" {
-  value = data.ncloud_sourcebuild_project_runtimes.runtimes.runtimes
+  value = data.ncloud_sourcebuild_project_os_runtimes.runtimes.runtimes
 }
 ```
 
