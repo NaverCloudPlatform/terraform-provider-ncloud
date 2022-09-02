@@ -62,9 +62,10 @@ func resourceNcloudSourceCommitRepository() *schema.Resource {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
-			"filesafer": {
+			"file_safer": {
 				Type:     schema.TypeBool,
 				Optional: true,
+				Computed: true,
 			},
 		},
 	}
@@ -78,7 +79,7 @@ func resourceNcloudSourceCommitRepositoryCreate(ctx context.Context, d *schema.R
 		Description: StringPtrOrNil(d.GetOk("description")),
 	}
 
-	if fileSafer, ok := d.GetOk("filesafer"); ok {
+	if fileSafer, ok := d.GetOk("file_safer"); ok {
 		reqParams.Linked = &sourcecommit.CreateRepositoryLinked{
 			FileSafer: BoolPtrOrNil(fileSafer, ok),
 		}
@@ -105,8 +106,6 @@ func resourceNcloudSourceCommitRepositoryCreate(ctx context.Context, d *schema.R
 	name := ncloud.StringValue(reqParams.Name)
 
 	if err := waitForSourceCommitRepositoryActive(ctx, d, config, name); err != nil {
-
-		name := d.Get("name").(string)
 
 		diags := append(diag.FromErr(err), diag.Diagnostic{
 			Severity: diag.Error,
@@ -146,14 +145,14 @@ func resourceNcloudSourceCommitRepositoryRead(ctx context.Context, d *schema.Res
 		return nil
 	}
 
-	d.SetId(strconv.Itoa(int(*repository.Id)))
+	d.SetId(strconv.Itoa(*repository.Id))
 	d.Set("repository_no", strconv.Itoa(*repository.Id))
 	d.Set("name", repository.Name)
 	d.Set("description", repository.Description)
 	d.Set("creator", repository.Created.User)
 	d.Set("git_https_url", repository.Git.Https)
 	d.Set("git_ssh_url", repository.Git.Ssh)
-	d.Set("filesafer", repository.Linked.FileSafer)
+	d.Set("file_safer", repository.Linked.FileSafer)
 
 	return nil
 }
@@ -161,27 +160,32 @@ func resourceNcloudSourceCommitRepositoryRead(ctx context.Context, d *schema.Res
 func resourceNcloudSourceCommitRepositoryUpdate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	config := meta.(*ProviderConfig)
 
-	reqParams := &sourcecommit.ChangeRepository{
-		Description: StringPtrOrNil(d.GetOk("description")),
-	}
 
-	if fileSafer, ok := d.GetOk("filesafer"); ok {
-		reqParams.Linked = &sourcecommit.CreateRepositoryLinked{
-			FileSafer: BoolPtrOrNil(fileSafer, ok),
+	if d.HasChanges("description", "file_safer") {
+		
+		reqParams := &sourcecommit.ChangeRepository{
+			Description: StringPtrOrNil(d.GetOk("description")),
 		}
+	
+		if fileSafer, ok := d.GetOk("file_safer"); ok {
+			reqParams.Linked = &sourcecommit.CreateRepositoryLinked{
+				FileSafer: BoolPtrOrNil(fileSafer, ok),
+			}
+		}
+	
+		id := ncloud.String(d.Id())
+	
+		logCommonRequest("resourceNcloudSourceCommitRepositoryUpdate", reqParams)
+		_, err := config.Client.sourcecommit.V1Api.ChangeRepository(ctx, reqParams, id)
+	
+		if err != nil {
+			logErrorResponse("resourceNcloudSourceCommitRepositoryUpdate", err, *id)
+			return diag.FromErr(err)
+		}
+	
+		logResponse("resourceNcloudSourceCommitRepositoryUpdate", id)
 	}
 
-	id := ncloud.String(d.Id())
-
-	logCommonRequest("resourceNcloudSourceCommitRepositoryUpdate", reqParams)
-	_, err := config.Client.sourcecommit.V1Api.ChangeRepository(ctx, reqParams, id)
-
-	if err != nil {
-		logErrorResponse("resourceNcloudSourceCommitRepositoryUpdate", err, *id)
-		return diag.FromErr(err)
-	}
-
-	logResponse("resourceNcloudSourceCommitRepositoryUpdate", id)
 	return resourceNcloudSourceCommitRepositoryRead(ctx, d, meta)
 }
 
@@ -221,7 +225,7 @@ func waitForSourceCommitRepositoryActive(ctx context.Context, d *schema.Resource
 				return repository, "RESOLVE", nil
 			}
 
-			return nil, "PENDING", err
+			return nil, "PENDING", nil
 		},
 		Timeout:    d.Timeout(schema.TimeoutCreate),
 		MinTimeout: 3 * time.Second,
