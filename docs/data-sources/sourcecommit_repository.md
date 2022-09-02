@@ -14,7 +14,7 @@ data "ncloud_sourcecommit_repository" "test-repo" {
 }
 
 output "test-repo-git-address" {
-    value = data.ncloud_sourcecommit_repository.test-repo.git_https
+    value = data.ncloud_sourcecommit_repository.test-repo.git_https_url
 }
 ```
 
@@ -30,6 +30,6 @@ In addition to all arguments above, the following attributes are exported:
 
 * `description` - The description of reposiory.
 * `creator` - The creator of repository.
-* `git_https` - The https git address of repository.
-* `git_ssh` - The ssh git address of repository.
+* `git_https_url` - The https git address of repository.
+* `git_ssh_url` - The ssh git address of repository.
 * `filesafer` - whether to use the [File Safer](https://www.ncloud.com/product/security/fileSafer) service
