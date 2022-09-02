@@ -143,7 +143,7 @@ The following arguments are supported:
 * `name` - (Required) Name of the Sourcebuild Project. Specify a name that is only English letters, numbers, and special characters (-, _).
 * `description` - (Optional) Sourcebuild project description.
 * `source` - (Required) Build target's type and config.
-    * `type` - (Required) Build target type. Accepted values: `SourceCommit`
+    * `type` - (Required) Build target type. Accepted values: `SourceCommit`. (Other repository types are not supported yet.)
         * [`ncloud_sourcecommit_repository` data source](../data-sources/sourcecommit_repository.md)
     * `config` - (Required) Build target config.
         * `repository` - (Required) Repository name to build.
