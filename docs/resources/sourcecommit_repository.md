@@ -12,7 +12,7 @@ Provides a Sourcecommit repository resource.
 resource "ncloud_sourcecommit_repository" "test-repo-basic" {
 	name = "repository"
 	description = "repository description"
-	filesafer = true
+	file_safer = true
 }
 ```
 
@@ -22,7 +22,7 @@ The following arguments are supported:
 
 * `name` - (Required) The name to create. If omitted, Terraform will force to create new repository and delete previous one.
 * `description` - (Optional) description to create.
-* `filesafer` - (Optional) A boolean value that determines whether to use the [File Safer](https://www.ncloud.com/product/security/fileSafer) service . Default `false`, Accepted values: `true` | `false` (You must agree to the terms and conditions for use).
+* `file_safer` - (Optional) A boolean value that determines whether to use the [File Safer](https://www.ncloud.com/product/security/fileSafer) service . Default `false`, Accepted values: `true` | `false` (You must agree to the terms and conditions for use).
 
 
 ## Attributes Reference

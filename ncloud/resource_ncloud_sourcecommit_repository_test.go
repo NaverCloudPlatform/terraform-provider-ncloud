@@ -15,8 +15,6 @@ import (
 )
 
 func TestAccResourceNcloudSourceCommitRepository_basic(t *testing.T) {
-	fmt.Println("test basic repository fmt.Println")
-
 	var repository sourcecommit.GetRepositoryDetailResponse
 	resourceName := "ncloud_sourcecommit_repository.test-repo-basic"
 	repositoryName := getTestRepositoryName()
@@ -49,7 +47,7 @@ func testAccResourceNcloudSourceCommitRepositoryConfig(name string, description 
 resource "ncloud_sourcecommit_repository" "test-repo-basic" {
 	name = "%[1]s"
 	description = "%[2]s"
-	filesafer = true
+	file_safer = true
 }
 `, name, description)
 }

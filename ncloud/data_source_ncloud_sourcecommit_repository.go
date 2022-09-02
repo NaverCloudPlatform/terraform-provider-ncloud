@@ -40,7 +40,7 @@ func dataSourceNcloudSourceCommitRepository() *schema.Resource {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
-			"filesafer": {
+			"file_safer": {
 				Type:     schema.TypeBool,
 				Computed: true,
 			},
@@ -82,13 +82,13 @@ func dataSousrceNcloudSourceCommitRepositoryRead(ctx context.Context, d *schema.
 
 	logResponse("GetSourceCommitRepository", repository)
 	d.SetId(strconv.Itoa(*repository.Id))
-	d.Set("repository_no", strconv.Itoa(*repository.Id))
+	d.Set("repository_no",strconv.Itoa(*repository.Id))
 	d.Set("name", repository.Name)
 	d.Set("description", repository.Description)
 	d.Set("creator", repository.Created.User)
 	d.Set("git_https_url", repository.Git.Https)
 	d.Set("git_ssh_url", repository.Git.Ssh)
-	d.Set("filesafer", repository.Linked.FileSafer)
+	d.Set("file_safer", repository.Linked.FileSafer)
 
 	return nil
 }

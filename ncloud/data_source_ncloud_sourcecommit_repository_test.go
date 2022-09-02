@@ -23,7 +23,7 @@ func TestAccDataSourceNcloudSourceCommitRepository(t *testing.T) {
 					testAccCheckDataSourceID(dataName),
 					resource.TestCheckResourceAttrPair(dataName, "name", resourceName, "name"),
 					resource.TestCheckResourceAttrPair(dataName, "description", resourceName, "description"),
-					resource.TestCheckResourceAttrPair(dataName, "filesafer", resourceName, "filesafer"),
+					resource.TestCheckResourceAttrPair(dataName, "file_safer", resourceName, "file_safer"),
 					resource.TestCheckResourceAttrPair(dataName, "git_https_url", resourceName, "git_https_url"),
 					resource.TestCheckResourceAttrPair(dataName, "git_ssh_url", resourceName, "git_ssh_url"),
 					resource.TestCheckResourceAttrPair(dataName, "creator", resourceName, "creator"),
@@ -38,7 +38,7 @@ func testAccDataSourceNcloudSourceCommitRepositoryConfig(name string, descriptio
 resource "ncloud_sourcecommit_repository" "test-repo" {
 	name = "%[1]s"
 	description = "%[2]s"
-	filesafer = false
+	file_safer = false
 }
 
 data "ncloud_sourcecommit_repository" "test-repo" {
