@@ -150,7 +150,7 @@ The following arguments are supported:
         * `branch` - (Required) Branch to build.
 * `env` - (Required) Build environment.
     * `compute` - (Required) Computing environment to build.
-        * [`ncloud_sourcebuild_project_compute` data source](../data-sources/sourcebuild_project_compute.md)
+        * [`ncloud_sourcebuild_project_compute` data source](../data-sources/sourcebuild_project_computes.md)
         * `id` - (Required) Computing type id.
     * `platform` - (Required) Information about the build environment image.
         * `type` - (Required) Build environment image type. Accepted values: `SourceBuild`, `ContainerRegistry` `PublicRegistry`.
@@ -159,16 +159,16 @@ The following arguments are supported:
                 * [`ncloud_sourcebuild_project_os` data source](../data-sources/sourcebuild_project_os.md)
                 * `id` - (Required) OS id.
             * `runtime` - (Optional, Required if `env.platform.type` is set to `SourceBuild`) Runtime config.
-                * [`ncloud_sourcebuild_project_runtime` data source](../data-sources/sourcebuild_project_runtime.md)
+                * [`ncloud_sourcebuild_project_runtime` data source](../data-sources/sourcebuild_project_os_runtimes.md)
                 * `id` - (Required) runtime id.
                 * `version` - (Required) runtime version.
-                    * [`ncloud_sourcebuild_project_runtime_version` data source](../data-sources/sourcebuild_project_runtime_version.md)
+                    * [`ncloud_sourcebuild_project_runtime_version` data source](../data-sources/sourcebuild_project_os_runtime_versions.md)
                     * `id` - (Required) runtime version id.
             * `registry` - (Optional, Required if `env.platform.type` is set to `ContainerRegistry`) Registry name of NCP Container Registry where the image to build is located.
             * `image` - (Optional, Required if `env.platform.type` is set to `ContainerRegistry` or `PublicRegistry`) Container image name to build.
             * `tag` - (Optional, Required if `env.platform.type` is set to `ContainerRegistry` or `PublicRegistry`) Container image tag to build.
     * `docker` - (Optional) Docker engine to use when building docker image.
-        * [`ncloud_sourcebuild_project_docker` data source](../data-sources/sourcebuild_project_docker.md)
+        * [`ncloud_sourcebuild_project_docker` data source](../data-sources/sourcebuild_project_dockers.md)
         * `use` - (Required) Whether or not to use of docker engine. (Default `false`)
         * `id` - (Optional) Docker engine id.
     * `timeout` - (Optional) Build timeout (in Minutes). Specify it between `5` and `540`. Default `60`.

@@ -8,15 +8,15 @@ import (
 )
 
 func init() {
-	RegisterDataSource("ncloud_sourcebuild_project_compute", dataSourceNcloudSourceBuildCompute())
+	RegisterDataSource("ncloud_sourcebuild_project_computes", dataSourceNcloudSourceBuildComputes())
 }
 
-func dataSourceNcloudSourceBuildCompute() *schema.Resource {
+func dataSourceNcloudSourceBuildComputes() *schema.Resource {
 	return &schema.Resource{
-		ReadContext: dataSourceNcloudSourceBuildComputeRead,
+		ReadContext: dataSourceNcloudSourceBuildComputesRead,
 		Schema: map[string]*schema.Schema{
 			"filter": dataSourceFiltersSchema(),
-			"compute": {
+			"computes": {
 				Type:     schema.TypeList,
 				Computed: true,
 				Elem: &schema.Resource{
@@ -40,7 +40,7 @@ func dataSourceNcloudSourceBuildCompute() *schema.Resource {
 	}
 }
 
-func dataSourceNcloudSourceBuildComputeRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+func dataSourceNcloudSourceBuildComputesRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	config := meta.(*ProviderConfig)
 
 	logCommonRequest("GetComputeEnv", "")
@@ -64,11 +64,11 @@ func dataSourceNcloudSourceBuildComputeRead(ctx context.Context, d *schema.Resou
 	}
 
 	if f, ok := d.GetOk("filter"); ok {
-		resources = ApplyFilters(f.(*schema.Set), resources, dataSourceNcloudSourceBuildCompute().Schema)
+		resources = ApplyFilters(f.(*schema.Set), resources, dataSourceNcloudSourceBuildComputes().Schema)
 	}
 
 	d.SetId(config.RegionCode)
-	d.Set("compute", resources)
+	d.Set("computes", resources)
 
 	return nil
 }

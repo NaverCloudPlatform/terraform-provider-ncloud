@@ -8,15 +8,15 @@ import (
 )
 
 func init() {
-	RegisterDataSource("ncloud_sourcebuild_project_docker", dataSourceNcloudSourceBuildDocker())
+	RegisterDataSource("ncloud_sourcebuild_project_dockers", dataSourceNcloudSourceBuildDockers())
 }
 
-func dataSourceNcloudSourceBuildDocker() *schema.Resource {
+func dataSourceNcloudSourceBuildDockers() *schema.Resource {
 	return &schema.Resource{
-		ReadContext: dataSourceNcloudSourceBuildDockerRead,
+		ReadContext: dataSourceNcloudSourceBuildDockersRead,
 		Schema: map[string]*schema.Schema{
 			"filter": dataSourceFiltersSchema(),
-			"docker": {
+			"dockers": {
 				Type:     schema.TypeList,
 				Computed: true,
 				Elem: &schema.Resource{
@@ -36,7 +36,7 @@ func dataSourceNcloudSourceBuildDocker() *schema.Resource {
 	}
 }
 
-func dataSourceNcloudSourceBuildDockerRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+func dataSourceNcloudSourceBuildDockersRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	config := meta.(*ProviderConfig)
 
 	logCommonRequest("GetDockerEnv", "")
@@ -59,11 +59,11 @@ func dataSourceNcloudSourceBuildDockerRead(ctx context.Context, d *schema.Resour
 	}
 
 	if f, ok := d.GetOk("filter"); ok {
-		resources = ApplyFilters(f.(*schema.Set), resources, dataSourceNcloudSourceBuildDocker().Schema)
+		resources = ApplyFilters(f.(*schema.Set), resources, dataSourceNcloudSourceBuildDockers().Schema)
 	}
 
 	d.SetId(config.RegionCode)
-	d.Set("docker", resources)
+	d.Set("dockers", resources)
 
 	return nil
 }

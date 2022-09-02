@@ -3,9 +3,9 @@ package ncloud
 import (
 	"context"
 	"fmt"
-	"testing"
-	"strconv"
 	"log"
+	"strconv"
+	"testing"
 
 	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/ncloud"
 	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/services/vsourcedeploy"
@@ -13,8 +13,10 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 )
+
 // Create Load Balancer target group Before SourceDeploy BlueGreen Test
 const TF_TEST_SD_LOAD_BALANCER_TARGET_GROUP_NO = "0"
+
 // Setting up prometheus in NKS Before SourceDeploy-Canary-Auto Test
 const TF_TEST_SD_PROMETHEUS_URL = "http://prometheus-example.com"
 
@@ -38,24 +40,23 @@ func TestAccResourceNcloudSourceDeployScenario_basic(t *testing.T) {
 	resourceNameNksCanaryAuto := "ncloud_sourcedeploy_project_stage_scenario.nks_canary_auto"
 	resourceNameObjNormal := "ncloud_sourcedeploy_project_stage_scenario.obj_normal"
 
-
 	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) }, 
+		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckSourceDeployScenarioDestroy,
-		Steps: []resource.TestStep{ 
+		Steps: []resource.TestStep{
 			{
 				Config: testAccResourceNcloudSourceDeployScenarioConfig(
-					scenarioNameSvrNormal, 
-					scenarioNameAsgNoraml, 
-					scenarioNameAsgBg, 
+					scenarioNameSvrNormal,
+					scenarioNameAsgNoraml,
+					scenarioNameAsgBg,
 					scenarioNameNksRolling,
-					scenarioNameNksBg, 
-					scenarioNameNksCanaryManual, 
+					scenarioNameNksBg,
+					scenarioNameNksCanaryManual,
 					scenarioNameNksCanaryAuto,
 					scenarioNameObjNormal,
 				),
-				Check: resource.ComposeTestCheckFunc( 
+				Check: resource.ComposeTestCheckFunc(
 					testAccCheckSourceDeployScenarioExists(resourceNameSvrNormal, &scenario),
 					testAccCheckSourceDeployScenarioExists(resourceNameAsgNormal, &scenario),
 					testAccCheckSourceDeployScenarioExists(resourceNameAsgBg, &scenario),
@@ -72,8 +73,6 @@ func TestAccResourceNcloudSourceDeployScenario_basic(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceNameNksCanaryManual, "name", scenarioNameNksCanaryManual),
 					resource.TestCheckResourceAttr(resourceNameNksCanaryAuto, "name", scenarioNameNksCanaryAuto),
 					resource.TestCheckResourceAttr(resourceNameObjNormal, "name", scenarioNameObjNormal),
-
-
 				),
 			},
 		},
@@ -81,31 +80,31 @@ func TestAccResourceNcloudSourceDeployScenario_basic(t *testing.T) {
 }
 
 func testAccResourceNcloudSourceDeployScenarioConfig(
-	scenarioNameSvrNormal string, 
-	scenarioNameAsgNoraml string, 
-	scenarioNameAsgBg string, 
+	scenarioNameSvrNormal string,
+	scenarioNameAsgNoraml string,
+	scenarioNameAsgBg string,
 	scenarioNameNksRolling string,
-	scenarioNameNksBg string, 
-	scenarioNameNksCanaryManual string, 
+	scenarioNameNksBg string,
+	scenarioNameNksCanaryManual string,
 	scenarioNameNksCanaryAuto string,
-	scenarioNameObjNormal string ) string {
+	scenarioNameObjNormal string) string {
 	return fmt.Sprintf(`
-data "ncloud_sourcebuild_project_compute" "compute" {
+data "ncloud_sourcebuild_project_computes" "computes" {
 }
 
 data "ncloud_sourcebuild_project_os" "os" {
 }
 
-data "ncloud_sourcebuild_project_runtime" "runtime" {
+data "ncloud_sourcebuild_project_runtimes" "runtimes" {
 	os_id 					= data.ncloud_sourcebuild_project_os.os.os[0].id
 }
 
-data "ncloud_sourcebuild_project_runtime_version" "runtime_version" {
+data "ncloud_sourcebuild_project_runtime_versions" "runtime_versions" {
 	os_id      				= data.ncloud_sourcebuild_project_os.os.os[0].id
-	runtime_id 				= data.ncloud_sourcebuild_project_runtime.runtime.runtime[0].id
+	runtime_id 				= data.ncloud_sourcebuild_project_runtimes.runtimes.runtimes[0].id
 }
 
-data "ncloud_sourcebuild_project_docker" "docker" {
+data "ncloud_sourcebuild_project_dockers" "dockers" {
 }
 
 resource "ncloud_sourcecommit_repository" "test-repo" {
@@ -124,7 +123,7 @@ resource "ncloud_sourcebuild_project" "test-build-project" {
 	}
 	env {
 		compute {
-			id 						= data.ncloud_sourcebuild_project_compute.compute.compute[0].id
+			id 						= data.ncloud_sourcebuild_project_computes.computes.computes[0].id
 		}
 		platform {
 			type 					= "SourceBuild"
@@ -133,16 +132,16 @@ resource "ncloud_sourcebuild_project" "test-build-project" {
 					id 				= data.ncloud_sourcebuild_project_os.os.os[0].id
 				}
 				runtime {
-					id 				= data.ncloud_sourcebuild_project_runtime.runtime.runtime[0].id
+					id 				= data.ncloud_sourcebuild_project_runtimes.runtimes.runtimes[0].id
 					version {
-						id 			= data.ncloud_sourcebuild_project_runtime_version.runtime_version.runtime_version[0].id
+						id 			= data.ncloud_sourcebuild_project_runtime_versions.runtime_versions.runtime_versions[0].id
 					}
 				}
 			}
 		}
 		docker {
 			use 					= true
-			id 						= data.ncloud_sourcebuild_project_docker.docker.docker[0].id
+			id 						= data.ncloud_sourcebuild_project_dockers.dockers.dockers[0].id
 		}
 		timeout 					= 500
 		env_vars {
@@ -416,12 +415,11 @@ resource "ncloud_sourcedeploy_project_stage_scenario" "obj_normal" {
 		}
 	}
 }
-`, TF_TEST_SD_SERVER_NAME, TF_TEST_SD_ASG_NAME, TF_TEST_SD_NKS_CLUSTER_UUID, TF_TEST_SD_OBJECTSTORAGE_BUCKET_NAME, 
-scenarioNameSvrNormal, scenarioNameAsgNoraml, scenarioNameAsgBg, TF_TEST_SD_LOAD_BALANCER_TARGET_GROUP_NO, scenarioNameNksRolling, 
-scenarioNameNksBg, scenarioNameNksCanaryManual, scenarioNameNksCanaryAuto, TF_TEST_SD_PROMETHEUS_URL, 
-scenarioNameObjNormal )
+`, TF_TEST_SD_SERVER_NAME, TF_TEST_SD_ASG_NAME, TF_TEST_SD_NKS_CLUSTER_UUID, TF_TEST_SD_OBJECTSTORAGE_BUCKET_NAME,
+		scenarioNameSvrNormal, scenarioNameAsgNoraml, scenarioNameAsgBg, TF_TEST_SD_LOAD_BALANCER_TARGET_GROUP_NO, scenarioNameNksRolling,
+		scenarioNameNksBg, scenarioNameNksCanaryManual, scenarioNameNksCanaryAuto, TF_TEST_SD_PROMETHEUS_URL,
+		scenarioNameObjNormal)
 }
-
 
 func testAccCheckSourceDeployScenarioExists(n string, scenario *vsourcedeploy.GetScenarioDetailResponse) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
@@ -444,7 +442,7 @@ func testAccCheckSourceDeployScenarioExists(n string, scenario *vsourcedeploy.Ge
 		scenario = resp
 		return nil
 	}
-} 
+}
 
 func testAccCheckSourceDeployScenarioDestroy(s *terraform.State) error {
 	config := testAccProvider.Meta().(*ProviderConfig)
@@ -461,11 +459,11 @@ func testAccCheckSourceDeployScenarioDestroy(s *terraform.State) error {
 			return projectErr
 		}
 
-		if project == nil{
+		if project == nil {
 			return nil
 		}
-		
-		stages, stageErr := getStages(context.Background(), config, projectId )
+
+		stages, stageErr := getStages(context.Background(), config, projectId)
 		if stageErr != nil {
 			return stageErr
 		}
@@ -476,7 +474,7 @@ func testAccCheckSourceDeployScenarioDestroy(s *terraform.State) error {
 			}
 		}
 
-		scenarios, scenarioErr := GetScenarioes(context.Background(), config, projectId, stageId )
+		scenarios, scenarioErr := GetScenarioes(context.Background(), config, projectId, stageId)
 		if scenarioErr != nil {
 			return scenarioErr
 		}

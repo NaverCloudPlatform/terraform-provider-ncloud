@@ -9,12 +9,12 @@ import (
 )
 
 func init() {
-	RegisterDataSource("ncloud_sourcebuild_project_runtime_version", dataSourceNcloudSourceBuildRuntimeVersion())
+	RegisterDataSource("ncloud_sourcebuild_project_runtime_versions", dataSourceNcloudSourceBuildRuntimeVersions())
 }
 
-func dataSourceNcloudSourceBuildRuntimeVersion() *schema.Resource {
+func dataSourceNcloudSourceBuildRuntimeVersions() *schema.Resource {
 	return &schema.Resource{
-		ReadContext: dataSourceNcloudSourceBuildRuntimeVersionRead,
+		ReadContext: dataSourceNcloudSourceBuildRuntimeVersionsRead,
 		Schema: map[string]*schema.Schema{
 			"os_id": {
 				Type:     schema.TypeInt,
@@ -25,7 +25,7 @@ func dataSourceNcloudSourceBuildRuntimeVersion() *schema.Resource {
 				Required: true,
 			},
 			"filter": dataSourceFiltersSchema(),
-			"runtime_version": {
+			"runtime_versions": {
 				Type:     schema.TypeList,
 				Computed: true,
 				Elem: &schema.Resource{
@@ -45,7 +45,7 @@ func dataSourceNcloudSourceBuildRuntimeVersion() *schema.Resource {
 	}
 }
 
-func dataSourceNcloudSourceBuildRuntimeVersionRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+func dataSourceNcloudSourceBuildRuntimeVersionsRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	config := meta.(*ProviderConfig)
 
 	osIdParam := Int32PtrOrNil(d.GetOk("os_id"))
@@ -73,11 +73,11 @@ func dataSourceNcloudSourceBuildRuntimeVersionRead(ctx context.Context, d *schem
 	}
 
 	if f, ok := d.GetOk("filter"); ok {
-		resources = ApplyFilters(f.(*schema.Set), resources, dataSourceNcloudSourceBuildRuntimeVersion().Schema)
+		resources = ApplyFilters(f.(*schema.Set), resources, dataSourceNcloudSourceBuildRuntimeVersions().Schema)
 	}
 
 	d.SetId(config.RegionCode)
-	d.Set("runtime_version", resources)
+	d.Set("runtime_versions", resources)
 
 	return nil
 }

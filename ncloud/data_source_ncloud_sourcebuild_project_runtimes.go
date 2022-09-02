@@ -9,19 +9,19 @@ import (
 )
 
 func init() {
-	RegisterDataSource("ncloud_sourcebuild_project_runtime", dataSourceNcloudSourceBuildRuntime())
+	RegisterDataSource("ncloud_sourcebuild_project_runtimes", dataSourceNcloudSourceBuildRuntimes())
 }
 
-func dataSourceNcloudSourceBuildRuntime() *schema.Resource {
+func dataSourceNcloudSourceBuildRuntimes() *schema.Resource {
 	return &schema.Resource{
-		ReadContext: dataSourceNcloudSourceBuildRuntimeRead,
+		ReadContext: dataSourceNcloudSourceBuildRuntimesRead,
 		Schema: map[string]*schema.Schema{
 			"os_id": {
 				Type:     schema.TypeInt,
 				Required: true,
 			},
 			"filter": dataSourceFiltersSchema(),
-			"runtime": {
+			"runtimes": {
 				Type:     schema.TypeList,
 				Computed: true,
 				Elem: &schema.Resource{
@@ -41,7 +41,7 @@ func dataSourceNcloudSourceBuildRuntime() *schema.Resource {
 	}
 }
 
-func dataSourceNcloudSourceBuildRuntimeRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+func dataSourceNcloudSourceBuildRuntimesRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	config := meta.(*ProviderConfig)
 
 	osIdParam := Int32PtrOrNil(d.GetOk("os_id"))
@@ -67,11 +67,11 @@ func dataSourceNcloudSourceBuildRuntimeRead(ctx context.Context, d *schema.Resou
 	}
 
 	if f, ok := d.GetOk("filter"); ok {
-		resources = ApplyFilters(f.(*schema.Set), resources, dataSourceNcloudSourceBuildRuntime().Schema)
+		resources = ApplyFilters(f.(*schema.Set), resources, dataSourceNcloudSourceBuildRuntimes().Schema)
 	}
 
 	d.SetId(config.RegionCode)
-	d.Set("runtime", resources)
+	d.Set("runtimes", resources)
 
 	return nil
 }

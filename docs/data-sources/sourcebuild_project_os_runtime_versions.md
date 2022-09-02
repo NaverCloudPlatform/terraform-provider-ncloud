@@ -1,4 +1,4 @@
-# Data Source: ncloud_sourcebuild_project_runtime_version
+# Data Source: ncloud_sourcebuild_project_runtime_versions
 
 -> **Note:** This data source is a beta release. Some features may change in the future.
 
@@ -16,7 +16,7 @@ data "ncloud_sourcebuild_project_os" "os" {
   }
 }
 
-data "ncloud_sourcebuild_project_runtime" "runtime" {
+data "ncloud_sourcebuild_project_runtimes" "runtimes" {
   os_id = data.ncloud_sourcebuild_project_os.os.os[0].id
 
   filter {
@@ -25,9 +25,9 @@ data "ncloud_sourcebuild_project_runtime" "runtime" {
   }
 }
 
-data "ncloud_sourcebuild_project_runtime_version" "runtime_version" {
+data "ncloud_sourcebuild_project_runtime_versions" "runtime_versions" {
   os_id      = data.ncloud_sourcebuild_project_os.os.os[0].id
-  runtime_id = data.ncloud_sourcebuild_project_runtime.runtime.runtime[0].id
+  runtime_id = data.ncloud_sourcebuild_project_runtimes.runtimes.runtimes[0].id
 
   filter {
     name   = "name"
@@ -35,8 +35,8 @@ data "ncloud_sourcebuild_project_runtime_version" "runtime_version" {
   }
 }
 
-output "lookup-runtime_version-output" {
-  value = data.ncloud_sourcebuild_project_runtime_version.runtime_version.runtime_version
+output "lookup-runtime_versions-output" {
+  value = data.ncloud_sourcebuild_project_runtime_versions.runtime_versions.runtime_versions
 }
 ```
 
@@ -47,7 +47,7 @@ The following arguments are supported:
 * `os_id` - (Required) OS ID which runtime belongs.
     * [`ncloud_sourcebuild_project_os` data source](./data-sources/sourcebuild_project_os.md)
 * `runtime_id` - (Required) Runtime ID which runtime version belongs.
-    * [`ncloud_sourcebuild_project_runtime` data source](./data-sources/sourcebuild_project_runtime.md)
+    * [`ncloud_sourcebuild_project_runtimes` data source](./data-sources/sourcebuild_project_runtimes.md)
 * `filter` - (Optional) Custom filter block as described below.
     * `name` - (Required) The name of the field to filter by.
     * `values` - (Required) Set of values that are accepted for the given field.
@@ -55,11 +55,11 @@ The following arguments are supported:
 
 ## Attributes Reference
 
-* `runtime_version` - Runtime versions available at Sourcebuild.
+* `runtime_versions` - Runtime versions available at Sourcebuild.
 
-### Runtime Version Reference
+### Runtime Versions Reference
 
-`runtime_version` is also exported with the following attributes, where relevant: Each element supports the following:
+`runtime_versions` is also exported with the following attributes, where relevant: Each element supports the following:
 
 * `id` - Runtime version ID.
 * `name` - Runtime version name.

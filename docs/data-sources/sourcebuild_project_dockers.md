@@ -1,4 +1,4 @@
-# Data Source: ncloud_sourcebuild_project_docker
+# Data Source: ncloud_sourcebuild_project_dockers
 
 -> **Note:** This data source is a beta release. Some features may change in the future.
 
@@ -9,15 +9,15 @@ This data source is useful for look up the list of Sourcebuild docker engine in 
 In the example below, Retrieves all docker engines with "Docker:18.09.1" in their names.
 
 ```hcl
-data "ncloud_sourcebuild_project_docker" "docker" {
+data "ncloud_sourcebuild_project_dockers" "dockers" {
   filter {
     name   = "name"
     values = ["Docker:18.09.1"]
   }
 }
 
-output "lookup-docker-output" {
-  value = data.ncloud_sourcebuild_project_docker.docker.docker
+output "lookup-dockers-output" {
+  value = data.ncloud_sourcebuild_project_dockers.dockers.dockers
 }
 ```
 
@@ -32,11 +32,11 @@ The following arguments are supported:
 
 ## Attributes Reference
 
-* `docker` - Docker engines available at Sourcebuild.
+* `dockers` - Docker engines available at Sourcebuild.
 
-### Docker Reference
+### Dockers Reference
 
-`docker` is also exported with the following attributes, where relevant: Each element supports the following:
+`dockers` is also exported with the following attributes, where relevant: Each element supports the following:
 
 * `id` - Docker engine ID.
 * `name` - Docker engine name.

@@ -1,4 +1,4 @@
-# Data Source: ncloud_sourcebuild_project_runtime
+# Data Source: ncloud_sourcebuild_project_runtimes
 
 -> **Note:** This data source is a beta release. Some features may change in the future.
 
@@ -16,7 +16,7 @@ data "ncloud_sourcebuild_project_os" "os" {
   }
 }
 
-data "ncloud_sourcebuild_project_runtime" "runtime" {
+data "ncloud_sourcebuild_project_runtimes" "runtimes" {
   os_id = data.ncloud_sourcebuild_project_os.os.os[0].id
 
   filter {
@@ -25,8 +25,8 @@ data "ncloud_sourcebuild_project_runtime" "runtime" {
   }
 }
 
-output "lookup-runtime-output" {
-  value = data.ncloud_sourcebuild_project_runtime.runtime.runtime
+output "lookup-runtimes-output" {
+  value = data.ncloud_sourcebuild_project_runtimes.runtimes.runtimes
 }
 ```
 
@@ -43,11 +43,11 @@ The following arguments are supported:
 
 ## Attributes Reference
 
-* `runtime` - Runtimes available at Sourcebuild.
+* `runtimes` - Runtimes available at Sourcebuild.
 
 ### Runtime Reference
 
-`runtime` are is exported with the following attributes, where relevant: Each element supports the following:
+`runtimes` are is exported with the following attributes, where relevant: Each element supports the following:
 
 * `id` - Runtime ID.
 * `name` - Runtime name.
