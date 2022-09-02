@@ -28,6 +28,8 @@ The following arguments are supported:
 
 In addition to all arguments above, the following attributes are exported:
 
+* `id` - Sourcecommit repository ID.
+* `repository_no` - Sourcecommit repository ID.
 * `description` - The description of reposiory.
 * `creator` - The creator of repository.
 * `git_https_url` - The https git address of repository.

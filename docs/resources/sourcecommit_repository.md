@@ -30,6 +30,7 @@ The following arguments are supported:
 In addition to all arguments above, the following attributes are exported:
 
 * `id` - Sourcecommit repository ID.
+* `repository_no` - Sourcecommit repository ID.
 * `creator` - Sourcecommit repository creator.
 * `git_https_url` - Sourcecommit repository https git address.
 * `git_ssh_url` - Sourcecommit repository ssh git address.

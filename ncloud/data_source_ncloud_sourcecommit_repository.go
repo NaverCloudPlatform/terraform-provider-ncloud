@@ -20,6 +20,10 @@ func dataSourceNcloudSourceCommitRepository() *schema.Resource {
 				Type:     schema.TypeString,
 				Required: true,
 			},
+			"repository_no" : {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
 			"description": {
 				Type:     schema.TypeString,
 				Computed: true,
@@ -78,6 +82,7 @@ func dataSousrceNcloudSourceCommitRepositoryRead(ctx context.Context, d *schema.
 
 	logResponse("GetSourceCommitRepository", repository)
 	d.SetId(strconv.Itoa(*repository.Id))
+	d.Set("repository_no", strconv.Itoa(*repository.Id))
 	d.Set("name", repository.Name)
 	d.Set("description", repository.Description)
 	d.Set("creator", repository.Created.User)

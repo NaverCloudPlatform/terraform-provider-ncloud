@@ -29,6 +29,10 @@ func dataSourceNcloudSourceCommitRepositories() *schema.Resource {
 							Type:     schema.TypeInt,
 							Computed: true,
 						},
+						"repository_no": {
+							Type:     schema.TypeInt,
+							Computed: true,
+						},
 						"name": {
 							Type:     schema.TypeString,
 							Computed: true,
@@ -64,10 +68,11 @@ func dataSousrceNcloudSourceCommitRepositoriesRead(ctx context.Context, d *schem
 
 	for _, r := range resp.Repository {
 		repo := map[string]interface{}{
-			"id":          *r.Id,
-			"name":        *r.Name,
-			"permission":  *r.Permission,
-			"action_name": *r.ActionName,
+			"id":            *r.Id,
+			"repository_no": *r.Id,
+			"name":          *r.Name,
+			"permission":    *r.Permission,
+			"action_name":   *r.ActionName,
 		}
 
 		resources = append(resources, repo)

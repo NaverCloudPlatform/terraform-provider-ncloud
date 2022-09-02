@@ -40,6 +40,10 @@ func resourceNcloudSourceCommitRepository() *schema.Resource {
 				ForceNew:         true,
 				ValidateDiagFunc: ToDiagFunc(validation.StringLenBetween(1, 100)),
 			},
+			"repository_no" : {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
 			"description": {
 				Type:     schema.TypeString,
 				Optional: true,
@@ -117,19 +121,20 @@ func resourceNcloudSourceCommitRepositoryCreate(ctx context.Context, d *schema.R
 
 func resourceNcloudSourceCommitRepositoryRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	config := meta.(*ProviderConfig)
+	name := ncloud.String(d.Get("name").(string))
 	id := ncloud.String(d.Id())
 
 	repository, err := getRepositoryById(ctx, config, *id)
 
-	logCommonRequest("resourceNcloudSourceCommitRepositoryRead", id)
+	logCommonRequest("resourceNcloudSourceCommitRepositoryRead", name)
 	var diags diag.Diagnostics
 
 	if err != nil {
-		logErrorResponse("resourceNcloudSourceCommitRepositoryRead", err, *id)
+		logErrorResponse("resourceNcloudSourceCommitRepositoryRead", err, *name)
 		diags = append(diags, diag.Diagnostic{
 			Severity: diag.Error,
 			Summary:  "Unable to search repository",
-			Detail:   fmt.Sprintf("Unable to search repository - detail repository id : %s", *id),
+			Detail:   fmt.Sprintf("Unable to search repository - detail repository : %s", *name),
 		})
 		return diags
 	}
@@ -142,6 +147,7 @@ func resourceNcloudSourceCommitRepositoryRead(ctx context.Context, d *schema.Res
 	}
 
 	d.SetId(strconv.Itoa(int(*repository.Id)))
+	d.Set("repository_no", strconv.Itoa(*repository.Id))
 	d.Set("name", repository.Name)
 	d.Set("description", repository.Description)
 	d.Set("creator", repository.Created.User)

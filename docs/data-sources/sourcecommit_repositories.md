@@ -26,7 +26,6 @@ output "lookup-repos-output" {
 
 The following arguments are supported:
 
-* `output_file` - (Optional) The name of file that can save data source after running `terraform plan`.
 * `filter` - (Optional) Custom filter block as described below.
   * `name` - (Required) The name of the field to filter by.
   * `values` - (Required) Set of values that are accepted for the given field.
@@ -45,6 +44,7 @@ The following attributes are exported:
 `repositories` are also exported with the following attributes, where relevant: Each element supports the following:
 
 * `id` - Sourcecommit repository ID.
+* `repository_no` - Sourcecommit repository ID.
 * `name` - Sourcecommit repository Name.
 * `action_name`- Permission status for searching details.
 * `permission`- Permission name for searching details. (`Allow` or `Deny`)
