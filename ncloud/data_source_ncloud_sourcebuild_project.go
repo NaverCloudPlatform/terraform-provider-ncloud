@@ -293,7 +293,7 @@ func dataSourceNcloudSourceBuildProject() *schema.Resource {
 								Type: schema.TypeString,
 							},
 						},
-						"storage": {
+						"object_storage_to_upload": {
 							Type:     schema.TypeList,
 							Computed: true,
 							Elem: &schema.Resource{

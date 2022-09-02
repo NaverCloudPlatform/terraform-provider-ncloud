@@ -354,7 +354,7 @@ func resourceNcloudSourceBuildProject() *schema.Resource {
 								Type: schema.TypeString,
 							},
 						},
-						"storage": {
+						"object_storage_to_upload": {
 							Type:     schema.TypeList,
 							Optional: true,
 							MaxItems: 1,
@@ -694,9 +694,9 @@ func getCommonProjectParams(d *schema.ResourceData) (*sourcebuild.ChangeProject,
 	}
 
 	artifactStorage := sourcebuild.ProjectArtifactStorage{
-		Bucket:   StringPtrOrNil(d.GetOk("artifact.0.storage.0.bucket")),
-		Path:     StringPtrOrNil(d.GetOk("artifact.0.storage.0.path")),
-		Filename: StringPtrOrNil(d.GetOk("artifact.0.storage.0.filename")),
+		Bucket:   StringPtrOrNil(d.GetOk("artifact.0.object_storage_to_upload.0.bucket")),
+		Path:     StringPtrOrNil(d.GetOk("artifact.0.object_storage_to_upload.0.path")),
+		Filename: StringPtrOrNil(d.GetOk("artifact.0.object_storage_to_upload.0.filename")),
 	}
 
 	artifact := sourcebuild.ProjectArtifact{
@@ -710,7 +710,7 @@ func getCommonProjectParams(d *schema.ResourceData) (*sourcebuild.ChangeProject,
 	}
 
 	if *artifact.Use && (len(artifact.Path) == 0 || artifactStorage.Bucket == nil || artifactStorage.Path == nil || artifactStorage.Filename == nil) {
-		return nil, fmt.Errorf("artifact.path and artifact.storage parameters(bucket, path, filename) are required if artifact.use is true")
+		return nil, fmt.Errorf("artifact.path and artifact.object_storage_to_upload parameters(bucket, path, filename) are required if artifact.use is true")
 	}
 
 	cache := sourcebuild.ProjectCache{
@@ -840,7 +840,7 @@ func makeArtifact(artifact *sourcebuild.GetProjectDetailResponseArtifact) []inte
 	values := map[string]interface{}{}
 	values["use"] = ncloud.BoolValue(artifact.Use)
 	values["path"] = ncloud.StringListValue(artifact.Path)
-	values["storage"] = makeArtifactStorage(artifact.Storage)
+	values["object_storage_to_upload"] = makeArtifactStorage(artifact.Storage)
 	values["backup"] = ncloud.BoolValue(artifact.Backup)
 
 	return []interface{}{values}

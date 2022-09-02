@@ -78,7 +78,7 @@ The following arguments are supported:
 * `artifact` - Artifact to save build results.
     * `use` - Whether or not to save build results.
     * `path` - Location to save build results.
-    * `storage` - Storage to save build results.
+    * `object_storage_to_upload` - Object Storage to save build results.
         * `bucket` - Bucket name of NCP Object Storage to save build results.
         * `path` - path in the NCP Object Storage bucket to save build results.
         * `filename` - File name to save build results.

@@ -189,7 +189,7 @@ The following arguments are supported:
 * `artifact` - (Optional) Artifact to save build results.
     * `use` - (Optional) Whether or not to save build results. (Default `false`)
     * `path` - (Optional, Required if `artifact.use` is set to `true`) Location to save build results.
-    * `storage` - (Optional, Required if `artifact.use` is set to `true`) Storage to save build results.
+    * `object_storage_to_upload` - (Optional, Required if `artifact.use` is set to `true`) Object Storage to save build results.
         * `bucket` - (Required) Bucket name of NCP Object Storage to save build results.
         * `path` - (Required) path in the NCP Object Storage bucket to save build results.
         * `filename` - (Required) File name to save build results.
