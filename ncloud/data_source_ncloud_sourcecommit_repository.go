@@ -28,11 +28,11 @@ func dataSourceNcloudSourceCommitRepository() *schema.Resource {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
-			"git_https": {
+			"git_https_url": {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
-			"git_ssh": {
+			"git_ssh_url": {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
@@ -81,8 +81,8 @@ func dataSousrceNcloudSourceCommitRepositoryRead(ctx context.Context, d *schema.
 	d.Set("name", repository.Name)
 	d.Set("description", repository.Description)
 	d.Set("creator", repository.Created.User)
-	d.Set("git_https", repository.Git.Https)
-	d.Set("git_ssh", repository.Git.Ssh)
+	d.Set("git_https_url", repository.Git.Https)
+	d.Set("git_ssh_url", repository.Git.Ssh)
 	d.Set("filesafer", repository.Linked.FileSafer)
 
 	return nil
