@@ -51,7 +51,7 @@ func resourceNcloudSourceBuildProject() *schema.Resource {
 				Optional: true,
 				Computed: true,
 				ValidateDiagFunc: ToDiagFunc(validation.All(
-					validation.StringLenBetween(0, 200),
+					validation.StringLenBetween(0, 500),
 				)),
 			},
 			"source": {
@@ -70,7 +70,7 @@ func resourceNcloudSourceBuildProject() *schema.Resource {
 							MaxItems: 1,
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
-									"repository": {
+									"repository_name": {
 										Type:     schema.TypeString,
 										Required: true,
 									},
@@ -240,7 +240,7 @@ func resourceNcloudSourceBuildProject() *schema.Resource {
 								validation.IntBetween(5, 540),
 							)),
 						},
-						"env_vars": {
+						"env_var": {
 							Type:     schema.TypeList,
 							Optional: true,
 							Elem: &schema.Resource{
@@ -620,7 +620,7 @@ func getEnvPlatformConfig(d *schema.ResourceData, platformType string) (*sourceb
 
 func getCommonProjectParams(d *schema.ResourceData) (*sourcebuild.ChangeProject, error) {
 	sourceConfig := sourcebuild.ProjectSourceConfig{
-		Repository: StringPtrOrNil(d.GetOk("source.0.config.0.repository")),
+		Repository: StringPtrOrNil(d.GetOk("source.0.config.0.repository_name")),
 		Branch:     StringPtrOrNil(d.GetOk("source.0.config.0.branch")),
 	}
 
@@ -651,7 +651,7 @@ func getCommonProjectParams(d *schema.ResourceData) (*sourcebuild.ChangeProject,
 		return nil, fmt.Errorf("env.docker_engine.id is required if env.docker_engine.use is true")
 	}
 
-	envVars, envErr := expandSourceBuildEnvVarsParams(d.Get("env.0.env_vars").([]interface{}))
+	envVars, envErr := expandSourceBuildEnvVarsParams(d.Get("env.0.env_var").([]interface{}))
 	if envErr != nil {
 		return nil, envErr
 	}
@@ -826,7 +826,7 @@ func makeSourceConfig(config *sourcebuild.GetProjectDetailResponseSourceConfig) 
 	}
 
 	values := map[string]interface{}{}
-	values["repository"] = ncloud.StringValue(config.Repository)
+	values["repository_name"] = ncloud.StringValue(config.Repository)
 	values["branch"] = ncloud.StringValue(config.Branch)
 
 	return []interface{}{values}
@@ -914,7 +914,7 @@ func makeEnv(env *sourcebuild.GetProjectDetailResponseEnv) []interface{} {
 	values["platform"] = makeEnvPlatform(env.Platform)
 	values["docker_engine"] = makeEnvDocker(env.Docker)
 	values["timeout"] = ncloud.Int32Value(env.Timeout)
-	values["env_vars"] = makeEnvEnvVars(env.EnvVars)
+	values["env_var"] = makeEnvEnvVars(env.EnvVars)
 
 	return []interface{}{values}
 }

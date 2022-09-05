@@ -32,7 +32,7 @@ The following arguments are supported:
 * `source` - Build target's type and config.
     * `type` - Build target type.
     * `config` - Build target config.
-        * `repository` - Repository name to build.
+        * `repository_name` - Repository name to build.
         * `branch` - Branch to build.
 * `env` - Build environment.
     * `compute` - Computing environment to build.
@@ -61,7 +61,7 @@ The following arguments are supported:
         * `id` - Docker engine id.
         * `name` - Docker engine name.
     * `timeout` - Build timeout (in Minutes).
-    * `env_vars` - Environment variables to use for build.
+    * `env_var` - Environment variable to use for build.
         * `key` - Key of environment variable.
         * `value` - Value of environment variable.
 * `build_command` - Commands to execute in build.

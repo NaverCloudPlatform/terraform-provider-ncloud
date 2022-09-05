@@ -17,7 +17,7 @@ resource "ncloud_sourcebuild_project" "test-build-project" {
   source {
     type = "SourceCommit"
     config {
-      repository = ncloud_sourcecommit_repository.test-repository.name
+      repository_name = ncloud_sourcecommit_repository.test-repository.name
       branch     = "master"
     }
   }
@@ -44,11 +44,11 @@ resource "ncloud_sourcebuild_project" "test-build-project" {
       use = true
       id  = 1
     }
-    env_vars {
+    env_var {
       key   = "KEY"
       value = "VALUE"
     }
-    env_vars {
+    env_var {
       key   = "KEY2"
       value = "VALUE2"
     }
@@ -106,7 +106,7 @@ resource "ncloud_sourcebuild_project" "test-build-project" {
   source {
     type = "SourceCommit"
     config {
-      repository = "test-repository"
+      repository_name = "test-repository"
       branch     = "master"
     }
   }
@@ -146,7 +146,7 @@ The following arguments are supported:
     * `type` - (Required) Build target type. Accepted values: `SourceCommit`. (Other repository types are not supported yet.)
         * [`ncloud_sourcecommit_repository` data source](../data-sources/sourcecommit_repository.md)
     * `config` - (Required) Build target config.
-        * `repository` - (Required) Repository name to build.
+        * `repository_name` - (Required) Repository name to build.
         * `branch` - (Required) Branch to build.
 * `env` - (Required) Build environment.
     * `compute` - (Required) Computing environment to build.
@@ -172,7 +172,7 @@ The following arguments are supported:
         * `use` - (Required) Whether or not to use of docker engine. (Default `false`)
         * `id` - (Optional) Docker engine id.
     * `timeout` - (Optional) Build timeout (in Minutes). Specify it between `5` and `540`. Default `60`.
-    * `env_vars` - (Optional) Environment variables to use for build.
+    * `env_var` - (Optional) Environment variables to use for build.
         * `key` - (Required) Key of environment variable.
         * `value` - (Required) Value of environment variable.
 * `build_command` - (Optional) Commands to execute in build.

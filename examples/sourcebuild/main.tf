@@ -32,8 +32,8 @@ resource "ncloud_sourcebuild_project" "test-build-project" {
   source {
     type = "SourceCommit"
     config {
-      repository = ncloud_sourcecommit_repository.test-repository.name
-      branch     = "master"
+      repository_name = ncloud_sourcecommit_repository.test-repository.name
+      branch          = "master"
     }
   }
   env {

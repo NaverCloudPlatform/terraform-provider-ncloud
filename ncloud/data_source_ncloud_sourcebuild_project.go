@@ -46,7 +46,7 @@ func dataSourceNcloudSourceBuildProject() *schema.Resource {
 							Computed: true,
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
-									"repository": {
+									"repository_name": {
 										Type:     schema.TypeString,
 										Computed: true,
 									},
@@ -197,7 +197,7 @@ func dataSourceNcloudSourceBuildProject() *schema.Resource {
 							Type:     schema.TypeInt,
 							Computed: true,
 						},
-						"env_vars": {
+						"env_var": {
 							Type:     schema.TypeList,
 							Computed: true,
 							Elem: &schema.Resource{

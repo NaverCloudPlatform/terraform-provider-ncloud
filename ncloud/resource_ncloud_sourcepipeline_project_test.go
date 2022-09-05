@@ -246,8 +246,8 @@ resource "ncloud_sourcebuild_project" "test-project" {
 	source {
 		type = "SourceCommit"
 		config {
-			repository = ncloud_sourcecommit_repository.test-repo.name
-			branch     = "master"
+			repository_name = ncloud_sourcecommit_repository.test-repo.name
+			branch          = "master"
 		}
 	}
 	env {
@@ -273,7 +273,7 @@ resource "ncloud_sourcebuild_project" "test-project" {
 			id = data.ncloud_sourcebuild_project_docker_engines.docker_engines.docker_engines[0].id
 		}
 		timeout = 500
-		env_vars {
+		env_var {
 			key   = "k1"
 			value = "v1"
 		}
@@ -337,7 +337,7 @@ resource "ncloud_sourcebuild_project" "test-project" {
 	source {
 		type = "SourceCommit"
 		config {
-			repository = ncloud_sourcecommit_repository.test-repo.name
+			repository_name = ncloud_sourcecommit_repository.test-repo.name
 			branch     = "master"
 		}
 	}
@@ -364,7 +364,7 @@ resource "ncloud_sourcebuild_project" "test-project" {
 			id = data.ncloud_sourcebuild_project_docker_engines.docker_engines.docker_engines[0].id
 		}
 		timeout = 500
-		env_vars {
+		env_var {
 			key   = "k1"
 			value = "v1"
 		}
@@ -428,7 +428,7 @@ resource "ncloud_sourcebuild_project" "test-project" {
 	source {
 		type = "SourceCommit"
 		config {
-			repository = ncloud_sourcecommit_repository.test-repo.name
+			repository_name = ncloud_sourcecommit_repository.test-repo.name
 			branch     = "master"
 		}
 	}
@@ -455,7 +455,7 @@ resource "ncloud_sourcebuild_project" "test-project" {
 			id = data.ncloud_sourcebuild_project_docker_engines.docker_engines.docker_engines[0].id
 		}
 		timeout = 500
-		env_vars {
+		env_var {
 			key   = "k1"
 			value = "v1"
 		}
@@ -519,7 +519,7 @@ resource "ncloud_sourcebuild_project" "test-project" {
 	source {
 		type = "SourceCommit"
 		config {
-			repository = ncloud_sourcecommit_repository.test-repo.name
+			repository_name = ncloud_sourcecommit_repository.test-repo.name
 			branch     = "master"
 		}
 	}
@@ -546,7 +546,7 @@ resource "ncloud_sourcebuild_project" "test-project" {
 			id = data.ncloud_sourcebuild_project_docker_engines.docker_engines.docker_engines[0].id
 		}
 		timeout = 500
-		env_vars {
+		env_var {
 			key   = "k1"
 			value = "v1"
 		}
@@ -610,7 +610,7 @@ resource "ncloud_sourcebuild_project" "test-project" {
 	source {
 		type = "SourceCommit"
 		config {
-			repository = ncloud_sourcecommit_repository.test-repo.name
+			repository_name = ncloud_sourcecommit_repository.test-repo.name
 			branch     = "master"
 		}
 	}
@@ -637,7 +637,7 @@ resource "ncloud_sourcebuild_project" "test-project" {
 			id = data.ncloud_sourcebuild_project_docker_engines.docker_engines.docker_engines[0].id
 		}
 		timeout = 500
-		env_vars {
+		env_var {
 			key   = "k1"
 			value = "v1"
 		}
@@ -701,7 +701,7 @@ resource "ncloud_sourcebuild_project" "test-project" {
 	source {
 		type = "SourceCommit"
 		config {
-			repository = ncloud_sourcecommit_repository.test-repo.name
+			repository_name = ncloud_sourcecommit_repository.test-repo.name
 			branch     = "master"
 		}
 	}
@@ -728,7 +728,7 @@ resource "ncloud_sourcebuild_project" "test-project" {
 			id = data.ncloud_sourcebuild_project_docker_engines.docker_engines.docker_engines[0].id
 		}
 		timeout = 500
-		env_vars {
+		env_var {
 			key   = "k1"
 			value = "v1"
 		}
