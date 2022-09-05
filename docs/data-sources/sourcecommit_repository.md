@@ -1,8 +1,8 @@
 # Data Source: ncloud_sourcecommit_repository
 
--> **Note:** This data source only supports 'public' site.
+~> **Note:** This data source only supports 'public' site.
 
--> **Note:** This data source is a beta release. Some features may change in the future.
+~> **Note:** This data source is a beta release. Some features may change in the future.
 
 This data source is  useful for getting detail of Sourcecommit repository which is already created, such as getting git address of Sourcecommit repository.
 

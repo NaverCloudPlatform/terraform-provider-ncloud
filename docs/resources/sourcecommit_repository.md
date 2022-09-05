@@ -1,8 +1,8 @@
 # Resource: ncloud_sourcecommit_repository
 
--> **Note:** This resource only supports 'public' site.
+~> **Note:** This resource only supports 'public' site.
 
--> **Note:** This resource is a beta release. Some features may change in the future.
+~> **Note:** This resource is a beta release. Some features may change in the future.
 
 Provides a Sourcecommit repository resource.
 
