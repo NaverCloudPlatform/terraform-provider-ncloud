@@ -1,6 +1,8 @@
 # Data Source: ncloud_sourcebuild_project_docker_engines
 
--> **Note:** This data source is a beta release. Some features may change in the future.
+~> **Note** This data source only supports 'public' site.
+
+~> **Note:** This data source is a beta release. Some features may change in the future.
 
 This data source is useful for look up the list of Sourcebuild docker engine in the region.
 
