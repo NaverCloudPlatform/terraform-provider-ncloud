@@ -42,8 +42,10 @@ func resourceNcloudBlockStorage() *schema.Resource {
 
 		Schema: map[string]*schema.Schema{
 			"server_instance_no": {
-				Type:     schema.TypeString,
-				Required: true,
+				Type: schema.TypeString,
+				// Required: true,
+				Optional: true,
+				// Computed: true,
 			},
 			"size": {
 				Type:             schema.TypeInt,
@@ -146,6 +148,10 @@ func resourceNcloudBlockStorageRead(d *schema.ResourceData, meta interface{}) er
 
 	SetSingularResourceDataFromMapSchema(resourceNcloudBlockStorage(), d, instance)
 
+	if err := d.Set("server_instance_no", r.ServerInstanceNo); err != nil {
+		return err
+	}
+
 	return nil
 }
 
@@ -176,8 +182,8 @@ func resourceNcloudBlockStorageUpdate(d *schema.ResourceData, meta interface{}) 
 		// If server instance attached block storage, detach first
 		if len(o.(string)) > 0 {
 			if d.Get("stop_instance_before_detaching").(bool) {
-				log.Printf("[INFO] Start Instance %s after detaching block storage", *ncloud.String(o.(string)))
-				if err := stopThenWaitServerInstance(config, *ncloud.String(o.(string))); err != nil {
+				log.Printf("[INFO] Start Instance %s after detaching block storage", o.(string))
+				if err := stopThenWaitServerInstance(config, o.(string)); err != nil {
 					return err
 				}
 			}
@@ -204,8 +210,8 @@ func resourceNcloudBlockStorageUpdate(d *schema.ResourceData, meta interface{}) 
 		// If server instance attached block storage, detach first
 		if len(d.Get("server_instance_no").(string)) > 0 {
 			if d.Get("stop_instance_before_detaching").(bool) {
-				log.Printf("[INFO] Start Instance %s after detaching block storage", *ncloud.String(d.Get("server_instance_no").(string)))
-				if err := stopThenWaitServerInstance(config, *ncloud.String(d.Get("server_instance_no").(string))); err != nil {
+				log.Printf("[INFO] Start Instance %s after detaching block storage", d.Get("server_instance_no").(string))
+				if err := stopThenWaitServerInstance(config, d.Get("server_instance_no").(string)); err != nil {
 					return err
 				}
 			}
@@ -427,23 +433,24 @@ func deleteClassicBlockStorage(d *schema.ResourceData, config *ProviderConfig, i
 		BlockStorageInstanceNoList: []*string{ncloud.String(id)},
 	}
 
-	var resp *server.DeleteBlockStorageInstancesResponse
-	err := resource.Retry(d.Timeout(schema.TimeoutDelete), func() *resource.RetryError {
-		var err error
+	resp, err := config.Client.server.V2Api.DeleteBlockStorageInstances(&reqParams)
+	// var resp *server.DeleteBlockStorageInstancesResponse
+	// err := resource.Retry(d.Timeout(schema.TimeoutDelete), func() *resource.RetryError {
+	// 	var err error
 
-		logCommonRequest("deleteClassicBlockStorage", reqParams)
-		resp, err = config.Client.server.V2Api.DeleteBlockStorageInstances(&reqParams)
-		if err != nil {
-			errBody, _ := GetCommonErrorBody(err)
-			if errBody.ReturnCode == ApiErrorDetachingMountedStorage {
-				logErrorResponse("retry deleteClassicBlockStorage", err, reqParams)
-				time.Sleep(time.Second * 5)
-				return resource.RetryableError(err)
-			}
-			return resource.NonRetryableError(err)
-		}
-		return nil
-	})
+	// 	logCommonRequest("deleteClassicBlockStorage", reqParams)
+	// 	resp, err = config.Client.server.V2Api.DeleteBlockStorageInstances(&reqParams)
+	// 	if err != nil {
+	// 		errBody, _ := GetCommonErrorBody(err)
+	// 		if errBody.ReturnCode == ApiErrorDetachingMountedStorage {
+	// 			logErrorResponse("retry deleteClassicBlockStorage", err, reqParams)
+	// 			time.Sleep(time.Second * 5)
+	// 			return resource.RetryableError(err)
+	// 		}
+	// 		return resource.NonRetryableError(err)
+	// 	}
+	// 	return nil
+	// })
 
 	if err != nil {
 		logErrorResponse("deleteClassicBlockStorage", err, reqParams)
@@ -459,23 +466,25 @@ func deleteVpcBlockStorage(d *schema.ResourceData, config *ProviderConfig, id st
 		BlockStorageInstanceNoList: []*string{ncloud.String(id)},
 	}
 
-	var resp *vserver.DeleteBlockStorageInstancesResponse
-	err := resource.Retry(d.Timeout(schema.TimeoutDelete), func() *resource.RetryError {
-		var err error
+	resp, err := config.Client.vserver.V2Api.DeleteBlockStorageInstances(&reqParams)
 
-		logCommonRequest("deleteVpcBlockStorage", reqParams)
-		resp, err = config.Client.vserver.V2Api.DeleteBlockStorageInstances(&reqParams)
-		if err != nil {
-			errBody, _ := GetCommonErrorBody(err)
-			if errBody.ReturnCode == ApiErrorDetachingMountedStorage {
-				logErrorResponse("retry deleteVpcBlockStorage", err, reqParams)
-				time.Sleep(time.Second * 5)
-				return resource.RetryableError(err)
-			}
-			return resource.NonRetryableError(err)
-		}
-		return nil
-	})
+	// var resp *vserver.DeleteBlockStorageInstancesResponse
+	// err := resource.Retry(d.Timeout(schema.TimeoutDelete), func() *resource.RetryError {
+	// 	var err error
+
+	// 	logCommonRequest("deleteVpcBlockStorage", reqParams)
+	// 	resp, err = config.Client.vserver.V2Api.DeleteBlockStorageInstances(&reqParams)
+	// 	if err != nil {
+	// 		errBody, _ := GetCommonErrorBody(err)
+	// 		if errBody.ReturnCode == ApiErrorDetachingMountedStorage {
+	// 			logErrorResponse("retry deleteVpcBlockStorage", err, reqParams)
+	// 			time.Sleep(time.Second * 5)
+	// 			return resource.RetryableError(err)
+	// 		}
+	// 		return resource.NonRetryableError(err)
+	// 	}
+	// 	return nil
+	// })
 
 	if err != nil {
 		logErrorResponse("deleteVpcBlockStorage", err, reqParams)
