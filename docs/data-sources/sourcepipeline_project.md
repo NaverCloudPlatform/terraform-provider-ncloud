@@ -1,6 +1,8 @@
 # Data Source: ncloud_sourcepipieline_project
 
--> **Note:** This data source is a beta release. Some features may change in the future.
+~> **Note** This data source only supports 'public' site.
+
+~> **Note:** This data source is a beta release. Some features may change in the future.
 
 This module can be useful for getting detail of Sourcepipeline project created before.
 
@@ -32,7 +34,7 @@ The following attributes are exported:
 
 *   `name` - The project name.
 *   `description` - Description of the project.
-*   `tasks`
+*   `task`
     *   `name` - Task name.
     *   `type` - Task type. Accepted values: `SourceBuild` | `SourceDeploy`
     *   `config`
@@ -41,15 +43,14 @@ The following attributes are exported:
         *   `scenario_id` - Scenario Id of a task.
         *   `target`
             *   `type` - Target type of a task. Accepted values: `SourceCommit` | `GitHub` | `BitBucket` | `SourceBuild` | `ObjectStorage` | `KubernetesService`.
-            *   `repository` - Target source repository of the Sourcebuild task.
+            *   `repository_name` - Target source repository of the Sourcebuild task.
             *   `repository_branch` - Target repository branch of the Sourcebuild task.
             *   `project_name` - Target sourcebuild project name of the Sourcedeploy task.
             *   `file` - Target file name of the Sourcedeploy task.
             *   `manifest` - Target manifest file name of the Sourcedeploy task.
             *   `full_manifest` - List of target manifest files name of the Sourcedeploy task.
     *   `linked_tasks` - List of linked tasks.
-*   `trigger`
-    *   `setting` - Trigger setting option.
+*   `triggers`
     *   `sourcecommit`
-        *   `repository` - Name of the Sourcecommit repository to trigger execution of pipeline.
+        *   `repository_name` - Name of the Sourcecommit repository to trigger execution of pipeline.
         *   `branch` - Name of repository branch to trigger execution of pipeline.

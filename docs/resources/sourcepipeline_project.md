@@ -1,6 +1,8 @@
 # Resource: ncloud_sourcepipeline_project
 
--> **Note:** This resource is a beta release. Some features may change in the future.
+~> **Note** This resource only supports 'public' site.
+
+~> **Note:** This resource is a beta release. Some features may change in the future.
 
 Provides a Sourcepipeline project resource.
 
@@ -13,7 +15,7 @@ resource "ncloud_sourcecommit_repository" "test-sourcecommit" {
 
 resource "ncloud_sourcepipeline_project" "test-sourcepipeline" {
     name = "tf-sourcepipeline_project-test"
-    tasks {
+    task {
         name = "task_name_1"
         type = "SourceBuild"
         config {
@@ -24,7 +26,7 @@ resource "ncloud_sourcepipeline_project" "test-sourcepipeline" {
         }
         linked_tasks   = []
     }
-    tasks {
+    task {
         name = "task_name_2"
         type = "SourceDeploy"
         config {
@@ -34,10 +36,9 @@ resource "ncloud_sourcepipeline_project" "test-sourcepipeline" {
         }
         linked_tasks   = ["task_name_1"]
     }
-    trigger {
-        setting = true
+    triggers {
         sourcecommit {
-            repository = ncloud_sourcecommit_repository.test-sourcecommit.name
+            repository_name = ncloud_sourcecommit_repository.test-sourcecommit.name
             branch = "master"
         }
     }
@@ -68,7 +69,7 @@ data "ncloud_sourcedeploy_project_stage_scenarios" "test-sourcedeploy_scenarios"
 
 resource "ncloud_sourcepipeline_project" "test-sourcepipeline" {
     name = "tf-sourcepipeline_project-test"
-    tasks {
+    task {
         name = "task_name_1"
         type = "SourceBuild"
         config {
@@ -78,8 +79,8 @@ resource "ncloud_sourcepipeline_project" "test-sourcepipeline" {
             }
         }
         linked_tasks = []
-        }
-    tasks {
+    }
+    task {
         name = "task_name_2"
         type = "SourceDeploy"
         config {
@@ -89,10 +90,9 @@ resource "ncloud_sourcepipeline_project" "test-sourcepipeline" {
         }
         linked_tasks = ["task_name_1"]
     }
-    trigger {
-        setting = true
+    triggers {
         sourcecommit {
-            repository = ncloud_sourcecommit_repository.test-sourcecommit.name
+            repository_name = ncloud_sourcecommit_repository.test-sourcecommit.name
             branch = "master"
         }
     }
@@ -105,31 +105,30 @@ The following arguments are supported:
 
 *   `name` - (Required) The project name to create.
 *   `description` - (Optional) The project description to create.
-*   `tasks` - (Required) `tasks` block describes task information.
+*   `task` - (Required) `task` block describes task information.
     *   `name` - (Required) Task name.
     *   `type` - (Required) Task type. Select between SourceBuild and SourceDeploy. Accepted values: `SourceBuild` | `SourceDeploy` (`SourceDeploy` is available only in VPC environment).
     *   `config` - (Required) `config` block describes task configuration.
         *   `project_id` - (Required) Project Id of a task. Get avaliable values using the datasource `ncloud_sourcebuild_projects` or `ncloud_sourcedeploy_projects`
-        *   `stage_id` - (Optional, Required if `tasks.type` value is SourceDeploy) Stage Id of a task. Get avaliable values using the datasource `ncloud_sourcedeploy_stages`
-        *   `scenario_id` - (Optional, Required if `tasks.type` value is SourceDeploy) Scenario Id of a task. Get avaliable values using the datasource `ncloud_sourcedeploy_scenarioes`
+        *   `stage_id` - (Optional, Required if `task.type` value is SourceDeploy) Stage Id of a task. Get avaliable values using the datasource `ncloud_sourcedeploy_stages`
+        *   `scenario_id` - (Optional, Required if `task.type` value is SourceDeploy) Scenario Id of a task. Get avaliable values using the datasource `ncloud_sourcedeploy_scenarioes`
         *   `target`- (Optional) Target of a task job.
             *   `repository_branch` - (Optional) Target repository branch of SourceBuild task. Default : main branch of target repository
     *   `linked_tasks` - (Required) Linked tasks which has to be executed before.
-*   `trigger` - (Required) `trigger` block describes trigger configuration.
-    *   `setting` - (Required) Trigger setting option. You can decide whether to set trigger or not.
+*   `triggers` - (Required) `triggers` block describes trigger configuration.
     *   `sourcecommit` - (Optional)
-        *   `repository` - (Optional, Required if `trigger.setting` value is true) Name of sourcecommit repository to trigger execution of pipeline
-        *   `branch` - (Optional, Required if `trigger.setting` value is true) Name of a repository branch to trigger execution of pipeline.
+        *   `repository_name` - (Required) Name of sourcecommit repository to trigger execution of pipeline
+        *   `branch` - (Required) Name of a repository branch to trigger execution of pipeline.
 
 ## Attributes Reference
 
 *   `id` - The ID of Sourcepipeline project.
-*   `tasks`
+*   `task`
     *   `config`
         *   `target`
             *   `type` - Target type of a task. Accepted values: `SourceCommit` | `GitHub` | `BitBucket` | `SourceBuild` | `ObjectStorage` | `KubernetesService`
-            *   `repository` - Target source repository of the Sourcebuild task. It is set only when `tasks.type` is SourceBuild
-            *   `project_name` - Target Sourcebuild project name of the Sourcedeploy task. It is set only when `tasks.type` is SourceDeploy and `tasks.config.target.type` is SourceBuild.
-            *   `file` - Target file name of the Sourcedeploy task. It is set only when `tasks.type` is SourceDeploy and `tasks.config.target.type` is ObjectStorage.
-            *   `manifest` - Target manifest file name of the Sourcedeploy task. It is set only when `tasks.type` is SourceDeploy and `tasks.config.target.type` is KubernetesService.
-            *   `full_manifest` - List of target manifest files name. It is set only when `tasks.type` is SourceDeploy and `tasks.config.target.type` is KubernetesService.
+            *   `repository_name` - Target source repository of the Sourcebuild task. It is set only when `task.type` is SourceBuild
+            *   `project_name` - Target Sourcebuild project name of the Sourcedeploy task. It is set only when `task.type` is SourceDeploy and `task.config.target.type` is SourceBuild.
+            *   `file` - Target file name of the Sourcedeploy task. It is set only when `task.type` is SourceDeploy and `task.config.target.type` is ObjectStorage.
+            *   `manifest` - Target manifest file name of the Sourcedeploy task. It is set only when `task.type` is SourceDeploy and `task.config.target.type` is KubernetesService.
+            *   `full_manifest` - List of target manifest files name. It is set only when `task.type` is SourceDeploy and `task.config.target.type` is KubernetesService.

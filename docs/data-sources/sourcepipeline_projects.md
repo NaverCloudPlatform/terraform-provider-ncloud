@@ -1,6 +1,8 @@
 # Data Source: ncloud_sourcepipieline_projects
 
--> **Note:** This data source is a beta release. Some features may change in the future.
+~> **Note** This data source only supports 'public' site.
+
+~> **Note:** This data source is a beta release. Some features may change in the future.
 
 This data source is useful for look up the list of Sourcepipeline projects in the region.
 
@@ -24,7 +26,6 @@ output "sourcepipeline_list" {
 
 The following arguments are supported:
 
-*   `output_file` - (Optional) The name of file that can save data source after running `terraform plan`.
 *   `filter` - (Optional) Custom filter block as described below.
     *   `name` - (Required) The name of the field to filter by.
     *   `values` - (Required) Set of values that are accepted for the given field.
