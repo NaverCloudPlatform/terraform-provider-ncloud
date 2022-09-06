@@ -32,7 +32,6 @@ func resourceNcloudPublicIpInstance() *schema.Resource {
 			"server_instance_no": {
 				Type:     schema.TypeString,
 				Optional: true,
-				// Computed: true,
 			},
 			"description": {
 				Type:             schema.TypeString,
@@ -124,6 +123,10 @@ func resourceNcloudPublicIpRead(d *schema.ResourceData, meta interface{}) error 
 		return err
 	}
 
+	if err := d.Set("server_instance_no", resource.ServerInstanceNo); err != nil {
+		return err
+	}
+
 	return nil
 }
 
@@ -161,47 +164,26 @@ func resourceNcloudPublicIpUpdate(d *schema.ResourceData, meta interface{}) erro
 	if d.HasChange("server_instance_no") {
 		o, n := d.GetChange("server_instance_no")
 		if len(o.(string)) > 0 {
-			if isAssociated, err := checkAssociatedPublicIP(config, d.Id()); isAssociated {
-				if instance, err := getPublicIp(config, d.Id()); *instance.ServerInstanceNo != o.(string) {
-					d.Set("server_instance_no", o.(string))
-					return fmt.Errorf("Error since Public IP (%s) is associted with a different Server instance (%s) than the one (%s) you are trying to disassociated with.", d.Id(), *instance.ServerInstanceNo, o.(string))
-				} else if err != nil {
-					return err
-				}
-
-				if err := disassociatedPublicIp(config, d.Id()); err != nil {
-					return err
-				}
-			} else if err != nil {
+			if err := disassociatedPublicIp(config, d.Id()); err != nil {
 				return err
 			}
 		}
 
 		if len(n.(string)) > 0 {
-			if isAssociated, err := checkAssociatedPublicIP(config, d.Id()); !isAssociated {
-				if err := resource.Retry(d.Timeout(schema.TimeoutDelete)-time.Minute*time.Duration(19), func() *resource.RetryError {
-					if err := associatedPublicIp(d, config); err != nil {
-						errBody, _ := GetCommonErrorBody(err)
-						if errBody.ReturnCode == "1003016" {
-							time.Sleep(1)
-							return resource.RetryableError(err)
-						}
-						return resource.NonRetryableError(err)
+			if err := resource.Retry(d.Timeout(schema.TimeoutDelete)-time.Minute*time.Duration(19), func() *resource.RetryError {
+				if err := associatedPublicIp(d, config); err != nil {
+					errBody, _ := GetCommonErrorBody(err)
+					if errBody.ReturnCode == "1003016" {
+						time.Sleep(1)
+						return resource.RetryableError(err)
 					}
-					return nil
-				}); err != nil {
-					return err
+					return resource.NonRetryableError(err)
 				}
-			} else if isAssociated {
-				if instance, err := getPublicIp(config, d.Id()); *instance.ServerInstanceNo != n.(string) {
-					d.Set("server_instance_no", "")
-					return fmt.Errorf("Error since Public IP (%s) is already associted with Server instance (%s).", d.Id(), *instance.ServerInstanceNo)
-				} else if err != nil {
-					return err
-				}
-			} else if err != nil {
+				return nil
+			}); err != nil {
 				return err
 			}
+
 		}
 	}
 
