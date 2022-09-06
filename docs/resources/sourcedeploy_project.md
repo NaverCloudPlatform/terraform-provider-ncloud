@@ -22,3 +22,8 @@ The following arguments are supported:
 
 * `id` - The ID of Sourcedeploy project.
 
+## Import
+
+SourceDeploy project can be imported using the project_id, e.g.,
+
+$ terraform import ncloud_sourcedeploy_project.my_project project_id

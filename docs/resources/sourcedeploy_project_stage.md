@@ -64,3 +64,8 @@ The following arguments are supported:
     * `auto_scaling_group_name` - The name of Auto Scaling Group.
     * `cluster_name` - The name of Kubernetes Service Cluster.
 
+## Import
+
+SourceDeploy stage can be imported using the project_id and stage_id separated by a colon (:), e.g.,
+
+$ terraform import ncloud_sourcedeploy_project_stage.my_stage project_id:stage_id

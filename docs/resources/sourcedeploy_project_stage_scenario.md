@@ -169,3 +169,9 @@ The following arguments are supported:
             * `name` - The name of SourceBuild project.
     * `load_balancer` - Loadbalancer target group for blue-green deployment.
         * `load_balancer_target_group_name` - The name of Loadbalancer Target Group.
+
+## Import
+
+SourceDeploy scenario can be imported using the project_id, stage_id, scenario_id separated by a colon (:), e.g.,
+
+$ terraform import ncloud_sourcedeploy_project_stage_scenario.my_scenario project_id:stage_id:scenario_id
