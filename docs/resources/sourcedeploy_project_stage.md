@@ -14,6 +14,7 @@ resource "ncloud_sourcedeploy_project" "project" {
 resource "ncloud_sourcedeploy_project_stage" "svr_stage" {
 	project_id	= ncloud_sourcedeploy_project.project.id
 	name				= "test-deploy-stage"
+	target_type	= "Server"
 	config {
 		server_ids	= [1234]
 	}
