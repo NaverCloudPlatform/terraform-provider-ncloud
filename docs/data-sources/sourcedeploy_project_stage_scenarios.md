@@ -1,5 +1,7 @@
 # Data Source: ncloud_sourcedeploy_project_stage_scenarios
 
+~> **Note** This data source only supports 'public' site.
+
 -> **Note:** This data source is a beta release. Some features may change in the future.
 
 This resource is useful for look up the list of Sourcedeploy scenario in the region.
