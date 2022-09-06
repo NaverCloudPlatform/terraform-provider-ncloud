@@ -51,8 +51,8 @@ The following arguments are supported:
 * `target_type` - (Required) The type of deploy target.
 * `config` - (Required) The configuration of deploy target.
     * `server_ids` - (Optional, Required If type=`Server`) The no of server. [`ncloud_server` data source](../data-sources/server.md)
-    * `auto_scaling_group_no` - (Optional, Required If type=`AutoScalingGroup`) The ID of Auto Scaling Group.  [`ncloud_auto_scaling_group` data source](../data-source/auto_scaling_group.md)
-    * `cluster_uuid` - (Optional, Required If type=`KubernetesService`) The uuid of Kubernetes Service Cluster.  [`ncloud_nks_cluster` data source](../data-source/nks_cluster.md)
+    * `auto_scaling_group_no` - (Optional, Required If type=`AutoScalingGroup`) The ID of Auto Scaling Group.  [`ncloud_auto_scaling_group` data source](../data-sources/auto_scaling_group.md)
+    * `cluster_uuid` - (Optional, Required If type=`KubernetesService`) The uuid of Kubernetes Service Cluster.  [`ncloud_nks_cluster` data source](../data-sources/nks_cluster.md)
     * `bucket_name` - (Optional, Required If type=`ObjectStorage`) The name of ObjectStorage bucket.
 
 

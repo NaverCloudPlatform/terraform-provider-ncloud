@@ -114,7 +114,7 @@ The following arguments are supported:
                 * `bucket` - (Required) The Name of ObjectStorage bucket.
                 * `object` - (Required) ObjectStorage object .
             * `source_build` - (Optional, Required if file.type is set to`SourceBuild` ) Sourcebuild config.
-                * `id` - (Required) The ID of SourceBiuld project. [`ncloud_sourcebuild_project` data source](../data-source/sourcebuild_project.md)
+                * `id` - (Required) The ID of SourceBiuld project. [`ncloud_sourcebuild_project` data source](../data-sources/sourcebuild_project.md)
         * `rollboack` - (Optional,  Required If stage type is set to `Server` or `AutoScalingGroup` ) Rollback on deployment failure.
         * `deploy_command` - (Optional) Commands to execute in deploy.
             * `pre_deploy` - (Optional) Commands before deploy.
@@ -127,7 +127,7 @@ The following arguments are supported:
                 * `user` - (Required) Running Account.
                 * `command` - (Required) Run Command.
         * `load_balancer` - (Optional, Required If stage type is set to `AutoScalingGroup` & strategy is set to `blueGreen`) Loadbalancer target group for blue-green deployment. 
-            * `load_balancer_target_group_no` - (Required) Loadbalancer Target Group no. [`ncloud_lb_target_group` data source](../data-source/lb_target_group.md)
+            * `load_balancer_target_group_no` - (Required) Loadbalancer Target Group no. [`ncloud_lb_target_group` data source](../data-sources/lb_target_group.md)
             * `delete_server` - (Required) Whether to delete Servers in the auto scaling group.
         * `manifest` - (Optional, Required If stage type is set to `KubernetesService`) Manifest file for Kubernetesservice deployment.
             * `type` - (Required) Repository type.
