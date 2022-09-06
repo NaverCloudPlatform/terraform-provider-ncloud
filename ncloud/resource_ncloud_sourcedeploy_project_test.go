@@ -15,7 +15,7 @@ import (
 func TestAccResourceNcloudSourceDeployProject_basic(t *testing.T) {
 	var project vsourcedeploy.GetIdNameResponse
 	name := getTestSourceDeployProjectName()
-	resourceName := "ncloud_sourcedeploy_project.sd-project"
+	resourceName := "ncloud_sourcedeploy_project.test-project"
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) }, 
@@ -40,7 +40,7 @@ func TestAccResourceNcloudSourceDeployProject_basic(t *testing.T) {
 
 func testAccResourceNcloudSourceDeployProjectConfig(name string) string {
 	return fmt.Sprintf(`
-resource "ncloud_sourcedeploy_project" "sd-project" {
+resource "ncloud_sourcedeploy_project" "test-project" {
 	name = "%[1]s"
 }
 `, name)

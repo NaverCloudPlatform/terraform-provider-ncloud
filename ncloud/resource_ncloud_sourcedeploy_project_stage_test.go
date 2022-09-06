@@ -28,10 +28,10 @@ func TestAccResourceNcloudSourceDeployStage_basic(t *testing.T) {
 	stageNameAsg := getTestSourceDeployStageName() + "-asg"
 	stageNameNks := getTestSourceDeployStageName() + "-nks"
 	stageNameObj := getTestSourceDeployStageName() + "-obj"
-	resourceNameSvr := "ncloud_sourcedeploy_project_stage.svr_stage"
-	resourceNameAsg := "ncloud_sourcedeploy_project_stage.asg_stage"
-	resourceNameNks := "ncloud_sourcedeploy_project_stage.nks_stage"
-	resourceNameObj := "ncloud_sourcedeploy_project_stage.obj_stage"
+	resourceNameSvr := "ncloud_sourcedeploy_project_stage.test-stage-svr"
+	resourceNameAsg := "ncloud_sourcedeploy_project_stage.test-stage-asg"
+	resourceNameNks := "ncloud_sourcedeploy_project_stage.test-stage-nks"
+	resourceNameObj := "ncloud_sourcedeploy_project_stage.test-stage-obj"
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) }, 
@@ -39,7 +39,7 @@ func TestAccResourceNcloudSourceDeployStage_basic(t *testing.T) {
 		CheckDestroy: testAccCheckSourceDeployStageDestroy,
 		Steps: []resource.TestStep{ 
 			{
-				Config: testAccResourceNcloudSourceDeployStageSvrConfig(stageNameSvr, stageNameAsg, stageNameNks, stageNameObj),
+				Config: testAccResourceNcloudSourceDeployStageConfig(stageNameSvr, stageNameAsg, stageNameNks, stageNameObj),
 				Check: resource.ComposeTestCheckFunc( 
 					testAccCheckSourceDeployStageExists(resourceNameSvr, &stage),
 					testAccCheckSourceDeployStageExists(resourceNameAsg, &stage),
@@ -51,11 +51,33 @@ func TestAccResourceNcloudSourceDeployStage_basic(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceNameObj, "name", stageNameObj),
 				),
 			},
+			{
+				ResourceName:      resourceNameSvr,
+				ImportState:       true,
+				ImportStateIdFunc: testAccNcloudSourceDeployStageImportStateIDFunc(resourceNameSvr),
+				ImportStateVerify: true,
+			},
+			{
+				ResourceName:      resourceNameAsg,
+				ImportState:       true,
+				ImportStateIdFunc: testAccNcloudSourceDeployStageImportStateIDFunc(resourceNameAsg),
+				ImportStateVerify: true,
+			},
+			{
+				ResourceName:      resourceNameNks,
+				ImportState:       true,
+				ImportStateIdFunc: testAccNcloudSourceDeployStageImportStateIDFunc(resourceNameNks),
+				ImportStateVerify: true,
+			},
+			{
+				ResourceName:      resourceNameObj,
+				ImportState:       true,
+				ImportStateIdFunc: testAccNcloudSourceDeployStageImportStateIDFunc(resourceNameObj),
+				ImportStateVerify: true,
+			},
 		},
 	})
 }
-
-
 
 func testAccCheckSourceDeployStageExists(n string, stage *vsourcedeploy.GetStageDetailResponse) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
@@ -78,6 +100,19 @@ func testAccCheckSourceDeployStageExists(n string, stage *vsourcedeploy.GetStage
 		return nil
 	}
 } 
+
+func testAccNcloudSourceDeployStageImportStateIDFunc(resourceName string) resource.ImportStateIdFunc {
+	return func(s *terraform.State) (string, error) {
+		rs, ok := s.RootModule().Resources[resourceName]
+		if !ok {
+			return "", fmt.Errorf("not found: %s", resourceName)
+		}
+		projectId := rs.Primary.Attributes["project_id"]
+		stageId := rs.Primary.ID
+
+		return fmt.Sprintf("%s:%s", projectId, stageId), nil
+	}
+}
 
 func testAccCheckSourceDeployStageDestroy(s *terraform.State) error {
 	config := testAccProvider.Meta().(*ProviderConfig) 
@@ -113,7 +148,7 @@ func testAccCheckSourceDeployStageDestroy(s *terraform.State) error {
 }
 
 
-func testAccResourceNcloudSourceDeployStageSvrConfig(stageNameSvr string, stageNameAsg string, stageNameNks string, stageNameObj string) string {
+func testAccResourceNcloudSourceDeployStageConfig(stageNameSvr string, stageNameAsg string, stageNameNks string, stageNameObj string) string {
 	return fmt.Sprintf(`
 data "ncloud_server" "server" {
 	filter {
@@ -128,36 +163,36 @@ data "ncloud_auto_scaling_group" "asg" {
 		values = ["%[2]s"]
 	}
 }
-resource "ncloud_sourcedeploy_project" "project" {
+resource "ncloud_sourcedeploy_project" "test-project" {
 	name = "tf-test-project"
 }
 
-resource "ncloud_sourcedeploy_project_stage" "svr_stage" {
-	project_id  = ncloud_sourcedeploy_project.project.id
+resource "ncloud_sourcedeploy_project_stage" "test-stage-svr" {
+	project_id  = ncloud_sourcedeploy_project.test-project.id
 	name        = "%[5]s"
 	target_type = "Server"
 	config {
 		server_ids = [data.ncloud_server.server.id]
 	}
 }
-resource "ncloud_sourcedeploy_project_stage" "asg_stage" {
-	project_id  = ncloud_sourcedeploy_project.project.id
+resource "ncloud_sourcedeploy_project_stage" "test-stage-asg" {
+	project_id  = ncloud_sourcedeploy_project.test-project.id
 	name    	= "%[6]s"
 	target_type = "AutoScalingGroup"
 	config {
 		auto_scaling_group_no = data.ncloud_auto_scaling_group.asg.id
 	}
 }
-resource "ncloud_sourcedeploy_project_stage" "nks_stage" {
-	project_id  = ncloud_sourcedeploy_project.project.id
+resource "ncloud_sourcedeploy_project_stage" "test-stage-nks" {
+	project_id  = ncloud_sourcedeploy_project.test-project.id
 	name		= "%[7]s"
 	target_type = "KubernetesService"
 	config {
 		cluster_uuid = "%[3]s"
 	}
 }
-resource "ncloud_sourcedeploy_project_stage" "obj_stage" {
-	project_id  = ncloud_sourcedeploy_project.project.id
+resource "ncloud_sourcedeploy_project_stage" "test-stage-obj" {
+	project_id  = ncloud_sourcedeploy_project.test-project.id
 	name        = "%[8]s"
 	target_type = "ObjectStorage"
 	config {

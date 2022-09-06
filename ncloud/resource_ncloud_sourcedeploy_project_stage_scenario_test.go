@@ -31,14 +31,14 @@ func TestAccResourceNcloudSourceDeployScenario_basic(t *testing.T) {
 	scenarioNameNksCanaryAuto := getTestSourceDeployScenarioName() + "-nks-canary-auto"
 	scenarioNameObjNormal := getTestSourceDeployScenarioName() + "-obj-normal"
 
-	resourceNameSvrNormal := "ncloud_sourcedeploy_project_stage_scenario.server_normal"
-	resourceNameAsgNormal := "ncloud_sourcedeploy_project_stage_scenario.asg_normal"
-	resourceNameAsgBg := "ncloud_sourcedeploy_project_stage_scenario.asg_bg"
-	resourceNameNksRolling := "ncloud_sourcedeploy_project_stage_scenario.nks_rolling"
-	resourceNameNksBg := "ncloud_sourcedeploy_project_stage_scenario.nks_bg"
-	resourceNameNksCanaryManual := "ncloud_sourcedeploy_project_stage_scenario.nks_canary_manual"
-	resourceNameNksCanaryAuto := "ncloud_sourcedeploy_project_stage_scenario.nks_canary_auto"
-	resourceNameObjNormal := "ncloud_sourcedeploy_project_stage_scenario.obj_normal"
+	resourceNameSvrNormal := "ncloud_sourcedeploy_project_stage_scenario.test-scenario-server-normal"
+	resourceNameAsgNormal := "ncloud_sourcedeploy_project_stage_scenario.test-scenario-asg-normal"
+	resourceNameAsgBg := "ncloud_sourcedeploy_project_stage_scenario.test-scenario-asg-bg"
+	resourceNameNksRolling := "ncloud_sourcedeploy_project_stage_scenario.test-scenario-nks-rolling"
+	resourceNameNksBg := "ncloud_sourcedeploy_project_stage_scenario.test-scenario-nks-bg"
+	resourceNameNksCanaryManual := "ncloud_sourcedeploy_project_stage_scenario.test-scenario-nks-canary-manual"
+	resourceNameNksCanaryAuto := "ncloud_sourcedeploy_project_stage_scenario.test-scenario-nks-canary-auto"
+	resourceNameObjNormal := "ncloud_sourcedeploy_project_stage_scenario.test-scenario-obj-normal"
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -62,9 +62,9 @@ func TestAccResourceNcloudSourceDeployScenario_basic(t *testing.T) {
 					testAccCheckSourceDeployScenarioExists(resourceNameAsgBg, &scenario),
 					testAccCheckSourceDeployScenarioExists(resourceNameNksRolling, &scenario),
 					testAccCheckSourceDeployScenarioExists(resourceNameNksBg, &scenario),
-					testAccCheckSourceDeployScenarioExists(resourceNameObjNormal, &scenario),
 					testAccCheckSourceDeployScenarioExists(resourceNameNksCanaryManual, &scenario),
 					testAccCheckSourceDeployScenarioExists(resourceNameNksCanaryAuto, &scenario),
+					testAccCheckSourceDeployScenarioExists(resourceNameObjNormal, &scenario),
 					resource.TestCheckResourceAttr(resourceNameSvrNormal, "name", scenarioNameSvrNormal),
 					resource.TestCheckResourceAttr(resourceNameAsgNormal, "name", scenarioNameAsgNoraml),
 					resource.TestCheckResourceAttr(resourceNameAsgBg, "name", scenarioNameAsgBg),
@@ -74,6 +74,54 @@ func TestAccResourceNcloudSourceDeployScenario_basic(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceNameNksCanaryAuto, "name", scenarioNameNksCanaryAuto),
 					resource.TestCheckResourceAttr(resourceNameObjNormal, "name", scenarioNameObjNormal),
 				),
+			},
+			{
+				ResourceName:      resourceNameSvrNormal,
+				ImportState:       true,
+				ImportStateIdFunc: testAccNcloudSourceDeployScenarioImportStateIDFunc(resourceNameSvrNormal),
+				ImportStateVerify: true,
+			},
+			{
+				ResourceName:      resourceNameAsgNormal,
+				ImportState:       true,
+				ImportStateIdFunc: testAccNcloudSourceDeployScenarioImportStateIDFunc(resourceNameAsgNormal),
+				ImportStateVerify: true,
+			},
+			{
+				ResourceName:      resourceNameAsgBg,
+				ImportState:       true,
+				ImportStateIdFunc: testAccNcloudSourceDeployScenarioImportStateIDFunc(resourceNameAsgBg),
+				ImportStateVerify: true,
+			},
+			{
+				ResourceName:      resourceNameNksRolling,
+				ImportState:       true,
+				ImportStateIdFunc: testAccNcloudSourceDeployScenarioImportStateIDFunc(resourceNameNksRolling),
+				ImportStateVerify: true,
+			},
+			{
+				ResourceName:      resourceNameNksBg,
+				ImportState:       true,
+				ImportStateIdFunc: testAccNcloudSourceDeployScenarioImportStateIDFunc(resourceNameNksBg),
+				ImportStateVerify: true,
+			},
+			{
+				ResourceName:      resourceNameNksCanaryManual,
+				ImportState:       true,
+				ImportStateIdFunc: testAccNcloudSourceDeployScenarioImportStateIDFunc(resourceNameNksCanaryManual),
+				ImportStateVerify: true,
+			},
+			{
+				ResourceName:      resourceNameNksCanaryAuto,
+				ImportState:       true,
+				ImportStateIdFunc: testAccNcloudSourceDeployScenarioImportStateIDFunc(resourceNameNksCanaryAuto),
+				ImportStateVerify: true,
+			},
+			{
+				ResourceName:      resourceNameObjNormal,
+				ImportState:       true,
+				ImportStateIdFunc: testAccNcloudSourceDeployScenarioImportStateIDFunc(resourceNameObjNormal),
+				ImportStateVerify: true,
 			},
 		},
 	})
@@ -170,36 +218,36 @@ data "ncloud_auto_scaling_group" "asg" {
 	}
 }
 
-resource "ncloud_sourcedeploy_project" "project" {
+resource "ncloud_sourcedeploy_project" "test-project" {
 	name = "tf-test-project"
 }
 
-resource "ncloud_sourcedeploy_project_stage" "svr_stage" {
-	project_id  = ncloud_sourcedeploy_project.project.id
+resource "ncloud_sourcedeploy_project_stage" "test-stage-svr" {
+	project_id  = ncloud_sourcedeploy_project.test-project.id
 	name	    = "svr"
 	target_type = "Server"
 	config {
 		server_ids = [data.ncloud_server.server.id]
 	}
 }
-resource "ncloud_sourcedeploy_project_stage" "asg_stage" {
-	project_id = ncloud_sourcedeploy_project.project.id
+resource "ncloud_sourcedeploy_project_stage" "test-stage-asg" {
+	project_id = ncloud_sourcedeploy_project.test-project.id
 	name       = "asg"
 	target_type = "AutoScalingGroup"
 	config {
 		auto_scaling_group_no = data.ncloud_auto_scaling_group.asg.id
 	}
 }
-resource "ncloud_sourcedeploy_project_stage" "nks_stage" {
-	project_id = ncloud_sourcedeploy_project.project.id
+resource "ncloud_sourcedeploy_project_stage" "test-stage-nks" {
+	project_id = ncloud_sourcedeploy_project.test-project.id
 	name       = "nks"
 	target_type	= "KubernetesService"
 	config {
 		cluster_uuid = "%[3]s"
 	}
 }
-resource "ncloud_sourcedeploy_project_stage" "obj_stage" {
-	project_id = ncloud_sourcedeploy_project.project.id
+resource "ncloud_sourcedeploy_project_stage" "test-stage-obj" {
+	project_id = ncloud_sourcedeploy_project.test-project.id
 	name       = "obj"
 	target_type = "ObjectStorage"
 	config {
@@ -207,9 +255,9 @@ resource "ncloud_sourcedeploy_project_stage" "obj_stage" {
 	}
 }
 
-resource "ncloud_sourcedeploy_project_stage_scenario" "server_normal" {
-	project_id  = ncloud_sourcedeploy_project.project.id
-	stage_id    = ncloud_sourcedeploy_project_stage.svr_stage.id
+resource "ncloud_sourcedeploy_project_stage_scenario" "test-scenario-server-normal" {
+	project_id  = ncloud_sourcedeploy_project.test-project.id
+	stage_id    = ncloud_sourcedeploy_project_stage.test-stage-svr.id
 	name        = "%[5]s"
 	description	= "test"
 	config {
@@ -239,9 +287,9 @@ resource "ncloud_sourcedeploy_project_stage_scenario" "server_normal" {
 }
 
 
-resource "ncloud_sourcedeploy_project_stage_scenario" "asg_normal" {
-	project_id  = ncloud_sourcedeploy_project.project.id
-	stage_id    = ncloud_sourcedeploy_project_stage.asg_stage.id
+resource "ncloud_sourcedeploy_project_stage_scenario" "test-scenario-asg-normal" {
+	project_id  = ncloud_sourcedeploy_project.test-project.id
+	stage_id    = ncloud_sourcedeploy_project_stage.test-stage-asg.id
 	name        = "%[6]s"
 	description = "test"
 	config {
@@ -270,9 +318,9 @@ resource "ncloud_sourcedeploy_project_stage_scenario" "asg_normal" {
 	}
 }
 
-resource "ncloud_sourcedeploy_project_stage_scenario" "asg_bg" {
-	project_id  = ncloud_sourcedeploy_project.project.id
-	stage_id    = ncloud_sourcedeploy_project_stage.asg_stage.id
+resource "ncloud_sourcedeploy_project_stage_scenario" "test-scenario-asg-bg" {
+	project_id  = ncloud_sourcedeploy_project.test-project.id
+	stage_id    = ncloud_sourcedeploy_project_stage.test-stage-asg.id
 	name    	= "%[7]s"
 	description = "test"
 	config {
@@ -305,9 +353,9 @@ resource "ncloud_sourcedeploy_project_stage_scenario" "asg_bg" {
 	}
 }
 
-resource "ncloud_sourcedeploy_project_stage_scenario" "nks_rolling" {
-	project_id  = ncloud_sourcedeploy_project.project.id
-	stage_id    = ncloud_sourcedeploy_project_stage.nks_stage.id
+resource "ncloud_sourcedeploy_project_stage_scenario" "test-scenario-nks-rolling" {
+	project_id  = ncloud_sourcedeploy_project.test-project.id
+	stage_id    = ncloud_sourcedeploy_project_stage.test-stage-nks.id
 	name    	= "%[9]s"
 	description	= "test"
 	config {
@@ -321,9 +369,9 @@ resource "ncloud_sourcedeploy_project_stage_scenario" "nks_rolling" {
 	}
 }
 
-resource "ncloud_sourcedeploy_project_stage_scenario" "nks_bg" {
-	project_id  = ncloud_sourcedeploy_project.project.id
-	stage_id    = ncloud_sourcedeploy_project_stage.nks_stage.id
+resource "ncloud_sourcedeploy_project_stage_scenario" "test-scenario-nks-bg" {
+	project_id  = ncloud_sourcedeploy_project.test-project.id
+	stage_id    = ncloud_sourcedeploy_project_stage.test-stage-nks.id
 	name    	= "%[10]s"
 	description = "test"
 	config {	
@@ -337,9 +385,9 @@ resource "ncloud_sourcedeploy_project_stage_scenario" "nks_bg" {
 	}
 }
 
-resource "ncloud_sourcedeploy_project_stage_scenario" "nks_canary_manual" {
-	project_id  = ncloud_sourcedeploy_project.project.id
-	stage_id   	= ncloud_sourcedeploy_project_stage.nks_stage.id
+resource "ncloud_sourcedeploy_project_stage_scenario" "test-scenario-nks-canary-manual" {
+	project_id  = ncloud_sourcedeploy_project.test-project.id
+	stage_id   	= ncloud_sourcedeploy_project_stage.test-stage-nks.id
 	name    	= "%[11]s"
 	description = "test"
 	config {
@@ -358,9 +406,9 @@ resource "ncloud_sourcedeploy_project_stage_scenario" "nks_canary_manual" {
 	}
 }
 
- resource "ncloud_sourcedeploy_project_stage_scenario" "nks_canary_auto" {
-	project_id  = ncloud_sourcedeploy_project.project.id
-	stage_id   	= ncloud_sourcedeploy_project_stage.nks_stage.id
+ resource "ncloud_sourcedeploy_project_stage_scenario" "test-scenario-nks-canary-auto" {
+	project_id  = ncloud_sourcedeploy_project.test-project.id
+	stage_id   	= ncloud_sourcedeploy_project_stage.test-stage-nks.id
 	name    	= "%[12]s"
 	description = "test"
 	config {
@@ -397,9 +445,9 @@ resource "ncloud_sourcedeploy_project_stage_scenario" "nks_canary_manual" {
 	}
  }
 
-resource "ncloud_sourcedeploy_project_stage_scenario" "obj_normal" {
-	project_id  = ncloud_sourcedeploy_project.project.id
-	stage_id    = ncloud_sourcedeploy_project_stage.obj_stage.id
+resource "ncloud_sourcedeploy_project_stage_scenario" "test-scenario-obj-normal" {
+	project_id  = ncloud_sourcedeploy_project.test-project.id
+	stage_id    = ncloud_sourcedeploy_project_stage.test-stage-obj.id
 	name    	= "%[14]s"
 	description = "test"
 	config {
@@ -443,6 +491,21 @@ func testAccCheckSourceDeployScenarioExists(n string, scenario *vsourcedeploy.Ge
 		return nil
 	}
 }
+
+func testAccNcloudSourceDeployScenarioImportStateIDFunc(resourceName string) resource.ImportStateIdFunc {
+	return func(s *terraform.State) (string, error) {
+		rs, ok := s.RootModule().Resources[resourceName]
+		if !ok {
+			return "", fmt.Errorf("not found: %s", resourceName)
+		}
+		projectId := rs.Primary.Attributes["project_id"]
+		stageId := rs.Primary.Attributes["stage_id"]
+		scenarioId := rs.Primary.ID
+
+		return fmt.Sprintf("%s:%s:%s", projectId, stageId, scenarioId), nil
+	}
+}
+
 
 func testAccCheckSourceDeployScenarioDestroy(s *terraform.State) error {
 	config := testAccProvider.Meta().(*ProviderConfig)
