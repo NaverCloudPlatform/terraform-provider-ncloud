@@ -21,9 +21,9 @@ data "ncloud_server" "server" {
 resource "ncloud_sourcedeploy_project_stage" "svr_stage" {
 	project_id  						= ncloud_sourcedeploy_project.project.id
 	name    							  = "test-deploy-stage"
-	type    							  = "Server"
+	target_type    							  = "Server"
 	config {
-		server_no  						= [data.ncloud_server.server.id]
+		server_ids  						= [data.ncloud_server.server.id]
 	}
 }
 
@@ -44,18 +44,18 @@ resource "ncloud_sourcedeploy_project_stage_scenario" "server_normal" {
 			}
 		}
 		rollback 							  = true
-		cmd {
-			pre {
+		deploy_command {
+			pre_deploy {
 				user  						  = "root"
-				cmd   						  = "echo pre"
+				command   						  = "echo pre"
 			}
-			deploy {
+			path {
 				source_path 				= "/"
 				deploy_path 				= "/test"
 			}
-			post {
+			post_deploy {
 				user  						  = "root"
-				cmd   						  = "echo post"
+				command   						  = "echo post"
 			}
 		}
 	}

@@ -47,23 +47,23 @@ In addition to all arguments above, the following attributes are exported:
                 * `id` - The ID of SourceBiuld project.
                 * `name` - The name of SourceBuild project.
         * `rollboack` - Rollback on deployment failure.
-        * `cmd` - Commands to execute in deploy.
-            * `pre` - Commands before deploy.
+        * `deploy_command` - Commands to execute in deploy.
+            * `pre_deploy` - Commands before deploy.
                 * `user` - Running Account.
-                * `cmd` - Run Command.
-            * `deploy` - Deploy file.
+                * `command` - Run Command.
+            * `path` - Deploy file.
                 * `source_path` - Source file path.
                 * `deploy_path` - Deploy Path.
-            * `post` - Commands after deploy.
+            * `post_deploy` - Commands after deploy.
                 * `user` - Running Account.
-                * `cmd` - Run Command.
+                * `command` - Run Command.
         * `load_balancer` - Loadbalancer target group for blue-green deployment.
             * `load_balancer_target_group_no` - Loadbalancer Target Group no.
             * `load_balancer_target_group_name` - The name of Loadbalancer Target Group.
             * `delete_server` - Whether to delete Servers in the auto scaling group.
         * `manifest` - Manifest file for Kubernetesservice deployment.
             * `type` - Repository type.
-            * `repository` - The name of repository.
+            * `repository_name` - The name of repository.
             * `branch` - The name of repository branch.
             * `path` - File path.
         * `canary_config` - config when deploying Kubernetesservice canary.

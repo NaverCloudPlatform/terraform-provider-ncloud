@@ -45,7 +45,7 @@ func resourceNcloudSourceDeployStage() *schema.Resource {
 					validation.StringMatch(regexp.MustCompile(`^[^ !@#$%^&*()+\=\[\]{};':"\\|,.<>\/?]+$`), `Cannot contain special characters ( !@#$%^&*()+\=\[\]{};':"\\|,.<>\/?).`),
 				)),
 			},
-			"type": {
+			"target_type": {
 				Type:     schema.TypeString,
 				Required: true,
 				ValidateDiagFunc: ToDiagFunc(validation.StringInSlice([]string{"Server", "AutoScalingGroup", "KubernetesService", "ObjectStorage"}, false)),
@@ -56,12 +56,12 @@ func resourceNcloudSourceDeployStage() *schema.Resource {
 				MaxItems: 1,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
-						"server_no": {
+						"server_ids": {
 							Type:     schema.TypeList,
 							Optional: true,
 							Elem:     &schema.Schema{Type: schema.TypeString},
 						},
-						"server_name": {
+						"server_names": {
 							Type:     schema.TypeList,
 							Computed: true,
 							Elem:     &schema.Schema{Type: schema.TypeString},
@@ -140,7 +140,7 @@ func resourceNcloudSourceDeployStageRead(ctx context.Context, d *schema.Resource
 	
 	d.SetId(*ncloud.IntString(int(ncloud.Int32Value(stage.Id))))
 	d.Set("name", stage.Name)
-	d.Set("type", stage.Type_)
+	d.Set("target_type", stage.Type_)
 	d.Set("config",makeStageConfig(stage.Config))
 
 	return nil
@@ -184,7 +184,7 @@ func getStage(d *schema.ResourceData) (*vsourcedeploy.CreateStage, error){
 	}
 	reqParams := &vsourcedeploy.CreateStage{
 		Name:              	StringPtrOrNil(d.GetOk("name")),
-		Type_:				StringPtrOrNil(d.GetOk("type")),
+		Type_:				StringPtrOrNil(d.GetOk("target_type")),
 		Config:				deployTarget,
 	}
 	return reqParams, nil
@@ -193,15 +193,15 @@ func getStage(d *schema.ResourceData) (*vsourcedeploy.CreateStage, error){
 func getDeployTarget(d *schema.ResourceData) (*vsourcedeploy.StageConfig, error){
 	deployTarget :=	vsourcedeploy.StageConfig{}
 
-	deployTargetType := ncloud.StringValue(StringPtrOrNil(d.GetOk("type")))
+	deployTargetType := ncloud.StringValue(StringPtrOrNil(d.GetOk("target_type")))
 
 	switch deployTargetType {
 	case "Server":
-		if serverNo, ok := d.GetOk("config.0.server_no"); ok {
+		if serverNo, ok := d.GetOk("config.0.server_ids"); ok {
 			deployTarget.ServerNo = expandStringInterfaceListToInt32List(serverNo.([]interface{}))
 		}
 		if deployTarget.ServerNo == nil {
-			return nil, fmt.Errorf("config(server_no) is required")
+			return nil, fmt.Errorf("config(server_ids) is required")
 		}
 	case "AutoScalingGroup":
 		deployTarget.AutoScalingGroupNo = Int32PtrOrNil(d.GetOk("config.0.auto_scaling_group_no"))
@@ -240,8 +240,8 @@ func makeStageConfig(config *vsourcedeploy.GetStageDetailResponseConfig) []inter
 	}
 	values := map[string]interface{}{}
 
-	values["server_no"] = flattenInt32ListToStringList(config.ServerNo)
-	values["server_name"] = ncloud.StringListValue(config.ServerName)
+	values["server_ids"] = flattenInt32ListToStringList(config.ServerNo)
+	values["server_names"] = ncloud.StringListValue(config.ServerName)
 	values["auto_scaling_group_no"] = ncloud.Int32Value(config.AutoScalingGroupNo)
 	values["auto_scaling_group_name"] = ncloud.StringValue(config.AutoScalingGroupName)
 	values["cluster_uuid"] = ncloud.StringValue(config.ClusterUuid)

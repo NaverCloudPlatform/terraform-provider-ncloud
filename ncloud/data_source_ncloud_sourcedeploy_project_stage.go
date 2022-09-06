@@ -28,7 +28,7 @@ func dataSourceNcloudSourceDeployStageContext() *schema.Resource {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
-			"type": {
+			"target_type": {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
@@ -37,12 +37,12 @@ func dataSourceNcloudSourceDeployStageContext() *schema.Resource {
 				Computed: true,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
-						"server_no": {
+						"server_ids": {
 							Type:     schema.TypeList,
 							Computed: true,
 							Elem:     &schema.Schema{Type: schema.TypeString},
 						},
-						"server_name": {
+						"server_names": {
 							Type:     schema.TypeList,
 							Computed: true,
 							Elem:     &schema.Schema{Type: schema.TypeString},

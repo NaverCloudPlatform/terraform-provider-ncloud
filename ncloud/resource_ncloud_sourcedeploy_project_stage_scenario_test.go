@@ -177,15 +177,15 @@ resource "ncloud_sourcedeploy_project" "project" {
 resource "ncloud_sourcedeploy_project_stage" "svr_stage" {
 	project_id  							= ncloud_sourcedeploy_project.project.id
 	name    								= "svr"
-	type    								= "Server"
+	target_type    								= "Server"
 	config {
-		server_no  							= [data.ncloud_server.server.id]
+		server_ids  							= [data.ncloud_server.server.id]
 	}
 }
 resource "ncloud_sourcedeploy_project_stage" "asg_stage" {
 	project_id  							= ncloud_sourcedeploy_project.project.id
 	name    								= "asg"
-	type    								= "AutoScalingGroup"
+	target_type    								= "AutoScalingGroup"
 	config {
 		auto_scaling_group_no  				= data.ncloud_auto_scaling_group.asg.id
 	}
@@ -193,7 +193,7 @@ resource "ncloud_sourcedeploy_project_stage" "asg_stage" {
 resource "ncloud_sourcedeploy_project_stage" "nks_stage" {
 	project_id  							= ncloud_sourcedeploy_project.project.id
 	name    								= "nks"
-	type    								= "KubernetesService"
+	target_type    								= "KubernetesService"
 	config {
 		cluster_uuid   						= "%[3]s"
 	}
@@ -201,7 +201,7 @@ resource "ncloud_sourcedeploy_project_stage" "nks_stage" {
 resource "ncloud_sourcedeploy_project_stage" "obj_stage" {
 	project_id  							= ncloud_sourcedeploy_project.project.id
 	name    								= "obj"
-	type    								= "ObjectStorage"
+	target_type    								= "ObjectStorage"
 	config {
 		bucket_name  						= "%[4]s"
 	}
@@ -221,18 +221,18 @@ resource "ncloud_sourcedeploy_project_stage_scenario" "server_normal" {
 			}
 		}
 		rollback 							= true
-		cmd {
-			pre {
+		deploy_command {
+			pre_deploy {
 				user  						= "root"
-				cmd   						= "echo pre"
+				command   						= "echo pre"
 			}
-			deploy {
+			path {
 				source_path 				= "/"
 				deploy_path 				= "/test"
 			}
-			post {
+			post_deploy {
 				user  						= "root"
-				cmd   						= "echo post"
+				command   						= "echo post"
 			}
 		}
 	}
@@ -253,18 +253,18 @@ resource "ncloud_sourcedeploy_project_stage_scenario" "asg_normal" {
 			}
 		}
 		rollback 							= true
-		cmd {
-			pre {
+		deploy_command {
+			pre_deploy {
 				user  						= "root"
-				cmd   						= "echo pre"
+				command   						= "echo pre"
 			}
-			deploy {
+			path {
 				source_path 				= "/"
 				deploy_path 				= "/test"
 			}
-			post {
+			post_deploy {
 				user  						= "root"
-				cmd   						= "echo post"
+				command   						= "echo post"
 			}
 		}
 	}
@@ -284,18 +284,18 @@ resource "ncloud_sourcedeploy_project_stage_scenario" "asg_bg" {
 			}
 		}
 		rollback 							= true
-		cmd {
-			pre {
+		deploy_command {
+			pre_deploy {
 				user  						= "root"
-				cmd   						= "echo pre"
+				command   						= "echo pre"
 			}
-			deploy {
+			path {
 				source_path 				= "/"
 				deploy_path 				= "/test"
 			}
-			post {
+			post_deploy {
 				user  						= "root"
-				cmd   						= "echo post"
+				command   						= "echo post"
 			}
 		}
 		load_balancer{
@@ -314,7 +314,7 @@ resource "ncloud_sourcedeploy_project_stage_scenario" "nks_rolling" {
 		strategy  							= "rolling"
 		manifest {
 			type    						= "SourceCommit"
-			repository 						= ncloud_sourcecommit_repository.test-repo.name
+			repository_name 						= ncloud_sourcecommit_repository.test-repo.name
 			branch    						= "master"
 			path      						= ["/deployment/prod.yaml"]
 		}
@@ -330,7 +330,7 @@ resource "ncloud_sourcedeploy_project_stage_scenario" "nks_bg" {
 		strategy  							= "blueGreen"
 		manifest {
 			type     						= "SourceCommit"
-			repository 						= ncloud_sourcecommit_repository.test-repo.name
+			repository_name 						= ncloud_sourcecommit_repository.test-repo.name
 			branch    						= "master"
 			path      						= ["/deployment/canary.yaml"]
 		}
@@ -346,7 +346,7 @@ resource "ncloud_sourcedeploy_project_stage_scenario" "nks_canary_manual" {
 		strategy  							= "canary"
 		manifest {
 			type     						= "SourceCommit"
-			repository	 					= ncloud_sourcecommit_repository.test-repo.name
+			repository_name	 					= ncloud_sourcecommit_repository.test-repo.name
 			branch    						= "master"
 			path      						= ["/deployment/canary.yaml"]
 		}
@@ -367,7 +367,7 @@ resource "ncloud_sourcedeploy_project_stage_scenario" "nks_canary_manual" {
 		strategy  						= "canary"
 		manifest {
 			type     					= "SourceCommit"
-			repository 					= ncloud_sourcecommit_repository.test-repo.name
+			repository_name 					= ncloud_sourcecommit_repository.test-repo.name
 			branch    					= "master"
 			path     					= ["test.yaml"]
 		}

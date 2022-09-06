@@ -93,12 +93,12 @@ func dataSourceNcloudSourceDeployScenarioContext() *schema.Resource {
 							Type:     schema.TypeBool,
 							Computed: true,
 						},
-						"cmd": {
+						"deploy_command": {
 							Type:     schema.TypeList,
 							Computed: true,
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
-									"pre": {
+									"pre_deploy": {
 										Type:     schema.TypeList,
 										Computed: true,
 										Elem: &schema.Resource{
@@ -107,14 +107,14 @@ func dataSourceNcloudSourceDeployScenarioContext() *schema.Resource {
 													Type:     schema.TypeString,
 													Computed: true,
 												},
-												"cmd"	:{
+												"command"	:{
 													Type:     schema.TypeString,
 													Computed: true,
 												},
 											},
 										},
 									},
-									"deploy": {
+									"path": {
 										Type:     schema.TypeList,
 										Computed: true,
 										Elem: &schema.Resource{
@@ -130,7 +130,7 @@ func dataSourceNcloudSourceDeployScenarioContext() *schema.Resource {
 											},
 										},
 									},
-									"post": {
+									"post_deploy": {
 										Type:     schema.TypeList,
 										Computed: true,
 										Elem: &schema.Resource{
@@ -139,7 +139,7 @@ func dataSourceNcloudSourceDeployScenarioContext() *schema.Resource {
 													Type:     schema.TypeString,
 													Computed: true,
 												},
-												"cmd"	:{
+												"command"	:{
 													Type:     schema.TypeString,
 													Computed: true,
 												},
@@ -178,7 +178,7 @@ func dataSourceNcloudSourceDeployScenarioContext() *schema.Resource {
 										Type:     schema.TypeString,
 										Computed: true,
 									},
-									"repository": {
+									"repository_name": {
 										Type:     schema.TypeString,
 										Computed: true,
 									},

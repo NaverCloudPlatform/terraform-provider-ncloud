@@ -135,15 +135,15 @@ resource "ncloud_sourcedeploy_project" "project" {
 resource "ncloud_sourcedeploy_project_stage" "svr_stage" {
 	project_id  						= ncloud_sourcedeploy_project.project.id
 	name    							= "%[5]s"
-	type    							= "Server"
+	target_type    							= "Server"
 	config {
-		server_no  						= [data.ncloud_server.server.id]
+		server_ids  						= [data.ncloud_server.server.id]
 	}
 }
 resource "ncloud_sourcedeploy_project_stage" "asg_stage" {
 	project_id  						= ncloud_sourcedeploy_project.project.id
 	name    							= "%[6]s"
-	type    							= "AutoScalingGroup"
+	target_type    							= "AutoScalingGroup"
 	config {
 		auto_scaling_group_no  			= data.ncloud_auto_scaling_group.asg.id
 	}
@@ -151,7 +151,7 @@ resource "ncloud_sourcedeploy_project_stage" "asg_stage" {
 resource "ncloud_sourcedeploy_project_stage" "nks_stage" {
 	project_id  						= ncloud_sourcedeploy_project.project.id
 	name    							= "%[7]s"
-	type    							= "KubernetesService"
+	target_type    							= "KubernetesService"
 	config {
 		cluster_uuid   					= "%[3]s"
 	}
@@ -159,7 +159,7 @@ resource "ncloud_sourcedeploy_project_stage" "nks_stage" {
 resource "ncloud_sourcedeploy_project_stage" "obj_stage" {
 	project_id  						= ncloud_sourcedeploy_project.project.id
 	name    							= "%[8]s"
-	type    							= "ObjectStorage"
+	target_type    							= "ObjectStorage"
 	config {
 	  bucket_name  						= "%[4]s"
 	}

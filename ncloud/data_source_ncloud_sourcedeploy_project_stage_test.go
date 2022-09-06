@@ -39,9 +39,9 @@ resource "ncloud_sourcedeploy_project" "sd_project" {
 resource "ncloud_sourcedeploy_project_stage" "svr_stage" {
 	project_id  						= ncloud_sourcedeploy_project.sd_project.id
 	name    							= "%[2]s"
-	type    							= "Server"
+	target_type    							= "Server"
 	config {
-		server_no  						= [data.ncloud_server.server.id]
+		server_ids  						= [data.ncloud_server.server.id]
 	}
 }
 

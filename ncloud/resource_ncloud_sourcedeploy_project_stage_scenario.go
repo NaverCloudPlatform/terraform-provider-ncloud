@@ -121,13 +121,13 @@ func resourceNcloudSourceDeployScenario() *schema.Resource {
 							Type:     schema.TypeBool,
 							Optional: true,
 						},
-						"cmd": {
+						"deploy_command": {
 							Type:     schema.TypeList,
 							Optional: true,
 							MaxItems: 1,
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
-									"pre": {
+									"pre_deploy": {
 										Type:     schema.TypeList,
 										Optional: true,
 										Elem: &schema.Resource{
@@ -136,14 +136,14 @@ func resourceNcloudSourceDeployScenario() *schema.Resource {
 													Type:     schema.TypeString,
 													Optional: true,
 												},
-												"cmd"	:{
+												"command"	:{
 													Type:     schema.TypeString,
 													Optional: true,
 												},
 											},
 										},
 									},
-									"deploy": {
+									"path": {
 										Type:     schema.TypeList,
 										Optional: true,
 										Elem: &schema.Resource{
@@ -159,7 +159,7 @@ func resourceNcloudSourceDeployScenario() *schema.Resource {
 											},
 										},
 									},
-									"post": {
+									"post_deploy": {
 										Type:     schema.TypeList,
 										Optional: true,
 										Elem: &schema.Resource{
@@ -168,7 +168,7 @@ func resourceNcloudSourceDeployScenario() *schema.Resource {
 													Type:     schema.TypeString,
 													Optional: true,
 												},
-												"cmd"	:{
+												"command"	:{
 													Type:     schema.TypeString,
 													Optional: true,
 												},
@@ -210,7 +210,7 @@ func resourceNcloudSourceDeployScenario() *schema.Resource {
 										Optional: true,
 										ValidateDiagFunc: ToDiagFunc(validation.StringInSlice([]string{"SourceCommit"}, false)),
 									},
-									"repository": {
+									"repository_name": {
 										Type:     schema.TypeString,
 										Optional: true,
 									},
@@ -568,7 +568,7 @@ func expandCmdPrePostParams(cmdPrePosts []interface{}) ([]*vsourcedeploy.Scenari
 			switch key {
 			case "user":
 				cmdPrePost.User = ncloud.String(value.(string))
-			case "cmd":
+			case "command":
 				cmdPrePost.Cmd = ncloud.String(value.(string))
 			}
 		}
@@ -600,23 +600,23 @@ func expandDeployPathParams(deployPaths []interface{}) ([]*vsourcedeploy.Scenari
 
 func getCmd(deployTargetType string, d *schema.ResourceData) (*vsourcedeploy.ScenarioConfigCmd, error){
 	if deployTargetType =="Server" || deployTargetType == "AutoScalingGroup" || deployTargetType == "ObjecStorage" {
-		pre, preErr := 		expandCmdPrePostParams(d.Get("config.0.cmd.0.pre").([]interface{}))
+		pre, preErr := 		expandCmdPrePostParams(d.Get("config.0.deploy_command.0.pre_deploy").([]interface{}))
 		if preErr != nil {
 			return nil, preErr
 		}
-		post, postErr := 	expandCmdPrePostParams(d.Get("config.0.cmd.0.post").([]interface{}))
+		post, postErr := 	expandCmdPrePostParams(d.Get("config.0.deploy_command.0.post_deploy").([]interface{}))
 		if postErr != nil {
 			return nil, postErr
 		}
-		deployPath, deployPathErr := expandDeployPathParams(d.Get("config.0.cmd.0.deploy").([]interface{}))
+		deployPath, deployPathErr := expandDeployPathParams(d.Get("config.0.deploy_command.0.path").([]interface{}))
 		if deployPathErr != nil {
 			return nil, deployPathErr
 		}
 
 		reqParams :=	vsourcedeploy.ScenarioConfigCmd{
-			Pre:						pre,
+			Pre:							pre,
 			Deploy:						deployPath,
-			Post:						post,
+			Post:							post,
 		}
 		return &reqParams, nil
 	}
@@ -644,7 +644,7 @@ func getManifest(deployTargetType string, d *schema.ResourceData) (*vsourcedeplo
 	if deployTargetType == "KubernetesService" {
 		reqParams :=	vsourcedeploy.ScenarioConfigManifest{
 			Type_:						StringPtrOrNil(d.GetOk("config.0.manifest.0.type")),
-			Repository:					StringPtrOrNil(d.GetOk("config.0.manifest.0.repository")),
+			Repository:					StringPtrOrNil(d.GetOk("config.0.manifest.0.repository_name")),
 			Branch:						StringPtrOrNil(d.GetOk("config.0.manifest.0.branch")),
 		}
 	
@@ -653,7 +653,7 @@ func getManifest(deployTargetType string, d *schema.ResourceData) (*vsourcedeplo
 		}
 
 		if reqParams.Type_ == nil || reqParams.Repository == nil || reqParams.Branch == nil || reqParams.Path == nil {
-			return nil, fmt.Errorf("config.manifest parameters(type, repository, branch, path) is required")
+			return nil, fmt.Errorf("config.manifest parameters(type, repository_name, branch, path) is required")
 		}
 		return &reqParams, nil
 	}
@@ -851,7 +851,7 @@ func makeScenarioConfig(config *vsourcedeploy.GetScenarioConfig) []interface{}{
 	values["strategy"] = ncloud.StringValue(config.Strategy)
 	values["file"] = makeConfigFile(config.File)
 	values["rollback"] = ncloud.BoolValue(config.Rollback)
-	values["cmd"] = makeConfigCmd(config.Cmd)
+	values["deploy_command"] = makeConfigCmd(config.Cmd)
 	values["load_balancer"] = makeConfigLoadBalancer(config.LoadBalancer)
 	values["manifest"] = makeConfigManifest(config.Manifest)
 	values["canary_config"] = makeConfigCanaryConfig(config.CanaryConfig)
@@ -902,9 +902,9 @@ func makeConfigCmd(cmd *vsourcedeploy.ScenarioConfigCmd)[]interface{}{
 	}
 	values := map[string]interface{}{}
 
-	values["pre"] = flattenCmdPrePost(cmd.Pre)
-	values["deploy"] = flattenCmdDeploy(cmd.Deploy)
-	values["post"] = flattenCmdPrePost(cmd.Post)
+	values["pre_deploy"] = flattenCmdPrePost(cmd.Pre)
+	values["path"] = flattenCmdDeploy(cmd.Deploy)
+	values["post_deploy"] = flattenCmdPrePost(cmd.Post)
 
 	return []interface{}{values}
 }
@@ -915,7 +915,7 @@ func flattenCmdPrePost(prePosts []*vsourcedeploy.ScenarioConfigCmdPrePost) []map
 	for _, prePost := range prePosts {
 		values := map[string]interface{}{}
 		values["user"] = ncloud.StringValue(prePost.User)
-		values["cmd"] = ncloud.StringValue(prePost.Cmd)
+		values["command"] = ncloud.StringValue(prePost.Cmd)
 
 		list = append(list, values)
 	}
@@ -958,7 +958,7 @@ func makeConfigManifest(manifest *vsourcedeploy.ScenarioConfigManifest)[]interfa
 	values := map[string]interface{}{}
 
 	values["type"] =  ncloud.StringValue(manifest.Type_)
-	values["repository"] =  ncloud.StringValue(manifest.Repository)
+	values["repository_name"] =  ncloud.StringValue(manifest.Repository)
 	values["branch"] =  ncloud.StringValue(manifest.Branch)
 	values["path"] =  ncloud.StringListValue(manifest.Path)
 
