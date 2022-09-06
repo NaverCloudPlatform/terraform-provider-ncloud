@@ -8,7 +8,7 @@ Provides a Sourcedeploy project resource.
 
 ```hcl
 resource "ncloud_sourcedeploy_project" "test-deploy-project" {
-	name = "test-deploy-project"
+  name = "test-deploy-project"
 }
 ```
 

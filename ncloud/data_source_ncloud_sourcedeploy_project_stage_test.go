@@ -27,7 +27,7 @@ func testAccDataSourceNcloudSourceDeployStageConfig(stageNameSvr string) string{
 	return fmt.Sprintf(`
 data "ncloud_server" "server" {
 	filter {
-		name = "name"
+		name   = "name"
 		values = ["%[1]s"]
 	}
 }
@@ -37,17 +37,17 @@ resource "ncloud_sourcedeploy_project" "sd_project" {
 }
 
 resource "ncloud_sourcedeploy_project_stage" "svr_stage" {
-	project_id  						= ncloud_sourcedeploy_project.sd_project.id
-	name    							= "%[2]s"
-	target_type    							= "Server"
+	project_id  = ncloud_sourcedeploy_project.sd_project.id
+	name        = "%[2]s"
+	target_type = "Server"
 	config {
-		server_ids  						= [data.ncloud_server.server.id]
+		server_ids = [data.ncloud_server.server.id]
 	}
 }
 
 data "ncloud_sourcedeploy_project_stage" "stage"{
-	project_id		= ncloud_sourcedeploy_project.sd_project.id
-	id		= ncloud_sourcedeploy_project_stage.svr_stage.id
+	project_id = ncloud_sourcedeploy_project.sd_project.id
+	id         = ncloud_sourcedeploy_project_stage.svr_stage.id
 }
 `, TF_TEST_SD_SERVER_NAME, stageNameSvr)
 }

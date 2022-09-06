@@ -10,47 +10,47 @@ In the example below, specific Sourcedeploy scenario name.
 
 ```hcl
 resource "ncloud_sourcedeploy_project" "project" {
-	name    								= "test-deploy-project"
+  name = "test-deploy-project"
 }
 
 resource "ncloud_sourcedeploy_project_stage" "svr_stage" {
-	project_id  							= ncloud_sourcedeploy_project.project.id
-	name    								= "test-deploy-stage"
-	target_type    								= "Server"
-	config {
-		server_ids  							= [1234]
-	}
+  project_id  = ncloud_sourcedeploy_project.project.id
+  name        = "test-deploy-stage"
+  target_type = "Server"
+  config {
+    server_ids = [1234]
+  }
 }
 
 resource "ncloud_sourcedeploy_project_stage_scenario" "server_normal" {
-	project_id  							= ncloud_sourcedeploy_project.project.id
-	stage_id    							= ncloud_sourcedeploy_project_stage.svr_stage.id
-	name    								= "test-deploy-scenario"
-	description   	 						= "test"
-	config {
-		strategy 							= "normal"
-		file {
-			type     						= "SourceBuild"
-			source_build {
-				id 							= 1234
-			}
-		}
-		rollback 							= true
-		deploy_command {
-			pre_deploy {
-				user  						= "root"
-				command   						= "echo pre"
-			}
-			path {
-				source_path 				= "/"
-				deploy_path 				= "/test"
-			}
-			post_deploy {
-				user  						= "root"
-				command   						= "echo post"
-			}
-		}
-	}
+  project_id  = ncloud_sourcedeploy_project.project.id
+  stage_id    = ncloud_sourcedeploy_project_stage.svr_stage.id
+  name        = "test-deploy-scenario"
+  description = "test"
+  config {
+    strategy = "normal"
+    file {
+      type = "SourceBuild"
+      source_build {
+        id = 1234
+      }
+    }
+    rollback = true
+    deploy_command {
+      pre_deploy {
+        user    = "root"
+        command = "echo pre"
+      }
+      path {
+        source_path = "/"
+        deploy_path = "/test"
+      }
+      post_deploy {
+        user    = "root"
+        command = "echo post"
+      }
+    }
+  }
 }
 
 
@@ -64,34 +64,34 @@ data "ncloud_sourcebuild_projects" "test-sourcebuild" {
 }
 
 resource "ncloud_sourcedeploy_project_stage_scenario" "server_normal" {
-	project_id  							= ncloud_sourcedeploy_project.project.id
-	stage_id    							= ncloud_sourcedeploy_project_stage.svr_stage.id
-	name    								= "test-deploy-scenario"
-	description   	 						= "test"
-	config {
-		strategy 							= "normal"
-		file {
-			type     						= "SourceBuild"
-			source_build {
-				id 							= data.ncloud_sourcebuild_projects.test-sourcebuild.projects[0].id
-			}
-		}
-		rollback 							= true
-		deploy_command {
-			pre_deploy {
-				user  						= "root"
-				command   						= "echo pre"
-			}
-			path {
-				source_path 				= "/"
-				deploy_path 				= "/test"
-			}
-			post_deploy {
-				user  						= "root"
-				command   						= "echo post"
-			}
-		}
-	}
+  project_id  = ncloud_sourcedeploy_project.project.id
+  stage_id    = ncloud_sourcedeploy_project_stage.svr_stage.id
+  name        = "test-deploy-scenario"
+  description = "test"
+  config {
+    strategy  = "normal"
+    file {
+      type = "SourceBuild"
+      source_build {
+        id = data.ncloud_sourcebuild_projects.test-sourcebuild.projects[0].id
+      }
+    }
+    rollback = true
+    deploy_command {
+      pre_deploy {
+        user    = "root"
+        command = "echo pre"
+      }
+      path {
+        source_path = "/"
+        deploy_path = "/test"
+      }
+      post_deploy {
+        user    = "root"
+        command = "echo post"
+      }
+    }
+  }
 }
 
 
@@ -112,9 +112,9 @@ The following arguments are supported:
             * `type` - (Required) File type.
             * `object_storage` - (Optional, Required if file.type is set to `ObjectStorage` ) Objectstorage config.
                 * `bucket` - (Required) The Name of ObjectStorage bucket.
-                * `object` - (Required) ObjectStorage object .
+                * `object` - (Required) ObjectStorage object . 
             * `source_build` - (Optional, Required if file.type is set to`SourceBuild` ) Sourcebuild config.
-                * `id` - (Required) The ID of SourceBiuld project. [`ncloud_sourcebuild_project` data source](../data-sources/sourcebuild_project.md)
+                * `id` - (Required) The ID of SourceBiuld project. [`ncloud_sourcebuild_project` data source](../data-sources/sourcebuild_project.md) 
         * `rollboack` - (Optional,  Required If stage type is set to `Server` or `AutoScalingGroup` ) Rollback on deployment failure.
         * `deploy_command` - (Optional) Commands to execute in deploy.
             * `pre_deploy` - (Optional) Commands before deploy.
@@ -131,11 +131,11 @@ The following arguments are supported:
             * `delete_server` - (Required) Whether to delete Servers in the auto scaling group.
         * `manifest` - (Optional, Required If stage type is set to `KubernetesService`) Manifest file for Kubernetesservice deployment.
             * `type` - (Required) Repository type.
-          	* `repository_name` - (Required) The name of repository.
+            * `repository_name` - (Required) The name of repository.
             * `branch` - (Required) The name of repository branch.
-              * `path` - (Required) File path.
+            * `path` - (Required) File path.
         * `canary_config` - (Optional, Required If stage type is set to `KubernetesService` &  strategy is set to `canary` ) config when deploying Kubernetesservice canary.
-			* `analysis_type` - (Required) Canary analysis method.
+            * `analysis_type` - (Required) Canary analysis method.
             * `canary_count` - (Required) Number of baseline and canary pod.
             * `timeout` - (Optional,  Required if canaryConfig.analysisType=`manual`) Maximum time of deployment/cancellation.
             * `prometheus` - (Optional, Required if canaryConfig.analysisType=`auto`) Prometheus Url.
@@ -146,7 +146,7 @@ The following arguments are supported:
                 * `name` - (Required) Metric name.
                 * `success_criteria` - (Required) Success criteria.
                 * `weight` - (Required) Weight.
-				* `query_type` - (Required) Query type.
+            * `query_type` - (Required) Query type.
                 * `metric` - (Optional, Required if canaryConfig.query_type is set to `default`  ) Metric.
                 * `filter` - (Optional,  Required if canaryConfig.query_type is set to`default` ) Filter.
                 * `query` - (Optional,  Required if canaryConfig.query_type is set to `promQL` ) Query.
@@ -155,8 +155,8 @@ The following arguments are supported:
                 * `delay` - (Required) Analysis delay time.
                 * `interval` - (Required) Analysis cycle.
                 * `step` - (Required) Metric collection cycle.
-            * `pass_score` - (Optional, Required if canaryConfig.analysisType=`auto`) Analysis success score.
-        * `path` - (Optional, Required If stage type is set to `ObjectStorage`) Deploy file.
+              * `pass_score` - (Optional, Required if canaryConfig.analysisType=`auto`) Analysis success score.
+        * `path` - (Optional, Required If stage type is set to `ObjectStorage`) Deploy file. 
             * `source_path` - (Required) Source file path.
             * `deploy_path` - (Required) Deploy Path.
 

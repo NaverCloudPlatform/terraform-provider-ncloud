@@ -25,11 +25,11 @@ func TestAccDataSourceNcloudSourceDeployStages(t *testing.T) {
 func testAccDataSourceNcloudSourceDeployStagesConfig() string{
 	return fmt.Sprintf(`
 resource "ncloud_sourcedeploy_project" "sd_project" {
-	name 			= "tf-test-project"
+	name = "tf-test-project"
 }
 
 data "ncloud_sourcedeploy_project_stages" stages{
-	project_id		= ncloud_sourcedeploy_project.sd_project.id
+	project_id = ncloud_sourcedeploy_project.sd_project.id
 }
 `)
 }

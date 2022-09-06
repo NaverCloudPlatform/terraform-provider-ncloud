@@ -8,37 +8,37 @@ Provides a Sourcedeploy stage resource.
 
 ```hcl
 resource "ncloud_sourcedeploy_project" "project" {
-	name    							= "test-deploy-project"
+  name = "test-deploy-project"
 }
 
 resource "ncloud_sourcedeploy_project_stage" "svr_stage" {
-	project_id	= ncloud_sourcedeploy_project.project.id
-	name				= "test-deploy-stage"
-	target_type	= "Server"
-	config {
-		server_ids	= [1234]
-	}
+  project_id   = ncloud_sourcedeploy_project.project.id
+  name         = "test-deploy-stage"
+  target_type  = "Server"
+  config {
+    server_ids = [1234]
+  }
 }
 
 ```
 
-```hcl
 Create Sourcedeploy stage by referring to data sources (retrieve server).
 
+```hcl
 data "ncloud_server" "server" {
-	filter {
-		name = "name"
-		values = ["test-server"]
-	}
+  filter {
+    name   = "name"
+    values = ["test-server"]
+  }
 }
 
 resource "ncloud_sourcedeploy_project_stage" "svr_stage" {
-	project_id		= ncloud_sourcedeploy_project.project.id
-	name					= "test-deploy-stage"
-	target_type		= "Server"
-	config {
-		server_ids	= [data.ncloud_server.server.id]
-	}
+  project_id  = ncloud_sourcedeploy_project.project.id
+  name        = "test-deploy-stage"
+  target_type = "Server"
+  config {
+    server_ids = [data.ncloud_server.server.id]
+  }
 }
 ```
 

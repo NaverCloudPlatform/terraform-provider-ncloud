@@ -10,12 +10,12 @@ In the example below, specific Sourcedeploy scenario name.
 
 ```hcl
 data "ncloud_sourcedeploy_project_stage_scenarios" "deploy_scenarios" {
-    project_id  = 1234
-    stage_id    = 1234
-    filter{
-        name    = "name"
-        values  = ["test"]
-    }
+  project_id = 1234
+  stage_id   = 1234
+  filter{
+    name   = "name"
+    values = ["test"]
+  }
 }
 
 output "deploy_scenarios_output" {

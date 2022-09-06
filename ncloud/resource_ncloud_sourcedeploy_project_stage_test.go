@@ -117,51 +117,51 @@ func testAccResourceNcloudSourceDeployStageSvrConfig(stageNameSvr string, stageN
 	return fmt.Sprintf(`
 data "ncloud_server" "server" {
 	filter {
-		name = "name"
+		name   = "name"
 		values = ["%[1]s"]
 	}
 }
 
 data "ncloud_auto_scaling_group" "asg" {
 	filter{
-		name    = "name"
-		values  = ["%[2]s"]
+		name   = "name"
+		values = ["%[2]s"]
 	}
 }
 resource "ncloud_sourcedeploy_project" "project" {
-	name    							= "tf-test-project"
+	name = "tf-test-project"
 }
 
 resource "ncloud_sourcedeploy_project_stage" "svr_stage" {
-	project_id  						= ncloud_sourcedeploy_project.project.id
-	name    							= "%[5]s"
-	target_type    							= "Server"
+	project_id  = ncloud_sourcedeploy_project.project.id
+	name        = "%[5]s"
+	target_type = "Server"
 	config {
-		server_ids  						= [data.ncloud_server.server.id]
+		server_ids = [data.ncloud_server.server.id]
 	}
 }
 resource "ncloud_sourcedeploy_project_stage" "asg_stage" {
-	project_id  						= ncloud_sourcedeploy_project.project.id
-	name    							= "%[6]s"
-	target_type    							= "AutoScalingGroup"
+	project_id  = ncloud_sourcedeploy_project.project.id
+	name    	= "%[6]s"
+	target_type = "AutoScalingGroup"
 	config {
-		auto_scaling_group_no  			= data.ncloud_auto_scaling_group.asg.id
+		auto_scaling_group_no = data.ncloud_auto_scaling_group.asg.id
 	}
 }
 resource "ncloud_sourcedeploy_project_stage" "nks_stage" {
-	project_id  						= ncloud_sourcedeploy_project.project.id
-	name    							= "%[7]s"
-	target_type    							= "KubernetesService"
+	project_id  = ncloud_sourcedeploy_project.project.id
+	name		= "%[7]s"
+	target_type = "KubernetesService"
 	config {
-		cluster_uuid   					= "%[3]s"
+		cluster_uuid = "%[3]s"
 	}
 }
 resource "ncloud_sourcedeploy_project_stage" "obj_stage" {
-	project_id  						= ncloud_sourcedeploy_project.project.id
-	name    							= "%[8]s"
-	target_type    							= "ObjectStorage"
+	project_id  = ncloud_sourcedeploy_project.project.id
+	name        = "%[8]s"
+	target_type = "ObjectStorage"
 	config {
-	  bucket_name  						= "%[4]s"
+	  bucket_name = "%[4]s"
 	}
 }
 `, TF_TEST_SD_SERVER_NAME, TF_TEST_SD_ASG_NAME, TF_TEST_SD_NKS_CLUSTER_UUID, TF_TEST_SD_OBJECTSTORAGE_BUCKET_NAME, 
