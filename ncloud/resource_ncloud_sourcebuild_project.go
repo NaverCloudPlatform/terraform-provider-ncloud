@@ -248,6 +248,9 @@ func resourceNcloudSourceBuildProject() *schema.Resource {
 									"key": {
 										Type:     schema.TypeString,
 										Required: true,
+										ValidateDiagFunc: ToDiagFunc(validation.All(
+											validation.StringMatch(regexp.MustCompile(`^[A-Za-z0-9_]+$`), "Composed of alphabets, numbers and underbar (_)"),
+										)),
 									},
 									"value": {
 										Type:     schema.TypeString,
@@ -650,6 +653,9 @@ func getCommonProjectParams(d *schema.ResourceData) (*sourcebuild.ChangeProject,
 	if *envDocker.Use && envDocker.Id == nil {
 		return nil, fmt.Errorf("env.docker_engine.id is required if env.docker_engine.use is true")
 	}
+	if !*envDocker.Use && envDocker.Id != nil {
+		return nil, fmt.Errorf("env.docker_engine.id must not be defined if env.docker_engine.use is false")
+	}
 
 	envVars, envErr := expandSourceBuildEnvVarsParams(d.Get("env.0.env_var").([]interface{}))
 	if envErr != nil {
@@ -674,7 +680,10 @@ func getCommonProjectParams(d *schema.ResourceData) (*sourcebuild.ChangeProject,
 	}
 
 	if *cmdDockerbuild.Use && (cmdDockerbuild.Dockerfile == nil || cmdDockerbuild.Registry == nil || cmdDockerbuild.Image == nil || cmdDockerbuild.Tag == nil) {
-		return nil, fmt.Errorf("build_command.docker_image_build parameters(dockerfile, registry, image, tag) are required if cmd.docker_image_build.use is true")
+		return nil, fmt.Errorf("build_command.docker_image_build parameters(dockerfile, registry, image, tag) are required if build_command.docker_image_build.use is true")
+	}
+	if !*cmdDockerbuild.Use && (cmdDockerbuild.Dockerfile != nil || cmdDockerbuild.Registry != nil || cmdDockerbuild.Image != nil || cmdDockerbuild.Tag != nil || *cmdDockerbuild.Latest) {
+		return nil, fmt.Errorf("build_command.docker_image_build parameters(dockerfile, registry, image, tag, latest) must not be defined if build_command.docker_image_build.use is false")
 	}
 
 	cmd := sourcebuild.ProjectCmd{
@@ -712,6 +721,9 @@ func getCommonProjectParams(d *schema.ResourceData) (*sourcebuild.ChangeProject,
 	if *artifact.Use && (len(artifact.Path) == 0 || artifactStorage.Bucket == nil || artifactStorage.Path == nil || artifactStorage.Filename == nil) {
 		return nil, fmt.Errorf("artifact.path and artifact.object_storage_to_upload parameters(bucket, path, filename) are required if artifact.use is true")
 	}
+	if !*artifact.Use && (artifact.Path != nil || artifactStorage.Bucket != nil || artifactStorage.Path != nil || artifactStorage.Filename != nil || *artifact.Backup) {
+		return nil, fmt.Errorf("artifact.path, artifact.backup and artifact.object_storage_to_upload parameters(bucket, path, filename) must not be defined if artifact.use is false")
+	}
 
 	cache := sourcebuild.ProjectCache{
 		Use:      ncloud.Bool(d.Get("build_image_upload.0.use").(bool)),
@@ -722,7 +734,10 @@ func getCommonProjectParams(d *schema.ResourceData) (*sourcebuild.ChangeProject,
 	}
 
 	if *cache.Use && (cache.Registry == nil || cache.Image == nil || cache.Tag == nil) {
-		return nil, fmt.Errorf("cache parameters(registry, image, tag) are required if cache.use is true")
+		return nil, fmt.Errorf("build_image_upload parameters(container_registry_name, image_name, tag) are required if build_image_upload.use is true")
+	}
+	if !*cache.Use && (cache.Registry != nil || cache.Image != nil || cache.Tag != nil || *cache.Latest) {
+		return nil, fmt.Errorf("build_image_upload parameters(container_registry_name, image_name, tag, latest) must not be defined if build_image_upload.use is false")
 	}
 
 	linked := sourcebuild.ProjectLinked{
