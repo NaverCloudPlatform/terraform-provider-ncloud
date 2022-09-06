@@ -504,7 +504,7 @@ func getScenarioConfig(deployTargetType string,d *schema.ResourceData) (*vsource
 	scenarioConfig :=	vsourcedeploy.ScenarioConfig{
 		Strategy:					StringPtrOrNil(d.GetOk("config.0.strategy")),
 		File:						file,
-		Rollback:					BoolPtrOrNil(d.GetOk("config.0.rollback")),
+		Rollback:					ncloud.Bool(d.Get("config.0.rollback").(bool)),
 		Cmd:						cmd,
 		LoadBalancer:				lb,
 		Manifest:					manifest,
@@ -644,7 +644,7 @@ func getLoadBalnacer(deployTargetType string, d *schema.ResourceData) (*vsourced
 	if deployTargetType == "AutoScalingGroup" && strategy == "blueGreen" {
 		reqParams :=	vsourcedeploy.ScenarioConfigLoadBalancer{
 			LoadBalancerTargetGroupNo:	Int32PtrOrNil(d.GetOk("config.0.load_balancer.0.load_balancer_target_group_no")),
-			DeleteServer:				BoolPtrOrNil(d.GetOk("config.0.load_balancer.0.delete_server")),
+			DeleteServer:				ncloud.Bool(d.Get("config.0.load_balancer.0.delete_server").(bool)),
 		}
 	
 		if reqParams.LoadBalancerTargetGroupNo == nil || reqParams.DeleteServer == nil {
