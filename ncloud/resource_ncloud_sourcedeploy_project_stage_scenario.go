@@ -4,6 +4,8 @@ import (
 	"context"
 	"fmt"
 	"regexp"
+	"strings"
+	"strconv"
 
 	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/ncloud"
 	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/services/vsourcedeploy"
@@ -23,7 +25,20 @@ func resourceNcloudSourceDeployScenario() *schema.Resource {
 		DeleteContext: resourceNcloudSourceDeployScenarioDelete,
 		UpdateContext: resourceNcloudSourceDeployScenarioUpdate,
 		Importer: &schema.ResourceImporter{
-			StateContext: schema.ImportStatePassthroughContext,
+			StateContext: func(ctx context.Context,d *schema.ResourceData, meta interface{}) ([]*schema.ResourceData, error) {
+				idParts := strings.Split(d.Id(), ":")
+				if len(idParts) != 3 || idParts[0] == "" || idParts[1] == "" || idParts[2] == ""{
+					return nil, fmt.Errorf("unexpected format of ID (%q), expected PROJECT_ID:STAGE_ID:SCENARIO_ID", d.Id())
+				}
+				projectId, _:= strconv.ParseInt(idParts[0], 10, 32)
+				stageId, _:= strconv.ParseInt(idParts[1], 10, 32)
+				scenarioId := idParts[2]
+
+				d.Set("project_id", projectId)
+				d.Set("stage_id", stageId)
+				d.SetId(scenarioId)
+				return []*schema.ResourceData{d}, nil
+			},
 		},
 			Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(DefaultTimeout),
