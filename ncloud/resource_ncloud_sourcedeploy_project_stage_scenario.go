@@ -150,10 +150,16 @@ func resourceNcloudSourceDeployScenario() *schema.Resource {
 												"user": {
 													Type:     schema.TypeString,
 													Optional: true,
+													ValidateDiagFunc: ToDiagFunc(validation.All(
+													 	validation.StringMatch(regexp.MustCompile(`(.|\s)*\S(.|\s)*`), `Cannot Spaces and empty strings`),
+													)),
 												},
 												"command"	:{
 													Type:     schema.TypeString,
 													Optional: true,
+													ValidateDiagFunc: ToDiagFunc(validation.All(
+														validation.StringMatch(regexp.MustCompile(`(.|\s)*\S(.|\s)*`), `Cannot Spaces and empty strings`),
+												 	)),
 												},
 											},
 										},
@@ -166,10 +172,16 @@ func resourceNcloudSourceDeployScenario() *schema.Resource {
 												"source_path": {
 													Type:     schema.TypeString,
 													Optional: true,
+													ValidateDiagFunc: ToDiagFunc(validation.All(
+														validation.StringMatch(regexp.MustCompile(`(.|\s)*\S(.|\s)*`), `Cannot Spaces and empty strings`),
+												 	)),
 												},
 												"deploy_path"	:{
 													Type:     schema.TypeString,
 													Optional: true,
+													ValidateDiagFunc: ToDiagFunc(validation.All(
+														validation.StringMatch(regexp.MustCompile(`(.|\s)*\S(.|\s)*`), `Cannot Spaces and empty strings`),
+												 	)),
 												},
 											},
 										},
@@ -182,10 +194,16 @@ func resourceNcloudSourceDeployScenario() *schema.Resource {
 												"user": {
 													Type:     schema.TypeString,
 													Optional: true,
+													ValidateDiagFunc: ToDiagFunc(validation.All(
+														validation.StringMatch(regexp.MustCompile(`(.|\s)*\S(.|\s)*`), `Cannot Spaces and empty strings`),
+												 	)),
 												},
 												"command"	:{
 													Type:     schema.TypeString,
 													Optional: true,
+													ValidateDiagFunc: ToDiagFunc(validation.All(
+														validation.StringMatch(regexp.MustCompile(`(.|\s)*\S(.|\s)*`), `Cannot Spaces and empty strings`),
+												 	)),
 												},
 											},
 										},
@@ -369,10 +387,16 @@ func resourceNcloudSourceDeployScenario() *schema.Resource {
 									"source_path": { 
 										Type:     schema.TypeString,
 										Optional: true,
+										ValidateDiagFunc: ToDiagFunc(validation.All(
+											validation.StringMatch(regexp.MustCompile(`(.|\s)*\S(.|\s)*`), `Cannot Spaces and empty strings`),
+									 	)),
 									},
 									"deploy_path": {
 										Type:     schema.TypeString,
 										Optional: true,
+										ValidateDiagFunc: ToDiagFunc(validation.All(
+											validation.StringMatch(regexp.MustCompile(`(.|\s)*\S(.|\s)*`), `Cannot Spaces and empty strings`),
+									 	)),
 									},
 								},
 							},
