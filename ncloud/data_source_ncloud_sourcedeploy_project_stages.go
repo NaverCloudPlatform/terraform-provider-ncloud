@@ -21,10 +21,6 @@ func dataSourceNcloudSourceDeployStagesContext() *schema.Resource {
 				Type:     schema.TypeInt,
 				Required: true,
 			},
-			"output_file": {
-				Type:     schema.TypeString,
-				Optional: true,
-			},
 			"filter": dataSourceFiltersSchema(),
 			"stages": {
 				Type:     schema.TypeList,
@@ -73,10 +69,6 @@ func dataSourceNcloudSourceDeployStagesReadContext(ctx context.Context, d *schem
 	}
 	d.SetId(config.RegionCode)
 	d.Set("stages", resources)
-
-	if output, ok := d.GetOk("output_file"); ok && output.(string) != "" {
-		return diag.FromErr(writeToFile(output.(string), resources))
-	}
 
 	return nil
 }

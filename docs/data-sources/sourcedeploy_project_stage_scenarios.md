@@ -30,7 +30,6 @@ The following arguments are supported:
 * `project_id` - (Required) The ID of Sourcedeploy project.
 * `stage_id` - (Required) The ID of Sourcedeploy stage.
 
-* `output_file` - (Optional) The name of file that can save data source after running `terraform plan`.
 * `filter` - (Optional) Custom filter block as described below.
     * `name` - (Required) The name of the field to filter by.
     * `values` - (Required) Set of values that are accepted for the given field.

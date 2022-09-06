@@ -25,10 +25,6 @@ func dataSourceNcloudSourceDeployscenariosContext() *schema.Resource {
 				Type:     schema.TypeInt,
 				Required: true,
 			},
-			"output_file": {
-				Type:     schema.TypeString,
-				Optional: true,
-			},
 			"filter": dataSourceFiltersSchema(),
 			"scenarios": {
 				Type:     schema.TypeList,
@@ -80,10 +76,6 @@ func dataSourceNcloudSourceDeployScenarioesReadContext(ctx context.Context, d *s
 	}
 	d.SetId(config.RegionCode)
 	d.Set("scenarios", resources)
-
-	if output, ok := d.GetOk("output_file"); ok && output.(string) != "" {
-		return diag.FromErr(writeToFile(output.(string), resources))
-	}
 
 	return nil
 }
