@@ -42,10 +42,8 @@ func resourceNcloudBlockStorage() *schema.Resource {
 
 		Schema: map[string]*schema.Schema{
 			"server_instance_no": {
-				Type: schema.TypeString,
-				// Required: true,
+				Type:     schema.TypeString,
 				Optional: true,
-				// Computed: true,
 			},
 			"size": {
 				Type:             schema.TypeInt,
@@ -119,6 +117,10 @@ func resourceNcloudBlockStorage() *schema.Resource {
 
 func resourceNcloudBlockStorageCreate(d *schema.ResourceData, meta interface{}) error {
 	config := meta.(*ProviderConfig)
+
+	if len(d.Get("server_instance_no").(string)) == 0 {
+		return fmt.Errorf("'server_instance_no' has to be present when ncloud_block_storage is first created.")
+	}
 
 	id, err := createBlockStorage(d, config)
 	if err != nil {
@@ -434,23 +436,6 @@ func deleteClassicBlockStorage(d *schema.ResourceData, config *ProviderConfig, i
 	}
 
 	resp, err := config.Client.server.V2Api.DeleteBlockStorageInstances(&reqParams)
-	// var resp *server.DeleteBlockStorageInstancesResponse
-	// err := resource.Retry(d.Timeout(schema.TimeoutDelete), func() *resource.RetryError {
-	// 	var err error
-
-	// 	logCommonRequest("deleteClassicBlockStorage", reqParams)
-	// 	resp, err = config.Client.server.V2Api.DeleteBlockStorageInstances(&reqParams)
-	// 	if err != nil {
-	// 		errBody, _ := GetCommonErrorBody(err)
-	// 		if errBody.ReturnCode == ApiErrorDetachingMountedStorage {
-	// 			logErrorResponse("retry deleteClassicBlockStorage", err, reqParams)
-	// 			time.Sleep(time.Second * 5)
-	// 			return resource.RetryableError(err)
-	// 		}
-	// 		return resource.NonRetryableError(err)
-	// 	}
-	// 	return nil
-	// })
 
 	if err != nil {
 		logErrorResponse("deleteClassicBlockStorage", err, reqParams)
@@ -467,24 +452,6 @@ func deleteVpcBlockStorage(d *schema.ResourceData, config *ProviderConfig, id st
 	}
 
 	resp, err := config.Client.vserver.V2Api.DeleteBlockStorageInstances(&reqParams)
-
-	// var resp *vserver.DeleteBlockStorageInstancesResponse
-	// err := resource.Retry(d.Timeout(schema.TimeoutDelete), func() *resource.RetryError {
-	// 	var err error
-
-	// 	logCommonRequest("deleteVpcBlockStorage", reqParams)
-	// 	resp, err = config.Client.vserver.V2Api.DeleteBlockStorageInstances(&reqParams)
-	// 	if err != nil {
-	// 		errBody, _ := GetCommonErrorBody(err)
-	// 		if errBody.ReturnCode == ApiErrorDetachingMountedStorage {
-	// 			logErrorResponse("retry deleteVpcBlockStorage", err, reqParams)
-	// 			time.Sleep(time.Second * 5)
-	// 			return resource.RetryableError(err)
-	// 		}
-	// 		return resource.NonRetryableError(err)
-	// 	}
-	// 	return nil
-	// })
 
 	if err != nil {
 		logErrorResponse("deleteVpcBlockStorage", err, reqParams)
