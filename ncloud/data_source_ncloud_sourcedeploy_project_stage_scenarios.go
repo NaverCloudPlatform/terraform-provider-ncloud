@@ -15,7 +15,7 @@ func init() {
 
 func dataSourceNcloudSourceDeployscenariosContext() *schema.Resource {
 	return &schema.Resource{
-		ReadContext: dataSourceNcloudSourceDeployScenarioesReadContext,
+		ReadContext: dataSourceNcloudSourceDeployScenariosReadContext,
 		Schema: map[string]*schema.Schema{
 			"project_id": {
 				Type:     schema.TypeInt,
@@ -46,7 +46,7 @@ func dataSourceNcloudSourceDeployscenariosContext() *schema.Resource {
 	}
 }
 
-func dataSourceNcloudSourceDeployScenarioesReadContext(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+func dataSourceNcloudSourceDeployScenariosReadContext(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	config := meta.(*ProviderConfig)
 
 	if !config.SupportVPC {
@@ -55,11 +55,11 @@ func dataSourceNcloudSourceDeployScenarioesReadContext(ctx context.Context, d *s
 
 	projectId := ncloud.IntString(d.Get("project_id").(int))
 	stageId := ncloud.IntString(d.Get("stage_id").(int))
-	resp, err := GetScenarioes(ctx, config, projectId, stageId)
+	resp, err := GetScenarios(ctx, config, projectId, stageId)
 	if err != nil {
 		return diag.FromErr(err)
 	}
-	logResponse("GetScenarioesList", resp)
+	logResponse("GetScenarios", resp)
 
 	resources := []map[string]interface{}{}
 	for _, r := range resp.ScenarioList {
@@ -80,17 +80,17 @@ func dataSourceNcloudSourceDeployScenarioesReadContext(ctx context.Context, d *s
 	return nil
 }
 
-func GetScenarioes(ctx context.Context, config *ProviderConfig, projectId *string, stageId *string)(*vsourcedeploy.GetScenarioListResponse, error) {
+func GetScenarios(ctx context.Context, config *ProviderConfig, projectId *string, stageId *string)(*vsourcedeploy.GetScenarioListResponse, error) {
 	
 	reqParams := make(map[string]interface{})
-	logCommonRequest("GetScenarioes", reqParams)
+	logCommonRequest("GetScenarios", reqParams)
 	resp, err := config.Client.vsourcedeploy.V1Api.GetScenarioes(ctx, projectId, stageId ,reqParams)
 
 	if err != nil {
-		logErrorResponse("GetScenarioes", err, "")
+		logErrorResponse("GetScenarios", err, "")
 		return nil, err
 	}
-	logResponse("GetScenarioes", resp)
+	logResponse("GetScenarios", resp)
 
 	return resp, nil
 }

@@ -7,13 +7,13 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 )
 
-func TestAccDataSourceNcloudSourceDeployScenarioes(t *testing.T) {
+func TestAccDataSourceNcloudSourceDeployScenarios(t *testing.T) {
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:  func() { testAccPreCheck(t) },
 		Providers: testAccProviders,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccDataSourceNcloudSourceDeployScenarioesConfig(),
+				Config: testAccDataSourceNcloudSourceDeployScenariosConfig(),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckDataSourceID("data.ncloud_sourcedeploy_project_stage_scenarios.scenarios"),
 				),
@@ -22,7 +22,7 @@ func TestAccDataSourceNcloudSourceDeployScenarioes(t *testing.T) {
 	})
 }
 
-func testAccDataSourceNcloudSourceDeployScenarioesConfig() string{
+func testAccDataSourceNcloudSourceDeployScenariosConfig() string{
 	return fmt.Sprintf(`
 data "ncloud_server" "server" {
 	filter {

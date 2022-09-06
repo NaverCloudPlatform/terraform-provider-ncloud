@@ -40,11 +40,11 @@ The following arguments are supported:
 
 The following attributes are exported:
 
-* `scenarioes` - The list of Sourcedeploy scenario.
+* `scenarios` - The list of Sourcedeploy scenario.
 
-### Scenarioes Reference
+### Scenarios Reference
 
-`scenarioes` are also exported with the following attributes, where relevant: Each element supports the following:
+`scenarios` are also exported with the following attributes, where relevant: Each element supports the following:
 
 * `id` - The ID of Sourcedeploy scenario.
 * `name` - The name of Sourcedeploy scenario.
