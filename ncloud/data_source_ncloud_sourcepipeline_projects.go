@@ -19,10 +19,6 @@ func dataSourceNcloudSourcePipelineProjects() *schema.Resource {
 	return &schema.Resource{
 		ReadContext: dataSourceNcloudSourcePipelineProjectsRead,
 		Schema: map[string]*schema.Schema{
-			"output_file": {
-				Type:     schema.TypeString,
-				Optional: true,
-			},
 			"filter": dataSourceFiltersSchema(),
 			"projects": {
 				Type:     schema.TypeList,
@@ -75,9 +71,6 @@ func dataSourceNcloudSourcePipelineProjectsRead(ctx context.Context, d *schema.R
 	d.SetId(time.Now().UTC().String())
 	d.Set("projects", resources)
 
-	if output, ok := d.GetOk("output_file"); ok && output.(string) != "" {
-		return diag.FromErr(writeToFile(output.(string), resources))
-	}
 	return nil
 }
 

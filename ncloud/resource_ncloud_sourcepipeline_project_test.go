@@ -65,7 +65,7 @@ func TestAccResourceNcloudSourcePipelineProject_classic_updateTaskName(t *testin
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckSourcePipelineProjectExists(resourceName, &project, testAccClassicProvider),
 					resource.TestCheckResourceAttr(resourceName, "name", name),
-					resource.TestCheckResourceAttr(resourceName, "tasks.0.name", "updated_task_name"),
+					resource.TestCheckResourceAttr(resourceName, "task.0.name", "updated_task_name"),
 				),
 			},
 			{
@@ -167,7 +167,7 @@ func TestAccResourceNcloudSourcePipelineProject_vpc_updateTaskName(t *testing.T)
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckSourcePipelineProjectExists(resourceName, &project, testAccProvider),
 					resource.TestCheckResourceAttr(resourceName, "name", name),
-					resource.TestCheckResourceAttr(resourceName, "tasks.0.name", "updated_task_name"),
+					resource.TestCheckResourceAttr(resourceName, "task.0.name", "updated_task_name"),
 				),
 			},
 			{
@@ -288,19 +288,18 @@ resource "ncloud_sourcebuild_project" "test-project" {
 resource "ncloud_sourcepipeline_project" "foo" {
 	name               = "%[1]s"
 	description        = "test pipeline project"
-	tasks {
+	task {
 		name 		   = "task_name"
 		type 		   = "SourceBuild"
 		config {
 		  project_id   = ncloud_sourcebuild_project.test-project.id
 		}
 		linked_tasks   = []
-	  }
-	trigger {
-		setting = true
+	}
+	triggers {
 		sourcecommit {
-		  repository = ncloud_sourcecommit_repository.test-repo.name
-		  branch     = "master"
+		  repository_name = ncloud_sourcecommit_repository.test-repo.name
+		  branch = "master"
 		}
 	}
 }
@@ -379,18 +378,17 @@ resource "ncloud_sourcebuild_project" "test-project" {
 resource "ncloud_sourcepipeline_project" "foo" {
 	name               = "%[1]s"
 	description        = "test pipeline project"
-	tasks {
+	task {
 		name 		   = "%[2]s"
 		type 		   = "SourceBuild"
 		config {
 			project_id   = ncloud_sourcebuild_project.test-project.id
 		}
 		linked_tasks   = []
-		}
-	trigger {
-		setting = true
+	}
+	triggers {
 		sourcecommit {
-			repository = ncloud_sourcecommit_repository.test-repo.name
+			repository_name = ncloud_sourcecommit_repository.test-repo.name
 			branch     = "master"
 		}
 	}
@@ -470,18 +468,17 @@ resource "ncloud_sourcebuild_project" "test-project" {
 resource "ncloud_sourcepipeline_project" "foo" {
 	name               = "%[1]s"
 	description        = "%[2]s"
-	tasks {
+	task {
 		name 		   = "task_name"
 		type 		   = "SourceBuild"
 		config {
 			project_id   = ncloud_sourcebuild_project.test-project.id
 		}
 		linked_tasks   = []
-		}
-	trigger {
-		setting = true
+	}
+	triggers {
 		sourcecommit {
-			repository = ncloud_sourcecommit_repository.test-repo.name
+			repository_name = ncloud_sourcecommit_repository.test-repo.name
 			branch     = "master"
 		}
 	}
@@ -561,18 +558,17 @@ resource "ncloud_sourcebuild_project" "test-project" {
 resource "ncloud_sourcepipeline_project" "foo" {
 	name               = "%[1]s"
 	description        = "test pipeline project"
-	tasks {
+	task {
 		name 		   = "task_name"
 		type 		   = "SourceBuild"
 		config {
 			project_id   = ncloud_sourcebuild_project.test-project.id
 		}
 		linked_tasks   = []
-		}
-	trigger {
-		setting = true
+	}
+	triggers {
 		sourcecommit {
-			repository = ncloud_sourcecommit_repository.test-repo.name
+			repository_name = ncloud_sourcecommit_repository.test-repo.name
 			branch     = "master"
 		}
 	}
@@ -652,18 +648,17 @@ resource "ncloud_sourcebuild_project" "test-project" {
 resource "ncloud_sourcepipeline_project" "foo" {
 	name               = "%[1]s"
 	description        = "test pipeline project"
-	tasks {
+	task {
 		name 		   = "%[2]s"
 		type 		   = "SourceBuild"
 		config {
 			project_id   = ncloud_sourcebuild_project.test-project.id
 		}
 		linked_tasks   = []
-		}
-	trigger {
-		setting = true
+	}
+	triggers {
 		sourcecommit {
-			repository = ncloud_sourcecommit_repository.test-repo.name
+			repository_name = ncloud_sourcecommit_repository.test-repo.name
 			branch     = "master"
 		}
 	}
@@ -743,18 +738,17 @@ resource "ncloud_sourcebuild_project" "test-project" {
 resource "ncloud_sourcepipeline_project" "foo" {
 	name               = "%[1]s"
 	description        = "%[2]s"
-	tasks {
+	task {
 		name 		   = "task_name"
 		type 		   = "SourceBuild"
 		config {
 			project_id   = ncloud_sourcebuild_project.test-project.id
 		}
 		linked_tasks   = []
-		}
-	trigger {
-		setting = true
+	}
+	triggers {
 		sourcecommit {
-			repository = ncloud_sourcecommit_repository.test-repo.name
+			repository_name = ncloud_sourcecommit_repository.test-repo.name
 			branch     = "master"
 		}
 	}

@@ -25,7 +25,7 @@ data "ncloud_sourcedeploy_project_stage_scenarios" "test-sourcedeploy_scenarios"
 
 resource "ncloud_sourcepipeline_project" "test-sourcepipeline" {
   name = "tf-sourcepipeline_project-test"
-  tasks {
+  task {
     name = "task_name_1"
     type = "SourceBuild"
     config {
@@ -36,7 +36,7 @@ resource "ncloud_sourcepipeline_project" "test-sourcepipeline" {
     }
     linked_tasks = []
   }
-  tasks {
+  task {
     name = "task_name_2"
     type = "SourceDeploy"
     config {
@@ -46,10 +46,9 @@ resource "ncloud_sourcepipeline_project" "test-sourcepipeline" {
     }
     linked_tasks = ["task_name_1"]
   }
-  trigger {
-    setting = true
+  triggers {
     sourcecommit {
-      repository = ncloud_sourcecommit_repository.test-sourcecommit.name
+      repository_name = ncloud_sourcecommit_repository.test-sourcecommit.name
       branch     = "master"
     }
   }

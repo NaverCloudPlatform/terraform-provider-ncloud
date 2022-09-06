@@ -28,7 +28,7 @@ func dataSourceNcloudSourcePipelineProject() *schema.Resource {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
-			"tasks": {
+			"task": {
 				Type:     schema.TypeList,
 				Computed: true,
 				Elem: &schema.Resource{
@@ -67,7 +67,7 @@ func dataSourceNcloudSourcePipelineProject() *schema.Resource {
 													Type:     schema.TypeString,
 													Computed: true,
 												},
-												"repository": {
+												"repository_name": {
 													Type:     schema.TypeString,
 													Computed: true,
 												},
@@ -107,21 +107,17 @@ func dataSourceNcloudSourcePipelineProject() *schema.Resource {
 					},
 				},
 			},
-			"trigger": {
+			"triggers": {
 				Type:     schema.TypeList,
 				Computed: true,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
-						"setting": {
-							Type:     schema.TypeBool,
-							Computed: true,
-						},
 						"sourcecommit": {
 							Type:     schema.TypeList,
 							Computed: true,
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
-									"repository": {
+									"repository_name": {
 										Type:     schema.TypeString,
 										Computed: true,
 									},

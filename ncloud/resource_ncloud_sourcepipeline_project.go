@@ -49,7 +49,7 @@ func resourceNcloudSourcePipeline() *schema.Resource {
 				Optional:         true,
 				ValidateDiagFunc: ToDiagFunc(validation.StringLenBetween(1, 500)),
 			},
-			"tasks": {
+			"task": {
 				Type:     schema.TypeList,
 				Required: true,
 				Elem: &schema.Resource{
@@ -98,7 +98,7 @@ func resourceNcloudSourcePipeline() *schema.Resource {
 													Type:     schema.TypeString,
 													Computed: true,
 												},
-												"repository": {
+												"repository_name": {
 													Type:     schema.TypeString,
 													Computed: true,
 												},
@@ -139,22 +139,18 @@ func resourceNcloudSourcePipeline() *schema.Resource {
 					},
 				},
 			},
-			"trigger": {
+			"triggers": {
 				Type:     schema.TypeList,
 				Required: true,
 				MaxItems: 1,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
-						"setting": {
-							Type:     schema.TypeBool,
-							Required: true,
-						},
 						"sourcecommit": {
 							Type:     schema.TypeList,
 							Optional: true,
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
-									"repository": {
+									"repository_name": {
 										Type:     schema.TypeString,
 										Required: true,
 									},
@@ -196,7 +192,7 @@ func resourceNcloudSourcePipelineRead(ctx context.Context, d *schema.ResourceDat
 		d.SetId("")
 		return nil
 	}
-	tasks, diags := makeTaskData(config, pipelineProject.Tasks)
+	tasks, diags := makeTaskData(config, pipelineProject.Task)
 	if diags.HasError() {
 		return diags
 	}
@@ -204,8 +200,8 @@ func resourceNcloudSourcePipelineRead(ctx context.Context, d *schema.ResourceDat
 	d.SetId(*ncloud.Int32String(ncloud.Int32Value(pipelineProject.Id)))
 	d.Set("name", pipelineProject.Name)
 	d.Set("description", pipelineProject.Description)
-	d.Set("tasks", tasks)
-	d.Set("trigger", makeTriggerData(pipelineProject.Trigger))
+	d.Set("task", tasks)
+	d.Set("triggers", makeTriggerData(pipelineProject.Triggers))
 
 	return diags
 }
@@ -247,15 +243,11 @@ func createClassicPipelineProject(d *schema.ResourceData, config *ProviderConfig
 	if paramErr != nil {
 		return nil, paramErr
 	}
-	triggerParams, paramErr := makeClassicPipelineTriggerParams(d)
-	if paramErr != nil {
-		return nil, paramErr
-	}
 	reqParams := &sourcepipeline.CreateProject{
 		Name:        ncloud.String(d.Get("name").(string)),
 		Description: StringPtrOrNil(d.GetOk("description")),
 		Tasks:       tasksParams,
-		Trigger:     triggerParams,
+		Trigger:     makeClassicPipelineTriggerParams(d),
 	}
 
 	logCommonRequest("createSourcePipelineProject", reqParams)
@@ -274,15 +266,11 @@ func createVpcPipelineProject(d *schema.ResourceData, config *ProviderConfig) (*
 	if paramErr != nil {
 		return nil, paramErr
 	}
-	triggerParams, paramErr := makeVpcPipelineTriggerParams(d)
-	if paramErr != nil {
-		return nil, paramErr
-	}
 	reqParams := &vsourcepipeline.CreateProject{
 		Name:        ncloud.String(d.Get("name").(string)),
 		Description: StringPtrOrNil(d.GetOk("description")),
 		Tasks:       tasksParams,
-		Trigger:     triggerParams,
+		Trigger:     makeVpcPipelineTriggerParams(d),
 	}
 
 	logCommonRequest("createSourcePipelineProject", reqParams)
@@ -343,14 +331,10 @@ func updateClassicPipelineProject(ctx context.Context, d *schema.ResourceData, c
 	if paramErr != nil {
 		return paramErr
 	}
-	triggerParams, paramErr := makeClassicPipelineTriggerParams(d)
-	if paramErr != nil {
-		return paramErr
-	}
 	reqParams := &sourcepipeline.ChangeProject{
 		Description: ncloud.String(description.(string)),
 		Tasks:       tasksParams,
-		Trigger:     triggerParams,
+		Trigger:     makeClassicPipelineTriggerParams(d),
 	}
 
 	logCommonRequest("setSourcePipelineProject", reqParams)
@@ -373,14 +357,10 @@ func updateVpcPipelineProject(ctx context.Context, d *schema.ResourceData, confi
 	if paramErr != nil {
 		return paramErr
 	}
-	triggerParams, paramErr := makeVpcPipelineTriggerParams(d)
-	if paramErr != nil {
-		return paramErr
-	}
 	reqParams := &vsourcepipeline.ChangeProject{
 		Description: ncloud.String(description.(string)),
 		Tasks:       tasksParams,
-		Trigger:     triggerParams,
+		Trigger:     makeVpcPipelineTriggerParams(d),
 	}
 
 	logCommonRequest("setSourcePipelineProject", reqParams)
@@ -423,11 +403,11 @@ func deleteVpcPipelineProject(ctx context.Context, config *ProviderConfig, proje
 
 func makeClassicPipelineTaskParams(d *schema.ResourceData) ([]*sourcepipeline.CreateProjectTasks, diag.Diagnostics) {
 	var pipelineTaskParams []*sourcepipeline.CreateProjectTasks
-	taskCount := d.Get("tasks.#").(int)
+	taskCount := d.Get("task.#").(int)
 
 	for i := 0; i < taskCount; i++ {
 		var config *sourcepipeline.CreateProjectConfig
-		prefix := fmt.Sprintf("tasks.%d.", i)
+		prefix := fmt.Sprintf("task.%d.", i)
 
 		if d.Get(prefix+"type").(string) == "SourceBuild" {
 			if targetBranch, ok := d.GetOk(prefix + "config.0.target.0.repository_branch"); ok {
@@ -445,7 +425,7 @@ func makeClassicPipelineTaskParams(d *schema.ResourceData) ([]*sourcepipeline.Cr
 				}
 			}
 		} else {
-			return nil, diag.FromErr(NotSupportClassic("resource `ncloud_sourcedeploy_project`"))
+			return nil, diag.FromErr(NotSupportClassic("Invalid argument: \"SourceDeploy\" task "))
 		}
 
 		pipelineTaskParams = append(pipelineTaskParams, &sourcepipeline.CreateProjectTasks{
@@ -461,11 +441,11 @@ func makeClassicPipelineTaskParams(d *schema.ResourceData) ([]*sourcepipeline.Cr
 
 func makeVpcPipelineTaskParams(d *schema.ResourceData) ([]*vsourcepipeline.CreateProjectTasks, diag.Diagnostics) {
 	var pipelineTaskParams []*vsourcepipeline.CreateProjectTasks
-	taskCount := d.Get("tasks.#").(int)
+	taskCount := d.Get("task.#").(int)
 
 	for i := 0; i < taskCount; i++ {
 		var config *vsourcepipeline.CreateProjectConfig
-		prefix := fmt.Sprintf("tasks.%d.", i)
+		prefix := fmt.Sprintf("task.%d.", i)
 
 		if d.Get(prefix+"type").(string) == "SourceBuild" {
 			if targetBranch, ok := d.GetOk(prefix + "config.0.target.0.repository_branch"); ok {
@@ -501,37 +481,19 @@ func makeVpcPipelineTaskParams(d *schema.ResourceData) ([]*vsourcepipeline.Creat
 	return pipelineTaskParams, nil
 }
 
-func makeClassicPipelineTriggerParams(d *schema.ResourceData) (*sourcepipeline.CreateProjectTrigger, diag.Diagnostics) {
-	var diags diag.Diagnostics
+func makeClassicPipelineTriggerParams(d *schema.ResourceData) *sourcepipeline.CreateProjectTrigger {
 	var triggerTargets []*sourcepipeline.GetScTargetInfo
-	setting := d.Get("trigger.0.setting").(bool)
+	setting := false
 
-	if setting {
-		if _, ok := d.GetOk("trigger.0.sourcecommit"); ok {
-			triggerCount := d.Get("trigger.0.sourcecommit.#").(int)
-			for i := 0; i < triggerCount; i++ {
-				prefix := fmt.Sprintf("trigger.0.sourcecommit.%d.", i)
-				triggerTargets = append(triggerTargets, &sourcepipeline.GetScTargetInfo{
-					Repository: StringPtrOrNil(d.GetOk(prefix + "repository")),
-					Branch:     StringPtrOrNil(d.GetOk(prefix + "branch")),
-				})
-			}
-		} else {
-			diags = appendDiag(&diags, diag.Diagnostic{
-				Severity: diag.Error,
-				Summary:  "Invalid trigger",
-				Detail:   fmt.Sprintf("'trigger.sourcecommit' data should exists when 'trigger.setting' is true. Please check."),
+	if _, ok := d.GetOk("triggers.0.sourcecommit"); ok {
+		setting = true
+		triggerCount := d.Get("triggers.0.sourcecommit.#").(int)
+		for i := 0; i < triggerCount; i++ {
+			prefix := fmt.Sprintf("triggers.0.sourcecommit.%d.", i)
+			triggerTargets = append(triggerTargets, &sourcepipeline.GetScTargetInfo{
+				Repository: StringPtrOrNil(d.GetOk(prefix + "repository_name")),
+				Branch:     StringPtrOrNil(d.GetOk(prefix + "branch")),
 			})
-			return nil, diags
-		}
-	} else {
-		if _, ok := d.GetOk("trigger.0.sourcecommit"); ok {
-			diags = appendDiag(&diags, diag.Diagnostic{
-				Severity: diag.Error,
-				Summary:  "Invalid trigger",
-				Detail:   fmt.Sprintf("'trigger.sourcecommit' data should not exists when 'trigger.setting' is false. Please check."),
-			})
-			return nil, diags
 		}
 	}
 
@@ -539,41 +501,22 @@ func makeClassicPipelineTriggerParams(d *schema.ResourceData) (*sourcepipeline.C
 		Setting:      ncloud.Bool(setting),
 		Sourcecommit: triggerTargets,
 	}
-
-	return pipelineTrigger, nil
+	return pipelineTrigger
 }
 
-func makeVpcPipelineTriggerParams(d *schema.ResourceData) (*vsourcepipeline.CreateProjectTrigger, diag.Diagnostics) {
-	var diags diag.Diagnostics
+func makeVpcPipelineTriggerParams(d *schema.ResourceData) *vsourcepipeline.CreateProjectTrigger {
 	var triggerTargets []*vsourcepipeline.GetScTargetInfo
-	setting := d.Get("trigger.0.setting").(bool)
+	setting := false
 
-	if setting {
-		if _, ok := d.GetOk("trigger.0.sourcecommit"); ok {
-			triggerCount := d.Get("trigger.0.sourcecommit.#").(int)
-			for i := 0; i < triggerCount; i++ {
-				prefix := fmt.Sprintf("trigger.0.sourcecommit.%d.", i)
-				triggerTargets = append(triggerTargets, &vsourcepipeline.GetScTargetInfo{
-					Repository: StringPtrOrNil(d.GetOk(prefix + "repository")),
-					Branch:     StringPtrOrNil(d.GetOk(prefix + "branch")),
-				})
-			}
-		} else {
-			diags = appendDiag(&diags, diag.Diagnostic{
-				Severity: diag.Error,
-				Summary:  "Invalid trigger",
-				Detail:   fmt.Sprintf("'trigger.sourcecommit' data should exists when 'trigger.setting' is true. Please check."),
+	if _, ok := d.GetOk("triggers.0.sourcecommit"); ok {
+		setting = true
+		triggerCount := d.Get("triggers.0.sourcecommit.#").(int)
+		for i := 0; i < triggerCount; i++ {
+			prefix := fmt.Sprintf("triggers.0.sourcecommit.%d.", i)
+			triggerTargets = append(triggerTargets, &vsourcepipeline.GetScTargetInfo{
+				Repository: StringPtrOrNil(d.GetOk(prefix + "repository_name")),
+				Branch:     StringPtrOrNil(d.GetOk(prefix + "branch")),
 			})
-			return nil, diags
-		}
-	} else {
-		if _, ok := d.GetOk("trigger.0.sourcecommit"); ok {
-			diags = appendDiag(&diags, diag.Diagnostic{
-				Severity: diag.Error,
-				Summary:  "Invalid trigger",
-				Detail:   fmt.Sprintf("'trigger.sourcecommit' data should not exists when 'trigger.setting' is false. Please check."),
-			})
-			return nil, diags
 		}
 	}
 
@@ -581,8 +524,7 @@ func makeVpcPipelineTriggerParams(d *schema.ResourceData) (*vsourcepipeline.Crea
 		Setting:      ncloud.Bool(setting),
 		Sourcecommit: triggerTargets,
 	}
-
-	return pipelineTrigger, nil
+	return pipelineTrigger
 }
 
 func makeTaskData(config *ProviderConfig, tasks []*PipelineTask) ([]map[string]interface{}, diag.Diagnostics) {
@@ -611,7 +553,7 @@ func makeTaskData(config *ProviderConfig, tasks []*PipelineTask) ([]map[string]i
 				}
 			} else {
 				if !config.SupportVPC {
-					return nil, diag.FromErr(NotSupportClassic("resource `ncloud_sourcedeploy_project`"))
+					return nil, diag.FromErr(NotSupportClassic("Invalid argument: \"SourceDeploy\" task "))
 				}
 				taskConfig, err := makeDeployTaskConfig(task.Config)
 				if err != nil {
@@ -645,7 +587,7 @@ func makeBuildTaskConfig(taskConfig *PipelineTaskConfig) []map[string]interface{
 	if taskConfig != nil {
 		target := map[string]interface{}{
 			"type":              ncloud.StringValue(taskConfig.Target.Type_),
-			"repository":        ncloud.StringValue(taskConfig.Target.Info.Repository),
+			"repository_name":   ncloud.StringValue(taskConfig.Target.Info.RepositoryName),
 			"repository_branch": ncloud.StringValue(taskConfig.Target.Info.Branch),
 		}
 		config := map[string]interface{}{
@@ -664,11 +606,11 @@ func checkBuildTaskConfig(taskConfig *PipelineTaskConfig, buildTarget *sourcebui
 			Summary:  "Build target configuration have changed outside of Terraform.",
 			Detail:   fmt.Sprintf("Linked repository type has changed from %s to %s. Please check.", *taskConfig.Target.Type_, *buildTarget.Type_),
 		}
-	} else if *buildTarget.Config.Repository != *taskConfig.Target.Info.Repository {
+	} else if *buildTarget.Config.Repository != *taskConfig.Target.Info.RepositoryName {
 		return diag.Diagnostic{
 			Severity: diag.Warning,
 			Summary:  "Build target configuration have changed outside of Terraform.",
-			Detail:   fmt.Sprintf("Linked repository has changed from %s to %s. Please check.", *taskConfig.Target.Info.Repository, *buildTarget.Config.Repository),
+			Detail:   fmt.Sprintf("Linked repository has changed from %s to %s. Please check.", *taskConfig.Target.Info.RepositoryName, *buildTarget.Config.Repository),
 		}
 	}
 	return diag.Diagnostic{}
@@ -752,13 +694,12 @@ func makeTriggerData(triggerData *PipelineTrigger) []map[string]interface{} {
 		var triggerRepository []map[string]interface{}
 		for _, repo := range triggerData.Sourcecommit {
 			mapping := map[string]interface{}{
-				"repository": ncloud.StringValue(repo.Repository),
-				"branch":     ncloud.StringValue(repo.Branch),
+				"repository_name": ncloud.StringValue(repo.RepositoryName),
+				"branch":          ncloud.StringValue(repo.Branch),
 			}
 			triggerRepository = append(triggerRepository, mapping)
 		}
 		triggerInfo := map[string]interface{}{
-			"setting":      ncloud.BoolValue(triggerData.Setting),
 			"sourcecommit": triggerRepository,
 		}
 
@@ -795,12 +736,12 @@ func convertClassicPipelineProject(r *sourcepipeline.GetProjectDetailResponse) *
 		}
 
 		taskTargetInfo := &PipelineTaskTargetInfo{
-			Repository:  task.Config.Target.Info.Repository,
-			Branch:      task.Config.Target.Info.Branch,
-			ProjectName: task.Config.Target.Info.ProjectName,
-			File:        task.Config.Target.Info.File,
-			Manifest:    task.Config.Target.Info.Manifest,
-			Workspace:   bitBucketWorkspace,
+			RepositoryName: task.Config.Target.Info.Repository,
+			Branch:         task.Config.Target.Info.Branch,
+			ProjectName:    task.Config.Target.Info.ProjectName,
+			File:           task.Config.Target.Info.File,
+			Manifest:       task.Config.Target.Info.Manifest,
+			Workspace:      bitBucketWorkspace,
 		}
 
 		taskTarget := &PipelineTaskTarget{
@@ -823,25 +764,25 @@ func convertClassicPipelineProject(r *sourcepipeline.GetProjectDetailResponse) *
 			LinkedTasks: task.LinkedTasks,
 		}
 
-		project.Tasks = append(project.Tasks, ti)
+		project.Task = append(project.Task, ti)
 	}
 
-	trigger := &PipelineTrigger{
+	triggers := &PipelineTrigger{
 		Setting: r.Trigger.Setting,
 	}
 
 	if *r.Trigger.Setting {
 		for _, repositoryInfo := range r.Trigger.Sourcecommit {
 			ri := &PipelineTriggerSourceCommit{
-				Repository: repositoryInfo.Repository,
-				Branch:     repositoryInfo.Branch,
+				RepositoryName: repositoryInfo.Repository,
+				Branch:         repositoryInfo.Branch,
 			}
 
-			trigger.Sourcecommit = append(trigger.Sourcecommit, ri)
+			triggers.Sourcecommit = append(triggers.Sourcecommit, ri)
 		}
 	}
 
-	project.Trigger = trigger
+	project.Triggers = triggers
 
 	return project
 }
@@ -865,13 +806,13 @@ func convertVpcPipelineProject(r *vsourcepipeline.GetProjectDetailResponse) *Pip
 		}
 
 		taskTargetInfo := &PipelineTaskTargetInfo{
-			Repository:   task.Config.Target.Info.Repository,
-			Branch:       task.Config.Target.Info.Branch,
-			ProjectName:  task.Config.Target.Info.ProjectName,
-			File:         task.Config.Target.Info.File,
-			Manifest:     task.Config.Target.Info.Manifest,
-			FullManifest: task.Config.Target.Info.FullManifest,
-			Workspace:    bitBucketWorkspace,
+			RepositoryName: task.Config.Target.Info.Repository,
+			Branch:         task.Config.Target.Info.Branch,
+			ProjectName:    task.Config.Target.Info.ProjectName,
+			File:           task.Config.Target.Info.File,
+			Manifest:       task.Config.Target.Info.Manifest,
+			FullManifest:   task.Config.Target.Info.FullManifest,
+			Workspace:      bitBucketWorkspace,
 		}
 
 		taskTarget := &PipelineTaskTarget{
@@ -894,25 +835,25 @@ func convertVpcPipelineProject(r *vsourcepipeline.GetProjectDetailResponse) *Pip
 			LinkedTasks: task.LinkedTasks,
 		}
 
-		project.Tasks = append(project.Tasks, ti)
+		project.Task = append(project.Task, ti)
 	}
 
-	trigger := &PipelineTrigger{
+	triggers := &PipelineTrigger{
 		Setting: r.Trigger.Setting,
 	}
 
 	if *r.Trigger.Setting {
 		for _, repositoryInfo := range r.Trigger.Sourcecommit {
 			ri := &PipelineTriggerSourceCommit{
-				Repository: repositoryInfo.Repository,
-				Branch:     repositoryInfo.Branch,
+				RepositoryName: repositoryInfo.Repository,
+				Branch:         repositoryInfo.Branch,
 			}
 
-			trigger.Sourcecommit = append(trigger.Sourcecommit, ri)
+			triggers.Sourcecommit = append(triggers.Sourcecommit, ri)
 		}
 	}
 
-	project.Trigger = trigger
+	project.Triggers = triggers
 
 	return project
 }
@@ -924,9 +865,9 @@ type PipelineProject struct {
 
 	Description *string `json:"description,omitempty"`
 
-	Tasks []*PipelineTask `json:"tasks,omitempty"`
+	Task []*PipelineTask `json:"tasks,omitempty"`
 
-	Trigger *PipelineTrigger `json:"trigger,omitempty"`
+	Triggers *PipelineTrigger `json:"trigger,omitempty"`
 }
 
 type PipelineTask struct {
@@ -958,7 +899,7 @@ type PipelineTaskTarget struct {
 }
 
 type PipelineTaskTargetInfo struct {
-	Repository *string `json:"repository,omitempty"`
+	RepositoryName *string `json:"repository,omitempty"`
 
 	Branch *string `json:"branch,omitempty"`
 
@@ -986,7 +927,7 @@ type PipelineTrigger struct {
 }
 
 type PipelineTriggerSourceCommit struct {
-	Repository *string `json:"repository,omitempty"`
+	RepositoryName *string `json:"repository,omitempty"`
 
 	Branch *string `json:"branch,omitempty"`
 }

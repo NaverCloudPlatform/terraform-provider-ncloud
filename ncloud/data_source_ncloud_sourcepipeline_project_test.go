@@ -121,18 +121,17 @@ resource "ncloud_sourcebuild_project" "test-project" {
 resource "ncloud_sourcepipeline_project" "test-project" {
 	name               = "%[1]s"
 	description        = "%[2]s"
-	tasks {
+	task {
 		name 		   = "task_name"
 		type 		   = "SourceBuild"
 		config {
 			project_id   = ncloud_sourcebuild_project.test-project.id
 		}
 		linked_tasks   = []
-		}
-	trigger {
-		setting = true
+	}
+	triggers {
 		sourcecommit {
-			repository = ncloud_sourcecommit_repository.test-repo.name
+			repository_name = ncloud_sourcecommit_repository.test-repo.name
 			branch = "master"
 		}
 	}
