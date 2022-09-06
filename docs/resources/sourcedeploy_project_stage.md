@@ -48,7 +48,7 @@ The following arguments are supported:
 
 * `project_id` - (Required) The ID of Sourcedeploy project.
 * `name` - (Required) The name of stage.
-* `target_type` - (Required) The type of deploy target.
+* `target_type` - (Required) The type of deploy target. Accepted values: `Server`, `AutoScalingGroup`, `KubernetesService`, `ObjectStorage`.
 * `config` - (Required) The configuration of deploy target.
     * `server_ids` - (Optional, Required If type=`Server`) The no of server. [`ncloud_server` data source](../data-sources/server.md)
     * `auto_scaling_group_no` - (Optional, Required If type=`AutoScalingGroup`) The ID of Auto Scaling Group.  [`ncloud_auto_scaling_group` data source](../data-sources/auto_scaling_group.md)
@@ -59,4 +59,8 @@ The following arguments are supported:
 ## Attributes Reference
 
 * `id` - The ID of stage.
-* `name` - The name of stage.
+* `config` - (Required) The configuration of deploy target.
+    * `server_names` - The name of server.
+    * `auto_scaling_group_name` - The name of Auto Scaling Group.
+    * `cluster_name` - The name of Kubernetes Service Cluster.
+

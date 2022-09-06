@@ -30,7 +30,6 @@ The following arguments are supported:
 
 In addition to all arguments above, the following attributes are exported:
 
-* `id` - The ID of stage.
 * `name` - The name of stage.
 * `target_type` - The type of deploy target.
 * `config` - The configuration of deploy target.

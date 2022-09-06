@@ -106,62 +106,66 @@ The following arguments are supported:
 
 * `name` - (Required) The name of scenario.
 * `description` - (Optional) Sourcedeploy project description.
-    * `config` - (Required) scenario config.
-        * `strategy` - (Required) Deployment strategy.
-        * `file` - (Optional, Required If stage type is set to `Server` or `AutoScalingGroup` or `ObjectStorage`) Deployment file.
-            * `type` - (Required) File type.
-            * `object_storage` - (Optional, Required if file.type is set to `ObjectStorage` ) Objectstorage config.
-                * `bucket` - (Required) The Name of ObjectStorage bucket.
-                * `object` - (Required) ObjectStorage object . 
-            * `source_build` - (Optional, Required if file.type is set to`SourceBuild` ) Sourcebuild config.
-                * `id` - (Required) The ID of SourceBiuld project. [`ncloud_sourcebuild_project` data source](../data-sources/sourcebuild_project.md) 
-        * `rollboack` - (Optional,  Required If stage type is set to `Server` or `AutoScalingGroup` ) Rollback on deployment failure.
-        * `deploy_command` - (Optional) Commands to execute in deploy.
-            * `pre_deploy` - (Optional) Commands before deploy.
-                * `user` - (Required) Running Account.
-                * `command` - (Required) Run Command.
-            * `path` - (Optional) Deploy file.
-                * `source_path` - (Required) Source file path.
-                * `deploy_path` - (Required) Deploy Path.
-            * `post_deploy` - (Optional) Commands after deploy.
-                * `user` - (Required) Running Account.
-                * `command` - (Required) Run Command.
-        * `load_balancer` - (Optional, Required If stage type is set to `AutoScalingGroup` & strategy is set to `blueGreen`) Loadbalancer target group for blue-green deployment. 
-            * `load_balancer_target_group_no` - (Required) Loadbalancer Target Group no. [`ncloud_lb_target_group` data source](../data-sources/lb_target_group.md)
-            * `delete_server` - (Required) Whether to delete Servers in the auto scaling group.
-        * `manifest` - (Optional, Required If stage type is set to `KubernetesService`) Manifest file for Kubernetesservice deployment.
-            * `type` - (Required) Repository type.
-            * `repository_name` - (Required) The name of repository.
-            * `branch` - (Required) The name of repository branch.
-            * `path` - (Required) File path.
-        * `canary_config` - (Optional, Required If stage type is set to `KubernetesService` &  strategy is set to `canary` ) config when deploying Kubernetesservice canary.
-            * `analysis_type` - (Required) Canary analysis method.
-            * `canary_count` - (Required) Number of baseline and canary pod.
-            * `timeout` - (Optional,  Required if canaryConfig.analysisType=`manual`) Maximum time of deployment/cancellation.
-            * `prometheus` - (Optional, Required if canaryConfig.analysisType=`auto`) Prometheus Url.
-            * `env` - (Optional,  Required if canaryConfig.analysisType=`auto`) Analysis environment.
-                * `baseline` - (Required) Analysis environment variable > baseline.
-                * `canary` - (Required) Analysis environment variable > canary.
-            * `metrics` - (Optional, Required if canaryConfig.analysisType=`auto`) Metric.
-                * `name` - (Required) Metric name.
-                * `success_criteria` - (Required) Success criteria.
-                * `weight` - (Required) Weight.
-            * `query_type` - (Required) Query type.
-                * `metric` - (Optional, Required if canaryConfig.query_type is set to `default`  ) Metric.
-                * `filter` - (Optional,  Required if canaryConfig.query_type is set to`default` ) Filter.
-                * `query` - (Optional,  Required if canaryConfig.query_type is set to `promQL` ) Query.
-            * `analysis_config` - (Optional, Required if canaryConfig.analysisType is set to `auto` ) Analysis config.
-                * `duration` - (Required) Analysis time.
-                * `delay` - (Required) Analysis delay time.
-                * `interval` - (Required) Analysis cycle.
-                * `step` - (Required) Metric collection cycle.
-              * `pass_score` - (Optional, Required if canaryConfig.analysisType=`auto`) Analysis success score.
-        * `path` - (Optional, Required If stage type is set to `ObjectStorage`) Deploy file. 
+* `config` - (Required) scenario config.
+    * `strategy` - (Required) Deployment strategy. Accepted values: `normal`, `blueGreen`, `rolling`, `canary`.
+    * `file` - (Optional, Required If stage type is set to `Server` or `AutoScalingGroup` or `ObjectStorage`) Deployment file.
+        * `type` - (Required) File type. Accepted values: `SourceBuild`, `ObjectStorage`, `later`.
+        * `object_storage` - (Optional, Required if file.type is set to `ObjectStorage` ) Objectstorage config.
+            * `bucket` - (Required) The Name of ObjectStorage bucket.
+            * `object` - (Required) ObjectStorage object . 
+        * `source_build` - (Optional, Required if file.type is set to`SourceBuild` ) Sourcebuild config.
+            * `id` - (Required) The ID of SourceBiuld project. [`ncloud_sourcebuild_project` data source](../data-sources/sourcebuild_project.md) 
+    * `rollboack` - (Optional,  Required If stage type is set to `Server` or `AutoScalingGroup` ) Rollback on deployment failure.
+    * `deploy_command` - (Optional) Commands to execute in deploy.
+        * `pre_deploy` - (Optional) Commands before deploy.
+            * `user` - (Required) Running Account.
+            * `command` - (Required) Run Command.
+        * `path` - (Optional) Deploy file.
             * `source_path` - (Required) Source file path.
             * `deploy_path` - (Required) Deploy Path.
+        * `post_deploy` - (Optional) Commands after deploy.
+            * `user` - (Required) Running Account.
+            * `command` - (Required) Run Command.
+    * `load_balancer` - (Optional, Required If stage type is set to `AutoScalingGroup` & strategy is set to `blueGreen`) Loadbalancer target group for blue-green deployment. 
+        * `load_balancer_target_group_no` - (Required) Loadbalancer Target Group no. [`ncloud_lb_target_group` data source](../data-sources/lb_target_group.md)
+        * `delete_server` - (Required) Whether to delete Servers in the auto scaling group.
+    * `manifest` - (Optional, Required If stage type is set to `KubernetesService`) Manifest file for Kubernetesservice deployment.
+        * `type` - (Required) Repository type. Accepted values: `SourceCommit`.
+        * `repository_name` - (Required) The name of repository.
+        * `branch` - (Required) The name of repository branch.
+        * `path` - (Required) File path.
+    * `canary_config` - (Optional, Required If stage type is set to `KubernetesService` &  strategy is set to `canary` ) config when deploying Kubernetesservice canary.
+        * `analysis_type` - (Required) Canary analysis method. Accepted values: `manual`, `auto`.
+        * `canary_count` - (Required) Number of baseline and canary pod.
+        * `timeout` - (Optional,  Required if canaryConfig.analysisType=`manual`) Maximum time of deployment/cancellation.
+        * `prometheus` - (Optional, Required if canaryConfig.analysisType=`auto`) Prometheus Url.
+        * `env` - (Optional,  Required if canaryConfig.analysisType=`auto`) Analysis environment.
+            * `baseline` - (Required) Analysis environment variable > baseline.
+            * `canary` - (Required) Analysis environment variable > canary.
+        * `metrics` - (Optional, Required if canaryConfig.analysisType=`auto`) Metric.
+            * `name` - (Required) Metric name.
+            * `success_criteria` - (Required) Success criteria. Accepted values: `base`, `canary`.
+            * `weight` - (Required) Weight.
+        * `query_type` - (Required) Query type. Accepted values: `default`, `promQL`.
+            * `metric` - (Optional, Required if canaryConfig.query_type is set to `default`  ) Metric.
+            * `filter` - (Optional,  Required if canaryConfig.query_type is set to`default` ) Filter.
+            * `query` - (Optional,  Required if canaryConfig.query_type is set to `promQL` ) Query.
+        * `analysis_config` - (Optional, Required if canaryConfig.analysisType is set to `auto` ) Analysis config.
+            * `duration` - (Required) Analysis time.
+            * `delay` - (Required) Analysis delay time.
+            * `interval` - (Required) Analysis cycle.
+            * `step` - (Required) Metric collection cycle.
+          * `pass_score` - (Optional, Required if canaryConfig.analysisType=`auto`) Analysis success score.
+    * `path` - (Optional, Required If stage type is set to `ObjectStorage`) Deploy file. 
+        * `source_path` - (Required) Source file path.
+        * `deploy_path` - (Required) Deploy Path.
 
 
 ## Attributes Reference
 
 * `id` - The ID of scenario.
-* `name` - The name of scenario.
+* `config` - scenario config.
+        * `source_build` - Sourcebuild config.
+            * `name` - The name of SourceBuild project.
+    * `load_balancer` - Loadbalancer target group for blue-green deployment.
+        * `load_balancer_target_group_name` - The name of Loadbalancer Target Group.

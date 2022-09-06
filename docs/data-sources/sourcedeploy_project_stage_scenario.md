@@ -33,7 +33,6 @@ The following arguments are supported:
 
 In addition to all arguments above, the following attributes are exported:
 
-* `id` - The ID of scenario.
 * `name` - The name of scenario.
 * `description` - Sourcedeploy project description.
     * `config` - scenario config.

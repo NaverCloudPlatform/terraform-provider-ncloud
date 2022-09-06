@@ -21,5 +21,4 @@ The following arguments are supported:
 ## Attributes Reference
 
 * `id` - The ID of Sourcedeploy project.
-* `name` - The name of Sourcedeploy project.
 
