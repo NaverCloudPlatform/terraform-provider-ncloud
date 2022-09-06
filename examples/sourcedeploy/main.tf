@@ -32,7 +32,7 @@ data "ncloud_sourcebuild_projects" "test-sourcebuild" {
 
 resource "ncloud_sourcedeploy_project_stage_scenario" "server_normal" {
 	project_id  							= ncloud_sourcedeploy_project.project.id
-	stage_id    							= ncloud_sourcedeploy_stage.svr_stage.id
+	stage_id    							= ncloud_sourcedeploy_project_stage.svr_stage.id
 	name    								  = "test-deploy-scenario"
 	description   	 					= "test"
 	config {

@@ -110,8 +110,8 @@ The following arguments are supported:
     *   `type` - (Required) Task type. Select between SourceBuild and SourceDeploy. Accepted values: `SourceBuild` | `SourceDeploy` (`SourceDeploy` is available only in VPC environment).
     *   `config` - (Required) `config` block describes task configuration.
         *   `project_id` - (Required) Project Id of a task. Get avaliable values using the datasource `ncloud_sourcebuild_projects` or `ncloud_sourcedeploy_projects`
-        *   `stage_id` - (Optional, Required if `task.type` value is SourceDeploy) Stage Id of a task. Get avaliable values using the datasource `ncloud_sourcedeploy_stages`
-        *   `scenario_id` - (Optional, Required if `task.type` value is SourceDeploy) Scenario Id of a task. Get avaliable values using the datasource `ncloud_sourcedeploy_scenarioes`
+        *   `stage_id` - (Optional, Required if `task.type` value is SourceDeploy) Stage Id of a task. Get avaliable values using the datasource `ncloud_sourcedeploy_project_stages`
+        *   `scenario_id` - (Optional, Required if `task.type` value is SourceDeploy) Scenario Id of a task. Get avaliable values using the datasource `ncloud_sourcedeploy_project_stage_scenarios`
         *   `target`- (Optional) Target of a task job.
             *   `repository_branch` - (Optional) Target repository branch of SourceBuild task. Default : main branch of target repository
     *   `linked_tasks` - (Required) Linked tasks which has to be executed before.
