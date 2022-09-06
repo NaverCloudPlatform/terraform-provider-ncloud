@@ -1,4 +1,4 @@
-# Resource : ncloud_Sourcedeploy_projects
+# Resource : ncloud_sourcedeploy_project_stage_scenario
 
 -> **Note:** This resource is a beta release. Some features may change in the future.
 

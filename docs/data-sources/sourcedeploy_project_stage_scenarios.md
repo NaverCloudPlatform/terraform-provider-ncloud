@@ -1,4 +1,4 @@
-# Data Source: ncloud_Sourcedeploy_projects
+# Data Source: ncloud_sourcedeploy_project_stage_scenarios
 
 -> **Note:** This data source is a beta release. Some features may change in the future.
 
