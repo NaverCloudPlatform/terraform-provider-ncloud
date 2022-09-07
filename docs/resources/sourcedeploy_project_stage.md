@@ -18,7 +18,9 @@ resource "ncloud_sourcedeploy_project_stage" "svr_stage" {
   name         = "test-deploy-stage"
   target_type  = "Server"
   config {
-    server_ids = [1234]
+    server {
+      id = 1234
+    } 
   }
 }
 
@@ -39,7 +41,9 @@ resource "ncloud_sourcedeploy_project_stage" "svr_stage" {
   name        = "test-deploy-stage"
   target_type = "Server"
   config {
-    server_ids = [data.ncloud_server.server.id]
+    server {
+      id = data.ncloud_server.server.id
+    } 
   }
 }
 ```
@@ -52,7 +56,8 @@ The following arguments are supported:
 * `name` - (Required) The name of stage.
 * `target_type` - (Required) The type of deploy target. Accepted values: `Server`, `AutoScalingGroup`, `KubernetesService`, `ObjectStorage`.
 * `config` - (Required) The configuration of deploy target.
-    * `server_ids` - (Optional, Required If type=`Server`) The no of server. [`ncloud_server` data source](../data-sources/server.md)
+    * `server` - server 
+        * `id` - (Optional, Required If type=`Server`) The no of server. [`ncloud_server` data source](../data-sources/server.md)
     * `auto_scaling_group_no` - (Optional, Required If type=`AutoScalingGroup`) The ID of Auto Scaling Group.  [`ncloud_auto_scaling_group` data source](../data-sources/auto_scaling_group.md)
     * `cluster_uuid` - (Optional, Required If type=`KubernetesService`) The uuid of Kubernetes Service Cluster.  [`ncloud_nks_cluster` data source](../data-sources/nks_cluster.md)
     * `bucket_name` - (Optional, Required If type=`ObjectStorage`) The name of ObjectStorage bucket.
@@ -62,7 +67,8 @@ The following arguments are supported:
 
 * `id` - The ID of stage.
 * `config` - (Required) The configuration of deploy target.
-    * `server_names` - The name of server.
+    * `server` - server 
+        * `name` - The name of server.
     * `auto_scaling_group_name` - The name of Auto Scaling Group.
     * `cluster_name` - The name of Kubernetes Service Cluster.
 

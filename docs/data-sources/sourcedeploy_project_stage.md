@@ -35,8 +35,9 @@ In addition to all arguments above, the following attributes are exported:
 * `name` - The name of stage.
 * `target_type` - The type of deploy target.
 * `config` - The configuration of deploy target.
-    * `server_ids` - The no of server.
-    * `server_names` - The name of server.
+    * `server` - server
+        * `id` - The id of server.
+        * `name` - The name of server.
     * `auto_scaling_group_no` - The ID of Auto Scaling Group.
     * `auto_scaling_group_name` - The name of Auto Scaling Group.
     * `cluster_uuid` - The uuid of Kubernetes Service Cluster.
