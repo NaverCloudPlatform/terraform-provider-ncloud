@@ -174,7 +174,7 @@ func resourceNcloudPublicIpUpdate(d *schema.ResourceData, meta interface{}) erro
 				if err := associatedPublicIp(d, config); err != nil {
 					errBody, _ := GetCommonErrorBody(err)
 					if errBody.ReturnCode == "1003016" {
-						time.Sleep(1)
+						time.Sleep(time.Second * 1)
 						return resource.RetryableError(err)
 					}
 					return resource.NonRetryableError(err)
