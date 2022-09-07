@@ -77,6 +77,9 @@ func resourceNcloudSourceDeployStage() *schema.Resource {
 									"id": {
 										Type:     schema.TypeString,
 										Optional: true,
+										ValidateDiagFunc: ToDiagFunc(
+											validation.StringMatch(regexp.MustCompile(`^[0-9]+$`), `Only "numbers" can be entered.`),
+										),
 									},
 									"name": {
 										Type:     schema.TypeString,
