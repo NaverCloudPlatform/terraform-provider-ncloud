@@ -47,7 +47,7 @@ func resourceNcloudSourcePipeline() *schema.Resource {
 			"description": {
 				Type:             schema.TypeString,
 				Optional:         true,
-				ValidateDiagFunc: ToDiagFunc(validation.StringLenBetween(1, 500)),
+				ValidateDiagFunc: ToDiagFunc(validation.StringLenBetween(0, 500)),
 			},
 			"task": {
 				Type:     schema.TypeList,
