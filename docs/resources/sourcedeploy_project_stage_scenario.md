@@ -167,8 +167,8 @@ The following arguments are supported:
 
 * `id` - The ID of scenario.
 * `config` - scenario config.
-        * `source_build` - Sourcebuild config.
-            * `name` - The name of SourceBuild project.
+    * `source_build` - Sourcebuild config.
+        * `name` - The name of SourceBuild project.
     * `load_balancer` - Loadbalancer target group for blue-green deployment.
         * `load_balancer_target_group_name` - The name of Loadbalancer Target Group.
 
