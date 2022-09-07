@@ -615,7 +615,7 @@ func expandCmdPrePostParams(cmdPrePosts []interface{}) ([]*vsourcedeploy.Scenari
 		if ncloud.StringValue(cmdPrePost.User) == "" {
 			return nil, fmt.Errorf("please write config.deploy_command.pre_deploy.user or config.deploy_command.post_deploy.user")
 		}else if ncloud.StringValue(cmdPrePost.Cmd) == "" {
-			return nil, fmt.Errorf("please write config.deploy_command.pre_deploy.command or config.deploy_command.post_deploy.user")
+			return nil, fmt.Errorf("please write config.deploy_command.pre_deploy.command or config.deploy_command.post_deploy.command")
 		}
 		
 		list = append(list, cmdPrePost)
