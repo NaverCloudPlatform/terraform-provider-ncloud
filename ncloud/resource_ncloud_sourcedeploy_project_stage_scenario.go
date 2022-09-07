@@ -611,6 +611,13 @@ func expandCmdPrePostParams(cmdPrePosts []interface{}) ([]*vsourcedeploy.Scenari
 				cmdPrePost.Cmd = ncloud.String(value.(string))
 			}
 		}
+
+		if ncloud.StringValue(cmdPrePost.User) == "" {
+			return nil, fmt.Errorf("please write config.deploy_command.pre_deploy.user or config.deploy_command.post_deploy.user")
+		}else if ncloud.StringValue(cmdPrePost.Cmd) == "" {
+			return nil, fmt.Errorf("please write config.deploy_command.pre_deploy.command or config.deploy_command.post_deploy.user")
+		}
+		
 		list = append(list, cmdPrePost)
 	}
 
@@ -631,6 +638,13 @@ func expandDeployPathParams(deployPaths []interface{}) ([]*vsourcedeploy.Scenari
 				deployPath.DeployPath = ncloud.String(value.(string))
 			}
 		}
+
+		if ncloud.StringValue(deployPath.SourcePath) == "" {
+			return nil, fmt.Errorf("please write config.deploy_command.path.source_path or config.deploy_command.path.source_path")
+		}else if ncloud.StringValue(deployPath.DeployPath) == "" {
+			return nil, fmt.Errorf("please write config.deploy_command.path.deploy_path or config.deploy_command.path.deploy_path")
+		}
+
 		list = append(list, deployPath)
 	}
 
