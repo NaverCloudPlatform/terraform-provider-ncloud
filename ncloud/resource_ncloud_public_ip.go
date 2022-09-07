@@ -32,7 +32,6 @@ func resourceNcloudPublicIpInstance() *schema.Resource {
 			"server_instance_no": {
 				Type:     schema.TypeString,
 				Optional: true,
-				Computed: true,
 			},
 			"description": {
 				Type:             schema.TypeString,
@@ -124,6 +123,10 @@ func resourceNcloudPublicIpRead(d *schema.ResourceData, meta interface{}) error 
 		return err
 	}
 
+	if err := d.Set("server_instance_no", resource.ServerInstanceNo); err != nil {
+		return err
+	}
+
 	return nil
 }
 
@@ -167,9 +170,20 @@ func resourceNcloudPublicIpUpdate(d *schema.ResourceData, meta interface{}) erro
 		}
 
 		if len(n.(string)) > 0 {
-			if err := associatedPublicIp(d, config); err != nil {
+			if err := resource.Retry(time.Minute, func() *resource.RetryError {
+				if err := associatedPublicIp(d, config); err != nil {
+					errBody, _ := GetCommonErrorBody(err)
+					if errBody.ReturnCode == "1003016" {
+						time.Sleep(time.Second * 1)
+						return resource.RetryableError(err)
+					}
+					return resource.NonRetryableError(err)
+				}
+				return nil
+			}); err != nil {
 				return err
 			}
+
 		}
 	}
 
