@@ -33,7 +33,7 @@ data "ncloud_server" "server" {
 }
 
 resource "ncloud_sourcedeploy_project" "sd_project" {
-	name = "tf-test-project"
+	name = "tf-test-project2"
 }
 
 resource "ncloud_sourcedeploy_project_stage" "svr_stage" {
@@ -41,7 +41,9 @@ resource "ncloud_sourcedeploy_project_stage" "svr_stage" {
 	name        = "%[2]s"
 	target_type = "Server"
 	config {
-		server_ids = [data.ncloud_server.server.id]
+		server{
+			id = data.ncloud_server.server.id
+		} 
 	}
 }
 

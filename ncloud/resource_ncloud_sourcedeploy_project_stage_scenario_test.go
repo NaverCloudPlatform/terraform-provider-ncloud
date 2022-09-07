@@ -227,7 +227,9 @@ resource "ncloud_sourcedeploy_project_stage" "test-stage-svr" {
 	name	    = "svr"
 	target_type = "Server"
 	config {
-		server_ids = [data.ncloud_server.server.id]
+		server{
+			id = data.ncloud_server.server.id
+		}
 	}
 }
 resource "ncloud_sourcedeploy_project_stage" "test-stage-asg" {

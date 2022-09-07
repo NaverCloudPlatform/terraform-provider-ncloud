@@ -69,15 +69,21 @@ func resourceNcloudSourceDeployStage() *schema.Resource {
 				MaxItems: 1,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
-						"server_ids": {
+						"server": {
 							Type:     schema.TypeList,
 							Optional: true,
-							Elem:     &schema.Schema{Type: schema.TypeString},
-						},
-						"server_names": {
-							Type:     schema.TypeList,
-							Computed: true,
-							Elem:     &schema.Schema{Type: schema.TypeString},
+							Elem: &schema.Resource{
+								Schema: map[string]*schema.Schema{
+									"id": {
+										Type:     schema.TypeString,
+										Optional: true,
+									},
+									"name": {
+										Type:     schema.TypeString,
+										Computed: true,
+									},
+								},
+							},
 						},
 						"auto_scaling_group_no": {
 							Type:     schema.TypeInt,
@@ -210,11 +216,15 @@ func getDeployTarget(d *schema.ResourceData) (*vsourcedeploy.StageConfig, error)
 
 	switch deployTargetType {
 	case "Server":
-		if serverNo, ok := d.GetOk("config.0.server_ids"); ok {
-			deployTarget.ServerNo = expandStringInterfaceListToInt32List(serverNo.([]interface{}))
+		if server, ok := d.GetOk("config.0.server"); ok {
+			servers, err := expandServerParams(server.([]interface{}))
+			if err != nil{
+				return nil, err
+			}
+			deployTarget.ServerNo = servers
 		}
 		if deployTarget.ServerNo == nil {
-			return nil, fmt.Errorf("config(server_ids) is required")
+			return nil, fmt.Errorf("config(server.id) is required")
 		}
 	case "AutoScalingGroup":
 		deployTarget.AutoScalingGroupNo = Int32PtrOrNil(d.GetOk("config.0.auto_scaling_group_no"))
@@ -253,8 +263,7 @@ func makeStageConfig(config *vsourcedeploy.GetStageDetailResponseConfig) []inter
 	}
 	values := map[string]interface{}{}
 
-	values["server_ids"] = flattenInt32ListToStringList(config.ServerNo)
-	values["server_names"] = ncloud.StringListValue(config.ServerName)
+	values["server"] = flattenServer(config)
 	values["auto_scaling_group_no"] = ncloud.Int32Value(config.AutoScalingGroupNo)
 	values["auto_scaling_group_name"] = ncloud.StringValue(config.AutoScalingGroupName)
 	values["cluster_uuid"] = ncloud.StringValue(config.ClusterUuid)
@@ -284,4 +293,36 @@ func changeDeployStage(ctx context.Context, d *schema.ResourceData, config *Prov
 	logResponse("changeSourceDeployStage", resp)
 
 	return nil
+}
+
+func expandServerParams(servers []interface{}) ([]*int32, error) {
+	var list []*int32
+	for _, v := range servers {
+		for key, value := range v.(map[string]interface{}) {
+			switch key {
+			case "id":
+				id, err := strconv.Atoi(value.(string))
+				if err == nil {
+					list = append(list, ncloud.Int32(int32(id)))
+				}
+			}
+		}
+	}
+
+	return list, nil
+}
+
+
+func flattenServer(config *vsourcedeploy.GetStageDetailResponseConfig) []map[string]interface{} {
+	list := make([]map[string]interface{}, 0, len(config.ServerNo))
+
+	for i := 0; i < len(config.ServerNo); i++ {
+		values := map[string]interface{}{}
+		values["id"] = ncloud.StringValue(ncloud.Int32String(ncloud.Int32Value((config.ServerNo[i]))))
+		values["name"] = ncloud.StringValue(config.ServerName[i])
+
+		list = append(list, values)
+	}
+
+	return list
 }
