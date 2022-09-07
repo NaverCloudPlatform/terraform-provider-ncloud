@@ -19,7 +19,7 @@ resource "ncloud_sourcepipeline_project" "test-sourcepipeline" {
         name = "task_name_1"
         type = "SourceBuild"
         config {
-		    project_id   = 1234
+	    project_id   = 1234
             target {
                 repository_branch = "master"
             }
