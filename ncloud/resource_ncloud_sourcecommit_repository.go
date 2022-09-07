@@ -164,13 +164,11 @@ func resourceNcloudSourceCommitRepositoryUpdate(ctx context.Context, d *schema.R
 	if d.HasChanges("description", "file_safer") {
 		
 		reqParams := &sourcecommit.ChangeRepository{
-			Description: StringPtrOrNil(d.GetOk("description")),
+			Description: ncloud.String(d.Get("description").(string)),
 		}
 	
-		if fileSafer, ok := d.GetOk("file_safer"); ok {
-			reqParams.Linked = &sourcecommit.CreateRepositoryLinked{
-				FileSafer: BoolPtrOrNil(fileSafer, ok),
-			}
+		reqParams.Linked = &sourcecommit.CreateRepositoryLinked{
+			FileSafer: ncloud.Bool(d.Get("file_safer").(bool)),
 		}
 	
 		id := ncloud.String(d.Id())
