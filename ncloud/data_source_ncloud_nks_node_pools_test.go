@@ -10,7 +10,7 @@ import (
 func TestAccDataSourceNcloudNKSNodePools(t *testing.T) {
 
 	testClusterName := getTestClusterName()
-	k8sVersion := "1.21"
+	k8sVersion := "1.23"
 
 	region, clusterType, productType := getRegionAndNKSType()
 

@@ -12,7 +12,7 @@ func TestAccDataSourceNcloudNKSCluster(t *testing.T) {
 	dataName := "data.ncloud_nks_cluster.cluster"
 	resourceName := "ncloud_nks_cluster.cluster"
 	testClusterName := getTestClusterName()
-	k8sVersion := "1.21"
+	k8sVersion := "1.23"
 	region, clusterType, _ := getRegionAndNKSType()
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -38,6 +38,7 @@ func TestAccDataSourceNcloudNKSCluster(t *testing.T) {
 					resource.TestCheckResourceAttrPair(dataName, "public_network", resourceName, "public_network"),
 					resource.TestCheckResourceAttrPair(dataName, "subnet_no_list.#", resourceName, "subnet_no_list.#"),
 					resource.TestCheckResourceAttrPair(dataName, "subnet_no_list.0", resourceName, "subnet_no_list.0"),
+					resource.TestCheckResourceAttrPair(dataName, "acg_no", resourceName, "acg_no"),
 				),
 			},
 		},

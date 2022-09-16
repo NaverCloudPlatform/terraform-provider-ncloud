@@ -11,7 +11,7 @@ func TestAccDataSourceNcloudNKSKubeConfig(t *testing.T) {
 	dataName := "data.ncloud_nks_kube_config.kube_config"
 	resourceName := "ncloud_nks_cluster.cluster"
 	testClusterName := getTestClusterName()
-	k8sVersion := "1.21"
+	k8sVersion := "1.23"
 	region, clusterType, _ := getRegionAndNKSType()
 
 	resource.ParallelTest(t, resource.TestCase{

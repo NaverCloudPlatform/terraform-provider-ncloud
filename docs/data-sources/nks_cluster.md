@@ -40,3 +40,4 @@ In addition to all arguments above, the following attributes are exported:
 * `log` 
   * `audit` - Audit log availability.
 * `k8s_version` - Kubenretes version.
+* `acg_no` - The ID of cluster ACG.

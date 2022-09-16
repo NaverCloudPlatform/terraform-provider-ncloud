@@ -95,6 +95,46 @@ func resourceNcloudNKSNodePool() *schema.Resource {
 					},
 				},
 			},
+			"nodes": {
+				Type:     schema.TypeList,
+				Computed: true,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"name": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+						"instance_no": {
+							Type:     schema.TypeInt,
+							Computed: true,
+						},
+						"spec": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+						"private_ip": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+						"public_ip": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+						"node_status": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+						"container_version": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+						"kernel_version": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+					},
+				},
+			},
 		},
 	}
 }
@@ -164,6 +204,16 @@ func resourceNcloudNKSNodePoolRead(ctx context.Context, d *schema.ResourceData, 
 	if err := d.Set("autoscale", flattenNKSNodePoolAutoScale(nodePool.Autoscale)); err != nil {
 		log.Printf("[WARN] Error setting Autoscale set for (%s): %s", d.Id(), err)
 	}
+
+	nodes, err := getNKSNodePoolWorkerNodes(ctx, config, clusterUuid, nodePoolName)
+	if err != nil {
+		return diag.FromErr(err)
+	}
+
+	if err := d.Set("nodes", flattenNKSWorkerNodes(nodes)); err != nil {
+		log.Printf("[WARN] Error setting workerNodes set for (%s): %s", d.Id(), err)
+	}
+
 	return nil
 }
 
@@ -326,4 +376,27 @@ func NodePoolParseResourceID(id string) (string, string, error) {
 		return parts[0], parts[1], nil
 	}
 	return "", "", fmt.Errorf("unexpected format for ID (%[1]s), expected cluster-name%[2]snode-pool-name", id, NKSNodePoolIDSeparator)
+}
+
+func getNKSWorkerNodes(ctx context.Context, config *ProviderConfig, uuid string) ([]*vnks.WorkerNode, error) {
+	resp, err := config.Client.vnks.V2Api.ClustersUuidNodesGet(ctx, ncloud.String(uuid))
+	if err != nil {
+		return nil, err
+	}
+	return resp.Nodes, nil
+}
+
+func getNKSNodePoolWorkerNodes(ctx context.Context, config *ProviderConfig, uuid string, nodePoolName string) ([]*vnks.WorkerNode, error) {
+	var res []*vnks.WorkerNode
+	wns, err := getNKSWorkerNodes(ctx, config, uuid)
+	if err != nil {
+		return nil, err
+	}
+
+	for _, wn := range wns {
+		if ncloud.StringValue(wn.NodePoolName) == nodePoolName {
+			res = append(res, wn)
+		}
+	}
+	return res, nil
 }

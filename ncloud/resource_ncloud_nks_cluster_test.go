@@ -20,7 +20,7 @@ const TF_TEST_NKS_LOGIN_KEY = "tf-test-nks-login-key"
 func TestAccResourceNcloudNKSCluster_basic(t *testing.T) {
 	var cluster vnks.Cluster
 	name := getTestClusterName()
-	k8sVersion := "1.21"
+	k8sVersion := "1.23"
 	resourceName := "ncloud_nks_cluster.cluster"
 
 	region, clusterType, _ := getRegionAndNKSType()
@@ -54,7 +54,7 @@ func TestAccResourceNcloudNKSCluster_basic(t *testing.T) {
 func TestAccResourceNcloudNKSCluster_public_network(t *testing.T) {
 	var cluster vnks.Cluster
 	name := getTestClusterName()
-	k8sVersion := "1.21"
+	k8sVersion := "1.23"
 	resourceName := "ncloud_nks_cluster.cluster"
 
 	region, clusterType, _ := getRegionAndNKSType()
@@ -88,7 +88,7 @@ func TestAccResourceNcloudNKSCluster_public_network(t *testing.T) {
 
 func TestAccResourceNcloudNKSCluster_InvalidSubnet(t *testing.T) {
 	name := getTestClusterName()
-	k8sVersion := "1.21"
+	k8sVersion := "1.23"
 
 	region, clusterType, _ := getRegionAndNKSType()
 
@@ -99,7 +99,7 @@ func TestAccResourceNcloudNKSCluster_InvalidSubnet(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				Config:      testAccResourceNcloudNKSCluster_InvalidSubnetConfig(name, clusterType, k8sVersion, TF_TEST_NKS_LOGIN_KEY, region),
-				ExpectError: regexp.MustCompile("중 하나여야 합니다."),
+				ExpectError: regexp.MustCompile("Subnet is undefined"),
 			},
 		},
 	})

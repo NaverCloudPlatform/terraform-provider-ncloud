@@ -17,7 +17,7 @@ func TestAccResourceNcloudNKSNodePool_basic(t *testing.T) {
 	var nodePool vnks.NodePoolRes
 	clusterName := getTestClusterName()
 	resourceName := "ncloud_nks_node_pool.node_pool"
-	k8sVersion := "1.21"
+	k8sVersion := "1.23"
 	region, clusterType, productCode := getRegionAndNKSType()
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -47,7 +47,7 @@ func TestAccResourceNcloudNKSNodePool_publicNetwork(t *testing.T) {
 	var nodePool vnks.NodePoolRes
 	clusterName := getTestClusterName()
 	resourceName := "ncloud_nks_node_pool.node_pool"
-	k8sVersion := "1.21"
+	k8sVersion := "1.23"
 	region, clusterType, productCode := getRegionAndNKSType()
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -78,7 +78,7 @@ func TestAccResourceNcloudNKSNodePool_updateNodeCountAndAutoScale(t *testing.T) 
 	clusterName := getTestClusterName()
 	region, clusterType, productCode := getRegionAndNKSType()
 	resourceName := "ncloud_nks_node_pool.node_pool"
-	k8sVersion := "1.21"
+	k8sVersion := "1.23"
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -115,7 +115,7 @@ func TestAccResourceNcloudNKSNodePool_updateNodeCountAndAutoScale(t *testing.T) 
 func TestAccResourceNcloudNKSNodePool_invalidNodeCount(t *testing.T) {
 	clusterName := getTestClusterName()
 	region, clusterType, productCode := getRegionAndNKSType()
-	k8sVersion := "1.21"
+	k8sVersion := "1.23"
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
