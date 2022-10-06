@@ -698,7 +698,7 @@ func waitForBlockStorageOperationIsNull(config *ProviderConfig, id string) error
 	return nil
 }
 
-//BlockStorage Dto for block storage
+// BlockStorage Dto for block storage
 type BlockStorage struct {
 	BlockStorageInstanceNo  *string `json:"block_storage_no,omitempty"`
 	ServerInstanceNo        *string `json:"server_instance_no,omitempty"`

@@ -2,7 +2,7 @@ package ncloud
 
 import (
 	"context"
-	
+
 	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/ncloud"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
@@ -16,11 +16,11 @@ func dataSourceNcloudSourceDeployScenarioContext() *schema.Resource {
 	return &schema.Resource{
 		ReadContext: dataSourceNcloudSourceDeployScenarioReadContext,
 		Schema: map[string]*schema.Schema{
-			"project_id":{
+			"project_id": {
 				Type:     schema.TypeInt,
 				Required: true,
 			},
-			"stage_id":{
+			"stage_id": {
 				Type:     schema.TypeInt,
 				Required: true,
 			},
@@ -79,7 +79,7 @@ func dataSourceNcloudSourceDeployScenarioContext() *schema.Resource {
 													Type:     schema.TypeInt,
 													Computed: true,
 												},
-												"name" :{
+												"name": {
 													Type:     schema.TypeString,
 													Computed: true,
 												},
@@ -107,7 +107,7 @@ func dataSourceNcloudSourceDeployScenarioContext() *schema.Resource {
 													Type:     schema.TypeString,
 													Computed: true,
 												},
-												"command"	:{
+												"command": {
 													Type:     schema.TypeString,
 													Computed: true,
 												},
@@ -123,7 +123,7 @@ func dataSourceNcloudSourceDeployScenarioContext() *schema.Resource {
 													Type:     schema.TypeString,
 													Computed: true,
 												},
-												"deploy_path"	:{
+												"deploy_path": {
 													Type:     schema.TypeString,
 													Computed: true,
 												},
@@ -139,7 +139,7 @@ func dataSourceNcloudSourceDeployScenarioContext() *schema.Resource {
 													Type:     schema.TypeString,
 													Computed: true,
 												},
-												"command"	:{
+												"command": {
 													Type:     schema.TypeString,
 													Computed: true,
 												},
@@ -162,7 +162,7 @@ func dataSourceNcloudSourceDeployScenarioContext() *schema.Resource {
 										Type:     schema.TypeString,
 										Computed: true,
 									},
-									"delete_server"	:{
+									"delete_server": {
 										Type:     schema.TypeBool,
 										Computed: true,
 									},
@@ -237,32 +237,32 @@ func dataSourceNcloudSourceDeployScenarioContext() *schema.Resource {
 										Elem: &schema.Resource{
 											Schema: map[string]*schema.Schema{
 												"name": {
-													Type:             schema.TypeString,
-													Computed:         true,
+													Type:     schema.TypeString,
+													Computed: true,
 												},
 												"success_criteria": {
-													Type:             schema.TypeString,
-													Computed:         true,
+													Type:     schema.TypeString,
+													Computed: true,
 												},
 												"query_type": {
-													Type:             schema.TypeString,
-													Computed:         true,
+													Type:     schema.TypeString,
+													Computed: true,
 												},
 												"weight": {
-													Type:             schema.TypeInt,
-													Computed:         true,
+													Type:     schema.TypeInt,
+													Computed: true,
 												},
 												"metric": {
-													Type:             schema.TypeString,
-													Computed:         true,
+													Type:     schema.TypeString,
+													Computed: true,
 												},
 												"filter": {
-													Type:             schema.TypeString,
-													Computed:         true,
+													Type:     schema.TypeString,
+													Computed: true,
 												},
 												"query": {
-													Type:             schema.TypeString,
-													Computed:         true,
+													Type:     schema.TypeString,
+													Computed: true,
 												},
 											},
 										},

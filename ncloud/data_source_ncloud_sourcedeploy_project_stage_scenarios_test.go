@@ -22,7 +22,7 @@ func TestAccDataSourceNcloudSourceDeployScenarios(t *testing.T) {
 	})
 }
 
-func testAccDataSourceNcloudSourceDeployScenariosConfig() string{
+func testAccDataSourceNcloudSourceDeployScenariosConfig() string {
 	return fmt.Sprintf(`
 data "ncloud_server" "server" {
 	filter {

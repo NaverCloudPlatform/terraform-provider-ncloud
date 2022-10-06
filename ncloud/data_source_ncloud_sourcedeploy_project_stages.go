@@ -45,7 +45,6 @@ func dataSourceNcloudSourceDeployStagesContext() *schema.Resource {
 func dataSourceNcloudSourceDeployStagesReadContext(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	config := meta.(*ProviderConfig)
 
-
 	if !config.SupportVPC {
 		return diag.FromErr(NotSupportClassic("dataSource `ncloud_sourcedeploy_project_stages`"))
 	}
@@ -73,8 +72,8 @@ func dataSourceNcloudSourceDeployStagesReadContext(ctx context.Context, d *schem
 	return nil
 }
 
-func getStages(ctx context.Context, config *ProviderConfig, projectId *string)(*vsourcedeploy.GetStageListResponse, error) {
-	
+func getStages(ctx context.Context, config *ProviderConfig, projectId *string) (*vsourcedeploy.GetStageListResponse, error) {
+
 	reqParams := make(map[string]interface{})
 	logCommonRequest("getStages", reqParams)
 	resp, err := config.Client.vsourcedeploy.V1Api.GetStages(ctx, projectId, reqParams)

@@ -80,11 +80,11 @@ func dataSourceNcloudSourceDeployScenariosReadContext(ctx context.Context, d *sc
 	return nil
 }
 
-func GetScenarios(ctx context.Context, config *ProviderConfig, projectId *string, stageId *string)(*vsourcedeploy.GetScenarioListResponse, error) {
-	
+func GetScenarios(ctx context.Context, config *ProviderConfig, projectId *string, stageId *string) (*vsourcedeploy.GetScenarioListResponse, error) {
+
 	reqParams := make(map[string]interface{})
 	logCommonRequest("GetScenarios", reqParams)
-	resp, err := config.Client.vsourcedeploy.V1Api.GetScenarioes(ctx, projectId, stageId ,reqParams)
+	resp, err := config.Client.vsourcedeploy.V1Api.GetScenarioes(ctx, projectId, stageId, reqParams)
 
 	if err != nil {
 		logErrorResponse("GetScenarios", err, "")

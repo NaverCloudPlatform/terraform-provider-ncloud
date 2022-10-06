@@ -40,14 +40,14 @@ func resourceNcloudSourceCommitRepository() *schema.Resource {
 				ForceNew:         true,
 				ValidateDiagFunc: ToDiagFunc(validation.StringLenBetween(1, 100)),
 			},
-			"repository_no" : {
+			"repository_no": {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
 			"description": {
-				Type:     schema.TypeString,
-				Optional: true,
-				Computed: true,
+				Type:             schema.TypeString,
+				Optional:         true,
+				Computed:         true,
 				ValidateDiagFunc: ToDiagFunc(validation.StringLenBetween(0, 500)),
 			},
 			"creator": {
@@ -160,27 +160,26 @@ func resourceNcloudSourceCommitRepositoryRead(ctx context.Context, d *schema.Res
 func resourceNcloudSourceCommitRepositoryUpdate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	config := meta.(*ProviderConfig)
 
-
 	if d.HasChanges("description", "file_safer") {
-		
+
 		reqParams := &sourcecommit.ChangeRepository{
 			Description: ncloud.String(d.Get("description").(string)),
 		}
-	
+
 		reqParams.Linked = &sourcecommit.CreateRepositoryLinked{
 			FileSafer: ncloud.Bool(d.Get("file_safer").(bool)),
 		}
-	
+
 		id := ncloud.String(d.Id())
-	
+
 		logCommonRequest("resourceNcloudSourceCommitRepositoryUpdate", reqParams)
 		_, err := config.Client.sourcecommit.V1Api.ChangeRepository(ctx, reqParams, id)
-	
+
 		if err != nil {
 			logErrorResponse("resourceNcloudSourceCommitRepositoryUpdate", err, *id)
 			return diag.FromErr(err)
 		}
-	
+
 		logResponse("resourceNcloudSourceCommitRepositoryUpdate", id)
 	}
 
