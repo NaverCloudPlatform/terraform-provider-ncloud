@@ -2,9 +2,10 @@ package ncloud
 
 import (
 	"fmt"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"log"
 	"time"
+
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 
 	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/ncloud"
 	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/services/vpc"
@@ -374,7 +375,7 @@ func removeNetworkACLRule(d *schema.ResourceData, config *ProviderConfig, ruleTy
 
 		if err != nil {
 			errBody, _ := GetCommonErrorBody(err)
-			if errBody.ReturnCode == ApiErrorNetworkAclCantAccessaApropriate {
+			if containsInStringList(errBody.ReturnCode, []string{ApiErrorNetworkAclCantAccessaApropriate, ApiErrorNetworkAclRuleChangeIngRules}) {
 				logErrorResponse("retry RemoveNetworkAclRule", err, reqParams)
 				time.Sleep(time.Second * 5)
 				return resource.RetryableError(err)
