@@ -4,6 +4,8 @@ Provides an rule of ACG(Access Control Group) resource.
 
 ~> **NOTE:** This resource only supports VPC environment.
 
+~> **NOTE:** Do not create ACG(Access Control Group) Rule Resource more than once for the same ACG(Access Control Group) no. Doing so will cause a conflict of rule settings and occur an error, and rule settings will be deleted or overwritten.
+
 ~> **NOTE:** To performance, we recommend using one resource per ACG(Access Control Group). If you use multiple resources in a single ACG(Access Control Group), then can cause a slowdown.
 
 

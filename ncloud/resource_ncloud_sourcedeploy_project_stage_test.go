@@ -15,10 +15,13 @@ import (
 
 // Create Server Before SourceDeploy Test
 const TF_TEST_SD_SERVER_NAME = "server-name"
+
 // Create AutoScalingGroup Before SourceDeploy Test
 const TF_TEST_SD_ASG_NAME = "asg-name"
+
 // Create KubernetesService cluster Before SourceDeploy Test
 const TF_TEST_SD_NKS_CLUSTER_UUID = "cluster-uuid"
+
 // Create ObjectStorage bucket cluster Before SourceDeploy Test
 const TF_TEST_SD_OBJECTSTORAGE_BUCKET_NAME = "bucket-name"
 
@@ -34,19 +37,19 @@ func TestAccResourceNcloudSourceDeployStage_basic(t *testing.T) {
 	resourceNameObj := "ncloud_sourcedeploy_project_stage.test-stage-obj"
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) }, 
+		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckSourceDeployStageDestroy,
-		Steps: []resource.TestStep{ 
+		Steps: []resource.TestStep{
 			{
 				Config: testAccResourceNcloudSourceDeployStageConfig(stageNameSvr, stageNameAsg, stageNameNks, stageNameObj),
-				Check: resource.ComposeTestCheckFunc( 
+				Check: resource.ComposeTestCheckFunc(
 					testAccCheckSourceDeployStageExists(resourceNameSvr, &stage),
 					testAccCheckSourceDeployStageExists(resourceNameAsg, &stage),
 					testAccCheckSourceDeployStageExists(resourceNameNks, &stage),
 					testAccCheckSourceDeployStageExists(resourceNameObj, &stage),
-					resource.TestCheckResourceAttr(resourceNameSvr, "name", stageNameSvr), 
-					resource.TestCheckResourceAttr(resourceNameAsg, "name", stageNameAsg), 
+					resource.TestCheckResourceAttr(resourceNameSvr, "name", stageNameSvr),
+					resource.TestCheckResourceAttr(resourceNameAsg, "name", stageNameAsg),
 					resource.TestCheckResourceAttr(resourceNameNks, "name", stageNameNks),
 					resource.TestCheckResourceAttr(resourceNameObj, "name", stageNameObj),
 				),
@@ -92,14 +95,14 @@ func testAccCheckSourceDeployStageExists(n string, stage *vsourcedeploy.GetStage
 		}
 		projectId := ncloud.String(rs.Primary.Attributes["project_id"])
 		stageId := &rs.Primary.ID
-		resp, err := getSourceDeployStageById(context.Background(), config, projectId, stageId )
+		resp, err := getSourceDeployStageById(context.Background(), config, projectId, stageId)
 		if err != nil {
 			return err
 		}
 		stage = resp
 		return nil
 	}
-} 
+}
 
 func testAccNcloudSourceDeployStageImportStateIDFunc(resourceName string) resource.ImportStateIdFunc {
 	return func(s *terraform.State) (string, error) {
@@ -115,7 +118,7 @@ func testAccNcloudSourceDeployStageImportStateIDFunc(resourceName string) resour
 }
 
 func testAccCheckSourceDeployStageDestroy(s *terraform.State) error {
-	config := testAccProvider.Meta().(*ProviderConfig) 
+	config := testAccProvider.Meta().(*ProviderConfig)
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "ncloud_sourcedeploy_project_stage" {
@@ -128,11 +131,11 @@ func testAccCheckSourceDeployStageDestroy(s *terraform.State) error {
 			return projectErr
 		}
 
-		if project == nil{
+		if project == nil {
 			return nil
 		}
-		
-		stages, stageErr := getStages(context.Background(), config, projectId )
+
+		stages, stageErr := getStages(context.Background(), config, projectId)
 		if stageErr != nil {
 			return stageErr
 		}
@@ -146,7 +149,6 @@ func testAccCheckSourceDeployStageDestroy(s *terraform.State) error {
 
 	return nil
 }
-
 
 func testAccResourceNcloudSourceDeployStageConfig(stageNameSvr string, stageNameAsg string, stageNameNks string, stageNameObj string) string {
 	return fmt.Sprintf(`
@@ -201,8 +203,8 @@ resource "ncloud_sourcedeploy_project_stage" "test-stage-obj" {
 	  bucket_name = "%[4]s"
 	}
 }
-`, TF_TEST_SD_SERVER_NAME, TF_TEST_SD_ASG_NAME, TF_TEST_SD_NKS_CLUSTER_UUID, TF_TEST_SD_OBJECTSTORAGE_BUCKET_NAME, 
-stageNameSvr, stageNameAsg, stageNameNks, stageNameObj)
+`, TF_TEST_SD_SERVER_NAME, TF_TEST_SD_ASG_NAME, TF_TEST_SD_NKS_CLUSTER_UUID, TF_TEST_SD_OBJECTSTORAGE_BUCKET_NAME,
+		stageNameSvr, stageNameAsg, stageNameNks, stageNameObj)
 }
 
 func getTestSourceDeployStageName() string {

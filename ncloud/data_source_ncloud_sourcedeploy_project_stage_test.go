@@ -23,7 +23,7 @@ func TestAccDataSourceNcloudSourceDeployStage(t *testing.T) {
 	})
 }
 
-func testAccDataSourceNcloudSourceDeployStageConfig(stageNameSvr string) string{
+func testAccDataSourceNcloudSourceDeployStageConfig(stageNameSvr string) string {
 	return fmt.Sprintf(`
 data "ncloud_server" "server" {
 	filter {

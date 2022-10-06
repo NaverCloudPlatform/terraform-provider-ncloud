@@ -119,7 +119,7 @@ func init() {
 	}
 }
 
-//RegisterDataSource Register data sources terraform for NAVER CLOUD PLATFORM.
+// RegisterDataSource Register data sources terraform for NAVER CLOUD PLATFORM.
 func RegisterDataSource(name string, DataSourceSchema *schema.Resource) {
 	if NcloudDataSources == nil {
 		NcloudDataSources = make(map[string]*schema.Resource)
@@ -127,7 +127,7 @@ func RegisterDataSource(name string, DataSourceSchema *schema.Resource) {
 	NcloudDataSources[name] = DataSourceSchema
 }
 
-//RegisterResource Register resources terraform for NAVER CLOUD PLATFORM.
+// RegisterResource Register resources terraform for NAVER CLOUD PLATFORM.
 func RegisterResource(name string, resourceSchema *schema.Resource) {
 	if NcloudResources == nil {
 		NcloudResources = make(map[string]*schema.Resource)
@@ -135,12 +135,12 @@ func RegisterResource(name string, resourceSchema *schema.Resource) {
 	NcloudResources[name] = resourceSchema
 }
 
-//DataSourcesMap This returns a map of all data sources to register with Terraform
+// DataSourcesMap This returns a map of all data sources to register with Terraform
 func DataSourcesMap() map[string]*schema.Resource {
 	return NcloudDataSources
 }
 
-//ResourcesMap This returns a map of all resources to register with Terraform
+// ResourcesMap This returns a map of all resources to register with Terraform
 func ResourcesMap() map[string]*schema.Resource {
 	return NcloudResources
 }
