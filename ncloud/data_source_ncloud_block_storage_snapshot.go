@@ -173,7 +173,7 @@ func convertVpcSnapshotInstance(r *vserver.BlockStorageSnapshotInstance) *BlockS
 	}
 }
 
-//BlockStorageSnapshot Dto for block storage snapshot
+// BlockStorageSnapshot Dto for block storage snapshot
 type BlockStorageSnapshot struct {
 	SnapshotNo             *string `json:"snapshot_no,omitempty"`
 	Name                   *string `json:"name,omitempty"`

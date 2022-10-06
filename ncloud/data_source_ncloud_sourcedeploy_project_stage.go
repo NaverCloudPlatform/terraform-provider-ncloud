@@ -2,7 +2,7 @@ package ncloud
 
 import (
 	"context"
-	
+
 	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/ncloud"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
@@ -16,7 +16,7 @@ func dataSourceNcloudSourceDeployStageContext() *schema.Resource {
 	return &schema.Resource{
 		ReadContext: dataSourceNcloudSourceDeployStageReadContext,
 		Schema: map[string]*schema.Schema{
-			"project_id":{
+			"project_id": {
 				Type:     schema.TypeInt,
 				Required: true,
 			},

@@ -508,7 +508,6 @@ func testAccNcloudSourceDeployScenarioImportStateIDFunc(resourceName string) res
 	}
 }
 
-
 func testAccCheckSourceDeployScenarioDestroy(s *terraform.State) error {
 	config := testAccProvider.Meta().(*ProviderConfig)
 

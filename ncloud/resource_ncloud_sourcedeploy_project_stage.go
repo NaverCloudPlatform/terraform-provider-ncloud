@@ -1,11 +1,11 @@
 package ncloud
 
 import (
-	"fmt"
 	"context"
-	"strings"
+	"fmt"
 	"regexp"
 	"strconv"
+	"strings"
 
 	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/ncloud"
 	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/services/vsourcedeploy"
@@ -25,12 +25,12 @@ func resourceNcloudSourceDeployStage() *schema.Resource {
 		DeleteContext: resourceNcloudSourceDeployStageDelete,
 		UpdateContext: resourceNcloudSourceDeployStageUpdate,
 		Importer: &schema.ResourceImporter{
-			StateContext: func(ctx context.Context,d *schema.ResourceData, meta interface{}) ([]*schema.ResourceData, error) {
+			StateContext: func(ctx context.Context, d *schema.ResourceData, meta interface{}) ([]*schema.ResourceData, error) {
 				idParts := strings.Split(d.Id(), ":")
 				if len(idParts) != 2 || idParts[0] == "" || idParts[1] == "" {
 					return nil, fmt.Errorf("unexpected format of ID (%q), expected PROJECT_ID:STAGE_ID", d.Id())
 				}
-				projectId, _:= strconv.ParseInt(idParts[0], 10, 32)
+				projectId, _ := strconv.ParseInt(idParts[0], 10, 32)
 				stageId := idParts[1]
 
 				d.Set("project_id", projectId)
@@ -45,7 +45,7 @@ func resourceNcloudSourceDeployStage() *schema.Resource {
 			Delete: schema.DefaultTimeout(DefaultTimeout),
 		},
 		Schema: map[string]*schema.Schema{
-			"project_id":{
+			"project_id": {
 				Type:     schema.TypeInt,
 				Required: true,
 				ForceNew: true,
@@ -59,8 +59,8 @@ func resourceNcloudSourceDeployStage() *schema.Resource {
 				)),
 			},
 			"target_type": {
-				Type:     schema.TypeString,
-				Required: true,
+				Type:             schema.TypeString,
+				Required:         true,
 				ValidateDiagFunc: ToDiagFunc(validation.StringInSlice([]string{"Server", "AutoScalingGroup", "KubernetesService", "ObjectStorage"}, false)),
 			},
 			"config": {
@@ -117,13 +117,13 @@ func resourceNcloudSourceDeployStage() *schema.Resource {
 
 func resourceNcloudSourceDeployStageCreate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	config := meta.(*ProviderConfig)
-	
+
 	if !config.SupportVPC {
 		return diag.FromErr(NotSupportClassic("resource `ncloud_sourcedeploy_project_stage`"))
 	}
 
 	reqParams, paramsErr := getStage(d)
-	if paramsErr != nil{
+	if paramsErr != nil {
 		return diag.FromErr(paramsErr)
 	}
 	projectId := ncloud.IntString(d.Get("project_id").(int))
@@ -140,7 +140,6 @@ func resourceNcloudSourceDeployStageCreate(ctx context.Context, d *schema.Resour
 
 	return resourceNcloudSourceDeployStageRead(ctx, d, meta)
 }
-
 
 func resourceNcloudSourceDeployStageRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	config := meta.(*ProviderConfig)
@@ -159,11 +158,11 @@ func resourceNcloudSourceDeployStageRead(ctx context.Context, d *schema.Resource
 		d.SetId("")
 		return nil
 	}
-	
+
 	d.SetId(*ncloud.IntString(int(ncloud.Int32Value(stage.Id))))
 	d.Set("name", stage.Name)
 	d.Set("target_type", stage.Type_)
-	d.Set("config",makeStageConfig(stage.Config))
+	d.Set("config", makeStageConfig(stage.Config))
 
 	return nil
 }
@@ -198,22 +197,21 @@ func resourceNcloudSourceDeployStageDelete(ctx context.Context, d *schema.Resour
 	return nil
 }
 
-
-func getStage(d *schema.ResourceData) (*vsourcedeploy.CreateStage, error){
-	deployTarget,  deployTargetErr := getDeployTarget(d)
+func getStage(d *schema.ResourceData) (*vsourcedeploy.CreateStage, error) {
+	deployTarget, deployTargetErr := getDeployTarget(d)
 	if deployTargetErr != nil {
 		return nil, deployTargetErr
 	}
 	reqParams := &vsourcedeploy.CreateStage{
-		Name:              	StringPtrOrNil(d.GetOk("name")),
-		Type_:				StringPtrOrNil(d.GetOk("target_type")),
-		Config:				deployTarget,
+		Name:   StringPtrOrNil(d.GetOk("name")),
+		Type_:  StringPtrOrNil(d.GetOk("target_type")),
+		Config: deployTarget,
 	}
 	return reqParams, nil
 }
 
-func getDeployTarget(d *schema.ResourceData) (*vsourcedeploy.StageConfig, error){
-	deployTarget :=	vsourcedeploy.StageConfig{}
+func getDeployTarget(d *schema.ResourceData) (*vsourcedeploy.StageConfig, error) {
+	deployTarget := vsourcedeploy.StageConfig{}
 
 	deployTargetType := ncloud.StringValue(StringPtrOrNil(d.GetOk("target_type")))
 
@@ -221,7 +219,7 @@ func getDeployTarget(d *schema.ResourceData) (*vsourcedeploy.StageConfig, error)
 	case "Server":
 		if server, ok := d.GetOk("config.0.server"); ok {
 			servers, err := expandServerParams(server.([]interface{}))
-			if err != nil{
+			if err != nil {
 				return nil, err
 			}
 			deployTarget.ServerNo = servers
@@ -231,24 +229,24 @@ func getDeployTarget(d *schema.ResourceData) (*vsourcedeploy.StageConfig, error)
 		}
 	case "AutoScalingGroup":
 		deployTarget.AutoScalingGroupNo = Int32PtrOrNil(d.GetOk("config.0.auto_scaling_group_no"))
-		if deployTarget.AutoScalingGroupNo == nil{
+		if deployTarget.AutoScalingGroupNo == nil {
 			return nil, fmt.Errorf("config(auto_scaling_group_no) is required")
 		}
 	case "KubernetesService":
 		deployTarget.ClusterUuid = StringPtrOrNil(d.GetOk("config.0.cluster_uuid"))
-		if deployTarget.ClusterUuid == nil{
+		if deployTarget.ClusterUuid == nil {
 			return nil, fmt.Errorf("config(cluster_uuid) is required")
 		}
 	case "ObjectStorage":
 		deployTarget.BucketName = StringPtrOrNil(d.GetOk("config.0.bucket_name"))
-		if deployTarget.BucketName == nil{
+		if deployTarget.BucketName == nil {
 			return nil, fmt.Errorf("config(bucket_name) is required")
 		}
 	}
 	return &deployTarget, nil
 }
 
-func getSourceDeployStageById(ctx context.Context,config *ProviderConfig, projectId *string, id *string) (*vsourcedeploy.GetStageDetailResponse, error) {
+func getSourceDeployStageById(ctx context.Context, config *ProviderConfig, projectId *string, id *string) (*vsourcedeploy.GetStageDetailResponse, error) {
 	logCommonRequest("getSourceDeployStage", id)
 	resp, err := config.Client.vsourcedeploy.V1Api.GetStage(ctx, projectId, id)
 	if err != nil {
@@ -260,8 +258,8 @@ func getSourceDeployStageById(ctx context.Context,config *ProviderConfig, projec
 	return resp, nil
 }
 
-func makeStageConfig(config *vsourcedeploy.GetStageDetailResponseConfig) []interface{}{
-	if config == nil{
+func makeStageConfig(config *vsourcedeploy.GetStageDetailResponseConfig) []interface{} {
+	if config == nil {
 		return nil
 	}
 	values := map[string]interface{}{}
@@ -276,11 +274,10 @@ func makeStageConfig(config *vsourcedeploy.GetStageDetailResponseConfig) []inter
 	return []interface{}{values}
 }
 
-
 func changeDeployStage(ctx context.Context, d *schema.ResourceData, config *ProviderConfig) error {
 
 	reqParams, paramErr := getStage(d)
-	
+
 	if paramErr != nil {
 		return paramErr
 	}
@@ -314,7 +311,6 @@ func expandServerParams(servers []interface{}) ([]*int32, error) {
 
 	return list, nil
 }
-
 
 func flattenServer(config *vsourcedeploy.GetStageDetailResponseConfig) []map[string]interface{} {
 	list := make([]map[string]interface{}, 0, len(config.ServerNo))

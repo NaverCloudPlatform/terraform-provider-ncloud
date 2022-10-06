@@ -22,7 +22,6 @@ func TestAccDataSourceNcloudSourceDeployProjects(t *testing.T) {
 	})
 }
 
-
 func testAccDataSourceNcloudSourceDeployProjectsConfig() string {
 	return fmt.Sprintf(`
 data "ncloud_sourcedeploy_projects" "projects" {

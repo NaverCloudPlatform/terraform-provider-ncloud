@@ -22,7 +22,7 @@ func TestAccDataSourceNcloudSourceDeployStages(t *testing.T) {
 	})
 }
 
-func testAccDataSourceNcloudSourceDeployStagesConfig() string{
+func testAccDataSourceNcloudSourceDeployStagesConfig() string {
 	return fmt.Sprintf(`
 resource "ncloud_sourcedeploy_project" "sd_project" {
 	name = "tf-test-project"
