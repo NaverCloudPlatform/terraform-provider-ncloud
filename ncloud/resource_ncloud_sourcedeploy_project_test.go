@@ -18,13 +18,13 @@ func TestAccResourceNcloudSourceDeployProject_basic(t *testing.T) {
 	resourceName := "ncloud_sourcedeploy_project.test-project"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) }, 
+		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckSourceDeployProjectDestroy,
-		Steps: []resource.TestStep{ 
+		Steps: []resource.TestStep{
 			{
 				Config: testAccResourceNcloudSourceDeployProjectConfig(name),
-				Check: resource.ComposeTestCheckFunc( 
+				Check: resource.ComposeTestCheckFunc(
 					testAccCheckSourceDeployProjectExists(resourceName, &project),
 					resource.TestCheckResourceAttr(resourceName, "name", name),
 				),
@@ -64,7 +64,7 @@ func testAccCheckSourceDeployProjectExists(n string, project *vsourcedeploy.GetI
 		project = resp
 		return nil
 	}
-} 
+}
 
 func testAccCheckSourceDeployProjectDestroy(s *terraform.State) error {
 	config := testAccProvider.Meta().(*ProviderConfig)

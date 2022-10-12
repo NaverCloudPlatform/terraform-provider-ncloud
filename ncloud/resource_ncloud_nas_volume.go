@@ -572,7 +572,7 @@ func setVpcNasVolumeAccessControl(d *schema.ResourceData, config *ProviderConfig
 	return nil
 }
 
-//NasVolume Dto for NAS
+// NasVolume Dto for NAS
 type NasVolume struct {
 	NasVolumeInstanceNo           *string   `json:"nas_volume_no,omitempty"`
 	NasVolumeInstanceDescription  *string   `json:"description,omitempty"`

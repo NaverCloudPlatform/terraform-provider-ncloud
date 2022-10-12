@@ -161,7 +161,7 @@ func SetSingularResourceDataFromMapSchema(resourceSchema *schema.Resource, d *sc
 	}
 }
 
-//GetValueClassicOrVPC get value classic for vpc
+// GetValueClassicOrVPC get value classic for vpc
 func GetValueClassicOrVPC(config *ProviderConfig, classicValue, vpcValue string) string {
 	if config.SupportVPC {
 		return vpcValue
