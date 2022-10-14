@@ -78,7 +78,7 @@ func dataSourceNcloudNKSNodePool() *schema.Resource {
 							Type:     schema.TypeInt,
 							Computed: true,
 						},
-						"type": {
+						"spec": {
 							Type:     schema.TypeString,
 							Computed: true,
 						},
