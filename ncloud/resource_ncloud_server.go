@@ -2,11 +2,12 @@ package ncloud
 
 import (
 	"fmt"
-	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/services/vserver"
 	"log"
 	"regexp"
 	"strconv"
 	"time"
+
+	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/services/vserver"
 
 	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/ncloud"
 	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/services/server"
@@ -152,21 +153,18 @@ func resourceNcloudServer() *schema.Resource {
 				Computed: true,
 			},
 			"network_interface": {
-				Type:          schema.TypeList,
-				ConflictsWith: []string{"access_control_group_configuration_no_list"},
-				Optional:      true,
-				Computed:      true,
+				Type:     schema.TypeList,
+				Required: true,
+				MaxItems: 3,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"network_interface_no": {
 							Type:     schema.TypeString,
 							Required: true,
-							ForceNew: true,
 						},
 						"order": {
 							Type:     schema.TypeInt,
 							Required: true,
-							ForceNew: true,
 						},
 						"subnet_no": {
 							Type:     schema.TypeString,
@@ -345,6 +343,16 @@ func resourceNcloudServerUpdate(d *schema.ResourceData, meta interface{}) error 
 	if d.HasChange("is_protect_server_termination") {
 		if err := updateServerProtectionTermination(d, config); err != nil {
 			return err
+		}
+	}
+
+	if d.HasChange("network_interface") {
+		if config.SupportVPC {
+			if err := updateNetworkInterface(d, config); err != nil {
+				return err
+			}
+		} else {
+			return NotSupportClassic("resource `ncloud_network_interface`")
 		}
 	}
 
@@ -670,6 +678,110 @@ func updateClassicServerProtectionTermination(d *schema.ResourceData, config *Pr
 		return err
 	}
 	logResponse("SetProtectServerTermination", resp)
+
+	return nil
+}
+
+func updateNetworkInterface(d *schema.ResourceData, config *ProviderConfig) error {
+	if _, ok := d.GetOk("subnet_no"); !ok {
+		return ErrorRequiredArgOnVpc("subnet_no")
+	}
+
+	subnet, err := getSubnetInstance(config, d.Get("subnet_no").(string))
+	if err != nil {
+		return err
+	}
+
+	if *subnet.SubnetType.Code == SubnetTypePublic {
+		return fmt.Errorf("network interface update in public subnet is not supported, try to recreate server")
+	}
+
+	o, n := d.GetChange("network_interface")
+	ol, nl := o.([]interface{}), n.([]interface{})
+	addedList, deletedList := DiffByArg(ol, nl, "network_interface_no")
+
+	// check default network interface changed, it's not supported
+	for _, networkInterface := range deletedList {
+		networkInterfaceMap := networkInterface.(map[string]interface{})
+		if networkInterfaceMap["order"] == 0 {
+			return fmt.Errorf("invalid request for server's network interface, "+
+				"default network interface(order=0): \"%s\" cannot be changed",
+				networkInterfaceMap["network_interface_no"].(string))
+		}
+	}
+
+	for _, networkInterface := range deletedList {
+		networkInterfaceMap := networkInterface.(map[string]interface{})
+
+		reqParams := &vserver.DetachNetworkInterfaceRequest{
+			RegionCode:         &config.RegionCode,
+			NetworkInterfaceNo: ncloud.String(networkInterfaceMap["network_interface_no"].(string)),
+			ServerInstanceNo:   ncloud.String(d.Id()),
+			SubnetNo:           ncloud.String(d.Get("subnet_no").(string)),
+		}
+
+		logCommonRequest("Detach Network Interface from Server", reqParams)
+		resp, err := config.Client.vserver.V2Api.DetachNetworkInterface(reqParams)
+		if err != nil {
+			logErrorResponse("Detach Network Interface from Server", err, reqParams)
+			return err
+		}
+		logResponse("Detach Network Interface from Server", resp)
+
+		if err := waitForNetworkInterfaceUpdated(
+			config, networkInterfaceMap["network_interface_no"].(string),
+			[]string{NetworkInterfaceStateUnSet}, []string{NetworkInterfaceStateNotUsed},
+		); err != nil {
+			return err
+		}
+
+	}
+
+	for _, networkInterface := range addedList {
+		networkInterfaceMap := networkInterface.(map[string]interface{})
+
+		reqParams := &vserver.AttachNetworkInterfaceRequest{
+			RegionCode:         &config.RegionCode,
+			NetworkInterfaceNo: ncloud.String(networkInterfaceMap["network_interface_no"].(string)),
+			ServerInstanceNo:   ncloud.String(d.Id()),
+			SubnetNo:           ncloud.String(d.Get("subnet_no").(string)),
+		}
+
+		logCommonRequest("Attach Network Interface to Server", reqParams)
+		resp, err := config.Client.vserver.V2Api.AttachNetworkInterface(reqParams)
+		if err != nil {
+			logErrorResponse("Attach Network Interface to Server", err, reqParams)
+			return err
+		}
+		logResponse("Attach Network Interface to Server", resp)
+
+		if err := waitForNetworkInterfaceUpdated(
+			config, networkInterfaceMap["network_interface_no"].(string),
+			[]string{NetworkInterfaceStateSet}, []string{NetworkInterfaceStateUsed},
+		); err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+func waitForNetworkInterfaceUpdated(config *ProviderConfig, id string, pendingState []string, targetState []string) error {
+	stateConf := &resource.StateChangeConf{
+		Pending: pendingState,
+		Target:  targetState,
+		Refresh: func() (interface{}, string, error) {
+			instance, err := getNetworkInterface(config, id)
+			return VpcCommonStateRefreshFunc(instance, err, "NetworkInterfaceStatus")
+		},
+		Timeout:    DefaultTimeout,
+		Delay:      2 * time.Second,
+		MinTimeout: 3 * time.Second,
+	}
+
+	if _, err := stateConf.WaitForState(); err != nil {
+		return fmt.Errorf("Error waiting for Network interface (%s) to become running: %s", id, err)
+	}
 
 	return nil
 }

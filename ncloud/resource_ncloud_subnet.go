@@ -17,6 +17,8 @@ func init() {
 }
 
 const (
+	SubnetTypePublic              = "PUBLIC"
+	SubnetTypePrivate             = "PRIVATE"
 	SubnetPleaseTryAgainErrorCode = "3000"
 )
 
@@ -63,7 +65,7 @@ func resourceNcloudSubnet() *schema.Resource {
 				Type:             schema.TypeString,
 				Required:         true,
 				ForceNew:         true,
-				ValidateDiagFunc: ToDiagFunc(validation.StringInSlice([]string{"PUBLIC", "PRIVATE"}, false)),
+				ValidateDiagFunc: ToDiagFunc(validation.StringInSlice([]string{SubnetTypePublic, SubnetTypePrivate}, false)),
 			},
 			"usage_type": {
 				Type:             schema.TypeString,

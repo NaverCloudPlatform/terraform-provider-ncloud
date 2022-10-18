@@ -46,7 +46,7 @@ func dataSourceNcloudSubnets() *schema.Resource {
 			"subnet_type": {
 				Type:             schema.TypeString,
 				Optional:         true,
-				ValidateDiagFunc: ToDiagFunc(validation.StringInSlice([]string{"PUBLIC", "PRIVATE"}, false)),
+				ValidateDiagFunc: ToDiagFunc(validation.StringInSlice([]string{SubnetTypePublic, SubnetTypePrivate}, false)),
 				Description:      "Internet Gateway Only. PUBLC(Yes/Public), PRIVATE(No/Private).",
 			},
 			"usage_type": {
