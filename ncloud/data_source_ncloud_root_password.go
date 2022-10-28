@@ -75,6 +75,7 @@ func getClassicRootPassword(d *schema.ResourceData, config *ProviderConfig) (*st
 
 func getVpcRootPassword(d *schema.ResourceData, config *ProviderConfig) (*string, error) {
 	reqParams := &vserver.GetRootPasswordRequest{
+		RegionCode:       &config.RegionCode,
 		ServerInstanceNo: ncloud.String(d.Get("server_instance_no").(string)),
 		PrivateKey:       ncloud.String(d.Get("private_key").(string)),
 	}
