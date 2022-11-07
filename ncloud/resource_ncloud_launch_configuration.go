@@ -35,6 +35,7 @@ func resourceNcloudLaunchConfiguration() *schema.Resource {
 			"server_image_product_code": {
 				Type:          schema.TypeString,
 				Optional:      true,
+				Computed:      true,
 				ConflictsWith: []string{"member_server_image_no"},
 				ForceNew:      true,
 			},
