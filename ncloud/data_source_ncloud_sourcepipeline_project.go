@@ -112,16 +112,63 @@ func dataSourceNcloudSourcePipelineProject() *schema.Resource {
 				Computed: true,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
-						"sourcecommit": {
+						"repository": {
 							Type:     schema.TypeList,
 							Computed: true,
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
-									"repository_name": {
+									"type": {
+										Type:     schema.TypeString,
+										Computed: true,
+									},
+									"name": {
 										Type:     schema.TypeString,
 										Computed: true,
 									},
 									"branch": {
+										Type:     schema.TypeString,
+										Computed: true,
+									},
+								},
+							},
+						},
+						"schedule": {
+							Type:     schema.TypeList,
+							Computed: true,
+							Elem: &schema.Resource{
+								Schema: map[string]*schema.Schema{
+									"day": {
+										Type:     schema.TypeList,
+										Computed: true,
+										Elem: &schema.Schema{
+											Type: schema.TypeString,
+										},
+									},
+									"time": {
+										Type:     schema.TypeString,
+										Computed: true,
+									},
+									"timezone": {
+										Type:     schema.TypeString,
+										Computed: true,
+									},
+									"schedule_only_with_change": {
+										Type:     schema.TypeBool,
+										Computed: true,
+									},
+								},
+							},
+						},
+						"sourcepipeline": {
+							Type:     schema.TypeList,
+							Optional: true,
+							Elem: &schema.Resource{
+								Schema: map[string]*schema.Schema{
+									"id": {
+										Type:     schema.TypeInt,
+										Computed: true,
+									},
+									"name": {
 										Type:     schema.TypeString,
 										Computed: true,
 									},

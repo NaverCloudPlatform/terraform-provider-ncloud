@@ -297,9 +297,10 @@ resource "ncloud_sourcepipeline_project" "foo" {
 		linked_tasks   = []
 	}
 	triggers {
-		sourcecommit {
-		  repository_name = ncloud_sourcecommit_repository.test-repo.name
-		  branch = "master"
+		repository {
+			type = "sourcecommit"
+			name = "sourceCommit"
+			branch = "master"
 		}
 	}
 }
@@ -387,9 +388,10 @@ resource "ncloud_sourcepipeline_project" "foo" {
 		linked_tasks   = []
 	}
 	triggers {
-		sourcecommit {
-			repository_name = ncloud_sourcecommit_repository.test-repo.name
-			branch     = "master"
+		repository {
+			type = "sourcecommit"
+			name = "sourceCommit"
+			branch = "master"
 		}
 	}
 }
@@ -477,9 +479,10 @@ resource "ncloud_sourcepipeline_project" "foo" {
 		linked_tasks   = []
 	}
 	triggers {
-		sourcecommit {
-			repository_name = ncloud_sourcecommit_repository.test-repo.name
-			branch     = "master"
+		repository {
+			type = "sourcecommit"
+			name = "sourceCommit"
+			branch = "master"
 		}
 	}
 }
@@ -567,9 +570,10 @@ resource "ncloud_sourcepipeline_project" "foo" {
 		linked_tasks   = []
 	}
 	triggers {
-		sourcecommit {
-			repository_name = ncloud_sourcecommit_repository.test-repo.name
-			branch     = "master"
+		repository {
+			type = "sourcecommit"
+			name = "sourceCommit"
+			branch = "master"
 		}
 	}
 }
@@ -657,9 +661,10 @@ resource "ncloud_sourcepipeline_project" "foo" {
 		linked_tasks   = []
 	}
 	triggers {
-		sourcecommit {
-			repository_name = ncloud_sourcecommit_repository.test-repo.name
-			branch     = "master"
+		repository {
+			type = "sourcecommit"
+			name = "sourceCommit"
+			branch = "master"
 		}
 	}
 }
@@ -747,9 +752,10 @@ resource "ncloud_sourcepipeline_project" "foo" {
 		linked_tasks   = []
 	}
 	triggers {
-		sourcecommit {
-			repository_name = ncloud_sourcecommit_repository.test-repo.name
-			branch     = "master"
+		repository {
+			type = "sourcecommit"
+			name = "sourceCommit"
+			branch = "master"
 		}
 	}
 }
