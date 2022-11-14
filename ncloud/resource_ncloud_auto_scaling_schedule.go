@@ -93,12 +93,12 @@ func createVpcAutoScalingSchedule(d *schema.ResourceData, config *ProviderConfig
 		MaxSize:             ncloud.Int32(int32(d.Get("max_size").(int))),
 		MinSize:             ncloud.Int32(int32(d.Get("min_size").(int))),
 		ScheduledActionName: ncloud.String(d.Get("name").(string)),
+		DesiredCapacity:     ncloud.Int32(int32(d.Get("desired_capacity").(int))),
 		// Optional
-		DesiredCapacity: Int32PtrOrNil(d.GetOk("desired_capacity")),
-		StartTime:       StringPtrOrNil(d.GetOk("start_time")),
-		EndTime:         StringPtrOrNil(d.GetOk("end_time")),
-		Recurrence:      StringPtrOrNil(d.GetOk("recurrence")),
-		TimeZone:        StringPtrOrNil(d.GetOk("time_zone")),
+		StartTime:  StringPtrOrNil(d.GetOk("start_time")),
+		EndTime:    StringPtrOrNil(d.GetOk("end_time")),
+		Recurrence: StringPtrOrNil(d.GetOk("recurrence")),
+		TimeZone:   StringPtrOrNil(d.GetOk("time_zone")),
 	}
 
 	resp, err := config.Client.vautoscaling.V2Api.PutScheduledUpdateGroupAction(reqParams)

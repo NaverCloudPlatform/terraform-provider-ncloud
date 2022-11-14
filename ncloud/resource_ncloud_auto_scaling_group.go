@@ -2,7 +2,7 @@ package ncloud
 
 import (
 	"fmt"
-	"log"
+
 	"strings"
 	"time"
 
@@ -245,12 +245,8 @@ func resourceNcloudAutoScalingGroupRead(d *schema.ResourceData, meta interface{}
 	min_size := d.Get("min_size")
 	desired_capacity := d.Get("desired_capacity")
 
-	log.Printf("max_size : %d, min_size : %d, desired_size : %d", d.Get("max_size"), d.Get("min_size"), d.Get("desired_capacity"))
-
 	autoScalingGroupMap := ConvertToMap(autoScalingGroup)
 	SetSingularResourceDataFromMapSchema(resourceNcloudAutoScalingGroup(), d, autoScalingGroupMap)
-
-	log.Printf("max_size : %d, min_size : %d, desired_size : %d", d.Get("max_size"), d.Get("min_size"), d.Get("desired_capacity"))
 
 	if d.Get("ignore_capacity_changes").(bool) {
 		if err := d.Set("max_size", max_size); err != nil {
