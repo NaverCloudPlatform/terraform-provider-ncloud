@@ -30,7 +30,7 @@ func resourceNcloudAutoScalingSchedule() *schema.Resource {
 			},
 			"desired_capacity": {
 				Type:     schema.TypeInt,
-				Optional: true,
+				Required: true,
 			},
 			"min_size": {
 				Type:     schema.TypeInt,
@@ -105,7 +105,8 @@ func createVpcAutoScalingSchedule(d *schema.ResourceData, config *ProviderConfig
 	if err != nil {
 		return nil, err
 	}
-	return resp.ScheduledUpdateGroupActionList[0].ScheduledActionName, nil
+
+	return resp.ScheduledUpdateGroupActionList[0].ScheduledActionNo, nil
 }
 
 func createClassicAutoScalingSchedule(d *schema.ResourceData, config *ProviderConfig) (*string, error) {
@@ -162,9 +163,9 @@ func getAutoScalingSchedule(config *ProviderConfig, id string, asgNo string) (*A
 
 func getVpcAutoScalingSchedule(config *ProviderConfig, id string, asgNo string) (*AutoScalingSchedule, error) {
 	reqParams := &vautoscaling.GetScheduledActionListRequest{
-		RegionCode:              &config.RegionCode,
-		AutoScalingGroupNo:      ncloud.String(asgNo),
-		ScheduledActionNameList: []*string{ncloud.String(id)},
+		RegionCode:            &config.RegionCode,
+		AutoScalingGroupNo:    ncloud.String(asgNo),
+		ScheduledActionNoList: []*string{ncloud.String(id)},
 	}
 	resp, err := config.Client.vautoscaling.V2Api.GetScheduledActionList(reqParams)
 	if err != nil {
