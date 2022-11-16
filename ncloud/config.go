@@ -4,6 +4,7 @@ import (
 	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/services/vautoscaling"
 	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/services/vloadbalancer"
 	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/services/vnks"
+	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/services/vses2"
 	"time"
 
 	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/services/vnas"
@@ -47,6 +48,7 @@ type NcloudAPIClient struct {
 	vautoscaling  *vautoscaling.APIClient
 	vloadbalancer *vloadbalancer.APIClient
 	vnks          *vnks.APIClient
+	vses          *vses2.APIClient
 }
 
 func (c *Config) Client() (*NcloudAPIClient, error) {
@@ -67,6 +69,7 @@ func (c *Config) Client() (*NcloudAPIClient, error) {
 		vautoscaling:  vautoscaling.NewAPIClient(vautoscaling.NewConfiguration(apiKey)),
 		vloadbalancer: vloadbalancer.NewAPIClient(vloadbalancer.NewConfiguration(apiKey)),
 		vnks:          vnks.NewAPIClient(vnks.NewConfiguration(c.Region, apiKey)),
+		vses:          vses2.NewAPIClient(vses2.NewConfiguration(c.Region, apiKey)),
 	}, nil
 }
 
