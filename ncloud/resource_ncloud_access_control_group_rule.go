@@ -8,6 +8,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 	"log"
+	"regexp"
+	"strconv"
 	"time"
 )
 
@@ -36,7 +38,8 @@ func resourceNcloudAccessControlGroupRule() *schema.Resource {
 						"protocol": {
 							Type:             schema.TypeString,
 							Required:         true,
-							ValidateDiagFunc: ToDiagFunc(validation.StringInSlice([]string{"TCP", "UDP", "ICMP"}, false)),
+							ValidateDiagFunc: ToDiagFunc(validation.StringMatch(regexp.MustCompile(`TCP|UDP|ICMP|\b([1-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-2])\b`), "only TCP, UDP, ICMP and 1-252 are valid values.")),
+							StateFunc:        ProtocolStateFunc,
 						},
 						"port_range": {
 							Type:             schema.TypeString,
@@ -73,7 +76,8 @@ func resourceNcloudAccessControlGroupRule() *schema.Resource {
 						"protocol": {
 							Type:             schema.TypeString,
 							Required:         true,
-							ValidateDiagFunc: ToDiagFunc(validation.StringInSlice([]string{"TCP", "UDP", "ICMP"}, false)),
+							ValidateDiagFunc: ToDiagFunc(validation.StringMatch(regexp.MustCompile(`TCP|UDP|ICMP|\b([1-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-2])\b`), "only TCP, UDP, ICMP and 1-252 are valid values.")),
+							StateFunc:        ProtocolStateFunc,
 						},
 						"port_range": {
 							Type:             schema.TypeString,
@@ -148,8 +152,15 @@ func resourceNcloudAccessControlGroupRuleRead(d *schema.ResourceData, meta inter
 	oSet := schema.NewSet(schema.HashResource(resourceNcloudAccessControlGroupRule().Schema["outbound"].Elem.(*schema.Resource)), []interface{}{})
 
 	for _, r := range rules {
+		var protocol string
+		if allowedProtocolCodes[*r.ProtocolType.Code] {
+			protocol = *r.ProtocolType.Code
+		} else {
+			protocol = strconv.Itoa(int(*r.ProtocolType.Number))
+		}
+
 		m := map[string]interface{}{
-			"protocol":                       *r.ProtocolType.Code,
+			"protocol":                       protocol,
 			"port_range":                     *r.PortRange,
 			"ip_block":                       *r.IpBlock,
 			"source_access_control_group_no": *r.AccessControlGroupSequence,
@@ -443,4 +454,29 @@ func expandRemoveAccessControlGroupRule(rules []interface{}) []*vserver.RemoveAc
 	}
 
 	return acgRuleList
+}
+
+var allowedProtocolCodes = map[string]bool{
+	"TCP":  true,
+	"UDP":  true,
+	"ICMP": true,
+}
+
+var allowedProtocolNumbers = map[int]string{
+	6:  "TCP",
+	17: "UDP",
+	1:  "ICMP",
+}
+
+func ProtocolStateFunc(v interface{}) string {
+	switch v := v.(type) {
+	case string:
+		if number, err := strconv.Atoi(v); err == nil {
+			if code, ok := allowedProtocolNumbers[number]; ok {
+				return code
+			}
+		}
+		return v
+	}
+	return ""
 }
