@@ -17,8 +17,7 @@ func TestAccResourceNcloudNKSNodePool_basic(t *testing.T) {
 	var nodePool vnks.NodePoolRes
 	clusterName := getTestClusterName()
 	resourceName := "ncloud_nks_node_pool.node_pool"
-	k8sVersion := "1.21"
-	region, clusterType, productCode := getRegionAndNKSType()
+	region, clusterType, productCode, k8sVersion := getRegionAndNKSType()
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -47,8 +46,7 @@ func TestAccResourceNcloudNKSNodePool_publicNetwork(t *testing.T) {
 	var nodePool vnks.NodePoolRes
 	clusterName := getTestClusterName()
 	resourceName := "ncloud_nks_node_pool.node_pool"
-	k8sVersion := "1.21"
-	region, clusterType, productCode := getRegionAndNKSType()
+	region, clusterType, productCode, k8sVersion := getRegionAndNKSType()
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -64,11 +62,6 @@ func TestAccResourceNcloudNKSNodePool_publicNetwork(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "product_code", productCode),
 				),
 			},
-			{
-				ResourceName:      resourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
 		},
 	})
 }
@@ -76,9 +69,8 @@ func TestAccResourceNcloudNKSNodePool_publicNetwork(t *testing.T) {
 func TestAccResourceNcloudNKSNodePool_updateNodeCountAndAutoScale(t *testing.T) {
 	var nodePool vnks.NodePoolRes
 	clusterName := getTestClusterName()
-	region, clusterType, productCode := getRegionAndNKSType()
+	region, clusterType, productCode, k8sVersion := getRegionAndNKSType()
 	resourceName := "ncloud_nks_node_pool.node_pool"
-	k8sVersion := "1.21"
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -103,19 +95,13 @@ func TestAccResourceNcloudNKSNodePool_updateNodeCountAndAutoScale(t *testing.T) 
 					resource.TestCheckResourceAttr(resourceName, "autoscale.0.max", "2"),
 				),
 			},
-			{
-				ResourceName:      resourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
 		},
 	})
 }
 
 func TestAccResourceNcloudNKSNodePool_invalidNodeCount(t *testing.T) {
 	clusterName := getTestClusterName()
-	region, clusterType, productCode := getRegionAndNKSType()
-	k8sVersion := "1.21"
+	region, clusterType, productCode, k8sVersion := getRegionAndNKSType()
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -157,18 +143,10 @@ resource "ncloud_subnet" "subnet_lb" {
 	usage_type         = "LOADB"
 }
 
-data "ncloud_nks_versions" "version" {
-  filter {
-    name = "value"
-    values = ["%[6]s"]
-    regex = true
-  }
-}
-
 resource "ncloud_nks_cluster" "cluster" {
   name                        = "%[1]s"
   cluster_type                = "%[2]s"
-  k8s_version                 = data.ncloud_nks_versions.version.versions.0.value
+  k8s_version                 = "%[6]s"
   login_key_name              = "%[5]s"
   lb_private_subnet_no        = ncloud_subnet.subnet_lb.id
   subnet_no_list              = [
@@ -221,18 +199,10 @@ resource "ncloud_subnet" "subnet_lb" {
 	usage_type         = "LOADB"
 }
 
-data "ncloud_nks_versions" "version" {
-  filter {
-    name = "value"
-    values = ["%[6]s"]
-    regex = true
-  }
-}
-
 resource "ncloud_nks_cluster" "cluster" {
   name                        = "%[1]s"
   cluster_type                = "%[2]s"
-  k8s_version                 = data.ncloud_nks_versions.version.versions.0.value
+  k8s_version                 = "%[6]s"
   login_key_name              = "%[5]s"
   lb_private_subnet_no        = ncloud_subnet.subnet_lb.id
   subnet_no_list              = [
@@ -286,18 +256,10 @@ resource "ncloud_subnet" "subnet_lb" {
 	usage_type         = "LOADB"
 }
 
-data "ncloud_nks_versions" "version" {
-  filter {
-    name = "value"
-    values = ["%[6]s"]
-    regex = true
-  }
-}
-
 resource "ncloud_nks_cluster" "cluster" {
   name                        = "%[1]s"
   cluster_type                = "%[2]s"
-  k8s_version                 = data.ncloud_nks_versions.version.versions.0.value
+  k8s_version                 = "%[6]s"
   login_key_name              = "%[5]s"
   lb_private_subnet_no        = ncloud_subnet.subnet_lb.id
   subnet_no_list              = [

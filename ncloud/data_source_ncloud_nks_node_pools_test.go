@@ -10,9 +10,8 @@ import (
 func TestAccDataSourceNcloudNKSNodePools(t *testing.T) {
 
 	testClusterName := getTestClusterName()
-	k8sVersion := "1.21"
 
-	region, clusterType, productType := getRegionAndNKSType()
+	region, clusterType, productType, k8sVersion := getRegionAndNKSType()
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:  func() { testAccPreCheck(t) },
@@ -65,18 +64,10 @@ resource "ncloud_subnet" "subnet_lb" {
 	usage_type         = "LOADB"
 }
 
-data "ncloud_nks_versions" "version" {
-  filter {
-    name = "value"
-    values = ["%[4]s"]
-    regex = true
-  }
-}
-
 resource "ncloud_nks_cluster" "cluster" {
   name                        = "%[1]s"
   cluster_type                = "%[2]s"
-  k8s_version                 = data.ncloud_nks_versions.version.versions.0.value
+  k8s_version                 = "%[4]s"
   login_key_name              = "%[3]s"
   lb_private_subnet_no        = ncloud_subnet.subnet_lb.id
   subnet_no_list              = [

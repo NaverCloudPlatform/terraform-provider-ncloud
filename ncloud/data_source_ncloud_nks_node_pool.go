@@ -65,6 +65,46 @@ func dataSourceNcloudNKSNodePool() *schema.Resource {
 					},
 				},
 			},
+			"nodes": {
+				Type:     schema.TypeList,
+				Computed: true,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"name": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+						"instance_no": {
+							Type:     schema.TypeInt,
+							Computed: true,
+						},
+						"spec": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+						"private_ip": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+						"public_ip": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+						"node_status": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+						"container_version": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+						"kernel_version": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+					},
+				},
+			},
 		},
 	}
 }
@@ -101,6 +141,15 @@ func dataSourceNcloudNKSNodePoolRead(ctx context.Context, d *schema.ResourceData
 
 	if err := d.Set("autoscale", flattenNKSNodePoolAutoScale(nodePool.Autoscale)); err != nil {
 		log.Printf("[WARN] Error setting Autoscale set for (%s): %s", d.Id(), err)
+	}
+
+	nodes, err := getNKSNodePoolWorkerNodes(ctx, config, clusterUuid, nodePoolName)
+	if err != nil {
+		return diag.FromErr(err)
+	}
+
+	if err := d.Set("nodes", flattenNKSWorkerNodes(nodes)); err != nil {
+		log.Printf("[WARN] Error setting workerNodes set for (%s): %s", d.Id(), err)
 	}
 	return nil
 }

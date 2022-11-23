@@ -11,9 +11,8 @@ func TestAccDataSourceNcloudNKSNodePool(t *testing.T) {
 	dataName := "data.ncloud_nks_node_pool.node_pool"
 	resourceName := "ncloud_nks_node_pool.node_pool"
 	testClusterName := getTestClusterName()
-	k8sVersion := "1.21"
 
-	region, clusterType, productType := getRegionAndNKSType()
+	region, clusterType, productType, k8sVersion := getRegionAndNKSType()
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:  func() { testAccPreCheck(t) },
@@ -33,6 +32,14 @@ func TestAccDataSourceNcloudNKSNodePool(t *testing.T) {
 					resource.TestCheckResourceAttrPair(dataName, "autoscale.0.enabled", resourceName, "autoscale.0.enabled"),
 					resource.TestCheckResourceAttrPair(dataName, "autoscale.0.min", resourceName, "autoscale.0.min"),
 					resource.TestCheckResourceAttrPair(dataName, "autoscale.0.max", resourceName, "autoscale.0.max"),
+					resource.TestCheckResourceAttrPair(dataName, "nodes.0.name", resourceName, "nodes.0.name"),
+					resource.TestCheckResourceAttrPair(dataName, "nodes.0.instance_no", resourceName, "nodes.0.instance_no"),
+					resource.TestCheckResourceAttrPair(dataName, "nodes.0.spec", resourceName, "nodes.0.spec"),
+					resource.TestCheckResourceAttrPair(dataName, "nodes.0.private_ip", resourceName, "nodes.0.private_ip"),
+					resource.TestCheckResourceAttrPair(dataName, "nodes.0.public_ip", resourceName, "nodes.0.public_ip"),
+					resource.TestCheckResourceAttrPair(dataName, "nodes.0.node_status", resourceName, "nodes.0.node_status"),
+					resource.TestCheckResourceAttrPair(dataName, "nodes.0.container_version", resourceName, "nodes.0.container_version"),
+					resource.TestCheckResourceAttrPair(dataName, "nodes.0.kernel_version", resourceName, "nodes.0.kernel_version"),
 				),
 			},
 		},
@@ -66,18 +73,10 @@ resource "ncloud_subnet" "subnet_lb" {
 	usage_type         = "LOADB"
 }
 
-data "ncloud_nks_versions" "version" {
-  filter {
-    name = "value"
-    values = ["%[4]s"]
-    regex = true
-  }
-}
-
 resource "ncloud_nks_cluster" "cluster" {
   name                        = "%[1]s"
   cluster_type                = "%[2]s"
-  k8s_version                 = data.ncloud_nks_versions.version.versions.0.value
+  k8s_version                 = "%[4]s"
   login_key_name              = "%[3]s"
   lb_private_subnet_no        = ncloud_subnet.subnet_lb.id
   subnet_no_list              = [

@@ -775,6 +775,60 @@ func TestFlattenNKSNodePoolAutoscale(t *testing.T) {
 	}
 }
 
+func TestFlattenNKSWorkerNodes(t *testing.T) {
+	expanded := []*vnks.WorkerNode{
+		{
+			Id:            ncloud.Int32(1),
+			Name:          ncloud.String("node1"),
+			ServerSpec:    ncloud.String("[Standard] vCPU 2EA, Memory 8GB"),
+			PrivateIp:     ncloud.String("10.0.1.4"),
+			PublicIp:      ncloud.String(""),
+			K8sStatus:     ncloud.String("Ready"),
+			DockerVersion: ncloud.String("containerd://1.3.7"),
+			KernelVersion: ncloud.String("5.4.0-65-generic"),
+		},
+	}
+
+	result := flattenNKSWorkerNodes(expanded)
+
+	if result == nil {
+		t.Fatal("result was nil")
+	}
+
+	r := result[0]
+	if r["instance_no"].(int32) != 1 {
+		t.Fatalf("expected result instance_no to be 1, but was %v", r["instance_no"])
+	}
+
+	if r["name"].(string) != "node1" {
+		t.Fatalf("expected result name to be node1, but was %s", r["name"])
+	}
+
+	if r["spec"].(string) != "[Standard] vCPU 2EA, Memory 8GB" {
+		t.Fatalf("expected result spec to be [Standard] vCPU 2EA, Memory 8GB, but was %s", r["spec"])
+	}
+
+	if r["private_ip"].(string) != "10.0.1.4" {
+		t.Fatalf("expected result private_ip to be 10.0.1.4, but was %s", r["private_ip"])
+	}
+
+	if r["public_ip"].(string) != "" {
+		t.Fatalf("expected result public_ip to be emtpy, but was %s", r["public_ip"])
+	}
+
+	if r["node_status"].(string) != "Ready" {
+		t.Fatalf("expected result node_status to be Ready, but was %s", r["node_status"])
+	}
+
+	if r["container_version"].(string) != "containerd://1.3.7" {
+		t.Fatalf("expected result container_version to be containerd://1.3.7, but was %s", r["container_version"])
+	}
+
+	if r["kernel_version"].(string) != "5.4.0-65-generic" {
+		t.Fatalf("expected result kernel_version to be 5.4.0-65-generic, but was %s", r["kernel_version"])
+	}
+}
+
 func TestExpandNKSNodePoolAutoScale(t *testing.T) {
 	autoscaleList := []interface{}{
 		map[string]interface{}{

@@ -384,6 +384,27 @@ func expandNKSNodePoolAutoScale(as []interface{}) *vnks.AutoscalerUpdate {
 	}
 }
 
+func flattenNKSWorkerNodes(wns []*vnks.WorkerNode) (res []map[string]interface{}) {
+	if wns == nil {
+		return
+	}
+	for _, wn := range wns {
+		m := map[string]interface{}{
+			"name":              ncloud.StringValue(wn.Name),
+			"instance_no":       ncloud.Int32Value(wn.Id),
+			"spec":              ncloud.StringValue(wn.ServerSpec),
+			"private_ip":        ncloud.StringValue(wn.PrivateIp),
+			"public_ip":         ncloud.StringValue(wn.PublicIp),
+			"node_status":       ncloud.StringValue(wn.K8sStatus),
+			"container_version": ncloud.StringValue(wn.DockerVersion),
+			"kernel_version":    ncloud.StringValue(wn.KernelVersion),
+		}
+		res = append(res, m)
+	}
+
+	return
+}
+
 func expandSourceBuildEnvVarsParams(eVars []interface{}) ([]*sourcebuild.ProjectEnvEnvVars, error) {
 	envVars := make([]*sourcebuild.ProjectEnvEnvVars, 0, len(eVars))
 

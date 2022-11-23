@@ -36,4 +36,13 @@ In addition to all arguments above, the following attributes are exported:
   * `max` - Maximum number of nodes available for auto scaling.
   * `min` - Minimum number of nodes available for auto scaling.
 * `subnet_no` - Subnet No.
-* `instance_no` - Instance No.
+* `instance_no` - Nodepool instance No.
+* `nodes`- Running nodes in nodepool.
+  * `name` - The name of Server instance.
+  * `instance_no` - The ID of server instance.
+  * `spec` - Server spec.
+  * `private_ip` - Private IP.
+  * `public_ip` - Public IP.
+  * `node_status` - Node Status.
+  * `container_version` - Container version of node.
+  * `kernel_version` - kernel version of node.
