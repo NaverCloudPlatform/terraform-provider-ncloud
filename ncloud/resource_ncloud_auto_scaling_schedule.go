@@ -30,7 +30,7 @@ func resourceNcloudAutoScalingSchedule() *schema.Resource {
 			},
 			"desired_capacity": {
 				Type:     schema.TypeInt,
-				Optional: true,
+				Required: true,
 			},
 			"min_size": {
 				Type:     schema.TypeInt,
@@ -93,19 +93,20 @@ func createVpcAutoScalingSchedule(d *schema.ResourceData, config *ProviderConfig
 		MaxSize:             ncloud.Int32(int32(d.Get("max_size").(int))),
 		MinSize:             ncloud.Int32(int32(d.Get("min_size").(int))),
 		ScheduledActionName: ncloud.String(d.Get("name").(string)),
+		DesiredCapacity:     ncloud.Int32(int32(d.Get("desired_capacity").(int))),
 		// Optional
-		DesiredCapacity: Int32PtrOrNil(d.GetOk("desired_capacity")),
-		StartTime:       StringPtrOrNil(d.GetOk("start_time")),
-		EndTime:         StringPtrOrNil(d.GetOk("end_time")),
-		Recurrence:      StringPtrOrNil(d.GetOk("recurrence")),
-		TimeZone:        StringPtrOrNil(d.GetOk("time_zone")),
+		StartTime:  StringPtrOrNil(d.GetOk("start_time")),
+		EndTime:    StringPtrOrNil(d.GetOk("end_time")),
+		Recurrence: StringPtrOrNil(d.GetOk("recurrence")),
+		TimeZone:   StringPtrOrNil(d.GetOk("time_zone")),
 	}
 
 	resp, err := config.Client.vautoscaling.V2Api.PutScheduledUpdateGroupAction(reqParams)
 	if err != nil {
 		return nil, err
 	}
-	return resp.ScheduledUpdateGroupActionList[0].ScheduledActionName, nil
+
+	return resp.ScheduledUpdateGroupActionList[0].ScheduledActionNo, nil
 }
 
 func createClassicAutoScalingSchedule(d *schema.ResourceData, config *ProviderConfig) (*string, error) {
@@ -162,9 +163,9 @@ func getAutoScalingSchedule(config *ProviderConfig, id string, asgNo string) (*A
 
 func getVpcAutoScalingSchedule(config *ProviderConfig, id string, asgNo string) (*AutoScalingSchedule, error) {
 	reqParams := &vautoscaling.GetScheduledActionListRequest{
-		RegionCode:              &config.RegionCode,
-		AutoScalingGroupNo:      ncloud.String(asgNo),
-		ScheduledActionNameList: []*string{ncloud.String(id)},
+		RegionCode:            &config.RegionCode,
+		AutoScalingGroupNo:    ncloud.String(asgNo),
+		ScheduledActionNoList: []*string{ncloud.String(id)},
 	}
 	resp, err := config.Client.vautoscaling.V2Api.GetScheduledActionList(reqParams)
 	if err != nil {

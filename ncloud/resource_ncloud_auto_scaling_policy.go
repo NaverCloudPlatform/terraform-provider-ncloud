@@ -93,7 +93,7 @@ func createVpcAutoScalingPolicy(d *schema.ResourceData, config *ProviderConfig) 
 	}
 
 	policy := resp.ScalingPolicyList[0]
-	return policy.AutoScalingGroupNo, policy.PolicyName, nil
+	return policy.AutoScalingGroupNo, policy.PolicyNo, nil
 }
 
 func createClassicAutoScalingPolicy(d *schema.ResourceData, config *ProviderConfig) (*string, *string, error) {
@@ -150,27 +150,24 @@ func getVpcAutoScalingPolicy(config *ProviderConfig, id string, autoScalingGroup
 	reqParams := &vautoscaling.GetAutoScalingPolicyListRequest{
 		RegionCode:         &config.RegionCode,
 		AutoScalingGroupNo: ncloud.String(autoScalingGroupNo),
+		PolicyNoList:       []*string{ncloud.String(id)},
 	}
 	resp, err := config.Client.vautoscaling.V2Api.GetAutoScalingPolicyList(reqParams)
 	if err != nil {
 		return nil, err
 	}
 
-	for _, p := range resp.ScalingPolicyList {
-		if *p.PolicyName == id && *p.AutoScalingGroupNo == autoScalingGroupNo {
-			return &AutoScalingPolicy{
-				AutoScalingPolicyNo:   p.PolicyNo,
-				AutoScalingPolicyName: p.PolicyName,
-				AutoScalingGroupNo:    p.AutoScalingGroupNo,
-				AdjustmentTypeCode:    p.AdjustmentType.Code,
-				ScalingAdjustment:     p.ScalingAdjustment,
-				Cooldown:              p.CoolDown,
-				MinAdjustmentStep:     p.MinAdjustmentStep,
-			}, nil
-		}
-	}
+	p := resp.ScalingPolicyList[0]
+	return &AutoScalingPolicy{
+		AutoScalingPolicyNo:   p.PolicyNo,
+		AutoScalingPolicyName: p.PolicyName,
+		AutoScalingGroupNo:    p.AutoScalingGroupNo,
+		AdjustmentTypeCode:    p.AdjustmentType.Code,
+		ScalingAdjustment:     p.ScalingAdjustment,
+		Cooldown:              p.CoolDown,
+		MinAdjustmentStep:     p.MinAdjustmentStep,
+	}, nil
 
-	return nil, nil
 }
 
 func getClassicAutoScalingPolicy(config *ProviderConfig, id string, autoScalingGroupNo string) (*AutoScalingPolicy, error) {

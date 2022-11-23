@@ -2,6 +2,7 @@ package ncloud
 
 import (
 	"fmt"
+
 	"strings"
 	"time"
 
@@ -117,6 +118,11 @@ func resourceNcloudAutoScalingGroup() *schema.Resource {
 				Type:     schema.TypeString,
 				Optional: true,
 				Computed: true,
+			},
+			"ignore_capacity_changes": {
+				Type:     schema.TypeBool,
+				Optional: true,
+				Default:  false,
 			},
 		},
 	}
@@ -235,8 +241,29 @@ func resourceNcloudAutoScalingGroupRead(d *schema.ResourceData, meta interface{}
 		return nil
 	}
 
+	max_size := d.Get("max_size")
+	min_size := d.Get("min_size")
+	desired_capacity := d.Get("desired_capacity")
+
 	autoScalingGroupMap := ConvertToMap(autoScalingGroup)
 	SetSingularResourceDataFromMapSchema(resourceNcloudAutoScalingGroup(), d, autoScalingGroupMap)
+
+	if d.Get("ignore_capacity_changes").(bool) {
+		if err := d.Set("max_size", max_size); err != nil {
+			return err
+		}
+		if err := d.Set("min_size", min_size); err != nil {
+			return err
+		}
+		if err := d.Set("desired_capacity", desired_capacity); err != nil {
+			return err
+		}
+	}
+
+	if err := d.Set("server_instance_no_list", autoScalingGroup.InAutoScalingGroupServerInstanceList); err != nil {
+		return err
+	}
+
 	return nil
 }
 
@@ -331,6 +358,10 @@ func resourceNcloudAutoScalingGroupUpdate(d *schema.ResourceData, meta interface
 		return err
 	}
 
+	if err := waitForAutoScalingGroupCapacity(d, config); err != nil {
+		return err
+	}
+
 	return resourceNcloudAutoScalingGroupRead(d, config)
 }
 
@@ -356,18 +387,20 @@ func changeVpcAutoScalingGroup(d *schema.ResourceData, config *ProviderConfig) e
 		reqParams.LaunchConfigurationNo = ncloud.String(d.Get("launch_configuration_no").(string))
 	}
 
-	if d.HasChange("desired_capacity") {
-		reqParams.DesiredCapacity = Int32PtrOrNil(d.GetOk("desired_capacity"))
-	}
-
-	if d.HasChange("min_size") || d.HasChange("max_size") {
-		min := ncloud.Int32(int32(d.Get("min_size").(int)))
-		max := ncloud.Int32(int32(d.Get("max_size").(int)))
-		if *min > *max {
-			return fmt.Errorf("min_size is must be at least 0 and less than or equal to max_size")
+	if !d.Get("ignore_capacity_changes").(bool) {
+		if d.HasChange("desired_capacity") {
+			reqParams.DesiredCapacity = Int32PtrOrNil(d.GetOk("desired_capacity"))
 		}
-		reqParams.MinSize = min
-		reqParams.MaxSize = max
+
+		if d.HasChange("min_size") || d.HasChange("max_size") {
+			min := ncloud.Int32(int32(d.Get("min_size").(int)))
+			max := ncloud.Int32(int32(d.Get("max_size").(int)))
+			if *min > *max {
+				return fmt.Errorf("min_size is must be at least 0 and less than or equal to max_size")
+			}
+			reqParams.MinSize = min
+			reqParams.MaxSize = max
+		}
 	}
 
 	if d.HasChange("default_cooldown") {
@@ -413,18 +446,20 @@ func changeClassicAutoScalingGroup(d *schema.ResourceData, config *ProviderConfi
 		reqParams.LaunchConfigurationName = launchConfiguration.LaunchConfigurationName
 	}
 
-	if d.HasChange("desired_capacity") {
-		reqParams.DesiredCapacity = Int32PtrOrNil(d.GetOk("desired_capacity"))
-	}
-
-	if d.HasChange("min_size") || d.HasChange("max_size") {
-		min := ncloud.Int32(int32(d.Get("min_size").(int)))
-		max := ncloud.Int32(int32(d.Get("max_size").(int)))
-		if *min > *max {
-			return fmt.Errorf("min_size is must be at least 0 and less than or equal to max_size")
+	if !d.Get("ignore_capacity_changes").(bool) {
+		if d.HasChange("desired_capacity") {
+			reqParams.DesiredCapacity = Int32PtrOrNil(d.GetOk("desired_capacity"))
 		}
-		reqParams.MinSize = min
-		reqParams.MaxSize = max
+
+		if d.HasChange("min_size") || d.HasChange("max_size") {
+			min := ncloud.Int32(int32(d.Get("min_size").(int)))
+			max := ncloud.Int32(int32(d.Get("max_size").(int)))
+			if *min > *max {
+				return fmt.Errorf("min_size is must be at least 0 and less than or equal to max_size")
+			}
+			reqParams.MinSize = min
+			reqParams.MaxSize = max
+		}
 	}
 
 	if d.HasChange("default_cooldown") {

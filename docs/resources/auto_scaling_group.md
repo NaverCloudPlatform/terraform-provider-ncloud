@@ -60,6 +60,7 @@ The following arguments are supported:
 This value must be more than the minimum capacity and less than the maximum capacity. If this value is not specified, initially create a server with a minimum capacity. valid from `0` to `30`.
 * `min_size` - (Required) The minimum size of the Auto Scaling Group. valid from `0` to `30`.
 * `max_size` - (Required) The maximum size of the Auto Scaling Group. valid from `0` to `30`.
+* `ignore_capacity_changes` - (Optional) If set this `true`, any changes of `desired_capacity`, `min_size` and `max_size` will be ignored and not rolled back.
 * `default_cooldown` - (Optional) The cooldown time is the period set to ignore even if the monitoring event alarm occurs after the actual scaling is being performed or is completed.
 * `health_check_type_code` - (Optional) `SVR` or `LOADB`. Controls how health checking is done.
 * `wait_for_capacity_timeout` - (Optional) The maximum amount of time Terraform should wait for an ASG instance to become healthy. Setting this to "0" causes Terraform to skip all Capacity Waiting behavior.
