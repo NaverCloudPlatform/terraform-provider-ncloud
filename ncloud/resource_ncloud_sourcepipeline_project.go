@@ -145,65 +145,18 @@ func resourceNcloudSourcePipeline() *schema.Resource {
 				MaxItems: 1,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
-						"repository": {
+						"sourcecommit": {
 							Type:     schema.TypeList,
 							Optional: true,
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
-									"type": {
-										Type:     schema.TypeString,
-										Required: true,
-									},
-									"name": {
+									"repository_name": {
 										Type:     schema.TypeString,
 										Required: true,
 									},
 									"branch": {
 										Type:     schema.TypeString,
 										Required: true,
-									},
-								},
-							},
-						},
-						"schedule": {
-							Type:     schema.TypeList,
-							Optional: true,
-							Elem: &schema.Resource{
-								Schema: map[string]*schema.Schema{
-									"day": {
-										Type:     schema.TypeList,
-										Required: true,
-										Elem: &schema.Schema{
-											Type: schema.TypeString,
-										},
-									},
-									"time": {
-										Type:     schema.TypeString,
-										Required: true,
-									},
-									"timezone": {
-										Type:     schema.TypeString,
-										Required: true,
-									},
-									"schedule_only_with_change": {
-										Type:     schema.TypeBool,
-										Required: true,
-									},
-								},
-							},
-						},
-						"sourcepipeline": {
-							Type:     schema.TypeList,
-							Optional: true,
-							Elem: &schema.Resource{
-								Schema: map[string]*schema.Schema{
-									"id": {
-										Type:     schema.TypeInt,
-										Required: true,
-									},
-									"name": {
-										Type:     schema.TypeString,
-										Computed: true,
 									},
 								},
 							},
@@ -529,89 +482,47 @@ func makeVpcPipelineTaskParams(d *schema.ResourceData) ([]*vsourcepipeline.Creat
 }
 
 func makeClassicPipelineTriggerParams(d *schema.ResourceData) *sourcepipeline.CreateProjectTrigger {
-	var repositoryTrigger []*sourcepipeline.GetRepositoryTrigger
-	var scheduleTrigger []*sourcepipeline.GetScheduleTrigger
-	var sourcepipelineTrigger []*sourcepipeline.GetPipelineTrigger
-	pipelineTrigger := &sourcepipeline.CreateProjectTrigger{}
+	var triggerTargets []*sourcepipeline.GetScTargetInfo
+	setting := false
 
-	if _, ok := d.GetOk("triggers.0.repository"); ok {
-		triggerCount := d.Get("triggers.0.repository.#").(int)
+	if _, ok := d.GetOk("triggers.0.sourcecommit"); ok {
+		setting = true
+		triggerCount := d.Get("triggers.0.sourcecommit.#").(int)
 		for i := 0; i < triggerCount; i++ {
-			prefix := fmt.Sprintf("triggers.0.repository.%d.", i)
-			repositoryTrigger = append(repositoryTrigger, &sourcepipeline.GetRepositoryTrigger{
-				Type_:  StringPtrOrNil(d.GetOk(prefix + "type")),
-				Name:   StringPtrOrNil(d.GetOk(prefix + "name")),
-				Branch: StringPtrOrNil(d.GetOk(prefix + "branch")),
+			prefix := fmt.Sprintf("triggers.0.sourcecommit.%d.", i)
+			triggerTargets = append(triggerTargets, &sourcepipeline.GetScTargetInfo{
+				Repository: StringPtrOrNil(d.GetOk(prefix + "repository_name")),
+				Branch:     StringPtrOrNil(d.GetOk(prefix + "branch")),
 			})
 		}
-		pipelineTrigger.Repository = repositoryTrigger
 	}
-	if _, ok := d.GetOk("triggers.0.schedule"); ok {
-		triggerCount := d.Get("triggers.0.schedule.#").(int)
-		for i := 0; i < triggerCount; i++ {
-			prefix := fmt.Sprintf("triggers.0.schedule.%d.", i)
-			scheduleTrigger = append(scheduleTrigger, &sourcepipeline.GetScheduleTrigger{
-				Day:                    StringListPtrOrNil(d.GetOk(prefix + "day")),
-				Time:                   StringPtrOrNil(d.GetOk(prefix + "time")),
-				TimeZone:               StringPtrOrNil(d.GetOk(prefix + "timezone")),
-				ScheduleOnlyWithChange: ncloud.Bool(d.Get(prefix + "schedule_only_with_change").(bool)),
-			})
-		}
-		pipelineTrigger.Schedule = scheduleTrigger
-	}
-	if _, ok := d.GetOk("triggers.0.sourcepipeline"); ok {
-		triggerCount := d.Get("triggers.0.sourcepipeline.#").(int)
-		for i := 0; i < triggerCount; i++ {
-			prefix := fmt.Sprintf("triggers.0.sourcepipeline.%d.", i)
-			sourcepipelineTrigger = append(sourcepipelineTrigger, &sourcepipeline.GetPipelineTrigger{
-				Id: Int32PtrOrNil(d.GetOk(prefix + "id")),
-			})
-		}
-		pipelineTrigger.SourcePipeline = sourcepipelineTrigger
+
+	pipelineTrigger := &sourcepipeline.CreateProjectTrigger{
+		Setting:      ncloud.Bool(setting),
+		Sourcecommit: triggerTargets,
 	}
 	return pipelineTrigger
 }
 
 func makeVpcPipelineTriggerParams(d *schema.ResourceData) *vsourcepipeline.CreateProjectTrigger {
-	var repositoryTrigger []*vsourcepipeline.GetRepositoryTrigger
-	var scheduleTrigger []*vsourcepipeline.GetScheduleTrigger
-	var sourcepipelineTrigger []*vsourcepipeline.GetPipelineTrigger
-	pipelineTrigger := &vsourcepipeline.CreateProjectTrigger{}
+	var triggerTargets []*vsourcepipeline.GetScTargetInfo
+	setting := false
 
-	if _, ok := d.GetOk("triggers.0.repository"); ok {
-		triggerCount := d.Get("triggers.0.repository.#").(int)
+	if _, ok := d.GetOk("triggers.0.sourcecommit"); ok {
+		setting = true
+		triggerCount := d.Get("triggers.0.sourcecommit.#").(int)
 		for i := 0; i < triggerCount; i++ {
-			prefix := fmt.Sprintf("triggers.0.repository.%d.", i)
-			repositoryTrigger = append(repositoryTrigger, &vsourcepipeline.GetRepositoryTrigger{
-				Type_:  StringPtrOrNil(d.GetOk(prefix + "type")),
-				Name:   StringPtrOrNil(d.GetOk(prefix + "name")),
-				Branch: StringPtrOrNil(d.GetOk(prefix + "branch")),
+			prefix := fmt.Sprintf("triggers.0.sourcecommit.%d.", i)
+			triggerTargets = append(triggerTargets, &vsourcepipeline.GetScTargetInfo{
+				Repository: StringPtrOrNil(d.GetOk(prefix + "repository_name")),
+				Branch:     StringPtrOrNil(d.GetOk(prefix + "branch")),
 			})
 		}
-		pipelineTrigger.Repository = repositoryTrigger
 	}
-	if _, ok := d.GetOk("triggers.0.schedule"); ok {
-		triggerCount := d.Get("triggers.0.schedule.#").(int)
-		for i := 0; i < triggerCount; i++ {
-			prefix := fmt.Sprintf("triggers.0.schedule.%d.", i)
-			scheduleTrigger = append(scheduleTrigger, &vsourcepipeline.GetScheduleTrigger{
-				Day:                    StringListPtrOrNil(d.GetOk(prefix + "day")),
-				Time:                   StringPtrOrNil(d.GetOk(prefix + "time")),
-				TimeZone:               StringPtrOrNil(d.GetOk(prefix + "timezone")),
-				ScheduleOnlyWithChange: ncloud.Bool(d.Get(prefix + "schedule_only_with_change").(bool)),
-			})
-		}
-		pipelineTrigger.Schedule = scheduleTrigger
-	}
-	if _, ok := d.GetOk("triggers.0.sourcepipeline"); ok {
-		triggerCount := d.Get("triggers.0.sourcepipeline.#").(int)
-		for i := 0; i < triggerCount; i++ {
-			prefix := fmt.Sprintf("triggers.0.sourcepipeline.%d.", i)
-			sourcepipelineTrigger = append(sourcepipelineTrigger, &vsourcepipeline.GetPipelineTrigger{
-				Id: Int32PtrOrNil(d.GetOk(prefix + "id")),
-			})
-		}
-		pipelineTrigger.SourcePipeline = sourcepipelineTrigger
+
+	pipelineTrigger := &vsourcepipeline.CreateProjectTrigger{
+		Setting:      ncloud.Bool(setting),
+		Sourcecommit: triggerTargets,
 	}
 	return pipelineTrigger
 }
@@ -780,41 +691,21 @@ func checkVpcDeployTaskConfig(taskConfig *PipelineTaskConfig, deployTarget *vsou
 
 func makeTriggerData(triggerData *PipelineTrigger) []map[string]interface{} {
 	if triggerData != nil {
-		var repositoryTrigger []map[string]interface{}
-		var scheduleTrigger []map[string]interface{}
-		var sourcepipelineTrigger []map[string]interface{}
-
-		for _, repo := range triggerData.Repository {
+		var triggerRepository []map[string]interface{}
+		for _, repo := range triggerData.Sourcecommit {
 			mapping := map[string]interface{}{
-				"type":   ncloud.StringValue(repo.Type_),
-				"name":   ncloud.StringValue(repo.Name),
-				"branch": ncloud.StringValue(repo.Branch),
+				"repository_name": ncloud.StringValue(repo.RepositoryName),
+				"branch":          ncloud.StringValue(repo.Branch),
 			}
-			repositoryTrigger = append(repositoryTrigger, mapping)
-		}
-		for _, schedule := range triggerData.Schedule {
-			mapping := map[string]interface{}{
-				"day":                       ncloud.StringListValue(schedule.Day),
-				"time":                      ncloud.StringValue(schedule.Time),
-				"timezone":                  ncloud.StringValue(schedule.TimeZone),
-				"schedule_only_with_change": ncloud.BoolValue(schedule.ScheduleOnlyWithChange),
-			}
-			scheduleTrigger = append(scheduleTrigger, mapping)
-		}
-		for _, pipeline := range triggerData.SourcePipeline {
-			mapping := map[string]interface{}{
-				"id":   ncloud.Int32Value(pipeline.Id),
-				"name": ncloud.StringValue(pipeline.Name),
-			}
-			sourcepipelineTrigger = append(sourcepipelineTrigger, mapping)
+			triggerRepository = append(triggerRepository, mapping)
 		}
 		triggerInfo := map[string]interface{}{
-			"repository":     repositoryTrigger,
-			"schedule":       scheduleTrigger,
-			"sourcepipeline": sourcepipelineTrigger,
+			"sourcecommit": triggerRepository,
 		}
+
 		return []map[string]interface{}{triggerInfo}
 	}
+
 	return []map[string]interface{}{}
 }
 
@@ -876,35 +767,22 @@ func convertClassicPipelineProject(r *sourcepipeline.GetProjectDetailResponse) *
 		project.Task = append(project.Task, ti)
 	}
 
-	if r.Trigger != nil {
-		trigger := &PipelineTrigger{}
-		for _, repositoryInfo := range r.Trigger.Repository {
-			ri := &PipelineTriggerRepository{
-				Type_:  repositoryInfo.Type_,
-				Name:   repositoryInfo.Name,
-				Branch: repositoryInfo.Branch,
-			}
-			trigger.Repository = append(trigger.Repository, ri)
-		}
-		for _, scheduleInfo := range r.Trigger.Schedule {
-			ri := &PipelineTriggerSchedule{
-				Day:                    scheduleInfo.Day,
-				Time:                   scheduleInfo.Time,
-				TimeZone:               scheduleInfo.TimeZone,
-				ScheduleOnlyWithChange: scheduleInfo.ScheduleOnlyWithChange,
-			}
-			trigger.Schedule = append(trigger.Schedule, ri)
-		}
-		for _, pipelineInfo := range r.Trigger.SourcePipeline {
-			ri := &PipelineTriggerSourcePipeline{
-				Id:   pipelineInfo.Id,
-				Name: pipelineInfo.Name,
-			}
-			trigger.SourcePipeline = append(trigger.SourcePipeline, ri)
-		}
-
-		project.Triggers = trigger
+	triggers := &PipelineTrigger{
+		Setting: r.Trigger.Setting,
 	}
+
+	if *r.Trigger.Setting {
+		for _, repositoryInfo := range r.Trigger.Sourcecommit {
+			ri := &PipelineTriggerSourceCommit{
+				RepositoryName: repositoryInfo.Repository,
+				Branch:         repositoryInfo.Branch,
+			}
+
+			triggers.Sourcecommit = append(triggers.Sourcecommit, ri)
+		}
+	}
+
+	project.Triggers = triggers
 
 	return project
 }
@@ -960,35 +838,22 @@ func convertVpcPipelineProject(r *vsourcepipeline.GetProjectDetailResponse) *Pip
 		project.Task = append(project.Task, ti)
 	}
 
-	if r.Trigger != nil {
-		trigger := &PipelineTrigger{}
-		for _, repositoryInfo := range r.Trigger.Repository {
-			ri := &PipelineTriggerRepository{
-				Type_:  repositoryInfo.Type_,
-				Name:   repositoryInfo.Name,
-				Branch: repositoryInfo.Branch,
-			}
-			trigger.Repository = append(trigger.Repository, ri)
-		}
-		for _, scheduleInfo := range r.Trigger.Schedule {
-			ri := &PipelineTriggerSchedule{
-				Day:                    scheduleInfo.Day,
-				Time:                   scheduleInfo.Time,
-				TimeZone:               scheduleInfo.TimeZone,
-				ScheduleOnlyWithChange: scheduleInfo.ScheduleOnlyWithChange,
-			}
-			trigger.Schedule = append(trigger.Schedule, ri)
-		}
-		for _, pipelineInfo := range r.Trigger.SourcePipeline {
-			ri := &PipelineTriggerSourcePipeline{
-				Id:   pipelineInfo.Id,
-				Name: pipelineInfo.Name,
-			}
-			trigger.SourcePipeline = append(trigger.SourcePipeline, ri)
-		}
-
-		project.Triggers = trigger
+	triggers := &PipelineTrigger{
+		Setting: r.Trigger.Setting,
 	}
+
+	if *r.Trigger.Setting {
+		for _, repositoryInfo := range r.Trigger.Sourcecommit {
+			ri := &PipelineTriggerSourceCommit{
+				RepositoryName: repositoryInfo.Repository,
+				Branch:         repositoryInfo.Branch,
+			}
+
+			triggers.Sourcecommit = append(triggers.Sourcecommit, ri)
+		}
+	}
+
+	project.Triggers = triggers
 
 	return project
 }
@@ -1056,33 +921,13 @@ type BitbucketWorkspace struct {
 }
 
 type PipelineTrigger struct {
-	Repository []*PipelineTriggerRepository `json:"repository,omitempty"`
+	Setting *bool `json:"setting,omitempty"`
 
-	Schedule []*PipelineTriggerSchedule `json:"schedule,omitempty"`
-
-	SourcePipeline []*PipelineTriggerSourcePipeline `json:"sourcepipeline,omitempty"`
+	Sourcecommit []*PipelineTriggerSourceCommit `json:"sourcecommit,omitempty"`
 }
 
-type PipelineTriggerRepository struct {
-	Type_ *string `json:"type,omitempty"`
-
-	Name *string `json:"name,omitempty"`
+type PipelineTriggerSourceCommit struct {
+	RepositoryName *string `json:"repository,omitempty"`
 
 	Branch *string `json:"branch,omitempty"`
-}
-
-type PipelineTriggerSchedule struct {
-	Day []*string `json:"day,omitempty"`
-
-	Time *string `json:"time,omitempty"`
-
-	TimeZone *string `json:"timeZone,omitempty"`
-
-	ScheduleOnlyWithChange *bool `json:"scheduleOnlyWithChange,omitempty"`
-}
-
-type PipelineTriggerSourcePipeline struct {
-	Id *int32 `json:"id,omitempty"`
-
-	Name *string `json:"name,omitempty"`
 }

@@ -51,15 +51,6 @@ The following attributes are exported:
             *   `full_manifest` - List of target manifest files name of the Sourcedeploy task.
     *   `linked_tasks` - List of linked tasks.
 *   `triggers`
-    *   `repository` - Repository trigger.
-        *   `type` - Type of the repository.
-        *   `name` - Name of the repository.
-        *   `branch` - Name of a repository branch.
-    *   `schedule` - Schedule trigger.
-        *   `day` - List of day of week .
-        *   `time` - Time to trigger.
-        *   `timezone` - Timezone for trigger.
-        *   `schedule_only_with_change` -  Schedule trigger option. You can decide whether schedule trigger only execute when SourcePipeline configuration or Repositoryor not.
-    *   `sourcepipeline` - Sourcepipeline trigger.
-        *   `id` - Id of the sourcepipeline project to trigger execution of pipeline.
-        *   `name` - Name of the sourcepipeline project to trigger execution of pipeline.
+    *   `sourcecommit`
+        *   `repository_name` - Name of the Sourcecommit repository to trigger execution of pipeline.
+        *   `branch` - Name of repository branch to trigger execution of pipeline.
