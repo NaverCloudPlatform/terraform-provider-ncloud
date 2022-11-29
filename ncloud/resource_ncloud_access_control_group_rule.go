@@ -42,7 +42,6 @@ func resourceNcloudAccessControlGroupRule() *schema.Resource {
 								validation.StringMatch(regexp.MustCompile(`TCP|UDP|ICMP|\b([1-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-2])\b`), "only TCP, UDP, ICMP and 1-252 are valid values."),
 								validation.StringNotInSlice([]string{"1", "6", "17"}, false),
 							)),
-							StateFunc: ProtocolStateFunc,
 						},
 						"port_range": {
 							Type:             schema.TypeString,
@@ -83,7 +82,6 @@ func resourceNcloudAccessControlGroupRule() *schema.Resource {
 								validation.StringMatch(regexp.MustCompile(`TCP|UDP|ICMP|\b([1-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-2])\b`), "only TCP, UDP, ICMP and 1-252 are valid values."),
 								validation.StringNotInSlice([]string{"1", "6", "17"}, false),
 							)),
-							StateFunc: ProtocolStateFunc,
 						},
 						"port_range": {
 							Type:             schema.TypeString,
@@ -466,23 +464,4 @@ var allowedProtocolCodes = map[string]bool{
 	"TCP":  true,
 	"UDP":  true,
 	"ICMP": true,
-}
-
-var allowedProtocolNumbers = map[int]string{
-	6:  "TCP",
-	17: "UDP",
-	1:  "ICMP",
-}
-
-func ProtocolStateFunc(v interface{}) string {
-	switch v := v.(type) {
-	case string:
-		if number, err := strconv.Atoi(v); err == nil {
-			if code, ok := allowedProtocolNumbers[number]; ok {
-				return code
-			}
-		}
-		return v
-	}
-	return ""
 }
