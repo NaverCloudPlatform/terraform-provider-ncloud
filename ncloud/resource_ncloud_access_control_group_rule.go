@@ -36,10 +36,13 @@ func resourceNcloudAccessControlGroupRule() *schema.Resource {
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"protocol": {
-							Type:             schema.TypeString,
-							Required:         true,
-							ValidateDiagFunc: ToDiagFunc(validation.StringMatch(regexp.MustCompile(`TCP|UDP|ICMP|\b([1-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-2])\b`), "only TCP, UDP, ICMP and 1-252 are valid values.")),
-							StateFunc:        ProtocolStateFunc,
+							Type:     schema.TypeString,
+							Required: true,
+							ValidateDiagFunc: ToDiagFunc(validation.All(
+								validation.StringMatch(regexp.MustCompile(`TCP|UDP|ICMP|\b([1-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-2])\b`), "only TCP, UDP, ICMP and 1-252 are valid values."),
+								validation.StringNotInSlice([]string{"1", "6", "17"}, false),
+							)),
+							StateFunc: ProtocolStateFunc,
 						},
 						"port_range": {
 							Type:             schema.TypeString,
@@ -74,10 +77,13 @@ func resourceNcloudAccessControlGroupRule() *schema.Resource {
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"protocol": {
-							Type:             schema.TypeString,
-							Required:         true,
-							ValidateDiagFunc: ToDiagFunc(validation.StringMatch(regexp.MustCompile(`TCP|UDP|ICMP|\b([1-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-2])\b`), "only TCP, UDP, ICMP and 1-252 are valid values.")),
-							StateFunc:        ProtocolStateFunc,
+							Type:     schema.TypeString,
+							Required: true,
+							ValidateDiagFunc: ToDiagFunc(validation.All(
+								validation.StringMatch(regexp.MustCompile(`TCP|UDP|ICMP|\b([1-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-2])\b`), "only TCP, UDP, ICMP and 1-252 are valid values."),
+								validation.StringNotInSlice([]string{"1", "6", "17"}, false),
+							)),
+							StateFunc: ProtocolStateFunc,
 						},
 						"port_range": {
 							Type:             schema.TypeString,
