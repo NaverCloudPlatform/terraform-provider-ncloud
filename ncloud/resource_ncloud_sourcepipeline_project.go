@@ -185,7 +185,7 @@ func resourceNcloudSourcePipeline() *schema.Resource {
 										Type:     schema.TypeString,
 										Required: true,
 									},
-									"schedule_only_with_change": {
+									"execute_only_with_change": {
 										Type:     schema.TypeBool,
 										Required: true,
 									},
@@ -554,7 +554,7 @@ func makeClassicPipelineTriggerParams(d *schema.ResourceData) *sourcepipeline.Cr
 				Day:                    StringListPtrOrNil(d.GetOk(prefix + "day")),
 				Time:                   StringPtrOrNil(d.GetOk(prefix + "time")),
 				TimeZone:               StringPtrOrNil(d.GetOk(prefix + "timezone")),
-				ScheduleOnlyWithChange: ncloud.Bool(d.Get(prefix + "schedule_only_with_change").(bool)),
+				ScheduleOnlyWithChange: ncloud.Bool(d.Get(prefix + "execute_only_with_change").(bool)),
 			})
 		}
 		pipelineTrigger.Schedule = scheduleTrigger
@@ -598,7 +598,7 @@ func makeVpcPipelineTriggerParams(d *schema.ResourceData) *vsourcepipeline.Creat
 				Day:                    StringListPtrOrNil(d.GetOk(prefix + "day")),
 				Time:                   StringPtrOrNil(d.GetOk(prefix + "time")),
 				TimeZone:               StringPtrOrNil(d.GetOk(prefix + "timezone")),
-				ScheduleOnlyWithChange: ncloud.Bool(d.Get(prefix + "schedule_only_with_change").(bool)),
+				ScheduleOnlyWithChange: ncloud.Bool(d.Get(prefix + "execute_only_with_change").(bool)),
 			})
 		}
 		pipelineTrigger.Schedule = scheduleTrigger
@@ -797,7 +797,7 @@ func makeTriggerData(triggerData *PipelineTrigger) []map[string]interface{} {
 				"day":                       ncloud.StringListValue(schedule.Day),
 				"time":                      ncloud.StringValue(schedule.Time),
 				"timezone":                  ncloud.StringValue(schedule.TimeZone),
-				"schedule_only_with_change": ncloud.BoolValue(schedule.ScheduleOnlyWithChange),
+				"execute_only_with_change": ncloud.BoolValue(schedule.ExecuteOnlyWithChange),
 			}
 			scheduleTrigger = append(scheduleTrigger, mapping)
 		}
@@ -891,7 +891,7 @@ func convertClassicPipelineProject(r *sourcepipeline.GetProjectDetailResponse) *
 				Day:                    scheduleInfo.Day,
 				Time:                   scheduleInfo.Time,
 				TimeZone:               scheduleInfo.TimeZone,
-				ScheduleOnlyWithChange: scheduleInfo.ScheduleOnlyWithChange,
+				ExecuteOnlyWithChange: scheduleInfo.ScheduleOnlyWithChange,
 			}
 			trigger.Schedule = append(trigger.Schedule, ri)
 		}
@@ -975,7 +975,7 @@ func convertVpcPipelineProject(r *vsourcepipeline.GetProjectDetailResponse) *Pip
 				Day:                    scheduleInfo.Day,
 				Time:                   scheduleInfo.Time,
 				TimeZone:               scheduleInfo.TimeZone,
-				ScheduleOnlyWithChange: scheduleInfo.ScheduleOnlyWithChange,
+				ExecuteOnlyWithChange: scheduleInfo.ScheduleOnlyWithChange,
 			}
 			trigger.Schedule = append(trigger.Schedule, ri)
 		}
@@ -1078,7 +1078,7 @@ type PipelineTriggerSchedule struct {
 
 	TimeZone *string `json:"timeZone,omitempty"`
 
-	ScheduleOnlyWithChange *bool `json:"scheduleOnlyWithChange,omitempty"`
+	ExecuteOnlyWithChange *bool `json:"scheduleOnlyWithChange,omitempty"`
 }
 
 type PipelineTriggerSourcePipeline struct {

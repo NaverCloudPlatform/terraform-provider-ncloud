@@ -134,7 +134,7 @@ resource "ncloud_sourcepipeline_project" "test-project" {
             day                       = ["MON", "TUE"]
             time                      = "13:01"
             timezone                  = "Asia/Seoul (UTC+09:00)"
-            schedule_only_with_change = false
+            execute_only_with_change = false
         }
 	}
 }

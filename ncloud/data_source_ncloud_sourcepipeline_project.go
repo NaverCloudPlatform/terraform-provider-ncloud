@@ -152,7 +152,7 @@ func dataSourceNcloudSourcePipelineProject() *schema.Resource {
 										Type:     schema.TypeString,
 										Computed: true,
 									},
-									"schedule_only_with_change": {
+									"execute_only_with_change": {
 										Type:     schema.TypeBool,
 										Computed: true,
 									},

@@ -59,7 +59,7 @@ The following attributes are exported:
         *   `day` - List of day of week .
         *   `time` - Time to trigger.
         *   `timezone` - Timezone for trigger.
-        *   `schedule_only_with_change` -  Schedule trigger option. You can decide whether schedule trigger only execute when SourcePipeline configuration or Repositoryor not.
+        *   `execute_only_with_change` -  Schedule trigger option. Schedule trigger always execute in time, if option is false. Schedule trigger execute when Sourcepipeline project configuration or Sourcecommit repository has changed, if option is true.
     *   `sourcepipeline` - Sourcepipeline trigger.
         *   `id` - Id of the sourcepipeline project to trigger execution of pipeline.
         *   `name` - Name of the sourcepipeline project to trigger execution of pipeline.

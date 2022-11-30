@@ -46,7 +46,7 @@ resource "ncloud_sourcepipeline_project" "test-sourcepipeline" {
             day                       = ["MON", "TUE"]
             time                      = "13:01"
             timezone                  = "Asia/Seoul (UTC+09:00)"
-            schedule_only_with_change = false
+            execute_only_with_change = false
         }
         sourcepipeline {
             id = 1234
@@ -113,7 +113,7 @@ resource "ncloud_sourcepipeline_project" "test-sourcepipeline" {
             day                       = ["MON", "TUE"]
             time                      = "13:01"
             timezone                  = "Asia/Seoul (UTC+09:00)"
-            schedule_only_with_change = false
+            execute_only_with_change = false
         }
         sourcepipeline {
             id = data.ncloud_sourcebuild_projects.test-sourcepipeline.projects[0].id
@@ -144,10 +144,10 @@ The following arguments are supported:
         *   `name` - (Optional, Required if `trigger.repository` exists) Name of repository.
         *   `branch` - (Optional, Required if `trigger.repository` exists) Name of a repository branch.
     *   `schedule` - (Optional)
-        *   `day` - (Optional, Required if `trigger.schedule` exists) List of day of week.
+        *   `day` - (Optional, Required if `trigger.schedule` exists) List of day of week. Accepted values: `MON` | `TUE` | `WED` | `THU` | `FRI` | `SAT` | `SUN`.
         *   `time` - (Optional, Required if `trigger.schedule` exists) Time to trigger.
-        *   `timezone` - (Optional, Required if `trigger.schedule` exists) Timezone for trigger. Accepted values: `MON` | `TUE` | `WED` | `THU` | `FRI` | `SAT` | `SUN`.
-        *   `schedule_only_with_change` - (Optional, Required if `trigger.schedule` exists) Schedule trigger option. You can decide whether schedule trigger always execute in time or execute if Sourcepipeline project configuration or Sourcecommit repository has changed.
+        *   `timezone` - (Optional, Required if `trigger.schedule` exists) Timezone for trigger.
+        *   `execute_only_with_change` - (Optional, Required if `trigger.schedule` exists) Schedule trigger option. You can decide whether schedule trigger always execute in time or execute if Sourcepipeline project configuration or Sourcecommit repository has changed.
     *   `sourcepipeline` - (Optional)
         *   `id` - (Optional, Required if `trigger.sourcepipeline` exists) Id of the sourcepipeline project.
 
