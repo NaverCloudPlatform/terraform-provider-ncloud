@@ -141,7 +141,7 @@ func resourceNcloudSourcePipeline() *schema.Resource {
 			},
 			"triggers": {
 				Type:     schema.TypeList,
-				Required: true,
+				Optional: true,
 				MaxItems: 1,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
@@ -903,7 +903,9 @@ func convertClassicPipelineProject(r *sourcepipeline.GetProjectDetailResponse) *
 			trigger.SourcePipeline = append(trigger.SourcePipeline, ri)
 		}
 
-		project.Triggers = trigger
+		if len(r.Trigger.Repository) != 0 || len(r.Trigger.Schedule) != 0 || len(r.Trigger.SourcePipeline) != 0 {
+			project.Triggers = trigger
+		}
 	}
 
 	return project
@@ -987,7 +989,9 @@ func convertVpcPipelineProject(r *vsourcepipeline.GetProjectDetailResponse) *Pip
 			trigger.SourcePipeline = append(trigger.SourcePipeline, ri)
 		}
 
-		project.Triggers = trigger
+		if len(r.Trigger.Repository) != 0 || len(r.Trigger.Schedule) != 0 || len(r.Trigger.SourcePipeline) != 0 {
+			project.Triggers = trigger
+		}
 	}
 
 	return project
