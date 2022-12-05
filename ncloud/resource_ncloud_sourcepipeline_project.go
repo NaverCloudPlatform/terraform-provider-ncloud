@@ -146,7 +146,7 @@ func resourceNcloudSourcePipeline() *schema.Resource {
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"repository": {
-							Type:     schema.TypeList,
+							Type:     schema.TypeSet,
 							Optional: true,
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
@@ -166,7 +166,7 @@ func resourceNcloudSourcePipeline() *schema.Resource {
 							},
 						},
 						"schedule": {
-							Type:     schema.TypeList,
+							Type:     schema.TypeSet,
 							Optional: true,
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
@@ -193,7 +193,7 @@ func resourceNcloudSourcePipeline() *schema.Resource {
 							},
 						},
 						"sourcepipeline": {
-							Type:     schema.TypeList,
+							Type:     schema.TypeSet,
 							Optional: true,
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
@@ -535,36 +535,33 @@ func makeClassicPipelineTriggerParams(d *schema.ResourceData) *sourcepipeline.Cr
 	pipelineTrigger := &sourcepipeline.CreateProjectTrigger{}
 
 	if _, ok := d.GetOk("triggers.0.repository"); ok {
-		triggerCount := d.Get("triggers.0.repository.#").(int)
-		for i := 0; i < triggerCount; i++ {
-			prefix := fmt.Sprintf("triggers.0.repository.%d.", i)
+		for _, ti := range d.Get("triggers.0.repository").(*schema.Set).List() {
+			triggerInput := ti.(map[string]interface{})
 			repositoryTrigger = append(repositoryTrigger, &sourcepipeline.GetRepositoryTrigger{
-				Type_:  StringPtrOrNil(d.GetOk(prefix + "type")),
-				Name:   StringPtrOrNil(d.GetOk(prefix + "name")),
-				Branch: StringPtrOrNil(d.GetOk(prefix + "branch")),
+				Type_:  ncloud.String(triggerInput["type"].(string)),
+				Name:   ncloud.String(triggerInput["name"].(string)),
+				Branch: ncloud.String(triggerInput["branch"].(string)),
 			})
 		}
 		pipelineTrigger.Repository = repositoryTrigger
 	}
 	if _, ok := d.GetOk("triggers.0.schedule"); ok {
-		triggerCount := d.Get("triggers.0.schedule.#").(int)
-		for i := 0; i < triggerCount; i++ {
-			prefix := fmt.Sprintf("triggers.0.schedule.%d.", i)
+		for _, ti := range d.Get("triggers.0.schedule").(*schema.Set).List() {
+			triggerInput := ti.(map[string]interface{})
 			scheduleTrigger = append(scheduleTrigger, &sourcepipeline.GetScheduleTrigger{
-				Day:                    StringListPtrOrNil(d.GetOk(prefix + "day")),
-				Time:                   StringPtrOrNil(d.GetOk(prefix + "time")),
-				TimeZone:               StringPtrOrNil(d.GetOk(prefix + "timezone")),
-				ScheduleOnlyWithChange: ncloud.Bool(d.Get(prefix + "execute_only_with_change").(bool)),
+				Day:                    ncloud.StringInterfaceList(triggerInput["day"].([]interface{})),
+				Time:                   ncloud.String(triggerInput["time"].(string)),
+				TimeZone:               ncloud.String(triggerInput["timezone"].(string)),
+				ScheduleOnlyWithChange: ncloud.Bool(triggerInput["execute_only_with_change"].(bool)),
 			})
 		}
 		pipelineTrigger.Schedule = scheduleTrigger
 	}
 	if _, ok := d.GetOk("triggers.0.sourcepipeline"); ok {
-		triggerCount := d.Get("triggers.0.sourcepipeline.#").(int)
-		for i := 0; i < triggerCount; i++ {
-			prefix := fmt.Sprintf("triggers.0.sourcepipeline.%d.", i)
+		for _, ti := range d.Get("triggers.0.sourcepipeline").(*schema.Set).List() {
+			triggerInput := ti.(map[string]interface{})
 			sourcepipelineTrigger = append(sourcepipelineTrigger, &sourcepipeline.GetPipelineTrigger{
-				Id: Int32PtrOrNil(d.GetOk(prefix + "id")),
+				Id: ncloud.Int32(int32(triggerInput["id"].(int))),
 			})
 		}
 		pipelineTrigger.SourcePipeline = sourcepipelineTrigger
@@ -579,36 +576,33 @@ func makeVpcPipelineTriggerParams(d *schema.ResourceData) *vsourcepipeline.Creat
 	pipelineTrigger := &vsourcepipeline.CreateProjectTrigger{}
 
 	if _, ok := d.GetOk("triggers.0.repository"); ok {
-		triggerCount := d.Get("triggers.0.repository.#").(int)
-		for i := 0; i < triggerCount; i++ {
-			prefix := fmt.Sprintf("triggers.0.repository.%d.", i)
+		for _, ti := range d.Get("triggers.0.repository").(*schema.Set).List() {
+			triggerInput := ti.(map[string]interface{})
 			repositoryTrigger = append(repositoryTrigger, &vsourcepipeline.GetRepositoryTrigger{
-				Type_:  StringPtrOrNil(d.GetOk(prefix + "type")),
-				Name:   StringPtrOrNil(d.GetOk(prefix + "name")),
-				Branch: StringPtrOrNil(d.GetOk(prefix + "branch")),
+				Type_:  ncloud.String(triggerInput["type"].(string)),
+				Name:   ncloud.String(triggerInput["name"].(string)),
+				Branch: ncloud.String(triggerInput["branch"].(string)),
 			})
 		}
 		pipelineTrigger.Repository = repositoryTrigger
 	}
 	if _, ok := d.GetOk("triggers.0.schedule"); ok {
-		triggerCount := d.Get("triggers.0.schedule.#").(int)
-		for i := 0; i < triggerCount; i++ {
-			prefix := fmt.Sprintf("triggers.0.schedule.%d.", i)
+		for _, ti := range d.Get("triggers.0.schedule").(*schema.Set).List() {
+			triggerInput := ti.(map[string]interface{})
 			scheduleTrigger = append(scheduleTrigger, &vsourcepipeline.GetScheduleTrigger{
-				Day:                    StringListPtrOrNil(d.GetOk(prefix + "day")),
-				Time:                   StringPtrOrNil(d.GetOk(prefix + "time")),
-				TimeZone:               StringPtrOrNil(d.GetOk(prefix + "timezone")),
-				ScheduleOnlyWithChange: ncloud.Bool(d.Get(prefix + "execute_only_with_change").(bool)),
+				Day:                    ncloud.StringInterfaceList(triggerInput["day"].([]interface{})),
+				Time:                   ncloud.String(triggerInput["time"].(string)),
+				TimeZone:               ncloud.String(triggerInput["timezone"].(string)),
+				ScheduleOnlyWithChange: ncloud.Bool(triggerInput["execute_only_with_change"].(bool)),
 			})
 		}
 		pipelineTrigger.Schedule = scheduleTrigger
 	}
 	if _, ok := d.GetOk("triggers.0.sourcepipeline"); ok {
-		triggerCount := d.Get("triggers.0.sourcepipeline.#").(int)
-		for i := 0; i < triggerCount; i++ {
-			prefix := fmt.Sprintf("triggers.0.sourcepipeline.%d.", i)
+		for _, ti := range d.Get("triggers.0.sourcepipeline").(*schema.Set).List() {
+			triggerInput := ti.(map[string]interface{})
 			sourcepipelineTrigger = append(sourcepipelineTrigger, &vsourcepipeline.GetPipelineTrigger{
-				Id: Int32PtrOrNil(d.GetOk(prefix + "id")),
+				Id: ncloud.Int32(int32(triggerInput["id"].(int))),
 			})
 		}
 		pipelineTrigger.SourcePipeline = sourcepipelineTrigger
