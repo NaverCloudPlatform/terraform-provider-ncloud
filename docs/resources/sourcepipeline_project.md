@@ -37,9 +37,19 @@ resource "ncloud_sourcepipeline_project" "test-sourcepipeline" {
         linked_tasks   = ["task_name_1"]
     }
     triggers {
-        sourcecommit {
+        repository {
+            type = "sourcecommit"
             repository_name = ncloud_sourcecommit_repository.test-sourcecommit.name
             branch = "master"
+        }
+        schedule {
+            day                       = ["MON", "TUE"]
+            time                      = "13:01"
+            timezone                  = "Asia/Seoul (UTC+09:00)"
+            execute_only_with_change = false
+        }
+        sourcepipeline {
+            id = 1234
         }
     }
 }
@@ -67,6 +77,9 @@ data "ncloud_sourcedeploy_project_stage_scenarios" "test-sourcedeploy_scenarios"
     stage_id = data.ncloud_sourcedeploy_project_stages.test-sourcedeploy_stages.stages[0].id
 }
 
+data "ncloud_sourcepipeline_projects" "test-sourcepipeline" {
+}
+
 resource "ncloud_sourcepipeline_project" "test-sourcepipeline" {
     name = "tf-sourcepipeline_project-test"
     task {
@@ -91,9 +104,19 @@ resource "ncloud_sourcepipeline_project" "test-sourcepipeline" {
         linked_tasks = ["task_name_1"]
     }
     triggers {
-        sourcecommit {
+        repository {
+            type = "sourcecommit"
             repository_name = ncloud_sourcecommit_repository.test-sourcecommit.name
             branch = "master"
+        }
+        schedule {
+            day                       = ["MON", "TUE"]
+            time                      = "13:01"
+            timezone                  = "Asia/Seoul (UTC+09:00)"
+            execute_only_with_change = false
+        }
+        sourcepipeline {
+            id = data.ncloud_sourcebuild_projects.test-sourcepipeline.projects[0].id
         }
     }
 }
@@ -116,9 +139,17 @@ The following arguments are supported:
             *   `repository_branch` - (Optional) Target repository branch of SourceBuild task. Default : main branch of target repository
     *   `linked_tasks` - (Required) Linked tasks which has to be executed before.
 *   `triggers` - (Required) `triggers` block describes trigger configuration.
-    *   `sourcecommit` - (Optional)
-        *   `repository_name` - (Required) Name of sourcecommit repository to trigger execution of pipeline
-        *   `branch` - (Required) Name of a repository branch to trigger execution of pipeline.
+    *   `repository` - (Optional)
+        *   `type` - (Optional, Required if `trigger.repository` exists) Type of repository. Accepted values: `sourcecommit`
+        *   `name` - (Optional, Required if `trigger.repository` exists) Name of repository.
+        *   `branch` - (Optional, Required if `trigger.repository` exists) Name of a repository branch.
+    *   `schedule` - (Optional)
+        *   `day` - (Optional, Required if `trigger.schedule` exists) List of day of week. Accepted values: `MON` | `TUE` | `WED` | `THU` | `FRI` | `SAT` | `SUN`.
+        *   `time` - (Optional, Required if `trigger.schedule` exists) Time to trigger.
+        *   `timezone` - (Optional, Required if `trigger.schedule` exists) Timezone for trigger.
+        *   `execute_only_with_change` - (Optional, Required if `trigger.schedule` exists) Schedule trigger option. You can decide whether schedule trigger always execute in time or execute if Sourcepipeline project configuration or Sourcecommit repository has changed.
+    *   `sourcepipeline` - (Optional)
+        *   `id` - (Optional, Required if `trigger.sourcepipeline` exists) Id of the sourcepipeline project.
 
 ## Attributes Reference
 
@@ -132,3 +163,6 @@ The following arguments are supported:
             *   `file` - Target file name of the Sourcedeploy task. It is set only when `task.type` is SourceDeploy and `task.config.target.type` is ObjectStorage.
             *   `manifest` - Target manifest file name of the Sourcedeploy task. It is set only when `task.type` is SourceDeploy and `task.config.target.type` is KubernetesService.
             *   `full_manifest` - List of target manifest files name. It is set only when `task.type` is SourceDeploy and `task.config.target.type` is KubernetesService.
+*   `triggers`
+    *   `sourcepipeline` 
+        * `name` - Name of the sourcepipeline trigger project.

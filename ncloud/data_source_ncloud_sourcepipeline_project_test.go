@@ -130,10 +130,12 @@ resource "ncloud_sourcepipeline_project" "test-project" {
 		linked_tasks   = []
 	}
 	triggers {
-		sourcecommit {
-			repository_name = ncloud_sourcecommit_repository.test-repo.name
-			branch = "master"
-		}
+		schedule {
+            day                       = ["MON", "TUE"]
+            time                      = "13:01"
+            timezone                  = "Asia/Seoul (UTC+09:00)"
+            execute_only_with_change = false
+        }
 	}
 }
 
