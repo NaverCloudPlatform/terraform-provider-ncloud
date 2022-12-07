@@ -73,7 +73,7 @@ func resourceNcloudCDSSCluster() *schema.Resource {
 				ForceNew: true,
 			},
 			"cmak": {
-				Type:     schema.TypeSet,
+				Type:     schema.TypeList,
 				Required: true,
 				ForceNew: true,
 				Elem: &schema.Resource{
@@ -94,7 +94,7 @@ func resourceNcloudCDSSCluster() *schema.Resource {
 				},
 			},
 			"manager_node": {
-				Type:     schema.TypeSet,
+				Type:     schema.TypeList,
 				Required: true,
 				ForceNew: true,
 				Elem: &schema.Resource{
@@ -113,7 +113,7 @@ func resourceNcloudCDSSCluster() *schema.Resource {
 				},
 			},
 			"broker_nodes": {
-				Type:     schema.TypeSet,
+				Type:     schema.TypeList,
 				Required: true,
 				ForceNew: true,
 				Elem: &schema.Resource{
@@ -142,7 +142,7 @@ func resourceNcloudCDSSCluster() *schema.Resource {
 				},
 			},
 			"endpoints": {
-				Type:     schema.TypeSet,
+				Type:     schema.TypeList,
 				Optional: true,
 				ForceNew: true,
 				Elem: &schema.Resource{
@@ -196,17 +196,14 @@ func resourceNcloudCDSSClusterCreate(ctx context.Context, d *schema.ResourceData
 		return diag.FromErr(NotSupportClassic("resource `ncloud_cdss_cluster`"))
 	}
 
-	cSet := d.Get("cmak").(*schema.Set)
-	cList := cSet.List()
-	cMap := cList[0].(map[string]interface{})
+	c := d.Get("cmak").([]interface{})
+	cMap := c[0].(map[string]interface{})
 
-	mSet := d.Get("manager_node").(*schema.Set)
-	mList := mSet.List()
-	mMap := mList[0].(map[string]interface{})
+	m := d.Get("manager_node").([]interface{})
+	mMap := m[0].(map[string]interface{})
 
-	bSet := d.Get("broker_nodes").(*schema.Set)
-	bList := bSet.List()
-	bMap := bList[0].(map[string]interface{})
+	b := d.Get("broker_nodes").([]interface{})
+	bMap := b[0].(map[string]interface{})
 
 	reqParams := vcdss.CreateCluster{
 		ClusterName:              *StringPtrOrNil(d.GetOk("name")),
@@ -259,47 +256,37 @@ func resourceNcloudCDSSClusterRead(ctx context.Context, d *schema.ResourceData, 
 	d.Set("name", cluster.ClusterName)
 	d.Set("kafka_version_code", cluster.KafkaVersionCode)
 	d.Set("os_product_code", cluster.SoftwareProductCode)
-	d.Set("vpc_no", cluster.VpcNo)
-	d.Set("config_group_no", cluster.ConfigGroupNo)
+	d.Set("vpc_no", strconv.Itoa(int(cluster.VpcNo)))
+	d.Set("config_group_no", strconv.Itoa(int(cluster.ConfigGroupNo)))
 
-	cSet := schema.NewSet(schema.HashResource(resourceNcloudCDSSCluster().Schema["cmak"].Elem.(*schema.Resource)), []interface{}{})
-	mSet := schema.NewSet(schema.HashResource(resourceNcloudCDSSCluster().Schema["manager_node"].Elem.(*schema.Resource)), []interface{}{})
-	bSet := schema.NewSet(schema.HashResource(resourceNcloudCDSSCluster().Schema["broker_nodes"].Elem.(*schema.Resource)), []interface{}{})
+	c := d.Get("cmak").([]interface{})
+	cMap := c[0].(map[string]interface{})
 
-	cSet.Add(map[string]interface{}{
-		"user_name": cluster.KafkaManagerUserName,
+	var cList []map[string]interface{}
+	var mList []map[string]interface{}
+	var bList []map[string]interface{}
+	var eList []map[string]interface{}
+
+	cList = append(cList, map[string]interface{}{
+		"user_name":     cluster.KafkaManagerUserName,
+		"user_password": cMap["user_password"],
 	})
-	mSet.Add(map[string]interface{}{
+	mList = append(mList, map[string]interface{}{
 		"node_product_code": cluster.ManagerNodeProductCode,
-		"subnet_no":         cluster.ManagerNodeSubnetNo,
+		"subnet_no":         strconv.Itoa(int(cluster.ManagerNodeSubnetNo)),
 	})
-	bSet.Add(map[string]interface{}{
+	bList = append(bList, map[string]interface{}{
 		"node_product_code": cluster.BrokerNodeProductCode,
-		"subnet_no":         cluster.BrokerNodeSubnetNo,
-		"node_count":        cluster.BrokerNodeCount,
-		"storage_size":      cluster.BrokerNodeStorageSize,
+		"subnet_no":         strconv.Itoa(int(cluster.BrokerNodeSubnetNo)),
+		"node_count":        strconv.Itoa(int(cluster.BrokerNodeCount)),
+		"storage_size":      strconv.Itoa(int(cluster.BrokerNodeStorageSize)),
 	})
-
-	// Only set data intersection between resource and list
-	if err := d.Set("cmak", cSet.List()); err != nil {
-		log.Printf("[WARN] Error setting cmak set for (%s): %s", d.Id(), err)
-	}
-
-	if err := d.Set("manager_node", mSet.List()); err != nil {
-		log.Printf("[WARN] Error setting manager_node set for (%s): %s", d.Id(), err)
-	}
-
-	if err := d.Set("broker_nodes", bSet.List()); err != nil {
-		log.Printf("[WARN] Error setting broker_nodes set for (%s): %s", d.Id(), err)
-	}
 
 	endpoints, err := getBrokerInfo(ctx, config, d.Id())
 	if err != nil {
 		return diag.FromErr(err)
 	}
-
-	eSet := schema.NewSet(schema.HashResource(resourceNcloudCDSSCluster().Schema["endpoints"].Elem.(*schema.Resource)), []interface{}{})
-	eSet.Add(map[string]interface{}{
+	eList = append(eList, map[string]interface{}{
 		"broker_node_list":                                   endpoints.BrokerNodeList,
 		"broker_tls_node_list":                               endpoints.BrokerTlsNodeList,
 		"public_endpoint_broker_node_list":                   endpoints.PublicEndpointBrokerNodeList,
@@ -310,7 +297,21 @@ func resourceNcloudCDSSClusterRead(ctx context.Context, d *schema.ResourceData, 
 		"local_dns_tls_list":                                 endpoints.LocalDnsTlsList,
 		"zookeeper_list":                                     endpoints.ZookeeperList,
 	})
-	if err := d.Set("broker_nodes", bSet.List()); err != nil {
+
+	// Only set data intersection between resource and list
+	if err := d.Set("cmak", cList); err != nil {
+		log.Printf("[WARN] Error setting cmak set for (%s): %s", d.Id(), err)
+	}
+
+	if err := d.Set("manager_node", mList); err != nil {
+		log.Printf("[WARN] Error setting manager_node set for (%s): %s", d.Id(), err)
+	}
+
+	if err := d.Set("broker_nodes", bList); err != nil {
+		log.Printf("[WARN] Error setting broker_nodes set for (%s): %s", d.Id(), err)
+	}
+
+	if err := d.Set("endpoints", eList); err != nil {
 		log.Printf("[WARN] Error setting endpoints set for (%s): %s", d.Id(), err)
 	}
 

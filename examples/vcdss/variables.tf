@@ -3,11 +3,11 @@ variable name {
 }
 
 variable access_key {
-  default = "qpxoEjNZT6z7HupSPyOb"
+  default = "hTkZmwzTWs5gATzccUhj"
 }
 
 variable secret_key {
-  default = "oRdQ4fRhB2DspQlatTjoONzP9myqOWito13De0ef"
+  default = "JBSPh5cXIR725ZC4H2dRznb3007nVKmrQtHt2XWt"
 }
 
 variable login_key {
