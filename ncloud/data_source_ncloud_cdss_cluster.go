@@ -2,7 +2,9 @@ package ncloud
 
 import (
 	"context"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
+	"fmt"
+	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/ncloud"
+	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/services/vcdss"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"log"
 	"strconv"
@@ -14,11 +16,16 @@ func init() {
 
 func dataSourceNcloudCDSSCluster() *schema.Resource {
 	return &schema.Resource{
-		ReadContext: dataSourceNcloudCDSSClusterRead,
+		Read: dataSourceNcloudCDSSClusterRead,
 		Schema: map[string]*schema.Schema{
+			"filter": dataSourceFiltersSchema(),
 			"id": {
 				Type:     schema.TypeString,
-				Required: true,
+				Computed: true,
+			},
+			"service_group_instance_no": {
+				Type:     schema.TypeString,
+				Computed: true,
 			},
 			"name": {
 				Type:     schema.TypeString,
@@ -101,39 +108,39 @@ func dataSourceNcloudCDSSCluster() *schema.Resource {
 				Optional: true,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
-						"broker_node_list": {
+						"plaintext": {
 							Type:     schema.TypeString,
 							Optional: true,
 						},
-						"broker_tls_node_list": {
+						"tls": {
 							Type:     schema.TypeString,
 							Optional: true,
 						},
-						"public_endpoint_broker_node_list": {
+						"public_endpoint_plaintext_listener_port": {
 							Type:     schema.TypeString,
 							Optional: true,
 						},
-						"public_endpoint_broker_node_listener_port_list": {
+						"public_endpoint_tls_listener_port": {
 							Type:     schema.TypeString,
 							Optional: true,
 						},
-						"public_endpoint_broker_tls_node_list": {
+						"public_endpoint_plaintext": {
 							Type:     schema.TypeString,
 							Optional: true,
 						},
-						"public_endpoint_broker_tls_node_listener_port_list": {
+						"public_endpoint_tls": {
 							Type:     schema.TypeString,
 							Optional: true,
 						},
-						"local_dns_list": {
+						"zookeeper": {
 							Type:     schema.TypeString,
 							Optional: true,
 						},
-						"local_dns_tls_list": {
+						"hosts_private_endpoint_tls": {
 							Type:     schema.TypeString,
 							Optional: true,
 						},
-						"zookeeper_list": {
+						"hosts_public_endpoint_tls": {
 							Type:     schema.TypeString,
 							Optional: true,
 						},
@@ -144,23 +151,33 @@ func dataSourceNcloudCDSSCluster() *schema.Resource {
 	}
 }
 
-func dataSourceNcloudCDSSClusterRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+func dataSourceNcloudCDSSClusterRead(d *schema.ResourceData, meta interface{}) error {
 	config := meta.(*ProviderConfig)
 	if !config.SupportVPC {
-		return diag.FromErr(NotSupportClassic("dataSource `ncloud_vcdss_cluster`"))
+		return NotSupportClassic("dataSource `ncloud_vcdss_cluster`")
 	}
 
-	cluster, err := getCDSSCluster(ctx, config, *StringPtrOrNil(d.GetOk("id")))
+	resources, err := getCDSSClusterList(config)
 	if err != nil {
-		return diag.FromErr(err)
+		return err
 	}
 
-	if cluster == nil {
-		d.SetId("")
-		return nil
+	if f, ok := d.GetOk("filter"); ok {
+		resources = ApplyFilters(f.(*schema.Set), resources, dataSourceNcloudCDSSKafkaVersion().Schema)
 	}
 
-	d.SetId(*StringPtrOrNil(d.GetOk("id")))
+	if len(resources) < 1 {
+		return fmt.Errorf("no results. please change search criteria and try again")
+	}
+
+	id := resources[0]["id"].(string)
+	cluster, err := getCDSSCluster(context.Background(), config, id)
+	if err != nil {
+		return err
+	}
+
+	d.SetId(id)
+	d.Set("service_group_instance_no", id)
 	d.Set("name", cluster.ClusterName)
 	d.Set("kafka_version_code", cluster.KafkaVersionCode)
 	d.Set("os_product_code", cluster.SoftwareProductCode)
@@ -186,20 +203,20 @@ func dataSourceNcloudCDSSClusterRead(ctx context.Context, d *schema.ResourceData
 		"storage_size":      strconv.Itoa(int(cluster.BrokerNodeStorageSize)),
 	})
 
-	endpoints, err := getBrokerInfo(ctx, config, d.Id())
+	endpoints, err := getBrokerInfo(context.Background(), config, d.Id())
 	if err != nil {
-		return diag.FromErr(err)
+		return err
 	}
 	eList = append(eList, map[string]interface{}{
-		"broker_node_list":                                   endpoints.BrokerNodeList,
-		"broker_tls_node_list":                               endpoints.BrokerTlsNodeList,
-		"public_endpoint_broker_node_list":                   endpoints.PublicEndpointBrokerNodeList,
-		"public_endpoint_broker_node_listener_port_list":     endpoints.PublicEndpointBrokerNodeListenerPortList,
-		"public_endpoint_broker_tls_node_list":               endpoints.PublicEndpointBrokerTlsNodeList,
-		"public_endpoint_broker_tls_node_listener_port_list": endpoints.PublicEndpointBrokerTlsNodeListenerPortList,
-		"local_dns_list":                                     endpoints.LocalDnsList,
-		"local_dns_tls_list":                                 endpoints.LocalDnsTlsList,
-		"zookeeper_list":                                     endpoints.ZookeeperList,
+		"plaintext": endpoints.BrokerNodeList,
+		"tls":       endpoints.BrokerTlsNodeList,
+		"public_endpoint_plaintext_listener_port": endpoints.PublicEndpointBrokerNodeListenerPortList,
+		"public_endpoint_tls_listener_port":       endpoints.PublicEndpointBrokerTlsNodeListenerPortList,
+		"public_endpoint_plaintext":               endpoints.PublicEndpointBrokerNodeList,
+		"public_endpoint_tls":                     endpoints.PublicEndpointBrokerTlsNodeList,
+		"zookeeper":                               endpoints.ZookeeperList,
+		"hosts_private_endpoint_tls":              endpoints.LocalDnsList,
+		"hosts_public_endpoint_tls":               endpoints.LocalDnsTlsList,
 	})
 
 	// Only set data intersection between resource and list
@@ -220,4 +237,29 @@ func dataSourceNcloudCDSSClusterRead(ctx context.Context, d *schema.ResourceData
 	}
 
 	return nil
+}
+
+func getCDSSClusterList(config *ProviderConfig) ([]map[string]interface{}, error) {
+	logCommonRequest("GetCDSSClusterList", "")
+	resp, _, err := config.Client.vcdss.V1Api.ClusterGetClusterInfoListPost(context.Background(), vcdss.GetClusterRequest{})
+
+	if err != nil {
+		logErrorResponse("GetCDSSClusterList", err, "")
+		return nil, err
+	}
+
+	logResponse("GetCDSSClusterList", resp)
+
+	resources := []map[string]interface{}{}
+
+	for _, r := range resp.Result.AllowedClusters {
+		instance := map[string]interface{}{
+			"id":   ncloud.StringValue(&r.ServiceGroupInstanceNo),
+			"name": ncloud.StringValue(&r.ClusterName),
+		}
+
+		resources = append(resources, instance)
+	}
+
+	return resources, nil
 }

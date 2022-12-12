@@ -19,13 +19,13 @@ func init() {
 }
 
 const (
-	StatusCreating = "creating"
-	StatusChanging = "changing"
-	StatusRunning  = "running"
-	StatusDeleting = "deleting"
-	StatusError    = "error"
-	StatusReturn   = "return"
-	StatusNull     = "null"
+	CDSSStatusCreating = "creating"
+	CDSSStatusChanging = "changing"
+	CDSSStatusRunning  = "running"
+	CDSSStatusDeleting = "deleting"
+	CDSSStatusError    = "error"
+	CDSSStatusReturn   = "return"
+	CDSSStatusNull     = "null"
 )
 
 func resourceNcloudCDSSCluster() *schema.Resource {
@@ -143,45 +143,44 @@ func resourceNcloudCDSSCluster() *schema.Resource {
 			},
 			"endpoints": {
 				Type:     schema.TypeList,
-				Optional: true,
-				ForceNew: true,
+				Computed: true,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
-						"broker_node_list": {
+						"plaintext": {
 							Type:     schema.TypeString,
-							Optional: true,
+							Computed: true,
 						},
-						"broker_tls_node_list": {
+						"tls": {
 							Type:     schema.TypeString,
-							Optional: true,
+							Computed: true,
 						},
-						"public_endpoint_broker_node_list": {
+						"public_endpoint_plaintext_listener_port": {
 							Type:     schema.TypeString,
-							Optional: true,
+							Computed: true,
 						},
-						"public_endpoint_broker_node_listener_port_list": {
+						"public_endpoint_tls_listener_port": {
 							Type:     schema.TypeString,
-							Optional: true,
+							Computed: true,
 						},
-						"public_endpoint_broker_tls_node_list": {
+						"public_endpoint_plaintext": {
 							Type:     schema.TypeString,
-							Optional: true,
+							Computed: true,
 						},
-						"public_endpoint_broker_tls_node_listener_port_list": {
+						"public_endpoint_tls": {
 							Type:     schema.TypeString,
-							Optional: true,
+							Computed: true,
 						},
-						"local_dns_list": {
+						"zookeeper": {
 							Type:     schema.TypeString,
-							Optional: true,
+							Computed: true,
 						},
-						"local_dns_tls_list": {
+						"hosts_private_endpoint_tls": {
 							Type:     schema.TypeString,
-							Optional: true,
+							Computed: true,
 						},
-						"zookeeper_list": {
+						"hosts_public_endpoint_tls": {
 							Type:     schema.TypeString,
-							Optional: true,
+							Computed: true,
 						},
 					},
 				},
@@ -287,15 +286,15 @@ func resourceNcloudCDSSClusterRead(ctx context.Context, d *schema.ResourceData, 
 		return diag.FromErr(err)
 	}
 	eList = append(eList, map[string]interface{}{
-		"broker_node_list":                                   endpoints.BrokerNodeList,
-		"broker_tls_node_list":                               endpoints.BrokerTlsNodeList,
-		"public_endpoint_broker_node_list":                   endpoints.PublicEndpointBrokerNodeList,
-		"public_endpoint_broker_node_listener_port_list":     endpoints.PublicEndpointBrokerNodeListenerPortList,
-		"public_endpoint_broker_tls_node_list":               endpoints.PublicEndpointBrokerTlsNodeList,
-		"public_endpoint_broker_tls_node_listener_port_list": endpoints.PublicEndpointBrokerTlsNodeListenerPortList,
-		"local_dns_list":                                     endpoints.LocalDnsList,
-		"local_dns_tls_list":                                 endpoints.LocalDnsTlsList,
-		"zookeeper_list":                                     endpoints.ZookeeperList,
+		"plaintext": endpoints.BrokerNodeList,
+		"tls":       endpoints.BrokerTlsNodeList,
+		"public_endpoint_plaintext_listener_port": endpoints.PublicEndpointBrokerNodeListenerPortList,
+		"public_endpoint_tls_listener_port":       endpoints.PublicEndpointBrokerTlsNodeListenerPortList,
+		"public_endpoint_plaintext":               endpoints.PublicEndpointBrokerNodeList,
+		"public_endpoint_tls":                     endpoints.PublicEndpointBrokerTlsNodeList,
+		"zookeeper":                               endpoints.ZookeeperList,
+		"hosts_private_endpoint_tls":              endpoints.LocalDnsList,
+		"hosts_public_endpoint_tls":               endpoints.LocalDnsTlsList,
 	})
 
 	// Only set data intersection between resource and list
@@ -343,15 +342,15 @@ func resourceNcloudCDSSClusterDelete(ctx context.Context, d *schema.ResourceData
 
 func waitForCDSSClusterDeletion(ctx context.Context, d *schema.ResourceData, config *ProviderConfig) error {
 	stateConf := &resource.StateChangeConf{
-		Pending: []string{StatusDeleting},
-		Target:  []string{StatusReturn},
+		Pending: []string{CDSSStatusDeleting},
+		Target:  []string{CDSSStatusReturn},
 		Refresh: func() (result interface{}, state string, err error) {
 			cluster, err := getCDSSCluster(ctx, config, d.Id())
 			if err != nil {
 				return nil, "", err
 			}
 			if cluster == nil {
-				return d.Id(), StatusNull, nil
+				return d.Id(), CDSSStatusNull, nil
 			}
 			return cluster, cluster.Status, nil
 		},
@@ -367,15 +366,15 @@ func waitForCDSSClusterDeletion(ctx context.Context, d *schema.ResourceData, con
 
 func waitForCDSSClusterActive(ctx context.Context, d *schema.ResourceData, config *ProviderConfig, uuid string) error {
 	stateConf := &resource.StateChangeConf{
-		Pending: []string{StatusCreating, StatusChanging},
-		Target:  []string{StatusRunning},
+		Pending: []string{CDSSStatusCreating, CDSSStatusChanging},
+		Target:  []string{CDSSStatusRunning},
 		Refresh: func() (result interface{}, state string, err error) {
 			cluster, err := getCDSSCluster(ctx, config, uuid)
 			if err != nil {
 				return nil, "", err
 			}
 			if cluster == nil {
-				return uuid, StatusNull, nil
+				return uuid, CDSSStatusNull, nil
 			}
 			return cluster, cluster.Status, nil
 		},

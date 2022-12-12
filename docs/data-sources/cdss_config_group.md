@@ -14,10 +14,15 @@ data "ncloud_cdss_config_group" "config_group"{
 ## Argument Reference
 The following arguments are supported
 
-* `id` - (Required) ConfigGroup uuid.
 * `kafka_version_code` - (Required) Cloud Data Streaming Service version to be used.
+* `filter` - (Optional) Custom filter block as described below.
+    * `name` - (Required) The name of the field to filter by.
+    * `values` - (Required) Set of values that are accepted for the given field.
+    * `regex` - (Optional) is `values` treated as a regular expression.
 ## Attribute Reference
 In addition to all arguments above, the following attributes are exported
 
-* `name` - (Required) ConfigGroup name.
-* `description` - (Required) ConfigGroup description.
+* `id` - ConfigGroup uuid.
+* `config_group_no` - Config group number.
+* `name` - ConfigGroup name.
+* `description` - ConfigGroup description.

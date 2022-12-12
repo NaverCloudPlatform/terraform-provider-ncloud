@@ -1,8 +1,8 @@
 terraform {
+  required_version = ">= 0.13"
   required_providers {
     ncloud = {
-      source = "terraform.local/local/ncloud"
-      version = "1.0.0"
+      source = "navercloudplatform/ncloud"
     }
   }
 }

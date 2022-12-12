@@ -60,7 +60,7 @@ func resourceNcloudCDSSConfigGroupCreate(ctx context.Context, d *schema.Resource
 		KafkaVersionCode: *StringPtrOrNil(d.GetOk("kafka_version_code")),
 	}
 
-	logCommonRequest("resourceNcloudCDSSClusterCreate", reqParams)
+	logCommonRequest("resourceNcloudCDSSConfigGroupCreate", reqParams)
 	resp, _, err := config.Client.vcdss.V1Api.ConfigGroupCreateConfigGroupPost(ctx, reqParams)
 	if err != nil {
 		logErrorResponse("resourceNcloudCDSSConfigGroupCreate", err, reqParams)

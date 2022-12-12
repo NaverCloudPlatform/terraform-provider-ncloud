@@ -1,15 +1,21 @@
 variable name {
-  default = "from-terraform"
+  default = "tf-cdss"
 }
 
 variable access_key {
-  default = "hTkZmwzTWs5gATzccUhj"
+  default = "YOUR_ACCESS_KEY"
 }
 
 variable secret_key {
-  default = "JBSPh5cXIR725ZC4H2dRznb3007nVKmrQtHt2XWt"
+  default = "YOUR_SECRET_KEY"
 }
 
 variable login_key {
-  default = "from-terraform-key"
+  default = "YOUR_LOGIN_KEY"
+}
+
+variable "cmak_user_password" {
+  description = "CDSS cluster CMAK user password"
+  type        = string
+  sensitive   = true
 }

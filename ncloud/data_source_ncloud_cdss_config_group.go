@@ -2,7 +2,9 @@ package ncloud
 
 import (
 	"context"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
+	"fmt"
+	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/ncloud"
+	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/services/vcdss"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
@@ -12,11 +14,16 @@ func init() {
 
 func dataSourceNcloudCDSSConfigGroup() *schema.Resource {
 	return &schema.Resource{
-		ReadContext: dataSourceNcloudCDSSConfigGroupRead,
+		Read: dataSourceNcloudCDSSConfigGroupRead,
 		Schema: map[string]*schema.Schema{
+			"filter": dataSourceFiltersSchema(),
 			"id": {
 				Type:     schema.TypeString,
-				Required: true,
+				Computed: true,
+			},
+			"config_group_no": {
+				Type:     schema.TypeString,
+				Computed: true,
 			},
 			"kafka_version_code": {
 				Type:     schema.TypeString,
@@ -34,25 +41,61 @@ func dataSourceNcloudCDSSConfigGroup() *schema.Resource {
 	}
 }
 
-func dataSourceNcloudCDSSConfigGroupRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+func dataSourceNcloudCDSSConfigGroupRead(d *schema.ResourceData, meta interface{}) error {
 	config := meta.(*ProviderConfig)
 	if !config.SupportVPC {
-		return diag.FromErr(NotSupportClassic("dataSource `ncloud_cdss_config_group`"))
+		return NotSupportClassic("dataSource `ncloud_cdss_config_group`")
 	}
 
-	configGroup, err := getCDSSConfigGroup(ctx, config, *StringPtrOrNil(d.GetOk("kafka_version_code")), *StringPtrOrNil(d.GetOk("id")))
+	resources, err := getCDSSConfigGroups(config, *StringPtrOrNil(d.GetOk("kafka_version_code")))
 	if err != nil {
-		return diag.FromErr(err)
+		return err
 	}
 
-	if configGroup == nil {
-		d.SetId("")
-		return nil
+	if f, ok := d.GetOk("filter"); ok {
+		resources = ApplyFilters(f.(*schema.Set), resources, dataSourceNcloudCDSSKafkaVersion().Schema)
 	}
 
-	d.SetId(*StringPtrOrNil(d.GetOk("id")))
-	d.Set("name", configGroup.ConfigGroupName)
-	d.Set("description", configGroup.Description)
+	if len(resources) < 1 {
+		return fmt.Errorf("no results. please change search criteria and try again")
+	}
+
+	for k, v := range resources[0] {
+		if k == "id" {
+			d.SetId(v.(string))
+		}
+		d.Set(k, v)
+	}
 
 	return nil
+}
+
+func getCDSSConfigGroups(config *ProviderConfig, kafkaVersionCode string) ([]map[string]interface{}, error) {
+	logCommonRequest("GetCDSSConfigGroups", "")
+	resp, _, err := config.Client.vcdss.V1Api.ConfigGroupGetKafkaVersionConfigGroupListPost(context.Background(), vcdss.GetKafkaVersionConfigGroupListRequest{
+		KafkaVersionCode: kafkaVersionCode,
+	})
+
+	if err != nil {
+		logErrorResponse("GetCDSSConfigGroups", err, "")
+		return nil, err
+	}
+
+	logResponse("GetCDSSConfigGroups", resp)
+
+	resources := []map[string]interface{}{}
+
+	for _, r := range resp.Result.KafkaConfigGroupList {
+		instance := map[string]interface{}{
+			"id":                 *ncloud.Int32String(r.ConfigGroupNo),
+			"config_group_no":    *ncloud.Int32String(r.ConfigGroupNo),
+			"name":               ncloud.StringValue(&r.ConfigGroupName),
+			"description":        ncloud.StringValue(&r.Description),
+			"kafka_version_code": ncloud.StringValue(&r.KafkaVersionCode),
+		}
+
+		resources = append(resources, instance)
+	}
+
+	return resources, nil
 }

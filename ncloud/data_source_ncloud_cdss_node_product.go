@@ -94,10 +94,16 @@ func getCDSSNodeProducts(config *ProviderConfig, reqParams vcdss.NodeProduct) ([
 	resources := []map[string]interface{}{}
 
 	for _, r := range resp.Result.ProductList {
+		memorySize, err := parseMemorySize(r.MemorySize)
+		if err != nil {
+			logErrorResponse("Invalid Memory Size", err, "")
+			return nil, err
+		}
+
 		instance := map[string]interface{}{
 			"id":           ncloud.StringValue(&r.ProductCode),
 			"cpu_count":    ncloud.StringValue(&r.CpuCount),
-			"memory_size":  parseMemorySize(r.MemorySize),
+			"memory_size":  ncloud.StringValue(memorySize),
 			"product_type": ncloud.StringValue(&r.ProductType2Code),
 		}
 
@@ -107,9 +113,12 @@ func getCDSSNodeProducts(config *ProviderConfig, reqParams vcdss.NodeProduct) ([
 	return resources, nil
 }
 
-func parseMemorySize(memorySize string) string {
-	num, _ := strconv.Atoi(memorySize)
+func parseMemorySize(memorySize string) (*string, error) {
+	num, err := strconv.Atoi(memorySize)
+	if err != nil {
+		return nil, err
+	}
 	res := num / 1024 / 1024 / 1024
-
-	return strconv.Itoa(res) + "GB"
+	resFormatGB := strconv.Itoa(res) + "GB"
+	return &resFormatGB, err
 }
