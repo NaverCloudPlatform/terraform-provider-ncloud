@@ -10,7 +10,7 @@ import (
 )
 
 func init() {
-	RegisterDataSource("ncloud_ses_node_product", dataSourceNcloudSESNodeProduct())
+	RegisterDataSource("ncloud_ses_node_products", dataSourceNcloudSESNodeProduct())
 }
 
 func dataSourceNcloudSESNodeProduct() *schema.Resource {
@@ -23,11 +23,11 @@ func dataSourceNcloudSESNodeProduct() *schema.Resource {
 				Computed: true,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
-						"label": {
+						"id": {
 							Type:     schema.TypeString,
 							Computed: true,
 						},
-						"value": {
+						"name": {
 							Type:     schema.TypeString,
 							Computed: true,
 						},
@@ -42,7 +42,7 @@ func dataSourceNcloudSESNodeProduct() *schema.Resource {
 					},
 				},
 			},
-			"software_product_code": {
+			"os_image_code": {
 				Type:     schema.TypeString,
 				Required: true,
 			},
@@ -57,7 +57,7 @@ func dataSourceNcloudSESNodeProduct() *schema.Resource {
 func dataSourceNcloudSESNodeProductRead(d *schema.ResourceData, meta interface{}) error {
 	config := meta.(*ProviderConfig)
 	if !config.SupportVPC {
-		return NotSupportClassic("datasource `ncloud_ses_node_product`")
+		return NotSupportClassic("datasource `ncloud_ses_node_products`")
 	}
 
 	resources, err := getSESNodeProduct(config, d)
@@ -82,7 +82,7 @@ func getSESNodeProduct(config *ProviderConfig, d *schema.ResourceData) ([]map[st
 	logCommonRequest("GetSESSoftwareProduct", "")
 
 	reqParams := &vses2.V2ApiGetNodeProductListWithGetMethodUsingGETOpts{
-		SoftwareProductCode: *StringPtrOrNil(d.GetOk("software_product_code")),
+		SoftwareProductCode: *StringPtrOrNil(d.GetOk("os_image_code")),
 		SubnetNo:            *Int32PtrOrNil(d.GetOk("subnet_no")),
 	}
 	resp, _, err := config.Client.vses.V2Api.GetNodeProductListWithGetMethodUsingGET(context.Background(), reqParams)
@@ -98,8 +98,8 @@ func getSESNodeProduct(config *ProviderConfig, d *schema.ResourceData) ([]map[st
 
 	for _, r := range resp.Result.ProductList {
 		instance := map[string]interface{}{
-			"value":       ncloud.StringValue(&r.ProductCode),
-			"label":       ncloud.StringValue(&r.ProductEnglishDesc),
+			"id":          ncloud.StringValue(&r.ProductCode),
+			"name":        ncloud.StringValue(&r.ProductEnglishDesc),
 			"cpu_count":   ncloud.StringValue(&r.CpuCount),
 			"memory_size": ncloud.Int64Value(&r.MemorySize),
 		}

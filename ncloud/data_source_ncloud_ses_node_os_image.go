@@ -10,12 +10,12 @@ import (
 )
 
 func init() {
-	RegisterDataSource("ncloud_ses_software_product", dataSourceNcloudSESSoftwareProduct())
+	RegisterDataSource("ncloud_ses_node_os_image", dataSourceNcloudSESNodeOsImage())
 }
 
-func dataSourceNcloudSESSoftwareProduct() *schema.Resource {
+func dataSourceNcloudSESNodeOsImage() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceNcloudSESSoftwareProductRead,
+		Read: dataSourceNcloudSESNodeOsImageRead,
 
 		Schema: map[string]*schema.Schema{
 			"filter": dataSourceFiltersSchema(),
@@ -24,11 +24,11 @@ func dataSourceNcloudSESSoftwareProduct() *schema.Resource {
 				Computed: true,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
-						"label": {
+						"id": {
 							Type:     schema.TypeString,
 							Computed: true,
 						},
-						"value": {
+						"name": {
 							Type:     schema.TypeString,
 							Computed: true,
 						},
@@ -39,19 +39,19 @@ func dataSourceNcloudSESSoftwareProduct() *schema.Resource {
 	}
 }
 
-func dataSourceNcloudSESSoftwareProductRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceNcloudSESNodeOsImageRead(d *schema.ResourceData, meta interface{}) error {
 	config := meta.(*ProviderConfig)
 	if !config.SupportVPC {
-		return NotSupportClassic("datasource `ncloud_ses_software_product`")
+		return NotSupportClassic("datasource `ncloud_ses_node_os_image`")
 	}
 
-	resources, err := getSESSoftwareProduct(config)
+	resources, err := getSESNodeOsImage(config)
 	if err != nil {
 		return err
 	}
 
 	if f, ok := d.GetOk("filter"); ok {
-		resources = ApplyFilters(f.(*schema.Set), resources, dataSourceNcloudSESSoftwareProduct().Schema["codes"].Elem.(*schema.Resource).Schema)
+		resources = ApplyFilters(f.(*schema.Set), resources, dataSourceNcloudSESNodeOsImage().Schema["codes"].Elem.(*schema.Resource).Schema)
 	}
 
 	d.SetId(time.Now().UTC().String())
@@ -63,24 +63,24 @@ func dataSourceNcloudSESSoftwareProductRead(d *schema.ResourceData, meta interfa
 
 }
 
-func getSESSoftwareProduct(config *ProviderConfig) ([]map[string]interface{}, error) {
+func getSESNodeOsImage(config *ProviderConfig) ([]map[string]interface{}, error) {
 
-	logCommonRequest("GetSESSoftwareProduct", "")
+	logCommonRequest("GetSESNodeOsImage", "")
 	resp, _, err := config.Client.vses.V2Api.GetOsProductListUsingGET(context.Background())
 
 	if err != nil {
-		logErrorResponse("GetSESSoftwareProduct", err, "")
+		logErrorResponse("GetSESNodeOsImage", err, "")
 		return nil, err
 	}
 
-	logResponse("GetSESSoftwareProduct", resp)
+	logResponse("GetSESNodeOsImage", resp)
 
 	resources := []map[string]interface{}{}
 
 	for _, r := range resp.Result.ProductList {
 		instance := map[string]interface{}{
-			"value": ncloud.StringValue(&r.ProductCode),
-			"label": ncloud.StringValue(&r.ProductEnglishDesc),
+			"id":   ncloud.StringValue(&r.ProductCode),
+			"name": ncloud.StringValue(&r.ProductEnglishDesc),
 		}
 
 		resources = append(resources, instance)

@@ -83,7 +83,7 @@ func resourceNcloudSESCluster() *schema.Resource {
 					},
 				},
 			},
-			"software_product_code": {
+			"os_image_code": {
 				Type:     schema.TypeString,
 				Required: true,
 				ForceNew: true,
@@ -204,7 +204,7 @@ func resourceNcloudSESClusterCreate(ctx context.Context, d *schema.ResourceData,
 		SearchEngineVersionCode:   StringPtrOrNil(searchEngineParamsMap["version_code"], true),
 		SearchEngineUserName:      StringPtrOrNil(searchEngineParamsMap["user_name"], true),
 		SearchEngineUserPassword:  StringPtrOrNil(searchEngineParamsMap["user_password"], true),
-		SoftwareProductCode:       StringPtrOrNil(d.GetOk("software_product_code")),
+		SoftwareProductCode:       StringPtrOrNil(d.GetOk("os_image_code")),
 		VpcNo:                     getInt32FromString(d.GetOk("vpc_no")),
 		IsDualManager:             BoolPtrOrNil(managerNodeParamsMap["is_dual_manager"], true),
 		ManagerNodeProductCode:    StringPtrOrNil(managerNodeParamsMap["product_code"], true),
@@ -256,7 +256,7 @@ func resourceNcloudSESClusterRead(ctx context.Context, d *schema.ResourceData, m
 	d.Set("uuid", cluster.ServiceGroupInstanceNo)
 	d.Set("service_group_instance_no", cluster.ServiceGroupInstanceNo)
 	d.Set("cluster_name", cluster.ClusterName)
-	d.Set("software_product_code", cluster.SoftwareProductCode)
+	d.Set("os_image_code", cluster.SoftwareProductCode)
 	d.Set("vpc_no", strconv.Itoa(int(ncloud.Int32Value(cluster.VpcNo))))
 	d.Set("login_key_name", cluster.LoginKeyName)
 

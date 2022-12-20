@@ -10,7 +10,7 @@ import (
 	"testing"
 )
 
-const TF_TEST_SES_LOGIN_KEY = "tf-test-ses-login-key"
+const TF_TEST_SES_LOGIN_KEY = "tf-ses-login-key"
 
 func TestAccResourceNcloudSESCluster_basic(t *testing.T) {
 	var cluster vses2.OpenApiGetClusterInfoResponseVo
@@ -54,11 +54,11 @@ resource "ncloud_subnet" "node_subnet" {
 data "ncloud_ses_versions" "version" {
 }
 
-data "ncloud_ses_software_product" "os_version" {
+data "ncloud_ses_node_os_image" "os_version" {
 }
 
-data "ncloud_ses_node_product" "product_codes" {
-  software_product_code = data.ncloud_ses_software_product.os_version.codes.0.value
+data "ncloud_ses_node_products" "product_codes" {
+  os_image_code = data.ncloud_ses_node_os_image.os_version.codes.0.id
   subnet_no = ncloud_subnet.node_subnet.id
 }
 
@@ -68,7 +68,7 @@ resource "ncloud_login_key" "loginkey" {
 
 resource "ncloud_ses_cluster" "cluster" {
   cluster_name                  = "%[1]s"
-  software_product_code         = data.ncloud_ses_software_product.os_version.codes.0.value
+  os_image_code         = data.ncloud_ses_node_os_image.os_version.codes.0.id
   vpc_no                        = ncloud_vpc.vpc.id
   search_engine {
 	  version_code    			= "%[3]s"
@@ -77,11 +77,11 @@ resource "ncloud_ses_cluster" "cluster" {
   }
   manager_node {  
 	  is_dual_manager           = false
-	  product_code     			= data.ncloud_ses_node_product.product_codes.codes.0.value
+	  product_code     			= data.ncloud_ses_node_products.product_codes.codes.0.id
 	  subnet_no        			= ncloud_subnet.node_subnet.id
   }
   data_node {
-	  product_code       		= data.ncloud_ses_node_product.product_codes.codes.0.value
+	  product_code       		= data.ncloud_ses_node_products.product_codes.codes.0.id
 	  subnet_no           		= ncloud_subnet.node_subnet.id
 	  count            		    = 3
 	  storage_size        		= 100

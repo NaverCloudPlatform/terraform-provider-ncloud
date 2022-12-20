@@ -25,7 +25,7 @@ func TestAccDataSourceNcloudSESCluster(t *testing.T) {
 					resource.TestCheckResourceAttrPair(dataName, "service_group_instance_no", resourceName, "service_group_instance_no"),
 					resource.TestCheckResourceAttrPair(dataName, "cluster_name", resourceName, "cluster_name"),
 					resource.TestCheckResourceAttrPair(dataName, "vpc_no", resourceName, "vpc_no"),
-					resource.TestCheckResourceAttrPair(dataName, "software_product_code", resourceName, "software_product_code"),
+					resource.TestCheckResourceAttrPair(dataName, "os_image_code", resourceName, "os_image_code"),
 				),
 			},
 		},
@@ -51,11 +51,11 @@ resource "ncloud_subnet" "node_subnet" {
 data "ncloud_ses_versions" "version" {
 }
 
-data "ncloud_ses_software_product" "os_version" {
+data "ncloud_ses_node_os_image" "os_version" {
 }
 
-data "ncloud_ses_node_product" "product_codes" {
-  software_product_code = data.ncloud_ses_software_product.os_version.codes.0.value
+data "ncloud_ses_node_products" "product_codes" {
+  os_image_code = data.ncloud_ses_node_os_image.os_version.codes.0.id
   subnet_no = ncloud_subnet.node_subnet.id
 }
 
@@ -65,7 +65,7 @@ resource "ncloud_login_key" "loginkey" {
 
 resource "ncloud_ses_cluster" "cluster" {
   cluster_name                  = "%[1]s"
-  software_product_code         = data.ncloud_ses_software_product.os_version.codes.0.value
+  os_image_code         		= data.ncloud_ses_node_os_image.os_version.codes.0.id
   vpc_no                        = ncloud_vpc.vpc.id
   search_engine {
 	  version_code    			= "%[3]s"
@@ -74,23 +74,26 @@ resource "ncloud_ses_cluster" "cluster" {
   }
   manager_node {  
 	  is_dual_manager           = false
-	  product_code     			= data.ncloud_ses_node_product.product_codes.codes.0.value
+	  product_code     			= data.ncloud_ses_node_products.product_codes.codes.0.id
 	  subnet_no        			= ncloud_subnet.node_subnet.id
   }
   data_node {
-	  product_code       		= data.ncloud_ses_node_product.product_codes.codes.0.value
+	  product_code       		= data.ncloud_ses_node_products.product_codes.codes.0.id
 	  subnet_no           		= ncloud_subnet.node_subnet.id
 	  count            		    = 3
 	  storage_size        		= 100
   }
   master_node {
-	  is_master_only_node_activated = false
+	  is_master_only_node_activated = true
+	  product_code       		= data.ncloud_ses_node_products.product_codes.codes.0.id
+	  subnet_no           		= ncloud_subnet.node_subnet.id
+	  count            		    = 3
   }
   login_key_name                = ncloud_login_key.loginkey.key_name
 }
 
 data "ncloud_ses_cluster" "cluster" {
-	service_group_instance_no = ncloud_ses_cluster.cluster.uuid
+	uuid = ncloud_ses_cluster.cluster.uuid
 }
 
 

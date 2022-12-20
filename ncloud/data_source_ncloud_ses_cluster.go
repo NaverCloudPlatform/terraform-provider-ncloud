@@ -17,11 +17,11 @@ func dataSourceNcloudSESCluster() *schema.Resource {
 	return &schema.Resource{
 		ReadContext: dataSourceNcloudSESClusterRead,
 		Schema: map[string]*schema.Schema{
-			"service_group_instance_no": {
+			"uuid": {
 				Type:     schema.TypeString,
 				Required: true,
 			},
-			"uuid": {
+			"service_group_instance_no": {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
@@ -53,7 +53,7 @@ func dataSourceNcloudSESCluster() *schema.Resource {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
-			"software_product_code": {
+			"os_image_code": {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
@@ -143,7 +143,7 @@ func dataSourceNcloudSESClusterRead(ctx context.Context, d *schema.ResourceData,
 		return diag.FromErr(NotSupportClassic("dataSource `ncloud_ses_cluster`"))
 	}
 
-	uuid := d.Get("service_group_instance_no").(string)
+	uuid := d.Get("uuid").(string)
 	cluster, err := getSESCluster(ctx, config, uuid)
 	if err != nil {
 		return diag.FromErr(err)
@@ -158,7 +158,7 @@ func dataSourceNcloudSESClusterRead(ctx context.Context, d *schema.ResourceData,
 	d.Set("uuid", cluster.ServiceGroupInstanceNo)
 	d.Set("service_group_instance_no", cluster.ServiceGroupInstanceNo)
 	d.Set("cluster_name", cluster.ClusterName)
-	d.Set("software_product_code", cluster.SoftwareProductCode)
+	d.Set("os_image_code", cluster.SoftwareProductCode)
 	d.Set("vpc_no", strconv.Itoa(int(ncloud.Int32Value(cluster.VpcNo))))
 	d.Set("login_key_name", cluster.LoginKeyName)
 

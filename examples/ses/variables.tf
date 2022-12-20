@@ -21,3 +21,9 @@ variable secret_key {
 variable login_key {
   default = "tf-login-test"
 }
+
+variable ses_user_password {
+  description = "SES Cluster User Password"
+  type = string
+  sensitive =  true
+}

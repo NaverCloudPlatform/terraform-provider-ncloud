@@ -7,7 +7,7 @@ import (
 )
 
 func TestAccDataSourceNcloudSESSoftwareProductCodes(t *testing.T) {
-	dataName := "data.ncloud_ses_software_product.codes"
+	dataName := "data.ncloud_ses_node_os_image.codes"
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:  func() { testAccPreCheck(t) },
@@ -24,7 +24,7 @@ func TestAccDataSourceNcloudSESSoftwareProductCodes(t *testing.T) {
 }
 
 func TestAccDataSourceNcloudSESSoftwareProductCodesFilter(t *testing.T) {
-	dataName := "data.ncloud_ses_software_product.filter"
+	dataName := "data.ncloud_ses_node_os_image.filter"
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:  func() { testAccPreCheck(t) },
@@ -42,14 +42,14 @@ func TestAccDataSourceNcloudSESSoftwareProductCodesFilter(t *testing.T) {
 }
 
 var testAccDataSourceNcloudSESSoftwareProductConfig = `
-data "ncloud_ses_software_product" "codes" {}
+data "ncloud_ses_node_os_image" "codes" {}
 `
 
 func testAccDataSourceNcloudSESSoftwareProductWithFilterConfig() string {
 	return fmt.Sprintf(`
-data "ncloud_ses_software_product" "filter" {
+data "ncloud_ses_node_os_image" "filter" {
 	filter {
-		name = "value"
+		name = "id"
 		values = ["SW.VELST.OS.LNX64.CNTOS.0708.B050"]
 	}
 }

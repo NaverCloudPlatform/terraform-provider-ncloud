@@ -20,29 +20,45 @@ resource "ncloud_subnet" "node_subnet" {
   usage_type     = "GEN"
 }
 
-data "ncloud_ses_versions" "version" {
+data "ncloud_ses_versions" "ses_versions" {
   filter {
-    name = "value"
+    name = "id"
     values = [var.ses_version]
     regex = true
   }
 }
 
-data "ncloud_ses_software_product" "os_version" {
+output "ses_versions" {
+  value = data.ncloud_ses_versions.ses_versions.*
+}
+
+data "ncloud_ses_node_os_image" "os_version" {
   filter {
-    name = "value"
+    name = "id"
     values = [var.os_version]
     regex = true
   }
 }
 
-data "ncloud_ses_node_product" "product_codes" {
-  software_product_code = "SW.VELST.OS.LNX64.CNTOS.0708.B050"
-  subnet_no             = 860
+output "os_version" {
+  value = data.ncloud_ses_node_os_image.os_version.*
+}
+
+data "ncloud_ses_node_products" "product_codes" {
+  os_image_code = data.ncloud_ses_node_os_image.os_version.codes.0.id
+  subnet_no = 7255 # ncloud_subnet.node_subnet.id
   filter {
-    name   = "value"
+    name = "id"
     values = ["SVR.VELST.STAND.C002.M008.NET.SSD.B050.G002"]
   }
+  filter {
+    name   = "cpu_count"
+    values = ["2"]
+  }
+}
+
+output "product_codes" {
+  value = data.ncloud_ses_node_products.product_codes.*
 }
 
 resource "ncloud_login_key" "loginkey" {
@@ -51,7 +67,7 @@ resource "ncloud_login_key" "loginkey" {
 
 resource "ncloud_ses_cluster" "cluster" {
   cluster_name                  = "tf-ses"
-  software_product_code         = data.ncloud_ses_software_product.os_version.codes.0.value
+  os_image_code                 = data.ncloud_ses_node_os_image.os_version.codes.0.id
   vpc_no                        = ncloud_vpc.vpc.id
   search_engine {
     version_code    			= "133"
@@ -59,12 +75,12 @@ resource "ncloud_ses_cluster" "cluster" {
     user_password   			= "qwe123!@#1"
   }
   manager_node {
-    is_dual_manager           = false
-    product_code     			= data.ncloud_ses_node_product.product_codes.codes.0.value
+    is_dual_manager             = false
+    product_code     			= data.ncloud_ses_node_products.product_codes.codes.0.id
     subnet_no        			= ncloud_subnet.node_subnet.id
   }
   data_node {
-    product_code       		= data.ncloud_ses_node_product.product_codes.codes.0.value
+    product_code       		    = data.ncloud_ses_node_products.product_codes.codes.0.id
     subnet_no           		= ncloud_subnet.node_subnet.id
     count            		    = 5
     storage_size        		= 100
@@ -76,5 +92,9 @@ resource "ncloud_ses_cluster" "cluster" {
 }
 
 data "ncloud_ses_cluster" "cluster" {
-  service_group_instance_no = ncloud_ses_cluster.cluster.uuid
+  uuid = ncloud_ses_cluster.cluster.uuid
+}
+
+output "cluster" {
+  value = data.ncloud_ses_cluster.cluster
 }

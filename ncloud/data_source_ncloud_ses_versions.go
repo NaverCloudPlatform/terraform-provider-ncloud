@@ -24,11 +24,11 @@ func dataSourceNcloudSESVersions() *schema.Resource {
 				Computed: true,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
-						"label": {
+						"id": {
 							Type:     schema.TypeString,
 							Computed: true,
 						},
-						"value": {
+						"name": {
 							Type:     schema.TypeString,
 							Computed: true,
 						},
@@ -79,8 +79,8 @@ func getSESVersion(config *ProviderConfig) ([]map[string]interface{}, error) {
 
 	for _, r := range resp.Result.SearchEngineVersionList {
 		instance := map[string]interface{}{
-			"value": ncloud.StringValue(&r.SearchEngineVersionCode),
-			"label": ncloud.StringValue(&r.SearchEngineVersionName),
+			"id":   ncloud.StringValue(&r.SearchEngineVersionCode),
+			"name": ncloud.StringValue(&r.SearchEngineVersionName),
 		}
 
 		resources = append(resources, instance)
