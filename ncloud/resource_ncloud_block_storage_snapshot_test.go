@@ -13,7 +13,6 @@ import (
 )
 
 // TODO: Fix TestAcc ErrorTestAccResourceNcloudBlockStorageBasic
-//
 func ignore_TestAccResourceNcloudBlockStorageSnapshotBasic(t *testing.T) {
 	var snapshotInstance server.BlockStorageSnapshotInstance
 	prefix := getTestPrefix()

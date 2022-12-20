@@ -12,8 +12,7 @@ func TestAccDataSourceNcloudNKSCluster(t *testing.T) {
 	dataName := "data.ncloud_nks_cluster.cluster"
 	resourceName := "ncloud_nks_cluster.cluster"
 	testClusterName := getTestClusterName()
-	k8sVersion := "1.21"
-	region, clusterType, _ := getRegionAndNKSType()
+	region, clusterType, _, k8sVersion := getRegionAndNKSType()
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:  func() { testAccPreCheck(t) },
@@ -38,6 +37,7 @@ func TestAccDataSourceNcloudNKSCluster(t *testing.T) {
 					resource.TestCheckResourceAttrPair(dataName, "public_network", resourceName, "public_network"),
 					resource.TestCheckResourceAttrPair(dataName, "subnet_no_list.#", resourceName, "subnet_no_list.#"),
 					resource.TestCheckResourceAttrPair(dataName, "subnet_no_list.0", resourceName, "subnet_no_list.0"),
+					resource.TestCheckResourceAttrPair(dataName, "acg_no", resourceName, "acg_no"),
 				),
 			},
 		},
@@ -81,18 +81,10 @@ resource "ncloud_subnet" "subnet_lb" {
 	usage_type         = "LOADB"
 }
 
-
-data "ncloud_nks_versions" "version" {
-  filter {
-    name = "value"
-    values = ["%[4]s"]
-    regex = true
-  }
-}
 resource "ncloud_nks_cluster" "cluster" {
   name                        = "%[1]s"
   cluster_type                = "%[2]s"
-  k8s_version                 = data.ncloud_nks_versions.version.versions.0.value
+  k8s_version                 = "%[4]s"
   login_key_name              = "%[3]s"
   lb_private_subnet_no        = ncloud_subnet.subnet_lb.id
   kube_network_plugin         = "cilium"

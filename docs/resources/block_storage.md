@@ -17,10 +17,12 @@ resource "ncloud_block_storage" "storage" {
 The following arguments are supported:
 
 * `size` - (Required) The size of the block storage to create. It is automatically set when you take a snapshot.
-* `server_instance_no` - (Required) Server instance ID to which you want to assign the block storage.
+* `server_instance_no` - **(Required) When first created**. (Optional) After creation. Server instance ID to which you want to assign the block storage.
 * `name` - (Optional) The name to create. If omitted, Terraform will assign a random, unique name.
 * `description` - (Optional) description to create.
 * `disk_detail_type` - (Optional) Type of block storage disk detail to create. Default `SSD`. Accepted values: `SSD` | `HDD` 
+* `stop_instance_before_detaching` - (Optional, Boolean) Set this to true to ensure that the target instance is stopped before trying to detach the block storage. It stops the instance, if it is not already stopped.
+	> If `stop_instance_before_detaching` is `true`, server will be stopped and **will not start automatically**. User must start server instance manually via NCLOUD console or API.
 
 ~> **NOTE:** Below arguments only support Classic environment.
 

@@ -155,9 +155,6 @@ func resourceNcloudNetworkACLRuleRead(d *schema.ResourceData, meta interface{}) 
 
 	d.Set("network_acl_no", d.Id())
 
-	i := d.Get("inbound").(*schema.Set)
-	o := d.Get("outbound").(*schema.Set)
-
 	// Create empty set for getNetworkACLRuleList
 	iSet := schema.NewSet(schema.HashResource(resourceNcloudNetworkACLRule().Schema["inbound"].Elem.(*schema.Resource)), []interface{}{})
 	oSet := schema.NewSet(schema.HashResource(resourceNcloudNetworkACLRule().Schema["outbound"].Elem.(*schema.Resource)), []interface{}{})
@@ -181,11 +178,11 @@ func resourceNcloudNetworkACLRuleRead(d *schema.ResourceData, meta interface{}) 
 	}
 
 	// Only set data intersection between resource and list
-	if err := d.Set("inbound", i.Intersection(iSet).List()); err != nil {
+	if err := d.Set("inbound", iSet.List()); err != nil {
 		log.Printf("[WARN] Error setting inbound rule set for (%s): %s", d.Id(), err)
 	}
 
-	if err := d.Set("outbound", o.Intersection(oSet).List()); err != nil {
+	if err := d.Set("outbound", oSet.List()); err != nil {
 		log.Printf("[WARN] Error setting outbound rule set for (%s): %s", d.Id(), err)
 	}
 
@@ -384,7 +381,7 @@ func removeNetworkACLRule(d *schema.ResourceData, config *ProviderConfig, ruleTy
 
 		if err != nil {
 			errBody, _ := GetCommonErrorBody(err)
-			if errBody.ReturnCode == ApiErrorNetworkAclCantAccessaApropriate {
+			if containsInStringList(errBody.ReturnCode, []string{ApiErrorNetworkAclCantAccessaApropriate, ApiErrorNetworkAclRuleChangeIngRules}) {
 				logErrorResponse("retry RemoveNetworkAclRule", err, reqParams)
 				time.Sleep(time.Second * 5)
 				return resource.RetryableError(err)

@@ -43,7 +43,7 @@ func resourceNcloudBlockStorage() *schema.Resource {
 		Schema: map[string]*schema.Schema{
 			"server_instance_no": {
 				Type:     schema.TypeString,
-				Required: true,
+				Optional: true,
 			},
 			"size": {
 				Type:             schema.TypeInt,
@@ -54,6 +54,7 @@ func resourceNcloudBlockStorage() *schema.Resource {
 				Type:     schema.TypeString,
 				Optional: true,
 				Computed: true,
+				ForceNew: true,
 			},
 			"description": {
 				Type:     schema.TypeString,
@@ -106,12 +107,21 @@ func resourceNcloudBlockStorage() *schema.Resource {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
+			"stop_instance_before_detaching": {
+				Type:     schema.TypeBool,
+				Optional: true,
+				Default:  false,
+			},
 		},
 	}
 }
 
 func resourceNcloudBlockStorageCreate(d *schema.ResourceData, meta interface{}) error {
 	config := meta.(*ProviderConfig)
+
+	if len(d.Get("server_instance_no").(string)) == 0 {
+		return fmt.Errorf("'server_instance_no' has to be present when ncloud_block_storage is first created.")
+	}
 
 	id, err := createBlockStorage(d, config)
 	if err != nil {
@@ -141,11 +151,22 @@ func resourceNcloudBlockStorageRead(d *schema.ResourceData, meta interface{}) er
 
 	SetSingularResourceDataFromMapSchema(resourceNcloudBlockStorage(), d, instance)
 
+	if err := d.Set("server_instance_no", r.ServerInstanceNo); err != nil {
+		return err
+	}
+
 	return nil
 }
 
 func resourceNcloudBlockStorageDelete(d *schema.ResourceData, meta interface{}) error {
 	config := meta.(*ProviderConfig)
+
+	if d.Get("stop_instance_before_detaching").(bool) {
+		log.Printf("[INFO] Stopping Instance %s for destroying block storage", d.Get("server_instance_no").(string))
+		if err := stopThenWaitServerInstance(config, d.Get("server_instance_no").(string)); err != nil {
+			return err
+		}
+	}
 
 	if err := deleteBlockStorage(d, config, d.Id()); err != nil {
 		return err
@@ -160,7 +181,16 @@ func resourceNcloudBlockStorageUpdate(d *schema.ResourceData, meta interface{}) 
 
 	if d.HasChange("server_instance_no") {
 		o, n := d.GetChange("server_instance_no")
+
+		// If server instance attached block storage, detach first
 		if len(o.(string)) > 0 {
+			if d.Get("stop_instance_before_detaching").(bool) {
+				log.Printf("[INFO] Start Instance %s after detaching block storage", o.(string))
+				if err := stopThenWaitServerInstance(config, o.(string)); err != nil {
+					return err
+				}
+			}
+
 			if err := detachBlockStorage(config, d.Id()); err != nil {
 				return err
 			}
@@ -182,6 +212,13 @@ func resourceNcloudBlockStorageUpdate(d *schema.ResourceData, meta interface{}) 
 
 		// If server instance attached block storage, detach first
 		if len(d.Get("server_instance_no").(string)) > 0 {
+			if d.Get("stop_instance_before_detaching").(bool) {
+				log.Printf("[INFO] Start Instance %s after detaching block storage", d.Get("server_instance_no").(string))
+				if err := stopThenWaitServerInstance(config, d.Get("server_instance_no").(string)); err != nil {
+					return err
+				}
+			}
+
 			if err := detachBlockStorage(config, d.Id()); err != nil {
 				return err
 			}
@@ -355,7 +392,9 @@ func getVpcBlockStorage(config *ProviderConfig, id string) (*BlockStorage, error
 }
 
 func deleteBlockStorage(d *schema.ResourceData, config *ProviderConfig, id string) error {
+
 	var err error
+
 	if config.SupportVPC {
 		err = deleteVpcBlockStorage(d, config, id)
 	} else {
@@ -397,23 +436,7 @@ func deleteClassicBlockStorage(d *schema.ResourceData, config *ProviderConfig, i
 		BlockStorageInstanceNoList: []*string{ncloud.String(id)},
 	}
 
-	var resp *server.DeleteBlockStorageInstancesResponse
-	err := resource.Retry(d.Timeout(schema.TimeoutDelete), func() *resource.RetryError {
-		var err error
-
-		logCommonRequest("deleteClassicBlockStorage", reqParams)
-		resp, err = config.Client.server.V2Api.DeleteBlockStorageInstances(&reqParams)
-		if err != nil {
-			errBody, _ := GetCommonErrorBody(err)
-			if errBody.ReturnCode == ApiErrorDetachingMountedStorage {
-				logErrorResponse("retry deleteClassicBlockStorage", err, reqParams)
-				time.Sleep(time.Second * 5)
-				return resource.RetryableError(err)
-			}
-			return resource.NonRetryableError(err)
-		}
-		return nil
-	})
+	resp, err := config.Client.server.V2Api.DeleteBlockStorageInstances(&reqParams)
 
 	if err != nil {
 		logErrorResponse("deleteClassicBlockStorage", err, reqParams)
@@ -426,26 +449,11 @@ func deleteClassicBlockStorage(d *schema.ResourceData, config *ProviderConfig, i
 
 func deleteVpcBlockStorage(d *schema.ResourceData, config *ProviderConfig, id string) error {
 	reqParams := vserver.DeleteBlockStorageInstancesRequest{
+		RegionCode:                 &config.RegionCode,
 		BlockStorageInstanceNoList: []*string{ncloud.String(id)},
 	}
 
-	var resp *vserver.DeleteBlockStorageInstancesResponse
-	err := resource.Retry(d.Timeout(schema.TimeoutDelete), func() *resource.RetryError {
-		var err error
-
-		logCommonRequest("deleteVpcBlockStorage", reqParams)
-		resp, err = config.Client.vserver.V2Api.DeleteBlockStorageInstances(&reqParams)
-		if err != nil {
-			errBody, _ := GetCommonErrorBody(err)
-			if errBody.ReturnCode == ApiErrorDetachingMountedStorage {
-				logErrorResponse("retry deleteVpcBlockStorage", err, reqParams)
-				time.Sleep(time.Second * 5)
-				return resource.RetryableError(err)
-			}
-			return resource.NonRetryableError(err)
-		}
-		return nil
-	})
+	resp, err := config.Client.vserver.V2Api.DeleteBlockStorageInstances(&reqParams)
 
 	if err != nil {
 		logErrorResponse("deleteVpcBlockStorage", err, reqParams)
@@ -458,6 +466,7 @@ func deleteVpcBlockStorage(d *schema.ResourceData, config *ProviderConfig, id st
 
 func detachBlockStorage(config *ProviderConfig, id string) error {
 	var err error
+
 	if config.SupportVPC {
 		err = detachVpcBlockStorage(config, id)
 	} else {
@@ -690,7 +699,7 @@ func waitForBlockStorageOperationIsNull(config *ProviderConfig, id string) error
 	return nil
 }
 
-//BlockStorage Dto for block storage
+// BlockStorage Dto for block storage
 type BlockStorage struct {
 	BlockStorageInstanceNo  *string `json:"block_storage_no,omitempty"`
 	ServerInstanceNo        *string `json:"server_instance_no,omitempty"`

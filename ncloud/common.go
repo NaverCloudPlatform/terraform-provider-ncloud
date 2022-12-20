@@ -61,7 +61,7 @@ type CommonCode struct {
 	CodeName *string `json:"codeName,omitempty"`
 }
 
-//CommonError response error body
+// CommonError response error body
 type CommonError struct {
 	ReturnCode    string
 	ReturnMessage string

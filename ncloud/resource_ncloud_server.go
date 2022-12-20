@@ -1224,7 +1224,7 @@ func getServerZoneNo(config *ProviderConfig, serverInstanceNo string) (string, e
 	return *instance.ZoneNo, nil
 }
 
-//ServerInstance server instance model
+// ServerInstance server instance model
 type ServerInstance struct {
 	// Request
 	ZoneNo                         *string               `json:"zone_no,omitempty"`
@@ -1264,7 +1264,7 @@ type ServerInstance struct {
 	NetworkInterfaceList []*ServerInstanceNetworkInterface `json:"network_interface"`
 }
 
-//ServerInstanceNetworkInterface network interface model in server instance
+// ServerInstanceNetworkInterface network interface model in server instance
 type ServerInstanceNetworkInterface struct {
 	Order              *int32  `json:"order,omitempty"`
 	NetworkInterfaceNo *string `json:"network_interface_no,omitempty"`

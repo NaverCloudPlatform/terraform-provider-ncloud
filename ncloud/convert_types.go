@@ -51,7 +51,7 @@ func GetCommonResponse(i interface{}) *CommonResponse {
 	}
 }
 
-//GetCommonErrorBody parse common error message
+// GetCommonErrorBody parse common error message
 func GetCommonErrorBody(err error) (*CommonError, error) {
 	sa := strings.Split(err.Error(), "Body: ")
 	var errMsg string
@@ -139,7 +139,7 @@ func GetZone(i interface{}) *Zone {
 	}
 }
 
-//StringPtrOrNil return *string from interface{}
+// StringPtrOrNil return *string from interface{}
 func StringPtrOrNil(v interface{}, ok bool) *string {
 	if !ok {
 		return nil
@@ -147,7 +147,7 @@ func StringPtrOrNil(v interface{}, ok bool) *string {
 	return ncloud.String(v.(string))
 }
 
-//Int32PtrOrNil return *int32 from interface{}
+// Int32PtrOrNil return *int32 from interface{}
 func Int32PtrOrNil(v interface{}, ok bool) *int32 {
 	if !ok {
 		return nil
@@ -165,7 +165,7 @@ func Int32PtrOrNil(v interface{}, ok bool) *int32 {
 	}
 }
 
-//BoolPtrOrNil return *bool from interface{}
+// BoolPtrOrNil return *bool from interface{}
 func BoolPtrOrNil(v interface{}, ok bool) *bool {
 	if !ok {
 		return nil
@@ -199,7 +199,7 @@ func StringListPtrOrNil(i interface{}, ok bool) []*string {
 	return vs
 }
 
-//StringOrEmpty Get string from *pointer
+// StringOrEmpty Get string from *pointer
 func StringOrEmpty(v *string) string {
 	if v != nil {
 		return *v
@@ -208,7 +208,7 @@ func StringOrEmpty(v *string) string {
 	return ""
 }
 
-//StringPtrArrToStringArr Convert []*string to []string
+// StringPtrArrToStringArr Convert []*string to []string
 func StringPtrArrToStringArr(ptrArray []*string) []string {
 	var arr []string
 	for _, v := range ptrArray {
@@ -218,14 +218,14 @@ func StringPtrArrToStringArr(ptrArray []*string) []string {
 	return arr
 }
 
-//SetStringIfNotNilAndEmpty set value map[key] if *string pointer is not nil and not empty
+// SetStringIfNotNilAndEmpty set value map[key] if *string pointer is not nil and not empty
 func SetStringIfNotNilAndEmpty(m map[string]interface{}, k string, v *string) {
 	if v != nil && len(*v) > 0 {
 		m[k] = *v
 	}
 }
 
-//ConvertToMap convert interface{} to map[string]interface{}
+// ConvertToMap convert interface{} to map[string]interface{}
 func ConvertToMap(i interface{}) map[string]interface{} {
 	if i == nil {
 		return nil
@@ -241,7 +241,7 @@ func ConvertToMap(i interface{}) map[string]interface{} {
 	return m
 }
 
-//ConvertToArrayMap convert interface{} to map[string]interface{}
+// ConvertToArrayMap convert interface{} to map[string]interface{}
 func ConvertToArrayMap(i interface{}) []map[string]interface{} {
 	if i == nil {
 		return nil
@@ -257,12 +257,12 @@ func ConvertToArrayMap(i interface{}) []map[string]interface{} {
 	return m
 }
 
-//ExpandStringSet Takes the result of schema.Set of strings and returns a []*string
+// ExpandStringSet Takes the result of schema.Set of strings and returns a []*string
 func ExpandStringSet(configured *schema.Set) []*string {
 	return ExpandStringList(configured.List())
 }
 
-//ExpandStringList Takes the result of flatmap.Expand for an array of strings and returns a []*string
+// ExpandStringList Takes the result of flatmap.Expand for an array of strings and returns a []*string
 func ExpandStringList(configured []interface{}) []*string {
 	vs := make([]*string, 0, len(configured))
 	for _, v := range configured {

@@ -89,9 +89,18 @@ In addition to all arguments above, the following attributes are exported:
 
 * `id` - The ID of nodepool.`CusterUuid:NodePoolName` 
 * `instance_no` - Instance No.
-
+* `nodes`- Running nodes in nodepool.
+  * `name` - The name of Server instance.
+  * `instance_no` - The ID of server instance.
+  * `spec` - Server spec.
+  * `private_ip` - Private IP.
+  * `public_ip` - Public IP.
+  * `node_status` - Node Status.
+  * `container_version` - Container version of node.
+  * `kernel_version` - kernel version of node.
 ## Import
 
 NKS Node Pools can be imported using the cluster_name and node_pool_name separated by a colon (:), e.g.,
 
 $ terraform import ncloud_nks_node_pool.my_node_pool uuid:my_node_pool
+

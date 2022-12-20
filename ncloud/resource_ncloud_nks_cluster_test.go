@@ -7,6 +7,7 @@ import (
 	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/services/vnks"
 	"os"
 	"regexp"
+	"strings"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
@@ -20,10 +21,10 @@ const TF_TEST_NKS_LOGIN_KEY = "tf-test-nks-login-key"
 func TestAccResourceNcloudNKSCluster_basic(t *testing.T) {
 	var cluster vnks.Cluster
 	name := getTestClusterName()
-	k8sVersion := "1.21"
+
 	resourceName := "ncloud_nks_cluster.cluster"
 
-	region, clusterType, _ := getRegionAndNKSType()
+	region, clusterType, _, k8sVersion := getRegionAndNKSType()
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -54,10 +55,9 @@ func TestAccResourceNcloudNKSCluster_basic(t *testing.T) {
 func TestAccResourceNcloudNKSCluster_public_network(t *testing.T) {
 	var cluster vnks.Cluster
 	name := getTestClusterName()
-	k8sVersion := "1.21"
 	resourceName := "ncloud_nks_cluster.cluster"
 
-	region, clusterType, _ := getRegionAndNKSType()
+	region, clusterType, _, k8sVersion := getRegionAndNKSType()
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -77,20 +77,14 @@ func TestAccResourceNcloudNKSCluster_public_network(t *testing.T) {
 					resource.TestMatchResourceAttr(resourceName, "vpc_no", regexp.MustCompile(`^\d+$`)),
 				),
 			},
-			{
-				ResourceName:      resourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
 		},
 	})
 }
 
 func TestAccResourceNcloudNKSCluster_InvalidSubnet(t *testing.T) {
 	name := getTestClusterName()
-	k8sVersion := "1.21"
 
-	region, clusterType, _ := getRegionAndNKSType()
+	region, clusterType, _, k8sVersion := getRegionAndNKSType()
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -99,7 +93,7 @@ func TestAccResourceNcloudNKSCluster_InvalidSubnet(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				Config:      testAccResourceNcloudNKSCluster_InvalidSubnetConfig(name, clusterType, k8sVersion, TF_TEST_NKS_LOGIN_KEY, region),
-				ExpectError: regexp.MustCompile("중 하나여야 합니다."),
+				ExpectError: regexp.MustCompile(getInvalidSubnetExpectError()),
 			},
 		},
 	})
@@ -142,18 +136,10 @@ resource "ncloud_subnet" "subnet_lb" {
 	usage_type         = "LOADB"
 }
 
-data "ncloud_nks_versions" "version" {
-  filter {
-    name = "value"
-    values = ["%[3]s"]
-    regex = true
-  }
-}
-
 resource "ncloud_nks_cluster" "cluster" {
   name                        = "%[1]s"
   cluster_type                = "%[2]s"
-  k8s_version                 = data.ncloud_nks_versions.version.versions.0.value
+  k8s_version                 = "%[3]s"
   login_key_name              = "%[4]s"
   lb_private_subnet_no        = ncloud_subnet.subnet_lb.id
   kube_network_plugin         = "cilium"
@@ -204,18 +190,10 @@ resource "ncloud_subnet" "subnet_lb" {
 	usage_type         = "LOADB"
 }
 
-data "ncloud_nks_versions" "version" {
-  filter {
-    name = "value"
-    values = ["%[3]s"]
-    regex = true
-  }
-}
-
 resource "ncloud_nks_cluster" "cluster" {
   name                        = "%[1]s"
   cluster_type                = "%[2]s"
-  k8s_version                 = data.ncloud_nks_versions.version.versions.0.value
+  k8s_version                 = "%[3]s"
   login_key_name              = "%[4]s"
   lb_private_subnet_no        = ncloud_subnet.subnet_lb.id
   kube_network_plugin         = "cilium"
@@ -267,18 +245,10 @@ resource "ncloud_subnet" "subnet_lb" {
 	usage_type         = "LOADB"
 }
 
-data "ncloud_nks_versions" "version" {
-  filter {
-    name = "value"
-    values = ["%[3]s"]
-    regex = true
-  }
-}
-
 resource "ncloud_nks_cluster" "cluster" {
   name                        = "%[1]s"
   cluster_type                = "%[2]s"
-  k8s_version                 = data.ncloud_nks_versions.version.versions.0.value
+  k8s_version                 = "%[3]s"
   login_key_name              = "%[4]s"
   lb_private_subnet_no        = ncloud_subnet.subnet_lb.id
   kube_network_plugin		  = "cilium"
@@ -347,7 +317,7 @@ func getTestClusterName() string {
 	return testClusterName
 }
 
-func getRegionAndNKSType() (region string, clusterType string, productType string) {
+func getRegionAndNKSType() (region string, clusterType string, productType string, k8sVersion string) {
 	region = os.Getenv("NCLOUD_REGION")
 	if region == "FKR" {
 		clusterType = "SVR.VNKS.STAND.C002.M008.NET.HDD.B050.G001"
@@ -356,5 +326,14 @@ func getRegionAndNKSType() (region string, clusterType string, productType strin
 		clusterType = "SVR.VNKS.STAND.C002.M008.NET.SSD.B050.G002"
 		productType = "SVR.VSVR.STAND.C002.M008.NET.SSD.B050.G002"
 	}
+	k8sVersion = "1.23.9-nks.1"
 	return
+}
+
+func getInvalidSubnetExpectError() string {
+	apigw := os.Getenv("NCLOUD_API_GW")
+	if strings.Contains(apigw, "gov-ntruss.com") {
+		return "Not found zone"
+	}
+	return "Subnet is undefined"
 }

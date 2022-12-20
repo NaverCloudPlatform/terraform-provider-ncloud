@@ -170,8 +170,9 @@ func getVpcServerImageProductList(d *schema.ResourceData, config *ProviderConfig
 	regionCode := config.RegionCode
 
 	reqParams := &vserver.GetServerImageProductListRequest{
-		ProductCode: StringPtrOrNil(d.GetOk("product_code")),
-		RegionCode:  &regionCode,
+		ProductCode:                 StringPtrOrNil(d.GetOk("product_code")),
+		RegionCode:                  &regionCode,
+		InfraResourceDetailTypeCode: StringPtrOrNil(d.GetOk("infra_resource_detail_type_code")),
 	}
 
 	if v, ok := d.GetOk("platform_type"); ok {

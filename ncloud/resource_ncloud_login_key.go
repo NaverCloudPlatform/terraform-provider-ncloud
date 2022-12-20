@@ -2,7 +2,7 @@ package ncloud
 
 import (
 	"fmt"
-	"log"
+	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/ncloud"
 	"strings"
 	"time"
 
@@ -51,20 +51,18 @@ func resourceNcloudLoginKey() *schema.Resource {
 }
 
 func resourceNcloudLoginKeyRead(d *schema.ResourceData, meta interface{}) error {
-	keyName := d.Get("key_name").(string)
-
-	fingerprint, err := getFingerPrint(meta.(*ProviderConfig), &keyName)
+	loginKey, err := getLoginKey(meta.(*ProviderConfig), d.Id())
 	if err != nil {
 		return err
 	}
 
-	if fingerprint != nil {
-		d.Set("fingerprint", fingerprint)
-	} else {
-		log.Printf("unable to find resource: %s", d.Id())
+	if loginKey == nil {
 		d.SetId("") // resource not found
+		return nil
 	}
 
+	d.Set("key_name", loginKey.KeyName)
+	d.Set("fingerprint", loginKey.Fingerprint)
 	return nil
 }
 
@@ -95,14 +93,14 @@ func resourceNcloudLoginKeyCreate(d *schema.ResourceData, meta interface{}) erro
 func resourceNcloudLoginKeyDelete(d *schema.ResourceData, meta interface{}) error {
 	config := meta.(*ProviderConfig)
 
-	keyName := d.Get("key_name").(string)
+	keyName := d.Id()
 
 	if config.SupportVPC == true {
-		if err := deleteVpcLoginKey(config.Client, &keyName); err != nil {
+		if err := deleteVpcLoginKey(config, keyName); err != nil {
 			return err
 		}
 	} else {
-		if err := deleteClassicLoginKey(config.Client, &keyName); err != nil {
+		if err := deleteClassicLoginKey(config, keyName); err != nil {
 			return err
 		}
 	}
@@ -112,76 +110,59 @@ func resourceNcloudLoginKeyDelete(d *schema.ResourceData, meta interface{}) erro
 	return nil
 }
 
-func getClassicFingerPrintList(client *NcloudAPIClient, keyName *string) ([]*string, error) {
-	reqParams := &server.GetLoginKeyListRequest{}
-	if keyName != nil {
-		reqParams.KeyName = keyName
-	}
-
-	logCommonRequest("getClassicFingerPrintList", reqParams)
-	resp, err := client.server.V2Api.GetLoginKeyList(reqParams)
-	if err != nil {
-		logErrorResponse("getClassicFingerPrintList", err, reqParams)
-		return nil, err
-	}
-	logResponse("getClassicFingerPrintList", resp)
-
-	keyList := make([]*string, 0, *resp.TotalRows)
-	for _, v := range resp.LoginKeyList {
-		keyList = append(keyList, v.Fingerprint)
-	}
-
-	return keyList, nil
-}
-
-func getVpcFingerPrintList(client *NcloudAPIClient, keyName *string) ([]*string, error) {
-	reqParams := &vserver.GetLoginKeyListRequest{}
-	if keyName != nil {
-		reqParams.KeyName = keyName
-	}
-
-	logCommonRequest("getVpcFingerPrintList", reqParams)
-	resp, err := client.vserver.V2Api.GetLoginKeyList(reqParams)
-	if err != nil {
-		logErrorResponse("getVpcFingerPrintList", err, reqParams)
-		return nil, err
-	}
-	logResponse("getVpcFingerPrintList", resp)
-
-	keyList := make([]*string, 0, *resp.TotalRows)
-	for _, v := range resp.LoginKeyList {
-		keyList = append(keyList, v.Fingerprint)
-	}
-
-	return keyList, nil
-}
-
-func getFingerPrint(config *ProviderConfig, keyName *string) (*string, error) {
-	var fingerPrintList []*string
-	var err error
-
-	if config.SupportVPC == true {
-		fingerPrintList, err = getVpcFingerPrintList(config.Client, keyName)
+func getLoginKey(config *ProviderConfig, keyName string) (*LoginKey, error) {
+	if config.SupportVPC {
+		return getVpcLoginKey(config, keyName)
 	} else {
-		fingerPrintList, err = getClassicFingerPrintList(config.Client, keyName)
+		return getClassicLoginKey(config, keyName)
 	}
+}
+
+func getVpcLoginKey(config *ProviderConfig, keyName string) (*LoginKey, error) {
+	resp, err := config.Client.vserver.V2Api.GetLoginKeyList(&vserver.GetLoginKeyListRequest{
+		KeyName: ncloud.String(keyName),
+	})
 
 	if err != nil {
 		return nil, err
 	}
 
-	if len(fingerPrintList) > 0 {
-		return fingerPrintList[0], nil
+	if len(resp.LoginKeyList) < 1 {
+		return nil, nil
 	}
 
-	return nil, nil
+	l := resp.LoginKeyList[0]
+	return &LoginKey{
+		KeyName:     l.KeyName,
+		Fingerprint: l.Fingerprint,
+	}, nil
 }
 
-func deleteClassicLoginKey(client *NcloudAPIClient, keyName *string) error {
-	reqParams := &server.DeleteLoginKeyRequest{KeyName: keyName}
+func getClassicLoginKey(config *ProviderConfig, keyName string) (*LoginKey, error) {
+	resp, err := config.Client.server.V2Api.GetLoginKeyList(&server.GetLoginKeyListRequest{
+		KeyName: ncloud.String(keyName),
+	})
+
+	if err != nil {
+		return nil, err
+	}
+
+	if len(resp.LoginKeyList) < 1 {
+		return nil, nil
+	}
+
+	l := resp.LoginKeyList[0]
+	return &LoginKey{
+		KeyName:     l.KeyName,
+		Fingerprint: l.Fingerprint,
+	}, nil
+}
+
+func deleteClassicLoginKey(config *ProviderConfig, keyName string) error {
+	reqParams := &server.DeleteLoginKeyRequest{KeyName: ncloud.String(keyName)}
 
 	logCommonRequest("deleteClassicLoginKey", reqParams)
-	resp, err := client.server.V2Api.DeleteLoginKey(reqParams)
+	resp, err := config.Client.server.V2Api.DeleteLoginKey(reqParams)
 	if err != nil {
 		logErrorResponse("deleteClassicLoginKey", err, keyName)
 		return err
@@ -192,12 +173,12 @@ func deleteClassicLoginKey(client *NcloudAPIClient, keyName *string) error {
 		Pending: []string{""},
 		Target:  []string{"OK"},
 		Refresh: func() (interface{}, string, error) {
-			resp, err := getClassicFingerPrintList(client, keyName)
+			resp, err := getClassicLoginKey(config, keyName)
 			if err != nil {
 				return 0, "", err
 			}
 
-			if len(resp) == 0 {
+			if resp == nil {
 				return 0, "OK", err
 			}
 
@@ -216,11 +197,11 @@ func deleteClassicLoginKey(client *NcloudAPIClient, keyName *string) error {
 	return nil
 }
 
-func deleteVpcLoginKey(client *NcloudAPIClient, keyName *string) error {
-	reqParams := &vserver.DeleteLoginKeysRequest{KeyNameList: []*string{keyName}}
+func deleteVpcLoginKey(config *ProviderConfig, keyName string) error {
+	reqParams := &vserver.DeleteLoginKeysRequest{KeyNameList: []*string{ncloud.String(keyName)}}
 
 	logCommonRequest("deleteVpcLoginKey", reqParams)
-	resp, err := client.vserver.V2Api.DeleteLoginKeys(reqParams)
+	resp, err := config.Client.vserver.V2Api.DeleteLoginKeys(reqParams)
 	if err != nil {
 		logErrorResponse("deleteVpcLoginKey", err, keyName)
 		return err
@@ -231,12 +212,12 @@ func deleteVpcLoginKey(client *NcloudAPIClient, keyName *string) error {
 		Pending: []string{""},
 		Target:  []string{"OK"},
 		Refresh: func() (interface{}, string, error) {
-			resp, err := getVpcFingerPrintList(client, keyName)
+			resp, err := getVpcLoginKey(config, keyName)
 			if err != nil {
 				return 0, "", err
 			}
 
-			if len(resp) == 0 {
+			if resp == nil {
 				return 0, "OK", err
 			}
 

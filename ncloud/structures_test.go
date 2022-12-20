@@ -775,6 +775,60 @@ func TestFlattenNKSNodePoolAutoscale(t *testing.T) {
 	}
 }
 
+func TestFlattenNKSWorkerNodes(t *testing.T) {
+	expanded := []*vnks.WorkerNode{
+		{
+			Id:            ncloud.Int32(1),
+			Name:          ncloud.String("node1"),
+			ServerSpec:    ncloud.String("[Standard] vCPU 2EA, Memory 8GB"),
+			PrivateIp:     ncloud.String("10.0.1.4"),
+			PublicIp:      ncloud.String(""),
+			K8sStatus:     ncloud.String("Ready"),
+			DockerVersion: ncloud.String("containerd://1.3.7"),
+			KernelVersion: ncloud.String("5.4.0-65-generic"),
+		},
+	}
+
+	result := flattenNKSWorkerNodes(expanded)
+
+	if result == nil {
+		t.Fatal("result was nil")
+	}
+
+	r := result[0]
+	if r["instance_no"].(int32) != 1 {
+		t.Fatalf("expected result instance_no to be 1, but was %v", r["instance_no"])
+	}
+
+	if r["name"].(string) != "node1" {
+		t.Fatalf("expected result name to be node1, but was %s", r["name"])
+	}
+
+	if r["spec"].(string) != "[Standard] vCPU 2EA, Memory 8GB" {
+		t.Fatalf("expected result spec to be [Standard] vCPU 2EA, Memory 8GB, but was %s", r["spec"])
+	}
+
+	if r["private_ip"].(string) != "10.0.1.4" {
+		t.Fatalf("expected result private_ip to be 10.0.1.4, but was %s", r["private_ip"])
+	}
+
+	if r["public_ip"].(string) != "" {
+		t.Fatalf("expected result public_ip to be emtpy, but was %s", r["public_ip"])
+	}
+
+	if r["node_status"].(string) != "Ready" {
+		t.Fatalf("expected result node_status to be Ready, but was %s", r["node_status"])
+	}
+
+	if r["container_version"].(string) != "containerd://1.3.7" {
+		t.Fatalf("expected result container_version to be containerd://1.3.7, but was %s", r["container_version"])
+	}
+
+	if r["kernel_version"].(string) != "5.4.0-65-generic" {
+		t.Fatalf("expected result kernel_version to be 5.4.0-65-generic, but was %s", r["kernel_version"])
+	}
+}
+
 func TestExpandNKSNodePoolAutoScale(t *testing.T) {
 	autoscaleList := []interface{}{
 		map[string]interface{}{
@@ -800,5 +854,46 @@ func TestExpandNKSNodePoolAutoScale(t *testing.T) {
 
 	if ncloud.Int32Value(result.Max) != int32(2) {
 		t.Fatalf("expected result 2, but got %d", ncloud.Int32Value(result.Max))
+	}
+}
+
+func TestExpandSourceBuildEnvVarsParams(t *testing.T) {
+	envVars := []interface{}{
+		map[string]interface{}{
+			"key":   "key1",
+			"value": "value1",
+		},
+		map[string]interface{}{
+			"key":   "key2",
+			"value": "value2",
+		},
+	}
+
+	result, _ := expandSourceBuildEnvVarsParams(envVars)
+
+	if result == nil {
+		t.Fatal("result was nil")
+	}
+
+	if len(result) != 2 {
+		t.Fatalf("expected result had %d elements, but got %d", 2, len(result))
+	}
+
+	env := result[0]
+	if *env.Key != "key1" {
+		t.Fatalf("expected result key1, but got %s", *env.Key)
+	}
+
+	if *env.Value != "value1" {
+		t.Fatalf("expected result value1, but got %s", *env.Value)
+	}
+
+	env2 := result[1]
+	if *env2.Key != "key2" {
+		t.Fatalf("expected result key2, but got %s", *env2.Key)
+	}
+
+	if *env2.Value != "value2" {
+		t.Fatalf("expected result value2, but got %s", *env2.Value)
 	}
 }
