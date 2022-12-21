@@ -788,9 +788,9 @@ func makeTriggerData(triggerData *PipelineTrigger) []map[string]interface{} {
 		}
 		for _, schedule := range triggerData.Schedule {
 			mapping := map[string]interface{}{
-				"day":                       ncloud.StringListValue(schedule.Day),
-				"time":                      ncloud.StringValue(schedule.Time),
-				"timezone":                  ncloud.StringValue(schedule.TimeZone),
+				"day":                      ncloud.StringListValue(schedule.Day),
+				"time":                     ncloud.StringValue(schedule.Time),
+				"timezone":                 ncloud.StringValue(schedule.TimeZone),
 				"execute_only_with_change": ncloud.BoolValue(schedule.ExecuteOnlyWithChange),
 			}
 			scheduleTrigger = append(scheduleTrigger, mapping)
@@ -882,9 +882,9 @@ func convertClassicPipelineProject(r *sourcepipeline.GetProjectDetailResponse) *
 		}
 		for _, scheduleInfo := range r.Trigger.Schedule {
 			ri := &PipelineTriggerSchedule{
-				Day:                    scheduleInfo.Day,
-				Time:                   scheduleInfo.Time,
-				TimeZone:               scheduleInfo.TimeZone,
+				Day:                   scheduleInfo.Day,
+				Time:                  scheduleInfo.Time,
+				TimeZone:              scheduleInfo.TimeZone,
 				ExecuteOnlyWithChange: scheduleInfo.ScheduleOnlyWithChange,
 			}
 			trigger.Schedule = append(trigger.Schedule, ri)
@@ -968,9 +968,9 @@ func convertVpcPipelineProject(r *vsourcepipeline.GetProjectDetailResponse) *Pip
 		}
 		for _, scheduleInfo := range r.Trigger.Schedule {
 			ri := &PipelineTriggerSchedule{
-				Day:                    scheduleInfo.Day,
-				Time:                   scheduleInfo.Time,
-				TimeZone:               scheduleInfo.TimeZone,
+				Day:                   scheduleInfo.Day,
+				Time:                  scheduleInfo.Time,
+				TimeZone:              scheduleInfo.TimeZone,
 				ExecuteOnlyWithChange: scheduleInfo.ScheduleOnlyWithChange,
 			}
 			trigger.Schedule = append(trigger.Schedule, ri)
