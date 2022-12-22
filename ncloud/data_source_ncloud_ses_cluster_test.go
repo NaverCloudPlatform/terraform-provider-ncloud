@@ -71,6 +71,7 @@ resource "ncloud_ses_cluster" "cluster" {
 	  version_code    			= "%[3]s"
 	  user_name       			= "admin"
 	  user_password   			= "qwe123!@#"
+      dashboard_port            = "5601"
   }
   manager_node {  
 	  is_dual_manager           = false

@@ -1,3 +1,11 @@
+variable access_key {
+  default = "ACCESS_KEY"
+}
+
+variable secret_key {
+  default = "SECRET_KEY"
+}
+
 variable name {
   default = "tf-ses"
 }
@@ -10,12 +18,12 @@ variable os_version {
   default = "SW.VELST.OS.LNX64.CNTOS.0708.B050"
 }
 
-variable access_key {
-  default = "ACCESS_KEY"
+variable ses_product_code {
+  default = "SVR.VELST.STAND.C002.M008.NET.SSD.B050.G002"
 }
 
-variable secret_key {
-  default = "SECRET_KEY"
+variable ses_produce_cpu_count {
+  default = "2"
 }
 
 variable login_key {

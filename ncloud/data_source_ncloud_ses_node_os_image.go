@@ -10,7 +10,7 @@ import (
 )
 
 func init() {
-	RegisterDataSource("ncloud_ses_node_os_image", dataSourceNcloudSESNodeOsImage())
+	RegisterDataSource("ncloud_ses_node_os_images", dataSourceNcloudSESNodeOsImage())
 }
 
 func dataSourceNcloudSESNodeOsImage() *schema.Resource {

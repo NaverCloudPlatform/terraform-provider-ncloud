@@ -54,11 +54,11 @@ resource "ncloud_subnet" "node_subnet" {
 data "ncloud_ses_versions" "version" {
 }
 
-data "ncloud_ses_node_os_image" "os_version" {
+data "ncloud_ses_node_os_images" "os_versions" {
 }
 
 data "ncloud_ses_node_products" "product_codes" {
-  os_image_code = data.ncloud_ses_node_os_image.os_version.codes.0.id
+  os_image_code = data.ncloud_ses_node_os_images.os_versions.codes.0.id
   subnet_no = ncloud_subnet.node_subnet.id
 }
 
@@ -68,12 +68,13 @@ resource "ncloud_login_key" "loginkey" {
 
 resource "ncloud_ses_cluster" "cluster" {
   cluster_name                  = "%[1]s"
-  os_image_code         = data.ncloud_ses_node_os_image.os_version.codes.0.id
+  os_image_code         		= data.ncloud_ses_node_os_images.os_versions.codes.0.id
   vpc_no                        = ncloud_vpc.vpc.id
   search_engine {
 	  version_code    			= "%[3]s"
 	  user_name       			= "admin"
 	  user_password   			= "qwe123!@#"
+      dashboard_port            = "5601"
   }
   manager_node {  
 	  is_dual_manager           = false
@@ -91,12 +92,6 @@ resource "ncloud_ses_cluster" "cluster" {
   }
   login_key_name                = ncloud_login_key.loginkey.key_name
 }
-
-data "ncloud_ses_cluster" "cluster" {
-	service_group_instance_no = ncloud_ses_cluster.cluster.uuid
-}
-
-
 `, testClusterName, loginKey, version, region)
 }
 
@@ -142,15 +137,4 @@ func testAccCheckSESClusterDestroy(s *terraform.State) error {
 	}
 
 	return nil
-}
-
-func getRegionAndSESNodeType() (region string, osType string, nodeType string) {
-	region = os.Getenv("NCLOUD_REGION")
-	osType = "SW.VELST.OS.LNX64.CNTOS.0708.B050"
-	if region == "FKR" {
-		nodeType = "SVR.VELST.STAND.C002.M008.NET.SSD.B050.G001"
-	} else {
-		nodeType = "SVR.VELST.STAND.C002.M008.NET.SSD.B050.G002"
-	}
-	return
 }

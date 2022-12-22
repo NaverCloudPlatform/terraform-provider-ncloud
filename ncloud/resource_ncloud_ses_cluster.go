@@ -47,6 +47,10 @@ func resourceNcloudSESCluster() *schema.Resource {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
+			"id": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
 			"service_group_instance_no": {
 				Type:     schema.TypeString,
 				Computed: true,
@@ -69,7 +73,12 @@ func resourceNcloudSESCluster() *schema.Resource {
 						},
 						"port": {
 							Type:     schema.TypeString,
-							Optional: true,
+							Computed: true,
+						},
+						"dashboard_port": {
+							Type:     schema.TypeString,
+							ForceNew: true,
+							Required: true,
 						},
 						"user_name": {
 							Type:             schema.TypeString,
@@ -89,14 +98,13 @@ func resourceNcloudSESCluster() *schema.Resource {
 				ForceNew: true,
 			},
 			"vpc_no": {
-				Type:     schema.TypeString,
+				Type:     schema.TypeInt,
 				Required: true,
 				ForceNew: true,
 			},
 			"manager_node": {
 				Type:     schema.TypeList,
 				Required: true,
-				ForceNew: true,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"is_dual_manager": {
@@ -105,7 +113,7 @@ func resourceNcloudSESCluster() *schema.Resource {
 							ForceNew: true,
 						},
 						"subnet_no": {
-							Type:     schema.TypeString,
+							Type:     schema.TypeInt,
 							Required: true,
 							ForceNew: true,
 						},
@@ -115,9 +123,17 @@ func resourceNcloudSESCluster() *schema.Resource {
 							ForceNew: true,
 						},
 						"count": {
-							Type:     schema.TypeString,
+							Type:     schema.TypeInt,
 							Optional: true,
 							ForceNew: true,
+							Computed: true,
+						},
+						"acg_id": {
+							Type:     schema.TypeInt,
+							Computed: true,
+						},
+						"acg_name": {
+							Type:     schema.TypeString,
 							Computed: true,
 						},
 					},
@@ -129,7 +145,7 @@ func resourceNcloudSESCluster() *schema.Resource {
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"subnet_no": {
-							Type:     schema.TypeString,
+							Type:     schema.TypeInt,
 							Required: true,
 							ForceNew: true,
 						},
@@ -139,8 +155,16 @@ func resourceNcloudSESCluster() *schema.Resource {
 							ForceNew: true,
 						},
 						"count": {
-							Type:     schema.TypeString,
+							Type:     schema.TypeInt,
 							Required: true,
+						},
+						"acg_id": {
+							Type:     schema.TypeInt,
+							Computed: true,
+						},
+						"acg_name": {
+							Type:     schema.TypeString,
+							Computed: true,
 						},
 						"storage_size": {
 							Type:     schema.TypeString,
@@ -153,7 +177,6 @@ func resourceNcloudSESCluster() *schema.Resource {
 			"master_node": {
 				Type:     schema.TypeList,
 				Required: true,
-				ForceNew: true,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"is_master_only_node_activated": {
@@ -162,7 +185,7 @@ func resourceNcloudSESCluster() *schema.Resource {
 							ForceNew: true,
 						},
 						"subnet_no": {
-							Type:     schema.TypeString,
+							Type:     schema.TypeInt,
 							Optional: true,
 							ForceNew: true,
 						},
@@ -172,9 +195,54 @@ func resourceNcloudSESCluster() *schema.Resource {
 							ForceNew: true,
 						},
 						"count": {
-							Type:     schema.TypeString,
+							Type:     schema.TypeInt,
 							Optional: true,
 							ForceNew: true,
+						},
+						"acg_id": {
+							Type:     schema.TypeInt,
+							Computed: true,
+						},
+						"acg_name": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+					},
+				},
+			},
+			"manager_node_instance_no_list": {
+				Type:     schema.TypeList,
+				Computed: true,
+				Elem:     &schema.Schema{Type: schema.TypeInt},
+			},
+			"cluster_node_list": {
+				Type:     schema.TypeList,
+				Computed: true,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"compute_instance_no": {
+							Type:     schema.TypeInt,
+							Computed: true,
+						},
+						"compute_instance_name": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+						"private_ip": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+						"server_status": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+						"node_type": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+						"subnet": {
+							Type:     schema.TypeString,
+							Computed: true,
 						},
 					},
 				},
@@ -199,27 +267,27 @@ func resourceNcloudSESClusterCreate(ctx context.Context, d *schema.ResourceData,
 	managerNodeParamsMap := d.Get("manager_node").([]interface{})[0].(map[string]interface{})
 	masterNodeParamsMap := d.Get("master_node").([]interface{})[0].(map[string]interface{})
 
-	reqParams := &vses2.CreateClusterRequestVo{
+	var reqParams = &vses2.CreateClusterRequestVo{
 		ClusterName:               StringPtrOrNil(d.GetOk("cluster_name")),
 		SearchEngineVersionCode:   StringPtrOrNil(searchEngineParamsMap["version_code"], true),
 		SearchEngineUserName:      StringPtrOrNil(searchEngineParamsMap["user_name"], true),
 		SearchEngineUserPassword:  StringPtrOrNil(searchEngineParamsMap["user_password"], true),
+		SearchEngineDashboardPort: StringPtrOrNil(searchEngineParamsMap["dashboard_port"], true),
 		SoftwareProductCode:       StringPtrOrNil(d.GetOk("os_image_code")),
-		VpcNo:                     getInt32FromString(d.GetOk("vpc_no")),
+		VpcNo:                     Int32PtrOrNil(d.GetOk("vpc_no")),
 		IsDualManager:             BoolPtrOrNil(managerNodeParamsMap["is_dual_manager"], true),
 		ManagerNodeProductCode:    StringPtrOrNil(managerNodeParamsMap["product_code"], true),
-		ManagerNodeSubnetNo:       getInt32FromString(managerNodeParamsMap["subnet_no"], true),
+		ManagerNodeSubnetNo:       Int32PtrOrNil(managerNodeParamsMap["subnet_no"], true),
 		DataNodeProductCode:       StringPtrOrNil(dataNodeParamsMap["product_code"], true),
-		DataNodeSubnetNo:          getInt32FromString(dataNodeParamsMap["subnet_no"], true),
-		DataNodeCount:             getInt32FromString(dataNodeParamsMap["count"], true),
+		DataNodeSubnetNo:          Int32PtrOrNil(dataNodeParamsMap["subnet_no"], true),
+		DataNodeCount:             Int32PtrOrNil(dataNodeParamsMap["count"], true),
 		DataNodeStorageSize:       getInt32FromString(dataNodeParamsMap["storage_size"], true),
 		IsMasterOnlyNodeActivated: BoolPtrOrNil(masterNodeParamsMap["is_master_only_node_activated"], true),
 		MasterNodeProductCode:     StringPtrOrNil(masterNodeParamsMap["product_code"], true),
-		MasterNodeSubnetNo:        getInt32FromString(masterNodeParamsMap["subnet_no"], true),
-		MasterNodeCount:           getInt32FromString(masterNodeParamsMap["count"], true),
+		MasterNodeSubnetNo:        Int32PtrOrNil(masterNodeParamsMap["subnet_no"], true),
+		MasterNodeCount:           Int32PtrOrNil(masterNodeParamsMap["count"], true),
 		LoginKeyName:              StringPtrOrNil(d.GetOk("login_key_name")),
 	}
-
 	logCommonRequest("resourceNcloudSESClusterCreate", reqParams)
 	resp, _, err := config.Client.vses.V2Api.CreateClusterUsingPOST(ctx, *reqParams)
 	if err != nil {
@@ -254,18 +322,22 @@ func resourceNcloudSESClusterRead(ctx context.Context, d *schema.ResourceData, m
 
 	d.SetId(ncloud.StringValue(cluster.ServiceGroupInstanceNo))
 	d.Set("uuid", cluster.ServiceGroupInstanceNo)
+	d.Set("id", cluster.ServiceGroupInstanceNo)
 	d.Set("service_group_instance_no", cluster.ServiceGroupInstanceNo)
 	d.Set("cluster_name", cluster.ClusterName)
 	d.Set("os_image_code", cluster.SoftwareProductCode)
-	d.Set("vpc_no", strconv.Itoa(int(ncloud.Int32Value(cluster.VpcNo))))
+	d.Set("vpc_no", cluster.VpcNo)
 	d.Set("login_key_name", cluster.LoginKeyName)
+	d.Set("manager_node_instance_no_list", cluster.ManagerNodeInstanceNoList)
 
 	searchEngineMap := d.Get("search_engine").([]interface{})[0].(map[string]interface{})
 	searchEngineSet := schema.NewSet(schema.HashResource(resourceNcloudSESCluster().Schema["search_engine"].Elem.(*schema.Resource)), []interface{}{})
 	searchEngineSet.Add(map[string]interface{}{
-		"version_code":  *cluster.SearchEngineVersionCode,
-		"user_name":     *cluster.SearchEngineUserName,
-		"user_password": searchEngineMap["user_password"],
+		"version_code":   *cluster.SearchEngineVersionCode,
+		"user_name":      *cluster.SearchEngineUserName,
+		"user_password":  searchEngineMap["user_password"],
+		"port":           *cluster.SearchEnginePort,
+		"dashboard_port": *cluster.SearchEngineDashboardPort,
 	})
 	if err := d.Set("search_engine", searchEngineSet.List()); err != nil {
 		log.Printf("[WARN] Error setting search_engine set for (%s): %s", d.Id(), err)
@@ -274,9 +346,11 @@ func resourceNcloudSESClusterRead(ctx context.Context, d *schema.ResourceData, m
 	managerNodeSet := schema.NewSet(schema.HashResource(resourceNcloudSESCluster().Schema["manager_node"].Elem.(*schema.Resource)), []interface{}{})
 	managerNodeSet.Add(map[string]interface{}{
 		"is_dual_manager": *cluster.IsDualManager,
-		"count":           strconv.Itoa(int(ncloud.Int32Value(cluster.ManagerNodeCount))),
-		"subnet_no":       strconv.Itoa(int(ncloud.Int32Value(cluster.ManagerNodeSubnetNo))),
+		"count":           *cluster.ManagerNodeCount,
+		"subnet_no":       *cluster.ManagerNodeSubnetNo,
 		"product_code":    *cluster.ManagerNodeProductCode,
+		"acg_id":          *cluster.ManagerNodeAcgId,
+		"acg_name":        *cluster.ManagerNodeAcgName,
 	})
 	if err := d.Set("manager_node", managerNodeSet.List()); err != nil {
 		log.Printf("[WARN] Error setting manager_node set for (%s): %s", d.Id(), err)
@@ -284,9 +358,11 @@ func resourceNcloudSESClusterRead(ctx context.Context, d *schema.ResourceData, m
 
 	dataNodeSet := schema.NewSet(schema.HashResource(resourceNcloudSESCluster().Schema["data_node"].Elem.(*schema.Resource)), []interface{}{})
 	dataNodeSet.Add(map[string]interface{}{
-		"count":        strconv.Itoa(int(ncloud.Int32Value(cluster.DataNodeCount))),
-		"subnet_no":    strconv.Itoa(int(ncloud.Int32Value(cluster.DataNodeSubnetNo))),
+		"count":        *cluster.DataNodeCount,
+		"subnet_no":    *cluster.DataNodeSubnetNo,
 		"product_code": *cluster.DataNodeProductCode,
+		"acg_id":       *cluster.DataNodeAcgId,
+		"acg_name":     *cluster.DataNodeAcgName,
 		"storage_size": *cluster.DataNodeStorageSize,
 	})
 	if err := d.Set("data_node", dataNodeSet.List()); err != nil {
@@ -297,9 +373,11 @@ func resourceNcloudSESClusterRead(ctx context.Context, d *schema.ResourceData, m
 	if cluster.MasterNodeCount != nil && cluster.MasterNodeSubnetNo != nil && cluster.MasterNodeProductCode != nil {
 		masterNodeSet.Add(map[string]interface{}{
 			"is_master_only_node_activated": true,
-			"count":                         strconv.Itoa(int(ncloud.Int32Value(cluster.MasterNodeCount))),
-			"subnet_no":                     strconv.Itoa(int(ncloud.Int32Value(cluster.MasterNodeSubnetNo))),
+			"count":                         *cluster.MasterNodeCount,
+			"subnet_no":                     *cluster.MasterNodeSubnetNo,
 			"product_code":                  *cluster.MasterNodeProductCode,
+			"acg_id":                        *cluster.MasterNodeAcgId,
+			"acg_name":                      *cluster.MasterNodeAcgName,
 		})
 	} else {
 		masterNodeSet.Add(map[string]interface{}{
@@ -308,6 +386,23 @@ func resourceNcloudSESClusterRead(ctx context.Context, d *schema.ResourceData, m
 	}
 	if err := d.Set("master_node", masterNodeSet.List()); err != nil {
 		log.Printf("[WARN] Error setting master_node set for (%s): %s", d.Id(), err)
+	}
+
+	clusterNodeList := schema.NewSet(schema.HashResource(resourceNcloudSESCluster().Schema["cluster_node_list"].Elem.(*schema.Resource)), []interface{}{})
+	if cluster.ClusterNodeList != nil {
+		for _, clusterNode := range cluster.ClusterNodeList {
+			clusterNodeList.Add(map[string]interface{}{
+				"compute_instance_no":   clusterNode.ComputeInstanceNo,
+				"compute_instance_name": clusterNode.ComputeInstanceName,
+				"private_ip":            clusterNode.PrivateIp,
+				"server_status":         clusterNode.ServerStatus,
+				"node_type":             clusterNode.NodeType,
+				"subnet":                clusterNode.Subnet,
+			})
+		}
+	}
+	if err := d.Set("cluster_node_list", clusterNodeList.List()); err != nil {
+		log.Printf("[WARN] Error setting cluster node list for (%s): %s", d.Id(), err)
 	}
 	return nil
 }
@@ -360,7 +455,7 @@ func checkDataNodeChanged(ctx context.Context, d *schema.ResourceData, config *P
 		oldDataNodeMap := o.([]interface{})[0].(map[string]interface{})
 		newDataNodeMap := n.([]interface{})[0].(map[string]interface{})
 		if oldDataNodeMap["count"] != newDataNodeMap["count"] &&
-			*getInt32FromString(oldDataNodeMap["count"], true) < *getInt32FromString(newDataNodeMap["count"], true) {
+			*Int32PtrOrNil(oldDataNodeMap["count"], true) < *Int32PtrOrNil(newDataNodeMap["count"], true) {
 			logCommonRequest("resourceNcloudSESClusterUpdate", d.Id())
 			if err := waitForSESClusterActive(ctx, d, config, d.Id()); err != nil {
 				return diag.FromErr(err)
@@ -368,7 +463,7 @@ func checkDataNodeChanged(ctx context.Context, d *schema.ResourceData, config *P
 
 			reqParams := &vses2.AddNodesInClusterRequestVo{
 				NewDataNodeCount: StringPtrOrNil(strconv.Itoa(
-					int(*getInt32FromString(newDataNodeMap["count"], true)-*getInt32FromString(oldDataNodeMap["count"], true))), true),
+					int(*Int32PtrOrNil(newDataNodeMap["count"], true)-*Int32PtrOrNil(oldDataNodeMap["count"], true))), true),
 			}
 
 			if _, _, err := config.Client.vses.V2Api.AddNodesInClusterUsingPOST(ctx, d.Id(), reqParams); err != nil {
@@ -461,6 +556,15 @@ func waitForSESClusterActive(ctx context.Context, d *schema.ResourceData, config
 func getSESCluster(ctx context.Context, config *ProviderConfig, uuid string) (*vses2.OpenApiGetClusterInfoResponseVo, error) {
 
 	resp, _, err := config.Client.vses.V2Api.GetClusterInfoUsingGET(ctx, uuid)
+	if err != nil {
+		return nil, err
+	}
+	return resp.Result, nil
+}
+
+func getSESClusters(ctx context.Context, config *ProviderConfig) (*vses2.GetSearchEngineClusterInfoListResponse, error) {
+
+	resp, _, err := config.Client.vses.V2Api.GetClusterInfoListUsingGET(ctx, nil)
 	if err != nil {
 		return nil, err
 	}
