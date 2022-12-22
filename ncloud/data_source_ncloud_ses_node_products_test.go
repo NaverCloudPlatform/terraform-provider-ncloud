@@ -43,11 +43,11 @@ resource "ncloud_subnet" "node_subnet" {
 	usage_type         = "GEN"
 }
 
-data "ncloud_ses_node_os_image" "os_version" {
+data "ncloud_ses_node_os_images" "versions" {
 }
 
 data "ncloud_ses_node_products" "product_codes" {
-  os_image_code = data.ncloud_ses_node_os_image.os_version.codes.0.id
+  os_image_code = data.ncloud_ses_node_os_images.versions.versions.0.id
   subnet_no = ncloud_subnet.node_subnet.id
 }
 `, testName, region)

@@ -7,7 +7,7 @@ import (
 )
 
 func TestAccDataSourceNcloudSESSoftwareProductCodes(t *testing.T) {
-	dataName := "data.ncloud_ses_node_os_images.codes"
+	dataName := "data.ncloud_ses_node_os_images.versions"
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:  func() { testAccPreCheck(t) },
@@ -34,7 +34,7 @@ func TestAccDataSourceNcloudSESSoftwareProductCodesFilter(t *testing.T) {
 				Config: testAccDataSourceNcloudSESSoftwareProductWithFilterConfig(),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckDataSourceID(dataName),
-					resource.TestCheckResourceAttr(dataName, "codes.0.value", "SW.VELST.OS.LNX64.CNTOS.0708.B050"),
+					resource.TestCheckResourceAttr(dataName, "versions.0.id", "SW.VELST.OS.LNX64.CNTOS.0708.B050"),
 				),
 			},
 		},
@@ -42,7 +42,7 @@ func TestAccDataSourceNcloudSESSoftwareProductCodesFilter(t *testing.T) {
 }
 
 var testAccDataSourceNcloudSESSoftwareProductConfig = `
-data "ncloud_ses_node_os_images" "codes" {}
+data "ncloud_ses_node_os_images" "versions" {}
 `
 
 func testAccDataSourceNcloudSESSoftwareProductWithFilterConfig() string {
