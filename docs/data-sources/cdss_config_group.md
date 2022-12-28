@@ -2,11 +2,14 @@
 
 ## Example Usage
 
-``` hcl
-variable "cdss_config_group_uuid" {}
+```hcl
+data "ncloud_cdss_config_group" "config_sample" {
+  kafka_version_code = data.ncloud_cdss_kafka_version.kafka_version_sample.id
 
-data "ncloud_cdss_config_group" "config_group"{
-  id = var.cdss_config_group_uuid
+  filter {
+    name   = "name"
+    values = ["YOUR_CONFIG_GROUP_NAME"]
+  }
 }
 ```
 

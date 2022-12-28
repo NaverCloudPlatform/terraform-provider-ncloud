@@ -1,35 +1,11 @@
 # Data Source: ncloud_cdss_cluster
 
 ## Example Usage
-``` hcl
-variable "cdss_cluster_uuid" {}
-
+```hcl
 data "ncloud_cdss_cluster" "cluster"{
-  id = var.cdss_cluster_uuid
-}
-
-resource "ncloud_cdss_cluster" "cluster-2" {
-  name               = "test-cluster"
-  kafka_version_code = data.ncloud_cdss_cluster.cluster.kafka_version_code
-  os_product_code    = data.ncloud_cdss_cluster.cluster.os_product_code
-  vpc_no             = data.ncloud_cdss_cluster.cluster.vpc_no
-  config_group_no    = data.ncloud_cdss_cluster.cluster.config_group_no
-
-  cmak {
-    user_name     = [for k in data.ncloud_cdss_cluster.cluster.cmak : k][0]["user_name"]
-    user_password = "test123!@#"
-  }
-
-  manager_node {
-    node_product_code = [for k in data.ncloud_cdss_cluster.cluster.manager_node : k][0]["node_product_code"]
-    subnet_no         = [for k in data.ncloud_cdss_cluster.cluster.manager_node : k][0]["subnet_no"]
-  }
-
-  broker_nodes {
-    node_product_code = [for k in data.ncloud_cdss_cluster.cluster.broker_nodes : k][0]["node_product_code"]
-    node_count        = [for k in data.ncloud_cdss_cluster.cluster.broker_nodes : k][0]["node_count"]
-    subnet_no         = [for k in data.ncloud_cdss_cluster.cluster.broker_nodes : k][0]["subnet_no"]
-    storage_size      = [for k in data.ncloud_cdss_cluster.cluster.broker_nodes : k][0]["storage_size"]
+  filter {
+    name   = "name"
+    values = ["YOUR_CLUSTER_NAME"]
   }
 }
 ```

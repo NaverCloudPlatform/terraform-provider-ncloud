@@ -3,6 +3,12 @@
 ## Example Usage
 
 ```hcl
+variable "vpc_no" {}
+
+data "ncloud_vpc" "vpc_sample" {
+  id = var.vpc_no
+}
+
 data "ncloud_cdss_os_product" "os_sample" {
   filter {
     name = "product_name"
@@ -12,7 +18,7 @@ data "ncloud_cdss_os_product" "os_sample" {
 
 data "ncloud_cdss_node_product" "node_sample" {
   os_product_code = data.ncloud_cdss_os_product.os_sample.id
-  subnet_no       = "3438"
+  subnet_no       = data.ncloud_vpc.vpc_sample.id
   
   filter {
     name   = "cpu_count"
