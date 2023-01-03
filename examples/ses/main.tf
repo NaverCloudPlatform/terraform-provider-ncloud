@@ -1,6 +1,6 @@
 provider "ncloud" {
   support_vpc = true
-  region      = "KR"        # FKR
+  region      = "KR"
   access_key  = var.access_key
   secret_key  = var.secret_key
 }
@@ -13,7 +13,7 @@ resource "ncloud_vpc" "vpc" {
 resource "ncloud_subnet" "node_subnet" {
   vpc_no         = ncloud_vpc.vpc.id
   subnet         = "172.16.1.0/24"
-  zone           = "KR-1"           # FKR-1
+  zone           = "KR-1"
   network_acl_no = ncloud_vpc.vpc.default_network_acl_no
   subnet_type    = "PRIVATE"
   name           = "tf-ses-private-subnet"
