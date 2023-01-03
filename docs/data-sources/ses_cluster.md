@@ -4,24 +4,24 @@ Provides a Search Engine Service cluster data.
 
 ## Example Usage
 ``` hcl
-variable "ses_cluster_uuid" {}
+variable "ses_cluster_id" {}
 
 data "ncloud_ses_cluster" "cluster"{
-  uuid = var.ses_cluster_uuid
+  id = var.ses_cluster_id
 }
 ```
 
 ## Argument Reference
 The following arguments are supported
 
-* `uuid` - (Required) Cluster uuid.
+* `id` - (Required) Cluster Instance No.
 
 ## Attribute Reference
 In addition to all arguments above, the following attributes are exported
 
 * `cluster_name` - Cluster name.
-* `service_group_instance_no` - Cluster uuid.
-* `uuid` - Cluster uuid.
+* `service_group_instance_no` - Cluster Instance No.
+* `id` - Cluster Instance No.
 * `os_image_code` -  OS type to be used.
 * `vpc_no` - VPC number to be used.
 * `search_engine` - .

@@ -101,9 +101,8 @@ The following arguments are supported:
 ## Attribute Reference
 In addition to all arguments above, the following attributes are exported
 
-* `id` - Cluster uuid.
-* `uuid` - Cluster uuid.  (It is the same result as `id`)
-* `service_group_instance_no` - Cluster uuid. (It is the same result as `id`)
+* `id` - Cluster Instance No.
+* `service_group_instance_no` - Cluster Instance No. (It is the same result as `id`)
 * `manager_node` - .
   * `acg_id` - The ID of manager node ACG.
   * `acg_name` - The name of manager node ACG. 

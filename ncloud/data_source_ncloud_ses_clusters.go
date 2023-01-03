@@ -22,10 +22,6 @@ func dataSourceNcloudSESClusters() *schema.Resource {
 				Computed: true,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
-						"uuid": {
-							Type:     schema.TypeString,
-							Computed: true,
-						},
 						"id": {
 							Type:     schema.TypeString,
 							Computed: true,
@@ -66,7 +62,6 @@ func dataSourceNcloudSESClustersRead(ctx context.Context, d *schema.ResourceData
 
 	for _, r := range clusters.AllowedClusters {
 		instance := map[string]interface{}{
-			"uuid":                      ncloud.StringValue(r.ServiceGroupInstanceNo),
 			"id":                        ncloud.StringValue(r.ServiceGroupInstanceNo),
 			"service_group_instance_no": ncloud.StringValue(r.ServiceGroupInstanceNo),
 			"cluster_name":              ncloud.StringValue(r.ClusterName),
@@ -77,7 +72,6 @@ func dataSourceNcloudSESClustersRead(ctx context.Context, d *schema.ResourceData
 
 	for _, r := range clusters.DisallowedClusters {
 		instance := map[string]interface{}{
-			"uuid":                      ncloud.StringValue(r.ServiceGroupInstanceNo),
 			"id":                        ncloud.StringValue(r.ServiceGroupInstanceNo),
 			"service_group_instance_no": ncloud.StringValue(r.ServiceGroupInstanceNo),
 			"cluster_name":              ncloud.StringValue(r.ClusterName),

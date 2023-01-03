@@ -44,10 +44,6 @@ func resourceNcloudSESCluster() *schema.Resource {
 			Delete: schema.DefaultTimeout(DefaultCreateTimeout),
 		},
 		Schema: map[string]*schema.Schema{
-			"uuid": {
-				Type:     schema.TypeString,
-				Computed: true,
-			},
 			"id": {
 				Type:     schema.TypeString,
 				Computed: true,
@@ -62,7 +58,7 @@ func resourceNcloudSESCluster() *schema.Resource {
 				Required: true,
 				ValidateDiagFunc: ToDiagFunc(validation.All(
 					validation.StringLenBetween(3, 15),
-					validation.StringMatch(regexp.MustCompile(`^[a-z]+(-[a-z0-9])*[a-z0-9]+$`), "Composed of alphabets(lower-case), numbers, non-consecutive hyphen (-)."),
+					validation.StringMatch(regexp.MustCompile(`^[a-z]+[a-z0-9]*(-[a-z0-9]+)*[a-z0-9]+$`), "Composed of alphabets(lower-case), numbers, non-consecutive hyphen (-)."),
 				)),
 			},
 			"search_engine": {
@@ -298,13 +294,13 @@ func resourceNcloudSESClusterCreate(ctx context.Context, d *schema.ResourceData,
 		logErrorResponse("resourceNcloudSESClusterCreate", err, reqParams)
 		return diag.FromErr(err)
 	}
-	uuid := strconv.Itoa(int(ncloud.Int32Value(resp.Result.ServiceGroupInstanceNo)))
+	id := strconv.Itoa(int(ncloud.Int32Value(resp.Result.ServiceGroupInstanceNo)))
 
 	logResponse("resourceNcloudSESClusterCreate", resp)
-	if err := waitForSESClusterActive(ctx, d, config, uuid); err != nil {
+	if err := waitForSESClusterActive(ctx, d, config, id); err != nil {
 		return diag.FromErr(err)
 	}
-	d.SetId(uuid)
+	d.SetId(id)
 	return resourceNcloudSESClusterRead(ctx, d, meta)
 }
 
@@ -325,7 +321,6 @@ func resourceNcloudSESClusterRead(ctx context.Context, d *schema.ResourceData, m
 	}
 
 	d.SetId(ncloud.StringValue(cluster.ServiceGroupInstanceNo))
-	d.Set("uuid", cluster.ServiceGroupInstanceNo)
 	d.Set("id", cluster.ServiceGroupInstanceNo)
 	d.Set("service_group_instance_no", cluster.ServiceGroupInstanceNo)
 	d.Set("cluster_name", cluster.ClusterName)
@@ -532,17 +527,17 @@ func waitForSESClusterDeletion(ctx context.Context, d *schema.ResourceData, conf
 	return nil
 }
 
-func waitForSESClusterActive(ctx context.Context, d *schema.ResourceData, config *ProviderConfig, uuid string) error {
+func waitForSESClusterActive(ctx context.Context, d *schema.ResourceData, config *ProviderConfig, id string) error {
 	stateConf := &resource.StateChangeConf{
 		Pending: []string{SESStatusCreatingCode, SESStatusChangingCode},
 		Target:  []string{SESStatusRunningCode},
 		Refresh: func() (result interface{}, state string, err error) {
-			cluster, err := getSESCluster(ctx, config, uuid)
+			cluster, err := getSESCluster(ctx, config, id)
 			if err != nil {
 				return nil, "", err
 			}
 			if cluster == nil {
-				return uuid, SESStatusNullCode, nil
+				return id, SESStatusNullCode, nil
 			}
 			return cluster, ncloud.StringValue(cluster.ClusterStatus), nil
 
@@ -552,14 +547,14 @@ func waitForSESClusterActive(ctx context.Context, d *schema.ResourceData, config
 		Delay:      2 * time.Second,
 	}
 	if _, err := stateConf.WaitForStateContext(ctx); err != nil {
-		return fmt.Errorf("error waiting for SES Cluster (%s) to become activating: %s", uuid, err)
+		return fmt.Errorf("error waiting for SES Cluster (%s) to become activating: %s", id, err)
 	}
 	return nil
 }
 
-func getSESCluster(ctx context.Context, config *ProviderConfig, uuid string) (*vses2.OpenApiGetClusterInfoResponseVo, error) {
+func getSESCluster(ctx context.Context, config *ProviderConfig, id string) (*vses2.OpenApiGetClusterInfoResponseVo, error) {
 
-	resp, _, err := config.Client.vses.V2Api.GetClusterInfoUsingGET(ctx, uuid)
+	resp, _, err := config.Client.vses.V2Api.GetClusterInfoUsingGET(ctx, id)
 	if err != nil {
 		return nil, err
 	}

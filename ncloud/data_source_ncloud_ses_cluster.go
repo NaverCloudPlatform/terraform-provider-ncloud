@@ -16,13 +16,9 @@ func dataSourceNcloudSESCluster() *schema.Resource {
 	return &schema.Resource{
 		ReadContext: dataSourceNcloudSESClusterRead,
 		Schema: map[string]*schema.Schema{
-			"uuid": {
-				Type:     schema.TypeString,
-				Required: true,
-			},
 			"id": {
 				Type:     schema.TypeString,
-				Computed: true,
+				Required: true,
 			},
 			"service_group_instance_no": {
 				Type:     schema.TypeString,
@@ -211,8 +207,8 @@ func dataSourceNcloudSESClusterRead(ctx context.Context, d *schema.ResourceData,
 		return diag.FromErr(NotSupportClassic("dataSource `ncloud_ses_cluster`"))
 	}
 
-	uuid := d.Get("uuid").(string)
-	cluster, err := getSESCluster(ctx, config, uuid)
+	id := d.Get("id").(string)
+	cluster, err := getSESCluster(ctx, config, id)
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -223,7 +219,6 @@ func dataSourceNcloudSESClusterRead(ctx context.Context, d *schema.ResourceData,
 	}
 
 	d.SetId(ncloud.StringValue(cluster.ServiceGroupInstanceNo))
-	d.Set("uuid", cluster.ServiceGroupInstanceNo)
 	d.Set("id", cluster.ServiceGroupInstanceNo)
 	d.Set("service_group_instance_no", cluster.ServiceGroupInstanceNo)
 	d.Set("cluster_name", cluster.ClusterName)

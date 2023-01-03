@@ -94,7 +94,7 @@ resource "ncloud_ses_cluster" "cluster" {
 }
 
 data "ncloud_ses_cluster" "cluster" {
-	uuid = ncloud_ses_cluster.cluster.uuid
+	id = ncloud_ses_cluster.cluster.id
 }
 
 

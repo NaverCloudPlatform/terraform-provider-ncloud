@@ -92,7 +92,7 @@ resource "ncloud_ses_cluster" "cluster" {
 }
 
 data "ncloud_ses_cluster" "cluster" {
-  uuid = ncloud_ses_cluster.cluster.uuid
+  id = ncloud_ses_cluster.cluster.id
 }
 
 output "cluster" {
@@ -102,18 +102,10 @@ output "cluster" {
 data "ncloud_ses_clusters" "clusters" {
     filter {
       name   = "cluster_name"
-      values = ["oss"]
+      values = ["tf-ses"]
     }
 }
 
 output "clusters" {
   value = data.ncloud_ses_clusters.clusters
-}
-
-data "ncloud_ses_cluster" "target_cluster" {
-  uuid = data.ncloud_ses_clusters.clusters.clusters.0.id
-}
-
-output "target_cluster" {
-  value = data.ncloud_ses_cluster.target_cluster
 }

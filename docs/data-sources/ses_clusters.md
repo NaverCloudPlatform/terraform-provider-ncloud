@@ -19,7 +19,6 @@ data "ncloud_ses_clusters" "cluster"{
 In addition to all arguments above, the following attributes are exported
 
 * `clusters` - .
-  * `id` - Cluster Id.
-  * `uuid` - Cluster uuid(Same as Cluster Id)
-  * `service_group_instance_no` - Cluster uuid.
+  * `id` - Cluster Instance No.
+  * `service_group_instance_no` - Cluster Instance No(Same as Cluster Id).
   * `cluster_name` - Cluster name.
