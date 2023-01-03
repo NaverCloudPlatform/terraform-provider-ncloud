@@ -2,15 +2,16 @@ package ncloud
 
 import (
 	"fmt"
+	"log"
+	"regexp"
+	"strconv"
+	"time"
+
 	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/ncloud"
 	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/services/vserver"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
-	"log"
-	"regexp"
-	"strconv"
-	"time"
 )
 
 func init() {
@@ -39,7 +40,7 @@ func resourceNcloudAccessControlGroupRule() *schema.Resource {
 							Type:     schema.TypeString,
 							Required: true,
 							ValidateDiagFunc: ToDiagFunc(validation.All(
-								validation.StringMatch(regexp.MustCompile(`TCP|UDP|ICMP|\b([1-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-2])\b`), "only TCP, UDP, ICMP and 1-252 are valid values."),
+								validation.StringMatch(regexp.MustCompile(`TCP|UDP|ICMP|\b([1-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-4])\b`), "only TCP, UDP, ICMP and 1-254 are valid values."),
 								validation.StringNotInSlice([]string{"1", "6", "17"}, false),
 							)),
 						},
@@ -79,7 +80,7 @@ func resourceNcloudAccessControlGroupRule() *schema.Resource {
 							Type:     schema.TypeString,
 							Required: true,
 							ValidateDiagFunc: ToDiagFunc(validation.All(
-								validation.StringMatch(regexp.MustCompile(`TCP|UDP|ICMP|\b([1-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-2])\b`), "only TCP, UDP, ICMP and 1-252 are valid values."),
+								validation.StringMatch(regexp.MustCompile(`TCP|UDP|ICMP|\b([1-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-4])\b`), "only TCP, UDP, ICMP and 1-254 are valid values."),
 								validation.StringNotInSlice([]string{"1", "6", "17"}, false),
 							)),
 						},
