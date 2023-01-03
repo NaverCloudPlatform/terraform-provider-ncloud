@@ -98,14 +98,3 @@ data "ncloud_ses_cluster" "cluster" {
 output "cluster" {
   value = data.ncloud_ses_cluster.cluster
 }
-
-data "ncloud_ses_clusters" "clusters" {
-    filter {
-      name   = "cluster_name"
-      values = ["tf-ses"]
-    }
-}
-
-output "clusters" {
-  value = data.ncloud_ses_clusters.clusters
-}

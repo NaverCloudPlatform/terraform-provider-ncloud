@@ -413,7 +413,9 @@ func resourceNcloudSESClusterUpdate(ctx context.Context, d *schema.ResourceData,
 	}
 
 	checkSearchEngineChanged(ctx, d, config)
-	checkDataNodeChanged(ctx, d, config)
+	if err := checkDataNodeChanged(ctx, d, config); err != nil {
+		return diag.FromErr(err)
+	}
 
 	return nil
 }
@@ -447,7 +449,7 @@ func checkSearchEngineChanged(ctx context.Context, d *schema.ResourceData, confi
 	return nil
 }
 
-func checkDataNodeChanged(ctx context.Context, d *schema.ResourceData, config *ProviderConfig) diag.Diagnostics {
+func checkDataNodeChanged(ctx context.Context, d *schema.ResourceData, config *ProviderConfig) error {
 	if d.HasChanges("data_node") {
 		o, n := d.GetChange("data_node")
 
@@ -457,7 +459,7 @@ func checkDataNodeChanged(ctx context.Context, d *schema.ResourceData, config *P
 			*Int32PtrOrNil(oldDataNodeMap["count"], true) < *Int32PtrOrNil(newDataNodeMap["count"], true) {
 			logCommonRequest("resourceNcloudSESClusterUpdate", d.Id())
 			if err := waitForSESClusterActive(ctx, d, config, d.Id()); err != nil {
-				return diag.FromErr(err)
+				return fmt.Errorf("error waiting for SES Cluster (%s) to become activating: %s", d.Id(), err)
 			}
 
 			reqParams := &vses2.AddNodesInClusterRequestVo{
@@ -467,12 +469,15 @@ func checkDataNodeChanged(ctx context.Context, d *schema.ResourceData, config *P
 
 			if _, _, err := config.Client.vses.V2Api.AddNodesInClusterUsingPOST(ctx, d.Id(), reqParams); err != nil {
 				logErrorResponse("resourceNcloudSESClusterAddNodes", err, d.Id())
-				return diag.FromErr(err)
+				return fmt.Errorf("error Add Nodes to SES Cluster (%s) : %s", d.Id(), err)
 			}
 
 			if err := waitForSESClusterActive(ctx, d, config, d.Id()); err != nil {
-				return diag.FromErr(err)
+				return fmt.Errorf("error waiting for SES Cluster (%s) to become activating: %s", d.Id(), err)
 			}
+		} else {
+			logErrorResponse("resourceNcloudSESClusterAddNodes", nil, d.Id())
+			return fmt.Errorf("data node count cannot be decreased")
 		}
 
 		//@Todo Spec Update
