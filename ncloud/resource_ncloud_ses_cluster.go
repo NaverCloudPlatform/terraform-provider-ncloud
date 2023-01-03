@@ -10,6 +10,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 	"log"
+	"regexp"
 	"strconv"
 	"time"
 )
@@ -56,10 +57,13 @@ func resourceNcloudSESCluster() *schema.Resource {
 				Computed: true,
 			},
 			"cluster_name": {
-				Type:             schema.TypeString,
-				ForceNew:         true,
-				Required:         true,
-				ValidateDiagFunc: ToDiagFunc(validation.StringLenBetween(3, 15)),
+				Type:     schema.TypeString,
+				ForceNew: true,
+				Required: true,
+				ValidateDiagFunc: ToDiagFunc(validation.All(
+					validation.StringLenBetween(3, 15),
+					validation.StringMatch(regexp.MustCompile(`^[a-z]+(-[a-z0-9])*[a-z0-9]+$`), "Composed of alphabets(lower-case), numbers, non-consecutive hyphen (-)."),
+				)),
 			},
 			"search_engine": {
 				Type:     schema.TypeList,
