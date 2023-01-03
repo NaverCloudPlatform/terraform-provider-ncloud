@@ -22,10 +22,18 @@ resource "ncloud_subnet" "node_subnet" {
 
 data "ncloud_ses_versions" "ses_versions" {
   filter {
-    name = "id"
+    name = "type"
+    values = [var.ses_version_type]
+    regex = true
+  }
+  filter {
+    name = "version"
     values = [var.ses_version]
     regex = true
   }
+}
+output "ses_versions" {
+  value = data.ncloud_ses_versions.ses_versions
 }
 
 data "ncloud_ses_node_os_images" "os_versions" {

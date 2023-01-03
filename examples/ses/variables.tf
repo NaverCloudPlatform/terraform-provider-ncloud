@@ -11,7 +11,10 @@ variable name {
 }
 
 variable ses_version {
-  default = "133"
+  default = "1.3.3"
+}
+variable ses_version_type {
+  default = "OpenSearch"
 }
 
 variable os_version {

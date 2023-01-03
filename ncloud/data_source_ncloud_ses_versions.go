@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/ncloud"
+	"strings"
 	"time"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
@@ -29,6 +30,14 @@ func dataSourceNcloudSESVersions() *schema.Resource {
 							Computed: true,
 						},
 						"name": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+						"type": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+						"version": {
 							Type:     schema.TypeString,
 							Computed: true,
 						},
@@ -79,8 +88,10 @@ func getSESVersion(config *ProviderConfig) ([]map[string]interface{}, error) {
 
 	for _, r := range resp.Result.SearchEngineVersionList {
 		instance := map[string]interface{}{
-			"id":   ncloud.StringValue(&r.SearchEngineVersionCode),
-			"name": ncloud.StringValue(&r.SearchEngineVersionName),
+			"id":      ncloud.StringValue(&r.SearchEngineVersionCode),
+			"name":    ncloud.StringValue(&r.SearchEngineVersionName),
+			"type":    ncloud.StringValue(&r.Type_),
+			"version": ncloud.StringValue(&strings.Split(r.SearchEngineVersionName, " ")[1]),
 		}
 
 		resources = append(resources, instance)

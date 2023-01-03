@@ -28,3 +28,5 @@ The following arguments are supported:
 
 * `id` - The Code of SES Version
 * `name` - SES version name
+* `type` - SES version type
+* `version` - SES version
