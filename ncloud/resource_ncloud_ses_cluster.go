@@ -64,6 +64,7 @@ func resourceNcloudSESCluster() *schema.Resource {
 			"search_engine": {
 				Type:     schema.TypeList,
 				Required: true,
+				MaxItems: 1,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"version_code": {
@@ -105,6 +106,7 @@ func resourceNcloudSESCluster() *schema.Resource {
 			"manager_node": {
 				Type:     schema.TypeList,
 				Required: true,
+				MaxItems: 1,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"is_dual_manager": {
@@ -142,6 +144,7 @@ func resourceNcloudSESCluster() *schema.Resource {
 			"data_node": {
 				Type:     schema.TypeList,
 				Required: true,
+				MaxItems: 1,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"subnet_no": {
@@ -177,6 +180,7 @@ func resourceNcloudSESCluster() *schema.Resource {
 			"master_node": {
 				Type:     schema.TypeList,
 				Required: true,
+				MaxItems: 1,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"is_master_only_node_activated": {
