@@ -14,6 +14,19 @@ data "ncloud_ses_versions" "opensearch_v133" {
   }
 }
 
+data "ncloud_ses_versions" "opensearch_v133" {
+  filter {
+    name = "type"
+    values = ["OpenSearch"]
+  }
+}
+
+data "ncloud_ses_versions" "opensearch_v133" {
+  filter {
+    name = "version"
+    values = ["1.3.3"]
+  }
+}
 ```
 
 ## Argument Reference
