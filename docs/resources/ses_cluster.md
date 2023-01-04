@@ -93,9 +93,9 @@ The following arguments are supported:
     * `storage_size` - Data node storage capacity. At least 100 GB, up to 2000 GB. Must be in units of 10 GB.
 * `master_node` - .
     * `is_master_only_node_activated` - Activate Master only node or not.
-    * `product_code` - HW specifications of the master node.(Optional)
-    * `subnet_no` - Subnet number where the master node is to be located.(Optional)
-    * `count` - Number of master nodes. Only 3 or 5 units are available.
+    * `product_code` - HW specifications of the master node(Required when `is_master_only_node_activated` value is true)
+    * `subnet_no` - Subnet number where the master node is to be located(Required when `is_master_only_node_activated` value is true)
+    * `count` - Number of master nodes. Only 3 or 5 units are available(Required when `is_master_only_node_activated` value is true)
 * `login_key_name` - Required Login key to access Manager node server
 
 ## Attribute Reference
