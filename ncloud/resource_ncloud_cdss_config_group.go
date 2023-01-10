@@ -2,12 +2,13 @@ package ncloud
 
 import (
 	"context"
+	"strconv"
+
 	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/ncloud"
 	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/services/vcdss"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
-	"strconv"
 )
 
 func init() {
@@ -68,8 +69,8 @@ func resourceNcloudCDSSConfigGroupCreate(ctx context.Context, d *schema.Resource
 	}
 	logResponse("resourceNcloudCDSSConfigGroupCreate", resp)
 
-	uuid := strconv.Itoa(int(ncloud.Int32Value(&resp.Result.ConfigGroupNo)))
-	d.SetId(uuid)
+	id := strconv.Itoa(int(ncloud.Int32Value(&resp.Result.ConfigGroupNo)))
+	d.SetId(id)
 	return resourceNcloudCDSSConfigGroupRead(ctx, d, meta)
 }
 
@@ -111,11 +112,11 @@ func resourceNcloudCDSSConfigGroupDelete(ctx context.Context, d *schema.Resource
 	return nil
 }
 
-func getCDSSConfigGroup(ctx context.Context, config *ProviderConfig, kafkaVersionCode string, uuid string) (*vcdss.GetKafkaConfigGroupResponseVo, error) {
+func getCDSSConfigGroup(ctx context.Context, config *ProviderConfig, kafkaVersionCode string, id string) (*vcdss.GetKafkaConfigGroupResponseVo, error) {
 	reqParams := vcdss.GetKafkaConfigGroupRequest{
 		KafkaVersionCode: kafkaVersionCode,
 	}
-	resp, _, err := config.Client.vcdss.V1Api.ConfigGroupGetKafkaConfigGroupConfigGroupNoPost(ctx, reqParams, uuid)
+	resp, _, err := config.Client.vcdss.V1Api.ConfigGroupGetKafkaConfigGroupConfigGroupNoPost(ctx, reqParams, id)
 	if err != nil {
 		return nil, err
 	}

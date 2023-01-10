@@ -242,11 +242,11 @@ func resourceNcloudCDSSClusterCreate(ctx context.Context, d *schema.ResourceData
 	}
 	logResponse("resourceNcloudCDSSClusterCreate", resp)
 
-	uuid := strconv.Itoa(int(ncloud.Int32Value(&resp.Result.ServiceGroupInstanceNo)))
-	if err := waitForCDSSClusterActive(ctx, d, config, uuid); err != nil {
+	id := strconv.Itoa(int(ncloud.Int32Value(&resp.Result.ServiceGroupInstanceNo)))
+	if err := waitForCDSSClusterActive(ctx, d, config, id); err != nil {
 		return diag.FromErr(err)
 	}
-	d.SetId(uuid)
+	d.SetId(id)
 	return resourceNcloudCDSSClusterRead(ctx, d, meta)
 }
 
@@ -378,17 +378,17 @@ func waitForCDSSClusterDeletion(ctx context.Context, d *schema.ResourceData, con
 	return nil
 }
 
-func waitForCDSSClusterActive(ctx context.Context, d *schema.ResourceData, config *ProviderConfig, uuid string) error {
+func waitForCDSSClusterActive(ctx context.Context, d *schema.ResourceData, config *ProviderConfig, id string) error {
 	stateConf := &resource.StateChangeConf{
 		Pending: []string{CDSSStatusCreating, CDSSStatusChanging},
 		Target:  []string{CDSSStatusRunning},
 		Refresh: func() (result interface{}, state string, err error) {
-			cluster, err := getCDSSCluster(ctx, config, uuid)
+			cluster, err := getCDSSCluster(ctx, config, id)
 			if err != nil {
 				return nil, "", err
 			}
 			if cluster == nil {
-				return uuid, CDSSStatusNull, nil
+				return id, CDSSStatusNull, nil
 			}
 			return cluster, cluster.Status, nil
 		},
@@ -397,21 +397,21 @@ func waitForCDSSClusterActive(ctx context.Context, d *schema.ResourceData, confi
 		Delay:      2 * time.Second,
 	}
 	if _, err := stateConf.WaitForStateContext(ctx); err != nil {
-		return fmt.Errorf("error waiting for CDSS Cluster (%s) to become activating: %s", uuid, err)
+		return fmt.Errorf("error waiting for CDSS Cluster (%s) to become activating: %s", id, err)
 	}
 	return nil
 }
 
-func getCDSSCluster(ctx context.Context, config *ProviderConfig, uuid string) (*vcdss.OpenApiGetClusterInfoResponseVo, error) {
-	resp, _, err := config.Client.vcdss.V1Api.ClusterGetClusterInfoListServiceGroupInstanceNoPost(ctx, uuid)
+func getCDSSCluster(ctx context.Context, config *ProviderConfig, id string) (*vcdss.OpenApiGetClusterInfoResponseVo, error) {
+	resp, _, err := config.Client.vcdss.V1Api.ClusterGetClusterInfoListServiceGroupInstanceNoPost(ctx, id)
 	if err != nil {
 		return nil, err
 	}
 	return resp.Result, nil
 }
 
-func getBrokerInfo(ctx context.Context, config *ProviderConfig, uuid string) (*vcdss.GetBrokerNodeListsResponseVo, error) {
-	resp, _, err := config.Client.vcdss.V1Api.ClusterGetBrokerInfoServiceGroupInstanceNoGet(ctx, uuid)
+func getBrokerInfo(ctx context.Context, config *ProviderConfig, id string) (*vcdss.GetBrokerNodeListsResponseVo, error) {
+	resp, _, err := config.Client.vcdss.V1Api.ClusterGetBrokerInfoServiceGroupInstanceNoGet(ctx, id)
 	if err != nil {
 		return nil, err
 	}

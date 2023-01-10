@@ -20,4 +20,4 @@ The following arguments are supported:
 ## Attribute Reference
 In addition to all arguments above, the following attributes are exported
 
-* `id` - ConfigGroup uuid.
+* `id` - ConfigGroup id.

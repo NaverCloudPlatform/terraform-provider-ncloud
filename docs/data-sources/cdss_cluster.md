@@ -21,7 +21,7 @@ The following arguments are supported:
 ## Attribute Reference
 In addition to all arguments above, the following attributes are exported
 
-* `id` - Cluster uuid.
+* `id` - Cluster id.
 * `service_group_instance_no` - Service Group Instance number.
 * `name` - Cluster name.
 * `kafka_version_code` - Cloud Data Streaming Service version to be used.

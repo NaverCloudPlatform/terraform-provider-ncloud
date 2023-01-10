@@ -25,7 +25,7 @@ The following arguments are supported
 ## Attribute Reference
 In addition to all arguments above, the following attributes are exported
 
-* `id` - ConfigGroup uuid.
+* `id` - ConfigGroup id.
 * `config_group_no` - Config group number.
 * `name` - ConfigGroup name.
 * `description` - ConfigGroup description.
