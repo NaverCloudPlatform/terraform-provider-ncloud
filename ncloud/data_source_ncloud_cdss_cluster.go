@@ -3,11 +3,13 @@ package ncloud
 import (
 	"context"
 	"fmt"
+	"log"
+	"strconv"
+	"strings"
+
 	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/ncloud"
 	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/services/vcdss"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
-	"log"
-	"strconv"
 )
 
 func init() {
@@ -105,44 +107,53 @@ func dataSourceNcloudCDSSCluster() *schema.Resource {
 			},
 			"endpoints": {
 				Type:     schema.TypeList,
-				Optional: true,
+				Computed: true,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"plaintext": {
-							Type:     schema.TypeString,
-							Optional: true,
+							Type:     schema.TypeList,
+							Elem:     &schema.Schema{Type: schema.TypeString},
+							Computed: true,
 						},
 						"tls": {
-							Type:     schema.TypeString,
-							Optional: true,
+							Type:     schema.TypeList,
+							Elem:     &schema.Schema{Type: schema.TypeString},
+							Computed: true,
 						},
 						"public_endpoint_plaintext_listener_port": {
-							Type:     schema.TypeString,
-							Optional: true,
+							Type:     schema.TypeList,
+							Elem:     &schema.Schema{Type: schema.TypeString},
+							Computed: true,
 						},
 						"public_endpoint_tls_listener_port": {
-							Type:     schema.TypeString,
-							Optional: true,
+							Type:     schema.TypeList,
+							Elem:     &schema.Schema{Type: schema.TypeString},
+							Computed: true,
 						},
 						"public_endpoint_plaintext": {
-							Type:     schema.TypeString,
-							Optional: true,
+							Type:     schema.TypeList,
+							Elem:     &schema.Schema{Type: schema.TypeString},
+							Computed: true,
 						},
 						"public_endpoint_tls": {
-							Type:     schema.TypeString,
-							Optional: true,
+							Type:     schema.TypeList,
+							Elem:     &schema.Schema{Type: schema.TypeString},
+							Computed: true,
 						},
 						"zookeeper": {
-							Type:     schema.TypeString,
-							Optional: true,
+							Type:     schema.TypeList,
+							Elem:     &schema.Schema{Type: schema.TypeString},
+							Computed: true,
 						},
 						"hosts_private_endpoint_tls": {
-							Type:     schema.TypeString,
-							Optional: true,
+							Type:     schema.TypeList,
+							Elem:     &schema.Schema{Type: schema.TypeString},
+							Computed: true,
 						},
 						"hosts_public_endpoint_tls": {
-							Type:     schema.TypeString,
-							Optional: true,
+							Type:     schema.TypeList,
+							Elem:     &schema.Schema{Type: schema.TypeString},
+							Computed: true,
 						},
 					},
 				},
@@ -208,15 +219,15 @@ func dataSourceNcloudCDSSClusterRead(d *schema.ResourceData, meta interface{}) e
 		return err
 	}
 	eList = append(eList, map[string]interface{}{
-		"plaintext": endpoints.BrokerNodeList,
-		"tls":       endpoints.BrokerTlsNodeList,
-		"public_endpoint_plaintext_listener_port": endpoints.PublicEndpointBrokerNodeListenerPortList,
-		"public_endpoint_tls_listener_port":       endpoints.PublicEndpointBrokerTlsNodeListenerPortList,
-		"public_endpoint_plaintext":               endpoints.PublicEndpointBrokerNodeList,
-		"public_endpoint_tls":                     endpoints.PublicEndpointBrokerTlsNodeList,
-		"zookeeper":                               endpoints.ZookeeperList,
-		"hosts_private_endpoint_tls":              endpoints.LocalDnsList,
-		"hosts_public_endpoint_tls":               endpoints.LocalDnsTlsList,
+		"plaintext": strings.Split(endpoints.BrokerNodeList, ","),
+		"tls":       strings.Split(endpoints.BrokerTlsNodeList, ","),
+		"public_endpoint_plaintext_listener_port": strings.Split(endpoints.PublicEndpointBrokerNodeListenerPortList, "\n"),
+		"public_endpoint_tls_listener_port":       strings.Split(endpoints.PublicEndpointBrokerTlsNodeListenerPortList, "\n"),
+		"public_endpoint_plaintext":               strings.Split(endpoints.PublicEndpointBrokerNodeList, "\n"),
+		"public_endpoint_tls":                     strings.Split(endpoints.PublicEndpointBrokerTlsNodeList, "\n"),
+		"zookeeper":                               strings.Split(endpoints.ZookeeperList, ","),
+		"hosts_private_endpoint_tls":              strings.Split(endpoints.LocalDnsList, "\n"),
+		"hosts_public_endpoint_tls":               strings.Split(endpoints.LocalDnsTlsList, "\n"),
 	})
 
 	// Only set data intersection between resource and list
