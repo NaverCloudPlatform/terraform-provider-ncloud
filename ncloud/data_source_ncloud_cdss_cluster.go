@@ -218,16 +218,23 @@ func dataSourceNcloudCDSSClusterRead(d *schema.ResourceData, meta interface{}) e
 	if err != nil {
 		return err
 	}
+
+	commaSplitFn := func(c rune) bool {
+		return c == ','
+	}
+	newlineSplitFn := func(c rune) bool {
+		return c == '\n'
+	}
 	eList = append(eList, map[string]interface{}{
-		"plaintext": strings.Split(endpoints.BrokerNodeList, ","),
-		"tls":       strings.Split(endpoints.BrokerTlsNodeList, ","),
-		"public_endpoint_plaintext_listener_port": strings.Split(endpoints.PublicEndpointBrokerNodeListenerPortList, "\n"),
-		"public_endpoint_tls_listener_port":       strings.Split(endpoints.PublicEndpointBrokerTlsNodeListenerPortList, "\n"),
-		"public_endpoint_plaintext":               strings.Split(endpoints.PublicEndpointBrokerNodeList, "\n"),
-		"public_endpoint_tls":                     strings.Split(endpoints.PublicEndpointBrokerTlsNodeList, "\n"),
-		"zookeeper":                               strings.Split(endpoints.ZookeeperList, ","),
-		"hosts_private_endpoint_tls":              strings.Split(endpoints.LocalDnsList, "\n"),
-		"hosts_public_endpoint_tls":               strings.Split(endpoints.LocalDnsTlsList, "\n"),
+		"plaintext": strings.FieldsFunc(endpoints.BrokerNodeList, commaSplitFn),
+		"tls":       strings.FieldsFunc(endpoints.BrokerTlsNodeList, commaSplitFn),
+		"public_endpoint_plaintext_listener_port": strings.FieldsFunc(endpoints.PublicEndpointBrokerNodeListenerPortList, newlineSplitFn),
+		"public_endpoint_tls_listener_port":       strings.FieldsFunc(endpoints.PublicEndpointBrokerTlsNodeListenerPortList, newlineSplitFn),
+		"public_endpoint_plaintext":               strings.FieldsFunc(endpoints.PublicEndpointBrokerNodeList, newlineSplitFn),
+		"public_endpoint_tls":                     strings.FieldsFunc(endpoints.PublicEndpointBrokerTlsNodeList, newlineSplitFn),
+		"zookeeper":                               strings.FieldsFunc(endpoints.ZookeeperList, commaSplitFn),
+		"hosts_private_endpoint_tls":              strings.FieldsFunc(endpoints.LocalDnsList, newlineSplitFn),
+		"hosts_public_endpoint_tls":               strings.FieldsFunc(endpoints.LocalDnsTlsList, newlineSplitFn),
 	})
 
 	// Only set data intersection between resource and list
