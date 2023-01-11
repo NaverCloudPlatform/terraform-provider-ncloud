@@ -35,5 +35,7 @@ The following arguments are supported:
 * `images` - A List of OS image product.
 
 ### OS Image Product Reference
+`images` are also exported with the following attributes, when there are relevant: Each element supports the following:
+
 * `id` - The ID of OS image product.
-* `name` - Os image name
+* `name` - OS image name
