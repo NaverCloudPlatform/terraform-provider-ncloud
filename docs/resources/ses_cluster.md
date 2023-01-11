@@ -88,7 +88,7 @@ The following arguments are supported:
 * `data_node` - .
     * `product_code` - HW specifications of the data node.
     * `subnet_no` - Subnet number where the data node is to be located.
-    * `count` - Number of data nodes. At least 3 units, up to 10 units allowed.
+    * `count` - Number of data nodes. At least 3 units. (Can only be increased)
     * `storage_size` - Data node storage capacity. At least 100 GB, up to 2000 GB. Must be in units of 10 GB.
 * `master_node(Optional)` - .
     * `product_code` - HW specifications of the master node.

@@ -158,8 +158,9 @@ func resourceNcloudSESCluster() *schema.Resource {
 							ForceNew: true,
 						},
 						"count": {
-							Type:     schema.TypeInt,
-							Required: true,
+							Type:             schema.TypeInt,
+							Required:         true,
+							ValidateDiagFunc: ToDiagFunc(validation.IntAtLeast(3)),
 						},
 						"acg_id": {
 							Type:     schema.TypeInt,
