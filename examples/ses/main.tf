@@ -36,7 +36,7 @@ output "ses_versions" {
   value = data.ncloud_ses_versions.ses_versions
 }
 
-data "ncloud_ses_node_os_images" "os_versions" {
+data "ncloud_ses_node_os_images" "images" {
   filter {
     name = "id"
     values = [var.os_version]
@@ -44,8 +44,12 @@ data "ncloud_ses_node_os_images" "os_versions" {
   }
 }
 
+output "os_images" {
+  value = data.ncloud_ses_node_os_images.images
+}
+
 data "ncloud_ses_node_products" "product_codes" {
-  os_image_code = data.ncloud_ses_node_os_images.os_versions.versions.0.id
+  os_image_code = data.ncloud_ses_node_os_images.images.images.0.id
   subnet_no = ncloud_subnet.node_subnet.id
   filter {
     name = "id"
@@ -63,7 +67,7 @@ resource "ncloud_login_key" "loginkey" {
 
 resource "ncloud_ses_cluster" "cluster" {
   cluster_name                  = "tf-ses"
-  os_image_code                 = data.ncloud_ses_node_os_images.os_versions.versions.0.id
+  os_image_code                 = data.ncloud_ses_node_os_images.os_images.images.0.id
   vpc_no                        = ncloud_vpc.vpc.id
   search_engine {
     version_code    			= data.ncloud_ses_versions.ses_versions.versions.0.id

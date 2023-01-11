@@ -32,5 +32,8 @@ The following arguments are supported:
 
 ## Attributes Reference
 
-* `id` - The ID of server image product.
+* `images` - A List of OS image product.
+
+### OS Image Product Reference
+* `id` - The ID of OS image product.
 * `name` - Os image name

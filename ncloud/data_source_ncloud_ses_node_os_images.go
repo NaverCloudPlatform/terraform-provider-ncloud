@@ -19,7 +19,7 @@ func dataSourceNcloudSESNodeOsImage() *schema.Resource {
 
 		Schema: map[string]*schema.Schema{
 			"filter": dataSourceFiltersSchema(),
-			"versions": {
+			"images": {
 				Type:     schema.TypeList,
 				Computed: true,
 				Elem: &schema.Resource{
@@ -51,11 +51,11 @@ func dataSourceNcloudSESNodeOsImageRead(d *schema.ResourceData, meta interface{}
 	}
 
 	if f, ok := d.GetOk("filter"); ok {
-		resources = ApplyFilters(f.(*schema.Set), resources, dataSourceNcloudSESNodeOsImage().Schema["versions"].Elem.(*schema.Resource).Schema)
+		resources = ApplyFilters(f.(*schema.Set), resources, dataSourceNcloudSESNodeOsImage().Schema["images"].Elem.(*schema.Resource).Schema)
 	}
 
 	d.SetId(time.Now().UTC().String())
-	if err := d.Set("versions", resources); err != nil {
+	if err := d.Set("images", resources); err != nil {
 		return fmt.Errorf("Error setting Codes: %s", err)
 	}
 

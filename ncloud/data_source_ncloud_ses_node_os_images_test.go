@@ -6,15 +6,15 @@ import (
 	"testing"
 )
 
-func TestAccDataSourceNcloudSESSoftwareProductCodes(t *testing.T) {
-	dataName := "data.ncloud_ses_node_os_images.versions"
+func TestAccDataSourceNcloudSESNodeOsImages(t *testing.T) {
+	dataName := "data.ncloud_ses_node_os_images.images"
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:  func() { testAccPreCheck(t) },
 		Providers: getTestAccProviders(true),
 		Steps: []resource.TestStep{
 			{
-				Config: testAccDataSourceNcloudSESSoftwareProductConfig,
+				Config: testAccDataSourceNcloudSESNodeOsImagesConfig,
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckDataSourceID(dataName),
 				),
@@ -23,7 +23,7 @@ func TestAccDataSourceNcloudSESSoftwareProductCodes(t *testing.T) {
 	})
 }
 
-func TestAccDataSourceNcloudSESSoftwareProductCodesFilter(t *testing.T) {
+func TestAccDataSourceNcloudSESNodeOsImagesFilter(t *testing.T) {
 	dataName := "data.ncloud_ses_node_os_images.filter"
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -31,7 +31,7 @@ func TestAccDataSourceNcloudSESSoftwareProductCodesFilter(t *testing.T) {
 		Providers: getTestAccProviders(true),
 		Steps: []resource.TestStep{
 			{
-				Config: testAccDataSourceNcloudSESSoftwareProductWithFilterConfig(),
+				Config: testAccDataSourceNcloudSESNodeOsImagestWithFilterConfig(),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckDataSourceID(dataName),
 					resource.TestCheckResourceAttr(dataName, "versions.0.id", "SW.VELST.OS.LNX64.CNTOS.0708.B050"),
@@ -41,11 +41,11 @@ func TestAccDataSourceNcloudSESSoftwareProductCodesFilter(t *testing.T) {
 	})
 }
 
-var testAccDataSourceNcloudSESSoftwareProductConfig = `
-data "ncloud_ses_node_os_images" "versions" {}
+var testAccDataSourceNcloudSESNodeOsImagesConfig = `
+data "ncloud_ses_node_os_images" "images" {}
 `
 
-func testAccDataSourceNcloudSESSoftwareProductWithFilterConfig() string {
+func testAccDataSourceNcloudSESNodeOsImagestWithFilterConfig() string {
 	return fmt.Sprintf(`
 data "ncloud_ses_node_os_images" "filter" {
 	filter {

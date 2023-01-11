@@ -7,10 +7,10 @@ Provides list of available Server product.
 ```hcl
 variable "subnet_no" {}
 
-data "ncloud_ses_node_os_images" "os_versions" {}
+data "ncloud_ses_node_os_images" "os_images" {}
 
 data "ncloud_ses_node_products" "node_products" {
-  os_image_code         = data.ncloud_ses_node_os_images.os_versions.versions.0.id
+  os_image_code         = data.ncloud_ses_node_os_images.os_images.images.0.id
   subnet_no             = var.subnet_no
   
   filter {

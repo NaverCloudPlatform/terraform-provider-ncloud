@@ -54,11 +54,11 @@ resource "ncloud_subnet" "node_subnet" {
 data "ncloud_ses_versions" "version" {
 }
 
-data "ncloud_ses_node_os_images" "os_versions" {
+data "ncloud_ses_node_os_images" "os_images" {
 }
 
 data "ncloud_ses_node_products" "product_codes" {
-  os_image_code = data.ncloud_ses_node_os_images.os_versions.versions.0.id
+  os_image_code = data.ncloud_ses_node_os_images.os_images.images.0.id
   subnet_no = ncloud_subnet.node_subnet.id
 }
 
@@ -68,7 +68,7 @@ resource "ncloud_login_key" "loginkey" {
 
 resource "ncloud_ses_cluster" "cluster" {
   cluster_name                  = "%[1]s"
-  os_image_code         		= data.ncloud_ses_node_os_images.os_versions.versions.0.id
+  os_image_code         		= data.ncloud_ses_node_os_images.os_images.images.0.id
   vpc_no                        = ncloud_vpc.vpc.id
   search_engine {
 	  version_code    			= "%[3]s"
