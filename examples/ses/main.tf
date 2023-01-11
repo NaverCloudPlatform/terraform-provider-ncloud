@@ -61,6 +61,10 @@ data "ncloud_ses_node_products" "product_codes" {
   }
 }
 
+output "product_codes" {
+  value = data.ncloud_ses_node_products.product_codes
+}
+
 resource "ncloud_login_key" "loginkey" {
   key_name = var.login_key
 }

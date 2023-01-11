@@ -6,6 +6,7 @@ import (
 	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/ncloud"
 	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/services/vses2"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"strconv"
 	"time"
 )
 
@@ -36,7 +37,7 @@ func dataSourceNcloudSESNodeProduct() *schema.Resource {
 							Computed: true,
 						},
 						"memory_size": {
-							Type:     schema.TypeInt,
+							Type:     schema.TypeString,
 							Computed: true,
 						},
 					},
@@ -101,7 +102,7 @@ func getSESNodeProduct(config *ProviderConfig, d *schema.ResourceData) ([]map[st
 			"id":          ncloud.StringValue(&r.ProductCode),
 			"name":        ncloud.StringValue(&r.ProductEnglishDesc),
 			"cpu_count":   ncloud.StringValue(&r.CpuCount),
-			"memory_size": ncloud.Int64Value(&r.MemorySize),
+			"memory_size": strconv.Itoa(int(ncloud.Int64Value(&r.MemorySize)/int64(1024*1024*1024))) + "GB",
 		}
 
 		resources = append(resources, instance)
