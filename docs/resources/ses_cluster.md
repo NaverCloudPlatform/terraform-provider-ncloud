@@ -62,7 +62,6 @@ resource "ncloud_ses_cluster" "cluster" {
 	  storage_size        		= 100
   }
   master_node {
-	  is_master_only_node_activated = true
 	  product_code       		= data.ncloud_ses_node_products.product_codes.codes.0.id
 	  subnet_no           		= ncloud_subnet.node_subnet.id
 	  count            		    = 3
@@ -91,11 +90,10 @@ The following arguments are supported:
     * `subnet_no` - Subnet number where the data node is to be located.
     * `count` - Number of data nodes. At least 3 units, up to 10 units allowed.
     * `storage_size` - Data node storage capacity. At least 100 GB, up to 2000 GB. Must be in units of 10 GB.
-* `master_node` - .
-    * `is_master_only_node_activated` - Activate Master only node or not.
-    * `product_code` - HW specifications of the master node(Required when `is_master_only_node_activated` value is true)
-    * `subnet_no` - Subnet number where the master node is to be located(Required when `is_master_only_node_activated` value is true)
-    * `count` - Number of master nodes. Only 3 or 5 units are available(Required when `is_master_only_node_activated` value is true)
+* `master_node(Optional)` - .
+    * `product_code` - HW specifications of the master node.
+    * `subnet_no` - Subnet number where the master node is to be located.
+    * `count` - Number of master nodes. Only 3 or 5 units are available.
 * `login_key_name` - Required Login key to access Manager node server
 
 ## Attribute Reference

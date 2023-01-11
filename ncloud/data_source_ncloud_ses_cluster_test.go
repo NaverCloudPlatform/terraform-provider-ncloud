@@ -85,7 +85,6 @@ resource "ncloud_ses_cluster" "cluster" {
 	  storage_size        		= 100
   }
   master_node {
-	  is_master_only_node_activated = true
 	  product_code       		= data.ncloud_ses_node_products.product_codes.codes.0.id
 	  subnet_no           		= ncloud_subnet.node_subnet.id
 	  count            		    = 3

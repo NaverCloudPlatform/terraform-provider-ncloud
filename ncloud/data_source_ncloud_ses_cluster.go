@@ -129,10 +129,6 @@ func dataSourceNcloudSESCluster() *schema.Resource {
 				Computed: true,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
-						"is_master_only_node_activated": {
-							Type:     schema.TypeBool,
-							Computed: true,
-						},
 						"count": {
 							Type:     schema.TypeInt,
 							Computed: true,
@@ -264,23 +260,19 @@ func dataSourceNcloudSESClusterRead(ctx context.Context, d *schema.ResourceData,
 		log.Printf("[WARN] Error setting data_node set for (%s): %s", d.Id(), err)
 	}
 
-	masterNodeList := schema.NewSet(schema.HashResource(dataSourceNcloudSESCluster().Schema["master_node"].Elem.(*schema.Resource)), []interface{}{})
-	if cluster.MasterNodeCount != nil && cluster.MasterNodeSubnetNo != nil && cluster.MasterNodeProductCode != nil {
+	if cluster.IsMasterOnlyNodeActivated != nil && *cluster.IsMasterOnlyNodeActivated {
+		masterNodeList := schema.NewSet(schema.HashResource(dataSourceNcloudSESCluster().Schema["master_node"].Elem.(*schema.Resource)), []interface{}{})
 		masterNodeList.Add(map[string]interface{}{
-			"is_master_only_node_activated": true,
-			"count":                         *cluster.MasterNodeCount,
-			"subnet_no":                     *cluster.MasterNodeSubnetNo,
-			"product_code":                  *cluster.MasterNodeProductCode,
-			"acg_id":                        *cluster.MasterNodeAcgId,
-			"acg_name":                      *cluster.MasterNodeAcgName,
+			"count":        *cluster.MasterNodeCount,
+			"subnet_no":    *cluster.MasterNodeSubnetNo,
+			"product_code": *cluster.MasterNodeProductCode,
+			"acg_id":       *cluster.MasterNodeAcgId,
+			"acg_name":     *cluster.MasterNodeAcgName,
 		})
-	} else {
-		masterNodeList.Add(map[string]interface{}{
-			"is_master_only_node_activated": false,
-		})
-	}
-	if err := d.Set("master_node", masterNodeList.List()); err != nil {
-		log.Printf("[WARN] Error setting master_node set for (%s): %s", d.Id(), err)
+
+		if err := d.Set("master_node", masterNodeList.List()); err != nil {
+			log.Printf("[WARN] Error setting master_node set for (%s): %s", d.Id(), err)
+		}
 	}
 
 	clusterNodeList := schema.NewSet(schema.HashResource(dataSourceNcloudSESCluster().Schema["cluster_node_list"].Elem.(*schema.Resource)), []interface{}{})

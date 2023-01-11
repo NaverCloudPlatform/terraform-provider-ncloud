@@ -36,7 +36,7 @@ output "ses_versions" {
   value = data.ncloud_ses_versions.ses_versions
 }
 
-data "ncloud_ses_node_os_images" "images" {
+data "ncloud_ses_node_os_images" "os_images" {
   filter {
     name = "id"
     values = [var.os_version]
@@ -45,11 +45,11 @@ data "ncloud_ses_node_os_images" "images" {
 }
 
 output "os_images" {
-  value = data.ncloud_ses_node_os_images.images
+  value = data.ncloud_ses_node_os_images.os_images
 }
 
 data "ncloud_ses_node_products" "product_codes" {
-  os_image_code = data.ncloud_ses_node_os_images.images.images.0.id
+  os_image_code = data.ncloud_ses_node_os_images.os_images.images.0.id
   subnet_no = ncloud_subnet.node_subnet.id
   filter {
     name = "id"
@@ -91,7 +91,6 @@ resource "ncloud_ses_cluster" "cluster" {
     storage_size        		= 100
   }
   master_node {
-    is_master_only_node_activated = true
     product_code       		      = data.ncloud_ses_node_products.product_codes.codes.0.id
     subnet_no           		  = ncloud_subnet.node_subnet.id
     count            		      = 3

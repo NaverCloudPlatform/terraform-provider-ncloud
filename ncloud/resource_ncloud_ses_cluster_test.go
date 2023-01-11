@@ -87,9 +87,6 @@ resource "ncloud_ses_cluster" "cluster" {
 	  count            		    = 3
 	  storage_size        		= 100
   }
-  master_node {
-	  is_master_only_node_activated = false
-  }
   login_key_name                = ncloud_login_key.loginkey.key_name
 }
 `, testClusterName, loginKey, version, region)

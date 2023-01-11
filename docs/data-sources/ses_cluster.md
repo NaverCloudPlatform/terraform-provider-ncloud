@@ -42,10 +42,10 @@ In addition to all arguments above, the following attributes are exported
     * `storage_size` - Data node storage capacity.
     * `acg_id` - The ID of data node ACG.
     * `acg_name` - The name of data node ACG.
-* `master_node` - .
-  * `is_master_only_node_activated` - Activate Master only node or not.
-  * `product_code` - HW specifications of the master node.(Optional)
-  * `subnet_no` - Subnet number where the master node is to be located.(Optional)
+* `master_node(Optional)` - .
+  * `product_code` - HW specifications of the master node.
+  * `subnet_no` - Subnet number where the master node is to be located.
+  * `node_count` - Number of master nodes.
   * `acg_id` - The ID of master node ACG.
   * `acg_name` - The name of master node ACG.
 * `manager_node_instance_no_list` - List of Manager node's instance number 

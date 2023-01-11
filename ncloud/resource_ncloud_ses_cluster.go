@@ -179,15 +179,10 @@ func resourceNcloudSESCluster() *schema.Resource {
 			},
 			"master_node": {
 				Type:     schema.TypeList,
-				Required: true,
+				Optional: true,
 				MaxItems: 1,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
-						"is_master_only_node_activated": {
-							Type:     schema.TypeBool,
-							Required: true,
-							ForceNew: true,
-						},
 						"subnet_no": {
 							Type:     schema.TypeInt,
 							Optional: true,
@@ -269,7 +264,20 @@ func resourceNcloudSESClusterCreate(ctx context.Context, d *schema.ResourceData,
 	searchEngineParamsMap := d.Get("search_engine").([]interface{})[0].(map[string]interface{})
 	dataNodeParamsMap := d.Get("data_node").([]interface{})[0].(map[string]interface{})
 	managerNodeParamsMap := d.Get("manager_node").([]interface{})[0].(map[string]interface{})
-	masterNodeParamsMap := d.Get("master_node").([]interface{})[0].(map[string]interface{})
+
+	isMasterOnlyNodeActivated := false
+	var masterNodeProductCode *string
+	var masterNodeSubnetNo *int32
+	var masterNodeCount *int32
+
+	masterNodeParams := d.Get("master_node")
+	if masterNodeParams != nil && len(masterNodeParams.([]interface{})) > 0 {
+		masterNodeParamsMap := masterNodeParams.([]interface{})[0].(map[string]interface{})
+		isMasterOnlyNodeActivated = true
+		masterNodeProductCode = StringPtrOrNil(masterNodeParamsMap["product_code"], true)
+		masterNodeSubnetNo = Int32PtrOrNil(masterNodeParamsMap["subnet_no"], true)
+		masterNodeCount = Int32PtrOrNil(masterNodeParamsMap["count"], true)
+	}
 
 	var reqParams = &vses2.CreateClusterRequestVo{
 		ClusterName:               StringPtrOrNil(d.GetOk("cluster_name")),
@@ -286,10 +294,10 @@ func resourceNcloudSESClusterCreate(ctx context.Context, d *schema.ResourceData,
 		DataNodeSubnetNo:          Int32PtrOrNil(dataNodeParamsMap["subnet_no"], true),
 		DataNodeCount:             Int32PtrOrNil(dataNodeParamsMap["count"], true),
 		DataNodeStorageSize:       getInt32FromString(dataNodeParamsMap["storage_size"], true),
-		IsMasterOnlyNodeActivated: BoolPtrOrNil(masterNodeParamsMap["is_master_only_node_activated"], true),
-		MasterNodeProductCode:     StringPtrOrNil(masterNodeParamsMap["product_code"], true),
-		MasterNodeSubnetNo:        Int32PtrOrNil(masterNodeParamsMap["subnet_no"], true),
-		MasterNodeCount:           Int32PtrOrNil(masterNodeParamsMap["count"], true),
+		IsMasterOnlyNodeActivated: BoolPtrOrNil(isMasterOnlyNodeActivated, true),
+		MasterNodeProductCode:     masterNodeProductCode,
+		MasterNodeSubnetNo:        masterNodeSubnetNo,
+		MasterNodeCount:           masterNodeCount,
 		LoginKeyName:              StringPtrOrNil(d.GetOk("login_key_name")),
 	}
 	logCommonRequest("resourceNcloudSESClusterCreate", reqParams)
@@ -372,23 +380,19 @@ func resourceNcloudSESClusterRead(ctx context.Context, d *schema.ResourceData, m
 		log.Printf("[WARN] Error setting data_node set for (%s): %s", d.Id(), err)
 	}
 
-	masterNodeSet := schema.NewSet(schema.HashResource(resourceNcloudSESCluster().Schema["master_node"].Elem.(*schema.Resource)), []interface{}{})
-	if cluster.MasterNodeCount != nil && cluster.MasterNodeSubnetNo != nil && cluster.MasterNodeProductCode != nil {
+	if cluster.IsMasterOnlyNodeActivated != nil && *cluster.IsMasterOnlyNodeActivated {
+		masterNodeSet := schema.NewSet(schema.HashResource(resourceNcloudSESCluster().Schema["master_node"].Elem.(*schema.Resource)), []interface{}{})
 		masterNodeSet.Add(map[string]interface{}{
-			"is_master_only_node_activated": true,
-			"count":                         *cluster.MasterNodeCount,
-			"subnet_no":                     *cluster.MasterNodeSubnetNo,
-			"product_code":                  *cluster.MasterNodeProductCode,
-			"acg_id":                        *cluster.MasterNodeAcgId,
-			"acg_name":                      *cluster.MasterNodeAcgName,
+			"count":        *cluster.MasterNodeCount,
+			"subnet_no":    *cluster.MasterNodeSubnetNo,
+			"product_code": *cluster.MasterNodeProductCode,
+			"acg_id":       *cluster.MasterNodeAcgId,
+			"acg_name":     *cluster.MasterNodeAcgName,
 		})
-	} else {
-		masterNodeSet.Add(map[string]interface{}{
-			"is_master_only_node_activated": false,
-		})
-	}
-	if err := d.Set("master_node", masterNodeSet.List()); err != nil {
-		log.Printf("[WARN] Error setting master_node set for (%s): %s", d.Id(), err)
+
+		if err := d.Set("master_node", masterNodeSet.List()); err != nil {
+			log.Printf("[WARN] Error setting master_node set for (%s): %s", d.Id(), err)
+		}
 	}
 
 	clusterNodeList := schema.NewSet(schema.HashResource(resourceNcloudSESCluster().Schema["cluster_node_list"].Elem.(*schema.Resource)), []interface{}{})
