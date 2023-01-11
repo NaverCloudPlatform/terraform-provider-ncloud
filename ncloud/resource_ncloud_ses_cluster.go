@@ -171,9 +171,13 @@ func resourceNcloudSESCluster() *schema.Resource {
 							Computed: true,
 						},
 						"storage_size": {
-							Type:     schema.TypeString,
+							Type:     schema.TypeInt,
 							Required: true,
 							ForceNew: true,
+							ValidateDiagFunc: ToDiagFunc(validation.All(
+								validation.IntBetween(10, 2000),
+								validation.IntDivisibleBy(10)),
+							),
 						},
 					},
 				},
@@ -295,7 +299,7 @@ func resourceNcloudSESClusterCreate(ctx context.Context, d *schema.ResourceData,
 		DataNodeProductCode:       StringPtrOrNil(dataNodeParamsMap["product_code"], true),
 		DataNodeSubnetNo:          Int32PtrOrNil(dataNodeParamsMap["subnet_no"], true),
 		DataNodeCount:             Int32PtrOrNil(dataNodeParamsMap["count"], true),
-		DataNodeStorageSize:       getInt32FromString(dataNodeParamsMap["storage_size"], true),
+		DataNodeStorageSize:       Int32PtrOrNil(dataNodeParamsMap["storage_size"], true),
 		IsMasterOnlyNodeActivated: BoolPtrOrNil(isMasterOnlyNodeActivated, true),
 		MasterNodeProductCode:     masterNodeProductCode,
 		MasterNodeSubnetNo:        masterNodeSubnetNo,
@@ -370,13 +374,14 @@ func resourceNcloudSESClusterRead(ctx context.Context, d *schema.ResourceData, m
 	}
 
 	dataNodeSet := schema.NewSet(schema.HashResource(resourceNcloudSESCluster().Schema["data_node"].Elem.(*schema.Resource)), []interface{}{})
+	storageSize, _ := strconv.Atoi(*cluster.DataNodeStorageSize)
 	dataNodeSet.Add(map[string]interface{}{
 		"count":        *cluster.DataNodeCount,
 		"subnet_no":    *cluster.DataNodeSubnetNo,
 		"product_code": *cluster.DataNodeProductCode,
 		"acg_id":       *cluster.DataNodeAcgId,
 		"acg_name":     *cluster.DataNodeAcgName,
-		"storage_size": *cluster.DataNodeStorageSize,
+		"storage_size": storageSize,
 	})
 	if err := d.Set("data_node", dataNodeSet.List()); err != nil {
 		log.Printf("[WARN] Error setting data_node set for (%s): %s", d.Id(), err)

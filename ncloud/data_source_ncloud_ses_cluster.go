@@ -6,6 +6,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"log"
+	"strconv"
 )
 
 func init() {
@@ -118,7 +119,7 @@ func dataSourceNcloudSESCluster() *schema.Resource {
 							Computed: true,
 						},
 						"storage_size": {
-							Type:     schema.TypeString,
+							Type:     schema.TypeInt,
 							Computed: true,
 						},
 					},
@@ -248,13 +249,14 @@ func dataSourceNcloudSESClusterRead(ctx context.Context, d *schema.ResourceData,
 	}
 
 	dataNodeList := schema.NewSet(schema.HashResource(dataSourceNcloudSESCluster().Schema["data_node"].Elem.(*schema.Resource)), []interface{}{})
+	storageSize, _ := strconv.Atoi(*cluster.DataNodeStorageSize)
 	dataNodeList.Add(map[string]interface{}{
 		"count":        *cluster.DataNodeCount,
 		"subnet_no":    *cluster.DataNodeSubnetNo,
 		"product_code": *cluster.DataNodeProductCode,
 		"acg_id":       *cluster.DataNodeAcgId,
 		"acg_name":     *cluster.DataNodeAcgName,
-		"storage_size": *cluster.DataNodeStorageSize,
+		"storage_size": storageSize,
 	})
 	if err := d.Set("data_node", dataNodeList.List()); err != nil {
 		log.Printf("[WARN] Error setting data_node set for (%s): %s", d.Id(), err)
