@@ -39,6 +39,11 @@ The following arguments are supported:
 
 ## Attributes Reference
 
+* `versions` - A List of SES Version.
+
+### Search Engine Service Version Reference
+`versions` are also exported with the following attributes, when there are relevant: Each element supports the following:
+
 * `id` - The Code of SES Version
 * `name` - SES version name
 * `type` - SES version type
