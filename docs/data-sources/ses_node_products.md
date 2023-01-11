@@ -30,6 +30,12 @@ The following arguments are supported:
     * `regex` - (Optional) is `values` treated as a regular expression.
 
 ## Attributes Reference
+
+* `codes` - A List of server product.
+
+### Node Product Reference
+`codes` are also exported with the following attributes, when there are relevant: Each element supports the following:
+
 * `id` - The value of server product code.
 * `cpu_count` - CPU count.
 * `memory_size` - Memory size.
