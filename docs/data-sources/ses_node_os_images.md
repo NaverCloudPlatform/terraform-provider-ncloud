@@ -1,4 +1,4 @@
-# Data Source: ncloud_ses_node_os_image
+# Data Source: ncloud_ses_node_os_images
 
 Provides list of available Server OS images.
 

@@ -16,9 +16,11 @@ data "ncloud_ses_clusters" "cluster"{
 ```
 
 ## Attribute Reference
-In addition to all arguments above, the following attributes are exported
+* `clusters` - A List of Search Engine Service cluster.
 
-* `clusters` - .
+### Search Engine Service Cluster Reference
+`clusters` are also exported with the following attributes, when there are relevant: Each element supports the following:
+
   * `id` - Cluster Instance No.
   * `service_group_instance_no` - Cluster Instance No(Same as Cluster Id).
   * `cluster_name` - Cluster name.
