@@ -5,20 +5,21 @@
 ```hcl
 data "ncloud_cdss_kafka_version" "sample_01" {
   filter {
-    name = "id"
+    name   = "id"
     values = ["2403005"]
   }
 }
 
 data "ncloud_cdss_kafka_version" "sample_02" {
   filter {
-    name = "name"
+    name   = "name"
     values = ["Kafka 2.4.0"]
   }
 }
 ```
 
 ## Argument Reference
+
 The following arguments are supported:
 
 * `filter` - (Optional) Custom filter block as described below.

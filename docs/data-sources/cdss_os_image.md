@@ -5,20 +5,21 @@
 ```hcl
 data "ncloud_cdss_node_os_image" "sample_01" {
   filter {
-    name = "id"
+    name   = "id"
     values = ["SW.VCDSS.OS.LNX64.CNTOS.0708.B050"]
   }
 }
 
 data "ncloud_cdss_node_os_image" "sample_02" {
   filter {
-    name = "image_name"
+    name   = "image_name"
     values = ["CentOS 7.8 (64-bit)"]
   }
 }
 ```
 
 ## Argument Reference
+
 The following arguments are supported:
 
 * `filter` - (Optional) Custom filter block as described below.

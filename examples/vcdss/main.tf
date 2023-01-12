@@ -38,16 +38,20 @@ data "ncloud_cdss_kafka_version" "kafka_version_sample" {
   }
 }
 
-data "ncloud_cdss_os_image" "os_sample" {
+data "ncloud_cdss_kafka_versions" "kafka_versions_sample" {}
+
+data "ncloud_cdss_os_image" "os_image_sample" {
   filter {
-    name = "image_name"
+    name   = "image_name"
     values = ["CentOS 7.8 (64-bit)"]
   }
 }
 
+data "ncloud_cdss_os_images" "os_images_sample" {}
+
 data "ncloud_cdss_node_product" "node_sample" {
-  os_image = data.ncloud_cdss_os_image.os_sample.id
-  subnet_no       = ncloud_subnet.public-subnet.id
+  os_image  = data.ncloud_cdss_os_image.os_image_sample.id
+  subnet_no = ncloud_subnet.public-subnet.id
 
   filter {
     name   = "cpu_count"
@@ -63,6 +67,11 @@ data "ncloud_cdss_node_product" "node_sample" {
     name   = "product_type"
     values = ["STAND"]
   }
+}
+
+data "ncloud_cdss_node_products" "nodes_sample" {
+  os_image  = data.ncloud_cdss_os_image.os_image_sample.id
+  subnet_no = ncloud_subnet.public-subnet.id
 }
 
 data "ncloud_cdss_config_group" "config_sample" {
@@ -82,32 +91,32 @@ data "ncloud_cdss_cluster" "cluster_sample" {
 }
 
 resource "ncloud_cdss_config_group" "config-group" {
-  name = "tf-config-3"
+  name               = "tf-config-3"
   kafka_version_code = data.ncloud_cdss_kafka_version.kafka_version_sample.id
-  description = "test"
+  description        = "test"
 }
 
 resource "ncloud_cdss_cluster" "cluster-12" {
-  name = "from-tf-cdss"
+  name               = "from-tf-cdss"
   kafka_version_code = data.ncloud_cdss_kafka_version.kafka_version_sample.id
-  config_group_no = ncloud_cdss_config_group.config-group.id
-  vpc_no = ncloud_vpc.vpc.id
-  os_image = data.ncloud_cdss_os_image.os_sample.id
+  config_group_no    = ncloud_cdss_config_group.config-group.id
+  vpc_no             = ncloud_vpc.vpc.id
+  os_image           = data.ncloud_cdss_os_image.os_sample.id
 
   cmak {
-    user_name = "terraform"
+    user_name     = "terraform"
     user_password = var.cmak_user_password
   }
 
   manager_node {
     node_product_code = data.ncloud_cdss_node_product.node_sample.id
-    subnet_no = ncloud_subnet.public-subnet.id
+    subnet_no         = ncloud_subnet.public-subnet.id
   }
 
   broker_nodes {
     node_product_code = data.ncloud_cdss_node_product.node_sample.id
-    subnet_no = ncloud_subnet.private-subnet.id
-    node_count = 3
-    storage_size = 100
+    subnet_no         = ncloud_subnet.private-subnet.id
+    node_count        = 3
+    storage_size      = 100
   }
 }
