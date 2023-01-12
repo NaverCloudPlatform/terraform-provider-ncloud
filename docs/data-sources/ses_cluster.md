@@ -4,10 +4,17 @@ Provides a Search Engine Service cluster data.
 
 ## Example Usage
 ``` hcl
-variable "ses_cluster_id" {}
+variable "ses_cluster_name" {}
 
-data "ncloud_ses_cluster" "cluster"{
-  id = var.ses_cluster_id
+data "ncloud_ses_clusters" "clusters"{
+  filter {
+    name   = "cluster_name"
+    values = [var.ses_cluster_name]
+  }
+}
+
+data "ncloud_ses_cluster" "my_cluster"{
+  id = data.ncloud_ses_clusters.clusters.clusters.0.id
 }
 ```
 
