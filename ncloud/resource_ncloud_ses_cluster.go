@@ -122,7 +122,6 @@ func resourceNcloudSESCluster() *schema.Resource {
 						"product_code": {
 							Type:     schema.TypeString,
 							Required: true,
-							ForceNew: true,
 						},
 						"count": {
 							Type:     schema.TypeInt,
@@ -155,7 +154,6 @@ func resourceNcloudSESCluster() *schema.Resource {
 						"product_code": {
 							Type:     schema.TypeString,
 							Required: true,
-							ForceNew: true,
 						},
 						"count": {
 							Type:             schema.TypeInt,
@@ -196,7 +194,6 @@ func resourceNcloudSESCluster() *schema.Resource {
 						"product_code": {
 							Type:     schema.TypeString,
 							Optional: true,
-							ForceNew: true,
 						},
 						"count": {
 							Type:             schema.TypeInt,
@@ -431,6 +428,9 @@ func resourceNcloudSESClusterUpdate(ctx context.Context, d *schema.ResourceData,
 	if err := checkDataNodeChanged(ctx, d, config); err != nil {
 		return diag.FromErr(err)
 	}
+	if err := checkNodeProductCodeChanged(ctx, d, config); err != nil {
+		return diag.FromErr(err)
+	}
 
 	return nil
 }
@@ -470,16 +470,18 @@ func checkDataNodeChanged(ctx context.Context, d *schema.ResourceData, config *P
 
 		oldDataNodeMap := o.([]interface{})[0].(map[string]interface{})
 		newDataNodeMap := n.([]interface{})[0].(map[string]interface{})
-		if oldDataNodeMap["count"] != newDataNodeMap["count"] &&
-			*Int32PtrOrNil(oldDataNodeMap["count"], true) < *Int32PtrOrNil(newDataNodeMap["count"], true) {
+
+		oldDataNodeCount := *Int32PtrOrNil(oldDataNodeMap["count"], true)
+		newDataNodeCount := *Int32PtrOrNil(newDataNodeMap["count"], true)
+
+		if oldDataNodeCount < newDataNodeCount {
 			logCommonRequest("resourceNcloudSESClusterUpdate", d.Id())
 			if err := waitForSESClusterActive(ctx, d, config, d.Id()); err != nil {
 				return fmt.Errorf("error waiting for SES Cluster (%s) to become activating: %s", d.Id(), err)
 			}
 
 			reqParams := &vses2.AddNodesInClusterRequestVo{
-				NewDataNodeCount: StringPtrOrNil(strconv.Itoa(
-					int(*Int32PtrOrNil(newDataNodeMap["count"], true)-*Int32PtrOrNil(oldDataNodeMap["count"], true))), true),
+				NewDataNodeCount: StringPtrOrNil(strconv.Itoa(int(newDataNodeCount-oldDataNodeCount)), true),
 			}
 
 			if _, _, err := config.Client.vses.V2Api.AddNodesInClusterUsingPOST(ctx, d.Id(), reqParams); err != nil {
@@ -490,12 +492,50 @@ func checkDataNodeChanged(ctx context.Context, d *schema.ResourceData, config *P
 			if err := waitForSESClusterActive(ctx, d, config, d.Id()); err != nil {
 				return fmt.Errorf("error waiting for SES Cluster (%s) to become activating: %s", d.Id(), err)
 			}
-		} else {
+		} else if oldDataNodeCount > newDataNodeCount {
 			logErrorResponse("resourceNcloudSESClusterAddNodes", nil, d.Id())
 			return fmt.Errorf("data node count cannot be decreased")
 		}
+	}
+	return nil
+}
 
-		//@Todo Spec Update
+func checkNodeProductCodeChanged(ctx context.Context, d *schema.ResourceData, config *ProviderConfig) error {
+	managerNodeProductCode := getChangedNodeProductCode("manager_node", d)
+	dataNodeProductCode := getChangedNodeProductCode("data_node", d)
+	masterNodeProductCode := getChangedNodeProductCode("master_node", d)
+
+	if managerNodeProductCode != nil || dataNodeProductCode != nil || masterNodeProductCode != nil {
+		reqParams := &vses2.ChangeSpecNodeRequestVo{
+			ManagerNodeProductCode: managerNodeProductCode,
+			DataNodeProductCode:    dataNodeProductCode,
+			MasterNodeProductCode:  masterNodeProductCode,
+		}
+
+		if _, _, err := config.Client.vses.V2Api.ChangeSpecNodeUsingPOST1(ctx, d.Id(), reqParams); err != nil {
+			logErrorResponse("resourceNcloudSESClusterChangeSpec", nil, d.Id())
+			return fmt.Errorf("error Change Node Product Code (%s) : %s", d.Id(), err)
+		}
+
+		if err := waitForSESClusterActive(ctx, d, config, d.Id()); err != nil {
+			return fmt.Errorf("error waiting for SES Cluster (%s) to become activating: %s", d.Id(), err)
+		}
+	}
+	return nil
+}
+
+func getChangedNodeProductCode(nodeType string, d *schema.ResourceData) *string {
+	nodeParams := d.Get(nodeType)
+	if nodeParams != nil && len(nodeParams.([]interface{})) > 0 {
+		if d.HasChanges(nodeType) {
+			o, n := d.GetChange(nodeType)
+			oldNodeMap := o.([]interface{})[0].(map[string]interface{})
+			newNodeMap := n.([]interface{})[0].(map[string]interface{})
+
+			if oldNodeMap["product_code"] != newNodeMap["product_code"] {
+				return StringPtrOrNil(newNodeMap["product_code"], true)
+			}
+		}
 	}
 	return nil
 }
