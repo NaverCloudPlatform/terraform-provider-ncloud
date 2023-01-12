@@ -37,7 +37,7 @@ In addition to all arguments above, the following attributes are exported
 * `broker_nodes` - .
   * `node_product_code` - HW specifications of the broker node.
   * `subnet_no` - Subnet number where the broker node is to be located.
-  * `node_count` - Number of broker nodes. At least 3 units, up to 10 units allowed.
+  * `node_count` - Number of broker nodes. At least 3 units, up to 10 units allowed. (Can only be increased)
   * `storage_size` - Broker node storage capacity. At least 100 GB, up to 2000 GB. Must be in units of 10 GB.
 * `endpoints` - .
   * `plaintext` - List of broker nodes (Port 9092).

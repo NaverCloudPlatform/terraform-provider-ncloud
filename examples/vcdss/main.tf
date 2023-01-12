@@ -101,7 +101,7 @@ resource "ncloud_cdss_cluster" "cluster-12" {
   kafka_version_code = data.ncloud_cdss_kafka_version.kafka_version_sample.id
   config_group_no    = ncloud_cdss_config_group.config-group.id
   vpc_no             = ncloud_vpc.vpc.id
-  os_image           = data.ncloud_cdss_os_image.os_sample.id
+  os_image           = data.ncloud_cdss_os_image.os_image_sample.id
 
   cmak {
     user_name     = "terraform"

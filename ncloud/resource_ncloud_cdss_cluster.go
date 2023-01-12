@@ -134,9 +134,9 @@ func resourceNcloudCDSSCluster() *schema.Resource {
 							ForceNew: true,
 						},
 						"node_count": {
-							Type:     schema.TypeString,
-							Required: true,
-							ForceNew: true,
+							Type:             schema.TypeInt,
+							Required:         true,
+							ValidateDiagFunc: ToDiagFunc(validation.IntBetween(3, 10)),
 						},
 						"storage_size": {
 							Type:     schema.TypeString,
