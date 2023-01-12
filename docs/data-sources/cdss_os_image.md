@@ -12,7 +12,7 @@ data "ncloud_cdss_node_os_image" "sample_01" {
 
 data "ncloud_cdss_node_os_image" "sample_02" {
   filter {
-    name = "product_name"
+    name = "image_name"
     values = ["CentOS 7.8 (64-bit)"]
   }
 }
@@ -29,4 +29,4 @@ The following arguments are supported:
 ## Attributes Reference
 
 * `id` - The ID of server image product.
-* `product_name` - Os image name
+* `image_name` - Os image name

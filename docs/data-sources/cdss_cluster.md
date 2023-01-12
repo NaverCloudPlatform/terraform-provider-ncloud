@@ -27,7 +27,7 @@ In addition to all arguments above, the following attributes are exported
 * `kafka_version_code` - Cloud Data Streaming Service version to be used.
 * `config_group_no` - ConfigGroup number to be used.
 * `vpc_no` - VPC number to be used.
-* `os_product_code` -  OS type to be used.
+* `os_image` -  OS type to be used.
 * `cmak` - .
   * `user_name` - CMAK access ID. Only lowercase alphanumeric characters and non-consecutive hyphens (-) allowed First character must be a letter, but the last character may be a letter or a number.
   * `user_password` - CMAK access password. Must be at least 8 characters and contain at least one of each: English uppercase letter, lowercase letter, special character, and number.

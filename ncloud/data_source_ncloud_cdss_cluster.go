@@ -37,7 +37,7 @@ func dataSourceNcloudCDSSCluster() *schema.Resource {
 				Type:     schema.TypeString,
 				Optional: true,
 			},
-			"os_product_code": {
+			"os_image": {
 				Type:     schema.TypeString,
 				Optional: true,
 			},
@@ -191,7 +191,7 @@ func dataSourceNcloudCDSSClusterRead(d *schema.ResourceData, meta interface{}) e
 	d.Set("service_group_instance_no", id)
 	d.Set("name", cluster.ClusterName)
 	d.Set("kafka_version_code", cluster.KafkaVersionCode)
-	d.Set("os_product_code", cluster.SoftwareProductCode)
+	d.Set("os_image", cluster.SoftwareProductCode)
 	d.Set("vpc_no", strconv.Itoa(int(cluster.VpcNo)))
 	d.Set("config_group_no", strconv.Itoa(int(cluster.ConfigGroupNo)))
 

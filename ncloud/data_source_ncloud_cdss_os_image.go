@@ -8,10 +8,10 @@ import (
 )
 
 func init() {
-	RegisterDataSource("ncloud_cdss_os_product", dataSourceNcloudCDSSOsProduct())
+	RegisterDataSource("ncloud_cdss_os_image", dataSourceNcloudCDSSOsImage())
 }
 
-func dataSourceNcloudCDSSOsProduct() *schema.Resource {
+func dataSourceNcloudCDSSOsImage() *schema.Resource {
 	return &schema.Resource{
 		Read: dataSourceNcloudCDSSOsProductRead,
 		Schema: map[string]*schema.Schema{
@@ -20,7 +20,7 @@ func dataSourceNcloudCDSSOsProduct() *schema.Resource {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
-			"product_name": {
+			"image_name": {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
@@ -40,7 +40,7 @@ func dataSourceNcloudCDSSOsProductRead(d *schema.ResourceData, meta interface{})
 	}
 
 	if f, ok := d.GetOk("filter"); ok {
-		resources = ApplyFilters(f.(*schema.Set), resources, dataSourceNcloudCDSSOsProduct().Schema)
+		resources = ApplyFilters(f.(*schema.Set), resources, dataSourceNcloudCDSSOsImage().Schema)
 	}
 
 	if len(resources) < 1 {
@@ -72,8 +72,8 @@ func getCDSSOsProducts(config *ProviderConfig) ([]map[string]interface{}, error)
 
 	for _, r := range resp.Result.ProductList {
 		instance := map[string]interface{}{
-			"id":           ncloud.StringValue(&r.ProductCode),
-			"product_name": ncloud.StringValue(&r.ProductEnglishDesc),
+			"id":         ncloud.StringValue(&r.ProductCode),
+			"image_name": ncloud.StringValue(&r.ProductEnglishDesc),
 		}
 
 		resources = append(resources, instance)

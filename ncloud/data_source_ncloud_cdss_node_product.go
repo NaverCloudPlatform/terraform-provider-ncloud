@@ -17,7 +17,7 @@ func dataSourceNcloudCDSSNodeProduct() *schema.Resource {
 	return &schema.Resource{
 		Read: dataSourceNcloudCDSSNodeProductRead,
 		Schema: map[string]*schema.Schema{
-			"os_product_code": {
+			"os_image": {
 				Type:     schema.TypeString,
 				Required: true,
 			},
@@ -53,7 +53,7 @@ func dataSourceNcloudCDSSNodeProductRead(d *schema.ResourceData, meta interface{
 	}
 
 	reqParams := vcdss.NodeProduct{
-		SoftwareProductCode: *StringPtrOrNil(d.GetOk("os_product_code")),
+		SoftwareProductCode: *StringPtrOrNil(d.GetOk("os_image")),
 		SubnetNo:            *getInt32FromString(d.GetOk("subnet_no")),
 	}
 

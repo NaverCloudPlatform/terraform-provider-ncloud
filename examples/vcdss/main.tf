@@ -38,15 +38,15 @@ data "ncloud_cdss_kafka_version" "kafka_version_sample" {
   }
 }
 
-data "ncloud_cdss_os_product" "os_sample" {
+data "ncloud_cdss_os_image" "os_sample" {
   filter {
-    name = "product_name"
+    name = "image_name"
     values = ["CentOS 7.8 (64-bit)"]
   }
 }
 
 data "ncloud_cdss_node_product" "node_sample" {
-  os_product_code = data.ncloud_cdss_os_product.os_sample.id
+  os_image = data.ncloud_cdss_os_image.os_sample.id
   subnet_no       = ncloud_subnet.public-subnet.id
 
   filter {
@@ -92,7 +92,7 @@ resource "ncloud_cdss_cluster" "cluster-12" {
   kafka_version_code = data.ncloud_cdss_kafka_version.kafka_version_sample.id
   config_group_no = ncloud_cdss_config_group.config-group.id
   vpc_no = ncloud_vpc.vpc.id
-  os_product_code = data.ncloud_cdss_os_product.os_sample.id
+  os_image = data.ncloud_cdss_os_image.os_sample.id
 
   cmak {
     user_name = "terraform"

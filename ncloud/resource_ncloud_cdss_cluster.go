@@ -59,7 +59,7 @@ func resourceNcloudCDSSCluster() *schema.Resource {
 				Required: true,
 				ForceNew: true,
 			},
-			"os_product_code": {
+			"os_image": {
 				Type:     schema.TypeString,
 				Required: true,
 				ForceNew: true,
@@ -223,7 +223,7 @@ func resourceNcloudCDSSClusterCreate(ctx context.Context, d *schema.ResourceData
 		KafkaVersionCode:         *StringPtrOrNil(d.GetOk("kafka_version_code")),
 		KafkaManagerUserName:     *StringPtrOrNil(cMap["user_name"], true),
 		KafkaManagerUserPassword: *StringPtrOrNil(cMap["user_password"], true),
-		SoftwareProductCode:      *StringPtrOrNil(d.GetOk("os_product_code")),
+		SoftwareProductCode:      *StringPtrOrNil(d.GetOk("os_image")),
 		VpcNo:                    *getInt32FromString(d.GetOk("vpc_no")),
 		ManagerNodeProductCode:   *StringPtrOrNil(mMap["node_product_code"], true),
 		ManagerNodeSubnetNo:      *getInt32FromString(mMap["subnet_no"], true),
@@ -268,7 +268,7 @@ func resourceNcloudCDSSClusterRead(ctx context.Context, d *schema.ResourceData, 
 
 	d.Set("name", cluster.ClusterName)
 	d.Set("kafka_version_code", cluster.KafkaVersionCode)
-	d.Set("os_product_code", cluster.SoftwareProductCode)
+	d.Set("os_image", cluster.SoftwareProductCode)
 	d.Set("vpc_no", strconv.Itoa(int(cluster.VpcNo)))
 	d.Set("config_group_no", strconv.Itoa(int(cluster.ConfigGroupNo)))
 

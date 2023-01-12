@@ -9,7 +9,7 @@ data "ncloud_vpc" "vpc_sample" {
   id = var.vpc_no
 }
 
-data "ncloud_cdss_os_product" "os_sample" {
+data "ncloud_cdss_os_image" "os_sample" {
   filter {
     name = "product_name"
     values = ["CentOS 7.8 (64-bit)"]
@@ -17,7 +17,7 @@ data "ncloud_cdss_os_product" "os_sample" {
 }
 
 data "ncloud_cdss_node_product" "node_sample" {
-  os_product_code = data.ncloud_cdss_os_product.os_sample.id
+  os_image = data.ncloud_cdss_os_image.os_sample.id
   subnet_no       = data.ncloud_vpc.vpc_sample.id
   
   filter {
@@ -39,7 +39,7 @@ data "ncloud_cdss_node_product" "node_sample" {
 
 ## Argument Reference
 The following arguments are supported:
-* `os_product_code` - (Required) OS type to be used.
+* `os_image` - (Required) OS type to be used.
 * `subnet_no` - (Required) Subnet number where the node will be located.
 * `filter` - (Optional) Custom filter block as described below.
     * `name` - (Required) The name of the field to filter by.
