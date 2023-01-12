@@ -1,4 +1,4 @@
-# Data Source: ncloud_cdss_kafka_versions
+# Data Source: ncloud_cdss_kafka_version
 
 ## Example Usage
 
