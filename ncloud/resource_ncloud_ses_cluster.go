@@ -38,6 +38,11 @@ func resourceNcloudSESCluster() *schema.Resource {
 		Importer: &schema.ResourceImporter{
 			StateContext: schema.ImportStatePassthroughContext,
 		},
+		Timeouts: &schema.ResourceTimeout{
+			Create: schema.DefaultTimeout(DefaultCreateTimeout),
+			Update: schema.DefaultTimeout(DefaultCreateTimeout),
+			Delete: schema.DefaultTimeout(DefaultCreateTimeout),
+		},
 		Schema: map[string]*schema.Schema{
 			"id": {
 				Type:     schema.TypeString,
