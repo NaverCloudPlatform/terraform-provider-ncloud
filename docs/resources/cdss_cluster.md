@@ -43,7 +43,7 @@ data "ncloud_cdss_kafka_version" "kafka_version_sample" {
 
 data "ncloud_cdss_os_image" "os_sample" {
   filter {
-    name = "product_name"
+    name = "image_name"
     values = ["CentOS 7.8 (64-bit)"]
   }
 }

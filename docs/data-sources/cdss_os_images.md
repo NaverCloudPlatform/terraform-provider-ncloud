@@ -1,10 +1,9 @@
-# Data Source: ncloud_cdss_node_os_images
+# Data Source: ncloud_cdss_os_images
 
 ## Example Usage
 
 ```hcl
 data "ncloud_cdss_os_images" "os_images_sample" {}
-```
 
 ## Argument Reference
 
