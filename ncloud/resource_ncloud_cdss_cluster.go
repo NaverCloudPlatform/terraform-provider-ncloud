@@ -118,7 +118,6 @@ func resourceNcloudCDSSCluster() *schema.Resource {
 			"broker_nodes": {
 				Type:     schema.TypeList,
 				Required: true,
-				ForceNew: true,
 				MaxItems: 1,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
@@ -227,7 +226,7 @@ func resourceNcloudCDSSClusterCreate(ctx context.Context, d *schema.ResourceData
 		ManagerNodeProductCode:   *StringPtrOrNil(mMap["node_product_code"], true),
 		ManagerNodeSubnetNo:      *getInt32FromString(mMap["subnet_no"], true),
 		BrokerNodeProductCode:    *StringPtrOrNil(bMap["node_product_code"], true),
-		BrokerNodeCount:          *getInt32FromString(bMap["node_count"], true),
+		BrokerNodeCount:          *Int32PtrOrNil(bMap["node_count"], true),
 		BrokerNodeSubnetNo:       *getInt32FromString(bMap["subnet_no"], true),
 		BrokerNodeStorageSize:    *getInt32FromString(bMap["storage_size"], true),
 		ConfigGroupNo:            *getInt32FromString(d.GetOk("config_group_no")),
@@ -343,12 +342,15 @@ func resourceNcloudCDSSClusterUpdate(ctx context.Context, d *schema.ResourceData
 		return diag.FromErr(NotSupportClassic("resource `ncloud_cdss_cluster`"))
 	}
 
-	checkCmakChanged(ctx, d, config)
+	checkCmakPasswordChanged(ctx, d, config)
+	if err := checkNodeCountChanged(ctx, d, config); err != nil {
+		return diag.FromErr(err)
+	}
 
 	return nil
 }
 
-func checkCmakChanged(ctx context.Context, d *schema.ResourceData, config *ProviderConfig) diag.Diagnostics {
+func checkCmakPasswordChanged(ctx context.Context, d *schema.ResourceData, config *ProviderConfig) diag.Diagnostics {
 	if d.HasChanges("cmak") {
 		o, n := d.GetChange("cmak")
 
@@ -372,6 +374,42 @@ func checkCmakChanged(ctx context.Context, d *schema.ResourceData, config *Provi
 			if err := waitForCDSSClusterActive(ctx, d, config, d.Id()); err != nil {
 				return diag.FromErr(err)
 			}
+		}
+	}
+	return nil
+}
+
+func checkNodeCountChanged(ctx context.Context, d *schema.ResourceData, config *ProviderConfig) error {
+	if d.HasChanges("broker_nodes") {
+		o, n := d.GetChange("broker_nodes")
+
+		oldBrokerNodesMap := o.([]interface{})[0].(map[string]interface{})
+		newBrokerNodesMap := n.([]interface{})[0].(map[string]interface{})
+
+		oldDataNodeCount := *Int32PtrOrNil(oldBrokerNodesMap["node_count"], true)
+		newDataNodeCount := *Int32PtrOrNil(newBrokerNodesMap["node_count"], true)
+
+		if oldDataNodeCount < newDataNodeCount {
+			logCommonRequest("resourceNcloudCDSSClusterUpdate", d.Id())
+			if err := waitForCDSSClusterActive(ctx, d, config, d.Id()); err != nil {
+				return fmt.Errorf("error waiting for CDSS Cluster (%s) to become activating: %s", d.Id(), err)
+			}
+
+			reqParams := vcdss.AddNodesInCluster{
+				NewBrokerNodeCount: newDataNodeCount - oldDataNodeCount,
+			}
+
+			if _, _, err := config.Client.vcdss.V1Api.ClusterChangeCountOfBrokerNodeServiceGroupInstanceNoPost(ctx, reqParams, d.Id()); err != nil {
+				logErrorResponse("resourceNcloudCDSSClusterAddNodes", err, d.Id())
+				return fmt.Errorf("error Add Nodes to CDSS Cluster (%s) : %s", d.Id(), err)
+			}
+
+			if err := waitForCDSSClusterActive(ctx, d, config, d.Id()); err != nil {
+				return fmt.Errorf("error waiting for CDSS Cluster (%s) to become activating: %s", d.Id(), err)
+			}
+		} else if oldDataNodeCount > newDataNodeCount {
+			logErrorResponse("resourceNcloudCDSSClusterAddNodes", nil, d.Id())
+			return fmt.Errorf("broker node count cannot be decreased")
 		}
 	}
 	return nil
