@@ -34,6 +34,7 @@ func resourceNcloudCDSSCluster() *schema.Resource {
 	return &schema.Resource{
 		CreateContext: resourceNcloudCDSSClusterCreate,
 		ReadContext:   resourceNcloudCDSSClusterRead,
+		UpdateContext: resourceNcloudCDSSClusterUpdate,
 		DeleteContext: resourceNcloudCDSSClusterDelete,
 		Importer: &schema.ResourceImporter{
 			StateContext: schema.ImportStatePassthroughContext,
@@ -77,7 +78,6 @@ func resourceNcloudCDSSCluster() *schema.Resource {
 			"cmak": {
 				Type:     schema.TypeList,
 				Required: true,
-				ForceNew: true,
 				MaxItems: 1,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
@@ -90,7 +90,6 @@ func resourceNcloudCDSSCluster() *schema.Resource {
 						"user_password": {
 							Type:      schema.TypeString,
 							Required:  true,
-							ForceNew:  true,
 							Sensitive: true,
 						},
 					},
@@ -335,6 +334,46 @@ func resourceNcloudCDSSClusterRead(ctx context.Context, d *schema.ResourceData, 
 		log.Printf("[WARN] Error setting endpoints set for (%s): %s", d.Id(), err)
 	}
 
+	return nil
+}
+
+func resourceNcloudCDSSClusterUpdate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+	config := meta.(*ProviderConfig)
+	if !config.SupportVPC {
+		return diag.FromErr(NotSupportClassic("resource `ncloud_cdss_cluster`"))
+	}
+
+	checkCmakChanged(ctx, d, config)
+
+	return nil
+}
+
+func checkCmakChanged(ctx context.Context, d *schema.ResourceData, config *ProviderConfig) diag.Diagnostics {
+	if d.HasChanges("cmak") {
+		o, n := d.GetChange("cmak")
+
+		oldCmakMap := o.([]interface{})[0].(map[string]interface{})
+		newCmakMap := n.([]interface{})[0].(map[string]interface{})
+		if oldCmakMap["user_password"] != newCmakMap["user_password"] {
+			logCommonRequest("resourceNcloudCDSSClusterUpdate", d.Id())
+			if err := waitForCDSSClusterActive(ctx, d, config, d.Id()); err != nil {
+				return diag.FromErr(err)
+			}
+
+			reqParams := vcdss.ResetCmakPassword{
+				KafkaManagerUserPassword: *StringPtrOrNil(newCmakMap["user_password"], true),
+			}
+
+			if _, _, err := config.Client.vcdss.V1Api.ClusterResetCMAKPasswordServiceGroupInstanceNoPost(ctx, reqParams, d.Id()); err != nil {
+				logErrorResponse("resourceNcloudCDSSClusterResetCmakUserPassword", err, d.Id())
+				return diag.FromErr(err)
+			}
+
+			if err := waitForCDSSClusterActive(ctx, d, config, d.Id()); err != nil {
+				return diag.FromErr(err)
+			}
+		}
+	}
 	return nil
 }
 
