@@ -424,7 +424,9 @@ func resourceNcloudSESClusterUpdate(ctx context.Context, d *schema.ResourceData,
 		return diag.FromErr(NotSupportClassic("resource `ncloud_ses_cluster`"))
 	}
 
-	checkSearchEngineChanged(ctx, d, config)
+	if err := checkSearchEngineChanged(ctx, d, config); err != nil {
+		return diag.FromErr(err)
+	}
 	if err := checkDataNodeChanged(ctx, d, config); err != nil {
 		return diag.FromErr(err)
 	}
@@ -435,7 +437,7 @@ func resourceNcloudSESClusterUpdate(ctx context.Context, d *schema.ResourceData,
 	return nil
 }
 
-func checkSearchEngineChanged(ctx context.Context, d *schema.ResourceData, config *ProviderConfig) diag.Diagnostics {
+func checkSearchEngineChanged(ctx context.Context, d *schema.ResourceData, config *ProviderConfig) error {
 	if d.HasChanges("search_engine") {
 		o, n := d.GetChange("search_engine")
 
@@ -444,7 +446,7 @@ func checkSearchEngineChanged(ctx context.Context, d *schema.ResourceData, confi
 		if oldSearchEngineMap["user_password"] != newSearchEngineMap["user_password"] {
 			logCommonRequest("resourceNcloudSESClusterUpdate", d.Id())
 			if err := waitForSESClusterActive(ctx, d, config, d.Id()); err != nil {
-				return diag.FromErr(err)
+				return fmt.Errorf("error waiting for SES Cluster (%s) to become activating: %s", d.Id(), err)
 			}
 
 			reqParams := &vses2.ResetSearchEngineUserPasswordRequestVo{
@@ -453,11 +455,11 @@ func checkSearchEngineChanged(ctx context.Context, d *schema.ResourceData, confi
 
 			if _, _, err := config.Client.vses.V2Api.ResetSearchEngineUserPasswordUsingPOST(ctx, d.Id(), reqParams); err != nil {
 				logErrorResponse("resourceNcloudSESClusterResetSearchEngineUserPassword", err, d.Id())
-				return diag.FromErr(err)
+				return fmt.Errorf("error Reset Search Engine User Password with Cluster (%s) : %s", d.Id(), err)
 			}
 
 			if err := waitForSESClusterActive(ctx, d, config, d.Id()); err != nil {
-				return diag.FromErr(err)
+				return fmt.Errorf("error waiting for SES Cluster (%s) to become activating: %s", d.Id(), err)
 			}
 		}
 	}
