@@ -98,14 +98,12 @@ func resourceNcloudCDSSCluster() *schema.Resource {
 			"manager_node": {
 				Type:     schema.TypeList,
 				Required: true,
-				ForceNew: true,
 				MaxItems: 1,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"node_product_code": {
 							Type:     schema.TypeString,
 							Required: true,
-							ForceNew: true,
 						},
 						"subnet_no": {
 							Type:     schema.TypeString,
@@ -124,7 +122,6 @@ func resourceNcloudCDSSCluster() *schema.Resource {
 						"node_product_code": {
 							Type:     schema.TypeString,
 							Required: true,
-							ForceNew: true,
 						},
 						"subnet_no": {
 							Type:     schema.TypeString,
@@ -346,7 +343,9 @@ func resourceNcloudCDSSClusterUpdate(ctx context.Context, d *schema.ResourceData
 	if err := checkNodeCountChanged(ctx, d, config); err != nil {
 		return diag.FromErr(err)
 	}
-
+	if err := checkNodeProductCodeChanged(ctx, d, config); err != nil {
+		return diag.FromErr(err)
+	}
 	return nil
 }
 
@@ -410,6 +409,47 @@ func checkNodeCountChanged(ctx context.Context, d *schema.ResourceData, config *
 		} else if oldDataNodeCount > newDataNodeCount {
 			logErrorResponse("resourceNcloudCDSSClusterAddNodes", nil, d.Id())
 			return fmt.Errorf("broker node count cannot be decreased")
+		}
+	}
+	return nil
+}
+
+func checkNodeProductCodeChanged(ctx context.Context, d *schema.ResourceData, config *ProviderConfig) error {
+	managerNodeProductCode := getChangedNodeProductCode("manager_node", d)
+	brokerNodeProductCode := getChangedNodeProductCode("broker_nodes", d)
+
+	if managerNodeProductCode != nil || brokerNodeProductCode != nil {
+		if err := waitForCDSSClusterActive(ctx, d, config, d.Id()); err != nil {
+			return fmt.Errorf("error waiting for CDSS Cluster (%s) to become activating: %s", d.Id(), err)
+		}
+		reqParams := vcdss.ChangeSpecNodeRequestVo{
+			ManagerNodeProductCode: *managerNodeProductCode,
+			BrokerNodeProductCode:  *brokerNodeProductCode,
+		}
+
+		if _, _, err := config.Client.vcdss.V1Api.ClusterChangeSpecNodeServiceGroupInstanceNoPost(ctx, reqParams, d.Id()); err != nil {
+			logErrorResponse("resourceNcloudCDSSClusterChangeSpec", nil, d.Id())
+			return fmt.Errorf("error Change Node Product Code (%s) : %s", d.Id(), err)
+		}
+
+		if err := waitForCDSSClusterActive(ctx, d, config, d.Id()); err != nil {
+			return fmt.Errorf("error waiting for CDSS Cluster (%s) to become activating: %s", d.Id(), err)
+		}
+	}
+	return nil
+}
+
+func getChangedNodeProductCode(nodeType string, d *schema.ResourceData) *string {
+	nodeParams := d.Get(nodeType)
+	if nodeParams != nil && len(nodeParams.([]interface{})) > 0 {
+		if d.HasChanges(nodeType) {
+			o, n := d.GetChange(nodeType)
+			oldNodeMap := o.([]interface{})[0].(map[string]interface{})
+			newNodeMap := n.([]interface{})[0].(map[string]interface{})
+
+			if oldNodeMap["node_product_code"] != newNodeMap["node_product_code"] {
+				return StringPtrOrNil(newNodeMap["node_product_code"], true)
+			}
 		}
 	}
 	return nil
