@@ -19,6 +19,7 @@ func resourceNcloudCDSSConfigGroup() *schema.Resource {
 	return &schema.Resource{
 		CreateContext: resourceNcloudCDSSConfigGroupCreate,
 		ReadContext:   resourceNcloudCDSSConfigGroupRead,
+		UpdateContext: resourceNcloudCDSSConfigGroupUpdate,
 		DeleteContext: resourceNcloudCDSSConfigGroupDelete,
 		Importer: &schema.ResourceImporter{
 			StateContext: schema.ImportStatePassthroughContext,
@@ -37,7 +38,6 @@ func resourceNcloudCDSSConfigGroup() *schema.Resource {
 			"description": {
 				Type:             schema.TypeString,
 				ValidateDiagFunc: ToDiagFunc(validation.StringLenBetween(0, 255)),
-				ForceNew:         true,
 				Optional:         true,
 			},
 			"kafka_version_code": {
@@ -57,8 +57,12 @@ func resourceNcloudCDSSConfigGroupCreate(ctx context.Context, d *schema.Resource
 
 	reqParams := vcdss.CreateConfigGroup{
 		ConfigGroupName:  *StringPtrOrNil(d.GetOk("name")),
-		Description:      *StringPtrOrNil(d.GetOk("description")),
 		KafkaVersionCode: *StringPtrOrNil(d.GetOk("kafka_version_code")),
+	}
+
+	description := StringPtrOrNil(d.GetOk("description"))
+	if description != nil {
+		reqParams.Description = *description
 	}
 
 	logCommonRequest("resourceNcloudCDSSConfigGroupCreate", reqParams)
@@ -94,6 +98,31 @@ func resourceNcloudCDSSConfigGroupRead(ctx context.Context, d *schema.ResourceDa
 	d.Set("kafka_version_code", configGroup.KafkaVersionCode)
 	d.Set("description", configGroup.Description)
 
+	return nil
+}
+
+func resourceNcloudCDSSConfigGroupUpdate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+	config := meta.(*ProviderConfig)
+	if !config.SupportVPC {
+		return diag.FromErr(NotSupportClassic("resource `ncloud_cdss_cluster`"))
+	}
+
+	if d.HasChanges("description") {
+		_, n := d.GetChange("description")
+
+		newDescription := n.(string)
+		logCommonRequest("resourceNcloudCDSSConfigGroupUpdate", d.Id())
+
+		reqParams := vcdss.SetKafkaConfigGroupMemoRequest{
+			KafkaVersionCode: *StringPtrOrNil(d.GetOk("kafka_version_code")),
+			Description:      newDescription,
+		}
+
+		if _, _, err := config.Client.vcdss.V1Api.ConfigGroupSetKafkaConfigGroupMemoConfigGroupNoPost(ctx, reqParams, d.Id()); err != nil {
+			logErrorResponse("resourceNcloudCDSSConfigGroupUpdate", err, d.Id())
+			return diag.FromErr(err)
+		}
+	}
 	return nil
 }
 
