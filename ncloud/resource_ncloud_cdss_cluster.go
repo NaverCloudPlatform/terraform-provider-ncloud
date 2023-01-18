@@ -73,7 +73,6 @@ func resourceNcloudCDSSCluster() *schema.Resource {
 			"config_group_no": {
 				Type:     schema.TypeString,
 				Required: true,
-				ForceNew: true,
 			},
 			"cmak": {
 				Type:     schema.TypeList,
@@ -339,12 +338,39 @@ func resourceNcloudCDSSClusterUpdate(ctx context.Context, d *schema.ResourceData
 		return diag.FromErr(NotSupportClassic("resource `ncloud_cdss_cluster`"))
 	}
 
+	checkConfigGroupNoChanged(ctx, d, config)
 	checkCmakPasswordChanged(ctx, d, config)
 	if err := checkNodeCountChanged(ctx, d, config); err != nil {
 		return diag.FromErr(err)
 	}
 	if err := checkNodeProductCodeChanged(ctx, d, config); err != nil {
 		return diag.FromErr(err)
+	}
+	return nil
+}
+
+func checkConfigGroupNoChanged(ctx context.Context, d *schema.ResourceData, config *ProviderConfig) diag.Diagnostics {
+	if d.HasChanges("config_group_no") {
+		_, n := d.GetChange("config_group_no")
+
+		newConfigGroupNo := n.(string)
+		logCommonRequest("resourceNcloudCDSSClusterUpdate", d.Id())
+		if err := waitForCDSSClusterActive(ctx, d, config, d.Id()); err != nil {
+			return diag.FromErr(err)
+		}
+
+		reqParams := vcdss.SetClusterKafkaConfigGroupRequest{
+			KafkaVersionCode:       *StringPtrOrNil(d.GetOk("kafka_version_code")),
+			ServiceGroupInstanceNo: *getInt32FromString(d.Id(), true),
+		}
+
+		if _, _, err := config.Client.vcdss.V1Api.ConfigGroupSetClusterKafkaConfigGroupConfigGroupNoPost(ctx, reqParams, newConfigGroupNo); err != nil {
+			logErrorResponse("resourceNcloudCDSSClusterUpdate", err, d.Id())
+			return diag.FromErr(err)
+		}
+		if err := waitForCDSSClusterActive(ctx, d, config, d.Id()); err != nil {
+			return diag.FromErr(err)
+		}
 	}
 	return nil
 }
