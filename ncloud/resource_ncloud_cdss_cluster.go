@@ -343,7 +343,7 @@ func resourceNcloudCDSSClusterUpdate(ctx context.Context, d *schema.ResourceData
 	if err := checkNodeCountChanged(ctx, d, config); err != nil {
 		return diag.FromErr(err)
 	}
-	if err := checkNodeProductCodeChanged(ctx, d, config); err != nil {
+	if err := checkCDSSNodeProductCodeChanged(ctx, d, config); err != nil {
 		return diag.FromErr(err)
 	}
 	return nil
@@ -440,9 +440,9 @@ func checkNodeCountChanged(ctx context.Context, d *schema.ResourceData, config *
 	return nil
 }
 
-func checkNodeProductCodeChanged(ctx context.Context, d *schema.ResourceData, config *ProviderConfig) error {
-	managerNodeProductCode := getChangedNodeProductCode("manager_node", d)
-	brokerNodeProductCode := getChangedNodeProductCode("broker_nodes", d)
+func checkCDSSNodeProductCodeChanged(ctx context.Context, d *schema.ResourceData, config *ProviderConfig) error {
+	managerNodeProductCode := getChangedCDSSNodeProductCode("manager_node", d)
+	brokerNodeProductCode := getChangedCDSSNodeProductCode("broker_nodes", d)
 
 	if managerNodeProductCode != nil || brokerNodeProductCode != nil {
 		if err := waitForCDSSClusterActive(ctx, d, config, d.Id()); err != nil {
@@ -465,7 +465,7 @@ func checkNodeProductCodeChanged(ctx context.Context, d *schema.ResourceData, co
 	return nil
 }
 
-func getChangedNodeProductCode(nodeType string, d *schema.ResourceData) *string {
+func getChangedCDSSNodeProductCode(nodeType string, d *schema.ResourceData) *string {
 	nodeParams := d.Get(nodeType)
 	if nodeParams != nil && len(nodeParams.([]interface{})) > 0 {
 		if d.HasChanges(nodeType) {
