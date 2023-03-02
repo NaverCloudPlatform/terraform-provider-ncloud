@@ -432,7 +432,10 @@ func disassociatedClassicPublicIp(config *ProviderConfig, id string) error {
 }
 
 func disassociatedVpcPublicIp(config *ProviderConfig, id string) error {
-	reqParams := &vserver.DisassociatePublicIpFromServerInstanceRequest{PublicIpInstanceNo: ncloud.String(id)}
+	reqParams := &vserver.DisassociatePublicIpFromServerInstanceRequest{
+		RegionCode:         &config.RegionCode,
+		PublicIpInstanceNo: ncloud.String(id),
+	}
 
 	logCommonRequest("disassociatedVpcPublicIp", reqParams)
 
