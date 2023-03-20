@@ -126,7 +126,6 @@ Therefore, please carefully manage `access_key` and `secret_key`. Take special c
 
 * `support_vpc` - (Optional) Whether to use VPC. By default, the value is `false` on "public" site. If you want to use VPC environment. Please set this value `true`.  
 
-~> **Note** `support_vpc` is only support if `site` is `public`.
 
 ## Testing
 
