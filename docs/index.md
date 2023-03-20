@@ -124,7 +124,7 @@ The following arguments are supported:
 Therefore, please carefully manage `access_key` and `secret_key`. Take special care to keep `access_key` and `secret_key` from being uploaded to the public version control system
 
 
-* `support_vpc` - (Optional) Whether to use VPC. By default, the value is `false` on "public" site. If you want to use VPC environment. Please set this value `true`.  
+* `support_vpc` - (Optional) Whether to use VPC. By default, the value is `false`. If you want to use VPC environment. Please set this value `true`.  
 
 
 ## Testing
