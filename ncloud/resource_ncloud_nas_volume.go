@@ -2,9 +2,10 @@ package ncloud
 
 import (
 	"fmt"
-	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/services/vnas"
 	"log"
 	"time"
+
+	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/services/vnas"
 
 	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/ncloud"
 	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/services/server"
@@ -509,6 +510,7 @@ func changeClassicNasVolumeSize(d *schema.ResourceData, config *ProviderConfig) 
 
 func changeVpcNasVolumeSize(d *schema.ResourceData, config *ProviderConfig) error {
 	reqParams := &vnas.ChangeNasVolumeSizeRequest{
+		RegionCode:          &config.RegionCode,
 		NasVolumeInstanceNo: ncloud.String(d.Id()),
 		VolumeSize:          Int32PtrOrNil(d.GetOk("volume_size")),
 	}
@@ -556,6 +558,7 @@ func setClassicNasVolumeAccessControl(d *schema.ResourceData, config *ProviderCo
 
 func setVpcNasVolumeAccessControl(d *schema.ResourceData, config *ProviderConfig) error {
 	reqParams := &vnas.SetNasVolumeAccessControlRequest{
+		RegionCode:           &config.RegionCode,
 		NasVolumeInstanceNo:  ncloud.String(d.Id()),
 		ServerInstanceNoList: expandStringInterfaceList(d.Get("server_instance_no_list").([]interface{})),
 	}
