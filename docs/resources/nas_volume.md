@@ -17,16 +17,16 @@ resource "ncloud_nas_volume" "test" {
 The following arguments are supported:
 
 * `volume_name_postfix` - (Required) Name of a NAS volume to create. Enter a volume name that is 3-20 characters in length after entering the name for user identification.
-* `volume_size` - (Required) Enter the nas volume size to be created. You can enter in GiB.
+* `volume_size` - (Required) NAS volume size. The default capacity of a volume ranges from 500 GB to 10,000 GB. Additions can be made in units of 100 GB.
 * `volume_allotment_protocol_type` - (Required) Volume allotment protocol type code. `NFS` | `CIFS`
     `NFS`: You can mount the volume in a Linux server such as CentOS and Ubuntu.
     `CIFS`: You can mount the volume in a Windows server.
-* `server_instance_no_list` - (Optional) List of server instance numbers for which access to NFS is to be controlled.
-* `cifs_user_name` - (Optional) CIFS user name. The ID must contain a combination of English alphabet and numbers, which can be 6-20 characters in length.
-* `cifs_user_password` - (Optional) CIFS user password. The password must contain a combination of at least 2 English letters, numbers and special characters, which can be 8-14 characters in length.
-* `description` - (Optional) NAS volume description
-* `zone` - (Optional) Zone code. Zone in which you want to create a NAS volume. Default: The first zone of the region.
-    Get available values using the data source `ncloud_zones`.
+* `server_instance_no_list` - (Optional) List of server instance numbers where you want to mount the NAS volume.
+* `cifs_user_name` - (Optional) CIFS user name. The ID must contain a combination of English alphabet and numbers, which can be 6-19 characters in length.
+* `cifs_user_password` - (Optional) CIFS user password. The password must contain a combination of at least 2 English letters, numbers and special characters,   which can be 8-14 characters in length.
+* `description` - (Optional) NAS volume description. 1-1000 characters.
+* `zone` - (Optional) Zone code. Zone in which you want to create a NAS volume. Default: The first zone of the region.  Get available values using the data      source `ncloud_zones`.
+* `return_protection` - (Optional) Termination protection status. Default `false`
 
 ~> **NOTE:** Below arguments only support Classic environment.
 
