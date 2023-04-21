@@ -57,6 +57,18 @@ func resourceNcloudNatGateway() *schema.Resource {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
+			"subnet_name": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+			"subnet_no": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+			"private_ip": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
 		},
 	}
 }
@@ -122,6 +134,9 @@ func resourceNcloudNatGatewayRead(d *schema.ResourceData, meta interface{}) erro
 	d.Set("public_ip", instance.PublicIp)
 	d.Set("vpc_no", instance.VpcNo)
 	d.Set("zone", instance.ZoneCode)
+	d.Set("subnet_name", instance.SubnetName)
+	d.Set("subnet_no", instance.SubnetNo)
+	d.Set("private_ip", instance.PrivateIp)
 
 	return nil
 }

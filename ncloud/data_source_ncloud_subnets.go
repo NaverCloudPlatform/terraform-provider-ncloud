@@ -52,8 +52,8 @@ func dataSourceNcloudSubnets() *schema.Resource {
 			"usage_type": {
 				Type:             schema.TypeString,
 				Optional:         true,
-				ValidateDiagFunc: ToDiagFunc(validation.StringInSlice([]string{"GEN", "LOADB", "BM"}, false)),
-				Description:      "Usage type. GEN(Normal), LOADB(Load Balance), BM(BareMetal). default : GEN(Normal).",
+				ValidateDiagFunc: ToDiagFunc(validation.StringInSlice([]string{"GEN", "LOADB", "BM", "NATGW"}, false)),
+				Description:      "Usage type. GEN(Normal), LOADB(Load Balance), BM(BareMetal), NATGW(NAT Gateway). default : GEN(Normal).",
 			},
 			"filter": dataSourceFiltersSchema(),
 			"subnets": {

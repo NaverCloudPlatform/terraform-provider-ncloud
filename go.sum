@@ -4,8 +4,8 @@ github.com/BurntSushi/toml v0.3.1/go.mod h1:xHWCNGjB5oqiDr8zfno3MHue2Ht5sIBksp03
 github.com/Microsoft/go-winio v0.4.14/go.mod h1:qXqCSQ3Xa7+6tgxaGTIe4Kpcdsi+P8jBhyzoq1bpyYA=
 github.com/Microsoft/go-winio v0.4.16 h1:FtSW/jqD+l4ba5iPBj9CODVtgfYAD8w2wS923g/cFDk=
 github.com/Microsoft/go-winio v0.4.16/go.mod h1:XB6nPKklQyQ7GC9LdcBEcBl8PF76WugXOPRXwdLnMv0=
-github.com/NaverCloudPlatform/ncloud-sdk-go-v2 v1.5.8 h1:9NEbo6OCppxbeiIt/7f6DhEypHFQ6JBknmOKnHKaLyU=
-github.com/NaverCloudPlatform/ncloud-sdk-go-v2 v1.5.8/go.mod h1:KWd9AT+YSM6qgsMzPnE23h2/r0bsPSIdJzZIg3BUcfI=
+github.com/NaverCloudPlatform/ncloud-sdk-go-v2 v1.6.2 h1:Hv2aCNGVVD4tKXYivtENi+9+/zgHL+H05uKMkqpr5Xk=
+github.com/NaverCloudPlatform/ncloud-sdk-go-v2 v1.6.2/go.mod h1:KWd9AT+YSM6qgsMzPnE23h2/r0bsPSIdJzZIg3BUcfI=
 github.com/ProtonMail/go-crypto v0.0.0-20210428141323-04723f9f07d7 h1:YoJbenK9C67SkzkDfmQuVln04ygHj3vjZfd9FL+GmQQ=
 github.com/ProtonMail/go-crypto v0.0.0-20210428141323-04723f9f07d7/go.mod h1:z4/9nQmJSSwwds7ejkxaJwO37dru3geImFUdJlaLzQo=
 github.com/acomagu/bufpipe v1.0.3 h1:fxAGrHZTgQ9w5QqVItgzwj235/uYZYgbXitB+dLupOk=

@@ -36,12 +36,12 @@ func resourceNcloudNasVolume() *schema.Resource {
 				Type:             schema.TypeString,
 				Required:         true,
 				ForceNew:         true,
-				ValidateDiagFunc: ToDiagFunc(validation.StringLenBetween(3, 30)),
+				ValidateDiagFunc: ToDiagFunc(validation.StringLenBetween(3, 20)),
 			},
 			"volume_size": {
 				Type:             schema.TypeInt,
 				Required:         true,
-				ValidateDiagFunc: ToDiagFunc(validation.IntBetween(100, 10000)),
+				ValidateDiagFunc: ToDiagFunc(validation.IntBetween(500, 10000)),
 			},
 			"volume_allotment_protocol_type": {
 				Type:             schema.TypeString,
@@ -88,7 +88,11 @@ func resourceNcloudNasVolume() *schema.Resource {
 				Optional: true,
 				Computed: true,
 			},
-
+			"is_return_protection": {
+				Type:     schema.TypeBool,
+				Optional: true,
+				Computed: true,
+			},
 			"nas_volume_no": {
 				Type:     schema.TypeString,
 				Computed: true,
@@ -233,6 +237,7 @@ func convertClassicNasVolume(inst *server.NasVolumeInstance) *NasVolume {
 		NasVolumeInstanceCustomIpList: flattenArrayStructByKey(inst.NasVolumeInstanceCustomIpList, "customIp"),
 		ServerInstanceNoList:          flattenArrayStructByKey(inst.NasVolumeServerInstanceList, "serverInstanceNo"),
 		MountInformation:              inst.MountInformation,
+		IsReturnProtection:            inst.IsReturnProtection,
 	}
 }
 
@@ -278,6 +283,7 @@ func convertVpcNasVolume(inst *vnas.NasVolumeInstance) *NasVolume {
 		ServerInstanceNoList:          inst.NasVolumeServerInstanceNoList,
 		NasVolumeInstanceCustomIpList: []*string{},
 		MountInformation:              inst.MountInformation,
+		IsReturnProtection:            inst.IsReturnProtection,
 	}
 }
 
@@ -315,20 +321,14 @@ func createClassicNasVolume(d *schema.ResourceData, config *ProviderConfig) (*st
 	reqParams := &server.CreateNasVolumeInstanceRequest{
 		RegionNo:                        regionNo,
 		ZoneNo:                          zoneNo,
+		AccessControlRuleList:           makeClassicNasAclParams(d),
 		VolumeName:                      ncloud.String(d.Get("volume_name_postfix").(string)),
 		VolumeSize:                      ncloud.Int32(int32(d.Get("volume_size").(int))),
 		VolumeAllotmentProtocolTypeCode: ncloud.String(d.Get("volume_allotment_protocol_type").(string)),
 		CifsUserName:                    StringPtrOrNil(d.GetOk("cifs_user_name")),
 		CifsUserPassword:                StringPtrOrNil(d.GetOk("cifs_user_password")),
 		NasVolumeDescription:            StringPtrOrNil(d.GetOk("description")),
-	}
-
-	if serverInstanceNoList, ok := d.GetOk("server_instance_no_list"); ok {
-		reqParams.ServerInstanceNoList = expandStringInterfaceList(serverInstanceNoList.([]interface{}))
-	}
-
-	if customIPList, ok := d.GetOk("custom_ip_list"); ok {
-		reqParams.CustomIpList = expandStringInterfaceList(customIPList.([]interface{}))
+		IsReturnProtection:              BoolPtrOrNil(d.GetOk("is_return_protection")),
 	}
 
 	logCommonRequest("createClassicNasVolume", reqParams)
@@ -347,6 +347,7 @@ func createVpcNasVolume(d *schema.ResourceData, config *ProviderConfig) (*string
 	reqParams := &vnas.CreateNasVolumeInstanceRequest{
 		RegionCode:                      &config.RegionCode,
 		ZoneCode:                        StringPtrOrNil(d.GetOk("zone")),
+		AccessControlRuleList:           makeVpcNasAclParams(d),
 		VolumeName:                      ncloud.String(d.Get("volume_name_postfix").(string)),
 		VolumeSize:                      ncloud.Int32(int32(d.Get("volume_size").(int))),
 		VolumeAllotmentProtocolTypeCode: ncloud.String(d.Get("volume_allotment_protocol_type").(string)),
@@ -354,10 +355,7 @@ func createVpcNasVolume(d *schema.ResourceData, config *ProviderConfig) (*string
 		CifsUserPassword:                StringPtrOrNil(d.GetOk("cifs_user_password")),
 		NasVolumeDescription:            StringPtrOrNil(d.GetOk("description")),
 		IsEncryptedVolume:               BoolPtrOrNil(d.GetOk("is_encrypted_volume")),
-	}
-
-	if serverInstanceNoList, ok := d.GetOk("server_instance_no_list"); ok {
-		reqParams.ServerInstanceNoList = expandStringInterfaceList(serverInstanceNoList.([]interface{}))
+		IsReturnProtection:              BoolPtrOrNil(d.GetOk("is_return_protection")),
 	}
 
 	logCommonRequest("createVpcNasVolume", reqParams)
@@ -539,9 +537,8 @@ func setNasVolumeAccessControl(d *schema.ResourceData, config *ProviderConfig) e
 
 func setClassicNasVolumeAccessControl(d *schema.ResourceData, config *ProviderConfig) error {
 	reqParams := &server.SetNasVolumeAccessControlRequest{
-		NasVolumeInstanceNo:  ncloud.String(d.Id()),
-		ServerInstanceNoList: expandStringInterfaceList(d.Get("server_instance_no_list").([]interface{})),
-		CustomIpList:         expandStringInterfaceList(d.Get("custom_ip_list").([]interface{})),
+		NasVolumeInstanceNo:   ncloud.String(d.Id()),
+		AccessControlRuleList: makeClassicNasAclParams(d),
 	}
 
 	logCommonRequest("setClassicNasVolumeAccessControl", reqParams)
@@ -558,9 +555,9 @@ func setClassicNasVolumeAccessControl(d *schema.ResourceData, config *ProviderCo
 
 func setVpcNasVolumeAccessControl(d *schema.ResourceData, config *ProviderConfig) error {
 	reqParams := &vnas.SetNasVolumeAccessControlRequest{
-		RegionCode:           &config.RegionCode,
-		NasVolumeInstanceNo:  ncloud.String(d.Id()),
-		ServerInstanceNoList: expandStringInterfaceList(d.Get("server_instance_no_list").([]interface{})),
+		RegionCode:            &config.RegionCode,
+		NasVolumeInstanceNo:   ncloud.String(d.Id()),
+		AccessControlRuleList: makeVpcNasAclParams(d),
 	}
 
 	logCommonRequest("setVpcNasVolumeAccessControl", reqParams)
@@ -573,6 +570,52 @@ func setVpcNasVolumeAccessControl(d *schema.ResourceData, config *ProviderConfig
 	logResponse("setVpcNasVolumeAccessControl", resp)
 
 	return nil
+}
+
+func makeClassicNasAclParams(d *schema.ResourceData) []*server.AccessControlRuleParameter {
+	var aclParams []*server.AccessControlRuleParameter
+	var serverList []*string
+	var customIpList []*string
+
+	if serverInstanceNoList, ok := d.GetOk("server_instance_no_list"); ok {
+		serverList = expandStringInterfaceList(serverInstanceNoList.([]interface{}))
+
+		for _, v := range serverList {
+			aclParams = append(aclParams, &server.AccessControlRuleParameter{
+				ServerInstanceNo: v,
+			})
+		}
+		return aclParams
+	}
+
+	if customIPList, ok := d.GetOk("custom_ip_list"); ok {
+		customIpList = expandStringInterfaceList(customIPList.([]interface{}))
+
+		for _, v := range customIpList {
+			aclParams = append(aclParams, &server.AccessControlRuleParameter{
+				CustomIp: v,
+			})
+		}
+	}
+
+	return aclParams
+}
+
+func makeVpcNasAclParams(d *schema.ResourceData) []*vnas.AccessControlRuleParameter {
+	var aclParams []*vnas.AccessControlRuleParameter
+	var serverList []*string
+
+	if serverInstanceNoList, ok := d.GetOk("server_instance_no_list"); ok {
+		serverList = expandStringInterfaceList(serverInstanceNoList.([]interface{}))
+
+		for _, v := range serverList {
+			aclParams = append(aclParams, &vnas.AccessControlRuleParameter{
+				ServerInstanceNo: v,
+			})
+		}
+	}
+
+	return aclParams
 }
 
 // NasVolume Dto for NAS
@@ -592,4 +635,5 @@ type NasVolume struct {
 	IsEncryptedVolume             *bool     `json:"is_encrypted_volume,omitempty"`
 	Status                        *string   `json:"-"`
 	MountInformation              *string   `json:"mount_information,omitempty"`
+	IsReturnProtection            *bool     `json:"is_return_protection,omitempty"`
 }
