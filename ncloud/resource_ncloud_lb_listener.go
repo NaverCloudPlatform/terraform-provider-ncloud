@@ -101,7 +101,6 @@ func resourceNcloudLbListenerCreate(ctx context.Context, d *schema.ResourceData,
 		return diag.FromErr(NotSupportClassic("resource `ncloud_lb_listener`"))
 	}
 
-	log.Printf("creating listener, %s, %s", d.Id(), d.Get("load_balancer_no").(string))
 	reqParams := &vloadbalancer.CreateLoadBalancerListenerRequest{
 		RegionCode: &config.RegionCode,
 		// Required
@@ -144,7 +143,6 @@ func resourceNcloudLbListenerRead(ctx context.Context, d *schema.ResourceData, m
 		return diag.FromErr(NotSupportClassic("resource `ncloud_lb_listener`"))
 	}
 
-	log.Printf("reading listener, %s, %s", d.Id(), d.Get("load_balancer_no").(string))
 	listener, err := getVpcLoadBalancerListener(config, d.Id(), d.Get("load_balancer_no").(string))
 	if err != nil {
 		return diag.FromErr(err)
