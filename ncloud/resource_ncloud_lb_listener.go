@@ -3,7 +3,6 @@ package ncloud
 import (
 	"context"
 	"fmt"
-	"log"
 	"strings"
 
 	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/ncloud"
