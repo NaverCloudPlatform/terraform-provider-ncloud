@@ -2,6 +2,10 @@ package ncloud
 
 import (
 	"context"
+	"fmt"
+	"log"
+	"strings"
+
 	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/ncloud"
 	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/services/vloadbalancer"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
@@ -26,7 +30,17 @@ func resourceNcloudLbListener() *schema.Resource {
 		UpdateContext: resourceNcloudLbListenerUpdate,
 		DeleteContext: resourceNcloudLbListenerDelete,
 		Importer: &schema.ResourceImporter{
-			StateContext: schema.ImportStatePassthroughContext,
+			State: func(d *schema.ResourceData, meta interface{}) ([]*schema.ResourceData, error) {
+				idParts := strings.Split(d.Id(), ":")
+				if len(idParts) != 2 || idParts[0] == "" || idParts[1] == "" {
+					return nil, fmt.Errorf("unexpected format of ID (%q), expected LOAD_BALANCER_NO:LOAD_BALANCER_LISTENER_NO", d.Id())
+				}
+				load_balancer_no := idParts[0]
+				listener_no := idParts[1]
+				d.SetId(listener_no)
+				d.Set("load_balancer_no", load_balancer_no)
+				return []*schema.ResourceData{d}, nil
+			},
 		},
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(DefaultCreateTimeout),
@@ -87,6 +101,7 @@ func resourceNcloudLbListenerCreate(ctx context.Context, d *schema.ResourceData,
 		return diag.FromErr(NotSupportClassic("resource `ncloud_lb_listener`"))
 	}
 
+	log.Printf("creating listener, %s, %s", d.Id(), d.Get("load_balancer_no").(string))
 	reqParams := &vloadbalancer.CreateLoadBalancerListenerRequest{
 		RegionCode: &config.RegionCode,
 		// Required
@@ -129,6 +144,7 @@ func resourceNcloudLbListenerRead(ctx context.Context, d *schema.ResourceData, m
 		return diag.FromErr(NotSupportClassic("resource `ncloud_lb_listener`"))
 	}
 
+	log.Printf("reading listener, %s, %s", d.Id(), d.Get("load_balancer_no").(string))
 	listener, err := getVpcLoadBalancerListener(config, d.Id(), d.Get("load_balancer_no").(string))
 	if err != nil {
 		return diag.FromErr(err)
@@ -241,9 +257,31 @@ func getVpcLoadBalancerListener(config *ProviderConfig, id string, loadBalancerN
 				SslCertificateNo:       l.SslCertificateNo,
 				TlsMinVersionType:      l.TlsMinVersionType.Code,
 				LoadBalancerRuleNoList: l.LoadBalancerRuleNoList,
+				TargetGroupNo:          getVpcLoadBalancerListenerTargetGroupNo(config, id),
 			}, nil
 		}
 	}
 
 	return nil, nil
+}
+
+func getVpcLoadBalancerListenerTargetGroupNo(config *ProviderConfig, id string) *string {
+
+	reqParams := &vloadbalancer.GetLoadBalancerRuleListRequest{
+		RegionCode:             &config.RegionCode,
+		LoadBalancerListenerNo: ncloud.String(id),
+	}
+
+	resp, err := config.Client.vloadbalancer.V2Api.GetLoadBalancerRuleList(reqParams)
+	if err != nil {
+		return nil
+	}
+
+	for _, l := range resp.LoadBalancerRuleList {
+		if id == *l.LoadBalancerListenerNo {
+			return l.LoadBalancerRuleActionList[0].TargetGroupAction.TargetGroupWeightList[0].TargetGroupNo
+		}
+	}
+
+	return nil
 }
