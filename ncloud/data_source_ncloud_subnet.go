@@ -48,7 +48,7 @@ func dataSourceNcloudSubnet() *schema.Resource {
 			Type:             schema.TypeString,
 			Optional:         true,
 			Computed:         true,
-			ValidateDiagFunc: ToDiagFunc(validation.StringInSlice([]string{"GEN", "LOADB", "BM"}, false)),
+			ValidateDiagFunc: ToDiagFunc(validation.StringInSlice([]string{"GEN", "LOADB", "BM", "NATGW"}, false)),
 		},
 		"filter": dataSourceFiltersSchema(),
 	}

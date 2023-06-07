@@ -4,6 +4,7 @@
 
 ```hcl
 data "ncloud_cdss_os_images" "os_images_sample" {}
+```
 
 ## Argument Reference
 

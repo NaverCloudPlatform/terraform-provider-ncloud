@@ -142,7 +142,9 @@ func dataSourceNcloudNKSNodePoolRead(ctx context.Context, d *schema.ResourceData
 	d.Set("software_code", nodePool.SoftwareCode)
 	d.Set("node_count", nodePool.NodeCount)
 	d.Set("k8s_version", nodePool.K8sVersion)
-	d.Set("subnet_no", strconv.Itoa(int(ncloud.Int32Value(nodePool.SubnetNoList[0]))))
+	if len(nodePool.SubnetNoList) > 0 {
+		d.Set("subnet_no", strconv.Itoa(int(ncloud.Int32Value(nodePool.SubnetNoList[0]))))
+	}
 
 	if err := d.Set("autoscale", flattenNKSNodePoolAutoScale(nodePool.Autoscale)); err != nil {
 		log.Printf("[WARN] Error setting Autoscale set for (%s): %s", d.Id(), err)

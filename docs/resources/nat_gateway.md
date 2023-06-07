@@ -38,3 +38,6 @@ In addition to all arguments above, the following attributes are exported:
 * `id` - The ID of the NAT Gateway.
 * `nat_gateway_no` - The ID of the NAT Gateway. (It is the same result as `id`) 
 * `public_ip` - Public IP on created NAT Gateway.
+* `subnet_name` - Subnet name on created NAT Gateway.
+* `subnet_no` - Subnet ID on created NAT Gateway.
+* `private_ip` - Private IP on created NAT Gateway.

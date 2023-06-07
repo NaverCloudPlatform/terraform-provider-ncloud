@@ -1,6 +1,8 @@
 package ncloud
 
 import (
+	"fmt"
+
 	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/ncloud"
 	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/services/vpc"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
@@ -75,11 +77,29 @@ func getVpcListFiltered(d *schema.ResourceData, config *ProviderConfig) ([]map[s
 	resources := []map[string]interface{}{}
 
 	for _, r := range resp.VpcList {
+		id := *r.VpcNo
+		defaultNetworkACLNo, err := getDefaultNetworkACL(config, id)
+		if err != nil {
+			return nil, fmt.Errorf("error get default network acl for VPC (%s): %s", id, err)
+		}
+		defaultAcgNo, err := getDefaultAccessControlGroup(config, id)
+		if err != nil {
+			return nil, fmt.Errorf("error get default Access Control Group for VPC (%s): %s", id, err)
+		}
+		publicRouteTableNo, privateRouteTableNo, err := getDefaultRouteTable(config, id)
+		if err != nil {
+			return nil, fmt.Errorf("error get default Route Table for VPC (%s): %s", id, err)
+		}
+
 		instance := map[string]interface{}{
-			"id":              *r.VpcNo,
-			"vpc_no":          *r.VpcNo,
-			"name":            *r.VpcName,
-			"ipv4_cidr_block": *r.Ipv4CidrBlock,
+			"id":                              *r.VpcNo,
+			"vpc_no":                          *r.VpcNo,
+			"name":                            *r.VpcName,
+			"ipv4_cidr_block":                 *r.Ipv4CidrBlock,
+			"default_network_acl_no":          defaultNetworkACLNo,
+			"default_access_control_group_no": defaultAcgNo,
+			"default_public_route_table_no":   publicRouteTableNo,
+			"default_private_route_table_no":  privateRouteTableNo,
 		}
 
 		resources = append(resources, instance)

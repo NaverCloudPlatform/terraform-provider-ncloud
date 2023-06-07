@@ -16,6 +16,7 @@ data "ncloud_cdss_os_image" "sample_02" {
     values = ["CentOS 7.8 (64-bit)"]
   }
 }
+```
 
 ## Argument Reference
 

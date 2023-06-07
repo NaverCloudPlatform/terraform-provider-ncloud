@@ -39,3 +39,12 @@ In addition to all arguments above, the following attributes are exported:
 * `id` - The ID of listener.
 * `listener_no` - The ID of listener (It is the same result as id).
 * `rule_no_list` - The list of listener rule number.
+
+
+## Import
+
+Individual load balancer listener can be imported using LOAD_BALANCER_NO:LOAD_BALANCER_LISTENER_NO. For example, import a listener `69643` in a load balancer `17019658` like this:
+
+``` hcl
+$ terraform import ncloud_lb_listener.my_lb_listener 17019658:69643
+```

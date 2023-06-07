@@ -18,7 +18,7 @@ func dataSourceNcloudNetworkAcls() *schema.Resource {
 		Read: dataSourceNcloudNetworkAclsRead,
 
 		Schema: map[string]*schema.Schema{
-			"network_acl_no": {
+			"network_acl_no_list": {
 				Type:        schema.TypeList,
 				Optional:    true,
 				Elem:        &schema.Schema{Type: schema.TypeString},
@@ -56,8 +56,13 @@ func dataSourceNcloudNetworkAclsRead(d *schema.ResourceData, meta interface{}) e
 		RegionCode: &config.RegionCode,
 	}
 
-	if v, ok := d.GetOk("network_acl_no"); ok {
-		reqParams.NetworkAclNoList = []*string{ncloud.String(v.(string))}
+	if v, ok := d.GetOk("network_acl_no_list"); ok {
+		// reqParams.NetworkAclNoList = []*string{ncloud.String(v.(string))}
+		list := make([]*string, 0, len(v.([]interface{})))
+		for _, v := range v.([]interface{}) {
+			list = append(list, ncloud.String(v.(string)))
+		}
+		reqParams.NetworkAclNoList = list
 	}
 
 	if v, ok := d.GetOk("name"); ok {
