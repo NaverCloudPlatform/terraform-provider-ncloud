@@ -2,6 +2,7 @@ package ncloud
 
 import (
 	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/services/vnks"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"reflect"
 	"strconv"
 
@@ -337,26 +338,145 @@ func flattenInt32ListToStringList(list []*int32) (res []*string) {
 	}
 	return
 }
-
-func flattenNKSClusterLogInput(logInput *vnks.ClusterLogInput) []map[string]interface{} {
+func add[T int8 | int16 | int32 | int64 | int](a, b T) T {
+	return a + b
+}
+func flattenNKSClusterLogInput[T *vnks.ClusterLogInput | *vnks.AuditLogDto](logInput T) []map[string]interface{} {
 	if logInput == nil {
+		return nil
+	}
+
+	var audit bool
+	switch v := any(logInput).(type) {
+	case *vnks.ClusterLogInput:
+		audit = ncloud.BoolValue(v.Audit)
+	case *vnks.AuditLogDto:
+		audit = ncloud.BoolValue(v.Audit)
+	default:
 		return nil
 	}
 
 	return []map[string]interface{}{
 		{
-			"audit": ncloud.BoolValue(logInput.Audit),
+			"audit": audit,
 		},
 	}
 }
-func expandNKSClusterLogInput(logList []interface{}) *vnks.ClusterLogInput {
+func expandNKSClusterLogInput[T *vnks.ClusterLogInput | *vnks.AuditLogDto](logList []interface{}, returnType T) (result T) {
 	if len(logList) == 0 {
 		return nil
 	}
 	log := logList[0].(map[string]interface{})
-	return &vnks.ClusterLogInput{
-		Audit: ncloud.Bool(log["audit"].(bool)),
+	switch any(returnType).(type) {
+	case *vnks.ClusterLogInput:
+		return T(&vnks.ClusterLogInput{
+			Audit: ncloud.Bool(log["audit"].(bool)),
+		})
+	case *vnks.AuditLogDto:
+		return T(&vnks.AuditLogDto{
+			Audit: ncloud.Bool(log["audit"].(bool)),
+		})
+	default:
+		return nil
 	}
+
+}
+
+func flattenNKSClusterOIDCSpec(oidcSpec *vnks.OidcRes) []map[string]interface{} {
+	if oidcSpec == nil || !*oidcSpec.Status {
+		return []map[string]interface{}{}
+	}
+
+	result := []map[string]interface{}{
+		{
+			"issuer_url":      ncloud.StringValue(oidcSpec.IssuerURL),
+			"client_id":       ncloud.StringValue(oidcSpec.ClientId),
+			"username_claim":  ncloud.StringValue(oidcSpec.UsernameClaim),
+			"username_prefix": ncloud.StringValue(oidcSpec.UsernamePrefix),
+			"groups_claim":    ncloud.StringValue(oidcSpec.GroupsClaim),
+			"groups_prefix":   ncloud.StringValue(oidcSpec.GroupsPrefix),
+			"required_claim":  ncloud.StringValue(oidcSpec.RequiredClaim),
+		},
+	}
+	return result
+}
+
+func expandNKSClusterOIDCSpec(oidc []interface{}) (result *vnks.UpdateOidcDto) {
+	result = &vnks.UpdateOidcDto{Status: ncloud.Bool(false)}
+	if len(oidc) == 0 {
+		return
+	}
+
+	oidcSpec := oidc[0].(map[string]interface{})
+	if oidcSpec["issuer_url"].(string) != "" && oidcSpec["client_id"].(string) != "" {
+		result.Status = ncloud.Bool(true)
+		result.IssuerURL = ncloud.String(oidcSpec["issuer_url"].(string))
+		result.ClientId = ncloud.String(oidcSpec["client_id"].(string))
+
+		usernameClaim, ok := oidcSpec["username_claim"]
+		if ok {
+			result.UsernameClaim = ncloud.String(usernameClaim.(string))
+		}
+		usernamePrefix, ok := oidcSpec["username_prefix"]
+		if ok {
+			result.UsernamePrefix = ncloud.String(usernamePrefix.(string))
+		}
+		groupsClaim, ok := oidcSpec["groups_claim"]
+		if ok {
+			result.GroupsClaim = ncloud.String(groupsClaim.(string))
+		}
+		groupsPrefix, ok := oidcSpec["groups_prefix"]
+		if ok {
+			result.GroupsPrefix = ncloud.String(groupsPrefix.(string))
+		}
+		requiredClaims, ok := oidcSpec["required_claim"]
+		if ok {
+			result.RequiredClaim = ncloud.String(requiredClaims.(string))
+		}
+	}
+
+	return
+}
+
+func flattenNKSClusterIPAclEntries(ipAcl *vnks.IpAclsRes) *schema.Set {
+
+	ipAclList := schema.NewSet(schema.HashResource(resourceNcloudNKSCluster().Schema["ip_acl"].Elem.(*schema.Resource)), []interface{}{})
+
+	for _, entry := range ipAcl.Entries {
+		m := map[string]interface{}{
+			"action":  *entry.Action,
+			"address": *entry.Address,
+		}
+		if entry.Comment != nil {
+			m["comment"] = *entry.Comment
+		}
+		ipAclList.Add(m)
+	}
+
+	return ipAclList
+
+}
+
+func expandNKSClusterIPAcl(acl interface{}) (result []*vnks.IpAclsEntriesDto) {
+	if acl == nil {
+		return nil
+	}
+
+	set := acl.(*schema.Set)
+	for _, raw := range set.List() {
+		entry := raw.(map[string]interface{})
+
+		add := &vnks.IpAclsEntriesDto{
+			Address: ncloud.String(entry["address"].(string)),
+			Action:  ncloud.String(entry["action"].(string)),
+		}
+		if comment, exist := entry["comment"].(string); exist {
+			add.Comment = ncloud.String(comment)
+		}
+		result = append(result, add)
+	}
+
+	return
 }
 
 func flattenNKSNodePoolAutoScale(ao *vnks.AutoscaleOption) (res []map[string]interface{}) {

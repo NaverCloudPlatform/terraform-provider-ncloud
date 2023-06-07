@@ -45,6 +45,10 @@ func dataSourceNcloudNKSNodePool() *schema.Resource {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
+			"software_code": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
 			"autoscale": {
 				Type:     schema.TypeList,
 				Computed: true,
@@ -135,6 +139,7 @@ func dataSourceNcloudNKSNodePoolRead(ctx context.Context, d *schema.ResourceData
 	d.Set("instance_no", strconv.Itoa(int(ncloud.Int32Value(nodePool.InstanceNo))))
 	d.Set("node_pool_name", nodePool.Name)
 	d.Set("product_code", nodePool.ProductCode)
+	d.Set("software_code", nodePool.SoftwareCode)
 	d.Set("node_count", nodePool.NodeCount)
 	d.Set("k8s_version", nodePool.K8sVersion)
 	d.Set("subnet_no", strconv.Itoa(int(ncloud.Int32Value(nodePool.SubnetNoList[0]))))

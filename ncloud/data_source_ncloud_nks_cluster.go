@@ -88,6 +88,69 @@ func dataSourceNcloudNKSCluster() *schema.Resource {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
+			"oidc": {
+				Type:     schema.TypeList,
+				Optional: true,
+				MaxItems: 1,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"issuer_url": {
+							Type:     schema.TypeString,
+							Required: true,
+						},
+						"client_id": {
+							Type:     schema.TypeString,
+							Required: true,
+						},
+						"username_prefix": {
+							Type:     schema.TypeString,
+							Optional: true,
+						},
+						"username_claim": {
+							Type:     schema.TypeString,
+							Optional: true,
+						},
+						"groups_prefix": {
+							Type:     schema.TypeString,
+							Optional: true,
+						},
+						"groups_cliam": {
+							Type:     schema.TypeString,
+							Optional: true,
+						},
+						"required_claim": {
+							Type:     schema.TypeString,
+							Optional: true,
+						},
+					},
+				},
+			},
+			"ip_acl_default_action": {
+				Type:     schema.TypeString,
+				Optional: true,
+				Default:  "allow",
+			},
+			"ip_acl": {
+				Type:       schema.TypeSet,
+				Optional:   true,
+				ConfigMode: schema.SchemaConfigModeAttr,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"action": {
+							Type:     schema.TypeString,
+							Required: true,
+						},
+						"address": {
+							Type:     schema.TypeString,
+							Required: true,
+						},
+						"comment": {
+							Type:     schema.TypeString,
+							Optional: true,
+						},
+					},
+				},
+			},
 		},
 	}
 }
@@ -100,6 +163,16 @@ func dataSourceNcloudNKSClusterRead(ctx context.Context, d *schema.ResourceData,
 
 	uuid := d.Get("uuid").(string)
 	cluster, err := getNKSCluster(ctx, config, uuid)
+	if err != nil {
+		return diag.FromErr(err)
+	}
+
+	oidcSpec, err := getOIDCSpec(ctx, config, uuid)
+	if err != nil {
+		return diag.FromErr(err)
+	}
+
+	ipAcl, err := getIPAcl(ctx, config, uuid)
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -121,17 +194,35 @@ func dataSourceNcloudNKSClusterRead(ctx context.Context, d *schema.ResourceData,
 	d.Set("lb_private_subnet_no", strconv.Itoa(int(ncloud.Int32Value(cluster.SubnetLbNo))))
 	d.Set("kube_network_plugin", cluster.KubeNetworkPlugin)
 	d.Set("acg_no", strconv.Itoa(int(ncloud.Int32Value(cluster.AcgNo))))
+
 	if cluster.LbPublicSubnetNo != nil {
 		d.Set("lb_public_subnet_no", strconv.Itoa(int(ncloud.Int32Value(cluster.LbPublicSubnetNo))))
 	}
 	if cluster.PublicNetwork != nil {
 		d.Set("public_network", cluster.PublicNetwork)
 	}
+
 	if err := d.Set("log", flattenNKSClusterLogInput(cluster.Log)); err != nil {
 		log.Printf("[WARN] Error setting cluster log for (%s): %s", d.Id(), err)
 	}
+
 	if err := d.Set("subnet_no_list", flattenInt32ListToStringList(cluster.SubnetNoList)); err != nil {
-		log.Printf("[WARN] Error setting subet no list set for (%s): %s", d.Id(), err)
+		log.Printf("[WARN] Error setting subnet no list set for (%s): %s", d.Id(), err)
+	}
+
+	if oidcSpec != nil {
+		if err := d.Set("oidc", flattenNKSClusterOIDCSpec(oidcSpec)); err != nil {
+			log.Printf("[WARN] Error setting OIDCSpec set for (%s): %s", d.Id(), err)
+		}
+	}
+
+	if ipAcl != nil {
+		d.Set("ip_acl_default_action", ipAcl.DefaultAction)
+
+		if err := d.Set("ip_acl", flattenNKSClusterIPAclEntries(ipAcl).List()); err != nil {
+			log.Printf("[WARN] Error setting ip_acl list set for (%s): %s", d.Id(), err)
+		}
+
 	}
 
 	return nil

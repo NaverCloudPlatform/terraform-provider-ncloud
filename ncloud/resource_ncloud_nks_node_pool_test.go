@@ -14,7 +14,7 @@ import (
 )
 
 func TestAccResourceNcloudNKSNodePool_basic(t *testing.T) {
-	var nodePool vnks.NodePoolRes
+	var nodePool vnks.NodePool
 	clusterName := getTestClusterName()
 	resourceName := "ncloud_nks_node_pool.node_pool"
 	region, clusterType, productCode, k8sVersion := getRegionAndNKSType()
@@ -43,7 +43,7 @@ func TestAccResourceNcloudNKSNodePool_basic(t *testing.T) {
 }
 
 func TestAccResourceNcloudNKSNodePool_publicNetwork(t *testing.T) {
-	var nodePool vnks.NodePoolRes
+	var nodePool vnks.NodePool
 	clusterName := getTestClusterName()
 	resourceName := "ncloud_nks_node_pool.node_pool"
 	region, clusterType, productCode, k8sVersion := getRegionAndNKSType()
@@ -67,7 +67,7 @@ func TestAccResourceNcloudNKSNodePool_publicNetwork(t *testing.T) {
 }
 
 func TestAccResourceNcloudNKSNodePool_updateNodeCountAndAutoScale(t *testing.T) {
-	var nodePool vnks.NodePoolRes
+	var nodePool vnks.NodePool
 	clusterName := getTestClusterName()
 	region, clusterType, productCode, k8sVersion := getRegionAndNKSType()
 	resourceName := "ncloud_nks_node_pool.node_pool"
@@ -93,6 +93,36 @@ func TestAccResourceNcloudNKSNodePool_updateNodeCountAndAutoScale(t *testing.T) 
 					resource.TestCheckResourceAttr(resourceName, "autoscale.0.enabled", "true"),
 					resource.TestCheckResourceAttr(resourceName, "autoscale.0.min", "1"),
 					resource.TestCheckResourceAttr(resourceName, "autoscale.0.max", "2"),
+				),
+			},
+		},
+	})
+}
+
+func TestAccResourceNcloudNKSNodePool_upgrade(t *testing.T) {
+	var nodePool vnks.NodePool
+	clusterName := "m3-" + getTestClusterName()
+	region, clusterType, productCode, k8sVersion := getRegionAndNKSType()
+	resourceName := "ncloud_nks_node_pool.node_pool"
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckNKSNodePoolDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccResourceNcloudNKSNodePoolConfig(clusterName, clusterType, productCode, 1, TF_TEST_NKS_LOGIN_KEY, k8sVersion, region),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckNKSNodePoolExists(resourceName, &nodePool),
+					resource.TestCheckResourceAttr(resourceName, "node_count", "1"),
+				),
+				Destroy: false,
+			},
+			{
+				Config: testAccResourceNcloudNKSNodePoolConfig(clusterName, clusterType, productCode, 1, TF_TEST_NKS_LOGIN_KEY, "1.25.8-nks.1", region),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckNKSNodePoolExists(resourceName, &nodePool),
+					resource.TestCheckResourceAttr(resourceName, "k8s_version", "1.25.8-nks.1"),
 				),
 			},
 		},
@@ -161,7 +191,8 @@ resource "ncloud_nks_node_pool" "node_pool" {
   node_pool_name = "%[1]s"
   node_count     = %[4]d
   product_code   = "%[3]s"
-  subnet_no      = ncloud_subnet.subnet.id
+  k8s_version    = "%[6]s"
+  subnet_no_list = [ ncloud_subnet.subnet.id]
   autoscale {
     enabled = false
     min = 1
@@ -218,7 +249,7 @@ resource "ncloud_nks_node_pool" "node_pool" {
   node_pool_name = "%[1]s"
   node_count     = %[4]d
   product_code   = "%[3]s"
-  subnet_no      = ncloud_subnet.subnet.id
+  subnet_no_list = [ ncloud_subnet.subnet.id]
   autoscale {
     enabled = false
     min = 1
@@ -274,7 +305,7 @@ resource "ncloud_nks_node_pool" "node_pool" {
   node_pool_name = "%[1]s"
   node_count     = %[4]d
   product_code   = "%[3]s"
-  subnet_no      = ncloud_subnet.subnet.id
+  subnet_no_list = [ ncloud_subnet.subnet.id]
   autoscale {
     enabled = true
     min = 1
@@ -284,7 +315,7 @@ resource "ncloud_nks_node_pool" "node_pool" {
 `, name, clusterType, productCode, nodeCount, loginKey, version, region)
 }
 
-func testAccCheckNKSNodePoolExists(n string, nodePool *vnks.NodePoolRes) resource.TestCheckFunc {
+func testAccCheckNKSNodePoolExists(n string, nodePool *vnks.NodePool) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		rs, ok := s.RootModule().Resources[n]
 		if !ok {

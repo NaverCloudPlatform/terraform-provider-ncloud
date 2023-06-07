@@ -2,6 +2,7 @@ package ncloud
 
 import (
 	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/services/vnks"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"reflect"
 	"testing"
 
@@ -737,7 +738,7 @@ func TestExpandNKSClusterLogInput(t *testing.T) {
 		},
 	}
 
-	result := expandNKSClusterLogInput(log)
+	result := expandNKSClusterLogInput(log, &vnks.AuditLogDto{})
 
 	if result == nil {
 		t.Fatal("result was nil")
@@ -745,6 +746,148 @@ func TestExpandNKSClusterLogInput(t *testing.T) {
 
 	if ncloud.BoolValue(result.Audit) != false {
 		t.Fatalf("expected false , but got %v", ncloud.BoolValue(result.Audit))
+	}
+}
+
+func TestFlattenNKSClusterOIDCSpec(t *testing.T) {
+	oidcSpec := &vnks.OidcRes{
+		Status:         ncloud.Bool(true),
+		UsernameClaim:  ncloud.String("email"),
+		UsernamePrefix: ncloud.String("username:"),
+		IssuerURL:      ncloud.String("https://sso.ntruss.com/iss"),
+		ClientId:       ncloud.String("testClient"),
+		GroupsPrefix:   ncloud.String("groups:"),
+		GroupsClaim:    ncloud.String("group"),
+		RequiredClaim:  ncloud.String("iss=https://sso.ntruss.com/iss"),
+	}
+
+	result := flattenNKSClusterOIDCSpec(oidcSpec)
+
+	if len(result) == 0 {
+		t.Fatal("empty result")
+	}
+
+	r := result[0]
+
+	if r["username_claim"].(string) != "email" {
+		t.Fatalf("expected result username_claim to be 'email', but was %v", r["username_claim"])
+	}
+
+	if r["username_prefix"].(string) != "username:" {
+		t.Fatalf("expected result username_prefix to be 'username:', but was %v", r["username_prefix"])
+	}
+
+	if r["issuer_url"].(string) != "https://sso.ntruss.com/iss" {
+		t.Fatalf("expected result issuer_url to be 'https://sso.ntruss.com/iss', but was %v", r["issuer_url"])
+	}
+
+	if r["client_id"].(string) != "testClient" {
+		t.Fatalf("expected result client_id to be 'testClient', but was %v", r["client_id"])
+	}
+
+	if r["groups_claim"].(string) != "group" {
+		t.Fatalf("expected result groups_claim to be 'group', but was %v", r["groups_claim"])
+	}
+
+	if r["groups_prefix"].(string) != "groups:" {
+		t.Fatalf("expected result groups_prefix to be 'groups:', but was %v", r["groups_prefix"])
+	}
+
+	if r["required_claim"].(string) != "iss=https://sso.ntruss.com/iss" {
+		t.Fatalf("expected result groups_prefix to be 'iss=https://sso.ntruss.com/iss', but was %v", r["required_claim"])
+	}
+}
+
+func TestExpandNKSClusterOIDCSpec(t *testing.T) {
+	oidc := []interface{}{
+		map[string]interface{}{
+			"issuer_url":      "https://sso.ntruss.com/iss",
+			"client_id":       "testClient",
+			"username_claim":  "email",
+			"username_prefix": "username:",
+			"groups_claim":    "group",
+			"groups_prefix":   "groups:",
+			"required_claim":  "iss=https://sso.ntruss.com/iss",
+		},
+	}
+
+	result := expandNKSClusterOIDCSpec(oidc)
+
+	if result == nil {
+		t.Fatal("result was nil")
+	}
+
+	expected := &vnks.UpdateOidcDto{
+		Status:         ncloud.Bool(true),
+		IssuerURL:      ncloud.String("https://sso.ntruss.com/iss"),
+		ClientId:       ncloud.String("testClient"),
+		UsernameClaim:  ncloud.String("email"),
+		UsernamePrefix: ncloud.String("username:"),
+		GroupsClaim:    ncloud.String("group"),
+		GroupsPrefix:   ncloud.String("groups:"),
+		RequiredClaim:  ncloud.String("iss=https://sso.ntruss.com/iss"),
+	}
+
+	if reflect.DeepEqual(oidc, expected) != false {
+		t.Fatalf("expected %v , but got %v", expected, result)
+	}
+}
+
+func TestFlattenNKSClusterIPAcl(t *testing.T) {
+	ipAcl := &vnks.IpAclsRes{
+		DefaultAction: ncloud.String("deny"),
+		Entries: []*vnks.IpAclsEntriesRes{
+			{Address: ncloud.String("10.0.1.0/24"),
+				Action:  ncloud.String("allow"),
+				Comment: ncloud.String("master ip"),
+			},
+		},
+	}
+
+	result := flattenNKSClusterIPAclEntries(ipAcl)
+
+	if len(result.List()) == 0 {
+		t.Fatal("empty result")
+	}
+
+	r := result.List()[0]
+	rr := r.(map[string]interface{})
+	if rr["address"].(string) != "10.0.1.0/24" {
+		t.Fatalf("expected result address to be '10.0.1.0/24', but was %v", rr["address"])
+	}
+
+	if rr["action"].(string) != "allow" {
+		t.Fatalf("expected result action to be 'allow', but was %v", rr["action"])
+	}
+
+	if rr["comment"].(string) != "master ip" {
+		t.Fatalf("expected result comment to be 'master ip', but was %v", rr["comment"])
+	}
+}
+
+func TestExpandNKSClusterIPAcl(t *testing.T) {
+	ipAclList := schema.NewSet(schema.HashResource(resourceNcloudNKSCluster().Schema["ip_acl"].Elem.(*schema.Resource)), []interface{}{})
+
+	ipAclList.Add(map[string]interface{}{
+		"action":  "allow",
+		"address": "10.0.1.0/24",
+		"comment": "master ip",
+	})
+
+	result := expandNKSClusterIPAcl(ipAclList)
+
+	if result == nil {
+		t.Fatal("result was nil")
+	}
+
+	expected := &vnks.IpAclsEntriesDto{
+		Address: ncloud.String("10.0.1.0/24"),
+		Action:  ncloud.String("allow"),
+		Comment: ncloud.String("maseter ip"),
+	}
+
+	if reflect.DeepEqual(result, expected) != false {
+		t.Fatalf("expected %v , but got %v", expected, result)
 	}
 }
 
