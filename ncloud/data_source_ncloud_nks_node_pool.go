@@ -38,8 +38,14 @@ func dataSourceNcloudNKSNodePool() *schema.Resource {
 				Computed: true,
 			},
 			"subnet_no": {
-				Type:     schema.TypeString,
+				Type:       schema.TypeString,
+				Computed:   true,
+				Deprecated: "use 'subnet_no_list' instead",
+			},
+			"subnet_no_list": {
+				Type:     schema.TypeList,
 				Computed: true,
+				Elem:     &schema.Schema{Type: schema.TypeString},
 			},
 			"product_code": {
 				Type:     schema.TypeString,
@@ -143,7 +149,9 @@ func dataSourceNcloudNKSNodePoolRead(ctx context.Context, d *schema.ResourceData
 	d.Set("node_count", nodePool.NodeCount)
 	d.Set("k8s_version", nodePool.K8sVersion)
 	if len(nodePool.SubnetNoList) > 0 {
-		d.Set("subnet_no", strconv.Itoa(int(ncloud.Int32Value(nodePool.SubnetNoList[0]))))
+		if err := d.Set("subnet_no_list", flattenInt32ListToStringList(nodePool.SubnetNoList)); err != nil {
+			log.Printf("[WARN] Error setting subnet no list set for (%s): %s", d.Id(), err)
+		}
 	}
 
 	if err := d.Set("autoscale", flattenNKSNodePoolAutoScale(nodePool.Autoscale)); err != nil {

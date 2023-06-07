@@ -1,0 +1,42 @@
+# Data Source: ncloud_nks_server_products
+
+Provides list of available Kubernetes Nodepool ServerProducts.
+
+## Example Usage
+
+```hcl
+data "ncloud_nks_server_products" "products" {}
+
+data "ncloud_nks_server_products" "hicpu_2_4GB" {
+  filter {
+    name = "label"
+    values = ["vCPU 2개, 메모리 4GB, [SSD]디스크 50GB"]
+    regex = true
+  }
+}
+
+```
+
+## Argument Reference
+
+The following arguments are supported:
+
+* `filter` - (Optional) Custom filter block as described below.
+  * `name` - (Required) The name of the field to filter by.
+  * `values` - (Required) Set of values that are accepted for the given field.
+  * `regex` - (Optional) is `values` treated as a regular expression.
+
+## Attributes Reference
+
+* `products` - A list of ServerProduct
+  * `label` - ServerProduct spec korean description
+  * `value` - ServerProduct code
+  * `detail`
+    * `cpu_count` - Number of cpu
+    * `gpu_count` - Number of gpu
+    * `gpu_memory_size` - Size of GPU memory(GB)
+    * `memory_size` - Size of memory(GB)
+    * `product_code` -  ServerProduct code
+    * `product_english_desc` - ServerProduct spec english description
+    * `product_korean_desc` - ServerProduct spec korean description
+    * `product_type` - ServerProduct Type

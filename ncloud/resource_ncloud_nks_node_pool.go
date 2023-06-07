@@ -249,7 +249,6 @@ func resourceNcloudNKSNodePoolRead(ctx context.Context, d *schema.ResourceData, 
 	}
 
 	if len(nodePool.SubnetNoList) > 0 {
-		//d.Set("subnet_no", strconv.Itoa(int(ncloud.Int32Value(nodePool.SubnetNoList[0]))))
 		if err := d.Set("subnet_no_list", flattenInt32ListToStringList(nodePool.SubnetNoList)); err != nil {
 			log.Printf("[WARN] Error setting subnet no list set for (%s): %s", d.Id(), err)
 		}

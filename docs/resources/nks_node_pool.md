@@ -109,11 +109,13 @@ The following arguments are supported:
 * `cluster_uuid` - (Required) Cluster uuid.
 * `node_count` - (Required) Number of nodes.
 * `product_code` - (Required) Product code.
+* `software_code` - (Optional) Server image code.
 * `autoscale`- (Optional) 
   * `enable` - (Required) Auto scaling availability.
   * `max` - (Required) Maximum number of nodes available for auto scaling.
   * `min` - (Required) Minimum number of nodes available for auto scaling.
-* `subnet_no` - (Optional) Subnet No.
+* `subnet_no` - (Deprecated) Subnet No.
+* `subnet_no_list` - Subnet no list.
 
 ## Attributes Reference
 

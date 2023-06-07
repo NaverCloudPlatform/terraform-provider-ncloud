@@ -80,7 +80,19 @@ The following arguments are supported:
 * `log` - (Optional)
   * `audit` - (Required) Audit log availability. (`boolean`)
 * `k8s_version` - (Optional) Kubenretes version .
-
+* `oidc` - (Optional)
+  * `issuer_url` - (Required) Issuer URL.
+  * `client_id` - (Required) Client ID.
+  * `username_prefix` - (Optional) Username prefix.
+  * `username_claim` - (Optional) Username claim.
+  * `groups_prefix` - (Optional) Groups prefix.
+  * `groups_claim` - (Optional) Groups claim.
+  * `required_claim` - (Optional) Required claim.
+* `ip_acl_default_action` - (Optional) IP ACL default action.
+* `ip_acl` (Optional)
+  * `action` - (Required)`allow`, `deny`
+  * `address` - (Required) CIDR
+  * `comment` - (Optional) Comment
 ## Attributes Reference
 
 In addition to all arguments above, the following attributes are exported:
