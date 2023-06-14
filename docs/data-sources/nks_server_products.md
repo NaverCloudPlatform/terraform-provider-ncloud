@@ -7,10 +7,38 @@ Provides list of available Kubernetes Nodepool ServerProducts.
 ```hcl
 data "ncloud_nks_server_products" "products" {}
 
-data "ncloud_nks_server_products" "hicpu_2_4GB" {
+
+data "ncloud_nks_server_images" "images"{
   filter {
     name = "label"
-    values = ["vCPU 2개, 메모리 4GB, [SSD]디스크 50GB"]
+    values = ["ubuntu-20.04-64-server"]
+  }
+}
+
+data "ncloud_nks_server_products" "product" {
+
+  software_code = data.ncloud_nks_server_images.images.images[0].value
+  zone = "KR-1"
+
+  filter {
+    name = "product_type"
+    values = [ "STAND" ]
+  }
+
+  filter {
+    name = "cpu_count"
+    values = [ 2 ]
+  }
+
+  filter {
+    name = "memory_size"
+    values = [ "8GB" ]
+  }
+
+  filter {
+    name = "product_code"
+    values = [ "SSD" ]
+    regex = true
   }
 }
 
