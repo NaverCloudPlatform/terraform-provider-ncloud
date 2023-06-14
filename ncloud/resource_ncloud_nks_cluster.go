@@ -426,6 +426,7 @@ func resourceNcloudNKSClusterUpdate(ctx context.Context, d *schema.ResourceData,
 
 		ipAclReq := &vnks.IpAclsDto{
 			DefaultAction: StringPtrOrNil(d.GetOk("ip_acl_default_action")),
+			Entries:       []*vnks.IpAclsEntriesDto{},
 		}
 		if ipAcl, ok := d.GetOk("ip_acl"); ok {
 			ipAclReq.Entries = expandNKSClusterIPAcl(ipAcl)
