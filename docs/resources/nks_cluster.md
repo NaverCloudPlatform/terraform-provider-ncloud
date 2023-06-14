@@ -76,10 +76,10 @@ The following arguments are supported:
 * `subnet_no_list` - (Required) Subnet No. list.
 * `public_network` - (Optional) Public Subnet Network (`boolean`)
 * `lb_private_subnet_no` - (Required) Subnet No. for private loadbalancer only.
-* `lb_public_subnet_no` - (Optional) Subnet No. for public loadbalancer only. (Available only `SGN` region)
+* `lb_public_subnet_no` - (Optional) Subnet No. for public loadbalancer only. (Available only `SGN`, `JPN` region)
 * `log` - (Optional)
   * `audit` - (Required) Audit log availability. (`boolean`)
-* `k8s_version` - (Optional) Kubenretes version .
+* `k8s_version` - (Optional) Kubenretes version. Only upgrade is supported.
 * `oidc` - (Optional)
   * `issuer_url` - (Required) Issuer URL.
   * `client_id` - (Required) Client ID.
@@ -88,9 +88,9 @@ The following arguments are supported:
   * `groups_prefix` - (Optional) Groups prefix.
   * `groups_claim` - (Optional) Groups claim.
   * `required_claim` - (Optional) Required claim.
-* `ip_acl_default_action` - (Optional) IP ACL default action.
+* `ip_acl_default_action` - (Optional) IP ACL default action.`allow`(default), `deny`
 * `ip_acl` (Optional)
-  * `action` - (Required)`allow`, `deny`
+  * `action` - (Required) `allow`, `deny`
   * `address` - (Required) CIDR
   * `comment` - (Optional) Comment
 ## Attributes Reference

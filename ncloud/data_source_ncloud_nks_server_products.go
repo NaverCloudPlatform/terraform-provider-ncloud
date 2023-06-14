@@ -113,7 +113,7 @@ func dataSourceNcloudNKSServerProductsRead(d *schema.ResourceData, meta interfac
 }
 
 func getNKSServerProducts(config *ProviderConfig, d *schema.ResourceData) ([]map[string]interface{}, error) {
-	logCommonRequest("GetNKSSoftwareProduct", "")
+	logCommonRequest("GetNKSServerProducts", "")
 
 	softwareCode := StringPtrOrNil(d.GetOk("software_code"))
 	zoneCode := StringPtrOrNil(d.GetOk("zone"))

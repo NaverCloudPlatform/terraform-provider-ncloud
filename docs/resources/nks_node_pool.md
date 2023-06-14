@@ -116,6 +116,7 @@ The following arguments are supported:
   * `min` - (Required) Minimum number of nodes available for auto scaling.
 * `subnet_no` - (Deprecated) Subnet No.
 * `subnet_no_list` - Subnet no list.
+* `k8s_version` - (Optional) Kubenretes version. Only upgrade is supported.
 
 ## Attributes Reference
 

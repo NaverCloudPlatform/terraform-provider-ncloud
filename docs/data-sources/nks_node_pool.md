@@ -48,3 +48,4 @@ In addition to all arguments above, the following attributes are exported:
   * `node_status` - Node Status.
   * `container_version` - Container version of node.
   * `kernel_version` - kernel version of node.
+* `k8s_version` - Kubenretes version .

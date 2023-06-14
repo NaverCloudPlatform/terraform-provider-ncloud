@@ -11,7 +11,6 @@ data "ncloud_nks_server_products" "hicpu_2_4GB" {
   filter {
     name = "label"
     values = ["vCPU 2개, 메모리 4GB, [SSD]디스크 50GB"]
-    regex = true
   }
 }
 
@@ -20,6 +19,9 @@ data "ncloud_nks_server_products" "hicpu_2_4GB" {
 ## Argument Reference
 
 The following arguments are supported:
+
+* `software_code` - (Required) NKS ServerImage code.
+* `zone` - (Required) zone Code.
 
 * `filter` - (Optional) Custom filter block as described below.
   * `name` - (Required) The name of the field to filter by.
