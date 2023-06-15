@@ -84,7 +84,7 @@ func (c *Config) Client() (*NcloudAPIClient, error) {
 		vnas:            vnas.NewAPIClient(vnas.NewConfiguration(apiKey)),
 		vautoscaling:    vautoscaling.NewAPIClient(vautoscaling.NewConfiguration(apiKey)),
 		vloadbalancer:   vloadbalancer.NewAPIClient(vloadbalancer.NewConfiguration(apiKey)),
-		vnks:            vnks.NewAPIClient(vnks.NewConfigurationWithUserAgent(c.Region, fmt.Sprintf("Ncloud Terraform Provider %s", version), apiKey)),
+		vnks:            vnks.NewAPIClient(vnks.NewConfigurationWithUserAgent(c.Region, fmt.Sprintf("Ncloud Terraform Provider/%s", version), apiKey)),
 		sourcecommit:    sourcecommit.NewAPIClient(sourcecommit.NewConfiguration(c.Region, apiKey)),
 		sourcebuild:     sourcebuild.NewAPIClient((sourcebuild.NewConfiguration(c.Region, apiKey))),
 		sourcepipeline:  sourcepipeline.NewAPIClient(sourcepipeline.NewConfiguration(c.Region, apiKey)),
