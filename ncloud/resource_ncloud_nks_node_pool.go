@@ -45,7 +45,7 @@ func resourceNcloudNKSNodePool() *schema.Resource {
 			Delete: schema.DefaultTimeout(DefaultCreateTimeout),
 		},
 		CustomizeDiff: customdiff.Sequence(
-			// deprecated 된 "subnet_no"를 계속 사용할 경우, Plan 생성 시 subnet_no_list에 추가해 준다.
+			// add subnet nubmer to subnet_no_list when using deprecated subnet_no parameter.
 			customdiff.IfValue(
 				"subnet_no",
 				func(ctx context.Context, subnetNo, meta interface{}) bool {
@@ -286,7 +286,7 @@ func resourceNcloudNKSNodePoolUpdate(ctx context.Context, d *schema.ResourceData
 			return diag.FromErr(err)
 		}
 
-		// N UPGRADE 진행
+		// Nodepool UPGRADE
 		_, err = config.Client.vnks.V2Api.ClustersUuidNodePoolInstanceNoUpgradePatch(ctx, ncloud.String(clusterUuid), instanceNo, k8sVersion, map[string]interface{}{})
 		if err != nil {
 			logErrorResponse("resourceNcloudNKSNodepoolUpgrade", err, k8sVersion)

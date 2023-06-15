@@ -11,7 +11,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 	"log"
+	"os"
 	"strconv"
+	"strings"
 	"time"
 )
 
@@ -175,7 +177,7 @@ func resourceNcloudNKSCluster() *schema.Resource {
 			"ip_acl_default_action": {
 				Type:     schema.TypeString,
 				Optional: true,
-				Default:  "allow",
+				Computed: true,
 			},
 			"ip_acl": {
 				Type:       schema.TypeSet,
@@ -261,7 +263,7 @@ func resourceNcloudNKSClusterCreate(ctx context.Context, d *schema.ResourceData,
 	}
 	d.SetId(uuid)
 
-	if ncloud.StringValue(ipAclReq.DefaultAction) != "allow" || len(ipAclReq.Entries) > 0 {
+	if (ncloud.StringValue(ipAclReq.DefaultAction) != "allow" || len(ipAclReq.Entries) > 0) && !checkFinSite(config) {
 		_, err = config.Client.vnks.V2Api.ClustersUuidIpAclPatch(ctx, ipAclReq, resp.Uuid)
 		if err != nil {
 			logErrorResponse("resourceNcloudNKSClusterCreate:ipAcl", err, ipAclReq)
@@ -285,8 +287,6 @@ func resourceNcloudNKSClusterCreate(ctx context.Context, d *schema.ResourceData,
 		if err := waitForNKSClusterActive(ctx, d, config, uuid); err != nil {
 			return diag.FromErr(err)
 		}
-
-		time.Sleep(1 * time.Minute)
 	}
 
 	return resourceNcloudNKSClusterRead(ctx, d, meta)
@@ -376,18 +376,13 @@ func resourceNcloudNKSClusterUpdate(ctx context.Context, d *schema.ResourceData,
 		return diag.FromErr(err)
 	}
 
-	if cluster == nil {
-		d.SetId("")
-		return nil
-	}
-
 	if d.HasChanges("k8s_version") {
 
 		if err = waitForNKSClusterActive(ctx, d, config, *cluster.Uuid); err != nil {
 			return diag.FromErr(err)
 		}
 
-		// Cluster UPGRADE 진행
+		// Cluster UPGRADE
 		newVersion := StringPtrOrNil(d.GetOk("k8s_version"))
 		_, err := config.Client.vnks.V2Api.ClustersUuidUpgradePatch(ctx, cluster.Uuid, newVersion, map[string]interface{}{})
 		if err != nil {
@@ -423,7 +418,7 @@ func resourceNcloudNKSClusterUpdate(ctx context.Context, d *schema.ResourceData,
 		}
 	}
 
-	if d.HasChanges("ip_acl", "ip_acl_default_action") {
+	if d.HasChanges("ip_acl", "ip_acl_default_action") && !checkFinSite(config) {
 
 		ipAclReq := &vnks.IpAclsDto{
 			DefaultAction: StringPtrOrNil(d.GetOk("ip_acl_default_action")),
@@ -507,7 +502,7 @@ func resourceNcloudNKSClusterDelete(ctx context.Context, d *schema.ResourceData,
 func waitForNKSClusterDeletion(ctx context.Context, d *schema.ResourceData, config *ProviderConfig) error {
 	stateConf := &resource.StateChangeConf{
 		Pending: []string{NKSStatusDeletingCode},
-		Target:  []string{NKSStatusNullCode, NKSStatusRunningCode}, // ToDo: external에서 autoscaler callback 제거되면 Running 제거
+		Target:  []string{NKSStatusNullCode, NKSStatusRunningCode}, // ToDo: remove runnig status after external autoscaler callback removed.
 		Refresh: func() (result interface{}, state string, err error) {
 			cluster, err := getNKSClusterFromList(ctx, config, d.Id())
 			if err != nil {
@@ -573,6 +568,10 @@ func getOIDCSpec(ctx context.Context, config *ProviderConfig, uuid string) (*vnk
 
 func getIPAcl(ctx context.Context, config *ProviderConfig, uuid string) (*vnks.IpAclsRes, error) {
 
+	if checkFinSite(config) {
+		return &vnks.IpAclsRes{}, nil
+	}
+
 	resp, err := config.Client.vnks.V2Api.ClustersUuidIpAclGet(ctx, &uuid)
 	if err != nil {
 		return nil, err
@@ -628,6 +627,14 @@ func getSubnetDiff(oldList interface{}, newList interface{}) (added []*int32, re
 				added = append(added, ncloud.Int32(int32(intV)))
 			}
 		}
+	}
+	return
+}
+
+func checkFinSite(config *ProviderConfig) (result bool) {
+	ncloudApiGw := os.Getenv("NCLOUD_API_GW")
+	if config.Site == "fin" || strings.HasSuffix(ncloudApiGw, "apigw.fin-ntruss.com") {
+		result = true
 	}
 	return
 }

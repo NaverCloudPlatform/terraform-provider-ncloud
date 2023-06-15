@@ -49,8 +49,8 @@ In addition to all arguments above, the following attributes are exported:
   * `groups_prefix` - Groups prefix.
   * `groups_claim` - Groups claim. 
   * `required_claim` - Required claim.
-* `ip_acl_default_action` - IP ACL default action.
-* `ip_acl`
+* `ip_acl_default_action` - IP ACL default action.(Available only `public`, `gov` site)
+* `ip_acl` (Available only `public`, `gov` site)
   * `action` - `allow`, `deny`
   * `address` - CIDR
   * `comment` - Comment

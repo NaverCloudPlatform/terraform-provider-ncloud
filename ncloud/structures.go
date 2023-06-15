@@ -362,7 +362,7 @@ func flattenNKSClusterLogInput[T *vnks.ClusterLogInput | *vnks.AuditLogDto](logI
 		},
 	}
 }
-func expandNKSClusterLogInput[T *vnks.ClusterLogInput | *vnks.AuditLogDto](logList []interface{}, returnType T) (result T) {
+func expandNKSClusterLogInput[T *vnks.ClusterLogInput | *vnks.AuditLogDto](logList []interface{}, returnType T) T {
 	if len(logList) == 0 {
 		return nil
 	}

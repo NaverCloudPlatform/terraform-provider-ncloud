@@ -69,9 +69,6 @@ func (c *Config) Client() (*NcloudAPIClient, error) {
 		SecretKey: c.SecretKey,
 	}
 
-	vnksConfig := vnks.NewConfiguration(c.Region, apiKey)
-	vnksConfig.UserAgent = "Terraform Ncloud Provider"
-
 	return &NcloudAPIClient{
 		server:          server.NewAPIClient(server.NewConfiguration(apiKey)),
 		autoscaling:     autoscaling.NewAPIClient(autoscaling.NewConfiguration(apiKey)),
@@ -84,7 +81,7 @@ func (c *Config) Client() (*NcloudAPIClient, error) {
 		vnas:            vnas.NewAPIClient(vnas.NewConfiguration(apiKey)),
 		vautoscaling:    vautoscaling.NewAPIClient(vautoscaling.NewConfiguration(apiKey)),
 		vloadbalancer:   vloadbalancer.NewAPIClient(vloadbalancer.NewConfiguration(apiKey)),
-		vnks:            vnks.NewAPIClient(vnksConfig),
+		vnks:            vnks.NewAPIClient(vnks.NewConfiguration(c.Region, apiKey)),
 		sourcecommit:    sourcecommit.NewAPIClient(sourcecommit.NewConfiguration(c.Region, apiKey)),
 		sourcebuild:     sourcebuild.NewAPIClient((sourcebuild.NewConfiguration(c.Region, apiKey))),
 		sourcepipeline:  sourcepipeline.NewAPIClient(sourcepipeline.NewConfiguration(c.Region, apiKey)),
