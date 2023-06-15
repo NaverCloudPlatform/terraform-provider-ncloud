@@ -1,6 +1,7 @@
 package ncloud
 
 import (
+	"fmt"
 	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/services/vautoscaling"
 	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/services/vcdss"
 	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/services/vloadbalancer"
@@ -34,6 +35,8 @@ const DefaultTimeout = 5 * time.Minute
 const DefaultCreateTimeout = 1 * time.Hour
 const DefaultUpdateTimeout = 10 * time.Minute
 const DefaultStopTimeout = 5 * time.Minute
+
+var version = ""
 
 type Config struct {
 	AccessKey string
@@ -81,7 +84,7 @@ func (c *Config) Client() (*NcloudAPIClient, error) {
 		vnas:            vnas.NewAPIClient(vnas.NewConfiguration(apiKey)),
 		vautoscaling:    vautoscaling.NewAPIClient(vautoscaling.NewConfiguration(apiKey)),
 		vloadbalancer:   vloadbalancer.NewAPIClient(vloadbalancer.NewConfiguration(apiKey)),
-		vnks:            vnks.NewAPIClient(vnks.NewConfiguration(c.Region, apiKey)),
+		vnks:            vnks.NewAPIClient(vnks.NewConfigurationWithUserAgent(c.Region, fmt.Sprintf("Ncloud Terraform Provider %s", version), apiKey)),
 		sourcecommit:    sourcecommit.NewAPIClient(sourcecommit.NewConfiguration(c.Region, apiKey)),
 		sourcebuild:     sourcebuild.NewAPIClient((sourcebuild.NewConfiguration(c.Region, apiKey))),
 		sourcepipeline:  sourcepipeline.NewAPIClient(sourcepipeline.NewConfiguration(c.Region, apiKey)),

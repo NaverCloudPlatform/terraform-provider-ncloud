@@ -10,7 +10,7 @@ builds:
     flags:
       - -trimpath
     ldflags:
-      - "-s -w -X main.version={{.Version}} -X main.commit={{.Commit}}"
+      - '-s -w -X main.version={{.Version}} -X main.commit={{.Commit}} -X {{ replace .GitURL "https://" "" }}/ncloud.version={{ .Version }}'
     goos:
       - freebsd
       - windows
