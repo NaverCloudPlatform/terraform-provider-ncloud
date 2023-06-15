@@ -10,16 +10,16 @@ import (
 )
 
 func init() {
-	RegisterDataSource("ncloud_nks_versions", dataSourceNcloudNKSVersions())
+	RegisterDataSource("ncloud_nks_server_images", dataSourceNcloudNKSServerImages())
 }
 
-func dataSourceNcloudNKSVersions() *schema.Resource {
+func dataSourceNcloudNKSServerImages() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceNcloudVersionsRead,
+		Read: dataSourceNcloudNKSServerImagesRead,
 
 		Schema: map[string]*schema.Schema{
 			"filter": dataSourceFiltersSchema(),
-			"versions": {
+			"images": {
 				Type:     schema.TypeList,
 				Computed: true,
 				Elem: &schema.Resource{
@@ -39,41 +39,41 @@ func dataSourceNcloudNKSVersions() *schema.Resource {
 	}
 }
 
-func dataSourceNcloudVersionsRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceNcloudNKSServerImagesRead(d *schema.ResourceData, meta interface{}) error {
 	config := meta.(*ProviderConfig)
 	if !config.SupportVPC {
-		return NotSupportClassic("datasource `ncloud_nks_versions`")
+		return NotSupportClassic("datasource `ncloud_nks_node_pool_server_images`")
 	}
 
-	resources, err := getNKSVersion(config)
+	resources, err := getNKSServerImages(config)
 	if err != nil {
 		return err
 	}
 
 	if f, ok := d.GetOk("filter"); ok {
-		resources = ApplyFilters(f.(*schema.Set), resources, dataSourceNcloudNKSVersions().Schema["versions"].Elem.(*schema.Resource).Schema)
+		resources = ApplyFilters(f.(*schema.Set), resources, dataSourceNcloudNKSServerImages().Schema["images"].Elem.(*schema.Resource).Schema)
 	}
 
 	d.SetId(time.Now().UTC().String())
-	if err := d.Set("versions", resources); err != nil {
-		return fmt.Errorf("Error setting Versions: %s", err)
+	if err := d.Set("images", resources); err != nil {
+		return fmt.Errorf("Error setting Codes: %s", err)
 	}
 
 	return nil
 
 }
 
-func getNKSVersion(config *ProviderConfig) ([]map[string]interface{}, error) {
+func getNKSServerImages(config *ProviderConfig) ([]map[string]interface{}, error) {
 
-	logCommonRequest("GetNKSVersion", "")
-	resp, err := config.Client.vnks.V2Api.OptionVersionGet(context.Background(), map[string]interface{}{})
+	logCommonRequest("GetNKSServerImages", "")
+	resp, err := config.Client.vnks.V2Api.OptionServerImageGet(context.Background())
 
 	if err != nil {
-		logErrorResponse("GetNKSVersion", err, "")
+		logErrorResponse("GetNKSServerImages", err, "")
 		return nil, err
 	}
 
-	logResponse("GetNKSVersion", resp)
+	logResponse("GetNKSServerImages", resp)
 
 	resources := []map[string]interface{}{}
 

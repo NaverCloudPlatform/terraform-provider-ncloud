@@ -6,11 +6,14 @@ import (
 	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/ncloud"
 	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/services/vnks"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/customdiff"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 	"log"
+	"os"
 	"strconv"
+	"strings"
 	"time"
 )
 
@@ -32,6 +35,7 @@ func resourceNcloudNKSCluster() *schema.Resource {
 		CreateContext: resourceNcloudNKSClusterCreate,
 		ReadContext:   resourceNcloudNKSClusterRead,
 		DeleteContext: resourceNcloudNKSClusterDelete,
+		UpdateContext: resourceNcloudNKSClusterUpdate,
 		Importer: &schema.ResourceImporter{
 			StateContext: schema.ImportStatePassthroughContext,
 		},
@@ -40,6 +44,12 @@ func resourceNcloudNKSCluster() *schema.Resource {
 			Update: schema.DefaultTimeout(DefaultCreateTimeout),
 			Delete: schema.DefaultTimeout(DefaultCreateTimeout),
 		},
+		CustomizeDiff: customdiff.All(
+			customdiff.ForceNewIfChange("subnet_no_list", func(ctx context.Context, old, new, meta any) bool {
+				_, removed := getSubnetDiff(old, new)
+				return len(removed) > 0
+			}),
+		),
 		Schema: map[string]*schema.Schema{
 			"uuid": {
 				Type:     schema.TypeString,
@@ -69,7 +79,6 @@ func resourceNcloudNKSCluster() *schema.Resource {
 				Type:     schema.TypeString,
 				Optional: true,
 				Computed: true,
-				ForceNew: true,
 			},
 			"zone": {
 				Type:     schema.TypeString,
@@ -90,7 +99,8 @@ func resourceNcloudNKSCluster() *schema.Resource {
 			"subnet_no_list": {
 				Type:     schema.TypeList,
 				Required: true,
-				ForceNew: true,
+				MaxItems: 5,
+				MinItems: 1,
 				Elem:     &schema.Schema{Type: schema.TypeString},
 			},
 			"lb_private_subnet_no": {
@@ -113,7 +123,6 @@ func resourceNcloudNKSCluster() *schema.Resource {
 				Type:     schema.TypeList,
 				MaxItems: 1,
 				Optional: true,
-				ForceNew: true,
 				Computed: true,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
@@ -127,6 +136,70 @@ func resourceNcloudNKSCluster() *schema.Resource {
 			"acg_no": {
 				Type:     schema.TypeString,
 				Computed: true,
+			},
+			"oidc": {
+				Type:     schema.TypeList,
+				MaxItems: 1,
+				Optional: true,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"issuer_url": {
+							Type:     schema.TypeString,
+							Required: true,
+						},
+						"client_id": {
+							Type:     schema.TypeString,
+							Required: true,
+						},
+						"username_prefix": {
+							Type:     schema.TypeString,
+							Optional: true,
+						},
+						"username_claim": {
+							Type:     schema.TypeString,
+							Optional: true,
+						},
+						"groups_prefix": {
+							Type:     schema.TypeString,
+							Optional: true,
+						},
+						"groups_claim": {
+							Type:     schema.TypeString,
+							Optional: true,
+						},
+						"required_claim": {
+							Type:     schema.TypeString,
+							Optional: true,
+						},
+					},
+				},
+			},
+			"ip_acl_default_action": {
+				Type:             schema.TypeString,
+				Optional:         true,
+				Computed:         true,
+				ValidateDiagFunc: ToDiagFunc(validation.StringInSlice([]string{"allow", "deny"}, false)),
+			},
+			"ip_acl": {
+				Type:       schema.TypeSet,
+				Optional:   true,
+				ConfigMode: schema.SchemaConfigModeAttr,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"action": {
+							Type:     schema.TypeString,
+							Required: true,
+						},
+						"address": {
+							Type:     schema.TypeString,
+							Required: true,
+						},
+						"comment": {
+							Type:     schema.TypeString,
+							Optional: true,
+						},
+					},
+				},
 			},
 		},
 	}
@@ -161,7 +234,20 @@ func resourceNcloudNKSClusterCreate(ctx context.Context, d *schema.ResourceData,
 	}
 
 	if log, ok := d.GetOk("log"); ok {
-		reqParams.Log = expandNKSClusterLogInput(log.([]interface{}))
+		reqParams.Log = expandNKSClusterLogInput(log.([]interface{}), reqParams.Log)
+	}
+
+	var oidcReq *vnks.UpdateOidcDto
+	if oidc, ok := d.GetOk("oidc"); ok {
+		oidcReq = expandNKSClusterOIDCSpec(oidc.([]interface{}))
+	}
+
+	ipAclReq := &vnks.IpAclsDto{
+		DefaultAction: StringPtrOrNil(d.GetOk("ip_acl_default_action")),
+		Entries:       []*vnks.IpAclsEntriesDto{},
+	}
+	if ipAcl, ok := d.GetOk("ip_acl"); ok {
+		ipAclReq.Entries = expandNKSClusterIPAcl(ipAcl)
 	}
 
 	logCommonRequest("resourceNcloudNKSClusterCreate", reqParams)
@@ -177,6 +263,33 @@ func resourceNcloudNKSClusterCreate(ctx context.Context, d *schema.ResourceData,
 		return diag.FromErr(err)
 	}
 	d.SetId(uuid)
+
+	if (ncloud.StringValue(ipAclReq.DefaultAction) != "allow" || len(ipAclReq.Entries) > 0) && !checkFinSite(config) {
+		_, err = config.Client.vnks.V2Api.ClustersUuidIpAclPatch(ctx, ipAclReq, resp.Uuid)
+		if err != nil {
+			logErrorResponse("resourceNcloudNKSClusterCreate:ipAcl", err, ipAclReq)
+			return diag.FromErr(err)
+		}
+	}
+
+	if oidcReq != nil {
+
+		if err = waitForNKSClusterActive(ctx, d, config, uuid); err != nil {
+			return diag.FromErr(err)
+		}
+
+		_, err = config.Client.vnks.V2Api.ClustersUuidOidcPatch(ctx, oidcReq, resp.Uuid)
+		if err != nil {
+			logErrorResponse("resourceNcloudNKSClusterCreate:oidc", err, oidcReq)
+			return diag.FromErr(err)
+		}
+
+		logResponse("resourceNcloudNKSClusterCreateoidc:oidc", oidcReq)
+		if err := waitForNKSClusterActive(ctx, d, config, uuid); err != nil {
+			return diag.FromErr(err)
+		}
+	}
+
 	return resourceNcloudNKSClusterRead(ctx, d, meta)
 }
 
@@ -187,6 +300,16 @@ func resourceNcloudNKSClusterRead(ctx context.Context, d *schema.ResourceData, m
 	}
 
 	cluster, err := getNKSCluster(ctx, config, d.Id())
+	if err != nil {
+		return diag.FromErr(err)
+	}
+
+	oidcSpec, err := getOIDCSpec(ctx, config, d.Id())
+	if err != nil {
+		return diag.FromErr(err)
+	}
+
+	ipAcl, err := getIPAcl(ctx, config, d.Id())
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -208,6 +331,7 @@ func resourceNcloudNKSClusterRead(ctx context.Context, d *schema.ResourceData, m
 	d.Set("lb_private_subnet_no", strconv.Itoa(int(ncloud.Int32Value(cluster.SubnetLbNo))))
 	d.Set("kube_network_plugin", cluster.KubeNetworkPlugin)
 	d.Set("acg_no", strconv.Itoa(int(ncloud.Int32Value(cluster.AcgNo))))
+
 	if cluster.LbPublicSubnetNo != nil {
 		d.Set("lb_public_subnet_no", strconv.Itoa(int(ncloud.Int32Value(cluster.LbPublicSubnetNo))))
 	}
@@ -223,7 +347,134 @@ func resourceNcloudNKSClusterRead(ctx context.Context, d *schema.ResourceData, m
 		log.Printf("[WARN] Error setting subnet no list set for (%s): %s", d.Id(), err)
 	}
 
+	if oidcSpec != nil {
+		oidc := flattenNKSClusterOIDCSpec(oidcSpec)
+		if err := d.Set("oidc", oidc); err != nil {
+			log.Printf("[WARN] Error setting OIDCSpec set for (%s): %s", d.Id(), err)
+		}
+	}
+
+	if ipAcl != nil {
+		d.Set("ip_acl_default_action", ipAcl.DefaultAction)
+
+		if err := d.Set("ip_acl", flattenNKSClusterIPAclEntries(ipAcl).List()); err != nil {
+			log.Printf("[WARN] Error setting ip_acl list set for (%s): %s", d.Id(), err)
+		}
+
+	}
+
 	return nil
+}
+
+func resourceNcloudNKSClusterUpdate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+	config := meta.(*ProviderConfig)
+	if !config.SupportVPC {
+		return diag.FromErr(NotSupportClassic("resource `ncloud_nks_cluster`"))
+	}
+
+	cluster, err := getNKSCluster(ctx, config, d.Id())
+	if err != nil {
+		return diag.FromErr(err)
+	}
+
+	if d.HasChanges("k8s_version") {
+
+		if err = waitForNKSClusterActive(ctx, d, config, *cluster.Uuid); err != nil {
+			return diag.FromErr(err)
+		}
+
+		// Cluster UPGRADE
+		newVersion := StringPtrOrNil(d.GetOk("k8s_version"))
+		_, err := config.Client.vnks.V2Api.ClustersUuidUpgradePatch(ctx, cluster.Uuid, newVersion, map[string]interface{}{})
+		if err != nil {
+			logErrorResponse("resourceNcloudNKSClusterUpgrade", err, newVersion)
+			return diag.FromErr(err)
+		}
+
+		logResponse("resourceNcloudNKSClusterUpgrade", newVersion)
+		if err := waitForNKSClusterActive(ctx, d, config, *cluster.Uuid); err != nil {
+			return diag.FromErr(err)
+		}
+	}
+
+	if d.HasChanges("oidc") {
+
+		if err = waitForNKSClusterActive(ctx, d, config, *cluster.Uuid); err != nil {
+			return diag.FromErr(err)
+		}
+
+		var oidcSpec *vnks.UpdateOidcDto
+		oidc, _ := d.GetOk("oidc")
+		oidcSpec = expandNKSClusterOIDCSpec(oidc.([]interface{}))
+
+		_, err = config.Client.vnks.V2Api.ClustersUuidOidcPatch(ctx, oidcSpec, cluster.Uuid)
+		if err != nil {
+			logErrorResponse("resourceNcloudNKSClusterOIDCPatch", err, oidcSpec)
+			return diag.FromErr(err)
+		}
+
+		logResponse("resourceNcloudNKSClusterOIDCPatch", oidcSpec)
+		if err := waitForNKSClusterActive(ctx, d, config, *cluster.Uuid); err != nil {
+			return diag.FromErr(err)
+		}
+	}
+
+	if d.HasChanges("ip_acl", "ip_acl_default_action") && !checkFinSite(config) {
+
+		ipAclReq := &vnks.IpAclsDto{
+			DefaultAction: StringPtrOrNil(d.GetOk("ip_acl_default_action")),
+			Entries:       []*vnks.IpAclsEntriesDto{},
+		}
+		if ipAcl, ok := d.GetOk("ip_acl"); ok {
+			ipAclReq.Entries = expandNKSClusterIPAcl(ipAcl)
+		}
+
+		_, err = config.Client.vnks.V2Api.ClustersUuidIpAclPatch(ctx, ipAclReq, cluster.Uuid)
+		if err != nil {
+			logErrorResponse("resourceNcloudNKSClusterIPAclPatch", err, ipAclReq)
+			return diag.FromErr(err)
+		}
+	}
+
+	if d.HasChanges("log") {
+
+		var logDto *vnks.AuditLogDto
+		if log, ok := d.GetOk("log"); ok {
+			logDto = expandNKSClusterLogInput(log.([]interface{}), logDto)
+		} else {
+			logDto.Audit = ncloud.Bool(false)
+		}
+
+		_, err = config.Client.vnks.V2Api.ClustersUuidLogPatch(ctx, logDto, cluster.Uuid)
+		if err != nil {
+			logErrorResponse("resourceNcloudNKSClusterLogPatch", err, logDto)
+			return diag.FromErr(err)
+		}
+
+	}
+
+	if d.HasChanges("subnet_no_list") {
+
+		oldList, newList := d.GetChange("subnet_no_list")
+		added, _ := getSubnetDiff(oldList, newList)
+
+		subnets := &vnks.AddSubnetDto{
+			Subnets: []*vnks.SubnetDto{},
+		}
+
+		for _, subnetNo := range added {
+			subnets.Subnets = append(subnets.Subnets, &vnks.SubnetDto{Number: subnetNo})
+		}
+
+		_, err = config.Client.vnks.V2Api.ClustersUuidAddSubnetPatch(ctx, subnets, cluster.Uuid)
+		if err != nil {
+			logErrorResponse("resourceNcloudNKSClusterAddSubnetsPatch", err, subnets)
+			return diag.FromErr(err)
+		}
+
+	}
+
+	return resourceNcloudNKSClusterRead(ctx, d, config)
 }
 
 func resourceNcloudNKSClusterDelete(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
@@ -252,7 +503,7 @@ func resourceNcloudNKSClusterDelete(ctx context.Context, d *schema.ResourceData,
 func waitForNKSClusterDeletion(ctx context.Context, d *schema.ResourceData, config *ProviderConfig) error {
 	stateConf := &resource.StateChangeConf{
 		Pending: []string{NKSStatusDeletingCode},
-		Target:  []string{NKSStatusNullCode},
+		Target:  []string{NKSStatusNullCode, NKSStatusRunningCode}, // ToDo: remove runnig status after external autoscaler callback removed.
 		Refresh: func() (result interface{}, state string, err error) {
 			cluster, err := getNKSClusterFromList(ctx, config, d.Id())
 			if err != nil {
@@ -265,7 +516,7 @@ func waitForNKSClusterDeletion(ctx context.Context, d *schema.ResourceData, conf
 		},
 		Timeout:    d.Timeout(schema.TimeoutDelete),
 		MinTimeout: 3 * time.Second,
-		Delay:      2 * time.Second,
+		Delay:      5 * time.Second,
 	}
 	if _, err := stateConf.WaitForStateContext(ctx); err != nil {
 		return fmt.Errorf("Error waiting for NKS Cluster (%s) to become terminating: %s", d.Id(), err)
@@ -290,7 +541,7 @@ func waitForNKSClusterActive(ctx context.Context, d *schema.ResourceData, config
 		},
 		Timeout:    d.Timeout(schema.TimeoutCreate),
 		MinTimeout: 3 * time.Second,
-		Delay:      2 * time.Second,
+		Delay:      5 * time.Second,
 	}
 	if _, err := stateConf.WaitForStateContext(ctx); err != nil {
 		return fmt.Errorf("error waiting for NKS Cluster (%s) to become activating: %s", uuid, err)
@@ -305,6 +556,28 @@ func getNKSCluster(ctx context.Context, config *ProviderConfig, uuid string) (*v
 		return nil, err
 	}
 	return resp.Cluster, nil
+}
+
+func getOIDCSpec(ctx context.Context, config *ProviderConfig, uuid string) (*vnks.OidcRes, error) {
+
+	resp, err := config.Client.vnks.V2Api.ClustersUuidOidcGet(ctx, &uuid)
+	if err != nil {
+		return nil, err
+	}
+	return resp, nil
+}
+
+func getIPAcl(ctx context.Context, config *ProviderConfig, uuid string) (*vnks.IpAclsRes, error) {
+
+	if checkFinSite(config) {
+		return &vnks.IpAclsRes{}, nil
+	}
+
+	resp, err := config.Client.vnks.V2Api.ClustersUuidIpAclGet(ctx, &uuid)
+	if err != nil {
+		return nil, err
+	}
+	return resp, nil
 }
 
 func getNKSClusterFromList(ctx context.Context, config *ProviderConfig, uuid string) (*vnks.Cluster, error) {
@@ -326,4 +599,43 @@ func getNKSClusters(ctx context.Context, config *ProviderConfig) ([]*vnks.Cluste
 		return nil, err
 	}
 	return resp.Clusters, nil
+}
+
+func getSubnetDiff(oldList interface{}, newList interface{}) (added []*int32, removed []*int32) {
+	oldMap := make(map[string]int)
+	newMap := make(map[string]int)
+
+	for _, v := range expandStringInterfaceList(oldList.(([]interface{}))) {
+		oldMap[*v] += 1
+	}
+	for _, v := range expandStringInterfaceList(newList.(([]interface{}))) {
+		newMap[*v] += 1
+	}
+
+	for subnet, _ := range oldMap {
+		if _, exist := newMap[subnet]; !exist {
+			intV, err := strconv.Atoi(subnet)
+			if err == nil {
+				removed = append(removed, ncloud.Int32(int32(intV)))
+			}
+		}
+	}
+
+	for subnet, _ := range newMap {
+		if _, exist := oldMap[subnet]; !exist {
+			intV, err := strconv.Atoi(subnet)
+			if err == nil {
+				added = append(added, ncloud.Int32(int32(intV)))
+			}
+		}
+	}
+	return
+}
+
+func checkFinSite(config *ProviderConfig) (result bool) {
+	ncloudApiGw := os.Getenv("NCLOUD_API_GW")
+	if config.Site == "fin" || strings.HasSuffix(ncloudApiGw, "apigw.fin-ntruss.com") {
+		result = true
+	}
+	return
 }

@@ -31,11 +31,13 @@ In addition to all arguments above, the following attributes are exported:
 * `id` - The ID of nodepool.`CusterUuid:NodePoolName`
 * `node_count` - Number of nodes.
 * `product_code` - Product code.
+* `software_code` - Server image code.
 * `autoscale`
   * `enable` - Auto scaling availability.
   * `max` - Maximum number of nodes available for auto scaling.
   * `min` - Minimum number of nodes available for auto scaling.
-* `subnet_no` - Subnet No.
+* `subnet_no` - Subnet No.(Deprecated)
+* `subnet_no_list` - Subnet No List.
 * `instance_no` - Nodepool instance No.
 * `nodes`- Running nodes in nodepool.
   * `name` - The name of Server instance.
@@ -46,3 +48,4 @@ In addition to all arguments above, the following attributes are exported:
   * `node_status` - Node Status.
   * `container_version` - Container version of node.
   * `kernel_version` - kernel version of node.
+* `k8s_version` - Kubenretes version .

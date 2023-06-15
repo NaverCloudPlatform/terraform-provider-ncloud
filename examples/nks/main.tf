@@ -60,15 +60,17 @@ resource "ncloud_nks_cluster" "cluster" {
   }
 }
 
-data "ncloud_server_image" "image" {
+data "ncloud_nks_server_images" "images"{
   filter {
-    name = "product_name"
-    values = ["ubuntu-20.04"]
+    name = "label"
+    values = ["ubuntu-20.04-64-server"]
   }
 }
 
-data "ncloud_server_product" "product" {
-  server_image_product_code = data.ncloud_server_image.image.product_code
+data "ncloud_nks_server_products" "products" {
+
+  software_code = data.ncloud_nks_server_images.images.images[0].value
+  zone = "KR-1"
 
   filter {
     name = "product_type"
@@ -96,7 +98,8 @@ resource "ncloud_nks_node_pool" "node_pool" {
   cluster_uuid = ncloud_nks_cluster.cluster.uuid
   node_pool_name = "pool1"
   node_count     = 1
-  product_code   = data.ncloud_server_product.product.product_code
+  product_code   = data.ncloud_nks_server_products.products.products[0].value
+  software_code  = data.ncloud_nks_server_images.images.images[0].value
   subnet_no      = ncloud_subnet.node_subnet.id
   autoscale {
     enabled = true
