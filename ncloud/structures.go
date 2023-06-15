@@ -322,7 +322,8 @@ func getInt32FromString(v interface{}, ok bool) *int32 {
 	}
 }
 
-func expandStringInterfaceListToInt32List(list []interface{}) (res []*int32) {
+func expandStringInterfaceListToInt32List(list []interface{}) []*int32 {
+	res := make([]*int32, 0)
 	for _, v := range list {
 		intV, err := strconv.Atoi(v.(string))
 		if err == nil {
@@ -332,15 +333,14 @@ func expandStringInterfaceListToInt32List(list []interface{}) (res []*int32) {
 	return res
 }
 
-func flattenInt32ListToStringList(list []*int32) (res []*string) {
+func flattenInt32ListToStringList(list []*int32) []*string {
+	res := make([]*string, 0)
 	for _, v := range list {
 		res = append(res, ncloud.IntString(int(ncloud.Int32Value(v))))
 	}
-	return
+	return res
 }
-func add[T int8 | int16 | int32 | int64 | int](a, b T) T {
-	return a + b
-}
+
 func flattenNKSClusterLogInput[T *vnks.ClusterLogInput | *vnks.AuditLogDto](logInput T) []map[string]interface{} {
 	if logInput == nil {
 		return nil
@@ -383,11 +383,12 @@ func expandNKSClusterLogInput[T *vnks.ClusterLogInput | *vnks.AuditLogDto](logLi
 }
 
 func flattenNKSClusterOIDCSpec(oidcSpec *vnks.OidcRes) []map[string]interface{} {
+	res := make([]map[string]interface{}, 0)
 	if oidcSpec == nil || !*oidcSpec.Status {
-		return []map[string]interface{}{}
+		return res
 	}
 
-	result := []map[string]interface{}{
+	res = []map[string]interface{}{
 		{
 			"issuer_url":      ncloud.StringValue(oidcSpec.IssuerURL),
 			"client_id":       ncloud.StringValue(oidcSpec.ClientId),
@@ -398,44 +399,44 @@ func flattenNKSClusterOIDCSpec(oidcSpec *vnks.OidcRes) []map[string]interface{} 
 			"required_claim":  ncloud.StringValue(oidcSpec.RequiredClaim),
 		},
 	}
-	return result
+	return res
 }
 
-func expandNKSClusterOIDCSpec(oidc []interface{}) (result *vnks.UpdateOidcDto) {
-	result = &vnks.UpdateOidcDto{Status: ncloud.Bool(false)}
+func expandNKSClusterOIDCSpec(oidc []interface{}) *vnks.UpdateOidcDto {
+	res := &vnks.UpdateOidcDto{Status: ncloud.Bool(false)}
 	if len(oidc) == 0 {
-		return
+		return res
 	}
 
 	oidcSpec := oidc[0].(map[string]interface{})
 	if oidcSpec["issuer_url"].(string) != "" && oidcSpec["client_id"].(string) != "" {
-		result.Status = ncloud.Bool(true)
-		result.IssuerURL = ncloud.String(oidcSpec["issuer_url"].(string))
-		result.ClientId = ncloud.String(oidcSpec["client_id"].(string))
+		res.Status = ncloud.Bool(true)
+		res.IssuerURL = ncloud.String(oidcSpec["issuer_url"].(string))
+		res.ClientId = ncloud.String(oidcSpec["client_id"].(string))
 
 		usernameClaim, ok := oidcSpec["username_claim"]
 		if ok {
-			result.UsernameClaim = ncloud.String(usernameClaim.(string))
+			res.UsernameClaim = ncloud.String(usernameClaim.(string))
 		}
 		usernamePrefix, ok := oidcSpec["username_prefix"]
 		if ok {
-			result.UsernamePrefix = ncloud.String(usernamePrefix.(string))
+			res.UsernamePrefix = ncloud.String(usernamePrefix.(string))
 		}
 		groupsClaim, ok := oidcSpec["groups_claim"]
 		if ok {
-			result.GroupsClaim = ncloud.String(groupsClaim.(string))
+			res.GroupsClaim = ncloud.String(groupsClaim.(string))
 		}
 		groupsPrefix, ok := oidcSpec["groups_prefix"]
 		if ok {
-			result.GroupsPrefix = ncloud.String(groupsPrefix.(string))
+			res.GroupsPrefix = ncloud.String(groupsPrefix.(string))
 		}
 		requiredClaims, ok := oidcSpec["required_claim"]
 		if ok {
-			result.RequiredClaim = ncloud.String(requiredClaims.(string))
+			res.RequiredClaim = ncloud.String(requiredClaims.(string))
 		}
 	}
 
-	return
+	return res
 }
 
 func flattenNKSClusterIPAclEntries(ipAcl *vnks.IpAclsRes) *schema.Set {
@@ -457,12 +458,13 @@ func flattenNKSClusterIPAclEntries(ipAcl *vnks.IpAclsRes) *schema.Set {
 
 }
 
-func expandNKSClusterIPAcl(acl interface{}) (result []*vnks.IpAclsEntriesDto) {
+func expandNKSClusterIPAcl(acl interface{}) []*vnks.IpAclsEntriesDto {
 	if acl == nil {
 		return nil
 	}
 
 	set := acl.(*schema.Set)
+	res := make([]*vnks.IpAclsEntriesDto, 0)
 	for _, raw := range set.List() {
 		entry := raw.(map[string]interface{})
 
@@ -473,15 +475,16 @@ func expandNKSClusterIPAcl(acl interface{}) (result []*vnks.IpAclsEntriesDto) {
 		if comment, exist := entry["comment"].(string); exist {
 			add.Comment = ncloud.String(comment)
 		}
-		result = append(result, add)
+		res = append(res, add)
 	}
 
-	return
+	return res
 }
 
-func flattenNKSNodePoolAutoScale(ao *vnks.AutoscaleOption) (res []map[string]interface{}) {
+func flattenNKSNodePoolAutoScale(ao *vnks.AutoscaleOption) []map[string]interface{} {
+	res := make([]map[string]interface{}, 0)
 	if ao == nil {
-		return
+		return res
 	}
 	m := map[string]interface{}{
 		"enabled": ncloud.BoolValue(ao.Enabled),
@@ -489,7 +492,7 @@ func flattenNKSNodePoolAutoScale(ao *vnks.AutoscaleOption) (res []map[string]int
 		"max":     ncloud.Int32Value(ao.Max),
 	}
 	res = append(res, m)
-	return
+	return res
 }
 
 func expandNKSNodePoolAutoScale(as []interface{}) *vnks.AutoscalerUpdate {
@@ -504,9 +507,10 @@ func expandNKSNodePoolAutoScale(as []interface{}) *vnks.AutoscalerUpdate {
 	}
 }
 
-func flattenNKSWorkerNodes(wns []*vnks.WorkerNode) (res []map[string]interface{}) {
+func flattenNKSWorkerNodes(wns []*vnks.WorkerNode) []map[string]interface{} {
+	res := make([]map[string]interface{}, 0)
 	if wns == nil {
-		return
+		return res
 	}
 	for _, wn := range wns {
 		m := map[string]interface{}{
@@ -522,7 +526,7 @@ func flattenNKSWorkerNodes(wns []*vnks.WorkerNode) (res []map[string]interface{}
 		res = append(res, m)
 	}
 
-	return
+	return res
 }
 
 func expandSourceBuildEnvVarsParams(eVars []interface{}) ([]*sourcebuild.ProjectEnvEnvVars, error) {
