@@ -175,9 +175,10 @@ func resourceNcloudNKSCluster() *schema.Resource {
 				},
 			},
 			"ip_acl_default_action": {
-				Type:     schema.TypeString,
-				Optional: true,
-				Computed: true,
+				Type:             schema.TypeString,
+				Optional:         true,
+				Computed:         true,
+				ValidateDiagFunc: ToDiagFunc(validation.StringInSlice([]string{"allow", "deny"}, false)),
 			},
 			"ip_acl": {
 				Type:       schema.TypeSet,
