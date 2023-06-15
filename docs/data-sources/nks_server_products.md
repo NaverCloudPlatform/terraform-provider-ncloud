@@ -21,24 +21,8 @@ data "ncloud_nks_server_products" "product" {
   zone = "KR-1"
 
   filter {
-    name = "product_type"
-    values = [ "STAND" ]
-  }
-
-  filter {
-    name = "cpu_count"
-    values = [ 2 ]
-  }
-
-  filter {
-    name = "memory_size"
-    values = [ "8GB" ]
-  }
-
-  filter {
-    name = "product_code"
-    values = [ "SSD" ]
-    regex = true
+    name = "label"
+    values = ["vCPU 2개, 메모리 16GB, [SSD]디스크 50GB" ]
   }
 }
 
