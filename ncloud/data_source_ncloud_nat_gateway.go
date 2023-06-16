@@ -26,6 +26,10 @@ func dataSourceNcloudNatGateway() *schema.Resource {
 			Type:     schema.TypeString,
 			Optional: true,
 		},
+		"description": {
+			Type:     schema.TypeString,
+			Optional: true,
+		},
 		"filter": dataSourceFiltersSchema(),
 	}
 
@@ -91,7 +95,12 @@ func getNatGatewayListFiltered(d *schema.ResourceData, config *ProviderConfig) (
 			"description":    *r.NatGatewayDescription,
 			"public_ip":      *r.PublicIp,
 			"vpc_no":         *r.VpcNo,
+			"vpc_name":       *r.VpcName,
 			"zone":           *r.ZoneCode,
+			"subnet_no":      *r.SubnetNo,
+			"subnet_name":    *r.SubnetName,
+			"private_ip":     *r.PrivateIp,
+			"public_ip_no":   *r.PublicIpInstanceNo,
 		}
 
 		resources = append(resources, instance)

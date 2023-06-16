@@ -45,6 +45,10 @@ In addition to all arguments above, the following attributes are exported:
 
 * `nat_gateway_no` - The ID of NAT gateway. (It is the same result as `id`)
 * `vpc_no` - The ID of the associated VPC.
+* `subnet_no` - The ID of the associated Subnet.
+* `subnet_name` - The name of the associated Subnet.
 * `zone` - Available zone where the NAT gateway placed.
 * `public_ip` - Public IP on NAT Gateway created.
+* `public_ip_no` - The ID of the associated Public IP.
+* `private_ip` - Private IP on NAT Gateway created.
 * `description` - Description of NAT Gateway.

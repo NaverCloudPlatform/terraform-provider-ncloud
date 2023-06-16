@@ -34,7 +34,7 @@ The following arguments are supported:
 * `network_acl_no` - (Required) The ID of Network ACL.
 * `subnet_type` - (Required) Internet connectivity. If you use `PUBLIC` all VMs created within Subnet will be assigned a certified IP by default and will be able to communicate directly over the Internet. Considering the characteristics of Subnet, you can choose Subnet for the purpose of use. Accepted values: `PUBLIC` (Public) | `PRIVATE` (Private).
 * `name` - (Optional) The name to create. If omitted, Terraform will assign a random, unique name.
-* `usage_type` - (Optional) Usage type, Default `GEN`. Accepted values: `GEN` (General) | `LOADB` (For load balancer) | `NATGW` (for NAT Gateway. Only pub env).
+* `usage_type` - (Optional) Usage type, Default `GEN`. Accepted values: `GEN` (General) | `LOADB` (For LoadBalancer) | `BM` (For BareMetal) |`NATGW` (for NATGateway).
 
 ## Attributes Reference
 
