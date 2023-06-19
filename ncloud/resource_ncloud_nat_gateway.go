@@ -61,10 +61,10 @@ func resourceNcloudNatGateway() *schema.Resource {
 				ForceNew: true,
 			},
 			"public_ip_no": {
-				Type:     schema.TypeString,
-				Optional: true,
+				Type: schema.TypeString,
+				//Optional: true,
 				Computed: true,
-				ForceNew: true,
+				//ForceNew: true,
 			},
 			"nat_gateway_no": {
 				Type:     schema.TypeString,
@@ -108,9 +108,11 @@ func resourceNcloudNatGatewayCreate(d *schema.ResourceData, meta interface{}) er
 		reqParams.NatGatewayDescription = ncloud.String(v.(string))
 	}
 
-	if v, ok := d.GetOk("public_ip_no"); ok {
-		reqParams.PublicIpInstanceNo = ncloud.String(v.(string))
-	}
+	/*
+		if v, ok := d.GetOk("public_ip_no"); ok {
+			reqParams.PublicIpInstanceNo = ncloud.String(v.(string))
+		}
+	*/
 
 	if v, ok := d.GetOk("private_ip"); ok {
 		reqParams.PrivateIp = ncloud.String(v.(string))

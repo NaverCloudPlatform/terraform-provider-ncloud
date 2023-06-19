@@ -58,7 +58,6 @@ The following arguments are supported:
 * `zone` - (Required) Available zone where the subnet will be placed physically.
 * `subnet_no` - (Conditional) The ID of the associated SUBNET. This is required when creating a new one. The subnet type determines whether the NATGateway type is public or private. 
 * `name` - (Optional) The name to create. If omitted, Terraform will assign a random, unique name.
-* `public_ip_no` - (Optional) The ID of the associated Public IP. If omitted, will auto create. should only be set if public type.
 * `private ip` - (Optional) Private IP on created NAT Gateway. If omitted, will auto create.
 * `description` - (Optional) description to create.
 
@@ -69,6 +68,7 @@ In addition to all arguments above, the following attributes are exported:
 * `id` - The ID of the NAT Gateway.
 * `nat_gateway_no` - The ID of the NAT Gateway. (It is the same result as `id`) 
 * `public_ip` - Public IP on created NAT Gateway.
+* `public_ip_no` - The ID of the associated Public IP.
 * `subnet_name` - Subnet name on created NAT Gateway.
 
 ## Import

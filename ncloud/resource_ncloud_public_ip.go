@@ -393,6 +393,10 @@ func checkAssociatedPublicIP(config *ProviderConfig, id string) (bool, error) {
 		return false, err
 	}
 
+	if instance == nil {
+		return false, nil
+	}
+
 	return instance.ServerInstanceNo != nil && *instance.ServerInstanceNo != "", nil
 }
 
