@@ -16,6 +16,7 @@ func TestAccResourceNcloudNatGateway_basic(t *testing.T) {
 	var natGateway vpc.NatGatewayInstance
 	name := fmt.Sprintf("test-nat-gateway-%s", acctest.RandString(5))
 	resourceName := "ncloud_nat_gateway.nat_gateway"
+	resourcePrivate := "ncloud_nat_gateway.nat_gateway_private"
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -29,10 +30,19 @@ func TestAccResourceNcloudNatGateway_basic(t *testing.T) {
 					resource.TestMatchResourceAttr(resourceName, "vpc_no", regexp.MustCompile(`^\d+$`)),
 					resource.TestMatchResourceAttr(resourceName, "nat_gateway_no", regexp.MustCompile(`^\d+$`)),
 					resource.TestCheckResourceAttr(resourceName, "name", name),
+
+					testAccCheckNatGatewayExists(resourcePrivate, &natGateway),
+					resource.TestMatchResourceAttr(resourcePrivate, "vpc_no", regexp.MustCompile(`^\d+$`)),
+					resource.TestMatchResourceAttr(resourcePrivate, "nat_gateway_no", regexp.MustCompile(`^\d+$`)),
 				),
 			},
 			{
 				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+			{
+				ResourceName:      resourcePrivate,
 				ImportState:       true,
 				ImportStateVerify: true,
 			},
@@ -155,10 +165,36 @@ resource "ncloud_vpc" "vpc" {
 	ipv4_cidr_block = "10.3.0.0/16"
 }
 
+resource "ncloud_subnet" "subnet_public" {
+  vpc_no         = ncloud_vpc.vpc.id
+  subnet         = cidrsubnet(ncloud_vpc.vpc.ipv4_cidr_block, 8, 1)
+  zone           = "KR-1"
+  network_acl_no = ncloud_vpc.vpc.default_network_acl_no
+  subnet_type    = "PUBLIC"
+  usage_type     = "NATGW"
+}
+
+resource "ncloud_subnet" "subnet_private" {
+  vpc_no         = ncloud_vpc.vpc.id
+  subnet         = cidrsubnet(ncloud_vpc.vpc.ipv4_cidr_block, 8, 2)
+  zone           = "KR-1"
+  network_acl_no = ncloud_vpc.vpc.default_network_acl_no
+  subnet_type    = "PRIVATE"
+  usage_type     = "NATGW"
+}
+
 resource "ncloud_nat_gateway" "nat_gateway" {
   vpc_no      = ncloud_vpc.vpc.vpc_no
+  subnet_no   = ncloud_subnet.subnet_public.id
   zone        = "KR-1"
   name        = "%[1]s"
+  description = "%[2]s"
+}
+
+resource "ncloud_nat_gateway" "nat_gateway_private" {
+  vpc_no      = ncloud_vpc.vpc.vpc_no
+  subnet_no   = ncloud_subnet.subnet_private.id
+  zone        = "KR-1"
   description = "%[2]s"
 }
 `, name, description)

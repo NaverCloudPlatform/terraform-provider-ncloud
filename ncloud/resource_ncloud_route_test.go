@@ -74,8 +74,18 @@ resource "ncloud_route_table" "route_table" {
 	supported_subnet_type = "PRIVATE"
 }
 
+resource "ncloud_subnet" "subnet" {
+  vpc_no         = ncloud_vpc.vpc.id
+  subnet         = cidrsubnet(ncloud_vpc.vpc.ipv4_cidr_block, 8, 1)
+  zone           = "KR-1"
+  network_acl_no = ncloud_vpc.vpc.default_network_acl_no
+  subnet_type    = "PUBLIC"
+  usage_type     = "NATGW"
+}
+
 resource "ncloud_nat_gateway" "nat_gateway" {
   vpc_no      = ncloud_vpc.vpc.id
+  subnet_no   = ncloud_subnet.subnet.id
   zone        = "KR-1"
 }
 
