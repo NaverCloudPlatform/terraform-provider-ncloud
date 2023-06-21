@@ -41,6 +41,16 @@ resource "ncloud_subnet" "subnet_scn_02_private" {
   // PRIVATE(Private)
 }
 
+resource "ncloud_subnet" "subnet_scn_02_public_natgw" {
+  vpc_no         = ncloud_vpc.vpc_scn_02.id
+  subnet         = cidrsubnet(ncloud_vpc.vpc_scn_02.ipv4_cidr_block, 8, 2)
+  // "10.0.2.0/24"
+  zone           = "KR-2"
+  network_acl_no = ncloud_network_acl.network_acl_02_public.id
+  subnet_type    = "PUBLIC"
+  usage_type     = "NATGW"
+}
+
 # Network ACL
 resource "ncloud_network_acl" "network_acl_02_public" {
   vpc_no = ncloud_vpc.vpc_scn_02.id
@@ -78,9 +88,10 @@ resource "ncloud_public_ip" "public_ip_scn_02" {
 
 # NAT Gateway
 resource "ncloud_nat_gateway" "nat_gateway_scn_02" {
-  vpc_no = ncloud_vpc.vpc_scn_02.id
-  zone   = "KR-2"
-  name   = var.name_scn02
+  vpc_no    = ncloud_vpc.vpc_scn_02.id
+  subnet_no = ncloud_subnet.subnet_scn_02_public_natgw.id
+  zone      = "KR-2"
+  name      = var.name_scn02
 }
 
 # Route Table

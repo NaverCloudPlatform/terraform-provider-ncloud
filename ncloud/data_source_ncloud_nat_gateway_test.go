@@ -2,8 +2,9 @@ package ncloud
 
 import (
 	"fmt"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
 	"testing"
+
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 )
@@ -29,6 +30,9 @@ func TestAccDataSourceNcloudNatGateway_basic(t *testing.T) {
 					resource.TestCheckResourceAttrPair(dataName, "nat_gateway_no", resourceName, "nat_gateway_no"),
 					resource.TestCheckResourceAttrPair(dataName, "zone", resourceName, "zone"),
 					resource.TestCheckResourceAttrPair(dataName, "vpc_no", resourceName, "vpc_no"),
+					resource.TestCheckResourceAttrPair(dataName, "subnet_no", resourceName, "subnet_no"),
+					resource.TestCheckResourceAttrPair(dataName, "subnet_name", resourceName, "subnet_name"),
+					resource.TestCheckResourceAttrPair(dataName, "public_ip_no", resourceName, "public_ip_no"),
 				),
 			},
 		},
@@ -42,8 +46,18 @@ resource "ncloud_vpc" "vpc" {
 	ipv4_cidr_block = "10.3.0.0/16"
 }
 
+resource "ncloud_subnet" "subnet" {
+  vpc_no         = ncloud_vpc.vpc.id
+  subnet         = cidrsubnet(ncloud_vpc.vpc.ipv4_cidr_block, 8, 1)
+  zone           = "KR-1"
+  network_acl_no = ncloud_vpc.vpc.default_network_acl_no
+  subnet_type    = "PUBLIC"
+  usage_type     = "NATGW"
+}
+
 resource "ncloud_nat_gateway" "nat_gateway" {
   vpc_no      = ncloud_vpc.vpc.vpc_no
+  subnet_no   = ncloud_subnet.subnet.id
   zone        = "KR-1"
   name        = "%[1]s"
   description = "description"
