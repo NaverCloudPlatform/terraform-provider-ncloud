@@ -1,4 +1,4 @@
-# Data Source: ncloud_subnet
+# Data Source: ncloud_subnets
 
 This resource is useful for look up the list of Subnet in the region.
 
@@ -32,7 +32,7 @@ The following arguments are supported:
 * `zone` - (Optional) Available zone where the subnet will be placed physically.
 * `network_acl_no` - (Optional) The ID of Network ACL.
 * `subnet_type` - (Optional) Internet connectivity. If you use `PUBLIC`, all VMs created within Subnet will be assigned a certified IP by default and will be able to communicate directly over the Internet. Considering the characteristics of Subnet, you can choose Subnet for the purpose of use. Accepted values: `PUBLIC` (Public) | `PRIVATE` (Private).
-* `usage_type` - (Optional) Usage type, Accepted values: `GEN` (General) | `LOADB` (For load balancer) | `NATGW` (for NAT Gateway. Only pub env).
+* `usage_type` - (Optional) Usage type, Accepted values: `GEN` (General) | `LOADB` (For LoadBalancer) | `BM` (For BareMetal) |`NATGW` (for NATGateway).
 * `filter` - (Optional) Custom filter block as described below.
   * `name` - (Required) The name of the field to filter by
   * `values` - (Required) Set of values that are accepted for the given field.

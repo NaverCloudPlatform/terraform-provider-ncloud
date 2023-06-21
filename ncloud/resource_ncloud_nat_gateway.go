@@ -36,7 +36,6 @@ func resourceNcloudNatGateway() *schema.Resource {
 			"description": {
 				Type:             schema.TypeString,
 				Optional:         true,
-				Computed:         true,
 				ValidateDiagFunc: ToDiagFunc(validation.StringLenBetween(0, 1000)),
 			},
 			"vpc_no": {
@@ -49,6 +48,22 @@ func resourceNcloudNatGateway() *schema.Resource {
 				Required: true,
 				ForceNew: true,
 			},
+			"subnet_no": {
+				Type:     schema.TypeString,
+				Optional: true,
+				Computed: true,
+				ForceNew: true,
+			},
+			"private_ip": {
+				Type:     schema.TypeString,
+				Optional: true,
+				Computed: true,
+				ForceNew: true,
+			},
+			"public_ip_no": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
 			"nat_gateway_no": {
 				Type:     schema.TypeString,
 				Computed: true,
@@ -58,14 +73,6 @@ func resourceNcloudNatGateway() *schema.Resource {
 				Computed: true,
 			},
 			"subnet_name": {
-				Type:     schema.TypeString,
-				Computed: true,
-			},
-			"subnet_no": {
-				Type:     schema.TypeString,
-				Computed: true,
-			},
-			"private_ip": {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
@@ -80,10 +87,15 @@ func resourceNcloudNatGatewayCreate(d *schema.ResourceData, meta interface{}) er
 		return NotSupportClassic("resource `ncloud_nat_gateway`")
 	}
 
+	if _, ok := d.GetOk("subnet_no"); !ok {
+		return fmt.Errorf("subnet_no is required when creating a new NATGW")
+	}
+
 	reqParams := &vpc.CreateNatGatewayInstanceRequest{
 		RegionCode: &config.RegionCode,
 		VpcNo:      ncloud.String(d.Get("vpc_no").(string)),
 		ZoneCode:   ncloud.String(d.Get("zone").(string)),
+		SubnetNo:   ncloud.String(d.Get("subnet_no").(string)),
 	}
 
 	if v, ok := d.GetOk("name"); ok {
@@ -92,6 +104,10 @@ func resourceNcloudNatGatewayCreate(d *schema.ResourceData, meta interface{}) er
 
 	if v, ok := d.GetOk("description"); ok {
 		reqParams.NatGatewayDescription = ncloud.String(v.(string))
+	}
+
+	if v, ok := d.GetOk("private_ip"); ok {
+		reqParams.PrivateIp = ncloud.String(v.(string))
 	}
 
 	logCommonRequest("CreateNatGatewayInstance", reqParams)
@@ -137,6 +153,7 @@ func resourceNcloudNatGatewayRead(d *schema.ResourceData, meta interface{}) erro
 	d.Set("subnet_name", instance.SubnetName)
 	d.Set("subnet_no", instance.SubnetNo)
 	d.Set("private_ip", instance.PrivateIp)
+	d.Set("public_ip_no", instance.PublicIpInstanceNo)
 
 	return nil
 }
