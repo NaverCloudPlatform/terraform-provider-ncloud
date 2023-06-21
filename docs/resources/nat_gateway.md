@@ -2,6 +2,10 @@
 
 Provides a NAT gateway resource.
 
+~> **NOTE:** This resource only supports VPC environment.
+
+~> **NOTE:** Old Version(Subnet not associated) no longer support new creation.
+
 ## Example Usage
 
 ### Old Version(Subnet not associated) Usage
@@ -15,7 +19,7 @@ resource "ncloud_vpc" "vpc" {
 resource "ncloud_nat_gateway" "nat_gateway" {
   vpc_no      = ncloud_vpc.vpc.id
   zone        = "KR-2"
-  // below fields is optional
+  // below fields are optional
   name        = "nat-gw"
   description = "description"
 }
@@ -43,7 +47,7 @@ resource "ncloud_nat_gateway" "nat_gateway" {
   vpc_no      = ncloud_vpc.vpc.id
   subnet_no   = ncloud_subnet.subnet.id
   zone        = "KR-2"
-  // below fields is optional
+  // below fields are optional
   name        = "nat-gw"
   description = "description"
 }
