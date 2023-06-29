@@ -19,7 +19,7 @@ data "ncloud_sourcedeploy_projects" "deploy_projects"{
 }
 
 output "deploy_projects_output"{
-  value = data.ncloud_Sourcedeploy_projects.data_projects.projects
+  value = data.ncloud_sourcedeploy_projects.deploy_projects.projects
 }
 ```
 
