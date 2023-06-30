@@ -6,9 +6,6 @@ Provides an rule of ACG(Access Control Group) resource.
 
 ~> **NOTE:** Do not create multiple ACG(Access Control Group) Rule resources and set them to a single ACG, as only one ACG Rule will be applied to a single ACG and may behave differently than expected, causing the rule to be overwritten.
 
-~> **NOTE:** To performance, we recommend using one resource per ACG(Access Control Group). If you use multiple resources in a single ACG(Access Control Group), then can cause a slowdown.
-
-
 ## Example Usage
 
 ```hcl
