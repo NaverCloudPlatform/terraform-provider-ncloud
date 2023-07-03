@@ -11,15 +11,11 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 
 	. "github.com/terraform-providers/terraform-provider-ncloud/internal/common"
-	"github.com/terraform-providers/terraform-provider-ncloud/internal/provider"
+	"github.com/terraform-providers/terraform-provider-ncloud/internal/conn"
 	. "github.com/terraform-providers/terraform-provider-ncloud/internal/verify"
 )
 
-func init() {
-	provider.RegisterResource("ncloud_sourcedeploy_project", resourceNcloudSourceDeployProject())
-}
-
-func resourceNcloudSourceDeployProject() *schema.Resource {
+func ResourceNcloudSourceDeployProject() *schema.Resource {
 	return &schema.Resource{
 		CreateContext: resourceNcloudSourceDeployProjectCreate,
 		ReadContext:   resourceNcloudSourceDeployProjectRead,
@@ -28,10 +24,10 @@ func resourceNcloudSourceDeployProject() *schema.Resource {
 			StateContext: schema.ImportStatePassthroughContext,
 		},
 		Timeouts: &schema.ResourceTimeout{
-			Create: schema.DefaultTimeout(provider.DefaultTimeout),
-			Read:   schema.DefaultTimeout(provider.DefaultTimeout),
-			Update: schema.DefaultTimeout(provider.DefaultTimeout),
-			Delete: schema.DefaultTimeout(provider.DefaultTimeout),
+			Create: schema.DefaultTimeout(conn.DefaultTimeout),
+			Read:   schema.DefaultTimeout(conn.DefaultTimeout),
+			Update: schema.DefaultTimeout(conn.DefaultTimeout),
+			Delete: schema.DefaultTimeout(conn.DefaultTimeout),
 		},
 		Schema: map[string]*schema.Schema{
 			"name": {
@@ -48,7 +44,7 @@ func resourceNcloudSourceDeployProject() *schema.Resource {
 }
 
 func resourceNcloudSourceDeployProjectCreate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
-	config := meta.(*provider.ProviderConfig)
+	config := meta.(*conn.ProviderConfig)
 
 	if !config.SupportVPC {
 		return diag.FromErr(NotSupportClassic("resource `ncloud_sourcedeploy_project`"))
@@ -71,12 +67,12 @@ func resourceNcloudSourceDeployProjectCreate(ctx context.Context, d *schema.Reso
 }
 
 func resourceNcloudSourceDeployProjectRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
-	config := meta.(*provider.ProviderConfig)
+	config := meta.(*conn.ProviderConfig)
 
 	if !config.SupportVPC {
 		return diag.FromErr(NotSupportClassic("resource `ncloud_sourcedeploy_project`"))
 	}
-	project, err := getSourceDeployProjectById(ctx, config, d.Id())
+	project, err := GetSourceDeployProjectById(ctx, config, d.Id())
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -93,7 +89,7 @@ func resourceNcloudSourceDeployProjectRead(ctx context.Context, d *schema.Resour
 }
 
 func resourceNcloudSourceDeployProjectDelete(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
-	config := meta.(*provider.ProviderConfig)
+	config := meta.(*conn.ProviderConfig)
 	if !config.SupportVPC {
 		return diag.FromErr(NotSupportClassic("resource `ncloud_sourcedeploy_project`"))
 	}
@@ -110,7 +106,7 @@ func resourceNcloudSourceDeployProjectDelete(ctx context.Context, d *schema.Reso
 	return nil
 }
 
-func getSourceDeployProjectById(ctx context.Context, config *provider.ProviderConfig, id string) (*vsourcedeploy.GetIdNameResponse, error) {
+func GetSourceDeployProjectById(ctx context.Context, config *conn.ProviderConfig, id string) (*vsourcedeploy.GetIdNameResponse, error) {
 	projectList, err := getSourceDeployProjects(ctx, config)
 	if err != nil {
 		return nil, err
@@ -123,7 +119,7 @@ func getSourceDeployProjectById(ctx context.Context, config *provider.ProviderCo
 	return nil, nil
 }
 
-func getSourceDeployProjects(ctx context.Context, config *provider.ProviderConfig) ([]*vsourcedeploy.GetIdNameResponse, error) {
+func getSourceDeployProjects(ctx context.Context, config *conn.ProviderConfig) ([]*vsourcedeploy.GetIdNameResponse, error) {
 	reqParams := make(map[string]interface{})
 
 	LogCommonRequest("GetSourceDeployProjects", reqParams)

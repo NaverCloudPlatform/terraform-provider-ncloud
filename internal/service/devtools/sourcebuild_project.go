@@ -13,15 +13,11 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 
 	. "github.com/terraform-providers/terraform-provider-ncloud/internal/common"
-	"github.com/terraform-providers/terraform-provider-ncloud/internal/provider"
+	"github.com/terraform-providers/terraform-provider-ncloud/internal/conn"
 	. "github.com/terraform-providers/terraform-provider-ncloud/internal/verify"
 )
 
-func init() {
-	provider.RegisterResource("ncloud_sourcebuild_project", resourceNcloudSourceBuildProject())
-}
-
-func resourceNcloudSourceBuildProject() *schema.Resource {
+func ResourceNcloudSourceBuildProject() *schema.Resource {
 	return &schema.Resource{
 		CreateContext: resourceNcloudSourceBuildProjectCreate,
 		ReadContext:   resourceNcloudSourceBuildProjectRead,
@@ -31,10 +27,10 @@ func resourceNcloudSourceBuildProject() *schema.Resource {
 			State: schema.ImportStatePassthrough,
 		},
 		Timeouts: &schema.ResourceTimeout{
-			Create: schema.DefaultTimeout(provider.DefaultTimeout),
-			Read:   schema.DefaultTimeout(provider.DefaultTimeout),
-			Update: schema.DefaultTimeout(provider.DefaultTimeout),
-			Delete: schema.DefaultTimeout(provider.DefaultTimeout),
+			Create: schema.DefaultTimeout(conn.DefaultTimeout),
+			Read:   schema.DefaultTimeout(conn.DefaultTimeout),
+			Update: schema.DefaultTimeout(conn.DefaultTimeout),
+			Delete: schema.DefaultTimeout(conn.DefaultTimeout),
 		},
 		Schema: map[string]*schema.Schema{
 			"project_no": {
@@ -486,7 +482,7 @@ func resourceNcloudSourceBuildProject() *schema.Resource {
 }
 
 func resourceNcloudSourceBuildProjectCreate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
-	config := meta.(*provider.ProviderConfig)
+	config := meta.(*conn.ProviderConfig)
 
 	id, err := SourceBuildProjectCreate(d, config)
 
@@ -500,7 +496,7 @@ func resourceNcloudSourceBuildProjectCreate(ctx context.Context, d *schema.Resou
 	return resourceNcloudSourceBuildProjectRead(ctx, d, meta)
 }
 
-func SourceBuildProjectCreate(d *schema.ResourceData, config *provider.ProviderConfig) (*int32, error) {
+func SourceBuildProjectCreate(d *schema.ResourceData, config *conn.ProviderConfig) (*int32, error) {
 	commonParams, paramErr := getCommonProjectParams(d)
 	if paramErr != nil {
 		return nil, paramErr
@@ -530,7 +526,7 @@ func SourceBuildProjectCreate(d *schema.ResourceData, config *provider.ProviderC
 }
 
 func resourceNcloudSourceBuildProjectDelete(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
-	config := meta.(*provider.ProviderConfig)
+	config := meta.(*conn.ProviderConfig)
 
 	id := ncloud.String(d.Id())
 
@@ -546,7 +542,7 @@ func resourceNcloudSourceBuildProjectDelete(ctx context.Context, d *schema.Resou
 }
 
 func resourceNcloudSourceBuildProjectUpdate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
-	config := meta.(*provider.ProviderConfig)
+	config := meta.(*conn.ProviderConfig)
 
 	err := changeBuildProject(ctx, d, config)
 	if err != nil {
@@ -556,7 +552,7 @@ func resourceNcloudSourceBuildProjectUpdate(ctx context.Context, d *schema.Resou
 	return resourceNcloudSourceBuildProjectRead(ctx, d, meta)
 }
 
-func changeBuildProject(ctx context.Context, d *schema.ResourceData, config *provider.ProviderConfig) error {
+func changeBuildProject(ctx context.Context, d *schema.ResourceData, config *conn.ProviderConfig) error {
 	reqParams, paramErr := getCommonProjectParams(d)
 	if paramErr != nil {
 		return paramErr
@@ -761,7 +757,7 @@ func getCommonProjectParams(d *schema.ResourceData) (*sourcebuild.ChangeProject,
 }
 
 func resourceNcloudSourceBuildProjectRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
-	config := meta.(*provider.ProviderConfig)
+	config := meta.(*conn.ProviderConfig)
 
 	project, err := getBuildProject(ctx, config, ncloud.String(d.Id()))
 	if err != nil {
@@ -777,7 +773,7 @@ func resourceNcloudSourceBuildProjectRead(ctx context.Context, d *schema.Resourc
 	return nil
 }
 
-func getBuildProject(ctx context.Context, config *provider.ProviderConfig, id *string) (*sourcebuild.GetProjectDetailResponse, error) {
+func getBuildProject(ctx context.Context, config *conn.ProviderConfig, id *string) (*sourcebuild.GetProjectDetailResponse, error) {
 	LogCommonRequest("getSourceBuildProjectDetail", id)
 	resp, err := config.Client.Sourcebuild.V1Api.GetProject(ctx, id)
 

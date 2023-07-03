@@ -9,15 +9,11 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 
 	. "github.com/terraform-providers/terraform-provider-ncloud/internal/common"
-	. "github.com/terraform-providers/terraform-provider-ncloud/internal/provider"
+	"github.com/terraform-providers/terraform-provider-ncloud/internal/conn"
 	"github.com/terraform-providers/terraform-provider-ncloud/internal/verify"
 )
 
-func init() {
-	RegisterResource("ncloud_placement_group", resourceNcloudPlacementGroup())
-}
-
-func resourceNcloudPlacementGroup() *schema.Resource {
+func ResourceNcloudPlacementGroup() *schema.Resource {
 	return &schema.Resource{
 		Create: resourceNcloudPlacementGroupCreate,
 		Read:   resourceNcloudPlacementGroupRead,
@@ -49,7 +45,7 @@ func resourceNcloudPlacementGroup() *schema.Resource {
 }
 
 func resourceNcloudPlacementGroupCreate(d *schema.ResourceData, meta interface{}) error {
-	config := meta.(*ProviderConfig)
+	config := meta.(*conn.ProviderConfig)
 
 	if !config.SupportVPC {
 		return NotSupportClassic("resource `ncloud_placement_group`")
@@ -85,9 +81,9 @@ func resourceNcloudPlacementGroupCreate(d *schema.ResourceData, meta interface{}
 }
 
 func resourceNcloudPlacementGroupRead(d *schema.ResourceData, meta interface{}) error {
-	config := meta.(*ProviderConfig)
+	config := meta.(*conn.ProviderConfig)
 
-	instance, err := getPlacementGroupInstance(config, d.Id())
+	instance, err := GetPlacementGroupInstance(config, d.Id())
 	if err != nil {
 		return err
 	}
@@ -106,7 +102,7 @@ func resourceNcloudPlacementGroupRead(d *schema.ResourceData, meta interface{}) 
 }
 
 func resourceNcloudPlacementGroupDelete(d *schema.ResourceData, meta interface{}) error {
-	config := meta.(*ProviderConfig)
+	config := meta.(*conn.ProviderConfig)
 
 	reqParams := &vserver.DeletePlacementGroupRequest{
 		RegionCode:       &config.RegionCode,
@@ -125,7 +121,7 @@ func resourceNcloudPlacementGroupDelete(d *schema.ResourceData, meta interface{}
 	return nil
 }
 
-func getPlacementGroupInstance(config *ProviderConfig, id string) (*vserver.PlacementGroup, error) {
+func GetPlacementGroupInstance(config *conn.ProviderConfig, id string) (*vserver.PlacementGroup, error) {
 	reqParams := &vserver.GetPlacementGroupDetailRequest{
 		RegionCode:       &config.RegionCode,
 		PlacementGroupNo: ncloud.String(id),

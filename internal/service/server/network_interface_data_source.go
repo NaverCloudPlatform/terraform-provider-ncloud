@@ -6,15 +6,11 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 
 	. "github.com/terraform-providers/terraform-provider-ncloud/internal/common"
-	. "github.com/terraform-providers/terraform-provider-ncloud/internal/provider"
+	"github.com/terraform-providers/terraform-provider-ncloud/internal/conn"
 	"github.com/terraform-providers/terraform-provider-ncloud/internal/verify"
 )
 
-func init() {
-	RegisterDataSource("ncloud_network_interface", dataSourceNcloudNetworkInterface())
-}
-
-func dataSourceNcloudNetworkInterface() *schema.Resource {
+func DataSourceNcloudNetworkInterface() *schema.Resource {
 	fieldMap := map[string]*schema.Schema{
 		"id": {
 			Type:     schema.TypeString,
@@ -34,11 +30,11 @@ func dataSourceNcloudNetworkInterface() *schema.Resource {
 		"filter": DataSourceFiltersSchema(),
 	}
 
-	return GetSingularDataSourceItemSchema(resourceNcloudNetworkInterface(), fieldMap, dataSourceNcloudNetworkInterfaceRead)
+	return GetSingularDataSourceItemSchema(ResourceNcloudNetworkInterface(), fieldMap, dataSourceNcloudNetworkInterfaceRead)
 }
 
 func dataSourceNcloudNetworkInterfaceRead(d *schema.ResourceData, meta interface{}) error {
-	config := meta.(*ProviderConfig)
+	config := meta.(*conn.ProviderConfig)
 	var resources []map[string]interface{}
 	var err error
 
@@ -61,7 +57,7 @@ func dataSourceNcloudNetworkInterfaceRead(d *schema.ResourceData, meta interface
 	return nil
 }
 
-func getVpcNetworkInterfaceListFiltered(d *schema.ResourceData, config *ProviderConfig) ([]map[string]interface{}, error) {
+func getVpcNetworkInterfaceListFiltered(d *schema.ResourceData, config *conn.ProviderConfig) ([]map[string]interface{}, error) {
 	reqParams := &vserver.GetNetworkInterfaceListRequest{
 		RegionCode:           &config.RegionCode,
 		Ip:                   StringPtrOrNil(d.GetOk("private_ip")),
@@ -108,7 +104,7 @@ func getVpcNetworkInterfaceListFiltered(d *schema.ResourceData, config *Provider
 	}
 
 	if f, ok := d.GetOk("filter"); ok {
-		resources = ApplyFilters(f.(*schema.Set), resources, resourceNcloudNetworkInterface().Schema)
+		resources = ApplyFilters(f.(*schema.Set), resources, ResourceNcloudNetworkInterface().Schema)
 	}
 
 	return resources, nil

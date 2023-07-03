@@ -8,15 +8,11 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 
 	. "github.com/terraform-providers/terraform-provider-ncloud/internal/common"
-	. "github.com/terraform-providers/terraform-provider-ncloud/internal/provider"
+	"github.com/terraform-providers/terraform-provider-ncloud/internal/conn"
 	"github.com/terraform-providers/terraform-provider-ncloud/internal/verify"
 )
 
-func init() {
-	RegisterDataSource("ncloud_vpc", dataSourceNcloudVpc())
-}
-
-func dataSourceNcloudVpc() *schema.Resource {
+func DataSourceNcloudVpc() *schema.Resource {
 	fieldMap := map[string]*schema.Schema{
 		"id": {
 			Type:     schema.TypeString,
@@ -31,11 +27,11 @@ func dataSourceNcloudVpc() *schema.Resource {
 		"filter": DataSourceFiltersSchema(),
 	}
 
-	return GetSingularDataSourceItemSchema(resourceNcloudVpc(), fieldMap, dataSourceNcloudVpcRead)
+	return GetSingularDataSourceItemSchema(ResourceNcloudVpc(), fieldMap, dataSourceNcloudVpcRead)
 }
 
 func dataSourceNcloudVpcRead(d *schema.ResourceData, meta interface{}) error {
-	config := meta.(*ProviderConfig)
+	config := meta.(*conn.ProviderConfig)
 
 	if !config.SupportVPC {
 		return NotSupportClassic("data source `ncloud_vpc`")
@@ -56,7 +52,7 @@ func dataSourceNcloudVpcRead(d *schema.ResourceData, meta interface{}) error {
 	return nil
 }
 
-func getVpcListFiltered(d *schema.ResourceData, config *ProviderConfig) ([]map[string]interface{}, error) {
+func getVpcListFiltered(d *schema.ResourceData, config *conn.ProviderConfig) ([]map[string]interface{}, error) {
 	reqParams := &vpc.GetVpcListRequest{
 		RegionCode: &config.RegionCode,
 	}
@@ -110,7 +106,7 @@ func getVpcListFiltered(d *schema.ResourceData, config *ProviderConfig) ([]map[s
 	}
 
 	if f, ok := d.GetOk("filter"); ok {
-		resources = ApplyFilters(f.(*schema.Set), resources, resourceNcloudVpc().Schema)
+		resources = ApplyFilters(f.(*schema.Set), resources, ResourceNcloudVpc().Schema)
 	}
 
 	return resources, nil

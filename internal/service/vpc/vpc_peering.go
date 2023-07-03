@@ -12,15 +12,11 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 
 	. "github.com/terraform-providers/terraform-provider-ncloud/internal/common"
-	. "github.com/terraform-providers/terraform-provider-ncloud/internal/provider"
+	"github.com/terraform-providers/terraform-provider-ncloud/internal/conn"
 	"github.com/terraform-providers/terraform-provider-ncloud/internal/verify"
 )
 
-func init() {
-	RegisterResource("ncloud_vpc_peering", resourceNcloudVpcPeering())
-}
-
-func resourceNcloudVpcPeering() *schema.Resource {
+func ResourceNcloudVpcPeering() *schema.Resource {
 	return &schema.Resource{
 		Create: resourceNcloudVpcPeeringCreate,
 		Read:   resourceNcloudVpcPeeringRead,
@@ -82,7 +78,7 @@ func resourceNcloudVpcPeering() *schema.Resource {
 }
 
 func resourceNcloudVpcPeeringCreate(d *schema.ResourceData, meta interface{}) error {
-	config := meta.(*ProviderConfig)
+	config := meta.(*conn.ProviderConfig)
 
 	if !config.SupportVPC {
 		return NotSupportClassic("resource `ncloud_vpc_peering`")
@@ -131,9 +127,9 @@ func resourceNcloudVpcPeeringCreate(d *schema.ResourceData, meta interface{}) er
 }
 
 func resourceNcloudVpcPeeringRead(d *schema.ResourceData, meta interface{}) error {
-	config := meta.(*ProviderConfig)
+	config := meta.(*conn.ProviderConfig)
 
-	instance, err := getVpcPeeringInstance(config, d.Id())
+	instance, err := GetVpcPeeringInstance(config, d.Id())
 	if err != nil {
 		d.SetId("")
 		return err
@@ -159,7 +155,7 @@ func resourceNcloudVpcPeeringRead(d *schema.ResourceData, meta interface{}) erro
 }
 
 func resourceNcloudVpcPeeringUpdate(d *schema.ResourceData, meta interface{}) error {
-	config := meta.(*ProviderConfig)
+	config := meta.(*conn.ProviderConfig)
 
 	if d.HasChange("description") {
 		if err := setVpcPeeringDescription(d, config); err != nil {
@@ -171,7 +167,7 @@ func resourceNcloudVpcPeeringUpdate(d *schema.ResourceData, meta interface{}) er
 }
 
 func resourceNcloudVpcPeeringDelete(d *schema.ResourceData, meta interface{}) error {
-	config := meta.(*ProviderConfig)
+	config := meta.(*conn.ProviderConfig)
 
 	reqParams := &vpc.DeleteVpcPeeringInstanceRequest{
 		RegionCode:           &config.RegionCode,
@@ -187,22 +183,22 @@ func resourceNcloudVpcPeeringDelete(d *schema.ResourceData, meta interface{}) er
 
 	LogResponse("DeleteVpcPeeringInstance", resp)
 
-	if err := waitForNcloudVpcPeeringDeletion(config, d.Id()); err != nil {
+	if err := WaitForNcloudVpcPeeringDeletion(config, d.Id()); err != nil {
 		return err
 	}
 
 	return nil
 }
 
-func waitForNcloudVpcPeeringCreation(config *ProviderConfig, id string) error {
+func waitForNcloudVpcPeeringCreation(config *conn.ProviderConfig, id string) error {
 	stateConf := &resource.StateChangeConf{
 		Pending: []string{"INIT", "CREATING"},
 		Target:  []string{"RUN"},
 		Refresh: func() (interface{}, string, error) {
-			instance, err := getVpcPeeringInstance(config, id)
+			instance, err := GetVpcPeeringInstance(config, id)
 			return VpcCommonStateRefreshFunc(instance, err, "VpcPeeringInstanceStatus")
 		},
-		Timeout:    DefaultCreateTimeout,
+		Timeout:    conn.DefaultCreateTimeout,
 		Delay:      2 * time.Second,
 		MinTimeout: 3 * time.Second,
 	}
@@ -214,15 +210,15 @@ func waitForNcloudVpcPeeringCreation(config *ProviderConfig, id string) error {
 	return nil
 }
 
-func waitForNcloudVpcPeeringDeletion(config *ProviderConfig, id string) error {
+func WaitForNcloudVpcPeeringDeletion(config *conn.ProviderConfig, id string) error {
 	stateConf := &resource.StateChangeConf{
 		Pending: []string{"RUN", "TERMTING"},
 		Target:  []string{"TERMINATED"},
 		Refresh: func() (interface{}, string, error) {
-			instance, err := getVpcPeeringInstance(config, id)
+			instance, err := GetVpcPeeringInstance(config, id)
 			return VpcCommonStateRefreshFunc(instance, err, "VpcPeeringInstanceStatus")
 		},
-		Timeout:    DefaultTimeout,
+		Timeout:    conn.DefaultTimeout,
 		Delay:      2 * time.Second,
 		MinTimeout: 3 * time.Second,
 	}
@@ -234,7 +230,7 @@ func waitForNcloudVpcPeeringDeletion(config *ProviderConfig, id string) error {
 	return nil
 }
 
-func getVpcPeeringInstance(config *ProviderConfig, id string) (*vpc.VpcPeeringInstance, error) {
+func GetVpcPeeringInstance(config *conn.ProviderConfig, id string) (*vpc.VpcPeeringInstance, error) {
 	reqParams := &vpc.GetVpcPeeringInstanceDetailRequest{
 		RegionCode:           &config.RegionCode,
 		VpcPeeringInstanceNo: ncloud.String(id),
@@ -256,7 +252,7 @@ func getVpcPeeringInstance(config *ProviderConfig, id string) (*vpc.VpcPeeringIn
 	return nil, nil
 }
 
-func setVpcPeeringDescription(d *schema.ResourceData, config *ProviderConfig) error {
+func setVpcPeeringDescription(d *schema.ResourceData, config *conn.ProviderConfig) error {
 	reqParams := &vpc.SetVpcPeeringDescriptionRequest{
 		RegionCode:            &config.RegionCode,
 		VpcPeeringInstanceNo:  ncloud.String(d.Id()),

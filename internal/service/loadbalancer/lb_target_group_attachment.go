@@ -13,7 +13,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 
 	. "github.com/terraform-providers/terraform-provider-ncloud/internal/common"
-	. "github.com/terraform-providers/terraform-provider-ncloud/internal/provider"
+	"github.com/terraform-providers/terraform-provider-ncloud/internal/conn"
 )
 
 const (
@@ -22,19 +22,15 @@ const (
 	TargetGroupAttachmentInvalidTargetGroupNoErrorCode = "1205009"
 )
 
-func init() {
-	RegisterResource("ncloud_lb_target_group_attachment", resourceNcloudLbTargetGroupAttachment())
-}
-
-func resourceNcloudLbTargetGroupAttachment() *schema.Resource {
+func ResourceNcloudLbTargetGroupAttachment() *schema.Resource {
 	return &schema.Resource{
 		CreateContext: resourceNcloudLbTargetGroupAttachmentCreate,
 		ReadContext:   resourceNcloudLbTargetGroupAttachmentRead,
 		UpdateContext: resourceNcloudLbTargetGroupAttachmentUpdate,
 		DeleteContext: resourceNcloudLbTargetGroupAttachmentDelete,
 		Timeouts: &schema.ResourceTimeout{
-			Create: schema.DefaultTimeout(DefaultCreateTimeout),
-			Delete: schema.DefaultTimeout(DefaultTimeout),
+			Create: schema.DefaultTimeout(conn.DefaultCreateTimeout),
+			Delete: schema.DefaultTimeout(conn.DefaultTimeout),
 		},
 		Schema: map[string]*schema.Schema{
 			"target_group_no": {
@@ -53,7 +49,7 @@ func resourceNcloudLbTargetGroupAttachment() *schema.Resource {
 }
 
 func resourceNcloudLbTargetGroupAttachmentCreate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
-	config := meta.(*ProviderConfig)
+	config := meta.(*conn.ProviderConfig)
 	if !config.SupportVPC {
 		return diag.FromErr(NotSupportClassic("resource `ncloud_lb_target_group_attachment`"))
 	}
@@ -74,12 +70,12 @@ func resourceNcloudLbTargetGroupAttachmentCreate(ctx context.Context, d *schema.
 }
 
 func resourceNcloudLbTargetGroupAttachmentRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
-	config := meta.(*ProviderConfig)
+	config := meta.(*conn.ProviderConfig)
 	if !config.SupportVPC {
 		return diag.FromErr(NotSupportClassic("resource `ncloud_lb_target_group`"))
 	}
 
-	targetNoList, err := getVpcLoadBalancerTargetGroupAttachment(config, d.Get("target_group_no").(string), ncloud.StringListValue(ncloud.StringInterfaceList(d.Get("target_no_list").([]interface{}))))
+	targetNoList, err := GetVpcLoadBalancerTargetGroupAttachment(config, d.Get("target_group_no").(string), ncloud.StringListValue(ncloud.StringInterfaceList(d.Get("target_no_list").([]interface{}))))
 	if err != nil {
 		errorBody, _ := GetCommonErrorBody(err)
 		if errorBody.ReturnCode == TargetGroupAttachmentInvalidTargetGroupNoErrorCode {
@@ -100,7 +96,7 @@ func resourceNcloudLbTargetGroupAttachmentRead(ctx context.Context, d *schema.Re
 }
 
 func resourceNcloudLbTargetGroupAttachmentUpdate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
-	config := meta.(*ProviderConfig)
+	config := meta.(*conn.ProviderConfig)
 	if !config.SupportVPC {
 		return diag.FromErr(NotSupportClassic("resource `ncloud_lb_target_group`"))
 	}
@@ -167,7 +163,7 @@ func resourceNcloudLbTargetGroupAttachmentUpdate(ctx context.Context, d *schema.
 }
 
 func resourceNcloudLbTargetGroupAttachmentDelete(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
-	config := meta.(*ProviderConfig)
+	config := meta.(*conn.ProviderConfig)
 	if !config.SupportVPC {
 		return diag.FromErr(NotSupportClassic("resource `ncloud_lb_target_group_attachment`"))
 	}
@@ -185,7 +181,7 @@ func resourceNcloudLbTargetGroupAttachmentDelete(ctx context.Context, d *schema.
 	return nil
 }
 
-func getVpcLoadBalancerTargetGroupAttachment(config *ProviderConfig, targetGroupNo string, targetNoList []string) ([]string, error) {
+func GetVpcLoadBalancerTargetGroupAttachment(config *conn.ProviderConfig, targetGroupNo string, targetNoList []string) ([]string, error) {
 	reqParams := &vloadbalancer.GetTargetListRequest{
 		RegionCode:    &config.RegionCode,
 		TargetGroupNo: ncloud.String(targetGroupNo),
@@ -220,7 +216,7 @@ func getMatchTargetNoListFromResponse(respTargetList []*vloadbalancer.Target, ta
 	return matchTargetNoList
 }
 
-func waitForAddTarget(ctx context.Context, d *schema.ResourceData, config *ProviderConfig, reqParams *vloadbalancer.AddTargetRequest) error {
+func waitForAddTarget(ctx context.Context, d *schema.ResourceData, config *conn.ProviderConfig, reqParams *vloadbalancer.AddTargetRequest) error {
 	return resource.RetryContext(ctx, d.Timeout(schema.TimeoutCreate), func() *resource.RetryError {
 		LogCommonRequest("resourceNcloudLbTargetGroupAttachmentCreate", reqParams)
 		resp, err := config.Client.Vloadbalancer.V2Api.AddTarget(reqParams)
@@ -238,7 +234,7 @@ func waitForAddTarget(ctx context.Context, d *schema.ResourceData, config *Provi
 	})
 }
 
-func waitForRemoveTarget(ctx context.Context, d *schema.ResourceData, config *ProviderConfig, reqParams *vloadbalancer.RemoveTargetRequest) error {
+func waitForRemoveTarget(ctx context.Context, d *schema.ResourceData, config *conn.ProviderConfig, reqParams *vloadbalancer.RemoveTargetRequest) error {
 	return resource.RetryContext(ctx, d.Timeout(schema.TimeoutDelete), func() *resource.RetryError {
 		LogCommonRequest("resourceNcloudLbTargetGroupAttachmentDelete", reqParams)
 		resp, err := config.Client.Vloadbalancer.V2Api.RemoveTarget(reqParams)

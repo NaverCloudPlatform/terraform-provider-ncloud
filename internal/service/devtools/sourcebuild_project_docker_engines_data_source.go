@@ -7,14 +7,10 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 
 	. "github.com/terraform-providers/terraform-provider-ncloud/internal/common"
-	. "github.com/terraform-providers/terraform-provider-ncloud/internal/provider"
+	"github.com/terraform-providers/terraform-provider-ncloud/internal/conn"
 )
 
-func init() {
-	RegisterDataSource("ncloud_sourcebuild_project_docker_engines", dataSourceNcloudSourceBuildDockerEngines())
-}
-
-func dataSourceNcloudSourceBuildDockerEngines() *schema.Resource {
+func DataSourceNcloudSourceBuildDockerEngines() *schema.Resource {
 	return &schema.Resource{
 		ReadContext: dataSourceNcloudSourceBuildDockerEnginesRead,
 		Schema: map[string]*schema.Schema{
@@ -40,7 +36,7 @@ func dataSourceNcloudSourceBuildDockerEngines() *schema.Resource {
 }
 
 func dataSourceNcloudSourceBuildDockerEnginesRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
-	config := meta.(*ProviderConfig)
+	config := meta.(*conn.ProviderConfig)
 
 	LogCommonRequest("GetDockerEnv", "")
 	resp, err := config.Client.Sourcebuild.V1Api.GetDockerEnv(context.Background())
@@ -62,7 +58,7 @@ func dataSourceNcloudSourceBuildDockerEnginesRead(ctx context.Context, d *schema
 	}
 
 	if f, ok := d.GetOk("filter"); ok {
-		resources = ApplyFilters(f.(*schema.Set), resources, dataSourceNcloudSourceBuildDockerEngines().Schema)
+		resources = ApplyFilters(f.(*schema.Set), resources, DataSourceNcloudSourceBuildDockerEngines().Schema)
 	}
 
 	d.SetId(config.RegionCode)

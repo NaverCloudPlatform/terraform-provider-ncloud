@@ -1,4 +1,4 @@
-package vpc
+package vpc_test
 
 import (
 	"errors"
@@ -12,7 +12,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 
 	. "github.com/terraform-providers/terraform-provider-ncloud/internal/acctest"
-	"github.com/terraform-providers/terraform-provider-ncloud/internal/provider"
+	"github.com/terraform-providers/terraform-provider-ncloud/internal/conn"
+	vpcservice "github.com/terraform-providers/terraform-provider-ncloud/internal/service/vpc"
 )
 
 func TestAccResourceNcloudNatGateway_basic(t *testing.T) {
@@ -244,8 +245,8 @@ func testAccCheckNatGatewayExists(n string, natGateway *vpc.NatGatewayInstance) 
 			return fmt.Errorf("No NAT Gateway id is set")
 		}
 
-		config := GetTestProvider(true).Meta().(*provider.ProviderConfig)
-		instance, err := getNatGatewayInstance(config, rs.Primary.ID)
+		config := GetTestProvider(true).Meta().(*conn.ProviderConfig)
+		instance, err := vpcservice.GetNatGatewayInstance(config, rs.Primary.ID)
 		if err != nil {
 			return err
 		}
@@ -257,14 +258,14 @@ func testAccCheckNatGatewayExists(n string, natGateway *vpc.NatGatewayInstance) 
 }
 
 func testAccCheckNatGatewayDestroy(s *terraform.State) error {
-	config := GetTestProvider(true).Meta().(*provider.ProviderConfig)
+	config := GetTestProvider(true).Meta().(*conn.ProviderConfig)
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "ncloud_nat_gateway" {
 			continue
 		}
 
-		instance, err := getNatGatewayInstance(config, rs.Primary.ID)
+		instance, err := vpcservice.GetNatGatewayInstance(config, rs.Primary.ID)
 
 		if err != nil {
 			return err
@@ -280,7 +281,7 @@ func testAccCheckNatGatewayDestroy(s *terraform.State) error {
 
 func testAccCheckNatGatewayDisappears(instance *vpc.NatGatewayInstance) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
-		config := GetTestProvider(true).Meta().(*provider.ProviderConfig)
+		config := GetTestProvider(true).Meta().(*conn.ProviderConfig)
 
 		reqParams := &vpc.DeleteNatGatewayInstanceRequest{
 			RegionCode:           &config.RegionCode,
@@ -289,7 +290,7 @@ func testAccCheckNatGatewayDisappears(instance *vpc.NatGatewayInstance) resource
 
 		_, err := config.Client.Vpc.V2Api.DeleteNatGatewayInstance(reqParams)
 
-		if err := waitForNcloudNatGatewayDeletion(config, *instance.NatGatewayInstanceNo); err != nil {
+		if err := vpcservice.WaitForNcloudNatGatewayDeletion(config, *instance.NatGatewayInstanceNo); err != nil {
 			return err
 		}
 

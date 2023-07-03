@@ -9,14 +9,10 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 
 	. "github.com/terraform-providers/terraform-provider-ncloud/internal/common"
-	. "github.com/terraform-providers/terraform-provider-ncloud/internal/provider"
+	"github.com/terraform-providers/terraform-provider-ncloud/internal/conn"
 )
 
-func init() {
-	RegisterDataSource("ncloud_ses_clusters", dataSourceNcloudSESClusters())
-}
-
-func dataSourceNcloudSESClusters() *schema.Resource {
+func DataSourceNcloudSESClusters() *schema.Resource {
 	return &schema.Resource{
 		ReadContext: dataSourceNcloudSESClustersRead,
 		Schema: map[string]*schema.Schema{
@@ -46,7 +42,7 @@ func dataSourceNcloudSESClusters() *schema.Resource {
 }
 
 func dataSourceNcloudSESClustersRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
-	config := meta.(*ProviderConfig)
+	config := meta.(*conn.ProviderConfig)
 	if !config.SupportVPC {
 		return diag.FromErr(NotSupportClassic("dataSource `ncloud_ses_clusters`"))
 	}
@@ -85,7 +81,7 @@ func dataSourceNcloudSESClustersRead(ctx context.Context, d *schema.ResourceData
 	}
 
 	if f, ok := d.GetOk("filter"); ok {
-		resources = ApplyFilters(f.(*schema.Set), resources, dataSourceNcloudSESClusters().Schema["clusters"].Elem.(*schema.Resource).Schema)
+		resources = ApplyFilters(f.(*schema.Set), resources, DataSourceNcloudSESClusters().Schema["clusters"].Elem.(*schema.Resource).Schema)
 	}
 
 	d.SetId(time.Now().UTC().String())

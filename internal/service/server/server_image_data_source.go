@@ -10,15 +10,11 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 
 	. "github.com/terraform-providers/terraform-provider-ncloud/internal/common"
-	. "github.com/terraform-providers/terraform-provider-ncloud/internal/provider"
+	"github.com/terraform-providers/terraform-provider-ncloud/internal/conn"
 	"github.com/terraform-providers/terraform-provider-ncloud/internal/verify"
 )
 
-func init() {
-	RegisterDataSource("ncloud_server_image", dataSourceNcloudServerImage())
-}
-
-func dataSourceNcloudServerImage() *schema.Resource {
+func DataSourceNcloudServerImage() *schema.Resource {
 	return &schema.Resource{
 		Read: dataSourceNcloudServerImageRead,
 
@@ -87,7 +83,7 @@ func dataSourceNcloudServerImage() *schema.Resource {
 }
 
 func dataSourceNcloudServerImageRead(d *schema.ResourceData, meta interface{}) error {
-	resources, err := getServerImageProductListFiltered(d, meta.(*ProviderConfig))
+	resources, err := getServerImageProductListFiltered(d, meta.(*conn.ProviderConfig))
 
 	if err != nil {
 		return err
@@ -102,7 +98,7 @@ func dataSourceNcloudServerImageRead(d *schema.ResourceData, meta interface{}) e
 	return nil
 }
 
-func getServerImageProductListFiltered(d *schema.ResourceData, config *ProviderConfig) ([]map[string]interface{}, error) {
+func getServerImageProductListFiltered(d *schema.ResourceData, config *conn.ProviderConfig) ([]map[string]interface{}, error) {
 	var resources []map[string]interface{}
 	var err error
 
@@ -117,13 +113,13 @@ func getServerImageProductListFiltered(d *schema.ResourceData, config *ProviderC
 	}
 
 	if f, ok := d.GetOk("filter"); ok {
-		resources = ApplyFilters(f.(*schema.Set), resources, dataSourceNcloudServerImage().Schema)
+		resources = ApplyFilters(f.(*schema.Set), resources, DataSourceNcloudServerImage().Schema)
 	}
 
 	return resources, nil
 }
 
-func getClassicServerImageProductList(d *schema.ResourceData, config *ProviderConfig) ([]map[string]interface{}, error) {
+func getClassicServerImageProductList(d *schema.ResourceData, config *conn.ProviderConfig) ([]map[string]interface{}, error) {
 	client := config.Client
 	regionNo := config.RegionNo
 
@@ -170,7 +166,7 @@ func getClassicServerImageProductList(d *schema.ResourceData, config *ProviderCo
 	return resources, nil
 }
 
-func getVpcServerImageProductList(d *schema.ResourceData, config *ProviderConfig) ([]map[string]interface{}, error) {
+func getVpcServerImageProductList(d *schema.ResourceData, config *conn.ProviderConfig) ([]map[string]interface{}, error) {
 	client := config.Client
 	regionCode := config.RegionCode
 

@@ -10,14 +10,10 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 
 	. "github.com/terraform-providers/terraform-provider-ncloud/internal/common"
-	. "github.com/terraform-providers/terraform-provider-ncloud/internal/provider"
+	"github.com/terraform-providers/terraform-provider-ncloud/internal/conn"
 )
 
-func init() {
-	RegisterDataSource("ncloud_nks_server_images", dataSourceNcloudNKSServerImages())
-}
-
-func dataSourceNcloudNKSServerImages() *schema.Resource {
+func DataSourceNcloudNKSServerImages() *schema.Resource {
 	return &schema.Resource{
 		Read: dataSourceNcloudNKSServerImagesRead,
 
@@ -44,7 +40,7 @@ func dataSourceNcloudNKSServerImages() *schema.Resource {
 }
 
 func dataSourceNcloudNKSServerImagesRead(d *schema.ResourceData, meta interface{}) error {
-	config := meta.(*ProviderConfig)
+	config := meta.(*conn.ProviderConfig)
 	if !config.SupportVPC {
 		return NotSupportClassic("datasource `ncloud_nks_node_pool_server_images`")
 	}
@@ -55,7 +51,7 @@ func dataSourceNcloudNKSServerImagesRead(d *schema.ResourceData, meta interface{
 	}
 
 	if f, ok := d.GetOk("filter"); ok {
-		resources = ApplyFilters(f.(*schema.Set), resources, dataSourceNcloudNKSServerImages().Schema["images"].Elem.(*schema.Resource).Schema)
+		resources = ApplyFilters(f.(*schema.Set), resources, DataSourceNcloudNKSServerImages().Schema["images"].Elem.(*schema.Resource).Schema)
 	}
 
 	d.SetId(time.Now().UTC().String())
@@ -67,7 +63,7 @@ func dataSourceNcloudNKSServerImagesRead(d *schema.ResourceData, meta interface{
 
 }
 
-func getNKSServerImages(config *ProviderConfig) ([]map[string]interface{}, error) {
+func getNKSServerImages(config *conn.ProviderConfig) ([]map[string]interface{}, error) {
 
 	LogCommonRequest("GetNKSServerImages", "")
 	resp, err := config.Client.Vnks.V2Api.OptionServerImageGet(context.Background())

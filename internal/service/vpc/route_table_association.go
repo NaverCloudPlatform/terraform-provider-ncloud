@@ -12,14 +12,10 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 
 	. "github.com/terraform-providers/terraform-provider-ncloud/internal/common"
-	. "github.com/terraform-providers/terraform-provider-ncloud/internal/provider"
+	"github.com/terraform-providers/terraform-provider-ncloud/internal/conn"
 )
 
-func init() {
-	RegisterResource("ncloud_route_table_association", resourceNcloudRouteTableAssociation())
-}
-
-func resourceNcloudRouteTableAssociation() *schema.Resource {
+func ResourceNcloudRouteTableAssociation() *schema.Resource {
 	return &schema.Resource{
 		Create: resourceNcloudRouteTableAssociationCreate,
 		Read:   resourceNcloudRouteTableAssociationRead,
@@ -53,13 +49,13 @@ func resourceNcloudRouteTableAssociation() *schema.Resource {
 }
 
 func resourceNcloudRouteTableAssociationCreate(d *schema.ResourceData, meta interface{}) error {
-	config := meta.(*ProviderConfig)
+	config := meta.(*conn.ProviderConfig)
 
 	if !config.SupportVPC {
 		return NotSupportClassic("resource `ncloud_route_table_association`")
 	}
 
-	routeTable, err := getRouteTableInstance(config, d.Get("route_table_no").(string))
+	routeTable, err := GetRouteTableInstance(config, d.Get("route_table_no").(string))
 	if err != nil {
 		return err
 	}
@@ -88,7 +84,7 @@ func resourceNcloudRouteTableAssociationCreate(d *schema.ResourceData, meta inte
 
 	log.Printf("[INFO] Association ID: %s", d.Id())
 
-	if err := waitForNcloudRouteTableAssociationTableUpdate(config, d.Get("route_table_no").(string)); err != nil {
+	if err := WaitForNcloudRouteTableAssociationTableUpdate(config, d.Get("route_table_no").(string)); err != nil {
 		return err
 	}
 
@@ -96,9 +92,9 @@ func resourceNcloudRouteTableAssociationCreate(d *schema.ResourceData, meta inte
 }
 
 func resourceNcloudRouteTableAssociationRead(d *schema.ResourceData, meta interface{}) error {
-	config := meta.(*ProviderConfig)
+	config := meta.(*conn.ProviderConfig)
 
-	routeTable, err := getRouteTableInstance(config, d.Get("route_table_no").(string))
+	routeTable, err := GetRouteTableInstance(config, d.Get("route_table_no").(string))
 	if err != nil {
 		return err
 	}
@@ -107,7 +103,7 @@ func resourceNcloudRouteTableAssociationRead(d *schema.ResourceData, meta interf
 		return fmt.Errorf("No matching route table: %s", d.Get("route_table_no"))
 	}
 
-	instance, err := getRouteTableAssociationInstance(config, d.Id())
+	instance, err := GetRouteTableAssociationInstance(config, d.Id())
 	if err != nil {
 		return err
 	}
@@ -129,9 +125,9 @@ func resourceNcloudRouteTableAssociationUpdate(d *schema.ResourceData, meta inte
 }
 
 func resourceNcloudRouteTableAssociationDelete(d *schema.ResourceData, meta interface{}) error {
-	config := meta.(*ProviderConfig)
+	config := meta.(*conn.ProviderConfig)
 
-	routeTable, err := getRouteTableInstance(config, d.Get("route_table_no").(string))
+	routeTable, err := GetRouteTableInstance(config, d.Get("route_table_no").(string))
 	if err != nil {
 		return err
 	}
@@ -156,22 +152,22 @@ func resourceNcloudRouteTableAssociationDelete(d *schema.ResourceData, meta inte
 
 	LogResponse("RemoveRouteTableSubnet", resp)
 
-	if err := waitForNcloudRouteTableAssociationTableUpdate(config, d.Get("route_table_no").(string)); err != nil {
+	if err := WaitForNcloudRouteTableAssociationTableUpdate(config, d.Get("route_table_no").(string)); err != nil {
 		return err
 	}
 
 	return nil
 }
 
-func waitForNcloudRouteTableAssociationTableUpdate(config *ProviderConfig, id string) error {
+func WaitForNcloudRouteTableAssociationTableUpdate(config *conn.ProviderConfig, id string) error {
 	stateConf := &resource.StateChangeConf{
 		Pending: []string{"SET"},
 		Target:  []string{"RUN"},
 		Refresh: func() (interface{}, string, error) {
-			instance, err := getRouteTableInstance(config, id)
+			instance, err := GetRouteTableInstance(config, id)
 			return VpcCommonStateRefreshFunc(instance, err, "RouteTableStatus")
 		},
-		Timeout:    DefaultTimeout,
+		Timeout:    conn.DefaultTimeout,
 		Delay:      2 * time.Second,
 		MinTimeout: 3 * time.Second,
 	}
@@ -183,7 +179,7 @@ func waitForNcloudRouteTableAssociationTableUpdate(config *ProviderConfig, id st
 	return nil
 }
 
-func getRouteTableAssociationInstance(config *ProviderConfig, id string) (*vpc.Subnet, error) {
+func GetRouteTableAssociationInstance(config *conn.ProviderConfig, id string) (*vpc.Subnet, error) {
 	routeTableNo, subnetNo, err := convInstanceID(id)
 
 	if err != nil {

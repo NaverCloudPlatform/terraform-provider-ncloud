@@ -7,28 +7,24 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 
 	. "github.com/terraform-providers/terraform-provider-ncloud/internal/common"
-	. "github.com/terraform-providers/terraform-provider-ncloud/internal/provider"
+	"github.com/terraform-providers/terraform-provider-ncloud/internal/conn"
 )
 
-func init() {
-	RegisterDataSource("ncloud_cdss_kafka_versions", dataSourceNcloudCDSSKafkaVersions())
-}
-
-func dataSourceNcloudCDSSKafkaVersions() *schema.Resource {
+func DataSourceNcloudCDSSKafkaVersions() *schema.Resource {
 	return &schema.Resource{
 		Read: dataSourceNcloudCDSSKafkaVersionsRead,
 		Schema: map[string]*schema.Schema{
 			"kafka_versions": {
 				Type:     schema.TypeList,
 				Computed: true,
-				Elem:     GetDataSourceItemSchema(dataSourceNcloudCDSSKafkaVersion()),
+				Elem:     GetDataSourceItemSchema(DataSourceNcloudCDSSKafkaVersion()),
 			},
 		},
 	}
 }
 
 func dataSourceNcloudCDSSKafkaVersionsRead(d *schema.ResourceData, meta interface{}) error {
-	config := meta.(*ProviderConfig)
+	config := meta.(*conn.ProviderConfig)
 	if !config.SupportVPC {
 		return NotSupportClassic("datasource `ncloud_cdss_kafka_versions`")
 	}

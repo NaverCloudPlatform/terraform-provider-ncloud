@@ -9,15 +9,11 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 
 	. "github.com/terraform-providers/terraform-provider-ncloud/internal/common"
-	"github.com/terraform-providers/terraform-provider-ncloud/internal/provider"
+	"github.com/terraform-providers/terraform-provider-ncloud/internal/conn"
 	. "github.com/terraform-providers/terraform-provider-ncloud/internal/verify"
 )
 
-func init() {
-	provider.RegisterResource("ncloud_init_script", resourceNcloudInitScript())
-}
-
-func resourceNcloudInitScript() *schema.Resource {
+func ResourceNcloudInitScript() *schema.Resource {
 	return &schema.Resource{
 		Create: resourceNcloudInitScriptCreate,
 		Read:   resourceNcloudInitScriptRead,
@@ -62,7 +58,7 @@ func resourceNcloudInitScript() *schema.Resource {
 }
 
 func resourceNcloudInitScriptCreate(d *schema.ResourceData, meta interface{}) error {
-	config := meta.(*provider.ProviderConfig)
+	config := meta.(*conn.ProviderConfig)
 
 	instance, err := createInitScript(d, config)
 
@@ -77,9 +73,9 @@ func resourceNcloudInitScriptCreate(d *schema.ResourceData, meta interface{}) er
 }
 
 func resourceNcloudInitScriptRead(d *schema.ResourceData, meta interface{}) error {
-	config := meta.(*provider.ProviderConfig)
+	config := meta.(*conn.ProviderConfig)
 
-	instance, err := getInitScript(config, d.Id())
+	instance, err := GetInitScript(config, d.Id())
 	if err != nil {
 		return err
 	}
@@ -100,16 +96,16 @@ func resourceNcloudInitScriptRead(d *schema.ResourceData, meta interface{}) erro
 }
 
 func resourceNcloudInitScriptDelete(d *schema.ResourceData, meta interface{}) error {
-	config := meta.(*provider.ProviderConfig)
+	config := meta.(*conn.ProviderConfig)
 
-	if err := deleteInitScript(config, d.Id()); err != nil {
+	if err := DeleteInitScript(config, d.Id()); err != nil {
 		return err
 	}
 
 	return nil
 }
 
-func getInitScript(config *provider.ProviderConfig, id string) (*vserver.InitScript, error) {
+func GetInitScript(config *conn.ProviderConfig, id string) (*vserver.InitScript, error) {
 	if config.SupportVPC {
 		return getVpcInitScript(config, id)
 	}
@@ -117,7 +113,7 @@ func getInitScript(config *provider.ProviderConfig, id string) (*vserver.InitScr
 	return nil, NotSupportClassic("resource `ncloud_init_script`")
 }
 
-func getVpcInitScript(config *provider.ProviderConfig, id string) (*vserver.InitScript, error) {
+func getVpcInitScript(config *conn.ProviderConfig, id string) (*vserver.InitScript, error) {
 	reqParams := &vserver.GetInitScriptDetailRequest{
 		RegionCode:   &config.RegionCode,
 		InitScriptNo: ncloud.String(id),
@@ -138,7 +134,7 @@ func getVpcInitScript(config *provider.ProviderConfig, id string) (*vserver.Init
 	return nil, nil
 }
 
-func createInitScript(d *schema.ResourceData, config *provider.ProviderConfig) (*vserver.InitScript, error) {
+func createInitScript(d *schema.ResourceData, config *conn.ProviderConfig) (*vserver.InitScript, error) {
 	if config.SupportVPC {
 		return createVpcInitScript(d, config)
 	}
@@ -146,7 +142,7 @@ func createInitScript(d *schema.ResourceData, config *provider.ProviderConfig) (
 	return nil, NotSupportClassic("resource `ncloud_init_script`")
 }
 
-func createVpcInitScript(d *schema.ResourceData, config *provider.ProviderConfig) (*vserver.InitScript, error) {
+func createVpcInitScript(d *schema.ResourceData, config *conn.ProviderConfig) (*vserver.InitScript, error) {
 	reqParams := &vserver.CreateInitScriptRequest{
 		RegionCode:            &config.RegionCode,
 		InitScriptContent:     ncloud.String(d.Get("content").(string)),
@@ -166,7 +162,7 @@ func createVpcInitScript(d *schema.ResourceData, config *provider.ProviderConfig
 	return resp.InitScriptList[0], nil
 }
 
-func deleteInitScript(config *provider.ProviderConfig, id string) error {
+func DeleteInitScript(config *conn.ProviderConfig, id string) error {
 	if config.SupportVPC {
 		return deleteVpcInitScript(config, id)
 	}
@@ -174,7 +170,7 @@ func deleteInitScript(config *provider.ProviderConfig, id string) error {
 	return NotSupportClassic("resource `ncloud_init_script`")
 }
 
-func deleteVpcInitScript(config *provider.ProviderConfig, id string) error {
+func deleteVpcInitScript(config *conn.ProviderConfig, id string) error {
 	reqParams := &vserver.DeleteInitScriptsRequest{
 		RegionCode:       &config.RegionCode,
 		InitScriptNoList: []*string{ncloud.String(id)},

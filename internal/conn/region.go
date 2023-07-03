@@ -1,4 +1,4 @@
-package provider
+package conn
 
 import (
 	"fmt"
@@ -20,7 +20,7 @@ var regionCacheByCode = make(map[string]Region)
 
 func ParseRegionNoParameter(d *schema.ResourceData) (*string, error) {
 	if regionCode, regionCodeOk := d.GetOk("region"); regionCodeOk {
-		regionNo := getRegionNoByCode(regionCode.(string))
+		regionNo := GetRegionNoByCode(regionCode.(string))
 		if regionNo == nil {
 			return nil, fmt.Errorf("no region data for region_code `%s`. please change region_code and try again", regionCode.(string))
 		}
@@ -29,7 +29,7 @@ func ParseRegionNoParameter(d *schema.ResourceData) (*string, error) {
 
 	// provider region
 	if regionCode := os.Getenv("NCLOUD_REGION"); regionCode != "" {
-		regionNo := getRegionNoByCode(regionCode)
+		regionNo := GetRegionNoByCode(regionCode)
 		if regionNo == nil {
 			return nil, fmt.Errorf("no region data for region_code `%s`. please change region_code and try again", regionCode)
 		}
@@ -41,7 +41,7 @@ func ParseRegionNoParameter(d *schema.ResourceData) (*string, error) {
 
 func parseRegionCodeParameter(client *NcloudAPIClient, d *schema.ResourceData) (*string, error) {
 	if regionCode, regionCodeOk := d.GetOk("region"); regionCodeOk {
-		region, err := getRegionByCode(client, regionCode.(string))
+		region, err := GetRegionByCode(client, regionCode.(string))
 		if region == nil || err != nil {
 			return nil, fmt.Errorf("no region data for region_code `%s`. please change region_code and try again", regionCode.(string))
 		}
@@ -50,7 +50,7 @@ func parseRegionCodeParameter(client *NcloudAPIClient, d *schema.ResourceData) (
 
 	// provider region
 	if regionCode := os.Getenv("NCLOUD_REGION"); regionCode != "" {
-		region, err := getRegionByCode(client, regionCode)
+		region, err := GetRegionByCode(client, regionCode)
 		if region == nil || err != nil {
 			return nil, fmt.Errorf("no region data for region_code `%s`. please change region_code and try again", regionCode)
 		}
@@ -60,14 +60,14 @@ func parseRegionCodeParameter(client *NcloudAPIClient, d *schema.ResourceData) (
 	return nil, nil
 }
 
-func getRegionNoByCode(code string) *string {
+func GetRegionNoByCode(code string) *string {
 	if region, ok := regionCacheByCode[code]; ok {
 		return region.RegionNo
 	}
 	return nil
 }
 
-func getRegionByCode(client *NcloudAPIClient, code string) (*server.Region, error) {
+func GetRegionByCode(client *NcloudAPIClient, code string) (*server.Region, error) {
 	resp, err := client.Server.V2Api.GetRegionList(&server.GetRegionListRequest{})
 	if err != nil {
 		return nil, err
@@ -85,7 +85,7 @@ func getRegionByCode(client *NcloudAPIClient, code string) (*server.Region, erro
 	return filteredRegion, nil
 }
 
-func setRegionCache(client *NcloudAPIClient, supportVPC bool) error {
+func SetRegionCache(client *NcloudAPIClient, supportVPC bool) error {
 	var regionList []*Region
 	var err error
 	if supportVPC {
@@ -149,7 +149,7 @@ func getVpcRegionList(client *NcloudAPIClient) ([]*Region, error) {
 	return regionList, nil
 }
 
-func isValidRegionCode(code string) bool {
+func IsValidRegionCode(code string) bool {
 	_, ok := regionCacheByCode[code]
 	return ok
 }

@@ -10,14 +10,10 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 
 	. "github.com/terraform-providers/terraform-provider-ncloud/internal/common"
-	. "github.com/terraform-providers/terraform-provider-ncloud/internal/provider"
+	"github.com/terraform-providers/terraform-provider-ncloud/internal/conn"
 )
 
-func init() {
-	RegisterDataSource("ncloud_nks_versions", dataSourceNcloudNKSVersions())
-}
-
-func dataSourceNcloudNKSVersions() *schema.Resource {
+func DataSourceNcloudNKSVersions() *schema.Resource {
 	return &schema.Resource{
 		Read: dataSourceNcloudVersionsRead,
 
@@ -44,7 +40,7 @@ func dataSourceNcloudNKSVersions() *schema.Resource {
 }
 
 func dataSourceNcloudVersionsRead(d *schema.ResourceData, meta interface{}) error {
-	config := meta.(*ProviderConfig)
+	config := meta.(*conn.ProviderConfig)
 	if !config.SupportVPC {
 		return NotSupportClassic("datasource `ncloud_nks_versions`")
 	}
@@ -55,7 +51,7 @@ func dataSourceNcloudVersionsRead(d *schema.ResourceData, meta interface{}) erro
 	}
 
 	if f, ok := d.GetOk("filter"); ok {
-		resources = ApplyFilters(f.(*schema.Set), resources, dataSourceNcloudNKSVersions().Schema["versions"].Elem.(*schema.Resource).Schema)
+		resources = ApplyFilters(f.(*schema.Set), resources, DataSourceNcloudNKSVersions().Schema["versions"].Elem.(*schema.Resource).Schema)
 	}
 
 	d.SetId(time.Now().UTC().String())
@@ -67,7 +63,7 @@ func dataSourceNcloudVersionsRead(d *schema.ResourceData, meta interface{}) erro
 
 }
 
-func getNKSVersion(config *ProviderConfig) ([]map[string]interface{}, error) {
+func getNKSVersion(config *conn.ProviderConfig) ([]map[string]interface{}, error) {
 
 	LogCommonRequest("GetNKSVersion", "")
 	resp, err := config.Client.Vnks.V2Api.OptionVersionGet(context.Background(), map[string]interface{}{})

@@ -7,15 +7,11 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 
 	. "github.com/terraform-providers/terraform-provider-ncloud/internal/common"
-	. "github.com/terraform-providers/terraform-provider-ncloud/internal/provider"
+	"github.com/terraform-providers/terraform-provider-ncloud/internal/conn"
 	"github.com/terraform-providers/terraform-provider-ncloud/internal/verify"
 )
 
-func init() {
-	RegisterDataSource("ncloud_member_server_images", dataSourceNcloudMemberServerImages())
-}
-
-func dataSourceNcloudMemberServerImages() *schema.Resource {
+func DataSourceNcloudMemberServerImages() *schema.Resource {
 	return &schema.Resource{
 		Read: dataSourceNcloudMemberServerImagesRead,
 
@@ -63,7 +59,7 @@ func dataSourceNcloudMemberServerImages() *schema.Resource {
 }
 
 func dataSourceNcloudMemberServerImagesRead(d *schema.ResourceData, meta interface{}) error {
-	config := meta.(*ProviderConfig)
+	config := meta.(*conn.ProviderConfig)
 	var resources []map[string]interface{}
 	var err error
 
@@ -78,7 +74,7 @@ func dataSourceNcloudMemberServerImagesRead(d *schema.ResourceData, meta interfa
 	}
 
 	if f, ok := d.GetOk("filter"); ok {
-		resources = ApplyFilters(f.(*schema.Set), resources, dataSourceNcloudMemberServerImage().Schema)
+		resources = ApplyFilters(f.(*schema.Set), resources, DataSourceNcloudMemberServerImage().Schema)
 	}
 
 	if len(resources) < 1 {

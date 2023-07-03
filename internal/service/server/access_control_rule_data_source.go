@@ -10,15 +10,11 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 
 	. "github.com/terraform-providers/terraform-provider-ncloud/internal/common"
-	. "github.com/terraform-providers/terraform-provider-ncloud/internal/provider"
+	"github.com/terraform-providers/terraform-provider-ncloud/internal/conn"
 	"github.com/terraform-providers/terraform-provider-ncloud/internal/verify"
 )
 
-func init() {
-	RegisterDataSource("ncloud_access_control_rule", dataSourceNcloudAccessControlRule())
-}
-
-func dataSourceNcloudAccessControlRule() *schema.Resource {
+func DataSourceNcloudAccessControlRule() *schema.Resource {
 	return &schema.Resource{
 		Read: dataSourceNcloudAccessControlRuleRead,
 
@@ -88,8 +84,8 @@ func dataSourceNcloudAccessControlRule() *schema.Resource {
 }
 
 func dataSourceNcloudAccessControlRuleRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ProviderConfig).Client
-	config := meta.(*ProviderConfig)
+	client := meta.(*conn.ProviderConfig).Client
+	config := meta.(*conn.ProviderConfig)
 
 	if config.SupportVPC {
 		return NotSupportVpc("data source `ncloud_access_control_rule`")
@@ -112,7 +108,7 @@ func dataSourceNcloudAccessControlRuleRead(d *schema.ResourceData, meta interfac
 		if isDefaultGroupOk {
 			reqParams.IsDefault = ncloud.Bool(isDefaultGroup.(bool))
 		}
-		acgResp, err := getClassicAccessControlGroupList(d, meta.(*ProviderConfig))
+		acgResp, err := getClassicAccessControlGroupList(d, meta.(*conn.ProviderConfig))
 		if err != nil {
 			return err
 		}
@@ -172,7 +168,7 @@ func dataSourceNcloudAccessControlRuleRead(d *schema.ResourceData, meta interfac
 	return accessControlRuleAttributes(d, accessControlRule)
 }
 
-func getAccessControlRuleList(client *NcloudAPIClient, groupConfigNo string) (*server.GetAccessControlRuleListResponse, error) {
+func getAccessControlRuleList(client *conn.NcloudAPIClient, groupConfigNo string) (*server.GetAccessControlRuleListResponse, error) {
 	reqParams := server.GetAccessControlRuleListRequest{
 		AccessControlGroupConfigurationNo: ncloud.String(groupConfigNo),
 	}

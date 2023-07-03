@@ -1,4 +1,4 @@
-package region
+package region_test
 
 import (
 	"testing"

@@ -1,4 +1,4 @@
-package nks
+package nks_test
 
 import (
 	"testing"

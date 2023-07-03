@@ -13,16 +13,12 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 
 	. "github.com/terraform-providers/terraform-provider-ncloud/internal/common"
-	. "github.com/terraform-providers/terraform-provider-ncloud/internal/provider"
+	"github.com/terraform-providers/terraform-provider-ncloud/internal/conn"
 	"github.com/terraform-providers/terraform-provider-ncloud/internal/service/vpc"
 	. "github.com/terraform-providers/terraform-provider-ncloud/internal/verify"
 )
 
-func init() {
-	RegisterResource("ncloud_access_control_group", resourceNcloudAccessControlGroup())
-}
-
-func resourceNcloudAccessControlGroup() *schema.Resource {
+func ResourceNcloudAccessControlGroup() *schema.Resource {
 	return &schema.Resource{
 		Create: resourceNcloudAccessControlGroupCreate,
 		Read:   resourceNcloudAccessControlGroupRead,
@@ -63,7 +59,7 @@ func resourceNcloudAccessControlGroup() *schema.Resource {
 }
 
 func resourceNcloudAccessControlGroupCreate(d *schema.ResourceData, meta interface{}) error {
-	config := meta.(*ProviderConfig)
+	config := meta.(*conn.ProviderConfig)
 
 	instance, err := createAccessControlGroup(d, config)
 
@@ -78,9 +74,9 @@ func resourceNcloudAccessControlGroupCreate(d *schema.ResourceData, meta interfa
 }
 
 func resourceNcloudAccessControlGroupRead(d *schema.ResourceData, meta interface{}) error {
-	config := meta.(*ProviderConfig)
+	config := meta.(*conn.ProviderConfig)
 
-	instance, err := getAccessControlGroup(config, d.Id())
+	instance, err := GetAccessControlGroup(config, d.Id())
 	if err != nil {
 		return err
 	}
@@ -101,16 +97,16 @@ func resourceNcloudAccessControlGroupRead(d *schema.ResourceData, meta interface
 }
 
 func resourceNcloudAccessControlGroupDelete(d *schema.ResourceData, meta interface{}) error {
-	config := meta.(*ProviderConfig)
+	config := meta.(*conn.ProviderConfig)
 
-	if err := deleteAccessControlGroup(config, d.Id()); err != nil {
+	if err := DeleteAccessControlGroup(config, d.Id()); err != nil {
 		return err
 	}
 
 	return nil
 }
 
-func getAccessControlGroup(config *ProviderConfig, id string) (*vserver.AccessControlGroup, error) {
+func GetAccessControlGroup(config *conn.ProviderConfig, id string) (*vserver.AccessControlGroup, error) {
 	if config.SupportVPC {
 		return getVpcAccessControlGroup(config, id)
 	}
@@ -118,7 +114,7 @@ func getAccessControlGroup(config *ProviderConfig, id string) (*vserver.AccessCo
 	return nil, NotSupportClassic("resource `ncloud_access_control_group`")
 }
 
-func getVpcAccessControlGroup(config *ProviderConfig, id string) (*vserver.AccessControlGroup, error) {
+func getVpcAccessControlGroup(config *conn.ProviderConfig, id string) (*vserver.AccessControlGroup, error) {
 	reqParams := &vserver.GetAccessControlGroupDetailRequest{
 		RegionCode:           &config.RegionCode,
 		AccessControlGroupNo: ncloud.String(id),
@@ -139,7 +135,7 @@ func getVpcAccessControlGroup(config *ProviderConfig, id string) (*vserver.Acces
 	return nil, nil
 }
 
-func createAccessControlGroup(d *schema.ResourceData, config *ProviderConfig) (*vserver.AccessControlGroup, error) {
+func createAccessControlGroup(d *schema.ResourceData, config *conn.ProviderConfig) (*vserver.AccessControlGroup, error) {
 	if config.SupportVPC {
 		return createVpcAccessControlGroup(d, config)
 	}
@@ -147,7 +143,7 @@ func createAccessControlGroup(d *schema.ResourceData, config *ProviderConfig) (*
 	return nil, NotSupportClassic("resource `ncloud_access_control_group`")
 }
 
-func createVpcAccessControlGroup(d *schema.ResourceData, config *ProviderConfig) (*vserver.AccessControlGroup, error) {
+func createVpcAccessControlGroup(d *schema.ResourceData, config *conn.ProviderConfig) (*vserver.AccessControlGroup, error) {
 	reqParams := &vserver.CreateAccessControlGroupRequest{
 		RegionCode:                    &config.RegionCode,
 		VpcNo:                         ncloud.String(d.Get("vpc_no").(string)),
@@ -166,7 +162,7 @@ func createVpcAccessControlGroup(d *schema.ResourceData, config *ProviderConfig)
 	return resp.AccessControlGroupList[0], nil
 }
 
-func deleteAccessControlGroup(config *ProviderConfig, id string) error {
+func DeleteAccessControlGroup(config *conn.ProviderConfig, id string) error {
 	if config.SupportVPC {
 		return deleteVpcAccessControlGroup(config, id)
 	}
@@ -174,8 +170,8 @@ func deleteAccessControlGroup(config *ProviderConfig, id string) error {
 	return NotSupportClassic("resource `ncloud_access_control_group`")
 }
 
-func deleteVpcAccessControlGroup(config *ProviderConfig, id string) error {
-	accessControlGroup, err := getAccessControlGroup(config, id)
+func deleteVpcAccessControlGroup(config *conn.ProviderConfig, id string) error {
+	accessControlGroup, err := GetAccessControlGroup(config, id)
 	if err != nil {
 		return err
 	}
@@ -205,15 +201,15 @@ func deleteVpcAccessControlGroup(config *ProviderConfig, id string) error {
 	return nil
 }
 
-func waitForVpcAccessControlGroupDeletion(config *ProviderConfig, id string) error {
+func waitForVpcAccessControlGroupDeletion(config *conn.ProviderConfig, id string) error {
 	stateConf := &resource.StateChangeConf{
 		Pending: []string{"RUN"},
 		Target:  []string{"TERMINATED"},
 		Refresh: func() (interface{}, string, error) {
-			instance, err := getAccessControlGroup(config, id)
+			instance, err := GetAccessControlGroup(config, id)
 			return vpc.VpcCommonStateRefreshFunc(instance, err, "AccessControlGroupStatus")
 		},
-		Timeout:    DefaultTimeout,
+		Timeout:    conn.DefaultTimeout,
 		Delay:      2 * time.Second,
 		MinTimeout: 3 * time.Second,
 	}
@@ -226,15 +222,15 @@ func waitForVpcAccessControlGroupDeletion(config *ProviderConfig, id string) err
 	return nil
 }
 
-func waitForVpcAccessControlGroupRunning(config *ProviderConfig, id string) error {
+func waitForVpcAccessControlGroupRunning(config *conn.ProviderConfig, id string) error {
 	stateConf := &resource.StateChangeConf{
 		Pending: []string{"SET"},
 		Target:  []string{"RUN"},
 		Refresh: func() (interface{}, string, error) {
-			instance, err := getAccessControlGroup(config, id)
+			instance, err := GetAccessControlGroup(config, id)
 			return vpc.VpcCommonStateRefreshFunc(instance, err, "AccessControlGroupStatus")
 		},
-		Timeout:    DefaultTimeout,
+		Timeout:    conn.DefaultTimeout,
 		Delay:      2 * time.Second,
 		MinTimeout: 3 * time.Second,
 	}

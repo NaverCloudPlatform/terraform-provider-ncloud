@@ -14,17 +14,13 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 
 	. "github.com/terraform-providers/terraform-provider-ncloud/internal/common"
-	. "github.com/terraform-providers/terraform-provider-ncloud/internal/provider"
+	"github.com/terraform-providers/terraform-provider-ncloud/internal/conn"
 	"github.com/terraform-providers/terraform-provider-ncloud/internal/service/launchconfiguration"
 	"github.com/terraform-providers/terraform-provider-ncloud/internal/service/vpc"
 	. "github.com/terraform-providers/terraform-provider-ncloud/internal/verify"
 )
 
-func init() {
-	RegisterResource("ncloud_auto_scaling_group", resourceNcloudAutoScalingGroup())
-}
-
-func resourceNcloudAutoScalingGroup() *schema.Resource {
+func ResourceNcloudAutoScalingGroup() *schema.Resource {
 	return &schema.Resource{
 		Create: resourceNcloudAutoScalingGroupCreate,
 		Read:   resourceNcloudAutoScalingGroupRead,
@@ -135,7 +131,7 @@ func resourceNcloudAutoScalingGroup() *schema.Resource {
 }
 
 func resourceNcloudAutoScalingGroupCreate(d *schema.ResourceData, meta interface{}) error {
-	config := meta.(*ProviderConfig)
+	config := meta.(*conn.ProviderConfig)
 
 	id, err := createAutoScalingGroup(d, config)
 	if err != nil {
@@ -150,7 +146,7 @@ func resourceNcloudAutoScalingGroupCreate(d *schema.ResourceData, meta interface
 	return resourceNcloudAutoScalingGroupRead(d, meta)
 }
 
-func createAutoScalingGroup(d *schema.ResourceData, config *ProviderConfig) (*string, error) {
+func createAutoScalingGroup(d *schema.ResourceData, config *conn.ProviderConfig) (*string, error) {
 	if config.SupportVPC {
 		return createVpcAutoScalingGroup(d, config)
 	} else {
@@ -158,7 +154,7 @@ func createAutoScalingGroup(d *schema.ResourceData, config *ProviderConfig) (*st
 	}
 }
 
-func createVpcAutoScalingGroup(d *schema.ResourceData, config *ProviderConfig) (*string, error) {
+func createVpcAutoScalingGroup(d *schema.ResourceData, config *conn.ProviderConfig) (*string, error) {
 
 	if _, ok := d.GetOk("subnet_no"); !ok {
 		return nil, ErrorRequiredArgOnVpc("subnet_no")
@@ -203,7 +199,7 @@ func createVpcAutoScalingGroup(d *schema.ResourceData, config *ProviderConfig) (
 	return resp.AutoScalingGroupList[0].AutoScalingGroupNo, nil
 }
 
-func createClassicAutoScalingGroup(d *schema.ResourceData, config *ProviderConfig) (*string, error) {
+func createClassicAutoScalingGroup(d *schema.ResourceData, config *conn.ProviderConfig) (*string, error) {
 	if _, ok := d.GetOk("zone_no_list"); !ok {
 		return nil, ErrorRequiredArgOnClassic("zone_no_list")
 	}
@@ -235,9 +231,9 @@ func createClassicAutoScalingGroup(d *schema.ResourceData, config *ProviderConfi
 }
 
 func resourceNcloudAutoScalingGroupRead(d *schema.ResourceData, meta interface{}) error {
-	config := meta.(*ProviderConfig)
+	config := meta.(*conn.ProviderConfig)
 
-	autoScalingGroup, err := getAutoScalingGroup(config, d.Id())
+	autoScalingGroup, err := GetAutoScalingGroup(config, d.Id())
 	if err != nil {
 		return err
 	}
@@ -252,7 +248,7 @@ func resourceNcloudAutoScalingGroupRead(d *schema.ResourceData, meta interface{}
 	desired_capacity := d.Get("desired_capacity")
 
 	autoScalingGroupMap := ConvertToMap(autoScalingGroup)
-	SetSingularResourceDataFromMapSchema(resourceNcloudAutoScalingGroup(), d, autoScalingGroupMap)
+	SetSingularResourceDataFromMapSchema(ResourceNcloudAutoScalingGroup(), d, autoScalingGroupMap)
 
 	if d.Get("ignore_capacity_changes").(bool) {
 		if err := d.Set("max_size", max_size); err != nil {
@@ -273,7 +269,7 @@ func resourceNcloudAutoScalingGroupRead(d *schema.ResourceData, meta interface{}
 	return nil
 }
 
-func getAutoScalingGroup(config *ProviderConfig, id string) (*AutoScalingGroup, error) {
+func GetAutoScalingGroup(config *conn.ProviderConfig, id string) (*AutoScalingGroup, error) {
 	if config.SupportVPC {
 		return getVpcAutoScalingGroup(config, id)
 	} else {
@@ -281,7 +277,7 @@ func getAutoScalingGroup(config *ProviderConfig, id string) (*AutoScalingGroup, 
 	}
 }
 
-func getVpcAutoScalingGroup(config *ProviderConfig, id string) (*AutoScalingGroup, error) {
+func getVpcAutoScalingGroup(config *conn.ProviderConfig, id string) (*AutoScalingGroup, error) {
 	reqParams := &vautoscaling.GetAutoScalingGroupListRequest{
 		RegionCode:             &config.RegionCode,
 		AutoScalingGroupNoList: []*string{ncloud.String(id)},
@@ -321,7 +317,7 @@ func getVpcAutoScalingGroup(config *ProviderConfig, id string) (*AutoScalingGrou
 	}, nil
 }
 
-func getClassicAutoScalingGroup(config *ProviderConfig, id string) (*AutoScalingGroup, error) {
+func getClassicAutoScalingGroup(config *conn.ProviderConfig, id string) (*AutoScalingGroup, error) {
 	no := ncloud.String(id)
 	reqParams := &autoscaling.GetAutoScalingGroupListRequest{
 		RegionNo: &config.RegionNo,
@@ -359,7 +355,7 @@ func getClassicAutoScalingGroup(config *ProviderConfig, id string) (*AutoScaling
 }
 
 func resourceNcloudAutoScalingGroupUpdate(d *schema.ResourceData, meta interface{}) error {
-	config := meta.(*ProviderConfig)
+	config := meta.(*conn.ProviderConfig)
 	if err := updateAutoScalingGroup(d, config); err != nil {
 		return err
 	}
@@ -371,7 +367,7 @@ func resourceNcloudAutoScalingGroupUpdate(d *schema.ResourceData, meta interface
 	return resourceNcloudAutoScalingGroupRead(d, config)
 }
 
-func updateAutoScalingGroup(d *schema.ResourceData, config *ProviderConfig) error {
+func updateAutoScalingGroup(d *schema.ResourceData, config *conn.ProviderConfig) error {
 	if config.SupportVPC {
 		return changeVpcAutoScalingGroup(d, config)
 	} else {
@@ -379,8 +375,8 @@ func updateAutoScalingGroup(d *schema.ResourceData, config *ProviderConfig) erro
 	}
 }
 
-func changeVpcAutoScalingGroup(d *schema.ResourceData, config *ProviderConfig) error {
-	asg, err := getAutoScalingGroup(config, d.Id())
+func changeVpcAutoScalingGroup(d *schema.ResourceData, config *conn.ProviderConfig) error {
+	asg, err := GetAutoScalingGroup(config, d.Id())
 	if err != nil {
 		return nil
 	}
@@ -435,8 +431,8 @@ func changeVpcAutoScalingGroup(d *schema.ResourceData, config *ProviderConfig) e
 	return nil
 }
 
-func changeClassicAutoScalingGroup(d *schema.ResourceData, config *ProviderConfig) error {
-	asg, err := getAutoScalingGroup(config, d.Id())
+func changeClassicAutoScalingGroup(d *schema.ResourceData, config *conn.ProviderConfig) error {
+	asg, err := GetAutoScalingGroup(config, d.Id())
 	if err != nil {
 		return err
 	}
@@ -494,14 +490,14 @@ func changeClassicAutoScalingGroup(d *schema.ResourceData, config *ProviderConfi
 }
 
 func resourceNcloudAutoScalingGroupDelete(d *schema.ResourceData, meta interface{}) error {
-	config := meta.(*ProviderConfig)
+	config := meta.(*conn.ProviderConfig)
 	if err := deleteAutoScalingGroup(d, config); err != nil {
 		return err
 	}
 	return nil
 }
 
-func deleteAutoScalingGroup(d *schema.ResourceData, config *ProviderConfig) error {
+func deleteAutoScalingGroup(d *schema.ResourceData, config *conn.ProviderConfig) error {
 	d.Timeout(schema.TimeoutDelete)
 	if config.SupportVPC {
 		return deleteVpcAutoScalingGroup(config, d.Id())
@@ -510,8 +506,8 @@ func deleteAutoScalingGroup(d *schema.ResourceData, config *ProviderConfig) erro
 	}
 }
 
-func deleteVpcAutoScalingGroup(config *ProviderConfig, id string) error {
-	asg, err := getAutoScalingGroup(config, id)
+func deleteVpcAutoScalingGroup(config *conn.ProviderConfig, id string) error {
+	asg, err := GetAutoScalingGroup(config, id)
 	if err != nil {
 		return err
 	}
@@ -539,8 +535,8 @@ func deleteVpcAutoScalingGroup(config *ProviderConfig, id string) error {
 	return nil
 }
 
-func deleteClassicAutoScalingGroup(config *ProviderConfig, id string) error {
-	asg, err := getAutoScalingGroup(config, id)
+func deleteClassicAutoScalingGroup(config *conn.ProviderConfig, id string) error {
+	asg, err := GetAutoScalingGroup(config, id)
 	if err != nil {
 		return err
 	}
@@ -570,7 +566,7 @@ func deleteClassicAutoScalingGroup(config *ProviderConfig, id string) error {
 	return nil
 }
 
-func getVpcInAutoScalingGroupServerInstanceList(config *ProviderConfig, id string) ([]*InAutoScalingGroupServerInstance, error) {
+func getVpcInAutoScalingGroupServerInstanceList(config *conn.ProviderConfig, id string) ([]*InAutoScalingGroupServerInstance, error) {
 	reqParams := &vautoscaling.GetAutoScalingGroupListRequest{
 		RegionCode:             &config.RegionCode,
 		AutoScalingGroupNoList: []*string{ncloud.String(id)},
@@ -593,7 +589,7 @@ func getVpcInAutoScalingGroupServerInstanceList(config *ProviderConfig, id strin
 	return list, nil
 }
 
-func getClassicInAutoScalingGroupServerInstanceList(config *ProviderConfig, id string) ([]*InAutoScalingGroupServerInstance, error) {
+func getClassicInAutoScalingGroupServerInstanceList(config *conn.ProviderConfig, id string) ([]*InAutoScalingGroupServerInstance, error) {
 	tmpAsg, err := getClassicAutoScalingGroup(config, id)
 	if err != nil {
 		return nil, err
@@ -621,12 +617,12 @@ func getClassicInAutoScalingGroupServerInstanceList(config *ProviderConfig, id s
 	return list, nil
 }
 
-func waitForClassicInAutoScalingGroupServerInstanceListDeletion(config *ProviderConfig, id string) error {
+func waitForClassicInAutoScalingGroupServerInstanceListDeletion(config *conn.ProviderConfig, id string) error {
 	stateConf := &resource.StateChangeConf{
 		Pending: []string{"INSVC"},
 		Target:  []string{"TERMT"},
 		Refresh: func() (interface{}, string, error) {
-			asg, err := getAutoScalingGroup(config, id)
+			asg, err := GetAutoScalingGroup(config, id)
 			if err != nil {
 				return 0, "", err
 			}
@@ -638,7 +634,7 @@ func waitForClassicInAutoScalingGroupServerInstanceListDeletion(config *Provider
 		},
 		Delay:      2 * time.Second,
 		MinTimeout: 3 * time.Second,
-		Timeout:    DefaultStopTimeout * 3,
+		Timeout:    conn.DefaultStopTimeout * 3,
 	}
 
 	if _, err := stateConf.WaitForState(); err != nil {
@@ -647,12 +643,12 @@ func waitForClassicInAutoScalingGroupServerInstanceListDeletion(config *Provider
 	return nil
 }
 
-func waitForVpcInAutoScalingGroupServerInstanceListDeletion(config *ProviderConfig, id string) error {
+func waitForVpcInAutoScalingGroupServerInstanceListDeletion(config *conn.ProviderConfig, id string) error {
 	stateConf := &resource.StateChangeConf{
 		Pending: []string{"INSVC"},
 		Target:  []string{"TERMT"},
 		Refresh: func() (interface{}, string, error) {
-			asg, err := getAutoScalingGroup(config, id)
+			asg, err := GetAutoScalingGroup(config, id)
 			if err != nil {
 				return 0, "", err
 			}
@@ -664,7 +660,7 @@ func waitForVpcInAutoScalingGroupServerInstanceListDeletion(config *ProviderConf
 		},
 		Delay:      2 * time.Second,
 		MinTimeout: 3 * time.Second,
-		Timeout:    DefaultStopTimeout * 3,
+		Timeout:    conn.DefaultStopTimeout * 3,
 	}
 
 	if _, err := stateConf.WaitForState(); err != nil {
@@ -673,7 +669,7 @@ func waitForVpcInAutoScalingGroupServerInstanceListDeletion(config *ProviderConf
 	return nil
 }
 
-func waitForClassicAutoScalingGroupDeletion(config *ProviderConfig, name string) error {
+func waitForClassicAutoScalingGroupDeletion(config *conn.ProviderConfig, name string) error {
 	stateConf := &resource.StateChangeConf{
 		Pending: []string{"RUN"},
 		Target:  []string{"DELETE"},
@@ -696,7 +692,7 @@ func waitForClassicAutoScalingGroupDeletion(config *ProviderConfig, name string)
 		},
 		Delay:      2 * time.Second,
 		MinTimeout: 3 * time.Second,
-		Timeout:    DefaultTimeout,
+		Timeout:    conn.DefaultTimeout,
 	}
 
 	if _, err := stateConf.WaitForState(); err != nil {
@@ -705,7 +701,7 @@ func waitForClassicAutoScalingGroupDeletion(config *ProviderConfig, name string)
 	return nil
 }
 
-func waitForVpcAutoScalingGroupDeletion(config *ProviderConfig, id string) error {
+func waitForVpcAutoScalingGroupDeletion(config *conn.ProviderConfig, id string) error {
 	stateConf := &resource.StateChangeConf{
 		Pending: []string{"RUN"},
 		Target:  []string{"DELETE"},
@@ -728,7 +724,7 @@ func waitForVpcAutoScalingGroupDeletion(config *ProviderConfig, id string) error
 		},
 		Delay:      2 * time.Second,
 		MinTimeout: 3 * time.Second,
-		Timeout:    DefaultTimeout,
+		Timeout:    conn.DefaultTimeout,
 	}
 
 	if _, err := stateConf.WaitForState(); err != nil {
@@ -737,7 +733,7 @@ func waitForVpcAutoScalingGroupDeletion(config *ProviderConfig, id string) error
 	return nil
 }
 
-func waitForAutoScalingGroupCapacity(d *schema.ResourceData, config *ProviderConfig) error {
+func waitForAutoScalingGroupCapacity(d *schema.ResourceData, config *conn.ProviderConfig) error {
 	wait, err := time.ParseDuration(d.Get("wait_for_capacity_timeout").(string))
 	if err != nil {
 		return err
@@ -754,7 +750,7 @@ func waitForAutoScalingGroupCapacity(d *schema.ResourceData, config *ProviderCon
 	}
 }
 
-func waitForVpcAutoScalingGroupCapacity(d *schema.ResourceData, config *ProviderConfig, wait time.Duration) error {
+func waitForVpcAutoScalingGroupCapacity(d *schema.ResourceData, config *conn.ProviderConfig, wait time.Duration) error {
 	return resource.Retry(wait, func() *resource.RetryError {
 		asg, err := getVpcAutoScalingGroup(config, d.Id())
 		asgServerInstanceList, err := getVpcInAutoScalingGroupServerInstanceList(config, d.Id())
@@ -787,7 +783,7 @@ func waitForVpcAutoScalingGroupCapacity(d *schema.ResourceData, config *Provider
 	})
 }
 
-func waitForClassicAutoScalingGroupCapacity(d *schema.ResourceData, config *ProviderConfig, wait time.Duration) error {
+func waitForClassicAutoScalingGroupCapacity(d *schema.ResourceData, config *conn.ProviderConfig, wait time.Duration) error {
 	return resource.Retry(wait, func() *resource.RetryError {
 		asg, err := getClassicAutoScalingGroup(config, d.Id())
 		asgServerInstanceList, err := getClassicInAutoScalingGroupServerInstanceList(config, d.Id())
@@ -814,13 +810,15 @@ func waitForClassicAutoScalingGroupCapacity(d *schema.ResourceData, config *Prov
 		}
 
 		if currentServerInstanceCnt < *minASG {
-			return resource.RetryableError(fmt.Errorf("%q: Waiting up to %s: Need at least %d healthy instances in ASG, have %d", d.Id(), DefaultCreateTimeout, *minASG, currentServerInstanceCnt))
+			return resource.RetryableError(
+				fmt.Errorf("%q: Waiting up to %s: Need at least %d healthy instances in ASG, have %d",
+					d.Id(), conn.DefaultCreateTimeout, *minASG, currentServerInstanceCnt))
 		}
 		return nil
 	})
 }
 
-func getClassicAutoScalingGroupByName(config *ProviderConfig, name string) (*AutoScalingGroup, error) {
+func getClassicAutoScalingGroupByName(config *conn.ProviderConfig, name string) (*AutoScalingGroup, error) {
 	reqParams := &autoscaling.GetAutoScalingGroupListRequest{
 		RegionNo:                 &config.RegionCode,
 		AutoScalingGroupNameList: []*string{ncloud.String(name)},

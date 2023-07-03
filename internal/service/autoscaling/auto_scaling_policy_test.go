@@ -1,4 +1,4 @@
-package autoscaling
+package autoscaling_test
 
 import (
 	"fmt"
@@ -11,11 +11,12 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 
 	. "github.com/terraform-providers/terraform-provider-ncloud/internal/acctest"
-	. "github.com/terraform-providers/terraform-provider-ncloud/internal/provider"
+	"github.com/terraform-providers/terraform-provider-ncloud/internal/conn"
+	"github.com/terraform-providers/terraform-provider-ncloud/internal/service/autoscaling"
 )
 
 func TestAccResourceNcloudAutoScalingPolicy_classic_basic(t *testing.T) {
-	var policy AutoScalingPolicy
+	var policy autoscaling.AutoScalingPolicy
 	name := fmt.Sprintf("terraform-testacc-asp-%s", acctest.RandString(5))
 	resourceCHANG := "ncloud_auto_scaling_policy.test-policy-CHANG"
 	resourceEXACT := "ncloud_auto_scaling_policy.test-policy-EXACT"
@@ -51,7 +52,7 @@ func TestAccResourceNcloudAutoScalingPolicy_classic_basic(t *testing.T) {
 }
 
 func TestAccResourceNcloudAutoScalingPolicy_vpc_basic(t *testing.T) {
-	var policy AutoScalingPolicy
+	var policy autoscaling.AutoScalingPolicy
 	name := fmt.Sprintf("terraform-testacc-asp-%s", acctest.RandString(5))
 	resourceCHANG := "ncloud_auto_scaling_policy.test-policy-CHANG"
 	resourceEXACT := "ncloud_auto_scaling_policy.test-policy-EXACT"
@@ -88,7 +89,7 @@ func TestAccResourceNcloudAutoScalingPolicy_vpc_basic(t *testing.T) {
 }
 
 func TestAccResourceNcloudAutoScalingPolicy_classic_disappears(t *testing.T) {
-	var policy AutoScalingPolicy
+	var policy autoscaling.AutoScalingPolicy
 	name := fmt.Sprintf("terraform-testacc-asp-%s", acctest.RandString(5))
 	resourceCHANG := "ncloud_auto_scaling_policy.test-policy-CHANG"
 	resourceEXACT := "ncloud_auto_scaling_policy.test-policy-EXACT"
@@ -107,9 +108,9 @@ func TestAccResourceNcloudAutoScalingPolicy_classic_disappears(t *testing.T) {
 					testAccCheckNcloudAutoScalingPolicyExists(resourceEXACT, &policy, GetTestProvider(false)),
 					testAccCheckNcloudAutoScalingPolicyExists(resourcePRCNT, &policy, GetTestProvider(false)),
 
-					TestAccCheckResourceDisappears(GetTestProvider(false), resourceNcloudAutoScalingPolicy(), resourceCHANG),
-					TestAccCheckResourceDisappears(GetTestProvider(false), resourceNcloudAutoScalingPolicy(), resourceEXACT),
-					TestAccCheckResourceDisappears(GetTestProvider(false), resourceNcloudAutoScalingPolicy(), resourcePRCNT),
+					TestAccCheckResourceDisappears(GetTestProvider(false), autoscaling.ResourceNcloudAutoScalingPolicy(), resourceCHANG),
+					TestAccCheckResourceDisappears(GetTestProvider(false), autoscaling.ResourceNcloudAutoScalingPolicy(), resourceEXACT),
+					TestAccCheckResourceDisappears(GetTestProvider(false), autoscaling.ResourceNcloudAutoScalingPolicy(), resourcePRCNT),
 				),
 				ExpectNonEmptyPlan: true,
 			},
@@ -118,7 +119,7 @@ func TestAccResourceNcloudAutoScalingPolicy_classic_disappears(t *testing.T) {
 }
 
 func TestAccResourceNcloudAutoScalingPolicy_vpc_disappears(t *testing.T) {
-	var policy AutoScalingPolicy
+	var policy autoscaling.AutoScalingPolicy
 	name := fmt.Sprintf("terraform-testacc-asp-%s", acctest.RandString(5))
 	resourceCHANG := "ncloud_auto_scaling_policy.test-policy-CHANG"
 	resourceEXACT := "ncloud_auto_scaling_policy.test-policy-EXACT"
@@ -137,9 +138,9 @@ func TestAccResourceNcloudAutoScalingPolicy_vpc_disappears(t *testing.T) {
 					testAccCheckNcloudAutoScalingPolicyExists(resourceEXACT, &policy, GetTestProvider(true)),
 					testAccCheckNcloudAutoScalingPolicyExists(resourcePRCNT, &policy, GetTestProvider(true)),
 
-					TestAccCheckResourceDisappears(GetTestProvider(true), resourceNcloudAutoScalingPolicy(), resourceCHANG),
-					TestAccCheckResourceDisappears(GetTestProvider(true), resourceNcloudAutoScalingPolicy(), resourceEXACT),
-					TestAccCheckResourceDisappears(GetTestProvider(true), resourceNcloudAutoScalingPolicy(), resourcePRCNT),
+					TestAccCheckResourceDisappears(GetTestProvider(true), autoscaling.ResourceNcloudAutoScalingPolicy(), resourceCHANG),
+					TestAccCheckResourceDisappears(GetTestProvider(true), autoscaling.ResourceNcloudAutoScalingPolicy(), resourceEXACT),
+					TestAccCheckResourceDisappears(GetTestProvider(true), autoscaling.ResourceNcloudAutoScalingPolicy(), resourcePRCNT),
 				),
 				ExpectNonEmptyPlan: true,
 			},
@@ -147,7 +148,7 @@ func TestAccResourceNcloudAutoScalingPolicy_vpc_disappears(t *testing.T) {
 	})
 }
 
-func testAccCheckNcloudAutoScalingPolicyExists(n string, p *AutoScalingPolicy, provider *schema.Provider) resource.TestCheckFunc {
+func testAccCheckNcloudAutoScalingPolicyExists(n string, p *autoscaling.AutoScalingPolicy, provider *schema.Provider) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		rs, ok := s.RootModule().Resources[n]
 		if !ok {
@@ -158,8 +159,8 @@ func testAccCheckNcloudAutoScalingPolicyExists(n string, p *AutoScalingPolicy, p
 			return fmt.Errorf("No AutoScalingPolicy ID is set: %s", n)
 		}
 
-		config := provider.Meta().(*ProviderConfig)
-		autoScalingPolicy, err := getAutoScalingPolicy(config, rs.Primary.ID, rs.Primary.Attributes["auto_scaling_group_no"])
+		config := provider.Meta().(*conn.ProviderConfig)
+		autoScalingPolicy, err := autoscaling.GetAutoScalingPolicy(config, rs.Primary.ID, rs.Primary.Attributes["auto_scaling_group_no"])
 		if err != nil {
 			return err
 		}
@@ -172,13 +173,13 @@ func testAccCheckNcloudAutoScalingPolicyExists(n string, p *AutoScalingPolicy, p
 }
 
 func testAccCheckNcloudAutoScalingPolicyDestroy(s *terraform.State, provider *schema.Provider) error {
-	config := provider.Meta().(*ProviderConfig)
+	config := provider.Meta().(*conn.ProviderConfig)
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "ncloud_auto_scaling_policy" {
 			continue
 		}
-		autoScalingPolicy, err := getAutoScalingPolicy(config, rs.Primary.ID, rs.Primary.Attributes["auto_scaling_group_no"])
+		autoScalingPolicy, err := autoscaling.GetAutoScalingPolicy(config, rs.Primary.ID, rs.Primary.Attributes["auto_scaling_group_no"])
 		if err != nil {
 			return err
 		}

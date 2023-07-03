@@ -1,4 +1,4 @@
-package server
+package server_test
 
 import (
 	"errors"
@@ -13,7 +13,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 
 	. "github.com/terraform-providers/terraform-provider-ncloud/internal/acctest"
-	. "github.com/terraform-providers/terraform-provider-ncloud/internal/provider"
+	"github.com/terraform-providers/terraform-provider-ncloud/internal/conn"
+	"github.com/terraform-providers/terraform-provider-ncloud/internal/service/server"
 )
 
 func TestAccResourceNcloudAccessControlGroupRule_basic(t *testing.T) {
@@ -174,9 +175,9 @@ func testAccCheckAccessControlGroupRuleExists(n string, AccessControlGroupRule *
 			return fmt.Errorf("no Access Control Group id is set")
 		}
 
-		config := GetTestProvider(true).Meta().(*ProviderConfig)
+		config := GetTestProvider(true).Meta().(*conn.ProviderConfig)
 
-		rules, err := getAccessControlGroupRuleList(config, rs.Primary.ID)
+		rules, err := server.GetAccessControlGroupRuleList(config, rs.Primary.ID)
 		if err != nil {
 			return err
 		}
@@ -192,14 +193,14 @@ func testAccCheckAccessControlGroupRuleExists(n string, AccessControlGroupRule *
 }
 
 func testAccCheckAccessControlGroupRuleDestroy(s *terraform.State) error {
-	config := GetTestProvider(true).Meta().(*ProviderConfig)
+	config := GetTestProvider(true).Meta().(*conn.ProviderConfig)
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "ncloud_access_control_group_rule" {
 			continue
 		}
 
-		instance, err := getAccessControlGroup(config, rs.Primary.Attributes["access_control_group_no"])
+		instance, err := server.GetAccessControlGroup(config, rs.Primary.Attributes["access_control_group_no"])
 
 		if err != nil {
 			return err
@@ -215,7 +216,7 @@ func testAccCheckAccessControlGroupRuleDestroy(s *terraform.State) error {
 
 func testAccCheckAccessControlGroupRuleDisappears(instance *[]*vserver.AccessControlGroupRule) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
-		config := GetTestProvider(true).Meta().(*ProviderConfig)
+		config := GetTestProvider(true).Meta().(*conn.ProviderConfig)
 
 		if len(*instance) == 0 {
 			return nil
@@ -223,7 +224,7 @@ func testAccCheckAccessControlGroupRuleDisappears(instance *[]*vserver.AccessCon
 
 		id := (*instance)[0].AccessControlGroupNo
 
-		accessControlGroup, err := getAccessControlGroup(config, *id)
+		accessControlGroup, err := server.GetAccessControlGroup(config, *id)
 		if err != nil {
 			return err
 		}

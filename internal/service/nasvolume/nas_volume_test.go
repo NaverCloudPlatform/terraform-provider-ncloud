@@ -1,4 +1,4 @@
-package nasvolume
+package nasvolume_test
 
 import (
 	"fmt"
@@ -10,7 +10,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 
 	. "github.com/terraform-providers/terraform-provider-ncloud/internal/acctest"
-	. "github.com/terraform-providers/terraform-provider-ncloud/internal/provider"
+	"github.com/terraform-providers/terraform-provider-ncloud/internal/conn"
+	"github.com/terraform-providers/terraform-provider-ncloud/internal/service/nasvolume"
 )
 
 func TestAccResourceNcloudNasVolume_classic_basic(t *testing.T) {
@@ -22,7 +23,7 @@ func TestAccResourceNcloudNasVolume_vpc_basic(t *testing.T) {
 }
 
 func testAccResourceNcloudNasVolumeBasic(t *testing.T, isVpc bool) {
-	var volumeInstance NasVolume
+	var volumeInstance nasvolume.NasVolume
 	postfix := GetTestPrefix()
 	resourceName := "ncloud_nas_volume.test"
 	provider := GetTestProvider(isVpc)
@@ -67,8 +68,8 @@ func TestAccResourceNcloudNasVolume_vpc_resize(t *testing.T) {
 }
 
 func testAccResourceNcloudNasVolumeResize(t *testing.T, isVpc bool) {
-	var before NasVolume
-	var after NasVolume
+	var before nasvolume.NasVolume
+	var after nasvolume.NasVolume
 	postfix := GetTestPrefix()
 	resourceName := "ncloud_nas_volume.test"
 	provider := GetTestProvider(isVpc)
@@ -104,8 +105,8 @@ func testAccResourceNcloudNasVolumeResize(t *testing.T, isVpc bool) {
 }
 
 func TestAccResourceNcloudNasVolume_classic_changeAccessControl(t *testing.T) {
-	var before NasVolume
-	var after NasVolume
+	var before nasvolume.NasVolume
+	var after nasvolume.NasVolume
 	postfix := GetTestPrefix()
 	resourceName := "ncloud_nas_volume.test"
 
@@ -140,8 +141,8 @@ func TestAccResourceNcloudNasVolume_classic_changeAccessControl(t *testing.T) {
 }
 
 func TestAccResourceNcloudNasVolume_vpc_changeAccessControl(t *testing.T) {
-	var before NasVolume
-	var after NasVolume
+	var before nasvolume.NasVolume
+	var after nasvolume.NasVolume
 	postfix := GetTestPrefix()
 	resourceName := "ncloud_nas_volume.test"
 
@@ -175,7 +176,7 @@ func TestAccResourceNcloudNasVolume_vpc_changeAccessControl(t *testing.T) {
 	})
 }
 
-func testAccCheckNasVolumeExists(n string, i *NasVolume, provider *schema.Provider) resource.TestCheckFunc {
+func testAccCheckNasVolumeExists(n string, i *nasvolume.NasVolume, provider *schema.Provider) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		rs, ok := s.RootModule().Resources[n]
 		if !ok {
@@ -186,8 +187,8 @@ func testAccCheckNasVolumeExists(n string, i *NasVolume, provider *schema.Provid
 			return fmt.Errorf("no ID is set")
 		}
 
-		config := provider.Meta().(*ProviderConfig)
-		nasVolumeInstance, err := getNasVolume(config, rs.Primary.ID)
+		config := provider.Meta().(*conn.ProviderConfig)
+		nasVolumeInstance, err := nasvolume.GetNasVolume(config, rs.Primary.ID)
 		if err != nil {
 			return nil
 		}
@@ -202,13 +203,13 @@ func testAccCheckNasVolumeExists(n string, i *NasVolume, provider *schema.Provid
 }
 
 func testAccCheckNasVolumeDestroy(s *terraform.State, provider *schema.Provider) error {
-	config := provider.Meta().(*ProviderConfig)
+	config := provider.Meta().(*conn.ProviderConfig)
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "ncloud_nas_volume" {
 			continue
 		}
-		volumeInstance, err := getNasVolume(config, rs.Primary.ID)
+		volumeInstance, err := nasvolume.GetNasVolume(config, rs.Primary.ID)
 		if volumeInstance == nil {
 			return nil
 		}
@@ -224,7 +225,7 @@ func testAccCheckNasVolumeDestroy(s *terraform.State, provider *schema.Provider)
 }
 
 func testAccCheckNasVolumeNotRecreated(t *testing.T,
-	before, after *NasVolume) resource.TestCheckFunc {
+	before, after *nasvolume.NasVolume) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		if *before.NasVolumeInstanceNo != *after.NasVolumeInstanceNo {
 			t.Fatalf("Ncloud NasVolumeInstanceNo have changed. Before %s. After %s", *before.NasVolumeInstanceNo, *after.NasVolumeInstanceNo)

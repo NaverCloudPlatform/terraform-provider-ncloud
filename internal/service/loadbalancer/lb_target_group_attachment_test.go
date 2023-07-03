@@ -1,4 +1,4 @@
-package loadbalancer
+package loadbalancer_test
 
 import (
 	"fmt"
@@ -11,7 +11,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 
 	. "github.com/terraform-providers/terraform-provider-ncloud/internal/acctest"
-	. "github.com/terraform-providers/terraform-provider-ncloud/internal/provider"
+	"github.com/terraform-providers/terraform-provider-ncloud/internal/conn"
+	"github.com/terraform-providers/terraform-provider-ncloud/internal/service/loadbalancer"
 )
 
 func TestAccResourceNcloudLbTargetGroupAttachment_basic(t *testing.T) {
@@ -49,8 +50,8 @@ func testAccCheckLbTargetGroupAttachmentExists(n string, t *string, provider *sc
 			return fmt.Errorf("No Target ID is set: %s", n)
 		}
 
-		config := provider.Meta().(*ProviderConfig)
-		targetNoList, err := getVpcLoadBalancerTargetGroupAttachment(config, rs.Primary.Attributes["target_group_no"], []string{rs.Primary.Attributes["target_no_list.0"]})
+		config := provider.Meta().(*conn.ProviderConfig)
+		targetNoList, err := loadbalancer.GetVpcLoadBalancerTargetGroupAttachment(config, rs.Primary.Attributes["target_group_no"], []string{rs.Primary.Attributes["target_no_list.0"]})
 
 		if err != nil {
 			return err
@@ -66,14 +67,14 @@ func testAccCheckLbTargetGroupAttachmentExists(n string, t *string, provider *sc
 }
 
 func testAccCheckLbTargetGroupAttachmentDestroy(s *terraform.State, provider *schema.Provider) error {
-	config := provider.Meta().(*ProviderConfig)
+	config := provider.Meta().(*conn.ProviderConfig)
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "ncloud_lb_target_group_attachment" {
 			continue
 		}
 
-		targetNoList, err := getVpcLoadBalancerTargetGroupAttachment(config, rs.Primary.Attributes["target_group_no"], []string{rs.Primary.Attributes["target_no_list.0"]})
+		targetNoList, err := loadbalancer.GetVpcLoadBalancerTargetGroupAttachment(config, rs.Primary.Attributes["target_group_no"], []string{rs.Primary.Attributes["target_no_list.0"]})
 
 		if err != nil {
 			return err

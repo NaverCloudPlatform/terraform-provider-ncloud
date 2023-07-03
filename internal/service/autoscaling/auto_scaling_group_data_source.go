@@ -7,15 +7,11 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 
 	. "github.com/terraform-providers/terraform-provider-ncloud/internal/common"
-	. "github.com/terraform-providers/terraform-provider-ncloud/internal/provider"
+	"github.com/terraform-providers/terraform-provider-ncloud/internal/conn"
 	. "github.com/terraform-providers/terraform-provider-ncloud/internal/verify"
 )
 
-func init() {
-	RegisterDataSource("ncloud_auto_scaling_group", dataSourceNcloudAutoScalingGroup())
-}
-
-func dataSourceNcloudAutoScalingGroup() *schema.Resource {
+func DataSourceNcloudAutoScalingGroup() *schema.Resource {
 	fieldMap := map[string]*schema.Schema{
 		"id": {
 			Type:     schema.TypeString,
@@ -24,11 +20,11 @@ func dataSourceNcloudAutoScalingGroup() *schema.Resource {
 		},
 		"filter": DataSourceFiltersSchema(),
 	}
-	return GetSingularDataSourceItemSchema(resourceNcloudAutoScalingGroup(), fieldMap, dataSourceNcloudAutoScalingGroupRead)
+	return GetSingularDataSourceItemSchema(ResourceNcloudAutoScalingGroup(), fieldMap, dataSourceNcloudAutoScalingGroupRead)
 }
 
 func dataSourceNcloudAutoScalingGroupRead(d *schema.ResourceData, meta interface{}) error {
-	config := meta.(*ProviderConfig)
+	config := meta.(*conn.ProviderConfig)
 
 	if v, ok := d.GetOk("id"); ok {
 		d.SetId(v.(string))
@@ -42,7 +38,7 @@ func dataSourceNcloudAutoScalingGroupRead(d *schema.ResourceData, meta interface
 
 	autoScalingGroupListMap := ConvertToArrayMap(autoScalingGroupList)
 	if f, ok := d.GetOk("filter"); ok {
-		autoScalingGroupListMap = ApplyFilters(f.(*schema.Set), autoScalingGroupListMap, dataSourceNcloudAutoScalingGroup().Schema)
+		autoScalingGroupListMap = ApplyFilters(f.(*schema.Set), autoScalingGroupListMap, DataSourceNcloudAutoScalingGroup().Schema)
 	}
 
 	if err := ValidateOneResult(len(autoScalingGroupListMap)); err != nil {
@@ -50,11 +46,11 @@ func dataSourceNcloudAutoScalingGroupRead(d *schema.ResourceData, meta interface
 	}
 
 	d.SetId(autoScalingGroupListMap[0]["auto_scaling_group_no"].(string))
-	SetSingularResourceDataFromMapSchema(dataSourceNcloudAutoScalingGroup(), d, autoScalingGroupListMap[0])
+	SetSingularResourceDataFromMapSchema(DataSourceNcloudAutoScalingGroup(), d, autoScalingGroupListMap[0])
 	return nil
 }
 
-func getAutoScalingGroupList(config *ProviderConfig, id string) ([]*AutoScalingGroup, error) {
+func getAutoScalingGroupList(config *conn.ProviderConfig, id string) ([]*AutoScalingGroup, error) {
 	if config.SupportVPC {
 		return getVpcAutoScalingGroupList(config, id)
 	} else {
@@ -63,7 +59,7 @@ func getAutoScalingGroupList(config *ProviderConfig, id string) ([]*AutoScalingG
 
 }
 
-func getVpcAutoScalingGroupList(config *ProviderConfig, id string) ([]*AutoScalingGroup, error) {
+func getVpcAutoScalingGroupList(config *conn.ProviderConfig, id string) ([]*AutoScalingGroup, error) {
 	reqParams := &vautoscaling.GetAutoScalingGroupListRequest{
 		RegionCode: &config.RegionCode,
 	}
@@ -106,7 +102,7 @@ func getVpcAutoScalingGroupList(config *ProviderConfig, id string) ([]*AutoScali
 	return list, nil
 }
 
-func getClassicAutoScalingGroupList(config *ProviderConfig, id string) ([]*AutoScalingGroup, error) {
+func getClassicAutoScalingGroupList(config *conn.ProviderConfig, id string) ([]*AutoScalingGroup, error) {
 	no := ncloud.String(id)
 	reqParams := &autoscaling.GetAutoScalingGroupListRequest{
 		RegionNo: &config.RegionNo,

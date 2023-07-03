@@ -8,14 +8,10 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 
 	. "github.com/terraform-providers/terraform-provider-ncloud/internal/common"
-	. "github.com/terraform-providers/terraform-provider-ncloud/internal/provider"
+	"github.com/terraform-providers/terraform-provider-ncloud/internal/conn"
 )
 
-func init() {
-	RegisterDataSource("ncloud_cdss_kafka_version", dataSourceNcloudCDSSKafkaVersion())
-}
-
-func dataSourceNcloudCDSSKafkaVersion() *schema.Resource {
+func DataSourceNcloudCDSSKafkaVersion() *schema.Resource {
 	return &schema.Resource{
 		Read: dataSourceNcloudCDSSKafkaVersionRead,
 		Schema: map[string]*schema.Schema{
@@ -33,7 +29,7 @@ func dataSourceNcloudCDSSKafkaVersion() *schema.Resource {
 }
 
 func dataSourceNcloudCDSSKafkaVersionRead(d *schema.ResourceData, meta interface{}) error {
-	config := meta.(*ProviderConfig)
+	config := meta.(*conn.ProviderConfig)
 	if !config.SupportVPC {
 		return NotSupportClassic("datasource `ncloud_cdss_kafka_version`")
 	}
@@ -44,7 +40,7 @@ func dataSourceNcloudCDSSKafkaVersionRead(d *schema.ResourceData, meta interface
 	}
 
 	if f, ok := d.GetOk("filter"); ok {
-		resources = ApplyFilters(f.(*schema.Set), resources, dataSourceNcloudCDSSKafkaVersion().Schema)
+		resources = ApplyFilters(f.(*schema.Set), resources, DataSourceNcloudCDSSKafkaVersion().Schema)
 	}
 
 	if len(resources) < 1 {
@@ -61,7 +57,7 @@ func dataSourceNcloudCDSSKafkaVersionRead(d *schema.ResourceData, meta interface
 	return nil
 }
 
-func getCDSSKafkaVersions(config *ProviderConfig) ([]map[string]interface{}, error) {
+func getCDSSKafkaVersions(config *conn.ProviderConfig) ([]map[string]interface{}, error) {
 	LogCommonRequest("GetCDSSVersionList", "")
 	resp, _, err := config.Client.Vcdss.V1Api.ClusterGetCDSSVersionListGet(context.Background())
 

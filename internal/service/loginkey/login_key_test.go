@@ -1,4 +1,4 @@
-package loginkey
+package loginkey_test
 
 import (
 	"fmt"
@@ -9,7 +9,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 
 	. "github.com/terraform-providers/terraform-provider-ncloud/internal/acctest"
-	. "github.com/terraform-providers/terraform-provider-ncloud/internal/provider"
+	"github.com/terraform-providers/terraform-provider-ncloud/internal/conn"
+	"github.com/terraform-providers/terraform-provider-ncloud/internal/service/loginkey"
 )
 
 func TestAccResourceNcloudLoginKey_classic_basic(t *testing.T) {
@@ -21,7 +22,7 @@ func TestAccResourceNcloudLoginKey_vpc_basic(t *testing.T) {
 }
 
 func testAccResourceNcloudLoginKeyBasic(t *testing.T, isVpc bool) {
-	var loginKey *LoginKey
+	var loginKey *loginkey.LoginKey
 	prefix := GetTestPrefix()
 	testKeyName := prefix + "-key"
 
@@ -63,7 +64,7 @@ func testAccResourceNcloudLoginKeyBasic(t *testing.T, isVpc bool) {
 	})
 }
 
-func testAccCheckLoginKeyExistsWithProvider(n string, l *LoginKey, provider *schema.Provider) resource.TestCheckFunc {
+func testAccCheckLoginKeyExistsWithProvider(n string, l *loginkey.LoginKey, provider *schema.Provider) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		rs, ok := s.RootModule().Resources[n]
 		if !ok {
@@ -74,8 +75,8 @@ func testAccCheckLoginKeyExistsWithProvider(n string, l *LoginKey, provider *sch
 			return fmt.Errorf("no ID is set")
 		}
 
-		config := provider.Meta().(*ProviderConfig)
-		loginKey, err := getLoginKey(config, rs.Primary.ID)
+		config := provider.Meta().(*conn.ProviderConfig)
+		loginKey, err := loginkey.GetLoginKey(config, rs.Primary.ID)
 		if err != nil {
 			return nil
 		}
@@ -90,13 +91,13 @@ func testAccCheckLoginKeyExistsWithProvider(n string, l *LoginKey, provider *sch
 }
 
 func testAccCheckLoginKeyDestroyWithProvider(s *terraform.State, provider *schema.Provider) error {
-	config := provider.Meta().(*ProviderConfig)
+	config := provider.Meta().(*conn.ProviderConfig)
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "ncloud_login_key" {
 			continue
 		}
-		loginKey, err := getLoginKey(config, rs.Primary.ID)
+		loginKey, err := loginkey.GetLoginKey(config, rs.Primary.ID)
 
 		if loginKey == nil {
 			continue

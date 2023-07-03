@@ -6,15 +6,9 @@ import (
 	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/ncloud"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
-
-	. "github.com/terraform-providers/terraform-provider-ncloud/internal/provider"
 )
 
-func init() {
-	RegisterDataSource("ncloud_sourcebuild_project", dataSourceNcloudSourceBuildProject())
-}
-
-func dataSourceNcloudSourceBuildProject() *schema.Resource {
+func DataSourceNcloudSourceBuildProject() *schema.Resource {
 	return &schema.Resource{
 		ReadContext: dataSourceNcloudSourceBuildProjectRead,
 		Schema: map[string]*schema.Schema{

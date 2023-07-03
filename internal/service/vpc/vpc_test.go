@@ -1,4 +1,4 @@
-package vpc
+package vpc_test
 
 import (
 	"errors"
@@ -13,7 +13,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 
 	. "github.com/terraform-providers/terraform-provider-ncloud/internal/acctest"
-	"github.com/terraform-providers/terraform-provider-ncloud/internal/provider"
+	"github.com/terraform-providers/terraform-provider-ncloud/internal/conn"
+	vpcservice "github.com/terraform-providers/terraform-provider-ncloud/internal/service/vpc"
 )
 
 func TestAccResourceNcloudVpc_basic(t *testing.T) {
@@ -111,8 +112,8 @@ func testAccCheckVpcExists(n string, vpc *vpc.Vpc) resource.TestCheckFunc {
 			return fmt.Errorf("No VPC ID is set")
 		}
 
-		config := GetTestProvider(true).Meta().(*provider.ProviderConfig)
-		vpcInstance, err := GetVpcInstance(config, rs.Primary.ID)
+		config := GetTestProvider(true).Meta().(*conn.ProviderConfig)
+		vpcInstance, err := vpcservice.GetVpcInstance(config, rs.Primary.ID)
 		if err != nil {
 			return err
 		}
@@ -124,14 +125,14 @@ func testAccCheckVpcExists(n string, vpc *vpc.Vpc) resource.TestCheckFunc {
 }
 
 func testAccCheckVpcDestroy(s *terraform.State) error {
-	config := GetTestProvider(true).Meta().(*provider.ProviderConfig)
+	config := GetTestProvider(true).Meta().(*conn.ProviderConfig)
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "ncloud_vpc" {
 			continue
 		}
 
-		instance, err := GetVpcInstance(config, rs.Primary.ID)
+		instance, err := vpcservice.GetVpcInstance(config, rs.Primary.ID)
 
 		if err != nil {
 			return err
@@ -147,7 +148,7 @@ func testAccCheckVpcDestroy(s *terraform.State) error {
 
 func testAccCheckVpcDisappears(instance *vpc.Vpc) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
-		config := GetTestProvider(true).Meta().(*provider.ProviderConfig)
+		config := GetTestProvider(true).Meta().(*conn.ProviderConfig)
 
 		reqParams := &vpc.DeleteVpcRequest{
 			RegionCode: &config.RegionCode,
@@ -156,7 +157,7 @@ func testAccCheckVpcDisappears(instance *vpc.Vpc) resource.TestCheckFunc {
 
 		_, err := config.Client.Vpc.V2Api.DeleteVpc(reqParams)
 
-		if err := waitForNcloudVpcDeletion(config, *instance.VpcNo); err != nil {
+		if err := vpcservice.WaitForNcloudVpcDeletion(config, *instance.VpcNo); err != nil {
 			return err
 		}
 

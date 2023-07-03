@@ -13,7 +13,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 
-	. "github.com/terraform-providers/terraform-provider-ncloud/internal/provider"
+	"github.com/terraform-providers/terraform-provider-ncloud/internal/provider"
 	. "github.com/terraform-providers/terraform-provider-ncloud/internal/verify"
 )
 
@@ -62,28 +62,13 @@ func GetTestAccProviders(isVpc bool) map[string]*schema.Provider {
 }
 
 func getTestAccProvider(isVpc bool) *schema.Provider {
-	testProvider := &schema.Provider{
-		Schema:         SchemaMap(),
-		DataSourcesMap: DataSourcesMap(),
-		ResourcesMap:   ResourcesMap(),
-		ConfigureFunc: func(d *schema.ResourceData) (interface{}, error) {
-			d.Set("region", testAccGetRegion())
-			d.Set("support_vpc", isVpc)
-			return ProviderConfigure(d)
-		},
+	p := provider.Provider()
+	p.ConfigureFunc = func(d *schema.ResourceData) (interface{}, error) {
+		d.Set("region", testAccGetRegion())
+		d.Set("support_vpc", isVpc)
+		return provider.ProviderConfigure(d)
 	}
-
-	return testProvider
-}
-
-func TestProvider(t *testing.T) {
-	if err := Provider().InternalValidate(); err != nil {
-		t.Fatalf("err: %s", err)
-	}
-}
-
-func TestProvider_impl(t *testing.T) {
-	var _ = Provider()
+	return p
 }
 
 func TestAccPreCheck(t *testing.T) {

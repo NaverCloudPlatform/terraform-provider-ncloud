@@ -11,14 +11,10 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 
 	. "github.com/terraform-providers/terraform-provider-ncloud/internal/common"
-	"github.com/terraform-providers/terraform-provider-ncloud/internal/provider"
+	"github.com/terraform-providers/terraform-provider-ncloud/internal/conn"
 )
 
-func init() {
-	provider.RegisterDataSource("ncloud_sourcepipeline_projects", dataSourceNcloudSourcePipelineProjects())
-}
-
-func dataSourceNcloudSourcePipelineProjects() *schema.Resource {
+func DataSourceNcloudSourcePipelineProjects() *schema.Resource {
 	return &schema.Resource{
 		ReadContext: dataSourceNcloudSourcePipelineProjectsRead,
 		Schema: map[string]*schema.Schema{
@@ -44,7 +40,7 @@ func dataSourceNcloudSourcePipelineProjects() *schema.Resource {
 }
 
 func dataSourceNcloudSourcePipelineProjectsRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
-	config := meta.(*provider.ProviderConfig)
+	config := meta.(*conn.ProviderConfig)
 
 	projects, err := getSourcePipelineProjects(ctx, config)
 	if err != nil {
@@ -68,7 +64,7 @@ func dataSourceNcloudSourcePipelineProjectsRead(ctx context.Context, d *schema.R
 	}
 
 	if f, ok := d.GetOk("filter"); ok {
-		resources = ApplyFilters(f.(*schema.Set), resources, dataSourceNcloudSourcePipelineProjects().Schema)
+		resources = ApplyFilters(f.(*schema.Set), resources, DataSourceNcloudSourcePipelineProjects().Schema)
 	}
 
 	d.SetId(time.Now().UTC().String())
@@ -77,14 +73,14 @@ func dataSourceNcloudSourcePipelineProjectsRead(ctx context.Context, d *schema.R
 	return nil
 }
 
-func getSourcePipelineProjects(ctx context.Context, config *provider.ProviderConfig) ([]*PipelineProjects, error) {
+func getSourcePipelineProjects(ctx context.Context, config *conn.ProviderConfig) ([]*PipelineProjects, error) {
 	if config.SupportVPC {
 		return getVpcSourcePipelineProjects(ctx, config)
 	}
 	return getClassicSourcePipelineProjects(ctx, config)
 }
 
-func getClassicSourcePipelineProjects(ctx context.Context, config *provider.ProviderConfig) ([]*PipelineProjects, error) {
+func getClassicSourcePipelineProjects(ctx context.Context, config *conn.ProviderConfig) ([]*PipelineProjects, error) {
 	resp, err := config.Client.Sourcepipeline.V1Api.GetProjects(ctx)
 	if err != nil {
 		return nil, err
@@ -92,7 +88,7 @@ func getClassicSourcePipelineProjects(ctx context.Context, config *provider.Prov
 	return convertClassicPipelineProjects(resp), nil
 }
 
-func getVpcSourcePipelineProjects(ctx context.Context, config *provider.ProviderConfig) ([]*PipelineProjects, error) {
+func getVpcSourcePipelineProjects(ctx context.Context, config *conn.ProviderConfig) ([]*PipelineProjects, error) {
 	resp, err := config.Client.Vsourcepipeline.V1Api.GetProjects(ctx)
 	if err != nil {
 		return nil, err

@@ -9,15 +9,11 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 
 	. "github.com/terraform-providers/terraform-provider-ncloud/internal/common"
-	. "github.com/terraform-providers/terraform-provider-ncloud/internal/provider"
+	"github.com/terraform-providers/terraform-provider-ncloud/internal/conn"
 	. "github.com/terraform-providers/terraform-provider-ncloud/internal/verify"
 )
 
-func init() {
-	RegisterDataSource("ncloud_lb_target_group", dataSourceNcloudLbTargetGroup())
-}
-
-func dataSourceNcloudLbTargetGroup() *schema.Resource {
+func DataSourceNcloudLbTargetGroup() *schema.Resource {
 	fieldMap := map[string]*schema.Schema{
 		"id": {
 			Type:     schema.TypeString,
@@ -66,11 +62,11 @@ func dataSourceNcloudLbTargetGroup() *schema.Resource {
 		},
 		"filter": DataSourceFiltersSchema(),
 	}
-	return GetSingularDataSourceItemSchemaContext(resourceNcloudLbTargetGroup(), fieldMap, dataSourceNcloudLbTargetGroupRead)
+	return GetSingularDataSourceItemSchemaContext(ResourceNcloudLbTargetGroup(), fieldMap, dataSourceNcloudLbTargetGroupRead)
 }
 
 func dataSourceNcloudLbTargetGroupRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
-	config := meta.(*ProviderConfig)
+	config := meta.(*conn.ProviderConfig)
 	if !config.SupportVPC {
 		return diag.FromErr(NotSupportClassic("datasource `ncloud_lb_target_group`"))
 	}
@@ -86,7 +82,7 @@ func dataSourceNcloudLbTargetGroupRead(ctx context.Context, d *schema.ResourceDa
 
 	targetGroupListMap := ConvertToArrayMap(targetGroupList)
 	if f, ok := d.GetOk("filter"); ok {
-		targetGroupListMap = ApplyFilters(f.(*schema.Set), targetGroupListMap, dataSourceNcloudLbTargetGroup().Schema)
+		targetGroupListMap = ApplyFilters(f.(*schema.Set), targetGroupListMap, DataSourceNcloudLbTargetGroup().Schema)
 	}
 
 	if err := ValidateOneResult(len(targetGroupListMap)); err != nil {
@@ -94,11 +90,11 @@ func dataSourceNcloudLbTargetGroupRead(ctx context.Context, d *schema.ResourceDa
 	}
 
 	d.SetId(targetGroupListMap[0]["target_group_no"].(string))
-	SetSingularResourceDataFromMapSchema(dataSourceNcloudLbTargetGroup(), d, targetGroupListMap[0])
+	SetSingularResourceDataFromMapSchema(DataSourceNcloudLbTargetGroup(), d, targetGroupListMap[0])
 	return nil
 }
 
-func getVpcLoadBalancerTargetGroupList(config *ProviderConfig, id string) ([]*TargetGroup, error) {
+func getVpcLoadBalancerTargetGroupList(config *conn.ProviderConfig, id string) ([]*TargetGroup, error) {
 	reqParams := &vloadbalancer.GetTargetGroupListRequest{
 		RegionCode: &config.RegionCode,
 	}

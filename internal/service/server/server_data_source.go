@@ -9,15 +9,11 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 
 	. "github.com/terraform-providers/terraform-provider-ncloud/internal/common"
-	. "github.com/terraform-providers/terraform-provider-ncloud/internal/provider"
+	"github.com/terraform-providers/terraform-provider-ncloud/internal/conn"
 	"github.com/terraform-providers/terraform-provider-ncloud/internal/verify"
 )
 
-func init() {
-	RegisterDataSource("ncloud_server", dataSourceNcloudServer())
-}
-
-func dataSourceNcloudServer() *schema.Resource {
+func DataSourceNcloudServer() *schema.Resource {
 	fieldMap := map[string]*schema.Schema{
 		"id": {
 			Type:     schema.TypeString,
@@ -27,11 +23,11 @@ func dataSourceNcloudServer() *schema.Resource {
 		"filter": DataSourceFiltersSchema(),
 	}
 
-	return GetSingularDataSourceItemSchema(resourceNcloudServer(), fieldMap, dataSourceNcloudServerRead)
+	return GetSingularDataSourceItemSchema(ResourceNcloudServer(), fieldMap, dataSourceNcloudServerRead)
 }
 
 func dataSourceNcloudServerRead(d *schema.ResourceData, meta interface{}) error {
-	config := meta.(*ProviderConfig)
+	config := meta.(*conn.ProviderConfig)
 
 	instances, err := getServerList(d, config)
 	if err != nil {
@@ -44,7 +40,7 @@ func dataSourceNcloudServerRead(d *schema.ResourceData, meta interface{}) error 
 
 	resources := ConvertToArrayMap(instances)
 	if f, ok := d.GetOk("filter"); ok {
-		resources = ApplyFilters(f.(*schema.Set), resources, dataSourceNcloudServer().Schema)
+		resources = ApplyFilters(f.(*schema.Set), resources, DataSourceNcloudServer().Schema)
 	}
 
 	if err := verify.ValidateOneResult(len(resources)); err != nil {
@@ -52,11 +48,11 @@ func dataSourceNcloudServerRead(d *schema.ResourceData, meta interface{}) error 
 	}
 
 	d.SetId(resources[0]["instance_no"].(string))
-	SetSingularResourceDataFromMapSchema(dataSourceNcloudServer(), d, resources[0])
+	SetSingularResourceDataFromMapSchema(DataSourceNcloudServer(), d, resources[0])
 	return nil
 }
 
-func getServerList(d *schema.ResourceData, config *ProviderConfig) ([]*ServerInstance, error) {
+func getServerList(d *schema.ResourceData, config *conn.ProviderConfig) ([]*ServerInstance, error) {
 	if config.SupportVPC {
 		return getVpcServerList(d, config)
 	} else {
@@ -64,8 +60,8 @@ func getServerList(d *schema.ResourceData, config *ProviderConfig) ([]*ServerIns
 	}
 }
 
-func getClassicServerList(d *schema.ResourceData, config *ProviderConfig) ([]*ServerInstance, error) {
-	regionNo, err := ParseRegionNoParameter(d)
+func getClassicServerList(d *schema.ResourceData, config *conn.ProviderConfig) ([]*ServerInstance, error) {
+	regionNo, err := conn.ParseRegionNoParameter(d)
 	if err != nil {
 		return nil, err
 	}
@@ -96,7 +92,7 @@ func getClassicServerList(d *schema.ResourceData, config *ProviderConfig) ([]*Se
 	return list, nil
 }
 
-func getVpcServerList(d *schema.ResourceData, config *ProviderConfig) ([]*ServerInstance, error) {
+func getVpcServerList(d *schema.ResourceData, config *conn.ProviderConfig) ([]*ServerInstance, error) {
 	client := config.Client
 
 	reqParams := &vserver.GetServerInstanceListRequest{

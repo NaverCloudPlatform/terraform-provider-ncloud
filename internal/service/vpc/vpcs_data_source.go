@@ -7,14 +7,10 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 
 	. "github.com/terraform-providers/terraform-provider-ncloud/internal/common"
-	. "github.com/terraform-providers/terraform-provider-ncloud/internal/provider"
+	"github.com/terraform-providers/terraform-provider-ncloud/internal/conn"
 )
 
-func init() {
-	RegisterDataSource("ncloud_vpcs", dataSourceNcloudVpcs())
-}
-
-func dataSourceNcloudVpcs() *schema.Resource {
+func DataSourceNcloudVpcs() *schema.Resource {
 	return &schema.Resource{
 		Read: dataSourceNcloudVpcsRead,
 
@@ -31,14 +27,14 @@ func dataSourceNcloudVpcs() *schema.Resource {
 			"vpcs": {
 				Type:     schema.TypeList,
 				Computed: true,
-				Elem:     GetDataSourceItemSchema(resourceNcloudVpc()),
+				Elem:     GetDataSourceItemSchema(ResourceNcloudVpc()),
 			},
 		},
 	}
 }
 
 func dataSourceNcloudVpcsRead(d *schema.ResourceData, meta interface{}) error {
-	config := meta.(*ProviderConfig)
+	config := meta.(*conn.ProviderConfig)
 
 	if !config.SupportVPC {
 		return NotSupportClassic("data source `ncloud_vpcs`")

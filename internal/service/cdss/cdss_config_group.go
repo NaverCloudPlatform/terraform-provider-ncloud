@@ -11,15 +11,11 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 
 	. "github.com/terraform-providers/terraform-provider-ncloud/internal/common"
-	. "github.com/terraform-providers/terraform-provider-ncloud/internal/provider"
+	"github.com/terraform-providers/terraform-provider-ncloud/internal/conn"
 	. "github.com/terraform-providers/terraform-provider-ncloud/internal/verify"
 )
 
-func init() {
-	RegisterResource("ncloud_cdss_config_group", resourceNcloudCDSSConfigGroup())
-}
-
-func resourceNcloudCDSSConfigGroup() *schema.Resource {
+func ResourceNcloudCDSSConfigGroup() *schema.Resource {
 	return &schema.Resource{
 		CreateContext: resourceNcloudCDSSConfigGroupCreate,
 		ReadContext:   resourceNcloudCDSSConfigGroupRead,
@@ -54,7 +50,7 @@ func resourceNcloudCDSSConfigGroup() *schema.Resource {
 }
 
 func resourceNcloudCDSSConfigGroupCreate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
-	config := meta.(*ProviderConfig)
+	config := meta.(*conn.ProviderConfig)
 	if !config.SupportVPC {
 		return diag.FromErr(NotSupportClassic("resource `ncloud_cdss_config_group`"))
 	}
@@ -83,7 +79,7 @@ func resourceNcloudCDSSConfigGroupCreate(ctx context.Context, d *schema.Resource
 }
 
 func resourceNcloudCDSSConfigGroupRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
-	config := meta.(*ProviderConfig)
+	config := meta.(*conn.ProviderConfig)
 	if !config.SupportVPC {
 		return diag.FromErr(NotSupportClassic("resource `ncloud_cdss_config_group`"))
 	}
@@ -106,7 +102,7 @@ func resourceNcloudCDSSConfigGroupRead(ctx context.Context, d *schema.ResourceDa
 }
 
 func resourceNcloudCDSSConfigGroupUpdate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
-	config := meta.(*ProviderConfig)
+	config := meta.(*conn.ProviderConfig)
 	if !config.SupportVPC {
 		return diag.FromErr(NotSupportClassic("resource `ncloud_cdss_cluster`"))
 	}
@@ -131,7 +127,7 @@ func resourceNcloudCDSSConfigGroupUpdate(ctx context.Context, d *schema.Resource
 }
 
 func resourceNcloudCDSSConfigGroupDelete(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
-	config := meta.(*ProviderConfig)
+	config := meta.(*conn.ProviderConfig)
 	if !config.SupportVPC {
 		return diag.FromErr(NotSupportClassic("resource `ncloud_cdss_config_group`"))
 	}
@@ -145,7 +141,7 @@ func resourceNcloudCDSSConfigGroupDelete(ctx context.Context, d *schema.Resource
 	return nil
 }
 
-func getCDSSConfigGroup(ctx context.Context, config *ProviderConfig, kafkaVersionCode string, id string) (*vcdss.GetKafkaConfigGroupResponseVo, error) {
+func getCDSSConfigGroup(ctx context.Context, config *conn.ProviderConfig, kafkaVersionCode string, id string) (*vcdss.GetKafkaConfigGroupResponseVo, error) {
 	reqParams := vcdss.GetKafkaConfigGroupRequest{
 		KafkaVersionCode: kafkaVersionCode,
 	}

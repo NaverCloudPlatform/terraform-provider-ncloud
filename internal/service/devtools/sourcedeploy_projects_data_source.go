@@ -8,14 +8,10 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 
 	. "github.com/terraform-providers/terraform-provider-ncloud/internal/common"
-	"github.com/terraform-providers/terraform-provider-ncloud/internal/provider"
+	"github.com/terraform-providers/terraform-provider-ncloud/internal/conn"
 )
 
-func init() {
-	provider.RegisterDataSource("ncloud_sourcedeploy_projects", dataSourceNcloudSourceDeployProjectsContext())
-}
-
-func dataSourceNcloudSourceDeployProjectsContext() *schema.Resource {
+func DataSourceNcloudSourceDeployProjectsContext() *schema.Resource {
 	return &schema.Resource{
 		ReadContext: dataSourceNcloudSourceDeployProjectsReadContext,
 		Schema: map[string]*schema.Schema{
@@ -41,7 +37,7 @@ func dataSourceNcloudSourceDeployProjectsContext() *schema.Resource {
 }
 
 func dataSourceNcloudSourceDeployProjectsReadContext(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
-	config := meta.(*provider.ProviderConfig)
+	config := meta.(*conn.ProviderConfig)
 	reqParams := make(map[string]interface{})
 
 	if !config.SupportVPC {
@@ -67,7 +63,7 @@ func dataSourceNcloudSourceDeployProjectsReadContext(ctx context.Context, d *sch
 	}
 
 	if f, ok := d.GetOk("filter"); ok {
-		resources = ApplyFilters(f.(*schema.Set), resources, dataSourceNcloudSourceDeployProjectsContext().Schema)
+		resources = ApplyFilters(f.(*schema.Set), resources, DataSourceNcloudSourceDeployProjectsContext().Schema)
 	}
 	d.SetId(config.RegionCode)
 	d.Set("projects", resources)

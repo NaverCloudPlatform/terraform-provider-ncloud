@@ -10,14 +10,10 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 
 	. "github.com/terraform-providers/terraform-provider-ncloud/internal/common"
-	. "github.com/terraform-providers/terraform-provider-ncloud/internal/provider"
+	"github.com/terraform-providers/terraform-provider-ncloud/internal/conn"
 )
 
-func init() {
-	RegisterDataSource("ncloud_ses_cluster", dataSourceNcloudSESCluster())
-}
-
-func dataSourceNcloudSESCluster() *schema.Resource {
+func DataSourceNcloudSESCluster() *schema.Resource {
 	return &schema.Resource{
 		ReadContext: dataSourceNcloudSESClusterRead,
 		Schema: map[string]*schema.Schema{
@@ -203,13 +199,13 @@ func dataSourceNcloudSESCluster() *schema.Resource {
 }
 
 func dataSourceNcloudSESClusterRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
-	config := meta.(*ProviderConfig)
+	config := meta.(*conn.ProviderConfig)
 	if !config.SupportVPC {
 		return diag.FromErr(NotSupportClassic("dataSource `ncloud_ses_cluster`"))
 	}
 
 	id := d.Get("id").(string)
-	cluster, err := getSESCluster(ctx, config, id)
+	cluster, err := GetSESCluster(ctx, config, id)
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -228,7 +224,7 @@ func dataSourceNcloudSESClusterRead(ctx context.Context, d *schema.ResourceData,
 	d.Set("login_key_name", cluster.LoginKeyName)
 	d.Set("manager_node_instance_no_list", cluster.ManagerNodeInstanceNoList)
 
-	searchEngineList := schema.NewSet(schema.HashResource(dataSourceNcloudSESCluster().Schema["search_engine"].Elem.(*schema.Resource)), []interface{}{})
+	searchEngineList := schema.NewSet(schema.HashResource(DataSourceNcloudSESCluster().Schema["search_engine"].Elem.(*schema.Resource)), []interface{}{})
 	searchEngineList.Add(map[string]interface{}{
 		"version_code":   *cluster.SearchEngineVersionCode,
 		"user_name":      *cluster.SearchEngineUserName,
@@ -239,7 +235,7 @@ func dataSourceNcloudSESClusterRead(ctx context.Context, d *schema.ResourceData,
 		log.Printf("[WARN] Error setting search_engine set for (%s): %s", d.Id(), err)
 	}
 
-	managerNodeList := schema.NewSet(schema.HashResource(dataSourceNcloudSESCluster().Schema["manager_node"].Elem.(*schema.Resource)), []interface{}{})
+	managerNodeList := schema.NewSet(schema.HashResource(DataSourceNcloudSESCluster().Schema["manager_node"].Elem.(*schema.Resource)), []interface{}{})
 	managerNodeList.Add(map[string]interface{}{
 		"is_dual_manager": *cluster.IsDualManager,
 		"count":           *cluster.ManagerNodeCount,
@@ -252,7 +248,7 @@ func dataSourceNcloudSESClusterRead(ctx context.Context, d *schema.ResourceData,
 		log.Printf("[WARN] Error setting manager_node set for (%s): %s", d.Id(), err)
 	}
 
-	dataNodeList := schema.NewSet(schema.HashResource(dataSourceNcloudSESCluster().Schema["data_node"].Elem.(*schema.Resource)), []interface{}{})
+	dataNodeList := schema.NewSet(schema.HashResource(DataSourceNcloudSESCluster().Schema["data_node"].Elem.(*schema.Resource)), []interface{}{})
 	storageSize, _ := strconv.Atoi(*cluster.DataNodeStorageSize)
 	dataNodeList.Add(map[string]interface{}{
 		"count":        *cluster.DataNodeCount,
@@ -267,7 +263,7 @@ func dataSourceNcloudSESClusterRead(ctx context.Context, d *schema.ResourceData,
 	}
 
 	if cluster.IsMasterOnlyNodeActivated != nil && *cluster.IsMasterOnlyNodeActivated {
-		masterNodeList := schema.NewSet(schema.HashResource(dataSourceNcloudSESCluster().Schema["master_node"].Elem.(*schema.Resource)), []interface{}{})
+		masterNodeList := schema.NewSet(schema.HashResource(DataSourceNcloudSESCluster().Schema["master_node"].Elem.(*schema.Resource)), []interface{}{})
 		masterNodeList.Add(map[string]interface{}{
 			"count":        *cluster.MasterNodeCount,
 			"subnet_no":    *cluster.MasterNodeSubnetNo,
@@ -281,7 +277,7 @@ func dataSourceNcloudSESClusterRead(ctx context.Context, d *schema.ResourceData,
 		}
 	}
 
-	clusterNodeList := schema.NewSet(schema.HashResource(dataSourceNcloudSESCluster().Schema["cluster_node_list"].Elem.(*schema.Resource)), []interface{}{})
+	clusterNodeList := schema.NewSet(schema.HashResource(DataSourceNcloudSESCluster().Schema["cluster_node_list"].Elem.(*schema.Resource)), []interface{}{})
 	if cluster.ClusterNodeList != nil {
 		for _, clusterNode := range cluster.ClusterNodeList {
 			clusterNodeList.Add(map[string]interface{}{

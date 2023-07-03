@@ -1,4 +1,4 @@
-package devtools
+package devtools_test
 
 import (
 	"fmt"

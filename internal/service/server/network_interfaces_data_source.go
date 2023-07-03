@@ -8,14 +8,10 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 
 	. "github.com/terraform-providers/terraform-provider-ncloud/internal/common"
-	. "github.com/terraform-providers/terraform-provider-ncloud/internal/provider"
+	"github.com/terraform-providers/terraform-provider-ncloud/internal/conn"
 )
 
-func init() {
-	RegisterDataSource("ncloud_network_interfaces", dataSourceNcloudNetworkInterfaces())
-}
-
-func dataSourceNcloudNetworkInterfaces() *schema.Resource {
+func DataSourceNcloudNetworkInterfaces() *schema.Resource {
 	return &schema.Resource{
 		Read: dataSourceNcloudNetworkInterfacesRead,
 		Schema: map[string]*schema.Schema{
@@ -34,14 +30,14 @@ func dataSourceNcloudNetworkInterfaces() *schema.Resource {
 			"network_interfaces": {
 				Type:     schema.TypeList,
 				Computed: true,
-				Elem:     GetDataSourceItemSchema(resourceNcloudNetworkInterface()),
+				Elem:     GetDataSourceItemSchema(ResourceNcloudNetworkInterface()),
 			},
 		},
 	}
 }
 
 func dataSourceNcloudNetworkInterfacesRead(d *schema.ResourceData, meta interface{}) error {
-	config := meta.(*ProviderConfig)
+	config := meta.(*conn.ProviderConfig)
 	var resources []map[string]interface{}
 	var err error
 

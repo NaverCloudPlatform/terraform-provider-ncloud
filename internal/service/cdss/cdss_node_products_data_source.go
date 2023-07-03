@@ -8,14 +8,10 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 
 	. "github.com/terraform-providers/terraform-provider-ncloud/internal/common"
-	. "github.com/terraform-providers/terraform-provider-ncloud/internal/provider"
+	"github.com/terraform-providers/terraform-provider-ncloud/internal/conn"
 )
 
-func init() {
-	RegisterDataSource("ncloud_cdss_node_products", dataSourceNcloudCDSSNodeProducts())
-}
-
-func dataSourceNcloudCDSSNodeProducts() *schema.Resource {
+func DataSourceNcloudCDSSNodeProducts() *schema.Resource {
 	return &schema.Resource{
 		Read: dataSourceNcloudCDSSNodeProductsRead,
 		Schema: map[string]*schema.Schema{
@@ -56,7 +52,7 @@ func dataSourceNcloudCDSSNodeProducts() *schema.Resource {
 }
 
 func dataSourceNcloudCDSSNodeProductsRead(d *schema.ResourceData, meta interface{}) error {
-	config := meta.(*ProviderConfig)
+	config := meta.(*conn.ProviderConfig)
 	if !config.SupportVPC {
 		return NotSupportClassic("datasource `ncloud_cdss_node_products`")
 	}

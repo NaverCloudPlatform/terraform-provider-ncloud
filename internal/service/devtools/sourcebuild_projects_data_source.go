@@ -8,14 +8,10 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 
 	. "github.com/terraform-providers/terraform-provider-ncloud/internal/common"
-	. "github.com/terraform-providers/terraform-provider-ncloud/internal/provider"
+	"github.com/terraform-providers/terraform-provider-ncloud/internal/conn"
 )
 
-func init() {
-	RegisterDataSource("ncloud_sourcebuild_projects", dataSourceNcloudSourceBuildProjects())
-}
-
-func dataSourceNcloudSourceBuildProjects() *schema.Resource {
+func DataSourceNcloudSourceBuildProjects() *schema.Resource {
 	return &schema.Resource{
 		ReadContext: dataSourceNcloudSourceBuildProjectsRead,
 		Schema: map[string]*schema.Schema{
@@ -57,7 +53,7 @@ func dataSourceNcloudSourceBuildProjects() *schema.Resource {
 }
 
 func dataSourceNcloudSourceBuildProjectsRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
-	config := meta.(*ProviderConfig)
+	config := meta.(*conn.ProviderConfig)
 
 	reqParams := make(map[string]interface{})
 	reqParams["projectName"] = ncloud.StringValue(StringPtrOrNil(d.GetOk("project_name")))
@@ -85,7 +81,7 @@ func dataSourceNcloudSourceBuildProjectsRead(ctx context.Context, d *schema.Reso
 	}
 
 	if f, ok := d.GetOk("filter"); ok {
-		resources = ApplyFilters(f.(*schema.Set), resources, dataSourceNcloudSourceBuildProjects().Schema)
+		resources = ApplyFilters(f.(*schema.Set), resources, DataSourceNcloudSourceBuildProjects().Schema)
 	}
 
 	d.SetId(config.RegionCode)

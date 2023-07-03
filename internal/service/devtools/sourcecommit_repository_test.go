@@ -1,4 +1,4 @@
-package devtools
+package devtools_test
 
 import (
 	"context"
@@ -14,7 +14,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 
 	. "github.com/terraform-providers/terraform-provider-ncloud/internal/acctest"
-	"github.com/terraform-providers/terraform-provider-ncloud/internal/provider"
+	"github.com/terraform-providers/terraform-provider-ncloud/internal/conn"
+	"github.com/terraform-providers/terraform-provider-ncloud/internal/service/devtools"
 )
 
 func TestAccResourceNcloudSourceCommitRepository_basic(t *testing.T) {
@@ -67,9 +68,9 @@ func testAccCheckSourceCommitRepositoryExists(n string, repository *sourcecommit
 			return fmt.Errorf("No Repository Id is set")
 		}
 
-		config := GetTestProvider(true).Meta().(*provider.ProviderConfig)
+		config := GetTestProvider(true).Meta().(*conn.ProviderConfig)
 
-		resp, err := getRepositoryById(context.Background(), config, rs.Primary.ID)
+		resp, err := devtools.GetRepositoryById(context.Background(), config, rs.Primary.ID)
 		if err != nil {
 			return err
 		}
@@ -80,14 +81,14 @@ func testAccCheckSourceCommitRepositoryExists(n string, repository *sourcecommit
 }
 
 func testAccCheckSourceCommitRepositoryDestroy(s *terraform.State) error {
-	config := GetTestProvider(true).Meta().(*provider.ProviderConfig)
+	config := GetTestProvider(true).Meta().(*conn.ProviderConfig)
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "ncloud_sourcecommit_repository" {
 			continue
 		}
 
-		repositories, err := getRepositories(context.Background(), config)
+		repositories, err := devtools.GetRepositories(context.Background(), config)
 		if err != nil {
 			return err
 		}

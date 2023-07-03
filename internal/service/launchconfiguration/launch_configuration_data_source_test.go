@@ -1,4 +1,4 @@
-package launchconfiguration
+package launchconfiguration_test
 
 import (
 	"fmt"

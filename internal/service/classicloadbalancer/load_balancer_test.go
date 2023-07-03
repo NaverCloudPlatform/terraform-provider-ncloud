@@ -1,4 +1,4 @@
-package classicloadbalancer
+package classicloadbalancer_test
 
 import (
 	"fmt"
@@ -10,7 +10,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 
 	. "github.com/terraform-providers/terraform-provider-ncloud/internal/acctest"
-	. "github.com/terraform-providers/terraform-provider-ncloud/internal/provider"
+	"github.com/terraform-providers/terraform-provider-ncloud/internal/conn"
+	"github.com/terraform-providers/terraform-provider-ncloud/internal/service/classicloadbalancer"
 )
 
 func TestAccNcloudLoadBalancerBasic(t *testing.T) {
@@ -109,8 +110,8 @@ func testAccCheckLoadBalancerExistsWithProvider(n string, i *loadbalancer.LoadBa
 		}
 
 		provider := providerF()
-		client := provider.Meta().(*ProviderConfig).Client
-		LoadBalancerInstance, err := getLoadBalancerInstance(client, rs.Primary.ID)
+		client := provider.Meta().(*conn.ProviderConfig).Client
+		LoadBalancerInstance, err := classicloadbalancer.GetLoadBalancerInstance(client, rs.Primary.ID)
 		if err != nil {
 			return nil
 		}
@@ -129,12 +130,12 @@ func testAccCheckLoadBalancerDestroy(s *terraform.State) error {
 }
 
 func testAccCheckLoadBalancerDestroyWithProvider(s *terraform.State, provider *schema.Provider) error {
-	client := provider.Meta().(*ProviderConfig).Client
+	client := provider.Meta().(*conn.ProviderConfig).Client
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "ncloud_load_balancer" {
 			continue
 		}
-		loadBalancerInstance, err := getLoadBalancerInstance(client, rs.Primary.ID)
+		loadBalancerInstance, err := classicloadbalancer.GetLoadBalancerInstance(client, rs.Primary.ID)
 		if loadBalancerInstance == nil {
 			return nil
 		}

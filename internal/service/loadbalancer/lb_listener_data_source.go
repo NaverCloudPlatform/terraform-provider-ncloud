@@ -9,15 +9,11 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 
 	. "github.com/terraform-providers/terraform-provider-ncloud/internal/common"
-	. "github.com/terraform-providers/terraform-provider-ncloud/internal/provider"
+	"github.com/terraform-providers/terraform-provider-ncloud/internal/conn"
 	. "github.com/terraform-providers/terraform-provider-ncloud/internal/verify"
 )
 
-func init() {
-	RegisterDataSource("ncloud_lb_listener", dataSourceNcloudLbListener())
-}
-
-func dataSourceNcloudLbListener() *schema.Resource {
+func DataSourceNcloudLbListener() *schema.Resource {
 	fieldMap := map[string]*schema.Schema{
 		"id": {
 			Type:     schema.TypeString,
@@ -38,11 +34,11 @@ func dataSourceNcloudLbListener() *schema.Resource {
 		},
 		"filter": DataSourceFiltersSchema(),
 	}
-	return GetSingularDataSourceItemSchemaContext(resourceNcloudLbListener(), fieldMap, dataSourceNcloudLbListenerRead)
+	return GetSingularDataSourceItemSchemaContext(ResourceNcloudLbListener(), fieldMap, dataSourceNcloudLbListenerRead)
 }
 
 func dataSourceNcloudLbListenerRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
-	config := meta.(*ProviderConfig)
+	config := meta.(*conn.ProviderConfig)
 	if !config.SupportVPC {
 		return diag.FromErr(NotSupportClassic("datasource `ncloud_lb_listener`"))
 	}
@@ -59,7 +55,7 @@ func dataSourceNcloudLbListenerRead(ctx context.Context, d *schema.ResourceData,
 
 	listenerListMap := ConvertToArrayMap(listenerList)
 	if f, ok := d.GetOk("filter"); ok {
-		listenerListMap = ApplyFilters(f.(*schema.Set), listenerListMap, dataSourceNcloudLbListener().Schema)
+		listenerListMap = ApplyFilters(f.(*schema.Set), listenerListMap, DataSourceNcloudLbListener().Schema)
 	}
 
 	if err := ValidateOneResult(len(listenerListMap)); err != nil {
@@ -67,11 +63,11 @@ func dataSourceNcloudLbListenerRead(ctx context.Context, d *schema.ResourceData,
 	}
 
 	d.SetId(listenerListMap[0]["listener_no"].(string))
-	SetSingularResourceDataFromMapSchema(dataSourceNcloudLbListener(), d, listenerListMap[0])
+	SetSingularResourceDataFromMapSchema(DataSourceNcloudLbListener(), d, listenerListMap[0])
 	return nil
 }
 
-func getVpcLoadBalancerListenerList(config *ProviderConfig, id string, loadBalancerNo string) ([]*LoadBalancerListener, error) {
+func getVpcLoadBalancerListenerList(config *conn.ProviderConfig, id string, loadBalancerNo string) ([]*LoadBalancerListener, error) {
 	reqParams := &vloadbalancer.GetLoadBalancerListenerListRequest{
 		RegionCode:             &config.RegionCode,
 		LoadBalancerInstanceNo: ncloud.String(loadBalancerNo),

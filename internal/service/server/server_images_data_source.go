@@ -7,15 +7,11 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 
 	. "github.com/terraform-providers/terraform-provider-ncloud/internal/common"
-	. "github.com/terraform-providers/terraform-provider-ncloud/internal/provider"
+	"github.com/terraform-providers/terraform-provider-ncloud/internal/conn"
 	"github.com/terraform-providers/terraform-provider-ncloud/internal/verify"
 )
 
-func init() {
-	RegisterDataSource("ncloud_server_images", dataSourceNcloudServerImages())
-}
-
-func dataSourceNcloudServerImages() *schema.Resource {
+func DataSourceNcloudServerImages() *schema.Resource {
 	return &schema.Resource{
 		Read: dataSourceNcloudServerImagesRead,
 
@@ -44,7 +40,7 @@ func dataSourceNcloudServerImages() *schema.Resource {
 			"server_images": {
 				Type:     schema.TypeList,
 				Computed: true,
-				Elem:     GetDataSourceItemSchema(dataSourceNcloudServerImage()),
+				Elem:     GetDataSourceItemSchema(DataSourceNcloudServerImage()),
 			},
 			"ids": {
 				Type:     schema.TypeList,
@@ -80,7 +76,7 @@ func dataSourceNcloudServerImages() *schema.Resource {
 }
 
 func dataSourceNcloudServerImagesRead(d *schema.ResourceData, meta interface{}) error {
-	resources, err := getServerImageProductListFiltered(d, meta.(*ProviderConfig))
+	resources, err := getServerImageProductListFiltered(d, meta.(*conn.ProviderConfig))
 
 	if err != nil {
 		return err

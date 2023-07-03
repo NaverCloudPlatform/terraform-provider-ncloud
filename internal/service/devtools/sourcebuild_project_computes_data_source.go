@@ -7,14 +7,10 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 
 	. "github.com/terraform-providers/terraform-provider-ncloud/internal/common"
-	. "github.com/terraform-providers/terraform-provider-ncloud/internal/provider"
+	"github.com/terraform-providers/terraform-provider-ncloud/internal/conn"
 )
 
-func init() {
-	RegisterDataSource("ncloud_sourcebuild_project_computes", dataSourceNcloudSourceBuildComputes())
-}
-
-func dataSourceNcloudSourceBuildComputes() *schema.Resource {
+func DataSourceNcloudSourceBuildComputes() *schema.Resource {
 	return &schema.Resource{
 		ReadContext: dataSourceNcloudSourceBuildComputesRead,
 		Schema: map[string]*schema.Schema{
@@ -44,7 +40,7 @@ func dataSourceNcloudSourceBuildComputes() *schema.Resource {
 }
 
 func dataSourceNcloudSourceBuildComputesRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
-	config := meta.(*ProviderConfig)
+	config := meta.(*conn.ProviderConfig)
 
 	LogCommonRequest("GetComputeEnv", "")
 	resp, err := config.Client.Sourcebuild.V1Api.GetComputeEnv(ctx)
@@ -67,7 +63,7 @@ func dataSourceNcloudSourceBuildComputesRead(ctx context.Context, d *schema.Reso
 	}
 
 	if f, ok := d.GetOk("filter"); ok {
-		resources = ApplyFilters(f.(*schema.Set), resources, dataSourceNcloudSourceBuildComputes().Schema)
+		resources = ApplyFilters(f.(*schema.Set), resources, DataSourceNcloudSourceBuildComputes().Schema)
 	}
 
 	d.SetId(config.RegionCode)

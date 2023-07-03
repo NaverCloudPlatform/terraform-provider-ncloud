@@ -12,14 +12,10 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 
 	. "github.com/terraform-providers/terraform-provider-ncloud/internal/common"
-	. "github.com/terraform-providers/terraform-provider-ncloud/internal/provider"
+	"github.com/terraform-providers/terraform-provider-ncloud/internal/conn"
 )
 
-func init() {
-	RegisterResource("ncloud_block_storage_snapshot", resourceNcloudBlockStorageSnapshot())
-}
-
-func resourceNcloudBlockStorageSnapshot() *schema.Resource {
+func ResourceNcloudBlockStorageSnapshot() *schema.Resource {
 	return &schema.Resource{
 		Create: resourceNcloudBlockStorageSnapshotCreate,
 		Read:   resourceNcloudBlockStorageSnapshotRead,
@@ -30,8 +26,8 @@ func resourceNcloudBlockStorageSnapshot() *schema.Resource {
 		},
 
 		Timeouts: &schema.ResourceTimeout{
-			Create: schema.DefaultTimeout(DefaultCreateTimeout),
-			Delete: schema.DefaultTimeout(DefaultTimeout),
+			Create: schema.DefaultTimeout(conn.DefaultCreateTimeout),
+			Delete: schema.DefaultTimeout(conn.DefaultTimeout),
 		},
 
 		Schema: map[string]*schema.Schema{
@@ -111,9 +107,9 @@ func resourceNcloudBlockStorageSnapshot() *schema.Resource {
 }
 
 func resourceNcloudBlockStorageSnapshotCreate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ProviderConfig).Client
+	client := meta.(*conn.ProviderConfig).Client
 
-	config := meta.(*ProviderConfig)
+	config := meta.(*conn.ProviderConfig)
 
 	if config.SupportVPC {
 		return NotSupportVpc("resource `ncloud_block_storage_snapshot`")
@@ -137,13 +133,13 @@ func resourceNcloudBlockStorageSnapshotCreate(d *schema.ResourceData, meta inter
 		Pending: []string{"INIT"},
 		Target:  []string{"CREAT"},
 		Refresh: func() (interface{}, string, error) {
-			instance, err := getBlockStorageSnapshotInstance(client, blockStorageSnapshotInstanceNo)
+			instance, err := GetBlockStorageSnapshotInstance(client, blockStorageSnapshotInstanceNo)
 			if err != nil {
 				return 0, "", err
 			}
 			return instance, ncloud.StringValue(instance.BlockStorageSnapshotInstanceStatus.Code), nil
 		},
-		Timeout:    DefaultCreateTimeout,
+		Timeout:    conn.DefaultCreateTimeout,
 		Delay:      2 * time.Second,
 		MinTimeout: 3 * time.Second,
 	}
@@ -157,8 +153,8 @@ func resourceNcloudBlockStorageSnapshotCreate(d *schema.ResourceData, meta inter
 }
 
 func resourceNcloudBlockStorageSnapshotRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ProviderConfig).Client
-	snapshot, err := getBlockStorageSnapshotInstance(client, d.Id())
+	client := meta.(*conn.ProviderConfig).Client
+	snapshot, err := GetBlockStorageSnapshotInstance(client, d.Id())
 	if err != nil {
 		return err
 	}
@@ -193,7 +189,7 @@ func resourceNcloudBlockStorageSnapshotUpdate(d *schema.ResourceData, meta inter
 }
 
 func resourceNcloudBlockStorageSnapshotDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ProviderConfig).Client
+	client := meta.(*conn.ProviderConfig).Client
 	blockStorageSnapshotInstanceNo := d.Get("instance_no").(string)
 	if err := deleteBlockStorageSnapshotInstance(client, blockStorageSnapshotInstanceNo); err != nil {
 		return err
@@ -218,7 +214,7 @@ func buildRequestBlockStorageSnapshotInstance(d *schema.ResourceData) *server.Cr
 	return reqParams
 }
 
-func getBlockStorageSnapshotInstanceList(client *NcloudAPIClient, blockStorageSnapshotInstanceNo string) ([]*server.BlockStorageSnapshotInstance, error) {
+func getBlockStorageSnapshotInstanceList(client *conn.NcloudAPIClient, blockStorageSnapshotInstanceNo string) ([]*server.BlockStorageSnapshotInstance, error) {
 	reqParams := &server.GetBlockStorageSnapshotInstanceListRequest{
 		BlockStorageSnapshotInstanceNoList: []*string{ncloud.String(blockStorageSnapshotInstanceNo)},
 	}
@@ -234,7 +230,7 @@ func getBlockStorageSnapshotInstanceList(client *NcloudAPIClient, blockStorageSn
 	return resp.BlockStorageSnapshotInstanceList, nil
 }
 
-func getBlockStorageSnapshotInstance(client *NcloudAPIClient, blockStorageSnapshotInstanceNo string) (*server.BlockStorageSnapshotInstance, error) {
+func GetBlockStorageSnapshotInstance(client *conn.NcloudAPIClient, blockStorageSnapshotInstanceNo string) (*server.BlockStorageSnapshotInstance, error) {
 	snapshots, err := getBlockStorageSnapshotInstanceList(client, blockStorageSnapshotInstanceNo)
 	if err != nil {
 		LogErrorResponse("getBlockStorageSnapshotInstanceList", err, []*string{ncloud.String(blockStorageSnapshotInstanceNo)})
@@ -247,7 +243,7 @@ func getBlockStorageSnapshotInstance(client *NcloudAPIClient, blockStorageSnapsh
 	return nil, nil
 }
 
-func deleteBlockStorageSnapshotInstance(client *NcloudAPIClient, blockStorageSnapshotInstanceNo string) error {
+func deleteBlockStorageSnapshotInstance(client *conn.NcloudAPIClient, blockStorageSnapshotInstanceNo string) error {
 	reqParams := server.DeleteBlockStorageSnapshotInstancesRequest{
 		BlockStorageSnapshotInstanceNoList: []*string{ncloud.String(blockStorageSnapshotInstanceNo)},
 	}
@@ -270,7 +266,7 @@ func deleteBlockStorageSnapshotInstance(client *NcloudAPIClient, blockStorageSna
 		Pending: []string{"CREAT"},
 		Target:  []string{"TERMT"},
 		Refresh: func() (interface{}, string, error) {
-			instance, err := getBlockStorageSnapshotInstance(client, blockStorageSnapshotInstanceNo)
+			instance, err := GetBlockStorageSnapshotInstance(client, blockStorageSnapshotInstanceNo)
 			if err != nil {
 				return 0, "", err
 			}
@@ -279,7 +275,7 @@ func deleteBlockStorageSnapshotInstance(client *NcloudAPIClient, blockStorageSna
 			}
 			return instance, ncloud.StringValue(instance.BlockStorageSnapshotInstanceStatus.Code), nil
 		},
-		Timeout:    DefaultTimeout,
+		Timeout:    conn.DefaultTimeout,
 		Delay:      2 * time.Second,
 		MinTimeout: 3 * time.Second,
 	}

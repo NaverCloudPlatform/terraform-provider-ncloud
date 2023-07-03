@@ -7,15 +7,11 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 
 	. "github.com/terraform-providers/terraform-provider-ncloud/internal/common"
-	"github.com/terraform-providers/terraform-provider-ncloud/internal/provider"
+	"github.com/terraform-providers/terraform-provider-ncloud/internal/conn"
 	. "github.com/terraform-providers/terraform-provider-ncloud/internal/verify"
 )
 
-func init() {
-	provider.RegisterDataSource("ncloud_init_script", dataSourceNcloudInitScript())
-}
-
-func dataSourceNcloudInitScript() *schema.Resource {
+func DataSourceNcloudInitScript() *schema.Resource {
 	return &schema.Resource{
 		Read: dataSourceNcloudInitScriptRead,
 		Schema: map[string]*schema.Schema{
@@ -49,7 +45,7 @@ func dataSourceNcloudInitScript() *schema.Resource {
 }
 
 func dataSourceNcloudInitScriptRead(d *schema.ResourceData, meta interface{}) error {
-	config := meta.(*provider.ProviderConfig)
+	config := meta.(*conn.ProviderConfig)
 	var resources []map[string]interface{}
 	var err error
 
@@ -72,7 +68,7 @@ func dataSourceNcloudInitScriptRead(d *schema.ResourceData, meta interface{}) er
 	return nil
 }
 
-func getVpcInitScriptListFiltered(d *schema.ResourceData, config *provider.ProviderConfig) ([]map[string]interface{}, error) {
+func getVpcInitScriptListFiltered(d *schema.ResourceData, config *conn.ProviderConfig) ([]map[string]interface{}, error) {
 	reqParams := &vserver.GetInitScriptListRequest{
 		RegionCode:     &config.RegionCode,
 		OsTypeCode:     StringPtrOrNil(d.GetOk("os_type")),
@@ -107,7 +103,7 @@ func getVpcInitScriptListFiltered(d *schema.ResourceData, config *provider.Provi
 	}
 
 	if f, ok := d.GetOk("filter"); ok {
-		resources = ApplyFilters(f.(*schema.Set), resources, resourceNcloudInitScript().Schema)
+		resources = ApplyFilters(f.(*schema.Set), resources, ResourceNcloudInitScript().Schema)
 	}
 
 	return resources, nil

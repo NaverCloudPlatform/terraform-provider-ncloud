@@ -8,16 +8,12 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 
 	. "github.com/terraform-providers/terraform-provider-ncloud/internal/common"
-	. "github.com/terraform-providers/terraform-provider-ncloud/internal/provider"
+	"github.com/terraform-providers/terraform-provider-ncloud/internal/conn"
 	"github.com/terraform-providers/terraform-provider-ncloud/internal/verify"
 	"github.com/terraform-providers/terraform-provider-ncloud/internal/zone"
 )
 
-func init() {
-	RegisterDataSource("ncloud_public_ip", dataSourceNcloudPublicIp())
-}
-
-func dataSourceNcloudPublicIp() *schema.Resource {
+func DataSourceNcloudPublicIp() *schema.Resource {
 	return &schema.Resource{
 		Read: dataSourceNcloudPublicIpRead,
 
@@ -117,15 +113,15 @@ func dataSourceNcloudPublicIp() *schema.Resource {
 }
 
 func dataSourceNcloudPublicIpRead(d *schema.ResourceData, meta interface{}) error {
-	config := meta.(*ProviderConfig)
+	config := meta.(*conn.ProviderConfig)
 
 	var resources []map[string]interface{}
 	var err error
 
 	if config.SupportVPC {
-		resources, err = getVpcPublicIpList(d, meta.(*ProviderConfig))
+		resources, err = getVpcPublicIpList(d, meta.(*conn.ProviderConfig))
 	} else {
-		resources, err = getClassicPublicIpList(d, meta.(*ProviderConfig))
+		resources, err = getClassicPublicIpList(d, meta.(*conn.ProviderConfig))
 	}
 
 	if err != nil {
@@ -133,19 +129,19 @@ func dataSourceNcloudPublicIpRead(d *schema.ResourceData, meta interface{}) erro
 	}
 
 	if f, ok := d.GetOk("filter"); ok {
-		resources = ApplyFilters(f.(*schema.Set), resources, dataSourceNcloudPublicIp().Schema)
+		resources = ApplyFilters(f.(*schema.Set), resources, DataSourceNcloudPublicIp().Schema)
 	}
 
 	if err := verify.ValidateOneResult(len(resources)); err != nil {
 		return err
 	}
 
-	SetSingularResourceDataFromMapSchema(dataSourceNcloudPublicIp(), d, resources[0])
+	SetSingularResourceDataFromMapSchema(DataSourceNcloudPublicIp(), d, resources[0])
 
 	return nil
 }
 
-func getClassicPublicIpList(d *schema.ResourceData, config *ProviderConfig) ([]map[string]interface{}, error) {
+func getClassicPublicIpList(d *schema.ResourceData, config *conn.ProviderConfig) ([]map[string]interface{}, error) {
 	client := config.Client
 	regionNo := config.RegionNo
 
@@ -206,7 +202,7 @@ func getClassicPublicIpList(d *schema.ResourceData, config *ProviderConfig) ([]m
 	return resources, nil
 }
 
-func getVpcPublicIpList(d *schema.ResourceData, config *ProviderConfig) ([]map[string]interface{}, error) {
+func getVpcPublicIpList(d *schema.ResourceData, config *conn.ProviderConfig) ([]map[string]interface{}, error) {
 	client := config.Client
 	regionCode := config.RegionCode
 

@@ -114,7 +114,7 @@ func expandNKSClusterOIDCSpec(oidc []interface{}) *vnks.UpdateOidcDto {
 
 func flattenNKSClusterIPAclEntries(ipAcl *vnks.IpAclsRes) *schema.Set {
 
-	ipAclList := schema.NewSet(schema.HashResource(resourceNcloudNKSCluster().Schema["ip_acl"].Elem.(*schema.Resource)), []interface{}{})
+	ipAclList := schema.NewSet(schema.HashResource(ResourceNcloudNKSCluster().Schema["ip_acl"].Elem.(*schema.Resource)), []interface{}{})
 
 	for _, entry := range ipAcl.Entries {
 		m := map[string]interface{}{

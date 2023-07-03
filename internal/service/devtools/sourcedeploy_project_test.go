@@ -1,4 +1,4 @@
-package devtools
+package devtools_test
 
 import (
 	"context"
@@ -12,7 +12,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 
 	. "github.com/terraform-providers/terraform-provider-ncloud/internal/acctest"
-	"github.com/terraform-providers/terraform-provider-ncloud/internal/provider"
+	"github.com/terraform-providers/terraform-provider-ncloud/internal/conn"
+	"github.com/terraform-providers/terraform-provider-ncloud/internal/service/devtools"
 )
 
 func TestAccResourceNcloudSourceDeployProject_basic(t *testing.T) {
@@ -51,7 +52,7 @@ resource "ncloud_sourcedeploy_project" "test-project" {
 
 func testAccCheckSourceDeployProjectExists(n string, project *vsourcedeploy.GetIdNameResponse) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
-		config := GetTestProvider(true).Meta().(*provider.ProviderConfig)
+		config := GetTestProvider(true).Meta().(*conn.ProviderConfig)
 		rs, ok := s.RootModule().Resources[n]
 		if !ok {
 			return fmt.Errorf("Not found: %s", n)
@@ -60,7 +61,7 @@ func testAccCheckSourceDeployProjectExists(n string, project *vsourcedeploy.GetI
 		if rs.Primary.ID == "" {
 			return fmt.Errorf("No project no is set")
 		}
-		resp, err := getSourceDeployProjectById(context.Background(), config, rs.Primary.ID)
+		resp, err := devtools.GetSourceDeployProjectById(context.Background(), config, rs.Primary.ID)
 		if err != nil {
 			return err
 		}
@@ -70,14 +71,14 @@ func testAccCheckSourceDeployProjectExists(n string, project *vsourcedeploy.GetI
 }
 
 func testAccCheckSourceDeployProjectDestroy(s *terraform.State) error {
-	config := GetTestProvider(true).Meta().(*provider.ProviderConfig)
+	config := GetTestProvider(true).Meta().(*conn.ProviderConfig)
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "ncloud_sourcedeploy_project" {
 			continue
 		}
 
-		resp, err := getSourceDeployProjectById(context.Background(), config, rs.Primary.ID)
+		resp, err := devtools.GetSourceDeployProjectById(context.Background(), config, rs.Primary.ID)
 
 		if err != nil {
 			return err

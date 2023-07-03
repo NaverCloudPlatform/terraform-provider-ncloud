@@ -1,4 +1,4 @@
-package devtools
+package devtools_test
 
 import (
 	"fmt"
@@ -10,7 +10,7 @@ import (
 )
 
 func TestAccDataSourceNcloudSourceDeployScenario(t *testing.T) {
-	stageNameSvr := getTestSourceDeployScenarioName() + "svr"
+	stageNameSvr := GetTestSourceDeployScenarioName() + "svr"
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:  func() { TestAccPreCheck(t) },
 		Providers: GetTestAccProviders(true),

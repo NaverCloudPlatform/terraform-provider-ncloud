@@ -6,15 +6,9 @@ import (
 	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/ncloud"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
-
-	. "github.com/terraform-providers/terraform-provider-ncloud/internal/provider"
 )
 
-func init() {
-	RegisterDataSource("ncloud_sourcedeploy_project_stage_scenario", dataSourceNcloudSourceDeployScenarioContext())
-}
-
-func dataSourceNcloudSourceDeployScenarioContext() *schema.Resource {
+func DataSourceNcloudSourceDeployScenarioContext() *schema.Resource {
 	return &schema.Resource{
 		ReadContext: dataSourceNcloudSourceDeployScenarioReadContext,
 		Schema: map[string]*schema.Schema{

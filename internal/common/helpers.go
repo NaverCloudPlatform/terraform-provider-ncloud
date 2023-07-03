@@ -7,8 +7,7 @@ import (
 	"log"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
-
-	"github.com/terraform-providers/terraform-provider-ncloud/internal/provider"
+	"github.com/terraform-providers/terraform-provider-ncloud/internal/conn"
 )
 
 // Get the schema for a nested DataSourceSchema generated from the ResourceSchema
@@ -165,7 +164,7 @@ func SetSingularResourceDataFromMapSchema(resourceSchema *schema.Resource, d *sc
 }
 
 // GetValueClassicOrVPC get value classic for vpc
-func GetValueClassicOrVPC(config *provider.ProviderConfig, classicValue, vpcValue string) string {
+func GetValueClassicOrVPC(config *conn.ProviderConfig, classicValue, vpcValue string) string {
 	if config.SupportVPC {
 		return vpcValue
 	}

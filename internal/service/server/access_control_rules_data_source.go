@@ -11,15 +11,11 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 
 	. "github.com/terraform-providers/terraform-provider-ncloud/internal/common"
-	. "github.com/terraform-providers/terraform-provider-ncloud/internal/provider"
+	"github.com/terraform-providers/terraform-provider-ncloud/internal/conn"
 	"github.com/terraform-providers/terraform-provider-ncloud/internal/verify"
 )
 
-func init() {
-	RegisterDataSource("ncloud_access_control_rules", dataSourceNcloudAccessControlRules())
-}
-
-func dataSourceNcloudAccessControlRules() *schema.Resource {
+func DataSourceNcloudAccessControlRules() *schema.Resource {
 	return &schema.Resource{
 		Read: dataSourceNcloudAccessControlRulesRead,
 
@@ -51,8 +47,8 @@ func dataSourceNcloudAccessControlRules() *schema.Resource {
 }
 
 func dataSourceNcloudAccessControlRulesRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ProviderConfig).Client
-	config := meta.(*ProviderConfig)
+	client := meta.(*conn.ProviderConfig).Client
+	config := meta.(*conn.ProviderConfig)
 
 	if config.SupportVPC {
 		return NotSupportVpc("data source `ncloud_access_control_rules`")

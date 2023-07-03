@@ -7,15 +7,11 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 
 	. "github.com/terraform-providers/terraform-provider-ncloud/internal/common"
-	. "github.com/terraform-providers/terraform-provider-ncloud/internal/provider"
+	"github.com/terraform-providers/terraform-provider-ncloud/internal/conn"
 	. "github.com/terraform-providers/terraform-provider-ncloud/internal/verify"
 )
 
-func init() {
-	RegisterDataSource("ncloud_auto_scaling_schedule", dataSourceNcloudAutoScalingSchedule())
-}
-
-func dataSourceNcloudAutoScalingSchedule() *schema.Resource {
+func DataSourceNcloudAutoScalingSchedule() *schema.Resource {
 	fieldMap := map[string]*schema.Schema{
 		"id": {
 			Type:     schema.TypeString,
@@ -29,11 +25,11 @@ func dataSourceNcloudAutoScalingSchedule() *schema.Resource {
 		"filter": DataSourceFiltersSchema(),
 	}
 
-	return GetSingularDataSourceItemSchema(resourceNcloudAutoScalingSchedule(), fieldMap, dataSourceNcloudAutoScalingScheduleRead)
+	return GetSingularDataSourceItemSchema(ResourceNcloudAutoScalingSchedule(), fieldMap, dataSourceNcloudAutoScalingScheduleRead)
 }
 
 func dataSourceNcloudAutoScalingScheduleRead(d *schema.ResourceData, meta interface{}) error {
-	config := meta.(*ProviderConfig)
+	config := meta.(*conn.ProviderConfig)
 
 	if v, ok := d.GetOk("id"); ok {
 		d.SetId(v.(string))
@@ -46,7 +42,7 @@ func dataSourceNcloudAutoScalingScheduleRead(d *schema.ResourceData, meta interf
 
 	scheduleListMap := ConvertToArrayMap(scheduleList)
 	if f, ok := d.GetOk("filter"); ok {
-		scheduleListMap = ApplyFilters(f.(*schema.Set), scheduleListMap, dataSourceNcloudAutoScalingSchedule().Schema)
+		scheduleListMap = ApplyFilters(f.(*schema.Set), scheduleListMap, DataSourceNcloudAutoScalingSchedule().Schema)
 	}
 
 	if err := ValidateOneResult(len(scheduleListMap)); err != nil {
@@ -54,11 +50,11 @@ func dataSourceNcloudAutoScalingScheduleRead(d *schema.ResourceData, meta interf
 	}
 
 	d.SetId(scheduleListMap[0]["name"].(string))
-	SetSingularResourceDataFromMapSchema(dataSourceNcloudAutoScalingSchedule(), d, scheduleListMap[0])
+	SetSingularResourceDataFromMapSchema(DataSourceNcloudAutoScalingSchedule(), d, scheduleListMap[0])
 	return nil
 }
 
-func getAutoScalingScheduleList(d *schema.ResourceData, config *ProviderConfig) ([]*AutoScalingSchedule, error) {
+func getAutoScalingScheduleList(d *schema.ResourceData, config *conn.ProviderConfig) ([]*AutoScalingSchedule, error) {
 	if config.SupportVPC {
 		return getVpcAutoScalingScheduleList(d, config)
 	} else {
@@ -66,7 +62,7 @@ func getAutoScalingScheduleList(d *schema.ResourceData, config *ProviderConfig) 
 	}
 }
 
-func getVpcAutoScalingScheduleList(d *schema.ResourceData, config *ProviderConfig) ([]*AutoScalingSchedule, error) {
+func getVpcAutoScalingScheduleList(d *schema.ResourceData, config *conn.ProviderConfig) ([]*AutoScalingSchedule, error) {
 	reqParams := &vautoscaling.GetScheduledActionListRequest{
 		RegionCode:         &config.RegionCode,
 		AutoScalingGroupNo: ncloud.String(d.Get("auto_scaling_group_no").(string)),
@@ -103,7 +99,7 @@ func getVpcAutoScalingScheduleList(d *schema.ResourceData, config *ProviderConfi
 	return list, nil
 }
 
-func getClassicAutoScalingScheduleList(d *schema.ResourceData, config *ProviderConfig) ([]*AutoScalingSchedule, error) {
+func getClassicAutoScalingScheduleList(d *schema.ResourceData, config *conn.ProviderConfig) ([]*AutoScalingSchedule, error) {
 	reqParams := &autoscaling.GetScheduledActionListRequest{}
 
 	if d.Id() != "" {

@@ -11,16 +11,12 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 
 	. "github.com/terraform-providers/terraform-provider-ncloud/internal/common"
-	. "github.com/terraform-providers/terraform-provider-ncloud/internal/provider"
+	"github.com/terraform-providers/terraform-provider-ncloud/internal/conn"
 	. "github.com/terraform-providers/terraform-provider-ncloud/internal/verify"
 	"github.com/terraform-providers/terraform-provider-ncloud/internal/zone"
 )
 
-func init() {
-	RegisterDataSource("ncloud_nas_volume", dataSourceNcloudNasVolume())
-}
-
-func dataSourceNcloudNasVolume() *schema.Resource {
+func DataSourceNcloudNasVolume() *schema.Resource {
 	fieldMap := map[string]*schema.Schema{
 		"id": {
 			Type:     schema.TypeString,
@@ -52,11 +48,11 @@ func dataSourceNcloudNasVolume() *schema.Resource {
 		"filter": DataSourceFiltersSchema(),
 	}
 
-	return GetSingularDataSourceItemSchema(resourceNcloudNasVolume(), fieldMap, dataSourceNcloudNasVolumeRead)
+	return GetSingularDataSourceItemSchema(ResourceNcloudNasVolume(), fieldMap, dataSourceNcloudNasVolumeRead)
 }
 
 func dataSourceNcloudNasVolumeRead(d *schema.ResourceData, meta interface{}) error {
-	config := meta.(*ProviderConfig)
+	config := meta.(*conn.ProviderConfig)
 
 	instances, err := getNasVolumeList(d, config)
 	if err != nil {
@@ -69,7 +65,7 @@ func dataSourceNcloudNasVolumeRead(d *schema.ResourceData, meta interface{}) err
 
 	resources := ConvertToArrayMap(instances)
 	if f, ok := d.GetOk("filter"); ok {
-		resources = ApplyFilters(f.(*schema.Set), resources, dataSourceNcloudNasVolume().Schema)
+		resources = ApplyFilters(f.(*schema.Set), resources, DataSourceNcloudNasVolume().Schema)
 	}
 
 	if err := ValidateOneResult(len(resources)); err != nil {
@@ -82,7 +78,7 @@ func dataSourceNcloudNasVolumeRead(d *schema.ResourceData, meta interface{}) err
 	return nil
 }
 
-func getNasVolumeList(d *schema.ResourceData, config *ProviderConfig) ([]*NasVolume, error) {
+func getNasVolumeList(d *schema.ResourceData, config *conn.ProviderConfig) ([]*NasVolume, error) {
 	if config.SupportVPC {
 		return getVpcNasVolumeList(d, config)
 	} else {
@@ -90,10 +86,10 @@ func getNasVolumeList(d *schema.ResourceData, config *ProviderConfig) ([]*NasVol
 	}
 }
 
-func getClassicNasVolumeList(d *schema.ResourceData, config *ProviderConfig) ([]*NasVolume, error) {
+func getClassicNasVolumeList(d *schema.ResourceData, config *conn.ProviderConfig) ([]*NasVolume, error) {
 	client := config.Client
 
-	regionNo, err := ParseRegionNoParameter(d)
+	regionNo, err := conn.ParseRegionNoParameter(d)
 	if err != nil {
 		return nil, err
 	}
@@ -132,7 +128,7 @@ func getClassicNasVolumeList(d *schema.ResourceData, config *ProviderConfig) ([]
 	return list, nil
 }
 
-func getVpcNasVolumeList(d *schema.ResourceData, config *ProviderConfig) ([]*NasVolume, error) {
+func getVpcNasVolumeList(d *schema.ResourceData, config *conn.ProviderConfig) ([]*NasVolume, error) {
 	client := config.Client
 
 	reqParams := &vnas.GetNasVolumeInstanceListRequest{

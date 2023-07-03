@@ -9,15 +9,10 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 
 	. "github.com/terraform-providers/terraform-provider-ncloud/internal/common"
-	"github.com/terraform-providers/terraform-provider-ncloud/internal/provider"
-	. "github.com/terraform-providers/terraform-provider-ncloud/internal/provider"
+	"github.com/terraform-providers/terraform-provider-ncloud/internal/conn"
 )
 
-func init() {
-	provider.RegisterResource("ncloud_launch_configuration", resourceNcloudLaunchConfiguration())
-}
-
-func resourceNcloudLaunchConfiguration() *schema.Resource {
+func ResourceNcloudLaunchConfiguration() *schema.Resource {
 	return &schema.Resource{
 		Create: resourceNcloudLaunchConfigurationCreate,
 		Read:   resourceNcloudLaunchConfigurationRead,
@@ -89,7 +84,7 @@ func resourceNcloudLaunchConfiguration() *schema.Resource {
 }
 
 func resourceNcloudLaunchConfigurationCreate(d *schema.ResourceData, meta interface{}) error {
-	config := meta.(*ProviderConfig)
+	config := meta.(*conn.ProviderConfig)
 	id, err := createLaunchConfiguration(d, config)
 	if err != nil {
 		return err
@@ -99,7 +94,7 @@ func resourceNcloudLaunchConfigurationCreate(d *schema.ResourceData, meta interf
 	return resourceNcloudLaunchConfigurationRead(d, meta)
 }
 
-func createLaunchConfiguration(d *schema.ResourceData, config *ProviderConfig) (*string, error) {
+func createLaunchConfiguration(d *schema.ResourceData, config *conn.ProviderConfig) (*string, error) {
 	if config.SupportVPC {
 		return createVpcLaunchConfiguration(d, config)
 	} else {
@@ -107,7 +102,7 @@ func createLaunchConfiguration(d *schema.ResourceData, config *ProviderConfig) (
 	}
 }
 
-func createVpcLaunchConfiguration(d *schema.ResourceData, config *ProviderConfig) (*string, error) {
+func createVpcLaunchConfiguration(d *schema.ResourceData, config *conn.ProviderConfig) (*string, error) {
 	reqParams := &vautoscaling.CreateLaunchConfigurationRequest{
 		RegionCode:                  &config.RegionCode,
 		ServerImageProductCode:      StringPtrOrNil(d.GetOk("server_image_product_code")),
@@ -129,7 +124,7 @@ func createVpcLaunchConfiguration(d *schema.ResourceData, config *ProviderConfig
 	return res.LaunchConfigurationList[0].LaunchConfigurationNo, nil
 }
 
-func createClassicLaunchConfiguration(d *schema.ResourceData, config *ProviderConfig) (*string, error) {
+func createClassicLaunchConfiguration(d *schema.ResourceData, config *conn.ProviderConfig) (*string, error) {
 	reqParams := &autoscaling.CreateLaunchConfigurationRequest{
 		LaunchConfigurationName: StringPtrOrNil(d.GetOk("name")),
 		ServerImageProductCode:  StringPtrOrNil(d.GetOk("server_image_product_code")),
@@ -155,9 +150,9 @@ func createClassicLaunchConfiguration(d *schema.ResourceData, config *ProviderCo
 }
 
 func resourceNcloudLaunchConfigurationRead(d *schema.ResourceData, meta interface{}) error {
-	config := meta.(*ProviderConfig)
+	config := meta.(*conn.ProviderConfig)
 
-	launchConfig, err := getLaunchConfiguration(config, d.Id())
+	launchConfig, err := GetLaunchConfiguration(config, d.Id())
 	if err != nil {
 		return err
 	}
@@ -169,19 +164,19 @@ func resourceNcloudLaunchConfigurationRead(d *schema.ResourceData, meta interfac
 
 	launchConfigMap := ConvertToMap(launchConfig)
 	d.Set("server_image_product_code", launchConfig.ServerImageProductCode)
-	SetSingularResourceDataFromMapSchema(resourceNcloudLaunchConfiguration(), d, launchConfigMap)
+	SetSingularResourceDataFromMapSchema(ResourceNcloudLaunchConfiguration(), d, launchConfigMap)
 	return nil
 }
 
-func getLaunchConfiguration(config *ProviderConfig, id string) (*LaunchConfiguration, error) {
+func GetLaunchConfiguration(config *conn.ProviderConfig, id string) (*LaunchConfiguration, error) {
 	if config.SupportVPC {
 		return getVpcLaunchConfiguration(config, id)
 	} else {
-		return getClassicLaunchConfiguration(config, id)
+		return GetClassicLaunchConfiguration(config, id)
 	}
 }
 
-func getVpcLaunchConfiguration(config *ProviderConfig, id string) (*LaunchConfiguration, error) {
+func getVpcLaunchConfiguration(config *conn.ProviderConfig, id string) (*LaunchConfiguration, error) {
 	reqParams := &vautoscaling.GetLaunchConfigurationListRequest{
 		RegionCode: &config.RegionCode,
 	}
@@ -217,7 +212,7 @@ func getVpcLaunchConfiguration(config *ProviderConfig, id string) (*LaunchConfig
 	}, nil
 }
 
-func getClassicLaunchConfiguration(config *ProviderConfig, id string) (*LaunchConfiguration, error) {
+func GetClassicLaunchConfiguration(config *conn.ProviderConfig, id string) (*LaunchConfiguration, error) {
 	no := ncloud.String(id)
 	reqParams := &autoscaling.GetLaunchConfigurationListRequest{
 		RegionNo: &config.RegionNo,
@@ -249,7 +244,7 @@ func getClassicLaunchConfiguration(config *ProviderConfig, id string) (*LaunchCo
 }
 
 func resourceNcloudLaunchConfigurationDelete(d *schema.ResourceData, meta interface{}) error {
-	config := meta.(*ProviderConfig)
+	config := meta.(*conn.ProviderConfig)
 
 	err := deleteLaunchConfiguration(config, d.Id())
 	if err != nil {
@@ -259,7 +254,7 @@ func resourceNcloudLaunchConfigurationDelete(d *schema.ResourceData, meta interf
 	return nil
 }
 
-func deleteLaunchConfiguration(config *ProviderConfig, id string) error {
+func deleteLaunchConfiguration(config *conn.ProviderConfig, id string) error {
 	if config.SupportVPC {
 		return deleteVpcLaunchConfiguration(config, id)
 	} else {
@@ -267,7 +262,7 @@ func deleteLaunchConfiguration(config *ProviderConfig, id string) error {
 	}
 }
 
-func deleteVpcLaunchConfiguration(config *ProviderConfig, id string) error {
+func deleteVpcLaunchConfiguration(config *conn.ProviderConfig, id string) error {
 	reqParams := &vautoscaling.DeleteLaunchConfigurationRequest{
 		LaunchConfigurationNo: ncloud.String(id),
 	}
@@ -282,8 +277,8 @@ func deleteVpcLaunchConfiguration(config *ProviderConfig, id string) error {
 	return nil
 }
 
-func deleteClassicLaunchConfiguration(config *ProviderConfig, id string) error {
-	launchConfig, err := getClassicLaunchConfiguration(config, id)
+func deleteClassicLaunchConfiguration(config *conn.ProviderConfig, id string) error {
+	launchConfig, err := GetClassicLaunchConfiguration(config, id)
 	if err != nil {
 		return err
 	}
@@ -307,7 +302,7 @@ func deleteClassicLaunchConfiguration(config *ProviderConfig, id string) error {
 	return nil
 }
 
-func GetClassicLaunchConfigurationByNo(no *string, config *ProviderConfig) (*LaunchConfiguration, error) {
+func GetClassicLaunchConfigurationByNo(no *string, config *conn.ProviderConfig) (*LaunchConfiguration, error) {
 	reqParams := &autoscaling.GetLaunchConfigurationListRequest{
 		RegionNo: &config.RegionNo,
 	}

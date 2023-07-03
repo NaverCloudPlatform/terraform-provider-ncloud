@@ -6,15 +6,11 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 
 	. "github.com/terraform-providers/terraform-provider-ncloud/internal/common"
-	. "github.com/terraform-providers/terraform-provider-ncloud/internal/provider"
+	"github.com/terraform-providers/terraform-provider-ncloud/internal/conn"
 	"github.com/terraform-providers/terraform-provider-ncloud/internal/verify"
 )
 
-func init() {
-	RegisterDataSource("ncloud_vpc_peering", dataSourceNcloudVpcPeering())
-}
-
-func dataSourceNcloudVpcPeering() *schema.Resource {
+func DataSourceNcloudVpcPeering() *schema.Resource {
 	fieldMap := map[string]*schema.Schema{
 		"id": {
 			Type:     schema.TypeString,
@@ -39,11 +35,11 @@ func dataSourceNcloudVpcPeering() *schema.Resource {
 		"filter": DataSourceFiltersSchema(),
 	}
 
-	return GetSingularDataSourceItemSchema(resourceNcloudVpcPeering(), fieldMap, dataSourceNcloudVpcPeeringRead)
+	return GetSingularDataSourceItemSchema(ResourceNcloudVpcPeering(), fieldMap, dataSourceNcloudVpcPeeringRead)
 }
 
 func dataSourceNcloudVpcPeeringRead(d *schema.ResourceData, meta interface{}) error {
-	config := meta.(*ProviderConfig)
+	config := meta.(*conn.ProviderConfig)
 
 	if !config.SupportVPC {
 		return NotSupportClassic("data source `ncloud_vpc_peering`")
@@ -63,7 +59,7 @@ func dataSourceNcloudVpcPeeringRead(d *schema.ResourceData, meta interface{}) er
 	return nil
 }
 
-func getVpcPeeringListFiltered(d *schema.ResourceData, config *ProviderConfig) ([]map[string]interface{}, error) {
+func getVpcPeeringListFiltered(d *schema.ResourceData, config *conn.ProviderConfig) ([]map[string]interface{}, error) {
 	reqParams := &vpc.GetVpcPeeringInstanceListRequest{
 		RegionCode: &config.RegionCode,
 	}
@@ -113,7 +109,7 @@ func getVpcPeeringListFiltered(d *schema.ResourceData, config *ProviderConfig) (
 	}
 
 	if f, ok := d.GetOk("filter"); ok {
-		resources = ApplyFilters(f.(*schema.Set), resources, resourceNcloudVpcPeering().Schema)
+		resources = ApplyFilters(f.(*schema.Set), resources, ResourceNcloudVpcPeering().Schema)
 	}
 
 	return resources, nil

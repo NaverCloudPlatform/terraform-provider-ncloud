@@ -17,13 +17,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 
 	. "github.com/terraform-providers/terraform-provider-ncloud/internal/common"
-	. "github.com/terraform-providers/terraform-provider-ncloud/internal/provider"
+	"github.com/terraform-providers/terraform-provider-ncloud/internal/conn"
 	. "github.com/terraform-providers/terraform-provider-ncloud/internal/verify"
 )
-
-func init() {
-	RegisterResource("ncloud_nks_node_pool", resourceNcloudNKSNodePool())
-}
 
 const (
 	NKSNodePoolStatusRunCode             = "RUN"
@@ -35,7 +31,7 @@ const (
 	NKSNodePoolIDSeparator               = ":"
 )
 
-func resourceNcloudNKSNodePool() *schema.Resource {
+func ResourceNcloudNKSNodePool() *schema.Resource {
 	return &schema.Resource{
 		CreateContext: resourceNcloudNKSNodePoolCreate,
 		ReadContext:   resourceNcloudNKSNodePoolRead,
@@ -45,9 +41,9 @@ func resourceNcloudNKSNodePool() *schema.Resource {
 			StateContext: schema.ImportStatePassthroughContext,
 		},
 		Timeouts: &schema.ResourceTimeout{
-			Create: schema.DefaultTimeout(DefaultCreateTimeout),
-			Update: schema.DefaultTimeout(DefaultCreateTimeout),
-			Delete: schema.DefaultTimeout(DefaultCreateTimeout),
+			Create: schema.DefaultTimeout(conn.DefaultCreateTimeout),
+			Update: schema.DefaultTimeout(conn.DefaultCreateTimeout),
+			Delete: schema.DefaultTimeout(conn.DefaultCreateTimeout),
 		},
 		CustomizeDiff: customdiff.Sequence(
 			// add subnet nubmer to subnet_no_list when using deprecated subnet_no parameter.
@@ -184,7 +180,7 @@ func resourceNcloudNKSNodePool() *schema.Resource {
 }
 
 func resourceNcloudNKSNodePoolCreate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
-	config := meta.(*ProviderConfig)
+	config := meta.(*conn.ProviderConfig)
 	if !config.SupportVPC {
 		return diag.FromErr(NotSupportClassic("resource `ncloud_nks_node_pool`"))
 	}
@@ -225,13 +221,13 @@ func resourceNcloudNKSNodePoolCreate(ctx context.Context, d *schema.ResourceData
 }
 
 func resourceNcloudNKSNodePoolRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
-	config := meta.(*ProviderConfig)
+	config := meta.(*conn.ProviderConfig)
 	if !config.SupportVPC {
 		return diag.FromErr(NotSupportClassic("resource `ncloud_nks_node_pool`"))
 	}
 
 	clusterUuid, nodePoolName, err := NodePoolParseResourceID(d.Id())
-	nodePool, err := getNKSNodePool(ctx, config, clusterUuid, nodePoolName)
+	nodePool, err := GetNKSNodePool(ctx, config, clusterUuid, nodePoolName)
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -272,7 +268,7 @@ func resourceNcloudNKSNodePoolRead(ctx context.Context, d *schema.ResourceData, 
 }
 
 func resourceNcloudNKSNodePoolUpdate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
-	config := meta.(*ProviderConfig)
+	config := meta.(*conn.ProviderConfig)
 	if !config.SupportVPC {
 		return diag.FromErr(NotSupportClassic("resource `ncloud_nks_node_pool`"))
 	}
@@ -332,7 +328,7 @@ func resourceNcloudNKSNodePoolUpdate(ctx context.Context, d *schema.ResourceData
 }
 
 func resourceNcloudNKSNodePoolDelete(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
-	config := meta.(*ProviderConfig)
+	config := meta.(*conn.ProviderConfig)
 	if !config.SupportVPC {
 		return diag.FromErr(NotSupportClassic("resource `ncloud_nks_node_pool`"))
 	}
@@ -360,7 +356,7 @@ func resourceNcloudNKSNodePoolDelete(ctx context.Context, d *schema.ResourceData
 	return nil
 }
 
-func waitForNKSNodePoolDeletion(ctx context.Context, d *schema.ResourceData, config *ProviderConfig) error {
+func waitForNKSNodePoolDeletion(ctx context.Context, d *schema.ResourceData, config *conn.ProviderConfig) error {
 	stateConf := &resource.StateChangeConf{
 		Pending: []string{NKSNodePoolStatusNodeScaleDown, NKSStatusDeletingCode},
 		Target:  []string{NKSStatusNullCode},
@@ -371,7 +367,7 @@ func waitForNKSNodePoolDeletion(ctx context.Context, d *schema.ResourceData, con
 				return nil, "", err
 			}
 
-			np, err := getNKSNodePool(ctx, config, clusterUuid, nodePoolName)
+			np, err := GetNKSNodePool(ctx, config, clusterUuid, nodePoolName)
 			if err != nil {
 				return nil, "", err
 			}
@@ -393,12 +389,12 @@ func waitForNKSNodePoolDeletion(ctx context.Context, d *schema.ResourceData, con
 	return nil
 }
 
-func waitForNKSNodePoolActive(ctx context.Context, d *schema.ResourceData, config *ProviderConfig, clusterUuid string, nodePoolName string) error {
+func waitForNKSNodePoolActive(ctx context.Context, d *schema.ResourceData, config *conn.ProviderConfig, clusterUuid string, nodePoolName string) error {
 	stateConf := &resource.StateChangeConf{
 		Pending: []string{NKSStatusCreatingCode, NKSNodePoolStatusNodeScaleOut, NKSNodePoolStatusNodeScaleDown, NKSNodePoolStatusUpgrade, NKSNodePoolStatusRotateNodeScaleOut, NKSNodePoolStatusRotateNodeScaleDown},
 		Target:  []string{NKSNodePoolStatusRunCode},
 		Refresh: func() (result interface{}, state string, err error) {
-			np, err := getNKSNodePool(ctx, config, clusterUuid, nodePoolName)
+			np, err := GetNKSNodePool(ctx, config, clusterUuid, nodePoolName)
 			if err != nil {
 				return nil, "", err
 			}
@@ -418,7 +414,7 @@ func waitForNKSNodePoolActive(ctx context.Context, d *schema.ResourceData, confi
 	return nil
 }
 
-func getNKSNodePool(ctx context.Context, config *ProviderConfig, uuid string, nodePoolName string) (*vnks.NodePool, error) {
+func GetNKSNodePool(ctx context.Context, config *conn.ProviderConfig, uuid string, nodePoolName string) (*vnks.NodePool, error) {
 	nps, err := getNKSNodePools(ctx, config, uuid)
 	if err != nil {
 		return nil, err
@@ -431,7 +427,7 @@ func getNKSNodePool(ctx context.Context, config *ProviderConfig, uuid string, no
 	return nil, nil
 }
 
-func getNKSNodePools(ctx context.Context, config *ProviderConfig, uuid string) ([]*vnks.NodePool, error) {
+func getNKSNodePools(ctx context.Context, config *conn.ProviderConfig, uuid string) ([]*vnks.NodePool, error) {
 	resp, err := config.Client.Vnks.V2Api.ClustersUuidNodePoolGet(ctx, ncloud.String(uuid))
 	if err != nil {
 		return nil, err
@@ -453,7 +449,7 @@ func NodePoolParseResourceID(id string) (string, string, error) {
 	return "", "", fmt.Errorf("unexpected format for ID (%[1]s), expected cluster-name%[2]snode-pool-name", id, NKSNodePoolIDSeparator)
 }
 
-func getNKSWorkerNodes(ctx context.Context, config *ProviderConfig, uuid string) ([]*vnks.WorkerNode, error) {
+func getNKSWorkerNodes(ctx context.Context, config *conn.ProviderConfig, uuid string) ([]*vnks.WorkerNode, error) {
 	resp, err := config.Client.Vnks.V2Api.ClustersUuidNodesGet(ctx, ncloud.String(uuid))
 	if err != nil {
 		return nil, err
@@ -461,7 +457,7 @@ func getNKSWorkerNodes(ctx context.Context, config *ProviderConfig, uuid string)
 	return resp.Nodes, nil
 }
 
-func getNKSNodePoolWorkerNodes(ctx context.Context, config *ProviderConfig, uuid string, nodePoolName string) ([]*vnks.WorkerNode, error) {
+func getNKSNodePoolWorkerNodes(ctx context.Context, config *conn.ProviderConfig, uuid string, nodePoolName string) ([]*vnks.WorkerNode, error) {
 	var res []*vnks.WorkerNode
 	wns, err := getNKSWorkerNodes(ctx, config, uuid)
 	if err != nil {

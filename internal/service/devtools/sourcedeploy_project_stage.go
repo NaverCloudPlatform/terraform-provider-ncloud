@@ -14,15 +14,11 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 
 	. "github.com/terraform-providers/terraform-provider-ncloud/internal/common"
-	"github.com/terraform-providers/terraform-provider-ncloud/internal/provider"
+	"github.com/terraform-providers/terraform-provider-ncloud/internal/conn"
 	. "github.com/terraform-providers/terraform-provider-ncloud/internal/verify"
 )
 
-func init() {
-	provider.RegisterResource("ncloud_sourcedeploy_project_stage", resourceNcloudSourceDeployStage())
-}
-
-func resourceNcloudSourceDeployStage() *schema.Resource {
+func ResourceNcloudSourceDeployStage() *schema.Resource {
 	return &schema.Resource{
 		CreateContext: resourceNcloudSourceDeployStageCreate,
 		ReadContext:   resourceNcloudSourceDeployStageRead,
@@ -43,10 +39,10 @@ func resourceNcloudSourceDeployStage() *schema.Resource {
 			},
 		},
 		Timeouts: &schema.ResourceTimeout{
-			Create: schema.DefaultTimeout(provider.DefaultTimeout),
-			Read:   schema.DefaultTimeout(provider.DefaultTimeout),
-			Update: schema.DefaultTimeout(provider.DefaultTimeout),
-			Delete: schema.DefaultTimeout(provider.DefaultTimeout),
+			Create: schema.DefaultTimeout(conn.DefaultTimeout),
+			Read:   schema.DefaultTimeout(conn.DefaultTimeout),
+			Update: schema.DefaultTimeout(conn.DefaultTimeout),
+			Delete: schema.DefaultTimeout(conn.DefaultTimeout),
 		},
 		Schema: map[string]*schema.Schema{
 			"project_id": {
@@ -120,7 +116,7 @@ func resourceNcloudSourceDeployStage() *schema.Resource {
 }
 
 func resourceNcloudSourceDeployStageCreate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
-	config := meta.(*provider.ProviderConfig)
+	config := meta.(*conn.ProviderConfig)
 
 	if !config.SupportVPC {
 		return diag.FromErr(NotSupportClassic("resource `ncloud_sourcedeploy_project_stage`"))
@@ -146,13 +142,13 @@ func resourceNcloudSourceDeployStageCreate(ctx context.Context, d *schema.Resour
 }
 
 func resourceNcloudSourceDeployStageRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
-	config := meta.(*provider.ProviderConfig)
+	config := meta.(*conn.ProviderConfig)
 
 	if !config.SupportVPC {
 		return diag.FromErr(NotSupportClassic("resource `ncloud_sourcedeploy_project_stage`"))
 	}
 	projectId := ncloud.IntString(d.Get("project_id").(int))
-	stage, err := getSourceDeployStageById(ctx, config, projectId, ncloud.String(d.Id()))
+	stage, err := GetSourceDeployStageById(ctx, config, projectId, ncloud.String(d.Id()))
 
 	if err != nil {
 		return diag.FromErr(err)
@@ -172,7 +168,7 @@ func resourceNcloudSourceDeployStageRead(ctx context.Context, d *schema.Resource
 }
 
 func resourceNcloudSourceDeployStageUpdate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
-	config := meta.(*provider.ProviderConfig)
+	config := meta.(*conn.ProviderConfig)
 
 	err := changeDeployStage(ctx, d, config)
 	if err != nil {
@@ -183,7 +179,7 @@ func resourceNcloudSourceDeployStageUpdate(ctx context.Context, d *schema.Resour
 }
 
 func resourceNcloudSourceDeployStageDelete(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
-	config := meta.(*provider.ProviderConfig)
+	config := meta.(*conn.ProviderConfig)
 	if !config.SupportVPC {
 		return diag.FromErr(NotSupportClassic("resource `ncloud_sourcedeploy_project_stage`"))
 	}
@@ -250,7 +246,7 @@ func getDeployTarget(d *schema.ResourceData) (*vsourcedeploy.StageConfig, error)
 	return &deployTarget, nil
 }
 
-func getSourceDeployStageById(ctx context.Context, config *provider.ProviderConfig, projectId *string, id *string) (*vsourcedeploy.GetStageDetailResponse, error) {
+func GetSourceDeployStageById(ctx context.Context, config *conn.ProviderConfig, projectId *string, id *string) (*vsourcedeploy.GetStageDetailResponse, error) {
 	LogCommonRequest("getSourceDeployStage", id)
 	resp, err := config.Client.Vsourcedeploy.V1Api.GetStage(ctx, projectId, id)
 	if err != nil {
@@ -278,7 +274,7 @@ func makeStageConfig(config *vsourcedeploy.GetStageDetailResponseConfig) []inter
 	return []interface{}{values}
 }
 
-func changeDeployStage(ctx context.Context, d *schema.ResourceData, config *provider.ProviderConfig) error {
+func changeDeployStage(ctx context.Context, d *schema.ResourceData, config *conn.ProviderConfig) error {
 
 	reqParams, paramErr := getStage(d)
 

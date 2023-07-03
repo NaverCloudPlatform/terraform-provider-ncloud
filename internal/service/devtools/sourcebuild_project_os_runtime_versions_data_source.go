@@ -8,14 +8,10 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 
 	. "github.com/terraform-providers/terraform-provider-ncloud/internal/common"
-	. "github.com/terraform-providers/terraform-provider-ncloud/internal/provider"
+	"github.com/terraform-providers/terraform-provider-ncloud/internal/conn"
 )
 
-func init() {
-	RegisterDataSource("ncloud_sourcebuild_project_os_runtime_versions", dataSourceNcloudSourceBuildRuntimeVersions())
-}
-
-func dataSourceNcloudSourceBuildRuntimeVersions() *schema.Resource {
+func DataSourceNcloudSourceBuildRuntimeVersions() *schema.Resource {
 	return &schema.Resource{
 		ReadContext: dataSourceNcloudSourceBuildRuntimeVersionsRead,
 		Schema: map[string]*schema.Schema{
@@ -49,7 +45,7 @@ func dataSourceNcloudSourceBuildRuntimeVersions() *schema.Resource {
 }
 
 func dataSourceNcloudSourceBuildRuntimeVersionsRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
-	config := meta.(*ProviderConfig)
+	config := meta.(*conn.ProviderConfig)
 
 	osIdParam := Int32PtrOrNil(d.GetOk("os_id"))
 	osId := ncloud.IntString(int(ncloud.Int32Value(osIdParam)))
@@ -76,7 +72,7 @@ func dataSourceNcloudSourceBuildRuntimeVersionsRead(ctx context.Context, d *sche
 	}
 
 	if f, ok := d.GetOk("filter"); ok {
-		resources = ApplyFilters(f.(*schema.Set), resources, dataSourceNcloudSourceBuildRuntimeVersions().Schema)
+		resources = ApplyFilters(f.(*schema.Set), resources, DataSourceNcloudSourceBuildRuntimeVersions().Schema)
 	}
 
 	d.SetId(config.RegionCode)

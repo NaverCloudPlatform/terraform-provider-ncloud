@@ -7,7 +7,7 @@ import (
 	"strings"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
-	"github.com/terraform-providers/terraform-provider-ncloud/internal/provider"
+	"github.com/terraform-providers/terraform-provider-ncloud/internal/conn"
 
 	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/ncloud"
 )
@@ -77,9 +77,9 @@ func GetCommonErrorBody(err error) (*CommonError, error) {
 	}, nil
 }
 
-func GetRegion(i interface{}) *provider.Region {
+func GetRegion(i interface{}) *conn.Region {
 	if i == nil || !reflect.ValueOf(i).Elem().IsValid() {
-		return &provider.Region{}
+		return &conn.Region{}
 	}
 	var regionNo *string
 	var regionCode *string
@@ -94,7 +94,7 @@ func GetRegion(i interface{}) *provider.Region {
 		regionName = StringField(f)
 	}
 
-	return &provider.Region{
+	return &conn.Region{
 		RegionNo:   regionNo,
 		RegionCode: regionCode,
 		RegionName: regionName,

@@ -1,4 +1,4 @@
-package loadbalancer
+package loadbalancer_test
 
 import (
 	"fmt"
@@ -11,11 +11,12 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 
 	. "github.com/terraform-providers/terraform-provider-ncloud/internal/acctest"
-	. "github.com/terraform-providers/terraform-provider-ncloud/internal/provider"
+	"github.com/terraform-providers/terraform-provider-ncloud/internal/conn"
+	"github.com/terraform-providers/terraform-provider-ncloud/internal/service/loadbalancer"
 )
 
 func TestAccResourceNcloudLb_vpc_basic(t *testing.T) {
-	var lb LoadBalancerInstance
+	var lb loadbalancer.LoadBalancerInstance
 	lbName := fmt.Sprintf("terraform-testacc-lb-%s", acctest.RandString(5))
 	resourceName := "ncloud_lb.test"
 	resource.ParallelTest(t, resource.TestCase{
@@ -49,7 +50,7 @@ func TestAccResourceNcloudLb_vpc_basic(t *testing.T) {
 	})
 }
 
-func testAccCheckLbExists(n string, lb *LoadBalancerInstance, provider *schema.Provider) resource.TestCheckFunc {
+func testAccCheckLbExists(n string, lb *loadbalancer.LoadBalancerInstance, provider *schema.Provider) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		rs, ok := s.RootModule().Resources[n]
 		if !ok {
@@ -60,8 +61,8 @@ func testAccCheckLbExists(n string, lb *LoadBalancerInstance, provider *schema.P
 			return fmt.Errorf("No LB ID is set: %s", n)
 		}
 
-		config := provider.Meta().(*ProviderConfig)
-		loadBalancer, err := getVpcLoadBalancer(config, rs.Primary.ID)
+		config := provider.Meta().(*conn.ProviderConfig)
+		loadBalancer, err := loadbalancer.GetVpcLoadBalancer(config, rs.Primary.ID)
 		if err != nil {
 			return err
 		}
@@ -76,14 +77,14 @@ func testAccCheckLbExists(n string, lb *LoadBalancerInstance, provider *schema.P
 }
 
 func testAccCheckLbDestroy(s *terraform.State, provider *schema.Provider) error {
-	config := provider.Meta().(*ProviderConfig)
+	config := provider.Meta().(*conn.ProviderConfig)
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "ncloud_lb" {
 			continue
 		}
 
-		loadBalancer, err := getVpcLoadBalancer(config, rs.Primary.ID)
+		loadBalancer, err := loadbalancer.GetVpcLoadBalancer(config, rs.Primary.ID)
 		if err != nil {
 			return err
 		}

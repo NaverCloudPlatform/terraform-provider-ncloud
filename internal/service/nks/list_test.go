@@ -179,7 +179,7 @@ func TestFlattenNKSClusterIPAcl(t *testing.T) {
 }
 
 func TestExpandNKSClusterIPAcl(t *testing.T) {
-	ipAclList := schema.NewSet(schema.HashResource(resourceNcloudNKSCluster().Schema["ip_acl"].Elem.(*schema.Resource)), []interface{}{})
+	ipAclList := schema.NewSet(schema.HashResource(ResourceNcloudNKSCluster().Schema["ip_acl"].Elem.(*schema.Resource)), []interface{}{})
 
 	ipAclList.Add(map[string]interface{}{
 		"action":  "allow",

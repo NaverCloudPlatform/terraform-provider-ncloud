@@ -10,14 +10,10 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 
 	. "github.com/terraform-providers/terraform-provider-ncloud/internal/common"
-	. "github.com/terraform-providers/terraform-provider-ncloud/internal/provider"
+	"github.com/terraform-providers/terraform-provider-ncloud/internal/conn"
 )
 
-func init() {
-	RegisterDataSource("ncloud_ses_node_os_images", dataSourceNcloudSESNodeOsImage())
-}
-
-func dataSourceNcloudSESNodeOsImage() *schema.Resource {
+func DataSourceNcloudSESNodeOsImage() *schema.Resource {
 	return &schema.Resource{
 		Read: dataSourceNcloudSESNodeOsImageRead,
 
@@ -44,7 +40,7 @@ func dataSourceNcloudSESNodeOsImage() *schema.Resource {
 }
 
 func dataSourceNcloudSESNodeOsImageRead(d *schema.ResourceData, meta interface{}) error {
-	config := meta.(*ProviderConfig)
+	config := meta.(*conn.ProviderConfig)
 	if !config.SupportVPC {
 		return NotSupportClassic("datasource `ncloud_ses_node_os_image`")
 	}
@@ -55,7 +51,7 @@ func dataSourceNcloudSESNodeOsImageRead(d *schema.ResourceData, meta interface{}
 	}
 
 	if f, ok := d.GetOk("filter"); ok {
-		resources = ApplyFilters(f.(*schema.Set), resources, dataSourceNcloudSESNodeOsImage().Schema["images"].Elem.(*schema.Resource).Schema)
+		resources = ApplyFilters(f.(*schema.Set), resources, DataSourceNcloudSESNodeOsImage().Schema["images"].Elem.(*schema.Resource).Schema)
 	}
 
 	d.SetId(time.Now().UTC().String())
@@ -67,7 +63,7 @@ func dataSourceNcloudSESNodeOsImageRead(d *schema.ResourceData, meta interface{}
 
 }
 
-func getSESNodeOsImage(config *ProviderConfig) ([]map[string]interface{}, error) {
+func getSESNodeOsImage(config *conn.ProviderConfig) ([]map[string]interface{}, error) {
 
 	LogCommonRequest("GetSESNodeOsImage", "")
 	resp, _, err := config.Client.Vses.V2Api.GetOsProductListUsingGET(context.Background())

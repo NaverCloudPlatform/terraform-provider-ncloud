@@ -1,4 +1,4 @@
-package vpc
+package vpc_test
 
 import (
 	"errors"
@@ -13,7 +13,8 @@ import (
 
 	. "github.com/terraform-providers/terraform-provider-ncloud/internal/acctest"
 	. "github.com/terraform-providers/terraform-provider-ncloud/internal/common"
-	"github.com/terraform-providers/terraform-provider-ncloud/internal/provider"
+	"github.com/terraform-providers/terraform-provider-ncloud/internal/conn"
+	vpcservice "github.com/terraform-providers/terraform-provider-ncloud/internal/service/vpc"
 )
 
 func TestAccresourceNcloudRoute_basic(t *testing.T) {
@@ -114,7 +115,7 @@ func testAccCheckRouteExists(n string, route *vpc.Route) resource.TestCheckFunc 
 			return fmt.Errorf("No network ACL Rule id is set: %s", n)
 		}
 
-		config := GetTestProvider(true).Meta().(*provider.ProviderConfig)
+		config := GetTestProvider(true).Meta().(*conn.ProviderConfig)
 
 		reqParams := &vpc.GetRouteListRequest{
 			VpcNo:        ncloud.String(rs.Primary.Attributes["vpc_no"]),
@@ -156,14 +157,14 @@ func testAccNcloudRouteImportStateIDFunc(resourceName string) resource.ImportSta
 }
 
 func testAccCheckRouteDestroy(s *terraform.State) error {
-	config := GetTestProvider(true).Meta().(*provider.ProviderConfig)
+	config := GetTestProvider(true).Meta().(*conn.ProviderConfig)
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "ncloud_route" {
 			continue
 		}
 
-		instance, err := getRouteTableInstance(config, rs.Primary.Attributes["route_table_no"])
+		instance, err := vpcservice.GetRouteTableInstance(config, rs.Primary.Attributes["route_table_no"])
 
 		if err != nil {
 			return err
@@ -199,9 +200,9 @@ func testAccCheckRouteDestroy(s *terraform.State) error {
 
 func testAccCheckRouteDisappears(instance *vpc.Route) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
-		config := GetTestProvider(true).Meta().(*provider.ProviderConfig)
+		config := GetTestProvider(true).Meta().(*conn.ProviderConfig)
 
-		routeTable, err := getRouteTableInstance(config, *instance.RouteTableNo)
+		routeTable, err := vpcservice.GetRouteTableInstance(config, *instance.RouteTableNo)
 		if err != nil {
 			return err
 		}
@@ -225,7 +226,7 @@ func testAccCheckRouteDisappears(instance *vpc.Route) resource.TestCheckFunc {
 
 		_, err = config.Client.Vpc.V2Api.RemoveRoute(reqParams)
 
-		if err := waitForNcloudRouteTableUpdate(config, *instance.RouteTableNo); err != nil {
+		if err := vpcservice.WaitForNcloudRouteTableUpdate(config, *instance.RouteTableNo); err != nil {
 			return err
 		}
 

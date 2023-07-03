@@ -14,16 +14,12 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 
 	. "github.com/terraform-providers/terraform-provider-ncloud/internal/common"
-	. "github.com/terraform-providers/terraform-provider-ncloud/internal/provider"
+	"github.com/terraform-providers/terraform-provider-ncloud/internal/conn"
 	"github.com/terraform-providers/terraform-provider-ncloud/internal/verify"
 	"github.com/terraform-providers/terraform-provider-ncloud/internal/zone"
 )
 
-func init() {
-	RegisterResource("ncloud_public_ip", resourceNcloudPublicIpInstance())
-}
-
-func resourceNcloudPublicIpInstance() *schema.Resource {
+func ResourceNcloudPublicIpInstance() *schema.Resource {
 	return &schema.Resource{
 		Create: resourceNcloudPublicIpCreate,
 		Read:   resourceNcloudPublicIpRead,
@@ -82,7 +78,7 @@ func resourceNcloudPublicIpInstance() *schema.Resource {
 }
 
 func resourceNcloudPublicIpCreate(d *schema.ResourceData, meta interface{}) error {
-	config := meta.(*ProviderConfig)
+	config := meta.(*conn.ProviderConfig)
 	var publicIpInstanceNo *string
 	var err error
 
@@ -109,9 +105,9 @@ func resourceNcloudPublicIpCreate(d *schema.ResourceData, meta interface{}) erro
 }
 
 func resourceNcloudPublicIpRead(d *schema.ResourceData, meta interface{}) error {
-	config := meta.(*ProviderConfig)
+	config := meta.(*conn.ProviderConfig)
 
-	resource, err := getPublicIp(config, d.Id())
+	resource, err := GetPublicIp(config, d.Id())
 
 	if err != nil {
 		return err
@@ -123,7 +119,7 @@ func resourceNcloudPublicIpRead(d *schema.ResourceData, meta interface{}) error 
 	}
 
 	instance := ConvertToMap(resource)
-	SetSingularResourceDataFromMapSchema(resourceNcloudPublicIpInstance(), d, instance)
+	SetSingularResourceDataFromMapSchema(ResourceNcloudPublicIpInstance(), d, instance)
 	if err := d.Set("public_ip_no", resource.PublicIpInstanceNo); err != nil {
 		return err
 	}
@@ -136,7 +132,7 @@ func resourceNcloudPublicIpRead(d *schema.ResourceData, meta interface{}) error 
 }
 
 func resourceNcloudPublicIpDelete(d *schema.ResourceData, meta interface{}) error {
-	config := meta.(*ProviderConfig)
+	config := meta.(*conn.ProviderConfig)
 	var err error
 
 	// Check associated public ip
@@ -164,7 +160,7 @@ func resourceNcloudPublicIpDelete(d *schema.ResourceData, meta interface{}) erro
 }
 
 func resourceNcloudPublicIpUpdate(d *schema.ResourceData, meta interface{}) error {
-	config := meta.(*ProviderConfig)
+	config := meta.(*conn.ProviderConfig)
 
 	if d.HasChange("server_instance_no") {
 		o, n := d.GetChange("server_instance_no")
@@ -195,7 +191,7 @@ func resourceNcloudPublicIpUpdate(d *schema.ResourceData, meta interface{}) erro
 	return resourceNcloudPublicIpRead(d, meta)
 }
 
-func createClassicPublicIp(d *schema.ResourceData, config *ProviderConfig) (*string, error) {
+func createClassicPublicIp(d *schema.ResourceData, config *conn.ProviderConfig) (*string, error) {
 	client := config.Client
 
 	zoneNo, err := zone.ParseZoneNoParameter(config, d)
@@ -224,7 +220,7 @@ func createClassicPublicIp(d *schema.ResourceData, config *ProviderConfig) (*str
 	return publicIPInstance.PublicIpInstanceNo, nil
 }
 
-func createVpcPublicIp(d *schema.ResourceData, config *ProviderConfig) (*string, error) {
+func createVpcPublicIp(d *schema.ResourceData, config *conn.ProviderConfig) (*string, error) {
 	client := config.Client
 
 	reqParams := &vserver.CreatePublicIpInstanceRequest{
@@ -247,7 +243,7 @@ func createVpcPublicIp(d *schema.ResourceData, config *ProviderConfig) (*string,
 	return publicIPInstance.PublicIpInstanceNo, nil
 }
 
-func deleteClassicPublicIp(d *schema.ResourceData, config *ProviderConfig) error {
+func deleteClassicPublicIp(d *schema.ResourceData, config *conn.ProviderConfig) error {
 	client := config.Client
 
 	reqParams := &server.DeletePublicIpInstancesRequest{
@@ -266,7 +262,7 @@ func deleteClassicPublicIp(d *schema.ResourceData, config *ProviderConfig) error
 	return nil
 }
 
-func deleteVpcPublicIp(d *schema.ResourceData, config *ProviderConfig) error {
+func deleteVpcPublicIp(d *schema.ResourceData, config *conn.ProviderConfig) error {
 	client := config.Client
 
 	reqParams := &vserver.DeletePublicIpInstanceRequest{
@@ -286,7 +282,7 @@ func deleteVpcPublicIp(d *schema.ResourceData, config *ProviderConfig) error {
 	return nil
 }
 
-func getPublicIp(config *ProviderConfig, id string) (*PublicIpInstance, error) {
+func GetPublicIp(config *conn.ProviderConfig, id string) (*PublicIpInstance, error) {
 	var r *PublicIpInstance
 	var err error
 	if config.SupportVPC {
@@ -302,7 +298,7 @@ func getPublicIp(config *ProviderConfig, id string) (*PublicIpInstance, error) {
 	return r, nil
 }
 
-func getClassicPublicIp(config *ProviderConfig, id string) (*PublicIpInstance, error) {
+func getClassicPublicIp(config *conn.ProviderConfig, id string) (*PublicIpInstance, error) {
 	client := config.Client
 	regionNo := config.RegionNo
 
@@ -348,7 +344,7 @@ func getClassicPublicIp(config *ProviderConfig, id string) (*PublicIpInstance, e
 	return p, nil
 }
 
-func getVpcPublicIp(config *ProviderConfig, id string) (*PublicIpInstance, error) {
+func getVpcPublicIp(config *conn.ProviderConfig, id string) (*PublicIpInstance, error) {
 	client := config.Client
 	regionCode := config.RegionCode
 
@@ -391,8 +387,8 @@ func getVpcPublicIp(config *ProviderConfig, id string) (*PublicIpInstance, error
 	return p, nil
 }
 
-func checkAssociatedPublicIP(config *ProviderConfig, id string) (bool, error) {
-	instance, err := getPublicIp(config, id)
+func checkAssociatedPublicIP(config *conn.ProviderConfig, id string) (bool, error) {
+	instance, err := GetPublicIp(config, id)
 
 	if err != nil {
 		return false, err
@@ -405,7 +401,7 @@ func checkAssociatedPublicIP(config *ProviderConfig, id string) (bool, error) {
 	return instance.ServerInstanceNo != nil && *instance.ServerInstanceNo != "", nil
 }
 
-func disassociatedPublicIp(config *ProviderConfig, id string) error {
+func disassociatedPublicIp(config *conn.ProviderConfig, id string) error {
 	var err error
 
 	if config.SupportVPC {
@@ -425,7 +421,7 @@ func disassociatedPublicIp(config *ProviderConfig, id string) error {
 	return nil
 }
 
-func disassociatedClassicPublicIp(config *ProviderConfig, id string) error {
+func disassociatedClassicPublicIp(config *conn.ProviderConfig, id string) error {
 	reqParams := &server.DisassociatePublicIpFromServerInstanceRequest{PublicIpInstanceNo: ncloud.String(id)}
 
 	LogCommonRequest("disassociatedClassicPublicIP", reqParams)
@@ -440,7 +436,7 @@ func disassociatedClassicPublicIp(config *ProviderConfig, id string) error {
 	return nil
 }
 
-func disassociatedVpcPublicIp(config *ProviderConfig, id string) error {
+func disassociatedVpcPublicIp(config *conn.ProviderConfig, id string) error {
 	reqParams := &vserver.DisassociatePublicIpFromServerInstanceRequest{
 		RegionCode:         &config.RegionCode,
 		PublicIpInstanceNo: ncloud.String(id),
@@ -458,7 +454,7 @@ func disassociatedVpcPublicIp(config *ProviderConfig, id string) error {
 	return nil
 }
 
-func waitForPublicIpDisassociation(config *ProviderConfig, id string) error {
+func waitForPublicIpDisassociation(config *conn.ProviderConfig, id string) error {
 	stateConf := &resource.StateChangeConf{
 		Pending: []string{"NOT OK"},
 		Target:  []string{"OK"},
@@ -476,7 +472,7 @@ func waitForPublicIpDisassociation(config *ProviderConfig, id string) error {
 
 			return nil, "NOT OK", nil
 		},
-		Timeout:    DefaultTimeout,
+		Timeout:    conn.DefaultTimeout,
 		Delay:      2 * time.Second,
 		MinTimeout: 3 * time.Second,
 	}
@@ -489,15 +485,15 @@ func waitForPublicIpDisassociation(config *ProviderConfig, id string) error {
 	return nil
 }
 
-func getPublicIpInstanceOperationCode(config *ProviderConfig, id string) (string, error) {
-	instance, err := getPublicIp(config, id)
+func getPublicIpInstanceOperationCode(config *conn.ProviderConfig, id string) (string, error) {
+	instance, err := GetPublicIp(config, id)
 	if err != nil {
 		return "", err
 	}
 	return *instance.PublicIpInstanceOperationCode, nil
 }
 
-func waitForPublicIpAssociation(config *ProviderConfig, id string) error {
+func waitForPublicIpAssociation(config *conn.ProviderConfig, id string) error {
 	stateConf := &resource.StateChangeConf{
 		Pending: []string{"NOT OK"},
 		Target:  []string{"OK"},
@@ -514,7 +510,7 @@ func waitForPublicIpAssociation(config *ProviderConfig, id string) error {
 
 			return nil, "NOT OK", nil
 		},
-		Timeout:    DefaultTimeout,
+		Timeout:    conn.DefaultTimeout,
 		Delay:      2 * time.Second,
 		MinTimeout: 3 * time.Second,
 	}
@@ -527,7 +523,7 @@ func waitForPublicIpAssociation(config *ProviderConfig, id string) error {
 	return nil
 }
 
-func associatedPublicIp(d *schema.ResourceData, config *ProviderConfig) error {
+func associatedPublicIp(d *schema.ResourceData, config *conn.ProviderConfig) error {
 	var err error
 
 	if config.SupportVPC {
@@ -547,7 +543,7 @@ func associatedPublicIp(d *schema.ResourceData, config *ProviderConfig) error {
 	return nil
 }
 
-func associatedClassicPublicIp(d *schema.ResourceData, config *ProviderConfig) error {
+func associatedClassicPublicIp(d *schema.ResourceData, config *conn.ProviderConfig) error {
 	reqParams := &server.AssociatePublicIpWithServerInstanceRequest{
 		PublicIpInstanceNo: ncloud.String(d.Id()),
 		ServerInstanceNo:   ncloud.String(d.Get("server_instance_no").(string)),
@@ -565,7 +561,7 @@ func associatedClassicPublicIp(d *schema.ResourceData, config *ProviderConfig) e
 	return nil
 }
 
-func associatedVpcPublicIp(d *schema.ResourceData, config *ProviderConfig) error {
+func associatedVpcPublicIp(d *schema.ResourceData, config *conn.ProviderConfig) error {
 	reqParams := &vserver.AssociatePublicIpWithServerInstanceRequest{
 		RegionCode:         &config.RegionCode,
 		PublicIpInstanceNo: ncloud.String(d.Id()),
@@ -585,7 +581,7 @@ func associatedVpcPublicIp(d *schema.ResourceData, config *ProviderConfig) error
 }
 
 func resourceNcloudPublicIpCustomizeDiff(_ context.Context, diff *schema.ResourceDiff, meta interface{}) error {
-	config := meta.(*ProviderConfig)
+	config := meta.(*conn.ProviderConfig)
 
 	if config.SupportVPC {
 		if v, ok := diff.GetOk("zone"); ok {

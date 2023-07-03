@@ -9,14 +9,10 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 
 	. "github.com/terraform-providers/terraform-provider-ncloud/internal/common"
-	"github.com/terraform-providers/terraform-provider-ncloud/internal/provider"
+	"github.com/terraform-providers/terraform-provider-ncloud/internal/conn"
 )
 
-func init() {
-	provider.RegisterDataSource("ncloud_sourcedeploy_project_stages", dataSourceNcloudSourceDeployStagesContext())
-}
-
-func dataSourceNcloudSourceDeployStagesContext() *schema.Resource {
+func DataSourceNcloudSourceDeployStagesContext() *schema.Resource {
 	return &schema.Resource{
 		ReadContext: dataSourceNcloudSourceDeployStagesReadContext,
 		Schema: map[string]*schema.Schema{
@@ -46,14 +42,14 @@ func dataSourceNcloudSourceDeployStagesContext() *schema.Resource {
 }
 
 func dataSourceNcloudSourceDeployStagesReadContext(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
-	config := meta.(*provider.ProviderConfig)
+	config := meta.(*conn.ProviderConfig)
 
 	if !config.SupportVPC {
 		return diag.FromErr(NotSupportClassic("dataSource `ncloud_sourcedeploy_project_stages`"))
 	}
 
 	projectId := ncloud.IntString(d.Get("project_id").(int))
-	resp, err := getStages(ctx, config, projectId)
+	resp, err := GetStages(ctx, config, projectId)
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -67,7 +63,7 @@ func dataSourceNcloudSourceDeployStagesReadContext(ctx context.Context, d *schem
 		resources = append(resources, stage)
 	}
 	if f, ok := d.GetOk("filter"); ok {
-		resources = ApplyFilters(f.(*schema.Set), resources, dataSourceNcloudSourceDeployStagesContext().Schema)
+		resources = ApplyFilters(f.(*schema.Set), resources, DataSourceNcloudSourceDeployStagesContext().Schema)
 	}
 	d.SetId(config.RegionCode)
 	d.Set("stages", resources)
@@ -75,7 +71,7 @@ func dataSourceNcloudSourceDeployStagesReadContext(ctx context.Context, d *schem
 	return nil
 }
 
-func getStages(ctx context.Context, config *provider.ProviderConfig, projectId *string) (*vsourcedeploy.GetStageListResponse, error) {
+func GetStages(ctx context.Context, config *conn.ProviderConfig, projectId *string) (*vsourcedeploy.GetStageListResponse, error) {
 
 	reqParams := make(map[string]interface{})
 	LogCommonRequest("getStages", reqParams)

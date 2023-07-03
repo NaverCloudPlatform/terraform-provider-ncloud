@@ -7,14 +7,10 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 
 	. "github.com/terraform-providers/terraform-provider-ncloud/internal/common"
-	. "github.com/terraform-providers/terraform-provider-ncloud/internal/provider"
+	"github.com/terraform-providers/terraform-provider-ncloud/internal/conn"
 )
 
-func init() {
-	RegisterDataSource("ncloud_sourcebuild_project_os", dataSourceNcloudSourceBuildOs())
-}
-
-func dataSourceNcloudSourceBuildOs() *schema.Resource {
+func DataSourceNcloudSourceBuildOs() *schema.Resource {
 	return &schema.Resource{
 		ReadContext: dataSourceNcloudSourceBuildOsRead,
 		Schema: map[string]*schema.Schema{
@@ -48,7 +44,7 @@ func dataSourceNcloudSourceBuildOs() *schema.Resource {
 }
 
 func dataSourceNcloudSourceBuildOsRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
-	config := meta.(*ProviderConfig)
+	config := meta.(*conn.ProviderConfig)
 
 	LogCommonRequest("GetOsEnv", "")
 	resp, err := config.Client.Sourcebuild.V1Api.GetOsEnv(ctx)
@@ -72,7 +68,7 @@ func dataSourceNcloudSourceBuildOsRead(ctx context.Context, d *schema.ResourceDa
 	}
 
 	if f, ok := d.GetOk("filter"); ok {
-		resources = ApplyFilters(f.(*schema.Set), resources, dataSourceNcloudSourceBuildOs().Schema)
+		resources = ApplyFilters(f.(*schema.Set), resources, DataSourceNcloudSourceBuildOs().Schema)
 	}
 
 	d.SetId(config.RegionCode)

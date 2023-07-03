@@ -1,4 +1,4 @@
-package loadbalancer
+package loadbalancer_test
 
 import (
 	"fmt"
@@ -10,11 +10,12 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 
 	. "github.com/terraform-providers/terraform-provider-ncloud/internal/acctest"
-	. "github.com/terraform-providers/terraform-provider-ncloud/internal/provider"
+	"github.com/terraform-providers/terraform-provider-ncloud/internal/conn"
+	"github.com/terraform-providers/terraform-provider-ncloud/internal/service/loadbalancer"
 )
 
 func TestAccResourceNcloudLbListener_vpc_basic(t *testing.T) {
-	var listener LoadBalancerListener
+	var listener loadbalancer.LoadBalancerListener
 	lbName := fmt.Sprintf("terraform-testacc-lb-%s", acctest.RandString(5))
 	resourceName := "ncloud_lb_listener.test"
 	resource.ParallelTest(t, resource.TestCase{
@@ -39,7 +40,7 @@ func TestAccResourceNcloudLbListener_vpc_basic(t *testing.T) {
 	})
 }
 
-func testAccCheckLbListenerExists(n string, l *LoadBalancerListener, provider *schema.Provider) resource.TestCheckFunc {
+func testAccCheckLbListenerExists(n string, l *loadbalancer.LoadBalancerListener, provider *schema.Provider) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		rs, ok := s.RootModule().Resources[n]
 		if !ok {
@@ -50,8 +51,8 @@ func testAccCheckLbListenerExists(n string, l *LoadBalancerListener, provider *s
 			return fmt.Errorf("No LB Listener ID is set: %s", n)
 		}
 
-		config := provider.Meta().(*ProviderConfig)
-		listener, err := getVpcLoadBalancerListener(config, rs.Primary.ID, rs.Primary.Attributes["load_balancer_no"])
+		config := provider.Meta().(*conn.ProviderConfig)
+		listener, err := loadbalancer.GetVpcLoadBalancerListener(config, rs.Primary.ID, rs.Primary.Attributes["load_balancer_no"])
 		if err != nil {
 			return err
 		}
@@ -66,14 +67,14 @@ func testAccCheckLbListenerExists(n string, l *LoadBalancerListener, provider *s
 }
 
 func testAccCheckLbListenerDestroy(s *terraform.State, provider *schema.Provider) error {
-	config := provider.Meta().(*ProviderConfig)
+	config := provider.Meta().(*conn.ProviderConfig)
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "ncloud_lb_listener" {
 			continue
 		}
 
-		listener, err := getVpcLoadBalancerListener(config, rs.Primary.ID, rs.Primary.Attributes["load_balancer_no"])
+		listener, err := loadbalancer.GetVpcLoadBalancerListener(config, rs.Primary.ID, rs.Primary.Attributes["load_balancer_no"])
 		if err != nil {
 			return err
 		}

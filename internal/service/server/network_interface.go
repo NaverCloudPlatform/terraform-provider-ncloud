@@ -13,14 +13,10 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 
 	. "github.com/terraform-providers/terraform-provider-ncloud/internal/common"
-	. "github.com/terraform-providers/terraform-provider-ncloud/internal/provider"
+	"github.com/terraform-providers/terraform-provider-ncloud/internal/conn"
 	"github.com/terraform-providers/terraform-provider-ncloud/internal/service/vpc"
 	. "github.com/terraform-providers/terraform-provider-ncloud/internal/verify"
 )
-
-func init() {
-	RegisterResource("ncloud_network_interface", resourceNcloudNetworkInterface())
-}
 
 const (
 	NetworkInterfaceStateNotUsed    = "NOTUSED"
@@ -30,7 +26,7 @@ const (
 	NetworkInterfaceStateTerminated = "TERMINATED"
 )
 
-func resourceNcloudNetworkInterface() *schema.Resource {
+func ResourceNcloudNetworkInterface() *schema.Resource {
 	return &schema.Resource{
 		Create: resourceNcloudNetworkInterfaceCreate,
 		Read:   resourceNcloudNetworkInterfaceRead,
@@ -97,7 +93,7 @@ func resourceNcloudNetworkInterface() *schema.Resource {
 }
 
 func resourceNcloudNetworkInterfaceCreate(d *schema.ResourceData, meta interface{}) error {
-	config := meta.(*ProviderConfig)
+	config := meta.(*conn.ProviderConfig)
 
 	instance, err := createNetworkInterface(d, config)
 
@@ -118,9 +114,9 @@ func resourceNcloudNetworkInterfaceCreate(d *schema.ResourceData, meta interface
 }
 
 func resourceNcloudNetworkInterfaceRead(d *schema.ResourceData, meta interface{}) error {
-	config := meta.(*ProviderConfig)
+	config := meta.(*conn.ProviderConfig)
 
-	instance, err := getNetworkInterface(config, d.Id())
+	instance, err := GetNetworkInterface(config, d.Id())
 	if err != nil {
 		return err
 	}
@@ -149,7 +145,7 @@ func resourceNcloudNetworkInterfaceRead(d *schema.ResourceData, meta interface{}
 }
 
 func resourceNcloudNetworkInterfaceUpdate(d *schema.ResourceData, meta interface{}) error {
-	config := meta.(*ProviderConfig)
+	config := meta.(*conn.ProviderConfig)
 
 	if d.HasChange("server_instance_no") {
 		o, n := d.GetChange("server_instance_no")
@@ -194,7 +190,7 @@ func resourceNcloudNetworkInterfaceUpdate(d *schema.ResourceData, meta interface
 	return resourceNcloudNetworkInterfaceRead(d, meta)
 }
 
-func removeNetworkInterfaceAccessControlGroup(d *schema.ResourceData, config *ProviderConfig, accessControlGroupNoList []*string) error {
+func removeNetworkInterfaceAccessControlGroup(d *schema.ResourceData, config *conn.ProviderConfig, accessControlGroupNoList []*string) error {
 	var resp *vserver.RemoveNetworkInterfaceAccessControlGroupResponse
 	var reqParams *vserver.RemoveNetworkInterfaceAccessControlGroupRequest
 
@@ -235,7 +231,7 @@ func removeNetworkInterfaceAccessControlGroup(d *schema.ResourceData, config *Pr
 	return nil
 }
 
-func addNetworkInterfaceAccessControlGroup(d *schema.ResourceData, config *ProviderConfig, accessControlGroupNoList []*string) error {
+func addNetworkInterfaceAccessControlGroup(d *schema.ResourceData, config *conn.ProviderConfig, accessControlGroupNoList []*string) error {
 	reqParams := &vserver.AddNetworkInterfaceAccessControlGroupRequest{
 		RegionCode:               &config.RegionCode,
 		AccessControlGroupNoList: accessControlGroupNoList,
@@ -260,16 +256,16 @@ func addNetworkInterfaceAccessControlGroup(d *schema.ResourceData, config *Provi
 }
 
 func resourceNcloudNetworkInterfaceDelete(d *schema.ResourceData, meta interface{}) error {
-	config := meta.(*ProviderConfig)
+	config := meta.(*conn.ProviderConfig)
 
-	if err := deleteNetworkInterface(config, d.Id()); err != nil {
+	if err := DeleteNetworkInterface(config, d.Id()); err != nil {
 		return err
 	}
 
 	return nil
 }
 
-func getNetworkInterface(config *ProviderConfig, id string) (*vserver.NetworkInterface, error) {
+func GetNetworkInterface(config *conn.ProviderConfig, id string) (*vserver.NetworkInterface, error) {
 	if config.SupportVPC {
 		return getVpcNetworkInterface(config, id)
 	}
@@ -277,7 +273,7 @@ func getNetworkInterface(config *ProviderConfig, id string) (*vserver.NetworkInt
 	return nil, NotSupportClassic("resource `ncloud_network_interface`")
 }
 
-func getVpcNetworkInterface(config *ProviderConfig, id string) (*vserver.NetworkInterface, error) {
+func getVpcNetworkInterface(config *conn.ProviderConfig, id string) (*vserver.NetworkInterface, error) {
 	reqParams := &vserver.GetNetworkInterfaceDetailRequest{
 		RegionCode:         &config.RegionCode,
 		NetworkInterfaceNo: ncloud.String(id),
@@ -298,7 +294,7 @@ func getVpcNetworkInterface(config *ProviderConfig, id string) (*vserver.Network
 	return nil, nil
 }
 
-func createNetworkInterface(d *schema.ResourceData, config *ProviderConfig) (*vserver.NetworkInterface, error) {
+func createNetworkInterface(d *schema.ResourceData, config *conn.ProviderConfig) (*vserver.NetworkInterface, error) {
 	if config.SupportVPC {
 		return createVpcNetworkInterface(d, config)
 	} else {
@@ -306,7 +302,7 @@ func createNetworkInterface(d *schema.ResourceData, config *ProviderConfig) (*vs
 	}
 }
 
-func createVpcNetworkInterface(d *schema.ResourceData, config *ProviderConfig) (*vserver.NetworkInterface, error) {
+func createVpcNetworkInterface(d *schema.ResourceData, config *conn.ProviderConfig) (*vserver.NetworkInterface, error) {
 	subnet, err := vpc.GetSubnetInstance(config, d.Get("subnet_no").(string))
 	if err != nil {
 		return nil, err
@@ -338,7 +334,7 @@ func createVpcNetworkInterface(d *schema.ResourceData, config *ProviderConfig) (
 	return resp.NetworkInterfaceList[0], nil
 }
 
-func deleteNetworkInterface(config *ProviderConfig, id string) error {
+func DeleteNetworkInterface(config *conn.ProviderConfig, id string) error {
 	if config.SupportVPC {
 		return deleteVpcNetworkInterface(config, id)
 	}
@@ -346,7 +342,7 @@ func deleteNetworkInterface(config *ProviderConfig, id string) error {
 	return NotSupportClassic("resource `ncloud_network_interface`")
 }
 
-func deleteVpcNetworkInterface(config *ProviderConfig, id string) error {
+func deleteVpcNetworkInterface(config *conn.ProviderConfig, id string) error {
 	reqParams := &vserver.DeleteNetworkInterfaceRequest{
 		RegionCode:         &config.RegionCode,
 		NetworkInterfaceNo: ncloud.String(id),
@@ -367,7 +363,7 @@ func deleteVpcNetworkInterface(config *ProviderConfig, id string) error {
 	return nil
 }
 
-func attachNetworkInterface(d *schema.ResourceData, config *ProviderConfig) error {
+func attachNetworkInterface(d *schema.ResourceData, config *conn.ProviderConfig) error {
 	var err error
 
 	if config.SupportVPC {
@@ -387,7 +383,7 @@ func attachNetworkInterface(d *schema.ResourceData, config *ProviderConfig) erro
 	return nil
 }
 
-func attachVpcNetworkInterface(d *schema.ResourceData, config *ProviderConfig) error {
+func attachVpcNetworkInterface(d *schema.ResourceData, config *conn.ProviderConfig) error {
 	reqParams := &vserver.AttachNetworkInterfaceRequest{
 		RegionCode:         &config.RegionCode,
 		NetworkInterfaceNo: ncloud.String(d.Id()),
@@ -411,7 +407,7 @@ func attachVpcNetworkInterface(d *schema.ResourceData, config *ProviderConfig) e
 	return nil
 }
 
-func detachNetworkInterface(d *schema.ResourceData, config *ProviderConfig, serverInstanceNo string) error {
+func detachNetworkInterface(d *schema.ResourceData, config *conn.ProviderConfig, serverInstanceNo string) error {
 	var err error
 
 	if config.SupportVPC {
@@ -427,7 +423,7 @@ func detachNetworkInterface(d *schema.ResourceData, config *ProviderConfig, serv
 	return nil
 }
 
-func detachVpcNetworkInterface(d *schema.ResourceData, config *ProviderConfig, serverInstanceNo string) error {
+func detachVpcNetworkInterface(d *schema.ResourceData, config *conn.ProviderConfig, serverInstanceNo string) error {
 	reqParams := &vserver.DetachNetworkInterfaceRequest{
 		RegionCode:         &config.RegionCode,
 		NetworkInterfaceNo: ncloud.String(d.Id()),
@@ -451,7 +447,7 @@ func detachVpcNetworkInterface(d *schema.ResourceData, config *ProviderConfig, s
 	return nil
 }
 
-func waitForNetworkInterfaceAttachment(config *ProviderConfig, id string) error {
+func waitForNetworkInterfaceAttachment(config *conn.ProviderConfig, id string) error {
 	var err error
 
 	if config.SupportVPC {
@@ -467,15 +463,15 @@ func waitForNetworkInterfaceAttachment(config *ProviderConfig, id string) error 
 	return nil
 }
 
-func waitForVpcNetworkInterfaceState(config *ProviderConfig, id string, pending []string, target []string) error {
+func waitForVpcNetworkInterfaceState(config *conn.ProviderConfig, id string, pending []string, target []string) error {
 	stateConf := &resource.StateChangeConf{
 		Pending: pending,
 		Target:  target,
 		Refresh: func() (interface{}, string, error) {
-			instance, err := getNetworkInterface(config, id)
+			instance, err := GetNetworkInterface(config, id)
 			return vpc.VpcCommonStateRefreshFunc(instance, err, "NetworkInterfaceStatus")
 		},
-		Timeout:    DefaultTimeout,
+		Timeout:    conn.DefaultTimeout,
 		Delay:      2 * time.Second,
 		MinTimeout: 3 * time.Second,
 	}

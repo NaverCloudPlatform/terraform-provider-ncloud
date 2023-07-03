@@ -15,13 +15,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 
 	. "github.com/terraform-providers/terraform-provider-ncloud/internal/common"
-	. "github.com/terraform-providers/terraform-provider-ncloud/internal/provider"
+	"github.com/terraform-providers/terraform-provider-ncloud/internal/conn"
 	. "github.com/terraform-providers/terraform-provider-ncloud/internal/verify"
 )
-
-func init() {
-	RegisterResource("ncloud_block_storage", resourceNcloudBlockStorage())
-}
 
 const (
 	BlockStorageStatusCodeCreate = "CREAT"
@@ -29,7 +25,7 @@ const (
 	BlockStorageStatusCodeAttach = "ATTAC"
 )
 
-func resourceNcloudBlockStorage() *schema.Resource {
+func ResourceNcloudBlockStorage() *schema.Resource {
 	return &schema.Resource{
 		Create: resourceNcloudBlockStorageCreate,
 		Read:   resourceNcloudBlockStorageRead,
@@ -40,8 +36,8 @@ func resourceNcloudBlockStorage() *schema.Resource {
 		},
 
 		Timeouts: &schema.ResourceTimeout{
-			Create: schema.DefaultTimeout(DefaultCreateTimeout),
-			Delete: schema.DefaultTimeout(DefaultTimeout),
+			Create: schema.DefaultTimeout(conn.DefaultCreateTimeout),
+			Delete: schema.DefaultTimeout(conn.DefaultTimeout),
 		},
 
 		Schema: map[string]*schema.Schema{
@@ -121,7 +117,7 @@ func resourceNcloudBlockStorage() *schema.Resource {
 }
 
 func resourceNcloudBlockStorageCreate(d *schema.ResourceData, meta interface{}) error {
-	config := meta.(*ProviderConfig)
+	config := meta.(*conn.ProviderConfig)
 
 	if len(d.Get("server_instance_no").(string)) == 0 {
 		return fmt.Errorf("'server_instance_no' has to be present when ncloud_block_storage is first created.")
@@ -139,9 +135,9 @@ func resourceNcloudBlockStorageCreate(d *schema.ResourceData, meta interface{}) 
 }
 
 func resourceNcloudBlockStorageRead(d *schema.ResourceData, meta interface{}) error {
-	config := meta.(*ProviderConfig)
+	config := meta.(*conn.ProviderConfig)
 
-	r, err := getBlockStorage(config, d.Id())
+	r, err := GetBlockStorage(config, d.Id())
 	if err != nil {
 		return err
 	}
@@ -153,7 +149,7 @@ func resourceNcloudBlockStorageRead(d *schema.ResourceData, meta interface{}) er
 
 	instance := ConvertToMap(r)
 
-	SetSingularResourceDataFromMapSchema(resourceNcloudBlockStorage(), d, instance)
+	SetSingularResourceDataFromMapSchema(ResourceNcloudBlockStorage(), d, instance)
 
 	if err := d.Set("server_instance_no", r.ServerInstanceNo); err != nil {
 		return err
@@ -163,7 +159,7 @@ func resourceNcloudBlockStorageRead(d *schema.ResourceData, meta interface{}) er
 }
 
 func resourceNcloudBlockStorageDelete(d *schema.ResourceData, meta interface{}) error {
-	config := meta.(*ProviderConfig)
+	config := meta.(*conn.ProviderConfig)
 
 	if d.Get("stop_instance_before_detaching").(bool) {
 		log.Printf("[INFO] Stopping Instance %s for destroying block storage", d.Get("server_instance_no").(string))
@@ -181,7 +177,7 @@ func resourceNcloudBlockStorageDelete(d *schema.ResourceData, meta interface{}) 
 }
 
 func resourceNcloudBlockStorageUpdate(d *schema.ResourceData, meta interface{}) error {
-	config := meta.(*ProviderConfig)
+	config := meta.(*conn.ProviderConfig)
 
 	if d.HasChange("server_instance_no") {
 		o, n := d.GetChange("server_instance_no")
@@ -242,7 +238,7 @@ func resourceNcloudBlockStorageUpdate(d *schema.ResourceData, meta interface{}) 
 	return resourceNcloudBlockStorageRead(d, meta)
 }
 
-func createBlockStorage(d *schema.ResourceData, config *ProviderConfig) (*string, error) {
+func createBlockStorage(d *schema.ResourceData, config *conn.ProviderConfig) (*string, error) {
 	var id *string
 	var err error
 
@@ -263,7 +259,7 @@ func createBlockStorage(d *schema.ResourceData, config *ProviderConfig) (*string
 	return id, nil
 }
 
-func createClassicBlockStorage(d *schema.ResourceData, config *ProviderConfig) (*string, error) {
+func createClassicBlockStorage(d *schema.ResourceData, config *conn.ProviderConfig) (*string, error) {
 	reqParams := &server.CreateBlockStorageInstanceRequest{
 		ServerInstanceNo:        ncloud.String(d.Get("server_instance_no").(string)),
 		BlockStorageSize:        ncloud.Int64(int64(d.Get("size").(int))),
@@ -286,7 +282,7 @@ func createClassicBlockStorage(d *schema.ResourceData, config *ProviderConfig) (
 	return instance.BlockStorageInstanceNo, nil
 }
 
-func createVpcBlockStorage(d *schema.ResourceData, config *ProviderConfig) (*string, error) {
+func createVpcBlockStorage(d *schema.ResourceData, config *conn.ProviderConfig) (*string, error) {
 	reqParams := &vserver.CreateBlockStorageInstanceRequest{
 		RegionCode:                     &config.RegionCode,
 		BlockStorageSize:               ncloud.Int32(int32(d.Get("size").(int))),
@@ -312,7 +308,7 @@ func createVpcBlockStorage(d *schema.ResourceData, config *ProviderConfig) (*str
 	return instance.BlockStorageInstanceNo, nil
 }
 
-func getBlockStorage(config *ProviderConfig, id string) (*BlockStorage, error) {
+func GetBlockStorage(config *conn.ProviderConfig, id string) (*BlockStorage, error) {
 	if config.SupportVPC {
 		return getVpcBlockStorage(config, id)
 	}
@@ -320,7 +316,7 @@ func getBlockStorage(config *ProviderConfig, id string) (*BlockStorage, error) {
 	return getClassicBlockStorage(config, id)
 }
 
-func getClassicBlockStorage(config *ProviderConfig, id string) (*BlockStorage, error) {
+func getClassicBlockStorage(config *conn.ProviderConfig, id string) (*BlockStorage, error) {
 	reqParams := &server.GetBlockStorageInstanceListRequest{
 		BlockStorageInstanceNoList: ncloud.StringList([]string{id}),
 	}
@@ -357,7 +353,7 @@ func getClassicBlockStorage(config *ProviderConfig, id string) (*BlockStorage, e
 	return nil, nil
 }
 
-func getVpcBlockStorage(config *ProviderConfig, id string) (*BlockStorage, error) {
+func getVpcBlockStorage(config *conn.ProviderConfig, id string) (*BlockStorage, error) {
 	reqParams := &vserver.GetBlockStorageInstanceDetailRequest{
 		RegionCode:             &config.RegionCode,
 		BlockStorageInstanceNo: ncloud.String(id),
@@ -395,7 +391,7 @@ func getVpcBlockStorage(config *ProviderConfig, id string) (*BlockStorage, error
 	return nil, nil
 }
 
-func deleteBlockStorage(d *schema.ResourceData, config *ProviderConfig, id string) error {
+func deleteBlockStorage(d *schema.ResourceData, config *conn.ProviderConfig, id string) error {
 
 	var err error
 
@@ -413,7 +409,7 @@ func deleteBlockStorage(d *schema.ResourceData, config *ProviderConfig, id strin
 		Pending: []string{BlockStorageStatusCodeInit, BlockStorageStatusCodeAttach},
 		Target:  []string{"TERMINATED"},
 		Refresh: func() (interface{}, string, error) {
-			instance, err := getBlockStorage(config, id)
+			instance, err := GetBlockStorage(config, id)
 			if err != nil {
 				return 0, "", err
 			}
@@ -422,7 +418,7 @@ func deleteBlockStorage(d *schema.ResourceData, config *ProviderConfig, id strin
 			}
 			return instance, ncloud.StringValue(instance.Status), nil
 		},
-		Timeout:    DefaultTimeout,
+		Timeout:    conn.DefaultTimeout,
 		Delay:      2 * time.Second,
 		MinTimeout: 3 * time.Second,
 	}
@@ -435,7 +431,7 @@ func deleteBlockStorage(d *schema.ResourceData, config *ProviderConfig, id strin
 	return nil
 }
 
-func deleteClassicBlockStorage(d *schema.ResourceData, config *ProviderConfig, id string) error {
+func deleteClassicBlockStorage(d *schema.ResourceData, config *conn.ProviderConfig, id string) error {
 	reqParams := server.DeleteBlockStorageInstancesRequest{
 		BlockStorageInstanceNoList: []*string{ncloud.String(id)},
 	}
@@ -451,7 +447,7 @@ func deleteClassicBlockStorage(d *schema.ResourceData, config *ProviderConfig, i
 	return nil
 }
 
-func deleteVpcBlockStorage(d *schema.ResourceData, config *ProviderConfig, id string) error {
+func deleteVpcBlockStorage(d *schema.ResourceData, config *conn.ProviderConfig, id string) error {
 	reqParams := vserver.DeleteBlockStorageInstancesRequest{
 		RegionCode:                 &config.RegionCode,
 		BlockStorageInstanceNoList: []*string{ncloud.String(id)},
@@ -468,7 +464,7 @@ func deleteVpcBlockStorage(d *schema.ResourceData, config *ProviderConfig, id st
 	return nil
 }
 
-func detachBlockStorage(config *ProviderConfig, id string) error {
+func detachBlockStorage(config *conn.ProviderConfig, id string) error {
 	var err error
 
 	if config.SupportVPC {
@@ -488,7 +484,7 @@ func detachBlockStorage(config *ProviderConfig, id string) error {
 	return nil
 }
 
-func detachClassicBlockStorage(config *ProviderConfig, id string) error {
+func detachClassicBlockStorage(config *conn.ProviderConfig, id string) error {
 	reqParams := &server.DetachBlockStorageInstancesRequest{
 		BlockStorageInstanceNoList: []*string{ncloud.String(id)},
 	}
@@ -505,7 +501,7 @@ func detachClassicBlockStorage(config *ProviderConfig, id string) error {
 	return nil
 }
 
-func detachVpcBlockStorage(config *ProviderConfig, id string) error {
+func detachVpcBlockStorage(config *conn.ProviderConfig, id string) error {
 	reqParams := &vserver.DetachBlockStorageInstancesRequest{
 		BlockStorageInstanceNoList: []*string{ncloud.String(id)},
 	}
@@ -522,18 +518,18 @@ func detachVpcBlockStorage(config *ProviderConfig, id string) error {
 	return nil
 }
 
-func waitForBlockStorageDetachment(config *ProviderConfig, id string) error {
+func waitForBlockStorageDetachment(config *conn.ProviderConfig, id string) error {
 	stateConf := &resource.StateChangeConf{
 		Pending: []string{BlockStorageStatusCodeAttach},
 		Target:  []string{BlockStorageStatusCodeCreate},
 		Refresh: func() (interface{}, string, error) {
-			instance, err := getBlockStorage(config, id)
+			instance, err := GetBlockStorage(config, id)
 			if err != nil {
 				return 0, "", err
 			}
 			return instance, ncloud.StringValue(instance.Status), nil
 		},
-		Timeout:    DefaultUpdateTimeout,
+		Timeout:    conn.DefaultUpdateTimeout,
 		Delay:      2 * time.Second,
 		MinTimeout: 3 * time.Second,
 	}
@@ -546,7 +542,7 @@ func waitForBlockStorageDetachment(config *ProviderConfig, id string) error {
 	return nil
 }
 
-func attachBlockStorage(d *schema.ResourceData, config *ProviderConfig) error {
+func attachBlockStorage(d *schema.ResourceData, config *conn.ProviderConfig) error {
 	var err error
 	if config.SupportVPC {
 		err = attachVpcBlockStorage(d, config)
@@ -565,7 +561,7 @@ func attachBlockStorage(d *schema.ResourceData, config *ProviderConfig) error {
 	return nil
 }
 
-func attachClassicBlockStorage(d *schema.ResourceData, config *ProviderConfig) error {
+func attachClassicBlockStorage(d *schema.ResourceData, config *conn.ProviderConfig) error {
 	reqParams := &server.AttachBlockStorageInstanceRequest{
 		ServerInstanceNo:       ncloud.String(d.Get("server_instance_no").(string)),
 		BlockStorageInstanceNo: ncloud.String(d.Id()),
@@ -583,7 +579,7 @@ func attachClassicBlockStorage(d *schema.ResourceData, config *ProviderConfig) e
 	return nil
 }
 
-func attachVpcBlockStorage(d *schema.ResourceData, config *ProviderConfig) error {
+func attachVpcBlockStorage(d *schema.ResourceData, config *conn.ProviderConfig) error {
 	reqParams := &vserver.AttachBlockStorageInstanceRequest{
 		ServerInstanceNo:       ncloud.String(d.Get("server_instance_no").(string)),
 		BlockStorageInstanceNo: ncloud.String(d.Id()),
@@ -601,18 +597,18 @@ func attachVpcBlockStorage(d *schema.ResourceData, config *ProviderConfig) error
 	return nil
 }
 
-func waitForBlockStorageAttachment(config *ProviderConfig, id string) error {
+func waitForBlockStorageAttachment(config *conn.ProviderConfig, id string) error {
 	stateConf := &resource.StateChangeConf{
 		Pending: []string{BlockStorageStatusCodeInit, BlockStorageStatusCodeCreate},
 		Target:  []string{BlockStorageStatusCodeAttach},
 		Refresh: func() (interface{}, string, error) {
-			instance, err := getBlockStorage(config, id)
+			instance, err := GetBlockStorage(config, id)
 			if err != nil {
 				return 0, "", err
 			}
 			return instance, ncloud.StringValue(instance.Status), nil
 		},
-		Timeout:    DefaultUpdateTimeout,
+		Timeout:    conn.DefaultUpdateTimeout,
 		Delay:      2 * time.Second,
 		MinTimeout: 3 * time.Second,
 	}
@@ -625,7 +621,7 @@ func waitForBlockStorageAttachment(config *ProviderConfig, id string) error {
 	return nil
 }
 
-func changeBlockStorageSize(d *schema.ResourceData, config *ProviderConfig) error {
+func changeBlockStorageSize(d *schema.ResourceData, config *conn.ProviderConfig) error {
 	var err error
 	if config.SupportVPC {
 		err = changeVpcBlockStorageSize(d, config)
@@ -644,7 +640,7 @@ func changeBlockStorageSize(d *schema.ResourceData, config *ProviderConfig) erro
 	return nil
 }
 
-func changeVpcBlockStorageSize(d *schema.ResourceData, config *ProviderConfig) error {
+func changeVpcBlockStorageSize(d *schema.ResourceData, config *conn.ProviderConfig) error {
 	reqParams := &vserver.ChangeBlockStorageVolumeSizeRequest{
 		RegionCode:             &config.RegionCode,
 		BlockStorageInstanceNo: ncloud.String(d.Id()),
@@ -662,7 +658,7 @@ func changeVpcBlockStorageSize(d *schema.ResourceData, config *ProviderConfig) e
 	return nil
 }
 
-func changeClassicBlockStorageSize(d *schema.ResourceData, config *ProviderConfig) error {
+func changeClassicBlockStorageSize(d *schema.ResourceData, config *conn.ProviderConfig) error {
 	reqParams := &server.ChangeBlockStorageVolumeSizeRequest{
 		BlockStorageInstanceNo: ncloud.String(d.Id()),
 		BlockStorageSize:       ncloud.Int64(int64(d.Get("size").(int))),
@@ -679,18 +675,18 @@ func changeClassicBlockStorageSize(d *schema.ResourceData, config *ProviderConfi
 	return nil
 }
 
-func waitForBlockStorageOperationIsNull(config *ProviderConfig, id string) error {
+func waitForBlockStorageOperationIsNull(config *conn.ProviderConfig, id string) error {
 	stateConf := &resource.StateChangeConf{
 		Pending: []string{"CHNG"},
 		Target:  []string{"NULL"},
 		Refresh: func() (interface{}, string, error) {
-			instance, err := getBlockStorage(config, id)
+			instance, err := GetBlockStorage(config, id)
 			if err != nil {
 				return 0, "", err
 			}
 			return instance, ncloud.StringValue(instance.Operation), nil
 		},
-		Timeout:    DefaultUpdateTimeout,
+		Timeout:    conn.DefaultUpdateTimeout,
 		Delay:      2 * time.Second,
 		MinTimeout: 3 * time.Second,
 	}

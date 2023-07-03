@@ -10,14 +10,10 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 
 	. "github.com/terraform-providers/terraform-provider-ncloud/internal/common"
-	. "github.com/terraform-providers/terraform-provider-ncloud/internal/provider"
+	"github.com/terraform-providers/terraform-provider-ncloud/internal/conn"
 )
 
-func init() {
-	RegisterDataSource("ncloud_regions", dataSourceNcloudRegions())
-}
-
-func dataSourceNcloudRegions() *schema.Resource {
+func DataSourceNcloudRegions() *schema.Resource {
 	return &schema.Resource{
 		Read: dataSourceNcloudRegionsRead,
 
@@ -43,13 +39,13 @@ func dataSourceNcloudRegions() *schema.Resource {
 func dataSourceNcloudRegionsRead(d *schema.ResourceData, meta interface{}) error {
 	d.SetId(time.Now().UTC().String())
 
-	var regions []*Region
+	var regions []*conn.Region
 	var err error
 
-	if meta.(*ProviderConfig).SupportVPC == true {
-		regions, err = getVpcRegions(d, meta.(*ProviderConfig))
+	if meta.(*conn.ProviderConfig).SupportVPC == true {
+		regions, err = getVpcRegions(d, meta.(*conn.ProviderConfig))
 	} else {
-		regions, err = getClassicRegions(d, meta.(*ProviderConfig))
+		regions, err = getClassicRegions(d, meta.(*conn.ProviderConfig))
 	}
 
 	if err != nil {
@@ -59,7 +55,7 @@ func dataSourceNcloudRegionsRead(d *schema.ResourceData, meta interface{}) error
 	if code, codeOk := d.GetOk("code"); codeOk {
 		for _, region := range regions {
 			if ncloud.StringValue(region.RegionCode) == code {
-				regions = []*Region{region}
+				regions = []*conn.Region{region}
 				break
 			}
 		}
@@ -72,7 +68,7 @@ func dataSourceNcloudRegionsRead(d *schema.ResourceData, meta interface{}) error
 	resources := FlattenRegions(regions)
 
 	if f, ok := d.GetOk("filter"); ok {
-		resources = ApplyFilters(f.(*schema.Set), resources, dataSourceNcloudRegions().Schema["regions"].Elem.(*schema.Resource).Schema)
+		resources = ApplyFilters(f.(*schema.Set), resources, DataSourceNcloudRegions().Schema["regions"].Elem.(*schema.Resource).Schema)
 	}
 
 	if err := d.Set("regions", resources); err != nil {
@@ -87,7 +83,7 @@ func dataSourceNcloudRegionsRead(d *schema.ResourceData, meta interface{}) error
 	return nil
 }
 
-func getClassicRegions(d *schema.ResourceData, config *ProviderConfig) ([]*Region, error) {
+func getClassicRegions(d *schema.ResourceData, config *conn.ProviderConfig) ([]*conn.Region, error) {
 	client := config.Client
 	resp, err := client.Server.V2Api.GetRegionList(&server.GetRegionListRequest{})
 	if err != nil {
@@ -98,7 +94,7 @@ func getClassicRegions(d *schema.ResourceData, config *ProviderConfig) ([]*Regio
 		return nil, fmt.Errorf("no matching regions found")
 	}
 
-	var regions []*Region
+	var regions []*conn.Region
 
 	for _, r := range resp.RegionList {
 		regions = append(regions, GetRegion(r))
@@ -107,7 +103,7 @@ func getClassicRegions(d *schema.ResourceData, config *ProviderConfig) ([]*Regio
 	return regions, nil
 }
 
-func getVpcRegions(d *schema.ResourceData, config *ProviderConfig) ([]*Region, error) {
+func getVpcRegions(d *schema.ResourceData, config *conn.ProviderConfig) ([]*conn.Region, error) {
 	client := config.Client
 	resp, err := client.Vserver.V2Api.GetRegionList(&vserver.GetRegionListRequest{})
 	if err != nil {
@@ -118,7 +114,7 @@ func getVpcRegions(d *schema.ResourceData, config *ProviderConfig) ([]*Region, e
 		return nil, fmt.Errorf("no matching regions found")
 	}
 
-	var regions []*Region
+	var regions []*conn.Region
 
 	for _, r := range resp.RegionList {
 		regions = append(regions, GetRegion(r))

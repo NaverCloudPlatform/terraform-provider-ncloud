@@ -9,15 +9,11 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 
 	. "github.com/terraform-providers/terraform-provider-ncloud/internal/common"
-	. "github.com/terraform-providers/terraform-provider-ncloud/internal/provider"
+	"github.com/terraform-providers/terraform-provider-ncloud/internal/conn"
 	. "github.com/terraform-providers/terraform-provider-ncloud/internal/verify"
 )
 
-func init() {
-	RegisterDataSource("ncloud_block_storage_snapshot", dataSourceNcloudBlockStorageSnapshot())
-}
-
-func dataSourceNcloudBlockStorageSnapshot() *schema.Resource {
+func DataSourceNcloudBlockStorageSnapshot() *schema.Resource {
 	return &schema.Resource{
 		Read: dataSourceNcloudBlockStorageSnapshotRead,
 
@@ -54,7 +50,7 @@ func dataSourceNcloudBlockStorageSnapshot() *schema.Resource {
 }
 
 func dataSourceNcloudBlockStorageSnapshotRead(d *schema.ResourceData, meta interface{}) error {
-	config := meta.(*ProviderConfig)
+	config := meta.(*conn.ProviderConfig)
 	instances, err := GetBlockStorageSnapshot(d, config)
 	if err != nil {
 		return err
@@ -66,7 +62,7 @@ func dataSourceNcloudBlockStorageSnapshotRead(d *schema.ResourceData, meta inter
 
 	resources := ConvertToArrayMap(instances)
 	if f, ok := d.GetOk("filter"); ok {
-		resources = ApplyFilters(f.(*schema.Set), resources, dataSourceNcloudBlockStorageSnapshot().Schema)
+		resources = ApplyFilters(f.(*schema.Set), resources, DataSourceNcloudBlockStorageSnapshot().Schema)
 	}
 
 	if err := ValidateOneResult(len(resources)); err != nil {
@@ -79,7 +75,7 @@ func dataSourceNcloudBlockStorageSnapshotRead(d *schema.ResourceData, meta inter
 	return nil
 }
 
-func GetBlockStorageSnapshot(d *schema.ResourceData, config *ProviderConfig) ([]*BlockStorageSnapshot, error) {
+func GetBlockStorageSnapshot(d *schema.ResourceData, config *conn.ProviderConfig) ([]*BlockStorageSnapshot, error) {
 	if config.SupportVPC {
 		return getVpcBlockStorageSnapshot(d, config)
 	}
@@ -87,8 +83,8 @@ func GetBlockStorageSnapshot(d *schema.ResourceData, config *ProviderConfig) ([]
 	return getClassicBlockStorageSnapshot(d, config)
 }
 
-func getClassicBlockStorageSnapshot(d *schema.ResourceData, config *ProviderConfig) ([]*BlockStorageSnapshot, error) {
-	regionNo, err := ParseRegionNoParameter(d)
+func getClassicBlockStorageSnapshot(d *schema.ResourceData, config *conn.ProviderConfig) ([]*BlockStorageSnapshot, error) {
+	regionNo, err := conn.ParseRegionNoParameter(d)
 	if err != nil {
 		return nil, err
 	}
@@ -135,7 +131,7 @@ func convertClassicSnapshotInstance(r *server.BlockStorageSnapshotInstance) *Blo
 	}
 }
 
-func getVpcBlockStorageSnapshot(d *schema.ResourceData, config *ProviderConfig) ([]*BlockStorageSnapshot, error) {
+func getVpcBlockStorageSnapshot(d *schema.ResourceData, config *conn.ProviderConfig) ([]*BlockStorageSnapshot, error) {
 	reqParams := &vserver.GetBlockStorageSnapshotInstanceListRequest{
 		RegionCode: &config.RegionCode,
 	}

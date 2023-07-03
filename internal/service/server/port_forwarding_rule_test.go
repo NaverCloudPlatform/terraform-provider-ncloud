@@ -1,4 +1,4 @@
-package server
+package server_test
 
 import (
 	"fmt"
@@ -15,7 +15,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 
 	. "github.com/terraform-providers/terraform-provider-ncloud/internal/acctest"
-	. "github.com/terraform-providers/terraform-provider-ncloud/internal/provider"
+	"github.com/terraform-providers/terraform-provider-ncloud/internal/conn"
+	serverservice "github.com/terraform-providers/terraform-provider-ncloud/internal/service/server"
 )
 
 func TestAccResourceNcloudPortForwardingRuleBasic(t *testing.T) {
@@ -102,9 +103,9 @@ func testAccCheckPortForwardingRuleExistsWithProvider(n string, i *server.PortFo
 		}
 
 		provider := providerF()
-		client := provider.Meta().(*ProviderConfig).Client
-		_, zoneNo, portForwardingExternalPort := parsePortForwardingRuleId(rs.Primary.ID)
-		portForwardingRule, err := getPortForwardingRule(client, zoneNo, portForwardingExternalPort)
+		client := provider.Meta().(*conn.ProviderConfig).Client
+		_, zoneNo, portForwardingExternalPort := serverservice.ParsePortForwardingRuleId(rs.Primary.ID)
+		portForwardingRule, err := serverservice.GetPortForwardingRule(client, zoneNo, portForwardingExternalPort)
 		if err != nil {
 			return nil
 		}
@@ -123,14 +124,14 @@ func testAccCheckPortForwardingRuleDestroy(s *terraform.State) error {
 }
 
 func testAccCheckPortForwardingRuleDestroyWithProvider(s *terraform.State, provider *schema.Provider) error {
-	client := provider.Meta().(*ProviderConfig).Client
+	client := provider.Meta().(*conn.ProviderConfig).Client
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "ncloud_port_forwarding_rule" {
 			continue
 		}
-		_, zoneNo, portForwardingExternalPort := parsePortForwardingRuleId(rs.Primary.ID)
-		rule, err := getPortForwardingRule(client, zoneNo, portForwardingExternalPort)
+		_, zoneNo, portForwardingExternalPort := serverservice.ParsePortForwardingRuleId(rs.Primary.ID)
+		rule, err := serverservice.GetPortForwardingRule(client, zoneNo, portForwardingExternalPort)
 		if rule == nil {
 			return nil
 		}

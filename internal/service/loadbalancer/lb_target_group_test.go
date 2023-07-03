@@ -1,4 +1,4 @@
-package loadbalancer
+package loadbalancer_test
 
 import (
 	"fmt"
@@ -11,11 +11,12 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 
 	. "github.com/terraform-providers/terraform-provider-ncloud/internal/acctest"
-	. "github.com/terraform-providers/terraform-provider-ncloud/internal/provider"
+	"github.com/terraform-providers/terraform-provider-ncloud/internal/conn"
+	"github.com/terraform-providers/terraform-provider-ncloud/internal/service/loadbalancer"
 )
 
 func TestAccResourceNcloudLbTargetGroup_basic(t *testing.T) {
-	var tg TargetGroup
+	var tg loadbalancer.TargetGroup
 	name := fmt.Sprintf("terraform-testacc-tg-%s", acctest.RandString(5))
 	resourceName := "ncloud_lb_target_group.test"
 	resource.ParallelTest(t, resource.TestCase{
@@ -52,7 +53,7 @@ func TestAccResourceNcloudLbTargetGroup_basic(t *testing.T) {
 }
 
 func TestAccResourceNcloudLbTargetGroup_emptyTargetGroupName(t *testing.T) {
-	var tg TargetGroup
+	var tg loadbalancer.TargetGroup
 	resourceName := "ncloud_lb_target_group.test"
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:  func() { TestAccPreCheck(t) },
@@ -86,7 +87,7 @@ func TestAccResourceNcloudLbTargetGroup_emptyTargetGroupName(t *testing.T) {
 	})
 }
 
-func testAccCheckLbTargetGroupExists(n string, t *TargetGroup, provider *schema.Provider) resource.TestCheckFunc {
+func testAccCheckLbTargetGroupExists(n string, t *loadbalancer.TargetGroup, provider *schema.Provider) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		rs, ok := s.RootModule().Resources[n]
 		if !ok {
@@ -97,8 +98,8 @@ func testAccCheckLbTargetGroupExists(n string, t *TargetGroup, provider *schema.
 			return fmt.Errorf("No Target Group ID is set: %s", n)
 		}
 
-		config := provider.Meta().(*ProviderConfig)
-		tg, err := getVpcLoadBalancerTargetGroup(config, rs.Primary.ID)
+		config := provider.Meta().(*conn.ProviderConfig)
+		tg, err := loadbalancer.GetVpcLoadBalancerTargetGroup(config, rs.Primary.ID)
 
 		if err != nil {
 			return err
@@ -114,14 +115,14 @@ func testAccCheckLbTargetGroupExists(n string, t *TargetGroup, provider *schema.
 }
 
 func testAccCheckLbTargetGroupDestroy(s *terraform.State, provider *schema.Provider) error {
-	config := provider.Meta().(*ProviderConfig)
+	config := provider.Meta().(*conn.ProviderConfig)
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "ncloud_lb_target_group" {
 			continue
 		}
 
-		tg, err := getVpcLoadBalancerTargetGroup(config, rs.Primary.ID)
+		tg, err := loadbalancer.GetVpcLoadBalancerTargetGroup(config, rs.Primary.ID)
 
 		if err != nil {
 			return err

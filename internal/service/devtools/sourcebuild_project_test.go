@@ -1,4 +1,4 @@
-package devtools
+package devtools_test
 
 import (
 	"context"
@@ -14,7 +14,7 @@ import (
 
 	. "github.com/terraform-providers/terraform-provider-ncloud/internal/acctest"
 	. "github.com/terraform-providers/terraform-provider-ncloud/internal/common"
-	. "github.com/terraform-providers/terraform-provider-ncloud/internal/provider"
+	"github.com/terraform-providers/terraform-provider-ncloud/internal/conn"
 )
 
 func TestAccResourceNcloudSourcebuildProject_basic(t *testing.T) {
@@ -194,7 +194,7 @@ resource "ncloud_sourcebuild_project" "test-project" {
 
 func testAccCheckSourcebuildProjectExists(n string, project *sourcebuild.GetProjectDetailResponse) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
-		config := GetTestProvider(true).Meta().(*ProviderConfig)
+		config := GetTestProvider(true).Meta().(*conn.ProviderConfig)
 		rs, ok := s.RootModule().Resources[n]
 		if !ok {
 			return fmt.Errorf("Not found: %s", n)
@@ -216,7 +216,7 @@ func testAccCheckSourcebuildProjectExists(n string, project *sourcebuild.GetProj
 }
 
 func testAccCheckSourcebuildProjectDestroy(s *terraform.State) error {
-	config := GetTestProvider(true).Meta().(*ProviderConfig)
+	config := GetTestProvider(true).Meta().(*conn.ProviderConfig)
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "ncloud_sourcebuild_project" {
@@ -237,7 +237,7 @@ func testAccCheckSourcebuildProjectDestroy(s *terraform.State) error {
 	return nil
 }
 
-func getSourceBuildProject(config *ProviderConfig, id *string) (*sourcebuild.GetProjectDetailResponse, error) {
+func getSourceBuildProject(config *conn.ProviderConfig, id *string) (*sourcebuild.GetProjectDetailResponse, error) {
 	LogCommonRequest("getProjectDetail", id)
 	//This api throws an error when the resource cannot be found.
 	resp, err := config.Client.Sourcebuild.V1Api.GetProject(context.Background(), id)

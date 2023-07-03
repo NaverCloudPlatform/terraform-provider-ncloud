@@ -1,4 +1,4 @@
-package devtools
+package devtools_test
 
 import (
 	"context"
@@ -14,7 +14,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 
 	. "github.com/terraform-providers/terraform-provider-ncloud/internal/acctest"
-	"github.com/terraform-providers/terraform-provider-ncloud/internal/provider"
+	"github.com/terraform-providers/terraform-provider-ncloud/internal/conn"
+	"github.com/terraform-providers/terraform-provider-ncloud/internal/service/devtools"
 )
 
 // Create Load Balancer target group Before SourceDeploy BlueGreen Test
@@ -25,14 +26,14 @@ const TF_TEST_SD_PROMETHEUS_URL = "http://prometheus-example.com"
 
 func TestAccResourceNcloudSourceDeployScenario_basic(t *testing.T) {
 	var scenario vsourcedeploy.GetScenarioDetailResponse
-	scenarioNameSvrNormal := getTestSourceDeployScenarioName() + "-server-normal"
-	scenarioNameAsgNoraml := getTestSourceDeployScenarioName() + "-asg-normal"
-	scenarioNameAsgBg := getTestSourceDeployScenarioName() + "-asg-bg"
-	scenarioNameNksRolling := getTestSourceDeployScenarioName() + "-nks-rolling"
-	scenarioNameNksBg := getTestSourceDeployScenarioName() + "-nks-bg"
-	scenarioNameNksCanaryManual := getTestSourceDeployScenarioName() + "-nks-canary-manual"
-	scenarioNameNksCanaryAuto := getTestSourceDeployScenarioName() + "-nks-canary-auto"
-	scenarioNameObjNormal := getTestSourceDeployScenarioName() + "-obj-normal"
+	scenarioNameSvrNormal := GetTestSourceDeployScenarioName() + "-server-normal"
+	scenarioNameAsgNoraml := GetTestSourceDeployScenarioName() + "-asg-normal"
+	scenarioNameAsgBg := GetTestSourceDeployScenarioName() + "-asg-bg"
+	scenarioNameNksRolling := GetTestSourceDeployScenarioName() + "-nks-rolling"
+	scenarioNameNksBg := GetTestSourceDeployScenarioName() + "-nks-bg"
+	scenarioNameNksCanaryManual := GetTestSourceDeployScenarioName() + "-nks-canary-manual"
+	scenarioNameNksCanaryAuto := GetTestSourceDeployScenarioName() + "-nks-canary-auto"
+	scenarioNameObjNormal := GetTestSourceDeployScenarioName() + "-obj-normal"
 
 	resourceNameSvrNormal := "ncloud_sourcedeploy_project_stage_scenario.test-scenario-server-normal"
 	resourceNameAsgNormal := "ncloud_sourcedeploy_project_stage_scenario.test-scenario-asg-normal"
@@ -476,7 +477,7 @@ resource "ncloud_sourcedeploy_project_stage_scenario" "test-scenario-obj-normal"
 
 func testAccCheckSourceDeployScenarioExists(n string, scenario *vsourcedeploy.GetScenarioDetailResponse) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
-		config := GetTestProvider(true).Meta().(*provider.ProviderConfig)
+		config := GetTestProvider(true).Meta().(*conn.ProviderConfig)
 		rs, ok := s.RootModule().Resources[n]
 		if !ok {
 			return fmt.Errorf("Not found: %s", n)
@@ -488,7 +489,7 @@ func testAccCheckSourceDeployScenarioExists(n string, scenario *vsourcedeploy.Ge
 		projectId := ncloud.String(rs.Primary.Attributes["project_id"])
 		stageId := ncloud.String(rs.Primary.Attributes["stage_id"])
 		scenarioId := &rs.Primary.ID
-		resp, err := getSourceDeployScenarioById(context.Background(), config, projectId, stageId, scenarioId)
+		resp, err := devtools.GetSourceDeployScenarioById(context.Background(), config, projectId, stageId, scenarioId)
 		if err != nil {
 			return err
 		}
@@ -512,7 +513,7 @@ func testAccNcloudSourceDeployScenarioImportStateIDFunc(resourceName string) res
 }
 
 func testAccCheckSourceDeployScenarioDestroy(s *terraform.State) error {
-	config := GetTestProvider(true).Meta().(*provider.ProviderConfig)
+	config := GetTestProvider(true).Meta().(*conn.ProviderConfig)
 
 	for _, rs := range s.RootModule().Resources {
 		log.Printf(rs.Type)
@@ -521,7 +522,7 @@ func testAccCheckSourceDeployScenarioDestroy(s *terraform.State) error {
 		}
 		projectId := ncloud.String(rs.Primary.Attributes["project_id"])
 		stageId := ncloud.String(rs.Primary.Attributes["stage_id"])
-		project, projectErr := getSourceDeployProjectById(context.Background(), config, rs.Primary.ID)
+		project, projectErr := devtools.GetSourceDeployProjectById(context.Background(), config, rs.Primary.ID)
 		if projectErr != nil {
 			return projectErr
 		}
@@ -530,7 +531,7 @@ func testAccCheckSourceDeployScenarioDestroy(s *terraform.State) error {
 			return nil
 		}
 
-		stages, stageErr := getStages(context.Background(), config, projectId)
+		stages, stageErr := devtools.GetStages(context.Background(), config, projectId)
 		if stageErr != nil {
 			return stageErr
 		}
@@ -541,7 +542,7 @@ func testAccCheckSourceDeployScenarioDestroy(s *terraform.State) error {
 			}
 		}
 
-		scenarios, scenarioErr := GetScenarios(context.Background(), config, projectId, stageId)
+		scenarios, scenarioErr := devtools.GetScenarios(context.Background(), config, projectId, stageId)
 		if scenarioErr != nil {
 			return scenarioErr
 		}
@@ -556,7 +557,7 @@ func testAccCheckSourceDeployScenarioDestroy(s *terraform.State) error {
 	return nil
 }
 
-func getTestSourceDeployScenarioName() string {
+func GetTestSourceDeployScenarioName() string {
 	rInt := acctest.RandIntRange(1, 9999)
 	testScenarioName := fmt.Sprintf("tf-%d-scenario", rInt)
 	return testScenarioName

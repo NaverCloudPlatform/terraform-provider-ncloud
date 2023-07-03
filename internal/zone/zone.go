@@ -7,7 +7,7 @@ import (
 	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/ncloud"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	. "github.com/terraform-providers/terraform-provider-ncloud/internal/common"
-	"github.com/terraform-providers/terraform-provider-ncloud/internal/provider"
+	"github.com/terraform-providers/terraform-provider-ncloud/internal/conn"
 )
 
 type Zone struct {
@@ -21,9 +21,9 @@ type Zone struct {
 
 var zoneCache = make(map[string]string)
 
-func ParseZoneNoParameter(config *provider.ProviderConfig, d *schema.ResourceData) (*string, error) {
+func ParseZoneNoParameter(config *conn.ProviderConfig, d *schema.ResourceData) (*string, error) {
 	if zoneCode, zoneCodeOk := d.GetOk("zone"); zoneCodeOk {
-		zoneNo := getZoneNoByCode(config, zoneCode.(string))
+		zoneNo := GetZoneNoByCode(config, zoneCode.(string))
 		if zoneNo == "" {
 			return nil, fmt.Errorf("no zone data for zone_code `%s`. please change zone_code and try again", zoneCode.(string))
 		}
@@ -33,18 +33,18 @@ func ParseZoneNoParameter(config *provider.ProviderConfig, d *schema.ResourceDat
 	return nil, nil
 }
 
-func getZoneNoByCode(config *provider.ProviderConfig, code string) string {
+func GetZoneNoByCode(config *conn.ProviderConfig, code string) string {
 	if zoneNo := zoneCache[code]; zoneNo != "" {
 		return zoneNo
 	}
-	if zone, err := getZoneByCode(config, code); err == nil && zone != nil {
+	if zone, err := GetZoneByCode(config, code); err == nil && zone != nil {
 		zoneCache[code] = *zone.ZoneNo
 		return *zone.ZoneNo
 	}
 	return ""
 }
 
-func getZoneCodeByNo(config *provider.ProviderConfig, no string) string {
+func getZoneCodeByNo(config *conn.ProviderConfig, no string) string {
 	if zoneCode := zoneCache[no]; zoneCode != "" {
 		return zoneCode
 	}
@@ -55,8 +55,8 @@ func getZoneCodeByNo(config *provider.ProviderConfig, no string) string {
 	return ""
 }
 
-func getZoneByNo(config *provider.ProviderConfig, no string) (*Zone, error) {
-	zonesList, err := getZones(config)
+func getZoneByNo(config *conn.ProviderConfig, no string) (*Zone, error) {
+	zonesList, err := GetZones(config)
 	if err != nil {
 		return nil, err
 	}
@@ -71,8 +71,8 @@ func getZoneByNo(config *provider.ProviderConfig, no string) (*Zone, error) {
 	return filteredZone, nil
 }
 
-func getZoneByCode(config *provider.ProviderConfig, code string) (*Zone, error) {
-	zonesList, err := getZones(config)
+func GetZoneByCode(config *conn.ProviderConfig, code string) (*Zone, error) {
+	zonesList, err := GetZones(config)
 	if err != nil {
 		return nil, err
 	}
@@ -87,7 +87,7 @@ func getZoneByCode(config *provider.ProviderConfig, code string) (*Zone, error) 
 	return filteredZone, nil
 }
 
-func getZones(config *provider.ProviderConfig) ([]*Zone, error) {
+func GetZones(config *conn.ProviderConfig) ([]*Zone, error) {
 	var zones []*Zone
 	var err error
 

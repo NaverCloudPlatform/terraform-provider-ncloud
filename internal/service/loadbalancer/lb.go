@@ -14,14 +14,10 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 
 	. "github.com/terraform-providers/terraform-provider-ncloud/internal/common"
-	. "github.com/terraform-providers/terraform-provider-ncloud/internal/provider"
+	"github.com/terraform-providers/terraform-provider-ncloud/internal/conn"
 	vpcservice "github.com/terraform-providers/terraform-provider-ncloud/internal/service/vpc"
 	. "github.com/terraform-providers/terraform-provider-ncloud/internal/verify"
 )
-
-func init() {
-	RegisterResource("ncloud_lb", resourceNcloudLb())
-}
 
 const (
 	LoadBalancerInstanceOperationChangeCode             = "CHANG"
@@ -33,7 +29,7 @@ const (
 	LoadBalancerInstanceOperationUseCode                = "USE"
 )
 
-func resourceNcloudLb() *schema.Resource {
+func ResourceNcloudLb() *schema.Resource {
 	return &schema.Resource{
 		CreateContext: resourceNcloudLbCreate,
 		ReadContext:   resourceNcloudLbRead,
@@ -43,9 +39,9 @@ func resourceNcloudLb() *schema.Resource {
 			StateContext: schema.ImportStatePassthroughContext,
 		},
 		Timeouts: &schema.ResourceTimeout{
-			Create: schema.DefaultTimeout(DefaultCreateTimeout),
-			Update: schema.DefaultTimeout(DefaultUpdateTimeout),
-			Delete: schema.DefaultTimeout(DefaultTimeout),
+			Create: schema.DefaultTimeout(conn.DefaultCreateTimeout),
+			Update: schema.DefaultTimeout(conn.DefaultUpdateTimeout),
+			Delete: schema.DefaultTimeout(conn.DefaultTimeout),
 		},
 		Schema: map[string]*schema.Schema{
 			"load_balancer_no": {
@@ -116,7 +112,7 @@ func resourceNcloudLb() *schema.Resource {
 }
 
 func resourceNcloudLbCreate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
-	config := meta.(*ProviderConfig)
+	config := meta.(*conn.ProviderConfig)
 	if !config.SupportVPC {
 		return diag.FromErr(NotSupportClassic("resource `ncloud_lb`"))
 	}
@@ -170,12 +166,12 @@ func resourceNcloudLbCreate(ctx context.Context, d *schema.ResourceData, meta in
 }
 
 func resourceNcloudLbRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
-	config := meta.(*ProviderConfig)
+	config := meta.(*conn.ProviderConfig)
 	if !config.SupportVPC {
 		return diag.FromErr(NotSupportClassic("resource `ncloud_lb`"))
 	}
 
-	lb, err := getVpcLoadBalancer(config, d.Id())
+	lb, err := GetVpcLoadBalancer(config, d.Id())
 
 	if err != nil {
 		return diag.FromErr(err)
@@ -187,12 +183,12 @@ func resourceNcloudLbRead(ctx context.Context, d *schema.ResourceData, meta inte
 	}
 
 	lbMap := ConvertToMap(lb)
-	SetSingularResourceDataFromMapSchema(resourceNcloudLb(), d, lbMap)
+	SetSingularResourceDataFromMapSchema(ResourceNcloudLb(), d, lbMap)
 	return nil
 }
 
 func resourceNcloudLbUpdate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
-	config := meta.(*ProviderConfig)
+	config := meta.(*conn.ProviderConfig)
 	if !config.SupportVPC {
 		return diag.FromErr(NotSupportClassic("resource `ncloud_lb`"))
 	}
@@ -228,7 +224,7 @@ func resourceNcloudLbUpdate(ctx context.Context, d *schema.ResourceData, meta in
 }
 
 func resourceNcloudLbDelete(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
-	config := meta.(*ProviderConfig)
+	config := meta.(*conn.ProviderConfig)
 	if !config.SupportVPC {
 		return diag.FromErr(NotSupportClassic("resource `ncloud_lb`"))
 	}
@@ -254,7 +250,7 @@ func resourceNcloudLbDelete(ctx context.Context, d *schema.ResourceData, meta in
 	return nil
 }
 
-func waitForLoadBalancerDeletion(ctx context.Context, d *schema.ResourceData, config *ProviderConfig) error {
+func waitForLoadBalancerDeletion(ctx context.Context, d *schema.ResourceData, config *conn.ProviderConfig) error {
 	stateConf := &resource.StateChangeConf{
 		Pending: []string{LoadBalancerInstanceOperationTerminateCode},
 		Target:  []string{LoadBalancerInstanceOperationNullCode},
@@ -285,7 +281,7 @@ func waitForLoadBalancerDeletion(ctx context.Context, d *schema.ResourceData, co
 	return nil
 }
 
-func waitForLoadBalancerActive(ctx context.Context, d *schema.ResourceData, config *ProviderConfig, id string) error {
+func waitForLoadBalancerActive(ctx context.Context, d *schema.ResourceData, config *conn.ProviderConfig, id string) error {
 	stateConf := &resource.StateChangeConf{
 		Pending: []string{LoadBalancerInstanceOperationCreateCode, LoadBalancerInstanceOperationChangeCode},
 		Target:  []string{LoadBalancerInstanceOperationNullCode},
@@ -316,7 +312,7 @@ func waitForLoadBalancerActive(ctx context.Context, d *schema.ResourceData, conf
 	return nil
 }
 
-func getVpcLoadBalancer(config *ProviderConfig, id string) (*LoadBalancerInstance, error) {
+func GetVpcLoadBalancer(config *conn.ProviderConfig, id string) (*LoadBalancerInstance, error) {
 	reqParams := &vloadbalancer.GetLoadBalancerInstanceDetailRequest{
 		RegionCode:             &config.RegionCode,
 		LoadBalancerInstanceNo: ncloud.String(id),

@@ -1,4 +1,4 @@
-package nks
+package nks_test
 
 import (
 	"context"
@@ -8,14 +8,14 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/ncloud"
 	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/services/vnks"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 
 	. "github.com/terraform-providers/terraform-provider-ncloud/internal/acctest"
-	. "github.com/terraform-providers/terraform-provider-ncloud/internal/provider"
+	"github.com/terraform-providers/terraform-provider-ncloud/internal/conn"
+	"github.com/terraform-providers/terraform-provider-ncloud/internal/service/nks"
 )
 
 // Create LoginKey Before NKS Test
@@ -655,8 +655,8 @@ func testAccCheckNKSClusterExists(n string, cluster *vnks.Cluster) resource.Test
 			return fmt.Errorf("No cluster uuid is set")
 		}
 
-		config := GetTestProvider(true).Meta().(*ProviderConfig)
-		resp, err := getNKSCluster(context.Background(), config, rs.Primary.ID)
+		config := GetTestProvider(true).Meta().(*conn.ProviderConfig)
+		resp, err := nks.GetNKSCluster(context.Background(), config, rs.Primary.ID)
 		if err != nil {
 			return err
 		}
@@ -665,29 +665,6 @@ func testAccCheckNKSClusterExists(n string, cluster *vnks.Cluster) resource.Test
 
 		return nil
 	}
-}
-
-func testAccCheckNKSClusterDestroy(s *terraform.State) error {
-	config := GetTestProvider(true).Meta().(*ProviderConfig)
-
-	for _, rs := range s.RootModule().Resources {
-		if rs.Type != "ncloud_nks_cluster" {
-			continue
-		}
-
-		clusters, err := getNKSClusters(context.Background(), config)
-		if err != nil {
-			return err
-		}
-
-		for _, cluster := range clusters {
-			if ncloud.StringValue(cluster.Uuid) == rs.Primary.ID {
-				return fmt.Errorf("Cluster still exists")
-			}
-		}
-	}
-
-	return nil
 }
 
 func getRegionAndNKSType() (region string, clusterType string, productType string, k8sVersion string) {

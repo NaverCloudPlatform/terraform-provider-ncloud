@@ -16,15 +16,11 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 
 	. "github.com/terraform-providers/terraform-provider-ncloud/internal/common"
-	"github.com/terraform-providers/terraform-provider-ncloud/internal/provider"
+	"github.com/terraform-providers/terraform-provider-ncloud/internal/conn"
 	. "github.com/terraform-providers/terraform-provider-ncloud/internal/verify"
 )
 
-func init() {
-	provider.RegisterResource("ncloud_sourcepipeline_project", resourceNcloudSourcePipeline())
-}
-
-func resourceNcloudSourcePipeline() *schema.Resource {
+func ResourceNcloudSourcePipeline() *schema.Resource {
 	return &schema.Resource{
 		CreateContext: resourceNcloudSourcePipelineCreate,
 		ReadContext:   resourceNcloudSourcePipelineRead,
@@ -34,9 +30,9 @@ func resourceNcloudSourcePipeline() *schema.Resource {
 			State: schema.ImportStatePassthrough,
 		},
 		Timeouts: &schema.ResourceTimeout{
-			Create: schema.DefaultTimeout(provider.DefaultCreateTimeout),
-			Update: schema.DefaultTimeout(provider.DefaultCreateTimeout),
-			Delete: schema.DefaultTimeout(provider.DefaultCreateTimeout),
+			Create: schema.DefaultTimeout(conn.DefaultCreateTimeout),
+			Update: schema.DefaultTimeout(conn.DefaultCreateTimeout),
+			Delete: schema.DefaultTimeout(conn.DefaultCreateTimeout),
 		},
 		Schema: map[string]*schema.Schema{
 			"name": {
@@ -220,7 +216,7 @@ func resourceNcloudSourcePipeline() *schema.Resource {
 }
 
 func resourceNcloudSourcePipelineCreate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
-	config := meta.(*provider.ProviderConfig)
+	config := meta.(*conn.ProviderConfig)
 
 	id, err := createPipelineProject(d, config)
 	if err != nil {
@@ -233,9 +229,9 @@ func resourceNcloudSourcePipelineCreate(ctx context.Context, d *schema.ResourceD
 }
 
 func resourceNcloudSourcePipelineRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
-	config := meta.(*provider.ProviderConfig)
+	config := meta.(*conn.ProviderConfig)
 
-	pipelineProject, err := getPipelineProject(ctx, config, d.Id())
+	pipelineProject, err := GetPipelineProject(ctx, config, d.Id())
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -258,7 +254,7 @@ func resourceNcloudSourcePipelineRead(ctx context.Context, d *schema.ResourceDat
 }
 
 func resourceNcloudSourcePipelineUpdate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
-	config := meta.(*provider.ProviderConfig)
+	config := meta.(*conn.ProviderConfig)
 
 	if d.HasChangesExcept("name") {
 		err := updatePipelineProject(ctx, d, config, d.Id())
@@ -271,7 +267,7 @@ func resourceNcloudSourcePipelineUpdate(ctx context.Context, d *schema.ResourceD
 }
 
 func resourceNcloudSourcePipelineDelete(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
-	config := meta.(*provider.ProviderConfig)
+	config := meta.(*conn.ProviderConfig)
 
 	err := deletePipelineProject(ctx, config, d.Id())
 	if err != nil {
@@ -282,14 +278,14 @@ func resourceNcloudSourcePipelineDelete(ctx context.Context, d *schema.ResourceD
 	return nil
 }
 
-func createPipelineProject(d *schema.ResourceData, config *provider.ProviderConfig) (*int32, diag.Diagnostics) {
+func createPipelineProject(d *schema.ResourceData, config *conn.ProviderConfig) (*int32, diag.Diagnostics) {
 	if config.SupportVPC {
 		return createVpcPipelineProject(d, config)
 	}
 	return createClassicPipelineProject(d, config)
 }
 
-func createClassicPipelineProject(d *schema.ResourceData, config *provider.ProviderConfig) (*int32, diag.Diagnostics) {
+func createClassicPipelineProject(d *schema.ResourceData, config *conn.ProviderConfig) (*int32, diag.Diagnostics) {
 	tasksParams, paramErr := makeClassicPipelineTaskParams(d)
 	if paramErr != nil {
 		return nil, paramErr
@@ -312,7 +308,7 @@ func createClassicPipelineProject(d *schema.ResourceData, config *provider.Provi
 	return resp.ProjectId, nil
 }
 
-func createVpcPipelineProject(d *schema.ResourceData, config *provider.ProviderConfig) (*int32, diag.Diagnostics) {
+func createVpcPipelineProject(d *schema.ResourceData, config *conn.ProviderConfig) (*int32, diag.Diagnostics) {
 	tasksParams, paramErr := makeVpcPipelineTaskParams(d)
 	if paramErr != nil {
 		return nil, paramErr
@@ -335,14 +331,14 @@ func createVpcPipelineProject(d *schema.ResourceData, config *provider.ProviderC
 	return resp.ProjectId, nil
 }
 
-func getPipelineProject(ctx context.Context, config *provider.ProviderConfig, id string) (*PipelineProject, error) {
+func GetPipelineProject(ctx context.Context, config *conn.ProviderConfig, id string) (*PipelineProject, error) {
 	if config.SupportVPC {
 		return getVpcPipelineProject(ctx, config, id)
 	}
 	return getClassicPipelineProject(ctx, config, id)
 }
 
-func getClassicPipelineProject(ctx context.Context, config *provider.ProviderConfig, projectId string) (*PipelineProject, error) {
+func getClassicPipelineProject(ctx context.Context, config *conn.ProviderConfig, projectId string) (*PipelineProject, error) {
 	LogCommonRequest("getSourcePipelineProject", projectId)
 	resp, err := config.Client.Sourcepipeline.V1Api.GetProject(ctx, &projectId)
 	if err != nil {
@@ -354,7 +350,7 @@ func getClassicPipelineProject(ctx context.Context, config *provider.ProviderCon
 	return convertClassicPipelineProject(resp), nil
 }
 
-func getVpcPipelineProject(ctx context.Context, config *provider.ProviderConfig, projectId string) (*PipelineProject, error) {
+func getVpcPipelineProject(ctx context.Context, config *conn.ProviderConfig, projectId string) (*PipelineProject, error) {
 	LogCommonRequest("getSourcePipelineProject", projectId)
 	resp, err := config.Client.Vsourcepipeline.V1Api.GetProject(ctx, &projectId)
 	if err != nil {
@@ -366,14 +362,14 @@ func getVpcPipelineProject(ctx context.Context, config *provider.ProviderConfig,
 	return convertVpcPipelineProject(resp), nil
 }
 
-func updatePipelineProject(ctx context.Context, d *schema.ResourceData, config *provider.ProviderConfig, id string) diag.Diagnostics {
+func updatePipelineProject(ctx context.Context, d *schema.ResourceData, config *conn.ProviderConfig, id string) diag.Diagnostics {
 	if config.SupportVPC {
 		return updateVpcPipelineProject(ctx, d, config, id)
 	}
 	return updateClassicPipelineProject(ctx, d, config, id)
 }
 
-func updateClassicPipelineProject(ctx context.Context, d *schema.ResourceData, config *provider.ProviderConfig, projectId string) diag.Diagnostics {
+func updateClassicPipelineProject(ctx context.Context, d *schema.ResourceData, config *conn.ProviderConfig, projectId string) diag.Diagnostics {
 	description, ok := d.GetOk("description")
 	if !ok {
 		description = ""
@@ -399,7 +395,7 @@ func updateClassicPipelineProject(ctx context.Context, d *schema.ResourceData, c
 	return nil
 }
 
-func updateVpcPipelineProject(ctx context.Context, d *schema.ResourceData, config *provider.ProviderConfig, projectId string) diag.Diagnostics {
+func updateVpcPipelineProject(ctx context.Context, d *schema.ResourceData, config *conn.ProviderConfig, projectId string) diag.Diagnostics {
 	description, ok := d.GetOk("description")
 	if !ok {
 		description = ""
@@ -425,14 +421,14 @@ func updateVpcPipelineProject(ctx context.Context, d *schema.ResourceData, confi
 	return nil
 }
 
-func deletePipelineProject(ctx context.Context, config *provider.ProviderConfig, id string) error {
+func deletePipelineProject(ctx context.Context, config *conn.ProviderConfig, id string) error {
 	if config.SupportVPC {
 		return deleteVpcPipelineProject(ctx, config, id)
 	}
 	return deleteClassicPipelineProject(ctx, config, id)
 }
 
-func deleteClassicPipelineProject(ctx context.Context, config *provider.ProviderConfig, projectId string) error {
+func deleteClassicPipelineProject(ctx context.Context, config *conn.ProviderConfig, projectId string) error {
 	resp, err := config.Client.Sourcepipeline.V1Api.DeleteProject(ctx, &projectId)
 	if err != nil {
 		LogErrorResponse("deleteSourcePipelineProject", err, projectId)
@@ -442,7 +438,7 @@ func deleteClassicPipelineProject(ctx context.Context, config *provider.Provider
 	return nil
 }
 
-func deleteVpcPipelineProject(ctx context.Context, config *provider.ProviderConfig, projectId string) error {
+func deleteVpcPipelineProject(ctx context.Context, config *conn.ProviderConfig, projectId string) error {
 	resp, err := config.Client.Vsourcepipeline.V1Api.DeleteProject(ctx, &projectId)
 	if err != nil {
 		LogErrorResponse("deleteSourcePipelineProject", err, projectId)
@@ -614,7 +610,7 @@ func makeVpcPipelineTriggerParams(d *schema.ResourceData) *vsourcepipeline.Creat
 	return pipelineTrigger
 }
 
-func makeTaskData(config *provider.ProviderConfig, tasks []*PipelineTask) ([]map[string]interface{}, diag.Diagnostics) {
+func makeTaskData(config *conn.ProviderConfig, tasks []*PipelineTask) ([]map[string]interface{}, diag.Diagnostics) {
 	if tasks != nil {
 		var task_list []map[string]interface{}
 		var diags diag.Diagnostics
@@ -653,7 +649,7 @@ func makeTaskData(config *provider.ProviderConfig, tasks []*PipelineTask) ([]map
 					"config":       taskConfig,
 				}
 				task_list = append(task_list, mapping)
-				deployProject, err := getSourceDeployScenarioById(context.Background(), config, ncloud.Int32String(ncloud.Int32Value(task.Config.ProjectId)), ncloud.Int32String(ncloud.Int32Value(task.Config.StageId)), ncloud.Int32String(ncloud.Int32Value(task.Config.ScenarioId)))
+				deployProject, err := GetSourceDeployScenarioById(context.Background(), config, ncloud.Int32String(ncloud.Int32Value(task.Config.ProjectId)), ncloud.Int32String(ncloud.Int32Value(task.Config.StageId)), ncloud.Int32String(ncloud.Int32Value(task.Config.ScenarioId)))
 				if err != nil {
 					diags = appendDiag(&diags, diag.Diagnostic{
 						Severity: diag.Warning,

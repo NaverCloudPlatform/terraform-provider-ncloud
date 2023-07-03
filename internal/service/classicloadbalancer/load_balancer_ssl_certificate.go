@@ -8,14 +8,10 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 
 	. "github.com/terraform-providers/terraform-provider-ncloud/internal/common"
-	. "github.com/terraform-providers/terraform-provider-ncloud/internal/provider"
+	"github.com/terraform-providers/terraform-provider-ncloud/internal/conn"
 )
 
-func init() {
-	RegisterResource("ncloud_load_balancer_ssl_certificate", resourceNcloudLoadBalancerSSLCertificate())
-}
-
-func resourceNcloudLoadBalancerSSLCertificate() *schema.Resource {
+func ResourceNcloudLoadBalancerSSLCertificate() *schema.Resource {
 	return &schema.Resource{
 		Create: resourceNcloudLoadBalancerSSLCertificateCreate,
 		Read:   resourceNcloudLoadBalancerSSLCertificateRead,
@@ -25,8 +21,8 @@ func resourceNcloudLoadBalancerSSLCertificate() *schema.Resource {
 			State: schema.ImportStatePassthrough,
 		},
 		Timeouts: &schema.ResourceTimeout{
-			Create: schema.DefaultTimeout(DefaultCreateTimeout),
-			Delete: schema.DefaultTimeout(DefaultTimeout),
+			Create: schema.DefaultTimeout(conn.DefaultCreateTimeout),
+			Delete: schema.DefaultTimeout(conn.DefaultTimeout),
 		},
 		Schema: map[string]*schema.Schema{
 			"certificate_name": {
@@ -54,8 +50,8 @@ func resourceNcloudLoadBalancerSSLCertificate() *schema.Resource {
 }
 
 func resourceNcloudLoadBalancerSSLCertificateCreate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ProviderConfig).Client
-	config := meta.(*ProviderConfig)
+	client := meta.(*conn.ProviderConfig).Client
+	config := meta.(*conn.ProviderConfig)
 
 	if config.SupportVPC {
 		return NotSupportVpc("resource `ncloud_load_balancer_ssl_certificate`")
@@ -84,9 +80,9 @@ func resourceNcloudLoadBalancerSSLCertificateCreate(d *schema.ResourceData, meta
 }
 
 func resourceNcloudLoadBalancerSSLCertificateRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ProviderConfig).Client
+	client := meta.(*conn.ProviderConfig).Client
 
-	lb, err := getLoadBalancerSslCertificateList(client, d.Id())
+	lb, err := GetLoadBalancerSslCertificateList(client, d.Id())
 	if err != nil {
 		return err
 	}
@@ -104,7 +100,7 @@ func resourceNcloudLoadBalancerSSLCertificateRead(d *schema.ResourceData, meta i
 }
 
 func resourceNcloudLoadBalancerSSLCertificateDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ProviderConfig).Client
+	client := meta.(*conn.ProviderConfig).Client
 	if err := deleteLoadBalancerSSLCertificate(client, d.Id()); err != nil {
 		return err
 	}
@@ -130,7 +126,7 @@ func buildCreateLoadBalancerSSLCertificateParams(d *schema.ResourceData) (*loadb
 	return reqParams, nil
 }
 
-func getLoadBalancerSslCertificateList(client *NcloudAPIClient, certificateName string) (*loadbalancer.SslCertificate, error) {
+func GetLoadBalancerSslCertificateList(client *conn.NcloudAPIClient, certificateName string) (*loadbalancer.SslCertificate, error) {
 	reqParams := loadbalancer.GetLoadBalancerSslCertificateListRequest{CertificateName: ncloud.String(certificateName)}
 	LogCommonRequest("GetLoadBalancerSslCertificateList", reqParams)
 	resp, err := client.Loadbalancer.V2Api.GetLoadBalancerSslCertificateList(&reqParams)
@@ -149,7 +145,7 @@ func getLoadBalancerSslCertificateList(client *NcloudAPIClient, certificateName 
 	return nil, nil
 }
 
-func deleteLoadBalancerSSLCertificate(client *NcloudAPIClient, certificateName string) error {
+func deleteLoadBalancerSSLCertificate(client *conn.NcloudAPIClient, certificateName string) error {
 	reqParams := loadbalancer.DeleteLoadBalancerSslCertificateRequest{CertificateName: ncloud.String(certificateName)}
 	LogCommonRequest("DeleteLoadBalancerSslCertificate", reqParams)
 	resp, err := client.Loadbalancer.V2Api.DeleteLoadBalancerSslCertificate(&reqParams)

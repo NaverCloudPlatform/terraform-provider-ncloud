@@ -11,14 +11,10 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 
 	. "github.com/terraform-providers/terraform-provider-ncloud/internal/common"
-	. "github.com/terraform-providers/terraform-provider-ncloud/internal/provider"
+	"github.com/terraform-providers/terraform-provider-ncloud/internal/conn"
 )
 
-func init() {
-	RegisterDataSource("ncloud_ses_versions", dataSourceNcloudSESVersions())
-}
-
-func dataSourceNcloudSESVersions() *schema.Resource {
+func DataSourceNcloudSESVersions() *schema.Resource {
 	return &schema.Resource{
 		Read: dataSourceNcloudSESVersionsRead,
 
@@ -53,7 +49,7 @@ func dataSourceNcloudSESVersions() *schema.Resource {
 }
 
 func dataSourceNcloudSESVersionsRead(d *schema.ResourceData, meta interface{}) error {
-	config := meta.(*ProviderConfig)
+	config := meta.(*conn.ProviderConfig)
 	if !config.SupportVPC {
 		return NotSupportClassic("datasource `ncloud_ses_versions`")
 	}
@@ -64,7 +60,7 @@ func dataSourceNcloudSESVersionsRead(d *schema.ResourceData, meta interface{}) e
 	}
 
 	if f, ok := d.GetOk("filter"); ok {
-		resources = ApplyFilters(f.(*schema.Set), resources, dataSourceNcloudSESVersions().Schema["versions"].Elem.(*schema.Resource).Schema)
+		resources = ApplyFilters(f.(*schema.Set), resources, DataSourceNcloudSESVersions().Schema["versions"].Elem.(*schema.Resource).Schema)
 	}
 
 	d.SetId(time.Now().UTC().String())
@@ -76,7 +72,7 @@ func dataSourceNcloudSESVersionsRead(d *schema.ResourceData, meta interface{}) e
 
 }
 
-func getSESVersion(config *ProviderConfig) ([]map[string]interface{}, error) {
+func getSESVersion(config *conn.ProviderConfig) ([]map[string]interface{}, error) {
 
 	LogCommonRequest("GetSESVersion", "")
 	resp, _, err := config.Client.Vses.V2Api.GetSearchEngineVersionListUsingGET(context.Background())

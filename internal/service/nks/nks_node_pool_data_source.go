@@ -10,14 +10,10 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 
 	. "github.com/terraform-providers/terraform-provider-ncloud/internal/common"
-	. "github.com/terraform-providers/terraform-provider-ncloud/internal/provider"
+	"github.com/terraform-providers/terraform-provider-ncloud/internal/conn"
 )
 
-func init() {
-	RegisterDataSource("ncloud_nks_node_pool", dataSourceNcloudNKSNodePool())
-}
-
-func dataSourceNcloudNKSNodePool() *schema.Resource {
+func DataSourceNcloudNKSNodePool() *schema.Resource {
 	return &schema.Resource{
 		ReadContext: dataSourceNcloudNKSNodePoolRead,
 		Schema: map[string]*schema.Schema{
@@ -124,7 +120,7 @@ func dataSourceNcloudNKSNodePool() *schema.Resource {
 }
 
 func dataSourceNcloudNKSNodePoolRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
-	config := meta.(*ProviderConfig)
+	config := meta.(*conn.ProviderConfig)
 	if !config.SupportVPC {
 		return diag.FromErr(NotSupportClassic("dataSource `ncloud_nks_node_pool`"))
 	}
@@ -133,7 +129,7 @@ func dataSourceNcloudNKSNodePoolRead(ctx context.Context, d *schema.ResourceData
 	nodePoolName := d.Get("node_pool_name").(string)
 	id := NodePoolCreateResourceID(clusterUuid, nodePoolName)
 
-	nodePool, err := getNKSNodePool(ctx, config, clusterUuid, nodePoolName)
+	nodePool, err := GetNKSNodePool(ctx, config, clusterUuid, nodePoolName)
 	if err != nil {
 		return diag.FromErr(err)
 	}

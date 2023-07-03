@@ -7,15 +7,11 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 
 	. "github.com/terraform-providers/terraform-provider-ncloud/internal/common"
-	. "github.com/terraform-providers/terraform-provider-ncloud/internal/provider"
+	"github.com/terraform-providers/terraform-provider-ncloud/internal/conn"
 	"github.com/terraform-providers/terraform-provider-ncloud/internal/verify"
 )
 
-func init() {
-	RegisterDataSource("ncloud_placement_group", dataSourceNcloudPlacementGroup())
-}
-
-func dataSourceNcloudPlacementGroup() *schema.Resource {
+func DataSourceNcloudPlacementGroup() *schema.Resource {
 	fieldMap := map[string]*schema.Schema{
 		"id": {
 			Type:     schema.TypeString,
@@ -37,11 +33,11 @@ func dataSourceNcloudPlacementGroup() *schema.Resource {
 		"filter": DataSourceFiltersSchema(),
 	}
 
-	return GetSingularDataSourceItemSchema(resourceNcloudPlacementGroup(), fieldMap, dataSourceNcloudPlacementGroupRead)
+	return GetSingularDataSourceItemSchema(ResourceNcloudPlacementGroup(), fieldMap, dataSourceNcloudPlacementGroupRead)
 }
 
 func dataSourceNcloudPlacementGroupRead(d *schema.ResourceData, meta interface{}) error {
-	config := meta.(*ProviderConfig)
+	config := meta.(*conn.ProviderConfig)
 
 	if !config.SupportVPC {
 		return NotSupportClassic("data source `ncloud_placement_group`")
@@ -62,7 +58,7 @@ func dataSourceNcloudPlacementGroupRead(d *schema.ResourceData, meta interface{}
 	return nil
 }
 
-func getPlacementGroupList(d *schema.ResourceData, config *ProviderConfig) (*vserver.GetPlacementGroupListResponse, error) {
+func getPlacementGroupList(d *schema.ResourceData, config *conn.ProviderConfig) (*vserver.GetPlacementGroupListResponse, error) {
 	reqParams := &vserver.GetPlacementGroupListRequest{
 		RegionCode: &config.RegionCode,
 	}
@@ -87,7 +83,7 @@ func getPlacementGroupList(d *schema.ResourceData, config *ProviderConfig) (*vse
 	return resp, nil
 }
 
-func getPlacementGroupListFiltered(d *schema.ResourceData, config *ProviderConfig) ([]map[string]interface{}, error) {
+func getPlacementGroupListFiltered(d *schema.ResourceData, config *conn.ProviderConfig) ([]map[string]interface{}, error) {
 	resp, err := getPlacementGroupList(d, config)
 
 	if err != nil {
@@ -108,7 +104,7 @@ func getPlacementGroupListFiltered(d *schema.ResourceData, config *ProviderConfi
 	}
 
 	if f, ok := d.GetOk("filter"); ok {
-		resources = ApplyFilters(f.(*schema.Set), resources, resourceNcloudPlacementGroup().Schema)
+		resources = ApplyFilters(f.(*schema.Set), resources, ResourceNcloudPlacementGroup().Schema)
 	}
 
 	return resources, nil

@@ -1,4 +1,4 @@
-package memberserverimage
+package memberserverimage_test
 
 import (
 	"testing"

@@ -13,15 +13,11 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 
 	. "github.com/terraform-providers/terraform-provider-ncloud/internal/common"
-	. "github.com/terraform-providers/terraform-provider-ncloud/internal/provider"
+	"github.com/terraform-providers/terraform-provider-ncloud/internal/conn"
 	"github.com/terraform-providers/terraform-provider-ncloud/internal/verify"
 )
 
-func init() {
-	RegisterResource("ncloud_network_acl_deny_allow_group", resourceNcloudNetworkACLDenyAllowGroup())
-}
-
-func resourceNcloudNetworkACLDenyAllowGroup() *schema.Resource {
+func ResourceNcloudNetworkACLDenyAllowGroup() *schema.Resource {
 	return &schema.Resource{
 		Create: resourceNcloudNetworkACLDenyAllowGroupCreate,
 		Read:   resourceNcloudNetworkACLDenyAllowGroupRead,
@@ -65,7 +61,7 @@ func resourceNcloudNetworkACLDenyAllowGroup() *schema.Resource {
 }
 
 func resourceNcloudNetworkACLDenyAllowGroupCreate(d *schema.ResourceData, meta interface{}) error {
-	config := meta.(*ProviderConfig)
+	config := meta.(*conn.ProviderConfig)
 
 	if !config.SupportVPC {
 		return NotSupportClassic("resource `ncloud_network_acl_deny_allow_group`")
@@ -96,7 +92,7 @@ func resourceNcloudNetworkACLDenyAllowGroupCreate(d *schema.ResourceData, meta i
 	d.SetId(*instance.NetworkAclDenyAllowGroupNo)
 	log.Printf("[INFO] Network ACL DenyAllowGroup ID: %s", d.Id())
 
-	if err := waitForVpcNetworkAclDenyAllowGroupState(config, d.Id(), []string{InstanceStatusInit, InstanceStatusCreate}, []string{InstanceStatusRunning}, DefaultCreateTimeout); err != nil {
+	if err := waitForVpcNetworkAclDenyAllowGroupState(config, d.Id(), []string{InstanceStatusInit, InstanceStatusCreate}, []string{InstanceStatusRunning}, conn.DefaultCreateTimeout); err != nil {
 		return err
 	}
 
@@ -104,7 +100,7 @@ func resourceNcloudNetworkACLDenyAllowGroupCreate(d *schema.ResourceData, meta i
 		return err
 	}
 
-	if err := waitForVpcNetworkAclDenyAllowGroupState(config, d.Id(), []string{InstanceStatusSetting}, []string{InstanceStatusRunning}, DefaultCreateTimeout); err != nil {
+	if err := waitForVpcNetworkAclDenyAllowGroupState(config, d.Id(), []string{InstanceStatusSetting}, []string{InstanceStatusRunning}, conn.DefaultCreateTimeout); err != nil {
 		return err
 	}
 
@@ -112,9 +108,9 @@ func resourceNcloudNetworkACLDenyAllowGroupCreate(d *schema.ResourceData, meta i
 }
 
 func resourceNcloudNetworkACLDenyAllowGroupRead(d *schema.ResourceData, meta interface{}) error {
-	config := meta.(*ProviderConfig)
+	config := meta.(*conn.ProviderConfig)
 
-	instance, err := getNetworkAclDenyAllowGroupDetail(config, d.Id())
+	instance, err := GetNetworkAclDenyAllowGroupDetail(config, d.Id())
 	if err != nil {
 		return err
 	}
@@ -133,13 +129,13 @@ func resourceNcloudNetworkACLDenyAllowGroupRead(d *schema.ResourceData, meta int
 		"ip_list":                         instance.IpList,
 	}
 
-	SetSingularResourceDataFromMapSchema(resourceNcloudNetworkACLDenyAllowGroup(), d, m)
+	SetSingularResourceDataFromMapSchema(ResourceNcloudNetworkACLDenyAllowGroup(), d, m)
 
 	return nil
 }
 
 func resourceNcloudNetworkACLDenyAllowGroupUpdate(d *schema.ResourceData, meta interface{}) error {
-	config := meta.(*ProviderConfig)
+	config := meta.(*conn.ProviderConfig)
 
 	if d.HasChange("ip_list") {
 		if err := setNetworkAclDenyAllowGroupIpList(d, config); err != nil {
@@ -153,7 +149,7 @@ func resourceNcloudNetworkACLDenyAllowGroupUpdate(d *schema.ResourceData, meta i
 		}
 	}
 
-	if err := waitForVpcNetworkAclDenyAllowGroupState(config, d.Id(), []string{InstanceStatusSetting}, []string{InstanceStatusRunning}, DefaultTimeout); err != nil {
+	if err := waitForVpcNetworkAclDenyAllowGroupState(config, d.Id(), []string{InstanceStatusSetting}, []string{InstanceStatusRunning}, conn.DefaultTimeout); err != nil {
 		return err
 	}
 
@@ -161,7 +157,7 @@ func resourceNcloudNetworkACLDenyAllowGroupUpdate(d *schema.ResourceData, meta i
 }
 
 func resourceNcloudNetworkACLDenyAllowGroupDelete(d *schema.ResourceData, meta interface{}) error {
-	config := meta.(*ProviderConfig)
+	config := meta.(*conn.ProviderConfig)
 
 	reqParams := &vpc.DeleteNetworkAclDenyAllowGroupRequest{
 		RegionCode:                 &config.RegionCode,
@@ -177,19 +173,19 @@ func resourceNcloudNetworkACLDenyAllowGroupDelete(d *schema.ResourceData, meta i
 
 	LogResponse("DeleteNetworkAclDenyAllowGroup", resp)
 
-	if err := waitForVpcNetworkAclDenyAllowGroupState(config, d.Id(), []string{InstanceStatusRunning, InstanceStatusTerminating}, []string{InstanceStatusTerminated}, DefaultTimeout); err != nil {
+	if err := waitForVpcNetworkAclDenyAllowGroupState(config, d.Id(), []string{InstanceStatusRunning, InstanceStatusTerminating}, []string{InstanceStatusTerminated}, conn.DefaultTimeout); err != nil {
 		return err
 	}
 
 	return nil
 }
 
-func waitForVpcNetworkAclDenyAllowGroupState(config *ProviderConfig, id string, pending []string, target []string, timeout time.Duration) error {
+func waitForVpcNetworkAclDenyAllowGroupState(config *conn.ProviderConfig, id string, pending []string, target []string, timeout time.Duration) error {
 	stateConf := &resource.StateChangeConf{
 		Pending: pending,
 		Target:  target,
 		Refresh: func() (interface{}, string, error) {
-			instance, err := getNetworkAclDenyAllowGroupDetail(config, id)
+			instance, err := GetNetworkAclDenyAllowGroupDetail(config, id)
 			return VpcCommonStateRefreshFunc(instance, err, "NetworkAclDenyAllowGroupStatus")
 		},
 		Timeout:    timeout,
@@ -205,7 +201,7 @@ func waitForVpcNetworkAclDenyAllowGroupState(config *ProviderConfig, id string, 
 	return nil
 }
 
-func getNetworkAclDenyAllowGroupDetail(config *ProviderConfig, id string) (*vpc.NetworkAclDenyAllowGroup, error) {
+func GetNetworkAclDenyAllowGroupDetail(config *conn.ProviderConfig, id string) (*vpc.NetworkAclDenyAllowGroup, error) {
 	reqParams := &vpc.GetNetworkAclDenyAllowGroupDetailRequest{
 		RegionCode:                 &config.RegionCode,
 		NetworkAclDenyAllowGroupNo: &id,
@@ -227,7 +223,7 @@ func getNetworkAclDenyAllowGroupDetail(config *ProviderConfig, id string) (*vpc.
 	return nil, nil
 }
 
-func setNetworkAclDenyAllowGroupDescription(d *schema.ResourceData, config *ProviderConfig) error {
+func setNetworkAclDenyAllowGroupDescription(d *schema.ResourceData, config *conn.ProviderConfig) error {
 	reqParams := &vpc.SetNetworkAclDenyAllowGroupDescriptionRequest{
 		RegionCode:                          &config.RegionCode,
 		NetworkAclDenyAllowGroupNo:          ncloud.String(d.Id()),
@@ -245,7 +241,7 @@ func setNetworkAclDenyAllowGroupDescription(d *schema.ResourceData, config *Prov
 	return nil
 }
 
-func setNetworkAclDenyAllowGroupIpList(d *schema.ResourceData, config *ProviderConfig) error {
+func setNetworkAclDenyAllowGroupIpList(d *schema.ResourceData, config *conn.ProviderConfig) error {
 	reqParams := &vpc.SetNetworkAclDenyAllowGroupIpListRequest{
 		RegionCode:                 &config.RegionCode,
 		NetworkAclDenyAllowGroupNo: ncloud.String(d.Id()),

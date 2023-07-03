@@ -8,15 +8,11 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 
 	. "github.com/terraform-providers/terraform-provider-ncloud/internal/common"
-	. "github.com/terraform-providers/terraform-provider-ncloud/internal/provider"
+	"github.com/terraform-providers/terraform-provider-ncloud/internal/conn"
 	"github.com/terraform-providers/terraform-provider-ncloud/internal/verify"
 )
 
-func init() {
-	RegisterDataSource("ncloud_subnets", dataSourceNcloudSubnets())
-}
-
-func dataSourceNcloudSubnets() *schema.Resource {
+func DataSourceNcloudSubnets() *schema.Resource {
 	return &schema.Resource{
 		Read: dataSourceNcloudSubnetsRead,
 
@@ -63,14 +59,14 @@ func dataSourceNcloudSubnets() *schema.Resource {
 			"subnets": {
 				Type:     schema.TypeList,
 				Computed: true,
-				Elem:     GetDataSourceItemSchema(resourceNcloudSubnet()),
+				Elem:     GetDataSourceItemSchema(ResourceNcloudSubnet()),
 			},
 		},
 	}
 }
 
 func dataSourceNcloudSubnetsRead(d *schema.ResourceData, meta interface{}) error {
-	config := meta.(*ProviderConfig)
+	config := meta.(*conn.ProviderConfig)
 
 	if !config.SupportVPC {
 		return NotSupportClassic("data source `ncloud_subnets`")

@@ -1,4 +1,4 @@
-package autoscaling
+package autoscaling_test
 
 import (
 	"fmt"

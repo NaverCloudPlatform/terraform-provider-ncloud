@@ -8,14 +8,10 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 
 	. "github.com/terraform-providers/terraform-provider-ncloud/internal/common"
-	. "github.com/terraform-providers/terraform-provider-ncloud/internal/provider"
+	"github.com/terraform-providers/terraform-provider-ncloud/internal/conn"
 )
 
-func init() {
-	RegisterDataSource("ncloud_sourcebuild_project_os_runtimes", dataSourceNcloudSourceBuildRuntimes())
-}
-
-func dataSourceNcloudSourceBuildRuntimes() *schema.Resource {
+func DataSourceNcloudSourceBuildRuntimes() *schema.Resource {
 	return &schema.Resource{
 		ReadContext: dataSourceNcloudSourceBuildRuntimesRead,
 		Schema: map[string]*schema.Schema{
@@ -45,7 +41,7 @@ func dataSourceNcloudSourceBuildRuntimes() *schema.Resource {
 }
 
 func dataSourceNcloudSourceBuildRuntimesRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
-	config := meta.(*ProviderConfig)
+	config := meta.(*conn.ProviderConfig)
 
 	osIdParam := Int32PtrOrNil(d.GetOk("os_id"))
 	osId := ncloud.IntString(int(ncloud.Int32Value(osIdParam)))
@@ -70,7 +66,7 @@ func dataSourceNcloudSourceBuildRuntimesRead(ctx context.Context, d *schema.Reso
 	}
 
 	if f, ok := d.GetOk("filter"); ok {
-		resources = ApplyFilters(f.(*schema.Set), resources, dataSourceNcloudSourceBuildRuntimes().Schema)
+		resources = ApplyFilters(f.(*schema.Set), resources, DataSourceNcloudSourceBuildRuntimes().Schema)
 	}
 
 	d.SetId(config.RegionCode)

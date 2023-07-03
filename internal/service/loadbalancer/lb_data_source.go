@@ -9,15 +9,11 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 
 	. "github.com/terraform-providers/terraform-provider-ncloud/internal/common"
-	. "github.com/terraform-providers/terraform-provider-ncloud/internal/provider"
+	"github.com/terraform-providers/terraform-provider-ncloud/internal/conn"
 	. "github.com/terraform-providers/terraform-provider-ncloud/internal/verify"
 )
 
-func init() {
-	RegisterDataSource("ncloud_lb", dataSourceNcloudLb())
-}
-
-func dataSourceNcloudLb() *schema.Resource {
+func DataSourceNcloudLb() *schema.Resource {
 	fieldMap := map[string]*schema.Schema{
 		"id": {
 			Type:     schema.TypeString,
@@ -30,11 +26,11 @@ func dataSourceNcloudLb() *schema.Resource {
 		},
 		"filter": DataSourceFiltersSchema(),
 	}
-	return GetSingularDataSourceItemSchemaContext(resourceNcloudLb(), fieldMap, dataSourceNcloudLbRead)
+	return GetSingularDataSourceItemSchemaContext(ResourceNcloudLb(), fieldMap, dataSourceNcloudLbRead)
 }
 
 func dataSourceNcloudLbRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
-	config := meta.(*ProviderConfig)
+	config := meta.(*conn.ProviderConfig)
 	if !config.SupportVPC {
 		return diag.FromErr(NotSupportClassic("datasource `ncloud_lb`"))
 	}
@@ -50,7 +46,7 @@ func dataSourceNcloudLbRead(ctx context.Context, d *schema.ResourceData, meta in
 
 	lbListMap := ConvertToArrayMap(lbList)
 	if f, ok := d.GetOk("filter"); ok {
-		lbListMap = ApplyFilters(f.(*schema.Set), lbListMap, dataSourceNcloudLb().Schema)
+		lbListMap = ApplyFilters(f.(*schema.Set), lbListMap, DataSourceNcloudLb().Schema)
 	}
 
 	if err := ValidateOneResult(len(lbListMap)); err != nil {
@@ -58,11 +54,11 @@ func dataSourceNcloudLbRead(ctx context.Context, d *schema.ResourceData, meta in
 	}
 
 	d.SetId(lbListMap[0]["load_balancer_no"].(string))
-	SetSingularResourceDataFromMapSchema(dataSourceNcloudLb(), d, lbListMap[0])
+	SetSingularResourceDataFromMapSchema(DataSourceNcloudLb(), d, lbListMap[0])
 	return nil
 }
 
-func getVpcLoadBalancerList(config *ProviderConfig, id string) ([]*LoadBalancerInstance, error) {
+func getVpcLoadBalancerList(config *conn.ProviderConfig, id string) ([]*LoadBalancerInstance, error) {
 	reqParams := &vloadbalancer.GetLoadBalancerInstanceListRequest{
 		RegionCode: &config.RegionCode,
 	}

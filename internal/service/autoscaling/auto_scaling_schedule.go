@@ -7,16 +7,12 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 
 	. "github.com/terraform-providers/terraform-provider-ncloud/internal/common"
-	"github.com/terraform-providers/terraform-provider-ncloud/internal/provider"
+	"github.com/terraform-providers/terraform-provider-ncloud/internal/conn"
 )
-
-func init() {
-	provider.RegisterResource("ncloud_auto_scaling_schedule", resourceNcloudAutoScalingSchedule())
-}
 
 const SCHEDULE_TIME_FORMAT = "2006-01-02T15:04:05Z0700"
 
-func resourceNcloudAutoScalingSchedule() *schema.Resource {
+func ResourceNcloudAutoScalingSchedule() *schema.Resource {
 	return &schema.Resource{
 		Create: resourceNcloudAutoScalingScheduleCreate,
 		Read:   resourceNcloudAutoScalingScheduleRead,
@@ -70,7 +66,7 @@ func resourceNcloudAutoScalingSchedule() *schema.Resource {
 }
 
 func resourceNcloudAutoScalingScheduleCreate(d *schema.ResourceData, meta interface{}) error {
-	config := meta.(*provider.ProviderConfig)
+	config := meta.(*conn.ProviderConfig)
 	id, err := createAutoScalingSchedule(d, config)
 	if err != nil {
 		return err
@@ -80,7 +76,7 @@ func resourceNcloudAutoScalingScheduleCreate(d *schema.ResourceData, meta interf
 	return resourceNcloudAutoScalingScheduleRead(d, meta)
 }
 
-func createAutoScalingSchedule(d *schema.ResourceData, config *provider.ProviderConfig) (*string, error) {
+func createAutoScalingSchedule(d *schema.ResourceData, config *conn.ProviderConfig) (*string, error) {
 	if config.SupportVPC {
 		return createVpcAutoScalingSchedule(d, config)
 	} else {
@@ -88,7 +84,7 @@ func createAutoScalingSchedule(d *schema.ResourceData, config *provider.Provider
 	}
 }
 
-func createVpcAutoScalingSchedule(d *schema.ResourceData, config *provider.ProviderConfig) (*string, error) {
+func createVpcAutoScalingSchedule(d *schema.ResourceData, config *conn.ProviderConfig) (*string, error) {
 	reqParams := &vautoscaling.PutScheduledUpdateGroupActionRequest{
 		RegionCode: &config.RegionCode,
 		// Required
@@ -112,7 +108,7 @@ func createVpcAutoScalingSchedule(d *schema.ResourceData, config *provider.Provi
 	return resp.ScheduledUpdateGroupActionList[0].ScheduledActionNo, nil
 }
 
-func createClassicAutoScalingSchedule(d *schema.ResourceData, config *provider.ProviderConfig) (*string, error) {
+func createClassicAutoScalingSchedule(d *schema.ResourceData, config *conn.ProviderConfig) (*string, error) {
 	asgNo := d.Get("auto_scaling_group_no").(string)
 	asg, err := getClassicAutoScalingGroup(config, asgNo)
 	if err != nil {
@@ -140,8 +136,8 @@ func createClassicAutoScalingSchedule(d *schema.ResourceData, config *provider.P
 }
 
 func resourceNcloudAutoScalingScheduleRead(d *schema.ResourceData, meta interface{}) error {
-	config := meta.(*provider.ProviderConfig)
-	schedule, err := getAutoScalingSchedule(config, d.Id(), d.Get("auto_scaling_group_no").(string))
+	config := meta.(*conn.ProviderConfig)
+	schedule, err := GetAutoScalingSchedule(config, d.Id(), d.Get("auto_scaling_group_no").(string))
 	if err != nil {
 		return err
 	}
@@ -152,11 +148,11 @@ func resourceNcloudAutoScalingScheduleRead(d *schema.ResourceData, meta interfac
 	}
 
 	scheduleMap := ConvertToMap(schedule)
-	SetSingularResourceDataFromMapSchema(resourceNcloudAutoScalingSchedule(), d, scheduleMap)
+	SetSingularResourceDataFromMapSchema(ResourceNcloudAutoScalingSchedule(), d, scheduleMap)
 	return nil
 }
 
-func getAutoScalingSchedule(config *provider.ProviderConfig, id string, asgNo string) (*AutoScalingSchedule, error) {
+func GetAutoScalingSchedule(config *conn.ProviderConfig, id string, asgNo string) (*AutoScalingSchedule, error) {
 	if config.SupportVPC {
 		return getVpcAutoScalingSchedule(config, id, asgNo)
 	} else {
@@ -164,7 +160,7 @@ func getAutoScalingSchedule(config *provider.ProviderConfig, id string, asgNo st
 	}
 }
 
-func getVpcAutoScalingSchedule(config *provider.ProviderConfig, id string, asgNo string) (*AutoScalingSchedule, error) {
+func getVpcAutoScalingSchedule(config *conn.ProviderConfig, id string, asgNo string) (*AutoScalingSchedule, error) {
 	reqParams := &vautoscaling.GetScheduledActionListRequest{
 		RegionCode:            &config.RegionCode,
 		AutoScalingGroupNo:    ncloud.String(asgNo),
@@ -194,7 +190,7 @@ func getVpcAutoScalingSchedule(config *provider.ProviderConfig, id string, asgNo
 	}, nil
 }
 
-func getClassicAutoScalingSchedule(config *provider.ProviderConfig, id string, asgNo string) (*AutoScalingSchedule, error) {
+func getClassicAutoScalingSchedule(config *conn.ProviderConfig, id string, asgNo string) (*AutoScalingSchedule, error) {
 	asg, err := getClassicAutoScalingGroup(config, asgNo)
 	if err != nil {
 		return nil, err
@@ -226,7 +222,7 @@ func getClassicAutoScalingSchedule(config *provider.ProviderConfig, id string, a
 }
 
 func resourceNcloudAutoScalingScheduleUpdate(d *schema.ResourceData, meta interface{}) error {
-	config := meta.(*provider.ProviderConfig)
+	config := meta.(*conn.ProviderConfig)
 	if _, err := createAutoScalingSchedule(d, config); err != nil {
 		return err
 	}
@@ -234,14 +230,14 @@ func resourceNcloudAutoScalingScheduleUpdate(d *schema.ResourceData, meta interf
 }
 
 func resourceNcloudAutoScalingScheduleDelete(d *schema.ResourceData, meta interface{}) error {
-	config := meta.(*provider.ProviderConfig)
+	config := meta.(*conn.ProviderConfig)
 	if err := deleteAutoScalingSchedule(config, d.Id(), d.Get("auto_scaling_group_no").(string)); err != nil {
 		return err
 	}
 	return nil
 }
 
-func deleteAutoScalingSchedule(config *provider.ProviderConfig, id string, asgNo string) error {
+func deleteAutoScalingSchedule(config *conn.ProviderConfig, id string, asgNo string) error {
 	if config.SupportVPC {
 		return deleteVpcAutoScalingSchedule(config, id, asgNo)
 	} else {
@@ -249,7 +245,7 @@ func deleteAutoScalingSchedule(config *provider.ProviderConfig, id string, asgNo
 	}
 }
 
-func deleteVpcAutoScalingSchedule(config *provider.ProviderConfig, id string, asgNo string) error {
+func deleteVpcAutoScalingSchedule(config *conn.ProviderConfig, id string, asgNo string) error {
 	schedule, err := getVpcAutoScalingSchedule(config, id, asgNo)
 	if err != nil {
 		return err
@@ -266,7 +262,7 @@ func deleteVpcAutoScalingSchedule(config *provider.ProviderConfig, id string, as
 	return nil
 }
 
-func deleteClassicAutoScalingSchedule(config *provider.ProviderConfig, id string, asgNo string) error {
+func deleteClassicAutoScalingSchedule(config *conn.ProviderConfig, id string, asgNo string) error {
 	asg, err := getClassicAutoScalingGroup(config, asgNo)
 	if err != nil {
 		return err

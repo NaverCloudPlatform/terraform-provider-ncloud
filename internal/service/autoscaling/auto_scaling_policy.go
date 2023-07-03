@@ -8,15 +8,11 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 
 	. "github.com/terraform-providers/terraform-provider-ncloud/internal/common"
-	. "github.com/terraform-providers/terraform-provider-ncloud/internal/provider"
+	"github.com/terraform-providers/terraform-provider-ncloud/internal/conn"
 	. "github.com/terraform-providers/terraform-provider-ncloud/internal/verify"
 )
 
-func init() {
-	RegisterResource("ncloud_auto_scaling_policy", resourceNcloudAutoScalingPolicy())
-}
-
-func resourceNcloudAutoScalingPolicy() *schema.Resource {
+func ResourceNcloudAutoScalingPolicy() *schema.Resource {
 	return &schema.Resource{
 		Create: resourceNcloudAutoScalingPolicyCreate,
 		Read:   resourceNcloudAutoScalingPolicyRead,
@@ -59,7 +55,7 @@ func resourceNcloudAutoScalingPolicy() *schema.Resource {
 }
 
 func resourceNcloudAutoScalingPolicyCreate(d *schema.ResourceData, meta interface{}) error {
-	config := meta.(*ProviderConfig)
+	config := meta.(*conn.ProviderConfig)
 
 	autoscaling_group_no, id, err := createAutoScalingPolicy(d, config)
 	if err != nil {
@@ -71,7 +67,7 @@ func resourceNcloudAutoScalingPolicyCreate(d *schema.ResourceData, meta interfac
 	return resourceNcloudAutoScalingPolicyRead(d, meta)
 }
 
-func createAutoScalingPolicy(d *schema.ResourceData, config *ProviderConfig) (*string, *string, error) {
+func createAutoScalingPolicy(d *schema.ResourceData, config *conn.ProviderConfig) (*string, *string, error) {
 	if config.SupportVPC {
 		return createVpcAutoScalingPolicy(d, config)
 	} else {
@@ -79,7 +75,7 @@ func createAutoScalingPolicy(d *schema.ResourceData, config *ProviderConfig) (*s
 	}
 }
 
-func createVpcAutoScalingPolicy(d *schema.ResourceData, config *ProviderConfig) (*string, *string, error) {
+func createVpcAutoScalingPolicy(d *schema.ResourceData, config *conn.ProviderConfig) (*string, *string, error) {
 	reqParams := &vautoscaling.PutScalingPolicyRequest{
 		RegionCode: &config.RegionCode,
 		// Required
@@ -100,7 +96,7 @@ func createVpcAutoScalingPolicy(d *schema.ResourceData, config *ProviderConfig) 
 	return policy.AutoScalingGroupNo, policy.PolicyNo, nil
 }
 
-func createClassicAutoScalingPolicy(d *schema.ResourceData, config *ProviderConfig) (*string, *string, error) {
+func createClassicAutoScalingPolicy(d *schema.ResourceData, config *conn.ProviderConfig) (*string, *string, error) {
 	no := d.Get("auto_scaling_group_no").(string)
 	name := ncloud.String(d.Get("name").(string))
 	asg, err := getClassicAutoScalingGroup(config, no)
@@ -126,8 +122,8 @@ func createClassicAutoScalingPolicy(d *schema.ResourceData, config *ProviderConf
 }
 
 func resourceNcloudAutoScalingPolicyRead(d *schema.ResourceData, meta interface{}) error {
-	config := meta.(*ProviderConfig)
-	policy, err := getAutoScalingPolicy(config, d.Id(), d.Get("auto_scaling_group_no").(string))
+	config := meta.(*conn.ProviderConfig)
+	policy, err := GetAutoScalingPolicy(config, d.Id(), d.Get("auto_scaling_group_no").(string))
 	if err != nil {
 		return err
 	}
@@ -138,11 +134,11 @@ func resourceNcloudAutoScalingPolicyRead(d *schema.ResourceData, meta interface{
 	}
 
 	policyMap := ConvertToMap(policy)
-	SetSingularResourceDataFromMapSchema(resourceNcloudAutoScalingPolicy(), d, policyMap)
+	SetSingularResourceDataFromMapSchema(ResourceNcloudAutoScalingPolicy(), d, policyMap)
 	return nil
 }
 
-func getAutoScalingPolicy(config *ProviderConfig, id string, autoScalingGroupNo string) (*AutoScalingPolicy, error) {
+func GetAutoScalingPolicy(config *conn.ProviderConfig, id string, autoScalingGroupNo string) (*AutoScalingPolicy, error) {
 	if config.SupportVPC {
 		return getVpcAutoScalingPolicy(config, id, autoScalingGroupNo)
 	} else {
@@ -150,7 +146,7 @@ func getAutoScalingPolicy(config *ProviderConfig, id string, autoScalingGroupNo 
 	}
 }
 
-func getVpcAutoScalingPolicy(config *ProviderConfig, id string, autoScalingGroupNo string) (*AutoScalingPolicy, error) {
+func getVpcAutoScalingPolicy(config *conn.ProviderConfig, id string, autoScalingGroupNo string) (*AutoScalingPolicy, error) {
 	reqParams := &vautoscaling.GetAutoScalingPolicyListRequest{
 		RegionCode:         &config.RegionCode,
 		AutoScalingGroupNo: ncloud.String(autoScalingGroupNo),
@@ -174,7 +170,7 @@ func getVpcAutoScalingPolicy(config *ProviderConfig, id string, autoScalingGroup
 
 }
 
-func getClassicAutoScalingPolicy(config *ProviderConfig, id string, autoScalingGroupNo string) (*AutoScalingPolicy, error) {
+func getClassicAutoScalingPolicy(config *conn.ProviderConfig, id string, autoScalingGroupNo string) (*AutoScalingPolicy, error) {
 	asg, err := getClassicAutoScalingGroup(config, autoScalingGroupNo)
 	if err != nil {
 		return nil, err
@@ -204,7 +200,7 @@ func getClassicAutoScalingPolicy(config *ProviderConfig, id string, autoScalingG
 }
 
 func resourceNcloudAutoScalingPolicyUpdate(d *schema.ResourceData, meta interface{}) error {
-	config := meta.(*ProviderConfig)
+	config := meta.(*conn.ProviderConfig)
 	_, _, err := createAutoScalingPolicy(d, config)
 	if err != nil {
 		return err
@@ -213,14 +209,14 @@ func resourceNcloudAutoScalingPolicyUpdate(d *schema.ResourceData, meta interfac
 }
 
 func resourceNcloudAutoScalingPolicyDelete(d *schema.ResourceData, meta interface{}) error {
-	config := meta.(*ProviderConfig)
+	config := meta.(*conn.ProviderConfig)
 	if err := deleteAutoScalingPolicy(config, d.Id(), d.Get("auto_scaling_group_no").(string)); err != nil {
 		return err
 	}
 	return nil
 }
 
-func deleteAutoScalingPolicy(config *ProviderConfig, id string, autoScalingGroupNo string) error {
+func deleteAutoScalingPolicy(config *conn.ProviderConfig, id string, autoScalingGroupNo string) error {
 	if config.SupportVPC {
 		return deleteVpcAutoScalingPolicy(config, id, autoScalingGroupNo)
 	} else {
@@ -228,7 +224,7 @@ func deleteAutoScalingPolicy(config *ProviderConfig, id string, autoScalingGroup
 	}
 }
 
-func deleteVpcAutoScalingPolicy(config *ProviderConfig, id string, autoScalingGroupNo string) error {
+func deleteVpcAutoScalingPolicy(config *conn.ProviderConfig, id string, autoScalingGroupNo string) error {
 	p, err := getVpcAutoScalingPolicy(config, id, autoScalingGroupNo)
 	if err != nil {
 		return err
@@ -245,7 +241,7 @@ func deleteVpcAutoScalingPolicy(config *ProviderConfig, id string, autoScalingGr
 	return nil
 }
 
-func deleteClassicAutoScalingPolicy(config *ProviderConfig, id string, autoScalingGroupNo string) error {
+func deleteClassicAutoScalingPolicy(config *conn.ProviderConfig, id string, autoScalingGroupNo string) error {
 	asg, err := getClassicAutoScalingGroup(config, autoScalingGroupNo)
 	if err != nil {
 		return err

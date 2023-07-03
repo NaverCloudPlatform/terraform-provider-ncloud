@@ -14,15 +14,11 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 
 	. "github.com/terraform-providers/terraform-provider-ncloud/internal/common"
-	. "github.com/terraform-providers/terraform-provider-ncloud/internal/provider"
+	"github.com/terraform-providers/terraform-provider-ncloud/internal/conn"
 	"github.com/terraform-providers/terraform-provider-ncloud/internal/verify"
 )
 
-func init() {
-	RegisterResource("ncloud_vpc", resourceNcloudVpc())
-}
-
-func resourceNcloudVpc() *schema.Resource {
+func ResourceNcloudVpc() *schema.Resource {
 	return &schema.Resource{
 		Create: resourceNcloudVpcCreate,
 		Read:   resourceNcloudVpcRead,
@@ -71,7 +67,7 @@ func resourceNcloudVpc() *schema.Resource {
 }
 
 func resourceNcloudVpcCreate(d *schema.ResourceData, meta interface{}) error {
-	config := meta.(*ProviderConfig)
+	config := meta.(*conn.ProviderConfig)
 
 	if !config.SupportVPC {
 		return NotSupportClassic("resource `ncloud_vpc`")
@@ -107,7 +103,7 @@ func resourceNcloudVpcCreate(d *schema.ResourceData, meta interface{}) error {
 }
 
 func resourceNcloudVpcRead(d *schema.ResourceData, meta interface{}) error {
-	config := meta.(*ProviderConfig)
+	config := meta.(*conn.ProviderConfig)
 
 	instance, err := GetVpcInstance(config, d.Id())
 	if err != nil {
@@ -149,7 +145,7 @@ func resourceNcloudVpcRead(d *schema.ResourceData, meta interface{}) error {
 	return nil
 }
 
-func getDefaultNetworkACL(config *ProviderConfig, id string) (string, error) {
+func getDefaultNetworkACL(config *conn.ProviderConfig, id string) (string, error) {
 	reqParams := &vpc.GetNetworkAclListRequest{
 		RegionCode: &config.RegionCode,
 		VpcNo:      ncloud.String(id),
@@ -178,7 +174,7 @@ func getDefaultNetworkACL(config *ProviderConfig, id string) (string, error) {
 	return "", fmt.Errorf("No matching default network ACL found")
 }
 
-func GetDefaultAccessControlGroup(config *ProviderConfig, id string) (string, error) {
+func GetDefaultAccessControlGroup(config *conn.ProviderConfig, id string) (string, error) {
 	reqParams := &vserver.GetAccessControlGroupListRequest{
 		RegionCode: &config.RegionCode,
 		VpcNo:      ncloud.String(id),
@@ -207,7 +203,7 @@ func GetDefaultAccessControlGroup(config *ProviderConfig, id string) (string, er
 	return "", fmt.Errorf("No matching default Access Control Group found")
 }
 
-func getDefaultRouteTable(config *ProviderConfig, id string) (publicRouteTableNo string, privateRouteTableNo string, error error) {
+func getDefaultRouteTable(config *conn.ProviderConfig, id string) (publicRouteTableNo string, privateRouteTableNo string, error error) {
 	reqParams := &vpc.GetRouteTableListRequest{
 		RegionCode: &config.RegionCode,
 		VpcNo:      ncloud.String(id),
@@ -235,7 +231,7 @@ func getDefaultRouteTable(config *ProviderConfig, id string) (publicRouteTableNo
 }
 
 func resourceNcloudVpcDelete(d *schema.ResourceData, meta interface{}) error {
-	config := meta.(*ProviderConfig)
+	config := meta.(*conn.ProviderConfig)
 
 	reqParams := &vpc.DeleteVpcRequest{
 		RegionCode: &config.RegionCode,
@@ -250,14 +246,14 @@ func resourceNcloudVpcDelete(d *schema.ResourceData, meta interface{}) error {
 	}
 	LogResponse("DeleteVpc", resp)
 
-	if err := waitForNcloudVpcDeletion(config, d.Id()); err != nil {
+	if err := WaitForNcloudVpcDeletion(config, d.Id()); err != nil {
 		return err
 	}
 
 	return nil
 }
 
-func waitForNcloudVpcCreation(config *ProviderConfig, id string) error {
+func waitForNcloudVpcCreation(config *conn.ProviderConfig, id string) error {
 	stateConf := &resource.StateChangeConf{
 		Pending: []string{"INIT", "CREATING"},
 		Target:  []string{"RUN"},
@@ -265,7 +261,7 @@ func waitForNcloudVpcCreation(config *ProviderConfig, id string) error {
 			instance, err := GetVpcInstance(config, id)
 			return VpcCommonStateRefreshFunc(instance, err, "VpcStatus")
 		},
-		Timeout:    DefaultCreateTimeout,
+		Timeout:    conn.DefaultCreateTimeout,
 		Delay:      2 * time.Second,
 		MinTimeout: 3 * time.Second,
 	}
@@ -277,7 +273,7 @@ func waitForNcloudVpcCreation(config *ProviderConfig, id string) error {
 	return nil
 }
 
-func waitForNcloudVpcDeletion(config *ProviderConfig, id string) error {
+func WaitForNcloudVpcDeletion(config *conn.ProviderConfig, id string) error {
 	stateConf := &resource.StateChangeConf{
 		Pending: []string{"RUN", "TERMTING"},
 		Target:  []string{"TERMINATED"},
@@ -285,7 +281,7 @@ func waitForNcloudVpcDeletion(config *ProviderConfig, id string) error {
 			instance, err := GetVpcInstance(config, id)
 			return VpcCommonStateRefreshFunc(instance, err, "VpcStatus")
 		},
-		Timeout:    DefaultTimeout,
+		Timeout:    conn.DefaultTimeout,
 		Delay:      2 * time.Second,
 		MinTimeout: 3 * time.Second,
 	}
@@ -297,7 +293,7 @@ func waitForNcloudVpcDeletion(config *ProviderConfig, id string) error {
 	return nil
 }
 
-func GetVpcInstance(config *ProviderConfig, id string) (*vpc.Vpc, error) {
+func GetVpcInstance(config *conn.ProviderConfig, id string) (*vpc.Vpc, error) {
 	reqParams := &vpc.GetVpcDetailRequest{
 		RegionCode: &config.RegionCode,
 		VpcNo:      ncloud.String(id),

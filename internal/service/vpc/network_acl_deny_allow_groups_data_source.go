@@ -9,14 +9,10 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 
 	. "github.com/terraform-providers/terraform-provider-ncloud/internal/common"
-	. "github.com/terraform-providers/terraform-provider-ncloud/internal/provider"
+	"github.com/terraform-providers/terraform-provider-ncloud/internal/conn"
 )
 
-func init() {
-	RegisterDataSource("ncloud_network_acl_deny_allow_groups", dataSourceNcloudNetworkACLDenyAllowGroups())
-}
-
-func dataSourceNcloudNetworkACLDenyAllowGroups() *schema.Resource {
+func DataSourceNcloudNetworkACLDenyAllowGroups() *schema.Resource {
 	return &schema.Resource{
 		Read: dataSourceNcloudNetworkACLDenyAllowGroupsRead,
 
@@ -38,14 +34,14 @@ func dataSourceNcloudNetworkACLDenyAllowGroups() *schema.Resource {
 			"network_acl_deny_allow_groups": {
 				Type:     schema.TypeList,
 				Computed: true,
-				Elem:     GetDataSourceItemSchema(resourceNcloudNetworkACLDenyAllowGroup()),
+				Elem:     GetDataSourceItemSchema(ResourceNcloudNetworkACLDenyAllowGroup()),
 			},
 		},
 	}
 }
 
 func dataSourceNcloudNetworkACLDenyAllowGroupsRead(d *schema.ResourceData, meta interface{}) error {
-	config := meta.(*ProviderConfig)
+	config := meta.(*conn.ProviderConfig)
 
 	if !config.SupportVPC {
 		return NotSupportClassic("data source `ncloud_network_acl_deny_allow_groups`")
@@ -92,7 +88,7 @@ func dataSourceNcloudNetworkACLDenyAllowGroupsRead(d *schema.ResourceData, meta 
 		}
 
 		// only can get `ip_list` data from `getNetworkAclDenyAllowGroupDetail`
-		if g, err := getNetworkAclDenyAllowGroupDetail(config, *r.NetworkAclDenyAllowGroupNo); err != nil {
+		if g, err := GetNetworkAclDenyAllowGroupDetail(config, *r.NetworkAclDenyAllowGroupNo); err != nil {
 			return err
 		} else {
 			m["ip_list"] = g.IpList
@@ -102,7 +98,7 @@ func dataSourceNcloudNetworkACLDenyAllowGroupsRead(d *schema.ResourceData, meta 
 	}
 
 	if f, ok := d.GetOk("filter"); ok {
-		resources = ApplyFilters(f.(*schema.Set), resources, resourceNcloudNetworkACLDenyAllowGroup().Schema)
+		resources = ApplyFilters(f.(*schema.Set), resources, ResourceNcloudNetworkACLDenyAllowGroup().Schema)
 	}
 
 	d.SetId(time.Now().UTC().String())

@@ -10,14 +10,10 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 
 	. "github.com/terraform-providers/terraform-provider-ncloud/internal/common"
-	. "github.com/terraform-providers/terraform-provider-ncloud/internal/provider"
+	"github.com/terraform-providers/terraform-provider-ncloud/internal/conn"
 )
 
-func init() {
-	RegisterDataSource("ncloud_nks_server_products", dataSourceNcloudNKSServerProducts())
-}
-
-func dataSourceNcloudNKSServerProducts() *schema.Resource {
+func DataSourceNcloudNKSServerProducts() *schema.Resource {
 	return &schema.Resource{
 		Read: dataSourceNcloudNKSServerProductsRead,
 		Schema: map[string]*schema.Schema{
@@ -93,7 +89,7 @@ func dataSourceNcloudNKSServerProducts() *schema.Resource {
 }
 
 func dataSourceNcloudNKSServerProductsRead(d *schema.ResourceData, meta interface{}) error {
-	config := meta.(*ProviderConfig)
+	config := meta.(*conn.ProviderConfig)
 	if !config.SupportVPC {
 		return NotSupportClassic("datasource `ncloud_nks_server_products`")
 	}
@@ -105,7 +101,7 @@ func dataSourceNcloudNKSServerProductsRead(d *schema.ResourceData, meta interfac
 	}
 
 	if f, ok := d.GetOk("filter"); ok {
-		resources = ApplyFilters(f.(*schema.Set), resources, dataSourceNcloudNKSServerProducts().Schema["products"].Elem.(*schema.Resource).Schema)
+		resources = ApplyFilters(f.(*schema.Set), resources, DataSourceNcloudNKSServerProducts().Schema["products"].Elem.(*schema.Resource).Schema)
 	}
 
 	d.SetId(time.Now().UTC().String())
@@ -116,7 +112,7 @@ func dataSourceNcloudNKSServerProductsRead(d *schema.ResourceData, meta interfac
 	return nil
 }
 
-func getNKSServerProducts(config *ProviderConfig, d *schema.ResourceData) ([]map[string]interface{}, error) {
+func getNKSServerProducts(config *conn.ProviderConfig, d *schema.ResourceData) ([]map[string]interface{}, error) {
 	LogCommonRequest("GetNKSServerProducts", "")
 
 	softwareCode := StringPtrOrNil(d.GetOk("software_code"))

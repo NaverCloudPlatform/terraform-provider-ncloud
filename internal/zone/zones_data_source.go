@@ -9,14 +9,10 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 
 	. "github.com/terraform-providers/terraform-provider-ncloud/internal/common"
-	. "github.com/terraform-providers/terraform-provider-ncloud/internal/provider"
+	"github.com/terraform-providers/terraform-provider-ncloud/internal/conn"
 )
 
-func init() {
-	RegisterDataSource("ncloud_zones", dataSourceNcloudZones())
-}
-
-func dataSourceNcloudZones() *schema.Resource {
+func DataSourceNcloudZones() *schema.Resource {
 	return &schema.Resource{
 		Read: dataSourceNcloudZonesRead,
 
@@ -46,10 +42,10 @@ func dataSourceNcloudZonesRead(d *schema.ResourceData, meta interface{}) error {
 	var zones []*Zone
 	var err error
 
-	if meta.(*ProviderConfig).SupportVPC == true {
-		zones, err = getVpcZones(meta.(*ProviderConfig))
+	if meta.(*conn.ProviderConfig).SupportVPC == true {
+		zones, err = getVpcZones(meta.(*conn.ProviderConfig))
 	} else {
-		zones, err = getClassicZones(meta.(*ProviderConfig))
+		zones, err = getClassicZones(meta.(*conn.ProviderConfig))
 	}
 
 	if err != nil {
@@ -59,7 +55,7 @@ func dataSourceNcloudZonesRead(d *schema.ResourceData, meta interface{}) error {
 	resources := flattenZones(zones)
 
 	if f, ok := d.GetOk("filter"); ok {
-		resources = ApplyFilters(f.(*schema.Set), resources, dataSourceNcloudZones().Schema["zones"].Elem.(*schema.Resource).Schema)
+		resources = ApplyFilters(f.(*schema.Set), resources, DataSourceNcloudZones().Schema["zones"].Elem.(*schema.Resource).Schema)
 	}
 
 	if err := d.Set("zones", resources); err != nil {
@@ -74,7 +70,7 @@ func dataSourceNcloudZonesRead(d *schema.ResourceData, meta interface{}) error {
 	return nil
 }
 
-func getClassicZones(config *ProviderConfig) ([]*Zone, error) {
+func getClassicZones(config *conn.ProviderConfig) ([]*Zone, error) {
 	client := config.Client
 	regionNo := config.RegionNo
 
@@ -96,7 +92,7 @@ func getClassicZones(config *ProviderConfig) ([]*Zone, error) {
 	return zones, nil
 }
 
-func getVpcZones(config *ProviderConfig) ([]*Zone, error) {
+func getVpcZones(config *conn.ProviderConfig) ([]*Zone, error) {
 	client := config.Client
 	regionCode := config.RegionCode
 

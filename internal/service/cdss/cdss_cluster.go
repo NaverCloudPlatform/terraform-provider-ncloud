@@ -16,13 +16,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 
 	. "github.com/terraform-providers/terraform-provider-ncloud/internal/common"
-	. "github.com/terraform-providers/terraform-provider-ncloud/internal/provider"
+	"github.com/terraform-providers/terraform-provider-ncloud/internal/conn"
 	. "github.com/terraform-providers/terraform-provider-ncloud/internal/verify"
 )
-
-func init() {
-	RegisterResource("ncloud_cdss_cluster", resourceNcloudCDSSCluster())
-}
 
 const (
 	CDSSStatusCreating = "creating"
@@ -34,7 +30,7 @@ const (
 	CDSSStatusNull     = "null"
 )
 
-func resourceNcloudCDSSCluster() *schema.Resource {
+func ResourceNcloudCDSSCluster() *schema.Resource {
 	return &schema.Resource{
 		CreateContext: resourceNcloudCDSSClusterCreate,
 		ReadContext:   resourceNcloudCDSSClusterRead,
@@ -44,9 +40,9 @@ func resourceNcloudCDSSCluster() *schema.Resource {
 			StateContext: schema.ImportStatePassthroughContext,
 		},
 		Timeouts: &schema.ResourceTimeout{
-			Create: schema.DefaultTimeout(DefaultCreateTimeout),
-			Update: schema.DefaultTimeout(DefaultCreateTimeout),
-			Delete: schema.DefaultTimeout(DefaultCreateTimeout),
+			Create: schema.DefaultTimeout(conn.DefaultCreateTimeout),
+			Update: schema.DefaultTimeout(conn.DefaultCreateTimeout),
+			Delete: schema.DefaultTimeout(conn.DefaultCreateTimeout),
 		},
 		Schema: map[string]*schema.Schema{
 			"id": {
@@ -202,7 +198,7 @@ func resourceNcloudCDSSCluster() *schema.Resource {
 }
 
 func resourceNcloudCDSSClusterCreate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
-	config := meta.(*ProviderConfig)
+	config := meta.(*conn.ProviderConfig)
 	if !config.SupportVPC {
 		return diag.FromErr(NotSupportClassic("resource `ncloud_cdss_cluster`"))
 	}
@@ -249,7 +245,7 @@ func resourceNcloudCDSSClusterCreate(ctx context.Context, d *schema.ResourceData
 }
 
 func resourceNcloudCDSSClusterRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
-	config := meta.(*ProviderConfig)
+	config := meta.(*conn.ProviderConfig)
 	if !config.SupportVPC {
 		return diag.FromErr(NotSupportClassic("resource `ncloud_cdss_cluster`"))
 	}
@@ -337,7 +333,7 @@ func resourceNcloudCDSSClusterRead(ctx context.Context, d *schema.ResourceData, 
 }
 
 func resourceNcloudCDSSClusterUpdate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
-	config := meta.(*ProviderConfig)
+	config := meta.(*conn.ProviderConfig)
 	if !config.SupportVPC {
 		return diag.FromErr(NotSupportClassic("resource `ncloud_cdss_cluster`"))
 	}
@@ -353,7 +349,7 @@ func resourceNcloudCDSSClusterUpdate(ctx context.Context, d *schema.ResourceData
 	return nil
 }
 
-func checkConfigGroupNoChanged(ctx context.Context, d *schema.ResourceData, config *ProviderConfig) diag.Diagnostics {
+func checkConfigGroupNoChanged(ctx context.Context, d *schema.ResourceData, config *conn.ProviderConfig) diag.Diagnostics {
 	if d.HasChanges("config_group_no") {
 		_, n := d.GetChange("config_group_no")
 
@@ -379,7 +375,7 @@ func checkConfigGroupNoChanged(ctx context.Context, d *schema.ResourceData, conf
 	return nil
 }
 
-func checkCmakPasswordChanged(ctx context.Context, d *schema.ResourceData, config *ProviderConfig) diag.Diagnostics {
+func checkCmakPasswordChanged(ctx context.Context, d *schema.ResourceData, config *conn.ProviderConfig) diag.Diagnostics {
 	if d.HasChanges("cmak") {
 		o, n := d.GetChange("cmak")
 
@@ -408,7 +404,7 @@ func checkCmakPasswordChanged(ctx context.Context, d *schema.ResourceData, confi
 	return nil
 }
 
-func checkNodeCountChanged(ctx context.Context, d *schema.ResourceData, config *ProviderConfig) error {
+func checkNodeCountChanged(ctx context.Context, d *schema.ResourceData, config *conn.ProviderConfig) error {
 	if d.HasChanges("broker_nodes") {
 		o, n := d.GetChange("broker_nodes")
 
@@ -444,7 +440,7 @@ func checkNodeCountChanged(ctx context.Context, d *schema.ResourceData, config *
 	return nil
 }
 
-func checkCDSSNodeProductCodeChanged(ctx context.Context, d *schema.ResourceData, config *ProviderConfig) error {
+func checkCDSSNodeProductCodeChanged(ctx context.Context, d *schema.ResourceData, config *conn.ProviderConfig) error {
 	managerNodeProductCode := getChangedCDSSNodeProductCode("manager_node", d)
 	brokerNodeProductCode := getChangedCDSSNodeProductCode("broker_nodes", d)
 
@@ -486,7 +482,7 @@ func getChangedCDSSNodeProductCode(nodeType string, d *schema.ResourceData) *str
 }
 
 func resourceNcloudCDSSClusterDelete(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
-	config := meta.(*ProviderConfig)
+	config := meta.(*conn.ProviderConfig)
 	if !config.SupportVPC {
 		return diag.FromErr(NotSupportClassic("resource `ncloud_nks_cluster`"))
 	}
@@ -508,7 +504,7 @@ func resourceNcloudCDSSClusterDelete(ctx context.Context, d *schema.ResourceData
 	return nil
 }
 
-func waitForCDSSClusterDeletion(ctx context.Context, d *schema.ResourceData, config *ProviderConfig) error {
+func waitForCDSSClusterDeletion(ctx context.Context, d *schema.ResourceData, config *conn.ProviderConfig) error {
 	stateConf := &resource.StateChangeConf{
 		Pending: []string{CDSSStatusDeleting},
 		Target:  []string{CDSSStatusReturn},
@@ -532,7 +528,7 @@ func waitForCDSSClusterDeletion(ctx context.Context, d *schema.ResourceData, con
 	return nil
 }
 
-func waitForCDSSClusterActive(ctx context.Context, d *schema.ResourceData, config *ProviderConfig, id string) error {
+func waitForCDSSClusterActive(ctx context.Context, d *schema.ResourceData, config *conn.ProviderConfig, id string) error {
 	stateConf := &resource.StateChangeConf{
 		Pending: []string{CDSSStatusCreating, CDSSStatusChanging},
 		Target:  []string{CDSSStatusRunning},
@@ -556,7 +552,7 @@ func waitForCDSSClusterActive(ctx context.Context, d *schema.ResourceData, confi
 	return nil
 }
 
-func getCDSSCluster(ctx context.Context, config *ProviderConfig, id string) (*vcdss.OpenApiGetClusterInfoResponseVo, error) {
+func getCDSSCluster(ctx context.Context, config *conn.ProviderConfig, id string) (*vcdss.OpenApiGetClusterInfoResponseVo, error) {
 	resp, _, err := config.Client.Vcdss.V1Api.ClusterGetClusterInfoListServiceGroupInstanceNoPost(ctx, id)
 	if err != nil {
 		return nil, err
@@ -564,7 +560,7 @@ func getCDSSCluster(ctx context.Context, config *ProviderConfig, id string) (*vc
 	return resp.Result, nil
 }
 
-func getBrokerInfo(ctx context.Context, config *ProviderConfig, id string) (*vcdss.GetBrokerNodeListsResponseVo, error) {
+func getBrokerInfo(ctx context.Context, config *conn.ProviderConfig, id string) (*vcdss.GetBrokerNodeListsResponseVo, error) {
 	resp, _, err := config.Client.Vcdss.V1Api.ClusterGetBrokerInfoServiceGroupInstanceNoGet(ctx, id)
 	if err != nil {
 		return nil, err

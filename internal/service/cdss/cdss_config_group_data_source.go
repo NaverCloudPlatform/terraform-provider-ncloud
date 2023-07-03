@@ -9,14 +9,10 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 
 	. "github.com/terraform-providers/terraform-provider-ncloud/internal/common"
-	. "github.com/terraform-providers/terraform-provider-ncloud/internal/provider"
+	"github.com/terraform-providers/terraform-provider-ncloud/internal/conn"
 )
 
-func init() {
-	RegisterDataSource("ncloud_cdss_config_group", dataSourceNcloudCDSSConfigGroup())
-}
-
-func dataSourceNcloudCDSSConfigGroup() *schema.Resource {
+func DataSourceNcloudCDSSConfigGroup() *schema.Resource {
 	return &schema.Resource{
 		Read: dataSourceNcloudCDSSConfigGroupRead,
 		Schema: map[string]*schema.Schema{
@@ -46,7 +42,7 @@ func dataSourceNcloudCDSSConfigGroup() *schema.Resource {
 }
 
 func dataSourceNcloudCDSSConfigGroupRead(d *schema.ResourceData, meta interface{}) error {
-	config := meta.(*ProviderConfig)
+	config := meta.(*conn.ProviderConfig)
 	if !config.SupportVPC {
 		return NotSupportClassic("dataSource `ncloud_cdss_config_group`")
 	}
@@ -57,7 +53,7 @@ func dataSourceNcloudCDSSConfigGroupRead(d *schema.ResourceData, meta interface{
 	}
 
 	if f, ok := d.GetOk("filter"); ok {
-		resources = ApplyFilters(f.(*schema.Set), resources, dataSourceNcloudCDSSKafkaVersion().Schema)
+		resources = ApplyFilters(f.(*schema.Set), resources, DataSourceNcloudCDSSKafkaVersion().Schema)
 	}
 
 	if len(resources) < 1 {
@@ -74,7 +70,7 @@ func dataSourceNcloudCDSSConfigGroupRead(d *schema.ResourceData, meta interface{
 	return nil
 }
 
-func getCDSSConfigGroups(config *ProviderConfig, kafkaVersionCode string) ([]map[string]interface{}, error) {
+func getCDSSConfigGroups(config *conn.ProviderConfig, kafkaVersionCode string) ([]map[string]interface{}, error) {
 	LogCommonRequest("GetCDSSConfigGroups", "")
 	resp, _, err := config.Client.Vcdss.V1Api.ConfigGroupGetKafkaVersionConfigGroupListPost(context.Background(), vcdss.GetKafkaVersionConfigGroupListRequest{
 		KafkaVersionCode: kafkaVersionCode,

@@ -9,14 +9,10 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 
 	. "github.com/terraform-providers/terraform-provider-ncloud/internal/common"
-	. "github.com/terraform-providers/terraform-provider-ncloud/internal/provider"
+	"github.com/terraform-providers/terraform-provider-ncloud/internal/conn"
 )
 
-func init() {
-	RegisterDataSource("ncloud_network_acls", dataSourceNcloudNetworkAcls())
-}
-
-func dataSourceNcloudNetworkAcls() *schema.Resource {
+func DataSourceNcloudNetworkAcls() *schema.Resource {
 	return &schema.Resource{
 		Read: dataSourceNcloudNetworkAclsRead,
 
@@ -42,14 +38,14 @@ func dataSourceNcloudNetworkAcls() *schema.Resource {
 			"network_acls": {
 				Type:     schema.TypeList,
 				Computed: true,
-				Elem:     GetDataSourceItemSchema(resourceNcloudNetworkACL()),
+				Elem:     GetDataSourceItemSchema(ResourceNcloudNetworkACL()),
 			},
 		},
 	}
 }
 
 func dataSourceNcloudNetworkAclsRead(d *schema.ResourceData, meta interface{}) error {
-	config := meta.(*ProviderConfig)
+	config := meta.(*conn.ProviderConfig)
 
 	if !config.SupportVPC {
 		return NotSupportClassic("data source `ncloud_network_acls`")
@@ -105,7 +101,7 @@ func dataSourceNcloudNetworkAclsRead(d *schema.ResourceData, meta interface{}) e
 	}
 
 	if f, ok := d.GetOk("filter"); ok {
-		resources = ApplyFilters(f.(*schema.Set), resources, resourceNcloudNetworkACL().Schema)
+		resources = ApplyFilters(f.(*schema.Set), resources, ResourceNcloudNetworkACL().Schema)
 	}
 
 	d.SetId(time.Now().UTC().String())

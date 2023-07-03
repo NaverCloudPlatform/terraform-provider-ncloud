@@ -1,4 +1,4 @@
-package vpc
+package vpc_test
 
 import (
 	"errors"
@@ -12,7 +12,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 
 	. "github.com/terraform-providers/terraform-provider-ncloud/internal/acctest"
-	"github.com/terraform-providers/terraform-provider-ncloud/internal/provider"
+	"github.com/terraform-providers/terraform-provider-ncloud/internal/conn"
+	vpcservice "github.com/terraform-providers/terraform-provider-ncloud/internal/service/vpc"
 )
 
 func TestAccResourceNcloudNetworkACL_basic(t *testing.T) {
@@ -194,8 +195,8 @@ func testAccCheckNetworkACLExists(n string, networkACL *vpc.NetworkAcl) resource
 			return fmt.Errorf("No network acl id is set: %s", n)
 		}
 
-		config := GetTestProvider(true).Meta().(*provider.ProviderConfig)
-		instance, err := getNetworkACLInstance(config, rs.Primary.ID)
+		config := GetTestProvider(true).Meta().(*conn.ProviderConfig)
+		instance, err := vpcservice.GetNetworkACLInstance(config, rs.Primary.ID)
 		if err != nil {
 			return err
 		}
@@ -207,14 +208,14 @@ func testAccCheckNetworkACLExists(n string, networkACL *vpc.NetworkAcl) resource
 }
 
 func testAccCheckNetworkACLDestroy(s *terraform.State) error {
-	config := GetTestProvider(true).Meta().(*provider.ProviderConfig)
+	config := GetTestProvider(true).Meta().(*conn.ProviderConfig)
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "ncloud_network_acl" {
 			continue
 		}
 
-		instance, err := getNetworkACLInstance(config, rs.Primary.ID)
+		instance, err := vpcservice.GetNetworkACLInstance(config, rs.Primary.ID)
 
 		if err != nil {
 			return err
@@ -230,7 +231,7 @@ func testAccCheckNetworkACLDestroy(s *terraform.State) error {
 
 func testAccCheckNetworkACLDisappears(instance *vpc.NetworkAcl) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
-		config := GetTestProvider(true).Meta().(*provider.ProviderConfig)
+		config := GetTestProvider(true).Meta().(*conn.ProviderConfig)
 
 		reqParams := &vpc.DeleteNetworkAclRequest{
 			RegionCode:   &config.RegionCode,
@@ -239,7 +240,7 @@ func testAccCheckNetworkACLDisappears(instance *vpc.NetworkAcl) resource.TestChe
 
 		_, err := config.Client.Vpc.V2Api.DeleteNetworkAcl(reqParams)
 
-		if err := waitForNcloudNetworkACLDeletion(config, *instance.NetworkAclNo); err != nil {
+		if err := vpcservice.WaitForNcloudNetworkACLDeletion(config, *instance.NetworkAclNo); err != nil {
 			return err
 		}
 

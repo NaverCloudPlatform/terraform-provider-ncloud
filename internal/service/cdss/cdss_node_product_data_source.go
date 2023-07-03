@@ -10,14 +10,10 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 
 	. "github.com/terraform-providers/terraform-provider-ncloud/internal/common"
-	. "github.com/terraform-providers/terraform-provider-ncloud/internal/provider"
+	"github.com/terraform-providers/terraform-provider-ncloud/internal/conn"
 )
 
-func init() {
-	RegisterDataSource("ncloud_cdss_node_product", dataSourceNcloudCDSSNodeProduct())
-}
-
-func dataSourceNcloudCDSSNodeProduct() *schema.Resource {
+func DataSourceNcloudCDSSNodeProduct() *schema.Resource {
 	return &schema.Resource{
 		Read: dataSourceNcloudCDSSNodeProductRead,
 		Schema: map[string]*schema.Schema{
@@ -51,7 +47,7 @@ func dataSourceNcloudCDSSNodeProduct() *schema.Resource {
 }
 
 func dataSourceNcloudCDSSNodeProductRead(d *schema.ResourceData, meta interface{}) error {
-	config := meta.(*ProviderConfig)
+	config := meta.(*conn.ProviderConfig)
 	if !config.SupportVPC {
 		return NotSupportClassic("datasource `ncloud_cdss_node_product`")
 	}
@@ -67,7 +63,7 @@ func dataSourceNcloudCDSSNodeProductRead(d *schema.ResourceData, meta interface{
 	}
 
 	if f, ok := d.GetOk("filter"); ok {
-		resources = ApplyFilters(f.(*schema.Set), resources, dataSourceNcloudCDSSNodeProduct().Schema)
+		resources = ApplyFilters(f.(*schema.Set), resources, DataSourceNcloudCDSSNodeProduct().Schema)
 	}
 
 	if len(resources) < 1 {
@@ -84,7 +80,7 @@ func dataSourceNcloudCDSSNodeProductRead(d *schema.ResourceData, meta interface{
 	return nil
 }
 
-func getCDSSNodeProducts(config *ProviderConfig, reqParams vcdss.NodeProduct) ([]map[string]interface{}, error) {
+func getCDSSNodeProducts(config *conn.ProviderConfig, reqParams vcdss.NodeProduct) ([]map[string]interface{}, error) {
 	LogCommonRequest("GetOsProductList", "")
 	resp, _, err := config.Client.Vcdss.V1Api.ClusterGetNodeProductListPost(context.Background(), reqParams)
 

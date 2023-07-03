@@ -6,14 +6,10 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 
 	. "github.com/terraform-providers/terraform-provider-ncloud/internal/common"
-	. "github.com/terraform-providers/terraform-provider-ncloud/internal/provider"
+	"github.com/terraform-providers/terraform-provider-ncloud/internal/conn"
 )
 
-func init() {
-	RegisterDataSource("ncloud_access_control_groups", dataSourceNcloudAccessControlGroups())
-}
-
-func dataSourceNcloudAccessControlGroups() *schema.Resource {
+func DataSourceNcloudAccessControlGroups() *schema.Resource {
 	return &schema.Resource{
 		Read: dataSourceNcloudAccessControlGroupsRead,
 
@@ -57,7 +53,7 @@ func dataSourceNcloudAccessControlGroups() *schema.Resource {
 }
 
 func dataSourceNcloudAccessControlGroupsRead(d *schema.ResourceData, meta interface{}) error {
-	config := meta.(*ProviderConfig)
+	config := meta.(*conn.ProviderConfig)
 	var resources []map[string]interface{}
 	var err error
 
@@ -72,7 +68,7 @@ func dataSourceNcloudAccessControlGroupsRead(d *schema.ResourceData, meta interf
 	}
 
 	if f, ok := d.GetOk("filter"); ok {
-		resources = ApplyFilters(f.(*schema.Set), resources, dataSourceNcloudAccessControlGroups().Schema)
+		resources = ApplyFilters(f.(*schema.Set), resources, DataSourceNcloudAccessControlGroups().Schema)
 	}
 
 	if len(resources) < 1 {

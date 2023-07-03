@@ -13,20 +13,16 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 
 	. "github.com/terraform-providers/terraform-provider-ncloud/internal/common"
-	. "github.com/terraform-providers/terraform-provider-ncloud/internal/provider"
+	"github.com/terraform-providers/terraform-provider-ncloud/internal/conn"
 	. "github.com/terraform-providers/terraform-provider-ncloud/internal/verify"
 )
-
-func init() {
-	RegisterResource("ncloud_lb_listener", resourceNcloudLbListener())
-}
 
 const (
 	LoadBalancerListenerBusyStateErrorCode = "1200004"
 	LoadBalancerListenerServerErrorCode    = "1250000"
 )
 
-func resourceNcloudLbListener() *schema.Resource {
+func ResourceNcloudLbListener() *schema.Resource {
 	return &schema.Resource{
 		CreateContext: resourceNcloudLbListenerCreate,
 		ReadContext:   resourceNcloudLbListenerRead,
@@ -46,9 +42,9 @@ func resourceNcloudLbListener() *schema.Resource {
 			},
 		},
 		Timeouts: &schema.ResourceTimeout{
-			Create: schema.DefaultTimeout(DefaultCreateTimeout),
-			Update: schema.DefaultTimeout(DefaultUpdateTimeout),
-			Delete: schema.DefaultTimeout(DefaultTimeout),
+			Create: schema.DefaultTimeout(conn.DefaultCreateTimeout),
+			Update: schema.DefaultTimeout(conn.DefaultUpdateTimeout),
+			Delete: schema.DefaultTimeout(conn.DefaultTimeout),
 		},
 		Schema: map[string]*schema.Schema{
 			"listener_no": {
@@ -99,7 +95,7 @@ func resourceNcloudLbListener() *schema.Resource {
 }
 
 func resourceNcloudLbListenerCreate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
-	config := meta.(*ProviderConfig)
+	config := meta.(*conn.ProviderConfig)
 	if !config.SupportVPC {
 		return diag.FromErr(NotSupportClassic("resource `ncloud_lb_listener`"))
 	}
@@ -141,12 +137,12 @@ func resourceNcloudLbListenerCreate(ctx context.Context, d *schema.ResourceData,
 }
 
 func resourceNcloudLbListenerRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
-	config := meta.(*ProviderConfig)
+	config := meta.(*conn.ProviderConfig)
 	if !config.SupportVPC {
 		return diag.FromErr(NotSupportClassic("resource `ncloud_lb_listener`"))
 	}
 
-	listener, err := getVpcLoadBalancerListener(config, d.Id(), d.Get("load_balancer_no").(string))
+	listener, err := GetVpcLoadBalancerListener(config, d.Id(), d.Get("load_balancer_no").(string))
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -157,12 +153,12 @@ func resourceNcloudLbListenerRead(ctx context.Context, d *schema.ResourceData, m
 	}
 
 	listerMap := ConvertToMap(listener)
-	SetSingularResourceDataFromMapSchema(resourceNcloudLbListener(), d, listerMap)
+	SetSingularResourceDataFromMapSchema(ResourceNcloudLbListener(), d, listerMap)
 	return nil
 }
 
 func resourceNcloudLbListenerUpdate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
-	config := meta.(*ProviderConfig)
+	config := meta.(*conn.ProviderConfig)
 	if !config.SupportVPC {
 		return diag.FromErr(NotSupportClassic("resource `ncloud_lb_listener`"))
 	}
@@ -202,7 +198,7 @@ func resourceNcloudLbListenerUpdate(ctx context.Context, d *schema.ResourceData,
 }
 
 func resourceNcloudLbListenerDelete(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
-	config := meta.(*ProviderConfig)
+	config := meta.(*conn.ProviderConfig)
 	if !config.SupportVPC {
 		return diag.FromErr(NotSupportClassic("resource `ncloud_lb_listener`"))
 	}
@@ -238,7 +234,7 @@ func getListenerFromCreateResponseByPort(listenerList []*vloadbalancer.LoadBalan
 	return nil
 }
 
-func getVpcLoadBalancerListener(config *ProviderConfig, id string, loadBalancerNo string) (*LoadBalancerListener, error) {
+func GetVpcLoadBalancerListener(config *conn.ProviderConfig, id string, loadBalancerNo string) (*LoadBalancerListener, error) {
 	reqParams := &vloadbalancer.GetLoadBalancerListenerListRequest{
 		RegionCode:             &config.RegionCode,
 		LoadBalancerInstanceNo: ncloud.String(loadBalancerNo),
@@ -266,7 +262,7 @@ func getVpcLoadBalancerListener(config *ProviderConfig, id string, loadBalancerN
 	return nil, nil
 }
 
-func getVpcLoadBalancerListenerTargetGroupNo(config *ProviderConfig, id string) *string {
+func getVpcLoadBalancerListenerTargetGroupNo(config *conn.ProviderConfig, id string) *string {
 
 	reqParams := &vloadbalancer.GetLoadBalancerRuleListRequest{
 		RegionCode:             &config.RegionCode,

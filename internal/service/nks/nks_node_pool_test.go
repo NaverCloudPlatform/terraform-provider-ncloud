@@ -1,4 +1,4 @@
-package nks
+package nks_test
 
 import (
 	"context"
@@ -14,8 +14,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 
 	. "github.com/terraform-providers/terraform-provider-ncloud/internal/acctest"
-	"github.com/terraform-providers/terraform-provider-ncloud/internal/provider"
-	. "github.com/terraform-providers/terraform-provider-ncloud/internal/provider"
+	"github.com/terraform-providers/terraform-provider-ncloud/internal/conn"
+	"github.com/terraform-providers/terraform-provider-ncloud/internal/service/nks"
 	"github.com/terraform-providers/terraform-provider-ncloud/internal/service/vpc"
 )
 
@@ -332,17 +332,17 @@ func testAccCheckNKSNodePoolExists(n string, nodePool *vnks.NodePool) resource.T
 			return fmt.Errorf("No nodepool no is set")
 		}
 
-		clusterUuid, nodePoolName, err := NodePoolParseResourceID(rs.Primary.ID)
+		clusterUuid, nodePoolName, err := nks.NodePoolParseResourceID(rs.Primary.ID)
 		if err != nil {
 			return fmt.Errorf("Id(%s) is not [ClusterName:NodePoolName] ", rs.Primary.ID)
 		}
 
-		config := GetTestProvider(true).Meta().(*ProviderConfig)
+		config := GetTestProvider(true).Meta().(*conn.ProviderConfig)
 		if err != nil {
 			return err
 		}
 
-		np, err := getNKSNodePool(context.Background(), config, clusterUuid, nodePoolName)
+		np, err := nks.GetNKSNodePool(context.Background(), config, clusterUuid, nodePoolName)
 		if err != nil {
 			return err
 		}
@@ -354,26 +354,26 @@ func testAccCheckNKSNodePoolExists(n string, nodePool *vnks.NodePool) resource.T
 }
 
 func testAccCheckNKSNodePoolDestroy(s *terraform.State) error {
-	config := GetTestProvider(true).Meta().(*ProviderConfig)
+	config := GetTestProvider(true).Meta().(*conn.ProviderConfig)
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "ncloud_nks_node_pool" {
 			continue
 		}
 
-		clusterUuid, nodePoolName, err := NodePoolParseResourceID(rs.Primary.ID)
+		clusterUuid, nodePoolName, err := nks.NodePoolParseResourceID(rs.Primary.ID)
 		if err != nil {
 			return fmt.Errorf("Id(%s) is not [ClusterName:NodePoolName] ", rs.Primary.ID)
 		}
 
-		clusters, err := getNKSClusters(context.Background(), config)
+		clusters, err := nks.GetNKSClusters(context.Background(), config)
 		if err != nil {
 			return err
 		}
 
 		for _, cluster := range clusters {
 			if ncloud.StringValue(cluster.Uuid) == clusterUuid {
-				np, err := getNKSNodePool(context.Background(), config, clusterUuid, nodePoolName)
+				np, err := nks.GetNKSNodePool(context.Background(), config, clusterUuid, nodePoolName)
 				if err != nil {
 					return err
 				}
@@ -390,7 +390,7 @@ func testAccCheckNKSNodePoolDestroy(s *terraform.State) error {
 }
 
 func testAccCheckSubnetDestroy(s *terraform.State) error {
-	config := GetTestProvider(true).Meta().(*provider.ProviderConfig)
+	config := GetTestProvider(true).Meta().(*conn.ProviderConfig)
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "ncloud_subnet" {
@@ -405,6 +405,29 @@ func testAccCheckSubnetDestroy(s *terraform.State) error {
 
 		if instance != nil {
 			return errors.New("Subnet still exists")
+		}
+	}
+
+	return nil
+}
+
+func testAccCheckNKSClusterDestroy(s *terraform.State) error {
+	config := GetTestProvider(true).Meta().(*conn.ProviderConfig)
+
+	for _, rs := range s.RootModule().Resources {
+		if rs.Type != "ncloud_nks_cluster" {
+			continue
+		}
+
+		clusters, err := nks.GetNKSClusters(context.Background(), config)
+		if err != nil {
+			return err
+		}
+
+		for _, cluster := range clusters {
+			if ncloud.StringValue(cluster.Uuid) == rs.Primary.ID {
+				return fmt.Errorf("Cluster still exists")
+			}
 		}
 	}
 

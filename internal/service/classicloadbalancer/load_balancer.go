@@ -12,15 +12,11 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 
 	. "github.com/terraform-providers/terraform-provider-ncloud/internal/common"
-	. "github.com/terraform-providers/terraform-provider-ncloud/internal/provider"
+	"github.com/terraform-providers/terraform-provider-ncloud/internal/conn"
 	. "github.com/terraform-providers/terraform-provider-ncloud/internal/verify"
 )
 
-func init() {
-	RegisterResource("ncloud_load_balancer", resourceNcloudLoadBalancer())
-}
-
-func resourceNcloudLoadBalancer() *schema.Resource {
+func ResourceNcloudLoadBalancer() *schema.Resource {
 	return &schema.Resource{
 		Create: resourceNcloudLoadBalancerCreate,
 		Read:   resourceNcloudLoadBalancerRead,
@@ -30,9 +26,9 @@ func resourceNcloudLoadBalancer() *schema.Resource {
 			State: schema.ImportStatePassthrough,
 		},
 		Timeouts: &schema.ResourceTimeout{
-			Create: schema.DefaultTimeout(DefaultCreateTimeout),
-			Update: schema.DefaultTimeout(DefaultUpdateTimeout),
-			Delete: schema.DefaultTimeout(DefaultTimeout),
+			Create: schema.DefaultTimeout(conn.DefaultCreateTimeout),
+			Update: schema.DefaultTimeout(conn.DefaultUpdateTimeout),
+			Delete: schema.DefaultTimeout(conn.DefaultTimeout),
 		},
 		Schema: map[string]*schema.Schema{
 			"name": {
@@ -133,8 +129,8 @@ func resourceNcloudLoadBalancer() *schema.Resource {
 }
 
 func resourceNcloudLoadBalancerCreate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ProviderConfig).Client
-	config := meta.(*ProviderConfig)
+	client := meta.(*conn.ProviderConfig).Client
+	config := meta.(*conn.ProviderConfig)
 
 	if config.SupportVPC {
 		return NotSupportVpc("resource `ncloud_load_balancer`")
@@ -159,7 +155,7 @@ func resourceNcloudLoadBalancerCreate(d *schema.ResourceData, meta interface{}) 
 		Pending: []string{"INIT", "USE"},
 		Target:  []string{"USED"},
 		Refresh: func() (interface{}, string, error) {
-			instance, err := getLoadBalancerInstance(client, ncloud.StringValue(loadBalancerInstance.LoadBalancerInstanceNo))
+			instance, err := GetLoadBalancerInstance(client, ncloud.StringValue(loadBalancerInstance.LoadBalancerInstanceNo))
 			if err != nil {
 				return 0, "", err
 			}
@@ -170,7 +166,7 @@ func resourceNcloudLoadBalancerCreate(d *schema.ResourceData, meta interface{}) 
 
 			return instance, ncloud.StringValue(instance.LoadBalancerInstanceOperation.Code), nil
 		},
-		Timeout:    DefaultCreateTimeout,
+		Timeout:    conn.DefaultCreateTimeout,
 		Delay:      2 * time.Second,
 		MinTimeout: 3 * time.Second,
 	}
@@ -184,9 +180,9 @@ func resourceNcloudLoadBalancerCreate(d *schema.ResourceData, meta interface{}) 
 }
 
 func resourceNcloudLoadBalancerRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ProviderConfig).Client
+	client := meta.(*conn.ProviderConfig).Client
 
-	lb, err := getLoadBalancerInstance(client, d.Id())
+	lb, err := GetLoadBalancerInstance(client, d.Id())
 	if err != nil {
 		return err
 	}
@@ -239,7 +235,7 @@ func resourceNcloudLoadBalancerRead(d *schema.ResourceData, meta interface{}) er
 }
 
 func resourceNcloudLoadBalancerDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ProviderConfig).Client
+	client := meta.(*conn.ProviderConfig).Client
 	if err := deleteLoadBalancerInstance(client, d.Id()); err != nil {
 		return err
 	}
@@ -248,7 +244,7 @@ func resourceNcloudLoadBalancerDelete(d *schema.ResourceData, meta interface{}) 
 }
 
 func resourceNcloudLoadBalancerUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ProviderConfig).Client
+	client := meta.(*conn.ProviderConfig).Client
 
 	// Change Load Balanced Server Instances
 	if d.HasChange("server_instance_no_list") {
@@ -283,7 +279,7 @@ func resourceNcloudLoadBalancerUpdate(d *schema.ResourceData, meta interface{}) 
 			Pending: []string{"INIT", "USE"},
 			Target:  []string{"USED"},
 			Refresh: func() (interface{}, string, error) {
-				instance, err := getLoadBalancerInstance(client, d.Id())
+				instance, err := GetLoadBalancerInstance(client, d.Id())
 				if err != nil {
 					return 0, "", err
 				}
@@ -294,7 +290,7 @@ func resourceNcloudLoadBalancerUpdate(d *schema.ResourceData, meta interface{}) 
 
 				return instance, ncloud.StringValue(instance.LoadBalancerInstanceOperation.Code), nil
 			},
-			Timeout:    DefaultUpdateTimeout,
+			Timeout:    conn.DefaultUpdateTimeout,
 			Delay:      2 * time.Second,
 			MinTimeout: 3 * time.Second,
 		}
@@ -308,7 +304,7 @@ func resourceNcloudLoadBalancerUpdate(d *schema.ResourceData, meta interface{}) 
 	return resourceNcloudLoadBalancerRead(d, meta)
 }
 
-func changeLoadBalancedServerInstances(client *NcloudAPIClient, d *schema.ResourceData) error {
+func changeLoadBalancedServerInstances(client *conn.NcloudAPIClient, d *schema.ResourceData) error {
 	reqParams := &loadbalancer.ChangeLoadBalancedServerInstancesRequest{
 		LoadBalancerInstanceNo: ncloud.String(d.Id()),
 		ServerInstanceNoList:   ExpandStringInterfaceList(d.Get("server_instance_no_list").([]interface{})),
@@ -327,7 +323,7 @@ func changeLoadBalancedServerInstances(client *NcloudAPIClient, d *schema.Resour
 		Pending: []string{"INIT", "USE"},
 		Target:  []string{"USED"},
 		Refresh: func() (interface{}, string, error) {
-			instance, err := getLoadBalancerInstance(client, d.Id())
+			instance, err := GetLoadBalancerInstance(client, d.Id())
 			if err != nil {
 				return 0, "", err
 			}
@@ -338,7 +334,7 @@ func changeLoadBalancedServerInstances(client *NcloudAPIClient, d *schema.Resour
 
 			return instance, ncloud.StringValue(instance.LoadBalancerInstanceOperation.Code), nil
 		},
-		Timeout:    DefaultUpdateTimeout,
+		Timeout:    conn.DefaultUpdateTimeout,
 		Delay:      2 * time.Second,
 		MinTimeout: 3 * time.Second,
 	}
@@ -352,7 +348,7 @@ func changeLoadBalancedServerInstances(client *NcloudAPIClient, d *schema.Resour
 }
 
 func buildCreateLoadBalancerInstanceParams(d *schema.ResourceData) (*loadbalancer.CreateLoadBalancerInstanceRequest, error) {
-	regionNo, err := ParseRegionNoParameter(d)
+	regionNo, err := conn.ParseRegionNoParameter(d)
 	if err != nil {
 		return nil, err
 	}
@@ -388,7 +384,7 @@ func buildCreateLoadBalancerInstanceParams(d *schema.ResourceData) (*loadbalance
 	return reqParams, nil
 }
 
-func getLoadBalancerInstance(client *NcloudAPIClient, loadBalancerInstanceNo string) (*loadbalancer.LoadBalancerInstance, error) {
+func GetLoadBalancerInstance(client *conn.NcloudAPIClient, loadBalancerInstanceNo string) (*loadbalancer.LoadBalancerInstance, error) {
 	reqParams := &loadbalancer.GetLoadBalancerInstanceListRequest{
 		LoadBalancerInstanceNoList: []*string{ncloud.String(loadBalancerInstanceNo)},
 	}
@@ -408,7 +404,7 @@ func getLoadBalancerInstance(client *NcloudAPIClient, loadBalancerInstanceNo str
 	return nil, nil
 }
 
-func deleteLoadBalancerInstance(client *NcloudAPIClient, loadBalancerInstanceNo string) error {
+func deleteLoadBalancerInstance(client *conn.NcloudAPIClient, loadBalancerInstanceNo string) error {
 	reqParams := &loadbalancer.DeleteLoadBalancerInstancesRequest{
 		LoadBalancerInstanceNoList: []*string{ncloud.String(loadBalancerInstanceNo)},
 	}
@@ -428,7 +424,7 @@ func deleteLoadBalancerInstance(client *NcloudAPIClient, loadBalancerInstanceNo 
 		Pending: []string{"", "USED"},
 		Target:  []string{"OK"},
 		Refresh: func() (interface{}, string, error) {
-			instance, err := getLoadBalancerInstance(client, loadBalancerInstanceNo)
+			instance, err := GetLoadBalancerInstance(client, loadBalancerInstanceNo)
 			if err != nil {
 				return 0, "", err
 			}
@@ -439,7 +435,7 @@ func deleteLoadBalancerInstance(client *NcloudAPIClient, loadBalancerInstanceNo 
 
 			return instance, "", nil
 		},
-		Timeout:    DefaultUpdateTimeout,
+		Timeout:    conn.DefaultUpdateTimeout,
 		Delay:      2 * time.Second,
 		MinTimeout: 3 * time.Second,
 	}

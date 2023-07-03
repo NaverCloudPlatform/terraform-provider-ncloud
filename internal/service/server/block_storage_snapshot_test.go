@@ -1,4 +1,4 @@
-package server
+package server_test
 
 import (
 	"fmt"
@@ -12,7 +12,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 
 	. "github.com/terraform-providers/terraform-provider-ncloud/internal/acctest"
-	. "github.com/terraform-providers/terraform-provider-ncloud/internal/provider"
+	"github.com/terraform-providers/terraform-provider-ncloud/internal/conn"
+	serverservice "github.com/terraform-providers/terraform-provider-ncloud/internal/service/server"
 )
 
 // TODO: Fix TestAcc ErrorTestAccResourceNcloudBlockStorageBasic
@@ -74,8 +75,8 @@ func testAccCheckBlockStorageSnapshotExistsWithProvider(n string, i *server.Bloc
 		}
 
 		provider := providerF()
-		client := provider.Meta().(*ProviderConfig).Client
-		snapshot, err := getBlockStorageSnapshotInstance(client, rs.Primary.ID)
+		client := provider.Meta().(*conn.ProviderConfig).Client
+		snapshot, err := serverservice.GetBlockStorageSnapshotInstance(client, rs.Primary.ID)
 		log.Printf("[DEBUG] testAccCheckBlockStorageSnapshotExistsWithProvider snapshot %#v", snapshot)
 
 		if err != nil {
@@ -96,14 +97,14 @@ func testAccCheckBlockStorageSnapshotDestroy(s *terraform.State) error {
 }
 
 func testAccCheckBlockStorageSnapshotDestroyWithProvider(s *terraform.State, provider *schema.Provider) error {
-	client := provider.Meta().(*ProviderConfig).Client
+	client := provider.Meta().(*conn.ProviderConfig).Client
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "ncloud_block_storage_snapshot" {
 			continue
 		}
 		log.Printf("[DEBUG] testAccCheckBlockStorageSnapshotDestroyWithProvider getBlockStorageSnapshotInstance %s", rs.Primary.ID)
-		snapshot, err := getBlockStorageSnapshotInstance(client, rs.Primary.ID)
+		snapshot, err := serverservice.GetBlockStorageSnapshotInstance(client, rs.Primary.ID)
 		log.Printf("[DEBUG] testAccCheckBlockStorageSnapshotDestroyWithProvider snapshot %#v", snapshot)
 		if snapshot == nil {
 			return nil

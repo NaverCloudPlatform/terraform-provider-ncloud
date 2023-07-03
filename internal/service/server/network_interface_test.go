@@ -1,4 +1,4 @@
-package server
+package server_test
 
 import (
 	"errors"
@@ -13,7 +13,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 
 	. "github.com/terraform-providers/terraform-provider-ncloud/internal/acctest"
-	. "github.com/terraform-providers/terraform-provider-ncloud/internal/provider"
+	"github.com/terraform-providers/terraform-provider-ncloud/internal/conn"
+	"github.com/terraform-providers/terraform-provider-ncloud/internal/service/server"
 )
 
 func TestAccresourceNcloudNetworkInterface_basic(t *testing.T) {
@@ -178,8 +179,8 @@ func testAccCheckNetworkInterfaceExists(n string, NetworkInterface *vserver.Netw
 			return fmt.Errorf("no Network Interface id is set")
 		}
 
-		config := GetTestProvider(true).Meta().(*ProviderConfig)
-		instance, err := getNetworkInterface(config, rs.Primary.ID)
+		config := GetTestProvider(true).Meta().(*conn.ProviderConfig)
+		instance, err := server.GetNetworkInterface(config, rs.Primary.ID)
 		if err != nil {
 			return err
 		}
@@ -191,14 +192,14 @@ func testAccCheckNetworkInterfaceExists(n string, NetworkInterface *vserver.Netw
 }
 
 func testAccCheckNetworkInterfaceDestroy(s *terraform.State) error {
-	config := GetTestProvider(true).Meta().(*ProviderConfig)
+	config := GetTestProvider(true).Meta().(*conn.ProviderConfig)
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "ncloud_network_interface" {
 			continue
 		}
 
-		instance, err := getNetworkInterface(config, rs.Primary.ID)
+		instance, err := server.GetNetworkInterface(config, rs.Primary.ID)
 
 		if err != nil {
 			return err
@@ -214,7 +215,7 @@ func testAccCheckNetworkInterfaceDestroy(s *terraform.State) error {
 
 func testAccCheckNetworkInterfaceDisappears(instance *vserver.NetworkInterface) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
-		config := GetTestProvider(true).Meta().(*ProviderConfig)
-		return deleteNetworkInterface(config, *instance.NetworkInterfaceNo)
+		config := GetTestProvider(true).Meta().(*conn.ProviderConfig)
+		return server.DeleteNetworkInterface(config, *instance.NetworkInterfaceNo)
 	}
 }

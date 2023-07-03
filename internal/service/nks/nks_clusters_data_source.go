@@ -7,14 +7,10 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 
 	. "github.com/terraform-providers/terraform-provider-ncloud/internal/common"
-	. "github.com/terraform-providers/terraform-provider-ncloud/internal/provider"
+	"github.com/terraform-providers/terraform-provider-ncloud/internal/conn"
 )
 
-func init() {
-	RegisterDataSource("ncloud_nks_clusters", dataSourceNcloudNKSClusters())
-}
-
-func dataSourceNcloudNKSClusters() *schema.Resource {
+func DataSourceNcloudNKSClusters() *schema.Resource {
 	return &schema.Resource{
 		ReadContext: dataSourceNcloudNKSClustersRead,
 		Schema: map[string]*schema.Schema{
@@ -28,12 +24,12 @@ func dataSourceNcloudNKSClusters() *schema.Resource {
 }
 
 func dataSourceNcloudNKSClustersRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
-	config := meta.(*ProviderConfig)
+	config := meta.(*conn.ProviderConfig)
 	if !config.SupportVPC {
 		return diag.FromErr(NotSupportClassic("dataSource `ncloud_nks_clusters`"))
 	}
 
-	clusters, err := getNKSClusters(ctx, config)
+	clusters, err := GetNKSClusters(ctx, config)
 	if err != nil {
 		return diag.FromErr(err)
 	}

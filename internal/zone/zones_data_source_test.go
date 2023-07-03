@@ -1,4 +1,4 @@
-package zone
+package zone_test
 
 import (
 	"testing"

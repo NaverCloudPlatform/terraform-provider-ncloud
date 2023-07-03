@@ -16,17 +16,13 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 
 	. "github.com/terraform-providers/terraform-provider-ncloud/internal/common"
-	. "github.com/terraform-providers/terraform-provider-ncloud/internal/provider"
+	"github.com/terraform-providers/terraform-provider-ncloud/internal/conn"
 	"github.com/terraform-providers/terraform-provider-ncloud/internal/service/vpc"
 	. "github.com/terraform-providers/terraform-provider-ncloud/internal/verify"
 	"github.com/terraform-providers/terraform-provider-ncloud/internal/zone"
 )
 
-func init() {
-	RegisterResource("ncloud_server", resourceNcloudServer())
-}
-
-func resourceNcloudServer() *schema.Resource {
+func ResourceNcloudServer() *schema.Resource {
 	return &schema.Resource{
 		Create: resourceNcloudServerCreate,
 		Read:   resourceNcloudServerRead,
@@ -36,8 +32,8 @@ func resourceNcloudServer() *schema.Resource {
 			State: schema.ImportStatePassthrough,
 		},
 		Timeouts: &schema.ResourceTimeout{
-			Create: schema.DefaultTimeout(DefaultCreateTimeout),
-			Delete: schema.DefaultTimeout(DefaultTimeout),
+			Create: schema.DefaultTimeout(conn.DefaultCreateTimeout),
+			Delete: schema.DefaultTimeout(conn.DefaultTimeout),
 		},
 		Schema: map[string]*schema.Schema{
 			"server_image_product_code": {
@@ -264,7 +260,7 @@ func resourceNcloudServer() *schema.Resource {
 }
 
 func resourceNcloudServerCreate(d *schema.ResourceData, meta interface{}) error {
-	config := meta.(*ProviderConfig)
+	config := meta.(*conn.ProviderConfig)
 
 	id, err := createServerInstance(d, config)
 
@@ -279,9 +275,9 @@ func resourceNcloudServerCreate(d *schema.ResourceData, meta interface{}) error 
 }
 
 func resourceNcloudServerRead(d *schema.ResourceData, meta interface{}) error {
-	config := meta.(*ProviderConfig)
+	config := meta.(*conn.ProviderConfig)
 
-	r, err := getServerInstance(config, d.Id())
+	r, err := GetServerInstance(config, d.Id())
 	if err != nil {
 		return err
 	}
@@ -297,14 +293,14 @@ func resourceNcloudServerRead(d *schema.ResourceData, meta interface{}) error {
 
 	instance := ConvertToMap(r)
 
-	SetSingularResourceDataFromMapSchema(resourceNcloudServer(), d, instance)
+	SetSingularResourceDataFromMapSchema(ResourceNcloudServer(), d, instance)
 
 	return nil
 }
 
 func resourceNcloudServerDelete(d *schema.ResourceData, meta interface{}) error {
-	config := meta.(*ProviderConfig)
-	serverInstance, err := getServerInstance(config, d.Id())
+	config := meta.(*conn.ProviderConfig)
+	serverInstance, err := GetServerInstance(config, d.Id())
 	if err != nil {
 		return err
 	}
@@ -341,7 +337,7 @@ func resourceNcloudServerDelete(d *schema.ResourceData, meta interface{}) error 
 }
 
 func resourceNcloudServerUpdate(d *schema.ResourceData, meta interface{}) error {
-	config := meta.(*ProviderConfig)
+	config := meta.(*conn.ProviderConfig)
 
 	if d.HasChange("server_product_code") {
 		if err := updateServerInstanceSpec(d, config); err != nil {
@@ -358,7 +354,7 @@ func resourceNcloudServerUpdate(d *schema.ResourceData, meta interface{}) error 
 	return resourceNcloudServerRead(d, meta)
 }
 
-func createServerInstance(d *schema.ResourceData, config *ProviderConfig) (*string, error) {
+func createServerInstance(d *schema.ResourceData, config *conn.ProviderConfig) (*string, error) {
 	if config.SupportVPC {
 		return createVpcServerInstance(d, config)
 	}
@@ -366,7 +362,7 @@ func createServerInstance(d *schema.ResourceData, config *ProviderConfig) (*stri
 	return createClassicServerInstance(d, config)
 }
 
-func createClassicServerInstance(d *schema.ResourceData, config *ProviderConfig) (*string, error) {
+func createClassicServerInstance(d *schema.ResourceData, config *conn.ProviderConfig) (*string, error) {
 	zoneNo, err := zone.ParseZoneNoParameter(config, d)
 	if err != nil {
 		return nil, err
@@ -425,7 +421,7 @@ func createClassicServerInstance(d *schema.ResourceData, config *ProviderConfig)
 	return serverInstance.ServerInstanceNo, nil
 }
 
-func createVpcServerInstance(d *schema.ResourceData, config *ProviderConfig) (*string, error) {
+func createVpcServerInstance(d *schema.ResourceData, config *conn.ProviderConfig) (*string, error) {
 	if _, ok := d.GetOk("subnet_no"); !ok {
 		return nil, ErrorRequiredArgOnVpc("subnet_no")
 	}
@@ -482,7 +478,7 @@ func createVpcServerInstance(d *schema.ResourceData, config *ProviderConfig) (*s
 			order := m["order"].(int)
 			networkInterfaceNo := m["network_interface_no"].(string)
 
-			networkInterface, err := getNetworkInterface(config, networkInterfaceNo)
+			networkInterface, err := GetNetworkInterface(config, networkInterfaceNo)
 			if err != nil {
 				return nil, err
 			}
@@ -517,18 +513,18 @@ func createVpcServerInstance(d *schema.ResourceData, config *ProviderConfig) (*s
 	return serverInstance.ServerInstanceNo, nil
 }
 
-func waitStateNcloudServerForCreation(config *ProviderConfig, id string) error {
+func waitStateNcloudServerForCreation(config *conn.ProviderConfig, id string) error {
 	stateConf := &resource.StateChangeConf{
 		Pending: []string{"INIT", "CREAT"},
 		Target:  []string{"RUN"},
 		Refresh: func() (interface{}, string, error) {
-			instance, err := getServerInstance(config, id)
+			instance, err := GetServerInstance(config, id)
 			if err != nil {
 				return 0, "", err
 			}
 			return instance, ncloud.StringValue(instance.ServerInstanceStatus), nil
 		},
-		Timeout:    DefaultCreateTimeout,
+		Timeout:    conn.DefaultCreateTimeout,
 		Delay:      2 * time.Second,
 		MinTimeout: 3 * time.Second,
 	}
@@ -541,8 +537,8 @@ func waitStateNcloudServerForCreation(config *ProviderConfig, id string) error {
 	return nil
 }
 
-func updateServerInstanceSpec(d *schema.ResourceData, config *ProviderConfig) error {
-	serverInstance, err := getServerInstance(config, d.Id())
+func updateServerInstanceSpec(d *schema.ResourceData, config *conn.ProviderConfig) error {
+	serverInstance, err := GetServerInstance(config, d.Id())
 	if err != nil {
 		return err
 	}
@@ -566,7 +562,7 @@ func updateServerInstanceSpec(d *schema.ResourceData, config *ProviderConfig) er
 	return nil
 }
 
-func changeServerInstanceSpec(d *schema.ResourceData, config *ProviderConfig) error {
+func changeServerInstanceSpec(d *schema.ResourceData, config *conn.ProviderConfig) error {
 	var err error
 	if config.SupportVPC {
 		err = changeVpcServerInstanceSpec(d, config)
@@ -582,7 +578,7 @@ func changeServerInstanceSpec(d *schema.ResourceData, config *ProviderConfig) er
 		Pending: []string{"CHNG"},
 		Target:  []string{"NULL"},
 		Refresh: func() (interface{}, string, error) {
-			instance, err := getServerInstance(config, d.Id())
+			instance, err := GetServerInstance(config, d.Id())
 
 			if err != nil {
 				return 0, "", err
@@ -590,7 +586,7 @@ func changeServerInstanceSpec(d *schema.ResourceData, config *ProviderConfig) er
 
 			return instance, ncloud.StringValue(instance.ServerInstanceOperation), nil
 		},
-		Timeout:    DefaultTimeout,
+		Timeout:    conn.DefaultTimeout,
 		Delay:      2 * time.Second,
 		MinTimeout: 3 * time.Second,
 	}
@@ -603,7 +599,7 @@ func changeServerInstanceSpec(d *schema.ResourceData, config *ProviderConfig) er
 	return nil
 }
 
-func changeClassicServerInstanceSpec(d *schema.ResourceData, config *ProviderConfig) error {
+func changeClassicServerInstanceSpec(d *schema.ResourceData, config *conn.ProviderConfig) error {
 	reqParams := &server.ChangeServerInstanceSpecRequest{
 		ServerInstanceNo:  ncloud.String(d.Get("instance_no").(string)),
 		ServerProductCode: ncloud.String(d.Get("server_product_code").(string)),
@@ -620,7 +616,7 @@ func changeClassicServerInstanceSpec(d *schema.ResourceData, config *ProviderCon
 	return nil
 }
 
-func changeVpcServerInstanceSpec(d *schema.ResourceData, config *ProviderConfig) error {
+func changeVpcServerInstanceSpec(d *schema.ResourceData, config *conn.ProviderConfig) error {
 	reqParams := &vserver.ChangeServerInstanceSpecRequest{
 		RegionCode:        &config.RegionCode,
 		ServerInstanceNo:  ncloud.String(d.Get("instance_no").(string)),
@@ -638,7 +634,7 @@ func changeVpcServerInstanceSpec(d *schema.ResourceData, config *ProviderConfig)
 	return nil
 }
 
-func updateServerProtectionTermination(d *schema.ResourceData, config *ProviderConfig) error {
+func updateServerProtectionTermination(d *schema.ResourceData, config *conn.ProviderConfig) error {
 	if config.SupportVPC {
 		return updateVpcServerProtectionTermination(d, config)
 	}
@@ -646,7 +642,7 @@ func updateServerProtectionTermination(d *schema.ResourceData, config *ProviderC
 	return updateClassicServerProtectionTermination(d, config)
 }
 
-func updateVpcServerProtectionTermination(d *schema.ResourceData, config *ProviderConfig) error {
+func updateVpcServerProtectionTermination(d *schema.ResourceData, config *conn.ProviderConfig) error {
 	reqParams := &vserver.SetProtectServerTerminationRequest{
 		RegionCode:                 &config.RegionCode,
 		ServerInstanceNo:           ncloud.String(d.Id()),
@@ -664,7 +660,7 @@ func updateVpcServerProtectionTermination(d *schema.ResourceData, config *Provid
 	return nil
 }
 
-func updateClassicServerProtectionTermination(d *schema.ResourceData, config *ProviderConfig) error {
+func updateClassicServerProtectionTermination(d *schema.ResourceData, config *conn.ProviderConfig) error {
 	reqParams := &server.SetProtectServerTerminationRequest{
 		ServerInstanceNo:           ncloud.String(d.Id()),
 		IsProtectServerTermination: ncloud.Bool(d.Get("is_protect_server_termination").(bool)),
@@ -681,7 +677,7 @@ func updateClassicServerProtectionTermination(d *schema.ResourceData, config *Pr
 	return nil
 }
 
-func startThenWaitServerInstance(config *ProviderConfig, id string) error {
+func startThenWaitServerInstance(config *conn.ProviderConfig, id string) error {
 	var err error
 	if config.SupportVPC {
 		err = startVpcServerInstance(config, id)
@@ -697,14 +693,14 @@ func startThenWaitServerInstance(config *ProviderConfig, id string) error {
 		Pending: []string{"NSTOP"},
 		Target:  []string{"RUN"},
 		Refresh: func() (interface{}, string, error) {
-			instance, err := getServerInstance(config, id)
+			instance, err := GetServerInstance(config, id)
 			if err != nil {
 				return 0, "", err
 			}
 
 			return instance, ncloud.StringValue(instance.ServerInstanceStatus), nil
 		},
-		Timeout:    DefaultTimeout,
+		Timeout:    conn.DefaultTimeout,
 		Delay:      2 * time.Second,
 		MinTimeout: 3 * time.Second,
 	}
@@ -717,7 +713,7 @@ func startThenWaitServerInstance(config *ProviderConfig, id string) error {
 	return nil
 }
 
-func startClassicServerInstance(config *ProviderConfig, id string) error {
+func startClassicServerInstance(config *conn.ProviderConfig, id string) error {
 	reqParams := &server.StartServerInstancesRequest{
 		ServerInstanceNoList: []*string{ncloud.String(id)},
 	}
@@ -732,7 +728,7 @@ func startClassicServerInstance(config *ProviderConfig, id string) error {
 	return nil
 }
 
-func startVpcServerInstance(config *ProviderConfig, id string) error {
+func startVpcServerInstance(config *conn.ProviderConfig, id string) error {
 	reqParams := &vserver.StartServerInstancesRequest{
 		RegionCode:           &config.RegionCode,
 		ServerInstanceNoList: []*string{ncloud.String(id)},
@@ -748,7 +744,7 @@ func startVpcServerInstance(config *ProviderConfig, id string) error {
 	return nil
 }
 
-func getServerInstance(config *ProviderConfig, id string) (*ServerInstance, error) {
+func GetServerInstance(config *conn.ProviderConfig, id string) (*ServerInstance, error) {
 	if config.SupportVPC {
 		return getVpcServerInstance(config, id)
 	}
@@ -756,7 +752,7 @@ func getServerInstance(config *ProviderConfig, id string) (*ServerInstance, erro
 	return getClassicServerInstance(config, id)
 }
 
-func getClassicServerInstance(config *ProviderConfig, id string) (*ServerInstance, error) {
+func getClassicServerInstance(config *conn.ProviderConfig, id string) (*ServerInstance, error) {
 	reqParams := &server.GetServerInstanceListRequest{
 		ServerInstanceNoList: []*string{ncloud.String(id)},
 	}
@@ -816,7 +812,7 @@ func convertClassicServerInstance(r *server.ServerInstance) *ServerInstance {
 	}
 }
 
-func getVpcServerInstance(config *ProviderConfig, id string) (*ServerInstance, error) {
+func getVpcServerInstance(config *conn.ProviderConfig, id string) (*ServerInstance, error) {
 	reqParams := &vserver.GetServerInstanceDetailRequest{
 		RegionCode:       &config.RegionCode,
 		ServerInstanceNo: ncloud.String(id),
@@ -882,9 +878,9 @@ func convertVcpServerInstance(r *vserver.ServerInstance) *ServerInstance {
 	return instance
 }
 
-func buildNetworkInterfaceList(config *ProviderConfig, r *ServerInstance) error {
+func buildNetworkInterfaceList(config *conn.ProviderConfig, r *ServerInstance) error {
 	for _, ni := range r.NetworkInterfaceList {
-		networkInterface, err := getNetworkInterface(config, *ni.NetworkInterfaceNo)
+		networkInterface, err := GetNetworkInterface(config, *ni.NetworkInterfaceNo)
 
 		if err != nil {
 			return err
@@ -910,21 +906,21 @@ func buildNetworkInterfaceList(config *ProviderConfig, r *ServerInstance) error 
 	return nil
 }
 
-func stopThenWaitServerInstance(config *ProviderConfig, id string) error {
+func stopThenWaitServerInstance(config *conn.ProviderConfig, id string) error {
 	var err error
 
 	stateConf := &resource.StateChangeConf{
 		Pending: []string{"SETUP"},
 		Target:  []string{"NULL"},
 		Refresh: func() (interface{}, string, error) {
-			instance, err := getServerInstance(config, id)
+			instance, err := GetServerInstance(config, id)
 			if err != nil {
 				return 0, "", err
 			}
 
 			return instance, ncloud.StringValue(instance.ServerInstanceOperation), nil
 		},
-		Timeout:    DefaultStopTimeout,
+		Timeout:    conn.DefaultStopTimeout,
 		Delay:      2 * time.Second,
 		MinTimeout: 3 * time.Second,
 	}
@@ -948,14 +944,14 @@ func stopThenWaitServerInstance(config *ProviderConfig, id string) error {
 		Pending: []string{"RUN"},
 		Target:  []string{"NSTOP"},
 		Refresh: func() (interface{}, string, error) {
-			instance, err := getServerInstance(config, id)
+			instance, err := GetServerInstance(config, id)
 			if err != nil {
 				return 0, "", err
 			}
 
 			return instance, ncloud.StringValue(instance.ServerInstanceStatus), nil
 		},
-		Timeout:    DefaultStopTimeout,
+		Timeout:    conn.DefaultStopTimeout,
 		Delay:      2 * time.Second,
 		MinTimeout: 3 * time.Second,
 	}
@@ -968,7 +964,7 @@ func stopThenWaitServerInstance(config *ProviderConfig, id string) error {
 	return nil
 }
 
-func stopClassicServerInstance(config *ProviderConfig, id string) error {
+func stopClassicServerInstance(config *conn.ProviderConfig, id string) error {
 	reqParams := &server.StopServerInstancesRequest{
 		ServerInstanceNoList: []*string{ncloud.String(id)},
 	}
@@ -983,7 +979,7 @@ func stopClassicServerInstance(config *ProviderConfig, id string) error {
 	return nil
 }
 
-func stopVpcServerInstance(config *ProviderConfig, id string) error {
+func stopVpcServerInstance(config *conn.ProviderConfig, id string) error {
 	reqParams := &vserver.StopServerInstancesRequest{
 		RegionCode:           &config.RegionCode,
 		ServerInstanceNoList: []*string{ncloud.String(id)},
@@ -999,7 +995,7 @@ func stopVpcServerInstance(config *ProviderConfig, id string) error {
 	return nil
 }
 
-func terminateThenWaitServerInstance(config *ProviderConfig, id string) error {
+func terminateThenWaitServerInstance(config *conn.ProviderConfig, id string) error {
 	var err error
 	if config.SupportVPC {
 		err = terminateVpcServerInstance(config, id)
@@ -1015,7 +1011,7 @@ func terminateThenWaitServerInstance(config *ProviderConfig, id string) error {
 		Pending: []string{"NSTOP"},
 		Target:  []string{"TERMINATED"},
 		Refresh: func() (interface{}, string, error) {
-			instance, err := getServerInstance(config, id)
+			instance, err := GetServerInstance(config, id)
 
 			if err != nil {
 				return 0, "", err
@@ -1025,7 +1021,7 @@ func terminateThenWaitServerInstance(config *ProviderConfig, id string) error {
 			}
 			return instance, ncloud.StringValue(instance.ServerInstanceStatus), nil
 		},
-		Timeout:    DefaultTimeout,
+		Timeout:    conn.DefaultTimeout,
 		Delay:      2 * time.Second,
 		MinTimeout: 3 * time.Second,
 	}
@@ -1038,7 +1034,7 @@ func terminateThenWaitServerInstance(config *ProviderConfig, id string) error {
 	return nil
 }
 
-func terminateClassicServerInstance(config *ProviderConfig, id string) error {
+func terminateClassicServerInstance(config *conn.ProviderConfig, id string) error {
 	reqParams := &server.TerminateServerInstancesRequest{
 		ServerInstanceNoList: []*string{ncloud.String(id)},
 	}
@@ -1068,7 +1064,7 @@ func terminateClassicServerInstance(config *ProviderConfig, id string) error {
 	return nil
 }
 
-func terminateVpcServerInstance(config *ProviderConfig, id string) error {
+func terminateVpcServerInstance(config *conn.ProviderConfig, id string) error {
 	reqParams := &vserver.TerminateServerInstancesRequest{
 		RegionCode:           &config.RegionCode,
 		ServerInstanceNoList: []*string{ncloud.String(id)},
@@ -1086,7 +1082,7 @@ func terminateVpcServerInstance(config *ProviderConfig, id string) error {
 	return nil
 }
 
-func getAdditionalBlockStorageList(config *ProviderConfig, id string) ([]*BlockStorage, error) {
+func getAdditionalBlockStorageList(config *conn.ProviderConfig, id string) ([]*BlockStorage, error) {
 	if config.SupportVPC {
 		return getVpcAdditionalBlockStorageList(config, id)
 	} else {
@@ -1094,7 +1090,7 @@ func getAdditionalBlockStorageList(config *ProviderConfig, id string) ([]*BlockS
 	}
 }
 
-func getVpcAdditionalBlockStorageList(config *ProviderConfig, id string) ([]*BlockStorage, error) {
+func getVpcAdditionalBlockStorageList(config *conn.ProviderConfig, id string) ([]*BlockStorage, error) {
 	resp, err := config.Client.Vserver.V2Api.GetBlockStorageInstanceList(&vserver.GetBlockStorageInstanceListRequest{
 		RegionCode:               &config.RegionCode,
 		ServerInstanceNo:         ncloud.String(id),
@@ -1117,7 +1113,7 @@ func getVpcAdditionalBlockStorageList(config *ProviderConfig, id string) ([]*Blo
 	return blockStorageList, nil
 }
 
-func getClassicAdditionalBlockStorageList(config *ProviderConfig, id string) ([]*BlockStorage, error) {
+func getClassicAdditionalBlockStorageList(config *conn.ProviderConfig, id string) ([]*BlockStorage, error) {
 	resp, err := config.Client.Server.V2Api.GetBlockStorageInstanceList(&server.GetBlockStorageInstanceListRequest{
 		RegionNo:                 &config.RegionCode,
 		ServerInstanceNo:         ncloud.String(id),
@@ -1177,7 +1173,7 @@ func convertClassicBlockStorage(storage *server.BlockStorageInstance) *BlockStor
 	}
 }
 
-func disconnectBlockStorage(config *ProviderConfig, storage *BlockStorage) error {
+func disconnectBlockStorage(config *conn.ProviderConfig, storage *BlockStorage) error {
 	if config.SupportVPC {
 		return disconnectVpcBlockStorage(config, storage)
 	} else {
@@ -1185,7 +1181,7 @@ func disconnectBlockStorage(config *ProviderConfig, storage *BlockStorage) error
 	}
 }
 
-func disconnectVpcBlockStorage(config *ProviderConfig, storage *BlockStorage) error {
+func disconnectVpcBlockStorage(config *conn.ProviderConfig, storage *BlockStorage) error {
 	_, err := config.Client.Vserver.V2Api.DetachBlockStorageInstances(&vserver.DetachBlockStorageInstancesRequest{
 		RegionCode:                 &config.RegionCode,
 		BlockStorageInstanceNoList: []*string{storage.BlockStorageInstanceNo},
@@ -1198,7 +1194,7 @@ func disconnectVpcBlockStorage(config *ProviderConfig, storage *BlockStorage) er
 	return nil
 }
 
-func disconnectClassicBlockStorage(config *ProviderConfig, storage *BlockStorage) error {
+func disconnectClassicBlockStorage(config *conn.ProviderConfig, storage *BlockStorage) error {
 	_, err := config.Client.Server.V2Api.DetachBlockStorageInstances(&server.DetachBlockStorageInstancesRequest{
 		BlockStorageInstanceNoList: []*string{storage.BlockStorageInstanceNo},
 	})
@@ -1210,9 +1206,9 @@ func disconnectClassicBlockStorage(config *ProviderConfig, storage *BlockStorage
 	return nil
 }
 
-func waitForDisconnectBlockStorage(config *ProviderConfig, d *schema.ResourceData, storage *BlockStorage) error {
+func waitForDisconnectBlockStorage(config *conn.ProviderConfig, d *schema.ResourceData, storage *BlockStorage) error {
 	return resource.Retry(d.Timeout(schema.TimeoutDelete), func() *resource.RetryError {
-		blockStorage, err := getBlockStorage(config, *storage.BlockStorageInstanceNo)
+		blockStorage, err := GetBlockStorage(config, *storage.BlockStorageInstanceNo)
 		if err != nil {
 			return resource.RetryableError(err)
 		}
@@ -1223,8 +1219,8 @@ func waitForDisconnectBlockStorage(config *ProviderConfig, d *schema.ResourceDat
 	})
 }
 
-func getServerZoneNo(config *ProviderConfig, serverInstanceNo string) (string, error) {
-	instance, err := getServerInstance(config, serverInstanceNo)
+func getServerZoneNo(config *conn.ProviderConfig, serverInstanceNo string) (string, error) {
+	instance, err := GetServerInstance(config, serverInstanceNo)
 	if err != nil || instance == nil || instance.ZoneNo == nil {
 		return "", err
 	}

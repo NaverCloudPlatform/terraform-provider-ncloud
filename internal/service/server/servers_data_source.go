@@ -6,14 +6,10 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 
 	. "github.com/terraform-providers/terraform-provider-ncloud/internal/common"
-	. "github.com/terraform-providers/terraform-provider-ncloud/internal/provider"
+	"github.com/terraform-providers/terraform-provider-ncloud/internal/conn"
 )
 
-func init() {
-	RegisterDataSource("ncloud_servers", dataSourceNcloudServers())
-}
-
-func dataSourceNcloudServers() *schema.Resource {
+func DataSourceNcloudServers() *schema.Resource {
 	return &schema.Resource{
 		Read: dataSourceNcloudServersRead,
 		Schema: map[string]*schema.Schema{
@@ -29,7 +25,7 @@ func dataSourceNcloudServers() *schema.Resource {
 }
 
 func dataSourceNcloudServersRead(d *schema.ResourceData, meta interface{}) error {
-	config := meta.(*ProviderConfig)
+	config := meta.(*conn.ProviderConfig)
 
 	instances, err := getServerList(d, config)
 	if err != nil {
@@ -46,7 +42,7 @@ func dataSourceNcloudServersRead(d *schema.ResourceData, meta interface{}) error
 
 	resources := ConvertToArrayMap(instances)
 	if f, ok := d.GetOk("filter"); ok {
-		resources = ApplyFilters(f.(*schema.Set), resources, dataSourceNcloudServer().Schema)
+		resources = ApplyFilters(f.(*schema.Set), resources, DataSourceNcloudServer().Schema)
 	}
 
 	if len(resources) == 0 {

@@ -10,14 +10,10 @@ import (
 	"gopkg.in/yaml.v3"
 
 	. "github.com/terraform-providers/terraform-provider-ncloud/internal/common"
-	. "github.com/terraform-providers/terraform-provider-ncloud/internal/provider"
+	"github.com/terraform-providers/terraform-provider-ncloud/internal/conn"
 )
 
-func init() {
-	RegisterDataSource("ncloud_nks_kube_config", dataSourceNcloudNKSKubeConfig())
-}
-
-func dataSourceNcloudNKSKubeConfig() *schema.Resource {
+func DataSourceNcloudNKSKubeConfig() *schema.Resource {
 	return &schema.Resource{
 		ReadContext: dataSourceNcloudNKSKubeConfigRead,
 		Schema: map[string]*schema.Schema{
@@ -46,7 +42,7 @@ func dataSourceNcloudNKSKubeConfig() *schema.Resource {
 }
 
 func dataSourceNcloudNKSKubeConfigRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
-	config := meta.(*ProviderConfig)
+	config := meta.(*conn.ProviderConfig)
 	if !config.SupportVPC {
 		return diag.FromErr(NotSupportClassic("dataSource `ncloud_nks_kube_config`"))
 	}
@@ -74,7 +70,7 @@ func dataSourceNcloudNKSKubeConfigRead(ctx context.Context, d *schema.ResourceDa
 	return nil
 }
 
-func getNKSKubeConfig(ctx context.Context, config *ProviderConfig, uuid string) (kc *KubeConfig, err error) {
+func getNKSKubeConfig(ctx context.Context, config *conn.ProviderConfig, uuid string) (kc *KubeConfig, err error) {
 	resp, err := config.Client.Vnks.V2Api.ClustersUuidKubeconfigGet(ctx, ncloud.String(uuid))
 	if err != nil {
 		return nil, err

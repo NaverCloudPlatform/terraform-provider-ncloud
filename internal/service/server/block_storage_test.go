@@ -1,4 +1,4 @@
-package server
+package server_test
 
 import (
 	"fmt"
@@ -12,11 +12,12 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 
 	. "github.com/terraform-providers/terraform-provider-ncloud/internal/acctest"
-	. "github.com/terraform-providers/terraform-provider-ncloud/internal/provider"
+	"github.com/terraform-providers/terraform-provider-ncloud/internal/conn"
+	"github.com/terraform-providers/terraform-provider-ncloud/internal/service/server"
 )
 
 func TestAccResourceNcloudBlockStorage_classic_basic(t *testing.T) {
-	var storageInstance BlockStorage
+	var storageInstance server.BlockStorage
 	name := fmt.Sprintf("tf-storage-basic-%s", acctest.RandString(5))
 	resourceName := "ncloud_block_storage.storage"
 
@@ -55,7 +56,7 @@ func TestAccResourceNcloudBlockStorage_classic_basic(t *testing.T) {
 }
 
 func TestAccResourceNcloudBlockStorage_vpc_basic(t *testing.T) {
-	var storageInstance BlockStorage
+	var storageInstance server.BlockStorage
 	name := fmt.Sprintf("tf-storage-basic-%s", acctest.RandString(5))
 	resourceName := "ncloud_block_storage.storage"
 
@@ -94,7 +95,7 @@ func TestAccResourceNcloudBlockStorage_vpc_basic(t *testing.T) {
 }
 
 func TestAccResourceNcloudBlockStorage_classic_ChangeServerInstance(t *testing.T) {
-	var storageInstance BlockStorage
+	var storageInstance server.BlockStorage
 	name := fmt.Sprintf("tf-storage-update-%s", acctest.RandString(5))
 	resourceName := "ncloud_block_storage.storage"
 
@@ -122,7 +123,7 @@ func TestAccResourceNcloudBlockStorage_classic_ChangeServerInstance(t *testing.T
 }
 
 func TestAccResourceNcloudBlockStorage_vpc_ChangeServerInstance(t *testing.T) {
-	var storageInstance BlockStorage
+	var storageInstance server.BlockStorage
 	name := fmt.Sprintf("tf-storage-update-%s", acctest.RandString(5))
 	resourceName := "ncloud_block_storage.storage"
 
@@ -150,7 +151,7 @@ func TestAccResourceNcloudBlockStorage_vpc_ChangeServerInstance(t *testing.T) {
 }
 
 func TestAccResourceNcloudBlockStorage_classic_size(t *testing.T) {
-	var storageInstance BlockStorage
+	var storageInstance server.BlockStorage
 	name := fmt.Sprintf("tf-storage-size-%s", acctest.RandString(5))
 	resourceName := "ncloud_block_storage.storage"
 
@@ -198,7 +199,7 @@ func TestAccResourceNcloudBlockStorage_classic_size(t *testing.T) {
 }
 
 func TestAccResourceNcloudBlockStorage_vpc_size(t *testing.T) {
-	var storageInstance BlockStorage
+	var storageInstance server.BlockStorage
 	name := fmt.Sprintf("tf-storage-size-%s", acctest.RandString(5))
 	resourceName := "ncloud_block_storage.storage"
 
@@ -245,7 +246,7 @@ func TestAccResourceNcloudBlockStorage_vpc_size(t *testing.T) {
 	})
 }
 
-func testAccCheckBlockStorageExistsWithProvider(n string, i *BlockStorage, provider *schema.Provider) resource.TestCheckFunc {
+func testAccCheckBlockStorageExistsWithProvider(n string, i *server.BlockStorage, provider *schema.Provider) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		rs, ok := s.RootModule().Resources[n]
 		if !ok {
@@ -256,8 +257,8 @@ func testAccCheckBlockStorageExistsWithProvider(n string, i *BlockStorage, provi
 			return fmt.Errorf("no ID is set")
 		}
 
-		config := provider.Meta().(*ProviderConfig)
-		storage, err := getBlockStorage(config, rs.Primary.ID)
+		config := provider.Meta().(*conn.ProviderConfig)
+		storage, err := server.GetBlockStorage(config, rs.Primary.ID)
 		if err != nil {
 			return nil
 		}
@@ -272,13 +273,13 @@ func testAccCheckBlockStorageExistsWithProvider(n string, i *BlockStorage, provi
 }
 
 func testAccCheckBlockStorageDestroyWithProvider(s *terraform.State, provider *schema.Provider) error {
-	config := provider.Meta().(*ProviderConfig)
+	config := provider.Meta().(*conn.ProviderConfig)
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "ncloud_block_storage" {
 			continue
 		}
-		blockStorage, err := getBlockStorage(config, rs.Primary.ID)
+		blockStorage, err := server.GetBlockStorage(config, rs.Primary.ID)
 
 		if blockStorage == nil {
 			continue
@@ -297,20 +298,20 @@ func testAccCheckBlockStorageDestroyWithProvider(s *terraform.State, provider *s
 func testAccBlockStorageClassicConfigWithSize(name string, size int) string {
 	return fmt.Sprintf(`
 resource "ncloud_login_key" "loginkey" {
-	key_name = "%[1]s-key"
+    key_name = "%[1]s-key"
 }
 
 resource "ncloud_server" "server" {
-	name = "%[1]s"
-	server_image_product_code = "SPSW0LINUX000046"
-	server_product_code = "SPSVRHICPU000001"
-	login_key_name = "${ncloud_login_key.loginkey.key_name}"
+    name = "%[1]s"
+    server_image_product_code = "SPSW0LINUX000046"
+    server_product_code = "SPSVRHICPU000001"
+    login_key_name = "${ncloud_login_key.loginkey.key_name}"
 }
 
 resource "ncloud_block_storage" "storage" {
-	server_instance_no = ncloud_server.server.id
-	name = "%[1]s"
-	size = "%[2]d"
+    server_instance_no = ncloud_server.server.id
+    name = "%[1]s"
+    size = "%[2]d"
 }
 `, name, size)
 }

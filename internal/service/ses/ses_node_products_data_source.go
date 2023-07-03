@@ -11,14 +11,10 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 
 	. "github.com/terraform-providers/terraform-provider-ncloud/internal/common"
-	. "github.com/terraform-providers/terraform-provider-ncloud/internal/provider"
+	"github.com/terraform-providers/terraform-provider-ncloud/internal/conn"
 )
 
-func init() {
-	RegisterDataSource("ncloud_ses_node_products", dataSourceNcloudSESNodeProduct())
-}
-
-func dataSourceNcloudSESNodeProduct() *schema.Resource {
+func DataSourceNcloudSESNodeProduct() *schema.Resource {
 	return &schema.Resource{
 		Read: dataSourceNcloudSESNodeProductRead,
 		Schema: map[string]*schema.Schema{
@@ -60,7 +56,7 @@ func dataSourceNcloudSESNodeProduct() *schema.Resource {
 }
 
 func dataSourceNcloudSESNodeProductRead(d *schema.ResourceData, meta interface{}) error {
-	config := meta.(*ProviderConfig)
+	config := meta.(*conn.ProviderConfig)
 	if !config.SupportVPC {
 		return NotSupportClassic("datasource `ncloud_ses_node_products`")
 	}
@@ -72,7 +68,7 @@ func dataSourceNcloudSESNodeProductRead(d *schema.ResourceData, meta interface{}
 	}
 
 	if f, ok := d.GetOk("filter"); ok {
-		resources = ApplyFilters(f.(*schema.Set), resources, dataSourceNcloudSESNodeProduct().Schema["codes"].Elem.(*schema.Resource).Schema)
+		resources = ApplyFilters(f.(*schema.Set), resources, DataSourceNcloudSESNodeProduct().Schema["codes"].Elem.(*schema.Resource).Schema)
 	}
 
 	d.SetId(time.Now().UTC().String())
@@ -83,7 +79,7 @@ func dataSourceNcloudSESNodeProductRead(d *schema.ResourceData, meta interface{}
 	return nil
 }
 
-func getSESNodeProduct(config *ProviderConfig, d *schema.ResourceData) ([]map[string]interface{}, error) {
+func getSESNodeProduct(config *conn.ProviderConfig, d *schema.ResourceData) ([]map[string]interface{}, error) {
 	LogCommonRequest("GetSESSoftwareProduct", "")
 
 	reqParams := &vses2.V2ApiGetNodeProductListWithGetMethodUsingGETOpts{

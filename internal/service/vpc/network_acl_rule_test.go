@@ -1,4 +1,4 @@
-package vpc
+package vpc_test
 
 import (
 	"errors"
@@ -13,7 +13,8 @@ import (
 
 	. "github.com/terraform-providers/terraform-provider-ncloud/internal/acctest"
 	"github.com/terraform-providers/terraform-provider-ncloud/internal/common"
-	"github.com/terraform-providers/terraform-provider-ncloud/internal/provider"
+	"github.com/terraform-providers/terraform-provider-ncloud/internal/conn"
+	vpcservice "github.com/terraform-providers/terraform-provider-ncloud/internal/service/vpc"
 )
 
 func TestAccResourceNcloudNetworkACLRule_basic(t *testing.T) {
@@ -233,9 +234,9 @@ func testAccCheckNetworkACLRuleExists(n string, networkACLRule *[]*vpc.NetworkAc
 			return fmt.Errorf("No network ACL Rule id is set: %s", n)
 		}
 
-		config := GetTestProvider(true).Meta().(*provider.ProviderConfig)
+		config := GetTestProvider(true).Meta().(*conn.ProviderConfig)
 
-		rules, err := getNetworkACLRuleList(config, rs.Primary.ID)
+		rules, err := vpcservice.GetNetworkACLRuleList(config, rs.Primary.ID)
 
 		if err != nil {
 			return err
@@ -252,14 +253,14 @@ func testAccCheckNetworkACLRuleExists(n string, networkACLRule *[]*vpc.NetworkAc
 }
 
 func testAccCheckNetworkACLRuleDestroy(s *terraform.State) error {
-	config := GetTestProvider(true).Meta().(*provider.ProviderConfig)
+	config := GetTestProvider(true).Meta().(*conn.ProviderConfig)
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "ncloud_network_acl_rule" {
 			continue
 		}
 
-		rules, err := getNetworkACLRuleList(config, rs.Primary.Attributes["network_acl_no"])
+		rules, err := vpcservice.GetNetworkACLRuleList(config, rs.Primary.Attributes["network_acl_no"])
 		errBody, _ := common.GetCommonErrorBody(err)
 		if errBody.ReturnCode == common.ApiErrorNetworkAclCantAccessaApropriate {
 			return nil
@@ -279,7 +280,7 @@ func testAccCheckNetworkACLRuleDestroy(s *terraform.State) error {
 
 func testAccCheckNetworkACLRuleDisappears(instance *[]*vpc.NetworkAclRule) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
-		config := GetTestProvider(true).Meta().(*provider.ProviderConfig)
+		config := GetTestProvider(true).Meta().(*conn.ProviderConfig)
 
 		var inbound []*vpc.RemoveNetworkAclRuleParameter
 		var outbound []*vpc.RemoveNetworkAclRuleParameter

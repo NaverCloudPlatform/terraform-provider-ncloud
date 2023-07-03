@@ -13,15 +13,11 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 
 	. "github.com/terraform-providers/terraform-provider-ncloud/internal/common"
-	. "github.com/terraform-providers/terraform-provider-ncloud/internal/provider"
+	"github.com/terraform-providers/terraform-provider-ncloud/internal/conn"
 	. "github.com/terraform-providers/terraform-provider-ncloud/internal/verify"
 )
 
-func init() {
-	RegisterResource("ncloud_network_acl_rule", resourceNcloudNetworkACLRule())
-}
-
-func resourceNcloudNetworkACLRule() *schema.Resource {
+func ResourceNcloudNetworkACLRule() *schema.Resource {
 	return &schema.Resource{
 		Create: resourceNcloudNetworkACLRuleCreate,
 		Read:   resourceNcloudNetworkACLRuleRead,
@@ -128,7 +124,7 @@ func resourceNcloudNetworkACLRule() *schema.Resource {
 }
 
 func resourceNcloudNetworkACLRuleCreate(d *schema.ResourceData, meta interface{}) error {
-	config := meta.(*ProviderConfig)
+	config := meta.(*conn.ProviderConfig)
 
 	if !config.SupportVPC {
 		return NotSupportClassic("resource `ncloud_network_acl_rule`")
@@ -141,9 +137,9 @@ func resourceNcloudNetworkACLRuleCreate(d *schema.ResourceData, meta interface{}
 }
 
 func resourceNcloudNetworkACLRuleRead(d *schema.ResourceData, meta interface{}) error {
-	config := meta.(*ProviderConfig)
+	config := meta.(*conn.ProviderConfig)
 
-	rules, err := getNetworkACLRuleList(config, d.Id())
+	rules, err := GetNetworkACLRuleList(config, d.Id())
 	if err != nil {
 		errBody, _ := GetCommonErrorBody(err)
 		if errBody.ReturnCode == "1011002" { // You cannot access the appropriate Network ACL
@@ -160,8 +156,8 @@ func resourceNcloudNetworkACLRuleRead(d *schema.ResourceData, meta interface{}) 
 	d.Set("network_acl_no", d.Id())
 
 	// Create empty set for getNetworkACLRuleList
-	iSet := schema.NewSet(schema.HashResource(resourceNcloudNetworkACLRule().Schema["inbound"].Elem.(*schema.Resource)), []interface{}{})
-	oSet := schema.NewSet(schema.HashResource(resourceNcloudNetworkACLRule().Schema["outbound"].Elem.(*schema.Resource)), []interface{}{})
+	iSet := schema.NewSet(schema.HashResource(ResourceNcloudNetworkACLRule().Schema["inbound"].Elem.(*schema.Resource)), []interface{}{})
+	oSet := schema.NewSet(schema.HashResource(ResourceNcloudNetworkACLRule().Schema["outbound"].Elem.(*schema.Resource)), []interface{}{})
 
 	for _, r := range rules {
 		m := map[string]interface{}{
@@ -194,7 +190,7 @@ func resourceNcloudNetworkACLRuleRead(d *schema.ResourceData, meta interface{}) 
 }
 
 func resourceNcloudNetworkACLRuleUpdate(d *schema.ResourceData, meta interface{}) error {
-	config := meta.(*ProviderConfig)
+	config := meta.(*conn.ProviderConfig)
 
 	if d.HasChange("inbound") {
 		if err := updateNetworkACLRule(d, config, "inbound"); err != nil {
@@ -212,7 +208,7 @@ func resourceNcloudNetworkACLRuleUpdate(d *schema.ResourceData, meta interface{}
 }
 
 func resourceNcloudNetworkACLRuleDelete(d *schema.ResourceData, meta interface{}) error {
-	config := meta.(*ProviderConfig)
+	config := meta.(*conn.ProviderConfig)
 
 	i := d.Get("inbound").(*schema.Set)
 	o := d.Get("outbound").(*schema.Set)
@@ -232,15 +228,15 @@ func resourceNcloudNetworkACLRuleDelete(d *schema.ResourceData, meta interface{}
 	return nil
 }
 
-func waitForNcloudNetworkACLRunning(config *ProviderConfig, id string) error {
+func waitForNcloudNetworkACLRunning(config *conn.ProviderConfig, id string) error {
 	stateConf := &resource.StateChangeConf{
 		Pending: []string{"SET"},
 		Target:  []string{"RUN"},
 		Refresh: func() (interface{}, string, error) {
-			instance, err := getNetworkACLInstance(config, id)
+			instance, err := GetNetworkACLInstance(config, id)
 			return VpcCommonStateRefreshFunc(instance, err, "NetworkAclStatus")
 		},
-		Timeout:    DefaultTimeout,
+		Timeout:    conn.DefaultTimeout,
 		Delay:      2 * time.Second,
 		MinTimeout: 3 * time.Second,
 	}
@@ -252,7 +248,7 @@ func waitForNcloudNetworkACLRunning(config *ProviderConfig, id string) error {
 	return nil
 }
 
-func getNetworkACLRuleList(config *ProviderConfig, id string) ([]*vpc.NetworkAclRule, error) {
+func GetNetworkACLRuleList(config *conn.ProviderConfig, id string) ([]*vpc.NetworkAclRule, error) {
 	reqParams := &vpc.GetNetworkAclRuleListRequest{
 		RegionCode:   &config.RegionCode,
 		NetworkAclNo: ncloud.String(id),
@@ -269,7 +265,7 @@ func getNetworkACLRuleList(config *ProviderConfig, id string) ([]*vpc.NetworkAcl
 	return resp.NetworkAclRuleList, nil
 }
 
-func updateNetworkACLRule(d *schema.ResourceData, config *ProviderConfig, ruleType string) error {
+func updateNetworkACLRule(d *schema.ResourceData, config *conn.ProviderConfig, ruleType string) error {
 	o, n := d.GetChange(ruleType)
 
 	if o == nil {
@@ -303,7 +299,7 @@ func updateNetworkACLRule(d *schema.ResourceData, config *ProviderConfig, ruleTy
 	return nil
 }
 
-func addNetworkACLRule(d *schema.ResourceData, config *ProviderConfig, ruleType string, addNetworkRuleList []*vpc.AddNetworkAclRuleParameter) error {
+func addNetworkACLRule(d *schema.ResourceData, config *conn.ProviderConfig, ruleType string, addNetworkRuleList []*vpc.AddNetworkAclRuleParameter) error {
 	var reqParams interface{}
 	var resp interface{}
 
@@ -356,7 +352,7 @@ func addNetworkACLRule(d *schema.ResourceData, config *ProviderConfig, ruleType 
 	return nil
 }
 
-func removeNetworkACLRule(d *schema.ResourceData, config *ProviderConfig, ruleType string, removeNetworkRuleList []*vpc.RemoveNetworkAclRuleParameter) error {
+func removeNetworkACLRule(d *schema.ResourceData, config *conn.ProviderConfig, ruleType string, removeNetworkRuleList []*vpc.RemoveNetworkAclRuleParameter) error {
 	var reqParams interface{}
 	var resp interface{}
 

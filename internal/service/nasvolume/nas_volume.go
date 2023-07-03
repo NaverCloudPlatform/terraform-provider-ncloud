@@ -14,16 +14,12 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 
 	. "github.com/terraform-providers/terraform-provider-ncloud/internal/common"
-	. "github.com/terraform-providers/terraform-provider-ncloud/internal/provider"
+	"github.com/terraform-providers/terraform-provider-ncloud/internal/conn"
 	. "github.com/terraform-providers/terraform-provider-ncloud/internal/verify"
 	"github.com/terraform-providers/terraform-provider-ncloud/internal/zone"
 )
 
-func init() {
-	RegisterResource("ncloud_nas_volume", resourceNcloudNasVolume())
-}
-
-func resourceNcloudNasVolume() *schema.Resource {
+func ResourceNcloudNasVolume() *schema.Resource {
 	return &schema.Resource{
 		Create: resourceNcloudNasVolumeCreate,
 		Read:   resourceNcloudNasVolumeRead,
@@ -33,8 +29,8 @@ func resourceNcloudNasVolume() *schema.Resource {
 			State: schema.ImportStatePassthrough,
 		},
 		Timeouts: &schema.ResourceTimeout{
-			Create: schema.DefaultTimeout(DefaultCreateTimeout),
-			Delete: schema.DefaultTimeout(DefaultTimeout),
+			Create: schema.DefaultTimeout(conn.DefaultCreateTimeout),
+			Delete: schema.DefaultTimeout(conn.DefaultTimeout),
 		},
 		Schema: map[string]*schema.Schema{
 			"volume_name_postfix": {
@@ -131,7 +127,7 @@ func resourceNcloudNasVolume() *schema.Resource {
 }
 
 func resourceNcloudNasVolumeCreate(d *schema.ResourceData, meta interface{}) error {
-	config := meta.(*ProviderConfig)
+	config := meta.(*conn.ProviderConfig)
 
 	id, err := createNasVolume(d, config)
 	if err != nil {
@@ -145,9 +141,9 @@ func resourceNcloudNasVolumeCreate(d *schema.ResourceData, meta interface{}) err
 }
 
 func resourceNcloudNasVolumeRead(d *schema.ResourceData, meta interface{}) error {
-	config := meta.(*ProviderConfig)
+	config := meta.(*conn.ProviderConfig)
 
-	r, err := getNasVolume(config, d.Id())
+	r, err := GetNasVolume(config, d.Id())
 	if err != nil {
 		return err
 	}
@@ -159,13 +155,13 @@ func resourceNcloudNasVolumeRead(d *schema.ResourceData, meta interface{}) error
 
 	instance := ConvertToMap(r)
 
-	SetSingularResourceDataFromMapSchema(resourceNcloudNasVolume(), d, instance)
+	SetSingularResourceDataFromMapSchema(ResourceNcloudNasVolume(), d, instance)
 
 	return nil
 }
 
 func resourceNcloudNasVolumeDelete(d *schema.ResourceData, meta interface{}) error {
-	config := meta.(*ProviderConfig)
+	config := meta.(*conn.ProviderConfig)
 
 	if err := deleteNasVolume(d, config, d.Id()); err != nil {
 		return err
@@ -176,7 +172,7 @@ func resourceNcloudNasVolumeDelete(d *schema.ResourceData, meta interface{}) err
 }
 
 func resourceNcloudNasVolumeUpdate(d *schema.ResourceData, meta interface{}) error {
-	config := meta.(*ProviderConfig)
+	config := meta.(*conn.ProviderConfig)
 
 	if d.HasChange("volume_size") {
 		if err := changeNasVolumeSize(d, config); err != nil {
@@ -193,7 +189,7 @@ func resourceNcloudNasVolumeUpdate(d *schema.ResourceData, meta interface{}) err
 	return resourceNcloudNasVolumeRead(d, meta)
 }
 
-func getNasVolume(config *ProviderConfig, id string) (*NasVolume, error) {
+func GetNasVolume(config *conn.ProviderConfig, id string) (*NasVolume, error) {
 	if config.SupportVPC {
 		return getVpcNasVolume(config, id)
 	} else {
@@ -201,7 +197,7 @@ func getNasVolume(config *ProviderConfig, id string) (*NasVolume, error) {
 	}
 }
 
-func getClassicNasVolume(config *ProviderConfig, id string) (*NasVolume, error) {
+func getClassicNasVolume(config *conn.ProviderConfig, id string) (*NasVolume, error) {
 	reqParams := &server.GetNasVolumeInstanceListRequest{
 		NasVolumeInstanceNoList: []*string{ncloud.String(id)},
 	}
@@ -246,7 +242,7 @@ func convertClassicNasVolume(inst *server.NasVolumeInstance) *NasVolume {
 	}
 }
 
-func getVpcNasVolume(config *ProviderConfig, id string) (*NasVolume, error) {
+func getVpcNasVolume(config *conn.ProviderConfig, id string) (*NasVolume, error) {
 	reqParams := &vnas.GetNasVolumeInstanceDetailRequest{
 		RegionCode:          &config.RegionCode,
 		NasVolumeInstanceNo: ncloud.String(id),
@@ -292,7 +288,7 @@ func convertVpcNasVolume(inst *vnas.NasVolumeInstance) *NasVolume {
 	}
 }
 
-func createNasVolume(d *schema.ResourceData, config *ProviderConfig) (*string, error) {
+func createNasVolume(d *schema.ResourceData, config *conn.ProviderConfig) (*string, error) {
 	var id *string
 	var err error
 
@@ -313,8 +309,8 @@ func createNasVolume(d *schema.ResourceData, config *ProviderConfig) (*string, e
 	return id, nil
 }
 
-func createClassicNasVolume(d *schema.ResourceData, config *ProviderConfig) (*string, error) {
-	regionNo, err := ParseRegionNoParameter(d)
+func createClassicNasVolume(d *schema.ResourceData, config *conn.ProviderConfig) (*string, error) {
+	regionNo, err := conn.ParseRegionNoParameter(d)
 	if err != nil {
 		return nil, err
 	}
@@ -348,7 +344,7 @@ func createClassicNasVolume(d *schema.ResourceData, config *ProviderConfig) (*st
 	return resp.NasVolumeInstanceList[0].NasVolumeInstanceNo, nil
 }
 
-func createVpcNasVolume(d *schema.ResourceData, config *ProviderConfig) (*string, error) {
+func createVpcNasVolume(d *schema.ResourceData, config *conn.ProviderConfig) (*string, error) {
 	reqParams := &vnas.CreateNasVolumeInstanceRequest{
 		RegionCode:                      &config.RegionCode,
 		ZoneCode:                        StringPtrOrNil(d.GetOk("zone")),
@@ -375,12 +371,12 @@ func createVpcNasVolume(d *schema.ResourceData, config *ProviderConfig) (*string
 	return resp.NasVolumeInstanceList[0].NasVolumeInstanceNo, nil
 }
 
-func waitForNasVolumeCreation(d *schema.ResourceData, config *ProviderConfig, id string) error {
+func waitForNasVolumeCreation(d *schema.ResourceData, config *conn.ProviderConfig, id string) error {
 	stateConf := &resource.StateChangeConf{
 		Pending: []string{"INIT"},
 		Target:  []string{"CREAT"},
 		Refresh: func() (interface{}, string, error) {
-			instance, err := getNasVolume(config, id)
+			instance, err := GetNasVolume(config, id)
 
 			if err != nil {
 				return 0, "", err
@@ -405,7 +401,7 @@ func waitForNasVolumeCreation(d *schema.ResourceData, config *ProviderConfig, id
 	return nil
 }
 
-func deleteNasVolume(d *schema.ResourceData, config *ProviderConfig, id string) error {
+func deleteNasVolume(d *schema.ResourceData, config *conn.ProviderConfig, id string) error {
 	var err error
 
 	if config.SupportVPC {
@@ -425,7 +421,7 @@ func deleteNasVolume(d *schema.ResourceData, config *ProviderConfig, id string) 
 	return nil
 }
 
-func deleteClassicNasVolume(config *ProviderConfig, id string) error {
+func deleteClassicNasVolume(config *conn.ProviderConfig, id string) error {
 	reqParams := &server.DeleteNasVolumeInstanceRequest{NasVolumeInstanceNo: ncloud.String(id)}
 	LogCommonRequest("deleteClassicNasVolume", reqParams)
 
@@ -439,7 +435,7 @@ func deleteClassicNasVolume(config *ProviderConfig, id string) error {
 	return nil
 }
 
-func deleteVpcNasVolume(config *ProviderConfig, id string) error {
+func deleteVpcNasVolume(config *conn.ProviderConfig, id string) error {
 	reqParams := &vnas.DeleteNasVolumeInstancesRequest{
 		RegionCode:              &config.RegionCode,
 		NasVolumeInstanceNoList: []*string{ncloud.String(id)},
@@ -456,12 +452,12 @@ func deleteVpcNasVolume(config *ProviderConfig, id string) error {
 	return nil
 }
 
-func waitForNasVolumeDeletion(d *schema.ResourceData, config *ProviderConfig, id string) error {
+func waitForNasVolumeDeletion(d *schema.ResourceData, config *conn.ProviderConfig, id string) error {
 	stateConf := &resource.StateChangeConf{
 		Pending: []string{"INIT", "CREAT"},
 		Target:  []string{"TERMT"},
 		Refresh: func() (interface{}, string, error) {
-			instance, err := getNasVolume(config, id)
+			instance, err := GetNasVolume(config, id)
 
 			if err != nil {
 				return 0, "", err
@@ -486,7 +482,7 @@ func waitForNasVolumeDeletion(d *schema.ResourceData, config *ProviderConfig, id
 	return nil
 }
 
-func changeNasVolumeSize(d *schema.ResourceData, config *ProviderConfig) error {
+func changeNasVolumeSize(d *schema.ResourceData, config *conn.ProviderConfig) error {
 	if config.SupportVPC {
 		return changeVpcNasVolumeSize(d, config)
 	} else {
@@ -494,7 +490,7 @@ func changeNasVolumeSize(d *schema.ResourceData, config *ProviderConfig) error {
 	}
 }
 
-func changeClassicNasVolumeSize(d *schema.ResourceData, config *ProviderConfig) error {
+func changeClassicNasVolumeSize(d *schema.ResourceData, config *conn.ProviderConfig) error {
 	reqParams := &server.ChangeNasVolumeSizeRequest{
 		NasVolumeInstanceNo: ncloud.String(d.Id()),
 		VolumeSize:          Int32PtrOrNil(d.GetOk("volume_size")),
@@ -511,7 +507,7 @@ func changeClassicNasVolumeSize(d *schema.ResourceData, config *ProviderConfig) 
 	return nil
 }
 
-func changeVpcNasVolumeSize(d *schema.ResourceData, config *ProviderConfig) error {
+func changeVpcNasVolumeSize(d *schema.ResourceData, config *conn.ProviderConfig) error {
 	reqParams := &vnas.ChangeNasVolumeSizeRequest{
 		RegionCode:          &config.RegionCode,
 		NasVolumeInstanceNo: ncloud.String(d.Id()),
@@ -529,7 +525,7 @@ func changeVpcNasVolumeSize(d *schema.ResourceData, config *ProviderConfig) erro
 	return nil
 }
 
-func setNasVolumeAccessControl(d *schema.ResourceData, config *ProviderConfig) error {
+func setNasVolumeAccessControl(d *schema.ResourceData, config *conn.ProviderConfig) error {
 	if config.SupportVPC {
 		if d.HasChange("server_instance_no_list") {
 			return setVpcNasVolumeAccessControl(d, config)
@@ -540,7 +536,7 @@ func setNasVolumeAccessControl(d *schema.ResourceData, config *ProviderConfig) e
 	}
 }
 
-func setClassicNasVolumeAccessControl(d *schema.ResourceData, config *ProviderConfig) error {
+func setClassicNasVolumeAccessControl(d *schema.ResourceData, config *conn.ProviderConfig) error {
 	reqParams := &server.SetNasVolumeAccessControlRequest{
 		NasVolumeInstanceNo:   ncloud.String(d.Id()),
 		AccessControlRuleList: makeClassicNasAclParams(d),
@@ -558,7 +554,7 @@ func setClassicNasVolumeAccessControl(d *schema.ResourceData, config *ProviderCo
 	return nil
 }
 
-func setVpcNasVolumeAccessControl(d *schema.ResourceData, config *ProviderConfig) error {
+func setVpcNasVolumeAccessControl(d *schema.ResourceData, config *conn.ProviderConfig) error {
 	reqParams := &vnas.SetNasVolumeAccessControlRequest{
 		RegionCode:            &config.RegionCode,
 		NasVolumeInstanceNo:   ncloud.String(d.Id()),

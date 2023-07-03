@@ -7,15 +7,11 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 
 	. "github.com/terraform-providers/terraform-provider-ncloud/internal/common"
-	"github.com/terraform-providers/terraform-provider-ncloud/internal/provider"
+	"github.com/terraform-providers/terraform-provider-ncloud/internal/conn"
 	. "github.com/terraform-providers/terraform-provider-ncloud/internal/verify"
 )
 
-func init() {
-	provider.RegisterDataSource("ncloud_launch_configuration", dataSourceNcloudLaunchConfiguration())
-}
-
-func dataSourceNcloudLaunchConfiguration() *schema.Resource {
+func DataSourceNcloudLaunchConfiguration() *schema.Resource {
 	fieldMap := map[string]*schema.Schema{
 		"id": {
 			Type:     schema.TypeString,
@@ -24,11 +20,11 @@ func dataSourceNcloudLaunchConfiguration() *schema.Resource {
 		},
 		"filter": DataSourceFiltersSchema(),
 	}
-	return GetSingularDataSourceItemSchema(resourceNcloudLaunchConfiguration(), fieldMap, dataSourceNcloudLaunchConfigurationRead)
+	return GetSingularDataSourceItemSchema(ResourceNcloudLaunchConfiguration(), fieldMap, dataSourceNcloudLaunchConfigurationRead)
 }
 
 func dataSourceNcloudLaunchConfigurationRead(d *schema.ResourceData, meta interface{}) error {
-	config := meta.(*provider.ProviderConfig)
+	config := meta.(*conn.ProviderConfig)
 
 	if v, ok := d.GetOk("id"); ok {
 		d.SetId(v.(string))
@@ -45,7 +41,7 @@ func dataSourceNcloudLaunchConfigurationRead(d *schema.ResourceData, meta interf
 
 	launchConfigListMap := ConvertToArrayMap(launchConfigList)
 	if f, ok := d.GetOk("filter"); ok {
-		launchConfigListMap = ApplyFilters(f.(*schema.Set), launchConfigListMap, dataSourceNcloudLaunchConfiguration().Schema)
+		launchConfigListMap = ApplyFilters(f.(*schema.Set), launchConfigListMap, DataSourceNcloudLaunchConfiguration().Schema)
 	}
 
 	if err := ValidateOneResult(len(launchConfigListMap)); err != nil {
@@ -53,11 +49,11 @@ func dataSourceNcloudLaunchConfigurationRead(d *schema.ResourceData, meta interf
 	}
 
 	d.SetId(launchConfigListMap[0]["launch_configuration_no"].(string))
-	SetSingularResourceDataFromMapSchema(dataSourceNcloudLaunchConfiguration(), d, launchConfigListMap[0])
+	SetSingularResourceDataFromMapSchema(DataSourceNcloudLaunchConfiguration(), d, launchConfigListMap[0])
 	return nil
 }
 
-func getLaunchConfigurationList(config *provider.ProviderConfig, id string) ([]*LaunchConfiguration, error) {
+func getLaunchConfigurationList(config *conn.ProviderConfig, id string) ([]*LaunchConfiguration, error) {
 	if config.SupportVPC {
 		return getVpcLaunchConfigurationList(config, id)
 	} else {
@@ -65,7 +61,7 @@ func getLaunchConfigurationList(config *provider.ProviderConfig, id string) ([]*
 	}
 }
 
-func getVpcLaunchConfigurationList(config *provider.ProviderConfig, id string) ([]*LaunchConfiguration, error) {
+func getVpcLaunchConfigurationList(config *conn.ProviderConfig, id string) ([]*LaunchConfiguration, error) {
 	reqParams := &vautoscaling.GetLaunchConfigurationListRequest{
 		RegionCode: &config.RegionCode,
 	}
@@ -103,7 +99,7 @@ func getVpcLaunchConfigurationList(config *provider.ProviderConfig, id string) (
 	return list, nil
 }
 
-func getClassicLaunchConfigurationList(config *provider.ProviderConfig, id string) ([]*LaunchConfiguration, error) {
+func getClassicLaunchConfigurationList(config *conn.ProviderConfig, id string) ([]*LaunchConfiguration, error) {
 	no := ncloud.String(id)
 	reqParams := &autoscaling.GetLaunchConfigurationListRequest{
 		RegionNo: &config.RegionNo,

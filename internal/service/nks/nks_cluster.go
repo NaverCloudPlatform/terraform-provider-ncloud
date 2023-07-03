@@ -18,13 +18,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 
 	. "github.com/terraform-providers/terraform-provider-ncloud/internal/common"
-	. "github.com/terraform-providers/terraform-provider-ncloud/internal/provider"
+	"github.com/terraform-providers/terraform-provider-ncloud/internal/conn"
 	. "github.com/terraform-providers/terraform-provider-ncloud/internal/verify"
 )
-
-func init() {
-	RegisterResource("ncloud_nks_cluster", resourceNcloudNKSCluster())
-}
 
 const (
 	NKSStatusCreatingCode = "CREATING"
@@ -35,7 +31,7 @@ const (
 	NKSStatusNullCode     = "NULL"
 )
 
-func resourceNcloudNKSCluster() *schema.Resource {
+func ResourceNcloudNKSCluster() *schema.Resource {
 	return &schema.Resource{
 		CreateContext: resourceNcloudNKSClusterCreate,
 		ReadContext:   resourceNcloudNKSClusterRead,
@@ -45,9 +41,9 @@ func resourceNcloudNKSCluster() *schema.Resource {
 			StateContext: schema.ImportStatePassthroughContext,
 		},
 		Timeouts: &schema.ResourceTimeout{
-			Create: schema.DefaultTimeout(DefaultCreateTimeout),
-			Update: schema.DefaultTimeout(DefaultCreateTimeout),
-			Delete: schema.DefaultTimeout(DefaultCreateTimeout),
+			Create: schema.DefaultTimeout(conn.DefaultCreateTimeout),
+			Update: schema.DefaultTimeout(conn.DefaultCreateTimeout),
+			Delete: schema.DefaultTimeout(conn.DefaultCreateTimeout),
 		},
 		CustomizeDiff: customdiff.All(
 			customdiff.ForceNewIfChange("subnet_no_list", func(ctx context.Context, old, new, meta any) bool {
@@ -211,7 +207,7 @@ func resourceNcloudNKSCluster() *schema.Resource {
 }
 
 func resourceNcloudNKSClusterCreate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
-	config := meta.(*ProviderConfig)
+	config := meta.(*conn.ProviderConfig)
 	if !config.SupportVPC {
 		return diag.FromErr(NotSupportClassic("resource `ncloud_nks_cluster`"))
 	}
@@ -299,12 +295,12 @@ func resourceNcloudNKSClusterCreate(ctx context.Context, d *schema.ResourceData,
 }
 
 func resourceNcloudNKSClusterRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
-	config := meta.(*ProviderConfig)
+	config := meta.(*conn.ProviderConfig)
 	if !config.SupportVPC {
 		return diag.FromErr(NotSupportClassic("resource `ncloud_nks_cluster`"))
 	}
 
-	cluster, err := getNKSCluster(ctx, config, d.Id())
+	cluster, err := GetNKSCluster(ctx, config, d.Id())
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -372,12 +368,12 @@ func resourceNcloudNKSClusterRead(ctx context.Context, d *schema.ResourceData, m
 }
 
 func resourceNcloudNKSClusterUpdate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
-	config := meta.(*ProviderConfig)
+	config := meta.(*conn.ProviderConfig)
 	if !config.SupportVPC {
 		return diag.FromErr(NotSupportClassic("resource `ncloud_nks_cluster`"))
 	}
 
-	cluster, err := getNKSCluster(ctx, config, d.Id())
+	cluster, err := GetNKSCluster(ctx, config, d.Id())
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -483,7 +479,7 @@ func resourceNcloudNKSClusterUpdate(ctx context.Context, d *schema.ResourceData,
 }
 
 func resourceNcloudNKSClusterDelete(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
-	config := meta.(*ProviderConfig)
+	config := meta.(*conn.ProviderConfig)
 	if !config.SupportVPC {
 		return diag.FromErr(NotSupportClassic("resource `ncloud_nks_cluster`"))
 	}
@@ -505,7 +501,7 @@ func resourceNcloudNKSClusterDelete(ctx context.Context, d *schema.ResourceData,
 	return nil
 }
 
-func waitForNKSClusterDeletion(ctx context.Context, d *schema.ResourceData, config *ProviderConfig) error {
+func waitForNKSClusterDeletion(ctx context.Context, d *schema.ResourceData, config *conn.ProviderConfig) error {
 	stateConf := &resource.StateChangeConf{
 		Pending: []string{NKSStatusDeletingCode},
 		Target:  []string{NKSStatusNullCode, NKSStatusRunningCode}, // ToDo: remove runnig status after external autoscaler callback removed.
@@ -529,12 +525,12 @@ func waitForNKSClusterDeletion(ctx context.Context, d *schema.ResourceData, conf
 	return nil
 }
 
-func waitForNKSClusterActive(ctx context.Context, d *schema.ResourceData, config *ProviderConfig, uuid string) error {
+func waitForNKSClusterActive(ctx context.Context, d *schema.ResourceData, config *conn.ProviderConfig, uuid string) error {
 	stateConf := &resource.StateChangeConf{
 		Pending: []string{NKSStatusCreatingCode, NKSStatusWorkingCode},
 		Target:  []string{NKSStatusRunningCode, NKSStatusNoNodeCode},
 		Refresh: func() (result interface{}, state string, err error) {
-			cluster, err := getNKSCluster(ctx, config, uuid)
+			cluster, err := GetNKSCluster(ctx, config, uuid)
 			if err != nil {
 				return nil, "", err
 			}
@@ -554,7 +550,7 @@ func waitForNKSClusterActive(ctx context.Context, d *schema.ResourceData, config
 	return nil
 }
 
-func getNKSCluster(ctx context.Context, config *ProviderConfig, uuid string) (*vnks.Cluster, error) {
+func GetNKSCluster(ctx context.Context, config *conn.ProviderConfig, uuid string) (*vnks.Cluster, error) {
 
 	resp, err := config.Client.Vnks.V2Api.ClustersUuidGet(ctx, &uuid)
 	if err != nil {
@@ -563,7 +559,7 @@ func getNKSCluster(ctx context.Context, config *ProviderConfig, uuid string) (*v
 	return resp.Cluster, nil
 }
 
-func getOIDCSpec(ctx context.Context, config *ProviderConfig, uuid string) (*vnks.OidcRes, error) {
+func getOIDCSpec(ctx context.Context, config *conn.ProviderConfig, uuid string) (*vnks.OidcRes, error) {
 
 	resp, err := config.Client.Vnks.V2Api.ClustersUuidOidcGet(ctx, &uuid)
 	if err != nil {
@@ -572,7 +568,7 @@ func getOIDCSpec(ctx context.Context, config *ProviderConfig, uuid string) (*vnk
 	return resp, nil
 }
 
-func getIPAcl(ctx context.Context, config *ProviderConfig, uuid string) (*vnks.IpAclsRes, error) {
+func getIPAcl(ctx context.Context, config *conn.ProviderConfig, uuid string) (*vnks.IpAclsRes, error) {
 
 	if checkFinSite(config) {
 		return &vnks.IpAclsRes{}, nil
@@ -585,8 +581,8 @@ func getIPAcl(ctx context.Context, config *ProviderConfig, uuid string) (*vnks.I
 	return resp, nil
 }
 
-func getNKSClusterFromList(ctx context.Context, config *ProviderConfig, uuid string) (*vnks.Cluster, error) {
-	clusters, err := getNKSClusters(ctx, config)
+func getNKSClusterFromList(ctx context.Context, config *conn.ProviderConfig, uuid string) (*vnks.Cluster, error) {
+	clusters, err := GetNKSClusters(ctx, config)
 	if err != nil {
 		return nil, err
 	}
@@ -598,7 +594,7 @@ func getNKSClusterFromList(ctx context.Context, config *ProviderConfig, uuid str
 	return nil, nil
 }
 
-func getNKSClusters(ctx context.Context, config *ProviderConfig) ([]*vnks.Cluster, error) {
+func GetNKSClusters(ctx context.Context, config *conn.ProviderConfig) ([]*vnks.Cluster, error) {
 	resp, err := config.Client.Vnks.V2Api.ClustersGet(ctx)
 	if err != nil {
 		return nil, err
@@ -637,7 +633,7 @@ func getSubnetDiff(oldList interface{}, newList interface{}) (added []*int32, re
 	return
 }
 
-func checkFinSite(config *ProviderConfig) (result bool) {
+func checkFinSite(config *conn.ProviderConfig) (result bool) {
 	ncloudApiGw := os.Getenv("NCLOUD_API_GW")
 	if config.Site == "fin" || strings.HasSuffix(ncloudApiGw, "apigw.fin-ntruss.com") {
 		result = true

@@ -7,15 +7,11 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 
 	. "github.com/terraform-providers/terraform-provider-ncloud/internal/common"
-	. "github.com/terraform-providers/terraform-provider-ncloud/internal/provider"
+	"github.com/terraform-providers/terraform-provider-ncloud/internal/conn"
 	. "github.com/terraform-providers/terraform-provider-ncloud/internal/verify"
 )
 
-func init() {
-	RegisterDataSource("ncloud_nas_volumes", dataSourceNcloudNasVolumes())
-}
-
-func dataSourceNcloudNasVolumes() *schema.Resource {
+func DataSourceNcloudNasVolumes() *schema.Resource {
 	return &schema.Resource{
 		Read: dataSourceNcloudNasVolumesRead,
 
@@ -58,7 +54,7 @@ func dataSourceNcloudNasVolumes() *schema.Resource {
 			"nas_volumes": {
 				Type:     schema.TypeList,
 				Computed: true,
-				Elem:     GetDataSourceItemSchema(resourceNcloudNasVolume()),
+				Elem:     GetDataSourceItemSchema(ResourceNcloudNasVolume()),
 			},
 			"output_file": {
 				Type:     schema.TypeString,
@@ -69,7 +65,7 @@ func dataSourceNcloudNasVolumes() *schema.Resource {
 }
 
 func dataSourceNcloudNasVolumesRead(d *schema.ResourceData, meta interface{}) error {
-	config := meta.(*ProviderConfig)
+	config := meta.(*conn.ProviderConfig)
 
 	instances, err := getNasVolumeList(d, config)
 	if err != nil {
@@ -79,7 +75,7 @@ func dataSourceNcloudNasVolumesRead(d *schema.ResourceData, meta interface{}) er
 	resources := ConvertToArrayMap(instances)
 
 	if f, ok := d.GetOk("filter"); ok {
-		resources = ApplyFilters(f.(*schema.Set), resources, dataSourceNcloudNasVolumes().Schema)
+		resources = ApplyFilters(f.(*schema.Set), resources, DataSourceNcloudNasVolumes().Schema)
 	}
 
 	if len(resources) < 1 {

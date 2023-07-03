@@ -7,14 +7,10 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 
 	. "github.com/terraform-providers/terraform-provider-ncloud/internal/common"
-	. "github.com/terraform-providers/terraform-provider-ncloud/internal/provider"
+	"github.com/terraform-providers/terraform-provider-ncloud/internal/conn"
 )
 
-func init() {
-	RegisterDataSource("ncloud_nks_node_pools", dataSourceNcloudNKSNodePools())
-}
-
-func dataSourceNcloudNKSNodePools() *schema.Resource {
+func DataSourceNcloudNKSNodePools() *schema.Resource {
 	return &schema.Resource{
 		ReadContext: dataSourceNcloudNKSNodePoolsRead,
 		Schema: map[string]*schema.Schema{
@@ -32,7 +28,7 @@ func dataSourceNcloudNKSNodePools() *schema.Resource {
 }
 
 func dataSourceNcloudNKSNodePoolsRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
-	config := meta.(*ProviderConfig)
+	config := meta.(*conn.ProviderConfig)
 	if !config.SupportVPC {
 		return diag.FromErr(NotSupportClassic("dataSource `ncloud_nks_node_pools`"))
 	}

@@ -7,14 +7,10 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 
 	. "github.com/terraform-providers/terraform-provider-ncloud/internal/common"
-	. "github.com/terraform-providers/terraform-provider-ncloud/internal/provider"
+	"github.com/terraform-providers/terraform-provider-ncloud/internal/conn"
 )
 
-func init() {
-	RegisterDataSource("ncloud_sourcecommit_repositories", dataSourceNcloudSourceCommitRepositories())
-}
-
-func dataSourceNcloudSourceCommitRepositories() *schema.Resource {
+func DataSourceNcloudSourceCommitRepositories() *schema.Resource {
 	return &schema.Resource{
 		ReadContext: dataSousrceNcloudSourceCommitRepositoriesRead,
 		Schema: map[string]*schema.Schema{
@@ -57,10 +53,10 @@ func dataSourceNcloudSourceCommitRepositories() *schema.Resource {
 
 func dataSousrceNcloudSourceCommitRepositoriesRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 
-	config := meta.(*ProviderConfig)
+	config := meta.(*conn.ProviderConfig)
 
 	LogCommonRequest("GetSourceCommitRepositories", "")
-	resp, err := getRepositories(ctx, config)
+	resp, err := GetRepositories(ctx, config)
 	if err != nil {
 		LogErrorResponse("GetSourceCommitRepositories", err, "")
 		return diag.FromErr(err)
@@ -82,7 +78,7 @@ func dataSousrceNcloudSourceCommitRepositoriesRead(ctx context.Context, d *schem
 	}
 
 	if f, ok := d.GetOk("filter"); ok {
-		resources = ApplyFilters(f.(*schema.Set), resources, dataSourceNcloudSourceCommitRepository().Schema)
+		resources = ApplyFilters(f.(*schema.Set), resources, DataSourceNcloudSourceCommitRepository().Schema)
 	}
 
 	d.SetId(config.RegionCode)

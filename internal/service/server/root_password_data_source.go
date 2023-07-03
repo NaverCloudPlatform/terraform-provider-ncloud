@@ -7,14 +7,10 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 
 	. "github.com/terraform-providers/terraform-provider-ncloud/internal/common"
-	. "github.com/terraform-providers/terraform-provider-ncloud/internal/provider"
+	"github.com/terraform-providers/terraform-provider-ncloud/internal/conn"
 )
 
-func init() {
-	RegisterDataSource("ncloud_root_password", dataSourceNcloudRootPassword())
-}
-
-func dataSourceNcloudRootPassword() *schema.Resource {
+func DataSourceNcloudRootPassword() *schema.Resource {
 	return &schema.Resource{
 		Read: dataSourceNcloudRootPasswordRead,
 
@@ -38,7 +34,7 @@ func dataSourceNcloudRootPassword() *schema.Resource {
 }
 
 func dataSourceNcloudRootPasswordRead(d *schema.ResourceData, meta interface{}) error {
-	config := meta.(*ProviderConfig)
+	config := meta.(*conn.ProviderConfig)
 
 	rootPassword, err := getRootPassword(d, config)
 	if err != nil {
@@ -51,7 +47,7 @@ func dataSourceNcloudRootPasswordRead(d *schema.ResourceData, meta interface{}) 
 	return nil
 }
 
-func getRootPassword(d *schema.ResourceData, config *ProviderConfig) (*string, error) {
+func getRootPassword(d *schema.ResourceData, config *conn.ProviderConfig) (*string, error) {
 	if config.SupportVPC {
 		return getVpcRootPassword(d, config)
 	} else {
@@ -59,7 +55,7 @@ func getRootPassword(d *schema.ResourceData, config *ProviderConfig) (*string, e
 	}
 }
 
-func getClassicRootPassword(d *schema.ResourceData, config *ProviderConfig) (*string, error) {
+func getClassicRootPassword(d *schema.ResourceData, config *conn.ProviderConfig) (*string, error) {
 	reqParams := &server.GetRootPasswordRequest{
 		ServerInstanceNo: ncloud.String(d.Get("server_instance_no").(string)),
 		PrivateKey:       ncloud.String(d.Get("private_key").(string)),
@@ -76,7 +72,7 @@ func getClassicRootPassword(d *schema.ResourceData, config *ProviderConfig) (*st
 	return resp.RootPassword, nil
 }
 
-func getVpcRootPassword(d *schema.ResourceData, config *ProviderConfig) (*string, error) {
+func getVpcRootPassword(d *schema.ResourceData, config *conn.ProviderConfig) (*string, error) {
 	reqParams := &vserver.GetRootPasswordRequest{
 		RegionCode:       &config.RegionCode,
 		ServerInstanceNo: ncloud.String(d.Get("server_instance_no").(string)),

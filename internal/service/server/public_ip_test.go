@@ -1,4 +1,4 @@
-package server
+package server_test
 
 import (
 	"fmt"
@@ -12,11 +12,12 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 
 	. "github.com/terraform-providers/terraform-provider-ncloud/internal/acctest"
-	. "github.com/terraform-providers/terraform-provider-ncloud/internal/provider"
+	"github.com/terraform-providers/terraform-provider-ncloud/internal/conn"
+	"github.com/terraform-providers/terraform-provider-ncloud/internal/service/server"
 )
 
 func TestAccResourceNcloudPublicIpInstance_classic_basic(t *testing.T) {
-	var instance *PublicIpInstance
+	var instance *server.PublicIpInstance
 	description := fmt.Sprintf("test-public-ip-basic-%s", acctest.RandString(5))
 	resourceName := "ncloud_public_ip.public_ip"
 
@@ -48,7 +49,7 @@ func TestAccResourceNcloudPublicIpInstance_classic_basic(t *testing.T) {
 }
 
 func TestAccResourceNcloudPublicIpInstance_vpc_basic(t *testing.T) {
-	var instance *PublicIpInstance
+	var instance *server.PublicIpInstance
 
 	name := fmt.Sprintf("test-public-ip-basic-%s", acctest.RandString(5))
 	resourceName := "ncloud_public_ip.public_ip"
@@ -81,7 +82,7 @@ func TestAccResourceNcloudPublicIpInstance_vpc_basic(t *testing.T) {
 }
 
 func TestAccResourceNcloudPublicIpInstance_classic_updateServerInstanceNo(t *testing.T) {
-	var instance *PublicIpInstance
+	var instance *server.PublicIpInstance
 	serverNameFoo := fmt.Sprintf("test-public-ip-foo-%s", acctest.RandString(5))
 	serverNameBar := fmt.Sprintf("test-public-ip-bar-%s", acctest.RandString(5))
 	resourceName := "ncloud_public_ip.public_ip"
@@ -114,7 +115,7 @@ func TestAccResourceNcloudPublicIpInstance_classic_updateServerInstanceNo(t *tes
 }
 
 func TestAccResourceNcloudPublicIpInstance_vpc_updateServerInstanceNo(t *testing.T) {
-	var instance *PublicIpInstance
+	var instance *server.PublicIpInstance
 	serverNameFoo := fmt.Sprintf("test-public-ip-foo-%s", acctest.RandString(5))
 	serverNameBar := fmt.Sprintf("test-public-ip-bar-%s", acctest.RandString(5))
 	resourceName := "ncloud_public_ip.public_ip"
@@ -146,7 +147,7 @@ func TestAccResourceNcloudPublicIpInstance_vpc_updateServerInstanceNo(t *testing
 	})
 }
 
-func testAccCheckPublicIpInstanceExists(n string, i *PublicIpInstance, provider *schema.Provider) resource.TestCheckFunc {
+func testAccCheckPublicIpInstanceExists(n string, i *server.PublicIpInstance, provider *schema.Provider) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		rs, ok := s.RootModule().Resources[n]
 		if !ok {
@@ -157,9 +158,9 @@ func testAccCheckPublicIpInstanceExists(n string, i *PublicIpInstance, provider 
 			return fmt.Errorf("no ID is set")
 		}
 
-		config := provider.Meta().(*ProviderConfig)
+		config := provider.Meta().(*conn.ProviderConfig)
 
-		instance, err := getPublicIp(config, rs.Primary.ID)
+		instance, err := server.GetPublicIp(config, rs.Primary.ID)
 
 		if err != nil {
 			return nil
@@ -177,13 +178,13 @@ func testAccCheckPublicIpInstanceExists(n string, i *PublicIpInstance, provider 
 
 func testAccCheckPublicIpInstanceDestroy(s *terraform.State, provider *schema.Provider) error {
 	for _, rs := range s.RootModule().Resources {
-		config := provider.Meta().(*ProviderConfig)
+		config := provider.Meta().(*conn.ProviderConfig)
 
 		if rs.Type != "ncloud_public_ip" {
 			continue
 		}
 
-		instance, err := getPublicIp(config, rs.Primary.ID)
+		instance, err := server.GetPublicIp(config, rs.Primary.ID)
 
 		if err != nil {
 			return err

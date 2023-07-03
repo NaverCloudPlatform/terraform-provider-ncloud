@@ -12,19 +12,15 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 
 	. "github.com/terraform-providers/terraform-provider-ncloud/internal/common"
-	. "github.com/terraform-providers/terraform-provider-ncloud/internal/provider"
+	"github.com/terraform-providers/terraform-provider-ncloud/internal/conn"
 	"github.com/terraform-providers/terraform-provider-ncloud/internal/verify"
 )
-
-func init() {
-	RegisterResource("ncloud_subnet", resourceNcloudSubnet())
-}
 
 const (
 	SubnetPleaseTryAgainErrorCode = "3000"
 )
 
-func resourceNcloudSubnet() *schema.Resource {
+func ResourceNcloudSubnet() *schema.Resource {
 	return &schema.Resource{
 		Create: resourceNcloudSubnetCreate,
 		Read:   resourceNcloudSubnetRead,
@@ -85,7 +81,7 @@ func resourceNcloudSubnet() *schema.Resource {
 }
 
 func resourceNcloudSubnetCreate(d *schema.ResourceData, meta interface{}) error {
-	config := meta.(*ProviderConfig)
+	config := meta.(*conn.ProviderConfig)
 
 	if !config.SupportVPC {
 		return NotSupportClassic("resource `ncloud_subnet`")
@@ -143,7 +139,7 @@ func resourceNcloudSubnetCreate(d *schema.ResourceData, meta interface{}) error 
 }
 
 func resourceNcloudSubnetRead(d *schema.ResourceData, meta interface{}) error {
-	config := meta.(*ProviderConfig)
+	config := meta.(*conn.ProviderConfig)
 
 	instance, err := GetSubnetInstance(config, d.Id())
 	if err != nil {
@@ -169,7 +165,7 @@ func resourceNcloudSubnetRead(d *schema.ResourceData, meta interface{}) error {
 }
 
 func resourceNcloudSubnetUpdate(d *schema.ResourceData, meta interface{}) error {
-	config := meta.(*ProviderConfig)
+	config := meta.(*conn.ProviderConfig)
 
 	if d.HasChange("network_acl_no") {
 		reqParams := &vpc.SetSubnetNetworkAclRequest{
@@ -195,7 +191,7 @@ func resourceNcloudSubnetUpdate(d *schema.ResourceData, meta interface{}) error 
 }
 
 func resourceNcloudSubnetDelete(d *schema.ResourceData, meta interface{}) error {
-	config := meta.(*ProviderConfig)
+	config := meta.(*conn.ProviderConfig)
 
 	reqParams := &vpc.DeleteSubnetRequest{
 		RegionCode: &config.RegionCode,
@@ -210,14 +206,14 @@ func resourceNcloudSubnetDelete(d *schema.ResourceData, meta interface{}) error 
 	}
 	LogResponse("DeleteSubnet", resp)
 
-	if err := waitForNcloudSubnetDeletion(config, d.Id()); err != nil {
+	if err := WaitForNcloudSubnetDeletion(config, d.Id()); err != nil {
 		return err
 	}
 
 	return nil
 }
 
-func waitForNcloudSubnetCreation(config *ProviderConfig, id string) error {
+func waitForNcloudSubnetCreation(config *conn.ProviderConfig, id string) error {
 	stateConf := &resource.StateChangeConf{
 		Pending: []string{"INIT", "CREATING"},
 		Target:  []string{"RUN"},
@@ -225,7 +221,7 @@ func waitForNcloudSubnetCreation(config *ProviderConfig, id string) error {
 			instance, err := GetSubnetInstance(config, id)
 			return VpcCommonStateRefreshFunc(instance, err, "SubnetStatus")
 		},
-		Timeout:    DefaultCreateTimeout,
+		Timeout:    conn.DefaultCreateTimeout,
 		Delay:      2 * time.Second,
 		MinTimeout: 3 * time.Second,
 	}
@@ -237,15 +233,15 @@ func waitForNcloudSubnetCreation(config *ProviderConfig, id string) error {
 	return nil
 }
 
-func waitForNcloudNetworkACLUpdate(config *ProviderConfig, id string) error {
+func waitForNcloudNetworkACLUpdate(config *conn.ProviderConfig, id string) error {
 	stateConf := &resource.StateChangeConf{
 		Pending: []string{"SET"},
 		Target:  []string{"RUN"},
 		Refresh: func() (interface{}, string, error) {
-			instance, err := getNetworkACLInstance(config, id)
+			instance, err := GetNetworkACLInstance(config, id)
 			return VpcCommonStateRefreshFunc(instance, err, "NetworkAclStatus")
 		},
-		Timeout:    DefaultTimeout,
+		Timeout:    conn.DefaultTimeout,
 		Delay:      2 * time.Second,
 		MinTimeout: 3 * time.Second,
 	}
@@ -257,7 +253,7 @@ func waitForNcloudNetworkACLUpdate(config *ProviderConfig, id string) error {
 	return nil
 }
 
-func waitForNcloudSubnetDeletion(config *ProviderConfig, id string) error {
+func WaitForNcloudSubnetDeletion(config *conn.ProviderConfig, id string) error {
 	stateConf := &resource.StateChangeConf{
 		Pending: []string{"RUN", "TERMTING"},
 		Target:  []string{"TERMINATED"},
@@ -265,7 +261,7 @@ func waitForNcloudSubnetDeletion(config *ProviderConfig, id string) error {
 			instance, err := GetSubnetInstance(config, id)
 			return VpcCommonStateRefreshFunc(instance, err, "SubnetStatus")
 		},
-		Timeout:    DefaultTimeout,
+		Timeout:    conn.DefaultTimeout,
 		Delay:      2 * time.Second,
 		MinTimeout: 3 * time.Second,
 	}
@@ -277,7 +273,7 @@ func waitForNcloudSubnetDeletion(config *ProviderConfig, id string) error {
 	return nil
 }
 
-func GetSubnetInstance(config *ProviderConfig, id string) (*vpc.Subnet, error) {
+func GetSubnetInstance(config *conn.ProviderConfig, id string) (*vpc.Subnet, error) {
 	reqParams := &vpc.GetSubnetDetailRequest{
 		RegionCode: &config.RegionCode,
 		SubnetNo:   ncloud.String(id),

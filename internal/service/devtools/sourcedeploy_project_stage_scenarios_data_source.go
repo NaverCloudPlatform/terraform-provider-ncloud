@@ -9,14 +9,10 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 
 	. "github.com/terraform-providers/terraform-provider-ncloud/internal/common"
-	"github.com/terraform-providers/terraform-provider-ncloud/internal/provider"
+	"github.com/terraform-providers/terraform-provider-ncloud/internal/conn"
 )
 
-func init() {
-	provider.RegisterDataSource("ncloud_sourcedeploy_project_stage_scenarios", dataSourceNcloudSourceDeployscenariosContext())
-}
-
-func dataSourceNcloudSourceDeployscenariosContext() *schema.Resource {
+func DataSourceNcloudSourceDeployscenariosContext() *schema.Resource {
 	return &schema.Resource{
 		ReadContext: dataSourceNcloudSourceDeployScenariosReadContext,
 		Schema: map[string]*schema.Schema{
@@ -50,7 +46,7 @@ func dataSourceNcloudSourceDeployscenariosContext() *schema.Resource {
 }
 
 func dataSourceNcloudSourceDeployScenariosReadContext(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
-	config := meta.(*provider.ProviderConfig)
+	config := meta.(*conn.ProviderConfig)
 
 	if !config.SupportVPC {
 		return diag.FromErr(NotSupportClassic("dataSource `ncloud_sourcedeploy_project_stage_scenarios`"))
@@ -75,7 +71,7 @@ func dataSourceNcloudSourceDeployScenariosReadContext(ctx context.Context, d *sc
 	}
 
 	if f, ok := d.GetOk("filter"); ok {
-		resources = ApplyFilters(f.(*schema.Set), resources, dataSourceNcloudSourceDeployscenariosContext().Schema)
+		resources = ApplyFilters(f.(*schema.Set), resources, DataSourceNcloudSourceDeployscenariosContext().Schema)
 	}
 	d.SetId(config.RegionCode)
 	d.Set("scenarios", resources)
@@ -83,7 +79,7 @@ func dataSourceNcloudSourceDeployScenariosReadContext(ctx context.Context, d *sc
 	return nil
 }
 
-func GetScenarios(ctx context.Context, config *provider.ProviderConfig, projectId *string, stageId *string) (*vsourcedeploy.GetScenarioListResponse, error) {
+func GetScenarios(ctx context.Context, config *conn.ProviderConfig, projectId *string, stageId *string) (*vsourcedeploy.GetScenarioListResponse, error) {
 
 	reqParams := make(map[string]interface{})
 	LogCommonRequest("GetScenarios", reqParams)

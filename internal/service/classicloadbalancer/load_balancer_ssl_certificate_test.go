@@ -1,4 +1,4 @@
-package classicloadbalancer
+package classicloadbalancer_test
 
 import (
 	"fmt"
@@ -11,7 +11,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 
 	. "github.com/terraform-providers/terraform-provider-ncloud/internal/acctest"
-	. "github.com/terraform-providers/terraform-provider-ncloud/internal/provider"
+	"github.com/terraform-providers/terraform-provider-ncloud/internal/conn"
+	"github.com/terraform-providers/terraform-provider-ncloud/internal/service/classicloadbalancer"
 )
 
 func TestAccNcloudLoadBalancerSSLCertificateBasic(t *testing.T) {
@@ -130,8 +131,8 @@ func testAccCheckLoadBalancerSSLCertificateExistsWithProvider(n string, i *loadb
 		}
 
 		provider := providerF()
-		client := provider.Meta().(*ProviderConfig).Client
-		sc, err := getLoadBalancerSslCertificateList(client, rs.Primary.ID)
+		client := provider.Meta().(*conn.ProviderConfig).Client
+		sc, err := classicloadbalancer.GetLoadBalancerSslCertificateList(client, rs.Primary.ID)
 		if err != nil {
 			return nil
 		}
@@ -150,12 +151,12 @@ func testAccCheckLoadBalancerSSLCertificateDestroy(s *terraform.State) error {
 }
 
 func testAccCheckLoadBalancerSSLCertificateDestroyWithProvider(s *terraform.State, provider *schema.Provider) error {
-	client := provider.Meta().(*ProviderConfig).Client
+	client := provider.Meta().(*conn.ProviderConfig).Client
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "ncloud_load_balancer_ssl_certificate" {
 			continue
 		}
-		sc, err := getLoadBalancerSslCertificateList(client, rs.Primary.ID)
+		sc, err := classicloadbalancer.GetLoadBalancerSslCertificateList(client, rs.Primary.ID)
 		if sc == nil {
 			return nil
 		}

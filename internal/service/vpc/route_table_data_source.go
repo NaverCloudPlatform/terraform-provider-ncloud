@@ -6,15 +6,11 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 
 	. "github.com/terraform-providers/terraform-provider-ncloud/internal/common"
-	. "github.com/terraform-providers/terraform-provider-ncloud/internal/provider"
+	"github.com/terraform-providers/terraform-provider-ncloud/internal/conn"
 	"github.com/terraform-providers/terraform-provider-ncloud/internal/verify"
 )
 
-func init() {
-	RegisterDataSource("ncloud_route_table", dataSourceNcloudRouteTable())
-}
-
-func dataSourceNcloudRouteTable() *schema.Resource {
+func DataSourceNcloudRouteTable() *schema.Resource {
 	fieldMap := map[string]*schema.Schema{
 		"id": {
 			Type:     schema.TypeString,
@@ -39,11 +35,11 @@ func dataSourceNcloudRouteTable() *schema.Resource {
 		"filter": DataSourceFiltersSchema(),
 	}
 
-	return GetSingularDataSourceItemSchema(resourceNcloudRouteTable(), fieldMap, dataSourceNcloudRouteTableRead)
+	return GetSingularDataSourceItemSchema(ResourceNcloudRouteTable(), fieldMap, dataSourceNcloudRouteTableRead)
 }
 
 func dataSourceNcloudRouteTableRead(d *schema.ResourceData, meta interface{}) error {
-	config := meta.(*ProviderConfig)
+	config := meta.(*conn.ProviderConfig)
 
 	if !config.SupportVPC {
 		return NotSupportClassic("data source `ncloud_route_table`")
@@ -64,7 +60,7 @@ func dataSourceNcloudRouteTableRead(d *schema.ResourceData, meta interface{}) er
 	return nil
 }
 
-func getRouteTableList(d *schema.ResourceData, config *ProviderConfig) (*vpc.GetRouteTableListResponse, error) {
+func getRouteTableList(d *schema.ResourceData, config *conn.ProviderConfig) (*vpc.GetRouteTableListResponse, error) {
 	reqParams := &vpc.GetRouteTableListRequest{
 		RegionCode: &config.RegionCode,
 	}
@@ -97,7 +93,7 @@ func getRouteTableList(d *schema.ResourceData, config *ProviderConfig) (*vpc.Get
 	return resp, nil
 }
 
-func getRouteTableListFiltered(d *schema.ResourceData, config *ProviderConfig) ([]map[string]interface{}, error) {
+func getRouteTableListFiltered(d *schema.ResourceData, config *conn.ProviderConfig) ([]map[string]interface{}, error) {
 	resp, err := getRouteTableList(d, config)
 
 	if err != nil {
@@ -121,7 +117,7 @@ func getRouteTableListFiltered(d *schema.ResourceData, config *ProviderConfig) (
 	}
 
 	if f, ok := d.GetOk("filter"); ok {
-		resources = ApplyFilters(f.(*schema.Set), resources, resourceNcloudRouteTable().Schema)
+		resources = ApplyFilters(f.(*schema.Set), resources, ResourceNcloudRouteTable().Schema)
 	}
 
 	return resources, nil

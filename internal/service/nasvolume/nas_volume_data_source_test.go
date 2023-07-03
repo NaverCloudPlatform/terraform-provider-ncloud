@@ -1,4 +1,4 @@
-package nasvolume
+package nasvolume_test
 
 import (
 	"fmt"

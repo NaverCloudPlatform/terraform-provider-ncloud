@@ -14,15 +14,11 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 
 	. "github.com/terraform-providers/terraform-provider-ncloud/internal/common"
-	"github.com/terraform-providers/terraform-provider-ncloud/internal/provider"
+	"github.com/terraform-providers/terraform-provider-ncloud/internal/conn"
 	. "github.com/terraform-providers/terraform-provider-ncloud/internal/verify"
 )
 
-func init() {
-	provider.RegisterResource("ncloud_sourcedeploy_project_stage_scenario", resourceNcloudSourceDeployScenario())
-}
-
-func resourceNcloudSourceDeployScenario() *schema.Resource {
+func ResourceNcloudSourceDeployScenario() *schema.Resource {
 	return &schema.Resource{
 		CreateContext: resourceNcloudSourceDeployScenarioCreate,
 		ReadContext:   resourceNcloudSourceDeployScenarioRead,
@@ -45,10 +41,10 @@ func resourceNcloudSourceDeployScenario() *schema.Resource {
 			},
 		},
 		Timeouts: &schema.ResourceTimeout{
-			Create: schema.DefaultTimeout(provider.DefaultTimeout),
-			Read:   schema.DefaultTimeout(provider.DefaultTimeout),
-			Update: schema.DefaultTimeout(provider.DefaultTimeout),
-			Delete: schema.DefaultTimeout(provider.DefaultTimeout),
+			Create: schema.DefaultTimeout(conn.DefaultTimeout),
+			Read:   schema.DefaultTimeout(conn.DefaultTimeout),
+			Update: schema.DefaultTimeout(conn.DefaultTimeout),
+			Delete: schema.DefaultTimeout(conn.DefaultTimeout),
 		},
 		Schema: map[string]*schema.Schema{
 			"project_id": {
@@ -413,7 +409,7 @@ func resourceNcloudSourceDeployScenario() *schema.Resource {
 }
 
 func resourceNcloudSourceDeployScenarioCreate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
-	config := meta.(*provider.ProviderConfig)
+	config := meta.(*conn.ProviderConfig)
 
 	if !config.SupportVPC {
 		return diag.FromErr(NotSupportClassic("resource `ncloud_sourcedeploy_project_stage_scenario`"))
@@ -421,7 +417,7 @@ func resourceNcloudSourceDeployScenarioCreate(ctx context.Context, d *schema.Res
 	projectId := ncloud.IntString(d.Get("project_id").(int))
 	stageId := ncloud.IntString(d.Get("stage_id").(int))
 
-	stageResp, stageErr := getSourceDeployStageById(ctx, config, projectId, stageId)
+	stageResp, stageErr := GetSourceDeployStageById(ctx, config, projectId, stageId)
 	if stageErr != nil {
 		return diag.FromErr(stageErr)
 	}
@@ -445,14 +441,14 @@ func resourceNcloudSourceDeployScenarioCreate(ctx context.Context, d *schema.Res
 }
 
 func resourceNcloudSourceDeployScenarioRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
-	config := meta.(*provider.ProviderConfig)
+	config := meta.(*conn.ProviderConfig)
 
 	if !config.SupportVPC {
 		return diag.FromErr(NotSupportClassic("resource `ncloud_sourcedeploy_project_stage_scenario`"))
 	}
 	projectId := ncloud.IntString(d.Get("project_id").(int))
 	stageId := ncloud.IntString(d.Get("stage_id").(int))
-	scenario, err := getSourceDeployScenarioById(ctx, config, projectId, stageId, ncloud.String(d.Id()))
+	scenario, err := GetSourceDeployScenarioById(ctx, config, projectId, stageId, ncloud.String(d.Id()))
 
 	if err != nil {
 		return diag.FromErr(err)
@@ -823,7 +819,7 @@ func getCanaryConfigAnalysisConfig(d *schema.ResourceData) (*vsourcedeploy.Scena
 	return nil, nil
 }
 
-func getSourceDeployScenarioById(ctx context.Context, config *provider.ProviderConfig, projectId *string, stageId *string, id *string) (*vsourcedeploy.GetScenarioDetailResponse, error) {
+func GetSourceDeployScenarioById(ctx context.Context, config *conn.ProviderConfig, projectId *string, stageId *string, id *string) (*vsourcedeploy.GetScenarioDetailResponse, error) {
 	LogCommonRequest("getSourceDeployScenario", id)
 	resp, err := config.Client.Vsourcedeploy.V1Api.GetScenario(ctx, projectId, stageId, id)
 	if err != nil {
@@ -836,7 +832,7 @@ func getSourceDeployScenarioById(ctx context.Context, config *provider.ProviderC
 }
 
 func resourceNcloudSourceDeployScenarioDelete(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
-	config := meta.(*provider.ProviderConfig)
+	config := meta.(*conn.ProviderConfig)
 	if !config.SupportVPC {
 		return diag.FromErr(NotSupportClassic("resource `ncloud_sourcedeploy_project_stage_scenario`"))
 	}
@@ -855,7 +851,7 @@ func resourceNcloudSourceDeployScenarioDelete(ctx context.Context, d *schema.Res
 }
 
 func resourceNcloudSourceDeployScenarioUpdate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
-	config := meta.(*provider.ProviderConfig)
+	config := meta.(*conn.ProviderConfig)
 
 	err := changeDeployScenario(ctx, d, config)
 	if err != nil {
@@ -865,10 +861,10 @@ func resourceNcloudSourceDeployScenarioUpdate(ctx context.Context, d *schema.Res
 	return resourceNcloudSourceDeployScenarioRead(ctx, d, meta)
 }
 
-func changeDeployScenario(ctx context.Context, d *schema.ResourceData, config *provider.ProviderConfig) error {
+func changeDeployScenario(ctx context.Context, d *schema.ResourceData, config *conn.ProviderConfig) error {
 	projectId := ncloud.IntString(d.Get("project_id").(int))
 	stageId := ncloud.IntString(d.Get("stage_id").(int))
-	stage, stageErr := getSourceDeployStageById(ctx, config, projectId, stageId)
+	stage, stageErr := GetSourceDeployStageById(ctx, config, projectId, stageId)
 	if stageErr != nil {
 		return stageErr
 	}

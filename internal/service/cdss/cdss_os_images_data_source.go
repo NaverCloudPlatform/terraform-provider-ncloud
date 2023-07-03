@@ -7,28 +7,24 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 
 	. "github.com/terraform-providers/terraform-provider-ncloud/internal/common"
-	. "github.com/terraform-providers/terraform-provider-ncloud/internal/provider"
+	"github.com/terraform-providers/terraform-provider-ncloud/internal/conn"
 )
 
-func init() {
-	RegisterDataSource("ncloud_cdss_os_images", dataSourceNcloudCDSSOsImages())
-}
-
-func dataSourceNcloudCDSSOsImages() *schema.Resource {
+func DataSourceNcloudCDSSOsImages() *schema.Resource {
 	return &schema.Resource{
 		Read: dataSourceNcloudCDSSOsImagesRead,
 		Schema: map[string]*schema.Schema{
 			"os_images": {
 				Type:     schema.TypeList,
 				Computed: true,
-				Elem:     GetDataSourceItemSchema(dataSourceNcloudCDSSOsImage()),
+				Elem:     GetDataSourceItemSchema(DataSourceNcloudCDSSOsImage()),
 			},
 		},
 	}
 }
 
 func dataSourceNcloudCDSSOsImagesRead(d *schema.ResourceData, meta interface{}) error {
-	config := meta.(*ProviderConfig)
+	config := meta.(*conn.ProviderConfig)
 	if !config.SupportVPC {
 		return NotSupportClassic("datasource `ncloud_cdss_os_images`")
 	}

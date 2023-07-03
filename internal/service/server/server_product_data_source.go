@@ -10,16 +10,12 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 
 	. "github.com/terraform-providers/terraform-provider-ncloud/internal/common"
-	. "github.com/terraform-providers/terraform-provider-ncloud/internal/provider"
+	"github.com/terraform-providers/terraform-provider-ncloud/internal/conn"
 	"github.com/terraform-providers/terraform-provider-ncloud/internal/verify"
 	"github.com/terraform-providers/terraform-provider-ncloud/internal/zone"
 )
 
-func init() {
-	RegisterDataSource("ncloud_server_product", dataSourceNcloudServerProduct())
-}
-
-func dataSourceNcloudServerProduct() *schema.Resource {
+func DataSourceNcloudServerProduct() *schema.Resource {
 	return &schema.Resource{
 		Read: dataSourceNcloudServerProductRead,
 
@@ -100,7 +96,7 @@ func dataSourceNcloudServerProduct() *schema.Resource {
 }
 
 func dataSourceNcloudServerProductRead(d *schema.ResourceData, meta interface{}) error {
-	resources, err := getServerProductListFiltered(d, meta.(*ProviderConfig))
+	resources, err := getServerProductListFiltered(d, meta.(*conn.ProviderConfig))
 	if err != nil {
 		return err
 	}
@@ -115,7 +111,7 @@ func dataSourceNcloudServerProductRead(d *schema.ResourceData, meta interface{})
 	return nil
 }
 
-func getServerProductListFiltered(d *schema.ResourceData, config *ProviderConfig) ([]map[string]interface{}, error) {
+func getServerProductListFiltered(d *schema.ResourceData, config *conn.ProviderConfig) ([]map[string]interface{}, error) {
 	var resources []map[string]interface{}
 	var err error
 
@@ -130,13 +126,13 @@ func getServerProductListFiltered(d *schema.ResourceData, config *ProviderConfig
 	}
 
 	if f, ok := d.GetOk("filter"); ok {
-		resources = ApplyFilters(f.(*schema.Set), resources, dataSourceNcloudServerProduct().Schema)
+		resources = ApplyFilters(f.(*schema.Set), resources, DataSourceNcloudServerProduct().Schema)
 	}
 
 	return resources, nil
 }
 
-func getClassicServerProductList(d *schema.ResourceData, config *ProviderConfig) ([]map[string]interface{}, error) {
+func getClassicServerProductList(d *schema.ResourceData, config *conn.ProviderConfig) ([]map[string]interface{}, error) {
 	client := config.Client
 	regionNo := config.RegionNo
 
@@ -183,7 +179,7 @@ func getClassicServerProductList(d *schema.ResourceData, config *ProviderConfig)
 	return resources, nil
 }
 
-func getVpcServerProductList(d *schema.ResourceData, config *ProviderConfig) ([]map[string]interface{}, error) {
+func getVpcServerProductList(d *schema.ResourceData, config *conn.ProviderConfig) ([]map[string]interface{}, error) {
 	client := config.Client
 	regionCode := config.RegionCode
 

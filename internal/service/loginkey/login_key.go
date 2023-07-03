@@ -14,15 +14,11 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 
 	. "github.com/terraform-providers/terraform-provider-ncloud/internal/common"
-	. "github.com/terraform-providers/terraform-provider-ncloud/internal/provider"
+	"github.com/terraform-providers/terraform-provider-ncloud/internal/conn"
 	. "github.com/terraform-providers/terraform-provider-ncloud/internal/verify"
 )
 
-func init() {
-	RegisterResource("ncloud_login_key", resourceNcloudLoginKey())
-}
-
-func resourceNcloudLoginKey() *schema.Resource {
+func ResourceNcloudLoginKey() *schema.Resource {
 	return &schema.Resource{
 		Create: resourceNcloudLoginKeyCreate,
 		Read:   resourceNcloudLoginKeyRead,
@@ -31,8 +27,8 @@ func resourceNcloudLoginKey() *schema.Resource {
 			State: schema.ImportStatePassthrough,
 		},
 		Timeouts: &schema.ResourceTimeout{
-			Create: schema.DefaultTimeout(DefaultTimeout),
-			Delete: schema.DefaultTimeout(DefaultTimeout),
+			Create: schema.DefaultTimeout(conn.DefaultTimeout),
+			Delete: schema.DefaultTimeout(conn.DefaultTimeout),
 		},
 		Schema: map[string]*schema.Schema{
 			"key_name": {
@@ -56,7 +52,7 @@ func resourceNcloudLoginKey() *schema.Resource {
 }
 
 func resourceNcloudLoginKeyRead(d *schema.ResourceData, meta interface{}) error {
-	loginKey, err := getLoginKey(meta.(*ProviderConfig), d.Id())
+	loginKey, err := GetLoginKey(meta.(*conn.ProviderConfig), d.Id())
 	if err != nil {
 		return err
 	}
@@ -77,10 +73,10 @@ func resourceNcloudLoginKeyCreate(d *schema.ResourceData, meta interface{}) erro
 
 	keyName := d.Get("key_name").(string)
 
-	if meta.(*ProviderConfig).SupportVPC == true {
-		privateKey, err = createVpcLoginKey(meta.(*ProviderConfig), &keyName)
+	if meta.(*conn.ProviderConfig).SupportVPC == true {
+		privateKey, err = createVpcLoginKey(meta.(*conn.ProviderConfig), &keyName)
 	} else {
-		privateKey, err = createClassicLoginKey(meta.(*ProviderConfig), &keyName)
+		privateKey, err = createClassicLoginKey(meta.(*conn.ProviderConfig), &keyName)
 	}
 
 	if err != nil {
@@ -96,7 +92,7 @@ func resourceNcloudLoginKeyCreate(d *schema.ResourceData, meta interface{}) erro
 }
 
 func resourceNcloudLoginKeyDelete(d *schema.ResourceData, meta interface{}) error {
-	config := meta.(*ProviderConfig)
+	config := meta.(*conn.ProviderConfig)
 
 	keyName := d.Id()
 
@@ -115,7 +111,7 @@ func resourceNcloudLoginKeyDelete(d *schema.ResourceData, meta interface{}) erro
 	return nil
 }
 
-func getLoginKey(config *ProviderConfig, keyName string) (*LoginKey, error) {
+func GetLoginKey(config *conn.ProviderConfig, keyName string) (*LoginKey, error) {
 	if config.SupportVPC {
 		return getVpcLoginKey(config, keyName)
 	} else {
@@ -123,7 +119,7 @@ func getLoginKey(config *ProviderConfig, keyName string) (*LoginKey, error) {
 	}
 }
 
-func getVpcLoginKey(config *ProviderConfig, keyName string) (*LoginKey, error) {
+func getVpcLoginKey(config *conn.ProviderConfig, keyName string) (*LoginKey, error) {
 	resp, err := config.Client.Vserver.V2Api.GetLoginKeyList(&vserver.GetLoginKeyListRequest{
 		KeyName: ncloud.String(keyName),
 	})
@@ -143,7 +139,7 @@ func getVpcLoginKey(config *ProviderConfig, keyName string) (*LoginKey, error) {
 	}, nil
 }
 
-func getClassicLoginKey(config *ProviderConfig, keyName string) (*LoginKey, error) {
+func getClassicLoginKey(config *conn.ProviderConfig, keyName string) (*LoginKey, error) {
 	resp, err := config.Client.Server.V2Api.GetLoginKeyList(&server.GetLoginKeyListRequest{
 		KeyName: ncloud.String(keyName),
 	})
@@ -163,7 +159,7 @@ func getClassicLoginKey(config *ProviderConfig, keyName string) (*LoginKey, erro
 	}, nil
 }
 
-func deleteClassicLoginKey(config *ProviderConfig, keyName string) error {
+func deleteClassicLoginKey(config *conn.ProviderConfig, keyName string) error {
 	reqParams := &server.DeleteLoginKeyRequest{KeyName: ncloud.String(keyName)}
 
 	LogCommonRequest("deleteClassicLoginKey", reqParams)
@@ -189,7 +185,7 @@ func deleteClassicLoginKey(config *ProviderConfig, keyName string) error {
 
 			return resp, "", nil
 		},
-		Timeout:    DefaultTimeout,
+		Timeout:    conn.DefaultTimeout,
 		Delay:      2 * time.Second,
 		MinTimeout: 3 * time.Second,
 	}
@@ -202,7 +198,7 @@ func deleteClassicLoginKey(config *ProviderConfig, keyName string) error {
 	return nil
 }
 
-func deleteVpcLoginKey(config *ProviderConfig, keyName string) error {
+func deleteVpcLoginKey(config *conn.ProviderConfig, keyName string) error {
 	reqParams := &vserver.DeleteLoginKeysRequest{KeyNameList: []*string{ncloud.String(keyName)}}
 
 	LogCommonRequest("deleteVpcLoginKey", reqParams)
@@ -228,7 +224,7 @@ func deleteVpcLoginKey(config *ProviderConfig, keyName string) error {
 
 			return resp, "", nil
 		},
-		Timeout:    DefaultTimeout,
+		Timeout:    conn.DefaultTimeout,
 		Delay:      2 * time.Second,
 		MinTimeout: 3 * time.Second,
 	}
@@ -241,7 +237,7 @@ func deleteVpcLoginKey(config *ProviderConfig, keyName string) error {
 	return nil
 }
 
-func createClassicLoginKey(config *ProviderConfig, keyName *string) (*string, error) {
+func createClassicLoginKey(config *conn.ProviderConfig, keyName *string) (*string, error) {
 	client := config.Client
 
 	reqParams := &server.CreateLoginKeyRequest{KeyName: keyName}
@@ -257,7 +253,7 @@ func createClassicLoginKey(config *ProviderConfig, keyName *string) (*string, er
 	return resp.PrivateKey, nil
 }
 
-func createVpcLoginKey(config *ProviderConfig, keyName *string) (*string, error) {
+func createVpcLoginKey(config *conn.ProviderConfig, keyName *string) (*string, error) {
 	client := config.Client
 
 	reqParams := &vserver.CreateLoginKeyRequest{KeyName: keyName}

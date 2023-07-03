@@ -11,16 +11,12 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 
 	. "github.com/terraform-providers/terraform-provider-ncloud/internal/common"
-	. "github.com/terraform-providers/terraform-provider-ncloud/internal/provider"
+	"github.com/terraform-providers/terraform-provider-ncloud/internal/conn"
 	"github.com/terraform-providers/terraform-provider-ncloud/internal/service/vpc"
 	. "github.com/terraform-providers/terraform-provider-ncloud/internal/verify"
 )
 
-func init() {
-	RegisterResource("ncloud_lb_target_group", resourceNcloudLbTargetGroup())
-}
-
-func resourceNcloudLbTargetGroup() *schema.Resource {
+func ResourceNcloudLbTargetGroup() *schema.Resource {
 	return &schema.Resource{
 		CreateContext: resourceNcloudTargetGroupCreate,
 		ReadContext:   resourceNcloudTargetGroupRead,
@@ -150,7 +146,7 @@ func resourceNcloudLbTargetGroup() *schema.Resource {
 }
 
 func resourceNcloudTargetGroupCreate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
-	config := meta.(*ProviderConfig)
+	config := meta.(*conn.ProviderConfig)
 	if !config.SupportVPC {
 		return diag.FromErr(NotSupportClassic("resource `ncloud_lb_target_group`"))
 	}
@@ -210,12 +206,12 @@ func resourceNcloudTargetGroupCreate(ctx context.Context, d *schema.ResourceData
 }
 
 func resourceNcloudTargetGroupRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
-	config := meta.(*ProviderConfig)
+	config := meta.(*conn.ProviderConfig)
 	if !config.SupportVPC {
 		return diag.FromErr(NotSupportClassic("resource `ncloud_lb_target_group`"))
 	}
 
-	tg, err := getVpcLoadBalancerTargetGroup(config, d.Id())
+	tg, err := GetVpcLoadBalancerTargetGroup(config, d.Id())
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -226,12 +222,12 @@ func resourceNcloudTargetGroupRead(ctx context.Context, d *schema.ResourceData, 
 	}
 
 	tgMap := ConvertToMap(tg)
-	SetSingularResourceDataFromMapSchema(resourceNcloudLbTargetGroup(), d, tgMap)
+	SetSingularResourceDataFromMapSchema(ResourceNcloudLbTargetGroup(), d, tgMap)
 	return nil
 }
 
 func resourceNcloudTargetGroupUpdate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
-	config := meta.(*ProviderConfig)
+	config := meta.(*conn.ProviderConfig)
 	if !config.SupportVPC {
 		return diag.FromErr(NotSupportClassic("resource `ncloud_lb_target_group`"))
 	}
@@ -293,7 +289,7 @@ func resourceNcloudTargetGroupUpdate(ctx context.Context, d *schema.ResourceData
 }
 
 func resourceNcloudTargetGroupDelete(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
-	config := meta.(*ProviderConfig)
+	config := meta.(*conn.ProviderConfig)
 	if !config.SupportVPC {
 		return diag.FromErr(NotSupportClassic("resource `ncloud_lb_target_group`"))
 	}
@@ -308,7 +304,7 @@ func resourceNcloudTargetGroupDelete(ctx context.Context, d *schema.ResourceData
 	return nil
 }
 
-func getVpcLoadBalancerTargetGroup(config *ProviderConfig, id string) (*TargetGroup, error) {
+func GetVpcLoadBalancerTargetGroup(config *conn.ProviderConfig, id string) (*TargetGroup, error) {
 	reqParams := &vloadbalancer.GetTargetGroupListRequest{
 		RegionCode:        &config.RegionCode,
 		TargetGroupNoList: []*string{ncloud.String(id)},
@@ -381,7 +377,7 @@ func validateHealthCheckProtocolByTargetGroupProtocol(targetGroupProtocol string
 	return nil
 }
 
-func validateVpcTargetGroupVpc(config *ProviderConfig, vpcNo string) error {
+func validateVpcTargetGroupVpc(config *conn.ProviderConfig, vpcNo string) error {
 	vpc, err := vpc.GetVpcInstance(config, vpcNo)
 
 	if err != nil {
@@ -395,7 +391,7 @@ func validateVpcTargetGroupVpc(config *ProviderConfig, vpcNo string) error {
 	return nil
 }
 
-func validateVpcTargetGroupDuplicateName(config *ProviderConfig, newName string) error {
+func validateVpcTargetGroupDuplicateName(config *conn.ProviderConfig, newName string) error {
 	// Get All target groups from api
 	targetGroupList, err := getVpcLoadBalancerTargetGroupList(config, "")
 

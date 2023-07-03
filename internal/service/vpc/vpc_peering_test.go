@@ -1,4 +1,4 @@
-package vpc
+package vpc_test
 
 import (
 	"errors"
@@ -12,7 +12,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 
 	. "github.com/terraform-providers/terraform-provider-ncloud/internal/acctest"
-	"github.com/terraform-providers/terraform-provider-ncloud/internal/provider"
+	"github.com/terraform-providers/terraform-provider-ncloud/internal/conn"
+	vpcservice "github.com/terraform-providers/terraform-provider-ncloud/internal/service/vpc"
 )
 
 func TestAccResourceNcloudVpcPeering_basic(t *testing.T) {
@@ -187,8 +188,8 @@ func testAccCheckVpcPeeringExists(n string, vpcPeering *vpc.VpcPeeringInstance) 
 			return fmt.Errorf("No VPC peering id is set: %s", n)
 		}
 
-		config := GetTestProvider(true).Meta().(*provider.ProviderConfig)
-		instance, err := getVpcPeeringInstance(config, rs.Primary.ID)
+		config := GetTestProvider(true).Meta().(*conn.ProviderConfig)
+		instance, err := vpcservice.GetVpcPeeringInstance(config, rs.Primary.ID)
 		if err != nil {
 			return err
 		}
@@ -200,14 +201,14 @@ func testAccCheckVpcPeeringExists(n string, vpcPeering *vpc.VpcPeeringInstance) 
 }
 
 func testAccCheckVpcPeeringDestroy(s *terraform.State) error {
-	config := GetTestProvider(true).Meta().(*provider.ProviderConfig)
+	config := GetTestProvider(true).Meta().(*conn.ProviderConfig)
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "ncloud_vpc_peering" {
 			continue
 		}
 
-		instance, err := getVpcPeeringInstance(config, rs.Primary.ID)
+		instance, err := vpcservice.GetVpcPeeringInstance(config, rs.Primary.ID)
 
 		if err != nil {
 			return err
@@ -223,7 +224,7 @@ func testAccCheckVpcPeeringDestroy(s *terraform.State) error {
 
 func testAccCheckVpcPeeringDisappears(instance *vpc.VpcPeeringInstance) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
-		config := GetTestProvider(true).Meta().(*provider.ProviderConfig)
+		config := GetTestProvider(true).Meta().(*conn.ProviderConfig)
 
 		reqParams := &vpc.DeleteVpcPeeringInstanceRequest{
 			RegionCode:           &config.RegionCode,
@@ -232,7 +233,7 @@ func testAccCheckVpcPeeringDisappears(instance *vpc.VpcPeeringInstance) resource
 
 		_, err := config.Client.Vpc.V2Api.DeleteVpcPeeringInstance(reqParams)
 
-		if err := waitForNcloudVpcPeeringDeletion(config, *instance.VpcPeeringInstanceNo); err != nil {
+		if err := vpcservice.WaitForNcloudVpcPeeringDeletion(config, *instance.VpcPeeringInstanceNo); err != nil {
 			return err
 		}
 

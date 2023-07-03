@@ -7,15 +7,11 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 
 	. "github.com/terraform-providers/terraform-provider-ncloud/internal/common"
-	. "github.com/terraform-providers/terraform-provider-ncloud/internal/provider"
+	"github.com/terraform-providers/terraform-provider-ncloud/internal/conn"
 	"github.com/terraform-providers/terraform-provider-ncloud/internal/verify"
 )
 
-func init() {
-	RegisterDataSource("ncloud_member_server_image", dataSourceNcloudMemberServerImage())
-}
-
-func dataSourceNcloudMemberServerImage() *schema.Resource {
+func DataSourceNcloudMemberServerImage() *schema.Resource {
 	return &schema.Resource{
 		Read: dataSourceNcloudMemberServerImageRead,
 
@@ -117,7 +113,7 @@ func dataSourceNcloudMemberServerImage() *schema.Resource {
 }
 
 func dataSourceNcloudMemberServerImageRead(d *schema.ResourceData, meta interface{}) error {
-	config := meta.(*ProviderConfig)
+	config := meta.(*conn.ProviderConfig)
 	var resources []map[string]interface{}
 	var err error
 
@@ -132,7 +128,7 @@ func dataSourceNcloudMemberServerImageRead(d *schema.ResourceData, meta interfac
 	}
 
 	if f, ok := d.GetOk("filter"); ok {
-		resources = ApplyFilters(f.(*schema.Set), resources, dataSourceNcloudMemberServerImage().Schema)
+		resources = ApplyFilters(f.(*schema.Set), resources, DataSourceNcloudMemberServerImage().Schema)
 	}
 
 	if err := verify.ValidateOneResult(len(resources)); err != nil {
@@ -144,7 +140,7 @@ func dataSourceNcloudMemberServerImageRead(d *schema.ResourceData, meta interfac
 	return nil
 }
 
-func getClassicMemberServerImage(d *schema.ResourceData, config *ProviderConfig) ([]map[string]interface{}, error) {
+func getClassicMemberServerImage(d *schema.ResourceData, config *conn.ProviderConfig) ([]map[string]interface{}, error) {
 	client := config.Client
 	regionNo := config.RegionNo
 
@@ -201,7 +197,7 @@ func getClassicMemberServerImage(d *schema.ResourceData, config *ProviderConfig)
 	return resources, nil
 }
 
-func getVpcMemberServerImage(d *schema.ResourceData, config *ProviderConfig) ([]map[string]interface{}, error) {
+func getVpcMemberServerImage(d *schema.ResourceData, config *conn.ProviderConfig) ([]map[string]interface{}, error) {
 	client := config.Client
 	regionCode := config.RegionCode
 

@@ -14,15 +14,11 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 
 	. "github.com/terraform-providers/terraform-provider-ncloud/internal/common"
-	"github.com/terraform-providers/terraform-provider-ncloud/internal/provider"
+	"github.com/terraform-providers/terraform-provider-ncloud/internal/conn"
 	. "github.com/terraform-providers/terraform-provider-ncloud/internal/verify"
 )
 
-func init() {
-	provider.RegisterResource("ncloud_sourcecommit_repository", resourceNcloudSourceCommitRepository())
-}
-
-func resourceNcloudSourceCommitRepository() *schema.Resource {
+func ResourceNcloudSourceCommitRepository() *schema.Resource {
 	return &schema.Resource{
 		CreateContext: resourceNcloudSourceCommitRepositoryCreate,
 		ReadContext:   resourceNcloudSourceCommitRepositoryRead,
@@ -32,10 +28,10 @@ func resourceNcloudSourceCommitRepository() *schema.Resource {
 			StateContext: schema.ImportStatePassthroughContext,
 		},
 		Timeouts: &schema.ResourceTimeout{
-			Create: schema.DefaultTimeout(provider.DefaultTimeout),
-			Read:   schema.DefaultTimeout(provider.DefaultTimeout),
-			Update: schema.DefaultTimeout(provider.DefaultTimeout),
-			Delete: schema.DefaultTimeout(provider.DefaultTimeout),
+			Create: schema.DefaultTimeout(conn.DefaultTimeout),
+			Read:   schema.DefaultTimeout(conn.DefaultTimeout),
+			Update: schema.DefaultTimeout(conn.DefaultTimeout),
+			Delete: schema.DefaultTimeout(conn.DefaultTimeout),
 		},
 		Schema: map[string]*schema.Schema{
 			"name": {
@@ -76,7 +72,7 @@ func resourceNcloudSourceCommitRepository() *schema.Resource {
 }
 
 func resourceNcloudSourceCommitRepositoryCreate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
-	config := meta.(*provider.ProviderConfig)
+	config := meta.(*conn.ProviderConfig)
 
 	reqParams := &sourcecommit.CreateRepository{
 		Name:        ncloud.String(d.Get("name").(string)),
@@ -123,11 +119,11 @@ func resourceNcloudSourceCommitRepositoryCreate(ctx context.Context, d *schema.R
 }
 
 func resourceNcloudSourceCommitRepositoryRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
-	config := meta.(*provider.ProviderConfig)
+	config := meta.(*conn.ProviderConfig)
 	name := ncloud.String(d.Get("name").(string))
 	id := ncloud.String(d.Id())
 
-	repository, err := getRepositoryById(ctx, config, *id)
+	repository, err := GetRepositoryById(ctx, config, *id)
 
 	LogCommonRequest("resourceNcloudSourceCommitRepositoryRead", name)
 	var diags diag.Diagnostics
@@ -162,7 +158,7 @@ func resourceNcloudSourceCommitRepositoryRead(ctx context.Context, d *schema.Res
 }
 
 func resourceNcloudSourceCommitRepositoryUpdate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
-	config := meta.(*provider.ProviderConfig)
+	config := meta.(*conn.ProviderConfig)
 
 	if d.HasChanges("description", "file_safer") {
 
@@ -191,7 +187,7 @@ func resourceNcloudSourceCommitRepositoryUpdate(ctx context.Context, d *schema.R
 }
 
 func resourceNcloudSourceCommitRepositoryDelete(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
-	config := meta.(*provider.ProviderConfig)
+	config := meta.(*conn.ProviderConfig)
 
 	id := ncloud.String(d.Id())
 
@@ -207,7 +203,7 @@ func resourceNcloudSourceCommitRepositoryDelete(ctx context.Context, d *schema.R
 	return nil
 }
 
-func waitForSourceCommitRepositoryActive(ctx context.Context, d *schema.ResourceData, config *provider.ProviderConfig, name string) error {
+func waitForSourceCommitRepositoryActive(ctx context.Context, d *schema.ResourceData, config *conn.ProviderConfig, name string) error {
 
 	stateConf := &resource.StateChangeConf{
 		Pending: []string{"PENDING"},
@@ -238,7 +234,7 @@ func waitForSourceCommitRepositoryActive(ctx context.Context, d *schema.Resource
 	return nil
 }
 
-func getRepository(ctx context.Context, config *provider.ProviderConfig, name string) (*sourcecommit.GetRepositoryDetailResponse, error) {
+func getRepository(ctx context.Context, config *conn.ProviderConfig, name string) (*sourcecommit.GetRepositoryDetailResponse, error) {
 
 	LogCommonRequest("getRepository", name)
 	resp, err := config.Client.Sourcecommit.V1Api.GetRepository(ctx, &name)
@@ -252,7 +248,7 @@ func getRepository(ctx context.Context, config *provider.ProviderConfig, name st
 	return resp, nil
 }
 
-func getRepositoryById(ctx context.Context, config *provider.ProviderConfig, id string) (*sourcecommit.GetRepositoryDetailResponse, error) {
+func GetRepositoryById(ctx context.Context, config *conn.ProviderConfig, id string) (*sourcecommit.GetRepositoryDetailResponse, error) {
 
 	LogCommonRequest("getRepositoryById", id)
 	resp, err := config.Client.Sourcecommit.V1Api.GetRepositoryById(ctx, &id)
@@ -266,7 +262,7 @@ func getRepositoryById(ctx context.Context, config *provider.ProviderConfig, id 
 	return resp, nil
 }
 
-func getRepositories(ctx context.Context, config *provider.ProviderConfig) (*sourcecommit.GetRepositoryListResponse, error) {
+func GetRepositories(ctx context.Context, config *conn.ProviderConfig) (*sourcecommit.GetRepositoryListResponse, error) {
 	LogCommonRequest("getRepositories", "")
 	resp, err := config.Client.Sourcecommit.V1Api.GetRepositories(ctx)
 	if err != nil {

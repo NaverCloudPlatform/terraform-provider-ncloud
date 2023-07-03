@@ -14,15 +14,11 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 
 	. "github.com/terraform-providers/terraform-provider-ncloud/internal/common"
-	. "github.com/terraform-providers/terraform-provider-ncloud/internal/provider"
+	"github.com/terraform-providers/terraform-provider-ncloud/internal/conn"
 	. "github.com/terraform-providers/terraform-provider-ncloud/internal/verify"
 )
 
-func init() {
-	RegisterResource("ncloud_access_control_group_rule", resourceNcloudAccessControlGroupRule())
-}
-
-func resourceNcloudAccessControlGroupRule() *schema.Resource {
+func ResourceNcloudAccessControlGroupRule() *schema.Resource {
 	return &schema.Resource{
 		Create: resourceNcloudAccessControlGroupRuleCreate,
 		Read:   resourceNcloudAccessControlGroupRuleRead,
@@ -116,15 +112,15 @@ func resourceNcloudAccessControlGroupRule() *schema.Resource {
 			},
 		},
 		Timeouts: &schema.ResourceTimeout{
-			Create: schema.DefaultTimeout(DefaultCreateTimeout),
-			Update: schema.DefaultTimeout(DefaultUpdateTimeout),
-			Delete: schema.DefaultTimeout(DefaultTimeout),
+			Create: schema.DefaultTimeout(conn.DefaultCreateTimeout),
+			Update: schema.DefaultTimeout(conn.DefaultUpdateTimeout),
+			Delete: schema.DefaultTimeout(conn.DefaultTimeout),
 		},
 	}
 }
 
 func resourceNcloudAccessControlGroupRuleCreate(d *schema.ResourceData, meta interface{}) error {
-	config := meta.(*ProviderConfig)
+	config := meta.(*conn.ProviderConfig)
 
 	if !config.SupportVPC {
 		return NotSupportClassic("resource `ncloud_access_control_group_rule`")
@@ -133,7 +129,7 @@ func resourceNcloudAccessControlGroupRuleCreate(d *schema.ResourceData, meta int
 	d.SetId(d.Get("access_control_group_no").(string))
 	log.Printf("[INFO] ACG ID: %s", d.Id())
 
-	accessControlGroup, err := getAccessControlGroup(config, d.Id())
+	accessControlGroup, err := GetAccessControlGroup(config, d.Id())
 	if err != nil {
 		return err
 	}
@@ -143,7 +139,7 @@ func resourceNcloudAccessControlGroupRuleCreate(d *schema.ResourceData, meta int
 	}
 
 	if *accessControlGroup.IsDefault {
-		rules, err := getAccessControlGroupRuleList(config, d.Id())
+		rules, err := GetAccessControlGroupRuleList(config, d.Id())
 		if err != nil {
 			errBody, _ := GetCommonErrorBody(err)
 			if errBody.ReturnCode == "1007000" { // Acg was not found
@@ -171,9 +167,9 @@ func resourceNcloudAccessControlGroupRuleCreate(d *schema.ResourceData, meta int
 }
 
 func resourceNcloudAccessControlGroupRuleRead(d *schema.ResourceData, meta interface{}) error {
-	config := meta.(*ProviderConfig)
+	config := meta.(*conn.ProviderConfig)
 
-	rules, err := getAccessControlGroupRuleList(config, d.Id())
+	rules, err := GetAccessControlGroupRuleList(config, d.Id())
 
 	if err != nil {
 		errBody, _ := GetCommonErrorBody(err)
@@ -191,8 +187,8 @@ func resourceNcloudAccessControlGroupRuleRead(d *schema.ResourceData, meta inter
 	d.Set("access_control_group_no", d.Id())
 
 	// Create empty set for getAccessControlGroupRuleList
-	iSet := schema.NewSet(schema.HashResource(resourceNcloudAccessControlGroupRule().Schema["inbound"].Elem.(*schema.Resource)), []interface{}{})
-	oSet := schema.NewSet(schema.HashResource(resourceNcloudAccessControlGroupRule().Schema["outbound"].Elem.(*schema.Resource)), []interface{}{})
+	iSet := schema.NewSet(schema.HashResource(ResourceNcloudAccessControlGroupRule().Schema["inbound"].Elem.(*schema.Resource)), []interface{}{})
+	oSet := schema.NewSet(schema.HashResource(ResourceNcloudAccessControlGroupRule().Schema["outbound"].Elem.(*schema.Resource)), []interface{}{})
 
 	for _, r := range rules {
 		var protocol string
@@ -230,7 +226,7 @@ func resourceNcloudAccessControlGroupRuleRead(d *schema.ResourceData, meta inter
 }
 
 func resourceNcloudAccessControlGroupRuleUpdate(d *schema.ResourceData, meta interface{}) error {
-	config := meta.(*ProviderConfig)
+	config := meta.(*conn.ProviderConfig)
 
 	if d.HasChange("inbound") {
 		if err := updateAccessControlGroupRule(d, config, "inbound"); err != nil {
@@ -248,9 +244,9 @@ func resourceNcloudAccessControlGroupRuleUpdate(d *schema.ResourceData, meta int
 }
 
 func resourceNcloudAccessControlGroupRuleDelete(d *schema.ResourceData, meta interface{}) error {
-	config := meta.(*ProviderConfig)
+	config := meta.(*conn.ProviderConfig)
 
-	accessControlGroup, err := getAccessControlGroup(config, d.Id())
+	accessControlGroup, err := GetAccessControlGroup(config, d.Id())
 	if err != nil {
 		return err
 	}
@@ -277,7 +273,7 @@ func resourceNcloudAccessControlGroupRuleDelete(d *schema.ResourceData, meta int
 	return nil
 }
 
-func getAccessControlGroupRuleList(config *ProviderConfig, id string) ([]*vserver.AccessControlGroupRule, error) {
+func GetAccessControlGroupRuleList(config *conn.ProviderConfig, id string) ([]*vserver.AccessControlGroupRule, error) {
 	reqParams := &vserver.GetAccessControlGroupRuleListRequest{
 		RegionCode:           &config.RegionCode,
 		AccessControlGroupNo: ncloud.String(id),
@@ -294,7 +290,7 @@ func getAccessControlGroupRuleList(config *ProviderConfig, id string) ([]*vserve
 	return resp.AccessControlGroupRuleList, nil
 }
 
-func updateAccessControlGroupRule(d *schema.ResourceData, config *ProviderConfig, ruleType string) error {
+func updateAccessControlGroupRule(d *schema.ResourceData, config *conn.ProviderConfig, ruleType string) error {
 	o, n := d.GetChange(ruleType)
 
 	if o == nil {
@@ -310,7 +306,7 @@ func updateAccessControlGroupRule(d *schema.ResourceData, config *ProviderConfig
 	add := ns.Difference(os).List()
 	remove := os.Difference(ns).List()
 
-	accessControlGroup, err := getAccessControlGroup(config, d.Id())
+	accessControlGroup, err := GetAccessControlGroup(config, d.Id())
 	if err != nil {
 		return err
 	}
@@ -340,7 +336,7 @@ func updateAccessControlGroupRule(d *schema.ResourceData, config *ProviderConfig
 	return nil
 }
 
-func addAccessControlGroupRule(d *schema.ResourceData, config *ProviderConfig, ruleType string, accessControlGroup *vserver.AccessControlGroup, accessControlGroupRule []*vserver.AddAccessControlGroupRuleParameter) error {
+func addAccessControlGroupRule(d *schema.ResourceData, config *conn.ProviderConfig, ruleType string, accessControlGroup *vserver.AccessControlGroup, accessControlGroupRule []*vserver.AddAccessControlGroupRuleParameter) error {
 	var reqParams interface{}
 	var resp interface{}
 
@@ -396,7 +392,7 @@ func addAccessControlGroupRule(d *schema.ResourceData, config *ProviderConfig, r
 	return nil
 }
 
-func removeAccessControlGroupRule(d *schema.ResourceData, config *ProviderConfig, ruleType string, accessControlGroup *vserver.AccessControlGroup, accessControlGroupRule []*vserver.RemoveAccessControlGroupRuleParameter) error {
+func removeAccessControlGroupRule(d *schema.ResourceData, config *conn.ProviderConfig, ruleType string, accessControlGroup *vserver.AccessControlGroup, accessControlGroupRule []*vserver.RemoveAccessControlGroupRuleParameter) error {
 	var reqParams interface{}
 	var resp interface{}
 

@@ -8,14 +8,10 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 
 	. "github.com/terraform-providers/terraform-provider-ncloud/internal/common"
-	"github.com/terraform-providers/terraform-provider-ncloud/internal/provider"
+	"github.com/terraform-providers/terraform-provider-ncloud/internal/conn"
 )
 
-func init() {
-	provider.RegisterDataSource("ncloud_sourcepipeline_trigger_timezone", dataSourceNcloudSourcePipelineTimeZone())
-}
-
-func dataSourceNcloudSourcePipelineTimeZone() *schema.Resource {
+func DataSourceNcloudSourcePipelineTimeZone() *schema.Resource {
 	return &schema.Resource{
 		ReadContext: dataSourceNcloudSourcePipelineTimeZoneRead,
 		Schema: map[string]*schema.Schema{
@@ -35,7 +31,7 @@ func dataSourceNcloudSourcePipelineTimeZone() *schema.Resource {
 }
 
 func dataSourceNcloudSourcePipelineTimeZoneRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
-	config := meta.(*provider.ProviderConfig)
+	config := meta.(*conn.ProviderConfig)
 
 	timeZone, err := getSourcePipelineTimeZone(ctx, config)
 	if err != nil {
@@ -58,14 +54,14 @@ func dataSourceNcloudSourcePipelineTimeZoneRead(ctx context.Context, d *schema.R
 	return nil
 }
 
-func getSourcePipelineTimeZone(ctx context.Context, config *provider.ProviderConfig) ([]*string, error) {
+func getSourcePipelineTimeZone(ctx context.Context, config *conn.ProviderConfig) ([]*string, error) {
 	if config.SupportVPC {
 		return getVpcSourcePipelineTimeZone(ctx, config)
 	}
 	return getClassicSourcePipelineTimeZone(ctx, config)
 }
 
-func getClassicSourcePipelineTimeZone(ctx context.Context, config *provider.ProviderConfig) ([]*string, error) {
+func getClassicSourcePipelineTimeZone(ctx context.Context, config *conn.ProviderConfig) ([]*string, error) {
 	resp, err := config.Client.Sourcepipeline.V1Api.GetTimeZone(ctx)
 	if err != nil {
 		return nil, err
@@ -73,7 +69,7 @@ func getClassicSourcePipelineTimeZone(ctx context.Context, config *provider.Prov
 	return resp.TimeZone, nil
 }
 
-func getVpcSourcePipelineTimeZone(ctx context.Context, config *provider.ProviderConfig) ([]*string, error) {
+func getVpcSourcePipelineTimeZone(ctx context.Context, config *conn.ProviderConfig) ([]*string, error) {
 	resp, err := config.Client.Vsourcepipeline.V1Api.GetTimeZone(ctx)
 	if err != nil {
 		return nil, err

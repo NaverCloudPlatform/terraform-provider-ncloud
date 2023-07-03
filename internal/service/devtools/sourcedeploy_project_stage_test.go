@@ -1,4 +1,4 @@
-package devtools
+package devtools_test
 
 import (
 	"context"
@@ -13,7 +13,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 
 	. "github.com/terraform-providers/terraform-provider-ncloud/internal/acctest"
-	. "github.com/terraform-providers/terraform-provider-ncloud/internal/provider"
+	"github.com/terraform-providers/terraform-provider-ncloud/internal/conn"
+	"github.com/terraform-providers/terraform-provider-ncloud/internal/service/devtools"
 )
 
 // Create Server Before SourceDeploy Test
@@ -87,7 +88,7 @@ func TestAccResourceNcloudSourceDeployStage_basic(t *testing.T) {
 
 func testAccCheckSourceDeployStageExists(n string, stage *vsourcedeploy.GetStageDetailResponse) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
-		config := GetTestProvider(true).Meta().(*ProviderConfig)
+		config := GetTestProvider(true).Meta().(*conn.ProviderConfig)
 		rs, ok := s.RootModule().Resources[n]
 		if !ok {
 			return fmt.Errorf("Not found: %s", n)
@@ -98,7 +99,7 @@ func testAccCheckSourceDeployStageExists(n string, stage *vsourcedeploy.GetStage
 		}
 		projectId := ncloud.String(rs.Primary.Attributes["project_id"])
 		stageId := &rs.Primary.ID
-		resp, err := getSourceDeployStageById(context.Background(), config, projectId, stageId)
+		resp, err := devtools.GetSourceDeployStageById(context.Background(), config, projectId, stageId)
 		if err != nil {
 			return err
 		}
@@ -121,7 +122,7 @@ func testAccNcloudSourceDeployStageImportStateIDFunc(resourceName string) resour
 }
 
 func testAccCheckSourceDeployStageDestroy(s *terraform.State) error {
-	config := GetTestProvider(true).Meta().(*ProviderConfig)
+	config := GetTestProvider(true).Meta().(*conn.ProviderConfig)
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "ncloud_sourcedeploy_project_stage" {
@@ -129,7 +130,7 @@ func testAccCheckSourceDeployStageDestroy(s *terraform.State) error {
 		}
 
 		projectId := ncloud.String(rs.Primary.Attributes["project_id"])
-		project, projectErr := getSourceDeployProjectById(context.Background(), config, rs.Primary.ID)
+		project, projectErr := devtools.GetSourceDeployProjectById(context.Background(), config, rs.Primary.ID)
 		if projectErr != nil {
 			return projectErr
 		}
@@ -138,7 +139,7 @@ func testAccCheckSourceDeployStageDestroy(s *terraform.State) error {
 			return nil
 		}
 
-		stages, stageErr := getStages(context.Background(), config, projectId)
+		stages, stageErr := devtools.GetStages(context.Background(), config, projectId)
 		if stageErr != nil {
 			return stageErr
 		}
@@ -206,7 +207,8 @@ resource "ncloud_sourcedeploy_project_stage" "test-stage-obj" {
 	  bucket_name = "%[4]s"
 	}
 }
-`, TF_TEST_SD_SERVER_NAME, TF_TEST_SD_ASG_NAME, TF_TEST_SD_NKS_CLUSTER_UUID, TF_TEST_SD_OBJECTSTORAGE_BUCKET_NAME,
+`, TF_TEST_SD_SERVER_NAME, TF_TEST_SD_ASG_NAME,
+		TF_TEST_SD_NKS_CLUSTER_UUID, TF_TEST_SD_OBJECTSTORAGE_BUCKET_NAME,
 		stageNameSvr, stageNameAsg, stageNameNks, stageNameObj)
 }
 

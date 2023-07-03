@@ -12,15 +12,11 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 
 	. "github.com/terraform-providers/terraform-provider-ncloud/internal/common"
-	. "github.com/terraform-providers/terraform-provider-ncloud/internal/provider"
+	"github.com/terraform-providers/terraform-provider-ncloud/internal/conn"
 	"github.com/terraform-providers/terraform-provider-ncloud/internal/verify"
 )
 
-func init() {
-	RegisterResource("ncloud_nat_gateway", resourceNcloudNatGateway())
-}
-
-func resourceNcloudNatGateway() *schema.Resource {
+func ResourceNcloudNatGateway() *schema.Resource {
 	return &schema.Resource{
 		Create: resourceNcloudNatGatewayCreate,
 		Read:   resourceNcloudNatGatewayRead,
@@ -85,7 +81,7 @@ func resourceNcloudNatGateway() *schema.Resource {
 }
 
 func resourceNcloudNatGatewayCreate(d *schema.ResourceData, meta interface{}) error {
-	config := meta.(*ProviderConfig)
+	config := meta.(*conn.ProviderConfig)
 
 	if !config.SupportVPC {
 		return NotSupportClassic("resource `ncloud_nat_gateway`")
@@ -135,9 +131,9 @@ func resourceNcloudNatGatewayCreate(d *schema.ResourceData, meta interface{}) er
 }
 
 func resourceNcloudNatGatewayRead(d *schema.ResourceData, meta interface{}) error {
-	config := meta.(*ProviderConfig)
+	config := meta.(*conn.ProviderConfig)
 
-	instance, err := getNatGatewayInstance(config, d.Id())
+	instance, err := GetNatGatewayInstance(config, d.Id())
 	if err != nil {
 		return err
 	}
@@ -163,7 +159,7 @@ func resourceNcloudNatGatewayRead(d *schema.ResourceData, meta interface{}) erro
 }
 
 func resourceNcloudNatGatewayUpdate(d *schema.ResourceData, meta interface{}) error {
-	config := meta.(*ProviderConfig)
+	config := meta.(*conn.ProviderConfig)
 
 	if d.HasChange("description") {
 		if err := setNatGatewayDescription(d, config); err != nil {
@@ -175,7 +171,7 @@ func resourceNcloudNatGatewayUpdate(d *schema.ResourceData, meta interface{}) er
 }
 
 func resourceNcloudNatGatewayDelete(d *schema.ResourceData, meta interface{}) error {
-	config := meta.(*ProviderConfig)
+	config := meta.(*conn.ProviderConfig)
 
 	reqParams := &vpc.DeleteNatGatewayInstanceRequest{
 		RegionCode:           &config.RegionCode,
@@ -191,22 +187,22 @@ func resourceNcloudNatGatewayDelete(d *schema.ResourceData, meta interface{}) er
 
 	LogResponse("DeleteNatGatewayInstance", resp)
 
-	if err := waitForNcloudNatGatewayDeletion(config, d.Id()); err != nil {
+	if err := WaitForNcloudNatGatewayDeletion(config, d.Id()); err != nil {
 		return err
 	}
 
 	return nil
 }
 
-func waitForNcloudNatGatewayCreation(config *ProviderConfig, id string) error {
+func waitForNcloudNatGatewayCreation(config *conn.ProviderConfig, id string) error {
 	stateConf := &resource.StateChangeConf{
 		Pending: []string{"INIT", "CREATING"},
 		Target:  []string{"RUN"},
 		Refresh: func() (interface{}, string, error) {
-			instance, err := getNatGatewayInstance(config, id)
+			instance, err := GetNatGatewayInstance(config, id)
 			return VpcCommonStateRefreshFunc(instance, err, "NatGatewayInstanceStatus")
 		},
-		Timeout:    DefaultCreateTimeout,
+		Timeout:    conn.DefaultCreateTimeout,
 		Delay:      2 * time.Second,
 		MinTimeout: 3 * time.Second,
 	}
@@ -218,15 +214,15 @@ func waitForNcloudNatGatewayCreation(config *ProviderConfig, id string) error {
 	return nil
 }
 
-func waitForNcloudNatGatewayDeletion(config *ProviderConfig, id string) error {
+func WaitForNcloudNatGatewayDeletion(config *conn.ProviderConfig, id string) error {
 	stateConf := &resource.StateChangeConf{
 		Pending: []string{"RUN", "TERMTING"},
 		Target:  []string{"TERMINATED"},
 		Refresh: func() (interface{}, string, error) {
-			instance, err := getNatGatewayInstance(config, id)
+			instance, err := GetNatGatewayInstance(config, id)
 			return VpcCommonStateRefreshFunc(instance, err, "NatGatewayInstanceStatus")
 		},
-		Timeout:    DefaultTimeout,
+		Timeout:    conn.DefaultTimeout,
 		Delay:      2 * time.Second,
 		MinTimeout: 3 * time.Second,
 	}
@@ -238,7 +234,7 @@ func waitForNcloudNatGatewayDeletion(config *ProviderConfig, id string) error {
 	return nil
 }
 
-func getNatGatewayInstance(config *ProviderConfig, id string) (*vpc.NatGatewayInstance, error) {
+func GetNatGatewayInstance(config *conn.ProviderConfig, id string) (*vpc.NatGatewayInstance, error) {
 	reqParams := &vpc.GetNatGatewayInstanceDetailRequest{
 		RegionCode:           &config.RegionCode,
 		NatGatewayInstanceNo: ncloud.String(id),
@@ -260,7 +256,7 @@ func getNatGatewayInstance(config *ProviderConfig, id string) (*vpc.NatGatewayIn
 	return nil, nil
 }
 
-func setNatGatewayDescription(d *schema.ResourceData, config *ProviderConfig) error {
+func setNatGatewayDescription(d *schema.ResourceData, config *conn.ProviderConfig) error {
 	reqParams := &vpc.SetNatGatewayDescriptionRequest{
 		RegionCode:            &config.RegionCode,
 		NatGatewayInstanceNo:  ncloud.String(d.Id()),

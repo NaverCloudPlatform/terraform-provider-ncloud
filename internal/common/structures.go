@@ -7,7 +7,7 @@ import (
 	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/ncloud"
 	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/services/server"
 	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/services/sourcebuild"
-	"github.com/terraform-providers/terraform-provider-ncloud/internal/provider"
+	"github.com/terraform-providers/terraform-provider-ncloud/internal/conn"
 )
 
 func ExpandStringInterfaceList(i []interface{}) []*string {
@@ -94,7 +94,7 @@ func flattenNasVolumeInstances(nasVolumeInstances []*server.NasVolumeInstance) [
 	return s
 }
 
-func FlattenRegions(regions []*provider.Region) []map[string]interface{} {
+func FlattenRegions(regions []*conn.Region) []map[string]interface{} {
 	var s []map[string]interface{}
 
 	for _, region := range regions {

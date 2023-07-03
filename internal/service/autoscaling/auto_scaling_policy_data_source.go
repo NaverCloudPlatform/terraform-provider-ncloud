@@ -7,15 +7,11 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 
 	. "github.com/terraform-providers/terraform-provider-ncloud/internal/common"
-	. "github.com/terraform-providers/terraform-provider-ncloud/internal/provider"
+	"github.com/terraform-providers/terraform-provider-ncloud/internal/conn"
 	. "github.com/terraform-providers/terraform-provider-ncloud/internal/verify"
 )
 
-func init() {
-	RegisterDataSource("ncloud_auto_scaling_policy", dataSourceNcloudAutoScalingPolicy())
-}
-
-func dataSourceNcloudAutoScalingPolicy() *schema.Resource {
+func DataSourceNcloudAutoScalingPolicy() *schema.Resource {
 	fieldMap := map[string]*schema.Schema{
 		"id": {
 			Type:     schema.TypeString,
@@ -29,11 +25,11 @@ func dataSourceNcloudAutoScalingPolicy() *schema.Resource {
 		"filter": DataSourceFiltersSchema(),
 	}
 
-	return GetSingularDataSourceItemSchema(resourceNcloudAutoScalingPolicy(), fieldMap, dataSourceNcloudAutoScalingPolicyRead)
+	return GetSingularDataSourceItemSchema(ResourceNcloudAutoScalingPolicy(), fieldMap, dataSourceNcloudAutoScalingPolicyRead)
 }
 
 func dataSourceNcloudAutoScalingPolicyRead(d *schema.ResourceData, meta interface{}) error {
-	config := meta.(*ProviderConfig)
+	config := meta.(*conn.ProviderConfig)
 
 	if v, ok := d.GetOk("id"); ok {
 		d.SetId(v.(string))
@@ -46,7 +42,7 @@ func dataSourceNcloudAutoScalingPolicyRead(d *schema.ResourceData, meta interfac
 
 	policyListMap := ConvertToArrayMap(policyList)
 	if f, ok := d.GetOk("filter"); ok {
-		policyListMap = ApplyFilters(f.(*schema.Set), policyListMap, dataSourceNcloudAutoScalingPolicy().Schema)
+		policyListMap = ApplyFilters(f.(*schema.Set), policyListMap, DataSourceNcloudAutoScalingPolicy().Schema)
 	}
 
 	if err := ValidateOneResult(len(policyListMap)); err != nil {
@@ -54,11 +50,11 @@ func dataSourceNcloudAutoScalingPolicyRead(d *schema.ResourceData, meta interfac
 	}
 
 	d.SetId(policyListMap[0]["name"].(string))
-	SetSingularResourceDataFromMapSchema(dataSourceNcloudAutoScalingPolicy(), d, policyListMap[0])
+	SetSingularResourceDataFromMapSchema(DataSourceNcloudAutoScalingPolicy(), d, policyListMap[0])
 	return nil
 }
 
-func getAutoScalingPolicyList(d *schema.ResourceData, config *ProviderConfig) ([]*AutoScalingPolicy, error) {
+func getAutoScalingPolicyList(d *schema.ResourceData, config *conn.ProviderConfig) ([]*AutoScalingPolicy, error) {
 	if config.SupportVPC {
 		return getVpcAutoScalingPolicyList(d, config)
 	} else {
@@ -66,7 +62,7 @@ func getAutoScalingPolicyList(d *schema.ResourceData, config *ProviderConfig) ([
 	}
 }
 
-func getVpcAutoScalingPolicyList(d *schema.ResourceData, config *ProviderConfig) ([]*AutoScalingPolicy, error) {
+func getVpcAutoScalingPolicyList(d *schema.ResourceData, config *conn.ProviderConfig) ([]*AutoScalingPolicy, error) {
 	reqParams := &vautoscaling.GetAutoScalingPolicyListRequest{
 		RegionCode:         &config.RegionCode,
 		AutoScalingGroupNo: ncloud.String(d.Get("auto_scaling_group_no").(string)),
@@ -100,7 +96,7 @@ func getVpcAutoScalingPolicyList(d *schema.ResourceData, config *ProviderConfig)
 	return list, nil
 }
 
-func getClassicAutoScalingPolicyList(d *schema.ResourceData, config *ProviderConfig) ([]*AutoScalingPolicy, error) {
+func getClassicAutoScalingPolicyList(d *schema.ResourceData, config *conn.ProviderConfig) ([]*AutoScalingPolicy, error) {
 	reqParams := &autoscaling.GetAutoScalingPolicyListRequest{}
 
 	if d.Id() != "" {

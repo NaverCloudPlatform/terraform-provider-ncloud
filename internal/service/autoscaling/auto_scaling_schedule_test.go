@@ -1,4 +1,4 @@
-package autoscaling
+package autoscaling_test
 
 import (
 	"fmt"
@@ -12,11 +12,12 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 
 	. "github.com/terraform-providers/terraform-provider-ncloud/internal/acctest"
-	. "github.com/terraform-providers/terraform-provider-ncloud/internal/provider"
+	"github.com/terraform-providers/terraform-provider-ncloud/internal/conn"
+	"github.com/terraform-providers/terraform-provider-ncloud/internal/service/autoscaling"
 )
 
 func TestAccResourceNcloudAutoScalingSchedule_classic_basic(t *testing.T) {
-	var schedule AutoScalingSchedule
+	var schedule autoscaling.AutoScalingSchedule
 	name := fmt.Sprintf("terraform-testacc-asp-%s", acctest.RandString(5))
 	resourceName := "ncloud_auto_scaling_schedule.test-schedule"
 	start := testAccNcloudAutoscalingScheduleValidStart(t)
@@ -39,7 +40,7 @@ func TestAccResourceNcloudAutoScalingSchedule_classic_basic(t *testing.T) {
 }
 
 func TestAccResourceNcloudAutoScalingSchedule_vpc_basic(t *testing.T) {
-	var schedule AutoScalingSchedule
+	var schedule autoscaling.AutoScalingSchedule
 	name := fmt.Sprintf("terraform-testacc-asp-%s", acctest.RandString(5))
 	resourceName := "ncloud_auto_scaling_schedule.test-schedule"
 	start := testAccNcloudAutoscalingScheduleValidStart(t)
@@ -62,7 +63,7 @@ func TestAccResourceNcloudAutoScalingSchedule_vpc_basic(t *testing.T) {
 }
 
 func TestAccResourceNcloudAutoScalingSchedule_classic_disappears(t *testing.T) {
-	var schedule AutoScalingSchedule
+	var schedule autoscaling.AutoScalingSchedule
 	name := fmt.Sprintf("terraform-testacc-asp-%s", acctest.RandString(5))
 	resourceName := "ncloud_auto_scaling_schedule.test-schedule"
 	start := testAccNcloudAutoscalingScheduleValidStart(t)
@@ -78,7 +79,7 @@ func TestAccResourceNcloudAutoScalingSchedule_classic_disappears(t *testing.T) {
 				Config: testAccNcloudAutoScalingScheduleClassicConfig(name, start, end),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckNcloudAutoScalingScheduleExists(resourceName, &schedule, GetTestProvider(false)),
-					TestAccCheckResourceDisappears(GetTestProvider(false), resourceNcloudAutoScalingSchedule(), resourceName),
+					TestAccCheckResourceDisappears(GetTestProvider(false), autoscaling.ResourceNcloudAutoScalingSchedule(), resourceName),
 				),
 				ExpectNonEmptyPlan: true,
 			},
@@ -87,7 +88,7 @@ func TestAccResourceNcloudAutoScalingSchedule_classic_disappears(t *testing.T) {
 }
 
 func TestAccResourceNcloudAutoScalingSchedule_vpc_disappears(t *testing.T) {
-	var schedule AutoScalingSchedule
+	var schedule autoscaling.AutoScalingSchedule
 	name := fmt.Sprintf("terraform-testacc-asp-%s", acctest.RandString(5))
 	resourceName := "ncloud_auto_scaling_schedule.test-schedule"
 	start := testAccNcloudAutoscalingScheduleValidStart(t)
@@ -103,7 +104,7 @@ func TestAccResourceNcloudAutoScalingSchedule_vpc_disappears(t *testing.T) {
 				Config: testAccNcloudAutoScalingScheduleVpcConfig(name, start, end),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckNcloudAutoScalingScheduleExists(resourceName, &schedule, GetTestProvider(true)),
-					TestAccCheckResourceDisappears(GetTestProvider(true), resourceNcloudAutoScalingSchedule(), resourceName),
+					TestAccCheckResourceDisappears(GetTestProvider(true), autoscaling.ResourceNcloudAutoScalingSchedule(), resourceName),
 				),
 				ExpectNonEmptyPlan: true,
 			},
@@ -130,17 +131,17 @@ func testAccNcloudAutoscalingScheduleTime(t *testing.T, duration string) string 
 	if err != nil {
 		t.Fatalf("err parsing time duration: %s", err)
 	}
-	return n.Add(d).Format(SCHEDULE_TIME_FORMAT)
+	return n.Add(d).Format(autoscaling.SCHEDULE_TIME_FORMAT)
 }
 
 func testAccCheckNcloudAutoScalingScheduleDestroy(s *terraform.State, provider *schema.Provider) error {
-	config := provider.Meta().(*ProviderConfig)
+	config := provider.Meta().(*conn.ProviderConfig)
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "ncloud_auto_scaling_schedule" {
 			continue
 		}
-		autoScalingSchedule, err := getAutoScalingSchedule(config, rs.Primary.ID, rs.Primary.Attributes["auto_scaling_group_no"])
+		autoScalingSchedule, err := autoscaling.GetAutoScalingSchedule(config, rs.Primary.ID, rs.Primary.Attributes["auto_scaling_group_no"])
 		if err != nil {
 			return err
 		}
@@ -152,7 +153,7 @@ func testAccCheckNcloudAutoScalingScheduleDestroy(s *terraform.State, provider *
 	return nil
 }
 
-func testAccCheckNcloudAutoScalingScheduleExists(n string, schedule *AutoScalingSchedule, provider *schema.Provider) resource.TestCheckFunc {
+func testAccCheckNcloudAutoScalingScheduleExists(n string, schedule *autoscaling.AutoScalingSchedule, provider *schema.Provider) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		rs, ok := s.RootModule().Resources[n]
 		if !ok {
@@ -163,8 +164,8 @@ func testAccCheckNcloudAutoScalingScheduleExists(n string, schedule *AutoScaling
 			return fmt.Errorf("No AutoScalingSchdule ID is set: %s", n)
 		}
 
-		config := provider.Meta().(*ProviderConfig)
-		autoScalingSchedule, err := getAutoScalingSchedule(config, rs.Primary.ID, rs.Primary.Attributes["auto_scaling_group_no"])
+		config := provider.Meta().(*conn.ProviderConfig)
+		autoScalingSchedule, err := autoscaling.GetAutoScalingSchedule(config, rs.Primary.ID, rs.Primary.Attributes["auto_scaling_group_no"])
 		if err != nil {
 			return err
 		}

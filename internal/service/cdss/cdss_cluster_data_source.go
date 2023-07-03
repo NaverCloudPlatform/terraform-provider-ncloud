@@ -12,14 +12,10 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 
 	. "github.com/terraform-providers/terraform-provider-ncloud/internal/common"
-	. "github.com/terraform-providers/terraform-provider-ncloud/internal/provider"
+	"github.com/terraform-providers/terraform-provider-ncloud/internal/conn"
 )
 
-func init() {
-	RegisterDataSource("ncloud_cdss_cluster", dataSourceNcloudCDSSCluster())
-}
-
-func dataSourceNcloudCDSSCluster() *schema.Resource {
+func DataSourceNcloudCDSSCluster() *schema.Resource {
 	return &schema.Resource{
 		Read: dataSourceNcloudCDSSClusterRead,
 		Schema: map[string]*schema.Schema{
@@ -166,7 +162,7 @@ func dataSourceNcloudCDSSCluster() *schema.Resource {
 }
 
 func dataSourceNcloudCDSSClusterRead(d *schema.ResourceData, meta interface{}) error {
-	config := meta.(*ProviderConfig)
+	config := meta.(*conn.ProviderConfig)
 	if !config.SupportVPC {
 		return NotSupportClassic("dataSource `ncloud_vcdss_cluster`")
 	}
@@ -177,7 +173,7 @@ func dataSourceNcloudCDSSClusterRead(d *schema.ResourceData, meta interface{}) e
 	}
 
 	if f, ok := d.GetOk("filter"); ok {
-		resources = ApplyFilters(f.(*schema.Set), resources, dataSourceNcloudCDSSKafkaVersion().Schema)
+		resources = ApplyFilters(f.(*schema.Set), resources, DataSourceNcloudCDSSKafkaVersion().Schema)
 	}
 
 	if len(resources) < 1 {
@@ -260,7 +256,7 @@ func dataSourceNcloudCDSSClusterRead(d *schema.ResourceData, meta interface{}) e
 	return nil
 }
 
-func getCDSSClusterList(config *ProviderConfig) ([]map[string]interface{}, error) {
+func getCDSSClusterList(config *conn.ProviderConfig) ([]map[string]interface{}, error) {
 	LogCommonRequest("GetCDSSClusterList", "")
 	resp, _, err := config.Client.Vcdss.V1Api.ClusterGetClusterInfoListPost(context.Background(), vcdss.GetClusterRequest{})
 

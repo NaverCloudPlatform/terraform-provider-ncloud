@@ -1,4 +1,4 @@
-package autoscaling
+package autoscaling_test
 
 import (
 	"fmt"
@@ -10,11 +10,12 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 
 	. "github.com/terraform-providers/terraform-provider-ncloud/internal/acctest"
-	. "github.com/terraform-providers/terraform-provider-ncloud/internal/provider"
+	"github.com/terraform-providers/terraform-provider-ncloud/internal/conn"
+	"github.com/terraform-providers/terraform-provider-ncloud/internal/service/autoscaling"
 )
 
 func TestAccResourceNcloudAutoScalingGroup_classic_basic(t *testing.T) {
-	var autoScalingGroup AutoScalingGroup
+	var autoScalingGroup autoscaling.AutoScalingGroup
 	resourceName := "ncloud_auto_scaling_group.auto"
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:  func() { TestAccPreCheck(t) },
@@ -43,7 +44,7 @@ func TestAccResourceNcloudAutoScalingGroup_classic_basic(t *testing.T) {
 }
 
 func TestAccResourceNcloudAutoScalingGroup_vpc_basic(t *testing.T) {
-	var autoScalingGroup AutoScalingGroup
+	var autoScalingGroup autoscaling.AutoScalingGroup
 	resourceName := "ncloud_auto_scaling_group.auto"
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:  func() { TestAccPreCheck(t) },
@@ -73,7 +74,7 @@ func TestAccResourceNcloudAutoScalingGroup_vpc_basic(t *testing.T) {
 }
 
 func TestAccResourceNcloudAutoScalingGroup_classic_disappears(t *testing.T) {
-	var autoScalingGroup AutoScalingGroup
+	var autoScalingGroup autoscaling.AutoScalingGroup
 	resourceName := "ncloud_auto_scaling_group.auto"
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:  func() { TestAccPreCheck(t) },
@@ -86,7 +87,7 @@ func TestAccResourceNcloudAutoScalingGroup_classic_disappears(t *testing.T) {
 				Config: testAccAutoScalingGroupClassicConfig(),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckAutoScalingGroupExists(resourceName, &autoScalingGroup, GetTestProvider(false)),
-					TestAccCheckResourceDisappears(GetTestProvider(false), resourceNcloudAutoScalingGroup(), resourceName),
+					TestAccCheckResourceDisappears(GetTestProvider(false), autoscaling.ResourceNcloudAutoScalingGroup(), resourceName),
 				),
 				ExpectNonEmptyPlan: true,
 			},
@@ -95,7 +96,7 @@ func TestAccResourceNcloudAutoScalingGroup_classic_disappears(t *testing.T) {
 }
 
 func TestAccResourceNcloudAutoScalingGroup_vpc_disappears(t *testing.T) {
-	var autoScalingGroup AutoScalingGroup
+	var autoScalingGroup autoscaling.AutoScalingGroup
 	resourceName := "ncloud_auto_scaling_group.auto"
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:  func() { TestAccPreCheck(t) },
@@ -108,7 +109,7 @@ func TestAccResourceNcloudAutoScalingGroup_vpc_disappears(t *testing.T) {
 				Config: testAccAutoScalingGroupVpcConfig(),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckAutoScalingGroupExists(resourceName, &autoScalingGroup, GetTestProvider(true)),
-					TestAccCheckResourceDisappears(GetTestProvider(true), resourceNcloudAutoScalingGroup(), resourceName),
+					TestAccCheckResourceDisappears(GetTestProvider(true), autoscaling.ResourceNcloudAutoScalingGroup(), resourceName),
 				),
 				ExpectNonEmptyPlan: true,
 			},
@@ -117,13 +118,13 @@ func TestAccResourceNcloudAutoScalingGroup_vpc_disappears(t *testing.T) {
 }
 
 func testAccCheckAutoScalingGroupDestroy(s *terraform.State, provider *schema.Provider) error {
-	config := provider.Meta().(*ProviderConfig)
+	config := provider.Meta().(*conn.ProviderConfig)
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "ncloud_auto_scaling_group" {
 			continue
 		}
-		autoScalingGroup, err := getAutoScalingGroup(config, rs.Primary.ID)
+		autoScalingGroup, err := autoscaling.GetAutoScalingGroup(config, rs.Primary.ID)
 		if err != nil {
 			return err
 		}
@@ -135,7 +136,7 @@ func testAccCheckAutoScalingGroupDestroy(s *terraform.State, provider *schema.Pr
 	return nil
 }
 
-func testAccCheckAutoScalingGroupExists(n string, a *AutoScalingGroup, provider *schema.Provider) resource.TestCheckFunc {
+func testAccCheckAutoScalingGroupExists(n string, a *autoscaling.AutoScalingGroup, provider *schema.Provider) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		rs, ok := s.RootModule().Resources[n]
 		if !ok {
@@ -146,8 +147,8 @@ func testAccCheckAutoScalingGroupExists(n string, a *AutoScalingGroup, provider 
 			return fmt.Errorf("No AutoScalingGroup ID is set: %s", n)
 		}
 
-		config := provider.Meta().(*ProviderConfig)
-		autoScalingGroup, err := getAutoScalingGroup(config, rs.Primary.ID)
+		config := provider.Meta().(*conn.ProviderConfig)
+		autoScalingGroup, err := autoscaling.GetAutoScalingGroup(config, rs.Primary.ID)
 		if err != nil {
 			return err
 		}

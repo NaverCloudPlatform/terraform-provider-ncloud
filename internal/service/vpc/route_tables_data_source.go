@@ -7,14 +7,10 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 
 	. "github.com/terraform-providers/terraform-provider-ncloud/internal/common"
-	. "github.com/terraform-providers/terraform-provider-ncloud/internal/provider"
+	"github.com/terraform-providers/terraform-provider-ncloud/internal/conn"
 )
 
-func init() {
-	RegisterDataSource("ncloud_route_tables", dataSourceNcloudRouteTables())
-}
-
-func dataSourceNcloudRouteTables() *schema.Resource {
+func DataSourceNcloudRouteTables() *schema.Resource {
 	return &schema.Resource{
 		Read: dataSourceNcloudRouteTablesRead,
 
@@ -35,14 +31,14 @@ func dataSourceNcloudRouteTables() *schema.Resource {
 			"route_tables": {
 				Type:     schema.TypeList,
 				Computed: true,
-				Elem:     GetDataSourceItemSchema(resourceNcloudRouteTable()),
+				Elem:     GetDataSourceItemSchema(ResourceNcloudRouteTable()),
 			},
 		},
 	}
 }
 
 func dataSourceNcloudRouteTablesRead(d *schema.ResourceData, meta interface{}) error {
-	config := meta.(*ProviderConfig)
+	config := meta.(*conn.ProviderConfig)
 
 	if !config.SupportVPC {
 		return NotSupportClassic("data source `ncloud_route_tables`")

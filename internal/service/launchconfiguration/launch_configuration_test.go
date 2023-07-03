@@ -1,4 +1,4 @@
-package launchconfiguration
+package launchconfiguration_test
 
 import (
 	"fmt"
@@ -10,11 +10,12 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 
 	. "github.com/terraform-providers/terraform-provider-ncloud/internal/acctest"
-	. "github.com/terraform-providers/terraform-provider-ncloud/internal/provider"
+	"github.com/terraform-providers/terraform-provider-ncloud/internal/conn"
+	"github.com/terraform-providers/terraform-provider-ncloud/internal/service/launchconfiguration"
 )
 
 func TestAccResourceNcloudLaunchConfiguration_classic_basic(t *testing.T) {
-	var launchConfiguration LaunchConfiguration
+	var launchConfiguration launchconfiguration.LaunchConfiguration
 	resourceName := "ncloud_launch_configuration.lc"
 	serverImageProductCode := "SPSW0LINUX000046"
 	resource.ParallelTest(t, resource.TestCase{
@@ -40,7 +41,7 @@ func TestAccResourceNcloudLaunchConfiguration_classic_basic(t *testing.T) {
 }
 
 func TestAccResourceNcloudLaunchConfiguration_vpc_basic(t *testing.T) {
-	var launchConfiguration LaunchConfiguration
+	var launchConfiguration launchconfiguration.LaunchConfiguration
 	resourceName := "ncloud_launch_configuration.lc"
 	serverImageProductCode := "SW.VSVR.OS.LNX64.CNTOS.0703.B050"
 	resource.ParallelTest(t, resource.TestCase{
@@ -66,7 +67,7 @@ func TestAccResourceNcloudLaunchConfiguration_vpc_basic(t *testing.T) {
 }
 
 func TestAccResourceNcloudLaunchConfiguration_classic_disappears(t *testing.T) {
-	var launchConfiguration LaunchConfiguration
+	var launchConfiguration launchconfiguration.LaunchConfiguration
 	resourceName := "ncloud_launch_configuration.lc"
 	serverImageProductCode := "SPSW0LINUX000046"
 	resource.ParallelTest(t, resource.TestCase{
@@ -80,7 +81,7 @@ func TestAccResourceNcloudLaunchConfiguration_classic_disappears(t *testing.T) {
 				Config: testAccLaunchConfigurationConfig(serverImageProductCode),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckLaunchConfigurationExists(resourceName, &launchConfiguration, GetTestProvider(false)),
-					TestAccCheckResourceDisappears(GetTestProvider(false), resourceNcloudLaunchConfiguration(), resourceName),
+					TestAccCheckResourceDisappears(GetTestProvider(false), launchconfiguration.ResourceNcloudLaunchConfiguration(), resourceName),
 				),
 				ExpectNonEmptyPlan: true,
 			},
@@ -89,7 +90,7 @@ func TestAccResourceNcloudLaunchConfiguration_classic_disappears(t *testing.T) {
 }
 
 func TestAccResourceNcloudLaunchConfiguration_vpc_disappears(t *testing.T) {
-	var launchConfiguration LaunchConfiguration
+	var launchConfiguration launchconfiguration.LaunchConfiguration
 	resourceName := "ncloud_launch_configuration.lc"
 	serverImageProductCode := "SW.VSVR.OS.LNX64.CNTOS.0703.B050"
 	resource.ParallelTest(t, resource.TestCase{
@@ -103,7 +104,7 @@ func TestAccResourceNcloudLaunchConfiguration_vpc_disappears(t *testing.T) {
 				Config: testAccLaunchConfigurationConfig(serverImageProductCode),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckLaunchConfigurationExists(resourceName, &launchConfiguration, GetTestProvider(true)),
-					TestAccCheckResourceDisappears(GetTestProvider(true), resourceNcloudLaunchConfiguration(), resourceName),
+					TestAccCheckResourceDisappears(GetTestProvider(true), launchconfiguration.ResourceNcloudLaunchConfiguration(), resourceName),
 				),
 				ExpectNonEmptyPlan: true,
 			},
@@ -111,7 +112,7 @@ func TestAccResourceNcloudLaunchConfiguration_vpc_disappears(t *testing.T) {
 	})
 }
 
-func testAccCheckLaunchConfigurationExists(n string, l *LaunchConfiguration, provider *schema.Provider) resource.TestCheckFunc {
+func testAccCheckLaunchConfigurationExists(n string, l *launchconfiguration.LaunchConfiguration, provider *schema.Provider) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		rs, ok := s.RootModule().Resources[n]
 		if !ok {
@@ -122,8 +123,8 @@ func testAccCheckLaunchConfigurationExists(n string, l *LaunchConfiguration, pro
 			return fmt.Errorf("No LaunchConfiguration ID is set: %s", n)
 		}
 
-		config := provider.Meta().(*ProviderConfig)
-		launchConfiguration, err := getLaunchConfiguration(config, rs.Primary.ID)
+		config := provider.Meta().(*conn.ProviderConfig)
+		launchConfiguration, err := launchconfiguration.GetLaunchConfiguration(config, rs.Primary.ID)
 		if err != nil {
 			return err
 		}
@@ -136,13 +137,13 @@ func testAccCheckLaunchConfigurationExists(n string, l *LaunchConfiguration, pro
 }
 
 func testAccCheckLaunchConfigurationDestroy(s *terraform.State, provider *schema.Provider) error {
-	config := provider.Meta().(*ProviderConfig)
+	config := provider.Meta().(*conn.ProviderConfig)
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "ncloud_launch_configuration" {
 			continue
 		}
-		launchConfiguration, err := getClassicLaunchConfiguration(config, rs.Primary.ID)
+		launchConfiguration, err := launchconfiguration.GetClassicLaunchConfiguration(config, rs.Primary.ID)
 		if err != nil {
 			return err
 		}

@@ -12,15 +12,11 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 
 	. "github.com/terraform-providers/terraform-provider-ncloud/internal/common"
-	. "github.com/terraform-providers/terraform-provider-ncloud/internal/provider"
+	"github.com/terraform-providers/terraform-provider-ncloud/internal/conn"
 	"github.com/terraform-providers/terraform-provider-ncloud/internal/verify"
 )
 
-func init() {
-	RegisterResource("ncloud_route_table", resourceNcloudRouteTable())
-}
-
-func resourceNcloudRouteTable() *schema.Resource {
+func ResourceNcloudRouteTable() *schema.Resource {
 	return &schema.Resource{
 		Create: resourceNcloudRouteTableCreate,
 		Read:   resourceNcloudRouteTableRead,
@@ -67,7 +63,7 @@ func resourceNcloudRouteTable() *schema.Resource {
 }
 
 func resourceNcloudRouteTableCreate(d *schema.ResourceData, meta interface{}) error {
-	config := meta.(*ProviderConfig)
+	config := meta.(*conn.ProviderConfig)
 
 	if !config.SupportVPC {
 		return NotSupportClassic("resource `ncloud_route_table`")
@@ -109,9 +105,9 @@ func resourceNcloudRouteTableCreate(d *schema.ResourceData, meta interface{}) er
 }
 
 func resourceNcloudRouteTableRead(d *schema.ResourceData, meta interface{}) error {
-	config := meta.(*ProviderConfig)
+	config := meta.(*conn.ProviderConfig)
 
-	instance, err := getRouteTableInstance(config, d.Id())
+	instance, err := GetRouteTableInstance(config, d.Id())
 	if err != nil {
 		return err
 	}
@@ -133,7 +129,7 @@ func resourceNcloudRouteTableRead(d *schema.ResourceData, meta interface{}) erro
 }
 
 func resourceNcloudRouteTableUpdate(d *schema.ResourceData, meta interface{}) error {
-	config := meta.(*ProviderConfig)
+	config := meta.(*conn.ProviderConfig)
 
 	if d.HasChange("description") {
 		if err := setRouteTableDescription(d, config); err != nil {
@@ -145,7 +141,7 @@ func resourceNcloudRouteTableUpdate(d *schema.ResourceData, meta interface{}) er
 }
 
 func resourceNcloudRouteTableDelete(d *schema.ResourceData, meta interface{}) error {
-	config := meta.(*ProviderConfig)
+	config := meta.(*conn.ProviderConfig)
 
 	reqParams := &vpc.DeleteRouteTableRequest{
 		RegionCode:   &config.RegionCode,
@@ -161,22 +157,22 @@ func resourceNcloudRouteTableDelete(d *schema.ResourceData, meta interface{}) er
 
 	LogResponse("DeleteRouteTable", resp)
 
-	if err := waitForNcloudRouteTableDeletion(config, d.Id()); err != nil {
+	if err := WaitForNcloudRouteTableDeletion(config, d.Id()); err != nil {
 		return err
 	}
 
 	return nil
 }
 
-func waitForNcloudRouteTableCreation(config *ProviderConfig, id string) error {
+func waitForNcloudRouteTableCreation(config *conn.ProviderConfig, id string) error {
 	stateConf := &resource.StateChangeConf{
 		Pending: []string{"INIT", "CREATING"},
 		Target:  []string{"RUN"},
 		Refresh: func() (interface{}, string, error) {
-			instance, err := getRouteTableInstance(config, id)
+			instance, err := GetRouteTableInstance(config, id)
 			return VpcCommonStateRefreshFunc(instance, err, "RouteTableStatus")
 		},
-		Timeout:    DefaultTimeout,
+		Timeout:    conn.DefaultTimeout,
 		Delay:      2 * time.Second,
 		MinTimeout: 3 * time.Second,
 	}
@@ -188,15 +184,15 @@ func waitForNcloudRouteTableCreation(config *ProviderConfig, id string) error {
 	return nil
 }
 
-func waitForNcloudRouteTableDeletion(config *ProviderConfig, id string) error {
+func WaitForNcloudRouteTableDeletion(config *conn.ProviderConfig, id string) error {
 	stateConf := &resource.StateChangeConf{
 		Pending: []string{"RUN", "TERMTING"},
 		Target:  []string{"TERMINATED"},
 		Refresh: func() (interface{}, string, error) {
-			instance, err := getRouteTableInstance(config, id)
+			instance, err := GetRouteTableInstance(config, id)
 			return VpcCommonStateRefreshFunc(instance, err, "RouteTableStatus")
 		},
-		Timeout:    DefaultTimeout,
+		Timeout:    conn.DefaultTimeout,
 		Delay:      2 * time.Second,
 		MinTimeout: 3 * time.Second,
 	}
@@ -208,7 +204,7 @@ func waitForNcloudRouteTableDeletion(config *ProviderConfig, id string) error {
 	return nil
 }
 
-func getRouteTableInstance(config *ProviderConfig, id string) (*vpc.RouteTable, error) {
+func GetRouteTableInstance(config *conn.ProviderConfig, id string) (*vpc.RouteTable, error) {
 	reqParams := &vpc.GetRouteTableDetailRequest{
 		RegionCode:   &config.RegionCode,
 		RouteTableNo: ncloud.String(id),
@@ -229,7 +225,7 @@ func getRouteTableInstance(config *ProviderConfig, id string) (*vpc.RouteTable, 
 	return nil, nil
 }
 
-func setRouteTableDescription(d *schema.ResourceData, config *ProviderConfig) error {
+func setRouteTableDescription(d *schema.ResourceData, config *conn.ProviderConfig) error {
 	reqParams := &vpc.SetRouteTableDescriptionRequest{
 		RegionCode:            &config.RegionCode,
 		RouteTableNo:          ncloud.String(d.Id()),

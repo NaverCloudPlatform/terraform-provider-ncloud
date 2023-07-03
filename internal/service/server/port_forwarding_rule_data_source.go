@@ -10,16 +10,12 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 
 	. "github.com/terraform-providers/terraform-provider-ncloud/internal/common"
-	. "github.com/terraform-providers/terraform-provider-ncloud/internal/provider"
+	"github.com/terraform-providers/terraform-provider-ncloud/internal/conn"
 	"github.com/terraform-providers/terraform-provider-ncloud/internal/verify"
 	"github.com/terraform-providers/terraform-provider-ncloud/internal/zone"
 )
 
-func init() {
-	RegisterDataSource("ncloud_port_forwarding_rule", dataSourceNcloudPortForwardingRule())
-}
-
-func dataSourceNcloudPortForwardingRule() *schema.Resource {
+func DataSourceNcloudPortForwardingRule() *schema.Resource {
 	return &schema.Resource{
 		Read: dataSourceNcloudPortForwardingRuleRead,
 
@@ -76,14 +72,14 @@ func dataSourceNcloudPortForwardingRule() *schema.Resource {
 }
 
 func dataSourceNcloudPortForwardingRuleRead(d *schema.ResourceData, meta interface{}) error {
-	config := meta.(*ProviderConfig)
+	config := meta.(*conn.ProviderConfig)
 	client := config.Client
 
 	if config.SupportVPC {
 		return NotSupportVpc("data source `ncloud_port_forwarding_rule`")
 	}
 
-	regionNo, err := ParseRegionNoParameter(d)
+	regionNo, err := conn.ParseRegionNoParameter(d)
 	if err != nil {
 		return err
 	}

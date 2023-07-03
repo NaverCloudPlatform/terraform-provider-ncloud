@@ -7,15 +7,11 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 
 	. "github.com/terraform-providers/terraform-provider-ncloud/internal/common"
-	. "github.com/terraform-providers/terraform-provider-ncloud/internal/provider"
+	"github.com/terraform-providers/terraform-provider-ncloud/internal/conn"
 	"github.com/terraform-providers/terraform-provider-ncloud/internal/verify"
 )
 
-func init() {
-	RegisterDataSource("ncloud_server_products", dataSourceNcloudServerProducts())
-}
-
-func dataSourceNcloudServerProducts() *schema.Resource {
+func DataSourceNcloudServerProducts() *schema.Resource {
 	return &schema.Resource{
 		Read: dataSourceNcloudServerProductsRead,
 
@@ -43,7 +39,7 @@ func dataSourceNcloudServerProducts() *schema.Resource {
 			"server_products": {
 				Type:     schema.TypeList,
 				Computed: true,
-				Elem:     GetDataSourceItemSchema(dataSourceNcloudServerProduct()),
+				Elem:     GetDataSourceItemSchema(DataSourceNcloudServerProduct()),
 			},
 			"ids": {
 				Type:     schema.TypeList,
@@ -76,10 +72,10 @@ func dataSourceNcloudServerProductsRead(d *schema.ResourceData, meta interface{}
 	var resources []map[string]interface{}
 	var err error
 
-	if meta.(*ProviderConfig).SupportVPC == true {
-		resources, err = getVpcServerProductList(d, meta.(*ProviderConfig))
+	if meta.(*conn.ProviderConfig).SupportVPC == true {
+		resources, err = getVpcServerProductList(d, meta.(*conn.ProviderConfig))
 	} else {
-		resources, err = getClassicServerProductList(d, meta.(*ProviderConfig))
+		resources, err = getClassicServerProductList(d, meta.(*conn.ProviderConfig))
 	}
 
 	if err != nil {
@@ -87,7 +83,7 @@ func dataSourceNcloudServerProductsRead(d *schema.ResourceData, meta interface{}
 	}
 
 	if f, ok := d.GetOk("filter"); ok {
-		resources = ApplyFilters(f.(*schema.Set), resources, dataSourceNcloudServerProduct().Schema)
+		resources = ApplyFilters(f.(*schema.Set), resources, DataSourceNcloudServerProduct().Schema)
 	}
 
 	if len(resources) < 1 {

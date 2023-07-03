@@ -12,15 +12,11 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 
 	. "github.com/terraform-providers/terraform-provider-ncloud/internal/common"
-	. "github.com/terraform-providers/terraform-provider-ncloud/internal/provider"
+	"github.com/terraform-providers/terraform-provider-ncloud/internal/conn"
 	"github.com/terraform-providers/terraform-provider-ncloud/internal/verify"
 )
 
-func init() {
-	RegisterResource("ncloud_network_acl", resourceNcloudNetworkACL())
-}
-
-func resourceNcloudNetworkACL() *schema.Resource {
+func ResourceNcloudNetworkACL() *schema.Resource {
 	return &schema.Resource{
 		Create: resourceNcloudNetworkACLCreate,
 		Read:   resourceNcloudNetworkACLRead,
@@ -61,7 +57,7 @@ func resourceNcloudNetworkACL() *schema.Resource {
 }
 
 func resourceNcloudNetworkACLCreate(d *schema.ResourceData, meta interface{}) error {
-	config := meta.(*ProviderConfig)
+	config := meta.(*conn.ProviderConfig)
 
 	if !config.SupportVPC {
 		return NotSupportClassic("resource `ncloud_network_acl`")
@@ -101,9 +97,9 @@ func resourceNcloudNetworkACLCreate(d *schema.ResourceData, meta interface{}) er
 }
 
 func resourceNcloudNetworkACLRead(d *schema.ResourceData, meta interface{}) error {
-	config := meta.(*ProviderConfig)
+	config := meta.(*conn.ProviderConfig)
 
-	instance, err := getNetworkACLInstance(config, d.Id())
+	instance, err := GetNetworkACLInstance(config, d.Id())
 	if err != nil {
 		return err
 	}
@@ -124,7 +120,7 @@ func resourceNcloudNetworkACLRead(d *schema.ResourceData, meta interface{}) erro
 }
 
 func resourceNcloudNetworkACLUpdate(d *schema.ResourceData, meta interface{}) error {
-	config := meta.(*ProviderConfig)
+	config := meta.(*conn.ProviderConfig)
 
 	if d.HasChange("description") {
 		if err := setNetworkACLDescription(d, config); err != nil {
@@ -136,7 +132,7 @@ func resourceNcloudNetworkACLUpdate(d *schema.ResourceData, meta interface{}) er
 }
 
 func resourceNcloudNetworkACLDelete(d *schema.ResourceData, meta interface{}) error {
-	config := meta.(*ProviderConfig)
+	config := meta.(*conn.ProviderConfig)
 
 	reqParams := &vpc.DeleteNetworkAclRequest{
 		RegionCode:   &config.RegionCode,
@@ -152,22 +148,22 @@ func resourceNcloudNetworkACLDelete(d *schema.ResourceData, meta interface{}) er
 
 	LogResponse("DeleteNetworkAcl", resp)
 
-	if err := waitForNcloudNetworkACLDeletion(config, d.Id()); err != nil {
+	if err := WaitForNcloudNetworkACLDeletion(config, d.Id()); err != nil {
 		return err
 	}
 
 	return nil
 }
 
-func waitForNcloudNetworkACLCreation(config *ProviderConfig, id string) error {
+func waitForNcloudNetworkACLCreation(config *conn.ProviderConfig, id string) error {
 	stateConf := &resource.StateChangeConf{
 		Pending: []string{"INIT", "CREATING"},
 		Target:  []string{"RUN"},
 		Refresh: func() (interface{}, string, error) {
-			instance, err := getNetworkACLInstance(config, id)
+			instance, err := GetNetworkACLInstance(config, id)
 			return VpcCommonStateRefreshFunc(instance, err, "NetworkAclStatus")
 		},
-		Timeout:    DefaultCreateTimeout,
+		Timeout:    conn.DefaultCreateTimeout,
 		Delay:      2 * time.Second,
 		MinTimeout: 3 * time.Second,
 	}
@@ -179,15 +175,15 @@ func waitForNcloudNetworkACLCreation(config *ProviderConfig, id string) error {
 	return nil
 }
 
-func waitForNcloudNetworkACLDeletion(config *ProviderConfig, id string) error {
+func WaitForNcloudNetworkACLDeletion(config *conn.ProviderConfig, id string) error {
 	stateConf := &resource.StateChangeConf{
 		Pending: []string{"RUN", "TERMTING"},
 		Target:  []string{"TERMINATED"},
 		Refresh: func() (interface{}, string, error) {
-			instance, err := getNetworkACLInstance(config, id)
+			instance, err := GetNetworkACLInstance(config, id)
 			return VpcCommonStateRefreshFunc(instance, err, "NetworkAclStatus")
 		},
-		Timeout:    DefaultTimeout,
+		Timeout:    conn.DefaultTimeout,
 		Delay:      2 * time.Second,
 		MinTimeout: 3 * time.Second,
 	}
@@ -199,7 +195,7 @@ func waitForNcloudNetworkACLDeletion(config *ProviderConfig, id string) error {
 	return nil
 }
 
-func getNetworkACLInstance(config *ProviderConfig, id string) (*vpc.NetworkAcl, error) {
+func GetNetworkACLInstance(config *conn.ProviderConfig, id string) (*vpc.NetworkAcl, error) {
 	reqParams := &vpc.GetNetworkAclDetailRequest{
 		RegionCode:   &config.RegionCode,
 		NetworkAclNo: ncloud.String(id),
@@ -221,7 +217,7 @@ func getNetworkACLInstance(config *ProviderConfig, id string) (*vpc.NetworkAcl, 
 	return nil, nil
 }
 
-func setNetworkACLDescription(d *schema.ResourceData, config *ProviderConfig) error {
+func setNetworkACLDescription(d *schema.ResourceData, config *conn.ProviderConfig) error {
 	reqParams := &vpc.SetNetworkAclDescriptionRequest{
 		RegionCode:            &config.RegionCode,
 		NetworkAclNo:          ncloud.String(d.Id()),

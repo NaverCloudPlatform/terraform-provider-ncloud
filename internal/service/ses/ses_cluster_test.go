@@ -1,4 +1,4 @@
-package ses
+package ses_test
 
 import (
 	"context"
@@ -11,7 +11,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 
 	. "github.com/terraform-providers/terraform-provider-ncloud/internal/acctest"
-	"github.com/terraform-providers/terraform-provider-ncloud/internal/provider"
+	"github.com/terraform-providers/terraform-provider-ncloud/internal/conn"
+	"github.com/terraform-providers/terraform-provider-ncloud/internal/service/ses"
 )
 
 const TF_TEST_SES_LOGIN_KEY = "tf-ses-login-key"
@@ -107,8 +108,8 @@ func testAccCheckSESClusterExists(n string, cluster *vses2.OpenApiGetClusterInfo
 			return fmt.Errorf("No cluster service_group_instance_no is set")
 		}
 
-		config := GetTestProvider(true).Meta().(*provider.ProviderConfig)
-		resp, err := getSESCluster(context.Background(), config, rs.Primary.ID)
+		config := GetTestProvider(true).Meta().(*conn.ProviderConfig)
+		resp, err := ses.GetSESCluster(context.Background(), config, rs.Primary.ID)
 		if err != nil {
 			return err
 		}
@@ -120,14 +121,14 @@ func testAccCheckSESClusterExists(n string, cluster *vses2.OpenApiGetClusterInfo
 }
 
 func testAccCheckSESClusterDestroy(s *terraform.State) error {
-	config := GetTestProvider(true).Meta().(*provider.ProviderConfig)
+	config := GetTestProvider(true).Meta().(*conn.ProviderConfig)
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "ncloud_ses_cluster" {
 			continue
 		}
 
-		cluster, err := getSESCluster(context.Background(), config, rs.Primary.ID)
+		cluster, err := ses.GetSESCluster(context.Background(), config, rs.Primary.ID)
 		if err != nil {
 			return err
 		}

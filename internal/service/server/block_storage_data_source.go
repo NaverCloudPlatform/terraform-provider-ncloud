@@ -9,15 +9,11 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 
 	. "github.com/terraform-providers/terraform-provider-ncloud/internal/common"
-	. "github.com/terraform-providers/terraform-provider-ncloud/internal/provider"
+	"github.com/terraform-providers/terraform-provider-ncloud/internal/conn"
 	. "github.com/terraform-providers/terraform-provider-ncloud/internal/verify"
 )
 
-func init() {
-	RegisterDataSource("ncloud_block_storage", dataSourceNcloudBlockStorage())
-}
-
-func dataSourceNcloudBlockStorage() *schema.Resource {
+func DataSourceNcloudBlockStorage() *schema.Resource {
 	fieldMap := map[string]*schema.Schema{
 		"id": {
 			Type:     schema.TypeString,
@@ -32,11 +28,11 @@ func dataSourceNcloudBlockStorage() *schema.Resource {
 		"filter": DataSourceFiltersSchema(),
 	}
 
-	return GetSingularDataSourceItemSchema(resourceNcloudBlockStorage(), fieldMap, dataSourceNcloudBlockStorageRead)
+	return GetSingularDataSourceItemSchema(ResourceNcloudBlockStorage(), fieldMap, dataSourceNcloudBlockStorageRead)
 }
 
 func dataSourceNcloudBlockStorageRead(d *schema.ResourceData, meta interface{}) error {
-	config := meta.(*ProviderConfig)
+	config := meta.(*conn.ProviderConfig)
 
 	instances, err := getBlockStorageList(d, config)
 	if err != nil {
@@ -49,7 +45,7 @@ func dataSourceNcloudBlockStorageRead(d *schema.ResourceData, meta interface{}) 
 
 	resources := ConvertToArrayMap(instances)
 	if f, ok := d.GetOk("filter"); ok {
-		resources = ApplyFilters(f.(*schema.Set), resources, dataSourceNcloudBlockStorage().Schema)
+		resources = ApplyFilters(f.(*schema.Set), resources, DataSourceNcloudBlockStorage().Schema)
 	}
 
 	if err := ValidateOneResult(len(resources)); err != nil {
@@ -62,7 +58,7 @@ func dataSourceNcloudBlockStorageRead(d *schema.ResourceData, meta interface{}) 
 	return nil
 }
 
-func getBlockStorageList(d *schema.ResourceData, config *ProviderConfig) ([]*BlockStorage, error) {
+func getBlockStorageList(d *schema.ResourceData, config *conn.ProviderConfig) ([]*BlockStorage, error) {
 	if config.SupportVPC {
 		return getVpcBlockStorageList(d, config)
 	}
@@ -70,8 +66,8 @@ func getBlockStorageList(d *schema.ResourceData, config *ProviderConfig) ([]*Blo
 	return getClassicBlockStorageList(d, config)
 }
 
-func getClassicBlockStorageList(d *schema.ResourceData, config *ProviderConfig) ([]*BlockStorage, error) {
-	regionNo, err := ParseRegionNoParameter(d)
+func getClassicBlockStorageList(d *schema.ResourceData, config *conn.ProviderConfig) ([]*BlockStorage, error) {
+	regionNo, err := conn.ParseRegionNoParameter(d)
 	if err != nil {
 		return nil, err
 	}
@@ -117,7 +113,7 @@ func getClassicBlockStorageList(d *schema.ResourceData, config *ProviderConfig) 
 	return list, nil
 }
 
-func getVpcBlockStorageList(d *schema.ResourceData, config *ProviderConfig) ([]*BlockStorage, error) {
+func getVpcBlockStorageList(d *schema.ResourceData, config *conn.ProviderConfig) ([]*BlockStorage, error) {
 	reqParams := &vserver.GetBlockStorageInstanceListRequest{
 		RegionCode:       &config.RegionCode,
 		ServerInstanceNo: StringPtrOrNil(d.GetOk("server_instance_no")),

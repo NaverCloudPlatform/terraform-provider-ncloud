@@ -1,4 +1,4 @@
-package devtools
+package devtools_test
 
 import (
 	"context"
@@ -12,11 +12,12 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 
 	. "github.com/terraform-providers/terraform-provider-ncloud/internal/acctest"
-	. "github.com/terraform-providers/terraform-provider-ncloud/internal/provider"
+	"github.com/terraform-providers/terraform-provider-ncloud/internal/conn"
+	"github.com/terraform-providers/terraform-provider-ncloud/internal/service/devtools"
 )
 
 func TestAccResourceNcloudSourcePipelineProject_classic_basic(t *testing.T) {
-	var project PipelineProject
+	var project devtools.PipelineProject
 	name := fmt.Sprintf("test-pipeline-basic-%s", acctest.RandString(5))
 	resourceName := "ncloud_sourcepipeline_project.foo"
 
@@ -44,7 +45,7 @@ func TestAccResourceNcloudSourcePipelineProject_classic_basic(t *testing.T) {
 }
 
 func TestAccResourceNcloudSourcePipelineProject_classic_updateTaskName(t *testing.T) {
-	var project PipelineProject
+	var project devtools.PipelineProject
 	name := fmt.Sprintf("test-pipeline-name-%s", acctest.RandString(5))
 	resourceName := "ncloud_sourcepipeline_project.foo"
 
@@ -81,7 +82,7 @@ func TestAccResourceNcloudSourcePipelineProject_classic_updateTaskName(t *testin
 }
 
 func TestAccResourceNcloudSourcePipelineProject_classic_updateDescription(t *testing.T) {
-	var project PipelineProject
+	var project devtools.PipelineProject
 	name := fmt.Sprintf("test-pipeline-name-%s", acctest.RandString(5))
 	resourceName := "ncloud_sourcepipeline_project.foo"
 
@@ -118,7 +119,7 @@ func TestAccResourceNcloudSourcePipelineProject_classic_updateDescription(t *tes
 }
 
 func TestAccResourceNcloudSourcePipelineProject_vpc_basic(t *testing.T) {
-	var project PipelineProject
+	var project devtools.PipelineProject
 	name := fmt.Sprintf("test-pipeline-basic-%s", acctest.RandString(5))
 	resourceName := "ncloud_sourcepipeline_project.foo"
 
@@ -146,7 +147,7 @@ func TestAccResourceNcloudSourcePipelineProject_vpc_basic(t *testing.T) {
 }
 
 func TestAccResourceNcloudSourcePipelineProject_vpc_updateTaskName(t *testing.T) {
-	var project PipelineProject
+	var project devtools.PipelineProject
 	name := fmt.Sprintf("test-pipeline-name-%s", acctest.RandString(5))
 	resourceName := "ncloud_sourcepipeline_project.foo"
 
@@ -183,7 +184,7 @@ func TestAccResourceNcloudSourcePipelineProject_vpc_updateTaskName(t *testing.T)
 }
 
 func TestAccResourceNcloudSourcePipelineProject_vpc_updateDescription(t *testing.T) {
-	var project PipelineProject
+	var project devtools.PipelineProject
 	name := fmt.Sprintf("test-pipeline-name-%s", acctest.RandString(5))
 	resourceName := "ncloud_sourcepipeline_project.foo"
 
@@ -765,7 +766,7 @@ resource "ncloud_sourcepipeline_project" "foo" {
 `, name, description)
 }
 
-func testAccCheckSourcePipelineProjectExists(n string, project *PipelineProject, provider *schema.Provider) resource.TestCheckFunc {
+func testAccCheckSourcePipelineProjectExists(n string, project *devtools.PipelineProject, provider *schema.Provider) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		rs, ok := s.RootModule().Resources[n]
 		if !ok {
@@ -776,8 +777,8 @@ func testAccCheckSourcePipelineProjectExists(n string, project *PipelineProject,
 			return fmt.Errorf("No project is set")
 		}
 
-		config := provider.Meta().(*ProviderConfig)
-		pipelineProject, err := getPipelineProject(context.Background(), config, rs.Primary.ID)
+		config := provider.Meta().(*conn.ProviderConfig)
+		pipelineProject, err := devtools.GetPipelineProject(context.Background(), config, rs.Primary.ID)
 		if err != nil {
 			return err
 		}
@@ -789,14 +790,14 @@ func testAccCheckSourcePipelineProjectExists(n string, project *PipelineProject,
 }
 
 func testAccCheckSourcePipelineProjectDestroy(s *terraform.State, provider *schema.Provider) error {
-	config := provider.Meta().(*ProviderConfig)
+	config := provider.Meta().(*conn.ProviderConfig)
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "ncloud_sourcepipeline_project" {
 			continue
 		}
 
-		pipelineProject, _ := getPipelineProject(context.Background(), config, rs.Primary.ID)
+		pipelineProject, _ := devtools.GetPipelineProject(context.Background(), config, rs.Primary.ID)
 
 		if pipelineProject != nil {
 			return errors.New("SourcePipeline project still exists")

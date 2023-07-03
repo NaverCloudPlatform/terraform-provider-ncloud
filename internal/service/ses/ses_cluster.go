@@ -16,13 +16,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 
 	. "github.com/terraform-providers/terraform-provider-ncloud/internal/common"
-	. "github.com/terraform-providers/terraform-provider-ncloud/internal/provider"
+	"github.com/terraform-providers/terraform-provider-ncloud/internal/conn"
 	. "github.com/terraform-providers/terraform-provider-ncloud/internal/verify"
 )
-
-func init() {
-	RegisterResource("ncloud_ses_cluster", resourceNcloudSESCluster())
-}
 
 const (
 	SESStatusCreatingCode = "creating"
@@ -34,7 +30,7 @@ const (
 	SESStatusNullCode     = "null"
 )
 
-func resourceNcloudSESCluster() *schema.Resource {
+func ResourceNcloudSESCluster() *schema.Resource {
 	return &schema.Resource{
 		CreateContext: resourceNcloudSESClusterCreate,
 		ReadContext:   resourceNcloudSESClusterRead,
@@ -44,9 +40,9 @@ func resourceNcloudSESCluster() *schema.Resource {
 			StateContext: schema.ImportStatePassthroughContext,
 		},
 		Timeouts: &schema.ResourceTimeout{
-			Create: schema.DefaultTimeout(DefaultCreateTimeout),
-			Update: schema.DefaultTimeout(DefaultCreateTimeout),
-			Delete: schema.DefaultTimeout(DefaultCreateTimeout),
+			Create: schema.DefaultTimeout(conn.DefaultCreateTimeout),
+			Update: schema.DefaultTimeout(conn.DefaultCreateTimeout),
+			Delete: schema.DefaultTimeout(conn.DefaultCreateTimeout),
 		},
 		Schema: map[string]*schema.Schema{
 			"id": {
@@ -264,7 +260,7 @@ func resourceNcloudSESCluster() *schema.Resource {
 }
 
 func resourceNcloudSESClusterCreate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
-	config := meta.(*ProviderConfig)
+	config := meta.(*conn.ProviderConfig)
 	if !config.SupportVPC {
 		return diag.FromErr(NotSupportClassic("resource `ncloud_ses_cluster`"))
 	}
@@ -325,12 +321,12 @@ func resourceNcloudSESClusterCreate(ctx context.Context, d *schema.ResourceData,
 }
 
 func resourceNcloudSESClusterRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
-	config := meta.(*ProviderConfig)
+	config := meta.(*conn.ProviderConfig)
 	if !config.SupportVPC {
 		return diag.FromErr(NotSupportClassic("resource `ncloud_ses_cluster`"))
 	}
 
-	cluster, err := getSESCluster(ctx, config, d.Id())
+	cluster, err := GetSESCluster(ctx, config, d.Id())
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -350,7 +346,7 @@ func resourceNcloudSESClusterRead(ctx context.Context, d *schema.ResourceData, m
 	d.Set("manager_node_instance_no_list", cluster.ManagerNodeInstanceNoList)
 
 	searchEngineMap := d.Get("search_engine").([]interface{})[0].(map[string]interface{})
-	searchEngineSet := schema.NewSet(schema.HashResource(resourceNcloudSESCluster().Schema["search_engine"].Elem.(*schema.Resource)), []interface{}{})
+	searchEngineSet := schema.NewSet(schema.HashResource(ResourceNcloudSESCluster().Schema["search_engine"].Elem.(*schema.Resource)), []interface{}{})
 	searchEngineSet.Add(map[string]interface{}{
 		"version_code":   *cluster.SearchEngineVersionCode,
 		"user_name":      *cluster.SearchEngineUserName,
@@ -362,7 +358,7 @@ func resourceNcloudSESClusterRead(ctx context.Context, d *schema.ResourceData, m
 		log.Printf("[WARN] Error setting search_engine set for (%s): %s", d.Id(), err)
 	}
 
-	managerNodeSet := schema.NewSet(schema.HashResource(resourceNcloudSESCluster().Schema["manager_node"].Elem.(*schema.Resource)), []interface{}{})
+	managerNodeSet := schema.NewSet(schema.HashResource(ResourceNcloudSESCluster().Schema["manager_node"].Elem.(*schema.Resource)), []interface{}{})
 	managerNodeSet.Add(map[string]interface{}{
 		"is_dual_manager": *cluster.IsDualManager,
 		"count":           *cluster.ManagerNodeCount,
@@ -375,7 +371,7 @@ func resourceNcloudSESClusterRead(ctx context.Context, d *schema.ResourceData, m
 		log.Printf("[WARN] Error setting manager_node set for (%s): %s", d.Id(), err)
 	}
 
-	dataNodeSet := schema.NewSet(schema.HashResource(resourceNcloudSESCluster().Schema["data_node"].Elem.(*schema.Resource)), []interface{}{})
+	dataNodeSet := schema.NewSet(schema.HashResource(ResourceNcloudSESCluster().Schema["data_node"].Elem.(*schema.Resource)), []interface{}{})
 	storageSize, _ := strconv.Atoi(*cluster.DataNodeStorageSize)
 	dataNodeSet.Add(map[string]interface{}{
 		"count":        *cluster.DataNodeCount,
@@ -390,7 +386,7 @@ func resourceNcloudSESClusterRead(ctx context.Context, d *schema.ResourceData, m
 	}
 
 	if cluster.IsMasterOnlyNodeActivated != nil && *cluster.IsMasterOnlyNodeActivated {
-		masterNodeSet := schema.NewSet(schema.HashResource(resourceNcloudSESCluster().Schema["master_node"].Elem.(*schema.Resource)), []interface{}{})
+		masterNodeSet := schema.NewSet(schema.HashResource(ResourceNcloudSESCluster().Schema["master_node"].Elem.(*schema.Resource)), []interface{}{})
 		masterNodeSet.Add(map[string]interface{}{
 			"count":        *cluster.MasterNodeCount,
 			"subnet_no":    *cluster.MasterNodeSubnetNo,
@@ -404,7 +400,7 @@ func resourceNcloudSESClusterRead(ctx context.Context, d *schema.ResourceData, m
 		}
 	}
 
-	clusterNodeList := schema.NewSet(schema.HashResource(resourceNcloudSESCluster().Schema["cluster_node_list"].Elem.(*schema.Resource)), []interface{}{})
+	clusterNodeList := schema.NewSet(schema.HashResource(ResourceNcloudSESCluster().Schema["cluster_node_list"].Elem.(*schema.Resource)), []interface{}{})
 	if cluster.ClusterNodeList != nil {
 		for _, clusterNode := range cluster.ClusterNodeList {
 			clusterNodeList.Add(map[string]interface{}{
@@ -424,7 +420,7 @@ func resourceNcloudSESClusterRead(ctx context.Context, d *schema.ResourceData, m
 }
 
 func resourceNcloudSESClusterUpdate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
-	config := meta.(*ProviderConfig)
+	config := meta.(*conn.ProviderConfig)
 	if !config.SupportVPC {
 		return diag.FromErr(NotSupportClassic("resource `ncloud_ses_cluster`"))
 	}
@@ -442,7 +438,7 @@ func resourceNcloudSESClusterUpdate(ctx context.Context, d *schema.ResourceData,
 	return nil
 }
 
-func checkSearchEngineChanged(ctx context.Context, d *schema.ResourceData, config *ProviderConfig) error {
+func checkSearchEngineChanged(ctx context.Context, d *schema.ResourceData, config *conn.ProviderConfig) error {
 	if d.HasChanges("search_engine") {
 		o, n := d.GetChange("search_engine")
 
@@ -471,7 +467,7 @@ func checkSearchEngineChanged(ctx context.Context, d *schema.ResourceData, confi
 	return nil
 }
 
-func checkDataNodeChanged(ctx context.Context, d *schema.ResourceData, config *ProviderConfig) error {
+func checkDataNodeChanged(ctx context.Context, d *schema.ResourceData, config *conn.ProviderConfig) error {
 	if d.HasChanges("data_node") {
 		o, n := d.GetChange("data_node")
 
@@ -507,7 +503,7 @@ func checkDataNodeChanged(ctx context.Context, d *schema.ResourceData, config *P
 	return nil
 }
 
-func checkNodeProductCodeChanged(ctx context.Context, d *schema.ResourceData, config *ProviderConfig) error {
+func checkNodeProductCodeChanged(ctx context.Context, d *schema.ResourceData, config *conn.ProviderConfig) error {
 	managerNodeProductCode := getChangedNodeProductCode("manager_node", d)
 	dataNodeProductCode := getChangedNodeProductCode("data_node", d)
 	masterNodeProductCode := getChangedNodeProductCode("master_node", d)
@@ -548,7 +544,7 @@ func getChangedNodeProductCode(nodeType string, d *schema.ResourceData) *string 
 }
 
 func resourceNcloudSESClusterDelete(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
-	config := meta.(*ProviderConfig)
+	config := meta.(*conn.ProviderConfig)
 	if !config.SupportVPC {
 		return diag.FromErr(NotSupportClassic("resource `ncloud_ses_cluster`"))
 	}
@@ -570,12 +566,12 @@ func resourceNcloudSESClusterDelete(ctx context.Context, d *schema.ResourceData,
 	return nil
 }
 
-func waitForSESClusterDeletion(ctx context.Context, d *schema.ResourceData, config *ProviderConfig) error {
+func waitForSESClusterDeletion(ctx context.Context, d *schema.ResourceData, config *conn.ProviderConfig) error {
 	stateConf := &resource.StateChangeConf{
 		Pending: []string{SESStatusRunningCode, SESStatusDeletingCode},
 		Target:  []string{SESStatusReturnCode},
 		Refresh: func() (result interface{}, state string, err error) {
-			cluster, err := getSESCluster(ctx, config, d.Id())
+			cluster, err := GetSESCluster(ctx, config, d.Id())
 			if err != nil {
 				return nil, "", err
 			}
@@ -594,12 +590,12 @@ func waitForSESClusterDeletion(ctx context.Context, d *schema.ResourceData, conf
 	return nil
 }
 
-func waitForSESClusterActive(ctx context.Context, d *schema.ResourceData, config *ProviderConfig, id string) error {
+func waitForSESClusterActive(ctx context.Context, d *schema.ResourceData, config *conn.ProviderConfig, id string) error {
 	stateConf := &resource.StateChangeConf{
 		Pending: []string{SESStatusCreatingCode, SESStatusChangingCode},
 		Target:  []string{SESStatusRunningCode},
 		Refresh: func() (result interface{}, state string, err error) {
-			cluster, err := getSESCluster(ctx, config, id)
+			cluster, err := GetSESCluster(ctx, config, id)
 			if err != nil {
 				return nil, "", err
 			}
@@ -619,7 +615,7 @@ func waitForSESClusterActive(ctx context.Context, d *schema.ResourceData, config
 	return nil
 }
 
-func getSESCluster(ctx context.Context, config *ProviderConfig, id string) (*vses2.OpenApiGetClusterInfoResponseVo, error) {
+func GetSESCluster(ctx context.Context, config *conn.ProviderConfig, id string) (*vses2.OpenApiGetClusterInfoResponseVo, error) {
 
 	resp, _, err := config.Client.Vses.V2Api.GetClusterInfoUsingGET(ctx, id)
 	if err != nil {
@@ -628,7 +624,7 @@ func getSESCluster(ctx context.Context, config *ProviderConfig, id string) (*vse
 	return resp.Result, nil
 }
 
-func getSESClusters(ctx context.Context, config *ProviderConfig) (*vses2.GetSearchEngineClusterInfoListResponse, error) {
+func getSESClusters(ctx context.Context, config *conn.ProviderConfig) (*vses2.GetSearchEngineClusterInfoListResponse, error) {
 
 	resp, _, err := config.Client.Vses.V2Api.GetClusterInfoListUsingGET(ctx, nil)
 	if err != nil {

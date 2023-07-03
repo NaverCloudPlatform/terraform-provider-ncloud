@@ -6,15 +6,11 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 
 	. "github.com/terraform-providers/terraform-provider-ncloud/internal/common"
-	. "github.com/terraform-providers/terraform-provider-ncloud/internal/provider"
+	"github.com/terraform-providers/terraform-provider-ncloud/internal/conn"
 	"github.com/terraform-providers/terraform-provider-ncloud/internal/verify"
 )
 
-func init() {
-	RegisterDataSource("ncloud_nat_gateway", dataSourceNcloudNatGateway())
-}
-
-func dataSourceNcloudNatGateway() *schema.Resource {
+func DataSourceNcloudNatGateway() *schema.Resource {
 	fieldMap := map[string]*schema.Schema{
 		"id": {
 			Type:     schema.TypeString,
@@ -37,11 +33,11 @@ func dataSourceNcloudNatGateway() *schema.Resource {
 		"filter": DataSourceFiltersSchema(),
 	}
 
-	return GetSingularDataSourceItemSchema(resourceNcloudNatGateway(), fieldMap, dataSourceNcloudNatGatewayRead)
+	return GetSingularDataSourceItemSchema(ResourceNcloudNatGateway(), fieldMap, dataSourceNcloudNatGatewayRead)
 }
 
 func dataSourceNcloudNatGatewayRead(d *schema.ResourceData, meta interface{}) error {
-	config := meta.(*ProviderConfig)
+	config := meta.(*conn.ProviderConfig)
 
 	if !config.SupportVPC {
 		return NotSupportClassic("data source `ncloud_nat_gateway`")
@@ -62,7 +58,7 @@ func dataSourceNcloudNatGatewayRead(d *schema.ResourceData, meta interface{}) er
 	return nil
 }
 
-func getNatGatewayListFiltered(d *schema.ResourceData, config *ProviderConfig) ([]map[string]interface{}, error) {
+func getNatGatewayListFiltered(d *schema.ResourceData, config *conn.ProviderConfig) ([]map[string]interface{}, error) {
 	reqParams := &vpc.GetNatGatewayInstanceListRequest{
 		RegionCode: &config.RegionCode,
 	}
@@ -111,7 +107,7 @@ func getNatGatewayListFiltered(d *schema.ResourceData, config *ProviderConfig) (
 	}
 
 	if f, ok := d.GetOk("filter"); ok {
-		resources = ApplyFilters(f.(*schema.Set), resources, resourceNcloudNatGateway().Schema)
+		resources = ApplyFilters(f.(*schema.Set), resources, ResourceNcloudNatGateway().Schema)
 	}
 
 	return resources, nil

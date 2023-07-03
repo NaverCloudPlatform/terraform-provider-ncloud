@@ -7,15 +7,11 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 
 	. "github.com/terraform-providers/terraform-provider-ncloud/internal/common"
-	. "github.com/terraform-providers/terraform-provider-ncloud/internal/provider"
+	"github.com/terraform-providers/terraform-provider-ncloud/internal/conn"
 	"github.com/terraform-providers/terraform-provider-ncloud/internal/verify"
 )
 
-func init() {
-	RegisterDataSource("ncloud_subnet", dataSourceNcloudSubnet())
-}
-
-func dataSourceNcloudSubnet() *schema.Resource {
+func DataSourceNcloudSubnet() *schema.Resource {
 	fieldMap := map[string]*schema.Schema{
 		"id": {
 			Type:     schema.TypeString,
@@ -57,11 +53,11 @@ func dataSourceNcloudSubnet() *schema.Resource {
 		"filter": DataSourceFiltersSchema(),
 	}
 
-	return GetSingularDataSourceItemSchema(resourceNcloudSubnet(), fieldMap, dataSourceNcloudSubnetRead)
+	return GetSingularDataSourceItemSchema(ResourceNcloudSubnet(), fieldMap, dataSourceNcloudSubnetRead)
 }
 
 func dataSourceNcloudSubnetRead(d *schema.ResourceData, meta interface{}) error {
-	config := meta.(*ProviderConfig)
+	config := meta.(*conn.ProviderConfig)
 
 	if !config.SupportVPC {
 		return NotSupportClassic("data source `ncloud_subnet`")
@@ -82,7 +78,7 @@ func dataSourceNcloudSubnetRead(d *schema.ResourceData, meta interface{}) error 
 	return nil
 }
 
-func getSubnetListFiltered(d *schema.ResourceData, config *ProviderConfig) ([]map[string]interface{}, error) {
+func getSubnetListFiltered(d *schema.ResourceData, config *conn.ProviderConfig) ([]map[string]interface{}, error) {
 	reqParams := &vpc.GetSubnetListRequest{
 		RegionCode: &config.RegionCode,
 	}
@@ -143,7 +139,7 @@ func getSubnetListFiltered(d *schema.ResourceData, config *ProviderConfig) ([]ma
 	}
 
 	if f, ok := d.GetOk("filter"); ok {
-		resources = ApplyFilters(f.(*schema.Set), resources, resourceNcloudSubnet().Schema)
+		resources = ApplyFilters(f.(*schema.Set), resources, ResourceNcloudSubnet().Schema)
 	}
 
 	return resources, nil

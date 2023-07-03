@@ -1,4 +1,4 @@
-package server
+package server_test
 
 import (
 	"fmt"
@@ -12,11 +12,12 @@ import (
 
 	. "github.com/terraform-providers/terraform-provider-ncloud/internal/acctest"
 	"github.com/terraform-providers/terraform-provider-ncloud/internal/common"
-	. "github.com/terraform-providers/terraform-provider-ncloud/internal/provider"
+	"github.com/terraform-providers/terraform-provider-ncloud/internal/conn"
+	serverservice "github.com/terraform-providers/terraform-provider-ncloud/internal/service/server"
 )
 
 func TestAccResourceNcloudServer_classic_basic(t *testing.T) {
-	var serverInstance ServerInstance
+	var serverInstance serverservice.ServerInstance
 	testServerName := GetTestServerName()
 	resourceName := "ncloud_server.server"
 	productCode := "SPSVRSTAND000004" // vCPU 2EA, Memory 4GB, Disk 50GB
@@ -74,7 +75,7 @@ func TestAccResourceNcloudServer_classic_basic(t *testing.T) {
 }
 
 func TestAccResourceNcloudServer_vpc_basic(t *testing.T) {
-	var serverInstance ServerInstance
+	var serverInstance serverservice.ServerInstance
 	testServerName := GetTestServerName()
 	resourceName := "ncloud_server.server"
 	productCode := "SVR.VSVR.STAND.C002.M008.NET.HDD.B050.G002"
@@ -122,7 +123,7 @@ func TestAccResourceNcloudServer_vpc_basic(t *testing.T) {
 }
 
 func TestAccResourceNcloudServer_vpc_networkInterface(t *testing.T) {
-	var serverInstance ServerInstance
+	var serverInstance serverservice.ServerInstance
 	testServerName := GetTestServerName()
 	resourceName := "ncloud_server.server"
 	productCode := "SVR.VSVR.STAND.C002.M008.NET.HDD.B050.G002"
@@ -170,8 +171,8 @@ func TestAccResourceNcloudServer_vpc_networkInterface(t *testing.T) {
 }
 
 func TestAccResourceNcloudServer_classic_changeSpec(t *testing.T) {
-	var before ServerInstance
-	var after ServerInstance
+	var before serverservice.ServerInstance
+	var after serverservice.ServerInstance
 	testServerName := GetTestServerName()
 	resourceName := "ncloud_server.server"
 	productCode := "SPSVRSTAND000004"       // vCPU 2EA, Memory 4GB, Disk 50GB
@@ -209,8 +210,8 @@ func TestAccResourceNcloudServer_classic_changeSpec(t *testing.T) {
 }
 
 func TestAccResourceNcloudServer_vpc_changeSpec(t *testing.T) {
-	var before ServerInstance
-	var after ServerInstance
+	var before serverservice.ServerInstance
+	var after serverservice.ServerInstance
 	testServerName := GetTestServerName()
 	resourceName := "ncloud_server.server"
 	productCode := "SVR.VSVR.STAND.C002.M008.NET.HDD.B050.G002"       // vCPU 2EA, Memory 8GB, Disk 50GB
@@ -246,7 +247,7 @@ func TestAccResourceNcloudServer_vpc_changeSpec(t *testing.T) {
 }
 
 func TestConvertToMap(t *testing.T) {
-	i := &ServerInstance{
+	i := &serverservice.ServerInstance{
 		ZoneNo:                     ncloud.String("KR-1"),
 		ServerName:                 ncloud.String("tf-server"),
 		IsProtectServerTermination: ncloud.Bool(true),
@@ -273,13 +274,13 @@ func TestConvertToMap(t *testing.T) {
 }
 
 func TestConvertToArrayMap(t *testing.T) {
-	i := &ServerInstance{
+	i := &serverservice.ServerInstance{
 		ZoneNo:                     ncloud.String("KR-1"),
 		ServerName:                 ncloud.String("tf-server"),
 		IsProtectServerTermination: ncloud.Bool(true),
 		CpuCount:                   ncloud.Int32(2),
 	}
-	var list []*ServerInstance
+	var list []*serverservice.ServerInstance
 	list = append(list, i)
 
 	m := common.ConvertToArrayMap(list)
@@ -301,7 +302,7 @@ func TestConvertToArrayMap(t *testing.T) {
 	}
 }
 
-func testAccCheckServerExistsWithProvider(n string, i *ServerInstance, provider *schema.Provider) resource.TestCheckFunc {
+func testAccCheckServerExistsWithProvider(n string, i *serverservice.ServerInstance, provider *schema.Provider) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		rs, ok := s.RootModule().Resources[n]
 		if !ok {
@@ -312,8 +313,8 @@ func testAccCheckServerExistsWithProvider(n string, i *ServerInstance, provider 
 			return fmt.Errorf("no ID is set")
 		}
 
-		config := provider.Meta().(*ProviderConfig)
-		instance, err := getServerInstance(config, rs.Primary.ID)
+		config := provider.Meta().(*conn.ProviderConfig)
+		instance, err := serverservice.GetServerInstance(config, rs.Primary.ID)
 		if err != nil {
 			return nil
 		}
@@ -327,7 +328,7 @@ func testAccCheckServerExistsWithProvider(n string, i *ServerInstance, provider 
 	}
 }
 
-func testAccCheckInstanceNotRecreated(t *testing.T, before, after *ServerInstance) resource.TestCheckFunc {
+func testAccCheckInstanceNotRecreated(t *testing.T, before, after *serverservice.ServerInstance) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		if *before.ServerInstanceNo != *after.ServerInstanceNo {
 			t.Fatalf("Ncloud Instance IDs have changed. Before %s. After %s", *before.ServerInstanceNo, *after.ServerInstanceNo)
@@ -341,13 +342,13 @@ func testAccCheckServerDestroy(s *terraform.State) error {
 }
 
 func testAccCheckInstanceDestroyWithProvider(s *terraform.State, provider *schema.Provider) error {
-	config := provider.Meta().(*ProviderConfig)
+	config := provider.Meta().(*conn.ProviderConfig)
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "ncloud_server" {
 			continue
 		}
-		instance, err := getServerInstance(config, rs.Primary.ID)
+		instance, err := serverservice.GetServerInstance(config, rs.Primary.ID)
 
 		if err != nil {
 			return err
