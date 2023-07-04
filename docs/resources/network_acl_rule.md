@@ -2,9 +2,7 @@
 
 Provides a rule of Network ACL  resource.
 
-~> **NOTE:** Do not create Network ACL Rule Resource more than once for the same Network ACL no. Doing so will cause a conflict of rule settings and occur an error, and rule settings will be deleted or overwritten.
-
-~> **NOTE:** To performance, we recommend using one resource per Network ACL. If you use multiple resources in a single Network ACL, then can cause a slowdown.
+~> **NOTE:** Do not create multiple Network ACL Rule resources and set them to a single Network ACL, as only one Network ACL Rule will be applied to a single Network ACL and may behave differently than expected, causing the rule to be overwritten.
 
 ## Example Usage
 

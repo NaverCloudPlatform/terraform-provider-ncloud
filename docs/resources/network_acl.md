@@ -1,6 +1,6 @@
 # Resource: ncloud_network_acl
 
-Provides a rule of Network ACL resource.
+Provides a Network ACL resource.
 
 ## Example Usage
 
@@ -35,3 +35,9 @@ In addition to all arguments above, the following attributes are exported:
 * `id` - The ID of the Network ACL.
 * `network_acl_no` - The ID of the Network ACL. (It is the same result as `id`)
 * `is_default` - Whether is default or not by VPC creation.
+
+## Import
+
+Network ACL can be imported using the id, e.g.,
+
+$ terraform import ncloud_network_acl.my_nacl id

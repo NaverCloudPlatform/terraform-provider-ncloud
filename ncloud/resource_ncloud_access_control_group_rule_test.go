@@ -3,9 +3,10 @@ package ncloud
 import (
 	"errors"
 	"fmt"
-	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/services/vserver"
 	"regexp"
 	"testing"
+
+	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/services/vserver"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
@@ -27,8 +28,8 @@ func TestAccResourceNcloudAccessControlGroupRule_basic(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckAccessControlGroupRuleExists(resourceName, &AccessControlGroupRule),
 					resource.TestMatchResourceAttr(resourceName, "access_control_group_no", regexp.MustCompile(`^\d+$`)),
-					resource.TestCheckResourceAttr(resourceName, "inbound.#", "4"),
-					resource.TestCheckResourceAttr(resourceName, "outbound.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "inbound.#", "6"),
+					resource.TestCheckResourceAttr(resourceName, "outbound.#", "2"),
 				),
 			},
 		},
@@ -94,6 +95,18 @@ resource "ncloud_access_control_group_rule" "acg_rule_foo" {
 	}
 
 	inbound {
+		protocol    = "254"
+		ip_block    = "0.0.0.0/0"
+		description = "%[1]s"
+	}
+
+	inbound {
+		protocol    = "120"
+		ip_block    = "0.0.0.0/0"
+		description = "%[1]s"
+	}
+
+	inbound {
 		protocol    = "ICMP"
 		ip_block    = "0.0.0.0/0"
 		description = "%[1]s"
@@ -109,6 +122,12 @@ resource "ncloud_access_control_group_rule" "acg_rule_foo" {
 	outbound {
 		protocol    = "TCP"
 		port_range  = "8083"
+		ip_block    = "0.0.0.0/0"
+		description = "%[1]s"
+	}
+
+	outbound {
+		protocol    = "120"
 		ip_block    = "0.0.0.0/0"
 		description = "%[1]s"
 	}
@@ -177,13 +196,13 @@ func testAccCheckAccessControlGroupRuleDestroy(s *terraform.State) error {
 			continue
 		}
 
-		rules, err := getAccessControlGroupRuleList(config, rs.Primary.Attributes["access_control_group_no"])
+		instance, err := getAccessControlGroup(config, rs.Primary.Attributes["access_control_group_no"])
 
 		if err != nil {
 			return err
 		}
 
-		if len(rules) > 0 {
+		if instance != nil {
 			return errors.New("Access Control Group still exists")
 		}
 	}

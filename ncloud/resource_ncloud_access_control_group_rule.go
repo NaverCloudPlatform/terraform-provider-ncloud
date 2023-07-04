@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log"
 	"regexp"
+	"strconv"
 	"time"
 
 	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/ncloud"
@@ -128,6 +129,40 @@ func resourceNcloudAccessControlGroupRuleCreate(d *schema.ResourceData, meta int
 	d.SetId(d.Get("access_control_group_no").(string))
 	log.Printf("[INFO] ACG ID: %s", d.Id())
 
+	accessControlGroup, err := getAccessControlGroup(config, d.Id())
+	if err != nil {
+		return err
+	}
+
+	if accessControlGroup == nil {
+		return fmt.Errorf("no matching Access Control Group: %s", d.Id())
+	}
+
+	if *accessControlGroup.IsDefault {
+		rules, err := getAccessControlGroupRuleList(config, d.Id())
+		if err != nil {
+			errBody, _ := GetCommonErrorBody(err)
+			if errBody.ReturnCode == "1007000" { // Acg was not found
+				d.SetId("")
+			}
+			return err
+		}
+
+		if len(rules) > 0 {
+			acgInRuleList, acgOutRuleList := makeRemoveInOutAccessControlGroupRule(rules)
+			if len(acgInRuleList) > 0 {
+				if err := removeAccessControlGroupRule(d, config, "inbound", accessControlGroup, acgInRuleList); err != nil {
+					return err
+				}
+			}
+			if len(acgOutRuleList) > 0 {
+				if err := removeAccessControlGroupRule(d, config, "outbound", accessControlGroup, acgOutRuleList); err != nil {
+					return err
+				}
+			}
+		}
+	}
+
 	return resourceNcloudAccessControlGroupRuleUpdate(d, meta)
 }
 
@@ -159,6 +194,8 @@ func resourceNcloudAccessControlGroupRuleRead(d *schema.ResourceData, meta inter
 		var protocol string
 		if allowedProtocolCodes[*r.ProtocolType.Code] {
 			protocol = *r.ProtocolType.Code
+		} else {
+			protocol = strconv.Itoa(int(*r.ProtocolType.Number))
 		}
 
 		m := map[string]interface{}{
@@ -456,6 +493,28 @@ func expandRemoveAccessControlGroupRule(rules []interface{}) []*vserver.RemoveAc
 	}
 
 	return acgRuleList
+}
+
+func makeRemoveInOutAccessControlGroupRule(rules []*vserver.AccessControlGroupRule) ([]*vserver.RemoveAccessControlGroupRuleParameter, []*vserver.RemoveAccessControlGroupRuleParameter) {
+	var acgInRuleList []*vserver.RemoveAccessControlGroupRuleParameter
+	var acgOutRuleList []*vserver.RemoveAccessControlGroupRuleParameter
+
+	for _, r := range rules {
+		acgRule := &vserver.RemoveAccessControlGroupRuleParameter{
+			IpBlock:                    r.IpBlock,
+			AccessControlGroupSequence: r.AccessControlGroupSequence,
+			ProtocolTypeCode:           r.ProtocolType.Code,
+			PortRange:                  r.PortRange,
+		}
+
+		if *r.AccessControlGroupRuleType.Code == "INBND" {
+			acgInRuleList = append(acgInRuleList, acgRule)
+		} else {
+			acgOutRuleList = append(acgOutRuleList, acgRule)
+		}
+	}
+
+	return acgInRuleList, acgOutRuleList
 }
 
 var allowedProtocolCodes = map[string]bool{
