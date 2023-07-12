@@ -5,28 +5,33 @@ import (
 	"flag"
 	"log"
 
-	"github.com/hashicorp/terraform-plugin-sdk/v2/plugin"
+	"github.com/hashicorp/terraform-plugin-go/tfprotov5/tf5server"
 	"github.com/terraform-providers/terraform-provider-ncloud/internal/provider"
 )
 
 func main() {
-
-	var debugMode bool
-
-	flag.BoolVar(&debugMode, "debug", false, "set to true to run the provider with support for debuggers like delve")
+	debugFlag := flag.Bool("debug", false, "Sset to true to run the provider with support for debuggers like delve")
 	flag.Parse()
 
-	opts := &plugin.ServeOpts{ProviderFunc: provider.Provider}
+	serverFactory, _, err := provider.ProtoV5ProviderServerFactory(context.Background())
 
-	if debugMode {
-		// TODO: update this string with the full name of your provider as used in your configs
-		err := plugin.Debug(context.Background(), "registry.terraform.io/NaverCloudPlatform/ncloud", opts)
-		if err != nil {
-			log.Fatal(err.Error())
-		}
-		return
+	if err != nil {
+		log.Fatal(err)
 	}
 
-	plugin.Serve(opts)
+	var serveOpts []tf5server.ServeOpt
 
+	if *debugFlag {
+		serveOpts = append(serveOpts, tf5server.WithManagedDebug())
+	}
+
+	err = tf5server.Serve(
+		"registry.terraform.io/NaverCloudPlatform/ncloud",
+		serverFactory,
+		serveOpts...,
+	)
+
+	if err != nil {
+		log.Fatal(err)
+	}
 }

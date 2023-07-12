@@ -1,12 +1,14 @@
 package acctest
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"os"
 	"strings"
 	"testing"
 
+	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 
@@ -62,11 +64,11 @@ func GetTestAccProviders(isVpc bool) map[string]*schema.Provider {
 }
 
 func getTestAccProvider(isVpc bool) *schema.Provider {
-	p := provider.Provider()
-	p.ConfigureFunc = func(d *schema.ResourceData) (interface{}, error) {
+	p := provider.New(context.Background())
+	p.ConfigureContextFunc = func(ctx context.Context, d *schema.ResourceData) (interface{}, diag.Diagnostics) {
 		d.Set("region", testAccGetRegion())
 		d.Set("support_vpc", isVpc)
-		return provider.ProviderConfigure(d)
+		return provider.ProviderConfigure(ctx, d)
 	}
 	return p
 }
