@@ -4,6 +4,7 @@
 package common
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"reflect"
@@ -11,6 +12,9 @@ import (
 	"strconv"
 	"strings"
 
+	datasourceschema "github.com/hashicorp/terraform-plugin-framework/datasource/schema"
+	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
+	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
@@ -36,6 +40,26 @@ func DataSourceFiltersSchema() *schema.Schema {
 					Type:     schema.TypeBool,
 					Optional: true,
 					Default:  false,
+				},
+			},
+		},
+	}
+}
+
+// DataSourceFiltersBlock is the Plugin Framework variant of DataSourceFiltersSchema.
+func DataSourceFiltersBlock() datasourceschema.Block {
+	return datasourceschema.SetNestedBlock{
+		NestedObject: datasourceschema.NestedBlockObject{
+			Attributes: map[string]datasourceschema.Attribute{
+				"name": datasourceschema.StringAttribute{
+					Required: true,
+				},
+				"values": datasourceschema.SetAttribute{
+					ElementType: types.StringType,
+					Required:    true,
+				},
+				"regex": datasourceschema.BoolAttribute{
+					Optional: true,
 				},
 			},
 		},
@@ -275,4 +299,133 @@ func orComparator(target interface{}, filters []interface{}, stringsEqual String
 		}
 	}
 	return false
+}
+
+func FilterModels[M any](ctx context.Context, filterSet types.Set, datas []*M) []*M {
+	if filterSet.IsNull() || filterSet.IsUnknown() {
+		return datas
+	}
+
+	var outputs []*M
+
+	for _, dataModel := range datas {
+		for _, v := range filterSet.Elements() {
+			var data customFilterData
+
+			if tfsdk.ValueAs(ctx, v, &data).HasError() {
+				continue
+			}
+
+			if data.Name.IsNull() || data.Name.IsUnknown() {
+				continue
+			}
+
+			if applyFilter(dataModel, data) {
+				outputs = append(outputs, dataModel)
+			}
+		}
+
+	}
+
+	return outputs
+}
+
+func applyFilter[M any](dataModel *M, filterData customFilterData) bool {
+	useRegex := false
+	if !filterData.Regex.IsNull() && !filterData.Regex.IsUnknown() && filterData.Regex.ValueBool() {
+		useRegex = true
+	}
+
+	// create a string equality check strategy based on this filters "regex" flag
+	stringsEqual := func(propertyVal string, filterVal string) bool {
+		// value in filter set enclosed with quote
+		if len(filterVal) > 2 && filterVal[0] == '"' && filterVal[len(filterVal)-1] == '"' {
+			filterVal = filterVal[1 : len(filterVal)-1]
+		}
+		if useRegex {
+			re, err := regexp.Compile(filterVal)
+			if err != nil {
+				// todo: when all SetData() fns are refactored to return a possible error, these log statements should
+				// be converted to errors for return propagation
+				log.Printf(`[WARN] Invalid regular expression "%s" for "%s" filter\n`, filterVal, filterData.Name.String())
+				return false
+			}
+			return re.MatchString(propertyVal)
+		}
+
+		return filterVal == propertyVal
+	}
+
+	ty := reflect.TypeOf(*dataModel)
+
+	for i := 0; i < ty.NumField(); i++ {
+		field := ty.Field(i)
+		alias, ok := field.Tag.Lookup("tfsdk")
+		if !ok {
+			continue
+		}
+
+		if alias == "" || alias != filterData.Name.ValueString() {
+			continue
+		}
+
+		// get the value in types defined at the framework
+		// TODO: handle block attributes
+		value := reflect.ValueOf(*dataModel).Field(i).FieldByName("value")
+
+		for _, fValue := range filterData.Values.Elements() {
+			switch value.Kind() {
+			case reflect.Bool:
+				fBool, err := strconv.ParseBool(fValue.String())
+				if err != nil {
+					log.Println("[WARN] Filtering against Type Bool field with un-parsable string boolean form")
+					continue
+				}
+				if value.Bool() == fBool {
+					return true
+				}
+			case reflect.Int, reflect.Int32, reflect.Int64:
+				// the target field is of type int, but the filter values list element type is string, users can supply string
+				// or int like `values = [300, "3600"]` but terraform will converts to string, so use ParseInt
+				fInt, err := strconv.ParseInt(fValue.String(), 10, 64)
+				if err != nil {
+					log.Println("[WARN] Filtering against Type Int field with non-int filter value")
+					continue
+				}
+				if value.Int() == fInt {
+					return true
+				}
+			case reflect.Float64:
+				fFloat, err := strconv.ParseFloat(fValue.String(), 64)
+				if err != nil {
+					log.Println("[WARN] Filtering against Type Float field with non-float filter value")
+					continue
+				}
+				if value.Float() == fFloat {
+					return true
+				}
+			case reflect.Slice, reflect.Array:
+				if value.Elem().Kind() == reflect.String {
+					arrLen := value.Len()
+					for i := 0; i < arrLen; i++ {
+						if stringsEqual(value.String(), fValue.String()) {
+							return true
+						}
+					}
+				}
+			case reflect.String:
+				if stringsEqual(value.String(), fValue.String()) {
+					return true
+				}
+			}
+		}
+	}
+	return false
+}
+
+// customFilterData represents a single configured filter.
+type customFilterData struct {
+	Name   types.String `tfsdk:"name"`
+	Values types.Set    `tfsdk:"values"`
+	Regex  types.Bool   `tfsdk:"regex"`
 }
