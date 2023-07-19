@@ -227,8 +227,18 @@ resource "ncloud_vpc" "vpc" {
 	ipv4_cidr_block = "10.3.0.0/16"
 }
 
+resource "ncloud_subnet" "subnet_public" {
+  vpc_no         = ncloud_vpc.vpc.id
+  subnet         = cidrsubnet(ncloud_vpc.vpc.ipv4_cidr_block, 8, 1)
+  zone           = "KR-1"
+  network_acl_no = ncloud_vpc.vpc.default_network_acl_no
+  subnet_type    = "PUBLIC"
+  usage_type     = "NATGW"
+}
+	
 resource "ncloud_nat_gateway" "nat_gateway" {
   vpc_no      = ncloud_vpc.vpc.vpc_no
+  subnet_no   = ncloud_subnet.subnet_public.id
   zone        = "KR-1"
 }
 `, name)
