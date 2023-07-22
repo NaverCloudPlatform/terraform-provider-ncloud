@@ -61,7 +61,7 @@ func ResourceNcloudServer() *schema.Resource {
 				ForceNew: true,
 				ValidateDiagFunc: ToDiagFunc(validation.All(
 					validation.StringLenBetween(3, 30),
-					validation.StringMatch(regexp.MustCompile(`^[A-Za-z0-9-*]+$`), "Composed of alphabets, numbers, hyphen (-) and wild card (*)."),
+					validation.StringMatch(regexp.MustCompile(`^[a-zA-Z]+[A-Za-z0-9-*]+$`), "start with an alphabets and composed of alphabets, numbers, hyphen (-) and wild card (*)."),
 					validation.StringMatch(regexp.MustCompile(`.*[^\\-]$`), "Hyphen (-) cannot be used for the last character and if wild card (*) is used, other characters cannot be input."),
 				)),
 			},
