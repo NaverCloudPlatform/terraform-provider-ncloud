@@ -51,8 +51,9 @@ func ResourceNcloudLbTargetGroup() *schema.Resource {
 				ValidateDiagFunc: ToDiagFunc(validation.StringInSlice([]string{"TCP", "PROXY_TCP", "HTTP", "HTTPS"}, false)),
 			},
 			"description": {
-				Type:     schema.TypeString,
-				Optional: true,
+				Type:             schema.TypeString,
+				Optional:         true,
+				ValidateDiagFunc: ToDiagFunc(validation.StringLenBetween(0, 1000)),
 			},
 			"health_check": {
 				Type:     schema.TypeList,
