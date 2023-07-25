@@ -986,7 +986,7 @@ func stopVpcServerInstance(config *conn.ProviderConfig, id string) error {
 	LogCommonRequest("stopVpcServerInstance", reqParams)
 	resp, err := config.Client.Vserver.V2Api.StopServerInstances(reqParams)
 	if err != nil {
-		LogErrorResponse("stopClassicServerInstance", err, reqParams)
+		LogErrorResponse("stopVpcServerInstance", err, reqParams)
 		return err
 	}
 	LogResponse("stopVpcServerInstance", resp)
