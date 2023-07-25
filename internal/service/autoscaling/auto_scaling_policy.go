@@ -23,9 +23,10 @@ func ResourceNcloudAutoScalingPolicy() *schema.Resource {
 		},
 		Schema: map[string]*schema.Schema{
 			"name": {
-				Type:     schema.TypeString,
-				Required: true,
-				ForceNew: true,
+				Type:             schema.TypeString,
+				Required:         true,
+				ForceNew:         true,
+				ValidateDiagFunc: ToDiagFunc(validation.IntBetween(1, 255)),
 			},
 			"adjustment_type_code": {
 				Type:             schema.TypeString,
@@ -33,17 +34,20 @@ func ResourceNcloudAutoScalingPolicy() *schema.Resource {
 				ValidateDiagFunc: ToDiagFunc(validation.StringInSlice([]string{"CHANG", "EXACT", "PRCNT"}, false)),
 			},
 			"scaling_adjustment": {
-				Type:     schema.TypeInt,
-				Required: true,
+				Type:             schema.TypeInt,
+				Required:         true,
+				ValidateDiagFunc: ToDiagFunc(validation.IntBetween(-2147483648, 2147483647)),
 			},
 			"cooldown": {
-				Type:     schema.TypeInt,
-				Optional: true,
-				Computed: true,
+				Type:             schema.TypeInt,
+				Optional:         true,
+				Computed:         true,
+				ValidateDiagFunc: ToDiagFunc(validation.IntBetween(0, 2147483647)),
 			},
 			"min_adjustment_step": {
-				Type:     schema.TypeInt,
-				Optional: true,
+				Type:             schema.TypeInt,
+				Optional:         true,
+				ValidateDiagFunc: ToDiagFunc(validation.IntBetween(1, 2147483647)),
 			},
 			"auto_scaling_group_no": {
 				Type:     schema.TypeString,
