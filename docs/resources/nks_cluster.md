@@ -77,6 +77,7 @@ The following arguments are supported:
 * `public_network` - (Optional) Public Subnet Network (`boolean`)
 * `lb_private_subnet_no` - (Required) Subnet No. for private loadbalancer only.
 * `lb_public_subnet_no` - (Optional) Subnet No. for public loadbalancer only. (Available only `SGN`, `JPN` region)
+* `kube_network_plugin` - (Optional) Specifies the network plugin. Only Cilium is supported.
 * `log` - (Optional)
   * `audit` - (Required) Audit log availability. (`boolean`)
 * `k8s_version` - (Optional) Kubenretes version. Only upgrade is supported.
