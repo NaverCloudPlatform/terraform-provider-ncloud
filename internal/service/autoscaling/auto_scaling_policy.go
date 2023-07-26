@@ -29,7 +29,7 @@ func ResourceNcloudAutoScalingPolicy() *schema.Resource {
 				ForceNew: true,
 				ValidateDiagFunc: ToDiagFunc(validation.All(
 					validation.StringLenBetween(1, 255),
-					validation.StringMatch(regexp.MustCompile(`^[a-z]+[a-z0-9-]+[a-z0-9]$`), "start with an alphabets and composed of alphabets, numbers, hyphen (-) and wild card (*). Hyphen (-) cannot be used for the last character"))),
+					validation.StringMatch(regexp.MustCompile(`^[a-z]+[a-z0-9-]+[a-z0-9]$`), "Allows only lowercase letters(a-z), numbers, hyphen (-). Must start with an alphabetic character, must end with an English letter or number"))),
 			},
 			"adjustment_type_code": {
 				Type:             schema.TypeString,
