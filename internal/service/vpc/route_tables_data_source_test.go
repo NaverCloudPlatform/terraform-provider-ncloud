@@ -13,8 +13,8 @@ import (
 
 func TestAccDataSourceNcloudRouteTablesBasic(t *testing.T) {
 	resource.Test(t, resource.TestCase{
-		PreCheck:  func() { TestAccPreCheck(t) },
-		Providers: GetTestAccProviders(true),
+		PreCheck:                 func() { TestAccPreCheck(t) },
+		ProtoV5ProviderFactories: ProtoV5ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccDataSourceNcloudRouteTablesConfig(),
@@ -31,8 +31,8 @@ func TestAccDataSourceNcloudRouteTablesFilter(t *testing.T) {
 	name := fmt.Sprintf("test-rt-data-%s", acctest.RandString(5))
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:  func() { TestAccPreCheck(t) },
-		Providers: GetTestAccProviders(true),
+		PreCheck:                 func() { TestAccPreCheck(t) },
+		ProtoV5ProviderFactories: ProtoV5ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccDataSourceNcloudRouteTablesConfigFilter(name),
@@ -50,8 +50,8 @@ func TestAccDataSourceNcloudRouteTablesFilter(t *testing.T) {
 
 func TestAccDataSourceNcloudRouteTablesName(t *testing.T) {
 	resource.Test(t, resource.TestCase{
-		PreCheck:  func() { TestAccPreCheck(t) },
-		Providers: GetTestAccProviders(true),
+		PreCheck:                 func() { TestAccPreCheck(t) },
+		ProtoV5ProviderFactories: ProtoV5ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccDataSourceNcloudRouteTablesConfigName("test"),
@@ -67,8 +67,8 @@ func TestAccDataSourceNcloudRouteTablesVpcNo(t *testing.T) {
 	name := fmt.Sprintf("test-table-data-%s", acctest.RandString(5))
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:  func() { TestAccPreCheck(t) },
-		Providers: GetTestAccProviders(true),
+		PreCheck:                 func() { TestAccPreCheck(t) },
+		ProtoV5ProviderFactories: ProtoV5ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccDataSourceNcloudRouteTablesConfigVpcNo(name),

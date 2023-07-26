@@ -37,6 +37,7 @@ var (
 	ClassicProtoV5ProviderFactories map[string]func() (tfprotov5.ProviderServer, error) = protoV5ProviderFactoriesInit(context.Background(), false, ProviderName)
 )
 
+// TODO: deprecate testAccProviders/testAccClassicProviders
 var testAccProviders map[string]*schema.Provider
 var testAccClassicProviders map[string]*schema.Provider
 

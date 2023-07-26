@@ -22,9 +22,9 @@ func TestAccResourceNcloudNetworkACL_basic(t *testing.T) {
 	resourceName := "ncloud_network_acl.nacl"
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { TestAccPreCheck(t) },
-		Providers:    GetTestAccProviders(true),
-		CheckDestroy: testAccCheckNetworkACLDestroy,
+		PreCheck:                 func() { TestAccPreCheck(t) },
+		ProtoV5ProviderFactories: ProtoV5ProviderFactories,
+		CheckDestroy:             testAccCheckNetworkACLDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccResourceNcloudNetworkACLConfig(name),
@@ -50,9 +50,9 @@ func TestAccResourceNcloudNetworkACL_disappears(t *testing.T) {
 	resourceName := "ncloud_network_acl.nacl"
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { TestAccPreCheck(t) },
-		Providers:    GetTestAccProviders(true),
-		CheckDestroy: testAccCheckNetworkACLDestroy,
+		PreCheck:                 func() { TestAccPreCheck(t) },
+		ProtoV5ProviderFactories: ProtoV5ProviderFactories,
+		CheckDestroy:             testAccCheckNetworkACLDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccResourceNcloudNetworkACLConfig(name),
@@ -72,9 +72,9 @@ func TestAccResourceNcloudNetworkACL_onlyRequiredParam(t *testing.T) {
 	resourceName := "ncloud_network_acl.nacl"
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { TestAccPreCheck(t) },
-		Providers:    GetTestAccProviders(true),
-		CheckDestroy: testAccCheckNetworkACLDestroy,
+		PreCheck:                 func() { TestAccPreCheck(t) },
+		ProtoV5ProviderFactories: ProtoV5ProviderFactories,
+		CheckDestroy:             testAccCheckNetworkACLDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccResourceNcloudNetworkACLConfigOnlyRequired(name),
@@ -100,9 +100,9 @@ func TestAccResourceNcloudNetworkACL_updateName(t *testing.T) {
 	resourceName := "ncloud_network_acl.nacl"
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { TestAccPreCheck(t) },
-		Providers:    GetTestAccProviders(true),
-		CheckDestroy: testAccCheckNetworkACLDestroy,
+		PreCheck:                 func() { TestAccPreCheck(t) },
+		ProtoV5ProviderFactories: ProtoV5ProviderFactories,
+		CheckDestroy:             testAccCheckNetworkACLDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccResourceNcloudNetworkACLConfigOnlyRequired(name),
@@ -125,9 +125,9 @@ func TestAccResourceNcloudNetworkACL_description(t *testing.T) {
 	resourceName := "ncloud_network_acl.nacl"
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { TestAccPreCheck(t) },
-		Providers:    GetTestAccProviders(true),
-		CheckDestroy: testAccCheckNetworkACLDestroy,
+		PreCheck:                 func() { TestAccPreCheck(t) },
+		ProtoV5ProviderFactories: ProtoV5ProviderFactories,
+		CheckDestroy:             testAccCheckNetworkACLDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccResourceNcloudNetworkACLConfigDescription(name, "foo"),

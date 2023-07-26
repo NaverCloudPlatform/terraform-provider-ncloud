@@ -16,8 +16,8 @@ func TestAccDataSourceNcloudRouteTable_basic(t *testing.T) {
 	dataName := "data.ncloud_route_table.by_id"
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:  func() { TestAccPreCheck(t) },
-		Providers: GetTestAccProviders(true),
+		PreCheck:                 func() { TestAccPreCheck(t) },
+		ProtoV5ProviderFactories: ProtoV5ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccDataSourceNcloudRouteTableConfig(name),

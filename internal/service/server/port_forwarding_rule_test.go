@@ -26,9 +26,9 @@ func TestAccResourceNcloudPortForwardingRuleBasic(t *testing.T) {
 	log.Printf("[DEBUG] externalPort: %d", externalPort)
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { TestAccPreCheck(t) },
-		Providers:    GetTestAccProviders(false),
-		CheckDestroy: testAccCheckPortForwardingRuleDestroy,
+		PreCheck:                 func() { TestAccPreCheck(t) },
+		ProtoV5ProviderFactories: ClassicProtoV5ProviderFactories,
+		CheckDestroy:             testAccCheckPortForwardingRuleDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccPortForwardingRuleBasicConfig(externalPort),
@@ -61,9 +61,9 @@ func ignore_TestAccResourceNcloudPortForwardingRuleExistingServer(t *testing.T) 
 	log.Printf("[DEBUG] externalPort: %d", externalPort)
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { TestAccPreCheck(t) },
-		Providers:    GetTestAccProviders(false),
-		CheckDestroy: testAccCheckPortForwardingRuleDestroy,
+		PreCheck:                 func() { TestAccPreCheck(t) },
+		ProtoV5ProviderFactories: ClassicProtoV5ProviderFactories,
+		CheckDestroy:             testAccCheckPortForwardingRuleDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccPortForwardingRuleExistingServerConfig(externalPort),
