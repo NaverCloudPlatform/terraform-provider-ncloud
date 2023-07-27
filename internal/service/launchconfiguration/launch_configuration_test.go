@@ -71,6 +71,7 @@ func TestAccResourceNcloudLaunchConfiguration_classic_disappears(t *testing.T) {
 	var launchConfiguration launchconfiguration.LaunchConfiguration
 	resourceName := "ncloud_launch_configuration.lc"
 	serverImageProductCode := "SPSW0LINUX000046"
+	serverProductCode := "SPSVRSSD00000003"
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:  func() { TestAccPreCheck(t) },
 		Providers: GetTestAccProviders(false),
@@ -79,7 +80,7 @@ func TestAccResourceNcloudLaunchConfiguration_classic_disappears(t *testing.T) {
 		},
 		Steps: []resource.TestStep{
 			{
-				Config: testAccLaunchConfigurationConfig(serverImageProductCode, ""),
+				Config: testAccLaunchConfigurationConfig(serverImageProductCode, serverProductCode),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckLaunchConfigurationExists(resourceName, &launchConfiguration, GetTestProvider(false)),
 					TestAccCheckResourceDisappears(GetTestProvider(false), launchconfiguration.ResourceNcloudLaunchConfiguration(), resourceName),
