@@ -1,4 +1,4 @@
-package launchconfiguration_test
+package autoscaling_test
 
 import (
 	"fmt"

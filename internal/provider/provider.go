@@ -12,7 +12,6 @@ import (
 	"github.com/terraform-providers/terraform-provider-ncloud/internal/service/cdss"
 	"github.com/terraform-providers/terraform-provider-ncloud/internal/service/classicloadbalancer"
 	"github.com/terraform-providers/terraform-provider-ncloud/internal/service/devtools"
-	"github.com/terraform-providers/terraform-provider-ncloud/internal/service/launchconfiguration"
 	"github.com/terraform-providers/terraform-provider-ncloud/internal/service/loadbalancer"
 	"github.com/terraform-providers/terraform-provider-ncloud/internal/service/loginkey"
 	"github.com/terraform-providers/terraform-provider-ncloud/internal/service/memberserverimage"
@@ -44,7 +43,7 @@ func Provider() *schema.Provider {
 		"ncloud_cdss_os_image":                           cdss.DataSourceNcloudCDSSOsImage(),
 		"ncloud_cdss_os_images":                          cdss.DataSourceNcloudCDSSOsImages(),
 		"ncloud_init_script":                             server.DataSourceNcloudInitScript(),
-		"ncloud_launch_configuration":                    launchconfiguration.DataSourceNcloudLaunchConfiguration(),
+		"ncloud_launch_configuration":                    autoscaling.DataSourceNcloudLaunchConfiguration(),
 		"ncloud_lb":                                      loadbalancer.DataSourceNcloudLb(),
 		"ncloud_lb_listener":                             loadbalancer.DataSourceNcloudLbListener(),
 		"ncloud_lb_target_group":                         loadbalancer.DataSourceNcloudLbTargetGroup(),
@@ -120,7 +119,7 @@ func Provider() *schema.Provider {
 		"ncloud_cdss_cluster":                        cdss.ResourceNcloudCDSSCluster(),
 		"ncloud_cdss_config_group":                   cdss.ResourceNcloudCDSSConfigGroup(),
 		"ncloud_init_script":                         server.ResourceNcloudInitScript(),
-		"ncloud_launch_configuration":                launchconfiguration.ResourceNcloudLaunchConfiguration(),
+		"ncloud_launch_configuration":                autoscaling.ResourceNcloudLaunchConfiguration(),
 		"ncloud_lb_listener":                         loadbalancer.ResourceNcloudLbListener(),
 		"ncloud_lb_target_group_attachment":          loadbalancer.ResourceNcloudLbTargetGroupAttachment(),
 		"ncloud_lb_target_group":                     loadbalancer.ResourceNcloudLbTargetGroup(),
