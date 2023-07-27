@@ -1,4 +1,4 @@
-package launchconfiguration
+package autoscaling
 
 import (
 	"fmt"
