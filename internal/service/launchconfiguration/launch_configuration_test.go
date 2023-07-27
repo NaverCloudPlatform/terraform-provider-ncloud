@@ -18,6 +18,7 @@ func TestAccResourceNcloudLaunchConfiguration_classic_basic(t *testing.T) {
 	var launchConfiguration launchconfiguration.LaunchConfiguration
 	resourceName := "ncloud_launch_configuration.lc"
 	serverImageProductCode := "SPSW0LINUX000046"
+	serverProductCode := "SPSVRSSD00000003"
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:  func() { TestAccPreCheck(t) },
 		Providers: GetTestAccProviders(false),
@@ -26,7 +27,7 @@ func TestAccResourceNcloudLaunchConfiguration_classic_basic(t *testing.T) {
 		},
 		Steps: []resource.TestStep{
 			{
-				Config: testAccLaunchConfigurationConfig(serverImageProductCode),
+				Config: testAccLaunchConfigurationConfig(serverImageProductCode, serverProductCode),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckLaunchConfigurationExists(resourceName, &launchConfiguration, GetTestProvider(false)),
 				),
@@ -52,7 +53,7 @@ func TestAccResourceNcloudLaunchConfiguration_vpc_basic(t *testing.T) {
 		},
 		Steps: []resource.TestStep{
 			{
-				Config: testAccLaunchConfigurationConfig(serverImageProductCode),
+				Config: testAccLaunchConfigurationConfig(serverImageProductCode, ""),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckLaunchConfigurationExists(resourceName, &launchConfiguration, GetTestProvider(true)),
 				),
@@ -70,6 +71,7 @@ func TestAccResourceNcloudLaunchConfiguration_classic_disappears(t *testing.T) {
 	var launchConfiguration launchconfiguration.LaunchConfiguration
 	resourceName := "ncloud_launch_configuration.lc"
 	serverImageProductCode := "SPSW0LINUX000046"
+	serverProductCode := "SPSVRSSD00000003"
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:  func() { TestAccPreCheck(t) },
 		Providers: GetTestAccProviders(false),
@@ -78,7 +80,7 @@ func TestAccResourceNcloudLaunchConfiguration_classic_disappears(t *testing.T) {
 		},
 		Steps: []resource.TestStep{
 			{
-				Config: testAccLaunchConfigurationConfig(serverImageProductCode),
+				Config: testAccLaunchConfigurationConfig(serverImageProductCode, serverProductCode),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckLaunchConfigurationExists(resourceName, &launchConfiguration, GetTestProvider(false)),
 					TestAccCheckResourceDisappears(GetTestProvider(false), launchconfiguration.ResourceNcloudLaunchConfiguration(), resourceName),
@@ -101,7 +103,7 @@ func TestAccResourceNcloudLaunchConfiguration_vpc_disappears(t *testing.T) {
 		},
 		Steps: []resource.TestStep{
 			{
-				Config: testAccLaunchConfigurationConfig(serverImageProductCode),
+				Config: testAccLaunchConfigurationConfig(serverImageProductCode, ""),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckLaunchConfigurationExists(resourceName, &launchConfiguration, GetTestProvider(true)),
 					TestAccCheckResourceDisappears(GetTestProvider(true), launchconfiguration.ResourceNcloudLaunchConfiguration(), resourceName),
@@ -155,10 +157,11 @@ func testAccCheckLaunchConfigurationDestroy(s *terraform.State, provider *schema
 	return nil
 }
 
-func testAccLaunchConfigurationConfig(serverImageProductCode string) string {
+func testAccLaunchConfigurationConfig(serverImageProductCode string, serverProductCode string) string {
 	return fmt.Sprintf(`
 resource "ncloud_launch_configuration" "lc" {
 	server_image_product_code = "%[1]s"
+	server_product_code = "%[2]s"
 }
-`, serverImageProductCode)
+`, serverImageProductCode, serverProductCode)
 }
