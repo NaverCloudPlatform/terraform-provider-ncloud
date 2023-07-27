@@ -1,3 +1,8 @@
+---
+subcategory: "Server"
+---
+
+
 # Data Source: ncloud_block_storage_snapshot
 
 This module can be useful for getting detail of Snapshot (Block Storage) created before.

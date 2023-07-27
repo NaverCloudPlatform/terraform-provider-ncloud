@@ -1,3 +1,8 @@
+---
+subcategory: "Launch Configuration"
+---
+
+
 # Resource: ncloud_launch_configuration
 
 Provides a ncloud launch configuration resource.

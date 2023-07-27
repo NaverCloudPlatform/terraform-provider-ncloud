@@ -1,3 +1,8 @@
+---
+subcategory: "Cloud Data Streaming Service"
+---
+
+
 # Resource: ncloud_cdss_config_group
 
 ## Example Usage

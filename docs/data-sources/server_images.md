@@ -1,3 +1,8 @@
+---
+subcategory: "Server"
+---
+
+
 # Data Source: ncloud_server_images
 
 To create a server instance (VM), you should select a server image. This data source gets a list of server images.

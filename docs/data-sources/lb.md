@@ -1,3 +1,8 @@
+---
+subcategory: "Load Balancer"
+---
+
+
 # Data Source: ncloud_lb
 
 This module can be useful for getting detail of Load Balancer created before.

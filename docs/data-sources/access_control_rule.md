@@ -1,3 +1,8 @@
+---
+subcategory: "Server"
+---
+
+
 # Data Source: ncloud_access_control_rule
 
 Access configuration rule you want to get.

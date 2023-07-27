@@ -1,3 +1,8 @@
+---
+subcategory: "Developer Tools"
+---
+
+
 # Resource : ncloud_sourcedeploy_project_stage_scenario
 
 ~> **Note** This resource only supports 'public' site.

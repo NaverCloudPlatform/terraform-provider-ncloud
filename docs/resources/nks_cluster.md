@@ -1,3 +1,8 @@
+---
+subcategory: "Kubernetes Service"
+---
+
+
 # Resource: ncloud_nks_cluster
 
 Provides a Kubernetes Service cluster resource.

@@ -1,3 +1,8 @@
+---
+subcategory: "VPC"
+---
+
+
 # Data Source: ncloud_subnet
 
 This module can be useful for getting detail of Subnet created before. for example, determine the CIDR block of that Subnet

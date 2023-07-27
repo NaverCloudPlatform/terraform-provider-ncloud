@@ -1,3 +1,8 @@
+---
+subcategory: "Auto Scaling"
+---
+
+
 # Resource: ncloud_auto_scaling_schedule
 
 Provides a ncloud auto scaling schedule resource.

@@ -1,3 +1,8 @@
+---
+subcategory: "Cloud Data Streaming Service"
+---
+
+
 # Resource: ncloud_cdss_cluster
 
 ## Example Usage

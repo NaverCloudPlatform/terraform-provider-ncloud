@@ -1,3 +1,8 @@
+---
+subcategory: "Load Balancer"
+---
+
+
 # Resource: ncloud_lb_target_group
 
 Provides a Target Group resource.

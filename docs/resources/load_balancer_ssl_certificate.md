@@ -1,3 +1,8 @@
+---
+subcategory: "Load Balancer"
+---
+
+
 # Resource: load_balancer_ssl_certificate
 
 Provides a ncloud load balancer ssl certificate resource.

@@ -1,3 +1,8 @@
+---
+subcategory: "NAS Volume"
+---
+
+
 # Resource: ncloud_nas_volume
 
 Provides a NAS volume.

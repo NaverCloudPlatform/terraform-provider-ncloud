@@ -1,3 +1,8 @@
+---
+subcategory: "VPC"
+---
+
+
 # Data Source: ncloud_vpc_peering
 
 This module can be useful for getting detail of VPC peering created before.
