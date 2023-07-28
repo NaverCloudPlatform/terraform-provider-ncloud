@@ -16,6 +16,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-ncloud/internal/service/devtools"
 	"github.com/terraform-providers/terraform-provider-ncloud/internal/service/loadbalancer"
 	"github.com/terraform-providers/terraform-provider-ncloud/internal/service/memberserverimage"
+	cloudmssql "github.com/terraform-providers/terraform-provider-ncloud/internal/service/mssql"
 	"github.com/terraform-providers/terraform-provider-ncloud/internal/service/nasvolume"
 	"github.com/terraform-providers/terraform-provider-ncloud/internal/service/nks"
 	"github.com/terraform-providers/terraform-provider-ncloud/internal/service/server"
@@ -101,6 +102,7 @@ func New(ctx context.Context) *schema.Provider {
 		"ncloud_sourcepipeline_projects":                 devtools.DataSourceNcloudSourcePipelineProjects(),
 		"ncloud_sourcepipeline_trigger_timezone":         devtools.DataSourceNcloudSourcePipelineTimeZone(),
 		"ncloud_zones":                                   zone.DataSourceNcloudZones(),
+		"ncloud_mssql":                                   cloudmssql.DataSourceNcloudMssql(),
 	}
 
 	resourceMap := map[string]*schema.Resource{
@@ -141,6 +143,7 @@ func New(ctx context.Context) *schema.Provider {
 		"ncloud_sourcedeploy_project_stage":          devtools.ResourceNcloudSourceDeployStage(),
 		"ncloud_sourcedeploy_project":                devtools.ResourceNcloudSourceDeployProject(),
 		"ncloud_sourcepipeline_project":              devtools.ResourceNcloudSourcePipeline(),
+		"ncloud_mssql":                               cloudmssql.ResourceNcloudMssql(),
 	}
 
 	return &schema.Provider{
