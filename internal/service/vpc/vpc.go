@@ -60,7 +60,7 @@ func (v *vpcResource) Schema(_ context.Context, _ resource.SchemaRequest, resp *
 				PlanModifiers: []planmodifier.String{
 					stringplanmodifier.RequiresReplace(),
 				},
-				// FIXME: Validators:  validation.IsCIDRNetwork(16, 28),
+				Validators:  verify.CidrBlockValidator(),
 				Description: "The CIDR block for the vpc",
 			},
 			"vpc_no": schema.StringAttribute{
