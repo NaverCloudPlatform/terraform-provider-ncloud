@@ -183,21 +183,20 @@ func testAccLoadBalancerSSLCertificateConfig(certificateName string, privatekey 
 			algorithm_type = "SIPHS"
 			description    = "tftest_lb description"
 
-			rule_list = [
-				{
-					protocol_type        = "HTTP"
-					load_balancer_port   = 80
-					server_port          = 80
-					l7_health_check_path = "/monitor/l7check"
-				},
-				{
-					protocol_type        = "HTTPS"
-					load_balancer_port   = 443
-					server_port          = 443
-					l7_health_check_path = "/monitor/l7check"
-					certificate_name     = "${ncloud_load_balancer_ssl_certificate.cert.certificate_name}"
-				},
-			]
+			rule_list {
+				protocol_type        = "HTTP"
+				load_balancer_port   = 80
+				server_port          = 80
+				l7_health_check_path = "/monitor/l7check"
+			}
+			
+			rule_list {
+				protocol_type        = "HTTPS"
+				load_balancer_port   = 443
+				server_port          = 443
+				l7_health_check_path = "/monitor/l7check"
+				certificate_name     = "${ncloud_load_balancer_ssl_certificate.cert.certificate_name}"
+			}
 
 			region = "KR"
 		}
