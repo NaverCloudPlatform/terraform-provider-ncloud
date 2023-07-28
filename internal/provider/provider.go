@@ -21,6 +21,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-ncloud/internal/service/server"
 	"github.com/terraform-providers/terraform-provider-ncloud/internal/service/ses"
 	"github.com/terraform-providers/terraform-provider-ncloud/internal/service/vpc"
+	"github.com/terraform-providers/terraform-provider-ncloud/internal/service/cloudmysql"
 	"github.com/terraform-providers/terraform-provider-ncloud/internal/zone"
 )
 
@@ -153,6 +154,7 @@ func Provider() *schema.Provider {
 		"ncloud_subnet":                              vpc.ResourceNcloudSubnet(),
 		"ncloud_vpc":                                 vpc.ResourceNcloudVpc(),
 		"ncloud_vpc_peering":                         vpc.ResourceNcloudVpcPeering(),
+		"ncloud_mysql": 						  	  cloudmysql.ResourceNcloudMySql(),
 	}
 
 	return &schema.Provider{
