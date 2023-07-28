@@ -332,7 +332,7 @@ func FilterModels[M any](ctx context.Context, filterSet types.Set, datas []*M) [
 
 func applyFilter[M any](dataModel *M, filterData customFilterData) bool {
 	useRegex := false
-	if !filterData.Regex.IsNull() && !filterData.Regex.IsUnknown() && filterData.Regex.ValueBool() {
+	if !filterData.Regex.IsNull() && filterData.Regex.ValueBool() {
 		useRegex = true
 	}
 
