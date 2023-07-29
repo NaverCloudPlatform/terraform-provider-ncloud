@@ -113,6 +113,16 @@ func ValidateParseDuration(v interface{}, k string) (ws []string, errors []error
 	return
 }
 
+func ValidateDateISO8601(v interface{}, k string) (ws []string, errors []error) {
+	value := v.(string)
+	
+	if _, err := time.Parse("2006-01-02T15:04:05Z0700", value); err != nil {
+		errors = append(errors, fmt.Errorf(
+			"%q cannot be parsed as a ISO8601 date: %s", k, err))
+	}
+	return
+}
+
 func ToDiagFunc(validator schema.SchemaValidateFunc) schema.SchemaValidateDiagFunc {
 	return func(v interface{}, path cty.Path) diag.Diagnostics {
 		var diags diag.Diagnostics
