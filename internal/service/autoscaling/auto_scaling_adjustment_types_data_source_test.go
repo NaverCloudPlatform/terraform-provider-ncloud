@@ -2,12 +2,15 @@ package autoscaling_test
 
 import (
 	"fmt"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	. "github.com/terraform-providers/terraform-provider-ncloud/internal/acctest"
 	"testing"
 )
 
 func TestAccDataSourceNcloudAutoScalingAdjustmentTypes_classic_basic(t *testing.T) {
+	lcName := fmt.Sprintf("lc-%s", acctest.RandString(5))
+	policyName := fmt.Sprintf("policy-%s", acctest.RandString(5))
 	dataName := "data.ncloud_auto_scaling_adjustment_types.test"
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -15,7 +18,7 @@ func TestAccDataSourceNcloudAutoScalingAdjustmentTypes_classic_basic(t *testing.
 		Providers: GetTestAccProviders(false),
 		Steps: []resource.TestStep{
 			{
-				Config: testAccDataSourceNcloudAutoScalingAdjustmentTypesClassicConfig(),
+				Config: testAccDataSourceNcloudAutoScalingAdjustmentTypesClassicConfig(lcName, policyName),
 				Check: resource.ComposeTestCheckFunc(
 					TestAccCheckDataSourceID(dataName),
 				),
@@ -25,6 +28,8 @@ func TestAccDataSourceNcloudAutoScalingAdjustmentTypes_classic_basic(t *testing.
 }
 
 func TestAccDataSourceNcloudAutoScalingAdjustmentTypes_vpc_basic(t *testing.T) {
+	lcName := fmt.Sprintf("lc-%s", acctest.RandString(5))
+	policyName := fmt.Sprintf("policy-%s", acctest.RandString(5))
 	dataName := "data.ncloud_auto_scaling_adjustment_types.test"
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -32,7 +37,7 @@ func TestAccDataSourceNcloudAutoScalingAdjustmentTypes_vpc_basic(t *testing.T) {
 		Providers: GetTestAccProviders(false),
 		Steps: []resource.TestStep{
 			{
-				Config: testAccDataSourceNcloudAutoScalingAdjustmentTypesVpcConfig(),
+				Config: testAccDataSourceNcloudAutoScalingAdjustmentTypesVpcConfig(lcName, policyName),
 				Check: resource.ComposeTestCheckFunc(
 					TestAccCheckDataSourceID(dataName),
 				),
@@ -75,10 +80,10 @@ func TestAccDataSourceNcloudAutoScalingAdjustmentTypes_vpc_byFilterCode(t *testi
 	})
 }
 
-func testAccDataSourceNcloudAutoScalingAdjustmentTypesClassicConfig() string {
-	return fmt.Sprint(`
+func testAccDataSourceNcloudAutoScalingAdjustmentTypesClassicConfig(lcName string, policyName string) string {
+	return fmt.Sprintf(`
 	resource "ncloud_launch_configuration" "lc" {
-		name = "my-lc"
+		name = "%s"
   		server_image_product_code = "SPSW0LINUX000046"
   		server_product_code = "SPSVRSSD00000003"
 	}
@@ -92,7 +97,7 @@ func testAccDataSourceNcloudAutoScalingAdjustmentTypesClassicConfig() string {
 	}
 
 	resource "ncloud_auto_scaling_policy" "policy" {
-  		name = "my-policy"
+  		name = "%s"
   		adjustment_type_code = data.ncloud_auto_scaling_adjustment_types.test.types[0].code
   		scaling_adjustment = 2
   		auto_scaling_group_no = ncloud_auto_scaling_group.asg.auto_scaling_group_no
@@ -102,13 +107,13 @@ func testAccDataSourceNcloudAutoScalingAdjustmentTypesClassicConfig() string {
 	data "ncloud_auto_scaling_adjustment_types" "test" {
 	
 	}
-	`)
+	`, lcName, policyName)
 }
 
-func testAccDataSourceNcloudAutoScalingAdjustmentTypesVpcConfig() string {
-	return fmt.Sprint(`
+func testAccDataSourceNcloudAutoScalingAdjustmentTypesVpcConfig(lcName string, policyName string) string {
+	return fmt.Sprintf(`
 	resource "ncloud_launch_configuration" "lc" {
-		name = "my-lc"
+		name = "%s"
   		server_image_product_code = "SPSW0LINUX000046"
   		server_product_code = "SPSVRSSD00000003"
 	}
@@ -122,7 +127,7 @@ func testAccDataSourceNcloudAutoScalingAdjustmentTypesVpcConfig() string {
 	}
 
 	resource "ncloud_auto_scaling_policy" "policy" {
-  		name = "my-policy"
+  		name = "%s"
   		adjustment_type_code = data.ncloud_auto_scaling_adjustment_types.test.types[2].code 
   		scaling_adjustment = 2
   		auto_scaling_group_no = ncloud_auto_scaling_group.asg.auto_scaling_group_no
@@ -131,14 +136,14 @@ func testAccDataSourceNcloudAutoScalingAdjustmentTypesVpcConfig() string {
 	
 	data "ncloud_auto_scaling_adjustment_types" "test" {
 	}
-	`)
+	`, lcName, policyName)
 }
 
 func testAccDataSourceNcloudAutoScalingAdjustmentTypesByFilterCodeConfig(code string) string {
 	return fmt.Sprintf(`
 	data "ncloud_auto_scaling_adjustment_types" "by_filter" {
   		filter {
-    		name   = "code"
+    		 name   = "code"
    			 values = ["%s"]
 	    }
 	}
