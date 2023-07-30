@@ -15,7 +15,6 @@ import (
 
 	. "github.com/terraform-providers/terraform-provider-ncloud/internal/common"
 	"github.com/terraform-providers/terraform-provider-ncloud/internal/conn"
-	"github.com/terraform-providers/terraform-provider-ncloud/internal/service/launchconfiguration"
 	"github.com/terraform-providers/terraform-provider-ncloud/internal/service/vpc"
 	. "github.com/terraform-providers/terraform-provider-ncloud/internal/verify"
 )
@@ -204,7 +203,7 @@ func createClassicAutoScalingGroup(d *schema.ResourceData, config *conn.Provider
 		return nil, ErrorRequiredArgOnClassic("zone_no_list")
 	}
 	// TODO : Zero value 핸들링
-	l, err := launchconfiguration.GetClassicLaunchConfigurationByNo(StringPtrOrNil(d.GetOk("launch_configuration_no")), config)
+	l, err := GetClassicLaunchConfigurationByNo(StringPtrOrNil(d.GetOk("launch_configuration_no")), config)
 	if err != nil {
 		return nil, err
 	}
@@ -441,7 +440,7 @@ func changeClassicAutoScalingGroup(d *schema.ResourceData, config *conn.Provider
 	}
 
 	if d.HasChange("launch_configuration_no") {
-		launchConfiguration, err := launchconfiguration.GetClassicLaunchConfigurationByNo(ncloud.String(d.Get("launch_configuration_no").(string)), config)
+		launchConfiguration, err := GetClassicLaunchConfigurationByNo(ncloud.String(d.Get("launch_configuration_no").(string)), config)
 		if err != nil {
 			return err
 		}
