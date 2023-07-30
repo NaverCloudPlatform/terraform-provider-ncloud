@@ -34,7 +34,7 @@ The following arguments are supported:
 * `health_check` - (Optional) The health check to check the health of the target.
     * `cycle` - (Optional) The number of health check cycle. Default: `30`. Valid from `5` to `300`.
     * `down_threshold` - (Optional) The number of health check failure threshold. You can determine the number of consecutive health check failures that are required before a health check is considered a failed state. Default: `2`. Valid from `2` to `10`.
-    * `up_threshold` - (Optional) The number of health check normal threshold. You can determine the number of consecutive health checks that are required before health checks are considered success state. Default: `30`.  Valid from `2` to `10`.
+    * `up_threshold` - (Optional) The number of health check normal threshold. You can determine the number of consecutive health checks that are required before health checks are considered success state. Default: `2`.  Valid from `2` to `10`.
     * `http_method` - (Optional) The HTTP method for the health check. You can determine which HTTP method to use for health checks. If the health check protocol type is `HTTP` or `HTTPS`, be sure to enter it. Accepted values: `HEAD` | `GET`.
     * `port` - (Optional) The port to use for health checks. Default: 80. Valid from `1` to `65534`.
     * `protocol` - (Required) The type of protocol to use for health checks. If the target group protocol type is `TCP` or `PROXY_TCP`, Heal Check Protocol is only valid for `TCP`. If the target group protocol type is `HTTP` or `HTTPS`, Heal Check Protocol is valid only for `HTTP` and `HTTPS`.
