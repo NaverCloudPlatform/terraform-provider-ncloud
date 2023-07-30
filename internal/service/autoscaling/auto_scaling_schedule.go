@@ -1,13 +1,17 @@
 package autoscaling
 
 import (
+	"regexp"
+
 	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/ncloud"
 	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/services/autoscaling"
 	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/services/vautoscaling"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 
 	. "github.com/terraform-providers/terraform-provider-ncloud/internal/common"
 	"github.com/terraform-providers/terraform-provider-ncloud/internal/conn"
+	. "github.com/terraform-providers/terraform-provider-ncloud/internal/verify"
 )
 
 const SCHEDULE_TIME_FORMAT = "2006-01-02T15:04:05Z0700"
@@ -26,26 +30,40 @@ func ResourceNcloudAutoScalingSchedule() *schema.Resource {
 				Type:     schema.TypeString,
 				Required: true,
 				ForceNew: true,
+				ValidateDiagFunc: ToDiagFunc(validation.All(
+					validation.StringLenBetween(1, 255),
+					validation.StringMatch(regexp.MustCompile(`^[a-z]+[a-z0-9-]+[a-z0-9]$`), "Allows only lowercase letters(a-z), numbers, hyphen (-). Must start with an alphabetic character, must end with an English letter or number"))),
 			},
 			"desired_capacity": {
 				Type:     schema.TypeInt,
 				Required: true,
+				ValidateDiagFunc: ToDiagFunc(validation.IntBetween(0, 30)),
 			},
 			"min_size": {
 				Type:     schema.TypeInt,
 				Required: true,
+				ValidateDiagFunc: ToDiagFunc(validation.IntBetween(0, 30)),
 			},
 			"max_size": {
 				Type:     schema.TypeInt,
 				Required: true,
+				ValidateDiagFunc: ToDiagFunc(validation.IntBetween(0,30)),
 			},
 			"start_time": {
 				Type:     schema.TypeString,
 				Optional: true,
+				ValidateDiagFunc: ToDiagFunc(validation.Any(
+					validation.IsRFC3339Time,
+					ValidateDateISO8601,
+				)),
 			},
 			"end_time": {
 				Type:     schema.TypeString,
 				Optional: true,
+				ValidateDiagFunc: ToDiagFunc(validation.Any(
+					validation.IsRFC3339Time,
+					ValidateDateISO8601,
+				)),
 			},
 			"recurrence": {
 				Type:     schema.TypeString,
