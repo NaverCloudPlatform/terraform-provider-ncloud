@@ -20,7 +20,7 @@ resource "ncloud_auto_scaling_group" "asg" {
 
 resource "ncloud_auto_scaling_policy" "policy" {
   name = "my-policy"
-  adjustment_type_code = data.ncloud_auto_scaling_adjustment_types.test.types[2].code # 
+  adjustment_type_code = data.ncloud_auto_scaling_adjustment_types.test.types[2].code
   scaling_adjustment = 2
   auto_scaling_group_no = ncloud_auto_scaling_group.asg.auto_scaling_group_no
 }
@@ -46,25 +46,24 @@ output "filtered_types" {
 
 The following arguments are supported:
 
-* `types` - (Optional) This is the list of Auto Scaling Adjustment Types.
-
-
 * `filter` - (Optional) Custom filter block as described below.
     * `name` - (Required) The name of the field to filter by.
     * `values` - (Required) Set of values that are accepted for the given field.
     * `regex` - (Optional) is `values` treated as a regular expression.
 
-
 ## Attributes Reference
 
 This data source exports the following attributes in addition to the arguments above:
 
-* `code` - (Optional) - This is the code for the type of adjustment. </br>
-   Valid Values : `CHANG`, `PRCNT`, `EXACT`
-
-* `code_name` - (Optional) - This is a more descriptive name for each code. </br>
-   Valid Values : `ChangeInCapacity`, `PercentChangeInCapacit`,`ExactCapacity`
-  * `ChangeInCapacity` - This means the auto-scaling policy adjusts the number of instances by a specified absolute number.
-  * `PercentChangeInCapacit` - The auto-scaling policy adjusts the number of instances by a specified percentage.
-  * `ExactCapacity` - The auto-scaling policy adjusts the number of instances to a specified exact number.
+* `types` - This is the list of Auto Scaling Adjustment Types.
+    * `code` - This is the code for the type of adjustment. </br>
+    Valid Values :</br>
+        `CHANG` - This refers to a `Change in Capacity` adjustment.</br>
+        `PRCNT` - This stands for `Percent Change in Capacity` adjustment.</br>
+        `EXACT` - This code is for an `Exact Capacity` adjustment.
+    * `code_name` - This is a more descriptive name for each code.</br>
+        Valid Values :</br>
+            `ChangeInCapacity` - This means the auto-scaling policy adjusts the number of instances by a specified absolute number.</br>
+            `PercentChangeInCapacit` - The auto-scaling policy adjusts the number of instances by a specified percentage.</br>
+            `ExactCapacity` - The auto-scaling policy adjusts the number of instances to a specified exact number.
 
