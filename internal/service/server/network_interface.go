@@ -376,10 +376,6 @@ func attachNetworkInterface(d *schema.ResourceData, config *conn.ProviderConfig)
 		return err
 	}
 
-	if err := waitForPublicIpDisassociation(config, d.Id()); err != nil {
-		return err
-	}
-
 	return nil
 }
 
