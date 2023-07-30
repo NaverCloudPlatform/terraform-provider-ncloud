@@ -32,6 +32,7 @@ func Provider() *schema.Provider {
 		"ncloud_auto_scaling_group":                      autoscaling.DataSourceNcloudAutoScalingGroup(),
 		"ncloud_auto_scaling_policy":                     autoscaling.DataSourceNcloudAutoScalingPolicy(),
 		"ncloud_auto_scaling_schedule":                   autoscaling.DataSourceNcloudAutoScalingSchedule(),
+		"ncloud_auto_scaling_adjustment_types":           autoscaling.DataSourceNcloudAutoScalingAdjustmentTypes(),
 		"ncloud_block_storage":                           server.DataSourceNcloudBlockStorage(),
 		"ncloud_block_storage_snapshot":                  server.DataSourceNcloudBlockStorageSnapshot(),
 		"ncloud_cdss_cluster":                            cdss.DataSourceNcloudCDSSCluster(),
