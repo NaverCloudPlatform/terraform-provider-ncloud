@@ -61,9 +61,9 @@ func getAutoScalingAdjustmentListFiltered(d *schema.ResourceData, config *conn.P
 	var err error
 
 	if config.SupportVPC == true {
-		resources, err = getVpcAutoScalingAdjustmentTypeList(d, config)
+		resources, err = getVpcAutoScalingAdjustmentTypeList(config)
 	} else {
-		resources, err = getClassicAutoScalingAdjustmentTypeList(d, config)
+		resources, err = getClassicAutoScalingAdjustmentTypeList(config)
 	}
 
 	if err != nil {
@@ -76,7 +76,7 @@ func getAutoScalingAdjustmentListFiltered(d *schema.ResourceData, config *conn.P
 	return resources, nil
 }
 
-func getVpcAutoScalingAdjustmentTypeList(d *schema.ResourceData, config *conn.ProviderConfig) ([]map[string]interface{}, error) {
+func getVpcAutoScalingAdjustmentTypeList(config *conn.ProviderConfig) ([]map[string]interface{}, error) {
 	client := config.Client
 	regionCode := config.RegionCode
 
@@ -107,7 +107,7 @@ func getVpcAutoScalingAdjustmentTypeList(d *schema.ResourceData, config *conn.Pr
 	return resources, nil
 }
 
-func getClassicAutoScalingAdjustmentTypeList(d *schema.ResourceData, config *conn.ProviderConfig) ([]map[string]interface{}, error) {
+func getClassicAutoScalingAdjustmentTypeList(config *conn.ProviderConfig) ([]map[string]interface{}, error) {
 	client := config.Client
 	regionCode := config.RegionCode
 
