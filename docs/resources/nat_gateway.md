@@ -1,3 +1,8 @@
+---
+subcategory: "VPC"
+---
+
+
 # Resource: ncloud_nat_gateway
 
 Provides a NAT gateway resource.

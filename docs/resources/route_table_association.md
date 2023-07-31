@@ -1,3 +1,8 @@
+---
+subcategory: "VPC"
+---
+
+
 # Resource: ncloud_route_table_association
 
 Provide a resource to create association between route table and a subnet.

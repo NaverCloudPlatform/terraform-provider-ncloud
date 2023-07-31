@@ -1,3 +1,8 @@
+---
+subcategory: "Server"
+---
+
+
 # Resource: ncloud_placement_group
 
 Provides a Placement group resource.

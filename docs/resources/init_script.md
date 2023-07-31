@@ -1,3 +1,8 @@
+---
+subcategory: "Server"
+---
+
+
 # Resource: ncloud_init_script
 
 Provides an Init script resource.

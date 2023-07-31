@@ -1,3 +1,8 @@
+---
+subcategory: "Kubernetes Service"
+---
+
+
 # Resource: ncloud_nks_node_pool
 
 Provides a Kubernetes Service nodepool resource.

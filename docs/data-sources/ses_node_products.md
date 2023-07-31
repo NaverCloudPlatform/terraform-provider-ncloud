@@ -1,3 +1,8 @@
+---
+subcategory: "Search Engine Service"
+---
+
+
 # Data Source: ncloud_ses_node_products
 
 Provides list of available Server product.

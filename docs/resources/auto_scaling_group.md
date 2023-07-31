@@ -1,3 +1,8 @@
+---
+subcategory: "Auto Scaling"
+---
+
+
 # Resource: ncloud_auto_scaling_group
 
 Provides a ncloud auto scaling group resource.

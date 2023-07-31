@@ -1,3 +1,8 @@
+---
+subcategory: "Server"
+---
+
+
 # Data Source: ncloud_server
 
 This module can be useful for getting detail of Server instance created before.

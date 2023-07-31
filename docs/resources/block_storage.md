@@ -1,3 +1,8 @@
+---
+subcategory: "Server"
+---
+
+
 # Resource: ncloud_block_storage
 
 Provides a Block Storage resource.

@@ -1,3 +1,8 @@
+---
+subcategory: "VPC"
+---
+
+
 # Resource: ncloud_vpc_peering
 
 Provides a VPC Peering resource.
