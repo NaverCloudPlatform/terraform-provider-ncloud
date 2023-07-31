@@ -1,3 +1,8 @@
+---
+subcategory: "Server"
+---
+
+
 # Data Source: ncloud_block_storage
 
 This module can be useful for getting detail of Block Storage created before.

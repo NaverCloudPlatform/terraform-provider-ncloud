@@ -1,3 +1,8 @@
+---
+subcategory: "VPC"
+---
+
+
 # Resource: ncloud_route
 
 Provides a Route resource.

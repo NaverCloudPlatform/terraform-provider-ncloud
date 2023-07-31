@@ -1,3 +1,8 @@
+---
+subcategory: "Search Engine Service"
+---
+
+
 # Data Source: ncloud_ses_clusters
 
 Provides list of Search Engine Service cluster uuid.

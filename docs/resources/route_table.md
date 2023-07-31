@@ -1,3 +1,8 @@
+---
+subcategory: "VPC"
+---
+
+
 # Resource: ncloud_route_table
 
 Provides a Route Table resource.

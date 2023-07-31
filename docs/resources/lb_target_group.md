@@ -1,3 +1,8 @@
+---
+subcategory: "Load Balancer"
+---
+
+
 # Resource: ncloud_lb_target_group
 
 Provides a Target Group resource.
@@ -28,15 +33,15 @@ resource "ncloud_lb_target_group" "test" {
 The following arguments are supported:
 
 * `name` - (Optional) The name of the target group.
-* `port` - (Optional) The port on which targets receive traffic. Default: 80.
+* `port` - (Optional) The port on which targets receive traffic. Default: `80`. Valid from `1` to `65534`.
 * `protocol` - (Required) The protocol to use for routing traffic to the targets. Accepted values: `TCP` | `PROXY_TCP` | `HTTP` | `HTTPS`. The protocol you use determines which type of load balancer is applicable. `APPLICATION` Load Balancer Accepted values: `HTTP` | `HTTPS`, `NETWORK` Load Balancer Accepted values : `TCP`, `NETWORK_PROXY` Load Balancer Accepted values : `PROXY_TCP`.
 * `description` - (Optional) The description of the target group.
 * `health_check` - (Optional) The health check to check the health of the target.
-    * `cycle` - (Optional) The number of health check cycle.
-    * `down_threshold` - (Optional) The number of health check failure threshold. You can determine the number of consecutive health check failures that are required before a health check is considered a failed state.
-    * `up_threshold` - (Optional) The number of health check normal threshold. You can determine the number of consecutive health checks that are required before health checks are considered success state.
+    * `cycle` - (Optional) The number of health check cycle. Default: `30`. Valid from `5` to `300`.
+    * `down_threshold` - (Optional) The number of health check failure threshold. You can determine the number of consecutive health check failures that are required before a health check is considered a failed state. Default: `2`. Valid from `2` to `10`.
+    * `up_threshold` - (Optional) The number of health check normal threshold. You can determine the number of consecutive health checks that are required before health checks are considered success state. Default: `2`.  Valid from `2` to `10`.
     * `http_method` - (Optional) The HTTP method for the health check. You can determine which HTTP method to use for health checks. If the health check protocol type is `HTTP` or `HTTPS`, be sure to enter it. Accepted values: `HEAD` | `GET`.
-    * `port` - (Optional) The port to use for health checks. Default: 80.
+    * `port` - (Optional) The port to use for health checks. Default: 80. Valid from `1` to `65534`.
     * `protocol` - (Required) The type of protocol to use for health checks. If the target group protocol type is `TCP` or `PROXY_TCP`, Heal Check Protocol is only valid for `TCP`. If the target group protocol type is `HTTP` or `HTTPS`, Heal Check Protocol is valid only for `HTTP` and `HTTPS`.
     * `url_path` - (Optional) The URL path of the health check. Valid only if Health Check protocol type is `HTTP` or `HTTPS`. URL path must begin with `/`.
 * `target_type` - (Optional) The type of target to be added to the target group.

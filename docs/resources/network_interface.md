@@ -1,3 +1,8 @@
+---
+subcategory: "VPC"
+---
+
+
 # Resource: ncloud_network_interface
 
 Provides a Network Interface resource.

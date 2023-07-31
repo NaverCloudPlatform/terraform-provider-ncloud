@@ -1,3 +1,8 @@
+---
+subcategory: "Server"
+---
+
+
 # ncloud_port_forwarding_rule
 
 Provides a ncloud port forwarding rule resource.

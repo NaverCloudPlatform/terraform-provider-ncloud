@@ -1,3 +1,8 @@
+---
+subcategory: "VPC"
+---
+
+
 # Data Source: ncloud_route_tables
 
 This resource is useful for look up the list of Route table in the region.
