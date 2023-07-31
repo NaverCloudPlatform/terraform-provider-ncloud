@@ -1,5 +1,5 @@
 ---
-subcategory: "Launch Configuration"
+subcategory: "Auto Scaling"
 ---
 
 
