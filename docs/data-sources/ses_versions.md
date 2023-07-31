@@ -1,3 +1,8 @@
+---
+subcategory: "Search Engine Service"
+---
+
+
 # Data Source: ncloud_ses_versions
 
 Provides list of available Search Engine Service versions.

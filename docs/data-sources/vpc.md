@@ -1,3 +1,8 @@
+---
+subcategory: "VPC"
+---
+
+
 # Data Source: ncloud_vpc
 
 This module can be useful for getting detail of VPC created before, such as determining the CIDR block of that VPC.

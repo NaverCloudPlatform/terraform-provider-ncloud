@@ -1,3 +1,8 @@
+---
+subcategory: "Load Balancer"
+---
+
+
 # Resource: ncloud_lb
 
 Provides a Load Balancer resource.

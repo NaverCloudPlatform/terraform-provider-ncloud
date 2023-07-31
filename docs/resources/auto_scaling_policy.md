@@ -1,3 +1,8 @@
+---
+subcategory: "Auto Scaling"
+---
+
+
 # Resource: ncloud_auto_scaling_policy
 
 Provides a ncloud auto scaling policy resource.

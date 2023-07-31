@@ -1,3 +1,8 @@
+---
+subcategory: "Server"
+---
+
+
 # Data Source: ncloud_servers
 
 Use this data source to get multiple `ncloud_server` ids 

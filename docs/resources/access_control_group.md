@@ -1,3 +1,8 @@
+---
+subcategory: "Server"
+---
+
+
 # Resource: ncloud_access_control_group
 
 Provides an ACG(Access Control Group) resource.

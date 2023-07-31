@@ -1,3 +1,8 @@
+---
+subcategory: "Meta Data Sources"
+---
+
+
 # Data Source: ncloud_regions
 
 Gets a list of available regions.
