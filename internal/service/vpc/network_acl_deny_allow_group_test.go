@@ -22,9 +22,9 @@ func TestAccResourceNcloudNetworkACLDenyAllowGroup_basic(t *testing.T) {
 	resourceName := "ncloud_network_acl_deny_allow_group.this"
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { TestAccPreCheck(t) },
-		Providers:    GetTestAccProviders(true),
-		CheckDestroy: testAccCheckNetworkACLDenyAllowGroupDestroy,
+		PreCheck:                 func() { TestAccPreCheck(t) },
+		ProtoV5ProviderFactories: ProtoV5ProviderFactories,
+		CheckDestroy:             testAccCheckNetworkACLDenyAllowGroupDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccResourceNcloudNetworkACLDenyAllowGroupConfig(name),
@@ -51,9 +51,9 @@ func TestAccResourceNcloudNetworkACLDenyAllowGroup_disappears(t *testing.T) {
 	resourceName := "ncloud_network_acl_deny_allow_group.this"
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { TestAccPreCheck(t) },
-		Providers:    GetTestAccProviders(true),
-		CheckDestroy: testAccCheckNetworkACLDenyAllowGroupDestroy,
+		PreCheck:                 func() { TestAccPreCheck(t) },
+		ProtoV5ProviderFactories: ProtoV5ProviderFactories,
+		CheckDestroy:             testAccCheckNetworkACLDenyAllowGroupDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccResourceNcloudNetworkACLDenyAllowGroupConfig(name),
@@ -73,9 +73,9 @@ func TestAccResourceNcloudNetworkACLDenyAllowGroup_update(t *testing.T) {
 	resourceName := "ncloud_network_acl_deny_allow_group.this"
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { TestAccPreCheck(t) },
-		Providers:    GetTestAccProviders(true),
-		CheckDestroy: testAccCheckNetworkACLDenyAllowGroupDestroy,
+		PreCheck:                 func() { TestAccPreCheck(t) },
+		ProtoV5ProviderFactories: ProtoV5ProviderFactories,
+		CheckDestroy:             testAccCheckNetworkACLDenyAllowGroupDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccResourceNcloudNetworkACLDenyAllowGroupConfig(name),
@@ -106,9 +106,9 @@ func TestAccResourceNcloudNetworkACLDenyAllowGroup_description(t *testing.T) {
 	resourceName := "ncloud_network_acl_deny_allow_group.this"
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { TestAccPreCheck(t) },
-		Providers:    GetTestAccProviders(true),
-		CheckDestroy: testAccCheckNetworkACLDenyAllowGroupDestroy,
+		PreCheck:                 func() { TestAccPreCheck(t) },
+		ProtoV5ProviderFactories: ProtoV5ProviderFactories,
+		CheckDestroy:             testAccCheckNetworkACLDenyAllowGroupDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccResourceNcloudNetworkACLDenyAllowGroupConfigDescription(name, "foo"),

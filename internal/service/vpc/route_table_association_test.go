@@ -25,9 +25,9 @@ func TestAccresourceNcloudRouteTableAssociation_basic(t *testing.T) {
 	resourceName := "ncloud_route_table_association.test"
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { TestAccPreCheck(t) },
-		Providers:    GetTestAccProviders(true),
-		CheckDestroy: testAccCheckRouteTableAssociationDestroy,
+		PreCheck:                 func() { TestAccPreCheck(t) },
+		ProtoV5ProviderFactories: ProtoV5ProviderFactories,
+		CheckDestroy:             testAccCheckRouteTableAssociationDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccResourceNcloudRouteTableAssociationConfig(name),
@@ -54,9 +54,9 @@ func TestAccresourceNcloudRouteTableAssociation_disappears(t *testing.T) {
 	resourceName := "ncloud_route_table_association.test"
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { TestAccPreCheck(t) },
-		Providers:    GetTestAccProviders(true),
-		CheckDestroy: testAccCheckRouteTableAssociationDestroy,
+		PreCheck:                 func() { TestAccPreCheck(t) },
+		ProtoV5ProviderFactories: ProtoV5ProviderFactories,
+		CheckDestroy:             testAccCheckRouteTableAssociationDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccResourceNcloudRouteTableAssociationConfig(name),

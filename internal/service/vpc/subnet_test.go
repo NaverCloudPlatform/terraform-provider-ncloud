@@ -23,9 +23,9 @@ func TestAccResourceNcloudSubnet_basic(t *testing.T) {
 	resourceName := "ncloud_subnet.bar"
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { TestAccPreCheck(t) },
-		Providers:    GetTestAccProviders(true),
-		CheckDestroy: testAccCheckSubnetDestroy,
+		PreCheck:                 func() { TestAccPreCheck(t) },
+		ProtoV5ProviderFactories: ProtoV5ProviderFactories,
+		CheckDestroy:             testAccCheckSubnetDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccResourceNcloudSubnetConfig(name, cidr),
@@ -54,9 +54,9 @@ func TestAccResourceNcloudSubnet_disappears(t *testing.T) {
 	resourceName := "ncloud_subnet.bar"
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { TestAccPreCheck(t) },
-		Providers:    GetTestAccProviders(true),
-		CheckDestroy: testAccCheckSubnetDestroy,
+		PreCheck:                 func() { TestAccPreCheck(t) },
+		ProtoV5ProviderFactories: ProtoV5ProviderFactories,
+		CheckDestroy:             testAccCheckSubnetDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccResourceNcloudSubnetConfig(name, cidr),
@@ -77,9 +77,9 @@ func TestAccResourceNcloudSubnet_updateName(t *testing.T) {
 	resourceName := "ncloud_subnet.bar"
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { TestAccPreCheck(t) },
-		Providers:    GetTestAccProviders(true),
-		CheckDestroy: testAccCheckSubnetDestroy,
+		PreCheck:                 func() { TestAccPreCheck(t) },
+		ProtoV5ProviderFactories: ProtoV5ProviderFactories,
+		CheckDestroy:             testAccCheckSubnetDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccResourceNcloudSubnetConfig(name, cidr),
@@ -104,9 +104,9 @@ func TestAccResourceNcloudSubnet_updateNetworkACL(t *testing.T) {
 	resourceName := "ncloud_subnet.bar"
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { TestAccPreCheck(t) },
-		Providers:    GetTestAccProviders(true),
-		CheckDestroy: testAccCheckSubnetDestroy,
+		PreCheck:                 func() { TestAccPreCheck(t) },
+		ProtoV5ProviderFactories: ProtoV5ProviderFactories,
+		CheckDestroy:             testAccCheckSubnetDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccResourceNcloudSubnetConfig(name, cidr),
@@ -129,9 +129,9 @@ func TestAccResourceNcloudSubnet_InvalidCIDR(t *testing.T) {
 	cidr := "10.3.2.0/24"
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { TestAccPreCheck(t) },
-		Providers:    GetTestAccProviders(true),
-		CheckDestroy: testAccCheckSubnetDestroy,
+		PreCheck:                 func() { TestAccPreCheck(t) },
+		ProtoV5ProviderFactories: ProtoV5ProviderFactories,
+		CheckDestroy:             testAccCheckSubnetDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config:      testAccResourceNcloudSubnetConfigInvalidCIDR(name, cidr),

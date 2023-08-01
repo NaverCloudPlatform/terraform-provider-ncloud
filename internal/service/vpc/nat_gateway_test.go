@@ -23,9 +23,9 @@ func TestAccResourceNcloudNatGateway_basic(t *testing.T) {
 	resourcePrivate := "ncloud_nat_gateway.nat_gateway_private"
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { TestAccPreCheck(t) },
-		Providers:    GetTestAccProviders(true),
-		CheckDestroy: testAccCheckNatGatewayDestroy,
+		PreCheck:                 func() { TestAccPreCheck(t) },
+		ProtoV5ProviderFactories: ProtoV5ProviderFactories,
+		CheckDestroy:             testAccCheckNatGatewayDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccResourceNcloudNatGatewayConfig(name),
@@ -60,9 +60,9 @@ func TestAccResourceNcloudNatGateway_disappears(t *testing.T) {
 	resourceName := "ncloud_nat_gateway.nat_gateway"
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { TestAccPreCheck(t) },
-		Providers:    GetTestAccProviders(true),
-		CheckDestroy: testAccCheckNatGatewayDestroy,
+		PreCheck:                 func() { TestAccPreCheck(t) },
+		ProtoV5ProviderFactories: ProtoV5ProviderFactories,
+		CheckDestroy:             testAccCheckNatGatewayDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccResourceNcloudNatGatewayConfig(name),
@@ -82,9 +82,9 @@ func TestAccResourceNcloudNatGateway_onlyRequiredParam(t *testing.T) {
 	resourceName := "ncloud_nat_gateway.nat_gateway"
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { TestAccPreCheck(t) },
-		Providers:    GetTestAccProviders(true),
-		CheckDestroy: testAccCheckNatGatewayDestroy,
+		PreCheck:                 func() { TestAccPreCheck(t) },
+		ProtoV5ProviderFactories: ProtoV5ProviderFactories,
+		CheckDestroy:             testAccCheckNatGatewayDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccResourceNcloudNatGatewayConfigOnlyRequiredParam(name),
@@ -111,9 +111,9 @@ func TestAccResourceNcloudNatGateway_updateName(t *testing.T) {
 	resourceName := "ncloud_nat_gateway.nat_gateway"
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { TestAccPreCheck(t) },
-		Providers:    GetTestAccProviders(true),
-		CheckDestroy: testAccCheckNatGatewayDestroy,
+		PreCheck:                 func() { TestAccPreCheck(t) },
+		ProtoV5ProviderFactories: ProtoV5ProviderFactories,
+		CheckDestroy:             testAccCheckNatGatewayDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccResourceNcloudNatGatewayConfig(name),
@@ -132,9 +132,9 @@ func TestAccResourceNcloudNatGateway_description(t *testing.T) {
 	resourceName := "ncloud_nat_gateway.nat_gateway"
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { TestAccPreCheck(t) },
-		Providers:    GetTestAccProviders(true),
-		CheckDestroy: testAccCheckNatGatewayDestroy,
+		PreCheck:                 func() { TestAccPreCheck(t) },
+		ProtoV5ProviderFactories: ProtoV5ProviderFactories,
+		CheckDestroy:             testAccCheckNatGatewayDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccResourceNcloudNatGatewayConfigDescription(name, "foo"),

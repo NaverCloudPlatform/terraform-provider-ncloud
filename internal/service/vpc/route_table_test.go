@@ -22,9 +22,9 @@ func TestAccResourceNcloudRouteTable_basic(t *testing.T) {
 	name := fmt.Sprintf("test-table-basic-%s", acctest.RandString(5))
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { TestAccPreCheck(t) },
-		Providers:    GetTestAccProviders(true),
-		CheckDestroy: testAccCheckRouteTableDestroy,
+		PreCheck:                 func() { TestAccPreCheck(t) },
+		ProtoV5ProviderFactories: ProtoV5ProviderFactories,
+		CheckDestroy:             testAccCheckRouteTableDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccResourceNcloudRouteTableConfig(name),
@@ -50,9 +50,9 @@ func TestAccResourceNcloudRouteTable_disappears(t *testing.T) {
 	name := fmt.Sprintf("test-table-disappear-%s", acctest.RandString(5))
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { TestAccPreCheck(t) },
-		Providers:    GetTestAccProviders(true),
-		CheckDestroy: testAccCheckRouteTableDestroy,
+		PreCheck:                 func() { TestAccPreCheck(t) },
+		ProtoV5ProviderFactories: ProtoV5ProviderFactories,
+		CheckDestroy:             testAccCheckRouteTableDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccResourceNcloudRouteTableConfig(name),
@@ -72,9 +72,9 @@ func TestAccResourceNcloudRouteTable_onlyRequiredParam(t *testing.T) {
 	name := fmt.Sprintf("test-table-required-%s", acctest.RandString(5))
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { TestAccPreCheck(t) },
-		Providers:    GetTestAccProviders(true),
-		CheckDestroy: testAccCheckRouteTableDestroy,
+		PreCheck:                 func() { TestAccPreCheck(t) },
+		ProtoV5ProviderFactories: ProtoV5ProviderFactories,
+		CheckDestroy:             testAccCheckRouteTableDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccResourceNcloudRouteTableConfigOnlyRequired(name),
@@ -100,9 +100,9 @@ func TestAccResourceNcloudRouteTable_updateName(t *testing.T) {
 	name := fmt.Sprintf("test-table-update-%s", acctest.RandString(5))
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { TestAccPreCheck(t) },
-		Providers:    GetTestAccProviders(true),
-		CheckDestroy: testAccCheckRouteTableDestroy,
+		PreCheck:                 func() { TestAccPreCheck(t) },
+		ProtoV5ProviderFactories: ProtoV5ProviderFactories,
+		CheckDestroy:             testAccCheckRouteTableDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccResourceNcloudRouteTableConfigOnlyRequired(name),
@@ -125,9 +125,9 @@ func TestAccResourceNcloudRouteTable_description(t *testing.T) {
 	name := fmt.Sprintf("test-table-desc-%s", acctest.RandString(5))
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { TestAccPreCheck(t) },
-		Providers:    GetTestAccProviders(true),
-		CheckDestroy: testAccCheckRouteTableDestroy,
+		PreCheck:                 func() { TestAccPreCheck(t) },
+		ProtoV5ProviderFactories: ProtoV5ProviderFactories,
+		CheckDestroy:             testAccCheckRouteTableDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccResourceNcloudRouteTableConfigDescription(name, "foo"),

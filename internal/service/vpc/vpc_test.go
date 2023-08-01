@@ -8,11 +8,11 @@ import (
 	"testing"
 
 	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/services/vpc"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
+	sdkacctest "github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 
-	. "github.com/terraform-providers/terraform-provider-ncloud/internal/acctest"
+	"github.com/terraform-providers/terraform-provider-ncloud/internal/acctest"
 	"github.com/terraform-providers/terraform-provider-ncloud/internal/conn"
 	vpcservice "github.com/terraform-providers/terraform-provider-ncloud/internal/service/vpc"
 )
@@ -21,13 +21,13 @@ func TestAccResourceNcloudVpc_basic(t *testing.T) {
 	var vpc vpc.Vpc
 	rInt := rand.Intn(16)
 	cidr := fmt.Sprintf("10.%d.0.0/16", rInt)
-	name := fmt.Sprintf("test-vpc-basic-%s", acctest.RandString(5))
+	name := fmt.Sprintf("test-vpc-basic-%s", sdkacctest.RandString(5))
 	resourceName := "ncloud_vpc.test"
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { TestAccPreCheck(t) },
-		Providers:    GetTestAccProviders(true),
-		CheckDestroy: testAccCheckVpcDestroy,
+		PreCheck:                 func() { acctest.TestAccPreCheck(t) },
+		ProtoV5ProviderFactories: acctest.ProtoV5ProviderFactories,
+		CheckDestroy:             testAccCheckVpcDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccDataSourceNcloudVpcConfig(name, cidr),
@@ -50,13 +50,13 @@ func TestAccResourceNcloudVpc_disappears(t *testing.T) {
 	var vpc vpc.Vpc
 	rInt := rand.Intn(16)
 	cidr := fmt.Sprintf("10.%d.0.0/16", rInt)
-	name := fmt.Sprintf("test-vpc-disapr-%s", acctest.RandString(5))
+	name := fmt.Sprintf("test-vpc-disapr-%s", sdkacctest.RandString(5))
 	resourceName := "ncloud_vpc.test"
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { TestAccPreCheck(t) },
-		Providers:    GetTestAccProviders(true),
-		CheckDestroy: testAccCheckVpcDestroy,
+		PreCheck:                 func() { acctest.TestAccPreCheck(t) },
+		ProtoV5ProviderFactories: acctest.ProtoV5ProviderFactories,
+		CheckDestroy:             testAccCheckVpcDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccResourceNcloudVpcConfig(name, cidr),
@@ -74,13 +74,13 @@ func TestAccResourceNcloudVpc_updateName(t *testing.T) {
 	var vpc vpc.Vpc
 	rInt := rand.Intn(16)
 	cidr := fmt.Sprintf("10.%d.0.0/16", rInt)
-	name := fmt.Sprintf("test-vpc-name-%s", acctest.RandString(5))
+	name := fmt.Sprintf("test-vpc-name-%s", sdkacctest.RandString(5))
 	resourceName := "ncloud_vpc.test"
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { TestAccPreCheck(t) },
-		Providers:    GetTestAccProviders(true),
-		CheckDestroy: testAccCheckVpcDestroy,
+		PreCheck:                 func() { acctest.TestAccPreCheck(t) },
+		ProtoV5ProviderFactories: acctest.ProtoV5ProviderFactories,
+		CheckDestroy:             testAccCheckVpcDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccResourceNcloudVpcConfig(name, cidr),
@@ -112,7 +112,7 @@ func testAccCheckVpcExists(n string, vpc *vpc.Vpc) resource.TestCheckFunc {
 			return fmt.Errorf("No VPC ID is set")
 		}
 
-		config := GetTestProvider(true).Meta().(*conn.ProviderConfig)
+		config := acctest.GetTestProvider(true).Meta().(*conn.ProviderConfig)
 		vpcInstance, err := vpcservice.GetVpcInstance(config, rs.Primary.ID)
 		if err != nil {
 			return err
@@ -125,7 +125,7 @@ func testAccCheckVpcExists(n string, vpc *vpc.Vpc) resource.TestCheckFunc {
 }
 
 func testAccCheckVpcDestroy(s *terraform.State) error {
-	config := GetTestProvider(true).Meta().(*conn.ProviderConfig)
+	config := acctest.GetTestProvider(true).Meta().(*conn.ProviderConfig)
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "ncloud_vpc" {
@@ -148,7 +148,7 @@ func testAccCheckVpcDestroy(s *terraform.State) error {
 
 func testAccCheckVpcDisappears(instance *vpc.Vpc) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
-		config := GetTestProvider(true).Meta().(*conn.ProviderConfig)
+		config := acctest.GetTestProvider(true).Meta().(*conn.ProviderConfig)
 
 		reqParams := &vpc.DeleteVpcRequest{
 			RegionCode: &config.RegionCode,

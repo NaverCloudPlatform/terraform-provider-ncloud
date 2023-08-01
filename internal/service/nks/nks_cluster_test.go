@@ -30,9 +30,9 @@ func TestAccResourceNcloudNKSCluster_basic(t *testing.T) {
 	region, clusterType, _, k8sVersion := getRegionAndNKSType()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { TestAccPreCheck(t) },
-		Providers:    GetTestAccProviders(true),
-		CheckDestroy: testAccCheckNKSClusterDestroy,
+		PreCheck:                 func() { TestAccPreCheck(t) },
+		ProtoV5ProviderFactories: ProtoV5ProviderFactories,
+		CheckDestroy:             testAccCheckNKSClusterDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccResourceNcloudNKSClusterConfig(name, clusterType, k8sVersion, TF_TEST_NKS_LOGIN_KEY, region, true),
@@ -71,9 +71,9 @@ func TestAccResourceNcloudNKSCluster_public_network(t *testing.T) {
 	region, clusterType, _, k8sVersion := getRegionAndNKSType()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { TestAccPreCheck(t) },
-		Providers:    GetTestAccProviders(true),
-		CheckDestroy: testAccCheckNKSClusterDestroy,
+		PreCheck:                 func() { TestAccPreCheck(t) },
+		ProtoV5ProviderFactories: ProtoV5ProviderFactories,
+		CheckDestroy:             testAccCheckNKSClusterDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccResourceNcloudNKSClusterPublicNetworkConfig(name, clusterType, k8sVersion, TF_TEST_NKS_LOGIN_KEY, region),
@@ -98,9 +98,9 @@ func TestAccResourceNcloudNKSCluster_InvalidSubnet(t *testing.T) {
 	region, clusterType, _, k8sVersion := getRegionAndNKSType()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { TestAccPreCheck(t) },
-		Providers:    GetTestAccProviders(true),
-		CheckDestroy: testAccCheckNKSClusterDestroy,
+		PreCheck:                 func() { TestAccPreCheck(t) },
+		ProtoV5ProviderFactories: ProtoV5ProviderFactories,
+		CheckDestroy:             testAccCheckNKSClusterDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config:      testAccResourceNcloudNKSCluster_InvalidSubnetConfig(name, clusterType, k8sVersion, TF_TEST_NKS_LOGIN_KEY, region),
@@ -118,9 +118,9 @@ func TestAccResourceNcloudNKSCluster_Update(t *testing.T) {
 	resourceName := "ncloud_nks_cluster.cluster"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { TestAccPreCheck(t) },
-		Providers:    GetTestAccProviders(true),
-		CheckDestroy: testAccCheckNKSClusterDestroy,
+		PreCheck:                 func() { TestAccPreCheck(t) },
+		ProtoV5ProviderFactories: ProtoV5ProviderFactories,
+		CheckDestroy:             testAccCheckNKSClusterDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccResourceNcloudNKSClusterConfig(name, clusterType, k8sVersion, TF_TEST_NKS_LOGIN_KEY, region, true),
@@ -173,9 +173,9 @@ func TestAccResourceNcloudNKSCluster_UpdateOnce(t *testing.T) {
 	resourceName := "ncloud_nks_cluster.cluster"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { TestAccPreCheck(t) },
-		Providers:    GetTestAccProviders(true),
-		CheckDestroy: testAccCheckNKSClusterDestroy,
+		PreCheck:                 func() { TestAccPreCheck(t) },
+		ProtoV5ProviderFactories: ProtoV5ProviderFactories,
+		CheckDestroy:             testAccCheckNKSClusterDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccResourceNcloudNKSClusterConfig(name, clusterType, k8sVersion, TF_TEST_NKS_LOGIN_KEY, region, true),
@@ -206,9 +206,9 @@ func TestAccResourceNcloudNKSCluster_VersionUpgrade(t *testing.T) {
 	resourceName := "ncloud_nks_cluster.cluster"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { TestAccPreCheck(t) },
-		Providers:    GetTestAccProviders(true),
-		CheckDestroy: testAccCheckNKSClusterDestroy,
+		PreCheck:                 func() { TestAccPreCheck(t) },
+		ProtoV5ProviderFactories: ProtoV5ProviderFactories,
+		CheckDestroy:             testAccCheckNKSClusterDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccResourceNcloudNKSClusterConfig(name, clusterType, k8sVersion, TF_TEST_NKS_LOGIN_KEY, region, true),
@@ -236,9 +236,9 @@ func TestAccResourceNcloudNKSCluster_OIDCSpec(t *testing.T) {
 	resourceName := "ncloud_nks_cluster.cluster"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { TestAccPreCheck(t) },
-		Providers:    GetTestAccProviders(true),
-		CheckDestroy: testAccCheckNKSClusterDestroy,
+		PreCheck:                 func() { TestAccPreCheck(t) },
+		ProtoV5ProviderFactories: ProtoV5ProviderFactories,
+		CheckDestroy:             testAccCheckNKSClusterDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccResourceNcloudNKSClusterConfig(name, clusterType, k8sVersion, TF_TEST_NKS_LOGIN_KEY, region, false),
@@ -287,9 +287,9 @@ func TestAccResourceNcloudNKSCluster_AuditLog(t *testing.T) {
 	resourceName := "ncloud_nks_cluster.cluster"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { TestAccPreCheck(t) },
-		Providers:    GetTestAccProviders(true),
-		CheckDestroy: testAccCheckNKSClusterDestroy,
+		PreCheck:                 func() { TestAccPreCheck(t) },
+		ProtoV5ProviderFactories: ProtoV5ProviderFactories,
+		CheckDestroy:             testAccCheckNKSClusterDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccResourceNcloudNKSClusterConfig(name, clusterType, k8sVersion, TF_TEST_NKS_LOGIN_KEY, region, false),
@@ -318,9 +318,9 @@ func TestAccResourceNcloudNKSCluster_AddSubnet(t *testing.T) {
 	resourceName := "ncloud_nks_cluster.cluster"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { TestAccPreCheck(t) },
-		Providers:    GetTestAccProviders(true),
-		CheckDestroy: testAccCheckNKSClusterDestroy,
+		PreCheck:                 func() { TestAccPreCheck(t) },
+		ProtoV5ProviderFactories: ProtoV5ProviderFactories,
+		CheckDestroy:             testAccCheckNKSClusterDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccResourceNcloudNKSClusterConfig(name, clusterType, k8sVersion, TF_TEST_NKS_LOGIN_KEY, region, false),

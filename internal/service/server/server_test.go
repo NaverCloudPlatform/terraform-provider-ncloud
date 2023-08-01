@@ -32,8 +32,8 @@ func TestAccResourceNcloudServer_classic_basic(t *testing.T) {
 	}
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:  func() { TestAccPreCheck(t) },
-		Providers: GetTestAccProviders(false),
+		PreCheck:                 func() { TestAccPreCheck(t) },
+		ProtoV5ProviderFactories: ClassicProtoV5ProviderFactories,
 		CheckDestroy: func(state *terraform.State) error {
 			return testAccCheckInstanceDestroyWithProvider(state, GetTestProvider(false))
 		},
@@ -81,9 +81,9 @@ func TestAccResourceNcloudServer_vpc_basic(t *testing.T) {
 	productCode := "SVR.VSVR.STAND.C002.M008.NET.HDD.B050.G002"
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { TestAccPreCheck(t) },
-		Providers:    GetTestAccProviders(true),
-		CheckDestroy: testAccCheckServerDestroy,
+		PreCheck:                 func() { TestAccPreCheck(t) },
+		ProtoV5ProviderFactories: ProtoV5ProviderFactories,
+		CheckDestroy:             testAccCheckServerDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccServerVpcConfig(testServerName, productCode),
@@ -129,9 +129,9 @@ func TestAccResourceNcloudServer_vpc_networkInterface(t *testing.T) {
 	productCode := "SVR.VSVR.STAND.C002.M008.NET.HDD.B050.G002"
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { TestAccPreCheck(t) },
-		Providers:    GetTestAccProviders(true),
-		CheckDestroy: testAccCheckServerDestroy,
+		PreCheck:                 func() { TestAccPreCheck(t) },
+		ProtoV5ProviderFactories: ProtoV5ProviderFactories,
+		CheckDestroy:             testAccCheckServerDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccServerVpcConfigNetworkInterface(testServerName, productCode),
@@ -179,8 +179,8 @@ func TestAccResourceNcloudServer_classic_changeSpec(t *testing.T) {
 	targetProductCode := "SPSVRSTAND000005" // vCPU 4EA, Memory 8GB, Disk 50GB
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:  func() { TestAccPreCheck(t) },
-		Providers: GetTestAccProviders(false),
+		PreCheck:                 func() { TestAccPreCheck(t) },
+		ProtoV5ProviderFactories: ClassicProtoV5ProviderFactories,
 		CheckDestroy: func(state *terraform.State) error {
 			return testAccCheckInstanceDestroyWithProvider(state, GetTestProvider(false))
 		},
@@ -218,9 +218,9 @@ func TestAccResourceNcloudServer_vpc_changeSpec(t *testing.T) {
 	targetProductCode := "SVR.VSVR.STAND.C004.M016.NET.HDD.B050.G002" // vCPU 4EA, Memory 16GB, Disk 50GB
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { TestAccPreCheck(t) },
-		Providers:    GetTestAccProviders(true),
-		CheckDestroy: testAccCheckServerDestroy,
+		PreCheck:                 func() { TestAccPreCheck(t) },
+		ProtoV5ProviderFactories: ProtoV5ProviderFactories,
+		CheckDestroy:             testAccCheckServerDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccServerVpcConfig(testServerName, productCode),

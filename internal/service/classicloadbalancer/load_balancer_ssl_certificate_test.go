@@ -83,9 +83,9 @@ GTfhUTV7jTQ0dt9U1E+oxRkjqC2HFYlpewXP0rcQxhtK7p6kiaUDIw==
 	}
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { TestAccPreCheck(t) },
-		Providers:    GetTestAccProviders(false),
-		CheckDestroy: testAccCheckLoadBalancerSSLCertificateDestroy,
+		PreCheck:                 func() { TestAccPreCheck(t) },
+		ProtoV5ProviderFactories: ClassicProtoV5ProviderFactories,
+		CheckDestroy:             testAccCheckLoadBalancerSSLCertificateDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccLoadBalancerSSLCertificateConfig(testSSLCertificateName, testPrivateKey, testCertPEM, testLoadBalancerName),
