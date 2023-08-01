@@ -5,7 +5,7 @@ subcategory: "Server"
 
 # Resource: ncloud_init_script
 
-Provides an Init script resource.
+Provides an Init Script resource.
 
 ## Example Usage
 
@@ -41,3 +41,11 @@ In addition to all arguments above, the following attributes are exported:
 
 * `id` - The ID of the Init script.
 * `init_script_no` - The ID of the Init script. (It is the same result as `id`)
+
+## Import
+
+Init Script can be imported using id, e.g.,
+
+``` 
+$ terraform import ncloud_init_script.my_init_script id
+```

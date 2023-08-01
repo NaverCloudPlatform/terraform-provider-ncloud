@@ -49,3 +49,11 @@ In addition to all arguments above, the following attributes are exported:
 * `vpc_peering_no` - The ID of VPC peering. (It is the same result as `id`)
 * `has_reverse_vpc_peering` - Reverse VPC Peering exists.
 * `is_between_accounts` - VPC Peering Between Accounts.
+
+## Import
+
+VPC Peering can be imported using id, e.g.,
+
+``` 
+$ terraform import ncloud_vpc_peering.my_vpc_peering id
+```

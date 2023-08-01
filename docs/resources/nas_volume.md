@@ -5,7 +5,7 @@ subcategory: "NAS Volume"
 
 # Resource: ncloud_nas_volume
 
-Provides a NAS volume.
+Provides a NAS Volume.
 
 ## Example Usage
 
@@ -52,3 +52,11 @@ The following arguments are supported:
 * `is_snapshot_configuration` - Indicates whether a snapshot volume is set.
 * `is_event_configuration` - Indicates whether the event is set.
 * `mount_information` - Mount information for NAS volume.
+
+## Import
+
+NAS Volume can be imported using id, e.g.,
+
+```
+$ terraform import ncloud_nas_volume.my_nas_volume id
+```

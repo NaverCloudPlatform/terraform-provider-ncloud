@@ -33,3 +33,11 @@ The following arguments are supported:
 * `public_ip_no` - The ID of Public IP. (It is the same result as `id`)
 * `public_ip` - Public IP Address.
 * `kind_type` - Public IP kind type
+
+## Import
+
+Public IP can be imported using id, e.g.,
+
+``` 
+$ terraform import ncloud_public_ip.my_public_ip id
+```

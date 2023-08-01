@@ -59,3 +59,11 @@ In addition to all arguments above, the following attributes are exported:
 
 * `id` - The ID of the Deny-Allow Group.
 * `network_acl_deny_allow_group_no` - The ID of the Deny-Allow Group. (It is the same result as `id`)
+
+## Import
+
+Network ACL Deny-Allow Group can be imported using id, e.g.,
+
+``` 
+$ terraform import ncloud_network_acl_deny_allow_group.my_deny_allow_group id
+```
