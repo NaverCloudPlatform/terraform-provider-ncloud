@@ -7,6 +7,8 @@ subcategory: "Load Balancer"
 
 Provides a ncloud load balancer ssl certificate resource.
 
+~> **NOTE:** This resource only supports Classic environment.
+
 ## Example Usage
 
 ```hcl

@@ -7,6 +7,8 @@ subcategory: "Load Balancer"
 
 Provides a Load Balancer resource.
 
+~> **NOTE:** This resource only supports VPC environment.
+
 ## Example Usage
 ```hcl
 resource "ncloud_lb" "test" {
