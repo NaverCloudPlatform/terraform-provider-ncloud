@@ -14,8 +14,8 @@ func TestAccDataSourceNcloudNetworkAclsBasic(t *testing.T) {
 	dataSourceName := "data.ncloud_network_acls.all"
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:  func() { TestAccPreCheck(t) },
-		Providers: GetTestAccProviders(true),
+		PreCheck:                 func() { TestAccPreCheck(t) },
+		ProtoV5ProviderFactories: ProtoV5ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccDataSourceNcloudNetworkAclsConfig(),
@@ -33,8 +33,8 @@ func TestAccDataSourceNcloudNetworkAclsBasic(t *testing.T) {
 
 func TestAccDataSourceNcloudNetworkAclsName(t *testing.T) {
 	resource.Test(t, resource.TestCase{
-		PreCheck:  func() { TestAccPreCheck(t) },
-		Providers: GetTestAccProviders(true),
+		PreCheck:                 func() { TestAccPreCheck(t) },
+		ProtoV5ProviderFactories: ProtoV5ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccDataSourceNcloudNetworkAclsConfigName("default"),
@@ -49,8 +49,8 @@ func TestAccDataSourceNcloudNetworkAclsName(t *testing.T) {
 
 func TestAccDataSourceNcloudNetworkAclsVpcNo(t *testing.T) {
 	resource.Test(t, resource.TestCase{
-		PreCheck:  func() { TestAccPreCheck(t) },
-		Providers: GetTestAccProviders(true),
+		PreCheck:                 func() { TestAccPreCheck(t) },
+		ProtoV5ProviderFactories: ProtoV5ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccDataSourceNcloudNetworkAclsConfigVpcNo(),

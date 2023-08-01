@@ -13,8 +13,8 @@ func TestAccDataSourceNcloudSESNodeOsImages(t *testing.T) {
 	dataName := "data.ncloud_ses_node_os_images.images"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:  func() { TestAccPreCheck(t) },
-		Providers: GetTestAccProviders(true),
+		PreCheck:                 func() { TestAccPreCheck(t) },
+		ProtoV5ProviderFactories: ProtoV5ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccDataSourceNcloudSESNodeOsImagesConfig,
@@ -30,8 +30,8 @@ func TestAccDataSourceNcloudSESNodeOsImagesFilter(t *testing.T) {
 	dataName := "data.ncloud_ses_node_os_images.filter"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:  func() { TestAccPreCheck(t) },
-		Providers: GetTestAccProviders(true),
+		PreCheck:                 func() { TestAccPreCheck(t) },
+		ProtoV5ProviderFactories: ProtoV5ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccDataSourceNcloudSESNodeOsImagestWithFilterConfig(),

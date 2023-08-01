@@ -16,8 +16,8 @@ func TestAccDataSourceNcloudNetworkACLDenyAllowGroups_basic(t *testing.T) {
 	dataName := "data.ncloud_network_acl_deny_allow_groups.by_id"
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:  func() { TestAccPreCheck(t) },
-		Providers: GetTestAccProviders(true),
+		PreCheck:                 func() { TestAccPreCheck(t) },
+		ProtoV5ProviderFactories: ProtoV5ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccDataSourceNcloudNetworkACLDenyAllowGroupsConfig(name),

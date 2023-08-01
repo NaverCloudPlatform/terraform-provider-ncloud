@@ -6,18 +6,18 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 
-	. "github.com/terraform-providers/terraform-provider-ncloud/internal/acctest"
+	"github.com/terraform-providers/terraform-provider-ncloud/internal/acctest"
 )
 
 func TestAccDataSourceNcloudVpcsBasic(t *testing.T) {
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:  func() { TestAccPreCheck(t) },
-		Providers: GetTestAccProviders(true),
+		PreCheck:                 func() { acctest.TestAccPreCheck(t) },
+		ProtoV5ProviderFactories: acctest.ProtoV5ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccDataSourceNcloudVpcsConfig(),
 				Check: resource.ComposeTestCheckFunc(
-					TestAccCheckDataSourceID("data.ncloud_vpcs.all"),
+					acctest.TestAccCheckDataSourceID("data.ncloud_vpcs.all"),
 				),
 			},
 		},
@@ -26,13 +26,13 @@ func TestAccDataSourceNcloudVpcsBasic(t *testing.T) {
 
 func TestAccDataSourceNcloudVpcsName(t *testing.T) {
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:  func() { TestAccPreCheck(t) },
-		Providers: GetTestAccProviders(true),
+		PreCheck:                 func() { acctest.TestAccPreCheck(t) },
+		ProtoV5ProviderFactories: acctest.ProtoV5ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccDataSourceNcloudVpcsConfigName("test"),
 				Check: resource.ComposeTestCheckFunc(
-					TestAccCheckDataSourceID("data.ncloud_vpcs.by_name"),
+					acctest.TestAccCheckDataSourceID("data.ncloud_vpcs.by_name"),
 				),
 			},
 		},
@@ -41,14 +41,14 @@ func TestAccDataSourceNcloudVpcsName(t *testing.T) {
 
 func TestAccDataSourceNcloudVpcsVpcNo(t *testing.T) {
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:  func() { TestAccPreCheck(t) },
-		Providers: GetTestAccProviders(true),
+		PreCheck:                 func() { acctest.TestAccPreCheck(t) },
+		ProtoV5ProviderFactories: acctest.ProtoV5ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccDataSourceNcloudVpcsConfigVpcNo("446"),
 				Check: resource.ComposeTestCheckFunc(
-					TestAccCheckDataSourceID("data.ncloud_vpcs.by_vpc_no"),
-					TestAccCheckDataSourceID("data.ncloud_vpcs.by_filter"),
+					acctest.TestAccCheckDataSourceID("data.ncloud_vpcs.by_vpc_no"),
+					acctest.TestAccCheckDataSourceID("data.ncloud_vpcs.by_filter"),
 				),
 			},
 		},
