@@ -57,6 +57,6 @@ In addition to all arguments above, the following attributes are exported:
 
 Individual routes can be imported using ROUTE_TABLE_NO:DESTINATION_CIDR. For example, import a route in a route table `57039` with an IPv4 destination CIDR `0.0.0.0/0` like this:
 
-``` hcl
+```
 $ terraform import ncloud_route.my_route 57039:0.0.0.0/0
 ```
