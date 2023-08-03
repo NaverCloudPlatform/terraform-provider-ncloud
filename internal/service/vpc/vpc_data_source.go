@@ -1,113 +1,232 @@
 package vpc
 
 import (
+	"context"
 	"fmt"
 
 	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/ncloud"
 	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/services/vpc"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-plugin-framework/datasource"
+	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
+	"github.com/hashicorp/terraform-plugin-framework/diag"
+	"github.com/hashicorp/terraform-plugin-framework/types"
+	"github.com/hashicorp/terraform-plugin-log/tflog"
 
-	. "github.com/terraform-providers/terraform-provider-ncloud/internal/common"
+	"github.com/terraform-providers/terraform-provider-ncloud/internal/common"
 	"github.com/terraform-providers/terraform-provider-ncloud/internal/conn"
 	"github.com/terraform-providers/terraform-provider-ncloud/internal/verify"
 )
 
-func DataSourceNcloudVpc() *schema.Resource {
-	fieldMap := map[string]*schema.Schema{
-		"id": {
-			Type:     schema.TypeString,
-			Optional: true,
-			Computed: true,
-		},
-		"name": {
-			Type:     schema.TypeString,
-			Optional: true,
-			Computed: true,
-		},
-		"filter": DataSourceFiltersSchema(),
-	}
+var (
+	_ datasource.DataSource              = &vpcsDataSource{}
+	_ datasource.DataSourceWithConfigure = &vpcsDataSource{}
+)
 
-	return GetSingularDataSourceItemSchema(ResourceNcloudVpc(), fieldMap, dataSourceNcloudVpcRead)
+func NewVpcDataSource() datasource.DataSource {
+	return &vpcDataSource{}
 }
 
-func dataSourceNcloudVpcRead(d *schema.ResourceData, meta interface{}) error {
-	config := meta.(*conn.ProviderConfig)
-
-	if !config.SupportVPC {
-		return NotSupportClassic("data source `ncloud_vpc`")
-	}
-
-	resources, err := getVpcListFiltered(d, config)
-
-	if err != nil {
-		return err
-	}
-
-	if err := verify.ValidateOneResult(len(resources)); err != nil {
-		return err
-	}
-
-	SetSingularResourceDataFromMap(d, resources[0])
-
-	return nil
+type vpcDataSource struct {
+	config *conn.ProviderConfig
 }
 
-func getVpcListFiltered(d *schema.ResourceData, config *conn.ProviderConfig) ([]map[string]interface{}, error) {
+func (v *vpcDataSource) Metadata(_ context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
+	resp.TypeName = req.ProviderTypeName + "_vpc"
+}
+
+// Schema defines the schema for the data source.
+func (v *vpcDataSource) Schema(_ context.Context, _ datasource.SchemaRequest, resp *datasource.SchemaResponse) {
+	resp.Schema = schema.Schema{
+		Attributes: map[string]schema.Attribute{
+			"id": schema.StringAttribute{
+				Optional: true,
+				Computed: true,
+			},
+			"name": schema.StringAttribute{
+				Optional: true,
+				Computed: true,
+			},
+			"ipv4_cidr_block": schema.StringAttribute{
+				Computed: true,
+			},
+			"vpc_no": schema.StringAttribute{
+				Computed: true,
+			},
+			"default_network_acl_no": schema.StringAttribute{
+				Computed: true,
+			},
+			"default_access_control_group_no": schema.StringAttribute{
+				Computed: true,
+			},
+			"default_public_route_table_no": schema.StringAttribute{
+				Computed: true,
+			},
+			"default_private_route_table_no": schema.StringAttribute{
+				Computed: true,
+			},
+		},
+		Blocks: map[string]schema.Block{
+			"filter": common.DataSourceFiltersBlock(),
+		},
+	}
+}
+
+func (v *vpcDataSource) Configure(_ context.Context, req datasource.ConfigureRequest, resp *datasource.ConfigureResponse) {
+	if req.ProviderData == nil {
+		return
+	}
+
+	config, ok := req.ProviderData.(*conn.ProviderConfig)
+
+	if !ok {
+		resp.Diagnostics.AddError(
+			"Unexpected Data Source Configure Type",
+			fmt.Sprintf("Expected *ProviderConfig, got: %T. Please report this issue to the provider developers.", req.ProviderData),
+		)
+		return
+	}
+
+	v.config = config
+}
+
+// Read refreshes the Terraform state with the latest data.
+func (v *vpcDataSource) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
+	if !v.config.SupportVPC {
+		resp.Diagnostics.AddError(
+			"Not Supported Classic",
+			"vpc data source does not supported in classic",
+		)
+		return
+	}
+
+	var data vpcDataSourceModel
+	resp.Diagnostics.Append(req.Config.Get(ctx, &data)...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
 	reqParams := &vpc.GetVpcListRequest{
-		RegionCode: &config.RegionCode,
+		RegionCode: &v.config.RegionCode,
 	}
 
-	if v, ok := d.GetOk("name"); ok {
-		reqParams.VpcName = ncloud.String(v.(string))
+	if !data.ID.IsNull() && !data.ID.IsUnknown() {
+		reqParams.VpcNoList = []*string{data.ID.ValueStringPointer()}
+	}
+	if !data.Name.IsNull() && !data.Name.IsUnknown() {
+		reqParams.VpcName = data.Name.ValueStringPointer()
 	}
 
-	if v, ok := d.GetOk("id"); ok {
-		reqParams.VpcNoList = []*string{ncloud.String(v.(string))}
-	}
-
-	LogCommonRequest("GetVpcList", reqParams)
-	resp, err := config.Client.Vpc.V2Api.GetVpcList(reqParams)
+	tflog.Info(ctx, "GetVpcList", map[string]any{
+		"reqParams": common.MarshalUncheckedString(reqParams),
+	})
+	vpcResp, err := v.config.Client.Vpc.V2Api.GetVpcList(reqParams)
 
 	if err != nil {
-		LogErrorResponse("GetVpcList", err, reqParams)
-		return nil, err
+		var diags diag.Diagnostics
+		diags.AddError(
+			"GetVpcList",
+			fmt.Sprintf("error: %s, reqParams: %s", err.Error(), common.MarshalUncheckedString(reqParams)),
+		)
+		resp.Diagnostics.Append(diags...)
+		return
 	}
-	LogResponse("GetVpcList", resp)
+	tflog.Info(ctx, "GetVpcList response", map[string]any{
+		"vpcResponse": common.MarshalUncheckedString(vpcResp),
+	})
 
-	resources := []map[string]interface{}{}
-
-	for _, r := range resp.VpcList {
-		id := *r.VpcNo
-		defaultNetworkACLNo, err := getDefaultNetworkACL(config, id)
-		if err != nil {
-			return nil, fmt.Errorf("error get default network acl for VPC (%s): %s", id, err)
-		}
-		defaultAcgNo, err := GetDefaultAccessControlGroup(config, id)
-		if err != nil {
-			return nil, fmt.Errorf("error get default Access Control Group for VPC (%s): %s", id, err)
-		}
-		publicRouteTableNo, privateRouteTableNo, err := getDefaultRouteTable(config, id)
-		if err != nil {
-			return nil, fmt.Errorf("error get default Route Table for VPC (%s): %s", id, err)
-		}
-
-		instance := map[string]interface{}{
-			"id":                              *r.VpcNo,
-			"vpc_no":                          *r.VpcNo,
-			"name":                            *r.VpcName,
-			"ipv4_cidr_block":                 *r.Ipv4CidrBlock,
-			"default_network_acl_no":          defaultNetworkACLNo,
-			"default_access_control_group_no": defaultAcgNo,
-			"default_public_route_table_no":   publicRouteTableNo,
-			"default_private_route_table_no":  privateRouteTableNo,
-		}
-
-		resources = append(resources, instance)
+	vpcList, diags := flattenVpcs(ctx, vpcResp.VpcList, v.config)
+	resp.Diagnostics.Append(diags...)
+	if resp.Diagnostics.HasError() {
+		return
 	}
 
-	if f, ok := d.GetOk("filter"); ok {
-		resources = ApplyFilters(f.(*schema.Set), resources, ResourceNcloudVpc().Schema)
+	filteredList := common.FilterModels(ctx, data.Filters, vpcList)
+
+	if err := verify.ValidateOneResult(len(filteredList)); err != nil {
+		var diags diag.Diagnostics
+		diags.AddError(
+			"GetVpcList result vaildation",
+			err.Error(),
+		)
+		resp.Diagnostics.Append(diags...)
+		return
 	}
 
-	return resources, nil
+	state := filteredList[0]
+	state.Filters = data.Filters
+
+	resp.Diagnostics.Append(resp.State.Set(ctx, &state)...)
+}
+
+func flattenVpcs(ctx context.Context, vpcs []*vpc.Vpc, config *conn.ProviderConfig) ([]*vpcDataSourceModel, diag.Diagnostics) {
+	var outputs []*vpcDataSourceModel
+
+	for _, v := range vpcs {
+		var output vpcDataSourceModel
+
+		diags := output.refreshFromOutput(v, config)
+		if diags.HasError() {
+			return nil, diags
+		}
+
+		outputs = append(outputs, &output)
+	}
+
+	return outputs, nil
+}
+
+type vpcDataSourceModel struct {
+	DefaultAccessControlGroupNo types.String `tfsdk:"default_access_control_group_no"`
+	DefaultNetworkAclNo         types.String `tfsdk:"default_network_acl_no"`
+	DefaultPrivateRouteTableNo  types.String `tfsdk:"default_private_route_table_no"`
+	DefaultPublicRouteTableNo   types.String `tfsdk:"default_public_route_table_no"`
+	Filters                     types.Set    `tfsdk:"filter"`
+	ID                          types.String `tfsdk:"id"`
+	Ipv4CidrBlock               types.String `tfsdk:"ipv4_cidr_block"`
+	Name                        types.String `tfsdk:"name"`
+	VpcNo                       types.String `tfsdk:"vpc_no"`
+}
+
+func (d *vpcDataSourceModel) refreshFromOutput(output *vpc.Vpc, config *conn.ProviderConfig) diag.Diagnostics {
+	var diags diag.Diagnostics
+	id := ncloud.StringValue(output.VpcNo)
+
+	defaultNetworkACLNo, err := getDefaultNetworkACL(config, id)
+	if err != nil {
+		diags.AddError(
+			"GetDefaultNetworkAcl info",
+			fmt.Sprintf("error get default network acl for VPC (%s): %s", id, err),
+		)
+	}
+
+	defaultAcgNo, err := GetDefaultAccessControlGroup(config, id)
+	if err != nil {
+		diags.AddError(
+			"GetDefaultAccessControlGroup info",
+			fmt.Sprintf("error get default Access Control Group for VPC (%s): %s", id, err),
+		)
+	}
+
+	publicRouteTableNo, privateRouteTableNo, err := getDefaultRouteTable(config, id)
+	if err != nil {
+		diags.AddError(
+			"GetDefaultRouteTable info",
+			fmt.Sprintf("error get default Route Table for VPC (%s): %s", id, err),
+		)
+	}
+
+	if diags.HasError() {
+		return diags
+	}
+
+	d.DefaultAccessControlGroupNo = types.StringValue(defaultAcgNo)
+	d.DefaultNetworkAclNo = types.StringValue(defaultNetworkACLNo)
+	d.DefaultPrivateRouteTableNo = types.StringValue(privateRouteTableNo)
+	d.DefaultPublicRouteTableNo = types.StringValue(publicRouteTableNo)
+	d.ID = types.StringPointerValue(output.VpcNo)
+	d.Ipv4CidrBlock = types.StringPointerValue(output.Ipv4CidrBlock)
+	d.Name = types.StringPointerValue(output.VpcName)
+	d.VpcNo = types.StringPointerValue(output.VpcNo)
+
+	return diags
 }

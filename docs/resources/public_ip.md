@@ -1,3 +1,8 @@
+---
+subcategory: "Server"
+---
+
+
 # Resource: ncloud_public_ip
 
 Provides a Public IP instance resource.

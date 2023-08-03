@@ -15,8 +15,8 @@ func TestAccDataSourceNcloudSourceBuildProjects(t *testing.T) {
 	repoName := fmt.Sprintf("test-repo-basic-%s", acctest.RandString(5))
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:  func() { TestAccPreCheck(t) },
-		Providers: GetTestAccProviders(true),
+		PreCheck:                 func() { TestAccPreCheck(t) },
+		ProtoV5ProviderFactories: ProtoV5ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccDataSourceNcloudSourceBuildProjectsConfig(name, repoName),

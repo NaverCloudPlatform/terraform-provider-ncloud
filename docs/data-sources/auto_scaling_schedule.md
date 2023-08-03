@@ -1,3 +1,8 @@
+---
+subcategory: "Auto Scaling"
+---
+
+
 # Data Source: ncloud_auto_scaling_policy
 
 This module can be useful for getting detail of Auto Scaling Schedule created before.

@@ -12,8 +12,8 @@ func TestAccDataSourceNcloudSESVersions(t *testing.T) {
 	dataName := "data.ncloud_ses_versions.versions"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:  func() { TestAccPreCheck(t) },
-		Providers: GetTestAccProviders(true),
+		PreCheck:                 func() { TestAccPreCheck(t) },
+		ProtoV5ProviderFactories: ProtoV5ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccDataSourceNcloudSESVersionConfig,

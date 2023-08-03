@@ -35,19 +35,19 @@ func ResourceNcloudAutoScalingSchedule() *schema.Resource {
 					validation.StringMatch(regexp.MustCompile(`^[a-z]+[a-z0-9-]+[a-z0-9]$`), "Allows only lowercase letters(a-z), numbers, hyphen (-). Must start with an alphabetic character, must end with an English letter or number"))),
 			},
 			"desired_capacity": {
-				Type:     schema.TypeInt,
-				Required: true,
+				Type:             schema.TypeInt,
+				Required:         true,
 				ValidateDiagFunc: ToDiagFunc(validation.IntBetween(0, 30)),
 			},
 			"min_size": {
-				Type:     schema.TypeInt,
-				Required: true,
+				Type:             schema.TypeInt,
+				Required:         true,
 				ValidateDiagFunc: ToDiagFunc(validation.IntBetween(0, 30)),
 			},
 			"max_size": {
-				Type:     schema.TypeInt,
-				Required: true,
-				ValidateDiagFunc: ToDiagFunc(validation.IntBetween(0,30)),
+				Type:             schema.TypeInt,
+				Required:         true,
+				ValidateDiagFunc: ToDiagFunc(validation.IntBetween(0, 30)),
 			},
 			"start_time": {
 				Type:     schema.TypeString,

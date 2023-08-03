@@ -12,8 +12,8 @@ import (
 func TestAccDataSourceNcloudSourceDeployStage(t *testing.T) {
 	stageNameSvr := getTestSourceDeployStageName() + "svr"
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:  func() { TestAccPreCheck(t) },
-		Providers: GetTestAccProviders(true),
+		PreCheck:                 func() { TestAccPreCheck(t) },
+		ProtoV5ProviderFactories: ProtoV5ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccDataSourceNcloudSourceDeployStageConfig(stageNameSvr),

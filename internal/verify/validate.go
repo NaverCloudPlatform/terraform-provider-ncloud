@@ -115,7 +115,7 @@ func ValidateParseDuration(v interface{}, k string) (ws []string, errors []error
 
 func ValidateDateISO8601(v interface{}, k string) (ws []string, errors []error) {
 	value := v.(string)
-	
+
 	if _, err := time.Parse("2006-01-02T15:04:05Z0700", value); err != nil {
 		errors = append(errors, fmt.Errorf(
 			"%q cannot be parsed as a ISO8601 date: %s", k, err))

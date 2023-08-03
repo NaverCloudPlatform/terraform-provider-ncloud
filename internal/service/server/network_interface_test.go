@@ -23,9 +23,9 @@ func TestAccresourceNcloudNetworkInterface_basic(t *testing.T) {
 	resourceName := "ncloud_network_interface.foo"
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { TestAccPreCheck(t) },
-		Providers:    GetTestAccProviders(true),
-		CheckDestroy: testAccCheckNetworkInterfaceDestroy,
+		PreCheck:                 func() { TestAccPreCheck(t) },
+		ProtoV5ProviderFactories: ProtoV5ProviderFactories,
+		CheckDestroy:             testAccCheckNetworkInterfaceDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccResourceNcloudNetworkInterfaceConfig(name),
@@ -57,9 +57,9 @@ func TestAccresourceNcloudNetworkInterface_update(t *testing.T) {
 	name := fmt.Sprintf("tf-nic-update-%s", acctest.RandString(5))
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { TestAccPreCheck(t) },
-		Providers:    GetTestAccProviders(true),
-		CheckDestroy: testAccCheckNetworkInterfaceDestroy,
+		PreCheck:                 func() { TestAccPreCheck(t) },
+		ProtoV5ProviderFactories: ProtoV5ProviderFactories,
+		CheckDestroy:             testAccCheckNetworkInterfaceDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccResourceNcloudNetworkInterfaceUpdate(name, ""),
@@ -85,9 +85,9 @@ func TestAccresourceNcloudNetworkInterface_disappears(t *testing.T) {
 	resourceName := "ncloud_network_interface.foo"
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { TestAccPreCheck(t) },
-		Providers:    GetTestAccProviders(true),
-		CheckDestroy: testAccCheckNetworkInterfaceDestroy,
+		PreCheck:                 func() { TestAccPreCheck(t) },
+		ProtoV5ProviderFactories: ProtoV5ProviderFactories,
+		CheckDestroy:             testAccCheckNetworkInterfaceDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccResourceNcloudNetworkInterfaceConfig(name),

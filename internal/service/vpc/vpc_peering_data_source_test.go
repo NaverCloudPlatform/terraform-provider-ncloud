@@ -4,15 +4,15 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
+	sdkacctest "github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 
-	. "github.com/terraform-providers/terraform-provider-ncloud/internal/acctest"
+	"github.com/terraform-providers/terraform-provider-ncloud/internal/acctest"
 )
 
 func TestAccDataSourceNcloudVpcPeering_basic(t *testing.T) {
-	name := fmt.Sprintf("test-perring-data-%s", acctest.RandString(5))
+	name := fmt.Sprintf("test-perring-data-%s", sdkacctest.RandString(5))
 	resourceName := "ncloud_vpc_peering.foo"
 	dataNameById := "data.ncloud_vpc_peering.by_id"
 	dataNameByName := "data.ncloud_vpc_peering.by_name"
@@ -20,8 +20,8 @@ func TestAccDataSourceNcloudVpcPeering_basic(t *testing.T) {
 	dataNameByTargetName := "data.ncloud_vpc_peering.by_target_name"
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:  func() { TestAccPreCheck(t) },
-		Providers: GetTestAccProviders(true),
+		PreCheck:                 func() { acctest.TestAccPreCheck(t) },
+		ProtoV5ProviderFactories: acctest.ProtoV5ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccDataSourceNcloudVpcPeeringConfig(name),

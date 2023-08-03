@@ -23,9 +23,9 @@ func TestAccResourceNcloudAccessControlGroupRule_basic(t *testing.T) {
 	resourceName := "ncloud_access_control_group_rule.acg_rule_foo"
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { TestAccPreCheck(t) },
-		Providers:    GetTestAccProviders(true),
-		CheckDestroy: testAccCheckAccessControlGroupRuleDestroy,
+		PreCheck:                 func() { TestAccPreCheck(t) },
+		ProtoV5ProviderFactories: ProtoV5ProviderFactories,
+		CheckDestroy:             testAccCheckAccessControlGroupRuleDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccResourceNcloudAccessControlGroupRuleConfig(name),
@@ -46,9 +46,9 @@ func TestAccResourceNcloudAccessControlGroupRule_disappears(t *testing.T) {
 	resourceName := "ncloud_access_control_group_rule.test"
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { TestAccPreCheck(t) },
-		Providers:    GetTestAccProviders(true),
-		CheckDestroy: testAccCheckAccessControlGroupRuleDestroy,
+		PreCheck:                 func() { TestAccPreCheck(t) },
+		ProtoV5ProviderFactories: ProtoV5ProviderFactories,
+		CheckDestroy:             testAccCheckAccessControlGroupRuleDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccResourceNcloudAccessControlGroupRuleConfigDisappear(name),

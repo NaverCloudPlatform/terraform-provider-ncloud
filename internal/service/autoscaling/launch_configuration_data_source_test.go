@@ -14,8 +14,8 @@ func TestAccDataSourceNcloudLaunchConfiguration_classic_basic(t *testing.T) {
 	resourceName := "ncloud_launch_configuration.lc"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:  func() { TestAccPreCheck(t) },
-		Providers: GetTestAccProviders(false),
+		PreCheck:                 func() { TestAccPreCheck(t) },
+		ProtoV5ProviderFactories: ClassicProtoV5ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccDataSourceNcloudLaunchConfigurationClassicConfig(),
@@ -40,8 +40,8 @@ func TestAccDataSourceNcloudLaunchConfiguration_vpc_basic(t *testing.T) {
 	resourceName := "ncloud_launch_configuration.lc"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:  func() { TestAccPreCheck(t) },
-		Providers: GetTestAccProviders(true),
+		PreCheck:                 func() { TestAccPreCheck(t) },
+		ProtoV5ProviderFactories: ProtoV5ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccDataSourceNcloudLaunchConfigurationVpcConfig(),

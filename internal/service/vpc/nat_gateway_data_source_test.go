@@ -16,8 +16,8 @@ func TestAccDataSourceNcloudNatGateway_basic(t *testing.T) {
 	name := fmt.Sprintf("tf-data-testacc-nat-%s", acctest.RandString(5))
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:  func() { TestAccPreCheck(t) },
-		Providers: GetTestAccProviders(true),
+		PreCheck:                 func() { TestAccPreCheck(t) },
+		ProtoV5ProviderFactories: ProtoV5ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccDataSourceNcloudNatGatewayConfig(name),

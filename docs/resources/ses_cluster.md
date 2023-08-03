@@ -1,3 +1,8 @@
+---
+subcategory: "Search Engine Service"
+---
+
+
 # Resource: ncloud_ses_cluster
 
 Provides a Search Engine Service cluster resource.
