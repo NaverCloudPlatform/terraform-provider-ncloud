@@ -11,6 +11,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-ncloud/internal/service/autoscaling"
 	"github.com/terraform-providers/terraform-provider-ncloud/internal/service/cdss"
 	"github.com/terraform-providers/terraform-provider-ncloud/internal/service/classicloadbalancer"
+	"github.com/terraform-providers/terraform-provider-ncloud/internal/service/cloudmysql"
 	"github.com/terraform-providers/terraform-provider-ncloud/internal/service/devtools"
 	"github.com/terraform-providers/terraform-provider-ncloud/internal/service/launchconfiguration"
 	"github.com/terraform-providers/terraform-provider-ncloud/internal/service/loadbalancer"
@@ -21,7 +22,6 @@ import (
 	"github.com/terraform-providers/terraform-provider-ncloud/internal/service/server"
 	"github.com/terraform-providers/terraform-provider-ncloud/internal/service/ses"
 	"github.com/terraform-providers/terraform-provider-ncloud/internal/service/vpc"
-	"github.com/terraform-providers/terraform-provider-ncloud/internal/service/cloudmysql"
 	"github.com/terraform-providers/terraform-provider-ncloud/internal/zone"
 )
 
@@ -108,6 +108,7 @@ func Provider() *schema.Provider {
 		"ncloud_vpcs":                                    vpc.DataSourceNcloudVpcs(),
 		"ncloud_vpc_peering":                             vpc.DataSourceNcloudVpcPeering(),
 		"ncloud_zones":                                   zone.DataSourceNcloudZones(),
+		"ncloud_mysql":                                   cloudmysql.DataSourceNcloudMysql(),
 	}
 
 	resourceMap := map[string]*schema.Resource{
@@ -154,7 +155,7 @@ func Provider() *schema.Provider {
 		"ncloud_subnet":                              vpc.ResourceNcloudSubnet(),
 		"ncloud_vpc":                                 vpc.ResourceNcloudVpc(),
 		"ncloud_vpc_peering":                         vpc.ResourceNcloudVpcPeering(),
-		"ncloud_mysql": 						  	  cloudmysql.ResourceNcloudMySql(),
+		"ncloud_mysql":                               cloudmysql.ResourceNcloudMySql(),
 	}
 
 	return &schema.Provider{
