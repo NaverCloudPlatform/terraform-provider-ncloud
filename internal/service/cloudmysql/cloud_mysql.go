@@ -228,7 +228,7 @@ func resourceNcloudMySqlDelete(d *schema.ResourceData, meta interface{}) error {
 	//	return err
 	//}
 
-	time.Sleep(5 * time.Minute)
+	time.Sleep(3 * time.Minute)
 	d.SetId("")
 	return nil
 }
@@ -299,28 +299,39 @@ func createVpcMysqlInstance(d *schema.ResourceData, config *conn.ProviderConfig)
 		SubnetNo:                   subnet.SubnetNo,
 	}
 
-	if isHa, ok := d.GetOk("is_ha"); ok {
-		if isMultiZone, ok := d.GetOk("is_multi_zone"); ok {
-			reqParams.IsMultiZone = ncloud.Bool(isMultiZone.(bool))
+	if isHa:= d.Get("is_backup"); isHa == nil || isHa.(bool){
+		reqParams.IsHa = ncloud.Bool(true)
+	} else {
+		reqParams.IsHa = ncloud.Bool(false)
+	}
 
-			if isMultiZone.(bool) {
-				reqParams.StandbyMasterSubnetNo = ncloud.String(d.Get("standby_master_subnet_no").(string))
-			}
+	if *reqParams.IsHa {
+		if isMultiZone := d.Get("is_multi_zone"); isMultiZone == nil || !isMultiZone.(bool){
+			reqParams.IsMultiZone = ncloud.Bool(false)
+
+		} else{
+			reqParams.IsMultiZone = ncloud.Bool(true)
+			reqParams.StandbyMasterSubnetNo = ncloud.String(d.Get("standby_master_subnet_no").(string))
 		}
 
-		if isStorageEncryption, ok := d.GetOk("is_storage_encryption"); ok {
-			reqParams.IsStorageEncryption = ncloud.Bool(isStorageEncryption.(bool))
+		if isStorageEncryption := d.Get("is_storage_encryption"); isStorageEncryption==nil || !isStorageEncryption.(bool) {
+			reqParams.IsStorageEncryption = ncloud.Bool(false)
+		} else {
+			reqParams.IsStorageEncryption = ncloud.Bool(true)
 		}
-		if ib := d.Get("is_backup"); !ib.(bool){
+
+		if isBackup := d.Get("is_backup"); isBackup != nil && !isBackup.(bool){
 			return nil, fmt.Errorf("when is_ha is true, is_backup must be true")
 		}
+
 		reqParams.IsBackup = ncloud.Bool(true)
-	} else {
-		reqParams.IsHa = ncloud.Bool(isHa.(bool))
-		if isBackup, ok := d.GetOk("is_backup"); ok {
-			reqParams.IsBackup = ncloud.Bool(isBackup.(bool))
-		} else{
+	}else {
+		if isBackup:= d.Get("is_backup"); isBackup == nil {
 			reqParams.IsBackup = ncloud.Bool(true)
+		} else if isBackup.(bool) {
+			reqParams.IsBackup = ncloud.Bool(true)
+		} else {
+			reqParams.IsBackup = ncloud.Bool(false)
 		}
 	}
 
@@ -329,8 +340,10 @@ func createVpcMysqlInstance(d *schema.ResourceData, config *conn.ProviderConfig)
 			reqParams.BackupFileRetentionPeriod = ncloud.Int32(int32(backupPeriod.(int)))
 		}
 
-		if isAutomaticBackup, ok := d.GetOk("is_automatic_backup"); ok {
-			reqParams.IsAutomaticBackup = ncloud.Bool(isAutomaticBackup.(bool))
+		if isAutomaticBackup:= d.Get("is_automatic_backup"); isAutomaticBackup == nil || isAutomaticBackup.(bool){
+			reqParams.IsAutomaticBackup = ncloud.Bool(true)
+		} else {
+			reqParams.IsAutomaticBackup = ncloud.Bool(false)
 		}
 	}
 
@@ -341,6 +354,7 @@ func createVpcMysqlInstance(d *schema.ResourceData, config *conn.ProviderConfig)
 			return nil, fmt.Errorf("when is_automatic_backup is false, must input backup_time")
 		}
 	}
+
 	LogCommonRequest("createVpcServerInstance", reqParams)
 	resp, err := config.Client.Vmysql.V2Api.CreateCloudMysqlInstance(reqParams)
 	if err != nil {
@@ -356,6 +370,7 @@ func createVpcMysqlInstance(d *schema.ResourceData, config *conn.ProviderConfig)
 
 	return mysqlInstance.CloudMysqlInstanceNo, nil
 }
+
 func waitStateNcloudMysqlForCreation(config *conn.ProviderConfig, id string) error {
 	stateConf := &resource.StateChangeConf{
 		Pending: []string{"creating", "settingUp"},
