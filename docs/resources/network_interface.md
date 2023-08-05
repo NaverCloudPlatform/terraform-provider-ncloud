@@ -55,3 +55,11 @@ The following arguments are supported:
 * `status` - The status of Network Interface.
 * `instance_type` - Type of server instance.
 * `is_default` - Whether is default or not by Server instance creation.
+
+## Import
+
+Network Interface can be imported using id, e.g.,
+
+``` 
+$ terraform import ncloud_network_interface.my_nic id
+```

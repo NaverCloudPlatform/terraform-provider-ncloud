@@ -9,7 +9,7 @@ subcategory: "Developer Tools"
 
 -> **Note:** This resource is a beta release. Some features may change in the future.
 
-Provides a Sourcedeploy project resource.
+Provides a SourceDeploy Project resource.
 
 ## Example Usage
 
@@ -33,4 +33,6 @@ The following arguments are supported:
 
 SourceDeploy project can be imported using the project_id, e.g.,
 
+```
 $ terraform import ncloud_sourcedeploy_project.my_project project_id
+```

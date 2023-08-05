@@ -9,7 +9,7 @@ subcategory: "Developer Tools"
 
 ~> **Note:** This resource is a beta release. Some features may change in the future.
 
-Provides a Sourcepipeline project resource.
+Provides a SourcePipeline Project resource.
 
 ## Example Usage
 

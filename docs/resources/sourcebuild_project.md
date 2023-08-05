@@ -9,7 +9,7 @@ subcategory: "Developer Tools"
 
 ~> **Note:** This resource is a beta release. Some features may change in the future.
 
-Provides a Sourcebuild project resource.
+Provides a SourceBuild Project resource.
 
 ## Example Usage
 

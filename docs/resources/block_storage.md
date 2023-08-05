@@ -44,3 +44,11 @@ The following arguments are supported:
 * `product_code` - Block storage product code.
 * `status` - Block storage instance status code.
 * `disk_type` - Disk type code.
+
+## Import
+
+Block Storage can be imported using id, e.g.,
+
+```
+$ terraform import ncloud_block_storage.my_storage id
+```

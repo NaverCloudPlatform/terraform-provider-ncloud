@@ -179,3 +179,11 @@ The following arguments are supported:
 * `network_interface` - List of Network Interface.
   * `subnet_no` - Subnet ID of the network interface.
   * `private_ip` - IP address of the network interface.
+
+  ## Import
+
+Server instance can be imported using id, e.g.,
+
+``` 
+$ terraform import ncloud_server.my_server id
+```
