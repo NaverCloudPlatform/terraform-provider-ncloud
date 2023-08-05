@@ -13,6 +13,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 	sdkresource "github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 
+	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
@@ -26,8 +27,9 @@ import (
 )
 
 var (
-	_ resource.Resource              = &vpcResource{}
-	_ resource.ResourceWithConfigure = &vpcResource{}
+	_ resource.Resource                = &vpcResource{}
+	_ resource.ResourceWithConfigure   = &vpcResource{}
+	_ resource.ResourceWithImportState = &vpcResource{}
 )
 
 func NewVpcResource() resource.Resource {
@@ -223,6 +225,11 @@ func (r *vpcResource) Delete(ctx context.Context, req resource.DeleteRequest, re
 			err.Error(),
 		)
 	}
+}
+
+func (r *vpcResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
+	// Retrieve import ID and save to id attribute
+	resource.ImportStatePassthroughID(ctx, path.Root("id"), req, resp)
 }
 
 func getDefaultNetworkACL(config *conn.ProviderConfig, id string) (string, error) {
