@@ -3,19 +3,17 @@ package cloudmysql_test
 import (
 	"errors"
 	"fmt"
+	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/services/vmysql"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
-	"regexp"
-	"strings"
-	"testing"
-
-	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/services/vmysql"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
-
 	. "github.com/terraform-providers/terraform-provider-ncloud/internal/acctest"
 	"github.com/terraform-providers/terraform-provider-ncloud/internal/conn"
 	mysqlservice "github.com/terraform-providers/terraform-provider-ncloud/internal/service/cloudmysql"
+	"regexp"
+	"strings"
+	"testing"
 )
 
 func TestAccResourceNcloudMysql_vpc_basic(t *testing.T) {
@@ -51,7 +49,7 @@ func TestAccResourceNcloudMysql_vpc_basic(t *testing.T) {
 	})
 }
 
-func TestAccResourceNcloudMysql_vpc_ha(t *testing.T) {
+func TestAccResourceNcloudMysql_vpc_isHa(t *testing.T) {
 	var mysqlInstance vmysql.CloudMysqlInstance
 	testMysqlName := fmt.Sprintf("tf-mysql-%s", acctest.RandString(5))
 	resourceName := "ncloud_mysql.mysql"
@@ -73,8 +71,22 @@ func TestAccResourceNcloudMysql_vpc_ha(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName,"is_automatic_backup", "true"),
 				),
 			},
+		},
+	})
+}
+
+func TestAccResourceNcloudMysql_vpc_isHa_options(t *testing.T) {
+	var mysqlInstance vmysql.CloudMysqlInstance
+	testMysqlName := fmt.Sprintf("tf-mysql-%s", acctest.RandString(5))
+	resourceName := "ncloud_mysql.mysql"
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { TestAccPreCheck(t) },
+		Providers:    GetTestAccProviders(true),
+		CheckDestroy: testAccCheckMysqlDestroy,
+		Steps: []resource.TestStep{
 			{
-				Config: testAccMysqlVpcConfigIsHa(testMysqlName,true, true, true),
+				Config: testAccMysqlVpcConfigMultiZone(testMysqlName,true, true, true),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckMysqlExistsWithProvider(resourceName, &mysqlInstance, GetTestProvider(true)),
 					resource.TestMatchResourceAttr(resourceName, "id", regexp.MustCompile(`^\d+$`)),
@@ -219,64 +231,6 @@ resource "ncloud_mysql" "mysql" {
 `, testMysqlName)
 }
 
-func testAccMysqlVpcConfigHaIsFalse(testMysqlName string, isHa bool) string {
-	return fmt.Sprintf(`
-resource "ncloud_vpc" "test_vpc" {
-	name               = "%[1]s"
-	ipv4_cidr_block    = "10.5.0.0/16"
-}
-
-resource "ncloud_subnet" "test_subnet" {
-	vpc_no             = ncloud_vpc.test_vpc.vpc_no
-	name               = "%[1]s"
-	subnet             = "10.5.0.0/24"
-	zone               = "KR-2"
-	network_acl_no     = ncloud_vpc.test.default_network_acl_no
-	subnet_type        = "PUBLIC"
-}
-
-resource "ncloud_mysql" "mysql" {
-	subnet_no = ncloud_subnet.test_subnet.id
-	service_name = "%[1]s"
-	name_prefix = "testprefix"
-	user_name = "testusername"
-	user_password = "t123456789!"
-	host_ip = "192.168.0.1"
-	database_name = "test_db"
-	is_ha = "%[2]t"
-}
-`, testMysqlName, isHa)
-}
-
-func testAccMysqlVpcConfigHaIsTrue(testMysqlName string, isHa bool) string {
-	return fmt.Sprintf(`
-resource "ncloud_vpc" "test" {
-	name               = "%[1]s"
-	ipv4_cidr_block    = "10.5.0.0/16"
-}
-
-resource "ncloud_subnet" "test" {
-	vpc_no             = ncloud_vpc.test.vpc_no
-	name               = "%[1]s"
-	subnet             = "10.5.0.0/24"
-	zone               = "KR-2"
-	network_acl_no     = ncloud_vpc.test.default_network_acl_no
-	subnet_type        = "PUBLIC"
-}
-
-resource "ncloud_mysql" "mysql" {
-	subnet_no = ncloud_subnet.test.id
-	service_name = "%[1]s"
-	name_prefix = "testprefix"
-	user_name = "testusername"
-	user_password = "t123456789!"
-	host_ip = "192.168.0.1"
-	database_name = "test_db"
-	is_ha = "%[2]t"
-}
-`, testMysqlName, isHa)
-}
-
 func testAccMysqlVpcConfigIsHa(testMysqlName string, isHa bool, isMultiZone bool, isStorageEncryption bool) string {
 	return fmt.Sprintf(`
 resource "ncloud_vpc" "test_vpc" {
@@ -305,8 +259,49 @@ resource "ncloud_mysql" "mysql" {
 	is_ha = %[2]t
 	is_multi_zone = %[3]t
 	is_storage_encryption = %[4]t
-	
+}
+`, testMysqlName, isHa, isMultiZone, isStorageEncryption)
+}
 
+func testAccMysqlVpcConfigMultiZone(testMysqlName string, isHa bool, isMultiZone bool, isStorageEncryption bool) string {
+	return fmt.Sprintf(`
+resource "ncloud_vpc" "test_vpc" {
+	name               = "%[1]s"
+	ipv4_cidr_block    = "10.5.0.0/16"
+}
+
+resource "ncloud_subnet" "test_subnet" {
+	vpc_no             = ncloud_vpc.test_vpc.vpc_no
+	name               = "%[1]s"
+	subnet             = "10.5.0.0/24"
+	zone               = "KR-2"
+	network_acl_no     = ncloud_vpc.test_vpc.default_network_acl_no
+	subnet_type        = "PUBLIC"
+}
+
+resource "ncloud_subnet" "test_subnet_standby" {
+	vpc_no             = ncloud_vpc.test_vpc.vpc_no
+	name               = "%[1]s-standby"
+	subnet             = "10.5.5.0/28"
+	zone               = "KR-1"
+	network_acl_no     = ncloud_vpc.test_vpc.default_network_acl_no
+	subnet_type        = "PUBLIC"
+}
+
+
+resource "ncloud_mysql" "mysql" {
+	subnet_no = ncloud_subnet.test_subnet.id
+	service_name = "%[1]s"
+	name_prefix = "testprefix"
+	user_name = "testusername"
+	user_password = "t123456789!"
+	host_ip = "192.168.0.1"
+	database_name = "test_db"
+
+	is_ha = %[2]t
+	is_multi_zone = %[3]t
+	is_storage_encryption = %[4]t
+	standby_master_subnet_no = ncloud_subnet.test_subnet_standby.id
 }
 `, testMysqlName, isHa, isMultiZone, isStorageEncryption)
 }
