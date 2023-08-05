@@ -31,7 +31,7 @@ resource "ncloud_subnet" "subnet_scn_01" {
 resource "ncloud_server" "server_scn_01" {
   subnet_no                 = ncloud_subnet.subnet_scn_01.id
   name                      = var.name_scn01
-  server_image_product_code = "SW.VSVR.OS.LNX64.CNTOS.0703.B100"
+  server_image_product_code = "SW.VSVR.OS.LNX64.CNTOS.0703.B050"
   login_key_name            = ncloud_login_key.key_scn_01.key_name
 }
 
