@@ -1,5 +1,12 @@
+---
+subcategory: "Load Balancer"
+---
+
+
 # Resource: ncloud_load_balancer
-Provides a ncloud load balancer instance resource.
+Provides a Load Balancer instance resource.
+
+~> **NOTE:** This resource only supports Classic environment.
 
 ## Example Usage
 

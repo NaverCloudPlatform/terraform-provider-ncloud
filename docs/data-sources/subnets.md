@@ -1,3 +1,8 @@
+---
+subcategory: "VPC"
+---
+
+
 # Data Source: ncloud_subnets
 
 This resource is useful for look up the list of Subnet in the region.

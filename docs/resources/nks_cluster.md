@@ -1,6 +1,11 @@
+---
+subcategory: "Kubernetes Service"
+---
+
+
 # Resource: ncloud_nks_cluster
 
-Provides a Kubernetes Service cluster resource.
+Provides a Kubernetes Service Cluster resource.
 
 ## Example Usage
 
@@ -77,6 +82,7 @@ The following arguments are supported:
 * `public_network` - (Optional) Public Subnet Network (`boolean`)
 * `lb_private_subnet_no` - (Required) Subnet No. for private loadbalancer only.
 * `lb_public_subnet_no` - (Optional) Subnet No. for public loadbalancer only. (Available only `SGN`, `JPN` region)
+* `kube_network_plugin` - (Optional) Specifies the network plugin. Only Cilium is supported.
 * `log` - (Optional)
   * `audit` - (Required) Audit log availability. (`boolean`)
 * `k8s_version` - (Optional) Kubenretes version. Only upgrade is supported.
@@ -104,7 +110,7 @@ In addition to all arguments above, the following attributes are exported:
 
 ## Import
 
-Kubernetes Service Cluster can be imported using the name, e.g.,
+Kubernetes Service Cluster can be imported using the uuid(cluster_name), e.g.,
 
 $ terraform import ncloud_nks_cluster.my_cluster uuid
 

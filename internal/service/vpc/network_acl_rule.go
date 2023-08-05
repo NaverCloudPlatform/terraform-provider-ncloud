@@ -213,6 +213,8 @@ func resourceNcloudNetworkACLRuleDelete(d *schema.ResourceData, meta interface{}
 	i := d.Get("inbound").(*schema.Set)
 	o := d.Get("outbound").(*schema.Set)
 
+	waitForNcloudNetworkACLRunning(config, d.Id())
+
 	if len(i.List()) > 0 {
 		if err := removeNetworkACLRule(d, config, "inbound", expandRemoveNetworkAclRule(i.List())); err != nil {
 			return err

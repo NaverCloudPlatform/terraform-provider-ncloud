@@ -1,3 +1,8 @@
+---
+subcategory: "Login Key"
+---
+
+
 # Resource: ncloud_login_key
 
 Provides a Login key resource.

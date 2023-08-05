@@ -7,11 +7,11 @@ import (
 	"testing"
 
 	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/services/vpc"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
+	sdkacctest "github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 
-	. "github.com/terraform-providers/terraform-provider-ncloud/internal/acctest"
+	"github.com/terraform-providers/terraform-provider-ncloud/internal/acctest"
 	"github.com/terraform-providers/terraform-provider-ncloud/internal/conn"
 	vpcservice "github.com/terraform-providers/terraform-provider-ncloud/internal/service/vpc"
 )
@@ -19,12 +19,12 @@ import (
 func TestAccResourceNcloudVpcPeering_basic(t *testing.T) {
 	var vpcPeeringInstance vpc.VpcPeeringInstance
 	resourceName := "ncloud_vpc_peering.foo"
-	name := fmt.Sprintf("test-peering-basic-%s", acctest.RandString(5))
+	name := fmt.Sprintf("test-peering-basic-%s", sdkacctest.RandString(5))
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { TestAccPreCheck(t) },
-		Providers:    GetTestAccProviders(true),
-		CheckDestroy: testAccCheckVpcPeeringDestroy,
+		PreCheck:                 func() { acctest.TestAccPreCheck(t) },
+		ProtoV5ProviderFactories: acctest.ProtoV5ProviderFactories,
+		CheckDestroy:             testAccCheckVpcPeeringDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccResourceNcloudVpcPeeringConfig(name),
@@ -49,12 +49,12 @@ func TestAccResourceNcloudVpcPeering_Peering(t *testing.T) {
 	var vpcPeeringInstance vpc.VpcPeeringInstance
 	resourceNameMain := "ncloud_vpc_peering.foo"
 	resourceNamePeer := "ncloud_vpc_peering.bar"
-	name := fmt.Sprintf("test-peering-basic-%s", acctest.RandString(5))
+	name := fmt.Sprintf("test-peering-basic-%s", sdkacctest.RandString(5))
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { TestAccPreCheck(t) },
-		Providers:    GetTestAccProviders(true),
-		CheckDestroy: testAccCheckVpcPeeringDestroy,
+		PreCheck:                 func() { acctest.TestAccPreCheck(t) },
+		ProtoV5ProviderFactories: acctest.ProtoV5ProviderFactories,
+		CheckDestroy:             testAccCheckVpcPeeringDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccResourceNcloudVpcPeeringConfigAdd(name),
@@ -74,12 +74,12 @@ func TestAccResourceNcloudVpcPeering_Peering(t *testing.T) {
 func TestAccResourceNcloudVpcPeering_disappears(t *testing.T) {
 	var vpcPeeringInstance vpc.VpcPeeringInstance
 	resourceName := "ncloud_vpc_peering.foo"
-	name := fmt.Sprintf("test-peering-disap-%s", acctest.RandString(5))
+	name := fmt.Sprintf("test-peering-disap-%s", sdkacctest.RandString(5))
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { TestAccPreCheck(t) },
-		Providers:    GetTestAccProviders(true),
-		CheckDestroy: testAccCheckVpcPeeringDestroy,
+		PreCheck:                 func() { acctest.TestAccPreCheck(t) },
+		ProtoV5ProviderFactories: acctest.ProtoV5ProviderFactories,
+		CheckDestroy:             testAccCheckVpcPeeringDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccResourceNcloudVpcPeeringConfig(name),
@@ -96,12 +96,12 @@ func TestAccResourceNcloudVpcPeering_disappears(t *testing.T) {
 func TestAccResourceNcloudVpcPeering_description(t *testing.T) {
 	var vpcPeeringInstance vpc.VpcPeeringInstance
 	resourceName := "ncloud_vpc_peering.foo"
-	name := fmt.Sprintf("test-peering-desc-%s", acctest.RandString(5))
+	name := fmt.Sprintf("test-peering-desc-%s", sdkacctest.RandString(5))
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { TestAccPreCheck(t) },
-		Providers:    GetTestAccProviders(true),
-		CheckDestroy: testAccCheckRouteTableDestroy,
+		PreCheck:                 func() { acctest.TestAccPreCheck(t) },
+		ProtoV5ProviderFactories: acctest.ProtoV5ProviderFactories,
+		CheckDestroy:             testAccCheckRouteTableDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccResourceNcloudVpcPeeringConfigDescription(name, "foo"),
@@ -188,7 +188,7 @@ func testAccCheckVpcPeeringExists(n string, vpcPeering *vpc.VpcPeeringInstance) 
 			return fmt.Errorf("No VPC peering id is set: %s", n)
 		}
 
-		config := GetTestProvider(true).Meta().(*conn.ProviderConfig)
+		config := acctest.GetTestProvider(true).Meta().(*conn.ProviderConfig)
 		instance, err := vpcservice.GetVpcPeeringInstance(config, rs.Primary.ID)
 		if err != nil {
 			return err
@@ -201,7 +201,7 @@ func testAccCheckVpcPeeringExists(n string, vpcPeering *vpc.VpcPeeringInstance) 
 }
 
 func testAccCheckVpcPeeringDestroy(s *terraform.State) error {
-	config := GetTestProvider(true).Meta().(*conn.ProviderConfig)
+	config := acctest.GetTestProvider(true).Meta().(*conn.ProviderConfig)
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "ncloud_vpc_peering" {
@@ -224,7 +224,7 @@ func testAccCheckVpcPeeringDestroy(s *terraform.State) error {
 
 func testAccCheckVpcPeeringDisappears(instance *vpc.VpcPeeringInstance) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
-		config := GetTestProvider(true).Meta().(*conn.ProviderConfig)
+		config := acctest.GetTestProvider(true).Meta().(*conn.ProviderConfig)
 
 		reqParams := &vpc.DeleteVpcPeeringInstanceRequest{
 			RegionCode:           &config.RegionCode,

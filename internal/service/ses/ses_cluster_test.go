@@ -25,9 +25,9 @@ func TestAccResourceNcloudSESCluster_basic(t *testing.T) {
 	region := os.Getenv("NCLOUD_REGION")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { TestAccPreCheck(t) },
-		Providers:    GetTestAccProviders(true),
-		CheckDestroy: testAccCheckSESClusterDestroy,
+		PreCheck:                 func() { TestAccPreCheck(t) },
+		ProtoV5ProviderFactories: ProtoV5ProviderFactories,
+		CheckDestroy:             testAccCheckSESClusterDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccResourceSESClusterConfig(testClusterName, TF_TEST_SES_LOGIN_KEY, searchEngineVersionCode, region),

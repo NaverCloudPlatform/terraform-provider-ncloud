@@ -1,10 +1,15 @@
+---
+subcategory: "Developer Tools"
+---
+
+
 # Resource: ncloud_sourcebuild_project
 
 ~> **Note** This resource only supports 'public' site.
 
 ~> **Note:** This resource is a beta release. Some features may change in the future.
 
-Provides a Sourcebuild project resource.
+Provides a SourceBuild Project resource.
 
 ## Example Usage
 

@@ -1,6 +1,11 @@
+---
+subcategory: "Server"
+---
+
+
 # Resource: ncloud_placement_group
 
-Provides a Placement group resource.
+Provides a Placement Group resource.
 
 ## Example Usage
 
@@ -33,3 +38,11 @@ In addition to all arguments above, the following attributes are exported:
 
 * `id` - The ID of the Placement group.
 * `placement_group_no` - The ID of the Placement group. (It is the same result as `id`)
+
+## Import
+
+Placement Group can be imported using id, e.g.,
+
+``` 
+$ terraform import ncloud_placement_group.my_placement_group id
+```

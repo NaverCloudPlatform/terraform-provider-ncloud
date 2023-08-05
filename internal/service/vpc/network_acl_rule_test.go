@@ -24,9 +24,9 @@ func TestAccResourceNcloudNetworkACLRule_basic(t *testing.T) {
 	name := fmt.Sprintf("test-network-acl-rule-%s", acctest.RandString(5))
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { TestAccPreCheck(t) },
-		Providers:    GetTestAccProviders(true),
-		CheckDestroy: testAccCheckNetworkACLRuleDestroy,
+		PreCheck:                 func() { TestAccPreCheck(t) },
+		ProtoV5ProviderFactories: ProtoV5ProviderFactories,
+		CheckDestroy:             testAccCheckNetworkACLRuleDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccResourceNcloudNetworkACLRuleConfig(name),
@@ -47,9 +47,9 @@ func TestAccResourceNcloudNetworkACLRule_AssociatedSubnet(t *testing.T) {
 	name := fmt.Sprintf("test-nacl-rule-subnet-%s", acctest.RandString(5))
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { TestAccPreCheck(t) },
-		Providers:    GetTestAccProviders(true),
-		CheckDestroy: testAccCheckNetworkACLRuleDestroy,
+		PreCheck:                 func() { TestAccPreCheck(t) },
+		ProtoV5ProviderFactories: ProtoV5ProviderFactories,
+		CheckDestroy:             testAccCheckNetworkACLRuleDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccResourceNcloudNetworkACLRuleConfigAssociatedSubnet(name),
@@ -67,9 +67,9 @@ func TestAccResourceNcloudNetworkACLRule_disappears(t *testing.T) {
 	name := fmt.Sprintf("test-network-acl-rule-%s", acctest.RandString(5))
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { TestAccPreCheck(t) },
-		Providers:    GetTestAccProviders(true),
-		CheckDestroy: testAccCheckNetworkACLRuleDestroy,
+		PreCheck:                 func() { TestAccPreCheck(t) },
+		ProtoV5ProviderFactories: ProtoV5ProviderFactories,
+		CheckDestroy:             testAccCheckNetworkACLRuleDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccResourceNcloudNetworkACLRuleConfigDisappear(name),

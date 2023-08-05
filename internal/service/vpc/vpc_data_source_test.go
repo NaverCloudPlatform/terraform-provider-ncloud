@@ -6,8 +6,7 @@ import (
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
-
-	. "github.com/terraform-providers/terraform-provider-ncloud/internal/acctest"
+	"github.com/terraform-providers/terraform-provider-ncloud/internal/acctest"
 )
 
 func TestAccDataSourceNcloudVpc(t *testing.T) {
@@ -18,18 +17,18 @@ func TestAccDataSourceNcloudVpc(t *testing.T) {
 	dataName := "data.ncloud_vpc.by_id"
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:  func() { TestAccPreCheck(t) },
-		Providers: GetTestAccProviders(true),
+		PreCheck:                 func() { acctest.TestAccPreCheck(t) },
+		ProtoV5ProviderFactories: acctest.ProtoV5ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccDataSourceNcloudVpcConfig(name, cidr),
 				Check: resource.ComposeTestCheckFunc(
-					TestAccCheckDataSourceID(dataName),
+					acctest.TestAccCheckDataSourceID(dataName),
 					resource.TestCheckResourceAttrPair(dataName, "id", resourceName, "id"),
 					resource.TestCheckResourceAttrPair(dataName, "vpc_no", resourceName, "vpc_no"),
 					resource.TestCheckResourceAttr(dataName, "ipv4_cidr_block", cidr),
 					resource.TestCheckResourceAttr(dataName, "name", name),
-					TestAccCheckDataSourceID("data.ncloud_vpc.by_filter"),
+					acctest.TestAccCheckDataSourceID("data.ncloud_vpc.by_filter"),
 				),
 			},
 		},

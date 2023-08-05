@@ -1,3 +1,8 @@
+---
+subcategory: "Kubernetes Service"
+---
+
+
 # Data Source: ncloud_nks_server_products
 
 Provides list of available Kubernetes Nodepool ServerProducts.

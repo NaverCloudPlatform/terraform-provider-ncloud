@@ -133,3 +133,66 @@ func Test_ValidatePortRange(t *testing.T) {
 		}
 	}
 }
+
+func Test_ValidateDateISO8601(t *testing.T) {
+	cases := []struct {
+		Value    string
+		ErrCount int
+	}{
+		{
+			Value:    "2023-01-02T15:04:05Z0700",
+			ErrCount: 1,
+		},
+		{
+			Value:    "2023-01-02T15:04:05Z07:00",
+			ErrCount: 1,
+		},
+		{
+			Value:    "2023-01-02T15:04:05+0700",
+			ErrCount: 0,
+		},
+		{
+			Value:    "2023-01-02T15:04:05-0700",
+			ErrCount: 0,
+		},
+		{
+			Value:    "2023-01-02T15:04:05+0100",
+			ErrCount: 0,
+		},
+		{
+			Value:    "2023-01-02T15:04:05+07:00",
+			ErrCount: 1,
+		},
+		{
+			Value:    "2023-01-02T15:04:05Z+07:00",
+			ErrCount: 1,
+		},
+		{
+			Value:    "2023-01-02T15:04:05-07:00",
+			ErrCount: 1,
+		},
+		{
+			Value:    "2023-01-02T15:04:05Z",
+			ErrCount: 0,
+		},
+		{
+			Value:    "2023-01-02T15:04:05",
+			ErrCount: 1,
+		},
+		{
+			Value:    "2023-01-02",
+			ErrCount: 1,
+		},
+		{
+			Value:    "2023-01-02T",
+			ErrCount: 1,
+		},
+	}
+	for _, tc := range cases {
+		_, errors := ValidateDateISO8601(tc.Value, "date")
+
+		if len(errors) != tc.ErrCount {
+			t.Fatalf("Expected the Date Format to trigger a validation error for %q", tc.Value)
+		}
+	}
+}

@@ -22,9 +22,9 @@ func TestAccResourceNcloudPlacementGroup_basic(t *testing.T) {
 	name := fmt.Sprintf("tf-pl-group-basic-%s", acctest.RandString(5))
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { TestAccPreCheck(t) },
-		Providers:    GetTestAccProviders(true),
-		CheckDestroy: testAccCheckPlacementGroupDestroy,
+		PreCheck:                 func() { TestAccPreCheck(t) },
+		ProtoV5ProviderFactories: ProtoV5ProviderFactories,
+		CheckDestroy:             testAccCheckPlacementGroupDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccResourceNcloudPlacementGroupConfig(name),
@@ -50,9 +50,9 @@ func TestAccResourceNcloudPlacementGroup_disappears(t *testing.T) {
 	name := fmt.Sprintf("tf-pl-group-disappear-%s", acctest.RandString(5))
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { TestAccPreCheck(t) },
-		Providers:    GetTestAccProviders(true),
-		CheckDestroy: testAccCheckPlacementGroupDestroy,
+		PreCheck:                 func() { TestAccPreCheck(t) },
+		ProtoV5ProviderFactories: ProtoV5ProviderFactories,
+		CheckDestroy:             testAccCheckPlacementGroupDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccResourceNcloudPlacementGroupConfig(name),
@@ -72,9 +72,9 @@ func TestAccResourceNcloudPlacementGroup_updateName(t *testing.T) {
 	name := fmt.Sprintf("tf-pl-group-update-%s", acctest.RandString(5))
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { TestAccPreCheck(t) },
-		Providers:    GetTestAccProviders(true),
-		CheckDestroy: testAccCheckPlacementGroupDestroy,
+		PreCheck:                 func() { TestAccPreCheck(t) },
+		ProtoV5ProviderFactories: ProtoV5ProviderFactories,
+		CheckDestroy:             testAccCheckPlacementGroupDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccResourceNcloudPlacementGroupConfig(name),

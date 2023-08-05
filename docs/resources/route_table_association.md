@@ -1,3 +1,8 @@
+---
+subcategory: "VPC"
+---
+
+
 # Resource: ncloud_route_table_association
 
 Provide a resource to create association between route table and a subnet.
@@ -43,3 +48,11 @@ The following arguments are supported:
 In addition to all arguments above, the following attributes are exported:
 
 * `id` - The ID of the route table association (`route_table_no`:`subnet_no`)
+
+## Import
+
+Route Table Association can be imported using route_table_id and subnet_id separated by a colon (:), e.g.,
+
+``` 
+$ terraform import ncloud_route_table_association.my_route_table_association route_table_id:subnet_id
+```

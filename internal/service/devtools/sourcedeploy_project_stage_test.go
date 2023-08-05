@@ -41,9 +41,9 @@ func TestAccResourceNcloudSourceDeployStage_basic(t *testing.T) {
 	resourceNameObj := "ncloud_sourcedeploy_project_stage.test-stage-obj"
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { TestAccPreCheck(t) },
-		Providers:    GetTestAccProviders(true),
-		CheckDestroy: testAccCheckSourceDeployStageDestroy,
+		PreCheck:                 func() { TestAccPreCheck(t) },
+		ProtoV5ProviderFactories: ProtoV5ProviderFactories,
+		CheckDestroy:             testAccCheckSourceDeployStageDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccResourceNcloudSourceDeployStageConfig(stageNameSvr, stageNameAsg, stageNameNks, stageNameObj),
