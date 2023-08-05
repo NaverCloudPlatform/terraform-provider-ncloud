@@ -1,18 +1,27 @@
 package vpc
 
 import (
+	"context"
 	"fmt"
-	"log"
+	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
+	"github.com/hashicorp/terraform-plugin-framework/path"
+	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"time"
 
 	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/ncloud"
 	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/services/vpc"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
+	sdkresource "github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 
-	. "github.com/terraform-providers/terraform-provider-ncloud/internal/common"
+	"github.com/hashicorp/terraform-plugin-framework/resource"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
+	"github.com/hashicorp/terraform-plugin-framework/types"
+	"github.com/hashicorp/terraform-plugin-log/tflog"
+
+	"github.com/terraform-providers/terraform-provider-ncloud/internal/common"
 	"github.com/terraform-providers/terraform-provider-ncloud/internal/conn"
+	"github.com/terraform-providers/terraform-provider-ncloud/internal/framework"
 	"github.com/terraform-providers/terraform-provider-ncloud/internal/verify"
 )
 
@@ -20,205 +29,313 @@ const (
 	SubnetPleaseTryAgainErrorCode = "3000"
 )
 
-func ResourceNcloudSubnet() *schema.Resource {
-	return &schema.Resource{
-		Create: resourceNcloudSubnetCreate,
-		Read:   resourceNcloudSubnetRead,
-		Update: resourceNcloudSubnetUpdate,
-		Delete: resourceNcloudSubnetDelete,
-		Importer: &schema.ResourceImporter{
-			State: schema.ImportStatePassthrough,
-		},
-		Schema: map[string]*schema.Schema{
-			"name": {
-				Type:             schema.TypeString,
-				Optional:         true,
-				Computed:         true,
-				ForceNew:         true,
-				ValidateDiagFunc: verify.ToDiagFunc(verify.ValidateInstanceName),
-				Description:      "Subnet name to create. default: Assigned by NAVER CLOUD PLATFORM.",
+var (
+	_ resource.Resource                = &subnetResource{}
+	_ resource.ResourceWithConfigure   = &subnetResource{}
+	_ resource.ResourceWithImportState = &subnetResource{}
+)
+
+func NewSubnetResource() resource.Resource {
+	return &subnetResource{}
+}
+
+type subnetResource struct {
+	config *conn.ProviderConfig
+}
+
+func (s *subnetResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
+	resource.ImportStatePassthroughID(ctx, path.Root("id"), req, resp)
+}
+
+func (s *subnetResource) Metadata(_ context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
+	resp.TypeName = req.ProviderTypeName + "_subnet"
+}
+
+func (s *subnetResource) Schema(_ context.Context, _ resource.SchemaRequest, resp *resource.SchemaResponse) {
+	resp.Schema = schema.Schema{
+		Attributes: map[string]schema.Attribute{
+			"name": schema.StringAttribute{
+				Optional: true,
+				Computed: true,
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.RequiresReplace(),
+				},
+				Validators:  verify.InstanceNameValidator(),
+				Description: "Subnet name to create. default: Assigned by NAVER CLOUD PLATFORM",
 			},
-			"vpc_no": {
-				Type:        schema.TypeString,
-				Required:    true,
-				ForceNew:    true,
+			"id": framework.IDAttribute(),
+
+			"vpc_no": schema.StringAttribute{
+				Required: true,
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.RequiresReplace(),
+				},
 				Description: "The id of the VPC that the desired subnet belongs to.",
 			},
-			"subnet": {
-				Type:             schema.TypeString,
-				Required:         true,
-				ForceNew:         true,
-				ValidateDiagFunc: verify.ToDiagFunc(validation.IsCIDRNetwork(16, 28)),
-			},
-			"zone": {
-				Type:     schema.TypeString,
+			"subnet": schema.StringAttribute{
 				Required: true,
-				ForceNew: true,
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.RequiresReplace(),
+				},
+				Validators: verify.CidrBlockValidator(),
 			},
-			"network_acl_no": {
-				Type:     schema.TypeString,
+			"zone": schema.StringAttribute{
+				Required: true,
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.RequiresReplace(),
+				},
+			},
+			"network_acl_no": schema.StringAttribute{
 				Required: true,
 			},
-			"subnet_type": {
-				Type:             schema.TypeString,
-				Required:         true,
-				ForceNew:         true,
-				ValidateDiagFunc: verify.ToDiagFunc(validation.StringInSlice([]string{"PUBLIC", "PRIVATE"}, false)),
+			"subnet_type": schema.StringAttribute{
+				Required: true,
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.RequiresReplace(),
+				},
+				Validators: []validator.String{
+					stringvalidator.OneOf([]string{"PUBLIC", "PRIVATE"}...),
+				},
 			},
-			"usage_type": {
-				Type:             schema.TypeString,
-				Optional:         true,
-				Computed:         true,
-				ForceNew:         true,
-				ValidateDiagFunc: verify.ToDiagFunc(validation.StringInSlice([]string{"GEN", "LOADB", "BM", "NATGW"}, false)),
+			"usage_type": schema.StringAttribute{
+				Optional: true,
+				Computed: true,
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.RequiresReplace(),
+				},
+				Validators: []validator.String{
+					stringvalidator.OneOf([]string{"GEN", "LOADB", "BM", "NATGW"}...),
+				},
 			},
-			"subnet_no": {
-				Type:     schema.TypeString,
+			"subnet_no": schema.StringAttribute{
 				Computed: true,
 			},
 		},
 	}
 }
 
-func resourceNcloudSubnetCreate(d *schema.ResourceData, meta interface{}) error {
-	config := meta.(*conn.ProviderConfig)
+func (s *subnetResource) Configure(_ context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
+	if req.ProviderData == nil {
+		return
+	}
 
-	if !config.SupportVPC {
-		return NotSupportClassic("resource `ncloud_subnet`")
+	config, ok := req.ProviderData.(*conn.ProviderConfig)
+
+	if !ok {
+		resp.Diagnostics.AddError(
+			"Unexpected Data Source Configure Type",
+			fmt.Sprintf("Expected *ProviderConfig, got: %T. Please report this issue to the provider developers.", req.ProviderData),
+		)
+		return
+	}
+
+	s.config = config
+}
+
+func (s *subnetResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
+	var plan subnetResourceModel
+	diags := req.Plan.Get(ctx, &plan)
+	resp.Diagnostics.Append(diags...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
+	if !s.config.SupportVPC {
+		resp.Diagnostics.AddError(
+			"Not support classic",
+			fmt.Sprintf("resource %s does not support classic", req.Config.Schema.Type().String()),
+		)
+		return
 	}
 
 	reqParams := &vpc.CreateSubnetRequest{
-		RegionCode:     &config.RegionCode,
-		Subnet:         ncloud.String(d.Get("subnet").(string)),
-		SubnetTypeCode: ncloud.String(d.Get("subnet_type").(string)),
-		UsageTypeCode:  ncloud.String(d.Get("usage_type").(string)),
-		NetworkAclNo:   ncloud.String(d.Get("network_acl_no").(string)),
-		VpcNo:          ncloud.String(d.Get("vpc_no").(string)),
-		ZoneCode:       ncloud.String(d.Get("zone").(string)),
+		RegionCode:     &s.config.RegionCode,
+		Subnet:         plan.Subnet.ValueStringPointer(),
+		SubnetTypeCode: plan.SubnetType.ValueStringPointer(),
+		UsageTypeCode:  plan.UsageType.ValueStringPointer(),
+		NetworkAclNo:   plan.NetworkAclNo.ValueStringPointer(),
+		VpcNo:          plan.VpcNo.ValueStringPointer(),
+		ZoneCode:       plan.Zone.ValueStringPointer(),
 	}
 
-	if v, ok := d.GetOk("name"); ok {
-		reqParams.SubnetName = ncloud.String(v.(string))
+	if !plan.Name.IsNull() {
+		reqParams.SubnetName = plan.Name.ValueStringPointer()
 	}
 
-	if v, ok := d.GetOk("usage_type"); ok {
-		reqParams.UsageTypeCode = ncloud.String(v.(string))
+	if !plan.UsageType.IsNull() {
+		reqParams.UsageTypeCode = plan.UsageType.ValueStringPointer()
 	}
 
-	var resp *vpc.CreateSubnetResponse
-	err := resource.Retry(d.Timeout(schema.TimeoutCreate), func() *resource.RetryError {
+	timeout := time.Minute * 20
+	var response *vpc.CreateSubnetResponse
+
+	err := sdkresource.RetryContext(ctx, timeout, func() *sdkresource.RetryError {
 		var err error
-		LogCommonRequest("CreateSubnet", reqParams)
-		resp, err = config.Client.Vpc.V2Api.CreateSubnet(reqParams)
+		tflog.Info(ctx, "CreateSubnet", map[string]any{
+			"reqParams": common.MarshalUncheckedString(reqParams),
+		})
+		response, err = s.config.Client.Vpc.V2Api.CreateSubnet(reqParams)
 
 		if err != nil {
-			errBody, _ := GetCommonErrorBody(err)
+			errBody, _ := common.GetCommonErrorBody(err)
 			if errBody.ReturnCode == "1001015" || errBody.ReturnCode == SubnetPleaseTryAgainErrorCode {
-				LogErrorResponse("retry CreateSubnet", err, reqParams)
+				common.LogErrorResponse("retry CreateSubnet", err, reqParams)
 				time.Sleep(time.Second * 5)
-				return resource.RetryableError(err)
+				return sdkresource.RetryableError(err)
 			}
-			return resource.NonRetryableError(err)
+			return sdkresource.NonRetryableError(err)
 		}
 		return nil
 	})
 
 	if err != nil {
-		return err
+		return
 	}
 
-	instance := resp.SubnetList[0]
-	d.SetId(*instance.SubnetNo)
-	log.Printf("[INFO] Subnet ID: %s", d.Id())
+	subnetInstance := response.SubnetList[0]
+	plan.ID = types.StringPointerValue(subnetInstance.SubnetNo)
 
-	if err := waitForNcloudSubnetCreation(config, d.Id()); err != nil {
-		return err
-	}
-
-	return resourceNcloudSubnetRead(d, meta)
-}
-
-func resourceNcloudSubnetRead(d *schema.ResourceData, meta interface{}) error {
-	config := meta.(*conn.ProviderConfig)
-
-	instance, err := GetSubnetInstance(config, d.Id())
+	output, err := waitForNcloudSubnetCreation(s.config, *subnetInstance.SubnetNo)
 	if err != nil {
-		return err
+		resp.Diagnostics.AddError("waiting for Subnet creation", err.Error())
+		return
 	}
 
-	if instance == nil {
-		d.SetId("")
-		return nil
+	if err := plan.refreshFromOutput(output); err != nil {
+		resp.Diagnostics.AddError("refreshing subnet details", err.Error())
 	}
-
-	d.SetId(*instance.SubnetNo)
-	d.Set("subnet_no", instance.SubnetNo)
-	d.Set("vpc_no", instance.VpcNo)
-	d.Set("zone", instance.ZoneCode)
-	d.Set("name", instance.SubnetName)
-	d.Set("subnet", instance.Subnet)
-	d.Set("subnet_type", instance.SubnetType.Code)
-	d.Set("usage_type", instance.UsageType.Code)
-	d.Set("network_acl_no", instance.NetworkAclNo)
-
-	return nil
+	resp.Diagnostics.Append(resp.State.Set(ctx, plan)...)
 }
 
-func resourceNcloudSubnetUpdate(d *schema.ResourceData, meta interface{}) error {
-	config := meta.(*conn.ProviderConfig)
+func (s *subnetResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
+	var state subnetResourceModel
+	diags := req.State.Get(ctx, &state)
+	resp.Diagnostics.Append(diags...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
 
-	if d.HasChange("network_acl_no") {
+	output, err := GetSubnetInstance(s.config, state.ID.ValueString())
+	if err != nil {
+		resp.Diagnostics.AddError("GetSubnet", err.Error())
+		return
+	}
+
+	if output == nil {
+		resp.State.RemoveResource(ctx)
+		return
+	}
+
+	if err := state.refreshFromOutput(output); err != nil {
+		resp.Diagnostics.AddError("refreshing subnet details", err.Error())
+	}
+
+	diags = resp.State.Set(ctx, &state)
+	resp.Diagnostics.Append(diags...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+}
+
+func (s *subnetResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
+	var plan, state subnetResourceModel
+
+	resp.Diagnostics.Append(req.Plan.Get(ctx, &plan)...)
+	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
+
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
+	if !plan.NetworkAclNo.Equal(state.NetworkAclNo) {
 		reqParams := &vpc.SetSubnetNetworkAclRequest{
-			RegionCode:   &config.RegionCode,
-			SubnetNo:     ncloud.String(d.Get("subnet_no").(string)),
-			NetworkAclNo: ncloud.String(d.Get("network_acl_no").(string)),
+			RegionCode:   &s.config.RegionCode,
+			NetworkAclNo: plan.NetworkAclNo.ValueStringPointer(),
+			SubnetNo:     state.SubnetNo.ValueStringPointer(),
 		}
 
-		LogCommonRequest("SetSubnetNetworkAcl", reqParams)
-		resp, err := config.Client.Vpc.V2Api.SetSubnetNetworkAcl(reqParams)
+		tflog.Info(ctx, "SetSubnetNetworkAcl", map[string]any{
+			"reqParams": common.MarshalUncheckedString(reqParams),
+		})
+		response, err := s.config.Client.Vpc.V2Api.SetSubnetNetworkAcl(reqParams)
+
 		if err != nil {
-			LogErrorResponse("SetSubnetNetworkAcl", err, reqParams)
-			return err
+			resp.Diagnostics.AddError(
+				fmt.Sprintf("SetSubnetNetworkAcl params=%v", *reqParams),
+				err.Error(),
+			)
+			return
 		}
-		LogResponse("SetSubnetNetworkAcl", resp)
 
-		if err := waitForNcloudNetworkACLUpdate(config, d.Get("network_acl_no").(string)); err != nil {
-			return err
+		tflog.Info(ctx, "SetSubnetNetworkAcl", map[string]any{
+			"updateSubnetResponse": common.MarshalUncheckedString(response),
+		})
+
+		if err := waitForNcloudNetworkACLUpdate(s.config, plan.NetworkAclNo.ValueString()); err != nil {
+			resp.Diagnostics.AddError(
+				"fail to wait for subnet update",
+				err.Error(),
+			)
 		}
+
+		output, err := GetSubnetInstance(s.config, state.ID.ValueString())
+		if err != nil {
+			resp.Diagnostics.AddError("GetSubnet", err.Error())
+			return
+		}
+
+		if err := state.refreshFromOutput(output); err != nil {
+			resp.Diagnostics.AddError("refreshing subnet details", err.Error())
+		}
+
 	}
-
-	return resourceNcloudSubnetRead(d, meta)
+	resp.Diagnostics.Append(resp.State.Set(ctx, state)...)
 }
 
-func resourceNcloudSubnetDelete(d *schema.ResourceData, meta interface{}) error {
-	config := meta.(*conn.ProviderConfig)
+func (s *subnetResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
+	var state subnetResourceModel
+	diags := req.State.Get(ctx, &state)
+	resp.Diagnostics.Append(diags...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
 
 	reqParams := &vpc.DeleteSubnetRequest{
-		RegionCode: &config.RegionCode,
-		SubnetNo:   ncloud.String(d.Get("subnet_no").(string)),
+		RegionCode: &s.config.RegionCode,
+		SubnetNo:   state.SubnetNo.ValueStringPointer(),
 	}
 
-	LogCommonRequest("DeleteSubnet", reqParams)
-	resp, err := config.Client.Vpc.V2Api.DeleteSubnet(reqParams)
+	tflog.Info(ctx, "DeleteSubnet", map[string]any{
+		"reqParams": common.MarshalUncheckedString(reqParams),
+	})
+	response, err := s.config.Client.Vpc.V2Api.DeleteSubnet(reqParams)
 	if err != nil {
-		LogErrorResponse("DeleteSubnet", err, reqParams)
-		return err
+		resp.Diagnostics.AddError(
+			fmt.Sprintf("DeleteSubnet Subnet Instance params=%v", *reqParams),
+			err.Error(),
+		)
+		return
 	}
-	LogResponse("DeleteSubnet", resp)
+	tflog.Info(ctx, "DeleteSubnet response", map[string]any{
+		"deleteSubnetResponse": common.MarshalUncheckedString(response),
+	})
 
-	if err := WaitForNcloudSubnetDeletion(config, d.Id()); err != nil {
-		return err
+	if err := WaitForNcloudSubnetDeletion(s.config, state.ID.ValueString()); err != nil {
+		resp.Diagnostics.AddError(
+			"fail to wait for subnet deletion",
+			err.Error(),
+		)
 	}
-
-	return nil
 }
 
-func waitForNcloudSubnetCreation(config *conn.ProviderConfig, id string) error {
-	stateConf := &resource.StateChangeConf{
+func waitForNcloudSubnetCreation(config *conn.ProviderConfig, id string) (*vpc.Subnet, error) {
+	var subnetInstance *vpc.Subnet
+	stateConf := &sdkresource.StateChangeConf{
 		Pending: []string{"INIT", "CREATING"},
 		Target:  []string{"RUN"},
 		Refresh: func() (interface{}, string, error) {
 			instance, err := GetSubnetInstance(config, id)
+			subnetInstance = instance
 			return VpcCommonStateRefreshFunc(instance, err, "SubnetStatus")
 		},
 		Timeout:    conn.DefaultCreateTimeout,
@@ -227,14 +344,14 @@ func waitForNcloudSubnetCreation(config *conn.ProviderConfig, id string) error {
 	}
 
 	if _, err := stateConf.WaitForState(); err != nil {
-		return fmt.Errorf("Error waiting for Subnet (%s) to become available: %s", id, err)
+		return nil, fmt.Errorf("Error waiting for Subnet (%s) to become available: %s", id, err)
 	}
 
-	return nil
+	return subnetInstance, nil
 }
 
 func waitForNcloudNetworkACLUpdate(config *conn.ProviderConfig, id string) error {
-	stateConf := &resource.StateChangeConf{
+	stateConf := &sdkresource.StateChangeConf{
 		Pending: []string{"SET"},
 		Target:  []string{"RUN"},
 		Refresh: func() (interface{}, string, error) {
@@ -254,7 +371,7 @@ func waitForNcloudNetworkACLUpdate(config *conn.ProviderConfig, id string) error
 }
 
 func WaitForNcloudSubnetDeletion(config *conn.ProviderConfig, id string) error {
-	stateConf := &resource.StateChangeConf{
+	stateConf := &sdkresource.StateChangeConf{
 		Pending: []string{"RUN", "TERMTING"},
 		Target:  []string{"TERMINATED"},
 		Refresh: func() (interface{}, string, error) {
@@ -279,13 +396,13 @@ func GetSubnetInstance(config *conn.ProviderConfig, id string) (*vpc.Subnet, err
 		SubnetNo:   ncloud.String(id),
 	}
 
-	LogCommonRequest("GetSubnetDetail", reqParams)
+	common.LogCommonRequest("GetSubnetDetail", reqParams)
 	resp, err := config.Client.Vpc.V2Api.GetSubnetDetail(reqParams)
 	if err != nil {
-		LogErrorResponse("GetSubnetDetail", err, reqParams)
+		common.LogErrorResponse("GetSubnetDetail", err, reqParams)
 		return nil, err
 	}
-	LogResponse("GetSubnetDetail", resp)
+	common.LogResponse("GetSubnetDetail", resp)
 
 	if len(resp.SubnetList) > 0 {
 		instance := resp.SubnetList[0]
@@ -293,4 +410,30 @@ func GetSubnetInstance(config *conn.ProviderConfig, id string) (*vpc.Subnet, err
 	}
 
 	return nil, nil
+}
+
+type subnetResourceModel struct {
+	NetworkAclNo types.String `tfsdk:"network_acl_no"`
+	VpcNo        types.String `tfsdk:"vpc_no"`
+	ID           types.String `tfsdk:"id"`
+	Subnet       types.String `tfsdk:"subnet"`
+	Zone         types.String `tfsdk:"zone""`
+	SubnetType   types.String `tfsdk:"subnet_type"`
+	UsageType    types.String `tfsdk:"usage_type"`
+	Name         types.String `tfsdk:"name"`
+	SubnetNo     types.String `tfsdk:"subnet_no"`
+}
+
+func (m *subnetResourceModel) refreshFromOutput(output *vpc.Subnet) error {
+	m.ID = types.StringPointerValue(output.SubnetNo)
+	m.SubnetNo = types.StringPointerValue(output.SubnetNo)
+	m.VpcNo = types.StringPointerValue(output.VpcNo)
+	m.Zone = types.StringPointerValue(output.ZoneCode)
+	m.Name = types.StringPointerValue(output.SubnetName)
+	m.Subnet = types.StringPointerValue(output.Subnet)
+	m.SubnetType = types.StringPointerValue(output.SubnetType.Code)
+	m.UsageType = types.StringPointerValue(output.UsageType.Code)
+	m.NetworkAclNo = types.StringPointerValue(output.NetworkAclNo)
+
+	return nil
 }

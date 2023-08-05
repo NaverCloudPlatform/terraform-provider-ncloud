@@ -7,7 +7,7 @@ import (
 	"testing"
 
 	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/services/vpc"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
+	sdkacctest "github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 
@@ -18,7 +18,7 @@ import (
 
 func TestAccResourceNcloudSubnet_basic(t *testing.T) {
 	var subnet vpc.Subnet
-	name := fmt.Sprintf("test-subnet-basic-%s", acctest.RandString(5))
+	name := fmt.Sprintf("test-subnet-basic-%s", sdkacctest.RandString(5))
 	cidr := "10.2.2.0/24"
 	resourceName := "ncloud_subnet.bar"
 
@@ -49,7 +49,7 @@ func TestAccResourceNcloudSubnet_basic(t *testing.T) {
 
 func TestAccResourceNcloudSubnet_disappears(t *testing.T) {
 	var subnet vpc.Subnet
-	name := fmt.Sprintf("test-subnet-disappears-%s", acctest.RandString(5))
+	name := fmt.Sprintf("test-subnet-disappears-%s", sdkacctest.RandString(5))
 	cidr := "10.2.2.0/24"
 	resourceName := "ncloud_subnet.bar"
 
@@ -72,7 +72,7 @@ func TestAccResourceNcloudSubnet_disappears(t *testing.T) {
 
 func TestAccResourceNcloudSubnet_updateName(t *testing.T) {
 	var subnet vpc.Subnet
-	name := fmt.Sprintf("test-subnet-name-%s", acctest.RandString(5))
+	name := fmt.Sprintf("test-subnet-name-%s", sdkacctest.RandString(5))
 	cidr := "10.2.2.0/24"
 	resourceName := "ncloud_subnet.bar"
 
@@ -99,7 +99,7 @@ func TestAccResourceNcloudSubnet_updateName(t *testing.T) {
 
 func TestAccResourceNcloudSubnet_updateNetworkACL(t *testing.T) {
 	var subnet vpc.Subnet
-	name := fmt.Sprintf("test-subnet-update-nacl-%s", acctest.RandString(5))
+	name := fmt.Sprintf("test-subnet-update-nacl-%s", sdkacctest.RandString(5))
 	cidr := "10.2.2.0/24"
 	resourceName := "ncloud_subnet.bar"
 
@@ -125,7 +125,7 @@ func TestAccResourceNcloudSubnet_updateNetworkACL(t *testing.T) {
 }
 
 func TestAccResourceNcloudSubnet_InvalidCIDR(t *testing.T) {
-	name := fmt.Sprintf("test-subnet-update-nacl-%s", acctest.RandString(5))
+	name := fmt.Sprintf("test-subnet-update-nacl-%s", sdkacctest.RandString(5))
 	cidr := "10.3.2.0/24"
 
 	resource.Test(t, resource.TestCase{

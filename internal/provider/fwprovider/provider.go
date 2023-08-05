@@ -67,6 +67,8 @@ func (p *fwprovider) DataSources(ctx context.Context) []func() datasource.DataSo
 
 	dataSources = append(dataSources, vpc.NewVpcDataSource)
 	dataSources = append(dataSources, vpc.NewVpcsDataSource)
+	dataSources = append(dataSources, vpc.NewSubnetDataSource)
+	dataSources = append(dataSources, vpc.NewSubnetsDataSource)
 
 	if err := errs.ErrorOrNil(); err != nil {
 		tflog.Warn(ctx, "registering resources", map[string]interface{}{
@@ -82,6 +84,7 @@ func (p *fwprovider) Resources(ctx context.Context) []func() resource.Resource {
 	var resources []func() resource.Resource
 
 	resources = append(resources, vpc.NewVpcResource)
+	resources = append(resources, vpc.NewSubnetResource)
 
 	if err := errs.ErrorOrNil(); err != nil {
 		tflog.Warn(ctx, "registering resources", map[string]interface{}{
