@@ -47,7 +47,6 @@ func (s *subnetsDataSource) Schema(_ context.Context, _ datasource.SchemaRequest
 				Optional:    true,
 				Description: "List of subnet ID to retrieve",
 			},
-
 			"vpc_no": schema.StringAttribute{
 				Optional:    true,
 				Description: "The VPC ID that you want to filter from",

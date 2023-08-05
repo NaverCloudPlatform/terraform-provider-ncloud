@@ -54,7 +54,9 @@ func (s *subnetDataSource) Schema(_ context.Context, _ datasource.SchemaRequest,
 				Optional: true,
 				Computed: true,
 			},
-
+			"subnet_no": schema.StringAttribute{
+				Computed: true,
+			},
 			"zone": schema.StringAttribute{
 				Optional: true,
 				Computed: true,
@@ -215,7 +217,7 @@ type subnetDataSourceModel struct {
 	Filters      types.Set    `tfsdk:"filter"`
 	ID           types.String `tfsdk:"id"`
 	Subnet       types.String `tfsdk:"subnet"`
-	Zone         types.String `tfsdk:"zone""`
+	Zone         types.String `tfsdk:"zone"`
 	SubnetType   types.String `tfsdk:"subnet_type"`
 	UsageType    types.String `tfsdk:"usage_type"`
 	Name         types.String `tfsdk:"name"`

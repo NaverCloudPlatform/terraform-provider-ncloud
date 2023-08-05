@@ -189,6 +189,7 @@ func (s *subnetResource) Create(ctx context.Context, req resource.CreateRequest,
 	})
 
 	if err != nil {
+		resp.Diagnostics.AddError("fail to create subnet", err.Error())
 		return
 	}
 
