@@ -1,4 +1,4 @@
-package launchconfiguration
+package autoscaling
 
 import (
 	"fmt"
@@ -7,9 +7,11 @@ import (
 	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/services/autoscaling"
 	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/services/vautoscaling"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 
 	. "github.com/terraform-providers/terraform-provider-ncloud/internal/common"
 	"github.com/terraform-providers/terraform-provider-ncloud/internal/conn"
+	. "github.com/terraform-providers/terraform-provider-ncloud/internal/verify"
 )
 
 func ResourceNcloudLaunchConfiguration() *schema.Resource {
@@ -26,10 +28,11 @@ func ResourceNcloudLaunchConfiguration() *schema.Resource {
 				Computed: true,
 			},
 			"name": {
-				Type:     schema.TypeString,
-				Optional: true,
-				Computed: true,
-				ForceNew: true,
+				Type:             schema.TypeString,
+				Optional:         true,
+				Computed:         true,
+				ForceNew:         true,
+				ValidateDiagFunc: ToDiagFunc(validation.StringLenBetween(1, 255)),
 			},
 			"server_image_product_code": {
 				Type:          schema.TypeString,
@@ -67,11 +70,12 @@ func ResourceNcloudLaunchConfiguration() *schema.Resource {
 				ForceNew: true,
 			},
 			"access_control_group_no_list": {
-				Type:     schema.TypeList,
-				Optional: true,
-				Computed: true,
-				Elem:     &schema.Schema{Type: schema.TypeString},
-				ForceNew: true,
+				Type:        schema.TypeList,
+				Optional:    true,
+				Computed:    true,
+				Elem:        &schema.Schema{Type: schema.TypeString},
+				ForceNew:    true,
+				Description: "This parameter cannot be duplicated in classic type.",
 			},
 			"is_encrypted_volume": {
 				Type:     schema.TypeBool,

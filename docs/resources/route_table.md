@@ -1,3 +1,8 @@
+---
+subcategory: "VPC"
+---
+
+
 # Resource: ncloud_route_table
 
 Provides a Route Table resource.
@@ -37,3 +42,11 @@ In addition to all arguments above, the following attributes are exported:
 * `id` - The ID of the Route table.
 * `route_table_no` - The ID of the Route table. (It is the same result as `id`)
 * `is_default` - Whether is default or not by VPC creation.
+
+## Import
+
+Route Table can be imported using id, e.g.,
+
+``` 
+$ terraform import ncloud_route_table.my_route_table id
+```

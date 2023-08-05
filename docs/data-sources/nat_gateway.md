@@ -1,3 +1,8 @@
+---
+subcategory: "VPC"
+---
+
+
 # Data Source: ncloud_nat_gateway
 
 This module can provide useful for get detail of NAT Gateway created before.

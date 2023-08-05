@@ -1,3 +1,8 @@
+---
+subcategory: "Auto Scaling"
+---
+
+
 # Resource: ncloud_auto_scaling_schedule
 
 Provides a ncloud auto scaling schedule resource.
@@ -75,9 +80,9 @@ resource "ncloud_auto_scaling_schedule" "schedule" {
 The following arguments are supported:
 
 * `name` - (Required) Auto Scaling Schedule name to create.
-* `desired_capacity` - (Required) The number of servers is adjusted according to the desired capacity value.
-* `min_size` - (Required) The minimum size of the Auto Scaling Group.
-* `max_size` - (Required) The maximum size of the Auto Scaling Group.
+* `desired_capacity` - (Required) The number of servers is adjusted according to the desired capacity value. Valid from `0` to `30`.
+* `min_size` - (Required) The minimum size of the Auto Scaling Group. Valid from `0` to `30`.
+* `max_size` - (Required) The maximum size of the Auto Scaling Group. Valid from `0` to `30`.
 * `start_time` - (Optional) You can determine the date and time when the schedule first starts. If you don't enter `recurrence`, be sure to enter startTime. It cannot be duplicated with the startTime of another schedule and must be later than the current time, before endTime. Format : `yyyy-MM-ddTHH:mm:ssZ` format in UTC/KST only (for example, 2021-02-02T15:00:00+0900).
 * `end_time` - (Optional) You can determine the date and time when the schedule end. If you don't enter `recurrence`, be sure to enter startTime. 
 It must be a time later than the current time and a time later than the startTime. Format : `yyyy-MM-ddTHH:mm:ssZ` format in UTC/KST only (for example, 2021-02-02T18:00:00+0900).

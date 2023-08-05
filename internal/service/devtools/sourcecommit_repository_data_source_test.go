@@ -16,8 +16,8 @@ func TestAccDataSourceNcloudSourceCommitRepository(t *testing.T) {
 	repositoryDesc := fmt.Sprintf("description of %v", repositoryName)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:  func() { TestAccPreCheck(t) },
-		Providers: GetTestAccProviders(true),
+		PreCheck:                 func() { TestAccPreCheck(t) },
+		ProtoV5ProviderFactories: ProtoV5ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccDataSourceNcloudSourceCommitRepositoryConfig(repositoryName, repositoryDesc),

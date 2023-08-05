@@ -1,3 +1,8 @@
+---
+subcategory: "Server"
+---
+
+
 # Data Source: ncloud_server_products
 
 You should select a server product (server specification) to create a server instance (VM).

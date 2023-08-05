@@ -1,3 +1,8 @@
+---
+subcategory: "Server"
+---
+
+
 # Data Source: ncloud_placement_group
 
 This module can be useful for getting detail of Placement group created before.

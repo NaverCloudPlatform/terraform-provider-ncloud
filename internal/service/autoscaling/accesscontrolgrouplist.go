@@ -1,4 +1,4 @@
-package launchconfiguration
+package autoscaling
 
 import "github.com/NaverCloudPlatform/ncloud-sdk-go-v2/services/autoscaling"
 

@@ -1,3 +1,8 @@
+---
+subcategory: "Server"
+---
+
+
 # Data Source: ncloud_init_script
 
 This module can be useful for getting detail of Init script created before.

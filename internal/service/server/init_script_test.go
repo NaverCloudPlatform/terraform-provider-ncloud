@@ -22,9 +22,9 @@ func TestAccResourceNcloudInitScript_basic(t *testing.T) {
 	resourceName := "ncloud_init_script.foo"
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { TestAccPreCheck(t) },
-		Providers:    GetTestAccProviders(true),
-		CheckDestroy: testAccCheckInitScriptDestroy,
+		PreCheck:                 func() { TestAccPreCheck(t) },
+		ProtoV5ProviderFactories: ProtoV5ProviderFactories,
+		CheckDestroy:             testAccCheckInitScriptDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccResourceNcloudInitScriptConfig(name),
@@ -47,9 +47,9 @@ func TestAccResourceNcloudInitScript_disappears(t *testing.T) {
 	resourceName := "ncloud_init_script.foo"
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { TestAccPreCheck(t) },
-		Providers:    GetTestAccProviders(true),
-		CheckDestroy: testAccCheckInitScriptDestroy,
+		PreCheck:                 func() { TestAccPreCheck(t) },
+		ProtoV5ProviderFactories: ProtoV5ProviderFactories,
+		CheckDestroy:             testAccCheckInitScriptDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccResourceNcloudInitScriptConfig(name),

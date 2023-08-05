@@ -29,9 +29,9 @@ func TestAccNcloudLoadBalancerBasic(t *testing.T) {
 	}
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { TestAccPreCheck(t) },
-		Providers:    GetTestAccProviders(false),
-		CheckDestroy: testAccCheckLoadBalancerDestroy,
+		PreCheck:                 func() { TestAccPreCheck(t) },
+		ProtoV5ProviderFactories: ClassicProtoV5ProviderFactories,
+		CheckDestroy:             testAccCheckLoadBalancerDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccLoadBalancerConfig(testLoadBalancerName),
@@ -65,9 +65,9 @@ func TestAccNcloudLoadBalancerChangeConfiguration(t *testing.T) {
 	testLoadBalancerName := prefix + "_lb"
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { TestAccPreCheck(t) },
-		Providers:    GetTestAccProviders(false),
-		CheckDestroy: testAccCheckLoadBalancerDestroy,
+		PreCheck:                 func() { TestAccPreCheck(t) },
+		ProtoV5ProviderFactories: ClassicProtoV5ProviderFactories,
+		CheckDestroy:             testAccCheckLoadBalancerDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccLoadBalancerConfig(testLoadBalancerName),

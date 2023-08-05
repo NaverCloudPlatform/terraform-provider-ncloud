@@ -1,3 +1,8 @@
+---
+subcategory: "Auto Scaling"
+---
+
+
 # Resource: ncloud_auto_scaling_policy
 
 Provides a ncloud auto scaling policy resource.
@@ -68,7 +73,7 @@ resource "ncloud_auto_scaling_policy" "test-policy-CHANG" {
 
 The following arguments are supported:
 
-* `name` - (Required) Auto Scaling Policy name to create.
+* `name` - (Required) Auto Scaling Policy name to create. Only lowercase alphanumeric characters and non-consecutive hyphens (-) allowed. First character must be a letter, but the last character may be a letter or a number.
 * `adjustment_type_code` - (Required) Determines how the number of servers is scaled when the scaling policy is performed. Valid values are `CHANG`, `EXACT`, and `PRCNT`.
 * `scaling_adjustment` - (Required) Specify the adjustment value for the adjustment type. Enter a negative value to decrease when adjustTypeCode is `CHANG` or `PRCNT`.
 * `cooldown` - (Optional) The cooldown time is the period set to ignore even if the monitoring event alarm occurs after the actual scaling is being performed or is completed.

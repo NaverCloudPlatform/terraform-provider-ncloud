@@ -1,10 +1,15 @@
+---
+subcategory: "Developer Tools"
+---
+
+
 # Resource : ncloud_sourcedeploy_project_stage_scenario
 
 ~> **Note** This resource only supports 'public' site.
 
 -> **Note:** This resource is a beta release. Some features may change in the future.
 
-This resource is useful for look up the list of Sourcedeploy scenario in the region.
+This resource is useful for look up the list of SourceDeploy Scenario in the region.
 
 ## Example Usage
 
@@ -178,4 +183,6 @@ The following arguments are supported:
 
 SourceDeploy scenario can be imported using the project_id, stage_id, scenario_id separated by a colon (:), e.g.,
 
+```
 $ terraform import ncloud_sourcedeploy_project_stage_scenario.my_scenario project_id:stage_id:scenario_id
+```

@@ -1,3 +1,8 @@
+---
+subcategory: "VPC"
+---
+
+
 # Data Source: ncloud_route_table
 
 This module can be useful for getting detail of Route Table created before.

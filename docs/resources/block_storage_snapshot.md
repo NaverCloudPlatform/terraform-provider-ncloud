@@ -1,6 +1,11 @@
+---
+subcategory: "Server"
+---
+
+
 # Resource: ncloud_block_storage
 
-Provides a ncloud block storage snapshot resource.
+Provides a ncloud Block Storage Snapshot resource.
 
 ~> **NOTE:** This resource only supports Classic environment.
 
@@ -34,3 +39,11 @@ The following arguments are supported:
 * `create_date` - Creation date of the block storage snapshot instance
 * `server_image_product_code` - Server Image Product Code
 * `os_information` - OS Information
+
+## Import
+
+Block Storage Snapshot can be imported using id, e.g.,
+
+```
+$ terraform import ncloud_block_storage_snapshot.my_snapshot id
+```
