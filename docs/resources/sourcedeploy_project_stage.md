@@ -9,7 +9,7 @@ subcategory: "Developer Tools"
 
 -> **Note:** This resource is a beta release. Some features may change in the future.
 
-Provides a Sourcedeploy stage resource.
+Provides a SourceDeploy Stage resource.
 
 ## Example Usage
 
@@ -81,4 +81,6 @@ The following arguments are supported:
 
 SourceDeploy stage can be imported using the project_id and stage_id separated by a colon (:), e.g.,
 
+```
 $ terraform import ncloud_sourcedeploy_project_stage.my_stage project_id:stage_id
+```

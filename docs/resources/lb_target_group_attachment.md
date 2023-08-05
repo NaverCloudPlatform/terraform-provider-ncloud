@@ -7,6 +7,8 @@ subcategory: "Load Balancer"
 
 Provides a Target Group Attachment resource.
 
+~> **NOTE:** This resource only supports VPC environment.
+
 ## Example Usage
 ```hcl
 resource "ncloud_server" "test" {

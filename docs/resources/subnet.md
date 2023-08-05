@@ -48,3 +48,11 @@ In addition to all arguments above, the following attributes are exported:
 * `id` - The ID of Subnet.
 * `subnet_no` - The ID of the Subnet. (It is the same result as `id`)
 * `vpc_no` - The ID of VPC. 
+
+## Import
+
+Subnet can be imported using id, e.g.,
+
+``` 
+$ terraform import ncloud_subnet.my_subnet id
+```

@@ -35,3 +35,11 @@ The following arguments are supported:
 * `id` - The ID of ACG(Access Control Group)
 * `access_control_group_no` - The ID of ACG(Access Control Group) (It is the same result as `id`)
 * `is_default` - Whether is default or not by VPC creation.
+
+## Import
+
+Access Control Group can be imported using id, e.g.,
+
+```
+$ terraform import ncloud_access_control_group.my_acg id
+```

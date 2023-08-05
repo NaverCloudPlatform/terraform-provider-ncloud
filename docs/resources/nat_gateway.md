@@ -5,7 +5,7 @@ subcategory: "VPC"
 
 # Resource: ncloud_nat_gateway
 
-Provides a NAT gateway resource.
+Provides a NAT Gateway resource.
 
 ~> **NOTE:** This resource only supports VPC environment.
 
@@ -84,4 +84,6 @@ In addition to all arguments above, the following attributes are exported:
 
 NAT Gateway can be imported using the id, e.g.,
 
+```
 $ terraform import ncloud_nat_gateway.my_nat_gateway id
+```
