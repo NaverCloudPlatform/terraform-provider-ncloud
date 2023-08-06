@@ -1,3 +1,8 @@
+---
+subcategory: "Server"
+---
+
+
 # Data Source: ncloud_access_control_groups
 
 When creating a server instance (VM), you can add an ACG(Access Control Group) that you specified to set firewalls. This data source gets a list of access control groups necessary to set firewalls.

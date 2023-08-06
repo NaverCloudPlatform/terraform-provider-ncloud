@@ -1,3 +1,8 @@
+---
+subcategory: "Server"
+---
+
+
 # Data Source: ncloud_port_forwarding_rules
 
 Gets a list of port forwarding rules.

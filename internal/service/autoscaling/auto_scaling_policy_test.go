@@ -22,8 +22,8 @@ func TestAccResourceNcloudAutoScalingPolicy_classic_basic(t *testing.T) {
 	resourceEXACT := "ncloud_auto_scaling_policy.test-policy-EXACT"
 	resourcePRCNT := "ncloud_auto_scaling_policy.test-policy-PRCNT"
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:  func() { TestAccPreCheck(t) },
-		Providers: GetTestAccProviders(false),
+		PreCheck:                 func() { TestAccPreCheck(t) },
+		ProtoV5ProviderFactories: ClassicProtoV5ProviderFactories,
 		CheckDestroy: func(state *terraform.State) error {
 			return testAccCheckNcloudAutoScalingPolicyDestroy(state, GetTestProvider(false))
 		},
@@ -59,8 +59,8 @@ func TestAccResourceNcloudAutoScalingPolicy_vpc_basic(t *testing.T) {
 	resourcePRCNT := "ncloud_auto_scaling_policy.test-policy-PRCNT"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:  func() { TestAccPreCheck(t) },
-		Providers: GetTestAccProviders(true),
+		PreCheck:                 func() { TestAccPreCheck(t) },
+		ProtoV5ProviderFactories: ProtoV5ProviderFactories,
 		CheckDestroy: func(state *terraform.State) error {
 			return testAccCheckNcloudAutoScalingPolicyDestroy(state, GetTestProvider(true))
 		},
@@ -95,8 +95,8 @@ func TestAccResourceNcloudAutoScalingPolicy_classic_disappears(t *testing.T) {
 	resourceEXACT := "ncloud_auto_scaling_policy.test-policy-EXACT"
 	resourcePRCNT := "ncloud_auto_scaling_policy.test-policy-PRCNT"
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:  func() { TestAccPreCheck(t) },
-		Providers: GetTestAccProviders(false),
+		PreCheck:                 func() { TestAccPreCheck(t) },
+		ProtoV5ProviderFactories: ClassicProtoV5ProviderFactories,
 		CheckDestroy: func(state *terraform.State) error {
 			return testAccCheckNcloudAutoScalingPolicyDestroy(state, GetTestProvider(false))
 		},
@@ -125,8 +125,8 @@ func TestAccResourceNcloudAutoScalingPolicy_vpc_disappears(t *testing.T) {
 	resourceEXACT := "ncloud_auto_scaling_policy.test-policy-EXACT"
 	resourcePRCNT := "ncloud_auto_scaling_policy.test-policy-PRCNT"
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:  func() { TestAccPreCheck(t) },
-		Providers: GetTestAccProviders(true),
+		PreCheck:                 func() { TestAccPreCheck(t) },
+		ProtoV5ProviderFactories: ProtoV5ProviderFactories,
 		CheckDestroy: func(state *terraform.State) error {
 			return testAccCheckNcloudAutoScalingPolicyDestroy(state, GetTestProvider(true))
 		},

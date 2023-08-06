@@ -1,6 +1,11 @@
+---
+subcategory: "Kubernetes Service"
+---
+
+
 # Resource: ncloud_nks_cluster
 
-Provides a Kubernetes Service cluster resource.
+Provides a Kubernetes Service Cluster resource.
 
 ## Example Usage
 
@@ -105,7 +110,7 @@ In addition to all arguments above, the following attributes are exported:
 
 ## Import
 
-Kubernetes Service Cluster can be imported using the name, e.g.,
+Kubernetes Service Cluster can be imported using the uuid(cluster_name), e.g.,
 
 $ terraform import ncloud_nks_cluster.my_cluster uuid
 

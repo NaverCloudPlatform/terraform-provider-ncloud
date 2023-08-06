@@ -1,3 +1,8 @@
+---
+subcategory: "Cloud Data Streaming Service"
+---
+
+
 # Data Source: ncloud_cdss_kafka_version
 
 ## Example Usage

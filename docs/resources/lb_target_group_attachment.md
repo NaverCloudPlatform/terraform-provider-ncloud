@@ -1,6 +1,13 @@
+---
+subcategory: "Load Balancer"
+---
+
+
 # Resource: ncloud_lb_target_group_attachment
 
 Provides a Target Group Attachment resource.
+
+~> **NOTE:** This resource only supports VPC environment.
 
 ## Example Usage
 ```hcl

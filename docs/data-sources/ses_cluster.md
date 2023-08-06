@@ -1,3 +1,8 @@
+---
+subcategory: "Search Engine Service"
+---
+
+
 # Data Source: ncloud_ses_cluster
 
 Provides a Search Engine Service cluster data.

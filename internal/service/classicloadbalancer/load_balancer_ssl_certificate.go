@@ -1,6 +1,7 @@
 package classicloadbalancer
 
 import (
+	"fmt"
 	"log"
 
 	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/ncloud"
@@ -72,6 +73,10 @@ func resourceNcloudLoadBalancerSSLCertificateCreate(d *schema.ResourceData, meta
 	}
 
 	LogCommonResponse("AddLoadBalancerSslCertificate", GetCommonResponse(resp))
+
+	if len(resp.SslCertificateList) == 0 {
+		return fmt.Errorf("no SSL certificate found in the API response")
+	}
 
 	cert := resp.SslCertificateList[0]
 	d.SetId(*cert.CertificateName)

@@ -1,3 +1,8 @@
+---
+subcategory: "Server"
+---
+
+
 # Data Source: ncloud_root_password
 
 Gets the password of a root account with the server's login key.

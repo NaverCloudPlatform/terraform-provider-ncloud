@@ -1,3 +1,8 @@
+---
+subcategory: "Auto Scaling"
+---
+
+
 # Data Source: ncloud_launch_configuration
 
 This module can be useful for getting detail of Launch Configuration created before.
