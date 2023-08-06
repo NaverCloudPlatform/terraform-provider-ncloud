@@ -42,7 +42,9 @@ func (s *subnetsDataSource) Metadata(_ context.Context, req datasource.MetadataR
 func (s *subnetsDataSource) Schema(_ context.Context, _ datasource.SchemaRequest, resp *datasource.SchemaResponse) {
 	resp.Schema = schema.Schema{
 		Attributes: map[string]schema.Attribute{
-			"id": framework.IDAttribute(),
+			"id": schema.StringAttribute{
+				Computed: true,
+			},
 			"subnet_no": schema.ListAttribute{
 				ElementType: types.StringType,
 				Optional:    true,
@@ -109,7 +111,7 @@ func (s *subnetsDataSource) Schema(_ context.Context, _ datasource.SchemaRequest
 						"usage_type": schema.StringAttribute{
 							Computed: true,
 						},
-						"subnet_no": schema.ListAttribute{
+						"subnet_no": schema.StringAttribute{
 							Computed: true,
 						},
 					},
@@ -157,8 +159,11 @@ func (s *subnetsDataSource) Read(ctx context.Context, req datasource.ReadRequest
 		RegionCode: &s.config.RegionCode,
 	}
 
-	if !data.ID.IsNull() && !data.ID.IsUnknown() {
-		reqParams.SubnetNoList = []*string{data.ID.ValueStringPointer()}
+	if !data.SubnetNo.IsNull() {
+		for _, subnetNo := range data.SubnetNo.Elements() {
+			subnetStr := subnetNo.String()
+			reqParams.SubnetNoList = append(reqParams.SubnetNoList, &subnetStr)
+		}
 	}
 
 	if !data.VpcNo.IsNull() && !data.VpcNo.IsUnknown() {
@@ -220,7 +225,7 @@ func (s *subnetsDataSource) Read(ctx context.Context, req datasource.ReadRequest
 type subnetsDataSourceModel struct {
 	Filters      types.Set    `tfsdk:"filter"`
 	ID           types.String `tfsdk:"id"`
-	SubnetNo     types.String `tfsdk:"subnet_no"`
+	SubnetNo     types.List   `tfsdk:"subnet_no"`
 	VpcNo        types.String `tfsdk:"vpc_no"`
 	Subnet       types.String `tfsdk:"subnet"`
 	Zone         types.String `tfsdk:"zone"`
