@@ -64,7 +64,6 @@ func (s *subnetResource) Schema(_ context.Context, _ resource.SchemaRequest, res
 				Description: "Subnet name to create. default: Assigned by NAVER CLOUD PLATFORM",
 			},
 			"id": framework.IDAttribute(),
-
 			"vpc_no": schema.StringAttribute{
 				Required: true,
 				PlanModifiers: []planmodifier.String{

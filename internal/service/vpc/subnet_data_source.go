@@ -43,7 +43,6 @@ func (s *subnetDataSource) Schema(_ context.Context, _ datasource.SchemaRequest,
 				Computed: true,
 			},
 			"name": schema.StringAttribute{
-				Optional: true,
 				Computed: true,
 			},
 			"vpc_no": schema.StringAttribute{
@@ -137,19 +136,19 @@ func (s *subnetDataSource) Read(ctx context.Context, req datasource.ReadRequest,
 	}
 
 	if !data.Zone.IsNull() && !data.Zone.IsUnknown() {
-		reqParams.ZoneCode = data.VpcNo.ValueStringPointer()
+		reqParams.ZoneCode = data.Zone.ValueStringPointer()
 	}
 
 	if !data.NetworkAclNo.IsNull() && !data.NetworkAclNo.IsUnknown() {
-		reqParams.NetworkAclNo = data.VpcNo.ValueStringPointer()
+		reqParams.NetworkAclNo = data.NetworkAclNo.ValueStringPointer()
 	}
 
 	if !data.SubnetType.IsNull() && !data.SubnetType.IsUnknown() {
-		reqParams.SubnetTypeCode = data.VpcNo.ValueStringPointer()
+		reqParams.SubnetTypeCode = data.SubnetType.ValueStringPointer()
 	}
 
 	if !data.UsageType.IsNull() && !data.UsageType.IsUnknown() {
-		reqParams.UsageTypeCode = data.VpcNo.ValueStringPointer()
+		reqParams.UsageTypeCode = data.UsageType.ValueStringPointer()
 	}
 
 	tflog.Info(ctx, "GetSubnetList", map[string]any{
@@ -226,10 +225,6 @@ type subnetDataSourceModel struct {
 
 func (d *subnetDataSourceModel) refreshFromOutput(output *vpc.Subnet, config *conn.ProviderConfig) diag.Diagnostics {
 	var diags diag.Diagnostics
-
-	if diags.HasError() {
-		return diags
-	}
 
 	d.ID = types.StringPointerValue(output.SubnetNo)
 	d.SubnetNo = types.StringPointerValue(output.SubnetNo)

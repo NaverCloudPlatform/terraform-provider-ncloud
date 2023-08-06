@@ -43,7 +43,7 @@ func (s *subnetsDataSource) Schema(_ context.Context, _ datasource.SchemaRequest
 		Attributes: map[string]schema.Attribute{
 			"id": framework.IDAttribute(),
 
-			"subnet_no": schema.StringAttribute{
+			"subnet_no": schema.ListAttribute{
 				Optional:    true,
 				Description: "List of subnet ID to retrieve",
 			},
@@ -169,19 +169,19 @@ func (s *subnetsDataSource) Read(ctx context.Context, req datasource.ReadRequest
 	}
 
 	if !data.Zone.IsNull() && !data.Zone.IsUnknown() {
-		reqParams.ZoneCode = data.VpcNo.ValueStringPointer()
+		reqParams.ZoneCode = data.Zone.ValueStringPointer()
 	}
 
 	if !data.NetworkAclNo.IsNull() && !data.NetworkAclNo.IsUnknown() {
-		reqParams.NetworkAclNo = data.VpcNo.ValueStringPointer()
+		reqParams.NetworkAclNo = data.NetworkAclNo.ValueStringPointer()
 	}
 
 	if !data.SubnetType.IsNull() && !data.SubnetType.IsUnknown() {
-		reqParams.SubnetTypeCode = data.VpcNo.ValueStringPointer()
+		reqParams.SubnetTypeCode = data.SubnetType.ValueStringPointer()
 	}
 
 	if !data.UsageType.IsNull() && !data.UsageType.IsUnknown() {
-		reqParams.UsageTypeCode = data.VpcNo.ValueStringPointer()
+		reqParams.UsageTypeCode = data.UsageType.ValueStringPointer()
 	}
 
 	tflog.Info(ctx, "GetSubnetList", map[string]any{
