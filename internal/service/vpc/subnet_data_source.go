@@ -18,8 +18,8 @@ import (
 )
 
 var (
-	_ datasource.DataSource = &subnetDataSource{}
-	_ datasource.DataSource = &subnetDataSource{}
+	_ datasource.DataSource              = &subnetDataSource{}
+	_ datasource.DataSourceWithConfigure = &subnetDataSource{}
 )
 
 func NewSubnetDataSource() datasource.DataSource {

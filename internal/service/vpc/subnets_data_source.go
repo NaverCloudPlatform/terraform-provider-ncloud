@@ -3,9 +3,11 @@ package vpc
 import (
 	"context"
 	"fmt"
+	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
+	"time"
+
 	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/services/vpc"
 	"github.com/hashicorp/terraform-plugin-framework-validators/setvalidator"
-	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
@@ -14,15 +16,14 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 	"github.com/terraform-providers/terraform-provider-ncloud/internal/framework"
-	"time"
 
 	"github.com/terraform-providers/terraform-provider-ncloud/internal/common"
 	"github.com/terraform-providers/terraform-provider-ncloud/internal/conn"
 )
 
 var (
-	_ datasource.DataSource = &subnetsDataSource{}
-	_ datasource.DataSource = &subnetsDataSource{}
+	_ datasource.DataSource              = &subnetsDataSource{}
+	_ datasource.DataSourceWithConfigure = &subnetsDataSource{}
 )
 
 func NewSubnetsDataSource() datasource.DataSource {
@@ -42,8 +43,8 @@ func (s *subnetsDataSource) Schema(_ context.Context, _ datasource.SchemaRequest
 	resp.Schema = schema.Schema{
 		Attributes: map[string]schema.Attribute{
 			"id": framework.IDAttribute(),
-
 			"subnet_no": schema.ListAttribute{
+				ElementType: types.StringType,
 				Optional:    true,
 				Description: "List of subnet ID to retrieve",
 			},
@@ -71,7 +72,7 @@ func (s *subnetsDataSource) Schema(_ context.Context, _ datasource.SchemaRequest
 				Description: "Internet Gateway Only. PUBLC(Yes/Public), PRIVATE(No/Private).",
 			},
 			"usage_type": schema.StringAttribute{
-				Computed: true,
+				Optional: true,
 				Validators: []validator.String{
 					stringvalidator.OneOf([]string{"GEN", "LOADB", "BM", "NATGW"}...),
 				},
@@ -108,7 +109,7 @@ func (s *subnetsDataSource) Schema(_ context.Context, _ datasource.SchemaRequest
 						"usage_type": schema.StringAttribute{
 							Computed: true,
 						},
-						"subnet_no": schema.StringAttribute{
+						"subnet_no": schema.ListAttribute{
 							Computed: true,
 						},
 					},
@@ -141,7 +142,7 @@ func (s *subnetsDataSource) Read(ctx context.Context, req datasource.ReadRequest
 	if !s.config.SupportVPC {
 		resp.Diagnostics.AddError(
 			"Not Supported Classic",
-			"subnet data source does not supported in classic",
+			"subnets data source does not supported in classic",
 		)
 		return
 	}
