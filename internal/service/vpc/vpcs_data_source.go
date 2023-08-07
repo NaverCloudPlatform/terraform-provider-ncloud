@@ -41,7 +41,9 @@ func (v *vpcsDataSource) Metadata(_ context.Context, req datasource.MetadataRequ
 func (v *vpcsDataSource) Schema(_ context.Context, _ datasource.SchemaRequest, resp *datasource.SchemaResponse) {
 	resp.Schema = schema.Schema{
 		Attributes: map[string]schema.Attribute{
-			"id": framework.IDAttribute(),
+			"id": schema.StringAttribute{
+				Computed: true,
+			},
 			"name": schema.StringAttribute{
 				Optional: true,
 			},
@@ -124,8 +126,8 @@ func (v *vpcsDataSource) Read(ctx context.Context, req datasource.ReadRequest, r
 		RegionCode: &v.config.RegionCode,
 	}
 
-	if !data.ID.IsNull() && !data.ID.IsUnknown() {
-		reqParams.VpcNoList = []*string{data.ID.ValueStringPointer()}
+	if !data.VpcNo.IsNull() && !data.VpcNo.IsUnknown() {
+		reqParams.VpcNoList = []*string{data.VpcNo.ValueStringPointer()}
 	}
 	if !data.Name.IsNull() && !data.Name.IsUnknown() {
 		reqParams.VpcName = data.Name.ValueStringPointer()
