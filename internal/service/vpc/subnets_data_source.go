@@ -3,11 +3,12 @@ package vpc
 import (
 	"context"
 	"fmt"
-	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"time"
 
+	"github.com/hashicorp/terraform-plugin-framework-validators/listvalidator"
+	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
+
 	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/services/vpc"
-	"github.com/hashicorp/terraform-plugin-framework-validators/setvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
@@ -83,9 +84,9 @@ func (s *subnetsDataSource) Schema(_ context.Context, _ datasource.SchemaRequest
 		},
 		Blocks: map[string]schema.Block{
 			"filter": common.DataSourceFiltersBlock(),
-			"subnets": schema.SetNestedBlock{
-				Validators: []validator.Set{
-					setvalidator.SizeAtLeast(1),
+			"subnets": schema.ListNestedBlock{
+				Validators: []validator.List{
+					listvalidator.SizeAtLeast(1),
 				},
 				NestedObject: schema.NestedBlockObject{
 					Attributes: map[string]schema.Attribute{
@@ -232,7 +233,7 @@ type subnetsDataSourceModel struct {
 	NetworkAclNo types.String `tfsdk:"network_acl_no"`
 	SubnetType   types.String `tfsdk:"subnet_type"`
 	UsageType    types.String `tfsdk:"usage_type"`
-	Subnets      types.Set    `tfsdk:"subnets"`
+	Subnets      types.List   `tfsdk:"subnets"`
 }
 
 func (d *subnetsDataSourceModel) refreshFromSubnetOutputModel(ctx context.Context, subnetModels []*subnetDataSourceModel, config *conn.ProviderConfig) diag.Diagnostics {
@@ -257,7 +258,7 @@ func (d *subnetsDataSourceModel) refreshFromSubnetOutputModel(ctx context.Contex
 
 		elems = append(elems, objVal)
 	}
-	setVal, di := types.SetValue(elemType, elems)
+	setVal, di := types.ListValue(elemType, elems)
 	diags.Append(di...)
 
 	if diags.HasError() {
