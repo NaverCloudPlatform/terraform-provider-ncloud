@@ -22,8 +22,8 @@ func TestAccResourceNcloudBlockStorage_classic_basic(t *testing.T) {
 	resourceName := "ncloud_block_storage.storage"
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:  func() { TestAccPreCheck(t) },
-		Providers: GetTestAccProviders(false),
+		PreCheck:                 func() { TestAccPreCheck(t) },
+		ProtoV5ProviderFactories: ClassicProtoV5ProviderFactories,
 		CheckDestroy: func(state *terraform.State) error {
 			return testAccCheckBlockStorageDestroyWithProvider(state, GetTestProvider(false))
 		},
@@ -33,7 +33,7 @@ func TestAccResourceNcloudBlockStorage_classic_basic(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckBlockStorageExistsWithProvider(resourceName, &storageInstance, GetTestProvider(false)),
 					resource.TestMatchResourceAttr(resourceName, "id", regexp.MustCompile(`^\d+$`)),
-					resource.TestCheckResourceAttr(resourceName, "name", name),
+					resource.TestCheckResourceAttr(resourceName, "name", name+"-tf"),
 					resource.TestCheckResourceAttr(resourceName, "status", "ATTAC"),
 					resource.TestCheckResourceAttr(resourceName, "size", "10"),
 					resource.TestCheckResourceAttr(resourceName, "type", "SVRBS"),
@@ -47,9 +47,10 @@ func TestAccResourceNcloudBlockStorage_classic_basic(t *testing.T) {
 				),
 			},
 			{
-				ResourceName:      resourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
+				ResourceName:            resourceName,
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"stop_instance_before_detaching"},
 			},
 		},
 	})
@@ -61,18 +62,16 @@ func TestAccResourceNcloudBlockStorage_vpc_basic(t *testing.T) {
 	resourceName := "ncloud_block_storage.storage"
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:  func() { TestAccPreCheck(t) },
-		Providers: GetTestAccProviders(true),
-		CheckDestroy: func(state *terraform.State) error {
-			return testAccCheckBlockStorageDestroyWithProvider(state, GetTestProvider(true))
-		},
+		PreCheck:                 func() { TestAccPreCheck(t) },
+		ProtoV5ProviderFactories: ProtoV5ProviderFactories,
+		CheckDestroy:             testAccCheckBlockStorageDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccBlockStorageVpcConfig(name),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckBlockStorageExistsWithProvider(resourceName, &storageInstance, GetTestProvider(true)),
 					resource.TestMatchResourceAttr(resourceName, "id", regexp.MustCompile(`^\d+$`)),
-					resource.TestCheckResourceAttr(resourceName, "name", name+"tf"),
+					resource.TestCheckResourceAttr(resourceName, "name", name+"-tf"),
 					resource.TestCheckResourceAttr(resourceName, "status", "ATTAC"),
 					resource.TestCheckResourceAttr(resourceName, "size", "10"),
 					resource.TestCheckResourceAttr(resourceName, "type", "SVRBS"),
@@ -86,9 +85,10 @@ func TestAccResourceNcloudBlockStorage_vpc_basic(t *testing.T) {
 				),
 			},
 			{
-				ResourceName:      resourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
+				ResourceName:            resourceName,
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"stop_instance_before_detaching"},
 			},
 		},
 	})
@@ -100,8 +100,8 @@ func TestAccResourceNcloudBlockStorage_classic_ChangeServerInstance(t *testing.T
 	resourceName := "ncloud_block_storage.storage"
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:  func() { TestAccPreCheck(t) },
-		Providers: GetTestAccProviders(false),
+		PreCheck:                 func() { TestAccPreCheck(t) },
+		ProtoV5ProviderFactories: ClassicProtoV5ProviderFactories,
 		CheckDestroy: func(state *terraform.State) error {
 			return testAccCheckBlockStorageDestroyWithProvider(state, GetTestProvider(false))
 		},
@@ -128,11 +128,9 @@ func TestAccResourceNcloudBlockStorage_vpc_ChangeServerInstance(t *testing.T) {
 	resourceName := "ncloud_block_storage.storage"
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:  func() { TestAccPreCheck(t) },
-		Providers: GetTestAccProviders(true),
-		CheckDestroy: func(state *terraform.State) error {
-			return testAccCheckBlockStorageDestroyWithProvider(state, GetTestProvider(true))
-		},
+		PreCheck:                 func() { TestAccPreCheck(t) },
+		ProtoV5ProviderFactories: ProtoV5ProviderFactories,
+		CheckDestroy:             testAccCheckBlockStorageDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccBlockStorageVpcConfigUpdate(name, "ncloud_server.foo.id"),
@@ -156,8 +154,8 @@ func TestAccResourceNcloudBlockStorage_classic_size(t *testing.T) {
 	resourceName := "ncloud_block_storage.storage"
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:  func() { TestAccPreCheck(t) },
-		Providers: GetTestAccProviders(false),
+		PreCheck:                 func() { TestAccPreCheck(t) },
+		ProtoV5ProviderFactories: ClassicProtoV5ProviderFactories,
 		CheckDestroy: func(state *terraform.State) error {
 			return testAccCheckBlockStorageDestroyWithProvider(state, GetTestProvider(false))
 		},
@@ -204,11 +202,9 @@ func TestAccResourceNcloudBlockStorage_vpc_size(t *testing.T) {
 	resourceName := "ncloud_block_storage.storage"
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:  func() { TestAccPreCheck(t) },
-		Providers: GetTestAccProviders(true),
-		CheckDestroy: func(state *terraform.State) error {
-			return testAccCheckBlockStorageDestroyWithProvider(state, GetTestProvider(true))
-		},
+		PreCheck:                 func() { TestAccPreCheck(t) },
+		ProtoV5ProviderFactories: ProtoV5ProviderFactories,
+		CheckDestroy:             testAccCheckBlockStorageDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccBlockStorageVpcConfigWithSize(name, 10),
@@ -227,7 +223,7 @@ func TestAccResourceNcloudBlockStorage_vpc_size(t *testing.T) {
 			{
 				Config: testAccBlockStorageVpcConfigWithSize(name, 10),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckBlockStorageExistsWithProvider(resourceName, &storageInstance, GetTestProvider(false)),
+					testAccCheckBlockStorageExistsWithProvider(resourceName, &storageInstance, GetTestProvider(true)),
 				),
 				ExpectError: regexp.MustCompile("The storage size is only expandable, not shrinking."),
 			},
@@ -272,6 +268,10 @@ func testAccCheckBlockStorageExistsWithProvider(n string, i *server.BlockStorage
 	}
 }
 
+func testAccCheckBlockStorageDestroy(s *terraform.State) error {
+	return testAccCheckBlockStorageDestroyWithProvider(s, GetTestProvider(true))
+}
+
 func testAccCheckBlockStorageDestroyWithProvider(s *terraform.State, provider *schema.Provider) error {
 	config := provider.Meta().(*conn.ProviderConfig)
 
@@ -310,7 +310,7 @@ resource "ncloud_server" "server" {
 
 resource "ncloud_block_storage" "storage" {
     server_instance_no = ncloud_server.server.id
-    name = "%[1]s"
+    name = "%[1]s-tf"
     size = "%[2]d"
 }
 `, name, size)
@@ -383,7 +383,7 @@ resource "ncloud_server" "bar" {
 
 resource "ncloud_block_storage" "storage" {
 	server_instance_no =  %[2]s
-	name = "%[1]s"
+	name = "%[1]s-tf"
 	size = "10"
 }
 `, name, serverInstanceNo)
