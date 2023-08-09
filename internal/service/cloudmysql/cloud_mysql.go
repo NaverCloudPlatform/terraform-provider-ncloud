@@ -149,10 +149,10 @@ func ResourceNcloudMySql() *schema.Resource {
 				Default:  true,
 			},
 			"port": {
-				Type:     schema.TypeInt,
-				Optional: true,
-				Computed: true,
-				ForceNew: true,
+				Type:        schema.TypeInt,
+				Optional:    true,
+				Computed:    true,
+				ForceNew:    true,
 				Description: "default: 3306",
 			},
 			"standby_master_subnet_no": {
@@ -177,6 +177,10 @@ func ResourceNcloudMySql() *schema.Resource {
 				Computed: true,
 				ForceNew: true,
 			},
+			"mysql_no": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
 		},
 	}
 }
@@ -199,19 +203,20 @@ func resourceNcloudMySqlCreate(d *schema.ResourceData, meta interface{}) error {
 func resourceNcloudMySqlRead(d *schema.ResourceData, meta interface{}) error {
 	config := meta.(*conn.ProviderConfig)
 
-	rs, err := GetMysqlInstance(config, d.Id())
+	instance, err := GetMysqlInstance(config, d.Id())
 	if err != nil {
 		return nil
 	}
 
-	if rs == nil {
+	if instance == nil {
 		d.SetId("")
 		return nil
 	}
 
-	instance := ConvertToMap(rs)
+	d.SetId(ncloud.StringValue(instance.CloudMysqlInstanceNo))
 
-	SetSingularResourceDataFromMapSchema(ResourceNcloudMySql(), d, instance)
+	convertedInstance := ConvertToMap(instance)
+	SetSingularResourceDataFromMapSchema(ResourceNcloudMySql(), d, convertedInstance)
 
 	return nil
 }
@@ -222,11 +227,6 @@ func resourceNcloudMySqlDelete(d *schema.ResourceData, meta interface{}) error {
 	if err := deleteMysqlInstacne(config, d.Id()); err != nil {
 		return err
 	}
-
-	//When an API is developed, uncomment below. and erase `time.Sleep(5 * time.Minute)`
-	//if err := WaitForNcloudMysqlDeletion(config, d.Id()); err != nil {
-	//	return err
-	//}
 
 	time.Sleep(3 * time.Minute)
 	d.SetId("")
@@ -389,7 +389,23 @@ func waitStateNcloudMysqlForCreation(config *conn.ProviderConfig, id string) err
 			if err != nil {
 				return 0, "", err
 			}
-			return instance, ncloud.StringValue(instance.CloudMysqlInstanceStatusName), nil
+
+			status := instance.CloudMysqlInstanceStatus.Code
+			op := instance.CloudMysqlInstanceOperation.Code
+
+			if *status == "INIT" && *op == "CREAT" {
+				return instance, "creating", nil
+			}
+
+			if *status == "CREAT" && *op == "SETUP" {
+				return instance, "settingUp", nil
+			}
+
+			if *status == "CREAT" && *op == "NULL" {
+				return instance, "running", nil
+			}
+
+			return 0, "", fmt.Errorf("error occurred while waiting to create mysql")
 		},
 		Timeout:    6 * conn.DefaultTimeout,
 		Delay:      2 * time.Second,
@@ -398,30 +414,6 @@ func waitStateNcloudMysqlForCreation(config *conn.ProviderConfig, id string) err
 	_, err := stateConf.WaitForState()
 	if err != nil {
 		return fmt.Errorf("error waiting for MysqlInstance state to be \"CREAT\": %s", err)
-	}
-
-	return nil
-}
-
-func WaitForNcloudMysqlDeletion(config *conn.ProviderConfig, id string) error {
-	stateConf := &resource.StateChangeConf{
-		Pending: []string{"INIT", "CREAT"},
-		Target:  []string{"DEL"},
-		Refresh: func() (interface{}, string, error) {
-			instance, err := GetMysqlInstance(config, id)
-			if err != nil {
-				return 0, "", err
-			}
-			return instance, ncloud.StringValue(instance.CloudMysqlInstanceStatus.Code), nil
-		},
-
-		Timeout:    conn.DefaultTimeout,
-		Delay:      2 * time.Second,
-		MinTimeout: 3 * time.Second,
-	}
-	_, err := stateConf.WaitForState()
-	if err != nil {
-		return fmt.Errorf("error waiting for MysqlInstance state to be \"DEL\": %s", err)
 	}
 
 	return nil
