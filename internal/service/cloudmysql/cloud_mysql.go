@@ -321,7 +321,7 @@ func createVpcMysqlInstance(d *schema.ResourceData, config *conn.ProviderConfig)
 		}
 
 		if isBackup := d.Get("is_backup"); isBackup != nil && !isBackup.(bool){
-			return nil, fmt.Errorf("when is_ha is true, is_backup must be true")
+			return nil, fmt.Errorf("when 'is_ha' is true, 'is_backup' must be true")
 		}
 
 		reqParams.IsBackup = ncloud.Bool(true)
@@ -333,6 +333,15 @@ func createVpcMysqlInstance(d *schema.ResourceData, config *conn.ProviderConfig)
 		} else {
 			reqParams.IsBackup = ncloud.Bool(false)
 		}
+
+		if isMultiZone := d.Get("is_multi_zone"); isMultiZone != nil {
+			return nil, fmt.Errorf("'is_multi_zone' cannot be inputed in high availability")
+		}
+
+		if isStorageEncryption := d.Get("is_storage_encryption"); isStorageEncryption != nil {
+			return nil, fmt.Errorf("'is_storage_encryption' cannot be inputed in high availability")
+		}
+
 	}
 
 	if *reqParams.IsBackup {
@@ -351,7 +360,7 @@ func createVpcMysqlInstance(d *schema.ResourceData, config *conn.ProviderConfig)
 		if backupTime, ok := d.GetOk("backup_time"); ok {
 			reqParams.BackupTime = ncloud.String(backupTime.(string))
 		} else {
-			return nil, fmt.Errorf("when is_automatic_backup is false, must input backup_time")
+			return nil, fmt.Errorf("when 'is_automatic_backup' is false, must input 'backup_time'")
 		}
 	}
 
