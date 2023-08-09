@@ -27,7 +27,7 @@ func TestAccResourceNcloudMysql_vpc_basic(t *testing.T) {
 		CheckDestroy: testAccCheckMysqlDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccDataSourceMysqlConfig(testMysqlName),
+				Config: testAccMysqlVpcConfig(testMysqlName),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckMysqlExistsWithProvider(resourceName, &mysqlInstance, GetTestProvider(true)),
 					resource.TestMatchResourceAttr(resourceName, "id", regexp.MustCompile(`^\d+$`)),
@@ -203,7 +203,7 @@ func checkNoInstanceResponse(err error) bool {
 	return strings.Contains(err.Error(),"5001017")
 }
 
-func testAccDataSourceMysqlConfig(testMysqlName string) string {
+func testAccMysqlVpcConfig(testMysqlName string) string {
 	return fmt.Sprintf(`
 resource "ncloud_vpc" "test_vpc" {
 	name               = "%[1]s"
