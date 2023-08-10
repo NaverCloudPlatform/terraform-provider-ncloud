@@ -475,6 +475,10 @@ func makeClassicPipelineTaskParams(d *schema.ResourceData) ([]*sourcepipeline.Cr
 			return nil, diag.FromErr(NotSupportClassic("Invalid argument: \"SourceDeploy\" task "))
 		}
 
+		err := ValidateEmptyStringElement(d.Get(prefix + "linked_tasks").([]interface{}));
+		if err != nil {
+			return nil, diag.Errorf("task.linkd_tasks cannot contain an empty string element")
+		}
 		pipelineTaskParams = append(pipelineTaskParams, &sourcepipeline.CreateProjectTasks{
 			Name:        ncloud.String(d.Get(prefix + "name").(string)),
 			Type_:       ncloud.String(d.Get(prefix + "type").(string)),
@@ -517,6 +521,10 @@ func makeVpcPipelineTaskParams(d *schema.ResourceData) ([]*vsourcepipeline.Creat
 			}
 		}
 
+		err := ValidateEmptyStringElement(d.Get(prefix + "linked_tasks").([]interface{}));
+		if err != nil {
+			return nil, diag.Errorf("task.linkd_tasks cannot contain an empty string element")
+		}
 		pipelineTaskParams = append(pipelineTaskParams, &vsourcepipeline.CreateProjectTasks{
 			Name:        ncloud.String(d.Get(prefix + "name").(string)),
 			Type_:       ncloud.String(d.Get(prefix + "type").(string)),
