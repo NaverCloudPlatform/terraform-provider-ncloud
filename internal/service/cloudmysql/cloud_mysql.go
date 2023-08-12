@@ -177,7 +177,7 @@ func ResourceNcloudMySql() *schema.Resource {
 				Computed: true,
 				ForceNew: true,
 			},
-			"mysql_no": {
+			"instance_no": {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
@@ -195,6 +195,7 @@ func resourceNcloudMySqlCreate(d *schema.ResourceData, meta interface{}) error {
 	}
 
 	d.SetId(ncloud.StringValue(id))
+	d.Set("instance_no", ncloud.StringValue(id))
 	log.Printf("[INFO] Mysql instance ID: %s", d.Id())
 
 	return resourceNcloudMySqlRead(d, meta)
@@ -212,8 +213,8 @@ func resourceNcloudMySqlRead(d *schema.ResourceData, meta interface{}) error {
 		d.SetId("")
 		return nil
 	}
-
 	d.SetId(ncloud.StringValue(instance.CloudMysqlInstanceNo))
+	d.Set("instance_no", ncloud.StringValue(instance.CloudMysqlInstanceNo))
 
 	convertedInstance := ConvertToMap(instance)
 	SetSingularResourceDataFromMapSchema(ResourceNcloudMySql(), d, convertedInstance)
