@@ -142,7 +142,7 @@ The following arguments are supported:
         * `type` - (Required) Repository type. Accepted values: `SourceCommit`.
         * `repository_name` - (Required) The name of repository.
         * `branch` - (Required) The name of repository branch.
-        * `path` - (Required) File path.
+        * `path` - (Required) File path. Empty string elements are not allowed.
     * `canary_config` - (Optional, Required If stage type is set to `KubernetesService` &  strategy is set to `canary` ) config when deploying Kubernetesservice canary.
         * `analysis_type` - (Required) Canary analysis method. Accepted values: `manual`, `auto`.
         * `canary_count` - (Required) Number of baseline and canary pod.
