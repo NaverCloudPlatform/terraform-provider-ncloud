@@ -688,17 +688,32 @@ func getCommonProjectParams(d *schema.ResourceData) (*sourcebuild.ChangeProject,
 
 	cmd := sourcebuild.ProjectCmd{
 		Dockerbuild: &cmdDockerbuild,
+		Pre: []*string{}, //for setting as an empty array
+		Build: []*string{},
+		Post: []*string{},
 	}
 
 	if param, ok := d.GetOk("build_command.0.pre_build"); ok {
+		err := ValidateEmptyStringElement(param.([]interface{}));
+		if err != nil {
+			return nil, fmt.Errorf("build_command.pre_build cannot contain an empty string element")
+		}
 		cmd.Pre = ExpandStringInterfaceList(param.([]interface{}))
 	}
 
 	if param, ok := d.GetOk("build_command.0.in_build"); ok {
+		err := ValidateEmptyStringElement(param.([]interface{}));
+		if err != nil {
+			return nil, fmt.Errorf("build_command.in_build cannot contain an empty string element")
+		}
 		cmd.Build = ExpandStringInterfaceList(param.([]interface{}))
 	}
 
 	if param, ok := d.GetOk("build_command.0.post_build"); ok {
+		err := ValidateEmptyStringElement(param.([]interface{}));
+		if err != nil {
+			return nil, fmt.Errorf("build_command.post_build cannot contain an empty string element")
+		}
 		cmd.Post = ExpandStringInterfaceList(param.([]interface{}))
 	}
 
@@ -715,6 +730,10 @@ func getCommonProjectParams(d *schema.ResourceData) (*sourcebuild.ChangeProject,
 	}
 
 	if param, ok := d.GetOk("artifact.0.path"); ok {
+		err := ValidateEmptyStringElement(param.([]interface{}));
+		if err != nil {
+			return nil, fmt.Errorf("artifact.path cannot contain an empty string element")
+		}
 		artifact.Path = ExpandStringInterfaceList(param.([]interface{}))
 	}
 
