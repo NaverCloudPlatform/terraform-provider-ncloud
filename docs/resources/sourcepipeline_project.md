@@ -142,7 +142,7 @@ The following arguments are supported:
         *   `scenario_id` - (Optional, Required if `task.type` value is SourceDeploy) Scenario Id of a task. Get avaliable values using the datasource `ncloud_sourcedeploy_project_stage_scenarios`
         *   `target`- (Optional) Target of a task job.
             *   `repository_branch` - (Optional) Target repository branch of SourceBuild task. Default : main branch of target repository
-    *   `linked_tasks` - (Required) Linked tasks which has to be executed before.
+    *   `linked_tasks` - (Required) Linked tasks which has to be executed before. Empty string elements are not allowed.
 *   `triggers` - (Required) `triggers` block describes trigger configuration.
     *   `repository` - (Optional)
         *   `type` - (Optional, Required if `trigger.repository` exists) Type of repository. Accepted values: `sourcecommit`

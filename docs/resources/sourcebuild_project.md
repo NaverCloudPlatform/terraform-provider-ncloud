@@ -183,9 +183,9 @@ The following arguments are supported:
         * `key` - (Required) Key of environment variable.
         * `value` - (Required) Value of environment variable.
 * `build_command` - (Optional) Commands to execute in build.
-    * `pre_build` - (Optional) Commands before build.
-    * `in_build` - (Optional) Commands during build.
-    * `post_build` - (Optional) Commands after build.
+    * `pre_build` - (Optional) Commands before build. Empty string elements are not allowed.
+    * `in_build` - (Optional) Commands during build. Empty string elements are not allowed.
+    * `post_build` - (Optional) Commands after build. Empty string elements are not allowed.
     * `docker_image_build` - (Optional) Docker image build config.
         * `use` - (Optional) Whether or not to use of dockerbuild. (Default `false`)
         * `dockerfile` - (Optional, Required if `build_command.docker_image_build.use` is set to `true`) Dockerfile path in build source folder.
@@ -195,7 +195,7 @@ The following arguments are supported:
         * `latest` - (Optional) Save status of the latest tag. (Default `false`)
 * `artifact` - (Optional) Artifact to save build results.
     * `use` - (Optional) Whether or not to save build results. (Default `false`)
-    * `path` - (Optional, Required if `artifact.use` is set to `true`) Location to save build results.
+    * `path` - (Optional, Required if `artifact.use` is set to `true`) Location to save build results. Empty string elements are not allowed.
     * `object_storage_to_upload` - (Optional, Required if `artifact.use` is set to `true`) Object Storage to save build results.
         * `bucket` - (Required) Bucket name of NCP Object Storage to save build results.
         * `path` - (Required) path in the NCP Object Storage bucket to save build results.
