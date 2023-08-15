@@ -44,7 +44,7 @@ func ResourceNcloudAutoScalingPolicy() *schema.Resource {
 			"cooldown": {
 				Type:             schema.TypeInt,
 				Optional:         true,
-				Computed:         true,
+				Default:          300,
 				ValidateDiagFunc: ToDiagFunc(validation.IntBetween(0, 2147483647)),
 			},
 			"min_adjustment_step": {
@@ -92,7 +92,7 @@ func createVpcAutoScalingPolicy(d *schema.ResourceData, config *conn.ProviderCon
 		PolicyName:         ncloud.String(d.Get("name").(string)),
 		// Optional
 		MinAdjustmentStep: Int32PtrOrNil(d.GetOk("min_adjustment_step")),
-		CoolDown:          Int32PtrOrNil(d.GetOk("cooldown")),
+		CoolDown:          ncloud.Int32(int32(d.Get("cooldown").(int))),
 	}
 	resp, err := config.Client.Vautoscaling.V2Api.PutScalingPolicy(reqParams)
 	if err != nil {
@@ -118,7 +118,7 @@ func createClassicAutoScalingPolicy(d *schema.ResourceData, config *conn.Provide
 		PolicyName:           name,
 		// Optional
 		MinAdjustmentStep: Int32PtrOrNil(d.GetOk("min_adjustment_step")),
-		Cooldown:          Int32PtrOrNil(d.GetOk("cooldown")),
+		Cooldown:          ncloud.Int32(int32(d.Get("cooldown").(int))),
 	}
 
 	if _, err := config.Client.Autoscaling.V2Api.PutScalingPolicy(reqParams); err != nil {
