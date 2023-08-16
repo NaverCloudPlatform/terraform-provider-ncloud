@@ -1,0 +1,29 @@
+name: Go CI
+
+on:
+  push:
+    branches:
+      - feautre/293  # Change this to your default branch name
+
+jobs:
+  lint-and-test:
+    name: Lint and Test
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v2
+        
+      - name: Set up Go
+        uses: actions/setup-go@v2
+        with:
+          go-version: 1.16  # Change this to your desired Go version
+
+      - name: Install golangci-lint
+        run: GO111MODULE=on go get github.com/golangci/golangci-lint/cmd/golangci-lint@v1.42.1
+      
+      - name: Run Linter
+        run: golangci-lint run
+      
+      - name: Run Tests
+        run: go test -v ./...
