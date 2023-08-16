@@ -17,7 +17,7 @@ jobs:
       - name: Set up Go
         uses: actions/setup-go@v2
         with:
-          go-version: 1.16  # Change this to your desired Go version
+          go-version: 1.19  # Change this to your desired Go version
 
       - name: Install golangci-lint
         run: GO111MODULE=on go get github.com/golangci/golangci-lint/cmd/golangci-lint@v1.42.1
