@@ -103,8 +103,6 @@ func New(ctx context.Context) *schema.Provider {
 		"ncloud_sourcepipeline_project":                  devtools.DataSourceNcloudSourcePipelineProject(),
 		"ncloud_sourcepipeline_projects":                 devtools.DataSourceNcloudSourcePipelineProjects(),
 		"ncloud_sourcepipeline_trigger_timezone":         devtools.DataSourceNcloudSourcePipelineTimeZone(),
-		"ncloud_subnet":                                  vpc.DataSourceNcloudSubnet(),
-		"ncloud_subnets":                                 vpc.DataSourceNcloudSubnets(),
 		"ncloud_vpc_peering":                             vpc.DataSourceNcloudVpcPeering(),
 		"ncloud_zones":                                   zone.DataSourceNcloudZones(),
 	}
@@ -150,7 +148,6 @@ func New(ctx context.Context) *schema.Provider {
 		"ncloud_sourcedeploy_project_stage":          devtools.ResourceNcloudSourceDeployStage(),
 		"ncloud_sourcedeploy_project":                devtools.ResourceNcloudSourceDeployProject(),
 		"ncloud_sourcepipeline_project":              devtools.ResourceNcloudSourcePipeline(),
-		"ncloud_subnet":                              vpc.ResourceNcloudSubnet(),
 		"ncloud_vpc_peering":                         vpc.ResourceNcloudVpcPeering(),
 	}
 
