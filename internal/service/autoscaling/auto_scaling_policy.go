@@ -164,6 +164,10 @@ func getVpcAutoScalingPolicy(config *conn.ProviderConfig, id string, autoScaling
 		return nil, err
 	}
 
+	if len(resp.ScalingPolicyList) == 0 {
+		return nil, nil
+	}
+
 	p := resp.ScalingPolicyList[0]
 	return &AutoScalingPolicy{
 		AutoScalingPolicyNo:   p.PolicyNo,
