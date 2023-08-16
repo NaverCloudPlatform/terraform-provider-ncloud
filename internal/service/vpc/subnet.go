@@ -417,7 +417,7 @@ type subnetResourceModel struct {
 	VpcNo        types.String `tfsdk:"vpc_no"`
 	ID           types.String `tfsdk:"id"`
 	Subnet       types.String `tfsdk:"subnet"`
-	Zone         types.String `tfsdk:"zone""`
+	Zone         types.String `tfsdk:"zone"`
 	SubnetType   types.String `tfsdk:"subnet_type"`
 	UsageType    types.String `tfsdk:"usage_type"`
 	Name         types.String `tfsdk:"name"`
