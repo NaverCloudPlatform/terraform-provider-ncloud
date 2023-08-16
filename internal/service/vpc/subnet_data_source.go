@@ -169,7 +169,7 @@ func (s *subnetDataSource) Read(ctx context.Context, req datasource.ReadRequest,
 		"subnetResponse": common.MarshalUncheckedString(subnetResp),
 	})
 
-	subnetList, diags := flattenSubnets(ctx, subnetResp.SubnetList, s.config)
+	subnetList, diags := flattenSubnets(subnetResp.SubnetList, s.config)
 	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
 		return
@@ -193,7 +193,7 @@ func (s *subnetDataSource) Read(ctx context.Context, req datasource.ReadRequest,
 	resp.Diagnostics.Append(resp.State.Set(ctx, &state)...)
 }
 
-func flattenSubnets(ctx context.Context, subnets []*vpc.Subnet, config *conn.ProviderConfig) ([]*subnetDataSourceModel, diag.Diagnostics) {
+func flattenSubnets(subnets []*vpc.Subnet, config *conn.ProviderConfig) ([]*subnetDataSourceModel, diag.Diagnostics) {
 	var outputs []*subnetDataSourceModel
 
 	for _, v := range subnets {
