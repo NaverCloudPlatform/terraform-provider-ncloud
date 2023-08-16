@@ -209,7 +209,7 @@ func (s *subnetsDataSource) Read(ctx context.Context, req datasource.ReadRequest
 		"subnetResponse": common.MarshalUncheckedString(subnetResp),
 	})
 
-	subnetList, diags := flattenSubnets(ctx, subnetResp.SubnetList, s.config)
+	subnetList, diags := flattenSubnets(subnetResp.SubnetList, s.config)
 	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
 		return
