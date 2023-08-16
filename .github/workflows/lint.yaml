@@ -3,7 +3,7 @@ name: Go CI
 on:
   push:
     branches:
-      - "*" # Change this to your default branch name
+      - '*' # Change this to your default branch name
 
 jobs:
   lint:
