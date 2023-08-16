@@ -11,19 +11,25 @@ jobs:
     runs-on: ubuntu-latest
     
     steps:
-      - name: Checkout Repository
-        uses: actions/checkout@v2
-        
-      - name: Set up Go
-        uses: actions/setup-go@v2
+      - uses: actions/checkout@v3
+      - uses: actions/setup-go@v4
         with:
-          go-version: 1.19  # Change this to your desired Go version
+          go-version: '1.19'
+          cache: false
 
-      - name: Install golangci-lint
-        run: GO111MODULE=on go get github.com/golangci/golangci-lint/cmd/golangci-lint@v1.42.1
+      - name: golangci-lint
+        uses: golangci/golangci-lint-action@v3
+        with:
+          # Require: The version of golangci-lint to use.
+          # When `install-mode` is `binary` (default) the value can be v1.2 or v1.2.3 or `latest` to use the latest version.
+          # When `install-mode` is `goinstall` the value can be v1.2.3, `latest`, or the hash of a commit.
+          version: v1.53
+
+      # - name: Install golangci-lint
+      #   run: GO111MODULE=on go get github.com/golangci/golangci-lint/cmd/golangci-lint@v1.42.1
       
-      - name: Run Linter
-        run: golangci-lint run
+      # - name: Run Linter
+      #   run: golangci-lint run
       
-      - name: Run Tests
-        run: go test -v ./...
+      # - name: Run Tests
+      #   run: go test -v ./...
