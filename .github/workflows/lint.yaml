@@ -6,7 +6,7 @@ on:
       - "*" # Change this to your default branch name
 
 jobs:
-  lint-and-test:
+  lint:
     name: Lint
     runs-on: ubuntu-latest
 
