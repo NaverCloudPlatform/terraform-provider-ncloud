@@ -376,9 +376,7 @@ func attachNetworkInterface(d *schema.ResourceData, config *conn.ProviderConfig)
 		return err
 	}
 
-	if err := waitForPublicIpDisassociation(config, d.Id()); err != nil {
-		return err
-	}
+	waitForPublicIpDisassociate(d, config)
 
 	return nil
 }
@@ -402,6 +400,30 @@ func attachVpcNetworkInterface(d *schema.ResourceData, config *conn.ProviderConf
 
 	if err := waitForNetworkInterfaceAttachment(config, d.Id()); err != nil {
 		return err
+	}
+
+	return nil
+}
+
+func waitForPublicIpDisassociate(d *schema.ResourceData, config *conn.ProviderConfig) error {
+	reqParams := &vserver.GetServerInstanceDetailRequest{
+		RegionCode:         &config.RegionCode,
+		ServerInstanceNo:   ncloud.String(d.Get("server_instance_no").(string)),
+	}
+
+	resp, err := config.Client.Vserver.V2Api.GetServerInstanceDetail(reqParams)
+	if err != nil {
+		return err
+	}
+
+	if err := ValidateOneResult(len(resp.ServerInstanceList)); err != nil {
+		return err
+	}
+
+	if publicIpNo := *resp.ServerInstanceList[0].PublicIpInstanceNo; publicIpNo != "" {
+		if err := waitForPublicIpDisassociation(config, publicIpNo); err != nil {
+			return err
+		}
 	}
 
 	return nil
