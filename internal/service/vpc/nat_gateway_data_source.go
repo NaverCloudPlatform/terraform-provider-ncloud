@@ -1,114 +1,200 @@
 package vpc
 
 import (
-	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/ncloud"
+	"context"
+	"fmt"
 	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/services/vpc"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-plugin-framework/datasource"
+	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
+	"github.com/hashicorp/terraform-plugin-framework/diag"
+	"github.com/hashicorp/terraform-plugin-framework/types"
+	"github.com/hashicorp/terraform-plugin-log/tflog"
+	"github.com/terraform-providers/terraform-provider-ncloud/internal/common"
 
-	. "github.com/terraform-providers/terraform-provider-ncloud/internal/common"
 	"github.com/terraform-providers/terraform-provider-ncloud/internal/conn"
 	"github.com/terraform-providers/terraform-provider-ncloud/internal/verify"
 )
 
-func DataSourceNcloudNatGateway() *schema.Resource {
-	fieldMap := map[string]*schema.Schema{
-		"id": {
-			Type:     schema.TypeString,
-			Optional: true,
-			Computed: true,
-		},
-		"name": {
-			Type:     schema.TypeString,
-			Optional: true,
-			Computed: true,
-		},
-		"vpc_name": {
-			Type:     schema.TypeString,
-			Optional: true,
-		},
-		"description": {
-			Type:     schema.TypeString,
-			Optional: true,
-		},
-		"filter": DataSourceFiltersSchema(),
-	}
+var (
+	_ datasource.DataSource              = &natGatewayDataSource{}
+	_ datasource.DataSourceWithConfigure = &natGatewayDataSource{}
+)
 
-	return GetSingularDataSourceItemSchema(ResourceNcloudNatGateway(), fieldMap, dataSourceNcloudNatGatewayRead)
+func NewNatGatewayDataSource() datasource.DataSource {
+	return &natGatewayDataSource{}
 }
 
-func dataSourceNcloudNatGatewayRead(d *schema.ResourceData, meta interface{}) error {
-	config := meta.(*conn.ProviderConfig)
-
-	if !config.SupportVPC {
-		return NotSupportClassic("data source `ncloud_nat_gateway`")
-	}
-
-	resources, err := getNatGatewayListFiltered(d, config)
-
-	if err != nil {
-		return err
-	}
-
-	if err := verify.ValidateOneResult(len(resources)); err != nil {
-		return err
-	}
-
-	SetSingularResourceDataFromMap(d, resources[0])
-
-	return nil
+type natGatewayDataSource struct {
+	config *conn.ProviderConfig
 }
 
-func getNatGatewayListFiltered(d *schema.ResourceData, config *conn.ProviderConfig) ([]map[string]interface{}, error) {
+func (n *natGatewayDataSource) Schema(_ context.Context, req datasource.SchemaRequest, resp *datasource.SchemaResponse) {
+	resp.Schema = schema.Schema{
+		Attributes: map[string]schema.Attribute{
+			"id": schema.StringAttribute{
+				Optional: true,
+				Computed: true,
+			},
+			"name": schema.StringAttribute{
+				Optional: true,
+				Computed: true,
+			},
+			"vpc_name": schema.StringAttribute{
+				Optional: true,
+			},
+			"description": schema.StringAttribute{
+				Optional: true,
+			},
+		},
+		Blocks: map[string]schema.Block{
+			"filter": common.DataSourceFiltersBlock(),
+		},
+	}
+}
+
+func (n *natGatewayDataSource) Configure(_ context.Context, req datasource.ConfigureRequest, resp *datasource.ConfigureResponse) {
+	if req.ProviderData == nil {
+		return
+	}
+
+	config, ok := req.ProviderData.(*conn.ProviderConfig)
+
+	if !ok {
+		resp.Diagnostics.AddError(
+			"Unexpected Data Source Configure Type",
+			fmt.Sprintf("Expected *ProviderConfig, got: %T. Please report this issue to the provider developers.", req.ProviderData),
+		)
+		return
+	}
+
+	n.config = config
+}
+
+func (n *natGatewayDataSource) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
+	if !n.config.SupportVPC {
+		resp.Diagnostics.AddError(
+			"Not Supported Classic",
+			"nat gateway data source does not supported in classic",
+		)
+		return
+	}
+
+	var data natGatewayDataSourceModel
+	resp.Diagnostics.Append(req.Config.Get(ctx, &data)...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
 	reqParams := &vpc.GetNatGatewayInstanceListRequest{
-		RegionCode: &config.RegionCode,
+		RegionCode: &n.config.RegionCode,
 	}
 
-	if v, ok := d.GetOk("id"); ok {
-		reqParams.NatGatewayInstanceNoList = []*string{ncloud.String(v.(string))}
+	if !data.ID.IsNull() && !data.ID.IsUnknown() {
+		reqParams.NatGatewayInstanceNoList = []*string{data.ID.ValueStringPointer()}
 	}
 
-	if v, ok := d.GetOk("name"); ok {
-		reqParams.NatGatewayName = ncloud.String(v.(string))
+	if !data.Name.IsNull() && !data.Name.IsUnknown() {
+		reqParams.NatGatewayName = data.Name.ValueStringPointer()
 	}
 
-	if v, ok := d.GetOk("vpc_name"); ok {
-		reqParams.VpcName = ncloud.String(v.(string))
+	if !data.VpcName.IsNull() && !data.VpcName.IsUnknown() {
+		reqParams.VpcName = data.VpcName.ValueStringPointer()
 	}
 
-	LogCommonRequest("GetNatGatewayInstanceList", reqParams)
-	resp, err := config.Client.Vpc.V2Api.GetNatGatewayInstanceList(reqParams)
+	tflog.Info(ctx, "GetNatGatewayList", map[string]any{
+		"reqParams": common.MarshalUncheckedString(reqParams),
+	})
+	natGatewayResp, err := n.config.Client.Vpc.V2Api.GetNatGatewayInstanceList(reqParams)
 
 	if err != nil {
-		LogErrorResponse("GetNatGatewayInstanceList", err, reqParams)
-		return nil, err
+		var diags diag.Diagnostics
+		diags.AddError(
+			"GetNatGatewayList",
+			fmt.Sprintf("error: %s, reqParams: %s", err.Error(), common.MarshalUncheckedString(reqParams)),
+		)
+		resp.Diagnostics.Append(diags...)
+		return
+	}
+	tflog.Info(ctx, "GetNatGatewayList response", map[string]any{
+		"natGatewayResponse": common.MarshalUncheckedString(natGatewayResp),
+	})
+
+	natGatewayList, diags := flattenNatGateways(natGatewayResp.NatGatewayInstanceList)
+	resp.Diagnostics.Append(diags...)
+	if resp.Diagnostics.HasError() {
+		return
 	}
 
-	LogResponse("GetNatGatewayInstanceList", resp)
+	filteredList := common.FilterModels(ctx, data.Filters, natGatewayList)
 
-	resources := []map[string]interface{}{}
+	if err := verify.ValidateOneResult(len(filteredList)); err != nil {
+		var diags diag.Diagnostics
+		diags.AddError(
+			"GetNatGatewayList result validation",
+			err.Error(),
+		)
+		resp.Diagnostics.Append(diags...)
+		return
+	}
 
-	for _, r := range resp.NatGatewayInstanceList {
-		instance := map[string]interface{}{
-			"id":             *r.NatGatewayInstanceNo,
-			"nat_gateway_no": *r.NatGatewayInstanceNo,
-			"name":           *r.NatGatewayName,
-			"description":    *r.NatGatewayDescription,
-			"public_ip":      *r.PublicIp,
-			"vpc_no":         *r.VpcNo,
-			"vpc_name":       *r.VpcName,
-			"zone":           *r.ZoneCode,
-			"subnet_no":      *r.SubnetNo,
-			"subnet_name":    *r.SubnetName,
-			"private_ip":     *r.PrivateIp,
-			"public_ip_no":   *r.PublicIpInstanceNo,
+	state := filteredList[0]
+	state.Filters = data.Filters
+
+	resp.Diagnostics.Append(resp.State.Set(ctx, &state)...)
+}
+
+func (n *natGatewayDataSource) Metadata(_ context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
+	resp.TypeName = req.ProviderTypeName + "_nat_gateway"
+}
+
+func flattenNatGateways(natGateways []*vpc.NatGatewayInstance) ([]*natGatewayDataSourceModel, diag.Diagnostics) {
+	var outputs []*natGatewayDataSourceModel
+
+	for _, v := range natGateways {
+		var output natGatewayDataSourceModel
+
+		diags := output.refreshFromOutput(v)
+		if diags.HasError() {
+			return nil, diags
 		}
 
-		resources = append(resources, instance)
+		outputs = append(outputs, &output)
 	}
 
-	if f, ok := d.GetOk("filter"); ok {
-		resources = ApplyFilters(f.(*schema.Set), resources, ResourceNcloudNatGateway().Schema)
-	}
+	return outputs, nil
+}
 
-	return resources, nil
+type natGatewayDataSourceModel struct {
+	ID           types.String `tfsdk:"id"`
+	NatGatewayNo types.String `tfsdk:"nat_gateway_no"`
+	Name         types.String `tfsdk:"name"`
+	Description  types.String `tfsdk:"description"`
+	PublicIp     types.String `tfsdk:"public_ip"`
+	VpcNo        types.String `tfsdk:"vpc_no"`
+	VpcName      types.String `tfsdk:"vpc_name"`
+	Zone         types.String `tfsdk:"zone"`
+	SubnetNo     types.String `tfsdk:"subnet_no"`
+	SubnetName   types.String `tfsdk:"subnet_name"`
+	PrivateIp    types.String `tfsdk:"private_ip"`
+	PublicIpNo   types.String `tfsdk:"public_ip_no"`
+	Filters      types.Set    `tfsdk:"filter"`
+}
+
+func (d *natGatewayDataSourceModel) refreshFromOutput(output *vpc.NatGatewayInstance) diag.Diagnostics {
+	var diags diag.Diagnostics
+
+	d.ID = types.StringPointerValue(output.NatGatewayInstanceNo)
+	d.NatGatewayNo = types.StringPointerValue(output.NatGatewayInstanceNo)
+	d.Name = types.StringPointerValue(output.NatGatewayName)
+	d.Description = types.StringPointerValue(output.NatGatewayDescription)
+	d.PublicIp = types.StringPointerValue(output.PublicIp)
+	d.VpcNo = types.StringPointerValue(output.VpcNo)
+	d.VpcName = types.StringPointerValue(output.VpcName)
+	d.Zone = types.StringPointerValue(output.ZoneCode)
+	d.SubnetNo = types.StringPointerValue(output.SubnetNo)
+	d.SubnetName = types.StringPointerValue(output.SubnetName)
+	d.PrivateIp = types.StringPointerValue(output.PrivateIp)
+	d.PublicIpNo = types.StringPointerValue(output.PublicIpInstanceNo)
+
+	return diags
 }
