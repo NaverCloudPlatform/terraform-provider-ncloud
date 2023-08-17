@@ -186,6 +186,8 @@ func (n *natGatewayResource) Create(ctx context.Context, req resource.CreateRequ
 	if err := plan.refreshFromOutput(output); err != nil {
 		resp.Diagnostics.AddError("refreshing nat gateway details", err.Error())
 	}
+	plan.Description = framework.EmptyStringToNull(ctx, plan.Description)
+
 	resp.Diagnostics.Append(resp.State.Set(ctx, plan)...)
 }
 
@@ -211,6 +213,7 @@ func (n *natGatewayResource) Read(ctx context.Context, req resource.ReadRequest,
 	if err := state.refreshFromOutput(output); err != nil {
 		resp.Diagnostics.AddError("refreshing nat gateway details", err.Error())
 	}
+	state.Description = framework.EmptyStringToNull(ctx, state.Description)
 
 	diags = resp.State.Set(ctx, &state)
 	resp.Diagnostics.Append(diags...)

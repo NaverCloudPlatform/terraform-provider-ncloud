@@ -28,7 +28,11 @@ type natGatewayDataSource struct {
 	config *conn.ProviderConfig
 }
 
-func (n *natGatewayDataSource) Schema(_ context.Context, req datasource.SchemaRequest, resp *datasource.SchemaResponse) {
+func (n *natGatewayDataSource) Metadata(_ context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
+	resp.TypeName = req.ProviderTypeName + "_nat_gateway"
+}
+
+func (n *natGatewayDataSource) Schema(_ context.Context, _ datasource.SchemaRequest, resp *datasource.SchemaResponse) {
 	resp.Schema = schema.Schema{
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
@@ -44,6 +48,30 @@ func (n *natGatewayDataSource) Schema(_ context.Context, req datasource.SchemaRe
 			},
 			"description": schema.StringAttribute{
 				Optional: true,
+			},
+			"vpc_no": schema.StringAttribute{
+				Computed: true,
+			},
+			"zone": schema.StringAttribute{
+				Computed: true,
+			},
+			"subnet_no": schema.StringAttribute{
+				Computed: true,
+			},
+			"private_ip": schema.StringAttribute{
+				Computed: true,
+			},
+			"public_ip_no": schema.StringAttribute{
+				Computed: true,
+			},
+			"nat_gateway_no": schema.StringAttribute{
+				Computed: true,
+			},
+			"public_ip": schema.StringAttribute{
+				Computed: true,
+			},
+			"subnet_name": schema.StringAttribute{
+				Computed: true,
 			},
 		},
 		Blocks: map[string]schema.Block{
@@ -141,10 +169,6 @@ func (n *natGatewayDataSource) Read(ctx context.Context, req datasource.ReadRequ
 	state.Filters = data.Filters
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &state)...)
-}
-
-func (n *natGatewayDataSource) Metadata(_ context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
-	resp.TypeName = req.ProviderTypeName + "_nat_gateway"
 }
 
 func flattenNatGateways(natGateways []*vpc.NatGatewayInstance) ([]*natGatewayDataSourceModel, diag.Diagnostics) {
