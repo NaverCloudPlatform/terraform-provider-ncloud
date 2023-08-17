@@ -30,3 +30,11 @@ The following arguments are supported:
 * `private_key` - Generated private key
 * `fingerprint` - Fingerprint of the login key
 * `create_date` - Creation date of the login key
+
+## Import
+
+Login Key can be imported using `id`, e.g.,
+
+```bash
+$ terraform import ncloud_login_key.loginkey <id>
+```

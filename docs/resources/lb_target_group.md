@@ -60,3 +60,11 @@ In addition to all arguments above, the following attributes are exported:
 * `target_group_no` - The ID of target group (It is the same result as id).
 * `load_balancer_instance_no` - The ID of the Load Balancer associated with the Target Group.
 * `target_no_list` - The list of target number to bind to the target group.
+
+## Import
+
+Target Group can be imported using `id`, e.g.,
+
+```bash
+$ terraform import ncloud_lb_target_group.test <id>
+```

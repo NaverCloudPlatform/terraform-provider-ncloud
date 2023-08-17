@@ -40,3 +40,11 @@ In addition to all arguments above, the following attributes are exported:
 * `domain` - Domain name of load balancer.
 * `vpc_no` - The ID of the associated VPC.
 * `ip_list` - A list of IP address of load balancer.
+
+## Import
+
+Load Balancer can be imported using `id`, e.g.,
+
+```bash
+$ terraform import ncloud_lb.test <id>
+```
