@@ -52,5 +52,5 @@ In addition to all arguments above, the following attributes are exported:
 Listener can be imported using `id` with the following format, e.g.,
 
 ```bash
-$ terraform import ncloud_lb_listener.test <load_balancer_no>:<load_balancer_listener_no>
+$ terraform import ncloud_lb_listener.test <lb_id>:<lb_listener_id>
 ```
