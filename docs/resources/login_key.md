@@ -33,8 +33,9 @@ The following arguments are supported:
 
 ## Import
 
-Login Key can be imported using `id`, e.g.,
+Individual login key can be imported using `KEY_NAME`.
+For example, import a login key `test` like this:
 
 ```bash
-$ terraform import ncloud_login_key.loginkey <id>
+$ terraform import ncloud_login_key.my_loginkey test
 ```

@@ -63,8 +63,9 @@ In addition to all arguments above, the following attributes are exported:
 
 ## Import
 
-Target Group can be imported using `id`, e.g.,
+Individual target group can be imported using `TARGET_GROUP_NO`.
+For example, import a target group `267809` like this:
 
 ```bash
-$ terraform import ncloud_lb_target_group.test <id>
+$ terraform import ncloud_lb_target_group.my_lb_target_group 267809
 ```

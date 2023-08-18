@@ -43,8 +43,9 @@ In addition to all arguments above, the following attributes are exported:
 
 ## Import
 
-Load Balancer can be imported using `id`, e.g.,
+Individual load balancer can be imported using `LOAD_BALANCER_NO`.
+For example, import a load balancer `17019658` like this:
 
 ```bash
-$ terraform import ncloud_lb.test <id>
+$ terraform import ncloud_lb.my_lb 17019658
 ```
