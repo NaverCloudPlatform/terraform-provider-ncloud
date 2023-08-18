@@ -6,7 +6,7 @@ import (
 	"time"
 
 	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/services/vpc"
-	"github.com/hashicorp/terraform-plugin-framework-validators/setvalidator"
+	"github.com/hashicorp/terraform-plugin-framework-validators/listvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
@@ -41,7 +41,9 @@ func (v *vpcsDataSource) Metadata(_ context.Context, req datasource.MetadataRequ
 func (v *vpcsDataSource) Schema(_ context.Context, _ datasource.SchemaRequest, resp *datasource.SchemaResponse) {
 	resp.Schema = schema.Schema{
 		Attributes: map[string]schema.Attribute{
-			"id": framework.IDAttribute(),
+			"id": schema.StringAttribute{
+				Computed: true,
+			},
 			"name": schema.StringAttribute{
 				Optional: true,
 			},
@@ -51,9 +53,9 @@ func (v *vpcsDataSource) Schema(_ context.Context, _ datasource.SchemaRequest, r
 		},
 		Blocks: map[string]schema.Block{
 			"filter": common.DataSourceFiltersBlock(),
-			"vpcs": schema.SetNestedBlock{
-				Validators: []validator.Set{
-					setvalidator.SizeAtLeast(1),
+			"vpcs": schema.ListNestedBlock{
+				Validators: []validator.List{
+					listvalidator.SizeAtLeast(1),
 				},
 				NestedObject: schema.NestedBlockObject{
 					Attributes: map[string]schema.Attribute{
@@ -124,8 +126,8 @@ func (v *vpcsDataSource) Read(ctx context.Context, req datasource.ReadRequest, r
 		RegionCode: &v.config.RegionCode,
 	}
 
-	if !data.ID.IsNull() && !data.ID.IsUnknown() {
-		reqParams.VpcNoList = []*string{data.ID.ValueStringPointer()}
+	if !data.VpcNo.IsNull() && !data.VpcNo.IsUnknown() {
+		reqParams.VpcNoList = []*string{data.VpcNo.ValueStringPointer()}
 	}
 	if !data.Name.IsNull() && !data.Name.IsUnknown() {
 		reqParams.VpcName = data.Name.ValueStringPointer()
@@ -168,7 +170,7 @@ type vpcsDataSourceModel struct {
 	ID      types.String `tfsdk:"id"`
 	Name    types.String `tfsdk:"name"`
 	VpcNo   types.String `tfsdk:"vpc_no"`
-	Vpcs    types.Set    `tfsdk:"vpcs"`
+	Vpcs    types.List   `tfsdk:"vpcs"`
 }
 
 func (d *vpcsDataSourceModel) refreshFromVpcOutputModel(ctx context.Context, vpcModels []*vpcDataSourceModel, config *conn.ProviderConfig) diag.Diagnostics {
@@ -192,7 +194,7 @@ func (d *vpcsDataSourceModel) refreshFromVpcOutputModel(ctx context.Context, vpc
 
 		elems = append(elems, objVal)
 	}
-	setVal, di := types.SetValue(elemType, elems)
+	setVal, di := types.ListValue(elemType, elems)
 	diags.Append(di...)
 
 	if diags.HasError() {
