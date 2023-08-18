@@ -1,6 +1,7 @@
 package verify
 
 import (
+	"fmt"
 	"regexp"
 
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
@@ -21,4 +22,13 @@ func InstanceNameValidator() []validator.String {
 			"must end with an alphabetic character or number",
 		),
 	}
+}
+
+func ValidateEmptyStringElement(i []interface{}) error {
+	for _, v := range i {
+		if v == nil || v == "" {
+			return fmt.Errorf("empty string element found")
+		}
+	}
+	return nil
 }
