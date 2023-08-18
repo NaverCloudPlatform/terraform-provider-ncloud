@@ -28,6 +28,8 @@ func TestAccResourceNcloudAutoScalingGroup_classic_basic(t *testing.T) {
 				Config: testAccAutoScalingGroupClassicConfig(),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckAutoScalingGroupExists(resourceName, &autoScalingGroup, GetTestProvider(false)),
+					resource.TestCheckResourceAttr(resourceName, "default_cooldown", "300"),
+					resource.TestCheckResourceAttr(resourceName, "health_check_grace_period", "300"),
 				),
 			},
 			{
@@ -57,6 +59,8 @@ func TestAccResourceNcloudAutoScalingGroup_vpc_basic(t *testing.T) {
 				Config: testAccAutoScalingGroupVpcConfig(),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckAutoScalingGroupExists(resourceName, &autoScalingGroup, GetTestProvider(true)),
+					resource.TestCheckResourceAttr(resourceName, "default_cooldown", "300"),
+					resource.TestCheckResourceAttr(resourceName, "health_check_grace_period", "300"),
 				),
 			},
 			{
