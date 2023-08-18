@@ -208,11 +208,11 @@ func testAccCheckAutoScalingGroupExists(n string, a *autoscaling.AutoScalingGrou
 	return func(s *terraform.State) error {
 		rs, ok := s.RootModule().Resources[n]
 		if !ok {
-			return fmt.Errorf("Not found: %s", n)
+			return fmt.Errorf("not found: %s", n)
 		}
 
 		if rs.Primary.ID == "" {
-			return fmt.Errorf("No AutoScalingGroup ID is set: %s", n)
+			return fmt.Errorf("no nutoScalingGroup ID is set: %s", n)
 		}
 
 		config := provider.Meta().(*conn.ProviderConfig)
@@ -221,7 +221,7 @@ func testAccCheckAutoScalingGroupExists(n string, a *autoscaling.AutoScalingGrou
 			return err
 		}
 		if autoScalingGroup == nil {
-			return fmt.Errorf("Not found AutoScalingGroup : %s", rs.Primary.ID)
+			return fmt.Errorf("not found AutoScalingGroup : %s", rs.Primary.ID)
 		}
 		*a = *autoScalingGroup
 		return nil
@@ -229,7 +229,7 @@ func testAccCheckAutoScalingGroupExists(n string, a *autoscaling.AutoScalingGrou
 }
 
 func testAccAutoScalingGroupClassicConfig() string {
-	return fmt.Sprintf(`
+	return `
 resource "ncloud_launch_configuration" "lc" {
 	server_image_product_code = "SPSW0LINUX000046"
 }
@@ -240,11 +240,11 @@ resource "ncloud_auto_scaling_group" "auto" {
 	max_size = 2
 	zone_no_list = ["2"]
 }
-`)
+`
 }
 
 func testAccAutoScalingGroupVpcConfig() string {
-	return fmt.Sprintf(`
+	return `
 resource "ncloud_vpc" "test" {
 	ipv4_cidr_block    = "10.0.0.0/16"
 }
