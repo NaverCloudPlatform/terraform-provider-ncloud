@@ -270,5 +270,54 @@ resource "ncloud_auto_scaling_group" "auto" {
 	min_size = 1
 	max_size = 1
 }
-`)
+`
+}
+
+func testAccAutoScalingGroupClassicConfigWhenSetZero() string {
+	return `
+resource "ncloud_launch_configuration" "lc" {
+    server_image_product_code = "SPSW0LINUX000046"
+    server_product_code = "SPSVRSSD00000003"
+}
+
+resource "ncloud_auto_scaling_group" "auto" {
+	launch_configuration_no = ncloud_launch_configuration.lc.launch_configuration_no
+	min_size = 2
+	max_size = 2
+	zone_no_list = ["2"]
+	default_cooldown = 0
+	health_check_grace_period = 0
+}
+`
+}
+
+func testAccAutoScalingGroupVpcConfigWhenSetZero() string {
+	return `
+resource "ncloud_vpc" "test" {
+	ipv4_cidr_block    = "10.0.0.0/16"
+}
+
+resource "ncloud_subnet" "test" {
+	vpc_no             = ncloud_vpc.test.vpc_no
+	subnet             = "10.0.0.0/24"
+	zone               = "KR-2"
+	network_acl_no     = ncloud_vpc.test.default_network_acl_no
+	subnet_type        = "PUBLIC"
+	usage_type         = "GEN"
+}
+
+resource "ncloud_launch_configuration" "lc" {
+	server_image_product_code = "SW.VSVR.OS.LNX64.CNTOS.0703.B050"
+}
+
+resource "ncloud_auto_scaling_group" "auto" {
+	access_control_group_no_list = [ncloud_vpc.test.default_access_control_group_no]
+	subnet_no = ncloud_subnet.test.subnet_no
+	launch_configuration_no = ncloud_launch_configuration.lc.launch_configuration_no
+	min_size = 1
+	max_size = 1
+	default_cooldown = 0
+	health_check_grace_period = 0
+}
+`
 }
