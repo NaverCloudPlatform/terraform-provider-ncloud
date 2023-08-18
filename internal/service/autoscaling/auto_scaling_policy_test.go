@@ -35,23 +35,91 @@ func TestAccResourceNcloudAutoScalingPolicy_classic_basic(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceCHANG, "adjustment_type_code", "CHANG"),
 					resource.TestCheckResourceAttr(resourceCHANG, "scaling_adjustment", "2"),
 					resource.TestCheckResourceAttr(resourceCHANG, "name", name+"-chang"),
+					resource.TestCheckResourceAttr(resourceCHANG, "cooldown", "300"),
 
-					testAccCheckNcloudAutoScalingPolicyExists(resourceEXACT, &policy, GetTestProvider(false)),
+
+					testAccCheckNcloudAutoScalingPolicyExists(resourceEXACT, &policy, GetTestProvider(true)),
 					resource.TestCheckResourceAttr(resourceEXACT, "adjustment_type_code", "EXACT"),
 					resource.TestCheckResourceAttr(resourceEXACT, "scaling_adjustment", "2"),
 					resource.TestCheckResourceAttr(resourceEXACT, "name", name+"-exact"),
+					resource.TestCheckResourceAttr(resourceEXACT, "cooldown", "300"),
 
-					testAccCheckNcloudAutoScalingPolicyExists(resourcePRCNT, &policy, GetTestProvider(false)),
+
+					testAccCheckNcloudAutoScalingPolicyExists(resourcePRCNT, &policy, GetTestProvider(true)),
 					resource.TestCheckResourceAttr(resourcePRCNT, "adjustment_type_code", "PRCNT"),
 					resource.TestCheckResourceAttr(resourcePRCNT, "scaling_adjustment", "2"),
 					resource.TestCheckResourceAttr(resourcePRCNT, "name", name+"-prcnt"),
+					resource.TestCheckResourceAttr(resourcePRCNT, "cooldown", "300"),
+
 				),
 			},
 		},
 	})
 }
 
-func TestAccResourceNcloudAutoScalingPolicy_vpc_basic(t *testing.T) {
+func TestAccResourceNcloudAutoScalingPolicy_classic_zero_value(t *testing.T) {
+	var policy autoscaling.AutoScalingPolicy
+	name := fmt.Sprintf("terraform-testacc-asp-%s", acctest.RandString(5))
+	resourceCHANG := "ncloud_auto_scaling_policy.test-policy-CHANG"
+	resourceEXACT := "ncloud_auto_scaling_policy.test-policy-EXACT"
+	resourcePRCNT := "ncloud_auto_scaling_policy.test-policy-PRCNT"
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:                 func() { TestAccPreCheck(t) },
+		ProtoV5ProviderFactories: ClassicProtoV5ProviderFactories,
+		CheckDestroy: func(state *terraform.State) error {
+			return testAccCheckNcloudAutoScalingPolicyDestroy(state, GetTestProvider(false))
+		},
+		Steps: []resource.TestStep{
+			{
+				//default
+				Config: testAccNcloudAutoScalingPolicyClassicConfig(name),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckNcloudAutoScalingPolicyExists(resourceCHANG, &policy, GetTestProvider(false)),
+					resource.TestCheckResourceAttr(resourceCHANG, "adjustment_type_code", "CHANG"),
+					resource.TestCheckResourceAttr(resourceCHANG, "scaling_adjustment", "2"),
+					resource.TestCheckResourceAttr(resourceCHANG, "name", name+"-chang"),
+					resource.TestCheckResourceAttr(resourceCHANG, "cooldown", "300"),
+
+					testAccCheckNcloudAutoScalingPolicyExists(resourceEXACT, &policy, GetTestProvider(false)),
+					resource.TestCheckResourceAttr(resourceEXACT, "adjustment_type_code", "EXACT"),
+					resource.TestCheckResourceAttr(resourceEXACT, "scaling_adjustment", "2"),
+					resource.TestCheckResourceAttr(resourceEXACT, "name", name+"-exact"),
+					resource.TestCheckResourceAttr(resourceEXACT, "cooldown", "300"),
+
+					testAccCheckNcloudAutoScalingPolicyExists(resourcePRCNT, &policy, GetTestProvider(false)),
+					resource.TestCheckResourceAttr(resourcePRCNT, "adjustment_type_code", "PRCNT"),
+					resource.TestCheckResourceAttr(resourcePRCNT, "scaling_adjustment", "2"),
+					resource.TestCheckResourceAttr(resourcePRCNT, "name", name+"-prcnt"),
+					resource.TestCheckResourceAttr(resourcePRCNT, "cooldown", "300"),
+				),
+			},
+			{
+				//zero-value
+				Config: testAccNcloudAutoScalingPolicyClassicConfigWhenSetZero(name),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckNcloudAutoScalingPolicyExists(resourceCHANG, &policy, GetTestProvider(false)),
+					resource.TestCheckResourceAttr(resourceCHANG, "adjustment_type_code", "CHANG"),
+					resource.TestCheckResourceAttr(resourceCHANG, "scaling_adjustment", "2"),
+					resource.TestCheckResourceAttr(resourceCHANG, "cooldown", "0"),
+
+					testAccCheckNcloudAutoScalingPolicyExists(resourceEXACT, &policy, GetTestProvider(false)),
+					resource.TestCheckResourceAttr(resourceEXACT, "adjustment_type_code", "EXACT"),
+					resource.TestCheckResourceAttr(resourceEXACT, "scaling_adjustment", "2"),
+					resource.TestCheckResourceAttr(resourceEXACT, "name", name+"-exact"),
+					resource.TestCheckResourceAttr(resourceEXACT, "cooldown", "0"),
+
+					testAccCheckNcloudAutoScalingPolicyExists(resourcePRCNT, &policy, GetTestProvider(false)),
+					resource.TestCheckResourceAttr(resourcePRCNT, "adjustment_type_code", "PRCNT"),
+					resource.TestCheckResourceAttr(resourcePRCNT, "scaling_adjustment", "2"),
+					resource.TestCheckResourceAttr(resourcePRCNT, "name", name+"-prcnt"),
+					resource.TestCheckResourceAttr(resourcePRCNT, "cooldown", "0"),
+				),
+			},
+		},
+	})
+}
+
+func TestAccResourceNcloudAutoScalingPolicy_vpc_zero_value(t *testing.T) {
 	var policy autoscaling.AutoScalingPolicy
 	name := fmt.Sprintf("terraform-testacc-asp-%s", acctest.RandString(5))
 	resourceCHANG := "ncloud_auto_scaling_policy.test-policy-CHANG"
@@ -66,22 +134,49 @@ func TestAccResourceNcloudAutoScalingPolicy_vpc_basic(t *testing.T) {
 		},
 		Steps: []resource.TestStep{
 			{
+				//default
 				Config: testAccNcloudAutoScalingPolicyVpcConfig(name),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckNcloudAutoScalingPolicyExists(resourceCHANG, &policy, GetTestProvider(true)),
 					resource.TestCheckResourceAttr(resourceCHANG, "adjustment_type_code", "CHANG"),
 					resource.TestCheckResourceAttr(resourceCHANG, "scaling_adjustment", "2"),
 					resource.TestCheckResourceAttr(resourceCHANG, "name", name+"-chang"),
+					resource.TestCheckResourceAttr(resourceCHANG, "cooldown", "300"),
 
 					testAccCheckNcloudAutoScalingPolicyExists(resourceEXACT, &policy, GetTestProvider(true)),
 					resource.TestCheckResourceAttr(resourceEXACT, "adjustment_type_code", "EXACT"),
 					resource.TestCheckResourceAttr(resourceEXACT, "scaling_adjustment", "2"),
 					resource.TestCheckResourceAttr(resourceEXACT, "name", name+"-exact"),
+					resource.TestCheckResourceAttr(resourceEXACT, "cooldown", "300"),
 
 					testAccCheckNcloudAutoScalingPolicyExists(resourcePRCNT, &policy, GetTestProvider(true)),
 					resource.TestCheckResourceAttr(resourcePRCNT, "adjustment_type_code", "PRCNT"),
 					resource.TestCheckResourceAttr(resourcePRCNT, "scaling_adjustment", "2"),
 					resource.TestCheckResourceAttr(resourcePRCNT, "name", name+"-prcnt"),
+					resource.TestCheckResourceAttr(resourcePRCNT, "cooldown", "300"),
+				),
+			},
+			{
+				//zero-value
+				Config: testAccNcloudAutoScalingPolicyVpcConfigWhenSetZero(name),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckNcloudAutoScalingPolicyExists(resourceCHANG, &policy, GetTestProvider(true)),
+					resource.TestCheckResourceAttr(resourceCHANG, "adjustment_type_code", "CHANG"),
+					resource.TestCheckResourceAttr(resourceCHANG, "scaling_adjustment", "2"),
+					resource.TestCheckResourceAttr(resourceCHANG, "name", name+"-chang"),
+					resource.TestCheckResourceAttr(resourceCHANG, "cooldown", "0"),
+
+					testAccCheckNcloudAutoScalingPolicyExists(resourceEXACT, &policy, GetTestProvider(true)),
+					resource.TestCheckResourceAttr(resourceEXACT, "adjustment_type_code", "EXACT"),
+					resource.TestCheckResourceAttr(resourceEXACT, "scaling_adjustment", "2"),
+					resource.TestCheckResourceAttr(resourceEXACT, "name", name+"-exact"),
+					resource.TestCheckResourceAttr(resourceEXACT, "cooldown", "0"),
+
+					testAccCheckNcloudAutoScalingPolicyExists(resourcePRCNT, &policy, GetTestProvider(true)),
+					resource.TestCheckResourceAttr(resourcePRCNT, "adjustment_type_code", "PRCNT"),
+					resource.TestCheckResourceAttr(resourcePRCNT, "scaling_adjustment", "2"),
+					resource.TestCheckResourceAttr(resourcePRCNT, "name", name+"-prcnt"),
+					resource.TestCheckResourceAttr(resourcePRCNT, "cooldown", "0"),
 				),
 			},
 		},
@@ -248,6 +343,34 @@ resource "ncloud_auto_scaling_policy" "test-policy-PRCNT" {
 `, name)
 }
 
+func testAccNcloudAutoScalingPolicyVpcConfigWhenSetZero(name string) string {
+	return testAccNcloudAutoScalingPolicyVpcConfigBase(name) + fmt.Sprintf(`
+resource "ncloud_auto_scaling_policy" "test-policy-CHANG" {
+    name = "%[1]s-chang"
+    adjustment_type_code = "CHANG"
+    scaling_adjustment = 2
+    auto_scaling_group_no = ncloud_auto_scaling_group.test.auto_scaling_group_no
+	cooldown = 0
+}
+
+resource "ncloud_auto_scaling_policy" "test-policy-EXACT" {
+    name = "%[1]s-exact"
+    adjustment_type_code = "EXACT"
+    scaling_adjustment = 2
+    auto_scaling_group_no = ncloud_auto_scaling_group.test.auto_scaling_group_no
+	cooldown = 0
+}
+
+resource "ncloud_auto_scaling_policy" "test-policy-PRCNT" {
+    name = "%[1]s-prcnt"
+    adjustment_type_code = "PRCNT"
+    scaling_adjustment = 2
+    auto_scaling_group_no = ncloud_auto_scaling_group.test.auto_scaling_group_no
+	cooldown = 0
+}
+`, name)
+}
+
 func testAccNcloudAutoScalingPolicyClassicConfigBase(name string) string {
 	return fmt.Sprintf(`
 resource "ncloud_launch_configuration" "test" {
@@ -287,6 +410,34 @@ resource "ncloud_auto_scaling_policy" "test-policy-PRCNT" {
     adjustment_type_code = "PRCNT"
     scaling_adjustment = 2
     auto_scaling_group_no = ncloud_auto_scaling_group.test.auto_scaling_group_no
+}
+`, name)
+}
+
+func testAccNcloudAutoScalingPolicyClassicConfigWhenSetZero(name string) string {
+	return testAccNcloudAutoScalingPolicyClassicConfigBase(name) + fmt.Sprintf(`
+resource "ncloud_auto_scaling_policy" "test-policy-CHANG" {
+    name = "%[1]s-chang"
+    adjustment_type_code = "CHANG"
+    scaling_adjustment = 2
+    auto_scaling_group_no = ncloud_auto_scaling_group.test.auto_scaling_group_no
+	cooldown = 0
+}
+
+resource "ncloud_auto_scaling_policy" "test-policy-EXACT" {
+    name = "%[1]s-exact"
+    adjustment_type_code = "EXACT"
+    scaling_adjustment = 2
+    auto_scaling_group_no = ncloud_auto_scaling_group.test.auto_scaling_group_no
+	cooldown = 0
+}
+
+resource "ncloud_auto_scaling_policy" "test-policy-PRCNT" {
+    name = "%[1]s-prcnt"
+    adjustment_type_code = "PRCNT"
+    scaling_adjustment = 2
+    auto_scaling_group_no = ncloud_auto_scaling_group.test.auto_scaling_group_no
+	cooldown = 0
 }
 `, name)
 }
