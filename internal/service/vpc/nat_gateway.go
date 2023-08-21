@@ -186,7 +186,6 @@ func (n *natGatewayResource) Create(ctx context.Context, req resource.CreateRequ
 	if err := plan.refreshFromOutput(output); err != nil {
 		resp.Diagnostics.AddError("refreshing nat gateway details", err.Error())
 	}
-	plan.Description = framework.EmptyStringToNull(ctx, plan.Description)
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, plan)...)
 }
@@ -213,7 +212,6 @@ func (n *natGatewayResource) Read(ctx context.Context, req resource.ReadRequest,
 	if err := state.refreshFromOutput(output); err != nil {
 		resp.Diagnostics.AddError("refreshing nat gateway details", err.Error())
 	}
-	state.Description = framework.EmptyStringToNull(ctx, state.Description)
 
 	diags = resp.State.Set(ctx, &state)
 	resp.Diagnostics.Append(diags...)
@@ -389,7 +387,7 @@ func (m *natGatewayResourceModel) refreshFromOutput(output *vpc.NatGatewayInstan
 	m.ID = types.StringPointerValue(output.NatGatewayInstanceNo)
 	m.NatGatewayNo = types.StringPointerValue(output.NatGatewayInstanceNo)
 	m.Name = types.StringPointerValue(output.NatGatewayName)
-	m.Description = types.StringPointerValue(output.NatGatewayDescription)
+	m.Description = framework.EmptyStringToNull(types.StringPointerValue(output.NatGatewayDescription))
 	m.VpcNo = types.StringPointerValue(output.VpcNo)
 	m.Zone = types.StringPointerValue(output.ZoneCode)
 	m.SubnetNo = types.StringPointerValue(output.SubnetNo)
