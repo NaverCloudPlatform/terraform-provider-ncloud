@@ -25,7 +25,7 @@ func TestAccResourceNcloudNKSNodePool_basic(t *testing.T) {
 	resourceName := "ncloud_nks_node_pool.node_pool"
 	region, clusterType, productCode, k8sVersion := getRegionAndNKSType()
 
-	resource.ParallelTest(t, resource.TestCase{
+	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { TestAccPreCheck(t) },
 		ProtoV5ProviderFactories: ProtoV5ProviderFactories,
 		CheckDestroy:             testAccCheckNKSClusterDestroy,
@@ -54,7 +54,7 @@ func TestAccResourceNcloudNKSNodePool_publicNetwork(t *testing.T) {
 	resourceName := "ncloud_nks_node_pool.node_pool"
 	region, clusterType, productCode, k8sVersion := getRegionAndNKSType()
 
-	resource.ParallelTest(t, resource.TestCase{
+	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { TestAccPreCheck(t) },
 		ProtoV5ProviderFactories: ProtoV5ProviderFactories,
 		CheckDestroy:             testAccCheckNKSClusterDestroy,
@@ -78,7 +78,7 @@ func TestAccResourceNcloudNKSNodePool_updateNodeCountAndAutoScale(t *testing.T) 
 	region, clusterType, productCode, k8sVersion := getRegionAndNKSType()
 	resourceName := "ncloud_nks_node_pool.node_pool"
 
-	resource.ParallelTest(t, resource.TestCase{
+	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { TestAccPreCheck(t) },
 		ProtoV5ProviderFactories: ProtoV5ProviderFactories,
 		CheckDestroy:             testAccCheckNKSNodePoolDestroy,
@@ -111,7 +111,7 @@ func TestAccResourceNcloudNKSNodePool_upgrade(t *testing.T) {
 	region, clusterType, productCode, k8sVersion := getRegionAndNKSType()
 	resourceName := "ncloud_nks_node_pool.node_pool"
 
-	resource.ParallelTest(t, resource.TestCase{
+	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { TestAccPreCheck(t) },
 		ProtoV5ProviderFactories: ProtoV5ProviderFactories,
 		CheckDestroy:             testAccCheckNKSNodePoolDestroy,
@@ -139,7 +139,7 @@ func TestAccResourceNcloudNKSNodePool_invalidNodeCount(t *testing.T) {
 	clusterName := GetTestClusterName()
 	region, clusterType, productCode, k8sVersion := getRegionAndNKSType()
 
-	resource.ParallelTest(t, resource.TestCase{
+	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { TestAccPreCheck(t) },
 		ProtoV5ProviderFactories: ProtoV5ProviderFactories,
 		CheckDestroy:             testAccCheckSubnetDestroy,
