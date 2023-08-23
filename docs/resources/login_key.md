@@ -1,5 +1,5 @@
 ---
-subcategory: "Login Key"
+subcategory: "Server"
 ---
 
 
@@ -27,9 +27,9 @@ The following arguments are supported:
 
 ## Attributes Reference
 
+* `id` - The ID of login key.
 * `private_key` - Generated private key
 * `fingerprint` - Fingerprint of the login key
-* `create_date` - Creation date of the login key
 
 ## Import
 

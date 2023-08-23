@@ -1,4 +1,4 @@
-package loginkey_test
+package server_test
 
 import (
 	"fmt"
@@ -10,7 +10,7 @@ import (
 
 	. "github.com/terraform-providers/terraform-provider-ncloud/internal/acctest"
 	"github.com/terraform-providers/terraform-provider-ncloud/internal/conn"
-	"github.com/terraform-providers/terraform-provider-ncloud/internal/service/loginkey"
+	"github.com/terraform-providers/terraform-provider-ncloud/internal/service/server"
 )
 
 func TestAccResourceNcloudLoginKey_classic_basic(t *testing.T) {
@@ -22,7 +22,7 @@ func TestAccResourceNcloudLoginKey_vpc_basic(t *testing.T) {
 }
 
 func testAccResourceNcloudLoginKeyBasic(t *testing.T, isVpc bool) {
-	var loginKey *loginkey.LoginKey
+	var loginKey *server.LoginKey
 	prefix := GetTestPrefix()
 	testKeyName := prefix + "-key"
 
@@ -64,7 +64,7 @@ func testAccResourceNcloudLoginKeyBasic(t *testing.T, isVpc bool) {
 	})
 }
 
-func testAccCheckLoginKeyExistsWithProvider(n string, l *loginkey.LoginKey, provider *schema.Provider) resource.TestCheckFunc {
+func testAccCheckLoginKeyExistsWithProvider(n string, l *server.LoginKey, provider *schema.Provider) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		rs, ok := s.RootModule().Resources[n]
 		if !ok {
@@ -76,7 +76,7 @@ func testAccCheckLoginKeyExistsWithProvider(n string, l *loginkey.LoginKey, prov
 		}
 
 		config := provider.Meta().(*conn.ProviderConfig)
-		loginKey, err := loginkey.GetLoginKey(config, rs.Primary.ID)
+		loginKey, err := server.GetLoginKey(config, rs.Primary.ID)
 		if err != nil {
 			return nil
 		}
@@ -97,7 +97,7 @@ func testAccCheckLoginKeyDestroyWithProvider(s *terraform.State, provider *schem
 		if rs.Type != "ncloud_login_key" {
 			continue
 		}
-		loginKey, err := loginkey.GetLoginKey(config, rs.Primary.ID)
+		loginKey, err := server.GetLoginKey(config, rs.Primary.ID)
 
 		if loginKey == nil {
 			continue
