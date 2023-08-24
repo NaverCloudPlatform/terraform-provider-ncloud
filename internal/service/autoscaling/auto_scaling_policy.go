@@ -186,7 +186,7 @@ func getClassicAutoScalingPolicy(config *conn.ProviderConfig, id string, autoSca
 	if err != nil {
 		return nil, err
 	}
-	if asg == nil {
+	if asg == nil{
 		return nil, nil
 	}
 
