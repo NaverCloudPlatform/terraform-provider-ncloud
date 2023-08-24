@@ -1,205 +1,318 @@
 package vpc
 
 import (
+	"context"
 	"fmt"
-	"log"
+	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
+	"github.com/hashicorp/terraform-plugin-framework/path"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
+	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
+	"github.com/hashicorp/terraform-plugin-framework/types"
+	"github.com/hashicorp/terraform-plugin-log/tflog"
+	sdkresource "github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/terraform-providers/terraform-provider-ncloud/internal/framework"
 	"time"
 
 	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/ncloud"
 	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/services/vpc"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
-
-	. "github.com/terraform-providers/terraform-provider-ncloud/internal/common"
+	"github.com/hashicorp/terraform-plugin-framework/resource"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
+	"github.com/terraform-providers/terraform-provider-ncloud/internal/common"
 	"github.com/terraform-providers/terraform-provider-ncloud/internal/conn"
 	"github.com/terraform-providers/terraform-provider-ncloud/internal/verify"
 )
 
-func ResourceNcloudNatGateway() *schema.Resource {
-	return &schema.Resource{
-		Create: resourceNcloudNatGatewayCreate,
-		Read:   resourceNcloudNatGatewayRead,
-		Update: resourceNcloudNatGatewayUpdate,
-		Delete: resourceNcloudNatGatewayDelete,
-		Importer: &schema.ResourceImporter{
-			State: schema.ImportStatePassthrough,
-		},
-		Schema: map[string]*schema.Schema{
-			"name": {
-				Type:             schema.TypeString,
-				Optional:         true,
-				Computed:         true,
-				ForceNew:         true,
-				ValidateDiagFunc: verify.ToDiagFunc(verify.ValidateInstanceName),
-			},
-			"description": {
-				Type:             schema.TypeString,
-				Optional:         true,
-				ValidateDiagFunc: verify.ToDiagFunc(validation.StringLenBetween(0, 1000)),
-			},
-			"vpc_no": {
-				Type:     schema.TypeString,
-				Required: true,
-				ForceNew: true,
-			},
-			"zone": {
-				Type:     schema.TypeString,
-				Required: true,
-				ForceNew: true,
-			},
-			"subnet_no": {
-				Type:     schema.TypeString,
+var (
+	_ resource.Resource                = &natGatewayResource{}
+	_ resource.ResourceWithConfigure   = &natGatewayResource{}
+	_ resource.ResourceWithImportState = &natGatewayResource{}
+)
+
+func NewNatGatewayResource() resource.Resource {
+	return &natGatewayResource{}
+}
+
+type natGatewayResource struct {
+	config *conn.ProviderConfig
+}
+
+func (n *natGatewayResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
+	resource.ImportStatePassthroughID(ctx, path.Root("id"), req, resp)
+}
+
+func (n *natGatewayResource) Metadata(_ context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
+	resp.TypeName = req.ProviderTypeName + "_nat_gateway"
+}
+
+func (n *natGatewayResource) Schema(_ context.Context, _ resource.SchemaRequest, resp *resource.SchemaResponse) {
+	resp.Schema = schema.Schema{
+		Attributes: map[string]schema.Attribute{
+			"name": schema.StringAttribute{
 				Optional: true,
 				Computed: true,
-				ForceNew: true,
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.RequiresReplace(),
+				},
+				Validators: verify.InstanceNameValidator(),
 			},
-			"private_ip": {
-				Type:     schema.TypeString,
+			"id": framework.IDAttribute(),
+			"description": schema.StringAttribute{
+				Optional: true,
+				Validators: []validator.String{
+					stringvalidator.LengthBetween(0, 1000),
+				},
+			},
+			"vpc_no": schema.StringAttribute{
+				Required: true,
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.RequiresReplace(),
+				},
+			},
+			"zone": schema.StringAttribute{
+				Required: true,
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.RequiresReplace(),
+				},
+			},
+			"subnet_no": schema.StringAttribute{
 				Optional: true,
 				Computed: true,
-				ForceNew: true,
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.RequiresReplace(),
+				},
 			},
-			"public_ip_no": {
-				Type:     schema.TypeString,
+			"private_ip": schema.StringAttribute{
+				Optional: true,
+				Computed: true,
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.RequiresReplace(),
+				},
+			},
+			"public_ip_no": schema.StringAttribute{
 				Computed: true,
 			},
-			"nat_gateway_no": {
-				Type:     schema.TypeString,
+			"nat_gateway_no": schema.StringAttribute{
 				Computed: true,
 			},
-			"public_ip": {
-				Type:     schema.TypeString,
+			"public_ip": schema.StringAttribute{
 				Computed: true,
 			},
-			"subnet_name": {
-				Type:     schema.TypeString,
+			"subnet_name": schema.StringAttribute{
 				Computed: true,
 			},
 		},
 	}
 }
-
-func resourceNcloudNatGatewayCreate(d *schema.ResourceData, meta interface{}) error {
-	config := meta.(*conn.ProviderConfig)
-
-	if !config.SupportVPC {
-		return NotSupportClassic("resource `ncloud_nat_gateway`")
+func (n *natGatewayResource) Configure(_ context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
+	if req.ProviderData == nil {
+		return
 	}
 
-	if _, ok := d.GetOk("subnet_no"); !ok {
-		return fmt.Errorf("subnet_no is required when creating a new NATGW")
+	config, ok := req.ProviderData.(*conn.ProviderConfig)
+
+	if !ok {
+		resp.Diagnostics.AddError(
+			"Unexpected Data Source Configure Type",
+			fmt.Sprintf("Expected *ProviderConfig, got: %T. Please report this issue to the provider developers.", req.ProviderData),
+		)
+		return
+	}
+
+	n.config = config
+}
+
+func (n *natGatewayResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
+	var plan natGatewayResourceModel
+	diags := req.Plan.Get(ctx, &plan)
+	resp.Diagnostics.Append(diags...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
+	if !n.config.SupportVPC {
+		resp.Diagnostics.AddError(
+			"Not support classic",
+			fmt.Sprintf("resource %s does not support classic", req.Config.Schema.Type().String()),
+		)
+		return
 	}
 
 	reqParams := &vpc.CreateNatGatewayInstanceRequest{
-		RegionCode: &config.RegionCode,
-		VpcNo:      ncloud.String(d.Get("vpc_no").(string)),
-		ZoneCode:   ncloud.String(d.Get("zone").(string)),
-		SubnetNo:   ncloud.String(d.Get("subnet_no").(string)),
+		RegionCode: &n.config.RegionCode,
+		VpcNo:      plan.VpcNo.ValueStringPointer(),
+		ZoneCode:   plan.Zone.ValueStringPointer(),
+		SubnetNo:   plan.SubnetNo.ValueStringPointer(),
 	}
 
-	if v, ok := d.GetOk("name"); ok {
-		reqParams.NatGatewayName = ncloud.String(v.(string))
+	if !plan.Name.IsNull() {
+		reqParams.NatGatewayName = plan.Name.ValueStringPointer()
 	}
 
-	if v, ok := d.GetOk("description"); ok {
-		reqParams.NatGatewayDescription = ncloud.String(v.(string))
+	if !plan.Description.IsNull() {
+		reqParams.NatGatewayDescription = plan.Description.ValueStringPointer()
 	}
 
-	if v, ok := d.GetOk("private_ip"); ok {
-		reqParams.PrivateIp = ncloud.String(v.(string))
+	if !plan.PrivateIp.IsNull() {
+		reqParams.PrivateIp = plan.PrivateIp.ValueStringPointer()
 	}
 
-	LogCommonRequest("CreateNatGatewayInstance", reqParams)
-	resp, err := config.Client.Vpc.V2Api.CreateNatGatewayInstance(reqParams)
+	tflog.Info(ctx, "CreateNatGateway", map[string]any{
+		"reqParams": common.MarshalUncheckedString(reqParams),
+	})
+
+	response, err := n.config.Client.Vpc.V2Api.CreateNatGatewayInstance(reqParams)
 	if err != nil {
-		LogErrorResponse("CreateNatGatewayInstance", err, reqParams)
-		return err
+		resp.Diagnostics.AddError(
+			fmt.Sprintf("Create NatGateway Instance, err params=%v", *reqParams),
+			err.Error(),
+		)
+		return
+	}
+	tflog.Info(ctx, "CreateNatGateway response", map[string]any{
+		"createNatGatewayResponse": common.MarshalUncheckedString(response),
+	})
+
+	natGatewayInstance := response.NatGatewayInstanceList[0]
+	plan.ID = types.StringPointerValue(natGatewayInstance.NatGatewayInstanceNo)
+	tflog.Info(ctx, "NAT GATEWAY ID", map[string]any{"natGatewayNo": *natGatewayInstance.NatGatewayInstanceNo})
+
+	output, err := waitForNcloudNatGatewayCreation(n.config, *natGatewayInstance.NatGatewayInstanceNo)
+	if err != nil {
+		resp.Diagnostics.AddError("waiting for Nat Gateway creation", err.Error())
+		return
 	}
 
-	LogResponse("CreateNatGatewayInstance", resp)
-
-	instance := resp.NatGatewayInstanceList[0]
-	d.SetId(*instance.NatGatewayInstanceNo)
-	log.Printf("[INFO] NAT Gateway ID: %s", d.Id())
-
-	if err := waitForNcloudNatGatewayCreation(config, d.Id()); err != nil {
-		return err
+	if err := plan.refreshFromOutput(output); err != nil {
+		resp.Diagnostics.AddError("refreshing nat gateway details", err.Error())
 	}
 
-	return resourceNcloudNatGatewayRead(d, meta)
+	resp.Diagnostics.Append(resp.State.Set(ctx, plan)...)
 }
 
-func resourceNcloudNatGatewayRead(d *schema.ResourceData, meta interface{}) error {
-	config := meta.(*conn.ProviderConfig)
+func (n *natGatewayResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
+	var state natGatewayResourceModel
+	diags := req.State.Get(ctx, &state)
+	resp.Diagnostics.Append(diags...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
 
-	instance, err := GetNatGatewayInstance(config, d.Id())
+	output, err := GetNatGatewayInstance(n.config, state.ID.ValueString())
 	if err != nil {
-		return err
+		resp.Diagnostics.AddError("GetNatGateway", err.Error())
+		return
 	}
 
-	if instance == nil {
-		d.SetId("")
-		return nil
+	if output == nil {
+		resp.State.RemoveResource(ctx)
+		return
 	}
 
-	d.SetId(*instance.NatGatewayInstanceNo)
-	d.Set("nat_gateway_no", instance.NatGatewayInstanceNo)
-	d.Set("name", instance.NatGatewayName)
-	d.Set("description", instance.NatGatewayDescription)
-	d.Set("public_ip", instance.PublicIp)
-	d.Set("vpc_no", instance.VpcNo)
-	d.Set("zone", instance.ZoneCode)
-	d.Set("subnet_name", instance.SubnetName)
-	d.Set("subnet_no", instance.SubnetNo)
-	d.Set("private_ip", instance.PrivateIp)
-	d.Set("public_ip_no", instance.PublicIpInstanceNo)
+	if err := state.refreshFromOutput(output); err != nil {
+		resp.Diagnostics.AddError("refreshing nat gateway details", err.Error())
+	}
 
-	return nil
+	diags = resp.State.Set(ctx, &state)
+	resp.Diagnostics.Append(diags...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
 }
 
-func resourceNcloudNatGatewayUpdate(d *schema.ResourceData, meta interface{}) error {
-	config := meta.(*conn.ProviderConfig)
+func (n *natGatewayResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
+	var plan, state natGatewayResourceModel
 
-	if d.HasChange("description") {
-		if err := setNatGatewayDescription(d, config); err != nil {
-			return err
+	resp.Diagnostics.Append(req.Plan.Get(ctx, &plan)...)
+	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
+
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
+	if !plan.Description.Equal(state.Description) {
+
+		reqParams := &vpc.SetNatGatewayDescriptionRequest{
+			RegionCode:            &n.config.RegionCode,
+			NatGatewayInstanceNo:  state.NatGatewayNo.ValueStringPointer(),
+			NatGatewayDescription: plan.Description.ValueStringPointer(),
+		}
+
+		tflog.Info(ctx, "SetNatGateway", map[string]any{
+			"reqParams": common.MarshalUncheckedString(reqParams),
+		})
+
+		response, err := n.config.Client.Vpc.V2Api.SetNatGatewayDescription(reqParams)
+
+		if err != nil {
+			resp.Diagnostics.AddError(
+				fmt.Sprintf("SetNatGateway params=%v", *reqParams),
+				err.Error(),
+			)
+			return
+		}
+
+		tflog.Info(ctx, "SetNatGateway", map[string]any{
+			"updateNatGatewayResponse": common.MarshalUncheckedString(response),
+		})
+
+		output, err := GetNatGatewayInstance(n.config, state.ID.ValueString())
+		if err != nil {
+			resp.Diagnostics.AddError("GetNatGateway", err.Error())
+			return
+		}
+
+		if err := state.refreshFromOutput(output); err != nil {
+			resp.Diagnostics.AddError("refreshing nat gateway details", err.Error())
 		}
 	}
-
-	return resourceNcloudNatGatewayRead(d, meta)
+	resp.Diagnostics.Append(resp.State.Set(ctx, state)...)
 }
 
-func resourceNcloudNatGatewayDelete(d *schema.ResourceData, meta interface{}) error {
-	config := meta.(*conn.ProviderConfig)
+func (n *natGatewayResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
+	var state natGatewayResourceModel
+	diags := req.State.Get(ctx, &state)
+	resp.Diagnostics.Append(diags...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
 
 	reqParams := &vpc.DeleteNatGatewayInstanceRequest{
-		RegionCode:           &config.RegionCode,
-		NatGatewayInstanceNo: ncloud.String(d.Get("nat_gateway_no").(string)),
+		RegionCode:           &n.config.RegionCode,
+		NatGatewayInstanceNo: state.NatGatewayNo.ValueStringPointer(),
 	}
 
-	LogCommonRequest("DeleteNatGatewayInstance", reqParams)
-	resp, err := config.Client.Vpc.V2Api.DeleteNatGatewayInstance(reqParams)
+	tflog.Info(ctx, "DeleteNatGateway", map[string]any{
+		"reqParams": common.MarshalUncheckedString(reqParams),
+	})
+	response, err := n.config.Client.Vpc.V2Api.DeleteNatGatewayInstance(reqParams)
 	if err != nil {
-		LogErrorResponse("DeleteNatGatewayInstance", err, reqParams)
-		return err
+		resp.Diagnostics.AddError(
+			fmt.Sprintf("DeleteNatGateway NatGateway Instance params=%v", *reqParams),
+			err.Error(),
+		)
+		return
 	}
+	tflog.Info(ctx, "DeleteNatGateway response", map[string]any{
+		"deleteNatGatewayResponse": common.MarshalUncheckedString(response),
+	})
 
-	LogResponse("DeleteNatGatewayInstance", resp)
-
-	if err := WaitForNcloudNatGatewayDeletion(config, d.Id()); err != nil {
-		return err
+	if err := WaitForNcloudNatGatewayDeletion(n.config, state.ID.ValueString()); err != nil {
+		resp.Diagnostics.AddError(
+			"fail to wait for nat gateway deletion",
+			err.Error(),
+		)
 	}
-
-	return nil
 }
 
-func waitForNcloudNatGatewayCreation(config *conn.ProviderConfig, id string) error {
-	stateConf := &resource.StateChangeConf{
+func waitForNcloudNatGatewayCreation(config *conn.ProviderConfig, id string) (*vpc.NatGatewayInstance, error) {
+	var natGatewayInstance *vpc.NatGatewayInstance
+	stateConf := &sdkresource.StateChangeConf{
 		Pending: []string{"INIT", "CREATING"},
 		Target:  []string{"RUN"},
 		Refresh: func() (interface{}, string, error) {
 			instance, err := GetNatGatewayInstance(config, id)
+			natGatewayInstance = instance
 			return VpcCommonStateRefreshFunc(instance, err, "NatGatewayInstanceStatus")
 		},
 		Timeout:    conn.DefaultCreateTimeout,
@@ -208,14 +321,14 @@ func waitForNcloudNatGatewayCreation(config *conn.ProviderConfig, id string) err
 	}
 
 	if _, err := stateConf.WaitForState(); err != nil {
-		return fmt.Errorf("Error waiting for NAT Gateway (%s) to become available: %s", id, err)
+		return nil, fmt.Errorf("Error waiting for NAT GATEWAY (%s) to become available: %s", id, err)
 	}
 
-	return nil
+	return natGatewayInstance, nil
 }
 
 func WaitForNcloudNatGatewayDeletion(config *conn.ProviderConfig, id string) error {
-	stateConf := &resource.StateChangeConf{
+	stateConf := &sdkresource.StateChangeConf{
 		Pending: []string{"RUN", "TERMTING"},
 		Target:  []string{"TERMINATED"},
 		Refresh: func() (interface{}, string, error) {
@@ -240,13 +353,13 @@ func GetNatGatewayInstance(config *conn.ProviderConfig, id string) (*vpc.NatGate
 		NatGatewayInstanceNo: ncloud.String(id),
 	}
 
-	LogCommonRequest("GetNatGatewayInstanceDetail", reqParams)
+	common.LogCommonRequest("GetNatGatewayInstanceDetail", reqParams)
 	resp, err := config.Client.Vpc.V2Api.GetNatGatewayInstanceDetail(reqParams)
 	if err != nil {
-		LogErrorResponse("GetNatGatewayInstanceDetail", err, reqParams)
+		common.LogErrorResponse("GetNatGatewayInstanceDetail", err, reqParams)
 		return nil, err
 	}
-	LogResponse("GetNatGatewayInstanceDetail", resp)
+	common.LogResponse("GetNatGatewayInstanceDetail", resp)
 
 	if len(resp.NatGatewayInstanceList) > 0 {
 		instance := resp.NatGatewayInstanceList[0]
@@ -256,20 +369,32 @@ func GetNatGatewayInstance(config *conn.ProviderConfig, id string) (*vpc.NatGate
 	return nil, nil
 }
 
-func setNatGatewayDescription(d *schema.ResourceData, config *conn.ProviderConfig) error {
-	reqParams := &vpc.SetNatGatewayDescriptionRequest{
-		RegionCode:            &config.RegionCode,
-		NatGatewayInstanceNo:  ncloud.String(d.Id()),
-		NatGatewayDescription: StringPtrOrNil(d.GetOk("description")),
-	}
+type natGatewayResourceModel struct {
+	Description  types.String `tfsdk:"description"`
+	VpcNo        types.String `tfsdk:"vpc_no"`
+	ID           types.String `tfsdk:"id"`
+	Name         types.String `tfsdk:"name"`
+	Zone         types.String `tfsdk:"zone"`
+	SubnetNo     types.String `tfsdk:"subnet_no"`
+	PrivateIp    types.String `tfsdk:"private_ip"`
+	PublicIpNo   types.String `tfsdk:"public_ip_no"`
+	NatGatewayNo types.String `tfsdk:"nat_gateway_no"`
+	PublicIp     types.String `tfsdk:"public_ip"`
+	SubnetName   types.String `tfsdk:"subnet_name"`
+}
 
-	LogCommonRequest("setNatGatewayDescription", reqParams)
-	resp, err := config.Client.Vpc.V2Api.SetNatGatewayDescription(reqParams)
-	if err != nil {
-		LogErrorResponse("setNatGatewayDescription", err, reqParams)
-		return err
-	}
-	LogResponse("setNatGatewayDescription", resp)
+func (m *natGatewayResourceModel) refreshFromOutput(output *vpc.NatGatewayInstance) error {
+	m.ID = types.StringPointerValue(output.NatGatewayInstanceNo)
+	m.NatGatewayNo = types.StringPointerValue(output.NatGatewayInstanceNo)
+	m.Name = types.StringPointerValue(output.NatGatewayName)
+	m.Description = framework.EmptyStringToNull(types.StringPointerValue(output.NatGatewayDescription))
+	m.VpcNo = types.StringPointerValue(output.VpcNo)
+	m.Zone = types.StringPointerValue(output.ZoneCode)
+	m.SubnetNo = types.StringPointerValue(output.SubnetNo)
+	m.PrivateIp = types.StringPointerValue(output.PrivateIp)
+	m.PublicIpNo = types.StringPointerValue(output.PublicIpInstanceNo)
+	m.PublicIp = types.StringPointerValue(output.PublicIp)
+	m.SubnetName = types.StringPointerValue(output.SubnetName)
 
 	return nil
 }

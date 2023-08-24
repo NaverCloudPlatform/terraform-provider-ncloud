@@ -15,7 +15,6 @@ import (
 	"github.com/terraform-providers/terraform-provider-ncloud/internal/service/classicloadbalancer"
 	"github.com/terraform-providers/terraform-provider-ncloud/internal/service/devtools"
 	"github.com/terraform-providers/terraform-provider-ncloud/internal/service/loadbalancer"
-	"github.com/terraform-providers/terraform-provider-ncloud/internal/service/loginkey"
 	"github.com/terraform-providers/terraform-provider-ncloud/internal/service/memberserverimage"
 	"github.com/terraform-providers/terraform-provider-ncloud/internal/service/nasvolume"
 	"github.com/terraform-providers/terraform-provider-ncloud/internal/service/nks"
@@ -54,7 +53,6 @@ func New(ctx context.Context) *schema.Provider {
 		"ncloud_member_server_images":                    memberserverimage.DataSourceNcloudMemberServerImages(),
 		"ncloud_nas_volume":                              nasvolume.DataSourceNcloudNasVolume(),
 		"ncloud_nas_volumes":                             nasvolume.DataSourceNcloudNasVolumes(),
-		"ncloud_nat_gateway":                             vpc.DataSourceNcloudNatGateway(),
 		"ncloud_network_acls":                            vpc.DataSourceNcloudNetworkAcls(),
 		"ncloud_network_acl_deny_allow_groups":           vpc.DataSourceNcloudNetworkACLDenyAllowGroups(),
 		"ncloud_network_interface":                       server.DataSourceNcloudNetworkInterface(),
@@ -125,9 +123,8 @@ func New(ctx context.Context) *schema.Provider {
 		"ncloud_lb":                                  loadbalancer.ResourceNcloudLb(),
 		"ncloud_load_balancer_ssl_certificate":       classicloadbalancer.ResourceNcloudLoadBalancerSSLCertificate(),
 		"ncloud_load_balancer":                       classicloadbalancer.ResourceNcloudLoadBalancer(),
-		"ncloud_login_key":                           loginkey.ResourceNcloudLoginKey(),
+		"ncloud_login_key":                           server.ResourceNcloudLoginKey(),
 		"ncloud_nas_volume":                          nasvolume.ResourceNcloudNasVolume(),
-		"ncloud_nat_gateway":                         vpc.ResourceNcloudNatGateway(),
 		"ncloud_network_acl":                         vpc.ResourceNcloudNetworkACL(),
 		"ncloud_network_acl_deny_allow_group":        vpc.ResourceNcloudNetworkACLDenyAllowGroup(),
 		"ncloud_network_acl_rule":                    vpc.ResourceNcloudNetworkACLRule(),

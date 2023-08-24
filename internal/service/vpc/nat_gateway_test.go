@@ -7,7 +7,7 @@ import (
 	"testing"
 
 	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/services/vpc"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
+	sdkacctest "github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 
@@ -18,7 +18,7 @@ import (
 
 func TestAccResourceNcloudNatGateway_basic(t *testing.T) {
 	var natGateway vpc.NatGatewayInstance
-	name := fmt.Sprintf("test-nat-gateway-%s", acctest.RandString(5))
+	name := fmt.Sprintf("test-nat-gateway-%s", sdkacctest.RandString(5))
 	resourceName := "ncloud_nat_gateway.nat_gateway"
 	resourcePrivate := "ncloud_nat_gateway.nat_gateway_private"
 
@@ -56,7 +56,7 @@ func TestAccResourceNcloudNatGateway_basic(t *testing.T) {
 
 func TestAccResourceNcloudNatGateway_disappears(t *testing.T) {
 	var natGateway vpc.NatGatewayInstance
-	name := fmt.Sprintf("test-nat-gateway-%s", acctest.RandString(5))
+	name := fmt.Sprintf("test-nat-gateway-%s", sdkacctest.RandString(5))
 	resourceName := "ncloud_nat_gateway.nat_gateway"
 
 	resource.Test(t, resource.TestCase{
@@ -78,7 +78,7 @@ func TestAccResourceNcloudNatGateway_disappears(t *testing.T) {
 
 func TestAccResourceNcloudNatGateway_onlyRequiredParam(t *testing.T) {
 	var natGateway vpc.NatGatewayInstance
-	name := fmt.Sprintf("test-nat-gateway-%s", acctest.RandString(5))
+	name := fmt.Sprintf("test-nat-gateway-%s", sdkacctest.RandString(5))
 	resourceName := "ncloud_nat_gateway.nat_gateway"
 
 	resource.Test(t, resource.TestCase{
@@ -107,7 +107,7 @@ func TestAccResourceNcloudNatGateway_onlyRequiredParam(t *testing.T) {
 
 func TestAccResourceNcloudNatGateway_updateName(t *testing.T) {
 	var natGateway vpc.NatGatewayInstance
-	name := fmt.Sprintf("test-nat-gateway-%s", acctest.RandString(5))
+	name := fmt.Sprintf("test-nat-gateway-%s", sdkacctest.RandString(5))
 	resourceName := "ncloud_nat_gateway.nat_gateway"
 
 	resource.Test(t, resource.TestCase{
@@ -128,7 +128,7 @@ func TestAccResourceNcloudNatGateway_updateName(t *testing.T) {
 
 func TestAccResourceNcloudNatGateway_description(t *testing.T) {
 	var natGateway vpc.NatGatewayInstance
-	name := fmt.Sprintf("test-nat-gateway-%s", acctest.RandString(5))
+	name := fmt.Sprintf("test-nat-gateway-%s", sdkacctest.RandString(5))
 	resourceName := "ncloud_nat_gateway.nat_gateway"
 
 	resource.Test(t, resource.TestCase{

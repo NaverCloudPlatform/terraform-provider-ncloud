@@ -15,7 +15,7 @@ func TestAccDataSourceNcloudNKSNodePools(t *testing.T) {
 
 	region, clusterType, productType, k8sVersion := getRegionAndNKSType()
 
-	resource.ParallelTest(t, resource.TestCase{
+	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { TestAccPreCheck(t) },
 		ProtoV5ProviderFactories: ProtoV5ProviderFactories,
 		Steps: []resource.TestStep{

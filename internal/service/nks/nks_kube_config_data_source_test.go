@@ -15,7 +15,7 @@ func TestAccDataSourceNcloudNKSKubeConfig(t *testing.T) {
 	testClusterName := GetTestClusterName()
 	region, clusterType, _, k8sVersion := getRegionAndNKSType()
 
-	resource.ParallelTest(t, resource.TestCase{
+	resource.Test(t, resource.TestCase{
 		PreCheck:  func() { TestAccPreCheck(t) },
 		Providers: GetTestAccProviders(true),
 		Steps: []resource.TestStep{
