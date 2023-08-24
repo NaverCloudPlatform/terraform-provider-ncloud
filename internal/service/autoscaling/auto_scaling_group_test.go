@@ -232,7 +232,7 @@ func testAccAutoScalingGroupClassicConfig() string {
 	return `
 resource "ncloud_launch_configuration" "lc" {
     server_image_product_code = "SPSW0LINUX000046"
-    server_product_code = "SPSVRSSD00000003" // 추가
+    server_product_code = "SPSVRSSD00000003"
 }
 
 resource "ncloud_auto_scaling_group" "auto" {
