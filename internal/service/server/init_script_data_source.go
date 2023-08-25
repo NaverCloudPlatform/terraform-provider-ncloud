@@ -1,110 +1,194 @@
 package server
 
 import (
-	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/ncloud"
+	"context"
+	"fmt"
 	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/services/vserver"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
-
-	. "github.com/terraform-providers/terraform-provider-ncloud/internal/common"
+	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
+	"github.com/hashicorp/terraform-plugin-framework/datasource"
+	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
+	"github.com/hashicorp/terraform-plugin-framework/diag"
+	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
+	"github.com/hashicorp/terraform-plugin-framework/types"
+	"github.com/hashicorp/terraform-plugin-log/tflog"
+	"github.com/terraform-providers/terraform-provider-ncloud/internal/common"
 	"github.com/terraform-providers/terraform-provider-ncloud/internal/conn"
-	. "github.com/terraform-providers/terraform-provider-ncloud/internal/verify"
+	"github.com/terraform-providers/terraform-provider-ncloud/internal/framework"
+	"github.com/terraform-providers/terraform-provider-ncloud/internal/verify"
 )
 
-func DataSourceNcloudInitScript() *schema.Resource {
-	return &schema.Resource{
-		Read: dataSourceNcloudInitScriptRead,
-		Schema: map[string]*schema.Schema{
-			"id": {
-				Type:     schema.TypeString,
+var (
+	_ datasource.DataSource              = &initScriptDataSource{}
+	_ datasource.DataSourceWithConfigure = &initScriptDataSource{}
+)
+
+func NewInitScriptDataSource() datasource.DataSource {
+	return &initScriptDataSource{}
+}
+
+type initScriptDataSource struct {
+	config *conn.ProviderConfig
+}
+
+func (i *initScriptDataSource) Metadata(_ context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
+	resp.TypeName = req.ProviderTypeName + "_init_script"
+}
+
+// Schema defines the schema for the data source.
+func (i *initScriptDataSource) Schema(_ context.Context, _ datasource.SchemaRequest, resp *datasource.SchemaResponse) {
+	resp.Schema = schema.Schema{
+		Attributes: map[string]schema.Attribute{
+			"id": schema.StringAttribute{
 				Optional: true,
 				Computed: true,
 			},
-			"init_script_no": {
-				Type:     schema.TypeString,
-				Computed: true,
-			},
-			"name": {
-				Type:     schema.TypeString,
+			"name": schema.StringAttribute{
 				Optional: true,
 				Computed: true,
 			},
-			"os_type": {
-				Type:             schema.TypeString,
-				Optional:         true,
-				Computed:         true,
-				ValidateDiagFunc: ToDiagFunc(validation.StringInSlice([]string{"LNX", "WND"}, false)),
-			},
-			"filter": DataSourceFiltersSchema(),
-			"description": {
-				Type:     schema.TypeString,
+			"init_script_no": schema.StringAttribute{
 				Computed: true,
 			},
+			"os_type": schema.StringAttribute{
+				Optional: true,
+				Computed: true,
+				Validators: []validator.String{
+					stringvalidator.OneOf([]string{"LNX", "WND"}...),
+				},
+			},
+			"description": schema.StringAttribute{
+				Computed: true,
+			},
+		},
+		Blocks: map[string]schema.Block{
+			"filter": common.DataSourceFiltersBlock(),
 		},
 	}
 }
 
-func dataSourceNcloudInitScriptRead(d *schema.ResourceData, meta interface{}) error {
-	config := meta.(*conn.ProviderConfig)
-	var resources []map[string]interface{}
-	var err error
-
-	if config.SupportVPC {
-		resources, err = getVpcInitScriptListFiltered(d, config)
-	} else {
-		return NotSupportClassic("data source `ncloud_init_script`")
+func (i *initScriptDataSource) Configure(_ context.Context, req datasource.ConfigureRequest, resp *datasource.ConfigureResponse) {
+	if req.ProviderData == nil {
+		return
 	}
 
-	if err != nil {
-		return err
+	config, ok := req.ProviderData.(*conn.ProviderConfig)
+
+	if !ok {
+		resp.Diagnostics.AddError(
+			"Unexpected Data Source Configure Type",
+			fmt.Sprintf("Expected *ProviderConfig, got: %T. Please report this issue to the provider developers.", req.ProviderData),
+		)
+		return
 	}
 
-	if err := ValidateOneResult(len(resources)); err != nil {
-		return err
-	}
-
-	SetSingularResourceDataFromMap(d, resources[0])
-
-	return nil
+	i.config = config
 }
 
-func getVpcInitScriptListFiltered(d *schema.ResourceData, config *conn.ProviderConfig) ([]map[string]interface{}, error) {
+// Read refreshes the Terraform state with the latest data.
+func (i *initScriptDataSource) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
+	if !i.config.SupportVPC {
+		resp.Diagnostics.AddError(
+			"Not Supported Classic",
+			"init script data source does not supported in classic",
+		)
+		return
+	}
+
+	var data initScriptDataSourceModel
+	resp.Diagnostics.Append(req.Config.Get(ctx, &data)...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
 	reqParams := &vserver.GetInitScriptListRequest{
-		RegionCode:     &config.RegionCode,
-		OsTypeCode:     StringPtrOrNil(d.GetOk("os_type")),
-		InitScriptName: StringPtrOrNil(d.GetOk("name")),
+		RegionCode: &i.config.RegionCode,
+	}
+	if !data.ID.IsNull() && !data.ID.IsUnknown() {
+		reqParams.InitScriptNoList = []*string{data.ID.ValueStringPointer()}
+	}
+	if !data.OsType.IsNull() && !data.OsType.IsUnknown() {
+		reqParams.OsTypeCode = data.OsType.ValueStringPointer()
+	}
+	if !data.Name.IsNull() && !data.Name.IsUnknown() {
+		reqParams.InitScriptName = data.Name.ValueStringPointer()
 	}
 
-	if v, ok := d.GetOk("id"); ok {
-		reqParams.InitScriptNoList = []*string{ncloud.String(v.(string))}
-	}
-
-	LogCommonRequest("getVpcInitScriptList", reqParams)
-	resp, err := config.Client.Vserver.V2Api.GetInitScriptList(reqParams)
+	tflog.Info(ctx, "GetVpcInitScriptList", map[string]any{
+		"reqParams": common.MarshalUncheckedString(reqParams),
+	})
+	initScriptResp, err := i.config.Client.Vserver.V2Api.GetInitScriptList(reqParams)
 
 	if err != nil {
-		LogErrorResponse("getVpcInitScriptList", err, reqParams)
-		return nil, err
+		var diags diag.Diagnostics
+		diags.AddError(
+			"GetNatGatewayList",
+			fmt.Sprintf("error: %s, reqParams: %s", err.Error(), common.MarshalUncheckedString(reqParams)),
+		)
+		resp.Diagnostics.Append(diags...)
+		return
 	}
-	LogResponse("getVpcInitScriptList", resp)
+	tflog.Info(ctx, "GetVpcInitScriptList response", map[string]any{
+		"initScriptResponse": common.MarshalUncheckedString(initScriptResp),
+	})
 
-	var resources []map[string]interface{}
+	initScriptList, diags := flattenNatGateways(initScriptResp.InitScriptList)
+	resp.Diagnostics.Append(diags...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
 
-	for _, r := range resp.InitScriptList {
-		instance := map[string]interface{}{
-			"id":             *r.InitScriptNo,
-			"init_script_no": *r.InitScriptNo,
-			"name":           *r.InitScriptName,
-			"description":    *r.InitScriptDescription,
-			"os_type":        *r.OsType.Code,
+	filteredList := common.FilterModels(ctx, data.Filters, initScriptList)
+
+	if err := verify.ValidateOneResult(len(filteredList)); err != nil {
+		var diags diag.Diagnostics
+		diags.AddError(
+			"GetInitScriptList result validation",
+			err.Error(),
+		)
+		resp.Diagnostics.Append(diags...)
+		return
+	}
+
+	state := filteredList[0]
+	state.Filters = data.Filters
+
+	resp.Diagnostics.Append(resp.State.Set(ctx, &state)...)
+}
+
+func flattenNatGateways(natGateways []*vserver.InitScript) ([]*initScriptDataSourceModel, diag.Diagnostics) {
+	var outputs []*initScriptDataSourceModel
+
+	for _, v := range natGateways {
+		var output initScriptDataSourceModel
+
+		diags := output.refreshFromOutput(v)
+		if diags.HasError() {
+			return nil, diags
 		}
 
-		resources = append(resources, instance)
+		outputs = append(outputs, &output)
 	}
 
-	if f, ok := d.GetOk("filter"); ok {
-		resources = ApplyFilters(f.(*schema.Set), resources, ResourceNcloudInitScript().Schema)
-	}
+	return outputs, nil
+}
 
-	return resources, nil
+type initScriptDataSourceModel struct {
+	Description  types.String `tfsdk:"description"`
+	Filters      types.Set    `tfsdk:"filter"`
+	ID           types.String `tfsdk:"id"`
+	OsType       types.String `tfsdk:"os_type"`
+	Name         types.String `tfsdk:"name"`
+	InitScriptNo types.String `tfsdk:"init_script_no"`
+}
+
+func (m *initScriptDataSourceModel) refreshFromOutput(output *vserver.InitScript) diag.Diagnostics {
+	var diags diag.Diagnostics
+
+	m.ID = types.StringPointerValue(output.InitScriptNo)
+	m.Name = types.StringPointerValue(output.InitScriptName)
+	m.Description = framework.EmptyStringToNull(types.StringPointerValue(output.InitScriptDescription))
+	m.OsType = types.StringPointerValue(output.OsType.Code)
+	m.InitScriptNo = types.StringPointerValue(output.InitScriptNo)
+
+	return diags
 }

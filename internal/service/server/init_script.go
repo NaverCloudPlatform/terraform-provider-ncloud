@@ -154,9 +154,7 @@ func (i *initScriptResource) Create(ctx context.Context, req resource.CreateRequ
 	plan.ID = types.StringPointerValue(initScriptInstance.InitScriptNo)
 	tflog.Info(ctx, "InitScript ID", map[string]any{"initScriptNo": *initScriptInstance.InitScriptNo})
 
-	if err := plan.refreshFromOutput(initScriptInstance); err != nil {
-		resp.Diagnostics.AddError("refreshing init script details", err.Error())
-	}
+	plan.refreshFromOutput(initScriptInstance)
 	resp.Diagnostics.Append(resp.State.Set(ctx, plan)...)
 }
 
@@ -175,7 +173,7 @@ func (i *initScriptResource) Read(ctx context.Context, req resource.ReadRequest,
 		)
 		return
 	}
-	output, err := GetInitScript(i.config, state.ID.ValueString())
+	output, err := GetInitScript(ctx, i.config, state.ID.ValueString())
 	if err != nil {
 		resp.Diagnostics.AddError("GetInitScript", err.Error())
 		return
@@ -186,9 +184,7 @@ func (i *initScriptResource) Read(ctx context.Context, req resource.ReadRequest,
 		return
 	}
 
-	if err := state.refreshFromOutput(output); err != nil {
-		resp.Diagnostics.AddError("refreshing init script details", err.Error())
-	}
+	state.refreshFromOutput(output)
 
 	diags = resp.State.Set(ctx, &state)
 	resp.Diagnostics.Append(diags...)
@@ -216,7 +212,7 @@ func (i *initScriptResource) Delete(ctx context.Context, req resource.DeleteRequ
 		return
 	}
 
-	if err := DeleteInitScript(i.config, state.ID.ValueString()); err != nil {
+	if err := DeleteInitScript(ctx, i.config, state.ID.ValueString()); err != nil {
 		resp.Diagnostics.AddError(
 			"fail for init script deletion",
 			err.Error())
@@ -224,19 +220,27 @@ func (i *initScriptResource) Delete(ctx context.Context, req resource.DeleteRequ
 
 }
 
-func GetInitScript(config *conn.ProviderConfig, id string) (*vserver.InitScript, error) {
+func GetInitScript(ctx context.Context, config *conn.ProviderConfig, id string) (*vserver.InitScript, error) {
 	reqParams := &vserver.GetInitScriptDetailRequest{
 		RegionCode:   &config.RegionCode,
 		InitScriptNo: ncloud.String(id),
 	}
 
-	common.LogCommonRequest("GetInitScriptDetail", reqParams)
+	tflog.Info(ctx, "GetInitScriptDetail", map[string]any{
+		"reqParams": common.MarshalUncheckedString(reqParams),
+	})
+
 	resp, err := config.Client.Vserver.V2Api.GetInitScriptDetail(reqParams)
 	if err != nil {
-		common.LogErrorResponse("GetInitScriptDetail", err, reqParams)
+		tflog.Error(ctx, "GetInitScriptDetail", map[string]any{
+			"reqParams": common.MarshalUncheckedString(reqParams),
+			"error":     err,
+		})
 		return nil, err
 	}
-	common.LogResponse("GetInitScriptDetail", resp)
+	tflog.Info(ctx, "GetInitScriptDetail", map[string]any{
+		"resp": common.MarshalUncheckedString(resp),
+	})
 
 	if len(resp.InitScriptList) > 0 {
 		return resp.InitScriptList[0], nil
@@ -245,19 +249,26 @@ func GetInitScript(config *conn.ProviderConfig, id string) (*vserver.InitScript,
 	return nil, nil
 }
 
-func DeleteInitScript(config *conn.ProviderConfig, id string) error {
+func DeleteInitScript(ctx context.Context, config *conn.ProviderConfig, id string) error {
 	reqParams := &vserver.DeleteInitScriptsRequest{
 		RegionCode:       &config.RegionCode,
 		InitScriptNoList: []*string{ncloud.String(id)},
 	}
 
-	common.LogCommonRequest("deleteVpcInitScript", reqParams)
+	tflog.Info(ctx, "deleteVpcInitScript", map[string]any{
+		"reqParams": common.MarshalUncheckedString(reqParams),
+	})
 	resp, err := config.Client.Vserver.V2Api.DeleteInitScripts(reqParams)
 	if err != nil {
-		common.LogErrorResponse("deleteVpcInitScript", err, reqParams)
+		tflog.Error(ctx, "deleteVpcInitScript", map[string]any{
+			"reqParams": common.MarshalUncheckedString(reqParams),
+			"error":     err,
+		})
 		return err
 	}
-	common.LogResponse("deleteVpcInitScript", resp)
+	tflog.Info(ctx, "deleteVpcInitScript", map[string]any{
+		"resp": common.MarshalUncheckedString(resp),
+	})
 
 	return nil
 }
@@ -271,13 +282,11 @@ type initScriptResourceModel struct {
 	Content      types.String `tfsdk:"content"`
 }
 
-func (m *initScriptResourceModel) refreshFromOutput(output *vserver.InitScript) error {
+func (m *initScriptResourceModel) refreshFromOutput(output *vserver.InitScript) {
 	m.ID = types.StringPointerValue(output.InitScriptNo)
 	m.Name = types.StringPointerValue(output.InitScriptName)
 	m.Description = framework.EmptyStringToNull(types.StringPointerValue(output.InitScriptDescription))
-	m.OsType = types.StringPointerValue(output.InitScriptContent)
+	m.OsType = types.StringPointerValue(output.OsType.Code)
 	m.Content = types.StringPointerValue(output.InitScriptContent)
 	m.InitScriptNo = types.StringPointerValue(output.InitScriptNo)
-
-	return nil
 }

@@ -70,6 +70,7 @@ func (p *fwprovider) DataSources(ctx context.Context) []func() datasource.DataSo
 	dataSources = append(dataSources, vpc.NewSubnetDataSource)
 	dataSources = append(dataSources, vpc.NewSubnetsDataSource)
 	dataSources = append(dataSources, vpc.NewNatGatewayDataSource)
+	dataSources = append(dataSources, server.NewInitScriptDataSource)
 
 	if err := errs.ErrorOrNil(); err != nil {
 		tflog.Warn(ctx, "registering resources", map[string]interface{}{
