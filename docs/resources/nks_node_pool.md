@@ -96,7 +96,7 @@ resource "ncloud_nks_node_pool" "node_pool" {
   cluster_uuid   = ncloud_nks_cluster.cluster.uuid
   node_pool_name = "sample-node-pool"
   node_count     = 1
-  product_code   = data.ncloud_server_product_code.product.product_code
+  product_code   = data.ncloud_server_product.product.product_code
   subnet_no      = ncloud_subnet.subnet.id
   autoscale {
     enabled = true
