@@ -37,20 +37,17 @@ func TestAccResourceNcloudAutoScalingPolicy_classic_basic(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceCHANG, "name", name+"-chang"),
 					resource.TestCheckResourceAttr(resourceCHANG, "cooldown", "300"),
 
-
 					testAccCheckNcloudAutoScalingPolicyExists(resourceEXACT, &policy, GetTestProvider(true)),
 					resource.TestCheckResourceAttr(resourceEXACT, "adjustment_type_code", "EXACT"),
 					resource.TestCheckResourceAttr(resourceEXACT, "scaling_adjustment", "2"),
 					resource.TestCheckResourceAttr(resourceEXACT, "name", name+"-exact"),
 					resource.TestCheckResourceAttr(resourceEXACT, "cooldown", "300"),
 
-
 					testAccCheckNcloudAutoScalingPolicyExists(resourcePRCNT, &policy, GetTestProvider(true)),
 					resource.TestCheckResourceAttr(resourcePRCNT, "adjustment_type_code", "PRCNT"),
 					resource.TestCheckResourceAttr(resourcePRCNT, "scaling_adjustment", "2"),
 					resource.TestCheckResourceAttr(resourcePRCNT, "name", name+"-prcnt"),
 					resource.TestCheckResourceAttr(resourcePRCNT, "cooldown", "300"),
-
 				),
 			},
 		},

@@ -1,12 +1,13 @@
 package autoscaling
 
 import (
+	"regexp"
+
 	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/ncloud"
 	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/services/autoscaling"
 	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/services/vautoscaling"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
-	"regexp"
 
 	. "github.com/terraform-providers/terraform-provider-ncloud/internal/common"
 	"github.com/terraform-providers/terraform-provider-ncloud/internal/conn"
@@ -186,7 +187,7 @@ func getClassicAutoScalingPolicy(config *conn.ProviderConfig, id string, autoSca
 	if err != nil {
 		return nil, err
 	}
-	if asg == nil{
+	if asg == nil {
 		return nil, nil
 	}
 
