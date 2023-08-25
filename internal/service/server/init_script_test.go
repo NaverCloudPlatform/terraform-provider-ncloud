@@ -7,7 +7,7 @@ import (
 
 	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/services/vserver"
 
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
+	sdkacctest "github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 
@@ -18,7 +18,7 @@ import (
 
 func TestAccResourceNcloudInitScript_basic(t *testing.T) {
 	var InitScript vserver.InitScript
-	name := fmt.Sprintf("tf-init-script-basic-%s", acctest.RandString(5))
+	name := fmt.Sprintf("tf-init-script-basic-%s", sdkacctest.RandString(5))
 	resourceName := "ncloud_init_script.foo"
 
 	resource.Test(t, resource.TestCase{
@@ -43,7 +43,7 @@ func TestAccResourceNcloudInitScript_basic(t *testing.T) {
 
 func TestAccResourceNcloudInitScript_disappears(t *testing.T) {
 	var InitScript vserver.InitScript
-	name := fmt.Sprintf("tf-init-script-disappear-%s", acctest.RandString(5))
+	name := fmt.Sprintf("tf-init-script-disappear-%s", sdkacctest.RandString(5))
 	resourceName := "ncloud_init_script.foo"
 
 	resource.Test(t, resource.TestCase{
