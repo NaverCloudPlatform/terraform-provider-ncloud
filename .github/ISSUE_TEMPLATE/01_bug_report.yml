@@ -52,8 +52,7 @@ body:
 
   - type: markdown
     attributes:
-      value: |
-        # Description
+      value: "# Description"
 
   - type: textarea
     id: affected
