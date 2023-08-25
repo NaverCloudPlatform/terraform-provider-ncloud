@@ -5,16 +5,19 @@ import (
 	"fmt"
 	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/ncloud"
 	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/services/vserver"
+	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
+	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 	"github.com/terraform-providers/terraform-provider-ncloud/internal/common"
 	"github.com/terraform-providers/terraform-provider-ncloud/internal/conn"
 	"github.com/terraform-providers/terraform-provider-ncloud/internal/framework"
+	"github.com/terraform-providers/terraform-provider-ncloud/internal/verify"
 )
 
 var (
@@ -48,7 +51,7 @@ func (i *initScriptResource) Schema(_ context.Context, _ resource.SchemaRequest,
 				PlanModifiers: []planmodifier.String{
 					stringplanmodifier.RequiresReplace(),
 				},
-				//Validators:  verify.InstanceNameValidator(),
+				Validators: verify.InstanceNameValidator(),
 			},
 			"id": framework.IDAttribute(),
 			"content": schema.StringAttribute{
@@ -63,7 +66,9 @@ func (i *initScriptResource) Schema(_ context.Context, _ resource.SchemaRequest,
 				PlanModifiers: []planmodifier.String{
 					stringplanmodifier.RequiresReplace(),
 				},
-				//ValidateDiagFunc: ToDiagFunc(validation.StringLenBetween(0, 1000)),
+				Validators: []validator.String{
+					stringvalidator.LengthBetween(0, 1000),
+				},
 			},
 			"os_type": schema.StringAttribute{
 				Optional: true,
@@ -71,7 +76,9 @@ func (i *initScriptResource) Schema(_ context.Context, _ resource.SchemaRequest,
 				PlanModifiers: []planmodifier.String{
 					stringplanmodifier.RequiresReplace(),
 				},
-				//ValidateDiagFunc: ToDiagFunc(validation.StringLenBetween(0, 1000)),
+				Validators: []validator.String{
+					stringvalidator.OneOf([]string{"LNX", "WND"}...),
+				},
 			},
 			"init_script_no": schema.StringAttribute{
 				Computed: true,
@@ -115,11 +122,17 @@ func (i *initScriptResource) Create(ctx context.Context, req resource.CreateRequ
 	}
 
 	reqParams := &vserver.CreateInitScriptRequest{
-		RegionCode:            &i.config.RegionCode,
-		InitScriptContent:     plan.Content.ValueStringPointer(),
-		InitScriptName:        plan.Name.ValueStringPointer(),
-		InitScriptDescription: plan.Description.ValueStringPointer(),
-		OsTypeCode:            plan.OsType.ValueStringPointer(),
+		RegionCode:        &i.config.RegionCode,
+		InitScriptContent: plan.Content.ValueStringPointer(),
+	}
+	if !plan.Name.IsNull() && !plan.Name.IsUnknown() {
+		reqParams.InitScriptName = plan.Name.ValueStringPointer()
+	}
+	if !plan.Description.IsNull() && !plan.Description.IsUnknown() {
+		reqParams.InitScriptDescription = plan.Description.ValueStringPointer()
+	}
+	if !plan.OsType.IsNull() && !plan.OsType.IsUnknown() {
+		reqParams.OsTypeCode = plan.OsType.ValueStringPointer()
 	}
 
 	tflog.Info(ctx, "CreateVpcInitScript", map[string]any{
