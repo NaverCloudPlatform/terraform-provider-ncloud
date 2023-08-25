@@ -146,9 +146,10 @@ body:
         For the final two fields, optionally provide any additional context that might help the community or maintainers to investigate the bug. This might be additional references that you found when troubleshooting, similar bug reports, or specifics about your environment that might be unique.
 
   - type: textarea
+    id: factoids
     attributes:
       label: Important Factoids
-      description: Are there anything atypical about your configuration or environment that we should know about?
+      description: "Are there anything atypical about your configuration or environment that we should know about?"
     validations:
       required: false
 
@@ -156,10 +157,7 @@ body:
     id: references
     attributes:
       label: References
-      description: |
-        Where possible, please supply links to vendor documentation, other GitHub issues (open or closed) or pull requests that give additional context.
-
-        [Information about referencing Github Issues](https://help.github.com/articles/basic-writing-and-formatting-syntax/#referencing-issues-and-pull-requests)
+      description: "Where possible, please supply links to vendor documentation, other GitHub issues (open or closed) or pull requests that give additional context."
     validations:
       required: false
 
@@ -169,3 +167,8 @@ body:
       label: Would you like to implement a fix?
       description: |
         If you plan to implement a fix for this, check this box to let the maintainers and community know (you can update this later if you change your mind).
+      options:
+        - "No"
+        - "Yes"
+    validations:
+      required: false
