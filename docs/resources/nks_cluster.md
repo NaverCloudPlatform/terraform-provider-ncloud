@@ -30,7 +30,7 @@ resource "ncloud_subnet" "subnet_lb" {
   subnet         = "10.0.100.0/24"
   zone           = "KR-1"
   network_acl_no = ncloud_vpc.vpc.default_network_acl_no
-  subnet_type    = "PUBLIC"
+  subnet_type    = "PRIVATE"
   name           = "subnet-lb"
   usage_type     = "LOADB"
 }
