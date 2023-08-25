@@ -1,0 +1,172 @@
+name: "\U0001F41B Report a Bug"
+description: "If something isn't working as expected \U0001F914."
+title: "[Bug]: "
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        # Thank you for raising a bug report!
+
+        Please note the following potential times when an issue might be in Terraform core:
+
+        * [Configuration Language](https://www.terraform.io/docs/configuration/index.html) or resource ordering issues
+        * [State](https://www.terraform.io/docs/state/index.html) and [State Backend](https://www.terraform.io/docs/backends/index.html) issues
+        * [Provisioner](https://www.terraform.io/docs/provisioners/index.html) issues
+        * [Registry](https://registry.terraform.io/) issues
+        * Spans resources across multiple providers
+
+  - type: markdown
+    attributes:
+      value: |
+        # Community Note
+
+        * Please vote on this issue by adding a 👍 [reaction](https://blog.github.com/2016-03-10-add-reactions-to-pull-requests-issues-and-comments/) to the original issue to help the community and maintainers prioritize this request
+        * Please do not leave "+1" or other comments that do not add relevant new information or questions, they generate extra noise for issue followers and do not help prioritize the request
+        * If you are interested in working on this issue or have submitted a pull request, please leave a comment
+  
+  - type: markdown
+    attributes:
+      value: |
+        # Terraform CLI and NCLOUD Provider Versions
+
+        Please run `terraform -v` to show the Terraform Core and provider version(s). If you are not running the latest version of either the provider or Terraform Core, please consider upgrading, as your issue may have already been fixed.
+
+  - type: input
+    id: tf_version
+    attributes:
+      label: Terraform Core Version
+      description: If multiple versions have been tested, a comma separated list.
+      placeholder: "X.Y.Z, X.Y.Z, ..."
+    validations:
+      required: true
+
+  - type: input
+    id: ncloud_version
+    attributes:
+      label: NCLOUD Provider Version
+      description: If multiple versions have been tested, a comma separated list.
+      placeholder: "X.Y.Z, X.Y.Z, ..."
+    validations:
+      required: true
+
+  - type: markdown
+    attributes:
+      value: |
+        # Description
+
+  - type: textarea
+    id: affected
+    attributes:
+      label: Affected Resource(s)
+      description: Please list the affected resource(s) and/or data source(s).
+      placeholder: "* ncloud_xxxxx"
+    validations:
+      required: false
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected Behavior
+      description: What should have happened?
+    validations:
+      required: true
+
+  - type: textarea
+    id: actual
+    attributes:
+      label: Actual Behavior
+      description: What actually happened?
+    validations:
+      required: true
+
+  - type: textarea
+    id: log_snippet
+    attributes:
+      label: Relevant Error/Panic Output Snippet
+      description: |
+        This will be rendered as `shell`, so there is no need to add a [code fence](https://docs.github.com/en/get-started/writing-on-github/working-with-advanced-formatting/creating-and-highlighting-code-blocks).
+      render: shell
+    validations:
+      required: false
+
+  - type: markdown
+    attributes:
+      value: |
+        # Configuration and Logging
+
+        Please include all Terraform configurations required to reproduce the bug. Bug reports without a functional reproduction may be closed without investigation.
+
+        Terraform configurations or debug logs under 25MB may be [attached directly in the field](https://docs.github.com/en/get-started/writing-on-github/working-with-advanced-formatting/attaching-files). Files larger than this should be uploaded to a file hosting service and a link shared.
+
+        For your security, you can also encrypt the files using our GPG public key: https://keybase.io/hashicorp 
+        
+        **Note:** These form fields do not automatically render, so you will need to use [code fence(s)](https://help.github.com/articles/basic-writing-and-formatting-syntax/#quoting-code) to achieve proper formatting.
+
+  - type: textarea
+    id: tf_config
+    attributes:
+      label: Terraform Configuration Files
+      description: |
+        Please paste, upload, or link to a file or Gist containing all Terraform configurations required to reproduce the bug.
+        Bug reports without a functional reproduction may be closed without investigation.
+    validations:
+      required: true
+
+  - type: textarea
+    id: repro
+    attributes:
+      label: Steps to Reproduce
+      description: Please list the steps required to reproduce the issue.
+    validations:
+      required: true
+
+  - type: textarea
+    id: debug_logs
+    attributes:
+      label: Debug Output
+      description: |
+        If possible, please paste, upload, or link to a file or Gist containing debug logs.
+        To obtain the debug output, see the [Terraform documentation on debugging](https://www.terraform.io/docs/internals/debugging.html).
+    validations:
+      required: false
+
+  - type: textarea
+    id: panic_logs
+    attributes:
+      label: Panic Output
+      description: If Terraform produced a panic, please paste, upload, or link to a file or Gist containing the output of the `crash.log`.
+    validations:
+      required: false
+
+  - type: markdown
+    attributes:
+      value: |
+        # Additional Information
+
+        For the final two fields, optionally provide any additional context that might help the community or maintainers to investigate the bug. This might be additional references that you found when troubleshooting, similar bug reports, or specifics about your environment that might be unique.
+
+  - type: textarea
+    attributes:
+      label: Important Factoids
+      description: Are there anything atypical about your configuration or environment that we should know about?
+    validations:
+      required: false
+
+  - type: textarea
+    id: references
+    attributes:
+      label: References
+      description: |
+        Where possible, please supply links to vendor documentation, other GitHub issues (open or closed) or pull requests that give additional context.
+
+        [Information about referencing Github Issues](https://help.github.com/articles/basic-writing-and-formatting-syntax/#referencing-issues-and-pull-requests)
+    validations:
+      required: false
+
+  - type: dropdown
+    id: will_contribute
+    attributes:
+      label: Would you like to implement a fix?
+      description: |
+        If you plan to implement a fix for this, check this box to let the maintainers and community know (you can update this later if you change your mind).
