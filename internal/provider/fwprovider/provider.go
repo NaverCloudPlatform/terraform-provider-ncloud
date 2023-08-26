@@ -10,6 +10,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 	"github.com/terraform-providers/terraform-provider-ncloud/internal/conn"
+	"github.com/terraform-providers/terraform-provider-ncloud/internal/service/server"
 	"github.com/terraform-providers/terraform-provider-ncloud/internal/service/vpc"
 )
 
@@ -87,6 +88,7 @@ func (p *fwprovider) Resources(ctx context.Context) []func() resource.Resource {
 	resources = append(resources, vpc.NewVpcResource)
 	resources = append(resources, vpc.NewSubnetResource)
 	resources = append(resources, vpc.NewNatGatewayResource)
+	resources = append(resources, server.NewLoginKeyResource)
 
 	if err := errs.ErrorOrNil(); err != nil {
 		tflog.Warn(ctx, "registering resources", map[string]interface{}{
