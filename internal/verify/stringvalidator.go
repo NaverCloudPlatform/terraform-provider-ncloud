@@ -32,3 +32,10 @@ func ValidateEmptyStringElement(i []interface{}) error {
 	}
 	return nil
 }
+
+func StringLenBetween(min, max int) []validator.String {
+	return []validator.String{
+		stringvalidator.LengthAtLeast(min),
+		stringvalidator.LengthAtMost(max),
+	}
+}
