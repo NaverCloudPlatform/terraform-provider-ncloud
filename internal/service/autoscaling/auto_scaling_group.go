@@ -63,7 +63,7 @@ func ResourceNcloudAutoScalingGroup() *schema.Resource {
 			"default_cooldown": {
 				Type:             schema.TypeInt,
 				Optional:         true,
-				Computed:         true,
+				Default:          300,
 				ValidateDiagFunc: ToDiagFunc(validation.IntBetween(0, 2147483647)),
 			},
 			"health_check_type_code": {
@@ -75,7 +75,7 @@ func ResourceNcloudAutoScalingGroup() *schema.Resource {
 			"health_check_grace_period": {
 				Type:             schema.TypeInt,
 				Optional:         true,
-				Computed:         true,
+				Default:          300,
 				ValidateDiagFunc: ToDiagFunc(validation.IntBetween(0, 2147483647)),
 			},
 			"server_instance_no_list": {
@@ -184,8 +184,8 @@ func createVpcAutoScalingGroup(d *schema.ResourceData, config *conn.ProviderConf
 		MinSize:                  ncloud.Int32(int32(d.Get("min_size").(int))),
 		MaxSize:                  ncloud.Int32(int32(d.Get("max_size").(int))),
 		DesiredCapacity:          Int32PtrOrNil(d.GetOk("desired_capacity")),
-		DefaultCoolDown:          Int32PtrOrNil(d.GetOk("default_cooldown")),
-		HealthCheckGracePeriod:   Int32PtrOrNil(d.GetOk("health_check_grace_period")),
+		DefaultCoolDown:          ncloud.Int32(int32(d.Get("default_cooldown").(int))),
+		HealthCheckGracePeriod:   ncloud.Int32(int32(d.Get("health_check_grace_period").(int))),
 		HealthCheckTypeCode:      StringPtrOrNil(d.GetOk("health_check_type_code")),
 		TargetGroupNoList:        StringListPtrOrNil(d.GetOk("target_group_list")),
 	}
@@ -213,9 +213,9 @@ func createClassicAutoScalingGroup(d *schema.ResourceData, config *conn.Provider
 		DesiredCapacity:         Int32PtrOrNil(d.GetOk("desired_capacity")),
 		MinSize:                 ncloud.Int32(int32(d.Get("min_size").(int))),
 		MaxSize:                 ncloud.Int32(int32(d.Get("max_size").(int))),
-		DefaultCooldown:         Int32PtrOrNil(d.GetOk("default_cooldown")),
+		DefaultCooldown:         ncloud.Int32(int32(d.Get("default_cooldown").(int))),
 		//LoadBalancerNameList:
-		HealthCheckGracePeriod: Int32PtrOrNil(d.GetOk("health_check_grace_period")),
+		HealthCheckGracePeriod: ncloud.Int32(int32(d.Get("health_check_grace_period").(int))),
 		HealthCheckTypeCode:    StringPtrOrNil(d.GetOk("health_check_type_code")),
 		ZoneNoList:             ExpandStringInterfaceList(d.Get("zone_no_list").([]interface{})),
 	}
