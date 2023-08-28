@@ -101,7 +101,7 @@ func TestAccResourceNcloudVpcPeering_description(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { acctest.TestAccPreCheck(t) },
 		ProtoV5ProviderFactories: acctest.ProtoV5ProviderFactories,
-		CheckDestroy:             testAccCheckRouteTableDestroy,
+		CheckDestroy:             testAccCheckVpcPeeringDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccResourceNcloudVpcPeeringConfigDescription(name, "foo"),
