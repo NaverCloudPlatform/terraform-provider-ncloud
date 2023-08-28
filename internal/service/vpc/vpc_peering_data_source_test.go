@@ -12,7 +12,7 @@ import (
 )
 
 func TestAccDataSourceNcloudVpcPeering_basic(t *testing.T) {
-	name := fmt.Sprintf("test-perring-data-%s", sdkacctest.RandString(5))
+	name := fmt.Sprintf("test-peering-data-%s", sdkacctest.RandString(5))
 	resourceName := "ncloud_vpc_peering.foo"
 	dataNameById := "data.ncloud_vpc_peering.by_id"
 	dataNameByName := "data.ncloud_vpc_peering.by_name"
