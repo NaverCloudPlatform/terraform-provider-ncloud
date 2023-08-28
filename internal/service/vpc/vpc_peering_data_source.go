@@ -17,11 +17,11 @@ import (
 )
 
 var (
-	_ datasource.DataSource 			 = &vpcPeeringDataSource{}
+	_ datasource.DataSource              = &vpcPeeringDataSource{}
 	_ datasource.DataSourceWithConfigure = &vpcPeeringDataSource{}
 )
 
-func NewVpcPeeringDataSource() datasource.DataSource{
+func NewVpcPeeringDataSource() datasource.DataSource {
 	return &vpcPeeringDataSource{}
 }
 
@@ -59,7 +59,7 @@ func (v *vpcPeeringDataSource) Schema(ctx context.Context, req datasource.Schema
 				Optional: true,
 				Computed: true,
 			},
-			 "name": schema.StringAttribute{
+			"name": schema.StringAttribute{
 				Optional: true,
 				Computed: true,
 			},
@@ -119,19 +119,19 @@ func (v *vpcPeeringDataSource) Read(ctx context.Context, req datasource.ReadRequ
 		RegionCode: &v.config.RegionCode,
 	}
 
-	if !data.ID.IsNull() && !data.ID.IsUnknown(){
+	if !data.ID.IsNull() && !data.ID.IsUnknown() {
 		reqParams.VpcPeeringInstanceNoList = []*string{data.ID.ValueStringPointer()}
 	}
 
-	if !data.Name.IsNull() && !data.Name.IsUnknown(){
+	if !data.Name.IsNull() && !data.Name.IsUnknown() {
 		reqParams.VpcPeeringName = data.Name.ValueStringPointer()
 	}
 
-	if !data.TargetVpcName.IsNull() && !data.TargetVpcName.IsUnknown(){
+	if !data.TargetVpcName.IsNull() && !data.TargetVpcName.IsUnknown() {
 		reqParams.TargetVpcName = data.TargetVpcName.ValueStringPointer()
 	}
 
-	if !data.SourceVpcName.IsNull() && !data.SourceVpcName.IsUnknown(){
+	if !data.SourceVpcName.IsNull() && !data.SourceVpcName.IsUnknown() {
 		reqParams.SourceVpcName = data.SourceVpcName.ValueStringPointer()
 	}
 
@@ -141,7 +141,7 @@ func (v *vpcPeeringDataSource) Read(ctx context.Context, req datasource.ReadRequ
 
 	response, err := v.config.Client.Vpc.V2Api.GetVpcPeeringInstanceList(reqParams)
 
-	if err != nil{
+	if err != nil {
 		var diags diag.Diagnostics
 		diags.AddError(
 			"GetVpcPeeringList",
@@ -206,16 +206,16 @@ func (v *vpcPeeringDataSourceModel) refreshFromOutput(output *vpc.VpcPeeringInst
 }
 
 type vpcPeeringDataSourceModel struct {
-	ID 						types.String `tfsdk:"id"`
-	Name         			types.String `tfsdk:"name"`
-	SourceVpcName  			types.String `tfsdk:"source_vpc_name"`
-	TargetVpcName   		types.String `tfsdk:"target_vpc_name"`
-	Description				types.String `tfsdk:"description"`
-	SourceVpcNo 			types.String `tfsdk:"source_vpc_no"`
-	TargetVpcNo 			types.String `tfsdk:"target_vpc_no"`
-	TargetVpcLoginId		types.String `tfsdk:"target_vpc_login_id"`
-	VpcPeeringNo 			types.String `tfsdk:"vpc_peering_no"`
-	HasReverseVpcPeering	types.Bool   `tfsdk:"has_reverse_vpc_peering"`
-	IsBetweenAccounts 		types.Bool   `tfsdk:"is_between_accounts"`
-	Filters         		types.Set    `tfsdk:"filter"`
+	ID                   types.String `tfsdk:"id"`
+	Name                 types.String `tfsdk:"name"`
+	SourceVpcName        types.String `tfsdk:"source_vpc_name"`
+	TargetVpcName        types.String `tfsdk:"target_vpc_name"`
+	Description          types.String `tfsdk:"description"`
+	SourceVpcNo          types.String `tfsdk:"source_vpc_no"`
+	TargetVpcNo          types.String `tfsdk:"target_vpc_no"`
+	TargetVpcLoginId     types.String `tfsdk:"target_vpc_login_id"`
+	VpcPeeringNo         types.String `tfsdk:"vpc_peering_no"`
+	HasReverseVpcPeering types.Bool   `tfsdk:"has_reverse_vpc_peering"`
+	IsBetweenAccounts    types.Bool   `tfsdk:"is_between_accounts"`
+	Filters              types.Set    `tfsdk:"filter"`
 }

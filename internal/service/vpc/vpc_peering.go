@@ -38,8 +38,6 @@ type vpcPeeringResource struct {
 	config *conn.ProviderConfig
 }
 
-
-
 func (v *vpcPeeringResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
 	resource.ImportStatePassthroughID(ctx, path.Root("id"), req, resp)
 
@@ -58,46 +56,46 @@ func (v *vpcPeeringResource) Schema(_ context.Context, _ resource.SchemaRequest,
 				PlanModifiers: []planmodifier.String{
 					stringplanmodifier.RequiresReplace(),
 				},
-				Validators:  verify.InstanceNameValidator(),
+				Validators: verify.InstanceNameValidator(),
 			},
-			"description" : schema.StringAttribute{
-				Optional: true,
-				Computed: true,
-				Validators:  verify.StringLenBetween(0, 1000),
+			"description": schema.StringAttribute{
+				Optional:   true,
+				Computed:   true,
+				Validators: verify.StringLenBetween(0, 1000),
 			},
-			"source_vpc_no" : schema.StringAttribute{
+			"source_vpc_no": schema.StringAttribute{
 				Required: true,
 				PlanModifiers: []planmodifier.String{
 					stringplanmodifier.RequiresReplace(),
 				},
 			},
-			"target_vpc_no" : schema.StringAttribute{
+			"target_vpc_no": schema.StringAttribute{
 				Required: true,
 				PlanModifiers: []planmodifier.String{
 					stringplanmodifier.RequiresReplace(),
 				},
 			},
-			"target_vpc_name" : schema.StringAttribute{
+			"target_vpc_name": schema.StringAttribute{
 				Optional: true,
 				Computed: true,
 				PlanModifiers: []planmodifier.String{
 					stringplanmodifier.RequiresReplace(),
 				},
 			},
-			"target_vpc_login_id" : schema.StringAttribute{
+			"target_vpc_login_id": schema.StringAttribute{
 				Optional: true,
 				Computed: true,
 				PlanModifiers: []planmodifier.String{
 					stringplanmodifier.RequiresReplace(),
 				},
 			},
-			"vpc_peering_no" : schema.StringAttribute{
+			"vpc_peering_no": schema.StringAttribute{
 				Computed: true,
 			},
-			"has_reverse_vpc_peering" : schema.BoolAttribute{
+			"has_reverse_vpc_peering": schema.BoolAttribute{
 				Computed: true,
 			},
-			"is_between_accounts" : schema.BoolAttribute{
+			"is_between_accounts": schema.BoolAttribute{
 				Computed: true,
 			},
 			"id": framework.IDAttribute(),
@@ -175,12 +173,12 @@ func (v *vpcPeeringResource) Create(ctx context.Context, req resource.CreateRequ
 	}
 
 	tflog.Info(ctx, "CreateVpcPeering response", map[string]any{
-		"createVpcPeeringResponse" : common.MarshalUncheckedString(resp),
+		"createVpcPeeringResponse": common.MarshalUncheckedString(resp),
 	})
 
 	instance := response.VpcPeeringInstanceList[0]
 	plan.ID = types.StringPointerValue(instance.VpcPeeringInstanceNo)
-	tflog.Info(ctx, "VPC Peering ID: %s", map[string]any{"vpcPeeringNo" : *instance.VpcPeeringInstanceNo})
+	tflog.Info(ctx, "VPC Peering ID: %s", map[string]any{"vpcPeeringNo": *instance.VpcPeeringInstanceNo})
 
 	output, err := waitForNcloudVpcPeeringCreation(v.config, *instance.VpcPeeringInstanceNo)
 	if err != nil {
@@ -234,8 +232,8 @@ func (v *vpcPeeringResource) Update(ctx context.Context, req resource.UpdateRequ
 
 	if !plan.Description.Equal(state.Description) {
 		reqParams := &vpc.SetVpcPeeringDescriptionRequest{
-			RegionCode: &v.config.RegionCode,
-			VpcPeeringInstanceNo: state.VpcPeeringNo.ValueStringPointer(),
+			RegionCode:            &v.config.RegionCode,
+			VpcPeeringInstanceNo:  state.VpcPeeringNo.ValueStringPointer(),
 			VpcPeeringDescription: plan.Description.ValueStringPointer(),
 		}
 
@@ -295,7 +293,7 @@ func (v *vpcPeeringResource) Delete(ctx context.Context, req resource.DeleteRequ
 	}
 
 	tflog.Info(ctx, "DeleteVpcPeering response", map[string]any{
-		"deleteVpcResponse": common.MarshalUncheckedString(response),
+		"deleteVpcPeeringResponse": common.MarshalUncheckedString(response),
 	})
 
 	if err := WaitForNcloudVpcPeeringDeletion(v.config, state.ID.ValueString()); err != nil {
@@ -322,7 +320,7 @@ func (m *vpcPeeringResourceModel) refreshFromOutput(output *vpc.VpcPeeringInstan
 	return nil
 }
 
-func waitForNcloudVpcPeeringCreation(config *conn.ProviderConfig, id string) (*vpc.VpcPeeringInstance ,error) {
+func waitForNcloudVpcPeeringCreation(config *conn.ProviderConfig, id string) (*vpc.VpcPeeringInstance, error) {
 	var vpcPeeringInstance *vpc.VpcPeeringInstance
 	stateConf := &sdkresource.StateChangeConf{
 		Pending: []string{"INIT", "CREATING"},
@@ -388,14 +386,14 @@ func GetVpcPeeringInstance(config *conn.ProviderConfig, id string) (*vpc.VpcPeer
 }
 
 type vpcPeeringResourceModel struct {
-	ID						types.String `tfsdk:"id"`
-	Name	 				types.String `tfsdk:"name"`
-	Description				types.String `tfsdk:"description"`
-	SourceVpcNo 			types.String `tfsdk:"source_vpc_no"`
-	TargetVpcNo 			types.String `tfsdk:"target_vpc_no"`
-	TargetVpcName			types.String `tfsdk:"target_vpc_name"`
-	TargetVpcLoginId		types.String `tfsdk:"target_vpc_login_id"`
-	VpcPeeringNo 			types.String `tfsdk:"vpc_peering_no"`
-	HasReverseVpcPeering	types.Bool   `tfsdk:"has_reverse_vpc_peering"`
-	IsBetweenAccounts 		types.Bool   `tfsdk:"is_between_accounts"`
+	ID                   types.String `tfsdk:"id"`
+	Name                 types.String `tfsdk:"name"`
+	Description          types.String `tfsdk:"description"`
+	SourceVpcNo          types.String `tfsdk:"source_vpc_no"`
+	TargetVpcNo          types.String `tfsdk:"target_vpc_no"`
+	TargetVpcName        types.String `tfsdk:"target_vpc_name"`
+	TargetVpcLoginId     types.String `tfsdk:"target_vpc_login_id"`
+	VpcPeeringNo         types.String `tfsdk:"vpc_peering_no"`
+	HasReverseVpcPeering types.Bool   `tfsdk:"has_reverse_vpc_peering"`
+	IsBetweenAccounts    types.Bool   `tfsdk:"is_between_accounts"`
 }
