@@ -121,7 +121,6 @@ func New(ctx context.Context) *schema.Provider {
 		"ncloud_lb":                                  loadbalancer.ResourceNcloudLb(),
 		"ncloud_load_balancer_ssl_certificate":       classicloadbalancer.ResourceNcloudLoadBalancerSSLCertificate(),
 		"ncloud_load_balancer":                       classicloadbalancer.ResourceNcloudLoadBalancer(),
-		"ncloud_login_key":                           server.ResourceNcloudLoginKey(),
 		"ncloud_nas_volume":                          nasvolume.ResourceNcloudNasVolume(),
 		"ncloud_network_acl":                         vpc.ResourceNcloudNetworkACL(),
 		"ncloud_network_acl_deny_allow_group":        vpc.ResourceNcloudNetworkACLDenyAllowGroup(),

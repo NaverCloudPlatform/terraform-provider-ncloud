@@ -2,6 +2,7 @@ package fwprovider
 
 import (
 	"context"
+
 	multierror "github.com/hashicorp/go-multierror"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/provider"
@@ -88,6 +89,7 @@ func (p *fwprovider) Resources(ctx context.Context) []func() resource.Resource {
 	resources = append(resources, vpc.NewVpcResource)
 	resources = append(resources, vpc.NewSubnetResource)
 	resources = append(resources, vpc.NewNatGatewayResource)
+	resources = append(resources, server.NewLoginKeyResource)
 	resources = append(resources, server.NewInitScriptResource)
 
 	if err := errs.ErrorOrNil(); err != nil {

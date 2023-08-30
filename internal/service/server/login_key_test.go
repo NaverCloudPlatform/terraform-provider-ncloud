@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/hashicorp/terraform-plugin-go/tfprotov5"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
@@ -37,8 +38,8 @@ func testAccResourceNcloudLoginKeyBasic(t *testing.T, isVpc bool) {
 	provider := GetTestProvider(isVpc)
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:  func() { TestAccPreCheck(t) },
-		Providers: GetTestAccProviders(isVpc),
+		PreCheck:                 func() { TestAccPreCheck(t) },
+		ProtoV5ProviderFactories: getProvidersBasedOnVpc(isVpc),
 		CheckDestroy: func(state *terraform.State) error {
 			return testAccCheckLoginKeyDestroyWithProvider(state, provider)
 		},
@@ -62,6 +63,14 @@ func testAccResourceNcloudLoginKeyBasic(t *testing.T, isVpc bool) {
 			},
 		},
 	})
+}
+
+func getProvidersBasedOnVpc(isVpc bool) map[string]func() (tfprotov5.ProviderServer, error) {
+	if isVpc {
+		return ProtoV5ProviderFactories
+	} else {
+		return ClassicProtoV5ProviderFactories
+	}
 }
 
 func testAccCheckLoginKeyExistsWithProvider(n string, l *server.LoginKey, provider *schema.Provider) resource.TestCheckFunc {
