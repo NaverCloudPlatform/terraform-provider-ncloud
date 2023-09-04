@@ -185,15 +185,13 @@ func (v *vpcPeeringResource) Create(ctx context.Context, req resource.CreateRequ
 	plan.ID = types.StringPointerValue(instance.VpcPeeringInstanceNo)
 	tflog.Info(ctx, "VPC Peering ID: %s", map[string]any{"vpcPeeringNo": *instance.VpcPeeringInstanceNo})
 
-	output, err := waitForNcloudVpcPeeringCreation(v.config, *instance.VpcPeeringInstanceNo)
+	output, err := waitForNcloudVpcPeeringCreation(ctx, v.config, *instance.VpcPeeringInstanceNo)
 	if err != nil {
 		resp.Diagnostics.AddError("waiting for Vpc peering creation", err.Error())
 		return
 	}
 
-	if err := plan.refreshFromOutput(output); err != nil {
-		resp.Diagnostics.AddError("refreshing vpc peering details", err.Error())
-	}
+	plan.refreshFromOutput(output)
 	resp.Diagnostics.Append(resp.State.Set(ctx, plan)...)
 }
 
@@ -205,7 +203,7 @@ func (v *vpcPeeringResource) Read(ctx context.Context, req resource.ReadRequest,
 		return
 	}
 
-	output, err := GetVpcPeeringInstance(v.config, state.ID.ValueString())
+	output, err := GetVpcPeeringInstance(ctx, v.config, state.ID.ValueString())
 	if err != nil {
 		resp.Diagnostics.AddError("GetVpcPeering", err.Error())
 		return
@@ -215,9 +213,7 @@ func (v *vpcPeeringResource) Read(ctx context.Context, req resource.ReadRequest,
 		return
 	}
 
-	if err := state.refreshFromOutput(output); err != nil {
-		resp.Diagnostics.AddError("refreshing vpc peering details", err.Error())
-	}
+	state.refreshFromOutput(output)
 
 	diags = resp.State.Set(ctx, &state)
 	resp.Diagnostics.Append(diags...)
@@ -259,15 +255,13 @@ func (v *vpcPeeringResource) Update(ctx context.Context, req resource.UpdateRequ
 			"updateVpcPeeringResponse": common.MarshalUncheckedString(response),
 		})
 
-		output, err := GetVpcPeeringInstance(v.config, state.ID.ValueString())
+		output, err := GetVpcPeeringInstance(ctx, v.config, state.ID.ValueString())
 		if err != nil {
 			resp.Diagnostics.AddError("GetVpcPeering", err.Error())
 			return
 		}
 
-		if err := state.refreshFromOutput(output); err != nil {
-			resp.Diagnostics.AddError("refreshing vpc peering details", err.Error())
-		}
+		state.refreshFromOutput(output)
 	}
 	resp.Diagnostics.Append(resp.State.Set(ctx, state)...)
 }
@@ -301,7 +295,7 @@ func (v *vpcPeeringResource) Delete(ctx context.Context, req resource.DeleteRequ
 		"deleteVpcPeeringResponse": common.MarshalUncheckedString(response),
 	})
 
-	if err := WaitForNcloudVpcPeeringDeletion(v.config, state.ID.ValueString()); err != nil {
+	if err := WaitForNcloudVpcPeeringDeletion(ctx, v.config, state.ID.ValueString()); err != nil {
 		resp.Diagnostics.AddError(
 			"fail to wait for vpc peering deletion",
 			err.Error(),
@@ -310,7 +304,7 @@ func (v *vpcPeeringResource) Delete(ctx context.Context, req resource.DeleteRequ
 
 }
 
-func (m *vpcPeeringResourceModel) refreshFromOutput(output *vpc.VpcPeeringInstance) error {
+func (m *vpcPeeringResourceModel) refreshFromOutput(output *vpc.VpcPeeringInstance) {
 	m.ID = types.StringPointerValue(output.VpcPeeringInstanceNo)
 	m.Name = types.StringPointerValue(output.VpcPeeringName)
 	m.VpcPeeringNo = types.StringPointerValue(output.VpcPeeringInstanceNo)
@@ -321,17 +315,15 @@ func (m *vpcPeeringResourceModel) refreshFromOutput(output *vpc.VpcPeeringInstan
 	m.TargetVpcLoginId = types.StringPointerValue(output.TargetVpcLoginId)
 	m.HasReverseVpcPeering = types.BoolPointerValue(output.HasReverseVpcPeering)
 	m.IsBetweenAccounts = types.BoolPointerValue(output.IsBetweenAccounts)
-
-	return nil
 }
 
-func waitForNcloudVpcPeeringCreation(config *conn.ProviderConfig, id string) (*vpc.VpcPeeringInstance, error) {
+func waitForNcloudVpcPeeringCreation(ctx context.Context, config *conn.ProviderConfig, id string) (*vpc.VpcPeeringInstance, error) {
 	var vpcPeeringInstance *vpc.VpcPeeringInstance
 	stateConf := &sdkresource.StateChangeConf{
 		Pending: []string{"INIT", "CREATING"},
 		Target:  []string{"RUN"},
 		Refresh: func() (interface{}, string, error) {
-			instance, err := GetVpcPeeringInstance(config, id)
+			instance, err := GetVpcPeeringInstance(ctx, config, id)
 			vpcPeeringInstance = instance
 			return VpcCommonStateRefreshFunc(instance, err, "VpcPeeringInstanceStatus")
 		},
@@ -347,13 +339,13 @@ func waitForNcloudVpcPeeringCreation(config *conn.ProviderConfig, id string) (*v
 	return vpcPeeringInstance, nil
 }
 
-func WaitForNcloudVpcPeeringDeletion(config *conn.ProviderConfig, id string) error {
+func WaitForNcloudVpcPeeringDeletion(ctx context.Context, config *conn.ProviderConfig, id string) error {
 
 	stateConf := &sdkresource.StateChangeConf{
 		Pending: []string{"RUN", "TERMTING"},
 		Target:  []string{"TERMINATED"},
 		Refresh: func() (interface{}, string, error) {
-			instance, err := GetVpcPeeringInstance(config, id)
+			instance, err := GetVpcPeeringInstance(ctx, config, id)
 			return VpcCommonStateRefreshFunc(instance, err, "VpcPeeringInstanceStatus")
 		},
 		Timeout:    conn.DefaultTimeout,
@@ -368,19 +360,27 @@ func WaitForNcloudVpcPeeringDeletion(config *conn.ProviderConfig, id string) err
 	return nil
 }
 
-func GetVpcPeeringInstance(config *conn.ProviderConfig, id string) (*vpc.VpcPeeringInstance, error) {
+func GetVpcPeeringInstance(ctx context.Context, config *conn.ProviderConfig, id string) (*vpc.VpcPeeringInstance, error) {
 	reqParams := &vpc.GetVpcPeeringInstanceDetailRequest{
 		RegionCode:           &config.RegionCode,
 		VpcPeeringInstanceNo: ncloud.String(id),
 	}
 
-	common.LogResponse("GetVpcPeeringInstanceDetail", reqParams)
+	tflog.Info(ctx, "GetVpcPeeringInstanceDetail", map[string]any{
+		"reqParams": common.MarshalUncheckedString(reqParams),
+	})
+
 	resp, err := config.Client.Vpc.V2Api.GetVpcPeeringInstanceDetail(reqParams)
 	if err != nil {
-		common.LogErrorResponse("GetVpcPeeringInstanceDetail", err, reqParams)
+		tflog.Error(ctx, "GetVpcPeeringInstanceDetail", map[string]any{
+			"reqParams": common.MarshalUncheckedString(reqParams),
+		})
 		return nil, err
 	}
-	common.LogResponse("GetVpcPeeringInstanceDetail", resp)
+
+	tflog.Info(ctx, "GetVpcPeeringInstanceDetail", map[string]any{
+		"respParams": common.MarshalUncheckedString(resp),
+	})
 
 	if len(resp.VpcPeeringInstanceList) > 0 {
 		instance := resp.VpcPeeringInstanceList[0]
