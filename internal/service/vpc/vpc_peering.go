@@ -11,11 +11,13 @@ import (
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 	sdkresource "github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 
+	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
+	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 
 	"github.com/terraform-providers/terraform-provider-ncloud/internal/common"
@@ -61,7 +63,10 @@ func (v *vpcPeeringResource) Schema(_ context.Context, _ resource.SchemaRequest,
 			"description": schema.StringAttribute{
 				Optional:   true,
 				Computed:   true,
-				Validators: verify.StringLenBetween(0, 1000),
+				Validators: []validator.String{
+					stringvalidator.LengthAtLeast(0),
+					stringvalidator.LengthAtMost(1000),
+				},
 			},
 			"source_vpc_no": schema.StringAttribute{
 				Required: true,
