@@ -1,114 +1,263 @@
 package server
 
 import (
+	"context"
 	"fmt"
 	"strings"
 	"time"
 
 	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/ncloud"
-
 	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/services/server"
 	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/services/vserver"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
+	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
+	"github.com/hashicorp/terraform-plugin-log/tflog"
+	sdkresource "github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+
+	"github.com/hashicorp/terraform-plugin-framework/path"
+	"github.com/hashicorp/terraform-plugin-framework/resource"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
+	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
+	"github.com/hashicorp/terraform-plugin-framework/types"
 
 	"github.com/terraform-providers/terraform-provider-ncloud/internal/common"
 	"github.com/terraform-providers/terraform-provider-ncloud/internal/conn"
-	"github.com/terraform-providers/terraform-provider-ncloud/internal/verify"
+	"github.com/terraform-providers/terraform-provider-ncloud/internal/framework"
 )
 
-func ResourceNcloudLoginKey() *schema.Resource {
-	return &schema.Resource{
-		Create: resourceNcloudLoginKeyCreate,
-		Read:   resourceNcloudLoginKeyRead,
-		Delete: resourceNcloudLoginKeyDelete,
-		Importer: &schema.ResourceImporter{
-			State: schema.ImportStatePassthrough,
-		},
-		Timeouts: &schema.ResourceTimeout{
-			Create: schema.DefaultTimeout(conn.DefaultTimeout),
-			Delete: schema.DefaultTimeout(conn.DefaultTimeout),
-		},
-		Schema: map[string]*schema.Schema{
-			"key_name": {
-				Type:             schema.TypeString,
-				Required:         true,
-				ForceNew:         true,
-				ValidateDiagFunc: verify.ToDiagFunc(validation.StringLenBetween(3, 30)),
-				Description:      "Key name to generate. If the generated key name exists, an error occurs.",
+var (
+	_ resource.Resource                = &loginKeyResource{}
+	_ resource.ResourceWithConfigure   = &loginKeyResource{}
+	_ resource.ResourceWithImportState = &loginKeyResource{}
+)
+
+type loginKeyResourceModel struct {
+	KeyName     types.String `tfsdk:"key_name"`
+	PrivateKey  types.String `tfsdk:"private_key"`
+	Fingerprint types.String `tfsdk:"fingerprint"`
+	ID          types.String `tfsdk:"id"`
+}
+
+type loginKeyResource struct {
+	config *conn.ProviderConfig
+}
+
+func NewLoginKeyResource() resource.Resource {
+	return &loginKeyResource{}
+}
+
+func (l *loginKeyResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
+	resource.ImportStatePassthroughID(ctx, path.Root("key_name"), req, resp)
+}
+
+func (l *loginKeyResource) Metadata(_ context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
+	resp.TypeName = req.ProviderTypeName + "_login_key"
+}
+
+func (l *loginKeyResource) Schema(_ context.Context, _ resource.SchemaRequest, resp *resource.SchemaResponse) {
+	resp.Schema = schema.Schema{
+		Attributes: map[string]schema.Attribute{
+			"key_name": schema.StringAttribute{
+				Required: true,
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.RequiresReplace(),
+				},
+				Validators: []validator.String{
+					stringvalidator.LengthBetween(3, 30),
+				},
+				Description: "Key name to generate. If the generated key name exists, an error occurs.",
 			},
-			"private_key": {
-				Type:      schema.TypeString,
+			"private_key": schema.StringAttribute{
 				Computed:  true,
 				Sensitive: true,
 			},
-			"fingerprint": {
-				Type:     schema.TypeString,
+			"fingerprint": schema.StringAttribute{
 				Computed: true,
 			},
+			"id": framework.IDAttribute(),
 		},
 	}
 }
 
-func resourceNcloudLoginKeyRead(d *schema.ResourceData, meta interface{}) error {
-	loginKey, err := GetLoginKey(meta.(*conn.ProviderConfig), d.Id())
-	if err != nil {
-		return err
+func (l *loginKeyResource) Configure(_ context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
+	if req.ProviderData == nil {
+		return
 	}
 
-	if loginKey == nil {
-		d.SetId("") // resource not found
-		return nil
+	config, ok := req.ProviderData.(*conn.ProviderConfig)
+
+	if !ok {
+		resp.Diagnostics.AddError(
+			"Unexpected Data Source Configure Type",
+			fmt.Sprintf("Expected *ProviderConfig, got: %T. Please report this issue to the provider developers.", req.ProviderData),
+		)
+		return
 	}
 
-	d.Set("key_name", loginKey.KeyName)
-	d.Set("fingerprint", loginKey.Fingerprint)
-	return nil
+	l.config = config
 }
 
-func resourceNcloudLoginKeyCreate(d *schema.ResourceData, meta interface{}) error {
-	var privateKey *string
+func (l *loginKeyResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
+	var plan loginKeyResourceModel
+	var err error
+	var privatekey *string
+
+	diags := req.Plan.Get(ctx, &plan)
+	resp.Diagnostics.Append(diags...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
+	keyName := plan.KeyName.ValueStringPointer()
+
+	if l.config.SupportVPC {
+		privatekey, err = createVpcLoginKey(ctx, l.config, keyName)
+	} else {
+
+		privatekey, err = createClassicLoginKey(ctx, l.config, keyName)
+	}
+
+	if err != nil {
+		resp.Diagnostics.AddError(
+			"Error Creating LoginKey",
+			err.Error(),
+		)
+		return
+	}
+
+	output, err := waitForNcloudLoginKeyCreation(l.config, *keyName)
+	if err != nil {
+		resp.Diagnostics.AddError("waiting for LoginKey creation", err.Error())
+		return
+	}
+
+	plan.refreshFromOutput(output)
+	plan.PrivateKey = types.StringValue(strings.TrimSpace(*privatekey))
+
+	resp.Diagnostics.Append(resp.State.Set(ctx, plan)...)
+}
+
+func (l *loginKeyResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
+	var state loginKeyResourceModel
+	diags := req.State.Get(ctx, &state)
+	resp.Diagnostics.Append(diags...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
+	output, err := GetLoginKey(l.config, state.KeyName.ValueString())
+
+	if err != nil {
+		resp.Diagnostics.AddError("GetLoginKey", err.Error())
+		return
+	}
+
+	if output == nil {
+		resp.State.RemoveResource(ctx)
+		return
+	}
+
+	state.refreshFromOutput(output)
+
+	diags = resp.State.Set(ctx, &state)
+	resp.Diagnostics.Append(diags...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+}
+
+func (l *loginKeyResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
+}
+
+func (l *loginKeyResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
+	var state loginKeyResourceModel
 	var err error
 
-	keyName := d.Get("key_name").(string)
+	diags := req.State.Get(ctx, &state)
+	resp.Diagnostics.Append(diags...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
 
-	if meta.(*conn.ProviderConfig).SupportVPC {
-		privateKey, err = createVpcLoginKey(meta.(*conn.ProviderConfig), &keyName)
+	keyName := state.KeyName.ValueString()
+
+	tflog.Info(ctx, "DeleteLoginKey", map[string]any{
+		"KeyName": common.MarshalUncheckedString(keyName),
+	})
+
+	if l.config.SupportVPC {
+		err = deleteVpcLoginKey(ctx, l.config, keyName)
 	} else {
-		privateKey, err = createClassicLoginKey(meta.(*conn.ProviderConfig), &keyName)
+		err = deleteClassicLoginKey(ctx, l.config, keyName)
 	}
 
 	if err != nil {
-		return err
+		resp.Diagnostics.AddError(
+			"Error Deleting LoginKey",
+			err.Error(),
+		)
+		return
 	}
-
-	d.SetId(keyName)
-	d.Set("private_key", strings.TrimSpace(*privateKey))
-
-	time.Sleep(time.Second * 1) // for internal Master / Slave DB sync
-
-	return resourceNcloudLoginKeyRead(d, meta)
 }
 
-func resourceNcloudLoginKeyDelete(d *schema.ResourceData, meta interface{}) error {
-	config := meta.(*conn.ProviderConfig)
+func createVpcLoginKey(ctx context.Context, config *conn.ProviderConfig, keyName *string) (*string, error) {
+	reqParams := &vserver.CreateLoginKeyRequest{KeyName: keyName}
+	tflog.Info(ctx, "DeleteVpcLoginKey", map[string]any{
+		"reqParams": common.MarshalUncheckedString(reqParams),
+	})
 
-	keyName := d.Id()
+	resp, err := config.Client.Vserver.V2Api.CreateLoginKey(reqParams)
+	tflog.Info(ctx, "CreateVpcLoginKey response", map[string]any{
+		"createVpcLoginKeyResponse": common.MarshalUncheckedString(resp),
+	})
 
-	if config.SupportVPC {
-		if err := deleteVpcLoginKey(config, keyName); err != nil {
-			return err
-		}
-	} else {
-		if err := deleteClassicLoginKey(config, keyName); err != nil {
-			return err
-		}
+	return resp.PrivateKey, err
+}
+
+func waitForNcloudLoginKeyCreation(config *conn.ProviderConfig, keyName string) (*LoginKey, error) {
+	var loginkey *LoginKey
+
+	stateConf := &sdkresource.StateChangeConf{
+		Pending: []string{""},
+		Target:  []string{"OK"},
+		Refresh: func() (interface{}, string, error) {
+			resp, err := GetLoginKey(config, keyName)
+			loginkey = resp
+			if err != nil {
+				return 0, "", err
+			}
+
+			if *resp.KeyName == keyName {
+				return 0, "OK", err
+			}
+
+			return resp, "", nil
+		},
+		Timeout:    conn.DefaultTimeout,
+		Delay:      2 * time.Second,
+		MinTimeout: 3 * time.Second,
 	}
 
-	d.SetId("")
+	if _, err := stateConf.WaitForState(); err != nil {
+		return nil, fmt.Errorf("error waiting for Loginkey (%s) to become available: %s", keyName, err)
+	}
 
-	return nil
+	return loginkey, nil
+}
+
+func createClassicLoginKey(ctx context.Context, config *conn.ProviderConfig, keyName *string) (*string, error) {
+	reqParams := &server.CreateLoginKeyRequest{KeyName: keyName}
+	tflog.Info(ctx, "DeleteClassicLoginKey", map[string]any{
+		"reqParams": common.MarshalUncheckedString(reqParams),
+	})
+
+	resp, err := config.Client.Server.V2Api.CreateLoginKey(reqParams)
+	tflog.Info(ctx, "CreateClassicLoginKey response", map[string]any{
+		"createClassicLoginKeyResponse": common.MarshalUncheckedString(resp),
+	})
+
+	return resp.PrivateKey, err
 }
 
 type LoginKey struct {
@@ -164,18 +313,23 @@ func getClassicLoginKey(config *conn.ProviderConfig, keyName string) (*LoginKey,
 	}, nil
 }
 
-func deleteClassicLoginKey(config *conn.ProviderConfig, keyName string) error {
+func deleteClassicLoginKey(ctx context.Context, config *conn.ProviderConfig, keyName string) error {
 	reqParams := &server.DeleteLoginKeyRequest{KeyName: ncloud.String(keyName)}
+	tflog.Info(ctx, "DeletClassicLoginKey", map[string]any{
+		"reqParams": common.MarshalUncheckedString(reqParams),
+	})
 
-	common.LogCommonRequest("deleteClassicLoginKey", reqParams)
 	resp, err := config.Client.Server.V2Api.DeleteLoginKey(reqParams)
 	if err != nil {
 		common.LogErrorResponse("deleteClassicLoginKey", err, keyName)
 		return err
 	}
-	common.LogCommonResponse("deleteClassicLoginKey", common.GetCommonResponse(resp))
 
-	stateConf := &resource.StateChangeConf{
+	tflog.Info(ctx, "DeleteClassicLoginKey response", map[string]any{
+		"deleteClassicLoginKeyResponse": common.MarshalUncheckedString(resp),
+	})
+
+	stateConf := &sdkresource.StateChangeConf{
 		Pending: []string{""},
 		Target:  []string{"OK"},
 		Refresh: func() (interface{}, string, error) {
@@ -203,18 +357,22 @@ func deleteClassicLoginKey(config *conn.ProviderConfig, keyName string) error {
 	return nil
 }
 
-func deleteVpcLoginKey(config *conn.ProviderConfig, keyName string) error {
+func deleteVpcLoginKey(ctx context.Context, config *conn.ProviderConfig, keyName string) error {
 	reqParams := &vserver.DeleteLoginKeysRequest{KeyNameList: []*string{ncloud.String(keyName)}}
+	tflog.Info(ctx, "DeletVpcLoginKey", map[string]any{
+		"reqParams": common.MarshalUncheckedString(reqParams),
+	})
 
-	common.LogCommonRequest("deleteVpcLoginKey", reqParams)
 	resp, err := config.Client.Vserver.V2Api.DeleteLoginKeys(reqParams)
 	if err != nil {
 		common.LogErrorResponse("deleteVpcLoginKey", err, keyName)
 		return err
 	}
-	common.LogCommonResponse("deleteVpcLoginKey", common.GetCommonResponse(resp))
+	tflog.Info(ctx, "DeleteVpcLoginKey response", map[string]any{
+		"deleteVpcLoginKeyResponse": common.MarshalUncheckedString(resp),
+	})
 
-	stateConf := &resource.StateChangeConf{
+	stateConf := &sdkresource.StateChangeConf{
 		Pending: []string{""},
 		Target:  []string{"OK"},
 		Refresh: func() (interface{}, string, error) {
@@ -242,34 +400,8 @@ func deleteVpcLoginKey(config *conn.ProviderConfig, keyName string) error {
 	return nil
 }
 
-func createClassicLoginKey(config *conn.ProviderConfig, keyName *string) (*string, error) {
-	client := config.Client
-
-	reqParams := &server.CreateLoginKeyRequest{KeyName: keyName}
-
-	common.LogCommonRequest("createClassicLoginKey", reqParams)
-	resp, err := client.Server.V2Api.CreateLoginKey(reqParams)
-	if err != nil {
-		common.LogErrorResponse("createClassicLoginKey", err, keyName)
-		return nil, err
-	}
-	common.LogCommonResponse("createClassicLoginKey", common.GetCommonResponse(resp))
-
-	return resp.PrivateKey, nil
-}
-
-func createVpcLoginKey(config *conn.ProviderConfig, keyName *string) (*string, error) {
-	client := config.Client
-
-	reqParams := &vserver.CreateLoginKeyRequest{KeyName: keyName}
-
-	common.LogCommonRequest("createVpcLoginKey", reqParams)
-	resp, err := client.Vserver.V2Api.CreateLoginKey(reqParams)
-	if err != nil {
-		common.LogErrorResponse("createVpcLoginKey", err, keyName)
-		return nil, err
-	}
-	common.LogCommonResponse("createVpcLoginKey", common.GetCommonResponse(resp))
-
-	return resp.PrivateKey, nil
+func (l *loginKeyResourceModel) refreshFromOutput(output *LoginKey) {
+	l.ID = types.StringPointerValue(output.KeyName)
+	l.KeyName = types.StringPointerValue(output.KeyName)
+	l.Fingerprint = types.StringPointerValue(output.Fingerprint)
 }
