@@ -805,6 +805,9 @@ func testAccCheckSourcePipelineProjectDestroy(s *terraform.State, provider *sche
 		}
 	}
 
+	// FIXME: When testing, time gap is required between each test to create
+	// resource without any issues. It should guarantee to deletion and creation
+	// of the resource without problem from the PipelineProject API
 	time.Sleep(1 * time.Minute)
 
 	return nil
