@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"testing"
+	"time"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
@@ -803,6 +804,11 @@ func testAccCheckSourcePipelineProjectDestroy(s *terraform.State, provider *sche
 			return errors.New("SourcePipeline project still exists")
 		}
 	}
+
+	// FIXME: When testing, time gap is required between each test to create
+	// resource without any issues. It should guarantee to deletion and creation
+	// of the resource without problem from the PipelineProject API
+	time.Sleep(1 * time.Minute)
 
 	return nil
 }
