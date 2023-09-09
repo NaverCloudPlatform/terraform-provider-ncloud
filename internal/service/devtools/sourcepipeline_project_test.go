@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"testing"
+	"time"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
@@ -803,6 +804,8 @@ func testAccCheckSourcePipelineProjectDestroy(s *terraform.State, provider *sche
 			return errors.New("SourcePipeline project still exists")
 		}
 	}
+
+	time.Sleep(1 * time.Minute)
 
 	return nil
 }
