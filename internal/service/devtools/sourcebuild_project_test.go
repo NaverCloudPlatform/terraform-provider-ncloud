@@ -185,7 +185,7 @@ resource "ncloud_sourcebuild_project" "test-project" {
 		}
 	}
 	build_command {
-		pre_build   = [""]
+		pre_build   = []
 		in_build = ["pwd", "ls"]
 		post_build  = ["pwd", "ls"]
 	}
