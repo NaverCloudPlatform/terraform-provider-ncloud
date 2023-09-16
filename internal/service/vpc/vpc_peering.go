@@ -1,201 +1,330 @@
 package vpc
 
 import (
+	"context"
 	"fmt"
-	"log"
 	"time"
 
 	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/ncloud"
 	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/services/vpc"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 
-	. "github.com/terraform-providers/terraform-provider-ncloud/internal/common"
+	"github.com/hashicorp/terraform-plugin-log/tflog"
+	sdkresource "github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+
+	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
+	"github.com/hashicorp/terraform-plugin-framework/path"
+	"github.com/hashicorp/terraform-plugin-framework/resource"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
+	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
+	"github.com/hashicorp/terraform-plugin-framework/types"
+
+	"github.com/terraform-providers/terraform-provider-ncloud/internal/common"
 	"github.com/terraform-providers/terraform-provider-ncloud/internal/conn"
+	"github.com/terraform-providers/terraform-provider-ncloud/internal/framework"
 	"github.com/terraform-providers/terraform-provider-ncloud/internal/verify"
 )
 
-func ResourceNcloudVpcPeering() *schema.Resource {
-	return &schema.Resource{
-		Create: resourceNcloudVpcPeeringCreate,
-		Read:   resourceNcloudVpcPeeringRead,
-		Update: resourceNcloudVpcPeeringUpdate,
-		Delete: resourceNcloudVpcPeeringDelete,
-		Importer: &schema.ResourceImporter{
-			State: schema.ImportStatePassthrough,
-		},
-		Schema: map[string]*schema.Schema{
-			"name": {
-				Type:             schema.TypeString,
-				Optional:         true,
-				Computed:         true,
-				ForceNew:         true,
-				ValidateDiagFunc: verify.ToDiagFunc(verify.ValidateInstanceName),
-			},
-			"description": {
-				Type:             schema.TypeString,
-				Optional:         true,
-				Computed:         true,
-				ValidateDiagFunc: verify.ToDiagFunc(validation.StringLenBetween(0, 1000)),
-			},
-			"source_vpc_no": {
-				Type:     schema.TypeString,
-				Required: true,
-				ForceNew: true,
-			},
-			"target_vpc_no": {
-				Type:     schema.TypeString,
-				Required: true,
-				ForceNew: true,
-			},
-			"target_vpc_name": {
-				Type:     schema.TypeString,
+var (
+	_ resource.Resource                = &vpcPeeringResource{}
+	_ resource.ResourceWithConfigure   = &vpcPeeringResource{}
+	_ resource.ResourceWithImportState = &vpcPeeringResource{}
+)
+
+func NewVpcPeeringResource() resource.Resource {
+	return &vpcPeeringResource{}
+}
+
+type vpcPeeringResource struct {
+	config *conn.ProviderConfig
+}
+
+func (v *vpcPeeringResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
+	resource.ImportStatePassthroughID(ctx, path.Root("id"), req, resp)
+
+}
+
+func (v *vpcPeeringResource) Metadata(_ context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
+	resp.TypeName = req.ProviderTypeName + "_vpc_peering"
+}
+
+func (v *vpcPeeringResource) Schema(_ context.Context, _ resource.SchemaRequest, resp *resource.SchemaResponse) {
+	resp.Schema = schema.Schema{
+		Attributes: map[string]schema.Attribute{
+			"name": schema.StringAttribute{
 				Optional: true,
 				Computed: true,
-				ForceNew: true,
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.RequiresReplace(),
+				},
+				Validators: verify.InstanceNameValidator(),
 			},
-			"target_vpc_login_id": {
-				Type:     schema.TypeString,
+			"description": schema.StringAttribute{
+				Optional:   true,
+				Computed:   true,
+				Validators: []validator.String{
+					stringvalidator.LengthAtLeast(0),
+					stringvalidator.LengthAtMost(1000),
+				},
+			},
+			"source_vpc_no": schema.StringAttribute{
+				Required: true,
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.RequiresReplace(),
+				},
+			},
+			"target_vpc_no": schema.StringAttribute{
+				Required: true,
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.RequiresReplace(),
+				},
+			},
+			"target_vpc_name": schema.StringAttribute{
 				Optional: true,
 				Computed: true,
-				ForceNew: true,
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.RequiresReplace(),
+				},
 			},
-			"vpc_peering_no": {
-				Type:     schema.TypeString,
+			"target_vpc_login_id": schema.StringAttribute{
+				Optional: true,
+				Computed: true,
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.RequiresReplace(),
+				},
+			},
+			"vpc_peering_no": schema.StringAttribute{
 				Computed: true,
 			},
-			"has_reverse_vpc_peering": {
-				Type:     schema.TypeBool,
+			"has_reverse_vpc_peering": schema.BoolAttribute{
 				Computed: true,
 			},
-			"is_between_accounts": {
-				Type:     schema.TypeBool,
+			"is_between_accounts": schema.BoolAttribute{
 				Computed: true,
 			},
+			"id": framework.IDAttribute(),
 		},
 	}
 }
 
-func resourceNcloudVpcPeeringCreate(d *schema.ResourceData, meta interface{}) error {
-	config := meta.(*conn.ProviderConfig)
+func (v *vpcPeeringResource) Configure(_ context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
+	if req.ProviderData == nil {
+		return
+	}
 
-	if !config.SupportVPC {
-		return NotSupportClassic("resource `ncloud_vpc_peering`")
+	config, ok := req.ProviderData.(*conn.ProviderConfig)
+
+	if !ok {
+		resp.Diagnostics.AddError(
+			"Unexpected Data Source Configure Type",
+			fmt.Sprintf("Expected *ProviderConfig, got: %T. Please report this issue to the provider developers.", req.ProviderData),
+		)
+		return
+	}
+
+	v.config = config
+}
+
+func (v *vpcPeeringResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
+	var plan vpcPeeringResourceModel
+	diags := req.Plan.Get(ctx, &plan)
+	resp.Diagnostics.Append(diags...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
+	if !v.config.SupportVPC {
+		resp.Diagnostics.AddError(
+			"not support classic",
+			fmt.Sprintf("resource %s does not support classic", req.Config.Schema.Type().String()),
+		)
+		return
 	}
 
 	reqParams := &vpc.CreateVpcPeeringInstanceRequest{
-		RegionCode:  &config.RegionCode,
-		SourceVpcNo: ncloud.String(d.Get("source_vpc_no").(string)),
-		TargetVpcNo: ncloud.String(d.Get("target_vpc_no").(string)),
+		RegionCode:  &v.config.RegionCode,
+		SourceVpcNo: plan.SourceVpcNo.ValueStringPointer(),
+		TargetVpcNo: plan.TargetVpcNo.ValueStringPointer(),
 	}
 
-	if v, ok := d.GetOk("name"); ok {
-		reqParams.VpcPeeringName = ncloud.String(v.(string))
+	if !plan.Name.IsNull() {
+		reqParams.VpcPeeringName = plan.Name.ValueStringPointer()
 	}
 
-	if v, ok := d.GetOk("description"); ok {
-		reqParams.VpcPeeringDescription = ncloud.String(v.(string))
+	if !plan.Description.IsNull() {
+		reqParams.VpcPeeringDescription = plan.Description.ValueStringPointer()
 	}
 
-	if v, ok := d.GetOk("target_vpc_name"); ok {
-		reqParams.TargetVpcName = ncloud.String(v.(string))
+	if !plan.TargetVpcName.IsNull() {
+		reqParams.TargetVpcName = plan.TargetVpcName.ValueStringPointer()
 	}
 
-	if v, ok := d.GetOk("target_vpc_login_id"); ok {
-		reqParams.TargetVpcLoginId = ncloud.String(v.(string))
+	if !plan.TargetVpcLoginId.IsNull() {
+		reqParams.TargetVpcLoginId = plan.TargetVpcLoginId.ValueStringPointer()
 	}
 
-	LogCommonRequest("CreateVpcPeeringInstance", reqParams)
-	resp, err := config.Client.Vpc.V2Api.CreateVpcPeeringInstance(reqParams)
+	tflog.Info(ctx, "CreateVpcPeering", map[string]any{
+		"reqParams": common.MarshalUncheckedString(reqParams),
+	})
+	response, err := v.config.Client.Vpc.V2Api.CreateVpcPeeringInstance(reqParams)
+
 	if err != nil {
-		LogErrorResponse("CreateVpcPeeringInstance", err, reqParams)
-		return err
+		resp.Diagnostics.AddError(
+			fmt.Sprintf("create vpc peering instance, err params=%v", *reqParams),
+			err.Error(),
+		)
+		return
 	}
 
-	LogResponse("CreateVpcPeeringInstance", resp)
+	tflog.Info(ctx, "CreateVpcPeering response", map[string]any{
+		"createVpcPeeringResponse": common.MarshalUncheckedString(resp),
+	})
 
-	instance := resp.VpcPeeringInstanceList[0]
-	d.SetId(*instance.VpcPeeringInstanceNo)
-	log.Printf("[INFO] VPC Peering ID: %s", d.Id())
+	instance := response.VpcPeeringInstanceList[0]
+	plan.ID = types.StringPointerValue(instance.VpcPeeringInstanceNo)
+	tflog.Info(ctx, "VPC Peering ID: %s", map[string]any{"vpcPeeringNo": *instance.VpcPeeringInstanceNo})
 
-	if err := waitForNcloudVpcPeeringCreation(config, d.Id()); err != nil {
-		return err
+	output, err := waitForNcloudVpcPeeringCreation(ctx, v.config, *instance.VpcPeeringInstanceNo)
+	if err != nil {
+		resp.Diagnostics.AddError("waiting for Vpc peering creation", err.Error())
+		return
 	}
 
-	return resourceNcloudVpcPeeringRead(d, meta)
+	plan.refreshFromOutput(output)
+	resp.Diagnostics.Append(resp.State.Set(ctx, plan)...)
 }
 
-func resourceNcloudVpcPeeringRead(d *schema.ResourceData, meta interface{}) error {
-	config := meta.(*conn.ProviderConfig)
+func (v *vpcPeeringResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
+	var state vpcPeeringResourceModel
+	diags := req.State.Get(ctx, &state)
+	resp.Diagnostics.Append(diags...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
 
-	instance, err := GetVpcPeeringInstance(config, d.Id())
+	output, err := GetVpcPeeringInstance(ctx, v.config, state.ID.ValueString())
 	if err != nil {
-		d.SetId("")
-		return err
+		resp.Diagnostics.AddError("GetVpcPeering", err.Error())
+		return
+	}
+	if output == nil {
+		resp.State.RemoveResource(ctx)
+		return
 	}
 
-	if instance == nil {
-		d.SetId("")
-		return nil
+	state.refreshFromOutput(output)
+
+	diags = resp.State.Set(ctx, &state)
+	resp.Diagnostics.Append(diags...)
+	if resp.Diagnostics.HasError() {
+		return
 	}
-
-	d.SetId(*instance.VpcPeeringInstanceNo)
-	d.Set("vpc_peering_no", instance.VpcPeeringInstanceNo)
-	d.Set("name", instance.VpcPeeringName)
-	d.Set("description", instance.VpcPeeringDescription)
-	d.Set("source_vpc_no", instance.SourceVpcNo)
-	d.Set("target_vpc_no", instance.TargetVpcNo)
-	d.Set("target_vpc_name", instance.TargetVpcName)
-	d.Set("target_vpc_login_id", instance.TargetVpcLoginId)
-	d.Set("has_reverse_vpc_peering", instance.HasReverseVpcPeering)
-	d.Set("is_between_accounts", instance.IsBetweenAccounts)
-
-	return nil
 }
 
-func resourceNcloudVpcPeeringUpdate(d *schema.ResourceData, meta interface{}) error {
-	config := meta.(*conn.ProviderConfig)
+func (v *vpcPeeringResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
+	var plan, state vpcPeeringResourceModel
+	resp.Diagnostics.Append(req.Plan.Get(ctx, &plan)...)
+	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
 
-	if d.HasChange("description") {
-		if err := setVpcPeeringDescription(d, config); err != nil {
-			return err
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
+	if !plan.Description.Equal(state.Description) {
+		reqParams := &vpc.SetVpcPeeringDescriptionRequest{
+			RegionCode:            &v.config.RegionCode,
+			VpcPeeringInstanceNo:  state.VpcPeeringNo.ValueStringPointer(),
+			VpcPeeringDescription: plan.Description.ValueStringPointer(),
 		}
-	}
 
-	return resourceNcloudVpcPeeringRead(d, meta)
+		tflog.Info(ctx, "setVpcPeering", map[string]any{
+			"reqParams": common.MarshalUncheckedString(reqParams),
+		})
+
+		response, err := v.config.Client.Vpc.V2Api.SetVpcPeeringDescription(reqParams)
+		if err != nil {
+			resp.Diagnostics.AddError(
+				fmt.Sprintf("SetVpcPeeringDescription  params=%v", *reqParams),
+				err.Error(),
+			)
+			return
+		}
+
+		tflog.Info(ctx, "SetVpcPeeringDescription", map[string]any{
+			"updateVpcPeeringResponse": common.MarshalUncheckedString(response),
+		})
+
+		output, err := GetVpcPeeringInstance(ctx, v.config, state.ID.ValueString())
+		if err != nil {
+			resp.Diagnostics.AddError("GetVpcPeering", err.Error())
+			return
+		}
+
+		state.refreshFromOutput(output)
+	}
+	resp.Diagnostics.Append(resp.State.Set(ctx, state)...)
 }
 
-func resourceNcloudVpcPeeringDelete(d *schema.ResourceData, meta interface{}) error {
-	config := meta.(*conn.ProviderConfig)
+func (v *vpcPeeringResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
+	var state vpcPeeringResourceModel
+	diags := req.State.Get(ctx, &state)
+	resp.Diagnostics.Append(diags...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
 
 	reqParams := &vpc.DeleteVpcPeeringInstanceRequest{
-		RegionCode:           &config.RegionCode,
-		VpcPeeringInstanceNo: ncloud.String(d.Get("vpc_peering_no").(string)),
+		RegionCode:           &v.config.RegionCode,
+		VpcPeeringInstanceNo: state.VpcPeeringNo.ValueStringPointer(),
 	}
 
-	LogCommonRequest("DeleteVpcPeeringInstance", reqParams)
-	resp, err := config.Client.Vpc.V2Api.DeleteVpcPeeringInstance(reqParams)
+	tflog.Info(ctx, "DeleteVpcPeering", map[string]any{
+		"reqParams": common.MarshalUncheckedString(reqParams),
+	})
+	response, err := v.config.Client.Vpc.V2Api.DeleteVpcPeeringInstance(reqParams)
 	if err != nil {
-		LogErrorResponse("DeleteVpcPeeringInstance", err, reqParams)
-		return err
+		resp.Diagnostics.AddError(
+			fmt.Sprintf("DeleteVpcPeering Instance params=%v", *reqParams),
+			err.Error(),
+		)
+		return
 	}
 
-	LogResponse("DeleteVpcPeeringInstance", resp)
+	tflog.Info(ctx, "DeleteVpcPeering response", map[string]any{
+		"deleteVpcPeeringResponse": common.MarshalUncheckedString(response),
+	})
 
-	if err := WaitForNcloudVpcPeeringDeletion(config, d.Id()); err != nil {
-		return err
+	if err := WaitForNcloudVpcPeeringDeletion(ctx, v.config, state.ID.ValueString()); err != nil {
+		resp.Diagnostics.AddError(
+			"fail to wait for vpc peering deletion",
+			err.Error(),
+		)
 	}
 
-	return nil
 }
 
-func waitForNcloudVpcPeeringCreation(config *conn.ProviderConfig, id string) error {
-	stateConf := &resource.StateChangeConf{
+func (m *vpcPeeringResourceModel) refreshFromOutput(output *vpc.VpcPeeringInstance) {
+	m.ID = types.StringPointerValue(output.VpcPeeringInstanceNo)
+	m.Name = types.StringPointerValue(output.VpcPeeringName)
+	m.VpcPeeringNo = types.StringPointerValue(output.VpcPeeringInstanceNo)
+	m.TargetVpcName = types.StringPointerValue(output.TargetVpcName)
+	m.Description = types.StringPointerValue(output.VpcPeeringDescription)
+	m.SourceVpcNo = types.StringPointerValue(output.SourceVpcNo)
+	m.TargetVpcNo = types.StringPointerValue(output.TargetVpcNo)
+	m.TargetVpcLoginId = types.StringPointerValue(output.TargetVpcLoginId)
+	m.HasReverseVpcPeering = types.BoolPointerValue(output.HasReverseVpcPeering)
+	m.IsBetweenAccounts = types.BoolPointerValue(output.IsBetweenAccounts)
+}
+
+func waitForNcloudVpcPeeringCreation(ctx context.Context, config *conn.ProviderConfig, id string) (*vpc.VpcPeeringInstance, error) {
+	var vpcPeeringInstance *vpc.VpcPeeringInstance
+	stateConf := &sdkresource.StateChangeConf{
 		Pending: []string{"INIT", "CREATING"},
 		Target:  []string{"RUN"},
 		Refresh: func() (interface{}, string, error) {
-			instance, err := GetVpcPeeringInstance(config, id)
+			instance, err := GetVpcPeeringInstance(ctx, config, id)
+			vpcPeeringInstance = instance
 			return VpcCommonStateRefreshFunc(instance, err, "VpcPeeringInstanceStatus")
 		},
 		Timeout:    conn.DefaultCreateTimeout,
@@ -204,18 +333,19 @@ func waitForNcloudVpcPeeringCreation(config *conn.ProviderConfig, id string) err
 	}
 
 	if _, err := stateConf.WaitForState(); err != nil {
-		return fmt.Errorf("Error waiting for VPC Peering (%s) to become available: %s", id, err)
+		return nil, fmt.Errorf("Error waiting for VPC Peering (%s) to become available: %s", id, err)
 	}
 
-	return nil
+	return vpcPeeringInstance, nil
 }
 
-func WaitForNcloudVpcPeeringDeletion(config *conn.ProviderConfig, id string) error {
-	stateConf := &resource.StateChangeConf{
+func WaitForNcloudVpcPeeringDeletion(ctx context.Context, config *conn.ProviderConfig, id string) error {
+
+	stateConf := &sdkresource.StateChangeConf{
 		Pending: []string{"RUN", "TERMTING"},
 		Target:  []string{"TERMINATED"},
 		Refresh: func() (interface{}, string, error) {
-			instance, err := GetVpcPeeringInstance(config, id)
+			instance, err := GetVpcPeeringInstance(ctx, config, id)
 			return VpcCommonStateRefreshFunc(instance, err, "VpcPeeringInstanceStatus")
 		},
 		Timeout:    conn.DefaultTimeout,
@@ -230,19 +360,27 @@ func WaitForNcloudVpcPeeringDeletion(config *conn.ProviderConfig, id string) err
 	return nil
 }
 
-func GetVpcPeeringInstance(config *conn.ProviderConfig, id string) (*vpc.VpcPeeringInstance, error) {
+func GetVpcPeeringInstance(ctx context.Context, config *conn.ProviderConfig, id string) (*vpc.VpcPeeringInstance, error) {
 	reqParams := &vpc.GetVpcPeeringInstanceDetailRequest{
 		RegionCode:           &config.RegionCode,
 		VpcPeeringInstanceNo: ncloud.String(id),
 	}
 
-	LogCommonRequest("GetVpcPeeringInstanceDetail", reqParams)
+	tflog.Info(ctx, "GetVpcPeeringInstanceDetail", map[string]any{
+		"reqParams": common.MarshalUncheckedString(reqParams),
+	})
+
 	resp, err := config.Client.Vpc.V2Api.GetVpcPeeringInstanceDetail(reqParams)
 	if err != nil {
-		LogErrorResponse("GetVpcPeeringInstanceDetail", err, reqParams)
+		tflog.Error(ctx, "GetVpcPeeringInstanceDetail", map[string]any{
+			"reqParams": common.MarshalUncheckedString(reqParams),
+		})
 		return nil, err
 	}
-	LogResponse("GetVpcPeeringInstanceDetail", resp)
+
+	tflog.Info(ctx, "GetVpcPeeringInstanceDetail", map[string]any{
+		"respParams": common.MarshalUncheckedString(resp),
+	})
 
 	if len(resp.VpcPeeringInstanceList) > 0 {
 		instance := resp.VpcPeeringInstanceList[0]
@@ -252,20 +390,15 @@ func GetVpcPeeringInstance(config *conn.ProviderConfig, id string) (*vpc.VpcPeer
 	return nil, nil
 }
 
-func setVpcPeeringDescription(d *schema.ResourceData, config *conn.ProviderConfig) error {
-	reqParams := &vpc.SetVpcPeeringDescriptionRequest{
-		RegionCode:            &config.RegionCode,
-		VpcPeeringInstanceNo:  ncloud.String(d.Id()),
-		VpcPeeringDescription: StringPtrOrNil(d.GetOk("description")),
-	}
-
-	LogCommonRequest("setVpcPeeringDescription", reqParams)
-	resp, err := config.Client.Vpc.V2Api.SetVpcPeeringDescription(reqParams)
-	if err != nil {
-		LogErrorResponse("setVpcPeeringDescription", err, reqParams)
-		return err
-	}
-	LogResponse("setVpcPeeringDescription", resp)
-
-	return nil
+type vpcPeeringResourceModel struct {
+	ID                   types.String `tfsdk:"id"`
+	Name                 types.String `tfsdk:"name"`
+	Description          types.String `tfsdk:"description"`
+	SourceVpcNo          types.String `tfsdk:"source_vpc_no"`
+	TargetVpcNo          types.String `tfsdk:"target_vpc_no"`
+	TargetVpcName        types.String `tfsdk:"target_vpc_name"`
+	TargetVpcLoginId     types.String `tfsdk:"target_vpc_login_id"`
+	VpcPeeringNo         types.String `tfsdk:"vpc_peering_no"`
+	HasReverseVpcPeering types.Bool   `tfsdk:"has_reverse_vpc_peering"`
+	IsBetweenAccounts    types.Bool   `tfsdk:"is_between_accounts"`
 }
