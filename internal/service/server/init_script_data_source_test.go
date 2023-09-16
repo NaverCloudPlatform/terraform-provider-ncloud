@@ -5,7 +5,7 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 
-	. "github.com/terraform-providers/terraform-provider-ncloud/internal/acctest"
+	"github.com/terraform-providers/terraform-provider-ncloud/internal/acctest"
 )
 
 func TestAccDataSourceNcloudInitScriptBasic(t *testing.T) {
@@ -13,13 +13,13 @@ func TestAccDataSourceNcloudInitScriptBasic(t *testing.T) {
 	dataName := "data.ncloud_init_script.by_id"
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:  func() { TestAccPreCheck(t) },
-		Providers: GetTestAccProviders(true),
+		PreCheck:                 func() { acctest.TestAccPreCheck(t) },
+		ProtoV5ProviderFactories: acctest.ProtoV5ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccDataSourceNcloudInitScriptConfig,
 				Check: resource.ComposeTestCheckFunc(
-					TestAccCheckDataSourceID(dataName),
+					acctest.TestAccCheckDataSourceID(dataName),
 					resource.TestCheckResourceAttrPair(dataName, "name", resourceName, "name"),
 					resource.TestCheckResourceAttrPair(dataName, "description", resourceName, "description"),
 					resource.TestCheckResourceAttrPair(dataName, "os_type", resourceName, "os_type"),
@@ -34,14 +34,14 @@ func TestAccDataSourceNcloudInitScriptFilter(t *testing.T) {
 	dataName := "data.ncloud_init_script.by_filter"
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:  func() { TestAccPreCheck(t) },
-		Providers: GetTestAccProviders(true),
+		PreCheck:                 func() { acctest.TestAccPreCheck(t) },
+		ProtoV5ProviderFactories: acctest.ProtoV5ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccDataSourceNcloudInitScriptConfigFilter,
 				Check: resource.ComposeTestCheckFunc(
-					TestAccCheckDataSourceID("data.ncloud_init_script.by_filter"),
-					TestAccCheckDataSourceID(dataName),
+					acctest.TestAccCheckDataSourceID("data.ncloud_init_script.by_filter"),
+					acctest.TestAccCheckDataSourceID(dataName),
 					resource.TestCheckResourceAttrPair(dataName, "name", resourceName, "name"),
 					resource.TestCheckResourceAttrPair(dataName, "description", resourceName, "description"),
 					resource.TestCheckResourceAttrPair(dataName, "os_type", resourceName, "os_type"),
