@@ -1,6 +1,7 @@
 package vpc_test
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"regexp"
@@ -189,7 +190,7 @@ func testAccCheckVpcPeeringExists(n string, vpcPeering *vpc.VpcPeeringInstance) 
 		}
 
 		config := acctest.GetTestProvider(true).Meta().(*conn.ProviderConfig)
-		instance, err := vpcservice.GetVpcPeeringInstance(config, rs.Primary.ID)
+		instance, err := vpcservice.GetVpcPeeringInstance(context.Background(), config, rs.Primary.ID)
 		if err != nil {
 			return err
 		}
@@ -208,7 +209,7 @@ func testAccCheckVpcPeeringDestroy(s *terraform.State) error {
 			continue
 		}
 
-		instance, err := vpcservice.GetVpcPeeringInstance(config, rs.Primary.ID)
+		instance, err := vpcservice.GetVpcPeeringInstance(context.Background(), config, rs.Primary.ID)
 
 		if err != nil {
 			return err
@@ -233,7 +234,7 @@ func testAccCheckVpcPeeringDisappears(instance *vpc.VpcPeeringInstance) resource
 
 		_, err := config.Client.Vpc.V2Api.DeleteVpcPeeringInstance(reqParams)
 
-		if err := vpcservice.WaitForNcloudVpcPeeringDeletion(config, *instance.VpcPeeringInstanceNo); err != nil {
+		if err := vpcservice.WaitForNcloudVpcPeeringDeletion(context.Background(),config, *instance.VpcPeeringInstanceNo); err != nil {
 			return err
 		}
 
