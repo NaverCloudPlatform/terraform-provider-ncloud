@@ -12,7 +12,7 @@ import (
 func TestAccDataSourceNcloudSourcePipelineTriggerTimeZone_classic_basic(t *testing.T) {
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { TestAccPreCheck(t) },
-		ProtoV5ProviderFactories: ClassicProtoV5ProviderFactories,
+		ProtoV6ProviderFactories: ClassicProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccDataSourceNcloudSourcePipelineTriggerTimeZoneConfig(),
@@ -26,7 +26,7 @@ func TestAccDataSourceNcloudSourcePipelineTriggerTimeZone_classic_basic(t *testi
 func TestAccDataSourceNcloudSourcePipelineTriggerTimeZone_vpc_basic(t *testing.T) {
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { TestAccPreCheck(t) },
-		ProtoV5ProviderFactories: ProtoV5ProviderFactories,
+		ProtoV6ProviderFactories: ProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccDataSourceNcloudSourcePipelineTriggerTimeZoneConfig(),

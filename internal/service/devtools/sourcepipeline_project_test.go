@@ -24,7 +24,7 @@ func TestAccResourceNcloudSourcePipelineProject_classic_basic(t *testing.T) {
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { TestAccPreCheck(t) },
-		ProtoV5ProviderFactories: ClassicProtoV5ProviderFactories,
+		ProtoV6ProviderFactories: ClassicProtoV6ProviderFactories,
 		CheckDestroy: func(state *terraform.State) error {
 			return testAccCheckSourcePipelineProjectDestroy(state, GetTestProvider(false))
 		},
@@ -52,7 +52,7 @@ func TestAccResourceNcloudSourcePipelineProject_classic_updateTaskName(t *testin
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { TestAccPreCheck(t) },
-		ProtoV5ProviderFactories: ClassicProtoV5ProviderFactories,
+		ProtoV6ProviderFactories: ClassicProtoV6ProviderFactories,
 		CheckDestroy: func(state *terraform.State) error {
 			return testAccCheckSourcePipelineProjectDestroy(state, GetTestProvider(false))
 		},
@@ -89,7 +89,7 @@ func TestAccResourceNcloudSourcePipelineProject_classic_updateDescription(t *tes
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { TestAccPreCheck(t) },
-		ProtoV5ProviderFactories: ClassicProtoV5ProviderFactories,
+		ProtoV6ProviderFactories: ClassicProtoV6ProviderFactories,
 		CheckDestroy: func(state *terraform.State) error {
 			return testAccCheckSourcePipelineProjectDestroy(state, GetTestProvider(false))
 		},
@@ -126,7 +126,7 @@ func TestAccResourceNcloudSourcePipelineProject_vpc_basic(t *testing.T) {
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { TestAccPreCheck(t) },
-		ProtoV5ProviderFactories: ProtoV5ProviderFactories,
+		ProtoV6ProviderFactories: ProtoV6ProviderFactories,
 		CheckDestroy: func(state *terraform.State) error {
 			return testAccCheckSourcePipelineProjectDestroy(state, GetTestProvider(true))
 		},
@@ -154,7 +154,7 @@ func TestAccResourceNcloudSourcePipelineProject_vpc_updateTaskName(t *testing.T)
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { TestAccPreCheck(t) },
-		ProtoV5ProviderFactories: ProtoV5ProviderFactories,
+		ProtoV6ProviderFactories: ProtoV6ProviderFactories,
 		CheckDestroy: func(state *terraform.State) error {
 			return testAccCheckSourcePipelineProjectDestroy(state, GetTestProvider(true))
 		},
@@ -191,7 +191,7 @@ func TestAccResourceNcloudSourcePipelineProject_vpc_updateDescription(t *testing
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { TestAccPreCheck(t) },
-		ProtoV5ProviderFactories: ProtoV5ProviderFactories,
+		ProtoV6ProviderFactories: ProtoV6ProviderFactories,
 		CheckDestroy: func(state *terraform.State) error {
 			return testAccCheckSourcePipelineProjectDestroy(state, GetTestProvider(true))
 		},
