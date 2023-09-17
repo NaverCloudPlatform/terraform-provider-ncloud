@@ -24,7 +24,7 @@ func TestAccResourceNcloudAutoScalingSchedule_classic_basic(t *testing.T) {
 	end := testAccNcloudAutoscalingScheduleValidEnd(t)
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { TestAccPreCheck(t) },
-		ProtoV5ProviderFactories: ClassicProtoV5ProviderFactories,
+		ProtoV6ProviderFactories: ClassicProtoV6ProviderFactories,
 		CheckDestroy: func(state *terraform.State) error {
 			return testAccCheckNcloudAutoScalingScheduleDestroy(state, GetTestProvider(false))
 		},
@@ -47,7 +47,7 @@ func TestAccResourceNcloudAutoScalingSchedule_vpc_basic(t *testing.T) {
 	end := testAccNcloudAutoscalingScheduleValidEnd(t)
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { TestAccPreCheck(t) },
-		ProtoV5ProviderFactories: ProtoV5ProviderFactories,
+		ProtoV6ProviderFactories: ProtoV6ProviderFactories,
 		CheckDestroy: func(state *terraform.State) error {
 			return testAccCheckNcloudAutoScalingScheduleDestroy(state, GetTestProvider(true))
 		},
@@ -70,7 +70,7 @@ func TestAccResourceNcloudAutoScalingSchedule_classic_disappears(t *testing.T) {
 	end := testAccNcloudAutoscalingScheduleValidEnd(t)
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { TestAccPreCheck(t) },
-		ProtoV5ProviderFactories: ClassicProtoV5ProviderFactories,
+		ProtoV6ProviderFactories: ClassicProtoV6ProviderFactories,
 		CheckDestroy: func(state *terraform.State) error {
 			return testAccCheckNcloudAutoScalingScheduleDestroy(state, GetTestProvider(false))
 		},
@@ -95,7 +95,7 @@ func TestAccResourceNcloudAutoScalingSchedule_vpc_disappears(t *testing.T) {
 	end := testAccNcloudAutoscalingScheduleValidEnd(t)
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { TestAccPreCheck(t) },
-		ProtoV5ProviderFactories: ProtoV5ProviderFactories,
+		ProtoV6ProviderFactories: ProtoV6ProviderFactories,
 		CheckDestroy: func(state *terraform.State) error {
 			return testAccCheckNcloudAutoScalingScheduleDestroy(state, GetTestProvider(true))
 		},
