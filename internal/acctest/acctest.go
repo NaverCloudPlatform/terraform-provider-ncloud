@@ -10,10 +10,8 @@ import (
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-framework/providerserver"
-	"github.com/hashicorp/terraform-plugin-go/tfprotov5"
 	"github.com/hashicorp/terraform-plugin-go/tfprotov6"
 	"github.com/hashicorp/terraform-plugin-mux/tf5to6server"
-	"github.com/hashicorp/terraform-plugin-mux/tf5muxserver"
 	"github.com/hashicorp/terraform-plugin-mux/tf6muxserver"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
@@ -33,12 +31,11 @@ const (
 	ProviderName = "ncloud"
 )
 
-// ProtoV5ProviderFactories is a static map containing only the main provider instance
+// ProtoV6ProviderFactories is a static map containing only the main provider instance
 // for testing
 var (
-	ProtoV5ProviderFactories        map[string]func() (tfprotov5.ProviderServer, error) = protoV5ProviderFactoriesInit(context.Background(), true, ProviderName)
-	ClassicProtoV5ProviderFactories map[string]func() (tfprotov5.ProviderServer, error) = protoV5ProviderFactoriesInit(context.Background(), false, ProviderName)
-	ProtoV6ProviderFactories 		map[string]func() (tfprotov6.ProviderServer, error) = protoV6ProviderFactoriesInit(context.Background(), true, ProviderName)
+	ProtoV6ProviderFactories        map[string]func() (tfprotov6.ProviderServer, error) = protoV6ProviderFactoriesInit(context.Background(), true, ProviderName)
+	ClassicProtoV6ProviderFactories map[string]func() (tfprotov6.ProviderServer, error) = protoV6ProviderFactoriesInit(context.Background(), false, ProviderName)
 )
 
 // TODO: deprecate testAccProviders/testAccClassicProviders
@@ -196,47 +193,6 @@ func GetTestClusterName() string {
 	testClusterName := fmt.Sprintf("tf-%d-cluster", rInt)
 	return testClusterName
 }
-
-func protoV5ProviderFactoriesInit(ctx context.Context, isVpc bool, providerNames ...string) map[string]func() (tfprotov5.ProviderServer, error) {
-	factories := make(map[string]func() (tfprotov5.ProviderServer, error), len(providerNames))
-
-	for _, name := range providerNames {
-		factories[name] = func() (tfprotov5.ProviderServer, error) {
-			providerServerFactory, _, err := protoV5TestProviderServerFactory(ctx, isVpc)
-
-			if err != nil {
-				return nil, err
-			}
-
-			return providerServerFactory(), nil
-		}
-	}
-
-	return factories
-}
-
-func protoV5TestProviderServerFactory(ctx context.Context, isVpc bool) (func() tfprotov5.ProviderServer, *schema.Provider, error) {
-	primary := provider.New(ctx)
-	primary.ConfigureContextFunc = func(ctx context.Context, d *schema.ResourceData) (interface{}, diag.Diagnostics) {
-		d.Set("region", testAccGetRegion())
-		d.Set("support_vpc", isVpc)
-		return provider.ProviderConfigure(ctx, d)
-	}
-
-	servers := []func() tfprotov5.ProviderServer{
-		primary.GRPCProvider,
-		providerserver.NewProtocol5(fwprovider.New(primary)),
-	}
-
-	muxServer, err := tf5muxserver.NewMuxServer(ctx, servers...)
-
-	if err != nil {
-		return nil, nil, err
-	}
-
-	return muxServer.ProviderServer, primary, nil
-}
-
 
 func protoV6ProviderFactoriesInit(ctx context.Context, isVpc bool, providerNames ...string) map[string]func() (tfprotov6.ProviderServer, error) {
 	factories := make(map[string]func() (tfprotov6.ProviderServer, error), len(providerNames))

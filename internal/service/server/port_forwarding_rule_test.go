@@ -27,7 +27,7 @@ func TestAccResourceNcloudPortForwardingRuleBasic(t *testing.T) {
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { TestAccPreCheck(t) },
-		ProtoV5ProviderFactories: ClassicProtoV5ProviderFactories,
+		ProtoV6ProviderFactories: ClassicProtoV6ProviderFactories,
 		CheckDestroy:             testAccCheckPortForwardingRuleDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -62,7 +62,7 @@ func ignore_TestAccResourceNcloudPortForwardingRuleExistingServer(t *testing.T) 
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { TestAccPreCheck(t) },
-		ProtoV5ProviderFactories: ClassicProtoV5ProviderFactories,
+		ProtoV6ProviderFactories: ClassicProtoV6ProviderFactories,
 		CheckDestroy:             testAccCheckPortForwardingRuleDestroy,
 		Steps: []resource.TestStep{
 			{
