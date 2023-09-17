@@ -24,7 +24,7 @@ func TestAccResourceNcloudNatGateway_basic(t *testing.T) {
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { TestAccPreCheck(t) },
-		ProtoV5ProviderFactories: ProtoV5ProviderFactories,
+		ProtoV6ProviderFactories: ProtoV6ProviderFactories,
 		CheckDestroy:             testAccCheckNatGatewayDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -61,7 +61,7 @@ func TestAccResourceNcloudNatGateway_disappears(t *testing.T) {
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { TestAccPreCheck(t) },
-		ProtoV5ProviderFactories: ProtoV5ProviderFactories,
+		ProtoV6ProviderFactories: ProtoV6ProviderFactories,
 		CheckDestroy:             testAccCheckNatGatewayDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -83,7 +83,7 @@ func TestAccResourceNcloudNatGateway_onlyRequiredParam(t *testing.T) {
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { TestAccPreCheck(t) },
-		ProtoV5ProviderFactories: ProtoV5ProviderFactories,
+		ProtoV6ProviderFactories: ProtoV6ProviderFactories,
 		CheckDestroy:             testAccCheckNatGatewayDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -112,7 +112,7 @@ func TestAccResourceNcloudNatGateway_updateName(t *testing.T) {
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { TestAccPreCheck(t) },
-		ProtoV5ProviderFactories: ProtoV5ProviderFactories,
+		ProtoV6ProviderFactories: ProtoV6ProviderFactories,
 		CheckDestroy:             testAccCheckNatGatewayDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -133,7 +133,7 @@ func TestAccResourceNcloudNatGateway_description(t *testing.T) {
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { TestAccPreCheck(t) },
-		ProtoV5ProviderFactories: ProtoV5ProviderFactories,
+		ProtoV6ProviderFactories: ProtoV6ProviderFactories,
 		CheckDestroy:             testAccCheckNatGatewayDestroy,
 		Steps: []resource.TestStep{
 			{

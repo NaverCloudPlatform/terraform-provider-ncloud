@@ -12,7 +12,7 @@ import (
 func TestAccDataSourceNcloudVpcsBasic(t *testing.T) {
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { acctest.TestAccPreCheck(t) },
-		ProtoV5ProviderFactories: acctest.ProtoV5ProviderFactories,
+		ProtoV6ProviderFactories: acctest.ProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccDataSourceNcloudVpcsConfig(),
@@ -27,7 +27,7 @@ func TestAccDataSourceNcloudVpcsBasic(t *testing.T) {
 func TestAccDataSourceNcloudVpcsName(t *testing.T) {
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { acctest.TestAccPreCheck(t) },
-		ProtoV5ProviderFactories: acctest.ProtoV5ProviderFactories,
+		ProtoV6ProviderFactories: acctest.ProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccDataSourceNcloudVpcsConfigName("test"),
@@ -42,7 +42,7 @@ func TestAccDataSourceNcloudVpcsName(t *testing.T) {
 func TestAccDataSourceNcloudVpcsVpcNo(t *testing.T) {
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { acctest.TestAccPreCheck(t) },
-		ProtoV5ProviderFactories: acctest.ProtoV5ProviderFactories,
+		ProtoV6ProviderFactories: acctest.ProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccDataSourceNcloudVpcsConfigVpcNo("446"),

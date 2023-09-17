@@ -25,7 +25,7 @@ func TestAccResourceNcloudNetworkACLRule_basic(t *testing.T) {
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { TestAccPreCheck(t) },
-		ProtoV5ProviderFactories: ProtoV5ProviderFactories,
+		ProtoV6ProviderFactories: ProtoV6ProviderFactories,
 		CheckDestroy:             testAccCheckNetworkACLRuleDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -48,7 +48,7 @@ func TestAccResourceNcloudNetworkACLRule_AssociatedSubnet(t *testing.T) {
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { TestAccPreCheck(t) },
-		ProtoV5ProviderFactories: ProtoV5ProviderFactories,
+		ProtoV6ProviderFactories: ProtoV6ProviderFactories,
 		CheckDestroy:             testAccCheckNetworkACLRuleDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -68,7 +68,7 @@ func TestAccResourceNcloudNetworkACLRule_disappears(t *testing.T) {
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { TestAccPreCheck(t) },
-		ProtoV5ProviderFactories: ProtoV5ProviderFactories,
+		ProtoV6ProviderFactories: ProtoV6ProviderFactories,
 		CheckDestroy:             testAccCheckNetworkACLRuleDestroy,
 		Steps: []resource.TestStep{
 			{

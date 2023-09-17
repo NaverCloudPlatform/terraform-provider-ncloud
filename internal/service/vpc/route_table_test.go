@@ -23,7 +23,7 @@ func TestAccResourceNcloudRouteTable_basic(t *testing.T) {
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { TestAccPreCheck(t) },
-		ProtoV5ProviderFactories: ProtoV5ProviderFactories,
+		ProtoV6ProviderFactories: ProtoV6ProviderFactories,
 		CheckDestroy:             testAccCheckRouteTableDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -51,7 +51,7 @@ func TestAccResourceNcloudRouteTable_disappears(t *testing.T) {
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { TestAccPreCheck(t) },
-		ProtoV5ProviderFactories: ProtoV5ProviderFactories,
+		ProtoV6ProviderFactories: ProtoV6ProviderFactories,
 		CheckDestroy:             testAccCheckRouteTableDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -73,7 +73,7 @@ func TestAccResourceNcloudRouteTable_onlyRequiredParam(t *testing.T) {
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { TestAccPreCheck(t) },
-		ProtoV5ProviderFactories: ProtoV5ProviderFactories,
+		ProtoV6ProviderFactories: ProtoV6ProviderFactories,
 		CheckDestroy:             testAccCheckRouteTableDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -101,7 +101,7 @@ func TestAccResourceNcloudRouteTable_updateName(t *testing.T) {
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { TestAccPreCheck(t) },
-		ProtoV5ProviderFactories: ProtoV5ProviderFactories,
+		ProtoV6ProviderFactories: ProtoV6ProviderFactories,
 		CheckDestroy:             testAccCheckRouteTableDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -126,7 +126,7 @@ func TestAccResourceNcloudRouteTable_description(t *testing.T) {
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { TestAccPreCheck(t) },
-		ProtoV5ProviderFactories: ProtoV5ProviderFactories,
+		ProtoV6ProviderFactories: ProtoV6ProviderFactories,
 		CheckDestroy:             testAccCheckRouteTableDestroy,
 		Steps: []resource.TestStep{
 			{
