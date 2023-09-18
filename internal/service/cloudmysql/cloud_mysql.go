@@ -5,6 +5,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-ncloud/internal/service/vpc"
 	"log"
 	"regexp"
+	"strings"
 	"time"
 
 	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/ncloud"
@@ -229,7 +230,10 @@ func resourceNcloudMySqlDelete(d *schema.ResourceData, meta interface{}) error {
 		return err
 	}
 
-	time.Sleep(3 * time.Minute)
+	if err := waitStateNcloudMysqlForDeletion(config, d.Id()); err != nil {
+		return err
+	}
+
 	d.SetId("")
 	return nil
 }
@@ -415,6 +419,43 @@ func waitStateNcloudMysqlForCreation(config *conn.ProviderConfig, id string) err
 	_, err := stateConf.WaitForState()
 	if err != nil {
 		return fmt.Errorf("error waiting for MysqlInstance state to be \"CREAT\": %s", err)
+	}
+
+	return nil
+}
+
+func waitStateNcloudMysqlForDeletion(config *conn.ProviderConfig, id string) error {
+	stateConf := &resource.StateChangeConf{
+		Pending: []string{"deleting"},
+		Target:  []string{"deleted"},
+		Refresh: func() (interface{}, string, error) {
+			instance, err := GetMysqlInstance(config, id)
+
+			if err != nil && !strings.Contains(err.Error(),`"returnCode": "5001017"`){
+				return 0, "", err
+			}
+
+			if instance == nil {
+				fmt.Println("del")
+				return instance, "deleted", nil
+			}
+
+			status := instance.CloudMysqlInstanceStatus.Code
+			op := instance.CloudMysqlInstanceOperation.Code
+
+			if *status == "DEL" && *op == "DEL" {
+				return instance, "deleting", nil
+			}
+
+			return 0, "", fmt.Errorf("error occurred while waiting to delete mysql")
+		},
+		Timeout:    conn.DefaultTimeout,
+		Delay:      2 * time.Second,
+		MinTimeout: 3 * time.Second,
+	}
+	_, err := stateConf.WaitForState()
+	if err != nil {
+		return fmt.Errorf("error waiting for MysqlInstance state to be \"DELETE\": %s", err)
 	}
 
 	return nil
