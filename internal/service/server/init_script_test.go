@@ -1,29 +1,30 @@
 package server_test
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"testing"
 
 	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/services/vserver"
 
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
+	sdkacctest "github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 
-	. "github.com/terraform-providers/terraform-provider-ncloud/internal/acctest"
+	"github.com/terraform-providers/terraform-provider-ncloud/internal/acctest"
 	"github.com/terraform-providers/terraform-provider-ncloud/internal/conn"
 	"github.com/terraform-providers/terraform-provider-ncloud/internal/service/server"
 )
 
 func TestAccResourceNcloudInitScript_basic(t *testing.T) {
 	var InitScript vserver.InitScript
-	name := fmt.Sprintf("tf-init-script-basic-%s", acctest.RandString(5))
+	name := fmt.Sprintf("tf-init-script-basic-%s", sdkacctest.RandString(5))
 	resourceName := "ncloud_init_script.foo"
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:                 func() { TestAccPreCheck(t) },
-		ProtoV5ProviderFactories: ProtoV5ProviderFactories,
+		PreCheck:                 func() { acctest.TestAccPreCheck(t) },
+		ProtoV5ProviderFactories: acctest.ProtoV5ProviderFactories,
 		CheckDestroy:             testAccCheckInitScriptDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -43,12 +44,12 @@ func TestAccResourceNcloudInitScript_basic(t *testing.T) {
 
 func TestAccResourceNcloudInitScript_disappears(t *testing.T) {
 	var InitScript vserver.InitScript
-	name := fmt.Sprintf("tf-init-script-disappear-%s", acctest.RandString(5))
+	name := fmt.Sprintf("tf-init-script-disappear-%s", sdkacctest.RandString(5))
 	resourceName := "ncloud_init_script.foo"
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:                 func() { TestAccPreCheck(t) },
-		ProtoV5ProviderFactories: ProtoV5ProviderFactories,
+		PreCheck:                 func() { acctest.TestAccPreCheck(t) },
+		ProtoV5ProviderFactories: acctest.ProtoV5ProviderFactories,
 		CheckDestroy:             testAccCheckInitScriptDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -83,8 +84,8 @@ func testAccCheckInitScriptExists(n string, InitScript *vserver.InitScript) reso
 			return fmt.Errorf("no Init script id is set")
 		}
 
-		config := GetTestProvider(true).Meta().(*conn.ProviderConfig)
-		instance, err := server.GetInitScript(config, rs.Primary.ID)
+		config := acctest.GetTestProvider(true).Meta().(*conn.ProviderConfig)
+		instance, err := server.GetInitScript(context.Background(), config, rs.Primary.ID)
 		if err != nil {
 			return err
 		}
@@ -96,14 +97,14 @@ func testAccCheckInitScriptExists(n string, InitScript *vserver.InitScript) reso
 }
 
 func testAccCheckInitScriptDestroy(s *terraform.State) error {
-	config := GetTestProvider(true).Meta().(*conn.ProviderConfig)
+	config := acctest.GetTestProvider(true).Meta().(*conn.ProviderConfig)
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "ncloud_init_script" {
 			continue
 		}
 
-		instance, err := server.GetInitScript(config, rs.Primary.ID)
+		instance, err := server.GetInitScript(context.Background(), config, rs.Primary.ID)
 
 		if err != nil {
 			return err
@@ -119,7 +120,7 @@ func testAccCheckInitScriptDestroy(s *terraform.State) error {
 
 func testAccCheckInitScriptDisappears(instance *vserver.InitScript) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
-		config := GetTestProvider(true).Meta().(*conn.ProviderConfig)
-		return server.DeleteInitScript(config, *instance.InitScriptNo)
+		config := acctest.GetTestProvider(true).Meta().(*conn.ProviderConfig)
+		return server.DeleteInitScript(context.Background(), config, *instance.InitScriptNo)
 	}
 }
