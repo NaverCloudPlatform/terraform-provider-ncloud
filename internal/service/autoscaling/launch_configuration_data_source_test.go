@@ -1,7 +1,6 @@
 package autoscaling_test
 
 import (
-	"fmt"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
@@ -64,7 +63,7 @@ func TestAccDataSourceNcloudLaunchConfiguration_vpc_basic(t *testing.T) {
 }
 
 func testAccDataSourceNcloudLaunchConfigurationClassicConfig() string {
-	return fmt.Sprintf(`
+	return `
 resource "ncloud_launch_configuration" "lc" {
 	server_image_product_code = "SPSW0LINUX000046"
 }
@@ -72,11 +71,11 @@ resource "ncloud_launch_configuration" "lc" {
 data "ncloud_launch_configuration" "lc" {
 	id = ncloud_launch_configuration.lc.launch_configuration_no
 }
-`)
+`
 }
 
 func testAccDataSourceNcloudLaunchConfigurationVpcConfig() string {
-	return fmt.Sprintf(`
+	return `
 resource "ncloud_launch_configuration" "lc" {
 	server_image_product_code = "SW.VSVR.OS.LNX64.CNTOS.0703.B050"
 }
@@ -84,5 +83,5 @@ resource "ncloud_launch_configuration" "lc" {
 data "ncloud_launch_configuration" "lc" {
 	id = ncloud_launch_configuration.lc.launch_configuration_no
 }
-`)
+`
 }

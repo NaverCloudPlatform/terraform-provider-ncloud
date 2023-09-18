@@ -321,7 +321,6 @@ func testAccBlockStorageClassicConfig(name string) string {
 }
 
 func testAccBlockStorageVpcConfigWithSize(name string, size int) string {
-	fmt.Printf(name)
 	return fmt.Sprintf(`
 resource "ncloud_login_key" "loginkey" {
 	key_name = "%[1]s-key"

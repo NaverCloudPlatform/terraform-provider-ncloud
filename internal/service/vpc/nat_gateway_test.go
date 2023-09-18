@@ -205,22 +205,6 @@ resource "ncloud_nat_gateway" "nat_gateway_private" {
 `, name, description)
 }
 
-func testAccResourceNcloudNatGatewayConfigUpdate(name, updateName string) string {
-	return fmt.Sprintf(`
-resource "ncloud_vpc" "vpc" {
-	name            = "%s"
-	ipv4_cidr_block = "10.3.0.0/16"
-}
-
-resource "ncloud_nat_gateway" "nat_gateway" {
-  vpc_no      = ncloud_vpc.vpc.vpc_no
-  zone        = "KR-1"
-  name        = "%s"
-  description = "description"
-}
-`, name, updateName)
-}
-
 func testAccResourceNcloudNatGatewayConfigOnlyRequiredParam(name string) string {
 	return fmt.Sprintf(`
 resource "ncloud_vpc" "vpc" {

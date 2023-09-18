@@ -1,0 +1,9 @@
+issues:
+  exclude-rules:
+    - linters:
+      - staticcheck
+      text: "SA1019:"
+    - linters:
+      - errcheck
+      text: "Error return value of `d.Set` is not checked"
+

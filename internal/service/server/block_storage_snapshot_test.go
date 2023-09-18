@@ -17,6 +17,8 @@ import (
 )
 
 // TODO: Fix TestAcc ErrorTestAccResourceNcloudBlockStorageBasic
+//
+//nolint:unused
 func ignore_TestAccResourceNcloudBlockStorageSnapshotBasic(t *testing.T) {
 	var snapshotInstance server.BlockStorageSnapshotInstance
 	prefix := GetTestPrefix()
@@ -59,10 +61,12 @@ func ignore_TestAccResourceNcloudBlockStorageSnapshotBasic(t *testing.T) {
 	})
 }
 
+//nolint:unused
 func testAccCheckBlockStorageSnapshotExists(n string, i *server.BlockStorageSnapshotInstance) resource.TestCheckFunc {
 	return testAccCheckBlockStorageSnapshotExistsWithProvider(n, i, func() *schema.Provider { return GetTestProvider(false) })
 }
 
+//nolint:unused
 func testAccCheckBlockStorageSnapshotExistsWithProvider(n string, i *server.BlockStorageSnapshotInstance, providerF func() *schema.Provider) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		rs, ok := s.RootModule().Resources[n]
@@ -92,10 +96,12 @@ func testAccCheckBlockStorageSnapshotExistsWithProvider(n string, i *server.Bloc
 	}
 }
 
+//nolint:unused
 func testAccCheckBlockStorageSnapshotDestroy(s *terraform.State) error {
 	return testAccCheckBlockStorageSnapshotDestroyWithProvider(s, GetTestProvider(false))
 }
 
+//nolint:unused
 func testAccCheckBlockStorageSnapshotDestroyWithProvider(s *terraform.State, provider *schema.Provider) error {
 	client := provider.Meta().(*conn.ProviderConfig).Client
 
@@ -122,6 +128,7 @@ func testAccCheckBlockStorageSnapshotDestroyWithProvider(s *terraform.State, pro
 	return nil
 }
 
+//nolint:unused
 func testAccBlockStorageSnapshotConfig(testLoginKeyName string, serverInstanceName string, blockStorageName string, snapshotName string) string {
 	return fmt.Sprintf(`
 resource "ncloud_login_key" "key" {

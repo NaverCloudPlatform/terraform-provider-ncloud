@@ -1,7 +1,6 @@
 package nks_test
 
 import (
-	"fmt"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
@@ -49,12 +48,12 @@ data "ncloud_nks_server_images" "images" {}
 `
 
 func testAccDataSourceNcloudNKSServerImagestWithFilterConfig() string {
-	return fmt.Sprintf(`
+	return `
 data "ncloud_nks_server_images" "filter"{
   filter {
     name = "label"
     values = ["ubuntu-20.04-64-server"]
   }
 }
-`)
+`
 }

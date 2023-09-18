@@ -44,33 +44,6 @@ func GetZoneNoByCode(config *conn.ProviderConfig, code string) string {
 	return ""
 }
 
-func getZoneCodeByNo(config *conn.ProviderConfig, no string) string {
-	if zoneCode := zoneCache[no]; zoneCode != "" {
-		return zoneCode
-	}
-	if zone, err := getZoneByNo(config, no); err == nil && zone != nil {
-		zoneCache[no] = *zone.ZoneCode
-		return *zone.ZoneCode
-	}
-	return ""
-}
-
-func getZoneByNo(config *conn.ProviderConfig, no string) (*Zone, error) {
-	zonesList, err := GetZones(config)
-	if err != nil {
-		return nil, err
-	}
-
-	var filteredZone *Zone
-	for _, zone := range zonesList {
-		if zone.ZoneNo != nil && no == *zone.ZoneNo {
-			filteredZone = zone
-			break
-		}
-	}
-	return filteredZone, nil
-}
-
 func GetZoneByCode(config *conn.ProviderConfig, code string) (*Zone, error) {
 	zonesList, err := GetZones(config)
 	if err != nil {
@@ -91,7 +64,7 @@ func GetZones(config *conn.ProviderConfig) ([]*Zone, error) {
 	var zones []*Zone
 	var err error
 
-	if config.SupportVPC == true {
+	if config.SupportVPC {
 		zones, err = getVpcZones(config)
 	} else {
 		zones, err = getClassicZones(config)

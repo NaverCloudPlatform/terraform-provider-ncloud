@@ -92,7 +92,7 @@ func memberServerImagesAttributes(d *schema.ResourceData, memberServerImages []m
 	}
 
 	d.SetId(DataResourceIdHash(ids))
-	d.Set("member_server_images", ids)
+	_ = d.Set("member_server_images", ids)
 
 	if output, ok := d.GetOk("output_file"); ok && output.(string) != "" {
 		return WriteToFile(output.(string), d.Get("member_server_images"))

@@ -115,7 +115,7 @@ func getServerProductListFiltered(d *schema.ResourceData, config *conn.ProviderC
 	var resources []map[string]interface{}
 	var err error
 
-	if config.SupportVPC == true {
+	if config.SupportVPC {
 		resources, err = getVpcServerProductList(d, config)
 	} else {
 		resources, err = getClassicServerProductList(d, config)

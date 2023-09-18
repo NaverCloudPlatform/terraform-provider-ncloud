@@ -37,9 +37,9 @@ func TestAccDataSourceNcloudLb_basic(t *testing.T) {
 }
 
 func testAccDataSourceNcloudLbConfig(name string) string {
-	return testAccResourceNcloudLbConfig(name) + fmt.Sprintf(`
+	return testAccResourceNcloudLbConfig(name) + `
 data "ncloud_lb" "test" {
 	id = ncloud_lb.test.load_balancer_no
 }
-`)
+`
 }

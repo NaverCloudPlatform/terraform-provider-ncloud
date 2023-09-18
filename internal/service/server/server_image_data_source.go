@@ -102,7 +102,7 @@ func getServerImageProductListFiltered(d *schema.ResourceData, config *conn.Prov
 	var resources []map[string]interface{}
 	var err error
 
-	if config.SupportVPC == true {
+	if config.SupportVPC {
 		resources, err = getVpcServerImageProductList(d, config)
 	} else {
 		resources, err = getClassicServerImageProductList(d, config)

@@ -613,7 +613,7 @@ func getSubnetDiff(oldList interface{}, newList interface{}) (added []*int32, re
 		newMap[*v] += 1
 	}
 
-	for subnet, _ := range oldMap {
+	for subnet := range oldMap {
 		if _, exist := newMap[subnet]; !exist {
 			intV, err := strconv.Atoi(subnet)
 			if err == nil {
@@ -622,7 +622,7 @@ func getSubnetDiff(oldList interface{}, newList interface{}) (added []*int32, re
 		}
 	}
 
-	for subnet, _ := range newMap {
+	for subnet := range newMap {
 		if _, exist := oldMap[subnet]; !exist {
 			intV, err := strconv.Atoi(subnet)
 			if err == nil {

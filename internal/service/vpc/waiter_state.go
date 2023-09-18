@@ -21,7 +21,9 @@ func VpcCommonStateRefreshFunc(instance interface{}, err error, statusName strin
 		return nil, "", err
 	}
 	var m map[string]interface{}
-	json.Unmarshal(b, &m)
+	if err := json.Unmarshal(b, &m); err != nil {
+		return nil, "", err
+	}
 
 	a := []rune(statusName)
 	a[0] = unicode.ToLower(a[0])

@@ -51,7 +51,7 @@ func dataSourceNcloudNetworkInterfacesRead(d *schema.ResourceData, meta interfac
 		return err
 	}
 
-	if resources == nil || len(resources) == 0 {
+	if len(resources) == 0 {
 		return errors.New("no matching Network Interfaces found")
 	}
 
