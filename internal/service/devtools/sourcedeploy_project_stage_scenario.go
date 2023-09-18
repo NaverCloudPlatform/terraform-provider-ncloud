@@ -696,7 +696,7 @@ func getManifest(deployTargetType string, d *schema.ResourceData) (*vsourcedeplo
 		}
 
 		if param, ok := d.GetOk("config.0.manifest.0.path"); ok {
-			err := ValidateEmptyStringElement(param.([]interface{}));
+			err := ValidateEmptyStringElement(param.([]interface{}))
 			if err != nil {
 				return nil, fmt.Errorf("config.manifest.path cannot contain an empty string element")
 			}
