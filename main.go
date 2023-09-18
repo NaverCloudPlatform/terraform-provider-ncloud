@@ -5,7 +5,7 @@ import (
 	"flag"
 	"log"
 
-	"github.com/hashicorp/terraform-plugin-go/tfprotov5/tf6server"
+	"github.com/hashicorp/terraform-plugin-go/tfprotov6/tf6server"
 	"github.com/terraform-providers/terraform-provider-ncloud/internal/provider"
 )
 
