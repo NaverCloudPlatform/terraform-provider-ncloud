@@ -407,8 +407,8 @@ func attachVpcNetworkInterface(d *schema.ResourceData, config *conn.ProviderConf
 
 func waitForPublicIpDisassociate(d *schema.ResourceData, config *conn.ProviderConfig) error {
 	reqParams := &vserver.GetServerInstanceDetailRequest{
-		RegionCode:         &config.RegionCode,
-		ServerInstanceNo:   ncloud.String(d.Get("server_instance_no").(string)),
+		RegionCode:       &config.RegionCode,
+		ServerInstanceNo: ncloud.String(d.Get("server_instance_no").(string)),
 	}
 
 	resp, err := config.Client.Vserver.V2Api.GetServerInstanceDetail(reqParams)

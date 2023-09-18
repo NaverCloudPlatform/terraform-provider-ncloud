@@ -234,7 +234,7 @@ func testAccCheckVpcPeeringDisappears(instance *vpc.VpcPeeringInstance) resource
 
 		_, err := config.Client.Vpc.V2Api.DeleteVpcPeeringInstance(reqParams)
 
-		if err := vpcservice.WaitForNcloudVpcPeeringDeletion(context.Background(),config, *instance.VpcPeeringInstanceNo); err != nil {
+		if err := vpcservice.WaitForNcloudVpcPeeringDeletion(context.Background(), config, *instance.VpcPeeringInstanceNo); err != nil {
 			return err
 		}
 

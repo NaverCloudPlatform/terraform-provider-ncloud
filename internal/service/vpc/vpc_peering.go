@@ -61,8 +61,8 @@ func (v *vpcPeeringResource) Schema(_ context.Context, _ resource.SchemaRequest,
 				Validators: verify.InstanceNameValidator(),
 			},
 			"description": schema.StringAttribute{
-				Optional:   true,
-				Computed:   true,
+				Optional: true,
+				Computed: true,
 				Validators: []validator.String{
 					stringvalidator.LengthAtLeast(0),
 					stringvalidator.LengthAtMost(1000),

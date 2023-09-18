@@ -475,7 +475,7 @@ func makeClassicPipelineTaskParams(d *schema.ResourceData) ([]*sourcepipeline.Cr
 			return nil, diag.FromErr(NotSupportClassic("Invalid argument: \"SourceDeploy\" task "))
 		}
 
-		err := ValidateEmptyStringElement(d.Get(prefix + "linked_tasks").([]interface{}));
+		err := ValidateEmptyStringElement(d.Get(prefix + "linked_tasks").([]interface{}))
 		if err != nil {
 			return nil, diag.Errorf("task.linkd_tasks cannot contain an empty string element")
 		}
@@ -521,7 +521,7 @@ func makeVpcPipelineTaskParams(d *schema.ResourceData) ([]*vsourcepipeline.Creat
 			}
 		}
 
-		err := ValidateEmptyStringElement(d.Get(prefix + "linked_tasks").([]interface{}));
+		err := ValidateEmptyStringElement(d.Get(prefix + "linked_tasks").([]interface{}))
 		if err != nil {
 			return nil, diag.Errorf("task.linkd_tasks cannot contain an empty string element")
 		}
