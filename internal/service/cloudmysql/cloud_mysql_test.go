@@ -23,7 +23,7 @@ func TestAccResourceNcloudMysql_vpc_basic(t *testing.T) {
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { TestAccPreCheck(t) },
-		Providers:    GetTestAccProviders(true),
+		ProtoV5ProviderFactories: ProtoV5ProviderFactories,
 		CheckDestroy: testAccCheckMysqlDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -56,7 +56,7 @@ func TestAccResourceNcloudMysql_vpc_isHa(t *testing.T) {
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { TestAccPreCheck(t) },
-		Providers:    GetTestAccProviders(true),
+		ProtoV5ProviderFactories: ProtoV5ProviderFactories,
 		CheckDestroy: testAccCheckMysqlDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -82,7 +82,7 @@ func TestAccResourceNcloudMysql_vpc_isHa_options(t *testing.T) {
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { TestAccPreCheck(t) },
-		Providers:    GetTestAccProviders(true),
+		ProtoV5ProviderFactories: ProtoV5ProviderFactories,
 		CheckDestroy: testAccCheckMysqlDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -108,7 +108,7 @@ func TestAccResourceNcloudMysql_vpc_auto_backup(t *testing.T) {
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { TestAccPreCheck(t) },
-		Providers:    GetTestAccProviders(true),
+		ProtoV5ProviderFactories: ProtoV5ProviderFactories,
 		CheckDestroy: testAccCheckMysqlDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -134,7 +134,7 @@ func TestAccResourceNcloudMysql_vpc_not_auto_backup(t *testing.T) {
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { TestAccPreCheck(t) },
-		Providers:    GetTestAccProviders(true),
+		ProtoV5ProviderFactories: ProtoV5ProviderFactories,
 		CheckDestroy: testAccCheckMysqlDestroy,
 		Steps: []resource.TestStep{
 			{
