@@ -26,7 +26,7 @@ website/node_modules
 *.iml
 binary/
 test/
-
+terraform-provider-ncloud
 
 website/vendor
 
