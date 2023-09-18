@@ -436,7 +436,6 @@ func waitStateNcloudMysqlForDeletion(config *conn.ProviderConfig, id string) err
 			}
 
 			if instance == nil {
-				fmt.Println("del")
 				return instance, "deleted", nil
 			}
 
