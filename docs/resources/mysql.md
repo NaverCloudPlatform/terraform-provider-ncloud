@@ -43,17 +43,20 @@ resource "ncloud_mysql" "mysql" {
 
 The following arguments are supported:
 
-* `image_product_code` - (Optional) Image product code to determine the mysql instance server image specification to create. You can get it through the `getCloudMysqlImageProductList` action. If not entered, the instance is created for default value.
+* `image_product_code` - (Optional) Image product code to determine the mysql instance server image specification to create. If not entered, the instance is created for default value. It can be obtained through `data.ncloud_mysql_image_product`.
     - [Docs mysql(5.7) Centos 7.3-64 Image Products](https://github.com/NaverCloudPlatform/terraform-ncloud-docs/blob/main/docs/vpc_products/mysql(5.7)-centos-7.3-64.md)
     - [Docs mysql(5.7) ubuntu 16.04-64 Image Products](https://github.com/NaverCloudPlatform/terraform-ncloud-docs/blob/main/docs/vpc_products/mysql(5.7)-ubuntu-16.04-64-server.md)
     - [Docs mysql(8.0) centos 7.3-64 Image Products](https://github.com/NaverCloudPlatform/terraform-ncloud-docs/blob/main/docs/vpc_products/mysql(5.7)-centos-7.3-64.md)
     - [Docs mysql(8.0) centos 7.8-64 Image Products](https://github.com/NaverCloudPlatform/terraform-ncloud-docs/blob/main/docs/vpc_products/mysql(8.0)-centos-7.8-64.md)
+    - [`ncloud_mysql_image_product` data source](../data-sources/mysql_image_product.md)
 
-* `product_code` - (Optional) Product code to determine the mysql instance server image specification to create. You can get it through the `getCloudMysqlProductList` action. Default : Minimum specifications(1 memory, 2 cpu)
+
+* `product_code` - (Optional) Product code to determine the mysql instance server image specification to create. It can be obtained through `data.ncloud_mysql_product`. Default : Minimum specifications(1 memory, 2 cpu)
     - [Docs mysql(5.7) Centos 7.3-64 Image Products](https://github.com/NaverCloudPlatform/terraform-ncloud-docs/blob/main/docs/vpc_products/mysql(5.7)-centos-7.3-64.md)
     - [Docs mysql(5.7) ubuntu 16.04-64 Image Products](https://github.com/NaverCloudPlatform/terraform-ncloud-docs/blob/main/docs/vpc_products/mysql(5.7)-ubuntu-16.04-64-server.md)
     - [Docs mysql(8.0) centos 7.3-64 Image Products](https://github.com/NaverCloudPlatform/terraform-ncloud-docs/blob/main/docs/vpc_products/mysql(5.7)-centos-7.3-64.md)
     - [Docs mysql(8.0) centos 7.8-64 Image Products](https://github.com/NaverCloudPlatform/terraform-ncloud-docs/blob/main/docs/vpc_products/mysql(8.0)-centos-7.8-64.md)
+    - [`ncloud_mysql_product` data source](../data-sources/mysql_product.md)
 
 * `service_name` - (Required) Service name to create.
 * `name_prefix` - (Required) Server name prefix to create.
