@@ -13,9 +13,9 @@ import (
 func ExpandStringInterfaceList(i []interface{}) []*string {
 	vs := make([]*string, 0, len(i))
 	for _, v := range i {
-		switch v.(type) {
+		switch v := v.(type) {
 		case *string:
-			vs = append(vs, v.(*string))
+			vs = append(vs, v)
 		default:
 			vs = append(vs, ncloud.String(v.(string)))
 		}

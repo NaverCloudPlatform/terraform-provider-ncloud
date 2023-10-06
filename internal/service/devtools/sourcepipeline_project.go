@@ -774,7 +774,7 @@ func checkVpcDeployTaskConfig(taskConfig *PipelineTaskConfig, deployTarget *vsou
 		return diag.Diagnostic{
 			Severity: diag.Warning,
 			Summary:  "Deploy target configuration have changed in SourceDeploy Project.",
-			Detail:   fmt.Sprintf("Linked manifest file has changed from %s to %s. Please check.", *taskConfig.Target.Info.FullManifest, strings.Join(ncloud.StringListValue(*&deployTarget.Config.Manifest.Path), " / ")),
+			Detail:   fmt.Sprintf("Linked manifest file has changed from %s to %s. Please check.", *taskConfig.Target.Info.FullManifest, strings.Join(ncloud.StringListValue(deployTarget.Config.Manifest.Path), " / ")),
 		}
 	}
 	return diag.Diagnostic{}

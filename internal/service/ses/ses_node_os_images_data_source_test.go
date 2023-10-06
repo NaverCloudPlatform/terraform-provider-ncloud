@@ -1,7 +1,6 @@
 package ses_test
 
 import (
-	"fmt"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
@@ -49,12 +48,12 @@ data "ncloud_ses_node_os_images" "images" {}
 `
 
 func testAccDataSourceNcloudSESNodeOsImagestWithFilterConfig() string {
-	return fmt.Sprintf(`
+	return `
 data "ncloud_ses_node_os_images" "filter" {
 	filter {
 		name = "id"
 		values = ["SW.VELST.OS.LNX64.CNTOS.0708.B050"]
 	}
 }
-`)
+`
 }

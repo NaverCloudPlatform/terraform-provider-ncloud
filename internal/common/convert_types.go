@@ -150,9 +150,9 @@ func StringListPtrOrNil(i interface{}, ok bool) []*string {
 	il := i.([]interface{})
 	vs := make([]*string, 0, len(il))
 	for _, v := range il {
-		switch v.(type) {
+		switch v := v.(type) {
 		case *string:
-			vs = append(vs, v.(*string))
+			vs = append(vs, v)
 		default:
 			// TODO: if the value is "" in list, occur crash error.
 			vs = append(vs, ncloud.String(v.(string)))
@@ -198,7 +198,7 @@ func ConvertToMap(i interface{}) map[string]interface{} {
 		return nil
 	}
 	var m map[string]interface{}
-	json.Unmarshal(b, &m)
+	_ = json.Unmarshal(b, &m)
 
 	return m
 }
@@ -214,7 +214,7 @@ func ConvertToArrayMap(i interface{}) []map[string]interface{} {
 		return nil
 	}
 	var m []map[string]interface{}
-	json.Unmarshal(b, &m)
+	_ = json.Unmarshal(b, &m)
 
 	return m
 }

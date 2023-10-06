@@ -60,7 +60,7 @@ func getAutoScalingAdjustmentListFiltered(d *schema.ResourceData, config *conn.P
 	var resources []map[string]interface{}
 	var err error
 
-	if config.SupportVPC == true {
+	if config.SupportVPC {
 		resources, err = getVpcAutoScalingAdjustmentTypeList(config)
 	} else {
 		resources, err = getClassicAutoScalingAdjustmentTypeList(config)

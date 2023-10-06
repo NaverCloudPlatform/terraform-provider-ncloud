@@ -152,7 +152,7 @@ func SetSingularResourceDataFromMapSchema(resourceSchema *schema.Resource, d *sc
 		}
 	}
 
-	for k, _ := range resources {
+	for k := range resources {
 		if k == "id" {
 			continue
 		}

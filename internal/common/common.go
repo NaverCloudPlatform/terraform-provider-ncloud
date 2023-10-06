@@ -87,16 +87,6 @@ func LogCommonResponse(tag string, commonResponse *CommonResponse, logs ...strin
 	log.Printf("[INFO] %s success response=%s %s", tag, result, strings.Join(logs, " "))
 }
 
-func isRetryableErr(commResp *CommonResponse, code []string) bool {
-	for _, c := range code {
-		if commResp != nil && commResp.ReturnCode != nil && ncloud.StringValue(commResp.ReturnCode) == c {
-			return true
-		}
-	}
-
-	return false
-}
-
 func ContainsInStringList(str string, s []string) bool {
 	for _, v := range s {
 		if v == str {

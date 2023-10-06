@@ -54,6 +54,8 @@ func generateExternalPort(min, max int32) int32 {
 }
 
 // TODO: ignore test: may be empty created data
+//
+//nolint:unused
 func ignore_TestAccResourceNcloudPortForwardingRuleExistingServer(t *testing.T) {
 	var portForwarding server.PortForwardingRule
 
@@ -168,6 +170,7 @@ resource "ncloud_port_forwarding_rule" "test" {
 }`, testServerName, testServerName, externalPort)
 }
 
+//nolint:unused
 func testAccPortForwardingRuleExistingServerConfig(externalPort int) string {
 	return fmt.Sprintf(`
 resource "ncloud_port_forwarding_rule" "test" {

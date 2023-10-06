@@ -376,7 +376,7 @@ func attachNetworkInterface(d *schema.ResourceData, config *conn.ProviderConfig)
 		return err
 	}
 
-	waitForPublicIpDisassociate(d, config)
+	_ = waitForPublicIpDisassociate(d, config)
 
 	return nil
 }

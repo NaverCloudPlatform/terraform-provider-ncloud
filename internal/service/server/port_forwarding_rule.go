@@ -93,6 +93,10 @@ func resourceNcloudPortForwardingRuleCreate(d *schema.ResourceData, meta interfa
 
 	serverInstanceNo := d.Get("server_instance_no").(string)
 	zoneNo, err := getServerZoneNo(config, serverInstanceNo)
+	if err != nil {
+		return err
+	}
+
 	newPortForwardingRuleId := PortForwardingRuleId(portForwardingConfigurationNo, zoneNo, portForwardingExternalPort)
 	log.Printf("[DEBUG] AddPortForwardingRules newPortForwardingRuleId: %s", newPortForwardingRuleId)
 

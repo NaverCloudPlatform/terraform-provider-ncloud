@@ -117,9 +117,7 @@ func dataSourceNcloudAccessControlRuleRead(d *schema.ResourceData, meta interfac
 			if err != nil {
 				return err
 			}
-			for _, rule := range resp.AccessControlRuleList {
-				allAccessControlRuleList = append(allAccessControlRuleList, rule)
-			}
+			allAccessControlRuleList = append(allAccessControlRuleList, resp.AccessControlRuleList...)
 		}
 	} else {
 		groupConfigNo := configNo.(string)
@@ -127,9 +125,7 @@ func dataSourceNcloudAccessControlRuleRead(d *schema.ResourceData, meta interfac
 		if err != nil {
 			return err
 		}
-		for _, rule := range resp.AccessControlRuleList {
-			allAccessControlRuleList = append(allAccessControlRuleList, rule)
-		}
+		allAccessControlRuleList = append(allAccessControlRuleList, resp.AccessControlRuleList...)
 	}
 
 	var filteredAccessControlRuleList []*server.AccessControlRule
