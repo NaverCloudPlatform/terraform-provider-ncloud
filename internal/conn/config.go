@@ -23,6 +23,7 @@ import (
 	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/services/sourcebuild"
 	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/services/sourcecommit"
 	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/services/sourcepipeline"
+	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/services/vmongodb"
 	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/services/vpc"
 	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/services/vsourcedeploy"
 	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/services/vsourcepipeline"
@@ -68,6 +69,7 @@ type NcloudAPIClient struct {
 	Vses            *vses2.APIClient
 	Vcdss           *vcdss.APIClient
 	Vmysql          *vmysql.APIClient
+	Vmongodb        *vmongodb.APIClient
 }
 
 func (c *Config) Client() (*NcloudAPIClient, error) {
@@ -97,6 +99,7 @@ func (c *Config) Client() (*NcloudAPIClient, error) {
 		Vses:            vses2.NewAPIClient(vses2.NewConfiguration(c.Region, apiKey)),
 		Vcdss:           vcdss.NewAPIClient(vcdss.NewConfiguration(c.Region, apiKey)),
 		Vmysql:          vmysql.NewAPIClient(vmysql.NewConfiguration(apiKey)),
+		Vmongodb:        vmongodb.NewAPIClient(vmongodb.NewConfiguration(apiKey)),
 	}, nil
 }
 
