@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
 	"log"
 	"os"
 )
@@ -23,7 +22,7 @@ func DataResourceIdHash(ids []string) string {
 func WriteToFile(filePath string, data interface{}) error {
 	log.Printf("[INFO] WriteToFile FilePath: %s", filePath)
 
-	if err := os.Remove(filePath); err != nil && os.IsNotExist(err) != true {
+	if err := os.Remove(filePath); err != nil && os.IsExist(err) {
 		return err
 	}
 
@@ -32,5 +31,5 @@ func WriteToFile(filePath string, data interface{}) error {
 		return err
 	}
 	str := string(bs)
-	return ioutil.WriteFile(filePath, []byte(str), 777)
+	return os.WriteFile(filePath, []byte(str), 0777)
 }

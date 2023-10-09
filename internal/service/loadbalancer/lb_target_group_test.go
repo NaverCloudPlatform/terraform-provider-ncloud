@@ -175,7 +175,7 @@ resource "ncloud_lb_target_group" "test" {
 }
 
 func testAccResourceNcloudLbTargetGroupEmptyTargetGroupNameConfig() string {
-	return fmt.Sprintf(`
+	return `
 resource "ncloud_vpc" "test" {
 	ipv4_cidr_block    = "10.0.0.0/16"
 }
@@ -209,5 +209,5 @@ resource "ncloud_lb_target_group" "test" {
   algorithm_type = "RR"
   use_sticky_session = true
 }
-`)
+`
 }

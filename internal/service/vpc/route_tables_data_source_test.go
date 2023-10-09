@@ -81,9 +81,9 @@ func TestAccDataSourceNcloudRouteTablesVpcNo(t *testing.T) {
 }
 
 func testAccDataSourceNcloudRouteTablesConfig() string {
-	return fmt.Sprintf(`
+	return `
 data "ncloud_route_tables" "all" {}
-`)
+`
 }
 
 func testAccDataSourceNcloudRouteTablesConfigFilter(name string) string {

@@ -752,6 +752,10 @@ func waitForAutoScalingGroupCapacity(d *schema.ResourceData, config *conn.Provid
 func waitForVpcAutoScalingGroupCapacity(d *schema.ResourceData, config *conn.ProviderConfig, wait time.Duration) error {
 	return resource.Retry(wait, func() *resource.RetryError {
 		asg, err := getVpcAutoScalingGroup(config, d.Id())
+		if err != nil {
+			return resource.NonRetryableError(err)
+		}
+
 		asgServerInstanceList, err := getVpcInAutoScalingGroupServerInstanceList(config, d.Id())
 		if err != nil {
 			return resource.NonRetryableError(err)
@@ -785,6 +789,10 @@ func waitForVpcAutoScalingGroupCapacity(d *schema.ResourceData, config *conn.Pro
 func waitForClassicAutoScalingGroupCapacity(d *schema.ResourceData, config *conn.ProviderConfig, wait time.Duration) error {
 	return resource.Retry(wait, func() *resource.RetryError {
 		asg, err := getClassicAutoScalingGroup(config, d.Id())
+		if err != nil {
+			return resource.NonRetryableError(err)
+		}
+
 		asgServerInstanceList, err := getClassicInAutoScalingGroupServerInstanceList(config, d.Id())
 		if err != nil {
 			return resource.NonRetryableError(err)

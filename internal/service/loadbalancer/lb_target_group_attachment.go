@@ -119,7 +119,7 @@ func resourceNcloudLbTargetGroupAttachmentUpdate(ctx context.Context, d *schema.
 		removeTargetNoList := make([]string, 0)
 		addTargetNoList := make([]string, 0)
 
-		for key, _ := range newTargetNoMap {
+		for key := range newTargetNoMap {
 			if oldTargetNoMap[key] {
 				delete(oldTargetNoMap, key)
 			} else {
@@ -127,7 +127,7 @@ func resourceNcloudLbTargetGroupAttachmentUpdate(ctx context.Context, d *schema.
 			}
 		}
 
-		for key, _ := range oldTargetNoMap {
+		for key := range oldTargetNoMap {
 			removeTargetNoList = append(removeTargetNoList, key)
 		}
 

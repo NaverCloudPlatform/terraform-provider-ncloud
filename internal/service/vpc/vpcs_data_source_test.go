@@ -56,9 +56,9 @@ func TestAccDataSourceNcloudVpcsVpcNo(t *testing.T) {
 }
 
 func testAccDataSourceNcloudVpcsConfig() string {
-	return fmt.Sprintf(`
+	return `
 data "ncloud_vpcs" "all" {}
-`)
+`
 }
 
 func testAccDataSourceNcloudVpcsConfigName(name string) string {

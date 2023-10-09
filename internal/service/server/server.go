@@ -287,7 +287,7 @@ func resourceNcloudServerRead(d *schema.ResourceData, meta interface{}) error {
 	}
 
 	if config.SupportVPC {
-		buildNetworkInterfaceList(config, r)
+		_ = buildNetworkInterfaceList(config, r)
 	}
 
 	instance := ConvertToMap(r)

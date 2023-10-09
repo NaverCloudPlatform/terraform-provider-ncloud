@@ -12,6 +12,8 @@ import (
 )
 
 // ignore test : should use real access_control_group_configuration_no
+//
+//nolint:unused
 func testAccDataSourceNcloudAccessControlRulesBasic(t *testing.T) {
 	testId := os.Getenv("TEST_ID")
 	if testId == "" {
@@ -33,6 +35,7 @@ func testAccDataSourceNcloudAccessControlRulesBasic(t *testing.T) {
 	})
 }
 
+//nolint:unused
 func testAccDataSourceNcloudAccessControlRulesConfig(testConfigNo string) string {
 	return fmt.Sprintf(`
 data "ncloud_access_control_rules" "test" {

@@ -332,7 +332,7 @@ func GetClassicLaunchConfigurationByNo(no *string, config *conn.ProviderConfig) 
 }
 
 type LaunchConfiguration struct {
-	LaunchConfigurationNo       *string   `json:"launch_configuration_no,omitempty,omitempty"`
+	LaunchConfigurationNo       *string   `json:"launch_configuration_no,omitempty"`
 	LaunchConfigurationName     *string   `json:"name,omitempty"`
 	ServerImageProductCode      *string   `json:"server_image_product_code,omitempty"`
 	MemberServerImageInstanceNo *string   `json:"member_server_image_no,omitempty"`

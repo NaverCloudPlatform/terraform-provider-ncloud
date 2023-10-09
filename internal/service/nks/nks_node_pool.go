@@ -227,6 +227,9 @@ func resourceNcloudNKSNodePoolRead(ctx context.Context, d *schema.ResourceData, 
 	}
 
 	clusterUuid, nodePoolName, err := NodePoolParseResourceID(d.Id())
+	if err != nil {
+		return diag.FromErr(err)
+	}
 	nodePool, err := GetNKSNodePool(ctx, config, clusterUuid, nodePoolName)
 	if err != nil {
 		return diag.FromErr(err)

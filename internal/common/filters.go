@@ -77,7 +77,6 @@ func ApplyFilters(filters *schema.Set, items []map[string]interface{}, resourceS
 		var pathElements []string
 		var err error
 		if pathElements, err = getFieldPathElements(resourceSchema, keyword); err != nil {
-			log.Printf(err.Error())
 			pathElements = []string{keyword}
 		}
 
@@ -191,7 +190,7 @@ func isValidSchemaType(fieldSchema *schema.Schema) bool {
 
 func getValueFromPath(item map[string]interface{}, path []string) (targetVal interface{}, targetValOk bool) {
 	workingMap := item
-	tempWorkingMap := item
+	var tempWorkingMap map[string]interface{}
 	var conversionOk bool
 	for _, pathElement := range path[:len(path)-1] {
 		// Defensive check for non existent values

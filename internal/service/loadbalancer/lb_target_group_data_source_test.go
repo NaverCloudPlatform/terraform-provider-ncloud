@@ -39,9 +39,9 @@ func TestAccDataSourceNcloudLbTargetGroup_basic(t *testing.T) {
 }
 
 func testAccDataSourceNcloudLbTargetGroupConfig(name string) string {
-	return testAccResourceNcloudLbTargetGroupConfig(name) + fmt.Sprintf(`
+	return testAccResourceNcloudLbTargetGroupConfig(name) + `
 data "ncloud_lb_target_group" "test" {
 	id = ncloud_lb_target_group.test.target_group_no
 }
-`)
+`
 }
