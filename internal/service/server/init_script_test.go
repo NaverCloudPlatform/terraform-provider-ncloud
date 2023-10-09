@@ -24,7 +24,7 @@ func TestAccResourceNcloudInitScript_basic(t *testing.T) {
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { acctest.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: ProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: acctest.ProtoV6ProviderFactories,
 		CheckDestroy:             testAccCheckInitScriptDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -49,7 +49,7 @@ func TestAccResourceNcloudInitScript_disappears(t *testing.T) {
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { acctest.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: ProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: acctest.ProtoV6ProviderFactories,
 		CheckDestroy:             testAccCheckInitScriptDestroy,
 		Steps: []resource.TestStep{
 			{
