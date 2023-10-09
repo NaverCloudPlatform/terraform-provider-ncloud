@@ -585,8 +585,8 @@ func resourceNcloudPublicIpCustomizeDiff(_ context.Context, diff *schema.Resourc
 
 	if config.SupportVPC {
 		if v, ok := diff.GetOk("zone"); ok {
-			diff.Clear("zone")
-			return fmt.Errorf("You don't use 'zone' if SupportVPC is true. Please remove this value [%s]", v)
+			_ = diff.Clear("zone")
+			return fmt.Errorf("you don't use 'zone' if SupportVPC is true. Please remove this value [%s]", v)
 		}
 	}
 	return nil

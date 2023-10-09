@@ -1,7 +1,6 @@
 package devtools_test
 
 import (
-	"fmt"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
@@ -39,8 +38,8 @@ func TestAccDataSourceNcloudSourcePipelineTriggerTimeZone_vpc_basic(t *testing.T
 }
 
 func testAccDataSourceNcloudSourcePipelineTriggerTimeZoneConfig() string {
-	return fmt.Sprintf(`
+	return `
 data "ncloud_sourcepipeline_trigger_timezone" "time_zone" {
 }
-`)
+`
 }

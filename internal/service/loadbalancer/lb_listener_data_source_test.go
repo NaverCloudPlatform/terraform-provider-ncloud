@@ -33,10 +33,10 @@ func TestAccDataSourceNcloudLbListener_basic(t *testing.T) {
 }
 
 func testAccDataSourceNcloudLbListenerConfig(name string) string {
-	return testAccResourceNcloudLbListenerConfig(name) + fmt.Sprintf(`
+	return testAccResourceNcloudLbListenerConfig(name) + `
 data "ncloud_lb_listener" "test" {
 	id = ncloud_lb_listener.test.listener_no
 	load_balancer_no = ncloud_lb.test.load_balancer_no
 }
-`)
+`
 }

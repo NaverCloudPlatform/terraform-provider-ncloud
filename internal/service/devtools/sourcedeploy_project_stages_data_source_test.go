@@ -1,7 +1,6 @@
 package devtools_test
 
 import (
-	"fmt"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
@@ -25,7 +24,7 @@ func TestAccDataSourceNcloudSourceDeployStages(t *testing.T) {
 }
 
 func testAccDataSourceNcloudSourceDeployStagesConfig() string {
-	return fmt.Sprintf(`
+	return `
 resource "ncloud_sourcedeploy_project" "sd_project" {
 	name = "tf-test-project"
 }
@@ -33,5 +32,5 @@ resource "ncloud_sourcedeploy_project" "sd_project" {
 data "ncloud_sourcedeploy_project_stages" stages{
 	project_id = ncloud_sourcedeploy_project.sd_project.id
 }
-`)
+`
 }

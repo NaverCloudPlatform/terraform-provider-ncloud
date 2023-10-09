@@ -213,7 +213,7 @@ func resourceNcloudNetworkACLRuleDelete(d *schema.ResourceData, meta interface{}
 	i := d.Get("inbound").(*schema.Set)
 	o := d.Get("outbound").(*schema.Set)
 
-	waitForNcloudNetworkACLRunning(config, d.Id())
+	_ = waitForNcloudNetworkACLRunning(config, d.Id())
 
 	if len(i.List()) > 0 {
 		if err := removeNetworkACLRule(d, config, "inbound", expandRemoveNetworkAclRule(i.List())); err != nil {
@@ -244,7 +244,7 @@ func waitForNcloudNetworkACLRunning(config *conn.ProviderConfig, id string) erro
 	}
 
 	if _, err := stateConf.WaitForState(); err != nil {
-		return fmt.Errorf("Error waiting for Network ACL (%s) to become termintaing: %s", id, err)
+		return fmt.Errorf("error waiting for Network ACL (%s) to become termintaing: %s", id, err)
 	}
 
 	return nil

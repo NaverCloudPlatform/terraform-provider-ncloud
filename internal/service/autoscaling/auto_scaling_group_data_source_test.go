@@ -1,7 +1,6 @@
 package autoscaling_test
 
 import (
-	"fmt"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
@@ -76,7 +75,7 @@ func TestAccDataSourceNcloudAutoScalingGroup_vpc_basic(t *testing.T) {
 }
 
 func testAccDataSourceNcloudAutoScalingGroupClassicConfig() string {
-	return fmt.Sprintf(`
+	return `
 	resource "ncloud_launch_configuration" "lc" {
 		server_image_product_code = "SPSW0LINUX000046"
 	}
@@ -91,11 +90,11 @@ func testAccDataSourceNcloudAutoScalingGroupClassicConfig() string {
 	data "ncloud_auto_scaling_group" "auto" {
 		id = ncloud_auto_scaling_group.auto.auto_scaling_group_no
 	}
-`)
+`
 }
 
 func testAccDataSourceNcloudAutoScalingGroupVpcConfig() string {
-	return fmt.Sprintf(`
+	return `
 resource "ncloud_vpc" "test" {
 	ipv4_cidr_block    = "10.0.0.0/16"
 }
@@ -124,5 +123,5 @@ resource "ncloud_auto_scaling_group" "auto" {
 data "ncloud_auto_scaling_group" "auto" {
 	id = ncloud_auto_scaling_group.auto.auto_scaling_group_no
 }
-`)
+`
 }
