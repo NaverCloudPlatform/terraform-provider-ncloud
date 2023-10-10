@@ -342,11 +342,11 @@ func (m *mongodbResource) Create(ctx context.Context, req resource.CreateRequest
 	}
 
 	if *reqParams.ClusterTypeCode == "SHARDED_CLUSTER" {
-		reqParams.ShardCount = ncloud.Int32(2)
-		reqParams.MemberServerCount = ncloud.Int32(3)
-		reqParams.ArbiterServerCount = ncloud.Int32(0)
-		reqParams.MongosServerCount = ncloud.Int32(2)
-		reqParams.ConfigServerCount = ncloud.Int32(3)
+		reqParams.ShardCount = ncloud.Int32(int32(plan.ShardCount.ValueInt64()))
+		reqParams.MemberServerCount = ncloud.Int32(int32(plan.MemberServerCount.ValueInt64()))
+		reqParams.ArbiterServerCount = ncloud.Int32(int32(plan.ArbiterServerCount.ValueInt64()))
+		reqParams.MongosServerCount = ncloud.Int32(int32(plan.MongosServerCount.ValueInt64()))
+		reqParams.ConfigServerCount = ncloud.Int32(int32(plan.ConfigServerCount.ValueInt64()))
 	}
 
 	tflog.Info(ctx, "CreateMongoDb", map[string]any{
