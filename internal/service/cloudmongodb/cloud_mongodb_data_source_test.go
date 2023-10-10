@@ -38,19 +38,19 @@ func TestAccDataSourceNcloudMongoDb_vpc_basic(t *testing.T) {
 
 func testAccDataSourceMongodbConfig(testMongoDbName string) string {
 	return fmt.Sprintf(`
-// resource "ncloud_vpc" "vpc" {
-// 	name               = "%[1]s"
-// 	ipv4_cidr_block    = "10.0.0.0/16"
-// }
+resource "ncloud_vpc" "vpc" {
+	name               = "%[1]s"
+	ipv4_cidr_block    = "10.0.0.0/16"
+}
 		
-// resource "ncloud_subnet" "subnet" {
-// 	vpc_no             = ncloud_vpc.vpc.vpc_no
-// 	name               = "%[1]s"
-// 	subnet             = "10.0.0.0/24"
-// 	zone               = "KR-2"
-// 	network_acl_no     = ncloud_vpc.vpc.default_network_acl_no
-// 	subnet_type        = "PUBLIC"
-// }
+resource "ncloud_subnet" "subnet" {
+	vpc_no             = ncloud_vpc.vpc.vpc_no
+	name               = "%[1]s"
+	subnet             = "10.0.0.0/24"
+	zone               = "KR-2"
+	network_acl_no     = ncloud_vpc.vpc.default_network_acl_no
+	subnet_type        = "PUBLIC"
+}
 
 resource "ncloud_mongodb" "mongodb" {
 	vpc_no = 	47425
