@@ -193,9 +193,9 @@ func (m *mongodbDataSource) Read(ctx context.Context, req datasource.ReadRequest
 	if !data.ID.IsNull() && !data.ID.IsUnknown() {
 		reqParams.CloudMongoDbInstanceNoList = []*string{data.ID.ValueStringPointer()}
 	}
-	// if !data.CloudMongoDbServiceName.IsNull() && !data.CloudMongoDbServiceName.IsUnknown() {
-	// 	reqParams.CloudMongoDbServiceName = data.CloudMongoDbServiceName.ValueStringPointer()
-	// }
+	if !data.CloudMongoDbServiceName.IsNull() && !data.CloudMongoDbServiceName.IsUnknown() {
+	 	reqParams.CloudMongoDbServiceName = data.CloudMongoDbServiceName.ValueStringPointer()
+	}
 
 	tflog.Info(ctx, "GetMongoDbList", map[string]any{
 		"reqParams": common.MarshalUncheckedString(reqParams),
