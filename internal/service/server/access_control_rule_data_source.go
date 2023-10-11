@@ -39,7 +39,7 @@ func DataSourceNcloudAccessControlRule() *schema.Resource {
 				Type:             schema.TypeString,
 				Optional:         true,
 				ForceNew:         true,
-				ValidateDiagFunc: verify.ToDiagFunc(validation.StringIsValidRegExp),
+				ValidateDiagFunc: validation.ToDiagFunc(validation.StringIsValidRegExp),
 				Description:      "A regex string to apply to the source access control rule list returned by ncloud",
 			},
 			"source_ip": {

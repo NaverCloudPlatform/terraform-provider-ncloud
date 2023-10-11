@@ -61,7 +61,7 @@ func ResourceNcloudSourceDeployScenario() *schema.Resource {
 				Type:     schema.TypeString,
 				Required: true,
 				ForceNew: true,
-				ValidateDiagFunc: ToDiagFunc(validation.All(
+				ValidateDiagFunc: validation.ToDiagFunc(validation.All(
 					validation.StringLenBetween(1, 100),
 					validation.StringMatch(regexp.MustCompile(`^[^ !@#$%^&*()+\=\[\]{};':"\\|,.<>\/?]+$`), `Cannot contain special characters ( !@#$%^&*()+\=\[\]{};':"\\|,.<>\/?).`),
 				)),
@@ -69,7 +69,7 @@ func ResourceNcloudSourceDeployScenario() *schema.Resource {
 			"description": {
 				Type:     schema.TypeString,
 				Optional: true,
-				ValidateDiagFunc: ToDiagFunc(validation.All(
+				ValidateDiagFunc: validation.ToDiagFunc(validation.All(
 					validation.StringLenBetween(0, 500),
 				)),
 			},
@@ -82,7 +82,7 @@ func ResourceNcloudSourceDeployScenario() *schema.Resource {
 						"strategy": {
 							Type:             schema.TypeString,
 							Optional:         true,
-							ValidateDiagFunc: ToDiagFunc(validation.StringInSlice([]string{"normal", "blueGreen", "rolling", "canary"}, false)),
+							ValidateDiagFunc: validation.ToDiagFunc(validation.StringInSlice([]string{"normal", "blueGreen", "rolling", "canary"}, false)),
 						},
 						"file": {
 							Type:     schema.TypeList,
@@ -93,7 +93,7 @@ func ResourceNcloudSourceDeployScenario() *schema.Resource {
 									"type": {
 										Type:             schema.TypeString,
 										Optional:         true,
-										ValidateDiagFunc: ToDiagFunc(validation.StringInSlice([]string{"SourceBuild", "ObjectStorage", "later"}, false)),
+										ValidateDiagFunc: validation.ToDiagFunc(validation.StringInSlice([]string{"SourceBuild", "ObjectStorage", "later"}, false)),
 									},
 									"object_storage": {
 										Type:     schema.TypeList,
@@ -150,14 +150,14 @@ func ResourceNcloudSourceDeployScenario() *schema.Resource {
 												"user": {
 													Type:     schema.TypeString,
 													Optional: true,
-													ValidateDiagFunc: ToDiagFunc(validation.All(
+													ValidateDiagFunc: validation.ToDiagFunc(validation.All(
 														validation.StringMatch(regexp.MustCompile(`(.|\s)*\S(.|\s)*`), `Cannot Spaces and empty strings`),
 													)),
 												},
 												"command": {
 													Type:     schema.TypeString,
 													Optional: true,
-													ValidateDiagFunc: ToDiagFunc(validation.All(
+													ValidateDiagFunc: validation.ToDiagFunc(validation.All(
 														validation.StringMatch(regexp.MustCompile(`(.|\s)*\S(.|\s)*`), `Cannot Spaces and empty strings`),
 													)),
 												},
@@ -172,14 +172,14 @@ func ResourceNcloudSourceDeployScenario() *schema.Resource {
 												"source_path": {
 													Type:     schema.TypeString,
 													Optional: true,
-													ValidateDiagFunc: ToDiagFunc(validation.All(
+													ValidateDiagFunc: validation.ToDiagFunc(validation.All(
 														validation.StringMatch(regexp.MustCompile(`(.|\s)*\S(.|\s)*`), `Cannot Spaces and empty strings`),
 													)),
 												},
 												"deploy_path": {
 													Type:     schema.TypeString,
 													Optional: true,
-													ValidateDiagFunc: ToDiagFunc(validation.All(
+													ValidateDiagFunc: validation.ToDiagFunc(validation.All(
 														validation.StringMatch(regexp.MustCompile(`(.|\s)*\S(.|\s)*`), `Cannot Spaces and empty strings`),
 													)),
 												},
@@ -194,14 +194,14 @@ func ResourceNcloudSourceDeployScenario() *schema.Resource {
 												"user": {
 													Type:     schema.TypeString,
 													Optional: true,
-													ValidateDiagFunc: ToDiagFunc(validation.All(
+													ValidateDiagFunc: validation.ToDiagFunc(validation.All(
 														validation.StringMatch(regexp.MustCompile(`(.|\s)*\S(.|\s)*`), `Cannot Spaces and empty strings`),
 													)),
 												},
 												"command": {
 													Type:     schema.TypeString,
 													Optional: true,
-													ValidateDiagFunc: ToDiagFunc(validation.All(
+													ValidateDiagFunc: validation.ToDiagFunc(validation.All(
 														validation.StringMatch(regexp.MustCompile(`(.|\s)*\S(.|\s)*`), `Cannot Spaces and empty strings`),
 													)),
 												},
@@ -241,7 +241,7 @@ func ResourceNcloudSourceDeployScenario() *schema.Resource {
 									"type": {
 										Type:             schema.TypeString,
 										Optional:         true,
-										ValidateDiagFunc: ToDiagFunc(validation.StringInSlice([]string{"SourceCommit"}, false)),
+										ValidateDiagFunc: validation.ToDiagFunc(validation.StringInSlice([]string{"SourceCommit"}, false)),
 									},
 									"repository_name": {
 										Type:     schema.TypeString,
@@ -268,17 +268,17 @@ func ResourceNcloudSourceDeployScenario() *schema.Resource {
 									"canary_count": {
 										Type:             schema.TypeInt,
 										Optional:         true,
-										ValidateDiagFunc: ToDiagFunc(validation.IntBetween(1, 10)),
+										ValidateDiagFunc: validation.ToDiagFunc(validation.IntBetween(1, 10)),
 									},
 									"analysis_type": {
 										Type:             schema.TypeString,
 										Optional:         true,
-										ValidateDiagFunc: ToDiagFunc(validation.StringInSlice([]string{"manual", "auto"}, false)),
+										ValidateDiagFunc: validation.ToDiagFunc(validation.StringInSlice([]string{"manual", "auto"}, false)),
 									},
 									"timeout": {
 										Type:             schema.TypeInt,
 										Optional:         true,
-										ValidateDiagFunc: ToDiagFunc(validation.IntBetween(1, 360)),
+										ValidateDiagFunc: validation.ToDiagFunc(validation.IntBetween(1, 360)),
 									},
 									"prometheus": {
 										Type:     schema.TypeString,
@@ -293,12 +293,12 @@ func ResourceNcloudSourceDeployScenario() *schema.Resource {
 												"baseline": {
 													Type:             schema.TypeString,
 													Optional:         true,
-													ValidateDiagFunc: ToDiagFunc(validation.StringLenBetween(0, 64)),
+													ValidateDiagFunc: validation.ToDiagFunc(validation.StringLenBetween(0, 64)),
 												},
 												"canary": {
 													Type:             schema.TypeString,
 													Optional:         true,
-													ValidateDiagFunc: ToDiagFunc(validation.StringLenBetween(0, 64)),
+													ValidateDiagFunc: validation.ToDiagFunc(validation.StringLenBetween(0, 64)),
 												},
 											},
 										},
@@ -315,12 +315,12 @@ func ResourceNcloudSourceDeployScenario() *schema.Resource {
 												"success_criteria": {
 													Type:             schema.TypeString,
 													Optional:         true,
-													ValidateDiagFunc: ToDiagFunc(validation.StringInSlice([]string{"base", "canary"}, false)),
+													ValidateDiagFunc: validation.ToDiagFunc(validation.StringInSlice([]string{"base", "canary"}, false)),
 												},
 												"query_type": {
 													Type:             schema.TypeString,
 													Optional:         true,
-													ValidateDiagFunc: ToDiagFunc(validation.StringInSlice([]string{"default", "promQL"}, false)),
+													ValidateDiagFunc: validation.ToDiagFunc(validation.StringInSlice([]string{"default", "promQL"}, false)),
 												},
 												"weight": {
 													Type:     schema.TypeInt,
@@ -350,22 +350,22 @@ func ResourceNcloudSourceDeployScenario() *schema.Resource {
 												"duration": {
 													Type:             schema.TypeInt,
 													Optional:         true,
-													ValidateDiagFunc: ToDiagFunc(validation.IntBetween(10, 360)),
+													ValidateDiagFunc: validation.ToDiagFunc(validation.IntBetween(10, 360)),
 												},
 												"delay": {
 													Type:             schema.TypeInt,
 													Optional:         true,
-													ValidateDiagFunc: ToDiagFunc(validation.IntBetween(0, 60)),
+													ValidateDiagFunc: validation.ToDiagFunc(validation.IntBetween(0, 60)),
 												},
 												"interval": {
 													Type:             schema.TypeInt,
 													Optional:         true,
-													ValidateDiagFunc: ToDiagFunc(validation.IntBetween(1, 360)),
+													ValidateDiagFunc: validation.ToDiagFunc(validation.IntBetween(1, 360)),
 												},
 												"step": {
 													Type:             schema.TypeInt,
 													Optional:         true,
-													ValidateDiagFunc: ToDiagFunc(validation.IntBetween(10, 360)),
+													ValidateDiagFunc: validation.ToDiagFunc(validation.IntBetween(10, 360)),
 												},
 											},
 										},
@@ -373,7 +373,7 @@ func ResourceNcloudSourceDeployScenario() *schema.Resource {
 									"pass_score": {
 										Type:             schema.TypeInt,
 										Optional:         true,
-										ValidateDiagFunc: ToDiagFunc(validation.IntBetween(1, 100)),
+										ValidateDiagFunc: validation.ToDiagFunc(validation.IntBetween(1, 100)),
 									},
 								},
 							},
@@ -387,14 +387,14 @@ func ResourceNcloudSourceDeployScenario() *schema.Resource {
 									"source_path": {
 										Type:     schema.TypeString,
 										Optional: true,
-										ValidateDiagFunc: ToDiagFunc(validation.All(
+										ValidateDiagFunc: validation.ToDiagFunc(validation.All(
 											validation.StringMatch(regexp.MustCompile(`(.|\s)*\S(.|\s)*`), `Cannot Spaces and empty strings`),
 										)),
 									},
 									"deploy_path": {
 										Type:     schema.TypeString,
 										Optional: true,
-										ValidateDiagFunc: ToDiagFunc(validation.All(
+										ValidateDiagFunc: validation.ToDiagFunc(validation.All(
 											validation.StringMatch(regexp.MustCompile(`(.|\s)*\S(.|\s)*`), `Cannot Spaces and empty strings`),
 										)),
 									},

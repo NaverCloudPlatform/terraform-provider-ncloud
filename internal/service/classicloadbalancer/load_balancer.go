@@ -13,7 +13,6 @@ import (
 
 	. "github.com/terraform-providers/terraform-provider-ncloud/internal/common"
 	"github.com/terraform-providers/terraform-provider-ncloud/internal/conn"
-	. "github.com/terraform-providers/terraform-provider-ncloud/internal/verify"
 )
 
 func ResourceNcloudLoadBalancer() *schema.Resource {
@@ -34,20 +33,20 @@ func ResourceNcloudLoadBalancer() *schema.Resource {
 			"name": {
 				Type:             schema.TypeString,
 				Optional:         true,
-				ValidateDiagFunc: ToDiagFunc(validation.StringLenBetween(3, 30)),
+				ValidateDiagFunc: validation.ToDiagFunc(validation.StringLenBetween(3, 30)),
 				Description:      "Name of a load balancer to create. Default: Automatically specified by Ncloud.",
 			},
 			"algorithm_type": {
 				Type:             schema.TypeString,
 				Optional:         true,
 				Computed:         true,
-				ValidateDiagFunc: ToDiagFunc(validation.StringInSlice([]string{"RR", "LC", "SIPHS"}, false)),
+				ValidateDiagFunc: validation.ToDiagFunc(validation.StringInSlice([]string{"RR", "LC", "SIPHS"}, false)),
 				Description:      "Load balancer algorithm type code. The available algorithms are as follows: [ROUND ROBIN (RR) | LEAST_CONNECTION (LC)]. Default: ROUND ROBIN (RR)",
 			},
 			"description": {
 				Type:             schema.TypeString,
 				Optional:         true,
-				ValidateDiagFunc: ToDiagFunc(validation.StringLenBetween(1, 1000)),
+				ValidateDiagFunc: validation.ToDiagFunc(validation.StringLenBetween(1, 1000)),
 				Description:      "Description of a load balancer to create",
 			},
 			"rule_list": {
@@ -67,7 +66,7 @@ func ResourceNcloudLoadBalancer() *schema.Resource {
 				Type:             schema.TypeString,
 				Optional:         true,
 				Computed:         true,
-				ValidateDiagFunc: ToDiagFunc(validation.StringInSlice([]string{"PUBLC", "GLBL"}, false)),
+				ValidateDiagFunc: validation.ToDiagFunc(validation.StringInSlice([]string{"PUBLC", "GLBL"}, false)),
 				Description:      "Internet line identification code. PUBLC(Public), GLBL(Global). default : PUBLC(Public)",
 				Deprecated:       "This parameter is no longer used.",
 			},
@@ -75,7 +74,7 @@ func ResourceNcloudLoadBalancer() *schema.Resource {
 				Type:             schema.TypeString,
 				Optional:         true,
 				Computed:         true,
-				ValidateDiagFunc: ToDiagFunc(validation.StringInSlice([]string{"PBLIP", "PRVT"}, false)),
+				ValidateDiagFunc: validation.ToDiagFunc(validation.StringInSlice([]string{"PBLIP", "PRVT"}, false)),
 				Description:      "Network usage identification code. PBLIP(PublicIp), PRVT(PrivateIP). default : PBLIP(PublicIp)",
 			},
 			"region": {

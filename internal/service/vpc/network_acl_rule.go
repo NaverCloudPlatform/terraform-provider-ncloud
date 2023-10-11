@@ -38,17 +38,17 @@ func ResourceNcloudNetworkACLRule() *schema.Resource {
 						"priority": {
 							Type:             schema.TypeInt,
 							Required:         true,
-							ValidateDiagFunc: ToDiagFunc(validation.IntBetween(0, 199)),
+							ValidateDiagFunc: validation.ToDiagFunc(validation.IntBetween(0, 199)),
 						},
 						"protocol": {
 							Type:             schema.TypeString,
 							Required:         true,
-							ValidateDiagFunc: ToDiagFunc(validation.StringInSlice([]string{"TCP", "UDP", "ICMP"}, false)),
+							ValidateDiagFunc: validation.ToDiagFunc(validation.StringInSlice([]string{"TCP", "UDP", "ICMP"}, false)),
 						},
 						"ip_block": {
 							Type:             schema.TypeString,
 							Optional:         true,
-							ValidateDiagFunc: ToDiagFunc(validation.IsCIDRNetwork(0, 32)),
+							ValidateDiagFunc: validation.ToDiagFunc(validation.IsCIDRNetwork(0, 32)),
 						},
 						"deny_allow_group_no": {
 							Type:     schema.TypeString,
@@ -57,18 +57,18 @@ func ResourceNcloudNetworkACLRule() *schema.Resource {
 						"rule_action": {
 							Type:             schema.TypeString,
 							Required:         true,
-							ValidateDiagFunc: ToDiagFunc(validation.StringInSlice([]string{"ALLOW", "DROP"}, false)),
+							ValidateDiagFunc: validation.ToDiagFunc(validation.StringInSlice([]string{"ALLOW", "DROP"}, false)),
 						},
 						"port_range": {
 							Type:             schema.TypeString,
 							Optional:         true,
-							ValidateDiagFunc: ToDiagFunc(ValidatePortRange),
+							ValidateDiagFunc: validation.ToDiagFunc(ValidatePortRange),
 							Default:          "",
 						},
 						"description": {
 							Type:             schema.TypeString,
 							Optional:         true,
-							ValidateDiagFunc: ToDiagFunc(validation.StringLenBetween(0, 1000)),
+							ValidateDiagFunc: validation.ToDiagFunc(validation.StringLenBetween(0, 1000)),
 							Default:          "",
 						},
 					},
@@ -83,17 +83,17 @@ func ResourceNcloudNetworkACLRule() *schema.Resource {
 						"priority": {
 							Type:             schema.TypeInt,
 							Required:         true,
-							ValidateDiagFunc: ToDiagFunc(validation.IntBetween(0, 199)),
+							ValidateDiagFunc: validation.ToDiagFunc(validation.IntBetween(0, 199)),
 						},
 						"protocol": {
 							Type:             schema.TypeString,
 							Required:         true,
-							ValidateDiagFunc: ToDiagFunc(validation.StringInSlice([]string{"TCP", "UDP", "ICMP"}, false)),
+							ValidateDiagFunc: validation.ToDiagFunc(validation.StringInSlice([]string{"TCP", "UDP", "ICMP"}, false)),
 						},
 						"ip_block": {
 							Type:             schema.TypeString,
 							Optional:         true,
-							ValidateDiagFunc: ToDiagFunc(validation.IsCIDRNetwork(0, 32)),
+							ValidateDiagFunc: validation.ToDiagFunc(validation.IsCIDRNetwork(0, 32)),
 						},
 						"deny_allow_group_no": {
 							Type:     schema.TypeString,
@@ -102,18 +102,18 @@ func ResourceNcloudNetworkACLRule() *schema.Resource {
 						"rule_action": {
 							Type:             schema.TypeString,
 							Required:         true,
-							ValidateDiagFunc: ToDiagFunc(validation.StringInSlice([]string{"ALLOW", "DROP"}, false)),
+							ValidateDiagFunc: validation.ToDiagFunc(validation.StringInSlice([]string{"ALLOW", "DROP"}, false)),
 						},
 						"port_range": {
 							Type:             schema.TypeString,
 							Optional:         true,
-							ValidateDiagFunc: ToDiagFunc(ValidatePortRange),
+							ValidateDiagFunc: validation.ToDiagFunc(ValidatePortRange),
 							Default:          "",
 						},
 						"description": {
 							Type:             schema.TypeString,
 							Optional:         true,
-							ValidateDiagFunc: ToDiagFunc(validation.StringLenBetween(0, 1000)),
+							ValidateDiagFunc: validation.ToDiagFunc(validation.StringLenBetween(0, 1000)),
 							Default:          "",
 						},
 					},

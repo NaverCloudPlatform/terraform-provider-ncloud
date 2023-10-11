@@ -13,7 +13,6 @@ import (
 	. "github.com/terraform-providers/terraform-provider-ncloud/internal/common"
 	"github.com/terraform-providers/terraform-provider-ncloud/internal/conn"
 	"github.com/terraform-providers/terraform-provider-ncloud/internal/service/vpc"
-	. "github.com/terraform-providers/terraform-provider-ncloud/internal/verify"
 )
 
 func ResourceNcloudLbTargetGroup() *schema.Resource {
@@ -35,25 +34,25 @@ func ResourceNcloudLbTargetGroup() *schema.Resource {
 				Optional:         true,
 				Computed:         true,
 				ForceNew:         true,
-				ValidateDiagFunc: ToDiagFunc(validation.StringLenBetween(3, 30)),
+				ValidateDiagFunc: validation.ToDiagFunc(validation.StringLenBetween(3, 30)),
 			},
 			"port": {
 				Type:             schema.TypeInt,
 				Optional:         true,
 				Computed:         true,
 				ForceNew:         true,
-				ValidateDiagFunc: ToDiagFunc(validation.IntBetween(1, 65534)),
+				ValidateDiagFunc: validation.ToDiagFunc(validation.IntBetween(1, 65534)),
 			},
 			"protocol": {
 				Type:             schema.TypeString,
 				Required:         true,
 				ForceNew:         true,
-				ValidateDiagFunc: ToDiagFunc(validation.StringInSlice([]string{"TCP", "PROXY_TCP", "HTTP", "HTTPS"}, false)),
+				ValidateDiagFunc: validation.ToDiagFunc(validation.StringInSlice([]string{"TCP", "PROXY_TCP", "HTTP", "HTTPS"}, false)),
 			},
 			"description": {
 				Type:             schema.TypeString,
 				Optional:         true,
-				ValidateDiagFunc: ToDiagFunc(validation.StringLenBetween(0, 1000)),
+				ValidateDiagFunc: validation.ToDiagFunc(validation.StringLenBetween(0, 1000)),
 			},
 			"health_check": {
 				Type:     schema.TypeList,
@@ -66,36 +65,36 @@ func ResourceNcloudLbTargetGroup() *schema.Resource {
 							Type:             schema.TypeInt,
 							Optional:         true,
 							Default:          30,
-							ValidateDiagFunc: ToDiagFunc(validation.IntBetween(5, 300)),
+							ValidateDiagFunc: validation.ToDiagFunc(validation.IntBetween(5, 300)),
 						},
 						"down_threshold": {
 							Type:             schema.TypeInt,
 							Optional:         true,
 							Default:          2,
-							ValidateDiagFunc: ToDiagFunc(validation.IntBetween(2, 10)),
+							ValidateDiagFunc: validation.ToDiagFunc(validation.IntBetween(2, 10)),
 						},
 						"up_threshold": {
 							Type:             schema.TypeInt,
 							Optional:         true,
 							Default:          2,
-							ValidateDiagFunc: ToDiagFunc(validation.IntBetween(2, 10)),
+							ValidateDiagFunc: validation.ToDiagFunc(validation.IntBetween(2, 10)),
 						},
 						"http_method": {
 							Type:             schema.TypeString,
 							Optional:         true,
-							ValidateDiagFunc: ToDiagFunc(validation.StringInSlice([]string{"HEAD", "GET"}, false)),
+							ValidateDiagFunc: validation.ToDiagFunc(validation.StringInSlice([]string{"HEAD", "GET"}, false)),
 						},
 						"port": {
 							Type:             schema.TypeInt,
 							Optional:         true,
 							Default:          80,
-							ValidateDiagFunc: ToDiagFunc(validation.IntBetween(1, 65534)),
+							ValidateDiagFunc: validation.ToDiagFunc(validation.IntBetween(1, 65534)),
 						},
 						"protocol": {
 							Type:             schema.TypeString,
 							Required:         true,
 							ForceNew:         true,
-							ValidateDiagFunc: ToDiagFunc(validation.StringInSlice([]string{"TCP", "HTTP", "HTTPS"}, false)),
+							ValidateDiagFunc: validation.ToDiagFunc(validation.StringInSlice([]string{"TCP", "HTTP", "HTTPS"}, false)),
 						},
 						"url_path": {
 							Type:     schema.TypeString,
@@ -115,7 +114,7 @@ func ResourceNcloudLbTargetGroup() *schema.Resource {
 				Optional:         true,
 				Computed:         true,
 				ForceNew:         true,
-				ValidateDiagFunc: ToDiagFunc(validation.StringInSlice([]string{"VSVR"}, false)),
+				ValidateDiagFunc: validation.ToDiagFunc(validation.StringInSlice([]string{"VSVR"}, false)),
 			},
 			"vpc_no": {
 				Type:     schema.TypeString,
@@ -136,7 +135,7 @@ func ResourceNcloudLbTargetGroup() *schema.Resource {
 				Type:             schema.TypeString,
 				Optional:         true,
 				Computed:         true,
-				ValidateDiagFunc: ToDiagFunc(validation.StringInSlice([]string{"RR", "SIPHS", "LC", "MH"}, false)),
+				ValidateDiagFunc: validation.ToDiagFunc(validation.StringInSlice([]string{"RR", "SIPHS", "LC", "MH"}, false)),
 			},
 			"load_balancer_instance_no": {
 				Type:     schema.TypeString,

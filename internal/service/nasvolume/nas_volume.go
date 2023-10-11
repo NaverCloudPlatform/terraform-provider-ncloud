@@ -15,7 +15,6 @@ import (
 
 	. "github.com/terraform-providers/terraform-provider-ncloud/internal/common"
 	"github.com/terraform-providers/terraform-provider-ncloud/internal/conn"
-	. "github.com/terraform-providers/terraform-provider-ncloud/internal/verify"
 	"github.com/terraform-providers/terraform-provider-ncloud/internal/zone"
 )
 
@@ -37,18 +36,18 @@ func ResourceNcloudNasVolume() *schema.Resource {
 				Type:             schema.TypeString,
 				Required:         true,
 				ForceNew:         true,
-				ValidateDiagFunc: ToDiagFunc(validation.StringLenBetween(3, 20)),
+				ValidateDiagFunc: validation.ToDiagFunc(validation.StringLenBetween(3, 20)),
 			},
 			"volume_size": {
 				Type:             schema.TypeInt,
 				Required:         true,
-				ValidateDiagFunc: ToDiagFunc(validation.IntBetween(500, 10000)),
+				ValidateDiagFunc: validation.ToDiagFunc(validation.IntBetween(500, 10000)),
 			},
 			"volume_allotment_protocol_type": {
 				Type:             schema.TypeString,
 				Required:         true,
 				ForceNew:         true,
-				ValidateDiagFunc: ToDiagFunc(validation.StringLenBetween(1, 5)),
+				ValidateDiagFunc: validation.ToDiagFunc(validation.StringLenBetween(1, 5)),
 			},
 			"server_instance_no_list": {
 				Type:     schema.TypeList,
@@ -76,7 +75,7 @@ func ResourceNcloudNasVolume() *schema.Resource {
 				Type:             schema.TypeString,
 				Optional:         true,
 				Computed:         true,
-				ValidateDiagFunc: ToDiagFunc(validation.StringLenBetween(1, 1000)),
+				ValidateDiagFunc: validation.ToDiagFunc(validation.StringLenBetween(1, 1000)),
 			},
 			"zone": {
 				Type:     schema.TypeString,

@@ -25,7 +25,7 @@ func DataSourceNcloudPortForwardingRule() *schema.Resource {
 				Type:             schema.TypeString,
 				Optional:         true,
 				ForceNew:         true,
-				ValidateDiagFunc: verify.ToDiagFunc(validation.StringInSlice([]string{"PUBLC", "GLBL"}, false)),
+				ValidateDiagFunc: validation.ToDiagFunc(validation.StringInSlice([]string{"PUBLC", "GLBL"}, false)),
 				Description:      "Internet line code. PUBLC(Public), GLBL(Global)",
 				Deprecated:       "This parameter is no longer used.",
 			},

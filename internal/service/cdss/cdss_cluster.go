@@ -17,7 +17,6 @@ import (
 
 	. "github.com/terraform-providers/terraform-provider-ncloud/internal/common"
 	"github.com/terraform-providers/terraform-provider-ncloud/internal/conn"
-	. "github.com/terraform-providers/terraform-provider-ncloud/internal/verify"
 )
 
 const (
@@ -53,7 +52,7 @@ func ResourceNcloudCDSSCluster() *schema.Resource {
 				Type:             schema.TypeString,
 				ForceNew:         true,
 				Required:         true,
-				ValidateDiagFunc: ToDiagFunc(validation.StringLenBetween(3, 15)),
+				ValidateDiagFunc: validation.ToDiagFunc(validation.StringLenBetween(3, 15)),
 			},
 			"kafka_version_code": {
 				Type:     schema.TypeString,
@@ -84,7 +83,7 @@ func ResourceNcloudCDSSCluster() *schema.Resource {
 							Type:             schema.TypeString,
 							Required:         true,
 							ForceNew:         true,
-							ValidateDiagFunc: ToDiagFunc(validation.StringLenBetween(3, 15)),
+							ValidateDiagFunc: validation.ToDiagFunc(validation.StringLenBetween(3, 15)),
 						},
 						"user_password": {
 							Type:      schema.TypeString,
@@ -130,7 +129,7 @@ func ResourceNcloudCDSSCluster() *schema.Resource {
 						"node_count": {
 							Type:             schema.TypeInt,
 							Required:         true,
-							ValidateDiagFunc: ToDiagFunc(validation.IntBetween(3, 10)),
+							ValidateDiagFunc: validation.ToDiagFunc(validation.IntBetween(3, 10)),
 						},
 						"storage_size": {
 							Type:     schema.TypeString,

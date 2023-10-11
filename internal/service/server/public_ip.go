@@ -39,7 +39,7 @@ func ResourceNcloudPublicIpInstance() *schema.Resource {
 				Optional:         true,
 				Computed:         true,
 				ForceNew:         true,
-				ValidateDiagFunc: verify.ToDiagFunc(validation.StringLenBetween(1, 10000)),
+				ValidateDiagFunc: validation.ToDiagFunc(validation.StringLenBetween(1, 10000)),
 			},
 
 			"public_ip_no": {
@@ -52,7 +52,7 @@ func ResourceNcloudPublicIpInstance() *schema.Resource {
 				Optional:         true,
 				Computed:         true,
 				ForceNew:         true,
-				ValidateDiagFunc: verify.ToDiagFunc(validation.StringInSlice([]string{"PUBLC", "GLBL"}, false)),
+				ValidateDiagFunc: validation.ToDiagFunc(validation.StringInSlice([]string{"PUBLC", "GLBL"}, false)),
 				Deprecated:       "This parameter is no longer used.",
 			},
 			"zone": {

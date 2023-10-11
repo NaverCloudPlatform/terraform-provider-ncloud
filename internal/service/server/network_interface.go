@@ -46,14 +46,14 @@ func ResourceNcloudNetworkInterface() *schema.Resource {
 				Optional:         true,
 				Computed:         true,
 				ForceNew:         true,
-				ValidateDiagFunc: ToDiagFunc(ValidateInstanceName),
+				ValidateDiagFunc: validation.ToDiagFunc(ValidateInstanceName),
 			},
 			"private_ip": {
 				Type:             schema.TypeString,
 				Optional:         true,
 				Computed:         true,
 				ForceNew:         true,
-				ValidateDiagFunc: ToDiagFunc(validation.IsIPv4Address),
+				ValidateDiagFunc: validation.ToDiagFunc(validation.IsIPv4Address),
 			},
 			"access_control_groups": {
 				Type:     schema.TypeSet,
@@ -70,7 +70,7 @@ func ResourceNcloudNetworkInterface() *schema.Resource {
 				Optional:         true,
 				Computed:         true,
 				ForceNew:         true,
-				ValidateDiagFunc: ToDiagFunc(validation.StringLenBetween(0, 1000)),
+				ValidateDiagFunc: validation.ToDiagFunc(validation.StringLenBetween(0, 1000)),
 			},
 			"network_interface_no": {
 				Type:     schema.TypeString,

@@ -39,7 +39,7 @@ func ResourceNcloudSourcePipeline() *schema.Resource {
 				Type:     schema.TypeString,
 				Required: true,
 				ForceNew: true,
-				ValidateDiagFunc: ToDiagFunc(validation.All(
+				ValidateDiagFunc: validation.ToDiagFunc(validation.All(
 					validation.StringLenBetween(1, 30),
 					validation.StringMatch(regexp.MustCompile(`^[A-Za-z0-9_-]+$`), "Composed of alphabets, numbers, hyphen (-) and underbar (_)"),
 				)),
@@ -47,7 +47,7 @@ func ResourceNcloudSourcePipeline() *schema.Resource {
 			"description": {
 				Type:             schema.TypeString,
 				Optional:         true,
-				ValidateDiagFunc: ToDiagFunc(validation.StringLenBetween(0, 500)),
+				ValidateDiagFunc: validation.ToDiagFunc(validation.StringLenBetween(0, 500)),
 			},
 			"task": {
 				Type:     schema.TypeList,
@@ -57,7 +57,7 @@ func ResourceNcloudSourcePipeline() *schema.Resource {
 						"name": {
 							Type:     schema.TypeString,
 							Required: true,
-							ValidateDiagFunc: ToDiagFunc(validation.All(
+							ValidateDiagFunc: validation.ToDiagFunc(validation.All(
 								validation.StringLenBetween(1, 50),
 								validation.StringMatch(regexp.MustCompile(`^[A-Za-z0-9_-]+$`), "Composed of alphabets, numbers, hyphen (-) and underbar (_)"),
 							)),
@@ -65,7 +65,7 @@ func ResourceNcloudSourcePipeline() *schema.Resource {
 						"type": {
 							Type:     schema.TypeString,
 							Required: true,
-							ValidateDiagFunc: ToDiagFunc(validation.StringInSlice([]string{
+							ValidateDiagFunc: validation.ToDiagFunc(validation.StringInSlice([]string{
 								"SourceBuild", "SourceDeploy",
 							}, false)),
 						},

@@ -31,13 +31,13 @@ func ResourceNcloudNetworkACL() *schema.Resource {
 				Optional:         true,
 				Computed:         true,
 				ForceNew:         true,
-				ValidateDiagFunc: verify.ToDiagFunc(verify.ValidateInstanceName),
+				ValidateDiagFunc: validation.ToDiagFunc(verify.ValidateInstanceName),
 			},
 			"description": {
 				Type:             schema.TypeString,
 				Optional:         true,
 				Computed:         true,
-				ValidateDiagFunc: verify.ToDiagFunc(validation.StringLenBetween(0, 1000)),
+				ValidateDiagFunc: validation.ToDiagFunc(validation.StringLenBetween(0, 1000)),
 			},
 			"vpc_no": {
 				Type:     schema.TypeString,

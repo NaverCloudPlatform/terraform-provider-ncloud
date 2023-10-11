@@ -15,7 +15,6 @@ import (
 
 	. "github.com/terraform-providers/terraform-provider-ncloud/internal/common"
 	"github.com/terraform-providers/terraform-provider-ncloud/internal/conn"
-	"github.com/terraform-providers/terraform-provider-ncloud/internal/verify"
 )
 
 func ResourceNcloudRoute() *schema.Resource {
@@ -49,13 +48,13 @@ func ResourceNcloudRoute() *schema.Resource {
 				Type:             schema.TypeString,
 				Required:         true,
 				ForceNew:         true,
-				ValidateDiagFunc: verify.ToDiagFunc(validation.IsCIDRNetwork(0, 32)),
+				ValidateDiagFunc: validation.ToDiagFunc(validation.IsCIDRNetwork(0, 32)),
 			},
 			"target_type": {
 				Type:             schema.TypeString,
 				Required:         true,
 				ForceNew:         true,
-				ValidateDiagFunc: verify.ToDiagFunc(validation.StringInSlice([]string{"NATGW", "VPCPEERING", "VGW"}, false)),
+				ValidateDiagFunc: validation.ToDiagFunc(validation.StringInSlice([]string{"NATGW", "VPCPEERING", "VGW"}, false)),
 			},
 			"target_no": {
 				Type:     schema.TypeString,

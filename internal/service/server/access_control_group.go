@@ -37,14 +37,14 @@ func ResourceNcloudAccessControlGroup() *schema.Resource {
 				Optional:         true,
 				Computed:         true,
 				ForceNew:         true,
-				ValidateDiagFunc: ToDiagFunc(ValidateInstanceName),
+				ValidateDiagFunc: validation.ToDiagFunc(ValidateInstanceName),
 			},
 			"description": {
 				Type:             schema.TypeString,
 				Optional:         true,
 				Computed:         true,
 				ForceNew:         true,
-				ValidateDiagFunc: ToDiagFunc(validation.StringLenBetween(0, 1000)),
+				ValidateDiagFunc: validation.ToDiagFunc(validation.StringLenBetween(0, 1000)),
 			},
 			"access_control_group_no": {
 				Type:     schema.TypeString,

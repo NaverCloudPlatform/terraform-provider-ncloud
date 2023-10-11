@@ -12,7 +12,6 @@ import (
 
 	. "github.com/terraform-providers/terraform-provider-ncloud/internal/common"
 	"github.com/terraform-providers/terraform-provider-ncloud/internal/conn"
-	. "github.com/terraform-providers/terraform-provider-ncloud/internal/verify"
 )
 
 func ResourceNcloudCDSSConfigGroup() *schema.Resource {
@@ -33,11 +32,11 @@ func ResourceNcloudCDSSConfigGroup() *schema.Resource {
 				Type:             schema.TypeString,
 				ForceNew:         true,
 				Required:         true,
-				ValidateDiagFunc: ToDiagFunc(validation.StringLenBetween(3, 15)),
+				ValidateDiagFunc: validation.ToDiagFunc(validation.StringLenBetween(3, 15)),
 			},
 			"description": {
 				Type:             schema.TypeString,
-				ValidateDiagFunc: ToDiagFunc(validation.StringLenBetween(0, 255)),
+				ValidateDiagFunc: validation.ToDiagFunc(validation.StringLenBetween(0, 255)),
 				Optional:         true,
 			},
 			"kafka_version_code": {

@@ -39,7 +39,7 @@ func ResourceNcloudAccessControlGroupRule() *schema.Resource {
 						"protocol": {
 							Type:     schema.TypeString,
 							Required: true,
-							ValidateDiagFunc: ToDiagFunc(validation.All(
+							ValidateDiagFunc: validation.ToDiagFunc(validation.All(
 								validation.StringMatch(regexp.MustCompile(`TCP|UDP|ICMP|\b([1-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-4])\b`), "only TCP, UDP, ICMP and 1-254 are valid values."),
 								validation.StringNotInSlice([]string{"1", "6", "17"}, false),
 							)),
@@ -47,13 +47,13 @@ func ResourceNcloudAccessControlGroupRule() *schema.Resource {
 						"port_range": {
 							Type:             schema.TypeString,
 							Optional:         true,
-							ValidateDiagFunc: ToDiagFunc(ValidatePortRange),
+							ValidateDiagFunc: validation.ToDiagFunc(ValidatePortRange),
 							Default:          "",
 						},
 						"ip_block": {
 							Type:             schema.TypeString,
 							Optional:         true,
-							ValidateDiagFunc: ToDiagFunc(validation.IsCIDRNetwork(0, 32)),
+							ValidateDiagFunc: validation.ToDiagFunc(validation.IsCIDRNetwork(0, 32)),
 							Default:          "",
 						},
 						"source_access_control_group_no": {
@@ -64,7 +64,7 @@ func ResourceNcloudAccessControlGroupRule() *schema.Resource {
 						"description": {
 							Type:             schema.TypeString,
 							Optional:         true,
-							ValidateDiagFunc: ToDiagFunc(validation.StringLenBetween(0, 1000)),
+							ValidateDiagFunc: validation.ToDiagFunc(validation.StringLenBetween(0, 1000)),
 							Default:          "",
 						},
 					},
@@ -79,7 +79,7 @@ func ResourceNcloudAccessControlGroupRule() *schema.Resource {
 						"protocol": {
 							Type:     schema.TypeString,
 							Required: true,
-							ValidateDiagFunc: ToDiagFunc(validation.All(
+							ValidateDiagFunc: validation.ToDiagFunc(validation.All(
 								validation.StringMatch(regexp.MustCompile(`TCP|UDP|ICMP|\b([1-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-4])\b`), "only TCP, UDP, ICMP and 1-254 are valid values."),
 								validation.StringNotInSlice([]string{"1", "6", "17"}, false),
 							)),
@@ -87,13 +87,13 @@ func ResourceNcloudAccessControlGroupRule() *schema.Resource {
 						"port_range": {
 							Type:             schema.TypeString,
 							Optional:         true,
-							ValidateDiagFunc: ToDiagFunc(ValidatePortRange),
+							ValidateDiagFunc: validation.ToDiagFunc(ValidatePortRange),
 							Default:          "",
 						},
 						"ip_block": {
 							Type:             schema.TypeString,
 							Optional:         true,
-							ValidateDiagFunc: ToDiagFunc(validation.IsCIDRNetwork(0, 32)),
+							ValidateDiagFunc: validation.ToDiagFunc(validation.IsCIDRNetwork(0, 32)),
 							Default:          "",
 						},
 						"source_access_control_group_no": {
@@ -104,7 +104,7 @@ func ResourceNcloudAccessControlGroupRule() *schema.Resource {
 						"description": {
 							Type:             schema.TypeString,
 							Optional:         true,
-							ValidateDiagFunc: ToDiagFunc(validation.StringLenBetween(0, 1000)),
+							ValidateDiagFunc: validation.ToDiagFunc(validation.StringLenBetween(0, 1000)),
 							Default:          "",
 						},
 					},

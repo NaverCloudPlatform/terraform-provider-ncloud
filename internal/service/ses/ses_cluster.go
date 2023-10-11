@@ -17,7 +17,6 @@ import (
 
 	. "github.com/terraform-providers/terraform-provider-ncloud/internal/common"
 	"github.com/terraform-providers/terraform-provider-ncloud/internal/conn"
-	. "github.com/terraform-providers/terraform-provider-ncloud/internal/verify"
 )
 
 const (
@@ -57,7 +56,7 @@ func ResourceNcloudSESCluster() *schema.Resource {
 				Type:     schema.TypeString,
 				ForceNew: true,
 				Required: true,
-				ValidateDiagFunc: ToDiagFunc(validation.All(
+				ValidateDiagFunc: validation.ToDiagFunc(validation.All(
 					validation.StringLenBetween(3, 15),
 					validation.StringMatch(regexp.MustCompile(`^[a-z]+[a-z0-9]*(-[a-z0-9]+)*[a-z0-9]+$`), "Composed of alphabets(lower-case), numbers, non-consecutive hyphen (-)."),
 				)),
@@ -85,7 +84,7 @@ func ResourceNcloudSESCluster() *schema.Resource {
 						"user_name": {
 							Type:             schema.TypeString,
 							Required:         true,
-							ValidateDiagFunc: ToDiagFunc(validation.StringLenBetween(3, 15)),
+							ValidateDiagFunc: validation.ToDiagFunc(validation.StringLenBetween(3, 15)),
 						},
 						"user_password": {
 							Type:     schema.TypeString,
@@ -159,7 +158,7 @@ func ResourceNcloudSESCluster() *schema.Resource {
 						"count": {
 							Type:             schema.TypeInt,
 							Required:         true,
-							ValidateDiagFunc: ToDiagFunc(validation.IntAtLeast(3)),
+							ValidateDiagFunc: validation.ToDiagFunc(validation.IntAtLeast(3)),
 						},
 						"acg_id": {
 							Type:     schema.TypeInt,
@@ -173,7 +172,7 @@ func ResourceNcloudSESCluster() *schema.Resource {
 							Type:     schema.TypeInt,
 							Required: true,
 							ForceNew: true,
-							ValidateDiagFunc: ToDiagFunc(validation.All(
+							ValidateDiagFunc: validation.ToDiagFunc(validation.All(
 								validation.IntBetween(10, 2000),
 								validation.IntDivisibleBy(10)),
 							),
@@ -200,7 +199,7 @@ func ResourceNcloudSESCluster() *schema.Resource {
 							Type:             schema.TypeInt,
 							Optional:         true,
 							ForceNew:         true,
-							ValidateDiagFunc: ToDiagFunc(validation.IntInSlice([]int{3, 5})),
+							ValidateDiagFunc: validation.ToDiagFunc(validation.IntInSlice([]int{3, 5})),
 						},
 						"acg_id": {
 							Type:     schema.TypeInt,
