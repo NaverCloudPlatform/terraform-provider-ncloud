@@ -53,13 +53,19 @@ func ResourceNcloudNasVolume() *schema.Resource {
 				Type:     schema.TypeList,
 				Optional: true,
 				Computed: true,
-				Elem:     &schema.Schema{Type: schema.TypeString},
+				Elem: &schema.Schema{
+					Type:             schema.TypeString,
+					ValidateDiagFunc: validation.ToDiagFunc(validation.StringIsNotEmpty),
+				},
 			},
 			"custom_ip_list": {
 				Type:     schema.TypeList,
 				Optional: true,
 				Computed: true,
-				Elem:     &schema.Schema{Type: schema.TypeString},
+				Elem: &schema.Schema{
+					Type:             schema.TypeString,
+					ValidateDiagFunc: validation.ToDiagFunc(validation.StringIsNotEmpty),
+				},
 			},
 			"cifs_user_name": {
 				Type:     schema.TypeString,

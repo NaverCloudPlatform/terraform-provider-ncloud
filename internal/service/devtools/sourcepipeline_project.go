@@ -133,7 +133,8 @@ func ResourceNcloudSourcePipeline() *schema.Resource {
 							Type:     schema.TypeList,
 							Required: true,
 							Elem: &schema.Schema{
-								Type: schema.TypeString,
+								Type:             schema.TypeString,
+								ValidateDiagFunc: validation.ToDiagFunc(validation.StringIsNotEmpty),
 							},
 						},
 					},

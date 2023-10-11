@@ -92,7 +92,10 @@ func ResourceNcloudAutoScalingGroup() *schema.Resource {
 			"zone_no_list": {
 				Type:     schema.TypeList,
 				Optional: true,
-				Elem:     &schema.Schema{Type: schema.TypeString},
+				Elem: &schema.Schema{
+					Type:             schema.TypeString,
+					ValidateDiagFunc: validation.ToDiagFunc(validation.StringIsNotEmpty),
+				},
 			},
 			"vpc_no": {
 				Type:     schema.TypeString,
@@ -106,7 +109,10 @@ func ResourceNcloudAutoScalingGroup() *schema.Resource {
 			"access_control_group_no_list": {
 				Type:     schema.TypeList,
 				Optional: true,
-				Elem:     &schema.Schema{Type: schema.TypeString},
+				Elem: &schema.Schema{
+					Type:             schema.TypeString,
+					ValidateDiagFunc: validation.ToDiagFunc(validation.StringIsNotEmpty),
+				},
 				ForceNew: true,
 			},
 			"target_group_list": {

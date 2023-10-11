@@ -273,21 +273,24 @@ func ResourceNcloudSourceBuildProject() *schema.Resource {
 							Type:     schema.TypeList,
 							Optional: true,
 							Elem: &schema.Schema{
-								Type: schema.TypeString,
+								Type:             schema.TypeString,
+								ValidateDiagFunc: validation.ToDiagFunc(validation.StringIsNotEmpty),
 							},
 						},
 						"in_build": {
 							Type:     schema.TypeList,
 							Optional: true,
 							Elem: &schema.Schema{
-								Type: schema.TypeString,
+								Type:             schema.TypeString,
+								ValidateDiagFunc: validation.ToDiagFunc(validation.StringIsNotEmpty),
 							},
 						},
 						"post_build": {
 							Type:     schema.TypeList,
 							Optional: true,
 							Elem: &schema.Schema{
-								Type: schema.TypeString,
+								Type:             schema.TypeString,
+								ValidateDiagFunc: validation.ToDiagFunc(validation.StringIsNotEmpty),
 							},
 						},
 						"docker_image_build": {
@@ -354,7 +357,8 @@ func ResourceNcloudSourceBuildProject() *schema.Resource {
 							Type:     schema.TypeList,
 							Optional: true,
 							Elem: &schema.Schema{
-								Type: schema.TypeString,
+								Type:             schema.TypeString,
+								ValidateDiagFunc: validation.ToDiagFunc(validation.StringIsNotEmpty),
 							},
 						},
 						"object_storage_to_upload": {

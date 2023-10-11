@@ -254,7 +254,10 @@ func ResourceNcloudSourceDeployScenario() *schema.Resource {
 									"path": {
 										Type:     schema.TypeList,
 										Optional: true,
-										Elem:     &schema.Schema{Type: schema.TypeString},
+										Elem: &schema.Schema{
+											Type:             schema.TypeString,
+											ValidateDiagFunc: validation.ToDiagFunc(validation.StringIsNotEmpty),
+										},
 									},
 								},
 							},

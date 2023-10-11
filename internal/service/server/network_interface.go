@@ -58,7 +58,10 @@ func ResourceNcloudNetworkInterface() *schema.Resource {
 			"access_control_groups": {
 				Type:     schema.TypeSet,
 				Required: true,
-				Elem:     &schema.Schema{Type: schema.TypeString},
+				Elem: &schema.Schema{
+					Type:             schema.TypeString,
+					ValidateDiagFunc: validation.ToDiagFunc(validation.StringIsNotEmpty),
+				},
 			},
 			"server_instance_no": {
 				Type:     schema.TypeString,
