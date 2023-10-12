@@ -224,6 +224,9 @@ func protoV6TestProviderServerFactory(ctx context.Context, isVpc bool) (func() t
 		ctx,
 		primary.GRPCProvider,
 	)
+	if err != nil {
+		return nil, nil, err
+	}
 
 	servers := []func() tfprotov6.ProviderServer{
 		func() tfprotov6.ProviderServer {

@@ -21,6 +21,9 @@ func ProtoV6ProviderServerFactory(ctx context.Context) (func() tfprotov6.Provide
 		ctx,
 		primary.GRPCProvider,
 	)
+	if err != nil {
+		return nil, nil, err
+	}
 
 	servers := []func() tfprotov6.ProviderServer{
 		func() tfprotov6.ProviderServer {
