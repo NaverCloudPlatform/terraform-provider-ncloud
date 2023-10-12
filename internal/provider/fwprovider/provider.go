@@ -10,7 +10,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 	"github.com/terraform-providers/terraform-provider-ncloud/internal/conn"
-	"github.com/terraform-providers/terraform-provider-ncloud/internal/service/cloudmongodb"
+	"github.com/terraform-providers/terraform-provider-ncloud/internal/service/mongodb"
 	"github.com/terraform-providers/terraform-provider-ncloud/internal/service/mysql"
 	"github.com/terraform-providers/terraform-provider-ncloud/internal/service/server"
 	"github.com/terraform-providers/terraform-provider-ncloud/internal/service/vpc"
@@ -80,11 +80,11 @@ func (p *fwprovider) DataSources(ctx context.Context) []func() datasource.DataSo
 	dataSources = append(dataSources, mysql.NewMysqlImageProductDataSource)
 	dataSources = append(dataSources, mysql.NewMysqlImageProductsDataSource)
 	dataSources = append(dataSources, mysql.NewMysqlProductsDataSource)
-	dataSources = append(dataSources, cloudmongodb.NewMongoDbDataSource)
-	dataSources = append(dataSources, cloudmongodb.NewMongoDbProductDataSource)
-	dataSources = append(dataSources, cloudmongodb.NewMongoDbProductsDataSource)
-	dataSources = append(dataSources, cloudmongodb.NewMongoDbImageProductDataSource)
-	dataSources = append(dataSources, cloudmongodb.NewMongoDbImageProductsDataSource)
+	dataSources = append(dataSources, mongodb.NewMongoDbDataSource)
+	dataSources = append(dataSources, mongodb.NewMongoDbProductDataSource)
+	dataSources = append(dataSources, mongodb.NewMongoDbProductsDataSource)
+	dataSources = append(dataSources, mongodb.NewMongoDbImageProductDataSource)
+	dataSources = append(dataSources, mongodb.NewMongoDbImageProductsDataSource)
 
 	if err := errs.ErrorOrNil(); err != nil {
 		tflog.Warn(ctx, "registering resources", map[string]interface{}{
@@ -106,7 +106,7 @@ func (p *fwprovider) Resources(ctx context.Context) []func() resource.Resource {
 	resources = append(resources, server.NewLoginKeyResource)
 	resources = append(resources, server.NewInitScriptResource)
 	resources = append(resources, mysql.NewMysqlResource)
-	resources = append(resources, cloudmongodb.NewMongoDbResource)
+	resources = append(resources, mongodb.NewMongoDbResource)
 
 	if err := errs.ErrorOrNil(); err != nil {
 		tflog.Warn(ctx, "registering resources", map[string]interface{}{

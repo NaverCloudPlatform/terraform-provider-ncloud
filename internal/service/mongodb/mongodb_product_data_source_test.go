@@ -1,4 +1,4 @@
-package cloudmongodb_test
+package mongodb_test
 
 import (
 	"fmt"

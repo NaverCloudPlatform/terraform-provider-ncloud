@@ -1,4 +1,4 @@
-package cloudmongodb_test
+package mongodb_test
 
 import (
 	"context"
@@ -15,7 +15,7 @@ import (
 
 	. "github.com/terraform-providers/terraform-provider-ncloud/internal/acctest"
 	"github.com/terraform-providers/terraform-provider-ncloud/internal/conn"
-	mongodbservice "github.com/terraform-providers/terraform-provider-ncloud/internal/service/cloudmongodb"
+	mongodbservice "github.com/terraform-providers/terraform-provider-ncloud/internal/service/mongodb"
 )
 
 func TestAccResourceNcloudMongoDb_vpc_basic(t *testing.T) {

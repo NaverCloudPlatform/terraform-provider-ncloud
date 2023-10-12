@@ -1,4 +1,4 @@
-package cloudmongodb_test
+package mongodb_test
 
 import (
 	"fmt"
@@ -53,8 +53,8 @@ resource "ncloud_subnet" "subnet" {
 }
 
 resource "ncloud_mongodb" "mongodb" {
-	vpc_no = 	47425
-	subnet_no = 105977
+	vpc_no = 	ncloud_vpc.vpc.vpc_no
+	subnet_no = ncloud_subnet.subnet.id
 	service_name = "%[1]s"
 	user_name = "testuser"
 	user_password = "t123456789!"

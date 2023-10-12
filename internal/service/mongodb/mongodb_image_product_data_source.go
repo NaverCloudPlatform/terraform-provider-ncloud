@@ -1,4 +1,4 @@
-package cloudmongodb
+package mongodb
 
 import (
 	"context"
