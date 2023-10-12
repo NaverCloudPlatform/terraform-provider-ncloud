@@ -28,7 +28,7 @@ func TestAccDataSourceNcloudMongoDb_vpc_basic(t *testing.T) {
 					resource.TestCheckResourceAttrPair(dataName, "service_name", resourceName, "service_name"),
 					resource.TestCheckResourceAttrPair(dataName, "image_product_code", resourceName, "image_product_code"),
 					resource.TestCheckResourceAttrPair(dataName, "backup_time", resourceName, "backup_time"),
-					resource.TestCheckResourceAttrPair(dataName, "backup_file_retention_pedriod", resourceName, "backup_file_retention_period"),
+					resource.TestCheckResourceAttrPair(dataName, "backup_file_retention_period", resourceName, "backup_file_retention_period"),
 					TestAccCheckDataSourceID("data.ncloud_mongodb.by_filter"),
 				),
 			},
