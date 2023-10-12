@@ -110,6 +110,18 @@ func (m *mongodbDataSource) Schema(_ context.Context, _ datasource.SchemaRequest
 				Computed: true,
 				NestedObject: schema.NestedAttributeObject{
 					Attributes: map[string]schema.Attribute{
+						"server_instance_no": schema.StringAttribute{
+							Computed: true,
+						},
+						"server_name": schema.StringAttribute{
+							Computed: true,
+						},
+						"cluster_role": schema.StringAttribute{
+							Computed: true,
+						},
+						"server_role": schema.StringAttribute{
+							Computed: true,
+						},
 						"region_code": schema.StringAttribute{
 							Computed: true,
 						},
@@ -119,25 +131,16 @@ func (m *mongodbDataSource) Schema(_ context.Context, _ datasource.SchemaRequest
 						"subnet_no": schema.StringAttribute{
 							Computed: true,
 						},
+						"create_date": schema.StringAttribute{
+							Computed: true,
+						},
+						"uptime": schema.StringAttribute{
+							Computed: true,
+						},
 						"zone_code": schema.StringAttribute{
 							Computed: true,
 						},
-						"server_instance_no": schema.StringAttribute{
-							Computed: true,
-						},
-						"server_role": schema.StringAttribute{
-							Computed: true,
-						},
-						"server_name": schema.StringAttribute{
-							Computed: true,
-						},
-						"product_code": schema.StringAttribute{
-							Computed: true,
-						},
 						"private_domain": schema.StringAttribute{
-							Computed: true,
-						},
-						"public_domain": schema.StringAttribute{
 							Computed: true,
 						},
 						"memory_size": schema.Int64Attribute{
@@ -149,16 +152,13 @@ func (m *mongodbDataSource) Schema(_ context.Context, _ datasource.SchemaRequest
 						"data_storage_size": schema.Int64Attribute{
 							Computed: true,
 						},
-						"used_storage_size": schema.Int64Attribute{
+						"used_data_storage_size": schema.Int64Attribute{
 							Computed: true,
 						},
 						"replica_set_name": schema.StringAttribute{
 							Computed: true,
 						},
-						"uptime": schema.StringAttribute{
-							Computed: true,
-						},
-						"create_date": schema.StringAttribute{
+						"data_storage_type": schema.StringAttribute{
 							Computed: true,
 						},
 					},
@@ -194,7 +194,7 @@ func (m *mongodbDataSource) Read(ctx context.Context, req datasource.ReadRequest
 		reqParams.CloudMongoDbInstanceNoList = []*string{data.ID.ValueStringPointer()}
 	}
 	if !data.CloudMongoDbServiceName.IsNull() && !data.CloudMongoDbServiceName.IsUnknown() {
-	 	reqParams.CloudMongoDbServiceName = data.CloudMongoDbServiceName.ValueStringPointer()
+		reqParams.CloudMongoDbServiceName = data.CloudMongoDbServiceName.ValueStringPointer()
 	}
 
 	tflog.Info(ctx, "GetMongoDbList", map[string]any{
@@ -212,11 +212,31 @@ func (m *mongodbDataSource) Read(ctx context.Context, req datasource.ReadRequest
 		resp.Diagnostics.Append(diags...)
 		return
 	}
-	tflog.Info(ctx, "GetMongodbList response", map[string]any{
+	tflog.Info(ctx, "GetMongoDbList response", map[string]any{
 		"mongodbResponse": common.MarshalUncheckedString(mongodbResp),
 	})
 
-	mongodbList, diags := flattenMongoDbs(ctx, mongodbResp.CloudMongoDbInstanceList, m.config)
+	mongodbId := mongodbResp.CloudMongoDbInstanceList[0].CloudMongoDbInstanceNo
+	detailReqParams := &vmongodb.GetCloudMongoDbInstanceDetailRequest{
+		RegionCode:             &m.config.RegionCode,
+		CloudMongoDbInstanceNo: mongodbId,
+	}
+	mongodbDetailResp, err := m.config.Client.Vmongodb.V2Api.GetCloudMongoDbInstanceDetail(detailReqParams)
+
+	if err != nil {
+		var diags diag.Diagnostics
+		diags.AddError(
+			"GetCloudMongoDbDetailList",
+			fmt.Sprintf("error: %s, detailReqParams: %s", err.Error(), common.MarshalUncheckedString(detailReqParams)),
+		)
+		resp.Diagnostics.Append(diags...)
+		return
+	}
+	tflog.Info(ctx, "GetMongoDbDetailList response", map[string]any{
+		"mongodbDetailResponse": common.MarshalUncheckedString(mongodbDetailResp),
+	})
+
+	mongodbList, diags := flattenMongoDbs(ctx, mongodbDetailResp.CloudMongoDbInstanceList, m.config)
 	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
 		return
@@ -277,44 +297,44 @@ type mongodbDataSourceModel struct {
 }
 
 type mongodbServer struct {
+	CloudMongoDbServerInstanceNo types.String `tfsdk:"server_instance_no"`
+	CloudMongoDbServerName       types.String `tfsdk:"server_name"`
+	ClusterRole                  types.String `tfsdk:"cluster_role"`
+	CloudMongoDbServerRole       types.String `tfsdk:"server_role"`
 	RegionCode                   types.String `tfsdk:"region_code"`
-	ZoneCode                     types.String `tfsdk:"zone_code"`
 	VpcNo                        types.String `tfsdk:"vpc_no"`
 	SubnetNo                     types.String `tfsdk:"subnet_no"`
-	CloudMongoDbServerInstanceNo types.String `tfsdk:"server_instance_no"`
-	CloudMongoDbServerRole       types.String `tfsdk:"server_role"`
-	CloudMongoDbServerName       types.String `tfsdk:"server_name"`
-	CloudMongoDbProductCode      types.String `tfsdk:"product_code"`
+	CreateDate                   types.String `tfsdk:"create_date"`
+	Uptime                       types.String `tfsdk:"uptime"`
+	ZoneCode                     types.String `tfsdk:"zone_code"`
 	PrivateDomain                types.String `tfsdk:"private_domain"`
-	PublicDomain                 types.String `tfsdk:"public_domain"`
 	MemorySize                   types.Int64  `tfsdk:"memory_size"`
 	CpuCount                     types.Int64  `tfsdk:"cpu_count"`
 	DataStorageSize              types.Int64  `tfsdk:"data_storage_size"`
 	UsedDataStorageSize          types.Int64  `tfsdk:"used_data_storage_size"`
 	ReplicaSetName               types.String `tfsdk:"replica_set_name"`
-	Uptime                       types.String `tfsdk:"uptime"`
-	CreateDate                   types.String `tfsdk:"create_date"`
+	DataStorageType              types.String `tfsdk:"data_storage_type"`
 }
 
 func (m mongodbServer) attrTypes() map[string]attr.Type {
 	return map[string]attr.Type{
-		"region_code":        types.StringType,
-		"zone_code":          types.StringType,
-		"vpc_no":             types.StringType,
-		"subnet_no":          types.StringType,
-		"server_instance_no": types.StringType,
-		"server_role":        types.StringType,
-		"server_name":        types.StringType,
-		"product_code":       types.StringType,
-		"private_domain":     types.StringType,
-		"public_domain":      types.StringType,
-		"memory_size":        types.Int64Type,
-		"cpu_count":          types.Int64Type,
-		"data_storage_size":  types.Int64Type,
-		"used_storage_size":  types.Int64Type,
-		"replica_set_name":   types.StringType,
-		"uptime":             types.StringType,
-		"create_date":        types.StringType,
+		"server_instance_no":     types.StringType,
+		"server_name":            types.StringType,
+		"cluster_role":           types.StringType,
+		"server_role":            types.StringType,
+		"region_code":            types.StringType,
+		"vpc_no":                 types.StringType,
+		"subnet_no":              types.StringType,
+		"create_date":            types.StringType,
+		"uptime":                 types.StringType,
+		"zone_code":              types.StringType,
+		"private_domain":         types.StringType,
+		"memory_size":            types.Int64Type,
+		"cpu_count":              types.Int64Type,
+		"data_storage_size":      types.Int64Type,
+		"used_data_storage_size": types.Int64Type,
+		"replica_set_name":       types.StringType,
+		"data_storage_type":      types.StringType,
 	}
 }
 
@@ -324,11 +344,9 @@ func (d *mongodbDataSourceModel) refreshFromOutput(ctx context.Context, output *
 	d.SubnetNo = types.StringPointerValue(output.CloudMongoDbServerInstanceList[0].SubnetNo)
 	d.CloudMongoDbInstanceNo = types.StringPointerValue(output.CloudMongoDbInstanceNo)
 	d.CloudMongoDbServiceName = types.StringPointerValue(output.CloudMongoDbServiceName)
-	d.EngineVersion = types.StringPointerValue(output.EngineVersion)
 	d.CloudMongoDbImageProductCode = types.StringPointerValue(output.CloudMongoDbImageProductCode)
 	d.BackupFileRetentionPeriod = int32PointerValue(output.BackupFileRetentionPeriod)
 	d.BackupTime = types.StringPointerValue(output.BackupTime)
-	d.ShardCount = int32PointerValue(output.ShardCount)
 
 	acgList, _ := types.ListValueFrom(ctx, types.StringType, output.AccessControlGroupNoList)
 	d.AccessControlGroupNoList = acgList
@@ -336,27 +354,28 @@ func (d *mongodbDataSourceModel) refreshFromOutput(ctx context.Context, output *
 	var serverList []mongodbServer
 	for _, server := range output.CloudMongoDbServerInstanceList {
 		mongodbServerInstance := mongodbServer{
+			CloudMongoDbServerInstanceNo: types.StringPointerValue(server.CloudMongoDbServerInstanceNo),
+			CloudMongoDbServerName:       types.StringPointerValue(server.CloudMongoDbServerName),
+			ClusterRole:                  types.StringPointerValue(server.ClusterRole.Code),
+			CloudMongoDbServerRole:       types.StringPointerValue(server.CloudMongoDbServerRole.Code),
 			RegionCode:                   types.StringPointerValue(server.RegionCode),
-			ZoneCode:                     types.StringPointerValue(server.ZoneCode),
 			VpcNo:                        types.StringPointerValue(server.VpcNo),
 			SubnetNo:                     types.StringPointerValue(server.SubnetNo),
-			CloudMongoDbServerInstanceNo: types.StringPointerValue(server.CloudMongoDbServerInstanceNo),
-			CloudMongoDbServerRole:       types.StringPointerValue(server.CloudMongoDbServerRole.Code),
-			CloudMongoDbServerName:       types.StringPointerValue(server.CloudMongoDbServerName),
-			CloudMongoDbProductCode:      types.StringPointerValue(server.CloudMongoDbProductCode),
+			CreateDate:                   types.StringPointerValue(server.CreateDate),
+			Uptime:                       types.StringPointerValue(server.Uptime),
+			ZoneCode:                     types.StringPointerValue(server.ZoneCode),
 			PrivateDomain:                types.StringPointerValue(server.PrivateDomain),
-			PublicDomain:                 types.StringPointerValue(server.PublicDomain),
 			MemorySize:                   types.Int64Value(*server.MemorySize),
 			CpuCount:                     types.Int64Value(*server.CpuCount),
 			DataStorageSize:              types.Int64Value(*server.DataStorageSize),
 			ReplicaSetName:               types.StringPointerValue(server.ReplicaSetName),
-			Uptime:                       types.StringPointerValue(server.Uptime),
-			CreateDate:                   types.StringPointerValue(server.CreateDate),
+			DataStorageType:              types.StringPointerValue(server.DataStorageType.Code),
 		}
 
 		if server.UsedDataStorageSize != nil {
 			mongodbServerInstance.UsedDataStorageSize = types.Int64Value(*server.UsedDataStorageSize)
 		}
+
 		serverList = append(serverList, mongodbServerInstance)
 	}
 
