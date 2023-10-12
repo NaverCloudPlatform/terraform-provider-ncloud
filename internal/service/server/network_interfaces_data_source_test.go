@@ -15,8 +15,8 @@ func TestAccDataSourceNcloudNetworkInterfaces_basic(t *testing.T) {
 	dataName := "data.ncloud_network_interfaces.test"
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:  func() { TestAccPreCheck(t) },
-		Providers: GetTestAccProviders(true),
+		PreCheck:                 func() { TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: ProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccDataSourceNcloudNetworkInterfacesConfig(),
@@ -39,8 +39,8 @@ func TestAccDataSourceNcloudNetworkInterfaces_privateIp(t *testing.T) {
 	dataName := "data.ncloud_network_interfaces.by_private_ip"
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:  func() { TestAccPreCheck(t) },
-		Providers: GetTestAccProviders(true),
+		PreCheck:                 func() { TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: ProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccDataSourceNcloudNetworkInterfacesConfigPrivateIp(name),
@@ -67,8 +67,8 @@ func TestAccDataSourceNcloudNetworkInterfaces_filter(t *testing.T) {
 	dataName := "data.ncloud_network_interfaces.by_filter"
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:  func() { TestAccPreCheck(t) },
-		Providers: GetTestAccProviders(true),
+		PreCheck:                 func() { TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: ProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccDataSourceNcloudNetworkInterfacesConfigFilter(name),

@@ -29,8 +29,8 @@ func testAccResourceNcloudNasVolumeBasic(t *testing.T, isVpc bool) {
 	provider := GetTestProvider(isVpc)
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:  func() { TestAccPreCheck(t) },
-		Providers: GetTestAccProviders(isVpc),
+		PreCheck:                 func() { TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: GetTestProviderFactories(isVpc),
 		CheckDestroy: func(state *terraform.State) error {
 			return testAccCheckNasVolumeDestroy(state, provider)
 		},
@@ -75,8 +75,8 @@ func testAccResourceNcloudNasVolumeResize(t *testing.T, isVpc bool) {
 	provider := GetTestProvider(isVpc)
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:  func() { TestAccPreCheck(t) },
-		Providers: GetTestAccProviders(isVpc),
+		PreCheck:                 func() { TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: GetTestProviderFactories(isVpc),
 		CheckDestroy: func(state *terraform.State) error {
 			return testAccCheckNasVolumeDestroy(state, provider)
 		},
@@ -111,8 +111,8 @@ func TestAccResourceNcloudNasVolume_classic_changeAccessControl(t *testing.T) {
 	resourceName := "ncloud_nas_volume.test"
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:  func() { TestAccPreCheck(t) },
-		Providers: GetTestAccProviders(false),
+		PreCheck:                 func() { TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: ClassicProtoV6ProviderFactories,
 		CheckDestroy: func(state *terraform.State) error {
 			return testAccCheckNasVolumeDestroy(state, GetTestProvider(false))
 		},
@@ -147,8 +147,8 @@ func TestAccResourceNcloudNasVolume_vpc_changeAccessControl(t *testing.T) {
 	resourceName := "ncloud_nas_volume.test"
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:  func() { TestAccPreCheck(t) },
-		Providers: GetTestAccProviders(true),
+		PreCheck:                 func() { TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: ProtoV6ProviderFactories,
 		CheckDestroy: func(state *terraform.State) error {
 			return testAccCheckNasVolumeDestroy(state, GetTestProvider(true))
 		},

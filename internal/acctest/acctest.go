@@ -38,10 +38,6 @@ var (
 	ClassicProtoV6ProviderFactories map[string]func() (tfprotov6.ProviderServer, error) = protoV6ProviderFactoriesInit(context.Background(), false, ProviderName)
 )
 
-// TODO: deprecate testAccProviders/testAccClassicProviders
-var testAccProviders map[string]*schema.Provider
-var testAccClassicProviders map[string]*schema.Provider
-
 var testAccProvider *schema.Provider
 var testAccClassicProvider *schema.Provider
 
@@ -58,14 +54,13 @@ var regionEnvVar = "NCLOUD_REGION"
 func init() {
 	testAccProvider = getTestAccProvider(true)
 	testAccClassicProvider = getTestAccProvider(false)
+}
 
-	testAccProviders = map[string]*schema.Provider{
-		ProviderName: testAccProvider,
+func GetTestProviderFactories(isVpc bool) map[string]func() (tfprotov6.ProviderServer, error) {
+	if isVpc {
+		return ProtoV6ProviderFactories
 	}
-
-	testAccClassicProviders = map[string]*schema.Provider{
-		ProviderName: testAccClassicProvider,
-	}
+	return ClassicProtoV6ProviderFactories
 }
 
 func GetTestProvider(isVpc bool) *schema.Provider {
@@ -74,14 +69,6 @@ func GetTestProvider(isVpc bool) *schema.Provider {
 	}
 
 	return testAccClassicProvider
-}
-
-func GetTestAccProviders(isVpc bool) map[string]*schema.Provider {
-	if isVpc {
-		return testAccProviders
-	}
-
-	return testAccClassicProviders
 }
 
 func getTestAccProvider(isVpc bool) *schema.Provider {

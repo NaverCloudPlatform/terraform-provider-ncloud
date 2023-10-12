@@ -16,8 +16,8 @@ func TestAccDataSourceNcloudServer_vpc_basic(t *testing.T) {
 	testServerName := GetTestServerName()
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:  func() { TestAccPreCheck(t) },
-		Providers: GetTestAccProviders(true),
+		PreCheck:                 func() { TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: ProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccDataSourceServerVpcConfig(testServerName),
@@ -57,8 +57,8 @@ func TestAccDataSourceNcloudServer_classic_basic(t *testing.T) {
 	testServerName := GetTestServerName()
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:  func() { TestAccPreCheck(t) },
-		Providers: GetTestAccProviders(false),
+		PreCheck:                 func() { TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: ClassicProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccDataSourceServerClassicConfig(testServerName),
