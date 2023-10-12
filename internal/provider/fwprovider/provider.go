@@ -10,6 +10,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 	"github.com/terraform-providers/terraform-provider-ncloud/internal/conn"
+	"github.com/terraform-providers/terraform-provider-ncloud/internal/service/mysql"
 	"github.com/terraform-providers/terraform-provider-ncloud/internal/service/server"
 	"github.com/terraform-providers/terraform-provider-ncloud/internal/service/vpc"
 )
@@ -73,6 +74,11 @@ func (p *fwprovider) DataSources(ctx context.Context) []func() datasource.DataSo
 	dataSources = append(dataSources, vpc.NewNatGatewayDataSource)
 	dataSources = append(dataSources, vpc.NewVpcPeeringDataSource)
 	dataSources = append(dataSources, server.NewInitScriptDataSource)
+	dataSources = append(dataSources, mysql.NewMysqlDataSource)
+	dataSources = append(dataSources, mysql.NewMysqlProductDataSource)
+	dataSources = append(dataSources, mysql.NewMysqlImageProductDataSource)
+	dataSources = append(dataSources, mysql.NewMysqlImageProductsDataSource)
+	dataSources = append(dataSources, mysql.NewMysqlProductsDataSource)
 
 	if err := errs.ErrorOrNil(); err != nil {
 		tflog.Warn(ctx, "registering resources", map[string]interface{}{
@@ -93,6 +99,7 @@ func (p *fwprovider) Resources(ctx context.Context) []func() resource.Resource {
 	resources = append(resources, vpc.NewVpcPeeringResource)
 	resources = append(resources, server.NewLoginKeyResource)
 	resources = append(resources, server.NewInitScriptResource)
+	resources = append(resources, mysql.NewMysqlResource)
 
 	if err := errs.ErrorOrNil(); err != nil {
 		tflog.Warn(ctx, "registering resources", map[string]interface{}{
