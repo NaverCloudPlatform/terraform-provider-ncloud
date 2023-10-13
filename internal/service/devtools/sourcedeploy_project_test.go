@@ -23,7 +23,7 @@ func TestAccResourceNcloudSourceDeployProject_basic(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { TestAccPreCheck(t) },
-		ProtoV5ProviderFactories: ProtoV5ProviderFactories,
+		ProtoV6ProviderFactories: ProtoV6ProviderFactories,
 		CheckDestroy:             testAccCheckSourceDeployProjectDestroy,
 		Steps: []resource.TestStep{
 			{

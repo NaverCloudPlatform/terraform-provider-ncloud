@@ -23,7 +23,7 @@ func TestAccResourceNcloudAutoScalingPolicy_classic_basic(t *testing.T) {
 	resourcePRCNT := "ncloud_auto_scaling_policy.test-policy-PRCNT"
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { TestAccPreCheck(t) },
-		ProtoV5ProviderFactories: ClassicProtoV5ProviderFactories,
+		ProtoV6ProviderFactories: ClassicProtoV6ProviderFactories,
 		CheckDestroy: func(state *terraform.State) error {
 			return testAccCheckNcloudAutoScalingPolicyDestroy(state, GetTestProvider(false))
 		},
@@ -62,7 +62,7 @@ func TestAccResourceNcloudAutoScalingPolicy_classic_zero_value(t *testing.T) {
 	resourcePRCNT := "ncloud_auto_scaling_policy.test-policy-PRCNT"
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { TestAccPreCheck(t) },
-		ProtoV5ProviderFactories: ClassicProtoV5ProviderFactories,
+		ProtoV6ProviderFactories: ClassicProtoV6ProviderFactories,
 		CheckDestroy: func(state *terraform.State) error {
 			return testAccCheckNcloudAutoScalingPolicyDestroy(state, GetTestProvider(false))
 		},
@@ -125,7 +125,7 @@ func TestAccResourceNcloudAutoScalingPolicy_vpc_zero_value(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { TestAccPreCheck(t) },
-		ProtoV5ProviderFactories: ProtoV5ProviderFactories,
+		ProtoV6ProviderFactories: ProtoV6ProviderFactories,
 		CheckDestroy: func(state *terraform.State) error {
 			return testAccCheckNcloudAutoScalingPolicyDestroy(state, GetTestProvider(true))
 		},
@@ -188,7 +188,7 @@ func TestAccResourceNcloudAutoScalingPolicy_classic_disappears(t *testing.T) {
 	resourcePRCNT := "ncloud_auto_scaling_policy.test-policy-PRCNT"
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { TestAccPreCheck(t) },
-		ProtoV5ProviderFactories: ClassicProtoV5ProviderFactories,
+		ProtoV6ProviderFactories: ClassicProtoV6ProviderFactories,
 		CheckDestroy: func(state *terraform.State) error {
 			return testAccCheckNcloudAutoScalingPolicyDestroy(state, GetTestProvider(false))
 		},
@@ -218,7 +218,7 @@ func TestAccResourceNcloudAutoScalingPolicy_vpc_disappears(t *testing.T) {
 	resourcePRCNT := "ncloud_auto_scaling_policy.test-policy-PRCNT"
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { TestAccPreCheck(t) },
-		ProtoV5ProviderFactories: ProtoV5ProviderFactories,
+		ProtoV6ProviderFactories: ProtoV6ProviderFactories,
 		CheckDestroy: func(state *terraform.State) error {
 			return testAccCheckNcloudAutoScalingPolicyDestroy(state, GetTestProvider(true))
 		},

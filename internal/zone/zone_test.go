@@ -26,7 +26,7 @@ func TestParseZoneNoParameterBasic(t *testing.T) {
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { TestAccPreCheck(t) },
-		ProtoV5ProviderFactories: ClassicProtoV5ProviderFactories,
+		ProtoV6ProviderFactories: ClassicProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: zonesConfig,
@@ -49,7 +49,7 @@ func TestParseZoneNoParameterBasic(t *testing.T) {
 func TestParseZoneNoParameterInputNil(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { TestAccPreCheck(t) },
-		ProtoV5ProviderFactories: ProtoV5ProviderFactories,
+		ProtoV6ProviderFactories: ProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: zonesConfig,
@@ -68,7 +68,7 @@ func TestParseZoneNoParameterInputNil(t *testing.T) {
 func TestParseZoneNoParameterInputUnknownZoneCode(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { TestAccPreCheck(t) },
-		ProtoV5ProviderFactories: ProtoV5ProviderFactories,
+		ProtoV6ProviderFactories: ProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: `data "ncloud_zones" "zones" {}`,
@@ -92,7 +92,7 @@ func TestGetZoneNoByCodeBasic(t *testing.T) {
 	testZoneCode := "KR-2"
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { TestAccPreCheck(t) },
-		ProtoV5ProviderFactories: ClassicProtoV5ProviderFactories,
+		ProtoV6ProviderFactories: ClassicProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: zonesConfig,
@@ -112,7 +112,7 @@ func TestGetZoneNoByCodeInputUnknownZoneCode(t *testing.T) {
 	testZoneCode := "unknown-zone-code"
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { TestAccPreCheck(t) },
-		ProtoV5ProviderFactories: ClassicProtoV5ProviderFactories,
+		ProtoV6ProviderFactories: ClassicProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: zonesConfig,
@@ -132,7 +132,7 @@ func TestGetZoneByCodeBasic(t *testing.T) {
 	testZoneCode := "KR-2"
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { TestAccPreCheck(t) },
-		ProtoV5ProviderFactories: ProtoV5ProviderFactories,
+		ProtoV6ProviderFactories: ProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: zonesConfig,
@@ -152,7 +152,7 @@ func TestGetZoneByCodeInputUnknownZoneCode(t *testing.T) {
 	testZoneCode := "unknown-zone-code"
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { TestAccPreCheck(t) },
-		ProtoV5ProviderFactories: ProtoV5ProviderFactories,
+		ProtoV6ProviderFactories: ProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: zonesConfig,
@@ -171,7 +171,7 @@ func TestGetZoneByCodeInputUnknownZoneCode(t *testing.T) {
 func TestGetZonesBasic(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { TestAccPreCheck(t) },
-		ProtoV5ProviderFactories: ProtoV5ProviderFactories,
+		ProtoV6ProviderFactories: ProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: zonesConfig,

@@ -13,7 +13,7 @@ func TestAccDataSourceNcloudServerProducts_classic_basic(t *testing.T) {
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { TestAccPreCheck(t) },
 		IsUnitTest:               false,
-		ProtoV5ProviderFactories: ClassicProtoV5ProviderFactories,
+		ProtoV6ProviderFactories: ClassicProtoV6ProviderFactories,
 
 		Steps: []resource.TestStep{
 			{
@@ -30,7 +30,7 @@ func TestAccDataSourceNcloudServerProducts_vpc_basic(t *testing.T) {
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { TestAccPreCheck(t) },
 		IsUnitTest:               false,
-		ProtoV5ProviderFactories: ProtoV5ProviderFactories,
+		ProtoV6ProviderFactories: ProtoV6ProviderFactories,
 
 		Steps: []resource.TestStep{
 			{
