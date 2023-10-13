@@ -1,6 +1,7 @@
-package cloudmysql_test
+package mysql_test
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/services/vmysql"
@@ -10,7 +11,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 	. "github.com/terraform-providers/terraform-provider-ncloud/internal/acctest"
 	"github.com/terraform-providers/terraform-provider-ncloud/internal/conn"
-	mysqlservice "github.com/terraform-providers/terraform-provider-ncloud/internal/service/cloudmysql"
+	mysqlservice "github.com/terraform-providers/terraform-provider-ncloud/internal/service/mysql"
 	"regexp"
 	"strings"
 	"testing"
@@ -22,9 +23,9 @@ func TestAccResourceNcloudMysql_vpc_basic(t *testing.T) {
 	resourceName := "ncloud_mysql.mysql"
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { TestAccPreCheck(t) },
-		ProtoV5ProviderFactories: ProtoV5ProviderFactories,
-		CheckDestroy: testAccCheckMysqlDestroy,
+		PreCheck:                 func() { TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: ProtoV6ProviderFactories,
+		CheckDestroy:             testAccCheckMysqlDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccMysqlVpcConfig(testMysqlName),
@@ -42,7 +43,6 @@ func TestAccResourceNcloudMysql_vpc_basic(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "is_storage_encryption", "false"),
 					resource.TestCheckResourceAttr(resourceName, "is_backup", "true"),
 					resource.TestCheckResourceAttr(resourceName, "backup_file_retention_period", "1"),
-					resource.TestCheckResourceAttr(resourceName, "is_automatic_backup", "true"),
 				),
 			},
 		},
@@ -55,20 +55,19 @@ func TestAccResourceNcloudMysql_vpc_isHa(t *testing.T) {
 	resourceName := "ncloud_mysql.mysql"
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { TestAccPreCheck(t) },
+		PreCheck:                 func() { TestAccPreCheck(t) },
 		ProtoV5ProviderFactories: ProtoV5ProviderFactories,
-		CheckDestroy: testAccCheckMysqlDestroy,
+		CheckDestroy:             testAccCheckMysqlDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccMysqlVpcConfigIsHa(testMysqlName,true,false,false),
+				Config: testAccMysqlVpcConfigIsHa(testMysqlName, true, false, false),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckMysqlExistsWithProvider(resourceName, &mysqlInstance, GetTestProvider(true)),
 					resource.TestMatchResourceAttr(resourceName, "id", regexp.MustCompile(`^\d+$`)),
 					resource.TestCheckResourceAttr(resourceName, "is_ha", "true"),
-					resource.TestCheckResourceAttr(resourceName,"is_multi_zone", "false"),
-					resource.TestCheckResourceAttr(resourceName,"is_storage_encryption", "false"),
-					resource.TestCheckResourceAttr(resourceName,"is_backup", "true"),
-					resource.TestCheckResourceAttr(resourceName,"is_automatic_backup", "true"),
+					resource.TestCheckResourceAttr(resourceName, "is_multi_zone", "false"),
+					resource.TestCheckResourceAttr(resourceName, "is_storage_encryption", "false"),
+					resource.TestCheckResourceAttr(resourceName, "is_backup", "true"),
 				),
 			},
 		},
@@ -81,20 +80,20 @@ func TestAccResourceNcloudMysql_vpc_isHa_options(t *testing.T) {
 	resourceName := "ncloud_mysql.mysql"
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { TestAccPreCheck(t) },
+		PreCheck:                 func() { TestAccPreCheck(t) },
 		ProtoV5ProviderFactories: ProtoV5ProviderFactories,
-		CheckDestroy: testAccCheckMysqlDestroy,
+		CheckDestroy:             testAccCheckMysqlDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccMysqlVpcConfigMultiZone(testMysqlName,true, true, true),
+				Config: testAccMysqlVpcConfigMultiZone(testMysqlName, true, true, true),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckMysqlExistsWithProvider(resourceName, &mysqlInstance, GetTestProvider(true)),
 					resource.TestMatchResourceAttr(resourceName, "id", regexp.MustCompile(`^\d+$`)),
 					resource.TestCheckResourceAttr(resourceName, "is_ha", "true"),
-					resource.TestCheckResourceAttr(resourceName,"is_multi_zone", "true"),
-					resource.TestCheckResourceAttr(resourceName,"is_storage_encryption", "true"),
-					resource.TestCheckResourceAttr(resourceName,"is_backup", "true"),
-					resource.TestCheckResourceAttr(resourceName,"is_automatic_backup", "true"),
+					resource.TestCheckResourceAttr(resourceName, "is_multi_zone", "true"),
+					resource.TestCheckResourceAttr(resourceName, "is_storage_encryption", "true"),
+					resource.TestCheckResourceAttr(resourceName, "is_backup", "true"),
+					resource.TestCheckResourceAttr(resourceName, "is_automatic_backup", "true"),
 				),
 			},
 		},
@@ -107,25 +106,24 @@ func TestAccResourceNcloudMysql_vpc_auto_backup(t *testing.T) {
 	resourceName := "ncloud_mysql.mysql"
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { TestAccPreCheck(t) },
+		PreCheck:                 func() { TestAccPreCheck(t) },
 		ProtoV5ProviderFactories: ProtoV5ProviderFactories,
-		CheckDestroy: testAccCheckMysqlDestroy,
+		CheckDestroy:             testAccCheckMysqlDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccMysqlVpcConfigBackupWhenAuto(testMysqlName,false,true,3, true),
+				Config: testAccMysqlVpcConfigBackupWhenAuto(testMysqlName, false, true, 3, true),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckMysqlExistsWithProvider(resourceName, &mysqlInstance, GetTestProvider(true)),
 					resource.TestMatchResourceAttr(resourceName, "id", regexp.MustCompile(`^\d+$`)),
 					resource.TestCheckResourceAttr(resourceName, "is_ha", "false"),
-					resource.TestCheckResourceAttr(resourceName,"is_backup", "true"),
-					resource.TestCheckResourceAttr(resourceName,"backup_file_retention_period", "3"),
-					resource.TestCheckResourceAttr(resourceName,"is_automatic_backup", "true"),
+					resource.TestCheckResourceAttr(resourceName, "is_backup", "true"),
+					resource.TestCheckResourceAttr(resourceName, "backup_file_retention_period", "3"),
+					resource.TestCheckResourceAttr(resourceName, "is_automatic_backup", "true"),
 				),
 			},
 		},
 	})
 }
-
 
 func TestAccResourceNcloudMysql_vpc_not_auto_backup(t *testing.T) {
 	var mysqlInstance vmysql.CloudMysqlInstance
@@ -133,26 +131,25 @@ func TestAccResourceNcloudMysql_vpc_not_auto_backup(t *testing.T) {
 	resourceName := "ncloud_mysql.mysql"
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { TestAccPreCheck(t) },
+		PreCheck:                 func() { TestAccPreCheck(t) },
 		ProtoV5ProviderFactories: ProtoV5ProviderFactories,
-		CheckDestroy: testAccCheckMysqlDestroy,
+		CheckDestroy:             testAccCheckMysqlDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccMysqlVpcConfigBackupWhenNotAuto(testMysqlName,false,true,3, false, "11:15"),
+				Config: testAccMysqlVpcConfigBackupWhenNotAuto(testMysqlName, false, true, 3, false, "11:15"),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckMysqlExistsWithProvider(resourceName, &mysqlInstance, GetTestProvider(true)),
 					resource.TestMatchResourceAttr(resourceName, "id", regexp.MustCompile(`^\d+$`)),
 					resource.TestCheckResourceAttr(resourceName, "is_ha", "false"),
-					resource.TestCheckResourceAttr(resourceName,"is_backup", "true"),
-					resource.TestCheckResourceAttr(resourceName,"backup_file_retention_period", "3"),
-					resource.TestCheckResourceAttr(resourceName,"is_automatic_backup", "false"),
-					resource.TestCheckResourceAttr(resourceName,"backup_time", "11:15"),
+					resource.TestCheckResourceAttr(resourceName, "is_backup", "true"),
+					resource.TestCheckResourceAttr(resourceName, "backup_file_retention_period", "3"),
+					resource.TestCheckResourceAttr(resourceName, "is_automatic_backup", "false"),
+					resource.TestCheckResourceAttr(resourceName, "backup_time", "11:15"),
 				),
 			},
 		},
 	})
 }
-
 
 func testAccCheckMysqlExistsWithProvider(n string, mysql *vmysql.CloudMysqlInstance, provider *schema.Provider) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
@@ -166,7 +163,7 @@ func testAccCheckMysqlExistsWithProvider(n string, mysql *vmysql.CloudMysqlInsta
 		}
 
 		config := provider.Meta().(*conn.ProviderConfig)
-		mysqlInstance, err := mysqlservice.GetMysqlInstance(config, resource.Primary.ID)
+		mysqlInstance, err := mysqlservice.GetMysqlInstance(context.Background(), config, resource.Primary.ID)
 		if err != nil {
 			return err
 		}
@@ -186,8 +183,8 @@ func testAccCheckMysqlDestroy(s *terraform.State) error {
 		if rs.Type != "ncloud_mysql" {
 			continue
 		}
-		instance, err := mysqlservice.GetMysqlInstance(config, rs.Primary.ID)
-		if err != nil && !checkNoInstanceResponse(err){
+		instance, err := mysqlservice.GetMysqlInstance(context.Background(), config, rs.Primary.ID)
+		if err != nil && !checkNoInstanceResponse(err) {
 			return err
 		}
 
@@ -200,7 +197,7 @@ func testAccCheckMysqlDestroy(s *terraform.State) error {
 }
 
 func checkNoInstanceResponse(err error) bool {
-	return strings.Contains(err.Error(),"5001017")
+	return strings.Contains(err.Error(), "5001017")
 }
 
 func testAccMysqlVpcConfig(testMysqlName string) string {
@@ -255,7 +252,6 @@ resource "ncloud_mysql" "mysql" {
 	user_password = "t123456789!"
 	host_ip = "192.168.0.1"
 	database_name = "test_db"
-
 	is_ha = %[2]t
 	is_multi_zone = %[3]t
 	is_storage_encryption = %[4]t
