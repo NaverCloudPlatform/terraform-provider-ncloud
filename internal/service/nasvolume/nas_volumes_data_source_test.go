@@ -21,8 +21,8 @@ func testAccDataSourceNcloudNasVolumesBasic(t *testing.T, isVpc bool) {
 	postfix := GetTestPrefix()
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:  func() { TestAccPreCheck(t) },
-		Providers: GetTestAccProviders(isVpc),
+		PreCheck:                 func() { TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: GetTestProviderFactories(isVpc),
 		Steps: []resource.TestStep{
 			{
 				Config: testAccDataSourceNcloudNasVolumesConfig(postfix),

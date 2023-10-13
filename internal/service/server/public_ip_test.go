@@ -22,8 +22,8 @@ func TestAccResourceNcloudPublicIpInstance_classic_basic(t *testing.T) {
 	resourceName := "ncloud_public_ip.public_ip"
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:  func() { TestAccPreCheck(t) },
-		Providers: GetTestAccProviders(false),
+		PreCheck:                 func() { TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: ClassicProtoV6ProviderFactories,
 		CheckDestroy: func(s *terraform.State) error {
 			return testAccCheckPublicIpInstanceDestroy(s, GetTestProvider(false))
 		},
@@ -55,8 +55,8 @@ func TestAccResourceNcloudPublicIpInstance_vpc_basic(t *testing.T) {
 	resourceName := "ncloud_public_ip.public_ip"
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:  func() { TestAccPreCheck(t) },
-		Providers: GetTestAccProviders(true),
+		PreCheck:                 func() { TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: ProtoV6ProviderFactories,
 		CheckDestroy: func(s *terraform.State) error {
 			return testAccCheckPublicIpInstanceDestroy(s, GetTestProvider(true))
 		},
@@ -88,8 +88,8 @@ func TestAccResourceNcloudPublicIpInstance_classic_updateServerInstanceNo(t *tes
 	resourceName := "ncloud_public_ip.public_ip"
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:  func() { TestAccPreCheck(t) },
-		Providers: GetTestAccProviders(false),
+		PreCheck:                 func() { TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: ClassicProtoV6ProviderFactories,
 		CheckDestroy: func(s *terraform.State) error {
 			return testAccCheckPublicIpInstanceDestroy(s, GetTestProvider(false))
 		},
@@ -121,8 +121,8 @@ func TestAccResourceNcloudPublicIpInstance_vpc_updateServerInstanceNo(t *testing
 	resourceName := "ncloud_public_ip.public_ip"
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:  func() { TestAccPreCheck(t) },
-		Providers: GetTestAccProviders(true),
+		PreCheck:                 func() { TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: ProtoV6ProviderFactories,
 		CheckDestroy: func(s *terraform.State) error {
 			return testAccCheckPublicIpInstanceDestroy(s, GetTestProvider(true))
 		},
