@@ -69,7 +69,7 @@ func (m *mysqlResource) Metadata(_ context.Context, req resource.MetadataRequest
 	resp.TypeName = req.ProviderTypeName + "_mysql"
 }
 
-func (m *mysqlResource) Schema(_ context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
+func (m *mysqlResource) Schema(_ context.Context, _ resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = schema.Schema{
 		Attributes: map[string]schema.Attribute{
 			"service_name": schema.StringAttribute{
@@ -442,7 +442,7 @@ func (r *mysqlResource) Create(ctx context.Context, req resource.CreateRequest, 
 				)
 				return
 			}
-			if !plan.StandbyMasterSubnetNo.IsNull(){
+			if !plan.StandbyMasterSubnetNo.IsNull() {
 				resp.Diagnostics.AddError(
 					fmt.Sprintf("when `is_ha` is false, `standby_master_subnet_no` must not be inputed"),
 					err.Error(),
@@ -456,7 +456,7 @@ func (r *mysqlResource) Create(ctx context.Context, req resource.CreateRequest, 
 	}
 
 	if !plan.IsMultiZone.IsNull() && plan.IsMultiZone.ValueBool() {
-		if plan.StandbyMasterSubnetNo.IsNull(){
+		if plan.StandbyMasterSubnetNo.IsNull() {
 			resp.Diagnostics.AddError(
 				fmt.Sprintf("when `is_multi_zone` is true, `standby_master_subnet_no` must be entered"),
 				err.Error(),
@@ -475,7 +475,7 @@ func (r *mysqlResource) Create(ctx context.Context, req resource.CreateRequest, 
 	}
 
 	if (reqParams.IsBackup == nil || *reqParams.IsBackup) && !plan.IsAutomaticBackup.IsNull() && !plan.IsAutomaticBackup.ValueBool() {
-		if plan.BackupTime.IsNull(){
+		if plan.BackupTime.IsNull() {
 			resp.Diagnostics.AddError(
 				fmt.Sprintf("when `is_backup` is true and `is_automactic_backup` is false, `backup_time` must be entered"),
 				err.Error(),
@@ -548,7 +548,7 @@ func (r *mysqlResource) Read(ctx context.Context, req resource.ReadRequest, resp
 	}
 }
 
-func (m *mysqlResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
+func (m *mysqlResource) Update(_ context.Context, _ resource.UpdateRequest, _ *resource.UpdateResponse) {
 }
 
 func (r *mysqlResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
@@ -781,6 +781,7 @@ func (m *mysqlResourceModel) refreshFromOutput(ctx context.Context, output *vmys
 	m.CreateDate = types.StringPointerValue(output.CreateDate)
 	m.InstanceNo = types.StringPointerValue(output.CloudMysqlInstanceNo)
 	m.VpcNo = types.StringPointerValue(output.CloudMysqlServerInstanceList[0].VpcNo)
+	m.IsStorageEncryption = types.BoolPointerValue(output.CloudMysqlServerInstanceList[0].IsStorageEncryption)
 
 	acgList, _ := types.ListValueFrom(ctx, types.StringType, output.AccessControlGroupNoList)
 	m.AccessControlGroupNoList = acgList
