@@ -31,7 +31,7 @@ type mysqlImageProductsDataSource struct {
 	config *conn.ProviderConfig
 }
 
-func (m *mysqlImageProductsDataSource) Configure(ctx context.Context, req datasource.ConfigureRequest, resp *datasource.ConfigureResponse) {
+func (m *mysqlImageProductsDataSource) Configure(_ context.Context, req datasource.ConfigureRequest, resp *datasource.ConfigureResponse) {
 	if req.ProviderData == nil {
 		return
 	}
@@ -49,11 +49,11 @@ func (m *mysqlImageProductsDataSource) Configure(ctx context.Context, req dataso
 	m.config = config
 }
 
-func (m *mysqlImageProductsDataSource) Metadata(ctx context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
+func (m *mysqlImageProductsDataSource) Metadata(_ context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
 	resp.TypeName = req.ProviderTypeName + "_mysql_image_products"
 }
 
-func (m *mysqlImageProductsDataSource) Schema(ctx context.Context, req datasource.SchemaRequest, resp *datasource.SchemaResponse) {
+func (m *mysqlImageProductsDataSource) Schema(_ context.Context, _ datasource.SchemaRequest, resp *datasource.SchemaResponse) {
 	resp.Schema = schema.Schema{
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
@@ -150,29 +150,49 @@ func (m *mysqlImageProductsDataSource) Read(ctx context.Context, req datasource.
 		"mysqlImageProductResponse": common.MarshalUncheckedString(mysqlImageProductResp),
 	})
 
-	mysqlImageProductList := flattenMysqlImageProduct(ctx, mysqlImageProductResp.ProductList)
+	mysqlImageProductList := flattenMysqlImageProduct(mysqlImageProductResp.ProductList)
 
 	fillteredList := common.FilterModels(ctx, data.Filters, mysqlImageProductList)
 
 	data.refreshFromOutput(ctx, fillteredList)
 
-	var mysqlImagesToConvert = []mysqlImageProductToJsonConvert{}
-	for _, image := range data.ImageProductList.Elements() {
-		imageJasn := mysqlImageProductToJsonConvert{}
-		json.Unmarshal([]byte(image.String()), &imageJasn)
-		mysqlImagesToConvert = append(mysqlImagesToConvert, imageJasn)
-	}
-
 	if !data.OutputFile.IsNull() && data.OutputFile.String() != "" {
 		outputPath := data.OutputFile.ValueString()
 
-		common.WriteToFile(outputPath, mysqlImagesToConvert)
+		if convertedList, err := convertToJsonStruct(data.ImageProductList.Elements()); err != nil {
+			var diags diag.Diagnostics
+			diags.AddError(
+				"WriteMysqlImagesToFile",
+				fmt.Sprintf("error: %s", err.Error()),
+			)
+			resp.Diagnostics.Append(diags...)
+		} else if err := common.WriteToFile(outputPath, convertedList); err != nil {
+			var diags diag.Diagnostics
+			diags.AddError(
+				"WriteToFile",
+				fmt.Sprintf("error: %s", err.Error()),
+			)
+			resp.Diagnostics.Append(diags...)
+		}
 	}
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
 }
+func convertToJsonStruct(images []attr.Value) ([]mysqlImageProductToJsonConvert, error) {
+	var mysqlImagesToConvert = []mysqlImageProductToJsonConvert{}
 
-func flattenMysqlImageProduct(ctx context.Context, list []*vmysql.Product) []*mysqlImageProduct {
+	for _, image := range images {
+		imageJasn := mysqlImageProductToJsonConvert{}
+		if err := json.Unmarshal([]byte(image.String()), &imageJasn); err != nil {
+			return nil, err
+		}
+		mysqlImagesToConvert = append(mysqlImagesToConvert, imageJasn)
+	}
+
+	return mysqlImagesToConvert, nil
+}
+
+func flattenMysqlImageProduct(list []*vmysql.Product) []*mysqlImageProduct {
 	var outputs []*mysqlImageProduct
 
 	for _, v := range list {
