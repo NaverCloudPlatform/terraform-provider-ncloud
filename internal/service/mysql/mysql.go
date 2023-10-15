@@ -2,6 +2,7 @@ package mysql
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/ncloud"
 	"github.com/hashicorp/terraform-plugin-framework/attr"
@@ -196,6 +197,7 @@ func (m *mysqlResource) Schema(_ context.Context, _ resource.SchemaRequest, resp
 			},
 			"is_storage_encryption": schema.BoolAttribute{
 				Optional: true,
+				Computed: true,
 				PlanModifiers: []planmodifier.Bool{
 					boolplanmodifier.RequiresReplace(),
 				},
@@ -375,6 +377,7 @@ func (r *mysqlResource) Create(ctx context.Context, req resource.CreateRequest, 
 		VpcNo:      subnet.VpcNo,
 		SubnetNo:   subnet.SubnetNo,
 	}
+	plan.VpcNo = types.StringPointerValue(subnet.VpcNo)
 
 	if !plan.DatabaseName.IsNull() {
 		reqParams.CloudMysqlDatabaseName = plan.DatabaseName.ValueStringPointer()
@@ -403,7 +406,6 @@ func (r *mysqlResource) Create(ctx context.Context, req resource.CreateRequest, 
 	if !plan.ServiceName.IsNull() {
 		reqParams.CloudMysqlServiceName = plan.ServiceName.ValueStringPointer()
 	}
-
 	if !plan.DataStorageTypeCode.IsNull() {
 		reqParams.DataStorageTypeCode = plan.DataStorageTypeCode.ValueStringPointer()
 	}
@@ -415,37 +417,42 @@ func (r *mysqlResource) Create(ctx context.Context, req resource.CreateRequest, 
 	if !plan.ImageProductCode.IsNull() {
 		reqParams.CloudMysqlImageProductCode = plan.ImageProductCode.ValueStringPointer()
 	}
-
 	if !plan.IsHa.IsNull() && !plan.IsHa.IsUnknown() {
 		reqParams.IsHa = plan.IsHa.ValueBoolPointer()
-
 		if plan.IsHa.ValueBool() {
 			if !plan.IsMultiZone.IsNull() && !plan.IsMultiZone.IsUnknown() {
 				reqParams.IsMultiZone = plan.IsMultiZone.ValueBoolPointer()
 			}
-			if !plan.IsStorageEncryption.IsNull() {
+			if !plan.IsStorageEncryption.IsNull() && !plan.IsStorageEncryption.IsUnknown() {
 				reqParams.IsStorageEncryption = plan.IsStorageEncryption.ValueBoolPointer()
 			}
-			if !plan.IsBackup.IsNull() && !plan.IsBackup.ValueBool() {
+			if !plan.IsBackup.IsNull() && !plan.IsBackup.IsUnknown() && !plan.IsBackup.ValueBool() {
 				resp.Diagnostics.AddError(
-					fmt.Sprintf("when `is_ha` is true, `is_backup` must be true or not be inputted for default value"),
-					err.Error(),
+					fmt.Sprintf("isHa = %t, isBackup = %t", plan.IsHa.ValueBool(), plan.IsBackup.ValueBool()),
+					errors.New("when `is_ha` is true, `is_backup` must be true or not be inputted").Error(),
 				)
 				return
 			}
 
 		} else {
-			if !plan.IsMultiZone.IsNull() && plan.IsMultiZone.ValueBool() {
+			if !plan.IsMultiZone.IsNull() && !plan.IsMultiZone.IsUnknown() {
 				resp.Diagnostics.AddError(
-					fmt.Sprintf("when `is_ha` is false, `is_backup` must be false"),
-					err.Error(),
+					fmt.Sprintf("`is_ha` : %t, `is_multi_zone : %t", plan.IsHa.ValueBool(), plan.IsMultiZone.ValueBool()),
+					errors.New("when `is_ha` is false, `is_multi_zone` parameter is not used").Error(),
 				)
 				return
 			}
-			if !plan.StandbyMasterSubnetNo.IsNull() {
+			if !plan.StandbyMasterSubnetNo.IsNull() && !plan.StandbyMasterSubnetNo.IsUnknown() {
 				resp.Diagnostics.AddError(
-					fmt.Sprintf("when `is_ha` is false, `standby_master_subnet_no` must not be inputed"),
-					err.Error(),
+					fmt.Sprintf("`is_ha` : %t, `standby_master_subnet_no` : %s", plan.IsHa.ValueBool(), plan.StandbyMasterSubnetNo.ValueString()),
+					errors.New("when `is_ha` is false, `standby_master_subnet_no` is not used").Error(),
+				)
+				return
+			}
+			if !plan.IsStorageEncryption.IsNull() && !plan.IsStorageEncryption.IsUnknown() && plan.IsStorageEncryption.ValueBool() {
+				resp.Diagnostics.AddError(
+					fmt.Sprintf("`is_ha` : %t, `is_storage_encryption` : %t", plan.IsHa.ValueBool(), plan.IsStorageEncryption.ValueBool()),
+					errors.New("when `is_ha` is false, can't set true for `is_storage_encryption`").Error(),
 				)
 				return
 			}
@@ -455,34 +462,57 @@ func (r *mysqlResource) Create(ctx context.Context, req resource.CreateRequest, 
 		}
 	}
 
-	if !plan.IsMultiZone.IsNull() && plan.IsMultiZone.ValueBool() {
-		if plan.StandbyMasterSubnetNo.IsNull() {
+	if plan.IsMultiZone.ValueBool() {
+		if plan.StandbyMasterSubnetNo.IsNull() || plan.StandbyMasterSubnetNo.IsUnknown() {
 			resp.Diagnostics.AddError(
-				fmt.Sprintf("when `is_multi_zone` is true, `standby_master_subnet_no` must be entered"),
-				err.Error(),
+				fmt.Sprintf("`is_multi_zone` = %t, `standby_master_subnet_no` = %s", plan.IsMultiZone.ValueBool(), plan.StandbyMasterSubnetNo.ValueString()),
+				errors.New("when `is_multi_zone` is true, `standby_master_subnet_no` must be entered").Error(),
 			)
 			return
 		}
 		reqParams.StandbyMasterSubnetNo = plan.StandbyMasterSubnetNo.ValueStringPointer()
+	} else if !plan.StandbyMasterSubnetNo.IsNull() && !plan.StandbyMasterSubnetNo.IsUnknown() {
+		resp.Diagnostics.AddError(
+			fmt.Sprintf("`is_multi_zone` = %t, `standby_master_subnet_no` = %s", plan.IsMultiZone.ValueBool(), plan.StandbyMasterSubnetNo.ValueString()),
+			errors.New("when `is_multi_zone` is false, `standby_master_subnet_no` is not used").Error(),
+		)
+		return
 	}
 
 	if !plan.BackupFileRetentionPeriod.IsNull() && !plan.BackupFileRetentionPeriod.IsUnknown() {
 		reqParams.BackupFileRetentionPeriod = ncloud.Int32(int32(plan.BackupFileRetentionPeriod.ValueInt64()))
 	}
 
-	if !plan.IsAutomaticBackup.IsNull() {
+	if !plan.IsAutomaticBackup.IsNull() && !plan.IsAutomaticBackup.IsUnknown() {
 		reqParams.IsAutomaticBackup = plan.IsAutomaticBackup.ValueBoolPointer()
 	}
 
-	if (reqParams.IsBackup == nil || *reqParams.IsBackup) && !plan.IsAutomaticBackup.IsNull() && !plan.IsAutomaticBackup.ValueBool() {
-		if plan.BackupTime.IsNull() {
-			resp.Diagnostics.AddError(
-				fmt.Sprintf("when `is_backup` is true and `is_automactic_backup` is false, `backup_time` must be entered"),
-				err.Error(),
-			)
-			return
+	if reqParams.IsBackup == nil || *reqParams.IsBackup {
+		if reqParams.IsAutomaticBackup == nil || *reqParams.IsAutomaticBackup {
+			if !plan.BackupTime.IsNull() && !plan.BackupTime.IsUnknown() {
+				resp.Diagnostics.AddError(
+					fmt.Sprintf("`is_backup` : %t, `is_automactic_backup` : %t, `backup_time` : %s",
+						reqParams.IsBackup == nil || *reqParams.IsBackup,
+						reqParams.IsAutomaticBackup == nil || *reqParams.IsAutomaticBackup,
+						plan.BackupTime.ValueString(),
+					),
+					errors.New("when `is_backup` is true and `is_automactic_backup` is true, `backup_time` is not used").Error(),
+				)
+				return
+			}
+		} else {
+			if plan.BackupTime.IsNull() || plan.BackupTime.IsUnknown() {
+				resp.Diagnostics.AddError(
+					fmt.Sprintf("`is_backup` : %t, `is_automactic_backup` : %t, `backup_time` : %s",
+						reqParams.IsBackup == nil || *reqParams.IsBackup,
+						reqParams.IsAutomaticBackup == nil || *reqParams.IsAutomaticBackup,
+						plan.BackupTime.ValueString()),
+					errors.New("when `is_backup` is true and `is_automactic_backup` is false, `backup_time` must be entered").Error(),
+				)
+				return
+			}
+			reqParams.BackupTime = plan.BackupTime.ValueStringPointer()
 		}
-		reqParams.BackupTime = plan.BackupTime.ValueStringPointer()
 	}
 
 	tflog.Info(ctx, "CreateMysql", map[string]any{
@@ -780,12 +810,9 @@ func (m *mysqlResourceModel) refreshFromOutput(ctx context.Context, output *vmys
 	m.ImageProductCode = types.StringPointerValue(output.CloudMysqlImageProductCode)
 	m.CreateDate = types.StringPointerValue(output.CreateDate)
 	m.InstanceNo = types.StringPointerValue(output.CloudMysqlInstanceNo)
-	m.VpcNo = types.StringPointerValue(output.CloudMysqlServerInstanceList[0].VpcNo)
 	m.IsStorageEncryption = types.BoolPointerValue(output.CloudMysqlServerInstanceList[0].IsStorageEncryption)
-
 	acgList, _ := types.ListValueFrom(ctx, types.StringType, output.AccessControlGroupNoList)
 	m.AccessControlGroupNoList = acgList
-
 	configList, _ := types.ListValueFrom(ctx, types.StringType, output.CloudMysqlConfigList)
 	m.MysqlConfigList = configList
 
@@ -810,6 +837,7 @@ func (m *mysqlResourceModel) refreshFromOutput(ctx context.Context, output *vmys
 			Uptime:                 types.StringPointerValue(server.Uptime),
 			CreateDate:             types.StringPointerValue(server.CreateDate),
 		}
+
 		if server.PublicDomain != nil {
 			mysqlServerInstance.PublicDomain = types.StringPointerValue(server.PublicDomain)
 		}
