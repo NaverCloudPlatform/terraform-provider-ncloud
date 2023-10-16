@@ -15,7 +15,6 @@ import (
 
 	. "github.com/terraform-providers/terraform-provider-ncloud/internal/common"
 	"github.com/terraform-providers/terraform-provider-ncloud/internal/conn"
-	. "github.com/terraform-providers/terraform-provider-ncloud/internal/verify"
 )
 
 func ResourceNcloudSourceCommitRepository() *schema.Resource {
@@ -38,7 +37,7 @@ func ResourceNcloudSourceCommitRepository() *schema.Resource {
 				Type:             schema.TypeString,
 				Required:         true,
 				ForceNew:         true,
-				ValidateDiagFunc: ToDiagFunc(validation.StringLenBetween(1, 100)),
+				ValidateDiagFunc: validation.ToDiagFunc(validation.StringLenBetween(1, 100)),
 			},
 			"repository_no": {
 				Type:     schema.TypeString,
@@ -48,7 +47,7 @@ func ResourceNcloudSourceCommitRepository() *schema.Resource {
 				Type:             schema.TypeString,
 				Optional:         true,
 				Computed:         true,
-				ValidateDiagFunc: ToDiagFunc(validation.StringLenBetween(0, 500)),
+				ValidateDiagFunc: validation.ToDiagFunc(validation.StringLenBetween(0, 500)),
 			},
 			"creator": {
 				Type:     schema.TypeString,

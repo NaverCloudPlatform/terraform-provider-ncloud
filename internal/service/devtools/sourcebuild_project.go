@@ -41,7 +41,7 @@ func ResourceNcloudSourceBuildProject() *schema.Resource {
 				Type:     schema.TypeString,
 				Required: true,
 				ForceNew: true,
-				ValidateDiagFunc: ToDiagFunc(validation.All(
+				ValidateDiagFunc: validation.ToDiagFunc(validation.All(
 					validation.StringLenBetween(1, 80),
 					validation.StringMatch(regexp.MustCompile(`^[A-Za-z0-9_-]+$`), "Composed of alphabets, numbers, hyphen (-) and underbar (_)"),
 				)),
@@ -50,7 +50,7 @@ func ResourceNcloudSourceBuildProject() *schema.Resource {
 				Type:     schema.TypeString,
 				Optional: true,
 				Computed: true,
-				ValidateDiagFunc: ToDiagFunc(validation.All(
+				ValidateDiagFunc: validation.ToDiagFunc(validation.All(
 					validation.StringLenBetween(0, 500),
 				)),
 			},
@@ -120,7 +120,7 @@ func ResourceNcloudSourceBuildProject() *schema.Resource {
 									"type": {
 										Type:             schema.TypeString,
 										Required:         true,
-										ValidateDiagFunc: ToDiagFunc(validation.StringInSlice([]string{"SourceBuild", "ContainerRegistry", "PublicRegistry"}, false)),
+										ValidateDiagFunc: validation.ToDiagFunc(validation.StringInSlice([]string{"SourceBuild", "ContainerRegistry", "PublicRegistry"}, false)),
 									},
 									"config": {
 										Type:     schema.TypeList,
@@ -198,7 +198,7 @@ func ResourceNcloudSourceBuildProject() *schema.Resource {
 												"tag": {
 													Type:     schema.TypeString,
 													Optional: true,
-													ValidateDiagFunc: ToDiagFunc(validation.All(
+													ValidateDiagFunc: validation.ToDiagFunc(validation.All(
 														validation.StringLenBetween(1, 80),
 														validation.StringMatch(regexp.MustCompile(`^([\w#][\w#.-]*)$`),
 															"Composed of alphabets, numbers, hash (#), dot (.), hyphen (-) and underbar (_)"),
@@ -236,7 +236,7 @@ func ResourceNcloudSourceBuildProject() *schema.Resource {
 							Type:     schema.TypeInt,
 							Optional: true,
 							Computed: true,
-							ValidateDiagFunc: ToDiagFunc(validation.All(
+							ValidateDiagFunc: validation.ToDiagFunc(validation.All(
 								validation.IntBetween(5, 540),
 							)),
 						},
@@ -248,7 +248,7 @@ func ResourceNcloudSourceBuildProject() *schema.Resource {
 									"key": {
 										Type:     schema.TypeString,
 										Required: true,
-										ValidateDiagFunc: ToDiagFunc(validation.All(
+										ValidateDiagFunc: validation.ToDiagFunc(validation.All(
 											validation.StringMatch(regexp.MustCompile(`^[A-Za-z0-9_]+$`), "Composed of alphabets, numbers and underbar (_)"),
 										)),
 									},
@@ -273,21 +273,24 @@ func ResourceNcloudSourceBuildProject() *schema.Resource {
 							Type:     schema.TypeList,
 							Optional: true,
 							Elem: &schema.Schema{
-								Type: schema.TypeString,
+								Type:             schema.TypeString,
+								ValidateDiagFunc: validation.ToDiagFunc(validation.StringIsNotEmpty),
 							},
 						},
 						"in_build": {
 							Type:     schema.TypeList,
 							Optional: true,
 							Elem: &schema.Schema{
-								Type: schema.TypeString,
+								Type:             schema.TypeString,
+								ValidateDiagFunc: validation.ToDiagFunc(validation.StringIsNotEmpty),
 							},
 						},
 						"post_build": {
 							Type:     schema.TypeList,
 							Optional: true,
 							Elem: &schema.Schema{
-								Type: schema.TypeString,
+								Type:             schema.TypeString,
+								ValidateDiagFunc: validation.ToDiagFunc(validation.StringIsNotEmpty),
 							},
 						},
 						"docker_image_build": {
@@ -312,7 +315,7 @@ func ResourceNcloudSourceBuildProject() *schema.Resource {
 									"image": {
 										Type:     schema.TypeString,
 										Optional: true,
-										ValidateDiagFunc: ToDiagFunc(validation.All(
+										ValidateDiagFunc: validation.ToDiagFunc(validation.All(
 											validation.StringLenBetween(1, 200),
 											validation.StringMatch(regexp.MustCompile(`^[a-z0-9]+(([._]|__|[-]*)[a-z0-9]+)*$`),
 												"Composed of alphabets(lowercase), numbers, dot (.), hyphen (-) and underbar (_)\n"+
@@ -323,7 +326,7 @@ func ResourceNcloudSourceBuildProject() *schema.Resource {
 									"tag": {
 										Type:     schema.TypeString,
 										Optional: true,
-										ValidateDiagFunc: ToDiagFunc(validation.All(
+										ValidateDiagFunc: validation.ToDiagFunc(validation.All(
 											validation.StringLenBetween(1, 80),
 											validation.StringMatch(regexp.MustCompile(`^([\w#][\w#.-]*)$`),
 												"Composed of alphabets, numbers, hash (#), dot (.), hyphen (-) and underbar (_)"),
@@ -354,7 +357,8 @@ func ResourceNcloudSourceBuildProject() *schema.Resource {
 							Type:     schema.TypeList,
 							Optional: true,
 							Elem: &schema.Schema{
-								Type: schema.TypeString,
+								Type:             schema.TypeString,
+								ValidateDiagFunc: validation.ToDiagFunc(validation.StringIsNotEmpty),
 							},
 						},
 						"object_storage_to_upload": {
@@ -403,14 +407,14 @@ func ResourceNcloudSourceBuildProject() *schema.Resource {
 						"image_name": {
 							Type:     schema.TypeString,
 							Optional: true,
-							ValidateDiagFunc: ToDiagFunc(validation.All(
+							ValidateDiagFunc: validation.ToDiagFunc(validation.All(
 								validation.StringLenBetween(1, 200),
 							)),
 						},
 						"tag": {
 							Type:     schema.TypeString,
 							Optional: true,
-							ValidateDiagFunc: ToDiagFunc(validation.All(
+							ValidateDiagFunc: validation.ToDiagFunc(validation.All(
 								validation.StringLenBetween(1, 80),
 								validation.StringMatch(regexp.MustCompile(`^([\w#][\w#.-]*)$`),
 									"Composed of alphabets, numbers, hash (#), dot (.), hyphen (-) and underbar (_)"),

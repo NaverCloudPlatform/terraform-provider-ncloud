@@ -8,7 +8,6 @@ import (
 
 	. "github.com/terraform-providers/terraform-provider-ncloud/internal/common"
 	"github.com/terraform-providers/terraform-provider-ncloud/internal/conn"
-	"github.com/terraform-providers/terraform-provider-ncloud/internal/verify"
 )
 
 func DataSourceNcloudMemberServerImages() *schema.Resource {
@@ -32,7 +31,7 @@ func DataSourceNcloudMemberServerImages() *schema.Resource {
 			"name_regex": {
 				Type:             schema.TypeString,
 				Optional:         true,
-				ValidateDiagFunc: verify.ToDiagFunc(validation.StringIsValidRegExp),
+				ValidateDiagFunc: validation.ToDiagFunc(validation.StringIsValidRegExp),
 				Deprecated:       "use filter instead",
 				Description:      "A regex string to apply to the member server image list returned by ncloud",
 			},

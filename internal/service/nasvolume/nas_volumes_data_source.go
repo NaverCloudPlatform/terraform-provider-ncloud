@@ -8,7 +8,6 @@ import (
 
 	. "github.com/terraform-providers/terraform-provider-ncloud/internal/common"
 	"github.com/terraform-providers/terraform-provider-ncloud/internal/conn"
-	. "github.com/terraform-providers/terraform-provider-ncloud/internal/verify"
 )
 
 func DataSourceNcloudNasVolumes() *schema.Resource {
@@ -19,7 +18,7 @@ func DataSourceNcloudNasVolumes() *schema.Resource {
 			"volume_allotment_protocol_type_code": {
 				Type:             schema.TypeString,
 				Optional:         true,
-				ValidateDiagFunc: ToDiagFunc(validation.StringInSlice([]string{"NFS", "CIFS"}, false)),
+				ValidateDiagFunc: validation.ToDiagFunc(validation.StringInSlice([]string{"NFS", "CIFS"}, false)),
 			},
 			"is_event_configuration": {
 				Type:     schema.TypeBool,

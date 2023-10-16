@@ -14,7 +14,6 @@ import (
 
 	. "github.com/terraform-providers/terraform-provider-ncloud/internal/common"
 	"github.com/terraform-providers/terraform-provider-ncloud/internal/conn"
-	. "github.com/terraform-providers/terraform-provider-ncloud/internal/verify"
 )
 
 const (
@@ -64,17 +63,17 @@ func ResourceNcloudLbListener() *schema.Resource {
 			"port": {
 				Type:             schema.TypeInt,
 				Required:         true,
-				ValidateDiagFunc: ToDiagFunc(validation.IntBetween(1, 65534)),
+				ValidateDiagFunc: validation.ToDiagFunc(validation.IntBetween(1, 65534)),
 			},
 			"protocol": {
 				Type:             schema.TypeString,
 				Required:         true,
-				ValidateDiagFunc: ToDiagFunc(validation.StringInSlice([]string{"HTTP", "HTTPS", "TCP", "TLS"}, false)),
+				ValidateDiagFunc: validation.ToDiagFunc(validation.StringInSlice([]string{"HTTP", "HTTPS", "TCP", "TLS"}, false)),
 			},
 			"tls_min_version_type": {
 				Type:             schema.TypeString,
 				Optional:         true,
-				ValidateDiagFunc: ToDiagFunc(validation.StringInSlice([]string{"TLSV10", "TLSV11", "TLSV12"}, false)),
+				ValidateDiagFunc: validation.ToDiagFunc(validation.StringInSlice([]string{"TLSV10", "TLSV11", "TLSV12"}, false)),
 			},
 			"use_http2": {
 				Type:     schema.TypeBool,

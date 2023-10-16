@@ -22,13 +22,13 @@ func DataSourceNcloudPlacementGroup() *schema.Resource {
 			Type:             schema.TypeString,
 			Optional:         true,
 			Computed:         true,
-			ValidateDiagFunc: verify.ToDiagFunc(verify.ValidateInstanceName),
+			ValidateDiagFunc: validation.ToDiagFunc(verify.ValidateInstanceName),
 		},
 		"placement_group_type": {
 			Type:             schema.TypeString,
 			Optional:         true,
 			Computed:         true,
-			ValidateDiagFunc: verify.ToDiagFunc(validation.StringInSlice([]string{"AA"}, false)),
+			ValidateDiagFunc: validation.ToDiagFunc(validation.StringInSlice([]string{"AA"}, false)),
 		},
 		"filter": DataSourceFiltersSchema(),
 	}
