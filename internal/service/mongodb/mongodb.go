@@ -118,6 +118,7 @@ func (m *mongodbResource) Schema(_ context.Context, _ resource.SchemaRequest, re
 					),
 				},
 				Description: "Access password for user, which will be used for DB admin.",
+				Sensitive:   true,
 			},
 			"vpc_no": schema.StringAttribute{
 				Required: true,
