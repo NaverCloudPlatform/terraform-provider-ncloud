@@ -275,9 +275,6 @@ func (m *mongodbResource) Schema(_ context.Context, _ resource.SchemaRequest, re
 				ElementType: types.StringType,
 				Computed:    true,
 			},
-			"create_date": schema.StringAttribute{
-				Computed: true,
-			},
 		},
 	}
 }
@@ -585,7 +582,6 @@ type mongodbResourceModel struct {
 	MemberPort                   types.Int64  `tfsdk:"member_port"`
 	MongosPort                   types.Int64  `tfsdk:"mongos_port"`
 	ConfigPort                   types.Int64  `tfsdk:"config_port"`
-	CreateDate                   types.String `tfsdk:"create_date"`
 	CompressCode                 types.String `tfsdk:"compress_code"`
 	AccessControlGroupNoList     types.List   `tfsdk:"access_control_group_no_list"`
 }
@@ -595,7 +591,6 @@ func (m *mongodbResourceModel) refreshFromOutput(ctx context.Context, output *vm
 	m.CloudMongoDbInstanceNo = types.StringPointerValue(output.CloudMongoDbInstanceNo)
 	m.CloudMongoDbImageProductCode = types.StringPointerValue(output.CloudMongoDbImageProductCode)
 	m.ShardCount = int32PointerValue(output.ShardCount)
-	m.CreateDate = types.StringPointerValue(output.CreateDate)
 	m.BackupFileRetentionPeriod = int32PointerValue(output.BackupFileRetentionPeriod)
 	m.BackupTime = types.StringPointerValue(output.BackupTime)
 	m.CloudMongoDbServiceName = types.StringPointerValue(output.CloudMongoDbServiceName)

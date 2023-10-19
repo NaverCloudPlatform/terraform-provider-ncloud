@@ -131,9 +131,6 @@ func (m *mongodbDataSource) Schema(_ context.Context, _ datasource.SchemaRequest
 						"subnet_no": schema.StringAttribute{
 							Computed: true,
 						},
-						"create_date": schema.StringAttribute{
-							Computed: true,
-						},
 						"uptime": schema.StringAttribute{
 							Computed: true,
 						},
@@ -304,7 +301,6 @@ type mongodbServer struct {
 	RegionCode                   types.String `tfsdk:"region_code"`
 	VpcNo                        types.String `tfsdk:"vpc_no"`
 	SubnetNo                     types.String `tfsdk:"subnet_no"`
-	CreateDate                   types.String `tfsdk:"create_date"`
 	Uptime                       types.String `tfsdk:"uptime"`
 	ZoneCode                     types.String `tfsdk:"zone_code"`
 	PrivateDomain                types.String `tfsdk:"private_domain"`
@@ -325,7 +321,6 @@ func (m mongodbServer) attrTypes() map[string]attr.Type {
 		"region_code":            types.StringType,
 		"vpc_no":                 types.StringType,
 		"subnet_no":              types.StringType,
-		"create_date":            types.StringType,
 		"uptime":                 types.StringType,
 		"zone_code":              types.StringType,
 		"private_domain":         types.StringType,
@@ -361,7 +356,6 @@ func (d *mongodbDataSourceModel) refreshFromOutput(ctx context.Context, output *
 			RegionCode:                   types.StringPointerValue(server.RegionCode),
 			VpcNo:                        types.StringPointerValue(server.VpcNo),
 			SubnetNo:                     types.StringPointerValue(server.SubnetNo),
-			CreateDate:                   types.StringPointerValue(server.CreateDate),
 			Uptime:                       types.StringPointerValue(server.Uptime),
 			ZoneCode:                     types.StringPointerValue(server.ZoneCode),
 			PrivateDomain:                types.StringPointerValue(server.PrivateDomain),
