@@ -233,6 +233,15 @@ func (m *mysqlDataSource) Read(ctx context.Context, req datasource.ReadRequest, 
 		"reqParams": common.MarshalUncheckedString(reqParams),
 	})
 	mysqlResp, err := m.config.Client.Vmysql.V2Api.GetCloudMysqlInstanceList(reqParams)
+	if err != nil {
+		var diags diag.Diagnostics
+		diags.AddError(
+			"GetCloudMysqlInstanceList",
+			fmt.Sprintf("error: %s, reqParams: %s", err.Error(), common.MarshalUncheckedString(reqParams)),
+		)
+		resp.Diagnostics.Append(diags...)
+		return
+	}
 	mysqlId := mysqlResp.CloudMysqlInstanceList[0].CloudMysqlInstanceNo
 	detailReqParams := &vmysql.GetCloudMysqlInstanceDetailRequest{
 		RegionCode:           &m.config.RegionCode,
@@ -242,7 +251,7 @@ func (m *mysqlDataSource) Read(ctx context.Context, req datasource.ReadRequest, 
 	if err != nil {
 		var diags diag.Diagnostics
 		diags.AddError(
-			"GetMysqlList",
+			"GetMysqlDetailList",
 			fmt.Sprintf("error: %s, reqParams: %s", err.Error(), common.MarshalUncheckedString(reqParams)),
 		)
 		resp.Diagnostics.Append(diags...)
@@ -338,7 +347,7 @@ func (m *mysqlDataSourceModel) refreshFromOutput(ctx context.Context, output *vm
 		}
 		serverList = append(serverList, mysqlServerInstance)
 	}
-	listValue, _ := types.ListValueFrom(ctx, types.ObjectType{AttrTypes: mysqlServer{}.attrTypes()}, serverList)
+	listValue, _ := types.ListValueFrom(ctx, types.ObjectType{AttrTypes: mysqlServerDataSourceModel{}.attrTypes()}, serverList)
 	m.MysqlServerList = listValue
 	return nil
 
