@@ -3,7 +3,7 @@ module github.com/terraform-providers/terraform-provider-ncloud
 go 1.19
 
 require (
-	github.com/NaverCloudPlatform/ncloud-sdk-go-v2 v1.6.5
+	github.com/NaverCloudPlatform/ncloud-sdk-go-v2 v1.6.6
 	github.com/hashicorp/go-cty v1.4.1-0.20200414143053-d3edf31b6320
 	github.com/hashicorp/go-multierror v1.1.1
 	github.com/hashicorp/terraform-plugin-framework v1.3.2
