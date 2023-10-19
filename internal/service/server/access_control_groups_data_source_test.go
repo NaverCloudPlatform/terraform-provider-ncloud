@@ -26,8 +26,8 @@ func TestAccDataSourceNcloudAccessControlGroups_vpc_default(t *testing.T) {
 
 func testAccDataSourceNcloudAccessControlGroupsBasic(t *testing.T, isVpc bool) {
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:  func() { TestAccPreCheck(t) },
-		Providers: GetTestAccProviders(isVpc),
+		PreCheck:                 func() { TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: GetTestProviderFactories(isVpc),
 		Steps: []resource.TestStep{
 			{
 				Config: testAccDataSourceNcloudAccessControlGroupsConfig,
@@ -41,8 +41,8 @@ func testAccDataSourceNcloudAccessControlGroupsBasic(t *testing.T, isVpc bool) {
 
 func testAccDataSourceNcloudAccessControlGroupsDefault(t *testing.T, isVpc bool) {
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:  func() { TestAccPreCheck(t) },
-		Providers: GetTestAccProviders(isVpc),
+		PreCheck:                 func() { TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: GetTestProviderFactories(isVpc),
 		Steps: []resource.TestStep{
 			{
 				Config: testAccDataSourceNcloudAccessControlGroupsDefaultConfig,

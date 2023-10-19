@@ -18,8 +18,8 @@ func TestAccDataSourceNcloudPublicIp_classic_basic(t *testing.T) {
 	name := fmt.Sprintf("tf-public-ip-basic-%s", acctest.RandString(5))
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:  func() { TestAccPreCheck(t) },
-		Providers: GetTestAccProviders(false),
+		PreCheck:                 func() { TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: ClassicProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccDataSourceNcloudPublicIpClassicConfig(name),
@@ -46,8 +46,8 @@ func TestAccDataSourceNcloudPublicIp_vpc_basic(t *testing.T) {
 	name := fmt.Sprintf("tf-public-ip-basic-%s", acctest.RandString(5))
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:  func() { TestAccPreCheck(t) },
-		Providers: GetTestAccProviders(true),
+		PreCheck:                 func() { TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: ProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccDataSourceNcloudPublicIpVpcConfig(name),
@@ -66,8 +66,8 @@ func TestAccDataSourceNcloudPublicIp_vpc_basic(t *testing.T) {
 
 func TestAccDataSourceNcloudPublicIpIsAssociated(t *testing.T) {
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:  func() { TestAccPreCheck(t) },
-		Providers: GetTestAccProviders(true),
+		PreCheck:                 func() { TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: ProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccDataSourceNcloudPublicIpAssociatedConfig,
@@ -85,8 +85,8 @@ func TestAccDataSourceNcloudPublicIpIsAssociated(t *testing.T) {
 
 func TestAccDataSourceNcloudPublicIpSearch(t *testing.T) {
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:  func() { TestAccPreCheck(t) },
-		Providers: GetTestAccProviders(true),
+		PreCheck:                 func() { TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: ProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccDataSourceNcloudPublicIpSearchConfig,

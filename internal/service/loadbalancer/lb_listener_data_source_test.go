@@ -16,7 +16,7 @@ func TestAccDataSourceNcloudLbListener_basic(t *testing.T) {
 	resourceName := "ncloud_lb_listener.test"
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { TestAccPreCheck(t) },
-		ProtoV5ProviderFactories: ProtoV5ProviderFactories,
+		ProtoV6ProviderFactories: ProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccDataSourceNcloudLbListenerConfig(lbName),

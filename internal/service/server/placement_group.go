@@ -27,14 +27,14 @@ func ResourceNcloudPlacementGroup() *schema.Resource {
 				Optional:         true,
 				Computed:         true,
 				ForceNew:         true,
-				ValidateDiagFunc: verify.ToDiagFunc(verify.ValidateInstanceName),
+				ValidateDiagFunc: validation.ToDiagFunc(verify.ValidateInstanceName),
 			},
 			"placement_group_type": {
 				Type:             schema.TypeString,
 				Optional:         true,
 				Computed:         true,
 				ForceNew:         true,
-				ValidateDiagFunc: verify.ToDiagFunc(validation.StringInSlice([]string{"AA"}, false)),
+				ValidateDiagFunc: validation.ToDiagFunc(validation.StringInSlice([]string{"AA"}, false)),
 			},
 			"placement_group_no": {
 				Type:     schema.TypeString,

@@ -33,7 +33,7 @@ func TestAccResourceNcloudServer_classic_basic(t *testing.T) {
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { TestAccPreCheck(t) },
-		ProtoV5ProviderFactories: ClassicProtoV5ProviderFactories,
+		ProtoV6ProviderFactories: ClassicProtoV6ProviderFactories,
 		CheckDestroy: func(state *terraform.State) error {
 			return testAccCheckInstanceDestroyWithProvider(state, GetTestProvider(false))
 		},
@@ -82,7 +82,7 @@ func TestAccResourceNcloudServer_vpc_basic(t *testing.T) {
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { TestAccPreCheck(t) },
-		ProtoV5ProviderFactories: ProtoV5ProviderFactories,
+		ProtoV6ProviderFactories: ProtoV6ProviderFactories,
 		CheckDestroy:             testAccCheckServerDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -130,7 +130,7 @@ func TestAccResourceNcloudServer_vpc_networkInterface(t *testing.T) {
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { TestAccPreCheck(t) },
-		ProtoV5ProviderFactories: ProtoV5ProviderFactories,
+		ProtoV6ProviderFactories: ProtoV6ProviderFactories,
 		CheckDestroy:             testAccCheckServerDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -180,7 +180,7 @@ func TestAccResourceNcloudServer_classic_changeSpec(t *testing.T) {
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { TestAccPreCheck(t) },
-		ProtoV5ProviderFactories: ClassicProtoV5ProviderFactories,
+		ProtoV6ProviderFactories: ClassicProtoV6ProviderFactories,
 		CheckDestroy: func(state *terraform.State) error {
 			return testAccCheckInstanceDestroyWithProvider(state, GetTestProvider(false))
 		},
@@ -219,7 +219,7 @@ func TestAccResourceNcloudServer_vpc_changeSpec(t *testing.T) {
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { TestAccPreCheck(t) },
-		ProtoV5ProviderFactories: ProtoV5ProviderFactories,
+		ProtoV6ProviderFactories: ProtoV6ProviderFactories,
 		CheckDestroy:             testAccCheckServerDestroy,
 		Steps: []resource.TestStep{
 			{

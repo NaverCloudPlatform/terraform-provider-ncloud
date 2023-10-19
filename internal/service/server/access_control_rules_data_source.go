@@ -12,7 +12,6 @@ import (
 
 	. "github.com/terraform-providers/terraform-provider-ncloud/internal/common"
 	"github.com/terraform-providers/terraform-provider-ncloud/internal/conn"
-	"github.com/terraform-providers/terraform-provider-ncloud/internal/verify"
 )
 
 func DataSourceNcloudAccessControlRules() *schema.Resource {
@@ -29,7 +28,7 @@ func DataSourceNcloudAccessControlRules() *schema.Resource {
 				Type:             schema.TypeString,
 				Optional:         true,
 				ForceNew:         true,
-				ValidateDiagFunc: verify.ToDiagFunc(validation.StringIsValidRegExp),
+				ValidateDiagFunc: validation.ToDiagFunc(validation.StringIsValidRegExp),
 				Description:      "A regex string to apply to the ACG rule list returned by ncloud",
 			},
 			"access_control_rules": {

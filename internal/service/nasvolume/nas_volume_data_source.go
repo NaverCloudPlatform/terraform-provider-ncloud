@@ -27,7 +27,7 @@ func DataSourceNcloudNasVolume() *schema.Resource {
 			Type:             schema.TypeString,
 			Optional:         true,
 			Computed:         true,
-			ValidateDiagFunc: ToDiagFunc(validation.StringInSlice([]string{"NFS", "CIFS"}, false)),
+			ValidateDiagFunc: validation.ToDiagFunc(validation.StringInSlice([]string{"NFS", "CIFS"}, false)),
 		},
 		"is_event_configuration": {
 			Type:     schema.TypeBool,

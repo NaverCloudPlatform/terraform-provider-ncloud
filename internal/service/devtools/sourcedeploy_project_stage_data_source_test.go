@@ -14,7 +14,7 @@ func TestAccDataSourceNcloudSourceDeploySingleStage(t *testing.T) {
 	productCode := "SVR.VSVR.STAND.C002.M008.NET.HDD.B050.G002"
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { TestAccPreCheck(t) },
-		ProtoV5ProviderFactories: ProtoV5ProviderFactories,
+		ProtoV6ProviderFactories: ProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccDataSourceNcloudSourceDeployStageConfig(stageNameSvr, productCode),

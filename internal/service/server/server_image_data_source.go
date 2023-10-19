@@ -64,7 +64,7 @@ func DataSourceNcloudServerImage() *schema.Resource {
 			"product_name_regex": {
 				Type:             schema.TypeString,
 				Optional:         true,
-				ValidateDiagFunc: verify.ToDiagFunc(validation.StringIsValidRegExp),
+				ValidateDiagFunc: validation.ToDiagFunc(validation.StringIsValidRegExp),
 				Deprecated:       "use `filter` instead",
 			},
 			"exclusion_product_code": {

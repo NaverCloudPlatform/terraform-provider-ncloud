@@ -16,7 +16,6 @@ import (
 	. "github.com/terraform-providers/terraform-provider-ncloud/internal/common"
 	"github.com/terraform-providers/terraform-provider-ncloud/internal/conn"
 	vpcservice "github.com/terraform-providers/terraform-provider-ncloud/internal/service/vpc"
-	. "github.com/terraform-providers/terraform-provider-ncloud/internal/verify"
 )
 
 const (
@@ -66,26 +65,26 @@ func ResourceNcloudLb() *schema.Resource {
 				Type:             schema.TypeString,
 				Optional:         true,
 				Computed:         true,
-				ValidateDiagFunc: ToDiagFunc(validation.StringInSlice([]string{"PUBLIC", "PRIVATE"}, false)),
+				ValidateDiagFunc: validation.ToDiagFunc(validation.StringInSlice([]string{"PUBLIC", "PRIVATE"}, false)),
 				ForceNew:         true,
 			},
 			"idle_timeout": {
 				Type:             schema.TypeInt,
 				Optional:         true,
 				Computed:         true,
-				ValidateDiagFunc: ToDiagFunc(validation.IntBetween(1, 3600)),
+				ValidateDiagFunc: validation.ToDiagFunc(validation.IntBetween(1, 3600)),
 			},
 			"type": {
 				Type:             schema.TypeString,
 				Required:         true,
-				ValidateDiagFunc: ToDiagFunc(validation.StringInSlice([]string{"APPLICATION", "NETWORK", "NETWORK_PROXY"}, false)),
+				ValidateDiagFunc: validation.ToDiagFunc(validation.StringInSlice([]string{"APPLICATION", "NETWORK", "NETWORK_PROXY"}, false)),
 				ForceNew:         true,
 			},
 			"throughput_type": {
 				Type:             schema.TypeString,
 				Optional:         true,
 				Computed:         true,
-				ValidateDiagFunc: ToDiagFunc(validation.StringInSlice([]string{"SMALL", "MEDIUM", "LARGE"}, false)),
+				ValidateDiagFunc: validation.ToDiagFunc(validation.StringInSlice([]string{"SMALL", "MEDIUM", "LARGE"}, false)),
 			},
 			"vpc_no": {
 				Type:     schema.TypeString,

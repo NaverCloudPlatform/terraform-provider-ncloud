@@ -11,7 +11,6 @@ import (
 
 	. "github.com/terraform-providers/terraform-provider-ncloud/internal/common"
 	"github.com/terraform-providers/terraform-provider-ncloud/internal/conn"
-	. "github.com/terraform-providers/terraform-provider-ncloud/internal/verify"
 )
 
 func ResourceNcloudLaunchConfiguration() *schema.Resource {
@@ -32,7 +31,7 @@ func ResourceNcloudLaunchConfiguration() *schema.Resource {
 				Optional:         true,
 				Computed:         true,
 				ForceNew:         true,
-				ValidateDiagFunc: ToDiagFunc(validation.StringLenBetween(1, 255)),
+				ValidateDiagFunc: validation.ToDiagFunc(validation.StringLenBetween(1, 255)),
 			},
 			"server_image_product_code": {
 				Type:          schema.TypeString,

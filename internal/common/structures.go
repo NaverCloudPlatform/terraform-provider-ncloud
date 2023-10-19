@@ -13,6 +13,11 @@ import (
 func ExpandStringInterfaceList(i []interface{}) []*string {
 	vs := make([]*string, 0, len(i))
 	for _, v := range i {
+		if v == nil {
+			vs = append(vs, nil)
+			continue
+		}
+
 		switch v := v.(type) {
 		case *string:
 			vs = append(vs, v)
@@ -177,6 +182,11 @@ func GetInt32FromString(v interface{}, ok bool) *int32 {
 func ExpandStringInterfaceListToInt32List(list []interface{}) []*int32 {
 	res := make([]*int32, 0)
 	for _, v := range list {
+		if v == nil {
+			res = append(res, nil)
+			continue
+		}
+
 		intV, err := strconv.Atoi(v.(string))
 		if err == nil {
 			res = append(res, ncloud.Int32(int32(intV)))

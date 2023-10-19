@@ -30,29 +30,29 @@ func ResourceNcloudAutoScalingSchedule() *schema.Resource {
 				Type:     schema.TypeString,
 				Required: true,
 				ForceNew: true,
-				ValidateDiagFunc: ToDiagFunc(validation.All(
+				ValidateDiagFunc: validation.ToDiagFunc(validation.All(
 					validation.StringLenBetween(1, 255),
 					validation.StringMatch(regexp.MustCompile(`^[a-z]+[a-z0-9-]+[a-z0-9]$`), "Allows only lowercase letters(a-z), numbers, hyphen (-). Must start with an alphabetic character, must end with an English letter or number"))),
 			},
 			"desired_capacity": {
 				Type:             schema.TypeInt,
 				Required:         true,
-				ValidateDiagFunc: ToDiagFunc(validation.IntBetween(0, 30)),
+				ValidateDiagFunc: validation.ToDiagFunc(validation.IntBetween(0, 30)),
 			},
 			"min_size": {
 				Type:             schema.TypeInt,
 				Required:         true,
-				ValidateDiagFunc: ToDiagFunc(validation.IntBetween(0, 30)),
+				ValidateDiagFunc: validation.ToDiagFunc(validation.IntBetween(0, 30)),
 			},
 			"max_size": {
 				Type:             schema.TypeInt,
 				Required:         true,
-				ValidateDiagFunc: ToDiagFunc(validation.IntBetween(0, 30)),
+				ValidateDiagFunc: validation.ToDiagFunc(validation.IntBetween(0, 30)),
 			},
 			"start_time": {
 				Type:     schema.TypeString,
 				Optional: true,
-				ValidateDiagFunc: ToDiagFunc(validation.Any(
+				ValidateDiagFunc: validation.ToDiagFunc(validation.Any(
 					validation.IsRFC3339Time,
 					ValidateDateISO8601,
 				)),
@@ -60,7 +60,7 @@ func ResourceNcloudAutoScalingSchedule() *schema.Resource {
 			"end_time": {
 				Type:     schema.TypeString,
 				Optional: true,
-				ValidateDiagFunc: ToDiagFunc(validation.Any(
+				ValidateDiagFunc: validation.ToDiagFunc(validation.Any(
 					validation.IsRFC3339Time,
 					ValidateDateISO8601,
 				)),

@@ -37,7 +37,7 @@ func ResourceNcloudAutoScalingGroup() *schema.Resource {
 				Type:             schema.TypeString,
 				Optional:         true,
 				Computed:         true,
-				ValidateDiagFunc: ToDiagFunc(validation.StringLenBetween(0, 255)),
+				ValidateDiagFunc: validation.ToDiagFunc(validation.StringLenBetween(0, 255)),
 				ForceNew:         true,
 			},
 			"launch_configuration_no": {
@@ -48,35 +48,35 @@ func ResourceNcloudAutoScalingGroup() *schema.Resource {
 				Type:             schema.TypeInt,
 				Optional:         true,
 				Computed:         true,
-				ValidateDiagFunc: ToDiagFunc(validation.IntBetween(0, 30)),
+				ValidateDiagFunc: validation.ToDiagFunc(validation.IntBetween(0, 30)),
 			},
 			"min_size": {
 				Type:             schema.TypeInt,
 				Required:         true,
-				ValidateDiagFunc: ToDiagFunc(validation.IntBetween(0, 30)),
+				ValidateDiagFunc: validation.ToDiagFunc(validation.IntBetween(0, 30)),
 			},
 			"max_size": {
 				Type:             schema.TypeInt,
 				Required:         true,
-				ValidateDiagFunc: ToDiagFunc(validation.IntBetween(0, 30)),
+				ValidateDiagFunc: validation.ToDiagFunc(validation.IntBetween(0, 30)),
 			},
 			"default_cooldown": {
 				Type:             schema.TypeInt,
 				Optional:         true,
 				Default:          300,
-				ValidateDiagFunc: ToDiagFunc(validation.IntBetween(0, 2147483647)),
+				ValidateDiagFunc: validation.ToDiagFunc(validation.IntBetween(0, 2147483647)),
 			},
 			"health_check_type_code": {
 				Type:             schema.TypeString,
 				Optional:         true,
 				Computed:         true,
-				ValidateDiagFunc: ToDiagFunc(validation.StringInSlice([]string{"SVR", "LOADB"}, false)),
+				ValidateDiagFunc: validation.ToDiagFunc(validation.StringInSlice([]string{"SVR", "LOADB"}, false)),
 			},
 			"health_check_grace_period": {
 				Type:             schema.TypeInt,
 				Optional:         true,
 				Default:          300,
-				ValidateDiagFunc: ToDiagFunc(validation.IntBetween(0, 2147483647)),
+				ValidateDiagFunc: validation.ToDiagFunc(validation.IntBetween(0, 2147483647)),
 			},
 			"server_instance_no_list": {
 				Type:     schema.TypeList,
@@ -87,12 +87,15 @@ func ResourceNcloudAutoScalingGroup() *schema.Resource {
 				Type:             schema.TypeString,
 				Optional:         true,
 				Default:          "10m",
-				ValidateDiagFunc: ToDiagFunc(ValidateParseDuration),
+				ValidateDiagFunc: validation.ToDiagFunc(ValidateParseDuration),
 			},
 			"zone_no_list": {
 				Type:     schema.TypeList,
 				Optional: true,
-				Elem:     &schema.Schema{Type: schema.TypeString},
+				Elem: &schema.Schema{
+					Type:             schema.TypeString,
+					ValidateDiagFunc: validation.ToDiagFunc(validation.StringIsNotEmpty),
+				},
 			},
 			"vpc_no": {
 				Type:     schema.TypeString,
@@ -106,7 +109,10 @@ func ResourceNcloudAutoScalingGroup() *schema.Resource {
 			"access_control_group_no_list": {
 				Type:     schema.TypeList,
 				Optional: true,
-				Elem:     &schema.Schema{Type: schema.TypeString},
+				Elem: &schema.Schema{
+					Type:             schema.TypeString,
+					ValidateDiagFunc: validation.ToDiagFunc(validation.StringIsNotEmpty),
+				},
 				ForceNew: true,
 			},
 			"target_group_list": {

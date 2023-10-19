@@ -18,7 +18,7 @@ func TestAccDataSourceNcloudNKSCluster(t *testing.T) {
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { TestAccPreCheck(t) },
-		ProtoV5ProviderFactories: ProtoV5ProviderFactories,
+		ProtoV6ProviderFactories: ProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccDataSourceNKSClusterConfig(testClusterName, clusterType, TF_TEST_NKS_LOGIN_KEY, k8sVersion, region),

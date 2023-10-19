@@ -17,8 +17,8 @@ func TestAccDataSourceNcloudPlacementGroup_basic(t *testing.T) {
 	dataNameFilter := "data.ncloud_placement_group.by_filter"
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:  func() { TestAccPreCheck(t) },
-		Providers: GetTestAccProviders(true),
+		PreCheck:                 func() { TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: ProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccDataSourceNcloudPlacementGroupConfig(name),

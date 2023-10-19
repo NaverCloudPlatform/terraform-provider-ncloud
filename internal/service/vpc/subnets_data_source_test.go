@@ -12,7 +12,7 @@ import (
 func TestAccDataSourceNcloudSubnetsBasic(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { TestAccPreCheck(t) },
-		ProtoV5ProviderFactories: ProtoV5ProviderFactories,
+		ProtoV6ProviderFactories: ProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccDataSourceNcloudSubnetsConfig(),
@@ -27,7 +27,7 @@ func TestAccDataSourceNcloudSubnetsBasic(t *testing.T) {
 func TestAccDataSourceNcloudSubnetsName(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { TestAccPreCheck(t) },
-		ProtoV5ProviderFactories: ProtoV5ProviderFactories,
+		ProtoV6ProviderFactories: ProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccDataSourceNcloudSubnetsConfigSubnet("10.2.1.0"),
@@ -42,7 +42,7 @@ func TestAccDataSourceNcloudSubnetsName(t *testing.T) {
 func TestAccDataSourceNcloudSubnetsVpcNo(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { TestAccPreCheck(t) },
-		ProtoV5ProviderFactories: ProtoV5ProviderFactories,
+		ProtoV6ProviderFactories: ProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccDataSourceNcloudSubnetsConfigVpcNo("502"),

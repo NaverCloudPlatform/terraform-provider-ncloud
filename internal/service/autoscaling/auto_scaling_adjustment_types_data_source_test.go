@@ -15,8 +15,8 @@ func TestAccDataSourceNcloudAutoScalingAdjustmentTypes_classic_basic(t *testing.
 	dataName := "data.ncloud_auto_scaling_adjustment_types.test"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:  func() { TestAccPreCheck(t) },
-		Providers: GetTestAccProviders(false),
+		PreCheck:                 func() { TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: ClassicProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccDataSourceNcloudAutoScalingAdjustmentTypesClassicConfig(lcName, policyName),
@@ -34,8 +34,8 @@ func TestAccDataSourceNcloudAutoScalingAdjustmentTypes_vpc_basic(t *testing.T) {
 	dataName := "data.ncloud_auto_scaling_adjustment_types.test"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:  func() { TestAccPreCheck(t) },
-		Providers: GetTestAccProviders(false),
+		PreCheck:                 func() { TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: ClassicProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccDataSourceNcloudAutoScalingAdjustmentTypesVpcConfig(lcName, policyName),
@@ -51,8 +51,8 @@ func TestAccDataSourceNcloudAutoScalingAdjustmentTypes_classic_byFilterCode(t *t
 	dataName := "data.ncloud_auto_scaling_adjustment_types.by_filter"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:  func() { TestAccPreCheck(t) },
-		Providers: GetTestAccProviders(false),
+		PreCheck:                 func() { TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: ClassicProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccDataSourceNcloudAutoScalingAdjustmentTypesByFilterCodeConfig("EXACT"),
@@ -68,8 +68,8 @@ func TestAccDataSourceNcloudAutoScalingAdjustmentTypes_vpc_byFilterCode(t *testi
 	dataName := "data.ncloud_auto_scaling_adjustment_types.by_filter"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:  func() { TestAccPreCheck(t) },
-		Providers: GetTestAccProviders(false),
+		PreCheck:                 func() { TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: ClassicProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccDataSourceNcloudAutoScalingAdjustmentTypesByFilterCodeConfig("EXACT"),

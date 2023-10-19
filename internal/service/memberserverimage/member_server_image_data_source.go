@@ -32,7 +32,7 @@ func DataSourceNcloudMemberServerImage() *schema.Resource {
 			"name_regex": {
 				Type:             schema.TypeString,
 				Optional:         true,
-				ValidateDiagFunc: verify.ToDiagFunc(validation.StringIsValidRegExp),
+				ValidateDiagFunc: validation.ToDiagFunc(validation.StringIsValidRegExp),
 				Description:      "A regex string to apply to the member server image list returned by ncloud",
 				Deprecated:       "use filter instead",
 			},

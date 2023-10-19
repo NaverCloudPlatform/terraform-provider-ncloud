@@ -22,7 +22,7 @@ func TestAccResourceNcloudLbTargetGroupAttachment_basic(t *testing.T) {
 	resourceName := "ncloud_lb_target_group_attachment.test"
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { TestAccPreCheck(t) },
-		ProtoV5ProviderFactories: ProtoV5ProviderFactories,
+		ProtoV6ProviderFactories: ProtoV6ProviderFactories,
 		CheckDestroy: func(state *terraform.State) error {
 			return testAccCheckLbTargetGroupAttachmentDestroy(state, GetTestProvider(true))
 		},

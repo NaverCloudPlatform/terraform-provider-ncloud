@@ -37,7 +37,7 @@ func ignore_TestAccResourceNcloudBlockStorageSnapshotBasic(t *testing.T) {
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { TestAccPreCheck(t) },
-		ProtoV5ProviderFactories: ClassicProtoV5ProviderFactories,
+		ProtoV6ProviderFactories: ClassicProtoV6ProviderFactories,
 		CheckDestroy:             testAccCheckBlockStorageSnapshotDestroy,
 		Steps: []resource.TestStep{
 			{

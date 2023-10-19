@@ -18,7 +18,6 @@ import (
 
 	. "github.com/terraform-providers/terraform-provider-ncloud/internal/common"
 	"github.com/terraform-providers/terraform-provider-ncloud/internal/conn"
-	. "github.com/terraform-providers/terraform-provider-ncloud/internal/verify"
 )
 
 const (
@@ -79,7 +78,7 @@ func ResourceNcloudNKSNodePool() *schema.Resource {
 				Type:             schema.TypeString,
 				ForceNew:         true,
 				Required:         true,
-				ValidateDiagFunc: ToDiagFunc(validation.StringLenBetween(3, 30)),
+				ValidateDiagFunc: validation.ToDiagFunc(validation.StringLenBetween(3, 30)),
 			},
 			"node_count": {
 				Type:     schema.TypeInt,

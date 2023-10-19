@@ -18,8 +18,8 @@ func TestAccDataSourceNcloudServerImages_vpc_basic(t *testing.T) {
 
 func testAccDataSourceNcloudServerImagesBasic(t *testing.T, isVpc bool) {
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:  func() { TestAccPreCheck(t) },
-		Providers: GetTestAccProviders(isVpc),
+		PreCheck:                 func() { TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: GetTestProviderFactories(isVpc),
 		Steps: []resource.TestStep{
 			{
 				Config: testAccDataSourceNcloudServerImagesConfig,
@@ -41,8 +41,8 @@ func TestAccDataSourceNcloudServerImages_vpc_linux(t *testing.T) {
 
 func testAccDataSourceNcloudServerImagesLinux(t *testing.T, isVpc bool) {
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:  func() { TestAccPreCheck(t) },
-		Providers: GetTestAccProviders(isVpc),
+		PreCheck:                 func() { TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: GetTestProviderFactories(isVpc),
 		Steps: []resource.TestStep{
 			{
 				Config: testAccDataSourceNcloudServerImagesLinuxConfig,
@@ -64,8 +64,8 @@ func TestAccDataSourceNcloudServerImages_vpc_windows(t *testing.T) {
 
 func testAccDataSourceNcloudServerImagesWindows(t *testing.T, isVpc bool) {
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:  func() { TestAccPreCheck(t) },
-		Providers: GetTestAccProviders(isVpc),
+		PreCheck:                 func() { TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: GetTestProviderFactories(isVpc),
 		Steps: []resource.TestStep{
 			{
 				Config: testAccDataSourceNcloudServerImagesWindowsConfig,
@@ -87,8 +87,8 @@ func TestAccDataSourceNcloudServerImages_vpc_bareMetal(t *testing.T) {
 
 func testAccDataSourceNcloudServerImagesBareMetal(t *testing.T, isVpc bool) {
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:  func() { TestAccPreCheck(t) },
-		Providers: GetTestAccProviders(isVpc),
+		PreCheck:                 func() { TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: GetTestProviderFactories(isVpc),
 		Steps: []resource.TestStep{
 			{
 				Config: testAccDataSourceNcloudServerImagesBareMetalConfig,
@@ -110,8 +110,8 @@ func TestAccDataSourceNcloudServerImages_vpc_blockStorageSize(t *testing.T) {
 
 func testAccDataSourceNcloudServerImagesBlockStorageSize(t *testing.T, isVpc bool) {
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:  func() { TestAccPreCheck(t) },
-		Providers: GetTestAccProviders(isVpc),
+		PreCheck:                 func() { TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: GetTestProviderFactories(isVpc),
 		Steps: []resource.TestStep{
 			{
 				Config: testAccDataSourceNcloudServerImagesBlockStorageSizeConfig,

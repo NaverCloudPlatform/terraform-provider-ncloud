@@ -8,7 +8,6 @@ import (
 
 	. "github.com/terraform-providers/terraform-provider-ncloud/internal/common"
 	"github.com/terraform-providers/terraform-provider-ncloud/internal/conn"
-	"github.com/terraform-providers/terraform-provider-ncloud/internal/verify"
 )
 
 func DataSourceNcloudServerImages() *schema.Resource {
@@ -52,7 +51,7 @@ func DataSourceNcloudServerImages() *schema.Resource {
 				Type:             schema.TypeString,
 				Optional:         true,
 				ForceNew:         true,
-				ValidateDiagFunc: verify.ToDiagFunc(validation.StringIsValidRegExp),
+				ValidateDiagFunc: validation.ToDiagFunc(validation.StringIsValidRegExp),
 				Deprecated:       "use `filter` instead",
 			},
 			"exclusion_product_code": {
@@ -63,7 +62,7 @@ func DataSourceNcloudServerImages() *schema.Resource {
 			"block_storage_size": {
 				Type:             schema.TypeInt,
 				Optional:         true,
-				ValidateDiagFunc: verify.ToDiagFunc(validation.IntInSlice([]int{50, 100})),
+				ValidateDiagFunc: validation.ToDiagFunc(validation.IntInSlice([]int{50, 100})),
 				Deprecated:       "use `filter` instead",
 			},
 			"region": {

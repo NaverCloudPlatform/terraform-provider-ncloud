@@ -11,7 +11,6 @@ import (
 
 	. "github.com/terraform-providers/terraform-provider-ncloud/internal/common"
 	"github.com/terraform-providers/terraform-provider-ncloud/internal/conn"
-	. "github.com/terraform-providers/terraform-provider-ncloud/internal/verify"
 )
 
 func ResourceNcloudAutoScalingPolicy() *schema.Resource {
@@ -28,30 +27,30 @@ func ResourceNcloudAutoScalingPolicy() *schema.Resource {
 				Type:     schema.TypeString,
 				Required: true,
 				ForceNew: true,
-				ValidateDiagFunc: ToDiagFunc(validation.All(
+				ValidateDiagFunc: validation.ToDiagFunc(validation.All(
 					validation.StringLenBetween(1, 255),
 					validation.StringMatch(regexp.MustCompile(`^[a-z]+[a-z0-9-]+[a-z0-9]$`), "Allows only lowercase letters(a-z), numbers, hyphen (-). Must start with an alphabetic character, must end with an English letter or number"))),
 			},
 			"adjustment_type_code": {
 				Type:             schema.TypeString,
 				Required:         true,
-				ValidateDiagFunc: ToDiagFunc(validation.StringInSlice([]string{"CHANG", "EXACT", "PRCNT"}, false)),
+				ValidateDiagFunc: validation.ToDiagFunc(validation.StringInSlice([]string{"CHANG", "EXACT", "PRCNT"}, false)),
 			},
 			"scaling_adjustment": {
 				Type:             schema.TypeInt,
 				Required:         true,
-				ValidateDiagFunc: ToDiagFunc(validation.IntBetween(-2147483648, 2147483647)),
+				ValidateDiagFunc: validation.ToDiagFunc(validation.IntBetween(-2147483648, 2147483647)),
 			},
 			"cooldown": {
 				Type:             schema.TypeInt,
 				Optional:         true,
 				Default:          300,
-				ValidateDiagFunc: ToDiagFunc(validation.IntBetween(0, 2147483647)),
+				ValidateDiagFunc: validation.ToDiagFunc(validation.IntBetween(0, 2147483647)),
 			},
 			"min_adjustment_step": {
 				Type:             schema.TypeInt,
 				Optional:         true,
-				ValidateDiagFunc: ToDiagFunc(validation.IntBetween(1, 2147483647)),
+				ValidateDiagFunc: validation.ToDiagFunc(validation.IntBetween(1, 2147483647)),
 			},
 			"auto_scaling_group_no": {
 				Type:     schema.TypeString,

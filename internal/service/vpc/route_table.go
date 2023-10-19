@@ -35,20 +35,20 @@ func ResourceNcloudRouteTable() *schema.Resource {
 				Type:             schema.TypeString,
 				Required:         true,
 				ForceNew:         true,
-				ValidateDiagFunc: verify.ToDiagFunc(validation.StringInSlice([]string{"PUBLIC", "PRIVATE"}, false)),
+				ValidateDiagFunc: validation.ToDiagFunc(validation.StringInSlice([]string{"PUBLIC", "PRIVATE"}, false)),
 			},
 			"name": {
 				Type:             schema.TypeString,
 				Optional:         true,
 				Computed:         true,
 				ForceNew:         true,
-				ValidateDiagFunc: verify.ToDiagFunc(verify.ValidateInstanceName),
+				ValidateDiagFunc: validation.ToDiagFunc(verify.ValidateInstanceName),
 			},
 			"description": {
 				Type:             schema.TypeString,
 				Optional:         true,
 				Computed:         true,
-				ValidateDiagFunc: verify.ToDiagFunc(validation.StringLenBetween(0, 1000)),
+				ValidateDiagFunc: validation.ToDiagFunc(validation.StringLenBetween(0, 1000)),
 			},
 			"route_table_no": {
 				Type:     schema.TypeString,

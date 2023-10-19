@@ -13,8 +13,8 @@ func TestAccDataSourceNcloudBlockStorageSnapshot_basic(t *testing.T) {
 	dataName := "data.ncloud_block_storage_snapshot.by_id"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:  func() { TestAccPreCheck(t) },
-		Providers: GetTestAccProviders(true),
+		PreCheck:                 func() { TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: ProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				// ignore check: may be empty created data

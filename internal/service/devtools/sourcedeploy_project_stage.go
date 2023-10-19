@@ -15,7 +15,6 @@ import (
 
 	. "github.com/terraform-providers/terraform-provider-ncloud/internal/common"
 	"github.com/terraform-providers/terraform-provider-ncloud/internal/conn"
-	. "github.com/terraform-providers/terraform-provider-ncloud/internal/verify"
 )
 
 func ResourceNcloudSourceDeployStage() *schema.Resource {
@@ -53,7 +52,7 @@ func ResourceNcloudSourceDeployStage() *schema.Resource {
 			"name": {
 				Type:     schema.TypeString,
 				Required: true,
-				ValidateDiagFunc: ToDiagFunc(validation.All(
+				ValidateDiagFunc: validation.ToDiagFunc(validation.All(
 					validation.StringLenBetween(1, 100),
 					validation.StringMatch(regexp.MustCompile(`^[^ !@#$%^&*()+\=\[\]{};':"\\|,.<>\/?]+$`), `Cannot contain special characters ( !@#$%^&*()+\=\[\]{};':"\\|,.<>\/?).`),
 				)),
@@ -61,7 +60,7 @@ func ResourceNcloudSourceDeployStage() *schema.Resource {
 			"target_type": {
 				Type:             schema.TypeString,
 				Required:         true,
-				ValidateDiagFunc: ToDiagFunc(validation.StringInSlice([]string{"Server", "AutoScalingGroup", "KubernetesService", "ObjectStorage"}, false)),
+				ValidateDiagFunc: validation.ToDiagFunc(validation.StringInSlice([]string{"Server", "AutoScalingGroup", "KubernetesService", "ObjectStorage"}, false)),
 			},
 			"config": {
 				Type:     schema.TypeList,
@@ -77,7 +76,7 @@ func ResourceNcloudSourceDeployStage() *schema.Resource {
 									"id": {
 										Type:     schema.TypeString,
 										Optional: true,
-										ValidateDiagFunc: ToDiagFunc(
+										ValidateDiagFunc: validation.ToDiagFunc(
 											validation.StringMatch(regexp.MustCompile(`^[0-9]+$`), `Only "numbers" can be entered.`),
 										),
 									},

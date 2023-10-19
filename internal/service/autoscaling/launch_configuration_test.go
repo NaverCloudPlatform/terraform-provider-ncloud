@@ -21,7 +21,7 @@ func TestAccResourceNcloudLaunchConfiguration_classic_basic(t *testing.T) {
 	serverProductCode := "SPSVRSSD00000003"
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { TestAccPreCheck(t) },
-		ProtoV5ProviderFactories: ClassicProtoV5ProviderFactories,
+		ProtoV6ProviderFactories: ClassicProtoV6ProviderFactories,
 		CheckDestroy: func(state *terraform.State) error {
 			return testAccCheckLaunchConfigurationDestroy(state, GetTestProvider(false))
 		},
@@ -47,7 +47,7 @@ func TestAccResourceNcloudLaunchConfiguration_vpc_basic(t *testing.T) {
 	serverImageProductCode := "SW.VSVR.OS.LNX64.CNTOS.0703.B050"
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { TestAccPreCheck(t) },
-		ProtoV5ProviderFactories: ProtoV5ProviderFactories,
+		ProtoV6ProviderFactories: ProtoV6ProviderFactories,
 		CheckDestroy: func(state *terraform.State) error {
 			return testAccCheckLaunchConfigurationDestroy(state, GetTestProvider(true))
 		},
@@ -74,7 +74,7 @@ func TestAccResourceNcloudLaunchConfiguration_classic_disappears(t *testing.T) {
 	serverProductCode := "SPSVRSSD00000003"
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { TestAccPreCheck(t) },
-		ProtoV5ProviderFactories: ClassicProtoV5ProviderFactories,
+		ProtoV6ProviderFactories: ClassicProtoV6ProviderFactories,
 		CheckDestroy: func(state *terraform.State) error {
 			return testAccCheckLaunchConfigurationDestroy(state, GetTestProvider(false))
 		},
@@ -97,7 +97,7 @@ func TestAccResourceNcloudLaunchConfiguration_vpc_disappears(t *testing.T) {
 	serverImageProductCode := "SW.VSVR.OS.LNX64.CNTOS.0703.B050"
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { TestAccPreCheck(t) },
-		ProtoV5ProviderFactories: ProtoV5ProviderFactories,
+		ProtoV6ProviderFactories: ProtoV6ProviderFactories,
 		CheckDestroy: func(state *terraform.State) error {
 			return testAccCheckLaunchConfigurationDestroy(state, GetTestProvider(true))
 		},

@@ -18,8 +18,8 @@ func TestAccDataSourceNcloudZones_vpc_basic(t *testing.T) {
 
 func testAccDataSourceNcloudZonesBasic(t *testing.T, isVpc bool) {
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:  func() { TestAccPreCheck(t) },
-		Providers: GetTestAccProviders(isVpc),
+		PreCheck:                 func() { TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: GetTestProviderFactories(isVpc),
 		Steps: []resource.TestStep{
 			{
 				Config: testAccDataSourceNcloudZonesConfig,

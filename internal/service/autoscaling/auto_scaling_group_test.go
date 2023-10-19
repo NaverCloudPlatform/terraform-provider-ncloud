@@ -19,7 +19,7 @@ func TestAccResourceNcloudAutoScalingGroup_classic_basic(t *testing.T) {
 	resourceName := "ncloud_auto_scaling_group.auto"
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { TestAccPreCheck(t) },
-		ProtoV5ProviderFactories: ClassicProtoV5ProviderFactories,
+		ProtoV6ProviderFactories: ClassicProtoV6ProviderFactories,
 		CheckDestroy: func(state *terraform.State) error {
 			return testAccCheckAutoScalingGroupDestroy(state, GetTestProvider(false))
 		},
@@ -50,7 +50,7 @@ func TestAccResourceNcloudAutoScalingGroup_vpc_basic(t *testing.T) {
 	resourceName := "ncloud_auto_scaling_group.auto"
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { TestAccPreCheck(t) },
-		ProtoV5ProviderFactories: ProtoV5ProviderFactories,
+		ProtoV6ProviderFactories: ProtoV6ProviderFactories,
 		CheckDestroy: func(state *terraform.State) error {
 			return testAccCheckAutoScalingGroupDestroy(state, GetTestProvider(true))
 		},
@@ -82,7 +82,7 @@ func TestAccResourceNcloudAutoScalingGroup_classic_zero_value(t *testing.T) {
 	resourceName := "ncloud_auto_scaling_group.auto"
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { TestAccPreCheck(t) },
-		ProtoV5ProviderFactories: ClassicProtoV5ProviderFactories,
+		ProtoV6ProviderFactories: ClassicProtoV6ProviderFactories,
 		CheckDestroy: func(state *terraform.State) error {
 			return testAccCheckAutoScalingGroupDestroy(state, GetTestProvider(false))
 		},
@@ -114,7 +114,7 @@ func TestAccResourceNcloudAutoScalingGroup_vpc_zero_value(t *testing.T) {
 	resourceName := "ncloud_auto_scaling_group.auto"
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { TestAccPreCheck(t) },
-		ProtoV5ProviderFactories: ProtoV5ProviderFactories,
+		ProtoV6ProviderFactories: ProtoV6ProviderFactories,
 		CheckDestroy: func(state *terraform.State) error {
 			return testAccCheckAutoScalingGroupDestroy(state, GetTestProvider(true))
 		},
@@ -146,7 +146,7 @@ func TestAccResourceNcloudAutoScalingGroup_classic_disappears(t *testing.T) {
 	resourceName := "ncloud_auto_scaling_group.auto"
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { TestAccPreCheck(t) },
-		ProtoV5ProviderFactories: ClassicProtoV5ProviderFactories,
+		ProtoV6ProviderFactories: ClassicProtoV6ProviderFactories,
 		CheckDestroy: func(state *terraform.State) error {
 			return testAccCheckAutoScalingGroupDestroy(state, GetTestProvider(false))
 		},
@@ -168,7 +168,7 @@ func TestAccResourceNcloudAutoScalingGroup_vpc_disappears(t *testing.T) {
 	resourceName := "ncloud_auto_scaling_group.auto"
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { TestAccPreCheck(t) },
-		ProtoV5ProviderFactories: ProtoV5ProviderFactories,
+		ProtoV6ProviderFactories: ProtoV6ProviderFactories,
 		CheckDestroy: func(state *terraform.State) error {
 			return testAccCheckAutoScalingGroupDestroy(state, GetTestProvider(true))
 		},

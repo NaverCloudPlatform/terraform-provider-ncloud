@@ -13,8 +13,8 @@ func TestAccDataSourceNcloudServerImage_classic_byCode(t *testing.T) {
 	dataName := "data.ncloud_server_image.test1"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:  func() { TestAccPreCheck(t) },
-		Providers: GetTestAccProviders(false),
+		PreCheck:                 func() { TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: ClassicProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccDataSourceNcloudServerImageByCodeConfig("SPSW0LINUX000046"),
@@ -37,8 +37,8 @@ func TestAccDataSourceNcloudServerImage_vpc_byCode(t *testing.T) {
 	dataName := "data.ncloud_server_image.test1"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:  func() { TestAccPreCheck(t) },
-		Providers: GetTestAccProviders(true),
+		PreCheck:                 func() { TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: ProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccDataSourceNcloudServerImageByCodeConfig("SW.VSVR.OS.LNX64.CNTOS.0703.B050"),
@@ -59,8 +59,8 @@ func TestAccDataSourceNcloudServerImage_vpc_byCode(t *testing.T) {
 
 func TestAccDataSourceNcloudServerImage_classic_byFilterProductCode(t *testing.T) {
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:  func() { TestAccPreCheck(t) },
-		Providers: GetTestAccProviders(false),
+		PreCheck:                 func() { TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: ClassicProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccDataSourceNcloudServerImageByFilterProductCodeConfig("SPSW0LINUX000139"),
@@ -74,8 +74,8 @@ func TestAccDataSourceNcloudServerImage_classic_byFilterProductCode(t *testing.T
 
 func TestAccDataSourceNcloudServerImage_vpc_byFilterProductCode(t *testing.T) {
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:  func() { TestAccPreCheck(t) },
-		Providers: GetTestAccProviders(true),
+		PreCheck:                 func() { TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: ProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccDataSourceNcloudServerImageByFilterProductCodeConfig("SW.VSVR.OS.LNX64.CNTOS.0703.B050"),
@@ -97,8 +97,8 @@ func TestAccDataSourceNcloudServerImage_vpc_byFilterProductName(t *testing.T) {
 
 func testAccDataSourceNcloudServerImageByFilterProductName(t *testing.T, isVpc bool) {
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:  func() { TestAccPreCheck(t) },
-		Providers: GetTestAccProviders(isVpc),
+		PreCheck:                 func() { TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: GetTestProviderFactories(isVpc),
 		Steps: []resource.TestStep{
 			{
 				Config: testAccDataSourceNcloudServerImageByFilterProductNameConfig,
@@ -120,8 +120,8 @@ func TestAccDataSourceNcloudServerImage_vpc_byBlockStorageSize(t *testing.T) {
 
 func testAccDataSourceNcloudServerImageByBlockStorageSize(t *testing.T, isVpc bool) {
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:  func() { TestAccPreCheck(t) },
-		Providers: GetTestAccProviders(isVpc),
+		PreCheck:                 func() { TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: GetTestProviderFactories(isVpc),
 		Steps: []resource.TestStep{
 			{
 				Config: testAccDataSourceNcloudServerImageByBlockStorageSizeConfig,
@@ -137,8 +137,8 @@ func TestAccDataSourceNcloudServerImage_vpc_byPlatformType(t *testing.T) {
 	dataName := "data.ncloud_server_image.test5"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:  func() { TestAccPreCheck(t) },
-		Providers: GetTestAccProviders(true),
+		PreCheck:                 func() { TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: ProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccDataSourceNcloudServerImageByPlatformTypeConfig("LNX64"),
