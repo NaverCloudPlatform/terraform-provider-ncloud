@@ -141,6 +141,7 @@ func (m *mysqlResource) Schema(_ context.Context, _ resource.SchemaRequest, resp
 						"Must have at least 1 special characters except ` & + \\ \" ' / and white space.",
 					),
 				},
+				Sensitive: true,
 			},
 			"host_ip": schema.StringAttribute{
 				Required: true,
