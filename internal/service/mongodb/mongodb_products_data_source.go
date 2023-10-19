@@ -195,14 +195,3 @@ type mongodbProductModel struct {
 	MemorySize         types.Int64  `tfsdk:"memory_size"`
 	DiskType           types.String `tfsdk:"disk_type"`
 }
-
-func (m *mongodbProductModel) refreshFromOutput(output *vmongodb.Product) {
-	m.ProductCode = types.StringPointerValue(output.ProductCode)
-	m.ProductName = types.StringPointerValue(output.ProductName)
-	m.ProductType = types.StringPointerValue(output.ProductType.Code)
-	m.ProductDescription = types.StringPointerValue(output.ProductDescription)
-	m.InfraResourceType = types.StringPointerValue(output.InfraResourceType.Code)
-	m.CpuCount = types.Int64Value(int64(*output.CpuCount))
-	m.MemorySize = types.Int64PointerValue(output.MemorySize)
-	m.DiskType = types.StringPointerValue(output.DiskType.Code)
-}
