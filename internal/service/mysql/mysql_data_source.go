@@ -61,24 +61,6 @@ func (m *mysqlDataSource) Schema(ctx context.Context, req datasource.SchemaReque
 				Optional: true,
 				Computed: true,
 			},
-			"name_prefix": schema.StringAttribute{
-				Computed: true,
-			},
-			"user_name": schema.StringAttribute{
-				Computed: true,
-			},
-			"user_password": schema.StringAttribute{
-				Computed: true,
-			},
-			"host_ip": schema.StringAttribute{
-				Computed: true,
-			},
-			"database_name": schema.StringAttribute{
-				Computed: true,
-			},
-			"subnet_no": schema.StringAttribute{
-				Computed: true,
-			},
 			"engine_version_code": schema.StringAttribute{
 				Computed: true,
 			},
@@ -91,9 +73,6 @@ func (m *mysqlDataSource) Schema(ctx context.Context, req datasource.SchemaReque
 			"is_multi_zone": schema.BoolAttribute{
 				Computed: true,
 			},
-			"is_storage_encryption": schema.BoolAttribute{
-				Computed: true,
-			},
 			"is_backup": schema.BoolAttribute{
 				Computed: true,
 			},
@@ -103,13 +82,7 @@ func (m *mysqlDataSource) Schema(ctx context.Context, req datasource.SchemaReque
 			"backup_time": schema.StringAttribute{
 				Computed: true,
 			},
-			"is_automatic_backup": schema.BoolAttribute{
-				Computed: true,
-			},
 			"port": schema.Int64Attribute{
-				Computed: true,
-			},
-			"standby_master_subnet_no": schema.StringAttribute{
 				Computed: true,
 			},
 			"vpc_no": schema.StringAttribute{
@@ -128,9 +101,6 @@ func (m *mysqlDataSource) Schema(ctx context.Context, req datasource.SchemaReque
 			"mysql_config_list": schema.ListAttribute{
 				ElementType: types.StringType,
 				Computed:    true,
-			},
-			"create_date": schema.StringAttribute{
-				Computed: true,
 			},
 			"mysql_server_list": schema.ListNestedAttribute{
 				NestedObject: schema.NestedAttributeObject{
@@ -187,9 +157,6 @@ func (m *mysqlDataSource) Schema(ctx context.Context, req datasource.SchemaReque
 							Computed: true,
 						},
 						"uptime": schema.StringAttribute{
-							Computed: true,
-						},
-						"create_date": schema.StringAttribute{
 							Computed: true,
 						},
 					},
@@ -308,7 +275,6 @@ func (m *mysqlDataSourceModel) refreshFromOutput(ctx context.Context, output *vm
 	m.BackupTime = types.StringPointerValue(output.BackupTime)
 	m.Port = types.Int64Value(int64(*output.CloudMysqlPort))
 	m.ImageProductCode = types.StringPointerValue(output.CloudMysqlImageProductCode)
-	m.CreateDate = types.StringPointerValue(output.CreateDate)
 	m.InstanceNo = types.StringPointerValue(output.CloudMysqlInstanceNo)
 	m.VpcNo = types.StringPointerValue(output.CloudMysqlServerInstanceList[0].VpcNo)
 	m.DataStorageTypeCode = types.StringPointerValue(output.CloudMysqlServerInstanceList[0].DataStorageType.Code)
@@ -337,7 +303,6 @@ func (m *mysqlDataSourceModel) refreshFromOutput(ctx context.Context, output *vm
 			CpuCount:               types.Int64Value(int64(*server.CpuCount)),
 			MemorySize:             types.Int64Value(*server.MemorySize),
 			Uptime:                 types.StringPointerValue(server.Uptime),
-			CreateDate:             types.StringPointerValue(server.CreateDate),
 		}
 		if server.PublicDomain != nil {
 			mysqlServerInstance.PublicDomain = types.StringPointerValue(server.PublicDomain)
@@ -355,28 +320,18 @@ func (m *mysqlDataSourceModel) refreshFromOutput(ctx context.Context, output *vm
 
 type mysqlDataSourceModel struct {
 	ServiceName               types.String `tfsdk:"service_name"`
-	NamePrefix                types.String `tfsdk:"name_prefix"`
-	UserName                  types.String `tfsdk:"user_name"`
-	UserPassword              types.String `tfsdk:"user_password"`
-	HostIp                    types.String `tfsdk:"host_ip"`
-	DatabaseName              types.String `tfsdk:"database_name"`
-	SubnetNo                  types.String `tfsdk:"subnet_no"`
 	EngineVersionCode         types.String `tfsdk:"engine_version_code"`
 	DataStorageTypeCode       types.String `tfsdk:"data_storage_type_code"`
 	IsHa                      types.Bool   `tfsdk:"is_ha"`
 	IsMultiZone               types.Bool   `tfsdk:"is_multi_zone"`
-	IsStorageEncryption       types.Bool   `tfsdk:"is_storage_encryption"`
 	IsBackup                  types.Bool   `tfsdk:"is_backup"`
 	BackupFileRetentionPeriod types.Int64  `tfsdk:"backup_file_retention_period"`
 	BackupTime                types.String `tfsdk:"backup_time"`
-	IsAutomaticBackup         types.Bool   `tfsdk:"is_automatic_backup"`
 	Port                      types.Int64  `tfsdk:"port"`
-	StandbyMasterSubnetNo     types.String `tfsdk:"standby_master_subnet_no"`
 	VpcNo                     types.String `tfsdk:"vpc_no"`
 	ImageProductCode          types.String `tfsdk:"image_product_code"`
 	InstanceNo                types.String `tfsdk:"instance_no"`
 	ID                        types.String `tfsdk:"id"`
-	CreateDate                types.String `tfsdk:"create_date"`
 	AccessControlGroupNoList  types.List   `tfsdk:"access_control_group_no_list"`
 	MysqlConfigList           types.List   `tfsdk:"mysql_config_list"`
 	MysqlServerList           types.List   `tfsdk:"mysql_server_list"`
@@ -402,7 +357,6 @@ type mysqlServerDataSourceModel struct {
 	CpuCount               types.Int64  `tfsdk:"cpu_count"`
 	MemorySize             types.Int64  `tfsdk:"memory_size"`
 	Uptime                 types.String `tfsdk:"uptime"`
-	CreateDate             types.String `tfsdk:"create_date"`
 }
 
 func (m mysqlServerDataSourceModel) attrTypes() map[string]attr.Type {
@@ -425,6 +379,5 @@ func (m mysqlServerDataSourceModel) attrTypes() map[string]attr.Type {
 		"cpu_count":                 types.Int64Type,
 		"memory_size":               types.Int64Type,
 		"uptime":                    types.StringType,
-		"create_date":               types.StringType,
 	}
 }
