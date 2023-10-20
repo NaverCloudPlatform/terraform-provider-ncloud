@@ -26,6 +26,8 @@ import (
 	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/services/vpc"
 	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/services/vsourcedeploy"
 	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/services/vsourcepipeline"
+
+	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/services/vmysql"
 )
 
 // DefaultWaitForInterval is Interval for checking status in WaitForXXX method
@@ -65,6 +67,7 @@ type NcloudAPIClient struct {
 	Vsourcedeploy   *vsourcedeploy.APIClient
 	Vses            *vses2.APIClient
 	Vcdss           *vcdss.APIClient
+	Vmysql          *vmysql.APIClient
 }
 
 func (c *Config) Client() (*NcloudAPIClient, error) {
@@ -93,6 +96,7 @@ func (c *Config) Client() (*NcloudAPIClient, error) {
 		Vsourcepipeline: vsourcepipeline.NewAPIClient(vsourcepipeline.NewConfiguration(c.Region, apiKey)),
 		Vses:            vses2.NewAPIClient(vses2.NewConfiguration(c.Region, apiKey)),
 		Vcdss:           vcdss.NewAPIClient(vcdss.NewConfiguration(c.Region, apiKey)),
+		Vmysql:          vmysql.NewAPIClient(vmysql.NewConfiguration(apiKey)),
 	}, nil
 }
 
