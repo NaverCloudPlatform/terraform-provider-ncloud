@@ -129,7 +129,7 @@ func (m *mongodbProductsDataSource) Read(ctx context.Context, req datasource.Rea
 		reqParams.ExclusionProductCode = data.ExclusionProductCode.ValueStringPointer()
 	}
 
-	tflog.Info(ctx, "GetMysqlProductsList", map[string]any{
+	tflog.Info(ctx, "GetMongoDbProductsList", map[string]any{
 		"reqParams": common.MarshalUncheckedString(reqParams),
 	})
 

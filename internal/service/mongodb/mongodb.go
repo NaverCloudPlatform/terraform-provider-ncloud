@@ -483,7 +483,7 @@ func waitForNcloudMongoDbActive(ctx context.Context, config *conn.ProviderConfig
 
 	_, err := stateConf.WaitForState()
 	if err != nil {
-		return nil, fmt.Errorf("error waiting for MysqlInstance state to be \"CREAT\": %s", err)
+		return nil, fmt.Errorf("error waiting for MongoDbInstance state to be \"CREAT\": %s", err)
 	}
 
 	return mongodbInstance, nil

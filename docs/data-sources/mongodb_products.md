@@ -19,7 +19,7 @@ data "ncloud_mongodb_products" "all" {
 
 The following arguments are supported:
 
-* `image_product_code` - (Required) You can get one from `data ncloud_mongodb_image_product`. This is a required value, and each available mysql's specification varies depending on the mongodb image product.
+* `image_product_code` - (Required) You can get one from `data ncloud_mongodb_image_product`. This is a required value, and each available MongoDB's specification varies depending on the mongodb image product.
 * `product_code` - (Optional) Product code to search from the list. Use it for a single search.
 * `exclusion_product_code` - (Optional) Product code to exclude.
 * `infra_resource_detail_type_code` - (Optional) Cloud for MongoDB Other Server infra Detailed Product Code. Options : MNGOD | MNGOS | ARBIT | CFGSV
