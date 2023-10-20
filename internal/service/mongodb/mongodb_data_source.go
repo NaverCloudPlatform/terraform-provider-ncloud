@@ -74,12 +74,6 @@ func (m *mongodbDataSource) Schema(_ context.Context, _ datasource.SchemaRequest
 				Optional: true,
 				Computed: true,
 			},
-			"user_name": schema.StringAttribute{
-				Computed: true,
-			},
-			"user_password": schema.StringAttribute{
-				Computed: true,
-			},
 			"engine_version": schema.StringAttribute{
 				Computed: true,
 			},
@@ -276,8 +270,6 @@ type mongodbDataSourceModel struct {
 	VpcNo                          types.String `tfsdk:"vpc_no"`
 	SubnetNo                       types.String `tfsdk:"subnet_no"`
 	ClusterType                    types.String `tfsdk:"cluster_type_code"`
-	UserName                       types.String `tfsdk:"user_name"`
-	UserPassword                   types.String `tfsdk:"user_password"`
 	EngineVersion                  types.String `tfsdk:"engine_version"`
 	CloudMongoDbImageProductCode   types.String `tfsdk:"image_product_code"`
 	BackupFileRetentionPeriod      types.Int64  `tfsdk:"backup_file_retention_period"`
