@@ -3,7 +3,7 @@ subcategory: "MySQL"
 ---
 
 
-# Data Source: ncloud_server_product
+# Data Source: ncloud_mysql_product
 
 You should select a MySQL server product (MySQL server specification) to create a MySQL instance (VM).
 To this end, we provide data source by which you can search a MySQL server product.
