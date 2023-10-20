@@ -2,8 +2,10 @@ package mysql_test
 
 import (
 	"fmt"
+
 	randacctest "github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+
 	"github.com/terraform-providers/terraform-provider-ncloud/internal/acctest"
 
 	. "github.com/terraform-providers/terraform-provider-ncloud/internal/acctest"
@@ -73,7 +75,7 @@ func testAccDataSourceMysqlConfig(testMysqlName string) string {
 
 		data "ncloud_mysql" "by_filter" {
 			filter {
-				name = "instance_no"
+				name = "id"
 				values = [ncloud_mysql.mysql.id]
 			}
 		}

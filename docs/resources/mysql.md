@@ -79,7 +79,6 @@ The following arguments are supported:
 
 ## Attributes Reference
 
-* `instance_no` - The ID of MySQL instance.
 * `vpc_no` - The ID of the associated Vpc.
 * `mysql_server_list` - The list of the MySQL server.
 

@@ -4,6 +4,10 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"regexp"
+	"strings"
+	"time"
+
 	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/ncloud"
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/path"
@@ -12,9 +16,6 @@ import (
 	sdkresource "github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/terraform-providers/terraform-provider-ncloud/internal/common"
 	"github.com/terraform-providers/terraform-provider-ncloud/internal/service/vpc"
-	"regexp"
-	"strings"
-	"time"
 
 	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/services/vmysql"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
@@ -658,7 +659,7 @@ func WaitForMysqlDeletion(ctx context.Context, config *conn.ProviderConfig, id s
 	}
 
 	if _, err := stateConf.WaitForState(); err != nil {
-		return fmt.Errorf("Error waiting for mysql (%s) to become termintaing: %s", id, err)
+		return fmt.Errorf("error waiting for mysql (%s) to become termintaing: %s", id, err)
 	}
 
 	return nil

@@ -3,6 +3,7 @@ package mysql
 import (
 	"context"
 	"fmt"
+
 	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/services/vmysql"
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
@@ -89,9 +90,6 @@ func (m *mysqlDataSource) Schema(ctx context.Context, req datasource.SchemaReque
 				Computed: true,
 			},
 			"image_product_code": schema.StringAttribute{
-				Computed: true,
-			},
-			"instance_no": schema.StringAttribute{
 				Computed: true,
 			},
 			"access_control_group_no_list": schema.ListAttribute{
@@ -275,7 +273,6 @@ func (m *mysqlDataSourceModel) refreshFromOutput(ctx context.Context, output *vm
 	m.BackupTime = types.StringPointerValue(output.BackupTime)
 	m.Port = types.Int64Value(int64(*output.CloudMysqlPort))
 	m.ImageProductCode = types.StringPointerValue(output.CloudMysqlImageProductCode)
-	m.InstanceNo = types.StringPointerValue(output.CloudMysqlInstanceNo)
 	m.VpcNo = types.StringPointerValue(output.CloudMysqlServerInstanceList[0].VpcNo)
 	m.DataStorageTypeCode = types.StringPointerValue(output.CloudMysqlServerInstanceList[0].DataStorageType.Code)
 
@@ -330,7 +327,6 @@ type mysqlDataSourceModel struct {
 	Port                      types.Int64  `tfsdk:"port"`
 	VpcNo                     types.String `tfsdk:"vpc_no"`
 	ImageProductCode          types.String `tfsdk:"image_product_code"`
-	InstanceNo                types.String `tfsdk:"instance_no"`
 	ID                        types.String `tfsdk:"id"`
 	AccessControlGroupNoList  types.List   `tfsdk:"access_control_group_no_list"`
 	MysqlConfigList           types.List   `tfsdk:"mysql_config_list"`

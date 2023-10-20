@@ -49,7 +49,6 @@ The following arguments are supported:
 * `data_storage_type_code` - The type of data storage.
 * `port` - Port of MySQL instance.
 * `vpc_no` - The ID of the associated VPC. 
-* `instance_no` - The ID of MySQL instance. (It is the same result as `id`)
 * `mysql_config_list` - The list of config.
 * `access_control_group_no_list` - The list of access control group number.
 * `mysql_server_list` The list of MySQL server instance.
