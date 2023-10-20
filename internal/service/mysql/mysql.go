@@ -278,9 +278,6 @@ func (m *mysqlResource) Schema(_ context.Context, _ resource.SchemaRequest, resp
 				ElementType: types.StringType,
 				Computed:    true,
 			},
-			"create_date": schema.StringAttribute{
-				Computed: true,
-			},
 			"mysql_server_list": schema.ListNestedAttribute{
 				NestedObject: schema.NestedAttributeObject{
 					Attributes: map[string]schema.Attribute{
@@ -336,9 +333,6 @@ func (m *mysqlResource) Schema(_ context.Context, _ resource.SchemaRequest, resp
 							Computed: true,
 						},
 						"uptime": schema.StringAttribute{
-							Computed: true,
-						},
-						"create_date": schema.StringAttribute{
 							Computed: true,
 						},
 					},
@@ -746,7 +740,6 @@ type mysqlResourceModel struct {
 	ProductCode               types.String `tfsdk:"product_code"`
 	InstanceNo                types.String `tfsdk:"instance_no"`
 	ID                        types.String `tfsdk:"id"`
-	CreateDate                types.String `tfsdk:"create_date"`
 	AccessControlGroupNoList  types.List   `tfsdk:"access_control_group_no_list"`
 	MysqlConfigList           types.List   `tfsdk:"mysql_config_list"`
 	MysqlServerList           types.List   `tfsdk:"mysql_server_list"`
@@ -771,7 +764,6 @@ type mysqlServer struct {
 	CpuCount               types.Int64  `tfsdk:"cpu_count"`
 	MemorySize             types.Int64  `tfsdk:"memory_size"`
 	Uptime                 types.String `tfsdk:"uptime"`
-	CreateDate             types.String `tfsdk:"create_date"`
 }
 
 func (m mysqlServer) attrTypes() map[string]attr.Type {
@@ -794,7 +786,6 @@ func (m mysqlServer) attrTypes() map[string]attr.Type {
 		"cpu_count":                 types.Int64Type,
 		"memory_size":               types.Int64Type,
 		"uptime":                    types.StringType,
-		"create_date":               types.StringType,
 	}
 }
 
@@ -809,7 +800,6 @@ func (m *mysqlResourceModel) refreshFromOutput(ctx context.Context, output *vmys
 	m.BackupTime = types.StringPointerValue(output.BackupTime)
 	m.Port = types.Int64Value(int64(*output.CloudMysqlPort))
 	m.ImageProductCode = types.StringPointerValue(output.CloudMysqlImageProductCode)
-	m.CreateDate = types.StringPointerValue(output.CreateDate)
 	m.InstanceNo = types.StringPointerValue(output.CloudMysqlInstanceNo)
 	m.IsStorageEncryption = types.BoolPointerValue(output.CloudMysqlServerInstanceList[0].IsStorageEncryption)
 	acgList, _ := types.ListValueFrom(ctx, types.StringType, output.AccessControlGroupNoList)
@@ -836,7 +826,6 @@ func (m *mysqlResourceModel) refreshFromOutput(ctx context.Context, output *vmys
 			CpuCount:               types.Int64Value(int64(*server.CpuCount)),
 			MemorySize:             types.Int64Value(*server.MemorySize),
 			Uptime:                 types.StringPointerValue(server.Uptime),
-			CreateDate:             types.StringPointerValue(server.CreateDate),
 		}
 
 		if server.PublicDomain != nil {
