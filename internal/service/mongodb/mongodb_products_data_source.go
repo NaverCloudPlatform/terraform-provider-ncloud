@@ -50,7 +50,7 @@ func (m *mongodbProductsDataSource) Configure(ctx context.Context, req datasourc
 }
 
 func (m *mongodbProductsDataSource) Metadata(ctx context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
-	resp.TypeName = req.ProviderTypeName + "_mongodb_product_list"
+	resp.TypeName = req.ProviderTypeName + "_mongodb_products"
 }
 
 func (m *mongodbProductsDataSource) Schema(ctx context.Context, req datasource.SchemaRequest, resp *datasource.SchemaResponse) {
@@ -148,12 +148,24 @@ func (m *mongodbProductsDataSource) Read(ctx context.Context, req datasource.Rea
 		"mongodbProductResponse": common.MarshalUncheckedString(mongodbProductResp),
 	})
 
-	mongodbProductList := flattenMongoDbProducts(ctx, mongodbProductResp.ProductList)
+	mongodbProductList := flattenMongoDbProductLists(ctx, mongodbProductResp.ProductList)
 	fillteredList := common.FilterModels(ctx, data.Filters, mongodbProductList)
 
 	data.refreshFromOutput(ctx, fillteredList)
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
+}
+
+func flattenMongoDbProductLists(ctx context.Context, list []*vmongodb.Product) []*mongodbProductModel {
+	var outputs []*mongodbProductModel
+
+	for _, v := range list {
+		var output mongodbProductModel
+		output.refreshFromOutput(ctx, v)
+
+		outputs = append(outputs, &output)
+	}
+	return outputs
 }
 
 type mongodbProductsDataSourceModel struct {
@@ -164,6 +176,23 @@ type mongodbProductsDataSourceModel struct {
 	ExclusionProductCode         types.String `tfsdk:"exclusion_product_code"`
 	ProductList                  types.List   `tfsdk:"product_list"`
 	Filters                      types.Set    `tfsdk:"filter"`
+}
+
+func (m *mongodbProductsDataSourceModel) refreshFromOutput(ctx context.Context, list []*mongodbProductModel) {
+	m.ID = types.StringValue(time.Now().UTC().String())
+	productListValue, _ := types.ListValueFrom(ctx, types.ObjectType{AttrTypes: mongodbProductModel{}.attrTypes()}, list)
+	m.ProductList = productListValue
+}
+
+type mongodbProductModel struct {
+	ProductCode        types.String `tfsdk:"product_code"`
+	ProductName        types.String `tfsdk:"product_name"`
+	ProductType        types.String `tfsdk:"product_type"`
+	ProductDescription types.String `tfsdk:"product_description"`
+	InfraResourceType  types.String `tfsdk:"infra_resource_type"`
+	CpuCount           types.Int64  `tfsdk:"cpu_count"`
+	MemorySize         types.Int64  `tfsdk:"memory_size"`
+	DiskType           types.String `tfsdk:"disk_type"`
 }
 
 func (m mongodbProductModel) attrTypes() map[string]attr.Type {
@@ -179,19 +208,13 @@ func (m mongodbProductModel) attrTypes() map[string]attr.Type {
 	}
 }
 
-func (m *mongodbProductsDataSourceModel) refreshFromOutput(ctx context.Context, list []*mongodbProductDataSourceModel) {
-	m.ID = types.StringValue(time.Now().UTC().String())
-	productListValue, _ := types.ListValueFrom(ctx, types.ObjectType{AttrTypes: mongodbProductModel{}.attrTypes()}, list)
-	m.ProductList = productListValue
-}
-
-type mongodbProductModel struct {
-	ProductCode        types.String `tfsdk:"product_code"`
-	ProductName        types.String `tfsdk:"product_name"`
-	ProductType        types.String `tfsdk:"product_type"`
-	ProductDescription types.String `tfsdk:"product_description"`
-	InfraResourceType  types.String `tfsdk:"infra_resource_type"`
-	CpuCount           types.Int64  `tfsdk:"cpu_count"`
-	MemorySize         types.Int64  `tfsdk:"memory_size"`
-	DiskType           types.String `tfsdk:"disk_type"`
+func (m *mongodbProductModel) refreshFromOutput(ctx context.Context, output *vmongodb.Product) {
+	m.ProductCode = types.StringPointerValue(output.ProductCode)
+	m.ProductName = types.StringPointerValue(output.ProductName)
+	m.ProductType = types.StringPointerValue(output.ProductType.Code)
+	m.ProductDescription = types.StringPointerValue(output.ProductDescription)
+	m.InfraResourceType = types.StringPointerValue(output.InfraResourceType.Code)
+	m.CpuCount = types.Int64Value(int64(*output.CpuCount))
+	m.MemorySize = types.Int64Value(int64(*output.MemorySize))
+	m.DiskType = types.StringPointerValue(output.DiskType.Code)
 }
