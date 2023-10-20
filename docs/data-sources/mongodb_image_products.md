@@ -3,17 +3,15 @@ subcategory: "MongoDb"
 ---
 
 
-# Data Source: ncloud_mongodb_image_product
+# Data Source: ncloud_mongodb_image_products
 
-Provides MongoDB image product to create MongoDB instance.
+
+Provides MongoDB a number of image products to create MongoDB instance.
 
 ## Example Usage
 
 ```hcl
-data "ncloud_mongodb_image_product" "mongodb_image_product" {
-  product_code = "SW.VMGDB.LNX64.CNTOS.0708.MNGDB.4223.CE.B050"
-  generation_code = "G2"
-
+data "ncloud_mongodb_image_products" "mongodb_products" {
   filter {
     name   = "product_name"
     values = ["MongoDB 4.2.23 Community Edition"]
@@ -25,7 +23,7 @@ data "ncloud_mongodb_image_product" "mongodb_image_product" {
 
 The following arguments are supported:
 
-* `product_code` - (Optional) Product code to search from a mongodb product list. Use it for a single search.
+* `product_code` - (Optional) Product code.
 * `exclusion_product_code` - (Optional) Product code to exclude.
 * `generation_code` - (Optional) Generation code. It can be `G2` or `G3`.
 * `filter` - (Optional) Custom filter block as described below.
@@ -35,10 +33,17 @@ The following arguments are supported:
 
 ## Attributes Reference
 
-* `id` - The ID of mongodb product.
+* `id` - The ID of mongodb products.
+* `image_product_list` - MongoDb Image product list
+
+The `image_product_list` object support the following:
+
+* `product_code` - MongoDb product code.
+* `generation_code` - Generation code.
 * `product_name` - MongoDb product name.
 * `product_type` - MongoDb Product type code.
 * `infra_resource_type` - MongoDb infra resource type.
 * `product_description` - MongoDb product description.
 * `platform_type` - Platform type.
 * `os_information` - OS information.
+

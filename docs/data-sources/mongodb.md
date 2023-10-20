@@ -46,3 +46,24 @@ The following arguments are supported:
 * `backup_time` - The backup time of the MongoDb database.
 * `image_product_code` - The image product code of the MongoDb instance.
 * `server_instance_list` The list of MongoDb server instances.
+
+The `server_instance_list` object supports the following:
+
+* `server_instance_no` - Server instance number
+* `server_name` - Name of the server
+* `cluster_role` - Cluster role
+* `server_role` - Server role
+* `region_code` - Region code
+* `vpc_no` - The ID of the vpc
+* `subnet_no` - The ID of the subnet
+* `uptime` - Uptime
+* `zone_code` - Zone code
+* `private_domain` - Name of the private domain
+* `public_domain` - Name of the public domain
+* `memory_size` - Memory size
+* `cpu_count` - the number of the virtual CPU
+* `data_storage_size` - Data storage size
+* `used_data_storage_size` - Used data storage size
+* `product_code` - Product code
+* `replica_set_name` - Name of the replica set
+* `data_storage_type` - type of data storage

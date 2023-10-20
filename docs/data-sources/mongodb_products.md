@@ -3,23 +3,15 @@ subcategory: "MongoDb"
 ---
 
 
-# Data Source: ncloud_mongodb_product
+# Data Source: ncloud_mongodb_products
 
-Provides available Cloud DB for MongoDB server specification codes.
+Provides the list of available Cloud DB for MongoDB server specification codes.
 
 ## Example Usage
 
 ```hcl
-data "ncloud_mongodb_product" "mongodb_product" {
+data "ncloud_mongodb_products" "all" {
   image_product_code = "SW.VMGDB.LNX64.CNTOS.0708.MNGDB.4223.CE.B050"
-  product_code = "SVR.VMGDB.MNGOS.STAND.C002.M008.NET.SSD.B050.G002"
-  infra_resource_detail_type_code = "MNGOS"
-  exclusion_product_code = "SVR.VMGDB.MNGOS.HICPU.C004.M008.NET.SSD.B050.G00"
-  
-  filter {
-    name   = "product_type"
-    values = ["STAND"]
-  }
 }
 ```
 
@@ -39,6 +31,11 @@ The following arguments are supported:
 ## Attributes Reference
 
 * `id` - The ID of mongodb product.
+* `product_list` - MongoDB product list
+
+The `product_list` object support following:
+
+* `product_code` - Product code.
 * `product_name` - Product name.
 * `product_type` - Product type code.
 * `product_description` - Product description.
