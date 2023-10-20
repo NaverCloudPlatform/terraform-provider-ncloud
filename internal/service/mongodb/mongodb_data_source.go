@@ -19,8 +19,8 @@ import (
 )
 
 var (
-	_ datasource.DataSource = &mongodbDataSource{}
-	_ datasource.DataSource = &mongodbDataSource{}
+	_ datasource.DataSource              = &mongodbDataSource{}
+	_ datasource.DataSourceWithConfigure = &mongodbDataSource{}
 )
 
 func NewMongoDbDataSource() datasource.DataSource {
@@ -82,12 +82,10 @@ func (m *mongodbDataSource) Schema(_ context.Context, _ datasource.SchemaRequest
 				Computed: true,
 			},
 			"backup_file_retention_period": schema.Int64Attribute{
-				Computed:    true,
-				Description: "default: 1(1 day)",
+				Computed: true,
 			},
 			"backup_time": schema.StringAttribute{
-				Computed:    true,
-				Description: "default: 02:00",
+				Computed: true,
 			},
 			"shard_count": schema.Int64Attribute{
 				Computed: true,
@@ -130,6 +128,9 @@ func (m *mongodbDataSource) Schema(_ context.Context, _ datasource.SchemaRequest
 						"private_domain": schema.StringAttribute{
 							Computed: true,
 						},
+						"public_domain": schema.StringAttribute{
+							Computed: true,
+						},
 						"memory_size": schema.Int64Attribute{
 							Computed: true,
 						},
@@ -140,6 +141,9 @@ func (m *mongodbDataSource) Schema(_ context.Context, _ datasource.SchemaRequest
 							Computed: true,
 						},
 						"used_data_storage_size": schema.Int64Attribute{
+							Computed: true,
+						},
+						"product_code": schema.StringAttribute{
 							Computed: true,
 						},
 						"replica_set_name": schema.StringAttribute{
@@ -291,10 +295,12 @@ type mongodbServer struct {
 	Uptime                       types.String `tfsdk:"uptime"`
 	ZoneCode                     types.String `tfsdk:"zone_code"`
 	PrivateDomain                types.String `tfsdk:"private_domain"`
+	PublicDomain                 types.String `tfsdk:"public_domain"`
 	MemorySize                   types.Int64  `tfsdk:"memory_size"`
 	CpuCount                     types.Int64  `tfsdk:"cpu_count"`
 	DataStorageSize              types.Int64  `tfsdk:"data_storage_size"`
 	UsedDataStorageSize          types.Int64  `tfsdk:"used_data_storage_size"`
+	ProductCode                  types.String `tfsdk:"product_code"`
 	ReplicaSetName               types.String `tfsdk:"replica_set_name"`
 	DataStorageType              types.String `tfsdk:"data_storage_type"`
 }
@@ -311,10 +317,12 @@ func (m mongodbServer) attrTypes() map[string]attr.Type {
 		"uptime":                 types.StringType,
 		"zone_code":              types.StringType,
 		"private_domain":         types.StringType,
+		"public_domain":          types.StringType,
 		"memory_size":            types.Int64Type,
 		"cpu_count":              types.Int64Type,
 		"data_storage_size":      types.Int64Type,
 		"used_data_storage_size": types.Int64Type,
+		"product_code":           types.StringType,
 		"replica_set_name":       types.StringType,
 		"data_storage_type":      types.StringType,
 	}
@@ -345,9 +353,11 @@ func (d *mongodbDataSourceModel) refreshFromOutput(ctx context.Context, output *
 			Uptime:                       types.StringPointerValue(server.Uptime),
 			ZoneCode:                     types.StringPointerValue(server.ZoneCode),
 			PrivateDomain:                types.StringPointerValue(server.PrivateDomain),
+			PublicDomain:                 types.StringPointerValue(server.PublicDomain),
 			MemorySize:                   types.Int64Value(*server.MemorySize),
 			CpuCount:                     types.Int64Value(*server.CpuCount),
 			DataStorageSize:              types.Int64Value(*server.DataStorageSize),
+			ProductCode:                  types.StringPointerValue(server.CloudMongoDbProductCode),
 			ReplicaSetName:               types.StringPointerValue(server.ReplicaSetName),
 			DataStorageType:              types.StringPointerValue(server.DataStorageType.Code),
 		}
