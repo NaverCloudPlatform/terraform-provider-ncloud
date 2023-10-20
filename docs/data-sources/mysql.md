@@ -42,10 +42,10 @@ The following arguments are supported:
 * `backup_file_retention_period` - The backup period of the MySQL database.
 * `backup_time` - The backup time of the MySQL database.
 * `image_product_code` - The image product code of the MySQL instance.
-* `engine_version` - The engine version of the specific MySQL to retrieve.
-* `is_ha` - Whether using high availability of the specific MySQL to retrieve.
-* `is_multi_zone` - Whether using multi zone of the specific MySQL to retrieve.
-* `is_backup` -  Whether using backup of the specific MySQL to retrieve.
+* `engine_version` - The engine version of the specific MySQL.
+* `is_ha` - Whether using high availability of the specific MySQL.
+* `is_multi_zone` - Whether using multi zone of the specific MySQL.
+* `is_backup` -  Whether using backup of the specific MySQL.
 * `data_storage_type_code` - The type of data storage.
 * `port` - Port of MySQL instance.
 * `vpc_no` - The ID of the associated VPC. 
