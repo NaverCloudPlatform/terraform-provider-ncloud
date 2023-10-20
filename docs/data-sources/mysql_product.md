@@ -1,12 +1,12 @@
 ---
-subcategory: "Mysql"
+subcategory: "MySQL"
 ---
 
 
 # Data Source: ncloud_server_product
 
-You should select a mysql server product (mysql server specification) to create a mysql instance (VM).
-To this end, we provide data source by which you can search a mysql server product.
+You should select a MySQL server product (MySQL server specification) to create a MySQL instance (VM).
+To this end, we provide data source by which you can search a MySQL server product.
 
 ## Example Usage
 
@@ -27,16 +27,17 @@ data "ncloud_mysql_product" "product" {
 
 The following arguments are supported:
 
-* `cloud_mysql_image_product_code` - (Required) You can get one from `data ncloud_mysql_image_product`. This is a required value, and each available mysql's specification varies depending on the mysql image product.
-* `product_code` - (Optional) Enter a product code to search from the list. Use it for a single search.
-* `exclusion_product_code` - (Optional) Enter a product code to exclude.
+* `cloud_mysql_image_product_code` - (Required) You can get one from `data ncloud_mysql_image_product`. This is a required value, and each available MySQL's specification varies depending on the MySQL image product.
+* `product_code` - (Optional) Product code you want to view on the list. Use this for a single search.
+* `exclusion_product_code` - (Optional) Product code you want to exclude on the list.
 * `filter` - (Optional) Custom filter block as described below.
-    * `name` - (Required) The name of the field to filter by
-    * `values` - (Required) Set of values that are accepted for the given field.
-    
+  * `name` - (Required) The name of the field to filter by****
+  * `values` - (Required) Set of values that are accepted for the given field.
+  * `regex` - (Optional) is `values` treated as a regular expression.
+
 ## Attributes Reference
 
-* `id` - The ID of mysql product.
+* `id` - The ID of MySQL product.
 * `product_name` - Product name.
 * `product_type` - Product type code.
 * `product_description` - Product description.
