@@ -1,11 +1,11 @@
 ---
-subcategory: "MongoDb"
+subcategory: "MongoDB"
 ---
 
 
 # Data Source: ncloud_mongodb
 
-Provides a Database Service MongoDb data.
+Provides a Database Service MongoDB data.
 
 ## Example Usage
 
@@ -26,12 +26,12 @@ data "ncloud_mongodb" "by_filter" {
 
 The following arguments are supported:
 
-* `id` - (Optional) The ID of the specific MongoDb to retrieve.
-* `service_name` - (Optional) The name of the specific MongoDb to retrieve.
-* `cluster_type_code` - (Optional) The cluster Type of MongoDb.
-* `image_product_code` - (Optional) The image product code of MongoDb.
-* `engine_version` - (Optional) The engine version of the specific MongoDb to retrieve.
-* `shard_count` - The number of MongoDb Shards.
+* `id` - (Optional) The ID of the specific MongoDB to retrieve.
+* `service_name` - (Optional) The name of the specific MongoDB to retrieve.
+* `cluster_type_code` - (Optional) The cluster Type of MongoDB.
+* `image_product_code` - (Optional) The image product code of MongoDB.
+* `engine_version` - (Optional) The engine version of the specific MongoDB to retrieve.
+* `shard_count` - The number of MongoDB Shards.
 * `filter` - (Optional) Custom filter block as described below.
   * `name` - (Required) The name of the field to filter by.
   * `values` - (Required) Set of values that are accepted for the given field.
@@ -42,10 +42,10 @@ The following arguments are supported:
 
 * `vpc_no` - The ID of the Vpc.
 * `subnet_no` - The ID of the Subnet.
-* `backup_file_retention_period` - The backup period of the MongoDb database.
-* `backup_time` - The backup time of the MongoDb database.
-* `image_product_code` - The image product code of the MongoDb instance.
-* `server_instance_list` The list of MongoDb server instances.
+* `backup_file_retention_period` - The backup period of the MongoDB database.
+* `backup_time` - The backup time of the MongoDB database.
+* `image_product_code` - The image product code of the MongoDB instance.
+* `server_instance_list` The list of MongoDB server instances.
 
 The `server_instance_list` object supports the following:
 

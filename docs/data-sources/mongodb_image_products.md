@@ -1,5 +1,5 @@
 ---
-subcategory: "MongoDb"
+subcategory: "MongoDB"
 ---
 
 
@@ -34,16 +34,16 @@ The following arguments are supported:
 ## Attributes Reference
 
 * `id` - The ID of mongodb products.
-* `image_product_list` - MongoDb Image product list
+* `image_product_list` - MongoDB image product list
 
 The `image_product_list` object support the following:
 
-* `product_code` - MongoDb product code.
+* `product_code` - MongoDB product code.
 * `generation_code` - Generation code.
-* `product_name` - MongoDb product name.
-* `product_type` - MongoDb Product type code.
-* `infra_resource_type` - MongoDb infra resource type.
-* `product_description` - MongoDb product description.
+* `product_name` - MongoDB product name.
+* `product_type` - MongoDB Product type code.
+* `infra_resource_type` - MongoDB infra resource type.
+* `product_description` - MongoDB product description.
 * `platform_type` - Platform type.
 * `os_information` - OS information.
 

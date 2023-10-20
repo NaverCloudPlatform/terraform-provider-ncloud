@@ -5,7 +5,7 @@ subcategory: "Database Service"
 
 # Resource: ncloud_mongodb
 
-Provides a Database Service MongoDb resource.
+Provides a Database Service MongoDB resource.
 
 ## Example Usage
 
@@ -40,12 +40,12 @@ resource "ncloud_mongodb" "mongodb" {
 The following arguments are supported:
 
 * `service_name` - (Required) Service name to create.
-* `user_name` - (Required) MongoDb User ID
-* `user_password` - (Required) MongoDb User Password
+* `user_name` - (Required) MongoDB User ID
+* `user_password` - (Required) MongoDB User Password
 * `vpc_no` - (Required) The ID of the associated Vpc.
 * `subnet_no` - (Required) The ID of the associated Subnet.
 * `cluster_type_code` - (Required) MongoDB cluster type code determines the cluster type of MongoDB. Options: STAND_ALONE | SINGLE_REPLICA_SET | SHARDED_CLUSTER
-* `image_product_code` - (Optional) MongoDB image product code, cloudMongoDbImageProductCode can be acquired as a productCode in getCloudMongoDbImageProductList action If not entered, it is created as a default value.
+* `image_product_code` - (Optional) MongoDB image product code, cloudMongoDBImageProductCode can be acquired as a productCode in getCloudMongoDBImageProductList action If not entered, it is created as a default value.
 * `member_product_code` - (Optional) 
 * `arbiter_product_code` - (Optional) 
 * `mongos_product_code` - (Optional) 
@@ -65,7 +65,7 @@ It can be selected between 3 and 7 units including the Arbiter server. Default: 
 * `member_port` - (Optional) TCP port number for access to the MongoDB Member Server.  Default: 17017
 * `mongos_port` - (Optional) TCP port number for access to the MongoDB Mongos Server.  Default: 17017
 * `config_port` - (Optional) TCP port number for access to the MongoDB Config Server.  Default: 17017
-* `compress_code` - (Optional) MongoDb Data Compression Algorithm Code allows you to select data compression algorithms provided by MongoDB.
+* `compress_code` - (Optional) MongoDB Data Compression Algorithm Code allows you to select data compression algorithms provided by MongoDB.
   
 ## Attributes Reference
 
@@ -76,7 +76,7 @@ In addition to all arguments above, the following attributes are exported:
 
 ## Import
 
-MongoDb Instance can be imported using the id(service_name), e.g.,
+MongoDB Instance can be imported using the id(service_name), e.g.,
 
 ```
 $ terraform import ncloud_mongodb.mongodb id

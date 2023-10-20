@@ -1,5 +1,5 @@
 ---
-subcategory: "MongoDb"
+subcategory: "MongoDB"
 ---
 
 
@@ -36,9 +36,9 @@ The following arguments are supported:
 ## Attributes Reference
 
 * `id` - The ID of mongodb product.
-* `product_name` - MongoDb product name.
-* `product_type` - MongoDb Product type code.
-* `infra_resource_type` - MongoDb infra resource type.
-* `product_description` - MongoDb product description.
+* `product_name` - MongoDB product name.
+* `product_type` - MongoDB Product type code.
+* `infra_resource_type` - MongoDB infra resource type.
+* `product_description` - MongoDB product description.
 * `platform_type` - Platform type.
 * `os_information` - OS information.

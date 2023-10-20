@@ -1,5 +1,5 @@
 ---
-subcategory: "MongoDb"
+subcategory: "MongoDB"
 ---
 
 
@@ -22,7 +22,7 @@ The following arguments are supported:
 * `image_product_code` - (Required) You can get one from `data ncloud_mongodb_image_product`. This is a required value, and each available mysql's specification varies depending on the mongodb image product.
 * `product_code` - (Optional) Product code to search from the list. Use it for a single search.
 * `exclusion_product_code` - (Optional) Product code to exclude.
-* `infra_resource_detail_type_code` - (Optional) Cloud for MongoDb Other Server infra Detailed Product Code. Options : MNGOD | MNGOS | ARBIT | CFGSV
+* `infra_resource_detail_type_code` - (Optional) Cloud for MongoDB Other Server infra Detailed Product Code. Options : MNGOD | MNGOS | ARBIT | CFGSV
 * `filter` - (Optional) Custom filter block as described below.
     * `name` - (Required) The name of the field to filter by
     * `values` - (Required) Set of values that are accepted for the given field.
