@@ -19,7 +19,7 @@ func TestAccDataSourceNcloudMongoDbImageProducts_basic(t *testing.T) {
 			{
 				Config: testAccDataSourceNcloudMongoDbImageProductsConfig_basic(productCode, generationCode),
 				Check: resource.ComposeTestCheckFunc(
-					acctest.TestAccCheckDataSourceID("data.ncloud_mongodb_image_product_list.all"),
+					acctest.TestAccCheckDataSourceID("data.ncloud_mongodb_image_products.all"),
 				),
 			},
 		},
@@ -28,7 +28,7 @@ func TestAccDataSourceNcloudMongoDbImageProducts_basic(t *testing.T) {
 
 func testAccDataSourceNcloudMongoDbImageProductsConfig_basic(productCode string, generationCode string) string {
 	return fmt.Sprintf(`
-data "ncloud_mongodb_image_product_list" "all" {
+data "ncloud_mongodb_image_products" "all" {
 	product_code = "%s"
 	generation_code = "%s"
 	

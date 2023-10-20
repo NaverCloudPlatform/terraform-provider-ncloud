@@ -3,6 +3,7 @@ package mongodb
 import (
 	"context"
 	"fmt"
+
 	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/services/vmongodb"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 
@@ -14,9 +15,10 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 
+	"time"
+
 	"github.com/terraform-providers/terraform-provider-ncloud/internal/common"
 	"github.com/terraform-providers/terraform-provider-ncloud/internal/conn"
-	"time"
 )
 
 var (
@@ -33,7 +35,7 @@ type mongodbImageProductsDataSource struct {
 }
 
 func (m *mongodbImageProductsDataSource) Metadata(ctx context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
-	resp.TypeName = req.ProviderTypeName + "_mongodb_image_product_list"
+	resp.TypeName = req.ProviderTypeName + "_mongodb_image_products"
 }
 
 func (m *mongodbImageProductsDataSource) Configure(ctx context.Context, req datasource.ConfigureRequest, resp *datasource.ConfigureResponse) {
