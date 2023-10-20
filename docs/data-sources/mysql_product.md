@@ -31,7 +31,7 @@ The following arguments are supported:
 * `product_code` - (Optional) Product code you want to view on the list. Use this for a single search.
 * `exclusion_product_code` - (Optional) Product code you want to exclude on the list.
 * `filter` - (Optional) Custom filter block as described below.
-  * `name` - (Required) The name of the field to filter by****
+  * `name` - (Required) The name of the field to filter by
   * `values` - (Required) Set of values that are accepted for the given field.
   * `regex` - (Optional) is `values` treated as a regular expression.
 
