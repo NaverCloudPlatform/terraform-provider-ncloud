@@ -122,23 +122,12 @@ func (m *mysqlResource) Schema(_ context.Context, _ resource.SchemaRequest, resp
 					stringplanmodifier.RequiresReplace(),
 				},
 				Validators: []validator.String{
-					stringvalidator.LengthAtLeast(8),
-					stringvalidator.LengthAtMost(20),
-					stringvalidator.RegexMatches(
-						regexp.MustCompile(`^[a-zA-Z0-9~!@#$%^*()\-_=\[\]\{\};:,.<>?]{8,20}$`),
-						"Must Combine at least one each of alphabets, numbers, special characters except ` & + \\ \" ' / and white space.",
-					),
-					stringvalidator.RegexMatches(
-						regexp.MustCompile(`.+[a-zA-Z]{1,}.+|.+[a-zA-Z]{1,}|[a-zA-Z]{1,}.+`),
-						"Must have at least 1 alphabet.",
-					),
-					stringvalidator.RegexMatches(
-						regexp.MustCompile(`.+[0-9]{1,}.+|.+[0-9]{1,}|[0-9]{1,}.+`),
-						"Must have at least 1 Number.",
-					),
-					stringvalidator.RegexMatches(
-						regexp.MustCompile(`.+[~!@#$%^*()\-_=\[\]\{\};:,.<>?].+|.+[~!@#$%^*()\-_=\[\]\{\};:,.<>?]|[~!@#$%^*()\-_=\[\]\{\};:,.<>?].+`),
-						"Must have at least 1 special characters except ` & + \\ \" ' / and white space.",
+					stringvalidator.All(
+						stringvalidator.LengthBetween(8, 20),
+						stringvalidator.RegexMatches(regexp.MustCompile(`[a-zA-Z]+`), "Must have at least one alphabet"),
+						stringvalidator.RegexMatches(regexp.MustCompile(`\d+`), "Must have at least one number"),
+						stringvalidator.RegexMatches(regexp.MustCompile(`[~!@#$%^*()\-_=\[\]\{\};:,.<>?]+`), "Must have at least one special character"),
+						stringvalidator.RegexMatches(regexp.MustCompile(`^[^&+\\"'/\s`+"`"+`]*$`), "Must not have ` & + \\ \" ' / and white space."),
 					),
 				},
 				Sensitive: true,
