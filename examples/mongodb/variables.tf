@@ -1,11 +1,20 @@
-variable access_key {
-  default = "YOUR_ACCESS_KEY"
+variable "access_key" {
+  description = "access_key, provide through environment variables"
 }
 
-variable secret_key {
-  default = "YOUR_SECRET_KEY"
+variable "secret_key" {
+  description = "secret_key, provide through environment variables"
 }
 
-variable region {
+variable "region" {
   default = "KR"
+}
+
+variable "user_name" {
+  default = "mongodbuser"
+  description = "user name"
+}
+
+variable "password" {
+  description = "password, provide through environment variables"
 }

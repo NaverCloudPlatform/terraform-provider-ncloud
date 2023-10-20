@@ -24,7 +24,7 @@ resource "ncloud_mongodb" "mongodb" {
     vpc_no            = ncloud_vpc.id
     subnet_no         = ncloud_subnet.subnet.id
     service_name      = "sample-mongodb"
-    user_name         = "sample-user"
-    user_password     = "sample1234!"
+    user_name         = var.user_name
+    user_password     = var.password
     cluster_type_code = "STAND_ALONE"
 }
