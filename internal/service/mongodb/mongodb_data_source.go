@@ -64,10 +64,6 @@ func (m *mongodbDataSource) Schema(_ context.Context, _ datasource.SchemaRequest
 				Optional: true,
 				Computed: true,
 			},
-			"instance_no": schema.StringAttribute{
-				Optional: true,
-				Computed: true,
-			},
 			"vpc_no": schema.StringAttribute{
 				Computed: true,
 			},
@@ -282,7 +278,6 @@ type mongodbDataSourceModel struct {
 	ClusterType                    types.String `tfsdk:"cluster_type_code"`
 	UserName                       types.String `tfsdk:"user_name"`
 	UserPassword                   types.String `tfsdk:"user_password"`
-	CloudMongoDbInstanceNo         types.String `tfsdk:"instance_no"`
 	EngineVersion                  types.String `tfsdk:"engine_version"`
 	CloudMongoDbImageProductCode   types.String `tfsdk:"image_product_code"`
 	BackupFileRetentionPeriod      types.Int64  `tfsdk:"backup_file_retention_period"`
@@ -337,7 +332,6 @@ func (d *mongodbDataSourceModel) refreshFromOutput(ctx context.Context, output *
 	d.ID = types.StringPointerValue(output.CloudMongoDbInstanceNo)
 	d.VpcNo = types.StringPointerValue(output.CloudMongoDbServerInstanceList[0].VpcNo)
 	d.SubnetNo = types.StringPointerValue(output.CloudMongoDbServerInstanceList[0].SubnetNo)
-	d.CloudMongoDbInstanceNo = types.StringPointerValue(output.CloudMongoDbInstanceNo)
 	d.CloudMongoDbServiceName = types.StringPointerValue(output.CloudMongoDbServiceName)
 	d.CloudMongoDbImageProductCode = types.StringPointerValue(output.CloudMongoDbImageProductCode)
 	d.BackupFileRetentionPeriod = int32PointerValue(output.BackupFileRetentionPeriod)

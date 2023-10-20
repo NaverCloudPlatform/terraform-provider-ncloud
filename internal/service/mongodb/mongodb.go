@@ -86,10 +86,6 @@ func (m *mongodbResource) Schema(_ context.Context, _ resource.SchemaRequest, re
 				Description: "Service Name of Cloud DB for MongoDb instance.",
 			},
 			"id": framework.IDAttribute(),
-			"instance_no": schema.StringAttribute{
-				Optional: true,
-				Computed: true,
-			},
 			"user_name": schema.StringAttribute{
 				Required: true,
 				PlanModifiers: []planmodifier.String{
@@ -423,7 +419,7 @@ func (m *mongodbResource) Delete(ctx context.Context, req resource.DeleteRequest
 
 	reqParams := &vmongodb.DeleteCloudMongoDbInstanceRequest{
 		RegionCode:             &m.config.RegionCode,
-		CloudMongoDbInstanceNo: state.CloudMongoDbInstanceNo.ValueStringPointer(),
+		CloudMongoDbInstanceNo: state.ID.ValueStringPointer(),
 	}
 
 	tflog.Info(ctx, "DeleteMongoDb", map[string]any{
@@ -560,7 +556,6 @@ type mongodbResourceModel struct {
 	ID                           types.String `tfsdk:"id"`
 	VpcNo                        types.String `tfsdk:"vpc_no"`
 	SubnetNo                     types.String `tfsdk:"subnet_no"`
-	CloudMongoDbInstanceNo       types.String `tfsdk:"instance_no"`
 	CloudMongoDbServiceName      types.String `tfsdk:"service_name"`
 	CloudMongoDbUserName         types.String `tfsdk:"user_name"`
 	CloudMongoDbUserPassword     types.String `tfsdk:"user_password"`
@@ -588,7 +583,6 @@ type mongodbResourceModel struct {
 
 func (m *mongodbResourceModel) refreshFromOutput(ctx context.Context, output *vmongodb.CloudMongoDbInstance) error {
 	m.ID = types.StringPointerValue(output.CloudMongoDbInstanceNo)
-	m.CloudMongoDbInstanceNo = types.StringPointerValue(output.CloudMongoDbInstanceNo)
 	m.CloudMongoDbImageProductCode = types.StringPointerValue(output.CloudMongoDbImageProductCode)
 	m.ShardCount = int32PointerValue(output.ShardCount)
 	m.BackupFileRetentionPeriod = int32PointerValue(output.BackupFileRetentionPeriod)
