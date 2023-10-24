@@ -326,6 +326,10 @@ func resourceNcloudServerDelete(d *schema.ResourceData, meta interface{}) error 
 				return err
 			}
 		}
+
+		if err := detachThenWaitServerInstance(config, d.Id()); err != nil {
+			return err
+		}
 	}
 
 	if err := terminateThenWaitServerInstance(config, d.Id()); err != nil {
@@ -958,6 +962,31 @@ func stopThenWaitServerInstance(config *conn.ProviderConfig, id string) error {
 	_, err = stateConf.WaitForState()
 	if err != nil {
 		return fmt.Errorf("error waiting for ServerInstance state to be \"NSTOP\": %s", err)
+	}
+
+	return nil
+}
+
+func detachThenWaitServerInstance(config *conn.ProviderConfig, id string) error {
+	stateConf := &resource.StateChangeConf{
+		Pending: []string{"SETUP"},
+		Target:  []string{"NULL"},
+		Refresh: func() (interface{}, string, error) {
+			instance, err := GetServerInstance(config, id)
+			if err != nil {
+				return 0, "", err
+			}
+
+			return instance, ncloud.StringValue(instance.ServerInstanceOperation), nil
+		},
+		Timeout:    conn.DefaultStopTimeout,
+		Delay:      5 * time.Second,
+		MinTimeout: 3 * time.Second,
+	}
+
+	_, err := stateConf.WaitForState()
+	if err != nil {
+		return fmt.Errorf("error waiting for ServerInstance operation to be \"NULL\": %s", err)
 	}
 
 	return nil
