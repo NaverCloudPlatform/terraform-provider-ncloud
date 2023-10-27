@@ -163,7 +163,7 @@ func TestAccResourceNcloudBlockStorage_classic_size(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				Config:      testAccBlockStorageClassicConfigWithSize(name, 2500),
-				ExpectError: regexp.MustCompile("expected size to be in the range \\(10 - 2000\\), got 2500"),
+				ExpectError: regexp.MustCompile(`expected size to be in the range \(10 - 2000\), got 2500`),
 			},
 			{
 				Config: testAccBlockStorageClassicConfigWithSize(name, 10),
@@ -206,7 +206,7 @@ func TestAccResourceNcloudBlockStorage_vpc_size(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				Config:      testAccBlockStorageVpcConfigWithSize(name+acctest.RandString(5), 2500),
-				ExpectError: regexp.MustCompile("expected size to be in the range \\(10 - 2000\\), got 2500"),
+				ExpectError: regexp.MustCompile(`expected size to be in the range \(10 - 2000\), got 2500`),
 			},
 			{
 				Config: testAccBlockStorageVpcConfigWithSize(name, 10),
