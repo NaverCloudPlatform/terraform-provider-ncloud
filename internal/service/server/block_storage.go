@@ -193,6 +193,10 @@ func resourceNcloudBlockStorageUpdate(d *schema.ResourceData, meta interface{}) 
 			if err := detachBlockStorage(config, d.Id()); err != nil {
 				return err
 			}
+
+			if err := detachThenWaitServerInstance(config, o.(string)); err != nil {
+				return err
+			}
 		}
 
 		if len(n.(string)) > 0 {
@@ -219,6 +223,10 @@ func resourceNcloudBlockStorageUpdate(d *schema.ResourceData, meta interface{}) 
 			}
 
 			if err := detachBlockStorage(config, d.Id()); err != nil {
+				return err
+			}
+
+			if err := detachThenWaitServerInstance(config, d.Get("server_instance_no").(string)); err != nil {
 				return err
 			}
 		}
@@ -405,7 +413,7 @@ func deleteBlockStorage(d *schema.ResourceData, config *conn.ProviderConfig, id 
 	}
 
 	stateConf := &resource.StateChangeConf{
-		Pending: []string{BlockStorageStatusCodeInit, BlockStorageStatusCodeAttach},
+		Pending: []string{BlockStorageStatusCodeCreate, BlockStorageStatusCodeInit, BlockStorageStatusCodeAttach},
 		Target:  []string{"TERMINATED"},
 		Refresh: func() (interface{}, string, error) {
 			instance, err := GetBlockStorage(config, id)
@@ -435,6 +443,8 @@ func deleteClassicBlockStorage(d *schema.ResourceData, config *conn.ProviderConf
 		BlockStorageInstanceNoList: []*string{ncloud.String(id)},
 	}
 
+	LogCommonRequest("deleteClassicBlockStorage", reqParams)
+
 	resp, err := config.Client.Server.V2Api.DeleteBlockStorageInstances(&reqParams)
 
 	if err != nil {
@@ -451,6 +461,8 @@ func deleteVpcBlockStorage(d *schema.ResourceData, config *conn.ProviderConfig, 
 		RegionCode:                 &config.RegionCode,
 		BlockStorageInstanceNoList: []*string{ncloud.String(id)},
 	}
+
+	LogCommonRequest("deleteVpcBlockStorage", reqParams)
 
 	resp, err := config.Client.Vserver.V2Api.DeleteBlockStorageInstances(&reqParams)
 

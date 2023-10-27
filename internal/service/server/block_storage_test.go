@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"regexp"
 	"testing"
+	"time"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
 
@@ -31,7 +32,7 @@ func TestAccResourceNcloudBlockStorage_classic_basic(t *testing.T) {
 			{
 				Config: testAccBlockStorageClassicConfig(name),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckBlockStorageExistsWithProvider(resourceName, &storageInstance, GetTestProvider(false)),
+					testAccCheckClassicBlockStorageExistsWithProvider(resourceName, &storageInstance, GetTestProvider(false)),
 					resource.TestMatchResourceAttr(resourceName, "id", regexp.MustCompile(`^\d+$`)),
 					resource.TestCheckResourceAttr(resourceName, "name", name+"-tf"),
 					resource.TestCheckResourceAttr(resourceName, "status", "ATTAC"),
@@ -109,13 +110,13 @@ func TestAccResourceNcloudBlockStorage_classic_ChangeServerInstance(t *testing.T
 			{
 				Config: testAccBlockStorageClassicConfigUpdate(name, "ncloud_server.foo.id"),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckBlockStorageExistsWithProvider(resourceName, &storageInstance, GetTestProvider(false)),
+					testAccCheckClassicBlockStorageExistsWithProvider(resourceName, &storageInstance, GetTestProvider(false)),
 				),
 			},
 			{
 				Config: testAccBlockStorageClassicConfigUpdate(name, "ncloud_server.bar.id"),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckBlockStorageExistsWithProvider(resourceName, &storageInstance, GetTestProvider(false)),
+					testAccCheckClassicBlockStorageExistsWithProvider(resourceName, &storageInstance, GetTestProvider(false)),
 				),
 			},
 		},
@@ -161,36 +162,33 @@ func TestAccResourceNcloudBlockStorage_classic_size(t *testing.T) {
 		},
 		Steps: []resource.TestStep{
 			{
+				Config:      testAccBlockStorageClassicConfigWithSize(name, 2500),
+				ExpectError: regexp.MustCompile("expected size to be in the range \\(10 - 2000\\), got 2500"),
+			},
+			{
 				Config: testAccBlockStorageClassicConfigWithSize(name, 10),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckBlockStorageExistsWithProvider(resourceName, &storageInstance, GetTestProvider(false)),
+					testAccCheckClassicBlockStorageExistsWithProvider(resourceName, &storageInstance, GetTestProvider(false)),
 					resource.TestCheckResourceAttr(resourceName, "size", "10"),
 				),
 			},
 			{
 				Config: testAccBlockStorageClassicConfigWithSize(name, 20),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckBlockStorageExistsWithProvider(resourceName, &storageInstance, GetTestProvider(false)),
+					testAccCheckClassicBlockStorageExistsWithProvider(resourceName, &storageInstance, GetTestProvider(false)),
 					resource.TestCheckResourceAttr(resourceName, "size", "20"),
 				),
 			},
 			{
-				Config: testAccBlockStorageClassicConfigWithSize(name, 10),
-				Check: resource.ComposeTestCheckFunc(
-					testAccCheckBlockStorageExistsWithProvider(resourceName, &storageInstance, GetTestProvider(false)),
-				),
+				Config:      testAccBlockStorageClassicConfigWithSize(name, 10),
 				ExpectError: regexp.MustCompile("The storage size is only expandable, not shrinking."),
 			},
 			{
 				Config: testAccBlockStorageClassicConfigWithSize(name, 2000),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckBlockStorageExistsWithProvider(resourceName, &storageInstance, GetTestProvider(false)),
+					testAccCheckClassicBlockStorageExistsWithProvider(resourceName, &storageInstance, GetTestProvider(false)),
 					resource.TestCheckResourceAttr(resourceName, "size", "2000"),
 				),
-			},
-			{
-				Config:      testAccBlockStorageClassicConfigWithSize(name, 2500),
-				ExpectError: regexp.MustCompile(""),
 			},
 		},
 	})
@@ -207,6 +205,10 @@ func TestAccResourceNcloudBlockStorage_vpc_size(t *testing.T) {
 		CheckDestroy:             testAccCheckBlockStorageDestroy,
 		Steps: []resource.TestStep{
 			{
+				Config:      testAccBlockStorageVpcConfigWithSize(name+acctest.RandString(5), 2500),
+				ExpectError: regexp.MustCompile("expected size to be in the range \\(10 - 2000\\), got 2500"),
+			},
+			{
 				Config: testAccBlockStorageVpcConfigWithSize(name, 10),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckBlockStorageExistsWithProvider(resourceName, &storageInstance, GetTestProvider(true)),
@@ -221,10 +223,7 @@ func TestAccResourceNcloudBlockStorage_vpc_size(t *testing.T) {
 				),
 			},
 			{
-				Config: testAccBlockStorageVpcConfigWithSize(name, 10),
-				Check: resource.ComposeTestCheckFunc(
-					testAccCheckBlockStorageExistsWithProvider(resourceName, &storageInstance, GetTestProvider(true)),
-				),
+				Config:      testAccBlockStorageVpcConfigWithSize(name, 10),
 				ExpectError: regexp.MustCompile("The storage size is only expandable, not shrinking."),
 			},
 			{
@@ -233,10 +232,6 @@ func TestAccResourceNcloudBlockStorage_vpc_size(t *testing.T) {
 					testAccCheckBlockStorageExistsWithProvider(resourceName, &storageInstance, GetTestProvider(true)),
 					resource.TestCheckResourceAttr(resourceName, "size", "2000"),
 				),
-			},
-			{
-				Config:      testAccBlockStorageVpcConfigWithSize(name+acctest.RandString(5), 2500),
-				ExpectError: regexp.MustCompile("expected size to be in the range (10 - 2000), got 2500"),
 			},
 		},
 	})
@@ -252,6 +247,34 @@ func testAccCheckBlockStorageExistsWithProvider(n string, i *server.BlockStorage
 		if rs.Primary.ID == "" {
 			return fmt.Errorf("no ID is set")
 		}
+
+		config := provider.Meta().(*conn.ProviderConfig)
+		storage, err := server.GetBlockStorage(config, rs.Primary.ID)
+		if err != nil {
+			return nil
+		}
+
+		if storage != nil {
+			*i = *storage
+			return nil
+		}
+
+		return fmt.Errorf("block storage not found")
+	}
+}
+
+func testAccCheckClassicBlockStorageExistsWithProvider(n string, i *server.BlockStorage, provider *schema.Provider) resource.TestCheckFunc {
+	return func(s *terraform.State) error {
+		rs, ok := s.RootModule().Resources[n]
+		if !ok {
+			return fmt.Errorf("not found: %s", n)
+		}
+
+		if rs.Primary.ID == "" {
+			return fmt.Errorf("no ID is set")
+		}
+
+		time.Sleep(time.Second * 10)
 
 		config := provider.Meta().(*conn.ProviderConfig)
 		storage, err := server.GetBlockStorage(config, rs.Primary.ID)
