@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"regexp"
 	"testing"
-	"time"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
 
@@ -32,7 +31,7 @@ func TestAccResourceNcloudBlockStorage_classic_basic(t *testing.T) {
 			{
 				Config: testAccBlockStorageClassicConfig(name),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckClassicBlockStorageExistsWithProvider(resourceName, &storageInstance, GetTestProvider(false)),
+					testAccCheckBlockStorageExistsWithProvider(resourceName, &storageInstance, GetTestProvider(false)),
 					resource.TestMatchResourceAttr(resourceName, "id", regexp.MustCompile(`^\d+$`)),
 					resource.TestCheckResourceAttr(resourceName, "name", name+"-tf"),
 					resource.TestCheckResourceAttr(resourceName, "status", "ATTAC"),
@@ -110,13 +109,13 @@ func TestAccResourceNcloudBlockStorage_classic_ChangeServerInstance(t *testing.T
 			{
 				Config: testAccBlockStorageClassicConfigUpdate(name, "ncloud_server.foo.id"),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckClassicBlockStorageExistsWithProvider(resourceName, &storageInstance, GetTestProvider(false)),
+					testAccCheckBlockStorageExistsWithProvider(resourceName, &storageInstance, GetTestProvider(false)),
 				),
 			},
 			{
 				Config: testAccBlockStorageClassicConfigUpdate(name, "ncloud_server.bar.id"),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckClassicBlockStorageExistsWithProvider(resourceName, &storageInstance, GetTestProvider(false)),
+					testAccCheckBlockStorageExistsWithProvider(resourceName, &storageInstance, GetTestProvider(false)),
 				),
 			},
 		},
@@ -168,14 +167,14 @@ func TestAccResourceNcloudBlockStorage_classic_size(t *testing.T) {
 			{
 				Config: testAccBlockStorageClassicConfigWithSize(name, 10),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckClassicBlockStorageExistsWithProvider(resourceName, &storageInstance, GetTestProvider(false)),
+					testAccCheckBlockStorageExistsWithProvider(resourceName, &storageInstance, GetTestProvider(false)),
 					resource.TestCheckResourceAttr(resourceName, "size", "10"),
 				),
 			},
 			{
 				Config: testAccBlockStorageClassicConfigWithSize(name, 20),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckClassicBlockStorageExistsWithProvider(resourceName, &storageInstance, GetTestProvider(false)),
+					testAccCheckBlockStorageExistsWithProvider(resourceName, &storageInstance, GetTestProvider(false)),
 					resource.TestCheckResourceAttr(resourceName, "size", "20"),
 				),
 			},
@@ -186,7 +185,7 @@ func TestAccResourceNcloudBlockStorage_classic_size(t *testing.T) {
 			{
 				Config: testAccBlockStorageClassicConfigWithSize(name, 2000),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckClassicBlockStorageExistsWithProvider(resourceName, &storageInstance, GetTestProvider(false)),
+					testAccCheckBlockStorageExistsWithProvider(resourceName, &storageInstance, GetTestProvider(false)),
 					resource.TestCheckResourceAttr(resourceName, "size", "2000"),
 				),
 			},
@@ -247,34 +246,6 @@ func testAccCheckBlockStorageExistsWithProvider(n string, i *server.BlockStorage
 		if rs.Primary.ID == "" {
 			return fmt.Errorf("no ID is set")
 		}
-
-		config := provider.Meta().(*conn.ProviderConfig)
-		storage, err := server.GetBlockStorage(config, rs.Primary.ID)
-		if err != nil {
-			return nil
-		}
-
-		if storage != nil {
-			*i = *storage
-			return nil
-		}
-
-		return fmt.Errorf("block storage not found")
-	}
-}
-
-func testAccCheckClassicBlockStorageExistsWithProvider(n string, i *server.BlockStorage, provider *schema.Provider) resource.TestCheckFunc {
-	return func(s *terraform.State) error {
-		rs, ok := s.RootModule().Resources[n]
-		if !ok {
-			return fmt.Errorf("not found: %s", n)
-		}
-
-		if rs.Primary.ID == "" {
-			return fmt.Errorf("no ID is set")
-		}
-
-		time.Sleep(time.Second * 10)
 
 		config := provider.Meta().(*conn.ProviderConfig)
 		storage, err := server.GetBlockStorage(config, rs.Primary.ID)
