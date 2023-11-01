@@ -30,7 +30,7 @@ func TestAccResourceNcloudVpc_basic(t *testing.T) {
 		CheckDestroy:             testAccCheckVpcDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccDataSourceNcloudVpcConfig(name, cidr),
+				Config: testAccResourceNcloudVpcConfig(name, cidr),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckVpcExists(resourceName, &vpc),
 					resource.TestCheckResourceAttr(resourceName, "ipv4_cidr_block", cidr),
