@@ -1129,6 +1129,8 @@ func getVpcAdditionalBlockStorageList(config *conn.ProviderConfig, id string) ([
 		return nil, err
 	}
 
+	LogResponse("getVpcAdditionalBlockStorageList", resp)
+
 	if len(resp.BlockStorageInstanceList) < 1 {
 		return nil, nil
 	}
@@ -1151,6 +1153,8 @@ func getClassicAdditionalBlockStorageList(config *conn.ProviderConfig, id string
 	if err != nil {
 		return nil, err
 	}
+
+	LogResponse("getClassicAdditionalBlockStorageList", resp)
 
 	if len(resp.BlockStorageInstanceList) < 1 {
 		return nil, nil

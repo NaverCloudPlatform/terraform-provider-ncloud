@@ -161,6 +161,10 @@ func TestAccResourceNcloudBlockStorage_classic_size(t *testing.T) {
 		},
 		Steps: []resource.TestStep{
 			{
+				Config:      testAccBlockStorageClassicConfigWithSize(name, 2500),
+				ExpectError: regexp.MustCompile(`expected size to be in the range \(10 - 2000\), got 2500`),
+			},
+			{
 				Config: testAccBlockStorageClassicConfigWithSize(name, 10),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckBlockStorageExistsWithProvider(resourceName, &storageInstance, GetTestProvider(false)),
@@ -175,10 +179,7 @@ func TestAccResourceNcloudBlockStorage_classic_size(t *testing.T) {
 				),
 			},
 			{
-				Config: testAccBlockStorageClassicConfigWithSize(name, 10),
-				Check: resource.ComposeTestCheckFunc(
-					testAccCheckBlockStorageExistsWithProvider(resourceName, &storageInstance, GetTestProvider(false)),
-				),
+				Config:      testAccBlockStorageClassicConfigWithSize(name, 10),
 				ExpectError: regexp.MustCompile("The storage size is only expandable, not shrinking."),
 			},
 			{
@@ -187,10 +188,6 @@ func TestAccResourceNcloudBlockStorage_classic_size(t *testing.T) {
 					testAccCheckBlockStorageExistsWithProvider(resourceName, &storageInstance, GetTestProvider(false)),
 					resource.TestCheckResourceAttr(resourceName, "size", "2000"),
 				),
-			},
-			{
-				Config:      testAccBlockStorageClassicConfigWithSize(name, 2500),
-				ExpectError: regexp.MustCompile(""),
 			},
 		},
 	})
@@ -207,6 +204,10 @@ func TestAccResourceNcloudBlockStorage_vpc_size(t *testing.T) {
 		CheckDestroy:             testAccCheckBlockStorageDestroy,
 		Steps: []resource.TestStep{
 			{
+				Config:      testAccBlockStorageVpcConfigWithSize(name+acctest.RandString(5), 2500),
+				ExpectError: regexp.MustCompile(`expected size to be in the range \(10 - 2000\), got 2500`),
+			},
+			{
 				Config: testAccBlockStorageVpcConfigWithSize(name, 10),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckBlockStorageExistsWithProvider(resourceName, &storageInstance, GetTestProvider(true)),
@@ -221,10 +222,7 @@ func TestAccResourceNcloudBlockStorage_vpc_size(t *testing.T) {
 				),
 			},
 			{
-				Config: testAccBlockStorageVpcConfigWithSize(name, 10),
-				Check: resource.ComposeTestCheckFunc(
-					testAccCheckBlockStorageExistsWithProvider(resourceName, &storageInstance, GetTestProvider(true)),
-				),
+				Config:      testAccBlockStorageVpcConfigWithSize(name, 10),
 				ExpectError: regexp.MustCompile("The storage size is only expandable, not shrinking."),
 			},
 			{
@@ -233,10 +231,6 @@ func TestAccResourceNcloudBlockStorage_vpc_size(t *testing.T) {
 					testAccCheckBlockStorageExistsWithProvider(resourceName, &storageInstance, GetTestProvider(true)),
 					resource.TestCheckResourceAttr(resourceName, "size", "2000"),
 				),
-			},
-			{
-				Config:      testAccBlockStorageVpcConfigWithSize(name+acctest.RandString(5), 2500),
-				ExpectError: regexp.MustCompile("expected size to be in the range (10 - 2000), got 2500"),
 			},
 		},
 	})
