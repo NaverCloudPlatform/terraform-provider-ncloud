@@ -191,7 +191,7 @@ func resourceNcloudMssqlCreate(ctx context.Context, d *schema.ResourceData, meta
 		CloudMssqlImageProductCode: StringPtrOrNil(d.GetOk("image_product_code")),
 		CloudMssqlProductCode:      StringPtrOrNil(d.GetOk("product_code")),
 		DataStorageTypeCode:        StringPtrOrNil(d.GetOk("data_storage_type_code")),
-		IsHa:                       BoolPtrOrNil(d.GetOk("is_ha")),
+		IsHa:                       BoolPtrOrNil(d.Get("is_ha"), true),
 		BackupFileRetentionPeriod:  Int32PtrOrNil(d.GetOk("backup_file_retention_period")),
 		BackupTime:                 StringPtrOrNil(d.GetOk("backup_time")),
 		IsAutomaticBackup:          BoolPtrOrNil(d.GetOk("is_automatic_backup")),
