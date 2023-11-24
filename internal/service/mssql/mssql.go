@@ -268,12 +268,6 @@ func resourceNcloudMssqlDelete(ctx context.Context, d *schema.ResourceData, meta
 	LogResponse("resourceNcloudMssqlDelete", resp)
 
 	if err := waitForCloudMssqlDeletion(ctx, d, config); err != nil {
-		commonErr, parseErr := GetCommonErrorBody(err)
-		if parseErr == nil && commonErr.ReturnCode == "5001269" {
-			time.Sleep(3 * time.Minute)
-			return nil
-		}
-
 		return diag.FromErr(err)
 	}
 
@@ -285,11 +279,11 @@ func waitForCloudMssqlDeletion(ctx context.Context, d *schema.ResourceData, conf
 		Pending: []string{"DEL"},
 		Target:  []string{"NULL"},
 		Refresh: func() (result interface{}, state string, err error) {
-			reqParams := &vmssql.GetCloudMssqlInstanceDetailRequest{
-				RegionCode:           &config.RegionCode,
-				CloudMssqlInstanceNo: ncloud.String(d.Id()),
+			reqParams := &vmssql.GetCloudMssqlInstanceListRequest{
+				RegionCode:               &config.RegionCode,
+				CloudMssqlInstanceNoList: []*string{ncloud.String(d.Id())},
 			}
-			resp, err := config.Client.Vmssql.V2Api.GetCloudMssqlInstanceDetail(reqParams)
+			resp, err := config.Client.Vmssql.V2Api.GetCloudMssqlInstanceList(reqParams)
 			if err != nil {
 				return nil, "", err
 			}
