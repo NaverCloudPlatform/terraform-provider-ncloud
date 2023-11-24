@@ -18,6 +18,8 @@ import (
 	"github.com/terraform-providers/terraform-provider-ncloud/internal/conn"
 )
 
+const resourceNotFoundErrorCode = "5001269"
+
 func ResourceNcloudMssql() *schema.Resource {
 	return &schema.Resource{
 		CreateContext: resourceNcloudMssqlCreate,
@@ -227,6 +229,11 @@ func resourceNcloudMssqlRead(ctx context.Context, d *schema.ResourceData, meta i
 
 	ms, err := GetCloudMssqlInstance(config, d.Id())
 	if err != nil {
+		commonErr, parseErr := GetCommonErrorBody(err)
+		if parseErr == nil && commonErr.ReturnCode == resourceNotFoundErrorCode {
+			d.SetId("")
+			return nil
+		}
 		return diag.FromErr(err)
 	}
 
