@@ -82,13 +82,24 @@ func ResourceNcloudSESCluster() *schema.Resource {
 							Required: true,
 						},
 						"user_name": {
-							Type:             schema.TypeString,
-							Required:         true,
-							ValidateDiagFunc: validation.ToDiagFunc(validation.StringLenBetween(3, 15)),
-						},
-						"user_password": {
 							Type:     schema.TypeString,
 							Required: true,
+							ValidateDiagFunc: validation.ToDiagFunc(validation.All(
+								validation.StringLenBetween(3, 15),
+								validation.StringMatch(regexp.MustCompile(`^[a-z]+[a-z0-9-]+[a-z0-9]$`), "Allows only lowercase letters(a-z), numbers, hyphen (-). Must start with an alphabetic character, must end with an English letter or number"),
+							)),
+						},
+						"user_password": {
+							Type:      schema.TypeString,
+							Required:  true,
+							Sensitive: true,
+							ValidateDiagFunc: validation.ToDiagFunc(validation.All(
+								validation.StringLenBetween(8, 20),
+								validation.StringMatch(regexp.MustCompile(`[a-zA-Z]+`), "Must have at least one alphabet"),
+								validation.StringMatch(regexp.MustCompile(`\d+`), "Must have at least one number"),
+								validation.StringMatch(regexp.MustCompile(`[~!@#$%^*()\-_=\[\]\{\};:,.<>?]+`), "Must have at least one special character"),
+								validation.StringMatch(regexp.MustCompile(`^[^&+\\"'/\s`+"`"+`]*$`), "Must not have ` & + \\ \" ' / and white space."),
+							)),
 						},
 					},
 				},
@@ -173,7 +184,7 @@ func ResourceNcloudSESCluster() *schema.Resource {
 							Required: true,
 							ForceNew: true,
 							ValidateDiagFunc: validation.ToDiagFunc(validation.All(
-								validation.IntBetween(10, 2000),
+								validation.IntBetween(100, 2000),
 								validation.IntDivisibleBy(10)),
 							),
 						},
@@ -344,15 +355,28 @@ func resourceNcloudSESClusterRead(ctx context.Context, d *schema.ResourceData, m
 	d.Set("login_key_name", cluster.LoginKeyName)
 	d.Set("manager_node_instance_no_list", cluster.ManagerNodeInstanceNoList)
 
-	searchEngineMap := d.Get("search_engine").([]interface{})[0].(map[string]interface{})
+	searchEngine := d.Get("search_engine").([]interface{})
 	searchEngineSet := schema.NewSet(schema.HashResource(ResourceNcloudSESCluster().Schema["search_engine"].Elem.(*schema.Resource)), []interface{}{})
-	searchEngineSet.Add(map[string]interface{}{
-		"version_code":   *cluster.SearchEngineVersionCode,
-		"user_name":      *cluster.SearchEngineUserName,
-		"user_password":  searchEngineMap["user_password"],
-		"port":           *cluster.SearchEnginePort,
-		"dashboard_port": *cluster.SearchEngineDashboardPort,
-	})
+
+	if len(searchEngine) == 0 { // API response not support user_password. Not currently available during import
+		searchEngineSet.Add(map[string]interface{}{
+			"version_code":   *cluster.SearchEngineVersionCode,
+			"user_name":      *cluster.SearchEngineUserName,
+			"user_password":  "",
+			"port":           *cluster.SearchEnginePort,
+			"dashboard_port": *cluster.SearchEngineDashboardPort,
+		})
+	} else { // Create exist in config
+		searchEngineMap := searchEngine[0].(map[string]interface{})
+		searchEngineSet.Add(map[string]interface{}{
+			"version_code":   *cluster.SearchEngineVersionCode,
+			"user_name":      *cluster.SearchEngineUserName,
+			"user_password":  searchEngineMap["user_password"],
+			"port":           *cluster.SearchEnginePort,
+			"dashboard_port": *cluster.SearchEngineDashboardPort,
+		})
+	}
+
 	if err := d.Set("search_engine", searchEngineSet.List()); err != nil {
 		log.Printf("[WARN] Error setting search_engine set for (%s): %s", d.Id(), err)
 	}
@@ -620,6 +644,8 @@ func GetSESCluster(ctx context.Context, config *conn.ProviderConfig, id string) 
 	if err != nil {
 		return nil, err
 	}
+	LogResponse("GetSESCluster", resp)
+
 	return resp.Result, nil
 }
 
@@ -629,5 +655,7 @@ func getSESClusters(ctx context.Context, config *conn.ProviderConfig) (*vses2.Ge
 	if err != nil {
 		return nil, err
 	}
+	LogResponse("GetSESClusterList", resp)
+
 	return resp.Result, nil
 }
