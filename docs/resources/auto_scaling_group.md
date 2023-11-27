@@ -99,3 +99,24 @@ In addition to all arguments above, the following attributes are exported:
 ~> **NOTE:** Below attributes only support VPC environment.
 
 * `vpc_no` - The ID of the associated VPC.
+
+## Import
+
+### `terraform import` command
+
+* Auto Scaling Group can be imported using the `id`. For example:
+
+```console
+$ terraform import ncloud_auto_scaling_group.rsc_name 12345
+```
+
+### `import` block
+
+* In Terraform v1.5.0 and later, use an [`import` block](https://developer.hashicorp.com/terraform/language/import) to import Auto Scaling Group using the `id`. For example:
+
+```terraform
+import {
+  to = ncloud_auto_scaling_group.rsc_name
+  id = "12345"
+}
+```

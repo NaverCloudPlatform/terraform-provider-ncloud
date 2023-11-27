@@ -238,3 +238,24 @@ The following arguments are supported:
 * `created` - Information about creating a Sourcebuild project.
     * `user` - Created user
     * `timestamp` - Created timestamp
+
+## Import
+
+### `terraform import` command
+
+* SourceBuild Project can be imported using the `id`. For example:
+
+```console
+$ terraform import ncloud_sourcebuild_project.rsc_name 12345
+```
+
+### `import` block
+
+* In Terraform v1.5.0 and later, use an [`import` block](https://developer.hashicorp.com/terraform/language/import) to import SourceBuild Project using the `id`. For example:
+
+```terraform
+import {
+  to = ncloud_sourcebuild_project.rsc_name
+  id = "12345"
+}
+```

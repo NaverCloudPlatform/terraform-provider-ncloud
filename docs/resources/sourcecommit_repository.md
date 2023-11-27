@@ -41,3 +41,24 @@ In addition to all arguments above, the following attributes are exported:
 * `creator` - Sourcecommit repository creator.
 * `git_https_url` - Sourcecommit repository https git address.
 * `git_ssh_url` - Sourcecommit repository ssh git address.
+
+## Import
+
+### `terraform import` command
+
+* SourceCommit Repository can be imported using the `name`. For example:
+
+```console
+$ terraform import ncloud_sourcecommit_repository.rsc_name test-repo
+```
+
+### `import` block
+
+* In Terraform v1.5.0 and later, use an [`import` block](https://developer.hashicorp.com/terraform/language/import) to import SourceCommit Repository using the `name`. For example:
+
+```terraform
+import {
+  to = ncloud_sourcecommit_repository.rsc_name
+  id = "test-repo"
+}
+```

@@ -1,5 +1,5 @@
 ---
-subcategory: "Load Balancer"
+subcategory: "Classic Load Balancer"
 ---
 
 
@@ -28,3 +28,24 @@ The following arguments are supported:
 * `privatekey` - (Required) Private key for a certificate
 * `publickey_certificate` - (Required) Public key for a certificate
 * `certificate_chain` - (Optional) Chainca certificate (Required if the certificate is issued with a chainca)
+
+## Import
+
+### `terraform import` command
+
+* Load Balancer SSL Certificate can be imported using the `id`. For example:
+
+```console
+$ terraform import ncloud_load_balancer_ssl_certificate.rsc_name 12345
+```
+
+### `import` block
+
+* In Terraform v1.5.0 and later, use an [`import` block](https://developer.hashicorp.com/terraform/language/import) to import Load Balancer SSL Certificate using the `id`. For example:
+
+```terraform
+import {
+  to = ncloud_load_balancer_ssl_certificate.rsc_name
+  id = "12345"
+}
+```
