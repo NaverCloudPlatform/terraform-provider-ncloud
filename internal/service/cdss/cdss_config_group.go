@@ -2,7 +2,9 @@ package cdss
 
 import (
 	"context"
+	"fmt"
 	"strconv"
+	"strings"
 
 	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/ncloud"
 	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/services/vcdss"
@@ -21,7 +23,17 @@ func ResourceNcloudCDSSConfigGroup() *schema.Resource {
 		UpdateContext: resourceNcloudCDSSConfigGroupUpdate,
 		DeleteContext: resourceNcloudCDSSConfigGroupDelete,
 		Importer: &schema.ResourceImporter{
-			StateContext: schema.ImportStatePassthroughContext,
+			State: func(d *schema.ResourceData, meta interface{}) ([]*schema.ResourceData, error) {
+				idParts := strings.Split(d.Id(), ":")
+				if len(idParts) != 2 || idParts[0] == "" || idParts[1] == "" {
+					return nil, fmt.Errorf("unexpected format of ID (%q), expected id:kafka_version_code", d.Id())
+				}
+				id := idParts[0]
+				KafkaVersionCode := idParts[1]
+				d.SetId(id)
+				d.Set("kafka_version_code", KafkaVersionCode)
+				return []*schema.ResourceData{d}, nil
+			},
 		},
 		Schema: map[string]*schema.Schema{
 			"id": {
@@ -83,7 +95,7 @@ func resourceNcloudCDSSConfigGroupRead(ctx context.Context, d *schema.ResourceDa
 		return diag.FromErr(NotSupportClassic("resource `ncloud_cdss_config_group`"))
 	}
 
-	configGroup, err := getCDSSConfigGroup(ctx, config, *StringPtrOrNil(d.GetOk("kafka_version_code")), d.Id())
+	configGroup, err := getCDSSConfigGroup(ctx, config, d.Get("kafka_version_code").(string), d.Id())
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -144,9 +156,13 @@ func getCDSSConfigGroup(ctx context.Context, config *conn.ProviderConfig, kafkaV
 	reqParams := vcdss.GetKafkaConfigGroupRequest{
 		KafkaVersionCode: kafkaVersionCode,
 	}
+	LogCommonRequest("getCDSSConfigGroup", reqParams)
+
 	resp, _, err := config.Client.Vcdss.V1Api.ConfigGroupGetKafkaConfigGroupConfigGroupNoPost(ctx, reqParams, id)
 	if err != nil {
 		return nil, err
 	}
+	LogResponse("getCDSSConfigGroup", resp)
+
 	return resp.Result, nil
 }

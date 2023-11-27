@@ -81,14 +81,13 @@ func dataSourceNcloudCDSSNodeProductRead(d *schema.ResourceData, meta interface{
 }
 
 func getCDSSNodeProducts(config *conn.ProviderConfig, reqParams vcdss.NodeProduct) ([]map[string]interface{}, error) {
-	LogCommonRequest("GetOsProductList", "")
-	resp, _, err := config.Client.Vcdss.V1Api.ClusterGetNodeProductListPost(context.Background(), reqParams)
+	LogCommonRequest("GetOsProductList", reqParams)
 
+	resp, _, err := config.Client.Vcdss.V1Api.ClusterGetNodeProductListPost(context.Background(), reqParams)
 	if err != nil {
 		LogErrorResponse("GetOsProductList", err, "")
 		return nil, err
 	}
-
 	LogResponse("GetOsProductList", resp)
 
 	resources := []map[string]interface{}{}
