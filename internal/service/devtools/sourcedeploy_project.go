@@ -108,6 +108,19 @@ func resourceNcloudSourceDeployProjectDelete(ctx context.Context, d *schema.Reso
 	return nil
 }
 
+func GetSourceDeployProjectById(ctx context.Context, config *conn.ProviderConfig, id string) (*vsourcedeploy.GetIdNameResponse, error) {
+	projectList, err := getSourceDeployProjects(ctx, config)
+	if err != nil {
+		return nil, err
+	}
+	for _, project := range projectList {
+		if *ncloud.IntString(int(ncloud.Int32Value(project.Id))) == id {
+			return project, nil
+		}
+	}
+	return nil, nil
+}
+
 func GetSourceDeployProjectByName(ctx context.Context, config *conn.ProviderConfig, name string) (*vsourcedeploy.GetIdNameResponse, error) {
 	projectList, err := getSourceDeployProjects(ctx, config)
 	if err != nil {
