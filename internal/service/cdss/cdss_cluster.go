@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"regexp"
 	"strconv"
 	"strings"
 	"time"
@@ -49,10 +50,12 @@ func ResourceNcloudCDSSCluster() *schema.Resource {
 				Computed: true,
 			},
 			"name": {
-				Type:             schema.TypeString,
-				ForceNew:         true,
-				Required:         true,
-				ValidateDiagFunc: validation.ToDiagFunc(validation.StringLenBetween(3, 15)),
+				Type:     schema.TypeString,
+				ForceNew: true,
+				Required: true,
+				ValidateDiagFunc: validation.ToDiagFunc(validation.All(
+					validation.StringLenBetween(3, 15),
+					validation.StringMatch(regexp.MustCompile(`^[a-z]+[a-z0-9-]+[a-z0-9]$`), "Allows only lowercase letters(a-z), numbers, hyphen (-). Must start with an alphabetic character, must end with an English letter or number"))),
 			},
 			"kafka_version_code": {
 				Type:     schema.TypeString,
@@ -80,15 +83,25 @@ func ResourceNcloudCDSSCluster() *schema.Resource {
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"user_name": {
-							Type:             schema.TypeString,
-							Required:         true,
-							ForceNew:         true,
-							ValidateDiagFunc: validation.ToDiagFunc(validation.StringLenBetween(3, 15)),
+							Type:     schema.TypeString,
+							Required: true,
+							ForceNew: true,
+							ValidateDiagFunc: validation.ToDiagFunc(validation.All(
+								validation.StringLenBetween(3, 15),
+								validation.StringMatch(regexp.MustCompile(`^[a-z]+[a-z0-9-]+[a-z0-9]$`), "Allows only lowercase letters(a-z), numbers, hyphen (-). Must start with an alphabetic character, must end with an English letter or number"),
+							)),
 						},
 						"user_password": {
 							Type:      schema.TypeString,
 							Required:  true,
 							Sensitive: true,
+							ValidateDiagFunc: validation.ToDiagFunc(validation.All(
+								validation.StringLenBetween(8, 20),
+								validation.StringMatch(regexp.MustCompile(`[a-zA-Z]+`), "Must have at least one alphabet"),
+								validation.StringMatch(regexp.MustCompile(`\d+`), "Must have at least one number"),
+								validation.StringMatch(regexp.MustCompile(`[~!@#$%^*()\-_=\[\]\{\};:,.<>?]+`), "Must have at least one special character"),
+								validation.StringMatch(regexp.MustCompile(`^[^&+\\"'/\s`+"`"+`]*$`), "Must not have ` & + \\ \" ' / and white space."),
+							)),
 						},
 					},
 				},
@@ -132,9 +145,10 @@ func ResourceNcloudCDSSCluster() *schema.Resource {
 							ValidateDiagFunc: validation.ToDiagFunc(validation.IntBetween(3, 10)),
 						},
 						"storage_size": {
-							Type:     schema.TypeString,
-							Required: true,
-							ForceNew: true,
+							Type:             schema.TypeInt,
+							Required:         true,
+							ForceNew:         true,
+							ValidateDiagFunc: validation.ToDiagFunc(validation.IntBetween(100, 2000)),
 						},
 					},
 				},
@@ -223,7 +237,7 @@ func resourceNcloudCDSSClusterCreate(ctx context.Context, d *schema.ResourceData
 		BrokerNodeProductCode:    *StringPtrOrNil(bMap["node_product_code"], true),
 		BrokerNodeCount:          *Int32PtrOrNil(bMap["node_count"], true),
 		BrokerNodeSubnetNo:       *GetInt32FromString(bMap["subnet_no"], true),
-		BrokerNodeStorageSize:    *GetInt32FromString(bMap["storage_size"], true),
+		BrokerNodeStorageSize:    *Int32PtrOrNil(bMap["storage_size"], true),
 		ConfigGroupNo:            *GetInt32FromString(d.GetOk("config_group_no")),
 	}
 
@@ -265,18 +279,25 @@ func resourceNcloudCDSSClusterRead(ctx context.Context, d *schema.ResourceData, 
 	d.Set("vpc_no", strconv.Itoa(int(cluster.VpcNo)))
 	d.Set("config_group_no", strconv.Itoa(int(cluster.ConfigGroupNo)))
 
-	c := d.Get("cmak").([]interface{})
-	cMap := c[0].(map[string]interface{})
-
 	var cList []map[string]interface{}
 	var mList []map[string]interface{}
 	var bList []map[string]interface{}
 	var eList []map[string]interface{}
 
-	cList = append(cList, map[string]interface{}{
-		"user_name":     cluster.KafkaManagerUserName,
-		"user_password": cMap["user_password"],
-	})
+	c := d.Get("cmak").([]interface{})
+	if len(c) == 0 { // API response not support user_password. Not currently available during import
+		cList = append(cList, map[string]interface{}{
+			"user_name":     cluster.KafkaManagerUserName,
+			"user_password": cluster.KafkaManagerUserPassword,
+		})
+	} else { // Create exist in config
+		cMap := c[0].(map[string]interface{})
+		cList = append(cList, map[string]interface{}{
+			"user_name":     cluster.KafkaManagerUserName,
+			"user_password": cMap["user_password"],
+		})
+	}
+
 	mList = append(mList, map[string]interface{}{
 		"node_product_code": cluster.ManagerNodeProductCode,
 		"subnet_no":         strconv.Itoa(int(cluster.ManagerNodeSubnetNo)),
@@ -284,8 +305,8 @@ func resourceNcloudCDSSClusterRead(ctx context.Context, d *schema.ResourceData, 
 	bList = append(bList, map[string]interface{}{
 		"node_product_code": cluster.BrokerNodeProductCode,
 		"subnet_no":         strconv.Itoa(int(cluster.BrokerNodeSubnetNo)),
-		"node_count":        strconv.Itoa(int(cluster.BrokerNodeCount)),
-		"storage_size":      strconv.Itoa(int(cluster.BrokerNodeStorageSize)),
+		"node_count":        cluster.BrokerNodeCount,
+		"storage_size":      cluster.BrokerNodeStorageSize,
 	})
 
 	endpoints, err := getBrokerInfo(ctx, config, d.Id())
@@ -556,6 +577,8 @@ func getCDSSCluster(ctx context.Context, config *conn.ProviderConfig, id string)
 	if err != nil {
 		return nil, err
 	}
+	LogResponse("getCDSSCluster", resp)
+
 	return resp.Result, nil
 }
 
@@ -564,5 +587,7 @@ func getBrokerInfo(ctx context.Context, config *conn.ProviderConfig, id string) 
 	if err != nil {
 		return nil, err
 	}
+	LogResponse("getBrokerInfo", resp)
+
 	return resp.Result, nil
 }
