@@ -1,7 +1,9 @@
 package autoscaling
 
 import (
+	"fmt"
 	"regexp"
+	"strings"
 
 	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/ncloud"
 	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/services/autoscaling"
@@ -20,7 +22,17 @@ func ResourceNcloudAutoScalingPolicy() *schema.Resource {
 		Update: resourceNcloudAutoScalingPolicyUpdate,
 		Delete: resourceNcloudAutoScalingPolicyDelete,
 		Importer: &schema.ResourceImporter{
-			StateContext: schema.ImportStatePassthroughContext,
+			State: func(d *schema.ResourceData, meta interface{}) ([]*schema.ResourceData, error) {
+				idParts := strings.Split(d.Id(), ":")
+				if len(idParts) != 2 || idParts[0] == "" || idParts[1] == "" {
+					return nil, fmt.Errorf("unexpected format of ID (%q), expected auto_scaling_group_no:id", d.Id())
+				}
+				AutoScalingGroupNo := idParts[0]
+				id := idParts[1]
+				d.SetId(id)
+				d.Set("auto_scaling_group_no", AutoScalingGroupNo)
+				return []*schema.ResourceData{d}, nil
+			},
 		},
 		Schema: map[string]*schema.Schema{
 			"name": {
@@ -94,10 +106,13 @@ func createVpcAutoScalingPolicy(d *schema.ResourceData, config *conn.ProviderCon
 		MinAdjustmentStep: Int32PtrOrNil(d.GetOk("min_adjustment_step")),
 		CoolDown:          ncloud.Int32(int32(d.Get("cooldown").(int))),
 	}
+	LogCommonRequest("createVpcAutoScalingPolicy", reqParams)
+
 	resp, err := config.Client.Vautoscaling.V2Api.PutScalingPolicy(reqParams)
 	if err != nil {
 		return nil, nil, err
 	}
+	LogResponse("createVpcAutoScalingPolicy", resp)
 
 	policy := resp.ScalingPolicyList[0]
 	return policy.AutoScalingGroupNo, policy.PolicyNo, nil
@@ -120,10 +135,13 @@ func createClassicAutoScalingPolicy(d *schema.ResourceData, config *conn.Provide
 		MinAdjustmentStep: Int32PtrOrNil(d.GetOk("min_adjustment_step")),
 		Cooldown:          ncloud.Int32(int32(d.Get("cooldown").(int))),
 	}
+	LogCommonRequest("createClassicAutoScalingPolicy", reqParams)
 
-	if _, err := config.Client.Autoscaling.V2Api.PutScalingPolicy(reqParams); err != nil {
+	resp, err := config.Client.Autoscaling.V2Api.PutScalingPolicy(reqParams)
+	if err != nil {
 		return nil, nil, err
 	}
+	LogResponse("createClassicAutoScalingPolicy", resp)
 
 	return ncloud.String(no), name, nil
 }
@@ -159,10 +177,13 @@ func getVpcAutoScalingPolicy(config *conn.ProviderConfig, id string, autoScaling
 		AutoScalingGroupNo: ncloud.String(autoScalingGroupNo),
 		PolicyNoList:       []*string{ncloud.String(id)},
 	}
+	LogCommonRequest("getVpcAutoScalingPolicy", reqParams)
+
 	resp, err := config.Client.Vautoscaling.V2Api.GetAutoScalingPolicyList(reqParams)
 	if err != nil {
 		return nil, err
 	}
+	LogResponse("getVpcAutoScalingPolicy", resp)
 
 	if len(resp.ScalingPolicyList) == 0 {
 		return nil, nil
@@ -194,10 +215,14 @@ func getClassicAutoScalingPolicy(config *conn.ProviderConfig, id string, autoSca
 		PolicyNameList:       []*string{ncloud.String(id)},
 		AutoScalingGroupName: asg.AutoScalingGroupName,
 	}
+	LogCommonRequest("getClassicAutoScalingPolicy", reqParams)
+
 	resp, err := config.Client.Autoscaling.V2Api.GetAutoScalingPolicyList(reqParams)
 	if err != nil {
 		return nil, err
 	}
+	LogResponse("getClassicAutoScalingPolicy", resp)
+
 	if len(resp.ScalingPolicyList) < 1 {
 		return nil, nil
 	}
@@ -248,10 +273,14 @@ func deleteVpcAutoScalingPolicy(config *conn.ProviderConfig, id string, autoScal
 		AutoScalingGroupNo: p.AutoScalingGroupNo,
 		PolicyNo:           p.AutoScalingPolicyNo,
 	}
+	LogCommonRequest("deleteVpcAutoScalingPolicy", reqParams)
 
-	if _, err := config.Client.Vautoscaling.V2Api.DeleteScalingPolicy(reqParams); err != nil {
+	resp, err := config.Client.Vautoscaling.V2Api.DeleteScalingPolicy(reqParams)
+	if err != nil {
 		return err
 	}
+	LogResponse("deleteVpcAutoScalingPolicy", resp)
+
 	return nil
 }
 
@@ -264,8 +293,13 @@ func deleteClassicAutoScalingPolicy(config *conn.ProviderConfig, id string, auto
 		AutoScalingGroupName: asg.AutoScalingGroupName,
 		PolicyName:           ncloud.String(id),
 	}
-	if _, err := config.Client.Autoscaling.V2Api.DeletePolicy(reqParams); err != nil {
+	LogCommonRequest("deleteClassicAutoScalingPolicy", reqParams)
+
+	resp, err := config.Client.Autoscaling.V2Api.DeletePolicy(reqParams)
+	if err != nil {
 		return err
 	}
+	LogResponse("deleteClassicAutoScalingPolicy", resp)
+
 	return nil
 }
