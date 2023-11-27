@@ -20,7 +20,10 @@ func ResourceNcloudSourceDeployProject() *schema.Resource {
 		ReadContext:   resourceNcloudSourceDeployProjectRead,
 		DeleteContext: resourceNcloudSourceDeployProjectDelete,
 		Importer: &schema.ResourceImporter{
-			StateContext: schema.ImportStatePassthroughContext,
+			State: func(d *schema.ResourceData, meta interface{}) ([]*schema.ResourceData, error) {
+				d.Set("name", d.Id())
+				return []*schema.ResourceData{d}, nil
+			},
 		},
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(conn.DefaultTimeout),
@@ -71,7 +74,7 @@ func resourceNcloudSourceDeployProjectRead(ctx context.Context, d *schema.Resour
 	if !config.SupportVPC {
 		return diag.FromErr(NotSupportClassic("resource `ncloud_sourcedeploy_project`"))
 	}
-	project, err := GetSourceDeployProjectById(ctx, config, d.Id())
+	project, err := GetSourceDeployProjectByName(ctx, config, d.Get("name").(string))
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -105,13 +108,13 @@ func resourceNcloudSourceDeployProjectDelete(ctx context.Context, d *schema.Reso
 	return nil
 }
 
-func GetSourceDeployProjectById(ctx context.Context, config *conn.ProviderConfig, id string) (*vsourcedeploy.GetIdNameResponse, error) {
+func GetSourceDeployProjectByName(ctx context.Context, config *conn.ProviderConfig, name string) (*vsourcedeploy.GetIdNameResponse, error) {
 	projectList, err := getSourceDeployProjects(ctx, config)
 	if err != nil {
 		return nil, err
 	}
 	for _, project := range projectList {
-		if *ncloud.IntString(int(ncloud.Int32Value(project.Id))) == id {
+		if *project.Name == name {
 			return project, nil
 		}
 	}
