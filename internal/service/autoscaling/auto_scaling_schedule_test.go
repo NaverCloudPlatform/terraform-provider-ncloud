@@ -201,6 +201,7 @@ resource "ncloud_auto_scaling_schedule" "test-schedule" {
 	name = "%[1]s"
 	min_size = 1
 	max_size = 1
+	desired_capacity = 1
 	start_time = "%[2]s"
 	end_time = "%[3]s"
 	auto_scaling_group_no = ncloud_auto_scaling_group.test.auto_scaling_group_no
