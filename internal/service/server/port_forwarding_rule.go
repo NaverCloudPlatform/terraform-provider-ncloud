@@ -24,8 +24,9 @@ func ResourceNcloudPortForwadingRule() *schema.Resource {
 		Read:   resourceNcloudPortForwardingRuleRead,
 		Update: resourceNcloudPortForwardingRuleUpdate,
 		Delete: resourceNcloudPortForwardingRuleDelete,
-		Exists: resourceNcloudPortForwardingRuleExists,
-
+		Importer: &schema.ResourceImporter{
+			State: schema.ImportStatePassthrough,
+		},
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(conn.DefaultCreateTimeout),
 			Delete: schema.DefaultTimeout(conn.DefaultTimeout),
@@ -139,7 +140,11 @@ func resourceNcloudPortForwardingRuleCreate(d *schema.ResourceData, meta interfa
 func resourceNcloudPortForwardingRuleRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*conn.ProviderConfig).Client
 
-	_, zoneNo, portForwardingExternalPort := ParsePortForwardingRuleId(d.Id())
+	_, zoneNo, portForwardingExternalPort, err := ParsePortForwardingRuleId(d.Id())
+	if err != nil {
+		return err
+	}
+
 	resp, err := getPortForwardingRuleList(client, zoneNo)
 	if err != nil {
 		return err
@@ -246,12 +251,16 @@ func PortForwardingRuleId(portForwardingConfigurationNo string, zonNo string, po
 	return fmt.Sprintf("%s:%s:%d", portForwardingConfigurationNo, zonNo, portForwardingExternalPort)
 }
 
-func ParsePortForwardingRuleId(id string) (portForwardingConfigurationNo string, zoneNo string, portForwardingExternalPort int32) {
+func ParsePortForwardingRuleId(id string) (string, string, int32, error) {
 	arr := strings.Split(id, ":")
 
-	portForwardingConfigurationNo, zoneNo = arr[0], arr[1]
-	tmp, _ := strconv.Atoi(arr[2])
-	return portForwardingConfigurationNo, zoneNo, int32(tmp)
+	if len(arr) == 3 && arr[0] != "" && arr[1] != "" && arr[2] != "" {
+		portForwardingConfigurationNo, zoneNo := arr[0], arr[1]
+		tmp, _ := strconv.Atoi(arr[2])
+		return portForwardingConfigurationNo, zoneNo, int32(tmp), nil
+	}
+
+	return "", "", 0, fmt.Errorf("unexpected format for ID (%[1]s), expected port_forwarding_configuration_no:zone_no:port_forwarding_external_port", id)
 }
 
 func getPortForwardingConfigurationNo(d *schema.ResourceData, meta interface{}) (string, error) {
@@ -266,6 +275,11 @@ func getPortForwardingConfigurationNo(d *schema.ResourceData, meta interface{}) 
 		if err != nil {
 			return "", err
 		}
+
+		if len(resp.PortForwardingConfigurationList) < 1 {
+			return "", nil
+		}
+
 		portForwardingConfigurationNo = ncloud.StringValue(resp.PortForwardingConfigurationList[0].PortForwardingConfigurationNo)
 	}
 	return portForwardingConfigurationNo, nil
@@ -277,12 +291,13 @@ func getPortForwardingConfigurationList(d *schema.ResourceData, config *conn.Pro
 		ServerInstanceNoList: []*string{ncloud.String(d.Get("server_instance_no").(string))},
 	}
 	LogCommonRequest("GetPortForwardingConfigurationList", reqParams)
+
 	resp, err := config.Client.Server.V2Api.GetPortForwardingConfigurationList(reqParams)
 	if err != nil {
 		LogErrorResponse("GetPortForwardingConfigurationList", err, reqParams)
 		return nil, err
 	}
-	LogCommonResponse("GetPortForwardingConfigurationList", GetCommonResponse(resp))
+	LogResponse("GetPortForwardingConfigurationList", resp)
 
 	return resp, nil
 }
@@ -292,12 +307,13 @@ func getPortForwardingRuleList(client *conn.NcloudAPIClient, zoneNo string) (*se
 		ZoneNo: ncloud.String(zoneNo),
 	}
 	LogCommonRequest("GetPortForwardingRuleList", reqParams)
+
 	resp, err := client.Server.V2Api.GetPortForwardingRuleList(reqParams)
 	if err != nil {
 		LogErrorResponse("GetPortForwardingRuleList", err, reqParams)
 		return nil, err
 	}
-	LogCommonResponse("GetPortForwardingRuleList", GetCommonResponse(resp))
+	LogResponse("GetPortForwardingRuleList", resp)
 
 	return resp, nil
 }
