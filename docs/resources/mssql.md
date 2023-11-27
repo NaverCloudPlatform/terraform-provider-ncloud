@@ -58,12 +58,25 @@ The following arguments are supported:
 
 ## Attributes Reference
 
-* `id` - The ID of server instance.
+* `id` - MSSQL Instance No.
 
 ## Import
 
-MSSQL instance can be imported using id, e.g.,
+### `terraform import` command
 
-``` 
-$ terraform import ncloud_mssql.ms_mssql id
+* MSSQL can be imported using the `id`. For example:
+
+```console
+$ terraform import ncloud_mssql.rsc_name 12345
+```
+
+### `import` block
+
+* In Terraform v1.5.0 and later, use an [`import` block](https://developer.hashicorp.com/terraform/language/import) to import MSSQL using the `id`. For example:
+
+```terraform
+import {
+  to = ncloud_mssql.rsc_name
+  id = "12345"
+}
 ```
