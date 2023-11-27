@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"regexp"
 	"strconv"
 	"strings"
 	"time"
@@ -75,10 +76,12 @@ func ResourceNcloudNKSNodePool() *schema.Resource {
 				Optional: true,
 			},
 			"node_pool_name": {
-				Type:             schema.TypeString,
-				ForceNew:         true,
-				Required:         true,
-				ValidateDiagFunc: validation.ToDiagFunc(validation.StringLenBetween(3, 30)),
+				Type:     schema.TypeString,
+				ForceNew: true,
+				Required: true,
+				ValidateDiagFunc: validation.ToDiagFunc(validation.All(
+					validation.StringLenBetween(3, 20),
+					validation.StringMatch(regexp.MustCompile(`^[a-z]+[a-z0-9-]+[a-z0-9]$`), "Allows only lowercase letters(a-z), numbers, hyphen (-). Must start with an alphabetic character, must end with an English letter or number"))),
 			},
 			"node_count": {
 				Type:     schema.TypeInt,
@@ -434,6 +437,8 @@ func getNKSNodePools(ctx context.Context, config *conn.ProviderConfig, uuid stri
 	if err != nil {
 		return nil, err
 	}
+	LogResponse("getNKSNodePools", resp)
+
 	return resp.NodePool, nil
 }
 
@@ -448,7 +453,7 @@ func NodePoolParseResourceID(id string) (string, string, error) {
 	if len(parts) == 2 && parts[0] != "" && parts[1] != "" {
 		return parts[0], parts[1], nil
 	}
-	return "", "", fmt.Errorf("unexpected format for ID (%[1]s), expected cluster-name%[2]snode-pool-name", id, NKSNodePoolIDSeparator)
+	return "", "", fmt.Errorf("unexpected format for ID (%[1]s), expected cluster-uuid%[2]snode-pool-name", id, NKSNodePoolIDSeparator)
 }
 
 func getNKSWorkerNodes(ctx context.Context, config *conn.ProviderConfig, uuid string) ([]*vnks.WorkerNode, error) {
