@@ -7,6 +7,8 @@ subcategory: "MySQL"
 
 Provides a MySQL instance resource.
 
+~> **NOTE:** This resource only supports VPC environment.
+
 ## Example Usage
 
 #### Basic (VPC)
@@ -79,13 +81,28 @@ The following arguments are supported:
 
 ## Attributes Reference
 
+* `id` - MySQL Instance No.
+* `instance_no` - MySQL Instance No. (It is the same result as `id`)
 * `vpc_no` - The ID of the associated Vpc.
 * `mysql_server_list` - The list of the MySQL server.
 
 ## Import
 
-MySQL instance can be imported using id, e.g.,
+### `terraform import` command
 
-``` 
-$ terraform import ncloud_mysql.my_mysql id
+* MySQL can be imported using the `id`. For example:
+
+```console
+$ terraform import ncloud_mysql.rsc_name 12345
+```
+
+### `import` block
+
+* In Terraform v1.5.0 and later, use an [`import` block](https://developer.hashicorp.com/terraform/language/import) to import MySQL using the `id`. For example:
+
+```terraform
+import {
+  to = ncloud_mysql.rsc_name
+  id = "12345"
+}
 ```

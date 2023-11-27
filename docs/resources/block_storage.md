@@ -47,8 +47,21 @@ The following arguments are supported:
 
 ## Import
 
-Block Storage can be imported using id, e.g.,
+### `terraform import` command
 
+* Block Storage can be imported using the `id`. For example:
+
+```console
+$ terraform import ncloud_block_storage.rsc_name 12345
 ```
-$ terraform import ncloud_block_storage.my_storage id
+
+### `import` block
+
+* In Terraform v1.5.0 and later, use an [`import` block](https://developer.hashicorp.com/terraform/language/import) to import Block Storage using the `id`. For example:
+
+```terraform
+import {
+  to = ncloud_block_storage.rsc_name
+  id = "12345"
+}
 ```

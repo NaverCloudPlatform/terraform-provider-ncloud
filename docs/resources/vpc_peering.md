@@ -40,7 +40,6 @@ The following arguments are supported:
 * `name` - (Optional) The name to create. If omitted, Terraform will assign a random, unique name.
 * `description` - (Optional) description to create.
 
-
 ## Attributes Reference
 
 In addition to all arguments above, the following attributes are exported:
@@ -52,8 +51,21 @@ In addition to all arguments above, the following attributes are exported:
 
 ## Import
 
-VPC Peering can be imported using id, e.g.,
+### `terraform import` command
 
-``` 
-$ terraform import ncloud_vpc_peering.my_vpc_peering id
+* VPC Peering can be imported using the `id`. For example:
+
+```console
+$ terraform import ncloud_vpc_peering.rsc_name 12345
+```
+
+### `import` block
+
+* In Terraform v1.5.0 and later, use an [`import` block](https://developer.hashicorp.com/terraform/language/import) to import VPC Peering using the `id`. For example:
+
+```terraform
+import {
+  to = ncloud_vpc_peering.rsc_name
+  id = "12345"
+}
 ```

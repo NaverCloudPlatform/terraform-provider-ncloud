@@ -44,8 +44,21 @@ In addition to all arguments above, the following attributes are exported:
 
 ## Import
 
-Init Script can be imported using id, e.g.,
+### `terraform import` command
 
-``` 
-$ terraform import ncloud_init_script.my_init_script id
+* Init Script can be imported using the `id`. For example:
+
+```console
+$ terraform import ncloud_init_script.rsc_name 12345
+```
+
+### `import` block
+
+* In Terraform v1.5.0 and later, use an [`import` block](https://developer.hashicorp.com/terraform/language/import) to import Init Script using the `id`. For example:
+
+```terraform
+import {
+  to = ncloud_init_script.rsc_name
+  id = "12345"
+}
 ```

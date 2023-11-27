@@ -55,8 +55,21 @@ The following arguments are supported:
 
 ## Import
 
-NAS Volume can be imported using id, e.g.,
+### `terraform import` command
 
+* NAS Volume can be imported using the `id`. For example:
+
+```console
+$ terraform import ncloud_nas_volume.rsc_name 12345
 ```
-$ terraform import ncloud_nas_volume.my_nas_volume id
+
+### `import` block
+
+* In Terraform v1.5.0 and later, use an [`import` block](https://developer.hashicorp.com/terraform/language/import) to import NAS Volume using the `id`. For example:
+
+```terraform
+import {
+  to = ncloud_nas_volume.rsc_name
+  id = "12345"
+}
 ```
