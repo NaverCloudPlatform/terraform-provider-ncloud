@@ -175,20 +175,6 @@ func resourceNcloudPortForwardingRuleRead(d *schema.ResourceData, meta interface
 	return nil
 }
 
-func resourceNcloudPortForwardingRuleExists(d *schema.ResourceData, meta interface{}) (bool, error) {
-	config := meta.(*conn.ProviderConfig)
-
-	zoneNo, err := getServerZoneNo(config, d.Get("server_instance_no").(string))
-	if err != nil {
-		return false, err
-	}
-	var portForwardingExternalPort int32
-	if v, ok := d.GetOk("port_forwarding_external_port"); ok {
-		portForwardingExternalPort = int32(v.(int))
-	}
-	return hasPortForwardingRule(config.Client, zoneNo, portForwardingExternalPort)
-}
-
 func resourceNcloudPortForwardingRuleUpdate(d *schema.ResourceData, meta interface{}) error {
 	return resourceNcloudPortForwardingRuleRead(d, meta)
 }
@@ -329,12 +315,4 @@ func GetPortForwardingRule(client *conn.NcloudAPIClient, zoneNo string, portForw
 		}
 	}
 	return nil, nil
-}
-
-func hasPortForwardingRule(client *conn.NcloudAPIClient, zoneNo string, portForwardingExternalPort int32) (bool, error) {
-	rule, _ := GetPortForwardingRule(client, zoneNo, portForwardingExternalPort)
-	if rule != nil {
-		return true, nil
-	}
-	return false, nil
 }
