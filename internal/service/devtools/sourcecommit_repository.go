@@ -24,7 +24,10 @@ func ResourceNcloudSourceCommitRepository() *schema.Resource {
 		UpdateContext: resourceNcloudSourceCommitRepositoryUpdate,
 		DeleteContext: resourceNcloudSourceCommitRepositoryDelete,
 		Importer: &schema.ResourceImporter{
-			StateContext: schema.ImportStatePassthroughContext,
+			State: func(d *schema.ResourceData, meta interface{}) ([]*schema.ResourceData, error) {
+				d.Set("name", d.Id())
+				return []*schema.ResourceData{d}, nil
+			},
 		},
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(conn.DefaultTimeout),
@@ -86,7 +89,6 @@ func resourceNcloudSourceCommitRepositoryCreate(ctx context.Context, d *schema.R
 
 	LogCommonRequest("resourceNcloudSourceCommitRepositoryCreate", reqParams)
 	resp, err := config.Client.Sourcecommit.V1Api.CreateRepository(ctx, reqParams)
-	LogCommonResponse("resourceNcloudSourceCommitRepositoryCreate", GetCommonResponse(nil))
 	var diags diag.Diagnostics
 
 	if err != nil {
@@ -120,13 +122,10 @@ func resourceNcloudSourceCommitRepositoryCreate(ctx context.Context, d *schema.R
 func resourceNcloudSourceCommitRepositoryRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	config := meta.(*conn.ProviderConfig)
 	name := ncloud.String(d.Get("name").(string))
-	id := ncloud.String(d.Id())
-
-	repository, err := GetRepositoryById(ctx, config, *id)
 
 	LogCommonRequest("resourceNcloudSourceCommitRepositoryRead", name)
 	var diags diag.Diagnostics
-
+	repository, err := getRepository(ctx, config, *name)
 	if err != nil {
 		LogErrorResponse("resourceNcloudSourceCommitRepositoryRead", err, *name)
 		diags = append(diags, diag.Diagnostic{
