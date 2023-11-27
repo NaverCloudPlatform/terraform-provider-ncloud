@@ -44,6 +44,11 @@ func TestAccResourceNcloudPortForwardingRuleBasic(t *testing.T) {
 						"22"),
 				),
 			},
+			{
+				ResourceName:      "ncloud_port_forwarding_rule.test",
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
 		},
 	})
 }
@@ -106,10 +111,14 @@ func testAccCheckPortForwardingRuleExistsWithProvider(n string, i *server.PortFo
 
 		provider := providerF()
 		client := provider.Meta().(*conn.ProviderConfig).Client
-		_, zoneNo, portForwardingExternalPort := serverservice.ParsePortForwardingRuleId(rs.Primary.ID)
+		_, zoneNo, portForwardingExternalPort, err := serverservice.ParsePortForwardingRuleId(rs.Primary.ID)
+		if err != nil {
+			return err
+		}
+
 		portForwardingRule, err := serverservice.GetPortForwardingRule(client, zoneNo, portForwardingExternalPort)
 		if err != nil {
-			return nil
+			return err
 		}
 
 		if portForwardingRule != nil {
@@ -132,7 +141,11 @@ func testAccCheckPortForwardingRuleDestroyWithProvider(s *terraform.State, provi
 		if rs.Type != "ncloud_port_forwarding_rule" {
 			continue
 		}
-		_, zoneNo, portForwardingExternalPort := serverservice.ParsePortForwardingRuleId(rs.Primary.ID)
+		_, zoneNo, portForwardingExternalPort, err := serverservice.ParsePortForwardingRuleId(rs.Primary.ID)
+		if err != nil {
+			return err
+		}
+
 		rule, err := serverservice.GetPortForwardingRule(client, zoneNo, portForwardingExternalPort)
 		if rule == nil {
 			return nil
@@ -158,7 +171,7 @@ resource "ncloud_login_key" "loginkey" {
 
 resource "ncloud_server" "server" {
 	name = "%s"
-	server_image_product_code = "SPSW0LINUX000032"
+	server_image_product_code = "SPSW0LINUX000046"
 	server_product_code = "SPSVRSTAND000004"
 	login_key_name = "${ncloud_login_key.loginkey.key_name}"
 }
