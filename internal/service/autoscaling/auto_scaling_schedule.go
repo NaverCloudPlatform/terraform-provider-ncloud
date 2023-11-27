@@ -1,7 +1,9 @@
 package autoscaling
 
 import (
+	"fmt"
 	"regexp"
+	"strings"
 
 	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/ncloud"
 	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/services/autoscaling"
@@ -23,7 +25,17 @@ func ResourceNcloudAutoScalingSchedule() *schema.Resource {
 		Update: resourceNcloudAutoScalingScheduleUpdate,
 		Delete: resourceNcloudAutoScalingScheduleDelete,
 		Importer: &schema.ResourceImporter{
-			StateContext: schema.ImportStatePassthroughContext,
+			State: func(d *schema.ResourceData, meta interface{}) ([]*schema.ResourceData, error) {
+				idParts := strings.Split(d.Id(), ":")
+				if len(idParts) != 2 || idParts[0] == "" || idParts[1] == "" {
+					return nil, fmt.Errorf("unexpected format of ID (%q), expected auto_scaling_group_no:id", d.Id())
+				}
+				AutoScalingGroupNo := idParts[0]
+				id := idParts[1]
+				d.SetId(id)
+				d.Set("auto_scaling_group_no", AutoScalingGroupNo)
+				return []*schema.ResourceData{d}, nil
+			},
 		},
 		Schema: map[string]*schema.Schema{
 			"name": {
@@ -117,11 +129,13 @@ func createVpcAutoScalingSchedule(d *schema.ResourceData, config *conn.ProviderC
 		Recurrence: StringPtrOrNil(d.GetOk("recurrence")),
 		TimeZone:   StringPtrOrNil(d.GetOk("time_zone")),
 	}
+	LogCommonRequest("createVpcAutoScalingSchedule", reqParams)
 
 	resp, err := config.Client.Vautoscaling.V2Api.PutScheduledUpdateGroupAction(reqParams)
 	if err != nil {
 		return nil, err
 	}
+	LogResponse("createVpcAutoScalingSchedule", resp)
 
 	return resp.ScheduledUpdateGroupActionList[0].ScheduledActionNo, nil
 }
@@ -144,11 +158,13 @@ func createClassicAutoScalingSchedule(d *schema.ResourceData, config *conn.Provi
 		EndTime:         StringPtrOrNil(d.GetOk("end_time")),
 		RecurrenceInKST: StringPtrOrNil(d.GetOk("recurrence")),
 	}
+	LogCommonRequest("createClassicAutoScalingSchedule", reqParams)
 
 	resp, err := config.Client.Autoscaling.V2Api.PutScheduledUpdateGroupAction(reqParams)
 	if err != nil {
 		return nil, err
 	}
+	LogResponse("createClassicAutoScalingSchedule", resp)
 
 	return resp.ScheduledUpdateGroupActionList[0].ScheduledActionName, nil
 }
@@ -184,10 +200,13 @@ func getVpcAutoScalingSchedule(config *conn.ProviderConfig, id string, asgNo str
 		AutoScalingGroupNo:    ncloud.String(asgNo),
 		ScheduledActionNoList: []*string{ncloud.String(id)},
 	}
+	LogCommonRequest("getVpcAutoScalingSchedule", reqParams)
+
 	resp, err := config.Client.Vautoscaling.V2Api.GetScheduledActionList(reqParams)
 	if err != nil {
 		return nil, err
 	}
+	LogResponse("getVpcAutoScalingSchedule", resp)
 
 	if len(resp.ScheduledUpdateGroupActionList) < 1 {
 		return nil, nil
@@ -213,14 +232,21 @@ func getClassicAutoScalingSchedule(config *conn.ProviderConfig, id string, asgNo
 	if err != nil {
 		return nil, err
 	}
+	if asg == nil {
+		return nil, nil
+	}
+
 	reqParams := &autoscaling.GetScheduledActionListRequest{
 		AutoScalingGroupName:    asg.AutoScalingGroupName,
 		ScheduledActionNameList: []*string{ncloud.String(id)},
 	}
+	LogCommonRequest("getClassicAutoScalingSchedule", reqParams)
+
 	resp, err := config.Client.Autoscaling.V2Api.GetScheduledActionList(reqParams)
 	if err != nil {
 		return nil, err
 	}
+	LogResponse("getClassicAutoScalingSchedule", resp)
 
 	if len(resp.ScheduledUpdateGroupActionList) < 1 {
 		return nil, nil
@@ -273,10 +299,14 @@ func deleteVpcAutoScalingSchedule(config *conn.ProviderConfig, id string, asgNo 
 		AutoScalingGroupNo: ncloud.String(asgNo),
 		ScheduledActionNo:  schedule.ScheduledActionNo,
 	}
-	_, err = config.Client.Vautoscaling.V2Api.DeleteScheduledAction(reqParams)
+	LogCommonRequest("deleteVpcAutoScalingSchedule", reqParams)
+
+	resp, err := config.Client.Vautoscaling.V2Api.DeleteScheduledAction(reqParams)
 	if err != nil {
 		return err
 	}
+	LogResponse("deleteVpcAutoScalingSchedule", resp)
+
 	return nil
 }
 
@@ -289,8 +319,13 @@ func deleteClassicAutoScalingSchedule(config *conn.ProviderConfig, id string, as
 		AutoScalingGroupName: asg.AutoScalingGroupName,
 		ScheduledActionName:  ncloud.String(id),
 	}
-	if _, err := config.Client.Autoscaling.V2Api.DeleteScheduledAction(reqParams); err != nil {
+	LogCommonRequest("deleteClassicAutoScalingSchedule", reqParams)
+
+	resp, err := config.Client.Autoscaling.V2Api.DeleteScheduledAction(reqParams)
+	if err != nil {
 		return err
 	}
+	LogResponse("deleteClassicAutoScalingSchedule", resp)
+
 	return nil
 }
