@@ -38,8 +38,21 @@ The following arguments are supported:
 
 ## Import
 
-Access Control Group can be imported using id, e.g.,
+### `terraform import` command
 
+* Access Control Group can be imported using the `id`. For example:
+
+```console
+$ terraform import ncloud_access_control_group.rsc_name 12345
 ```
-$ terraform import ncloud_access_control_group.my_acg id
+
+### `import` block
+
+* In Terraform v1.5.0 and later, use an [`import` block](https://developer.hashicorp.com/terraform/language/import) to import Access Control Group using the `id`. For example:
+
+```terraform
+import {
+  to = ncloud_auto_scaling_group.rsc_name
+  id = "12345"
+}
 ```

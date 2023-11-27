@@ -33,9 +33,21 @@ The following arguments are supported:
 
 ## Import
 
-Individual login key can be imported using `KEY_NAME`.
-For example, import a login key `test` like this:
+### `terraform import` command
 
-```bash
-$ terraform import ncloud_login_key.my_loginkey test
+* Login Key can be imported using the `key_name`. For example:
+
+```console
+$ terraform import ncloud_login_key.rsc_name test 
+```
+
+### `import` block
+
+* In Terraform v1.5.0 and later, use an [`import` block](https://developer.hashicorp.com/terraform/language/import) to import Login Key using the `key_name`. For example:
+
+```terraform
+import {
+  to = ncloud_login_key.rsc_name
+  id = "test"
+}
 ```

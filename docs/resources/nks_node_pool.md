@@ -120,14 +120,14 @@ The following arguments are supported:
   * `max` - (Required) Maximum number of nodes available for auto scaling.
   * `min` - (Required) Minimum number of nodes available for auto scaling.
 * `subnet_no` - (Deprecated) Subnet No.
-* `subnet_no_list` - Subnet no list.
+* `subnet_no_list` - (Optional) Subnet no list.
 * `k8s_version` - (Optional) Kubenretes version. Only upgrade is supported.
 
 ## Attributes Reference
 
 In addition to all arguments above, the following attributes are exported:
 
-* `id` - The ID of nodepool.`CusterUuid:NodePoolName` 
+* `id` - The ID of nodepool.`cluster_uuid:node_pool_name`
 * `instance_no` - Instance No.
 * `nodes`- Running nodes in nodepool.
   * `name` - The name of Server instance.
@@ -141,8 +141,21 @@ In addition to all arguments above, the following attributes are exported:
 
 ## Import
 
-NKS Node Pools can be imported using the uuid(cluster_name) and node_pool_name separated by a colon (:), e.g.,
+### `terraform import` command
 
+* Kubernetes Service Node Pool can be imported using the `id`. For example:
+
+```console
+$ terraform import ncloud_nks_node_pool.rsc_name a80d6cbb-fdaa-4fdf-a3d9-063b6ffd5e:my-node 
 ```
-$ terraform import ncloud_nks_node_pool.my_node_pool uuid:my_node_pool
+
+### `import` block
+
+* In Terraform v1.5.0 and later, use an [`import` block](https://developer.hashicorp.com/terraform/language/import) to import Kubernetes Service Node Pool using the `id`. For example:
+
+```terraform
+import {
+  to = ncloud_nks_node_pool.rsc_name
+  id = "a80d6cbb-fdaa-4fdf-a3d9-063b6ffd5e:my-node"
+}
 ```

@@ -42,8 +42,21 @@ The following arguments are supported:
 
 ## Import
 
-Block Storage Snapshot can be imported using id, e.g.,
+### `terraform import` command
 
+* Block Storage Snapshot can be imported using the `id`. For example:
+
+```console
+$ terraform import ncloud_block_storage_snapshot.rsc_name 12345
 ```
-$ terraform import ncloud_block_storage_snapshot.my_snapshot id
+
+### `import` block
+
+* In Terraform v1.5.0 and later, use an [`import` block](https://developer.hashicorp.com/terraform/language/import) to import Block Storage Snapshot using the `id`. For example:
+
+```terraform
+import {
+  to = ncloud_block_storage_snapshot.rsc_name
+  id = "12345"
+}
 ```

@@ -45,8 +45,21 @@ In addition to all arguments above, the following attributes are exported:
 
 ## Import
 
-Route Table can be imported using id, e.g.,
+### `terraform import` command
 
-``` 
-$ terraform import ncloud_route_table.my_route_table id
+* Route Table can be imported using the `id`. For example:
+
+```console
+$ terraform import ncloud_route_table.rsc_name 12345
+```
+
+### `import` block
+
+* In Terraform v1.5.0 and later, use an [`import` block](https://developer.hashicorp.com/terraform/language/import) to import Route Table using the `id`. For example:
+
+```terraform
+import {
+  to = ncloud_route_table.rsc_name
+  id = "12345"
+}
 ```

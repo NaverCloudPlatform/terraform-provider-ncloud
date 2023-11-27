@@ -47,7 +47,7 @@ The following arguments are supported:
 
 In addition to all arguments above, the following attributes are exported:
 
-* `id` - The ID of the route table association (`route_table_no`:`subnet_no`)
+* `id` - The ID of the route table association. `route_table_no:subnet_no`
 
 ## Import
 
@@ -55,4 +55,25 @@ Route Table Association can be imported using route_table_id and subnet_id separ
 
 ``` 
 $ terraform import ncloud_route_table_association.my_route_table_association route_table_id:subnet_id
+```
+
+## Import
+
+### `terraform import` command
+
+* Route Table Association can be imported using the `id`. For example:
+
+```console
+$ terraform import ncloud_route_table_association.rsc_name 1234:12345
+```
+
+### `import` block
+
+* In Terraform v1.5.0 and later, use an [`import` block](https://developer.hashicorp.com/terraform/language/import) to import Route Table Association using the `id`. For example:
+
+```terraform
+import {
+  to = ncloud_route_table_association.rsc_name
+  id = "1234:12345"
+}
 ```

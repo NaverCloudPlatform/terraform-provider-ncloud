@@ -1,11 +1,13 @@
 ---
-subcategory: "Database Service"
+subcategory: "MongoDB"
 ---
 
 
 # Resource: ncloud_mongodb
 
 Provides a Database Service MongoDB resource.
+
+~> **NOTE:** This resource only supports VPC environment.
 
 ## Example Usage
 
@@ -26,6 +28,7 @@ resource "ncloud_subnet" "subnet" {
 }
 
 resource "ncloud_mongodb" "mongodb" {
+  vpc_no = ncloud_vpc.vpc.id
   subnet_no = ncloud_subnet.subnet.id
   service_name = "sample-mongodb"
   user_name = "username"
@@ -40,17 +43,17 @@ resource "ncloud_mongodb" "mongodb" {
 The following arguments are supported:
 
 * `service_name` - (Required) Service name to create.
-* `user_name` - (Required) MongoDB User ID
-* `user_password` - (Required) MongoDB User Password
+* `user_name` - (Required) MongoDB User ID.
+* `user_password` - (Required) MongoDB User Password.
 * `vpc_no` - (Required) The ID of the associated Vpc.
 * `subnet_no` - (Required) The ID of the associated Subnet.
 * `cluster_type_code` - (Required) MongoDB cluster type code determines the cluster type of MongoDB. Options: STAND_ALONE | SINGLE_REPLICA_SET | SHARDED_CLUSTER
-* `image_product_code` - (Optional) MongoDB image product code, cloudMongoDBImageProductCode can be acquired as a productCode in getCloudMongoDBImageProductList action If not entered, it is created as a default value.
-* `member_product_code` - (Optional) 
-* `arbiter_product_code` - (Optional) 
-* `mongos_product_code` - (Optional) 
-* `config_product_code` - (Optional) 
-* `data_storage_type_code` - (Optional) 
+* `image_product_code` - (Optional) MongoDB image product code. cloudMongoDBImageProductCode can be acquired as a productCode in getCloudMongoDBImageProductList action If not entered, it is created as a default value.
+* `member_product_code` - (Optional) Member server product code. Default: select the minimum specifications and must be based on 1. Memory and 2. CPU
+* `arbiter_product_code` - (Optional) Arbiter server product code. Default: select the minimum specifications and must be based on 1. Memory and 2. CPU
+* `mongos_product_code` - (Optional) Mongos server product code. Default: select the minimum specifications and must be based on 1. Memory and 2. CPU
+* `config_product_code` - (Optional) Config server product code. Default: select the minimum specifications and must be based on 1. Memory and 2. CPU
+* `data_storage_type_code` - (Optional) Data storage-type code. Data storage-type cannot be changed after installation. Options: SSD | HDD, Default: SSD
 * `shard_count` - (Optional) The number of MongoDB Shards. If sharding is used, the number of shards can be selected. For initial configurations, only two and three are selectable.
 You can enter the ClusterType only when it is Sharding. Default: 2
 * `member_server_count` - (Optional) The number of MongoDB Member Servers, it is possible to select the number of member servers per Replica Set (for each shard in the case of Sharding).
@@ -66,7 +69,7 @@ It can be selected between 3 and 7 units including the Arbiter server. Default: 
 * `mongos_port` - (Optional) TCP port number for access to the MongoDB Mongos Server.  Default: 17017
 * `config_port` - (Optional) TCP port number for access to the MongoDB Config Server.  Default: 17017
 * `compress_code` - (Optional) MongoDB Data Compression Algorithm Code allows you to select data compression algorithms provided by MongoDB.
-  
+
 ## Attributes Reference
 
 In addition to all arguments above, the following attributes are exported:
@@ -76,8 +79,21 @@ In addition to all arguments above, the following attributes are exported:
 
 ## Import
 
-MongoDB Instance can be imported using the id(service_name), e.g.,
+### `terraform import` command
 
+* MongoDB can be imported using the `id`. For example:
+
+```console
+$ terraform import ncloud_mongodb.rsc_name 12345
 ```
-$ terraform import ncloud_mongodb.mongodb id
+
+### `import` block
+
+* In Terraform v1.5.0 and later, use an [`import` block](https://developer.hashicorp.com/terraform/language/import) to import MongoDB using the `id`. For example:
+
+```terraform
+import {
+  to = ncloud_mongodb.rsc_name
+  id = "12345"
+}
 ```

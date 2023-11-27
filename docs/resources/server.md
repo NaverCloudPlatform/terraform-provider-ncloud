@@ -180,10 +180,23 @@ The following arguments are supported:
   * `subnet_no` - Subnet ID of the network interface.
   * `private_ip` - IP address of the network interface.
 
-  ## Import
+## Import
 
-Server instance can be imported using id, e.g.,
+### `terraform import` command
 
-``` 
-$ terraform import ncloud_server.my_server id
+* Server can be imported using the `id`. For example:
+
+```console
+$ terraform import ncloud_server.rsc_name 12345
+```
+
+### `import` block
+
+* In Terraform v1.5.0 and later, use an [`import` block](https://developer.hashicorp.com/terraform/language/import) to import Server using the `id`. For example:
+
+```terraform
+import {
+  to = ncloud_server.rsc_name
+  id = "12345"
+}
 ```

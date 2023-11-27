@@ -82,8 +82,21 @@ In addition to all arguments above, the following attributes are exported:
 
 ## Import
 
-NAT Gateway can be imported using the id, e.g.,
+### `terraform import` command
 
+* NAT Gateway can be imported using the `id`. For example:
+
+```console
+$ terraform import ncloud_nat_gateway.rsc_name 12345
 ```
-$ terraform import ncloud_nat_gateway.my_nat_gateway id
+
+### `import` block
+
+* In Terraform v1.5.0 and later, use an [`import` block](https://developer.hashicorp.com/terraform/language/import) to import NAT Gateway using the `id`. For example:
+
+```terraform
+import {
+  to = ncloud_nat_gateway.rsc_name
+  id = "12345"
+}
 ```

@@ -110,7 +110,21 @@ In addition to all arguments above, the following attributes are exported:
 
 ## Import
 
-Kubernetes Service Cluster can be imported using the uuid(cluster_name), e.g.,
+### `terraform import` command
 
-$ terraform import ncloud_nks_cluster.my_cluster uuid
+* Kubernetes Service Cluster can be imported using the `id`. For example:
 
+```console
+$ terraform import ncloud_nks_cluster.rsc_name a80d6cbb-fdaa-4fdf-a3d9-063b6ffd5e
+```
+
+### `import` block
+
+* In Terraform v1.5.0 and later, use an [`import` block](https://developer.hashicorp.com/terraform/language/import) to import Kubernetes Service Cluster using the `id`. For example:
+
+```terraform
+import {
+  to = ncloud_nks_cluster.rsc_name
+  id = "a80d6cbb-fdaa-4fdf-a3d9-063b6ffd5e"
+}
+```
