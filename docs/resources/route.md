@@ -50,13 +50,27 @@ The following arguments are supported:
 
 In addition to all arguments above, the following attributes are exported:
 
+* `id` - The ID of Route.
 * `is_default` - Whether is default or not by Route table creation.
 * `vpc_no` - The ID of the associated VPC.
 
 ## Import
 
-Individual routes can be imported using ROUTE_TABLE_NO:DESTINATION_CIDR. For example, import a route in a route table `57039` with an IPv4 destination CIDR `0.0.0.0/0` like this:
+### `terraform import` command
 
+* Route can be imported using the `route_table_no`:`destination_cidr_block`. For example:
+
+```console
+$ terraform import ncloud_route.rsc_name 57039:0.0.0.0/0
 ```
-$ terraform import ncloud_route.my_route 57039:0.0.0.0/0
+
+### `import` block
+
+* In Terraform v1.5.0 and later, use an [`import` block](https://developer.hashicorp.com/terraform/language/import) to import Route using the `route_table_no`:`destination_cidr_block`. For example:
+
+```terraform
+import {
+  to = ncloud_route.rsc_name
+  id = "57039:0.0.0.0/0"
+}
 ```

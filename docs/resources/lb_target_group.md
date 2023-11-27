@@ -63,9 +63,21 @@ In addition to all arguments above, the following attributes are exported:
 
 ## Import
 
-Individual target group can be imported using `TARGET_GROUP_NO`.
-For example, import a target group `267809` like this:
+### `terraform import` command
 
-```bash
-$ terraform import ncloud_lb_target_group.my_lb_target_group 267809
+* Load Balancer Target Group can be imported using the `id`. For example:
+
+```console
+$ terraform import ncloud_lb_target_group.rsc_name 12345
+```
+
+### `import` block
+
+* In Terraform v1.5.0 and later, use an [`import` block](https://developer.hashicorp.com/terraform/language/import) to import Load Balancer Target Group using the `id`. For example:
+
+```terraform
+import {
+  to = ncloud_lb_target_group.rsc_name
+  id = "12345"
+}
 ```

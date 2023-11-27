@@ -58,8 +58,21 @@ The following arguments are supported:
 
 ## Import
 
-Network Interface can be imported using id, e.g.,
+### `terraform import` command
 
-``` 
-$ terraform import ncloud_network_interface.my_nic id
+* Network Interface can be imported using the `id`. For example:
+
+```console
+$ terraform import ncloud_network_interface.rsc_name 12345
+```
+
+### `import` block
+
+* In Terraform v1.5.0 and later, use an [`import` block](https://developer.hashicorp.com/terraform/language/import) to import Network Interface using the `id`. For example:
+
+```terraform
+import {
+  to = ncloud_network_interface.rsc_name
+  id = "12345"
+}
 ```

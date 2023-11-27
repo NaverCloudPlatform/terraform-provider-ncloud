@@ -41,8 +41,21 @@ In addition to all arguments above, the following attributes are exported:
 
 ## Import
 
-VPC can be imported using id, e.g.,
+### `terraform import` command
 
-``` 
-$ terraform import ncloud_vpc.my_vpc id
+* VPC can be imported using the `id`. For example:
+
+```console
+$ terraform import ncloud_vpc.rsc_name 12345
+```
+
+### `import` block
+
+* In Terraform v1.5.0 and later, use an [`import` block](https://developer.hashicorp.com/terraform/language/import) to import VPC using the `id`. For example:
+
+```terraform
+import {
+  to = ncloud_vpc.rsc_name
+  id = "12345"
+}
 ```
