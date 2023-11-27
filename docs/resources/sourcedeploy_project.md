@@ -31,8 +31,21 @@ The following arguments are supported:
 
 ## Import
 
-SourceDeploy project can be imported using the project_id, e.g.,
+### `terraform import` command
 
+* SourceDeploy Project can be imported using the `name`. For example:
+
+```console
+$ terraform import ncloud_sourcedeploy_project.rsc_name test-deploy
 ```
-$ terraform import ncloud_sourcedeploy_project.my_project project_id
+
+### `import` block
+
+* In Terraform v1.5.0 and later, use an [`import` block](https://developer.hashicorp.com/terraform/language/import) to import SourceDeploy Project using the `name`. For example:
+
+```terraform
+import {
+  to = ncloud_sourcedeploy_project.rsc_name
+  id = "test-deploy"
+}
 ```

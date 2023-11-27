@@ -9,7 +9,7 @@ subcategory: "Developer Tools"
 
 -> **Note:** This resource is a beta release. Some features may change in the future.
 
-Provides a SourceDeploy Stage resource.
+Provides a SourceDeploy Project Stage resource.
 
 ## Example Usage
 
@@ -79,8 +79,21 @@ The following arguments are supported:
 
 ## Import
 
-SourceDeploy stage can be imported using the project_id and stage_id separated by a colon (:), e.g.,
+### `terraform import` command
 
+* SourceDeploy Project Stage can be imported using the `project_id`:`id`. For example:
+
+```console
+$ terraform import ncloud_sourcedeploy_project_stage.rsc_name 1234:5678
 ```
-$ terraform import ncloud_sourcedeploy_project_stage.my_stage project_id:stage_id
+
+### `import` block
+
+* In Terraform v1.5.0 and later, use an [`import` block](https://developer.hashicorp.com/terraform/language/import) to import SourceDeploy Project Stage using the `project_id`:`id`. For example:
+
+```terraform
+import {
+  to = ncloud_sourcedeploy_project_stage.rsc_name
+  id = "1234:5678"
+}
 ```

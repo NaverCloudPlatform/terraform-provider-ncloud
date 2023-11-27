@@ -86,3 +86,24 @@ In addition to all arguments above, the following attributes are exported:
 
 * `id` - The ID of Auto Scaling Policy.
 * `name` - The ID of Auto Scaling Policy (It is the same result as id).
+
+## Import
+
+### `terraform import` command
+
+* Auto Scaling Policy can be imported using the `auto_scaling_group_no`:`id`. For example:
+
+```console
+$ terraform import ncloud_auto_scaling_policy.rsc_name 34567:12345
+```
+
+### `import` block
+
+* In Terraform v1.5.0 and later, use an [`import` block](https://developer.hashicorp.com/terraform/language/import) to import Auto Scaling Group using the `auto_scaling_group_no`:`id`. For example:
+
+```terraform
+import {
+  to = ncloud_auto_scaling_policy.rsc_name
+  id = "34567:12345"
+}
+```

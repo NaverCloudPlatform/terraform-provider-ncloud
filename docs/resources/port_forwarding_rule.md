@@ -7,6 +7,8 @@ subcategory: "Server"
 
 Provides a ncloud port forwarding rule resource.
 
+~> **NOTE:** This resource only supports Classic environment.
+
 ## Example Usage
 
 ```hcl
@@ -29,5 +31,27 @@ The following arguments are supported:
 
 ## Attributes Reference
 
+* `id` - The ID of Port forwarding rule.`port_forwarding_configuration_no:zone_no:port_forwarding_external_port` 
 * `port_forwarding_public_ip` - Port forwarding Public IP
 * `zone` - Zone code
+
+## Import
+
+### `terraform import` command
+
+* Port Forwarding Rule can be imported using the `id`. For example:
+
+```console
+$ terraform import ncloud_port_forwarding_rule.rsc_name 1222:3:2022
+```
+
+### `import` block
+
+* In Terraform v1.5.0 and later, use an [`import` block](https://developer.hashicorp.com/terraform/language/import) to import Port Forwarding Rule using the `id`. For example:
+
+```terraform
+import {
+  to = ncloud_port_forwarding_rule.rsc_name
+  id = "1222:3:2022"
+}
+```

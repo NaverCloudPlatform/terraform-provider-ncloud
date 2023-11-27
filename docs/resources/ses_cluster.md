@@ -102,6 +102,7 @@ The following arguments are supported:
 * `login_key_name` - Required Login key to access Manager node server
 
 ## Attribute Reference
+
 In addition to all arguments above, the following attributes are exported
 
 * `id` - Cluster Instance No.
@@ -123,3 +124,24 @@ In addition to all arguments above, the following attributes are exported
   * `private_ip`            - Private IP
   * `server_status`         - The status of Server Instance.
   * `subnet`                - The name of Server Instance subnet.
+
+## Import
+
+### `terraform import` command
+
+* Search Engine Service Cluster can be imported using the `id`. For example:
+
+```console
+$ terraform import ncloud_ses_cluster.rsc_name 12345
+```
+
+### `import` block
+
+* In Terraform v1.5.0 and later, use an [`import` block](https://developer.hashicorp.com/terraform/language/import) to import Search Engine Service Cluster using the `id`. For example:
+
+```terraform
+import {
+  to = ncloud_ses_cluster.rsc_name
+  id = "12345"
+}
+```

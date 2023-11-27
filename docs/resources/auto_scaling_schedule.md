@@ -93,10 +93,30 @@ It must be a time later than the current time and a time later than the startTim
 
 * `time_zone` - (Optional) the time band for the repeat settings. Valid values are `KST` and `UTC`. Default : `KST`.
 
-
 ## Attributes Reference
 
 In addition to all arguments above, the following attributes are exported:
 
 * `id` - The ID of Auto Scaling Schedule.
 * `name` - The ID of Auto Scaling Schedule (It is the same result as id).
+
+## Import
+
+### `terraform import` command
+
+* Auto Scaling Schedule can be imported using the `auto_scaling_group_no`:`id`. For example:
+
+```console
+$ terraform import ncloud_auto_scaling_schedule.rsc_name 34567:12345
+```
+
+### `import` block
+
+* In Terraform v1.5.0 and later, use an [`import` block](https://developer.hashicorp.com/terraform/language/import) to import Auto Scaling Schedule using the `auto_scaling_group_no`:`id`. For example:
+
+```terraform
+import {
+  to = ncloud_auto_scaling_schedule.rsc_name
+  id = "34567:12345"
+}
+```

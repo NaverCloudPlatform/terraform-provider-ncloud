@@ -108,22 +108,22 @@ resource "ncloud_cdss_cluster" "cluster-12" {
 ## Argument Reference
 The following arguments are supported:
 
-* `name` - Cluster name.
-* `kafka_version_code` - Cloud Data Streaming Service version to be used.
-* `config_group_no` - ConfigGroup number to be used.
-* `vpc_no` - VPC number to be used.
-* `os_image` -  OS type to be used.
+* `name` - (Required) Cluster name.
+* `kafka_version_code` - (Required) Cloud Data Streaming Service version to be used.
+* `config_group_no` - (Required) ConfigGroup number to be used.
+* `vpc_no` - (Required) VPC number to be used.
+* `os_image` -  (Required) OS type to be used.
 * `cmak` - .
-    * `user_name` - CMAK access ID. Only lowercase alphanumeric characters and non-consecutive hyphens (-) allowed First character must be a letter, but the last character may be a letter or a number.
-    * `user_password` - CMAK access password. Must be at least 8 characters and contain at least one of each: English uppercase letter, lowercase letter, special character, and number.
+    * `user_name` - (Required) CMAK access ID. Only lowercase alphanumeric characters and non-consecutive hyphens (-) allowed First character must be a letter, but the last character may be a letter or a number.
+    * `user_password` - (Required) CMAK access password. Must be at least 8 characters and contain at least one of each: English uppercase letter, lowercase letter, special character, and number.
 * `manager_node` - .
-    * `node_product_code` - HW specifications of the manager node.
-    * `subnet_no` - Subnet number where the manager node is to be located.
+    * `node_product_code` - (Required) HW specifications of the manager node.
+    * `subnet_no` - (Required) Subnet number where the manager node is to be located.
 * `broker_nodes` - .
-    * `node_product_code` - HW specifications of the broker node.
-    * `subnet_no` - Subnet number where the broker node is to be located.
-    * `node_count` - Number of broker nodes. At least 3 units, up to 10 units allowed.
-    * `storage_size` - Broker node storage capacity. At least 100 GB, up to 2000 GB. Must be in units of 10 GB.
+    * `node_product_code` - (Required) HW specifications of the broker node.
+    * `subnet_no` - (Required) Subnet number where the broker node is to be located.
+    * `node_count` - (Required) Number of broker nodes. At least 3 units, up to 10 units allowed.
+    * `storage_size` - (Required) Broker node storage capacity. At least 100 GB, up to 2000 GB. Must be in units of 10 GB.
 
 ## Attribute Reference
 In addition to all arguments above, the following attributes are exported
@@ -139,3 +139,24 @@ In addition to all arguments above, the following attributes are exported
     * `hosts_private_endpoint_tls` - Editing details of the hosts file (Private IP hostname format).
     * `hosts_public_endpoint_tls` - Editing details of the hosts file (Public IP hostname format).
     * `zookeeper` - List of ZooKeeper nodes (Port 2181).
+
+## Import
+
+### `terraform import` command
+
+* CDSS Cluster can be imported using the `id`. For example:
+
+```console
+$ terraform import ncloud_cdss_cluster.rsc_name 12345
+```
+
+### `import` block
+
+* In Terraform v1.5.0 and later, use an [`import` block](https://developer.hashicorp.com/terraform/language/import) to import CDSS Cluster using the `id`. For example:
+
+```terraform
+import {
+  to = ncloud_cdss_cluster.rsc_name
+  id = "12345"
+}
+```
