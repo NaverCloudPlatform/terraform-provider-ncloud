@@ -1,5 +1,5 @@
 ---
-subcategory: "Load Balancer"
+subcategory: "Classic Load Balancer"
 ---
 
 
@@ -61,6 +61,7 @@ The following arguments are supported:
 
 ## Attributes Reference
 
+* `id` - The ID of load balancer.
 * `instance_no` - Load balancer instance No
 * `virtual_ip` - Virtual IP address
 * `create_date` - Creation date of the load balancer instance
@@ -71,3 +72,24 @@ The following arguments are supported:
 * `is_http_keep_alive` - Http keep alive value [true | false]
 * `connection_timeout` - Connection timeout
 * `load_balanced_server_instance_list` - Load balanced server instance list
+
+## Import
+
+### `terraform import` command
+
+* Load Balancer can be imported using the `id`. For example:
+
+```console
+$ terraform import ncloud_load_balancer.rsc_name 12345
+```
+
+### `import` block
+
+* In Terraform v1.5.0 and later, use an [`import` block](https://developer.hashicorp.com/terraform/language/import) to import Load Balancer using the `id`. For example:
+
+```terraform
+import {
+  to = ncloud_load_balancer.rsc_name
+  id = "12345"
+}
+```

@@ -171,3 +171,24 @@ The following arguments are supported:
 *   `triggers`
     *   `sourcepipeline` 
         * `name` - Name of the sourcepipeline trigger project.
+
+## Import
+
+### `terraform import` command
+
+* SourcePipeline Project can be imported using the `id`. For example:
+
+```console
+$ terraform import ncloud_sourcepipeline_project.rsc_name 12345
+```
+
+### `import` block
+
+* In Terraform v1.5.0 and later, use an [`import` block](https://developer.hashicorp.com/terraform/language/import) to import SourcePipeline Project using the `id`. For example:
+
+```terraform
+import {
+  to = ncloud_sourcepipeline_project.rsc_name
+  id = "12345"
+}
+```

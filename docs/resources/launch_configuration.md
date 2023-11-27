@@ -51,3 +51,24 @@ In addition to all arguments above, the following attributes are exported:
 
 * `id` - The ID of Launch Configuration.
 * `launch_configuration_no` - The ID of Launch Configuration (It is the same result as id)
+
+## Import
+
+### `terraform import` command
+
+* Launch Configuration can be imported using the `id`. For example:
+
+```console
+$ terraform import ncloud_launch_configuration.rsc_name 12345
+```
+
+### `import` block
+
+* In Terraform v1.5.0 and later, use an [`import` block](https://developer.hashicorp.com/terraform/language/import) to import Launch Configuration using the `id`. For example:
+
+```terraform
+import {
+  to = ncloud_launch_configuration.rsc_name
+  id = "12345"
+}
+```
