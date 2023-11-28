@@ -2,6 +2,7 @@ package fwprovider
 
 import (
 	"context"
+	"github.com/terraform-providers/terraform-provider-ncloud/internal/service/hadoop"
 
 	multierror "github.com/hashicorp/go-multierror"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
@@ -85,6 +86,12 @@ func (p *fwprovider) DataSources(ctx context.Context) []func() datasource.DataSo
 	dataSources = append(dataSources, mongodb.NewMongoDbProductsDataSource)
 	dataSources = append(dataSources, mongodb.NewMongoDbImageProductDataSource)
 	dataSources = append(dataSources, mongodb.NewMongoDbImageProductsDataSource)
+	dataSources = append(dataSources, hadoop.NewHadoopDataSource)
+	dataSources = append(dataSources, hadoop.NewHadoopsDataSource)
+	dataSources = append(dataSources, hadoop.NewHadoopAddOnDataSource)
+	dataSources = append(dataSources, hadoop.NewHadoopImageDataSource)
+	dataSources = append(dataSources, hadoop.NewHadoopBucketDataSource)
+	dataSources = append(dataSources, hadoop.NewHadoopImagesDataSource)
 
 	if err := errs.ErrorOrNil(); err != nil {
 		tflog.Warn(ctx, "registering resources", map[string]interface{}{
@@ -107,6 +114,7 @@ func (p *fwprovider) Resources(ctx context.Context) []func() resource.Resource {
 	resources = append(resources, server.NewInitScriptResource)
 	resources = append(resources, mysql.NewMysqlResource)
 	resources = append(resources, mongodb.NewMongoDbResource)
+	resources = append(resources, hadoop.NewHadoopResource)
 
 	if err := errs.ErrorOrNil(); err != nil {
 		tflog.Warn(ctx, "registering resources", map[string]interface{}{
