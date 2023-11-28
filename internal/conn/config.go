@@ -2,6 +2,7 @@ package conn
 
 import (
 	"fmt"
+	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/services/vhadoop"
 	"time"
 
 	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/services/vautoscaling"
@@ -69,8 +70,12 @@ type NcloudAPIClient struct {
 	Vses            *vses2.APIClient
 	Vcdss           *vcdss.APIClient
 	Vmysql          *vmysql.APIClient
+<<<<<<< HEAD
 	Vmongodb        *vmongodb.APIClient
 	Vmssql          *vmssql.APIClient
+=======
+	Vhadoop         *vhadoop.APIClient
+>>>>>>> 9d83047b (feat: Add Vhadoop in config)
 }
 
 func (c *Config) Client() (*NcloudAPIClient, error) {
@@ -100,8 +105,12 @@ func (c *Config) Client() (*NcloudAPIClient, error) {
 		Vses:            vses2.NewAPIClient(vses2.NewConfiguration(c.Region, apiKey)),
 		Vcdss:           vcdss.NewAPIClient(vcdss.NewConfiguration(c.Region, apiKey)),
 		Vmysql:          vmysql.NewAPIClient(vmysql.NewConfiguration(apiKey)),
+<<<<<<< HEAD
 		Vmongodb:        vmongodb.NewAPIClient(vmongodb.NewConfiguration(apiKey)),
 		Vmssql:          vmssql.NewAPIClient(vmssql.NewConfiguration(apiKey)),
+=======
+		Vhadoop:         vhadoop.NewAPIClient(vhadoop.NewConfiguration(apiKey)),
+>>>>>>> 9d83047b (feat: Add Vhadoop in config)
 	}, nil
 }
 
