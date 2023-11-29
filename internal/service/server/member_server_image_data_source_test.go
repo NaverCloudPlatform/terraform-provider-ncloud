@@ -1,4 +1,4 @@
-package memberserverimage_test
+package server_test
 
 import (
 	"testing"
@@ -8,50 +8,49 @@ import (
 	. "github.com/terraform-providers/terraform-provider-ncloud/internal/acctest"
 )
 
-func TestAccDataSourceNcloudMemberServerImagesBasic(t *testing.T) {
+func TestAccDataSourceNcloudMemberServerImageBasic(t *testing.T) {
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: ProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccDataSourceNcloudMemberServerImagesConfig,
+				Config: testAccDataSourceNcloudMemberServerImageConfig,
 				// ignore check: may be empty created data
 				SkipFunc: func() (bool, error) {
 					return SkipNoResultsTest, nil
 				},
 				Check: resource.ComposeTestCheckFunc(
-					TestAccCheckDataSourceID("data.ncloud_member_server_images.member_server_images"),
+					TestAccCheckDataSourceID("data.ncloud_member_server_image.test"),
 				),
 			},
 		},
 	})
 }
 
-func TestAccDataSourceNcloudMemberServerImagesFilter(t *testing.T) {
+func TestAccDataSourceNcloudMemberServerImageFilter(t *testing.T) {
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: ProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccDataSourceNcloudMemberServerImagesConfigFilter,
-				// ignore check: may be empty created data
+				Config: testAccDataSourceNcloudMemberServerImageConfigFilter,
 				SkipFunc: func() (bool, error) {
 					return SkipNoResultsTest, nil
 				},
 				Check: resource.ComposeTestCheckFunc(
-					TestAccCheckDataSourceID("data.ncloud_member_server_images.member_server_images"),
+					TestAccCheckDataSourceID("data.ncloud_member_server_image.test"),
 				),
 			},
 		},
 	})
 }
 
-var testAccDataSourceNcloudMemberServerImagesConfig = `
-data "ncloud_member_server_images" "member_server_images" {}
+var testAccDataSourceNcloudMemberServerImageConfig = `
+data "ncloud_member_server_image" "test" {}
 `
 
-var testAccDataSourceNcloudMemberServerImagesConfigFilter = `
-data "ncloud_member_server_images" "member_server_images" {
+var testAccDataSourceNcloudMemberServerImageConfigFilter = `
+data "ncloud_member_server_image" "member_server_images" {
 	filter {
 		name   = "platform_type"
 		values = ["LNX64"]

@@ -1,5 +1,5 @@
 ---
-subcategory: "Member Server Image"
+subcategory: "Server"
 ---
 
 

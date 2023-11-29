@@ -1,4 +1,4 @@
-package memberserverimage
+package server
 
 import (
 	"fmt"
