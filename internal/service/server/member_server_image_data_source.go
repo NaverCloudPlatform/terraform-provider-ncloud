@@ -1,4 +1,4 @@
-package memberserverimage
+package server
 
 import (
 	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/services/server"
