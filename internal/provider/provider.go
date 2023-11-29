@@ -15,7 +15,6 @@ import (
 	"github.com/terraform-providers/terraform-provider-ncloud/internal/service/classicloadbalancer"
 	"github.com/terraform-providers/terraform-provider-ncloud/internal/service/devtools"
 	"github.com/terraform-providers/terraform-provider-ncloud/internal/service/loadbalancer"
-	"github.com/terraform-providers/terraform-provider-ncloud/internal/service/memberserverimage"
 	cloudmssql "github.com/terraform-providers/terraform-provider-ncloud/internal/service/mssql"
 	"github.com/terraform-providers/terraform-provider-ncloud/internal/service/nasvolume"
 	"github.com/terraform-providers/terraform-provider-ncloud/internal/service/nks"
@@ -49,8 +48,8 @@ func New(ctx context.Context) *schema.Provider {
 		"ncloud_lb":                                      loadbalancer.DataSourceNcloudLb(),
 		"ncloud_lb_listener":                             loadbalancer.DataSourceNcloudLbListener(),
 		"ncloud_lb_target_group":                         loadbalancer.DataSourceNcloudLbTargetGroup(),
-		"ncloud_member_server_image":                     memberserverimage.DataSourceNcloudMemberServerImage(),
-		"ncloud_member_server_images":                    memberserverimage.DataSourceNcloudMemberServerImages(),
+		"ncloud_member_server_image":                     server.DataSourceNcloudMemberServerImage(),
+		"ncloud_member_server_images":                    server.DataSourceNcloudMemberServerImages(),
 		"ncloud_nas_volume":                              nasvolume.DataSourceNcloudNasVolume(),
 		"ncloud_nas_volumes":                             nasvolume.DataSourceNcloudNasVolumes(),
 		"ncloud_network_acls":                            vpc.DataSourceNcloudNetworkAcls(),
