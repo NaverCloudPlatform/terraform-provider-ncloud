@@ -355,27 +355,20 @@ func resourceNcloudSESClusterRead(ctx context.Context, d *schema.ResourceData, m
 	d.Set("login_key_name", cluster.LoginKeyName)
 	d.Set("manager_node_instance_no_list", cluster.ManagerNodeInstanceNoList)
 
-	searchEngine := d.Get("search_engine").([]interface{})
+	var userPassword string                               // API response not support user_password. Not currently available during import
+	if searchEngine, ok := d.GetOk("search_engine"); ok { // Create exist in config
+		searchEngineMap := searchEngine.([]interface{})[0].(map[string]interface{})
+		userPassword = searchEngineMap["user_password"].(string)
+	}
 	searchEngineSet := schema.NewSet(schema.HashResource(ResourceNcloudSESCluster().Schema["search_engine"].Elem.(*schema.Resource)), []interface{}{})
 
-	if len(searchEngine) == 0 { // API response not support user_password. Not currently available during import
-		searchEngineSet.Add(map[string]interface{}{
-			"version_code":   *cluster.SearchEngineVersionCode,
-			"user_name":      *cluster.SearchEngineUserName,
-			"user_password":  "",
-			"port":           *cluster.SearchEnginePort,
-			"dashboard_port": *cluster.SearchEngineDashboardPort,
-		})
-	} else { // Create exist in config
-		searchEngineMap := searchEngine[0].(map[string]interface{})
-		searchEngineSet.Add(map[string]interface{}{
-			"version_code":   *cluster.SearchEngineVersionCode,
-			"user_name":      *cluster.SearchEngineUserName,
-			"user_password":  searchEngineMap["user_password"],
-			"port":           *cluster.SearchEnginePort,
-			"dashboard_port": *cluster.SearchEngineDashboardPort,
-		})
-	}
+	searchEngineSet.Add(map[string]interface{}{
+		"version_code":   *cluster.SearchEngineVersionCode,
+		"user_name":      *cluster.SearchEngineUserName,
+		"user_password":  userPassword,
+		"port":           *cluster.SearchEnginePort,
+		"dashboard_port": *cluster.SearchEngineDashboardPort,
+	})
 
 	if err := d.Set("search_engine", searchEngineSet.List()); err != nil {
 		log.Printf("[WARN] Error setting search_engine set for (%s): %s", d.Id(), err)
