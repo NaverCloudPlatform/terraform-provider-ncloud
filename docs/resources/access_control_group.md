@@ -52,7 +52,7 @@ $ terraform import ncloud_access_control_group.rsc_name 12345
 
 ```terraform
 import {
-  to = ncloud_auto_scaling_group.rsc_name
+  to = ncloud_access_control_group.rsc_name
   id = "12345"
 }
 ```
