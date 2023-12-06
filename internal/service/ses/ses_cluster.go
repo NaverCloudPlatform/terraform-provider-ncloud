@@ -341,7 +341,7 @@ func resourceNcloudSESClusterRead(ctx context.Context, d *schema.ResourceData, m
 		return diag.FromErr(err)
 	}
 
-	if cluster == nil {
+	if cluster == nil || *cluster.ClusterStatus == SESStatusReturnCode {
 		d.SetId("")
 		return nil
 	}
