@@ -284,19 +284,16 @@ func resourceNcloudCDSSClusterRead(ctx context.Context, d *schema.ResourceData, 
 	var bList []map[string]interface{}
 	var eList []map[string]interface{}
 
-	c := d.Get("cmak").([]interface{})
-	if len(c) == 0 { // API response not support user_password. Not currently available during import
-		cList = append(cList, map[string]interface{}{
-			"user_name":     cluster.KafkaManagerUserName,
-			"user_password": cluster.KafkaManagerUserPassword,
-		})
-	} else { // Create exist in config
-		cMap := c[0].(map[string]interface{})
-		cList = append(cList, map[string]interface{}{
-			"user_name":     cluster.KafkaManagerUserName,
-			"user_password": cMap["user_password"],
-		})
+	var userPassword string           // API response not support user_password. Not currently available during import
+	if c, ok := d.GetOk("cmak"); ok { // Create exist in config
+		cMap := c.([]interface{})[0].(map[string]interface{})
+		userPassword = cMap["user_password"].(string)
 	}
+
+	cList = append(cList, map[string]interface{}{
+		"user_name":     cluster.KafkaManagerUserName,
+		"user_password": userPassword,
+	})
 
 	mList = append(mList, map[string]interface{}{
 		"node_product_code": cluster.ManagerNodeProductCode,
