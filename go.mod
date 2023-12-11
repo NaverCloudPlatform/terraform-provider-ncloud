@@ -3,7 +3,7 @@ module github.com/terraform-providers/terraform-provider-ncloud
 go 1.19
 
 require (
-	github.com/NaverCloudPlatform/ncloud-sdk-go-v2 v1.6.6
+	github.com/NaverCloudPlatform/ncloud-sdk-go-v2 v1.6.7
 	github.com/hashicorp/go-multierror v1.1.1
 	github.com/hashicorp/terraform-plugin-framework v1.3.2
 	github.com/hashicorp/terraform-plugin-go v0.17.0
@@ -63,3 +63,5 @@ require (
 	google.golang.org/grpc v1.56.3 // indirect
 	google.golang.org/protobuf v1.31.0 // indirect
 )
+
+replace github.com/NaverCloudPlatform/ncloud-sdk-go-v2 v1.6.5 => ./../ncloud-sdk-go-v2-gimmetm

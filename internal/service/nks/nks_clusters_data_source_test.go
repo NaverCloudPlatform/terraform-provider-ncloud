@@ -9,6 +9,7 @@ import (
 )
 
 func TestAccDataSourceNcloudNKSClusters(t *testing.T) {
+
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: ProtoV6ProviderFactories,

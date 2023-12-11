@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"log"
-	"os"
 	"strconv"
 	"strings"
 	"time"
@@ -46,8 +45,23 @@ func ResourceNcloudNKSCluster() *schema.Resource {
 		},
 		CustomizeDiff: customdiff.All(
 			customdiff.ForceNewIfChange("subnet_no_list", func(ctx context.Context, old, new, meta any) bool {
-				_, removed := getSubnetDiff(old, new)
+				_, removed, _ := getSubnetDiff(old, new)
 				return len(removed) > 0
+			}),
+			customdiff.ValidateValue("ip_acl_default_action", func(ctx context.Context, value, meta interface{}) error {
+				config := meta.(*conn.ProviderConfig)
+				if value != "" && checkFinSite(config) {
+					return fmt.Errorf("ip_acl_default_action is not supported on fin site")
+				}
+				return nil
+			}),
+			customdiff.ValidateValue("ip_acl", func(ctx context.Context, value, meta interface{}) error {
+				set := value.(*schema.Set)
+				config := meta.(*conn.ProviderConfig)
+				if set.Len() > 0 && checkFinSite(config) {
+					return fmt.Errorf("ip_acl is not supported on fin site")
+				}
+				return nil
 			}),
 		),
 		Schema: map[string]*schema.Schema{
@@ -64,6 +78,12 @@ func ResourceNcloudNKSCluster() *schema.Resource {
 			"cluster_type": {
 				Type:     schema.TypeString,
 				Required: true,
+				ForceNew: true,
+			},
+			"hypervisor_code": {
+				Type:     schema.TypeString,
+				Optional: true,
+				Computed: true,
 				ForceNew: true,
 			},
 			"endpoint": {
@@ -106,12 +126,10 @@ func ResourceNcloudNKSCluster() *schema.Resource {
 			"lb_private_subnet_no": {
 				Type:     schema.TypeString,
 				Required: true,
-				ForceNew: true,
 			},
 			"lb_public_subnet_no": {
 				Type:     schema.TypeString,
 				Optional: true,
-				ForceNew: true,
 			},
 			"kube_network_plugin": {
 				Type:     schema.TypeString,
@@ -177,7 +195,7 @@ func ResourceNcloudNKSCluster() *schema.Resource {
 			"ip_acl_default_action": {
 				Type:             schema.TypeString,
 				Optional:         true,
-				Default:          "allow",
+				Computed:         true,
 				ValidateDiagFunc: validation.ToDiagFunc(validation.StringInSlice([]string{"allow", "deny"}, false)),
 			},
 			"ip_acl": {
@@ -216,6 +234,7 @@ func resourceNcloudNKSClusterCreate(ctx context.Context, d *schema.ResourceData,
 		//Required
 		Name:              StringPtrOrNil(d.GetOk("name")),
 		ClusterType:       StringPtrOrNil(d.GetOk("cluster_type")),
+		HypervisorCode:    StringPtrOrNil(d.GetOk("hypervisor_code")),
 		LoginKeyName:      StringPtrOrNil(d.GetOk("login_key_name")),
 		K8sVersion:        StringPtrOrNil(d.GetOk("k8s_version")),
 		ZoneCode:          StringPtrOrNil(d.GetOk("zone")),
@@ -242,12 +261,14 @@ func resourceNcloudNKSClusterCreate(ctx context.Context, d *schema.ResourceData,
 		oidcReq = expandNKSClusterOIDCSpec(oidc.([]interface{}))
 	}
 
-	ipAclReq := &vnks.IpAclsDto{
-		DefaultAction: StringPtrOrNil(d.GetOk("ip_acl_default_action")),
-		Entries:       []*vnks.IpAclsEntriesDto{},
-	}
-	if ipAcl, ok := d.GetOk("ip_acl"); ok {
-		ipAclReq.Entries = expandNKSClusterIPAcl(ipAcl)
+	var ipAclReq *vnks.IpAclsDto
+	ipAclDefaultAction, ipAclDefaultActionExist := d.GetOk("ip_acl_default_action")
+	ipAcl, ipAclExist := d.GetOk("ip_acl")
+	if ipAclDefaultActionExist || ipAclExist {
+		ipAclReq = &vnks.IpAclsDto{
+			DefaultAction: StringPtrOrNil(ipAclDefaultAction, ipAclDefaultActionExist),
+			Entries:       expandNKSClusterIPAcl(ipAcl),
+		}
 	}
 
 	LogCommonRequest("resourceNcloudNKSClusterCreate", reqParams)
@@ -264,20 +285,7 @@ func resourceNcloudNKSClusterCreate(ctx context.Context, d *schema.ResourceData,
 	}
 	d.SetId(uuid)
 
-	if (ncloud.StringValue(ipAclReq.DefaultAction) != "allow" || len(ipAclReq.Entries) > 0) && !checkFinSite(config) {
-		_, err = config.Client.Vnks.V2Api.ClustersUuidIpAclPatch(ctx, ipAclReq, resp.Uuid)
-		if err != nil {
-			LogErrorResponse("resourceNcloudNKSClusterCreate:ipAcl", err, ipAclReq)
-			return diag.FromErr(err)
-		}
-	}
-
 	if oidcReq != nil {
-
-		if err = waitForNKSClusterActive(ctx, d, config, uuid); err != nil {
-			return diag.FromErr(err)
-		}
-
 		_, err = config.Client.Vnks.V2Api.ClustersUuidOidcPatch(ctx, oidcReq, resp.Uuid)
 		if err != nil {
 			LogErrorResponse("resourceNcloudNKSClusterCreate:oidc", err, oidcReq)
@@ -286,6 +294,14 @@ func resourceNcloudNKSClusterCreate(ctx context.Context, d *schema.ResourceData,
 
 		LogResponse("resourceNcloudNKSClusterCreateoidc:oidc", oidcReq)
 		if err := waitForNKSClusterActive(ctx, d, config, uuid); err != nil {
+			return diag.FromErr(err)
+		}
+	}
+
+	if ipAclReq != nil && !checkFinSite(config) {
+		_, err = config.Client.Vnks.V2Api.ClustersUuidIpAclPatch(ctx, ipAclReq, resp.Uuid)
+		if err != nil {
+			LogErrorResponse("resourceNcloudNKSClusterCreate:ipAcl", err, ipAclReq)
 			return diag.FromErr(err)
 		}
 	}
@@ -323,6 +339,7 @@ func resourceNcloudNKSClusterRead(ctx context.Context, d *schema.ResourceData, m
 	d.Set("uuid", cluster.Uuid)
 	d.Set("name", cluster.Name)
 	d.Set("cluster_type", cluster.ClusterType)
+	d.Set("hypervisor_code", cluster.HypervisorCode)
 	d.Set("endpoint", cluster.Endpoint)
 	d.Set("login_key_name", cluster.LoginKeyName)
 	d.Set("k8s_version", cluster.K8sVersion)
@@ -378,12 +395,6 @@ func resourceNcloudNKSClusterUpdate(ctx context.Context, d *schema.ResourceData,
 	}
 
 	if d.HasChanges("k8s_version") {
-
-		if err = waitForNKSClusterActive(ctx, d, config, *cluster.Uuid); err != nil {
-			return diag.FromErr(err)
-		}
-
-		// Cluster UPGRADE
 		newVersion := StringPtrOrNil(d.GetOk("k8s_version"))
 		_, err := config.Client.Vnks.V2Api.ClustersUuidUpgradePatch(ctx, cluster.Uuid, newVersion, map[string]interface{}{})
 		if err != nil {
@@ -398,11 +409,6 @@ func resourceNcloudNKSClusterUpdate(ctx context.Context, d *schema.ResourceData,
 	}
 
 	if d.HasChanges("oidc") {
-
-		if err = waitForNKSClusterActive(ctx, d, config, *cluster.Uuid); err != nil {
-			return diag.FromErr(err)
-		}
-
 		var oidcSpec *vnks.UpdateOidcDto
 		oidc, _ := d.GetOk("oidc")
 		oidcSpec = expandNKSClusterOIDCSpec(oidc.([]interface{}))
@@ -453,10 +459,32 @@ func resourceNcloudNKSClusterUpdate(ctx context.Context, d *schema.ResourceData,
 
 	}
 
+	if d.HasChanges("lb_private_subnet_no") {
+
+		lbPrivateSubnetNo, _ := strconv.Atoi(d.Get("lb_private_subnet_no").(string))
+		_, err = config.Client.Vnks.V2Api.ClustersUuidLbSubnetPatch(ctx, cluster.Uuid, ncloud.Int32(int32(lbPrivateSubnetNo)), map[string]interface{}{"igwYn": ncloud.String("N")})
+		if err != nil {
+			LogErrorResponse("resourceNcloudNKSClusterLbPrivateSubnetPatch", err, lbPrivateSubnetNo)
+			return diag.FromErr(err)
+		}
+
+	}
+
+	if d.HasChanges("lb_public_subnet_no") {
+
+		lbPrivateSubnetNo, _ := strconv.Atoi(d.Get("lb_public_subnet_no").(string))
+		_, err = config.Client.Vnks.V2Api.ClustersUuidLbSubnetPatch(ctx, cluster.Uuid, ncloud.Int32(int32(lbPrivateSubnetNo)), map[string]interface{}{"igwYn": ncloud.String("Y")})
+		if err != nil {
+			LogErrorResponse("resourceNcloudNKSClusterLbPublicSubnetPatch", err, lbPrivateSubnetNo)
+			return diag.FromErr(err)
+		}
+
+	}
+
 	if d.HasChanges("subnet_no_list") {
 
 		oldList, newList := d.GetChange("subnet_no_list")
-		added, _ := getSubnetDiff(oldList, newList)
+		added, _, _ := getSubnetDiff(oldList, newList)
 
 		subnets := &vnks.AddSubnetDto{
 			Subnets: []*vnks.SubnetDto{},
@@ -601,13 +629,16 @@ func GetNKSClusters(ctx context.Context, config *conn.ProviderConfig) ([]*vnks.C
 	return resp.Clusters, nil
 }
 
-func getSubnetDiff(oldList interface{}, newList interface{}) (added []*int32, removed []*int32) {
+func getSubnetDiff(oldList interface{}, newList interface{}) (added []*int32, removed []*int32, autoSelect bool) {
 	oldMap := make(map[string]int)
 	newMap := make(map[string]int)
+	autoSelect = true
 
 	for _, v := range ExpandStringInterfaceList(oldList.(([]interface{}))) {
 		oldMap[*v] += 1
+		autoSelect = false
 	}
+
 	for _, v := range ExpandStringInterfaceList(newList.(([]interface{}))) {
 		newMap[*v] += 1
 	}
@@ -632,10 +663,9 @@ func getSubnetDiff(oldList interface{}, newList interface{}) (added []*int32, re
 	return
 }
 
-func checkFinSite(config *conn.ProviderConfig) (result bool) {
-	ncloudApiGw := os.Getenv("NCLOUD_API_GW")
-	if config.Site == "fin" || strings.HasSuffix(ncloudApiGw, "apigw.fin-ntruss.com") {
-		result = true
+func checkFinSite(config *conn.ProviderConfig) bool {
+	if strings.HasPrefix(config.RegionCode, "F") {
+		return true
 	}
-	return
+	return false
 }
