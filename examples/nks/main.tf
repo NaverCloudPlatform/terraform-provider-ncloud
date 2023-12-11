@@ -105,7 +105,7 @@ resource "ncloud_nks_node_pool" "node_pool" {
     key = "foo"
     value = "bar"
   }
-  taints{
+  taint {
     key = "foo"
     value = "bar"
     effect = "NoExecute"
