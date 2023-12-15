@@ -664,8 +664,5 @@ func getSubnetDiff(oldList interface{}, newList interface{}) (added []*int32, re
 }
 
 func checkFinSite(config *conn.ProviderConfig) bool {
-	if strings.HasPrefix(config.RegionCode, "F") {
-		return true
-	}
-	return false
+	return strings.HasPrefix(config.RegionCode, "F")
 }

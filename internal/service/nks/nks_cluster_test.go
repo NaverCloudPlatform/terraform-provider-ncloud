@@ -413,19 +413,6 @@ func testAccCheckNKSClusterExists(n string, cluster *vnks.Cluster) resource.Test
 	}
 }
 
-func getRegionAndNKSType() (region string, clusterType string, productType string, k8sVersion string) {
-	region = os.Getenv("NCLOUD_REGION")
-	if region == "FKR" {
-		clusterType = "SVR.VNKS.STAND.C002.M008.NET.HDD.B050.G001"
-		productType = "SVR.VSVR.STAND.C002.M004.NET.SSD.B050.G001"
-	} else {
-		clusterType = "SVR.VNKS.STAND.C002.M008.NET.SSD.B050.G002"
-		productType = "SVR.VSVR.STAND.C002.M008.NET.SSD.B050.G002"
-	}
-	k8sVersion = "1.26.10-nks.1"
-	return
-}
-
 func getNKSTestInfo(hypervisor string) (*NKSTestInfo, error) {
 
 	nksInfo := &NKSTestInfo{
