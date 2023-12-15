@@ -25,8 +25,8 @@ data "ncloud_nks_node_pool" "node_pool"{
 
 The following arguments are supported:
 
-* `node_pool_name` - The name of nodepool.
-* `cluster_uuid` - Cluster uuid.
+* `node_pool_name` - (Required) The name of nodepool.
+* `cluster_uuid` - (Required) Cluster uuid.
 
 
 ## Attributes Reference

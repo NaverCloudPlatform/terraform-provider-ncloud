@@ -220,13 +220,13 @@ resource "ncloud_nks_cluster" "cluster" {
     audit                     = %[10]t
   }
   oidc {
-    issuer_url                = "https://keycloak.ncp.gimmetm.net/realms/nks"
+    issuer_url                = "https://keycloak.url/realms/nks"
     client_id                 = "nks-client"
     username_claim            = "preferred_username"
     username_prefix           = "oidc:"
     groups_claim              = "groups"
     groups_prefix             = "oidc:"
-    required_claim           = "iss=https://keycloak.ncp.gimmetm.net/realms/nks"
+    required_claim           = "iss=https://keycloak.url/realms/nks"
   }
 `, name, nksInfo.ClusterType, nksInfo.K8sVersion, loginKeyName, *nksInfo.PrivateLbSubnetList[0].SubnetNo, nksInfo.HypervisorCode, *nksInfo.PrivateSubnetList[0].SubnetNo, *nksInfo.Vpc.VpcNo, nksInfo.Region, auditLog))
 
@@ -275,7 +275,7 @@ resource "ncloud_nks_cluster" "cluster" {
     audit                     = %[11]t
   }
   oidc {
-    issuer_url                = "https://keycloak.ncp.gimmetm.net/realms/update"
+    issuer_url                = "https://keycloak.url/realms/update"
     client_id                 = "update-client"
   }
 `, name, nksInfo.ClusterType, nksInfo.UpgradeK8sVersion, loginKeyName, *nksInfo.PrivateLbSubnetList[0].SubnetNo, nksInfo.HypervisorCode, *nksInfo.PrivateSubnetList[0].SubnetNo, *nksInfo.PrivateSubnetList[1].SubnetNo, *nksInfo.Vpc.VpcNo, nksInfo.Region, auditLog))

@@ -63,5 +63,3 @@ require (
 	google.golang.org/grpc v1.56.3 // indirect
 	google.golang.org/protobuf v1.31.0 // indirect
 )
-
-replace github.com/NaverCloudPlatform/ncloud-sdk-go-v2 v1.6.5 => ./../ncloud-sdk-go-v2-gimmetm
