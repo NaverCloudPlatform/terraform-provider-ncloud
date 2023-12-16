@@ -11,6 +11,8 @@ import (
 )
 
 func TestAccDataSourceNcloudNKSNodePool(t *testing.T) {
+	validateAcctestEnvironment(t)
+
 	dataName := "data.ncloud_nks_node_pool.node_pool"
 	resourceName := "ncloud_nks_node_pool.node_pool"
 	clusterName := GetTestClusterName()

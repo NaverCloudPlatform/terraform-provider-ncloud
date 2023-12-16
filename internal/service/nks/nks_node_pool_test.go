@@ -18,6 +18,7 @@ import (
 )
 
 func TestAccResourceNcloudNKSNodePool_basic_XEN(t *testing.T) {
+	validateAcctestEnvironment(t)
 
 	clusterName := GetTestClusterName()
 	resourceName := "ncloud_nks_node_pool.node_pool"
@@ -46,6 +47,7 @@ func TestAccResourceNcloudNKSNodePool_basic_XEN(t *testing.T) {
 }
 
 func TestAccResourceNcloudNKSNodePool_basic_KVM(t *testing.T) {
+	validateAcctestEnvironment(t)
 
 	clusterName := GetTestClusterName()
 	resourceName := "ncloud_nks_node_pool.node_pool"
@@ -74,6 +76,8 @@ func TestAccResourceNcloudNKSNodePool_basic_KVM(t *testing.T) {
 }
 
 func TestAccResourceNcloudNKSNodePool_Update_XEN(t *testing.T) {
+	validateAcctestEnvironment(t)
+
 	var nodePool vnks.NodePool
 
 	clusterName := fmt.Sprintf("m3-%s", GetTestClusterName())
@@ -104,6 +108,8 @@ func TestAccResourceNcloudNKSNodePool_Update_XEN(t *testing.T) {
 }
 
 func TestAccResourceNcloudNKSNodePool_Update_KVM(t *testing.T) {
+	validateAcctestEnvironment(t)
+
 	var nodePool vnks.NodePool
 	clusterName := fmt.Sprintf("m3-%s", GetTestClusterName())
 	resourceName := "ncloud_nks_node_pool.node_pool"
@@ -133,6 +139,8 @@ func TestAccResourceNcloudNKSNodePool_Update_KVM(t *testing.T) {
 }
 
 func TestAccResourceNcloudNKSNodePool_publicNetwork_XEN(t *testing.T) {
+	validateAcctestEnvironment(t)
+
 	clusterName := GetTestClusterName()
 	resourceName := "ncloud_nks_node_pool.node_pool"
 
@@ -154,6 +162,8 @@ func TestAccResourceNcloudNKSNodePool_publicNetwork_XEN(t *testing.T) {
 }
 
 func TestAccResourceNcloudNKSNodePool_publicNetwork_KVM(t *testing.T) {
+	validateAcctestEnvironment(t)
+
 	clusterName := GetTestClusterName()
 	resourceName := "ncloud_nks_node_pool.node_pool"
 

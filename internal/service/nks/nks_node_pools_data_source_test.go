@@ -11,6 +11,7 @@ import (
 )
 
 func TestAccDataSourceNcloudNKSNodePools(t *testing.T) {
+	validateAcctestEnvironment(t)
 
 	clusterName := GetTestClusterName()
 	nksInfo, err := getNKSTestInfo("XEN")

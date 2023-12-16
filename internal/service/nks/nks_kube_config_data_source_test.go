@@ -11,6 +11,8 @@ import (
 )
 
 func TestAccDataSourceNcloudNKSKubeConfig(t *testing.T) {
+	validateAcctestEnvironment(t)
+
 	dataName := "data.ncloud_nks_kube_config.kube_config"
 	resourceName := "ncloud_nks_cluster.cluster"
 	name := GetTestClusterName()

@@ -41,7 +41,14 @@ type NKSTestInfo struct {
 	needPublicLb        bool
 }
 
+func validateAcctestEnvironment(t *testing.T) {
+	if os.Getenv("TF_ACC") == "" {
+		t.Skip("Accetance Test skipped unless env 'TF_ACC' is set")
+	}
+}
+
 func TestAccResourceNcloudNKSCluster_basic_XEN(t *testing.T) {
+	validateAcctestEnvironment(t)
 
 	name := GetTestClusterName()
 
@@ -71,8 +78,9 @@ func TestAccResourceNcloudNKSCluster_basic_XEN(t *testing.T) {
 }
 
 func TestAccResourceNcloudNKSCluster_basic_KVM(t *testing.T) {
-	name := GetTestClusterName()
+	validateAcctestEnvironment(t)
 
+	name := GetTestClusterName()
 	resourceName := "ncloud_nks_cluster.cluster"
 
 	nksInfo, err := getNKSTestInfo("KVM")
@@ -99,6 +107,8 @@ func TestAccResourceNcloudNKSCluster_basic_KVM(t *testing.T) {
 }
 
 func TestAccResourceNcloudNKSCluster_public_network_XEN(t *testing.T) {
+	validateAcctestEnvironment(t)
+
 	name := GetTestClusterName()
 	resourceName := "ncloud_nks_cluster.cluster"
 
@@ -121,6 +131,8 @@ func TestAccResourceNcloudNKSCluster_public_network_XEN(t *testing.T) {
 }
 
 func TestAccResourceNcloudNKSCluster_public_network_KVM(t *testing.T) {
+	validateAcctestEnvironment(t)
+
 	name := GetTestClusterName()
 	resourceName := "ncloud_nks_cluster.cluster"
 
@@ -143,6 +155,7 @@ func TestAccResourceNcloudNKSCluster_public_network_KVM(t *testing.T) {
 }
 
 func TestAccResourceNcloudNKSCluster_Update_XEN(t *testing.T) {
+	validateAcctestEnvironment(t)
 
 	name := fmt.Sprintf("m3-%s", GetTestClusterName())
 	resourceName := "ncloud_nks_cluster.cluster"
@@ -172,6 +185,7 @@ func TestAccResourceNcloudNKSCluster_Update_XEN(t *testing.T) {
 }
 
 func TestAccResourceNcloudNKSCluster_Update_KVM(t *testing.T) {
+	validateAcctestEnvironment(t)
 
 	name := fmt.Sprintf("m3-%s", GetTestClusterName())
 	resourceName := "ncloud_nks_cluster.cluster"
