@@ -11,13 +11,15 @@ import (
 
 func TestAccDataSourceNcloudHadoopAddOnbasic(t *testing.T) {
 	dataName := "data.ncloud_hadoop_add_on.addon"
+	imageProductCode := "SW.VCHDP.LNX64.CNTOS.0708.HDP.15.B050"
+	clusterTypeCode := "CORE_HADOOP_WITH_SPARK"
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: acctest.ProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccDataSourceAddOnConfig(),
+				Config: testAccDataSourceAddOnConfig(imageProductCode, clusterTypeCode),
 				Check: resource.ComposeTestCheckFunc(
 					TestAccCheckDataSourceID(dataName),
 					resource.TestCheckResourceAttr(dataName, "add_on_list.0", "Presto (0.240)"),
@@ -28,11 +30,11 @@ func TestAccDataSourceNcloudHadoopAddOnbasic(t *testing.T) {
 	})
 }
 
-func testAccDataSourceAddOnConfig() string {
+func testAccDataSourceAddOnConfig(imageProductCode, clusterTypeCode string) string {
 	return fmt.Sprintf(`
 data "ncloud_hadoop_add_on" "addon" {
-	image_product_code= "SW.VCHDP.LNX64.CNTOS.0708.HDP.15.B050"
-	cluster_type_code= "CORE_HADOOP_WITH_SPARK"
+	image_product_code= "%[1]s"
+	cluster_type_code= "%[2]s"
 }
-`)
+`, imageProductCode, clusterTypeCode)
 }

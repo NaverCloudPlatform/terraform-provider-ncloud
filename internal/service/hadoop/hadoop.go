@@ -13,6 +13,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework-validators/int64validator"
 	"github.com/hashicorp/terraform-plugin-framework-validators/listvalidator"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
+	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
@@ -23,6 +24,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
+	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 	sdkresource "github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/terraform-providers/terraform-provider-ncloud/internal/common"
@@ -116,6 +118,9 @@ func (h *hadoopResource) Schema(ctx context.Context, req resource.SchemaRequest,
 				PlanModifiers: []planmodifier.String{
 					stringplanmodifier.RequiresReplace(),
 				},
+			},
+			"version": schema.StringAttribute{
+				Computed: true,
 			},
 			"add_on_code_list": schema.ListAttribute{
 				Optional:    true,
@@ -235,7 +240,6 @@ func (h *hadoopResource) Schema(ctx context.Context, req resource.SchemaRequest,
 			},
 			"worker_node_count": schema.Int64Attribute{
 				Optional: true,
-				Computed: true,
 				Validators: []validator.Int64{
 					int64validator.Between(2, 8),
 				},
@@ -814,6 +818,7 @@ type hadoopResourceModel struct {
 	EdgeNodeProductCode        types.String `tfsdk:"edge_node_product_code"`
 	WorkerNodeProductCode      types.String `tfsdk:"worker_node_product_code"`
 	ClusterName                types.String `tfsdk:"cluster_name"`
+	Version                    types.String `tfsdk:"version"`
 	ClusterTypeCode            types.String `tfsdk:"cluster_type_code"`
 	AddOnCodeList              types.List   `tfsdk:"add_on_code_list"`
 	AdminUserName              types.String `tfsdk:"admin_user_name"`
@@ -843,6 +848,8 @@ type hadoopResourceModel struct {
 }
 
 func (m *hadoopResourceModel) refreshFromOutput(ctx context.Context, output *vhadoop.CloudHadoopInstance) diag.Diagnostics {
+	var diagnostics diag.Diagnostics
+
 	m.ImageProductCode = types.StringPointerValue(output.CloudHadoopImageProductCode)
 	m.ClusterName = types.StringPointerValue(output.CloudHadoopClusterName)
 	m.ClusterTypeCode = types.StringPointerValue(output.CloudHadoopClusterType.Code)
@@ -851,20 +858,21 @@ func (m *hadoopResourceModel) refreshFromOutput(ctx context.Context, output *vha
 	m.ID = types.StringPointerValue(output.CloudHadoopInstanceNo)
 	m.AmbariServerHost = types.StringPointerValue(output.AmbariServerHost)
 	m.ClusterDirectAccessAccount = types.StringPointerValue(output.ClusterDirectAccessAccount)
-
-	var diagnostics diag.Diagnostics
 	m.IsHa = types.BoolPointerValue(output.IsHa)
+	m.Version = types.StringPointerValue(output.CloudHadoopVersion.Code)
 
 	if addOnCodeList, err := types.ListValueFrom(ctx, types.StringType, output.CloudHadoopAddOnList); err.HasError() {
 		m.AddOnCodeList = addOnCodeList
 	} else {
 		diagnostics.Append(err...)
 	}
+
 	if acgl, err := types.ListValueFrom(ctx, types.StringType, output.AccessControlGroupNoList); err.HasError() {
 		m.AccessControlGroupNoList = acgl
 	} else {
 		diagnostics.Append(err...)
 	}
+
 	if diagnostics.ErrorsCount() > 0 {
 		return diagnostics
 	}
@@ -873,4 +881,55 @@ func (m *hadoopResourceModel) refreshFromOutput(ctx context.Context, output *vha
 
 	m.HadoopServerInstanceList, _ = listValueFromHadoopServerInatanceList(ctx, output.CloudHadoopServerInstanceList)
 	return nil
+}
+
+type hadoopServer struct {
+	HadoopServerName  types.String `tfsdk:"hadoop_server_name"`
+	HadoopServerRole  types.String `tfsdk:"hadoop_server_role"`
+	HadoopProductCode types.String `tfsdk:"hadoop_product_code"`
+	RegionCode        types.String `tfsdk:"region_code"`
+	ZoneCode          types.String `tfsdk:"zone_code"`
+	VpcNo             types.String `tfsdk:"vpc_no"`
+	SubnetNo          types.String `tfsdk:"subnet_no"`
+	IsPublicSubnet    types.Bool   `tfsdk:"is_public_subnet"`
+	DataStorageSize   types.Int64  `tfsdk:"data_storage_size"`
+	CpuCount          types.Int64  `tfsdk:"cpu_count"`
+	MemorySize        types.Int64  `tfsdk:"memory_size"`
+}
+
+func (h hadoopServer) attrTypes() map[string]attr.Type {
+	return map[string]attr.Type{
+		"hadoop_server_name":  types.StringType,
+		"hadoop_server_role":  types.StringType,
+		"hadoop_product_code": types.StringType,
+		"region_code":         types.StringType,
+		"zone_code":           types.StringType,
+		"vpc_no":              types.StringType,
+		"subnet_no":           types.StringType,
+		"is_public_subnet":    types.BoolType,
+		"data_storage_size":   types.Int64Type,
+		"cpu_count":           types.Int64Type,
+		"memory_size":         types.Int64Type,
+	}
+}
+
+func listValueFromHadoopServerInatanceList(ctx context.Context, serverInatances []*vhadoop.CloudHadoopServerInstance) (basetypes.ListValue, diag.Diagnostics) {
+	var hadoopServerList []hadoopServer
+	for _, serverInstance := range serverInatances {
+		hadoopServerList = append(hadoopServerList, hadoopServer{
+			HadoopServerName:  types.StringPointerValue(serverInstance.CloudHadoopServerName),
+			HadoopServerRole:  types.StringPointerValue(serverInstance.CloudHadoopServerRole.CodeName),
+			HadoopProductCode: types.StringPointerValue(serverInstance.CloudHadoopProductCode),
+			RegionCode:        types.StringPointerValue(serverInstance.RegionCode),
+			ZoneCode:          types.StringPointerValue(serverInstance.ZoneCode),
+			VpcNo:             types.StringPointerValue(serverInstance.VpcNo),
+			SubnetNo:          types.StringPointerValue(serverInstance.SubnetNo),
+			IsPublicSubnet:    types.BoolPointerValue(serverInstance.IsPublicSubnet),
+			DataStorageSize:   types.Int64Value(*serverInstance.DataStorageSize),
+			CpuCount:          types.Int64Value(int64(*serverInstance.CpuCount)),
+			MemorySize:        types.Int64Value(*serverInstance.MemorySize),
+		})
+	}
+
+	return types.ListValueFrom(ctx, types.ObjectType{AttrTypes: hadoopServer{}.attrTypes()}, hadoopServerList)
 }
