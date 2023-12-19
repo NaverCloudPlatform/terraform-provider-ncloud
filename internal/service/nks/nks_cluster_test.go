@@ -271,13 +271,13 @@ func testAccResourceNcloudNKSClusterDefaultConfigCheck(resourceName string, name
 		resource.TestCheckResourceAttr(resourceName, "zone", fmt.Sprintf("%s-1", nksInfo.Region)),
 		resource.TestMatchResourceAttr(resourceName, "vpc_no", regexp.MustCompile(`^\d+$`)),
 		resource.TestCheckResourceAttr(resourceName, "log.0.audit", "true"),
-		resource.TestCheckResourceAttr(resourceName, "oidc.0.issuer_url", "https://keycloak.ncp.gimmetm.net/realms/nks"),
+		resource.TestCheckResourceAttr(resourceName, "oidc.0.issuer_url", "https://keycloak.url/realms/nks"),
 		resource.TestCheckResourceAttr(resourceName, "oidc.0.client_id", "nks-client"),
 		resource.TestCheckResourceAttr(resourceName, "oidc.0.username_claim", "preferred_username"),
 		resource.TestCheckResourceAttr(resourceName, "oidc.0.username_prefix", "oidc:"),
 		resource.TestCheckResourceAttr(resourceName, "oidc.0.groups_claim", "groups"),
 		resource.TestCheckResourceAttr(resourceName, "oidc.0.groups_prefix", "oidc:"),
-		resource.TestCheckResourceAttr(resourceName, "oidc.0.required_claim", "iss=https://keycloak.ncp.gimmetm.net/realms/nks"),
+		resource.TestCheckResourceAttr(resourceName, "oidc.0.required_claim", "iss=https://keycloak.url/realms/nks"),
 	)
 	if !nksInfo.IsFin {
 
