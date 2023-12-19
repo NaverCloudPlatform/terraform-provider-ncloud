@@ -83,7 +83,7 @@ The following arguments are supported:
 * `subnet_no_list` - (Required) Subnet No. list.
 * `public_network` - (Optional) Public Subnet Network (`boolean`)
 * `lb_private_subnet_no` - (Required) Subnet No. for private loadbalancer only.
-* `lb_public_subnet_no` - (Optional) Subnet No. for public loadbalancer only.
+* `lb_public_subnet_no` - (Optional) Subnet No. for public loadbalancer only. (Required in `KR`, `SG`, `JP` regions in public site)
 * `kube_network_plugin` - (Optional) Specifies the network plugin. Only Cilium is supported.
 * `log` - (Optional)
   * `audit` - (Required) Audit log availability. (`boolean`)
