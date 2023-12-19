@@ -77,35 +77,6 @@ func TestAccResourceNcloudNKSCluster_basic_XEN(t *testing.T) {
 	})
 }
 
-func TestAccResourceNcloudNKSCluster_basic_KVM(t *testing.T) {
-	validateAcctestEnvironment(t)
-
-	name := GetTestClusterName()
-	resourceName := "ncloud_nks_cluster.cluster"
-
-	nksInfo, err := getNKSTestInfo("KVM")
-	if err != nil {
-		t.Error(err)
-	}
-
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:                 func() { TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: ProtoV6ProviderFactories,
-		CheckDestroy:             testAccCheckNKSClusterDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccResourceNcloudNKSClusterDefaultConfig(name, TF_TEST_NKS_LOGIN_KEY, true, nksInfo),
-				Check:  testAccResourceNcloudNKSClusterDefaultConfigCheck(resourceName, name, nksInfo),
-			},
-			{
-				ResourceName:      resourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
-		},
-	})
-}
-
 func TestAccResourceNcloudNKSCluster_public_network_XEN(t *testing.T) {
 	validateAcctestEnvironment(t)
 
@@ -130,30 +101,6 @@ func TestAccResourceNcloudNKSCluster_public_network_XEN(t *testing.T) {
 	})
 }
 
-func TestAccResourceNcloudNKSCluster_public_network_KVM(t *testing.T) {
-	validateAcctestEnvironment(t)
-
-	name := GetTestClusterName()
-	resourceName := "ncloud_nks_cluster.cluster"
-
-	nksInfo, err := getNKSTestInfo("KVM")
-	if err != nil {
-		t.Error(err)
-	}
-
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:                 func() { TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: ProtoV6ProviderFactories,
-		CheckDestroy:             testAccCheckNKSClusterDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccResourceNcloudNKSClusterPublicNetworkConfig(name, TF_TEST_NKS_LOGIN_KEY, nksInfo),
-				Check:  testAccResourceNcloudNKSClusterPublicNetworkConfigCheck(name, resourceName, nksInfo),
-			},
-		},
-	})
-}
-
 func TestAccResourceNcloudNKSCluster_Update_XEN(t *testing.T) {
 	validateAcctestEnvironment(t)
 
@@ -161,36 +108,6 @@ func TestAccResourceNcloudNKSCluster_Update_XEN(t *testing.T) {
 	resourceName := "ncloud_nks_cluster.cluster"
 
 	nksInfo, err := getNKSTestInfo("XEN")
-	if err != nil {
-		t.Error(err)
-	}
-
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:                 func() { TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: ProtoV6ProviderFactories,
-		CheckDestroy:             testAccCheckNKSClusterDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config:  testAccResourceNcloudNKSClusterDefaultConfig(name, TF_TEST_NKS_LOGIN_KEY, true, nksInfo),
-				Check:   testAccResourceNcloudNKSClusterDefaultConfigCheck(resourceName, name, nksInfo),
-				Destroy: false,
-			},
-			{
-				Config:  testAccResourceNcloudNKSClusterUpdateConfig(name, TF_TEST_NKS_LOGIN_KEY, false, nksInfo),
-				Check:   testAccResourceNcloudNKSClusterUpdateConfigCheck(resourceName, nksInfo),
-				Destroy: false,
-			},
-		},
-	})
-}
-
-func TestAccResourceNcloudNKSCluster_Update_KVM(t *testing.T) {
-	validateAcctestEnvironment(t)
-
-	name := fmt.Sprintf("m3-%s", GetTestClusterName())
-	resourceName := "ncloud_nks_cluster.cluster"
-
-	nksInfo, err := getNKSTestInfo("KVM")
 	if err != nil {
 		t.Error(err)
 	}

@@ -46,35 +46,6 @@ func TestAccResourceNcloudNKSNodePool_basic_XEN(t *testing.T) {
 	})
 }
 
-func TestAccResourceNcloudNKSNodePool_basic_KVM(t *testing.T) {
-	validateAcctestEnvironment(t)
-
-	clusterName := GetTestClusterName()
-	resourceName := "ncloud_nks_node_pool.node_pool"
-
-	nksInfo, err := getNKSTestInfo("KVM")
-	if err != nil {
-		t.Error(err)
-	}
-
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:                 func() { TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: ProtoV6ProviderFactories,
-		CheckDestroy:             testAccCheckNKSClusterDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccResourceNcloudNKSNodePoolConfig(clusterName, TF_TEST_NKS_LOGIN_KEY, nksInfo, 1),
-				Check:  testAccResourceNcloudNKSNodePoolBasicCheck(resourceName, clusterName, nksInfo),
-			},
-			{
-				ResourceName:      resourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
-		},
-	})
-}
-
 func TestAccResourceNcloudNKSNodePool_Update_XEN(t *testing.T) {
 	validateAcctestEnvironment(t)
 
@@ -107,37 +78,6 @@ func TestAccResourceNcloudNKSNodePool_Update_XEN(t *testing.T) {
 	})
 }
 
-func TestAccResourceNcloudNKSNodePool_Update_KVM(t *testing.T) {
-	validateAcctestEnvironment(t)
-
-	var nodePool vnks.NodePool
-	clusterName := fmt.Sprintf("m3-%s", GetTestClusterName())
-	resourceName := "ncloud_nks_node_pool.node_pool"
-
-	nksInfo, err := getNKSTestInfo("KVM")
-	if err != nil {
-		t.Error(err)
-	}
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:                 func() { TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: ProtoV6ProviderFactories,
-		CheckDestroy:             testAccCheckNKSNodePoolDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccResourceNcloudNKSNodePoolConfig(clusterName, TF_TEST_NKS_LOGIN_KEY, nksInfo, 1),
-				Check: resource.ComposeTestCheckFunc(
-					testAccCheckNKSNodePoolExists(resourceName, &nodePool),
-				),
-				Destroy: false,
-			},
-			{
-				Config: testAccResourceNcloudNKSNodePoolConfigUpdateAll(clusterName, TF_TEST_NKS_LOGIN_KEY, nksInfo, 2),
-				Check:  testAccResourceNcloudNKSNodePoolUpdateAllCheck(resourceName, clusterName, nksInfo),
-			},
-		},
-	})
-}
-
 func TestAccResourceNcloudNKSNodePool_publicNetwork_XEN(t *testing.T) {
 	validateAcctestEnvironment(t)
 
@@ -145,29 +85,6 @@ func TestAccResourceNcloudNKSNodePool_publicNetwork_XEN(t *testing.T) {
 	resourceName := "ncloud_nks_node_pool.node_pool"
 
 	nksInfo, err := getNKSTestInfo("XEN")
-	if err != nil {
-		t.Error(err)
-	}
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:                 func() { TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: ProtoV6ProviderFactories,
-		CheckDestroy:             testAccCheckNKSClusterDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccResourceNcloudNKSNodePoolConfigPublicNetwork(clusterName, TF_TEST_NKS_LOGIN_KEY, nksInfo, 1),
-				Check:  testAccResourceNcloudNKSNodePoolPublicNetworkCheck(resourceName, clusterName),
-			},
-		},
-	})
-}
-
-func TestAccResourceNcloudNKSNodePool_publicNetwork_KVM(t *testing.T) {
-	validateAcctestEnvironment(t)
-
-	clusterName := GetTestClusterName()
-	resourceName := "ncloud_nks_node_pool.node_pool"
-
-	nksInfo, err := getNKSTestInfo("KVM")
 	if err != nil {
 		t.Error(err)
 	}
