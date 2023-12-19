@@ -298,7 +298,7 @@ func testAccResourceNcloudNKSClusterUpdateConfigCheck(resourceName string, nksIn
 		testAccCheckNKSClusterExists(resourceName, &cluster),
 		resource.TestMatchResourceAttr(resourceName, "k8s_version", regexp.MustCompile(nksInfo.UpgradeK8sVersion)),
 		resource.TestCheckResourceAttr(resourceName, "log.0.audit", "false"),
-		resource.TestCheckResourceAttr(resourceName, "oidc.0.issuer_url", "https://keycloak.ncp.gimmetm.net/realms/update"),
+		resource.TestCheckResourceAttr(resourceName, "oidc.0.issuer_url", "https://keycloak.url/realms/update"),
 		resource.TestCheckResourceAttr(resourceName, "oidc.0.client_id", "update-client"),
 		resource.TestCheckResourceAttr(resourceName, "ip_acl_default_action", "allow"),
 		resource.TestCheckResourceAttr(resourceName, "ip_acl.#", "0"),
