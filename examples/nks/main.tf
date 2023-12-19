@@ -69,7 +69,7 @@ data "ncloud_nks_server_images" "image"{
   }
 }
 
-data "ncloud_nks_server_products" "product"{
+data "ncloud_nks_server_products" "nks_products"{
   software_code = data.ncloud_nks_server_images.image.images[0].value
   zone = "KR-1"
 
@@ -94,8 +94,8 @@ resource "ncloud_nks_node_pool" "node_pool" {
   node_pool_name = "pool1"
   node_count     = 1
   software_code  = data.ncloud_nks_server_images.image.images[0].value
-  product_code   = data.ncloud_nks_server_products.product[0].value
-  subnet_no      = ncloud_subnet.subnet.id
+  product_code   = data.ncloud_nks_server_products.nks_products.products[0].value
+  subnet_no_list = [ncloud_subnet.node_subnet.id]
   autoscale {
     enabled = true
     min = 1
