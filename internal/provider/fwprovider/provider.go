@@ -12,6 +12,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-ncloud/internal/conn"
 	"github.com/terraform-providers/terraform-provider-ncloud/internal/service/mongodb"
 	"github.com/terraform-providers/terraform-provider-ncloud/internal/service/mysql"
+	"github.com/terraform-providers/terraform-provider-ncloud/internal/service/redis"
 	"github.com/terraform-providers/terraform-provider-ncloud/internal/service/server"
 	"github.com/terraform-providers/terraform-provider-ncloud/internal/service/vpc"
 )
@@ -76,15 +77,19 @@ func (p *fwprovider) DataSources(ctx context.Context) []func() datasource.DataSo
 	dataSources = append(dataSources, vpc.NewVpcPeeringDataSource)
 	dataSources = append(dataSources, server.NewInitScriptDataSource)
 	dataSources = append(dataSources, mysql.NewMysqlDataSource)
-	dataSources = append(dataSources, mysql.NewMysqlProductDataSource)
 	dataSources = append(dataSources, mysql.NewMysqlImageProductDataSource)
 	dataSources = append(dataSources, mysql.NewMysqlImageProductsDataSource)
+	dataSources = append(dataSources, mysql.NewMysqlProductDataSource)
 	dataSources = append(dataSources, mysql.NewMysqlProductsDataSource)
 	dataSources = append(dataSources, mongodb.NewMongoDbDataSource)
 	dataSources = append(dataSources, mongodb.NewMongoDbProductDataSource)
 	dataSources = append(dataSources, mongodb.NewMongoDbProductsDataSource)
 	dataSources = append(dataSources, mongodb.NewMongoDbImageProductDataSource)
 	dataSources = append(dataSources, mongodb.NewMongoDbImageProductsDataSource)
+	dataSources = append(dataSources, redis.NewRedisConfigGroupDataSource)
+	dataSources = append(dataSources, redis.NewRedisDataSource)
+	dataSources = append(dataSources, redis.NewRedisImageProductsDataSource)
+	dataSources = append(dataSources, redis.NewRedisProductsDataSource)
 
 	if err := errs.ErrorOrNil(); err != nil {
 		tflog.Warn(ctx, "registering resources", map[string]interface{}{
@@ -107,6 +112,8 @@ func (p *fwprovider) Resources(ctx context.Context) []func() resource.Resource {
 	resources = append(resources, server.NewInitScriptResource)
 	resources = append(resources, mysql.NewMysqlResource)
 	resources = append(resources, mongodb.NewMongoDbResource)
+	resources = append(resources, redis.NewRedisConfigGroupResource)
+	resources = append(resources, redis.NewRedisResource)
 
 	if err := errs.ErrorOrNil(); err != nil {
 		tflog.Warn(ctx, "registering resources", map[string]interface{}{
