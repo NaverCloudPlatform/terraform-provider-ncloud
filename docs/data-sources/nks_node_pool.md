@@ -48,4 +48,11 @@ In addition to all arguments above, the following attributes are exported:
   * `node_status` - Node Status.
   * `container_version` - Container version of node.
   * `kernel_version` - kernel version of node.
-* `k8s_version` - Kubenretes version .
+* `k8s_version` - Kubenretes version.
+* `label` - NodePool label.
+  * `key` - Label key.
+  * `value` - Label value.
+* `taint` - NodePool taint.
+  * `key` - Taint key.
+  * `value` - Taint value.
+  * `effect` - Taint effect.

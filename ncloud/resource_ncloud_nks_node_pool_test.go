@@ -1,23 +1,29 @@
 package ncloud
 
 import (
+	"bytes"
 	"context"
 	"errors"
 	"fmt"
+	"testing"
+
 	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/ncloud"
 	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/services/vnks"
-	"regexp"
-	"testing"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 )
 
-func TestAccResourceNcloudNKSNodePool_basic(t *testing.T) {
-	var nodePool vnks.NodePool
+func TestAccResourceNcloudNKSNodePool_basic_XEN(t *testing.T) {
+	validateAcctestEnvironment(t)
+
 	clusterName := getTestClusterName()
 	resourceName := "ncloud_nks_node_pool.node_pool"
-	region, clusterType, productCode, k8sVersion := getRegionAndNKSType()
+
+	nksInfo, err := getNKSTestInfo("XEN")
+	if err != nil {
+		t.Error(err)
+	}
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -25,13 +31,8 @@ func TestAccResourceNcloudNKSNodePool_basic(t *testing.T) {
 		CheckDestroy: testAccCheckNKSClusterDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccResourceNcloudNKSNodePoolConfig(clusterName, clusterType, productCode, 1, TF_TEST_NKS_LOGIN_KEY, k8sVersion, region),
-				Check: resource.ComposeTestCheckFunc(
-					testAccCheckNKSNodePoolExists(resourceName, &nodePool),
-					resource.TestCheckResourceAttr(resourceName, "node_pool_name", clusterName),
-					resource.TestCheckResourceAttr(resourceName, "node_count", "1"),
-					resource.TestCheckResourceAttr(resourceName, "product_code", productCode),
-				),
+				Config: testAccResourceNcloudNKSNodePoolConfig(clusterName, TF_TEST_NKS_LOGIN_KEY, nksInfo, 1),
+				Check:  testAccResourceNcloudNKSNodePoolBasicCheck(resourceName, clusterName, nksInfo),
 			},
 			{
 				ResourceName:      resourceName,
@@ -42,277 +43,419 @@ func TestAccResourceNcloudNKSNodePool_basic(t *testing.T) {
 	})
 }
 
-func TestAccResourceNcloudNKSNodePool_publicNetwork(t *testing.T) {
+func TestAccResourceNcloudNKSNodePool_Update_XEN(t *testing.T) {
+	validateAcctestEnvironment(t)
+
 	var nodePool vnks.NodePool
+
+	clusterName := fmt.Sprintf("m3-%s", getTestClusterName())
+	resourceName := "ncloud_nks_node_pool.node_pool"
+
+	nksInfo, err := getNKSTestInfo("XEN")
+	if err != nil {
+		t.Error(err)
+	}
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckNKSNodePoolDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccResourceNcloudNKSNodePoolConfig(clusterName, TF_TEST_NKS_LOGIN_KEY, nksInfo, 1),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckNKSNodePoolExists(resourceName, &nodePool),
+				),
+				Destroy: false,
+			},
+			{
+				Config: testAccResourceNcloudNKSNodePoolConfigUpdateAll(clusterName, TF_TEST_NKS_LOGIN_KEY, nksInfo, 2),
+				Check:  testAccResourceNcloudNKSNodePoolUpdateAllCheck(resourceName, clusterName, nksInfo),
+			},
+		},
+	})
+}
+
+func TestAccResourceNcloudNKSNodePool_publicNetwork_XEN(t *testing.T) {
+	validateAcctestEnvironment(t)
+
 	clusterName := getTestClusterName()
 	resourceName := "ncloud_nks_node_pool.node_pool"
-	region, clusterType, productCode, k8sVersion := getRegionAndNKSType()
 
+	nksInfo, err := getNKSTestInfo("XEN")
+	if err != nil {
+		t.Error(err)
+	}
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckNKSClusterDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccResourceNcloudNKSNodePoolConfigPublicNetwork(clusterName, clusterType, productCode, 1, TF_TEST_NKS_LOGIN_KEY, k8sVersion, region),
-				Check: resource.ComposeTestCheckFunc(
-					testAccCheckNKSNodePoolExists(resourceName, &nodePool),
-					resource.TestCheckResourceAttr(resourceName, "node_pool_name", clusterName),
-					resource.TestCheckResourceAttr(resourceName, "node_count", "1"),
-					resource.TestCheckResourceAttr(resourceName, "product_code", productCode),
-				),
+				Config: testAccResourceNcloudNKSNodePoolConfigPublicNetwork(clusterName, TF_TEST_NKS_LOGIN_KEY, nksInfo, 1),
+				Check:  testAccResourceNcloudNKSNodePoolPublicNetworkCheck(resourceName, clusterName),
 			},
 		},
 	})
 }
 
-func TestAccResourceNcloudNKSNodePool_updateNodeCountAndAutoScale(t *testing.T) {
-	var nodePool vnks.NodePool
-	clusterName := getTestClusterName()
-	region, clusterType, productCode, k8sVersion := getRegionAndNKSType()
-	resourceName := "ncloud_nks_node_pool.node_pool"
-
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
-		CheckDestroy: testAccCheckNKSNodePoolDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccResourceNcloudNKSNodePoolConfig(clusterName, clusterType, productCode, 1, TF_TEST_NKS_LOGIN_KEY, k8sVersion, region),
-				Check: resource.ComposeTestCheckFunc(
-					testAccCheckNKSNodePoolExists(resourceName, &nodePool),
-					resource.TestCheckResourceAttr(resourceName, "node_count", "1"),
-				),
-				Destroy: false,
-			},
-			{
-				Config: testAccResourceNcloudNKSNodePoolUpdateAutoScaleConfig(clusterName, clusterType, productCode, 2, TF_TEST_NKS_LOGIN_KEY, k8sVersion, region),
-				Check: resource.ComposeTestCheckFunc(
-					testAccCheckNKSNodePoolExists(resourceName, &nodePool),
-					resource.TestCheckResourceAttr(resourceName, "node_count", "2"),
-					resource.TestCheckResourceAttr(resourceName, "autoscale.0.enabled", "true"),
-					resource.TestCheckResourceAttr(resourceName, "autoscale.0.min", "1"),
-					resource.TestCheckResourceAttr(resourceName, "autoscale.0.max", "2"),
-				),
-			},
-		},
-	})
-}
-
-func TestAccResourceNcloudNKSNodePool_upgrade(t *testing.T) {
-	var nodePool vnks.NodePool
-	clusterName := "m3-" + getTestClusterName()
-	region, clusterType, productCode, k8sVersion := getRegionAndNKSType()
-	resourceName := "ncloud_nks_node_pool.node_pool"
-
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
-		CheckDestroy: testAccCheckNKSNodePoolDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccResourceNcloudNKSNodePoolConfig(clusterName, clusterType, productCode, 1, TF_TEST_NKS_LOGIN_KEY, k8sVersion, region),
-				Check: resource.ComposeTestCheckFunc(
-					testAccCheckNKSNodePoolExists(resourceName, &nodePool),
-					resource.TestCheckResourceAttr(resourceName, "node_count", "1"),
-				),
-				Destroy: false,
-			},
-			{
-				Config: testAccResourceNcloudNKSNodePoolConfig(clusterName, clusterType, productCode, 1, TF_TEST_NKS_LOGIN_KEY, "1.25.8-nks.1", region),
-				Check: resource.ComposeTestCheckFunc(
-					testAccCheckNKSNodePoolExists(resourceName, &nodePool),
-					resource.TestCheckResourceAttr(resourceName, "k8s_version", "1.25.8-nks.1"),
-				),
-			},
-		},
-	})
-}
-
-func TestAccResourceNcloudNKSNodePool_invalidNodeCount(t *testing.T) {
-	clusterName := getTestClusterName()
-	region, clusterType, productCode, k8sVersion := getRegionAndNKSType()
-
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
-		CheckDestroy: testAccCheckSubnetDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config:      testAccResourceNcloudNKSNodePoolConfig(clusterName, clusterType, productCode, 0, TF_TEST_NKS_LOGIN_KEY, k8sVersion, region),
-				ExpectError: regexp.MustCompile("nodeCount must not be less than 1"),
-			},
-		},
-	})
-}
-
-func testAccResourceNcloudNKSNodePoolConfig(name string, clusterType string, productCode string, nodeCount int, loginKey string, version string, region string) string {
-	return fmt.Sprintf(`
-resource "ncloud_vpc" "vpc" {
-	name               = "%[1]s"
-	ipv4_cidr_block    = "10.2.0.0/16"
-}
-
-resource "ncloud_subnet" "subnet" {
-	vpc_no             = ncloud_vpc.vpc.vpc_no
-	name               = "%[1]s"
-	subnet             = "10.2.1.0/24"
-	zone               = "%[7]s-1"
-	network_acl_no     = ncloud_vpc.vpc.default_network_acl_no
-	subnet_type        = "PRIVATE"
-	usage_type         = "GEN"
-}
-
-resource "ncloud_subnet" "subnet_lb" {
-	vpc_no             = ncloud_vpc.vpc.vpc_no
-	name               = "%[1]s-lb"
-	subnet             = "10.2.100.0/24"
-	zone               = "%[7]s-1"
-	network_acl_no     = ncloud_vpc.vpc.default_network_acl_no
-	subnet_type        = "PRIVATE"
-	usage_type         = "LOADB"
-}
-
+func testAccResourceNcloudNKSNodePoolConfig(name string, loginKeyName string, nksInfo *NKSTestInfo, nodeCount int32) string {
+	var b bytes.Buffer
+	b.WriteString(fmt.Sprintf(`
 resource "ncloud_nks_cluster" "cluster" {
   name                        = "%[1]s"
   cluster_type                = "%[2]s"
-  k8s_version                 = "%[6]s"
-  login_key_name              = "%[5]s"
-  lb_private_subnet_no        = ncloud_subnet.subnet_lb.id
+  k8s_version                 = "%[3]s"
+  login_key_name              = "%[4]s"
+  lb_private_subnet_no        = %[5]s
+  hypervisor_code             = "%[6]s"
+  kube_network_plugin         = "cilium"
   subnet_no_list              = [
-    ncloud_subnet.subnet.id,
+    %[7]s
   ]
-  vpc_no                      = ncloud_vpc.vpc.vpc_no
-  zone                        = "%[7]s-1"
+  vpc_no                      = %[8]s
+  zone                        = "%[9]s-1"
+`, name, nksInfo.ClusterType, nksInfo.K8sVersion, loginKeyName, *nksInfo.PrivateLbSubnetList[0].SubnetNo, nksInfo.HypervisorCode, *nksInfo.PrivateSubnetList[0].SubnetNo, *nksInfo.Vpc.VpcNo, nksInfo.Region))
+
+	if nksInfo.needPublicLb {
+		b.WriteString(fmt.Sprintf(`
+  lb_public_subnet_no = %[1]s
+`, *nksInfo.PublicLbSubnetList[0].SubnetNo))
+	}
+
+	b.WriteString(`
+}
+`)
+
+	b.WriteString(fmt.Sprintf(`
+data "ncloud_nks_server_images" "image"{
+  hypervisor_code = ncloud_nks_cluster.cluster.hypervisor_code
+    filter {
+    name = "label"
+    values = ["ubuntu-20.04"]
+    regex = true
+  }
+
+}
+
+data "ncloud_nks_server_products" "product"{
+  software_code = data.ncloud_nks_server_images.image.images[0].value
+  zone = "%[1]s-1"
+  filter {
+    name = "product_type"
+    values = [ "STAND"]
+  }
+  
+  filter {
+    name = "cpu_count"
+    values = [ "2"]
+  }
+  
+  filter {
+    name = "memory_size"
+    values = [ "8GB" ]
+  }
 }
 
 resource "ncloud_nks_node_pool" "node_pool" {
   cluster_uuid   = ncloud_nks_cluster.cluster.uuid
-  node_pool_name = "%[1]s"
-  node_count     = %[4]d
-  product_code   = "%[3]s"
-  k8s_version    = "%[6]s"
-  subnet_no_list = [ ncloud_subnet.subnet.id]
+  node_pool_name = "%[2]s"
+  node_count     = %[3]d
+  k8s_version    = "%[4]s"
+  subnet_no_list = [ %[5]s ]
   autoscale {
     enabled = false
-    min = 1
-    max = 1
+	min = 0
+    max = 0
   }
+
+  label {
+    key = "foo"
+    value = "bar"
+  }
+
+  taint {
+    key = "foo"
+    effect = "NoSchedule"
+    value = "bar"
+  }
+
+  software_code = data.ncloud_nks_server_images.image.images.0.value
+`, nksInfo.Region, name, nodeCount, nksInfo.K8sVersion, *nksInfo.PrivateSubnetList[0].SubnetNo))
+	if nksInfo.HypervisorCode == "KVM" {
+		b.WriteString(`
+  server_spec_code = data.ncloud_nks_server_products.product.products.0.value
+  storage_size = 100
+}
+		`)
+
+	} else {
+		b.WriteString(`
+  product_code = data.ncloud_nks_server_products.product.products.0.value
+}
+		`)
+	}
+	return b.String()
+
 }
 
-`, name, clusterType, productCode, nodeCount, loginKey, version, region)
-}
-
-func testAccResourceNcloudNKSNodePoolConfigPublicNetwork(name string, clusterType string, productCode string, nodeCount int, loginKey string, version string, region string) string {
-	return fmt.Sprintf(`
-resource "ncloud_vpc" "vpc" {
-	name               = "%[1]s"
-	ipv4_cidr_block    = "10.2.0.0/16"
-}
-
-resource "ncloud_subnet" "subnet" {
-	vpc_no             = ncloud_vpc.vpc.vpc_no
-	name               = "%[1]s"
-	subnet             = "10.2.1.0/24"
-	zone               = "%[7]s-1"
-	network_acl_no     = ncloud_vpc.vpc.default_network_acl_no
-	subnet_type        = "PUBLIC"
-	usage_type         = "GEN"
-}
-
-resource "ncloud_subnet" "subnet_lb" {
-	vpc_no             = ncloud_vpc.vpc.vpc_no
-	name               = "%[1]s-lb"
-	subnet             = "10.2.100.0/24"
-	zone               = "%[7]s-1"
-	network_acl_no     = ncloud_vpc.vpc.default_network_acl_no
-	subnet_type        = "PRIVATE"
-	usage_type         = "LOADB"
-}
-
+func testAccResourceNcloudNKSNodePoolConfigPublicNetwork(name string, loginKeyName string, nksInfo *NKSTestInfo, nodeCount int32) string {
+	var b bytes.Buffer
+	b.WriteString(fmt.Sprintf(`
 resource "ncloud_nks_cluster" "cluster" {
   name                        = "%[1]s"
   cluster_type                = "%[2]s"
-  k8s_version                 = "%[6]s"
-  login_key_name              = "%[5]s"
-  lb_private_subnet_no        = ncloud_subnet.subnet_lb.id
+  k8s_version                 = "%[3]s"
+  login_key_name              = "%[4]s"
+  lb_private_subnet_no        = %[5]s
+  hypervisor_code             = "%[6]s"
+  kube_network_plugin         = "cilium"
   subnet_no_list              = [
-    ncloud_subnet.subnet.id,
+    %[7]s
   ]
-  vpc_no                      = ncloud_vpc.vpc.vpc_no
-  zone                        = "%[7]s-1"
+  vpc_no                      = %[8]s
+  zone                        = "%[9]s-1"
   public_network              = true
+`, name, nksInfo.ClusterType, nksInfo.K8sVersion, loginKeyName, *nksInfo.PrivateLbSubnetList[0].SubnetNo, nksInfo.HypervisorCode, *nksInfo.PublicSubnetList[0].SubnetNo, *nksInfo.Vpc.VpcNo, nksInfo.Region))
+
+	if nksInfo.needPublicLb {
+		b.WriteString(fmt.Sprintf(`
+  lb_public_subnet_no = %[1]s
+`, *nksInfo.PublicLbSubnetList[0].SubnetNo))
+	}
+
+	b.WriteString(`
+}
+`)
+
+	b.WriteString(fmt.Sprintf(`
+
+
+data "ncloud_nks_server_images" "image"{
+  hypervisor_code = ncloud_nks_cluster.cluster.hypervisor_code
+    filter {
+    name = "label"
+    values = ["ubuntu-20.04"]
+    regex = true
+  }
+
 }
 
-resource "ncloud_nks_node_pool" "node_pool" {
-  cluster_uuid   = ncloud_nks_cluster.cluster.uuid
-  node_pool_name = "%[1]s"
-  node_count     = %[4]d
-  product_code   = "%[3]s"
-  subnet_no_list = [ ncloud_subnet.subnet.id]
-  autoscale {
-    enabled = false
-    min = 1
-    max = 1
+data "ncloud_nks_server_products" "product"{
+  software_code = data.ncloud_nks_server_images.image.images[0].value
+  zone = "KR-1"
+  filter {
+    name = "product_type"
+    values = [ "STAND"]
+  }
+  
+  filter {
+    name = "cpu_count"
+    values = [ "2"]
+  }
+  
+  filter {
+    name = "memory_size"
+    values = [ "8GB" ]
   }
 }
 
-`, name, clusterType, productCode, nodeCount, loginKey, version, region)
+resource "ncloud_nks_node_pool" "node_pool" {
+  cluster_uuid   = ncloud_nks_cluster.cluster.uuid
+  node_pool_name = "%[1]s"
+  node_count     = %[2]d
+  k8s_version    = "%[3]s"
+  subnet_no_list = [ %[4]s ]
+  autoscale {
+    enabled = false
+    min = 0
+    max = 0
+  }
+
+  label {
+    key = "foo"
+    value = "bar"
+  }
+
+  taint {
+    key = "foo"
+    effect = "NoSchedule"
+    value = "bar"
+  }
+
+  software_code = data.ncloud_nks_server_images.image.images.0.value
+`, name, nodeCount, nksInfo.K8sVersion, *nksInfo.PublicSubnetList[0].SubnetNo))
+	if nksInfo.HypervisorCode == "KVM" {
+		b.WriteString(`
+  server_spec_code = data.ncloud_nks_server_products.product.products.0.value
+  storage_size = 100
+}
+		`)
+
+	} else {
+		b.WriteString(`
+  product_code = data.ncloud_nks_server_products.product.products.0.value
+}
+		`)
+	}
+	return b.String()
+
 }
 
-func testAccResourceNcloudNKSNodePoolUpdateAutoScaleConfig(name string, clusterType string, productCode string, nodeCount int, loginKey string, version string, region string) string {
-	return fmt.Sprintf(`
-resource "ncloud_vpc" "vpc" {
-	name               = "%[1]s"
-	ipv4_cidr_block    = "10.2.0.0/16"
-}
-
-resource "ncloud_subnet" "subnet" {
-	vpc_no             = ncloud_vpc.vpc.vpc_no
-	name               = "%[1]s"
-	subnet             = "10.2.1.0/24"
-	zone               = "%[7]s-1"
-	network_acl_no     = ncloud_vpc.vpc.default_network_acl_no
-	subnet_type        = "PRIVATE"
-	usage_type         = "GEN"
-}
-
-resource "ncloud_subnet" "subnet_lb" {
-	vpc_no             = ncloud_vpc.vpc.vpc_no
-	name               = "%[1]s-lb"
-	subnet             = "10.2.100.0/24"
-	zone               = "%[7]s-1"
-	network_acl_no     = ncloud_vpc.vpc.default_network_acl_no
-	subnet_type        = "PRIVATE"
-	usage_type         = "LOADB"
-}
-
+func testAccResourceNcloudNKSNodePoolConfigUpdateAll(name string, loginKeyName string, nksInfo *NKSTestInfo, nodeCount int32) string {
+	var b bytes.Buffer
+	b.WriteString(fmt.Sprintf(`
 resource "ncloud_nks_cluster" "cluster" {
   name                        = "%[1]s"
   cluster_type                = "%[2]s"
-  k8s_version                 = "%[6]s"
-  login_key_name              = "%[5]s"
-  lb_private_subnet_no        = ncloud_subnet.subnet_lb.id
+  k8s_version                 = "%[3]s"
+  login_key_name              = "%[4]s"
+  lb_private_subnet_no        = %[5]s
+  hypervisor_code             = "%[6]s"
+  kube_network_plugin         = "cilium"
   subnet_no_list              = [
-    ncloud_subnet.subnet.id,
+    %[7]s
   ]
-  vpc_no                      = ncloud_vpc.vpc.vpc_no
-  zone                        = "%[7]s-1"
+  vpc_no                      = %[8]s
+  zone                        = "%[9]s-1"
+`, name, nksInfo.ClusterType, nksInfo.UpgradeK8sVersion, loginKeyName, *nksInfo.PrivateLbSubnetList[0].SubnetNo, nksInfo.HypervisorCode, *nksInfo.PrivateSubnetList[0].SubnetNo, *nksInfo.Vpc.VpcNo, nksInfo.Region))
+
+	if nksInfo.needPublicLb {
+		b.WriteString(fmt.Sprintf(`
+  lb_public_subnet_no = %[1]s
+`, *nksInfo.PublicLbSubnetList[0].SubnetNo))
+	}
+
+	b.WriteString(`
+}
+`)
+
+	b.WriteString(fmt.Sprintf(`
+
+
+data "ncloud_nks_server_images" "image"{
+  hypervisor_code = ncloud_nks_cluster.cluster.hypervisor_code
+    filter {
+    name = "label"
+    values = ["ubuntu-20.04"]
+    regex = true
+  }
+
+}
+
+data "ncloud_nks_server_products" "product"{
+  software_code = data.ncloud_nks_server_images.image.images[0].value
+  zone = "KR-1"
+  filter {
+    name = "product_type"
+    values = [ "STAND"]
+  }
+  
+  filter {
+    name = "cpu_count"
+    values = [ "2"]
+  }
+  
+  filter {
+    name = "memory_size"
+    values = [ "8GB" ]
+  }
 }
 
 resource "ncloud_nks_node_pool" "node_pool" {
   cluster_uuid   = ncloud_nks_cluster.cluster.uuid
   node_pool_name = "%[1]s"
-  node_count     = %[4]d
-  product_code   = "%[3]s"
-  subnet_no_list = [ ncloud_subnet.subnet.id]
+  node_count     = %[2]d
+  k8s_version    = "%[3]s"
+  subnet_no_list = [ %[4]s, %[5]s ]
   autoscale {
     enabled = true
     min = 1
     max = 2
   }
+
+  label {
+    key = "bar"
+    value = "foor"
+  }
+
+  taint {
+    key = "bar"
+    effect = "NoSchedule"
+    value = ""
+  }
+
+  software_code = data.ncloud_nks_server_images.image.images.0.value
+`, name, nodeCount, nksInfo.UpgradeK8sVersion, *nksInfo.PrivateSubnetList[0].SubnetNo, *nksInfo.PrivateSubnetList[1].SubnetNo))
+	if nksInfo.HypervisorCode == "KVM" {
+		b.WriteString(`
+  server_spec_code = data.ncloud_nks_server_products.product.products.0.value
+  storage_size = 100
 }
-`, name, clusterType, productCode, nodeCount, loginKey, version, region)
+		`)
+
+	} else {
+		b.WriteString(`
+  product_code = data.ncloud_nks_server_products.product.products.0.value
+}
+		`)
+	}
+	return b.String()
+
+}
+
+func testAccResourceNcloudNKSNodePoolBasicCheck(resourceName string, name string, nksInfo *NKSTestInfo) (check resource.TestCheckFunc) {
+	var nodePool vnks.NodePool
+	check = resource.ComposeTestCheckFunc(
+		testAccCheckNKSNodePoolExists(resourceName, &nodePool),
+		resource.TestCheckResourceAttr(resourceName, "node_pool_name", name),
+		resource.TestCheckResourceAttr(resourceName, "node_count", "1"),
+		resource.TestCheckResourceAttr(resourceName, "autoscale.0.enabled", "false"),
+		resource.TestCheckResourceAttr(resourceName, "autoscale.0.min", "0"),
+		resource.TestCheckResourceAttr(resourceName, "autoscale.0.max", "0"),
+		resource.TestCheckResourceAttr(resourceName, "k8s_version", nksInfo.K8sVersion),
+		resource.TestCheckResourceAttr(resourceName, "subnet_no_list.#", "1"),
+		resource.TestCheckResourceAttr(resourceName, "label.0.key", "foo"),
+		resource.TestCheckResourceAttr(resourceName, "label.0.value", "bar"),
+		resource.TestCheckResourceAttr(resourceName, "taint.0.key", "foo"),
+		resource.TestCheckResourceAttr(resourceName, "taint.0.value", "bar"),
+		resource.TestCheckResourceAttr(resourceName, "taint.0.action", "NoSchedule"),
+	)
+
+	if nksInfo.HypervisorCode == "KVM" {
+		check = resource.ComposeTestCheckFunc(
+			check,
+			resource.TestCheckResourceAttr(resourceName, "storage_size", "100"),
+		)
+	}
+	return check
+}
+
+func testAccResourceNcloudNKSNodePoolPublicNetworkCheck(resourceName string, name string) (check resource.TestCheckFunc) {
+	var nodePool vnks.NodePool
+	return resource.ComposeTestCheckFunc(
+		testAccCheckNKSNodePoolExists(resourceName, &nodePool),
+		resource.TestCheckResourceAttr(resourceName, "node_pool_name", name),
+		resource.TestCheckResourceAttr(resourceName, "node_count", "1"),
+	)
+}
+
+func testAccResourceNcloudNKSNodePoolUpdateAllCheck(resourceName string, name string, nksInfo *NKSTestInfo) (check resource.TestCheckFunc) {
+	var nodePool vnks.NodePool
+	return resource.ComposeTestCheckFunc(
+		testAccCheckNKSNodePoolExists(resourceName, &nodePool),
+		resource.TestCheckResourceAttr(resourceName, "node_pool_name", name),
+		resource.TestCheckResourceAttr(resourceName, "node_count", "2"),
+		resource.TestCheckResourceAttr(resourceName, "autoscale.0.enabled", "true"),
+		resource.TestCheckResourceAttr(resourceName, "autoscale.0.min", "1"),
+		resource.TestCheckResourceAttr(resourceName, "autoscale.0.max", "2"),
+		resource.TestCheckResourceAttr(resourceName, "k8s_version", nksInfo.UpgradeK8sVersion),
+		resource.TestCheckResourceAttr(resourceName, "subnet_no_list.#", "2"),
+		resource.TestCheckResourceAttr(resourceName, "label.0.key", "bar"),
+		resource.TestCheckResourceAttr(resourceName, "label.0.value", "foo"),
+		resource.TestCheckResourceAttr(resourceName, "taint.0.key", "bar"),
+		resource.TestCheckResourceAttr(resourceName, "taint.0.value", ""),
+		resource.TestCheckResourceAttr(resourceName, "taint.0.action", "NoExecute"),
+	)
 }
 
 func testAccCheckNKSNodePoolExists(n string, nodePool *vnks.NodePool) resource.TestCheckFunc {
@@ -378,6 +521,29 @@ func testAccCheckNKSNodePoolDestroy(s *terraform.State) error {
 			}
 		}
 
+	}
+
+	return nil
+}
+
+func testAccCheckNKSClusterDestroy(s *terraform.State) error {
+	config := testAccProvider.Meta().(*ProviderConfig)
+
+	for _, rs := range s.RootModule().Resources {
+		if rs.Type != "ncloud_nks_cluster" {
+			continue
+		}
+
+		clusters, err := getNKSClusters(context.Background(), config)
+		if err != nil {
+			return err
+		}
+
+		for _, cluster := range clusters {
+			if ncloud.StringValue(cluster.Uuid) == rs.Primary.ID {
+				return fmt.Errorf("Cluster still exists")
+			}
+		}
 	}
 
 	return nil

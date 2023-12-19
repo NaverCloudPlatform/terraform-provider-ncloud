@@ -19,6 +19,10 @@ func dataSourceNcloudNKSServerImages() *schema.Resource {
 
 		Schema: map[string]*schema.Schema{
 			"filter": dataSourceFiltersSchema(),
+			"hypervisor_code": {
+				Type:     schema.TypeString,
+				Optional: true,
+			},
 			"images": {
 				Type:     schema.TypeList,
 				Computed: true,
@@ -45,7 +49,7 @@ func dataSourceNcloudNKSServerImagesRead(d *schema.ResourceData, meta interface{
 		return NotSupportClassic("datasource `ncloud_nks_node_pool_server_images`")
 	}
 
-	resources, err := getNKSServerImages(config)
+	resources, err := getNKSServerImages(config, d)
 	if err != nil {
 		return err
 	}
@@ -63,10 +67,17 @@ func dataSourceNcloudNKSServerImagesRead(d *schema.ResourceData, meta interface{
 
 }
 
-func getNKSServerImages(config *ProviderConfig) ([]map[string]interface{}, error) {
+func getNKSServerImages(config *ProviderConfig, d *schema.ResourceData) ([]map[string]interface{}, error) {
 
 	logCommonRequest("GetNKSServerImages", "")
-	resp, err := config.Client.vnks.V2Api.OptionServerImageGet(context.Background())
+	hypervisorCode := StringPtrOrNil(d.GetOk("hypervisor_code"))
+
+	opt := make(map[string]interface{})
+	if hypervisorCode != nil {
+		opt["hypervisorCode"] = hypervisorCode
+	}
+
+	resp, err := config.Client.vnks.V2Api.OptionServerImageGet(context.Background(), opt)
 
 	if err != nil {
 		logErrorResponse("GetNKSServerImages", err, "")

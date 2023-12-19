@@ -3,7 +3,7 @@ variable name {
 }
 
 variable nks_version {
-  default = "1.23"
+  default = "1.25"
 }
 
 variable client_ip {

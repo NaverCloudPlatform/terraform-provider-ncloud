@@ -29,6 +29,11 @@ func dataSourceNcloudNKSCluster() *schema.Resource {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
+			"hypervisor_code": {
+				Type:     schema.TypeString,
+				Optional: true,
+				Computed: true,
+			},
 			"endpoint": {
 				Type:     schema.TypeString,
 				Computed: true,
@@ -114,7 +119,7 @@ func dataSourceNcloudNKSCluster() *schema.Resource {
 							Type:     schema.TypeString,
 							Optional: true,
 						},
-						"groups_cliam": {
+						"groups_claim": {
 							Type:     schema.TypeString,
 							Optional: true,
 						},
@@ -186,6 +191,7 @@ func dataSourceNcloudNKSClusterRead(ctx context.Context, d *schema.ResourceData,
 	d.Set("uuid", cluster.Uuid)
 	d.Set("name", cluster.Name)
 	d.Set("cluster_type", cluster.ClusterType)
+	d.Set("hypervisor_code", cluster.HypervisorCode)
 	d.Set("endpoint", cluster.Endpoint)
 	d.Set("login_key_name", cluster.LoginKeyName)
 	d.Set("k8s_version", cluster.K8sVersion)

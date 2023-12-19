@@ -27,13 +27,15 @@ In addition to all arguments above, the following attributes are exported:
 * `id` - Cluster uuid.
 * `endpoint` - Control Plane API address.
 * `lb_private_subnet_no` - Subnet No. for private loadbalancer only.
-* `lb_public_subnet_no` - Subnet No. for public loadbalancer only. (Available only `SGN`, `JPN` region)
+* `lb_public_subnet_no` - Subnet No. for public loadbalancer only. (Supported on `public`, `gov` site)
 * `subnet_no_list` - Subnet No. list.
 * `public_network` - Public Subnet Network
 * `kube_network_plugin` - Kubernetes network plugin.
+* `hypervisor_code` - Hypervisor code.
 * `cluster_type` - Cluster type. `Maximum number of nodes`
-  * 10 ea : `SVR.VNKS.STAND.C002.M008.NET.SSD.B050.G002`
-  * 50 ea : `SVR.VNKS.STAND.C004.M016.NET.SSD.B050.G002`
+  * `XEN` / `RHV`
+    * 10 ea : `SVR.VNKS.STAND.C002.M008.NET.SSD.B050.G002`
+    * 50 ea : `SVR.VNKS.STAND.C004.M016.NET.SSD.B050.G002`
 * `login_key_name` - Login key name.
 * `zone` - zone Code.
 * `vpc_no` - VPC No.
@@ -49,8 +51,8 @@ In addition to all arguments above, the following attributes are exported:
   * `groups_prefix` - Groups prefix.
   * `groups_claim` - Groups claim. 
   * `required_claim` - Required claim.
-* `ip_acl_default_action` - IP ACL default action.(Available only `public`, `gov` site)
-* `ip_acl` (Available only `public`, `gov` site)
+* `ip_acl_default_action` - IP ACL default action. (Supported on `public`, `gov` site)
+* `ip_acl` (Supported on `public`, `gov` site)
   * `action` - `allow`, `deny`
   * `address` - CIDR
   * `comment` - Comment

@@ -31,44 +31,85 @@ func dataSourceNcloudNKSServerProducts() *schema.Resource {
 							Type:     schema.TypeString,
 							Computed: true,
 						},
-						"detail": {
-							Type:     schema.TypeList,
-							MaxItems: 1,
-							Optional: true,
+						"cpu_count": {
+							Type:     schema.TypeString,
 							Computed: true,
+						},
+						"memory_size": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+						"gpu_count": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+						"gpu_memory_size": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+						"product_type": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+						"product_code": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+						"product_korean_desc": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+						"product_english_desc": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+						"detail": {
+							Type:       schema.TypeList,
+							MaxItems:   1,
+							Optional:   true,
+							Computed:   true,
+							Deprecated: "change in location of arguemnts",
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
 									"cpu_count": {
-										Type:     schema.TypeString,
-										Computed: true,
+										Type:       schema.TypeString,
+										Computed:   true,
+										Deprecated: "change in location of arguemnts",
 									},
 									"memory_size": {
-										Type:     schema.TypeString,
-										Computed: true,
+										Type:       schema.TypeString,
+										Computed:   true,
+										Deprecated: "change in location of arguemnts",
 									},
 									"gpu_count": {
-										Type:     schema.TypeString,
-										Computed: true,
+										Type:       schema.TypeString,
+										Computed:   true,
+										Deprecated: "change in location of arguemnts",
 									},
 									"gpu_memory_size": {
-										Type:     schema.TypeString,
-										Computed: true,
+										Type:       schema.TypeString,
+										Computed:   true,
+										Deprecated: "change in location of arguemnts",
 									},
 									"product_type": {
-										Type:     schema.TypeString,
-										Computed: true,
+										Type:       schema.TypeString,
+										Computed:   true,
+										Deprecated: "change in location of arguemnts",
 									},
 									"product_code": {
-										Type:     schema.TypeString,
-										Computed: true,
+										Type:       schema.TypeString,
+										Computed:   true,
+										Deprecated: "change in location of arguemnts",
 									},
 									"product_korean_desc": {
-										Type:     schema.TypeString,
-										Computed: true,
+										Type:       schema.TypeString,
+										Computed:   true,
+										Deprecated: "change in location of arguemnts",
 									},
 									"product_english_desc": {
-										Type:     schema.TypeString,
-										Computed: true,
+										Type:       schema.TypeString,
+										Computed:   true,
+										Deprecated: "change in location of arguemnts",
 									},
 								},
 							},
@@ -133,8 +174,16 @@ func getNKSServerProducts(config *ProviderConfig, d *schema.ResourceData) ([]map
 
 	for _, r := range *resp {
 		instance := map[string]interface{}{
-			"label": ncloud.StringValue(r.Detail.ProductName),
-			"value": ncloud.StringValue(r.Detail.ProductCode),
+			"label":                ncloud.StringValue(r.Label),
+			"value":                ncloud.StringValue(r.Value),
+			"product_type":         ncloud.StringValue(r.Detail.ProductType2Code),
+			"product_code":         ncloud.StringValue(r.Detail.ProductCode),
+			"product_korean_desc":  ncloud.StringValue(r.Detail.ProductKoreanDesc),
+			"product_english_desc": ncloud.StringValue(r.Detail.ProductEnglishDesc),
+			"cpu_count":            strconv.Itoa(int(ncloud.Int32Value(r.Detail.CpuCount))),
+			"memory_size":          strconv.Itoa(int(ncloud.Int32Value(r.Detail.MemorySizeGb))) + "GB",
+			"gpu_count":            strconv.Itoa(int(ncloud.Int32Value(r.Detail.GpuCount))),
+			"gpu_memory_size":      strconv.Itoa(int(ncloud.Int32Value(r.Detail.GpuMemorySizeGb))) + "GB",
 			"detail": []map[string]interface{}{
 				{
 					"product_type":         ncloud.StringValue(r.Detail.ProductType2Code),

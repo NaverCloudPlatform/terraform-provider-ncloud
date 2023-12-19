@@ -55,6 +55,14 @@ func dataSourceNcloudNKSNodePool() *schema.Resource {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
+			"storage_size": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+			"server_spec_code": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
 			"autoscale": {
 				Type:     schema.TypeList,
 				Computed: true,
@@ -71,6 +79,44 @@ func dataSourceNcloudNKSNodePool() *schema.Resource {
 						"min": {
 							Type:     schema.TypeInt,
 							Computed: true,
+						},
+					},
+				},
+			},
+			"label": {
+				Type:       schema.TypeSet,
+				Optional:   true,
+				ConfigMode: schema.SchemaConfigModeAttr,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"key": {
+							Type:     schema.TypeString,
+							Required: true,
+						},
+						"value": {
+							Type:     schema.TypeString,
+							Required: true,
+						},
+					},
+				},
+			},
+			"taint": {
+				Type:       schema.TypeSet,
+				Optional:   true,
+				ConfigMode: schema.SchemaConfigModeAttr,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"effect": {
+							Type:     schema.TypeString,
+							Required: true,
+						},
+						"key": {
+							Type:     schema.TypeString,
+							Required: true,
+						},
+						"value": {
+							Type:     schema.TypeString,
+							Required: true,
 						},
 					},
 				},
@@ -148,6 +194,9 @@ func dataSourceNcloudNKSNodePoolRead(ctx context.Context, d *schema.ResourceData
 	d.Set("software_code", nodePool.SoftwareCode)
 	d.Set("node_count", nodePool.NodeCount)
 	d.Set("k8s_version", nodePool.K8sVersion)
+	d.Set("server_spec_code", nodePool.ServerSpecCode)
+	d.Set("storage_size", strconv.Itoa(int(ncloud.Int32Value(nodePool.StorageSize))))
+
 	if len(nodePool.SubnetNoList) > 0 {
 		if err := d.Set("subnet_no_list", flattenInt32ListToStringList(nodePool.SubnetNoList)); err != nil {
 			log.Printf("[WARN] Error setting subnet no list set for (%s): %s", d.Id(), err)
@@ -156,6 +205,14 @@ func dataSourceNcloudNKSNodePoolRead(ctx context.Context, d *schema.ResourceData
 
 	if err := d.Set("autoscale", flattenNKSNodePoolAutoScale(nodePool.Autoscale)); err != nil {
 		log.Printf("[WARN] Error setting Autoscale set for (%s): %s", d.Id(), err)
+	}
+
+	if err := d.Set("taint", flattenNKSNodePoolTaints(nodePool.Taints)); err != nil {
+		log.Printf("[WARN] Error setting taints set for (%s): %s", d.Id(), err)
+	}
+
+	if err := d.Set("label", flattenNKSNodePoolLabels(nodePool.Labels)); err != nil {
+		log.Printf("[WARN] Error setting labels set for (%s): %s", d.Id(), err)
 	}
 
 	nodes, err := getNKSNodePoolWorkerNodes(ctx, config, clusterUuid, nodePoolName)

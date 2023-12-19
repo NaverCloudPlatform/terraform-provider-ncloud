@@ -10,7 +10,7 @@ data "ncloud_nks_server_images" "images" {}
 data "ncloud_nks_server_images" "ubuntu20" {
   filter {
     name = "label"
-    values = ["ubuntu-20.04-64-server"]
+    values = ["ubuntu-20.04"]
     regex = true
   }
 }

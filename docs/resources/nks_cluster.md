@@ -1,6 +1,6 @@
 # Resource: ncloud_nks_cluster
 
-Provides a Kubernetes Service cluster resource.
+Provides a Kubernetes Service Cluster resource.
 
 ## Example Usage
 
@@ -25,7 +25,7 @@ resource "ncloud_subnet" "subnet_lb" {
   subnet         = "10.0.100.0/24"
   zone           = "KR-1"
   network_acl_no = ncloud_vpc.vpc.default_network_acl_no
-  subnet_type    = "PUBLIC"
+  subnet_type    = "PRIVATE"
   name           = "subnet-lb"
   usage_type     = "LOADB"
 }
@@ -34,7 +34,7 @@ resource "ncloud_subnet" "subnet_lb" {
 data "ncloud_nks_versions" "version" {
   filter {
     name = "value"
-    values = ["1.20"]
+    values = ["1.25"]
     regex = true
   }
 }
@@ -67,16 +67,19 @@ resource "ncloud_nks_cluster" "cluster" {
 The following arguments are supported:
 
 * `name` - (Required) Cluster name.
+* `hypervisor_code` - (Optional) Hypervisor code. `XEN`(Default), `RHV`
 * `cluster_type` -(Required) Cluster type. `Maximum number of nodes`
-  * 10 ea : `SVR.VNKS.STAND.C002.M008.NET.SSD.B050.G002`
-  * 50 ea : `SVR.VNKS.STAND.C004.M016.NET.SSD.B050.G002`
+  * `XEN` / `RHV` 
+    * 10 ea : `SVR.VNKS.STAND.C002.M008.NET.SSD.B050.G002`
+    * 50 ea : `SVR.VNKS.STAND.C004.M016.NET.SSD.B050.G002`
 * `login_key_name` - (Required) Login key name.
 * `zone` - (Required) zone Code.
 * `vpc_no` - (Required) VPC No.
 * `subnet_no_list` - (Required) Subnet No. list.
 * `public_network` - (Optional) Public Subnet Network (`boolean`)
 * `lb_private_subnet_no` - (Required) Subnet No. for private loadbalancer only.
-* `lb_public_subnet_no` - (Optional) Subnet No. for public loadbalancer only. (Available only `SGN`, `JPN` region)
+* `lb_public_subnet_no` - (Optional) Subnet No. for public loadbalancer only. (Required in `KR`, `SG`, `JP` regions in public site)
+* `kube_network_plugin` - (Optional) Specifies the network plugin. Only Cilium is supported.
 * `log` - (Optional)
   * `audit` - (Required) Audit log availability. (`boolean`)
 * `k8s_version` - (Optional) Kubenretes version. Only upgrade is supported.
@@ -88,11 +91,12 @@ The following arguments are supported:
   * `groups_prefix` - (Optional) Groups prefix.
   * `groups_claim` - (Optional) Groups claim.
   * `required_claim` - (Optional) Required claim.
-* `ip_acl_default_action` - (Optional) IP ACL default action.`allow`(default), `deny`
-* `ip_acl` (Optional)
+* `ip_acl_default_action` - (Optional) IP ACL default action. `allow`, `deny` (Supported on `public`, `gov` site)
+* `ip_acl` (Optional) (Supported on `public`, `gov` site)
   * `action` - (Required) `allow`, `deny`
   * `address` - (Required) CIDR
   * `comment` - (Optional) Comment
+
 ## Attributes Reference
 
 In addition to all arguments above, the following attributes are exported:
@@ -107,4 +111,3 @@ In addition to all arguments above, the following attributes are exported:
 Kubernetes Service Cluster can be imported using the name, e.g.,
 
 $ terraform import ncloud_nks_cluster.my_cluster uuid
-
