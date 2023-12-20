@@ -715,5 +715,4 @@ func (r *redisResourceModel) refreshFromOutput(ctx context.Context, output *vred
 	redisServers, _ := types.ListValueFrom(ctx, types.ObjectType{AttrTypes: redisServer{}.attrTypes()}, serverList)
 
 	r.RedisServerList = redisServers
-	return
 }

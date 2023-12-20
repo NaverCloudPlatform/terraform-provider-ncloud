@@ -129,6 +129,4 @@ func (r *redisConfigGroupDataSourceModel) refreshFromOutput(ctx context.Context,
 	r.RedisVersion = types.StringPointerValue(output.CloudRedisVersion)
 	r.Description = types.StringPointerValue(output.ConfigGroupDescription)
 	r.ConfigGroupNo = types.StringPointerValue(output.ConfigGroupNo)
-
-	return
 }

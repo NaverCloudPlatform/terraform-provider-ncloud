@@ -263,5 +263,4 @@ func (r *redisDataSourceModel) refreshFromOutput(ctx context.Context, output *vr
 	listValue, _ := types.ListValueFrom(ctx, types.ObjectType{AttrTypes: redisServerDataSourceModel{}.attrTypes()}, serverList)
 
 	r.RedisServerList = listValue
-	return
 }
