@@ -4,7 +4,6 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"time"
 
 	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/services/vredis"
 	"github.com/hashicorp/terraform-plugin-framework/attr"
@@ -183,7 +182,7 @@ func flattenRedisProduct(list []*vredis.Product) []*redisProductModel {
 func (r *redisProductList) refreshFromOutput(ctx context.Context, list []*redisProductModel) {
 	productListValue, _ := types.ListValueFrom(ctx, types.ObjectType{AttrTypes: redisProductModel{}.attrTypes()}, list)
 	r.ProductList = productListValue
-	r.ID = types.StringValue(time.Now().UTC().String())
+	r.ID = types.StringValue("")
 }
 
 type redisProductList struct {

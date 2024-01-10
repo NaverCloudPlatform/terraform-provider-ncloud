@@ -64,6 +64,6 @@ resource "ncloud_redis" "ex-redis" {
   server_name_prefix = "ex-svr"
   vpc_no = ncloud_vpc.vpc.id
   subnet_no = ncloud_subnet.pri-subnet.id
-  config_group_no = ncloud_redis_config_group.example.config_group_no
+  config_group_no = ncloud_redis_config_group.example.id
   mode = "SIMPLE"
 }

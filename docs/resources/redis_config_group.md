@@ -29,14 +29,13 @@ The following arguments are supported:
 ## Attribute Reference
 In addition to all arguments above, the following attributes are exported
 
-* `id` - Redis Config Group name.
-* `config_group_no` - Redis Config Group number.
+* `id` - Redis Config Group instance number.
 
 ## Import
 
 ### `terraform import` command
 
-* Redis Config Group can be imported using the `id`. For example:
+* Redis Config Group can be imported using the `name`. For example:
 
 ```console
 $ terraform import ncloud_redis_config_group.rsc_name test
@@ -44,7 +43,7 @@ $ terraform import ncloud_redis_config_group.rsc_name test
 
 ### `import` block
 
-* In Terraform v1.5.0 and later, use an [`import` block](https://developer.hashicorp.com/terraform/language/import) to import Redis Config Group using the `id`. For example:
+* In Terraform v1.5.0 and later, use an [`import` block](https://developer.hashicorp.com/terraform/language/import) to import Redis Config Group using the `name`. For example:
 
 ```terraform
 import {

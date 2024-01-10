@@ -9,15 +9,15 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
-	sdkresource "github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
 	"github.com/terraform-providers/terraform-provider-ncloud/internal/common"
+	"github.com/terraform-providers/terraform-provider-ncloud/internal/framework"
 
 	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/services/vredis"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
-	"github.com/terraform-providers/terraform-provider-ncloud/internal/framework"
 
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
@@ -71,12 +71,6 @@ func (r *redisConfigGroupResource) Schema(_ context.Context, _ resource.SchemaRe
 				},
 			},
 			"id": framework.IDAttribute(),
-			"config_group_no": schema.StringAttribute{
-				Computed: true,
-				PlanModifiers: []planmodifier.String{
-					stringplanmodifier.UseStateForUnknown(),
-				},
-			},
 		},
 	}
 }
@@ -151,7 +145,7 @@ func (r *redisConfigGroupResource) Create(ctx context.Context, req resource.Crea
 	}
 
 	// Couldn't check Config Group number in console, so set ID to name
-	plan.ID = types.StringPointerValue(confGroup.ConfigGroupName)
+	plan.ID = types.StringPointerValue(confGroup.ConfigGroupNo)
 
 	output, err := waitRedisConfigGroupCreated(ctx, r.config, *confGroup.ConfigGroupName)
 	if err != nil {
@@ -172,7 +166,7 @@ func (r *redisConfigGroupResource) Read(ctx context.Context, req resource.ReadRe
 		return
 	}
 
-	output, err := GetRedisConfigGroup(ctx, r.config, state.ID.ValueString())
+	output, err := GetRedisConfigGroup(ctx, r.config, state.Name.ValueString())
 	if err != nil {
 		resp.Diagnostics.AddError("READING ERROR", err.Error())
 		return
@@ -204,7 +198,7 @@ func (r *redisConfigGroupResource) Delete(ctx context.Context, req resource.Dele
 
 	reqParams := &vredis.DeleteCloudRedisConfigGroupRequest{
 		RegionCode:    &r.config.RegionCode,
-		ConfigGroupNo: state.ConfigGroupNo.ValueStringPointer(),
+		ConfigGroupNo: state.ID.ValueStringPointer(),
 	}
 
 	tflog.Info(ctx, "DeleteCloudRedisConfigGroup reqParams="+common.MarshalUncheckedString(reqParams))
@@ -217,13 +211,13 @@ func (r *redisConfigGroupResource) Delete(ctx context.Context, req resource.Dele
 
 	tflog.Info(ctx, "DeleteCloudRedisConfigGroup response="+common.MarshalUncheckedString(response))
 
-	if err := waitRedisConfigGroupDeleted(ctx, r.config, state.ID.ValueString()); err != nil {
+	if err := waitRedisConfigGroupDeleted(ctx, r.config, state.Name.ValueString()); err != nil {
 		resp.Diagnostics.AddError("WAITING FOR DELETE ERROR", err.Error())
 	}
 }
 
 func (r *redisConfigGroupResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
-	resource.ImportStatePassthroughID(ctx, path.Root("id"), req, resp)
+	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("name"), req.ID)...)
 }
 
 func GetRedisConfigGroup(ctx context.Context, config *conn.ProviderConfig, name string) (*vredis.CloudRedisConfigGroup, error) {
@@ -261,7 +255,7 @@ func GetRedisConfigGroup(ctx context.Context, config *conn.ProviderConfig, name 
 }
 
 func waitRedisConfigGroupDeleted(ctx context.Context, config *conn.ProviderConfig, name string) error {
-	stateConf := &sdkresource.StateChangeConf{
+	stateConf := &retry.StateChangeConf{
 		Pending: []string{"deleting"},
 		Target:  []string{"deleted"},
 		Refresh: func() (interface{}, string, error) {
@@ -294,7 +288,7 @@ func waitRedisConfigGroupDeleted(ctx context.Context, config *conn.ProviderConfi
 
 func waitRedisConfigGroupCreated(ctx context.Context, config *conn.ProviderConfig, name string) (*vredis.CloudRedisConfigGroup, error) {
 	var redisConfigGroup *vredis.CloudRedisConfigGroup
-	stateConf := &sdkresource.StateChangeConf{
+	stateConf := &retry.StateChangeConf{
 		Pending: []string{"creating", "settingUp"},
 		Target:  []string{"running"},
 		Refresh: func() (interface{}, string, error) {
@@ -331,17 +325,15 @@ func waitRedisConfigGroupCreated(ctx context.Context, config *conn.ProviderConfi
 }
 
 type redisConfigGroupResourceModel struct {
-	ID            types.String `tfsdk:"id"`
-	Name          types.String `tfsdk:"name"`
-	RedisVersion  types.String `tfsdk:"redis_version"`
-	Description   types.String `tfsdk:"description"`
-	ConfigGroupNo types.String `tfsdk:"config_group_no"`
+	ID           types.String `tfsdk:"id"`
+	Name         types.String `tfsdk:"name"`
+	RedisVersion types.String `tfsdk:"redis_version"`
+	Description  types.String `tfsdk:"description"`
 }
 
 func (r *redisConfigGroupResourceModel) refreshFromOutput(ctx context.Context, output *vredis.CloudRedisConfigGroup) {
-	r.ID = types.StringPointerValue(output.ConfigGroupName)
+	r.ID = types.StringPointerValue(output.ConfigGroupNo)
 	r.Name = types.StringPointerValue(output.ConfigGroupName)
 	r.RedisVersion = types.StringPointerValue(output.CloudRedisVersion)
 	r.Description = types.StringPointerValue(output.ConfigGroupDescription)
-	r.ConfigGroupNo = types.StringPointerValue(output.ConfigGroupNo)
 }

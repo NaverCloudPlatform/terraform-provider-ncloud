@@ -57,7 +57,6 @@ The following arguments are supported:
 
 This data source exports the following attributes in addition to the arguments above:
 
-* `id` - The ID of Redis product. (ID is UTC time when data source was created)
 * `product_list` - List of Redis product.
   * `product_name` - Product name.
   * `product_code` - Product code.

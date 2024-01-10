@@ -36,7 +36,7 @@ resource "ncloud_redis" "example-redis" {
   server_name_prefix = "tf-svr"
   vpc_no             = ncloud_vpc.example-v.vpc_no
   subnet_no          = ncloud_subnet.example-sub.id 
-  config_group_no    = ncloud_redis_config_group.example-rcg.config_group_no
+  config_group_no    = ncloud_redis_config_group.example-rcg.id
   mode               = "SIMPLE"
 }
 ```

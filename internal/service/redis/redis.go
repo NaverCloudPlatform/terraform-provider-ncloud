@@ -12,7 +12,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
-	sdkresource "github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
 	"github.com/terraform-providers/terraform-provider-ncloud/internal/common"
 
 	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/ncloud"
@@ -555,7 +556,7 @@ func GetRedisDetail(ctx context.Context, config *conn.ProviderConfig, no string)
 }
 
 func waitRedisDeleted(ctx context.Context, config *conn.ProviderConfig, no string) error {
-	stateConf := &sdkresource.StateChangeConf{
+	stateConf := &retry.StateChangeConf{
 		Pending: []string{"deleting"},
 		Target:  []string{"deleted"},
 		Refresh: func() (interface{}, string, error) {
@@ -584,7 +585,7 @@ func waitRedisDeleted(ctx context.Context, config *conn.ProviderConfig, no strin
 
 func waitRedisCreated(ctx context.Context, config *conn.ProviderConfig, no string) (*vredis.CloudRedisInstance, error) {
 	var redisInstance *vredis.CloudRedisInstance
-	stateConf := &sdkresource.StateChangeConf{
+	stateConf := &retry.StateChangeConf{
 		Pending: []string{"creating", "settingUp"},
 		Target:  []string{"running"},
 		Refresh: func() (interface{}, string, error) {

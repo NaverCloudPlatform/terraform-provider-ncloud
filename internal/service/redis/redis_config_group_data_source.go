@@ -55,9 +55,6 @@ func (r *redisConfigGroupDataSource) Schema(_ context.Context, _ datasource.Sche
 			"description": schema.StringAttribute{
 				Computed: true,
 			},
-			"config_group_no": schema.StringAttribute{
-				Computed: true,
-			},
 		},
 	}
 }
@@ -116,17 +113,15 @@ func (r *redisConfigGroupDataSource) Read(ctx context.Context, req datasource.Re
 }
 
 type redisConfigGroupDataSourceModel struct {
-	ID            types.String `tfsdk:"id"`
-	Name          types.String `tfsdk:"name"`
-	RedisVersion  types.String `tfsdk:"redis_version"`
-	Description   types.String `tfsdk:"description"`
-	ConfigGroupNo types.String `tfsdk:"config_group_no"`
+	ID           types.String `tfsdk:"id"`
+	Name         types.String `tfsdk:"name"`
+	RedisVersion types.String `tfsdk:"redis_version"`
+	Description  types.String `tfsdk:"description"`
 }
 
 func (r *redisConfigGroupDataSourceModel) refreshFromOutput(ctx context.Context, output *vredis.CloudRedisConfigGroup) {
-	r.ID = types.StringPointerValue(output.ConfigGroupName)
+	r.ID = types.StringPointerValue(output.ConfigGroupNo)
 	r.Name = types.StringPointerValue(output.ConfigGroupName)
 	r.RedisVersion = types.StringPointerValue(output.CloudRedisVersion)
 	r.Description = types.StringPointerValue(output.ConfigGroupDescription)
-	r.ConfigGroupNo = types.StringPointerValue(output.ConfigGroupNo)
 }

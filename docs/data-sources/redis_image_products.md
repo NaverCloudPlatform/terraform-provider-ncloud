@@ -55,7 +55,6 @@ The following arguments are supported:
 
 This data source exports the following attributes in addition to the arguments above:
 
-* `id` - The ID of Redis image products. (ID is UTC time when data source was created)
 * `image_product_list` - List of image product.
   * `product_code` - The ID of image product.
   * `generation_code` - Generation code. (Only `G2` or `G3`)

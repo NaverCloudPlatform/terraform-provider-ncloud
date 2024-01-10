@@ -27,7 +27,6 @@ The following arguments are required:
 
 This data source exports the following attributes in addition to the arguments above:
 
-* `id` - Redis Config Group name. Same as `name`.
+* `id` - Redis Config Group instance number.
 * `redis_version` - Redis Service version.
 * `description` - Redis Config Group description. 1-255 characters.
-* `config_group_no` - Redis Config Group instance number.
