@@ -3,7 +3,7 @@ subcategory: "Kubernetes Service"
 ---
 
 
-# Data Source: ncloud_nks_clusters
+# Data Source: ncloud_nks_node_pools
 
 Provides list of Kubernetes Service nodepool name.
 
@@ -32,5 +32,4 @@ data "ncloud_nks_node_pool" "example"{
 
 * `id` - Cluster uuid.
 * `node_pool_names` - Set of all node pool names in NKS Clusters.
-
 
