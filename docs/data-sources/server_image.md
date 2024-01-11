@@ -13,34 +13,28 @@ To create a server instance (VM), you should select a server image. This data so
 
 ```hcl
 data "ncloud_server_image" "image" {
-  product_name = "CentOS 7.3 (64-bit)"
+  product_code = "SW.VSVR.OS.LNX64.CNTOS.0703.B050"
 }
 
 // Use filter
 data "ncloud_server_image" "image_by_filter" {
   filter {
     name = "product_name"
-    values = ["CentOS 7.3 (64-bit)"]
+    values = ["centos-7.3-64"]
   }
 }
 ```
 
-* Filter by product type
+* Filter by product description 
 
 ```hcl
-data "ncloud_server_image" "image" {
-  platform_type = "WINNT"
-}
-
-// Use filter
 data "ncloud_server_image" "image_by_filter" {
   filter {
-    name = "platform_type"
-    values = ["WINNT"]
+    name = "product_description"
+    values = ["CentOS 7.8 (64-bit)"]
   }
 }
 ```
-
 
 
 ## Argument Reference
