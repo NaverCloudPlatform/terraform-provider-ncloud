@@ -1,3 +1,8 @@
+---
+subcategory: "Auto Scaling"
+---
+
+
 # Data Source : ncloud_auto_scaling_adjustment_types
 To create an Auto Scaling policy, it's necessary to select an Auto Scaling Adjustment Type. This data source provides a list of available Auto Scaling Adjustment Types
 

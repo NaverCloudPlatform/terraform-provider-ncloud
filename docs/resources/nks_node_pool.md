@@ -38,7 +38,7 @@ resource "ncloud_subnet" "subnet_lb" {
 data "ncloud_nks_versions" "version" {
   filter {
     name = "value"
-    values = ["1.23"]
+    values = ["1.25"]
     regex = true
   }
 }
@@ -60,35 +60,32 @@ resource "ncloud_nks_cluster" "cluster" {
 
 }
 
-data "ncloud_server_image" "image" {
+data "ncloud_nks_server_images" "image"{
+  hypervisor_code = "XEN"
   filter {
-    name = "product_name"
+    name = "label"
     values = ["ubuntu-20.04"]
+    regex = true
   }
 }
 
-data "ncloud_server_product" "product" {
-  server_image_product_code = data.ncloud_server_image.image.product_code
+data "ncloud_nks_server_products" "product"{
+  software_code = data.ncloud_nks_server_images.image.images[0].value
+  zone = "KR-1"
 
   filter {
     name = "product_type"
-    values = [ "STAND" ]
+    values = [ "STAND"]
   }
-
+  
   filter {
     name = "cpu_count"
-    values = [ 2 ]
+    values = [ "2"]
   }
-
+  
   filter {
     name = "memory_size"
     values = [ "8GB" ]
-  }
-
-  filter {
-    name = "product_code"
-    values = [ "SSD" ]
-    regex = true
   }
 }
 
@@ -96,8 +93,9 @@ resource "ncloud_nks_node_pool" "node_pool" {
   cluster_uuid   = ncloud_nks_cluster.cluster.uuid
   node_pool_name = "sample-node-pool"
   node_count     = 1
-  product_code   = data.ncloud_server_product.product.product_code
-  subnet_no_list = [ ncloud_subnet.subnet.id ]
+  software_code  = data.ncloud_nks_server_images.image.images[0].value
+  product_code   = data.ncloud_nks_server_products.product[0].value
+  subnet_no      = ncloud_subnet.subnet.id
   autoscale {
     enabled = true
     min = 1
@@ -113,7 +111,7 @@ The following arguments are supported:
 * `node_pool_name` - (Required) Nodepool name. 
 * `cluster_uuid` - (Required) Cluster uuid.
 * `node_count` - (Required) Number of nodes.
-* `product_code` - (Required) Product code.
+* `product_code` - (Optional) Product code. Required for `XEN`/`RHV` cluster nodepool.
 * `software_code` - (Optional) Server image code.
 * `autoscale`- (Optional) 
   * `enable` - (Required) Auto scaling availability.
@@ -122,7 +120,13 @@ The following arguments are supported:
 * `subnet_no` - (Deprecated) Subnet No.
 * `subnet_no_list` - (Optional) Subnet no list.
 * `k8s_version` - (Optional) Kubenretes version. Only upgrade is supported.
-
+* `label` - (Optional) NodePool label.
+  * `key` - (Required) Label key.
+  * `value` - (Required) Label value.
+* `taint` - (Optional) NodePool taint.
+  * `key` - (Required) Taint key.
+  * `value` - (Required) Taint value.
+  * `effect` - (Required) Taint effect.
 ## Attributes Reference
 
 In addition to all arguments above, the following attributes are exported:

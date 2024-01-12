@@ -9,6 +9,7 @@ import (
 	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/services/vcdss"
 	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/services/vloadbalancer"
 	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/services/vnks"
+	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/services/vredis"
 	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/services/vses2"
 
 	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/services/vnas"
@@ -73,6 +74,7 @@ type NcloudAPIClient struct {
 	Vmongodb        *vmongodb.APIClient
 	Vmssql          *vmssql.APIClient
 	Vhadoop         *vhadoop.APIClient
+	Vredis          *vredis.APIClient
 }
 
 func (c *Config) Client() (*NcloudAPIClient, error) {
@@ -105,6 +107,7 @@ func (c *Config) Client() (*NcloudAPIClient, error) {
 		Vmongodb:        vmongodb.NewAPIClient(vmongodb.NewConfiguration(apiKey)),
 		Vmssql:          vmssql.NewAPIClient(vmssql.NewConfiguration(apiKey)),
 		Vhadoop:         vhadoop.NewAPIClient(vhadoop.NewConfiguration(apiKey)),
+		Vredis:          vredis.NewAPIClient(vredis.NewConfiguration(apiKey)),
 	}, nil
 }
 

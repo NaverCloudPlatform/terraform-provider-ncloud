@@ -141,7 +141,7 @@ func TestExpandNKSClusterOIDCSpec(t *testing.T) {
 		RequiredClaim:  ncloud.String("iss=https://sso.ntruss.com/iss"),
 	}
 
-	if reflect.DeepEqual(oidc, expected) != false {
+	if !reflect.DeepEqual(result, expected) {
 		t.Fatalf("expected %v , but got %v", expected, result)
 	}
 }
@@ -193,13 +193,179 @@ func TestExpandNKSClusterIPAcl(t *testing.T) {
 		t.Fatal("result was nil")
 	}
 
-	expected := &vnks.IpAclsEntriesDto{
-		Address: ncloud.String("10.0.1.0/24"),
-		Action:  ncloud.String("allow"),
-		Comment: ncloud.String("maseter ip"),
+	expected := []*vnks.IpAclsEntriesDto{
+		{
+			Address: ncloud.String("10.0.1.0/24"),
+			Action:  ncloud.String("allow"),
+			Comment: ncloud.String("master ip"),
+		},
 	}
 
-	if reflect.DeepEqual(result, expected) != false {
+	if !reflect.DeepEqual(result, expected) {
+		t.Fatalf("expected %v , but got %v", expected, result)
+	}
+}
+
+func TestFlattenNKSNodePoolTaints(t *testing.T) {
+
+	taints := []*vnks.NodePoolTaint{
+		{
+			Key:    ncloud.String("foo"),
+			Value:  ncloud.String("bar"),
+			Effect: ncloud.String("NoExecute"),
+		},
+		{
+			Key:    ncloud.String("bar"),
+			Value:  ncloud.String(""),
+			Effect: ncloud.String("NoSchedule"),
+		},
+	}
+
+	result := flattenNKSNodePoolTaints(taints)
+
+	if len(result.List()) == 0 {
+		t.Fatal("empty result")
+	}
+
+	r := result.List()[0]
+	rr := r.(map[string]interface{})
+	if rr["key"].(string) != "foo" {
+		t.Fatalf("expected result key to be 'foo', but was %v", rr["key"])
+	}
+
+	if rr["value"].(string) != "bar" {
+		t.Fatalf("expected result value to be 'bar', but was %v", rr["value"])
+	}
+
+	if rr["effect"].(string) != "NoExecute" {
+		t.Fatalf("expected result effect to be 'NoExecute', but was %v", rr["effect"])
+	}
+
+	r = result.List()[1]
+	rr = r.(map[string]interface{})
+	if rr["key"].(string) != "bar" {
+		t.Fatalf("expected result key to be 'bar', but was %v", rr["key"])
+	}
+
+	if rr["value"].(string) != "" {
+		t.Fatalf("expected result value to be '', but was %v", rr["value"])
+	}
+
+	if rr["effect"].(string) != "NoSchedule" {
+		t.Fatalf("expected result effect to be 'NoSchedule', but was %v", rr["effect"])
+	}
+
+}
+
+func TestExpandNKSNodePoolTaints(t *testing.T) {
+	taints := schema.NewSet(schema.HashResource(ResourceNcloudNKSNodePool().Schema["taint"].Elem.(*schema.Resource)), []interface{}{})
+
+	taints.Add(map[string]interface{}{
+		"key":    "foo",
+		"value":  "bar",
+		"effect": "NoExecute",
+	})
+	taints.Add(map[string]interface{}{
+		"key":    "bar",
+		"value":  "",
+		"effect": "NoSchedule",
+	})
+
+	result := expandNKSNodePoolTaints(taints)
+
+	if result == nil {
+		t.Fatal("result was nil")
+	}
+
+	expected := []*vnks.NodePoolTaint{
+		{
+			Key:    ncloud.String("foo"),
+			Value:  ncloud.String("bar"),
+			Effect: ncloud.String("NoExecute"),
+		},
+		{
+			Key:    ncloud.String("bar"),
+			Value:  ncloud.String(""),
+			Effect: ncloud.String("NoSchedule"),
+		},
+	}
+
+	if !reflect.DeepEqual(result, expected) {
+		t.Fatalf("expected %v , but got %v", expected, result)
+	}
+}
+
+func TestFlattenNKSNodePoolLabels(t *testing.T) {
+
+	labels := []*vnks.NodePoolLabel{
+		{
+			Key:   ncloud.String("foo"),
+			Value: ncloud.String("bar"),
+		},
+		{
+			Key:   ncloud.String("bar"),
+			Value: ncloud.String("foo"),
+		},
+	}
+
+	result := flattenNKSNodePoolLabels(labels)
+
+	if len(result.List()) == 0 {
+		t.Fatal("empty result")
+	}
+
+	r := result.List()[0]
+	rr := r.(map[string]interface{})
+	if rr["key"].(string) != "foo" {
+		t.Fatalf("expected result key to be 'foo', but was %v", rr["key"])
+	}
+
+	if rr["value"].(string) != "bar" {
+		t.Fatalf("expected result value to be 'bar', but was %v", rr["value"])
+	}
+
+	r = result.List()[1]
+	rr = r.(map[string]interface{})
+	if rr["key"].(string) != "bar" {
+		t.Fatalf("expected result key to be 'bar', but was %v", rr["key"])
+	}
+
+	if rr["value"].(string) != "foo" {
+		t.Fatalf("expected result value to be 'foo', but was %v", rr["value"])
+	}
+
+}
+
+func TestExpandNKSNodePoolLabels(t *testing.T) {
+	labels := schema.NewSet(schema.HashResource(ResourceNcloudNKSNodePool().Schema["label"].Elem.(*schema.Resource)), []interface{}{})
+
+	labels.Add(map[string]interface{}{
+		"key":   "foo",
+		"value": "bar",
+	})
+	labels.Add(map[string]interface{}{
+		"key":   "bar",
+		"value": "foo",
+	})
+
+	result := expandNKSNodePoolLabels(labels)
+
+	if result == nil {
+		t.Fatal("result was nil")
+	}
+
+	expected := []*vnks.NodePoolLabel{
+		{
+			Key:   ncloud.String("foo"),
+			Value: ncloud.String("bar"),
+		},
+		{
+			Key:   ncloud.String("bar"),
+			Value: ncloud.String("foo"),
+		},
+	}
+
+	if !reflect.DeepEqual(result, expected) {
 		t.Fatalf("expected %v , but got %v", expected, result)
 	}
 }

@@ -133,7 +133,7 @@ func flattenNKSClusterIPAclEntries(ipAcl *vnks.IpAclsRes) *schema.Set {
 
 func expandNKSClusterIPAcl(acl interface{}) []*vnks.IpAclsEntriesDto {
 	if acl == nil {
-		return nil
+		return []*vnks.IpAclsEntriesDto{}
 	}
 
 	set := acl.(*schema.Set)
@@ -148,6 +148,82 @@ func expandNKSClusterIPAcl(acl interface{}) []*vnks.IpAclsEntriesDto {
 		if comment, exist := entry["comment"].(string); exist {
 			add.Comment = ncloud.String(comment)
 		}
+		res = append(res, add)
+	}
+
+	return res
+}
+
+func flattenNKSNodePoolTaints(taints []*vnks.NodePoolTaint) *schema.Set {
+
+	res := schema.NewSet(schema.HashResource(ResourceNcloudNKSNodePool().Schema["taint"].Elem.(*schema.Resource)), []interface{}{})
+
+	for _, taint := range taints {
+		m := map[string]interface{}{
+			"key":    *taint.Key,
+			"effect": *taint.Effect,
+			"value":  *taint.Value,
+		}
+		res.Add(m)
+	}
+
+	return res
+
+}
+
+func expandNKSNodePoolTaints(taints interface{}) []*vnks.NodePoolTaint {
+	if taints == nil {
+		return nil
+	}
+
+	set := taints.(*schema.Set)
+	res := make([]*vnks.NodePoolTaint, 0)
+	for _, raw := range set.List() {
+		taint := raw.(map[string]interface{})
+
+		add := &vnks.NodePoolTaint{
+			Key:    ncloud.String(taint["key"].(string)),
+			Effect: ncloud.String(taint["effect"].(string)),
+			Value:  ncloud.String(taint["value"].(string)),
+		}
+
+		res = append(res, add)
+	}
+
+	return res
+}
+
+func flattenNKSNodePoolLabels(labels []*vnks.NodePoolLabel) *schema.Set {
+
+	res := schema.NewSet(schema.HashResource(ResourceNcloudNKSNodePool().Schema["label"].Elem.(*schema.Resource)), []interface{}{})
+
+	for _, label := range labels {
+		m := map[string]interface{}{
+			"key":   *label.Key,
+			"value": *label.Value,
+		}
+		res.Add(m)
+	}
+
+	return res
+
+}
+
+func expandNKSNodePoolLabels(labels interface{}) []*vnks.NodePoolLabel {
+	if labels == nil {
+		return nil
+	}
+
+	set := labels.(*schema.Set)
+	res := make([]*vnks.NodePoolLabel, 0)
+	for _, raw := range set.List() {
+		labels := raw.(map[string]interface{})
+
+		add := &vnks.NodePoolLabel{
+			Key:   ncloud.String(labels["key"].(string)),
+			Value: ncloud.String(labels["value"].(string)),
+		}
+
 		res = append(res, add)
 	}
 

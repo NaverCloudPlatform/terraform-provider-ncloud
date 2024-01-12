@@ -3,7 +3,7 @@ subcategory: "Kubernetes Service"
 ---
 
 
-# Data Source: ncloud_nks_versions
+# Data Source: ncloud_nks_kube_config
 
 Provides a kubeconfig from Kubernetes Service cluster.
 

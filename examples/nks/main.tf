@@ -60,37 +60,32 @@ resource "ncloud_nks_cluster" "cluster" {
   }
 }
 
-data "ncloud_nks_server_images" "images"{
+data "ncloud_nks_server_images" "image"{
+  hypervisor_code = "XEN"
   filter {
     name = "label"
-    values = ["ubuntu-20.04-64-server"]
+    values = ["ubuntu-20.04"]
+    regex = true
   }
 }
 
-data "ncloud_nks_server_products" "products" {
-
-  software_code = data.ncloud_nks_server_images.images.images[0].value
+data "ncloud_nks_server_products" "nks_products"{
+  software_code = data.ncloud_nks_server_images.image.images[0].value
   zone = "KR-1"
 
   filter {
     name = "product_type"
-    values = [ "STAND" ]
+    values = [ "STAND"]
   }
 
   filter {
     name = "cpu_count"
-    values = [ 2 ]
+    values = [ "2"]
   }
 
   filter {
     name = "memory_size"
     values = [ "8GB" ]
-  }
-
-  filter {
-    name = "product_code"
-    values = [ "SSD" ]
-    regex = true
   }
 }
 
@@ -98,12 +93,21 @@ resource "ncloud_nks_node_pool" "node_pool" {
   cluster_uuid = ncloud_nks_cluster.cluster.uuid
   node_pool_name = "pool1"
   node_count     = 1
-  product_code   = data.ncloud_nks_server_products.products.products[0].value
-  software_code  = data.ncloud_nks_server_images.images.images[0].value
-  subnet_no      = ncloud_subnet.node_subnet.id
+  software_code  = data.ncloud_nks_server_images.image.images[0].value
+  product_code   = data.ncloud_nks_server_products.nks_products.products[0].value
+  subnet_no_list = [ncloud_subnet.node_subnet.id]
   autoscale {
     enabled = true
     min = 1
     max = 2
+  }
+  label {
+    key = "foo"
+    value = "bar"
+  }
+  taint {
+    key = "foo"
+    value = "bar"
+    effect = "NoExecute"
   }
 }
