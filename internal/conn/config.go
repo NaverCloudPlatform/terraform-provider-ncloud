@@ -20,7 +20,6 @@ import (
 	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/services/cdn"
 	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/services/clouddb"
 	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/services/loadbalancer"
-	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/services/monitoring"
 	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/services/server"
 	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/services/sourcebuild"
 	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/services/sourcecommit"
@@ -56,7 +55,6 @@ type NcloudAPIClient struct {
 	Loadbalancer    *loadbalancer.APIClient
 	Cdn             *cdn.APIClient
 	Clouddb         *clouddb.APIClient
-	Monitoring      *monitoring.APIClient
 	Vpc             *vpc.APIClient
 	Vserver         *vserver.APIClient
 	Vnas            *vnas.APIClient
@@ -89,7 +87,6 @@ func (c *Config) Client() (*NcloudAPIClient, error) {
 		Loadbalancer:    loadbalancer.NewAPIClient(loadbalancer.NewConfiguration(apiKey)),
 		Cdn:             cdn.NewAPIClient(cdn.NewConfiguration(apiKey)),
 		Clouddb:         clouddb.NewAPIClient(clouddb.NewConfiguration(apiKey)),
-		Monitoring:      monitoring.NewAPIClient(monitoring.NewConfiguration(apiKey)),
 		Vpc:             vpc.NewAPIClient(vpc.NewConfiguration(apiKey)),
 		Vserver:         vserver.NewAPIClient(vserver.NewConfiguration(apiKey)),
 		Vnas:            vnas.NewAPIClient(vnas.NewConfiguration(apiKey)),
