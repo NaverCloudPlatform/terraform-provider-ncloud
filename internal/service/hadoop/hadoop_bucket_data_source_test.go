@@ -1,7 +1,6 @@
 package hadoop_test
 
 import (
-	"fmt"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/terraform-providers/terraform-provider-ncloud/internal/acctest"
 	. "github.com/terraform-providers/terraform-provider-ncloud/internal/acctest"
@@ -29,9 +28,9 @@ func TestAccDataSourceNcloudHadoopBucketbasic(t *testing.T) {
 }
 
 func testAccDataSourceBucketConfig() string {
-	return fmt.Sprintf(`
+	return `
 data "ncloud_hadoop_bucket" "bucket" {
 
 }
-`)
+`
 }

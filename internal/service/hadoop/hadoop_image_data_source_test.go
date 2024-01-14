@@ -11,13 +11,14 @@ import (
 
 func TestAccDataSourceNcloudHadoopIamge_basic(t *testing.T) {
 	dataName := "data.ncloud_hadoop_image.image"
+	productCode := "SW.VCHDP.LNX64.CNTOS.0708.HDP.15.B050"
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: acctest.ProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccDataSourceHadoopImageConfig(),
+				Config: testAccDataSourceHadoopImageConfig(productCode),
 				Check: resource.ComposeTestCheckFunc(
 					TestAccCheckDataSourceID(dataName),
 					resource.TestCheckResourceAttr(dataName, "product_name", "Cloud Hadoop 1.5"),
@@ -29,10 +30,10 @@ func TestAccDataSourceNcloudHadoopIamge_basic(t *testing.T) {
 	})
 }
 
-func testAccDataSourceHadoopImageConfig() string {
+func testAccDataSourceHadoopImageConfig(productCode string) string {
 	return fmt.Sprintf(`
 data "ncloud_hadoop_image" "image" {
-	product_code = "SW.VCHDP.LNX64.CNTOS.0708.HDP.15.B050"
+	product_code = "%[1]s"
 }
-`)
+`, productCode)
 }
