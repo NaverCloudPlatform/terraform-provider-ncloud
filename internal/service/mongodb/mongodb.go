@@ -85,6 +85,19 @@ func (m *mongodbResource) Schema(_ context.Context, _ resource.SchemaRequest, re
 				},
 				Description: "Service Name of Cloud DB for MongoDb instance.",
 			},
+			"server_name_prefix": schema.StringAttribute{
+				Required: true,
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.RequiresReplace(),
+				},
+				Validators: []validator.String{
+					stringvalidator.LengthBetween(3, 15),
+					stringvalidator.RegexMatches(
+						regexp.MustCompile(`^[a-z]+[a-z0-9-]+[a-z0-9]$`),
+						"Composed of lowercase alphabets, numbers, hyphen (-). Must start with an alphabetic character, and the last character can only be an English letter or number.",
+					),
+				},
+			},
 			"id": framework.IDAttribute(),
 			"user_name": schema.StringAttribute{
 				Required: true,
@@ -223,8 +236,7 @@ func (m *mongodbResource) Schema(_ context.Context, _ resource.SchemaRequest, re
 				Computed: true,
 				Validators: []validator.Int64{
 					int64validator.Any(
-						int64validator.Between(10000, 20000),
-						int64validator.OneOf(27017),
+						int64validator.Between(10000, 65535),
 					),
 				},
 			},
@@ -233,8 +245,7 @@ func (m *mongodbResource) Schema(_ context.Context, _ resource.SchemaRequest, re
 				Computed: true,
 				Validators: []validator.Int64{
 					int64validator.Any(
-						int64validator.Between(10000, 20000),
-						int64validator.OneOf(27017),
+						int64validator.Between(10000, 65535),
 					),
 				},
 			},
@@ -243,8 +254,7 @@ func (m *mongodbResource) Schema(_ context.Context, _ resource.SchemaRequest, re
 				Computed: true,
 				Validators: []validator.Int64{
 					int64validator.Any(
-						int64validator.Between(10000, 20000),
-						int64validator.OneOf(27017),
+						int64validator.Between(10000, 65535),
 					),
 				},
 			},
@@ -253,8 +263,7 @@ func (m *mongodbResource) Schema(_ context.Context, _ resource.SchemaRequest, re
 				Computed: true,
 				Validators: []validator.Int64{
 					int64validator.Any(
-						int64validator.Between(10000, 20000),
-						int64validator.OneOf(27017),
+						int64validator.Between(10000, 65535),
 					),
 				},
 			},
@@ -294,6 +303,8 @@ func (m *mongodbResource) Create(ctx context.Context, req resource.CreateRequest
 	reqParams := &vmongodb.CreateCloudMongoDbInstanceRequest{
 		RegionCode:                   &m.config.RegionCode,
 		VpcNo:                        plan.VpcNo.ValueStringPointer(),
+		CloudMongoDbServiceName:      plan.CloudMongoDbServiceName.ValueStringPointer(),
+		CloudMongoDbServerNamePrefix: plan.ServerNamePrefix.ValueStringPointer(),
 		CloudMongoDbImageProductCode: plan.CloudMongoDbImageProductCode.ValueStringPointer(),
 		MemberProductCode:            plan.MemberProductCode.ValueStringPointer(),
 		ArbiterProductCode:           plan.ArbiterProductCode.ValueStringPointer(),
@@ -301,7 +312,6 @@ func (m *mongodbResource) Create(ctx context.Context, req resource.CreateRequest
 		ConfigProductCode:            plan.ConfigProductCode.ValueStringPointer(),
 		CloudMongoDbUserName:         plan.CloudMongoDbUserName.ValueStringPointer(),
 		CloudMongoDbUserPassword:     plan.CloudMongoDbUserPassword.ValueStringPointer(),
-		CloudMongoDbServiceName:      plan.CloudMongoDbServiceName.ValueStringPointer(),
 		SubnetNo:                     plan.SubnetNo.ValueStringPointer(),
 		ClusterTypeCode:              plan.ClusterTypeCode.ValueStringPointer(),
 		CompressCode:                 plan.CompressCode.ValueStringPointer(),
@@ -557,6 +567,7 @@ type mongodbResourceModel struct {
 	VpcNo                        types.String `tfsdk:"vpc_no"`
 	SubnetNo                     types.String `tfsdk:"subnet_no"`
 	CloudMongoDbServiceName      types.String `tfsdk:"service_name"`
+	ServerNamePrefix             types.String `tfsdk:"server_name_prefix"`
 	CloudMongoDbUserName         types.String `tfsdk:"user_name"`
 	CloudMongoDbUserPassword     types.String `tfsdk:"user_password"`
 	ClusterTypeCode              types.String `tfsdk:"cluster_type_code"`

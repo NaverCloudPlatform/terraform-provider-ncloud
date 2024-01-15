@@ -139,6 +139,7 @@ resource "ncloud_mongodb" "mongodb" {
 	vpc_no = ncloud_vpc.vpc.vpc_no
 	subnet_no = ncloud_subnet.subnet.id
 	service_name = "%[1]s"
+    server_name_prefix = "ex-svr"
 	cluster_type_code = "%[2]s"
 	user_name = "testuser"
 	user_password = "t123456789!"
@@ -166,6 +167,7 @@ resource "ncloud_mongodb" "mongodb" {
 	vpc_no = ncloud_vpc.vpc.vpc_no
 	subnet_no = ncloud_subnet.subnet.id
 	service_name = "%[1]s"
+    server_name_prefix = "ex-svr"
 	cluster_type_code = "SHARDED_CLUSTER"
 	user_name = "testuser"
 	user_password = "t123456789!"
