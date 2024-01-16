@@ -29,7 +29,7 @@ type hadoopImagesDataSource struct {
 	config *conn.ProviderConfig
 }
 
-func (h *hadoopImagesDataSource) Configure(ctx context.Context, req datasource.ConfigureRequest, resp *datasource.ConfigureResponse) {
+func (h *hadoopImagesDataSource) Configure(_ context.Context, req datasource.ConfigureRequest, resp *datasource.ConfigureResponse) {
 	if req.ProviderData == nil {
 		return
 	}
@@ -47,11 +47,11 @@ func (h *hadoopImagesDataSource) Configure(ctx context.Context, req datasource.C
 	h.config = config
 }
 
-func (h *hadoopImagesDataSource) Metadata(ctx context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
+func (h *hadoopImagesDataSource) Metadata(_ context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
 	resp.TypeName = req.ProviderTypeName + "_hadoop_images"
 }
 
-func (h *hadoopImagesDataSource) Schema(ctx context.Context, req datasource.SchemaRequest, resp *datasource.SchemaResponse) {
+func (h *hadoopImagesDataSource) Schema(_ context.Context, _ datasource.SchemaRequest, resp *datasource.SchemaResponse) {
 	resp.Schema = schema.Schema{
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
@@ -145,16 +145,16 @@ func (h *hadoopImagesDataSource) Read(ctx context.Context, req datasource.ReadRe
 
 	imagesProductList := flattenHadoopImageList(imagesProductResp.ProductList)
 	fillteredList := common.FilterModels(ctx, data.Filters, imagesProductList)
-	if diag := data.refreshFromOutput(ctx, fillteredList); diag.HasError() {
-		resp.Diagnostics.Append(diag...)
+	if diags := data.refreshFromOutput(ctx, fillteredList); diags.HasError() {
+		resp.Diagnostics.Append(diags...)
 		return
 	}
 
 	if !data.OutputFile.IsNull() && data.OutputFile.String() != "" {
 		outputPath := data.OutputFile.ValueString()
 
-		if diag := witeHadoopImagesToFile(outputPath, data.Images); diag.HasError() {
-			resp.Diagnostics.Append(diag...)
+		if diags := witeHadoopImagesToFile(outputPath, data.Images); diags.HasError() {
+			resp.Diagnostics.Append(diags...)
 			return
 		}
 	}
@@ -166,26 +166,26 @@ func (h *hadoopImagesDataSource) Read(ctx context.Context, req datasource.ReadRe
 
 func witeHadoopImagesToFile(path string, images types.List) diag.Diagnostics {
 	var hadoopImages []hadoopImagesJson
-	var diag diag.Diagnostics
+	var diags diag.Diagnostics
 
 	for _, image := range images.Elements() {
 		hadoopImage := hadoopImagesJson{}
 		if err := json.Unmarshal([]byte(image.String()), &hadoopImage); err != nil {
-			diag.AddError(
+			diags.AddError(
 				"Unmarshal",
 				fmt.Sprintf("error: %s", err.Error()),
 			)
-			return diag
+			return diags
 		}
 		hadoopImages = append(hadoopImages, hadoopImage)
 	}
 
 	if err := common.WriteToFile(path, hadoopImages); err != nil {
-		diag.AddError(
+		diags.AddError(
 			"WriteToFile",
 			fmt.Sprintf("error: %s", err.Error()),
 		)
-		return diag
+		return diags
 	}
 	return nil
 }
@@ -223,6 +223,21 @@ type hadoopImagesJson struct {
 	GenerationCode       string `json:"generation_code"`
 }
 
+type hadoopImageDataSourceModel struct {
+	ID                   types.String `tfsdk:"id"`
+	ProductCode          types.String `tfsdk:"product_code"`
+	ExclusionProductCode types.String `tfsdk:"exclusion_product_code"`
+	ProductName          types.String `tfsdk:"product_name"`
+	ProductType          types.String `tfsdk:"product_type"`
+	ProductDescription   types.String `tfsdk:"product_description"`
+	InfraResourceType    types.String `tfsdk:"infra_resource_type"`
+	BaseBlockStorageSize types.Int64  `tfsdk:"base_block_storage_size"`
+	PlatformType         types.String `tfsdk:"platform_type"`
+	OsInformation        types.String `tfsdk:"os_information"`
+	GenerationCode       types.String `tfsdk:"generation_code"`
+	Filters              types.Set    `tfsdk:"filter"`
+}
+
 func (i hadoopImage) attrTypes() map[string]attr.Type {
 	return map[string]attr.Type{
 		"product_name":            types.StringType,
@@ -239,7 +254,7 @@ func (i hadoopImage) attrTypes() map[string]attr.Type {
 
 func (h *hadoopImagesDataSourceModel) refreshFromOutput(ctx context.Context, output []*hadoopImageDataSourceModel) diag.Diagnostics {
 	var images []hadoopImage
-	var diag diag.Diagnostics
+	var diags diag.Diagnostics
 
 	for _, image := range output {
 		images = append(images, hadoopImage{
@@ -255,9 +270,35 @@ func (h *hadoopImagesDataSourceModel) refreshFromOutput(ctx context.Context, out
 		})
 	}
 
-	h.Images, diag = types.ListValueFrom(ctx, types.ObjectType{AttrTypes: hadoopImage{}.attrTypes()}, images)
-	if diag.HasError() {
-		return diag
+	h.Images, diags = types.ListValueFrom(ctx, types.ObjectType{AttrTypes: hadoopImage{}.attrTypes()}, images)
+	if diags.HasError() {
+		return diags
 	}
 	return nil
+}
+
+func (h *hadoopImageDataSourceModel) refreshFromOutput(output *vhadoop.Product) {
+	h.ID = types.StringPointerValue(output.ProductCode)
+	h.ProductCode = types.StringPointerValue(output.ProductCode)
+	h.ProductName = types.StringPointerValue(output.ProductName)
+	h.ProductType = types.StringPointerValue(output.ProductType.Code)
+	h.ProductDescription = types.StringPointerValue(output.ProductDescription)
+	h.InfraResourceType = types.StringPointerValue(output.InfraResourceType.Code)
+	h.BaseBlockStorageSize = types.Int64PointerValue(output.BaseBlockStorageSize)
+	h.PlatformType = types.StringPointerValue(output.PlatformType.Code)
+	h.OsInformation = types.StringPointerValue(output.OsInformation)
+	h.GenerationCode = types.StringPointerValue(output.GenerationCode)
+}
+
+func flattenHadoopImageList(imageProducts []*vhadoop.Product) []*hadoopImageDataSourceModel {
+	var outputs []*hadoopImageDataSourceModel
+
+	for _, v := range imageProducts {
+		var output hadoopImageDataSourceModel
+
+		output.refreshFromOutput(v)
+
+		outputs = append(outputs, &output)
+	}
+	return outputs
 }
