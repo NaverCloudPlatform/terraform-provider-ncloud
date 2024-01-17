@@ -13,11 +13,14 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework-validators/int64validator"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
-	sdkresource "github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
 
+	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/int64planmodifier"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/listplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
@@ -43,30 +46,8 @@ type mongodbResource struct {
 	config *conn.ProviderConfig
 }
 
-func (s *mongodbResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
-	resource.ImportStatePassthroughID(ctx, path.Root("id"), req, resp)
-}
-
 func (m *mongodbResource) Metadata(_ context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
 	resp.TypeName = req.ProviderTypeName + "_mongodb"
-}
-
-func (m *mongodbResource) Configure(_ context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
-	if req.ProviderData == nil {
-		return
-	}
-
-	config, ok := req.ProviderData.(*conn.ProviderConfig)
-
-	if !ok {
-		resp.Diagnostics.AddError(
-			"Unexpected Data Source Configure Type",
-			fmt.Sprintf("Expected *ProviderConfig, got: %T. Please report this issue to the provider developers.", req.ProviderData),
-		)
-		return
-	}
-
-	m.config = config
 }
 
 func (m *mongodbResource) Schema(_ context.Context, _ resource.SchemaRequest, resp *resource.SchemaResponse) {
@@ -154,7 +135,11 @@ func (m *mongodbResource) Schema(_ context.Context, _ resource.SchemaRequest, re
 				Optional: true,
 				Computed: true,
 				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.UseStateForUnknown(),
 					stringplanmodifier.RequiresReplace(),
+				},
+				Validators: []validator.String{
+					stringvalidator.LengthAtLeast(1),
 				},
 			},
 			"member_product_code": schema.StringAttribute{
@@ -181,16 +166,14 @@ func (m *mongodbResource) Schema(_ context.Context, _ resource.SchemaRequest, re
 					stringplanmodifier.RequiresReplace(),
 				},
 			},
-			"data_storage_type_code": schema.StringAttribute{
-				Optional: true,
-				PlanModifiers: []planmodifier.String{
-					stringplanmodifier.RequiresReplace(),
-				},
-			},
 			"shard_count": schema.Int64Attribute{
 				Optional: true,
+				Computed: true,
+				PlanModifiers: []planmodifier.Int64{
+					int64planmodifier.UseStateForUnknown(),
+				},
 				Validators: []validator.Int64{
-					int64validator.Between(2, 3),
+					int64validator.Between(2, 5),
 				},
 			},
 			"member_server_count": schema.Int64Attribute{
@@ -214,12 +197,16 @@ func (m *mongodbResource) Schema(_ context.Context, _ resource.SchemaRequest, re
 			"config_server_count": schema.Int64Attribute{
 				Optional: true,
 				Validators: []validator.Int64{
-					int64validator.Between(3, 3),
+					int64validator.Between(3, 7),
 				},
 			},
 			"backup_file_retention_period": schema.Int64Attribute{
 				Optional: true,
 				Computed: true,
+				PlanModifiers: []planmodifier.Int64{
+					int64planmodifier.UseStateForUnknown(),
+					int64planmodifier.RequiresReplace(),
+				},
 				Validators: []validator.Int64{
 					int64validator.Between(1, 30),
 				},
@@ -227,31 +214,51 @@ func (m *mongodbResource) Schema(_ context.Context, _ resource.SchemaRequest, re
 			"backup_time": schema.StringAttribute{
 				Optional: true,
 				Computed: true,
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.UseStateForUnknown(),
+					stringplanmodifier.RequiresReplace(),
+				},
 				Validators: []validator.String{
 					stringvalidator.RegexMatches(regexp.MustCompile(`^(0[0-9]|1[0-9]|2[0-3])(:?(00|15|30|45))$`), "Must be in the format HHMM and 15 minutes internvals."),
 				},
 			},
-			"arbiter_port": schema.Int64Attribute{
+			"data_storage_type": schema.StringAttribute{
 				Optional: true,
 				Computed: true,
-				Validators: []validator.Int64{
-					int64validator.Any(
-						int64validator.Between(10000, 65535),
-					),
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.UseStateForUnknown(),
+					stringplanmodifier.RequiresReplace(),
+				},
+				Validators: []validator.String{
+					stringvalidator.OneOf([]string{"SSD", "HDD", "CB1"}...),
 				},
 			},
 			"member_port": schema.Int64Attribute{
 				Optional: true,
 				Computed: true,
+				PlanModifiers: []planmodifier.Int64{
+					int64planmodifier.UseStateForUnknown(),
+					int64planmodifier.RequiresReplace(),
+				},
 				Validators: []validator.Int64{
 					int64validator.Any(
 						int64validator.Between(10000, 65535),
 					),
 				},
 			},
+			"arbiter_port": schema.Int64Attribute{
+				Computed: true,
+				PlanModifiers: []planmodifier.Int64{
+					int64planmodifier.UseStateForUnknown(),
+				},
+			},
 			"mongos_port": schema.Int64Attribute{
 				Optional: true,
 				Computed: true,
+				PlanModifiers: []planmodifier.Int64{
+					int64planmodifier.UseStateForUnknown(),
+					int64planmodifier.RequiresReplace(),
+				},
 				Validators: []validator.Int64{
 					int64validator.Any(
 						int64validator.Between(10000, 65535),
@@ -261,6 +268,10 @@ func (m *mongodbResource) Schema(_ context.Context, _ resource.SchemaRequest, re
 			"config_port": schema.Int64Attribute{
 				Optional: true,
 				Computed: true,
+				PlanModifiers: []planmodifier.Int64{
+					int64planmodifier.UseStateForUnknown(),
+					int64planmodifier.RequiresReplace(),
+				},
 				Validators: []validator.Int64{
 					int64validator.Any(
 						int64validator.Between(10000, 65535),
@@ -269,52 +280,230 @@ func (m *mongodbResource) Schema(_ context.Context, _ resource.SchemaRequest, re
 			},
 			"compress_code": schema.StringAttribute{
 				Optional: true,
+				Computed: true,
 				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.UseStateForUnknown(),
 					stringplanmodifier.RequiresReplace(),
 				},
 				Validators: []validator.String{
 					stringvalidator.OneOf([]string{"SNPP", "ZLIB", "ZSTD", "NONE"}...),
 				},
 			},
+			"engine_version": schema.StringAttribute{
+				Computed: true,
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.UseStateForUnknown(),
+				},
+			},
+			"region_code": schema.StringAttribute{
+				Computed: true,
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.UseStateForUnknown(),
+				},
+			},
+			"zone_code": schema.StringAttribute{
+				Computed: true,
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.UseStateForUnknown(),
+				},
+			},
 			"access_control_group_no_list": schema.ListAttribute{
 				ElementType: types.StringType,
 				Computed:    true,
+				PlanModifiers: []planmodifier.List{
+					listplanmodifier.UseStateForUnknown(),
+				},
+			},
+			"mongodb_server_list": schema.ListNestedAttribute{
+				Computed: true,
+				NestedObject: schema.NestedAttributeObject{
+					Attributes: map[string]schema.Attribute{
+						"server_instance_no": schema.StringAttribute{
+							Computed: true,
+						},
+						"server_name": schema.StringAttribute{
+							Computed: true,
+						},
+						"server_role": schema.StringAttribute{
+							Computed: true,
+						},
+						"cluster_role": schema.StringAttribute{
+							Computed: true,
+						},
+						"product_code": schema.StringAttribute{
+							Computed: true,
+						},
+						"private_domain": schema.StringAttribute{
+							Computed: true,
+						},
+						"public_domain": schema.StringAttribute{
+							Computed: true,
+						},
+						"replica_set_name": schema.StringAttribute{
+							Computed: true,
+						},
+						"memory_size": schema.Int64Attribute{
+							Computed: true,
+						},
+						"cpu_count": schema.Int64Attribute{
+							Computed: true,
+						},
+						"data_storage_size": schema.Int64Attribute{
+							Computed: true,
+						},
+						"uptime": schema.StringAttribute{
+							Computed: true,
+						},
+						"create_date": schema.StringAttribute{
+							Computed: true,
+						},
+					},
+				},
 			},
 		},
 	}
 }
 
-func (m *mongodbResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
-	var plan mongodbResourceModel
-	diags := req.Plan.Get(ctx, &plan)
-	resp.Diagnostics.Append(diags...)
-	if resp.Diagnostics.HasError() {
+func (m *mongodbResource) Configure(_ context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
+	if req.ProviderData == nil {
 		return
 	}
 
+	config, ok := req.ProviderData.(*conn.ProviderConfig)
+
+	if !ok {
+		resp.Diagnostics.AddError(
+			"Unexpected Data Source Configure Type",
+			fmt.Sprintf("Expected *ProviderConfig, got: %T. Please report this issue to the provider developers.", req.ProviderData),
+		)
+		return
+	}
+
+	m.config = config
+}
+
+func (m *mongodbResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
+	var plan mongodbResourceModel
+
 	if !m.config.SupportVPC {
 		resp.Diagnostics.AddError(
-			"Not support classic",
-			fmt.Sprintf("resource %s does not support classic", req.Config.Schema.Type().String()),
+			"NOT SUPPORT CLASSIC",
+			"resource does not support CLASSIC. only VPC.",
 		)
+		return
+	}
+
+	resp.Diagnostics.Append(req.Plan.Get(ctx, &plan)...)
+	if resp.Diagnostics.HasError() {
 		return
 	}
 
 	reqParams := &vmongodb.CreateCloudMongoDbInstanceRequest{
 		RegionCode:                   &m.config.RegionCode,
-		VpcNo:                        plan.VpcNo.ValueStringPointer(),
-		CloudMongoDbServiceName:      plan.CloudMongoDbServiceName.ValueStringPointer(),
+		CloudMongoDbServiceName:      plan.ServiceName.ValueStringPointer(),
 		CloudMongoDbServerNamePrefix: plan.ServerNamePrefix.ValueStringPointer(),
-		CloudMongoDbImageProductCode: plan.CloudMongoDbImageProductCode.ValueStringPointer(),
-		MemberProductCode:            plan.MemberProductCode.ValueStringPointer(),
-		ArbiterProductCode:           plan.ArbiterProductCode.ValueStringPointer(),
-		MongosProductCode:            plan.MongosProductCode.ValueStringPointer(),
-		ConfigProductCode:            plan.ConfigProductCode.ValueStringPointer(),
-		CloudMongoDbUserName:         plan.CloudMongoDbUserName.ValueStringPointer(),
-		CloudMongoDbUserPassword:     plan.CloudMongoDbUserPassword.ValueStringPointer(),
+		CloudMongoDbUserName:         plan.UserName.ValueStringPointer(),
+		CloudMongoDbUserPassword:     plan.UserPassword.ValueStringPointer(),
+		VpcNo:                        plan.VpcNo.ValueStringPointer(),
 		SubnetNo:                     plan.SubnetNo.ValueStringPointer(),
 		ClusterTypeCode:              plan.ClusterTypeCode.ValueStringPointer(),
 		CompressCode:                 plan.CompressCode.ValueStringPointer(),
+	}
+
+	if !plan.ImageProductCode.IsNull() && !plan.ImageProductCode.IsUnknown() {
+		reqParams.CloudMongoDbImageProductCode = plan.ImageProductCode.ValueStringPointer()
+	}
+
+	if !plan.MemberProductCode.IsNull() && !plan.MemberProductCode.IsUnknown() {
+		reqParams.MemberProductCode = plan.MemberProductCode.ValueStringPointer()
+	}
+
+	if !plan.ArbiterProductCode.IsNull() && !plan.ArbiterProductCode.IsUnknown() {
+		if *reqParams.ClusterTypeCode != "SHARDED_CLUSTER" {
+			resp.Diagnostics.AddError(
+				"CREATING ERROR",
+				"`arbiter_product_code` invalid. Necessary only if the cluster_type_code is SHARDED_CLUSTER.",
+			)
+			return
+		}
+		reqParams.ArbiterProductCode = plan.ArbiterProductCode.ValueStringPointer()
+	}
+
+	if !plan.MongosProductCode.IsNull() && !plan.MongosProductCode.IsUnknown() {
+		if *reqParams.ClusterTypeCode != "SHARDED_CLUSTER" {
+			resp.Diagnostics.AddError(
+				"CREATING ERROR",
+				"`mongos_product_code` invalid. Necessary only if the cluster_type_code is SHARDED_CLUSTER.",
+			)
+			return
+		}
+		reqParams.MongosProductCode = plan.MongosProductCode.ValueStringPointer()
+	}
+
+	if !plan.ConfigProductCode.IsNull() && !plan.ConfigProductCode.IsUnknown() {
+		if *reqParams.ClusterTypeCode != "SHARDED_CLUSTER" {
+			resp.Diagnostics.AddError(
+				"CREATING ERROR",
+				"`config_product_code` invalid. Necessary only if the cluster_type_code is SHARDED_CLUSTER.",
+			)
+			return
+		}
+		reqParams.ConfigProductCode = plan.ConfigProductCode.ValueStringPointer()
+	}
+
+	if !plan.ShardCount.IsNull() && !plan.ShardCount.IsUnknown() {
+		if *reqParams.ClusterTypeCode != "SHARDED_CLUSTER" {
+			resp.Diagnostics.AddError(
+				"CREATING ERROR",
+				"`shard_count` invalid. Necessary only if the cluster_type_code is SHARDED_CLUSTER.",
+			)
+			return
+		}
+		reqParams.ShardCount = ncloud.Int32(int32(plan.ShardCount.ValueInt64()))
+	}
+
+	if !plan.MemberServerCount.IsNull() && !plan.MemberServerCount.IsUnknown() {
+		if *reqParams.ClusterTypeCode == "STAND_ALONE" {
+			resp.Diagnostics.AddError(
+				"CREATING ERROR",
+				"`member_server_count` invalid. Necessary only if the cluster_type_code is SINGLE_REPLICA_SET or SHARDED_CLUSTER.",
+			)
+			return
+		}
+		reqParams.MemberServerCount = ncloud.Int32(int32(plan.MemberServerCount.ValueInt64()))
+	}
+
+	if !plan.ArbiterServerCount.IsNull() && !plan.ArbiterServerCount.IsUnknown() {
+		if *reqParams.ClusterTypeCode == "STAND_ALONE" {
+			resp.Diagnostics.AddError(
+				"CREATING ERROR",
+				"`arbiter_server_count` invalid. Necessary only if the cluster_type_code is SINGLE_REPLICA_SET or SHARDED_CLUSTER.",
+			)
+			return
+		}
+		reqParams.ArbiterServerCount = ncloud.Int32(int32(plan.ArbiterServerCount.ValueInt64()))
+	}
+
+	if !plan.MongosServerCount.IsNull() && !plan.MongosServerCount.IsUnknown() {
+		if *reqParams.ClusterTypeCode != "SHARDED_CLUSTER" {
+			resp.Diagnostics.AddError(
+				"CREATING ERROR",
+				"`mongos_server_count` invalid. Necessary only if the cluster_type_code is SHARDED_CLUSTER.",
+			)
+			return
+		}
+		reqParams.MongosServerCount = ncloud.Int32(int32(plan.MongosServerCount.ValueInt64()))
+	}
+
+	if !plan.ConfigServerCount.IsNull() && !plan.ConfigServerCount.IsUnknown() {
+		if *reqParams.ClusterTypeCode != "SHARDED_CLUSTER" {
+			resp.Diagnostics.AddError(
+				"CREATING ERROR",
+				"`config_server_count` invalid. Necessary only if the cluster_type_code is SHARDED_CLUSTER.",
+			)
+			return
+		}
+		reqParams.ConfigServerCount = ncloud.Int32(int32(plan.ConfigServerCount.ValueInt64()))
 	}
 
 	if !plan.BackupTime.IsNull() && !plan.BackupTime.IsUnknown() {
@@ -329,74 +518,71 @@ func (m *mongodbResource) Create(ctx context.Context, req resource.CreateRequest
 		reqParams.MemberPort = ncloud.Int32(int32(plan.MemberPort.ValueInt64()))
 	}
 
-	if !plan.ArbiterPort.IsNull() && !plan.ArbiterPort.IsUnknown() {
-		reqParams.ArbiterPort = ncloud.Int32(int32(plan.ArbiterPort.ValueInt64()))
-	}
-
 	if !plan.MongosPort.IsNull() && !plan.MongosPort.IsUnknown() {
+		if *reqParams.ClusterTypeCode != "SHARDED_CLUSTER" {
+			resp.Diagnostics.AddError(
+				"CREATING ERROR",
+				"`mongos_port` invalid. Necessary only if the cluster_type_code is SHARDED_CLUSTER.",
+			)
+			return
+		}
 		reqParams.MongosPort = ncloud.Int32(int32(plan.MongosPort.ValueInt64()))
 	}
 
 	if !plan.ConfigPort.IsNull() && !plan.ConfigPort.IsUnknown() {
+		if *reqParams.ClusterTypeCode != "SHARDED_CLUSTER" {
+			resp.Diagnostics.AddError(
+				"CREATING ERROR",
+				"`config_port` invalid. Necessary only if the cluster_type_code is SHARDED_CLUSTER.",
+			)
+			return
+		}
 		reqParams.ConfigPort = ncloud.Int32(int32(plan.ConfigPort.ValueInt64()))
 	}
 
-	if !plan.DataStorageTypeCode.IsNull() {
-		reqParams.DataStorageTypeCode = plan.DataStorageTypeCode.ValueStringPointer()
+	if !plan.DataStorageType.IsNull() && !plan.DataStorageType.IsUnknown() {
+		reqParams.DataStorageTypeCode = plan.DataStorageType.ValueStringPointer()
 	}
 
-	if *reqParams.ClusterTypeCode == "SHARDED_CLUSTER" {
-		reqParams.ShardCount = ncloud.Int32(int32(plan.ShardCount.ValueInt64()))
-		reqParams.MemberServerCount = ncloud.Int32(int32(plan.MemberServerCount.ValueInt64()))
-		reqParams.ArbiterServerCount = ncloud.Int32(int32(plan.ArbiterServerCount.ValueInt64()))
-		reqParams.MongosServerCount = ncloud.Int32(int32(plan.MongosServerCount.ValueInt64()))
-		reqParams.ConfigServerCount = ncloud.Int32(int32(plan.ConfigServerCount.ValueInt64()))
-	}
-
-	tflog.Info(ctx, "CreateMongoDb", map[string]any{
-		"reqParams": common.MarshalUncheckedString(reqParams),
-	})
+	tflog.Info(ctx, "CreateMongoDb reqParams="+common.MarshalUncheckedString(reqParams))
 
 	response, err := m.config.Client.Vmongodb.V2Api.CreateCloudMongoDbInstance(reqParams)
 	if err != nil {
-		resp.Diagnostics.AddError(
-			fmt.Sprintf("Create MongoDb Instance, err params=%v", *reqParams),
-			err.Error(),
-		)
+		resp.Diagnostics.AddError("CREATING ERROR", err.Error())
 		return
 	}
-	tflog.Info(ctx, "CreateMongoDb response", map[string]any{
-		"createMongoDbResponse": common.MarshalUncheckedString(response),
-	})
+	tflog.Info(ctx, "CreateMongoDb response="+common.MarshalUncheckedString(response))
+
+	if response == nil || len(response.CloudMongoDbInstanceList) < 1 {
+		resp.Diagnostics.AddError("CREATING ERROR", "response invalid")
+		return
+	}
 
 	mongodbInstance := response.CloudMongoDbInstanceList[0]
 	plan.ID = types.StringPointerValue(mongodbInstance.CloudMongoDbInstanceNo)
-	tflog.Info(ctx, "MongoDb ID", map[string]any{"CloudMongoDbInstanceNo": *mongodbInstance.CloudMongoDbInstanceNo})
 
-	output, err := waitForNcloudMongoDbActive(ctx, m.config, *mongodbInstance.CloudMongoDbInstanceNo)
+	output, err := waitMongoDbCreated(ctx, m.config, *mongodbInstance.CloudMongoDbInstanceNo)
 	if err != nil {
-		resp.Diagnostics.AddError("fail to wait for mongodb active", err.Error())
+		resp.Diagnostics.AddError("WAITING FOR CREATION ERROR", err.Error())
 		return
 	}
 
-	if err := plan.refreshFromOutput(ctx, output); err != nil {
-		resp.Diagnostics.AddError("refreshing mongodb details", err.Error())
-	}
+	plan.refreshFromOutput(ctx, output)
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, plan)...)
 }
 
 func (m *mongodbResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
 	var state mongodbResourceModel
-	diags := req.State.Get(ctx, &state)
-	resp.Diagnostics.Append(diags...)
+
+	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
 	output, err := GetCloudMongoDbInstance(ctx, m.config, state.ID.ValueString())
 	if err != nil {
-		resp.Diagnostics.AddError("GetCloudMongoDb", err.Error())
+		resp.Diagnostics.AddError("READING ERROR", err.Error())
 		return
 	}
 
@@ -405,24 +591,157 @@ func (m *mongodbResource) Read(ctx context.Context, req resource.ReadRequest, re
 		return
 	}
 
-	if err := state.refreshFromOutput(ctx, output); err != nil {
-		resp.Diagnostics.AddError("refreshing mongodb details", err.Error())
-	}
+	state.refreshFromOutput(ctx, output)
 
-	diags = resp.State.Set(ctx, &state)
-	resp.Diagnostics.Append(diags...)
+	resp.Diagnostics.Append(resp.State.Set(ctx, &state)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
 }
 
 func (m *mongodbResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
+	var plan, state mongodbResourceModel
+
+	resp.Diagnostics.Append(req.Plan.Get(ctx, &plan)...)
+	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
+
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
+	if !plan.ConfigServerCount.Equal(state.ConfigServerCount) {
+		reqParams := &vmongodb.ChangeCloudMongoDbConfigCountRequest{
+			RegionCode:             &m.config.RegionCode,
+			CloudMongoDbInstanceNo: state.ID.ValueStringPointer(),
+			ConfigServerCount:      ncloud.Int32(int32(plan.ConfigServerCount.ValueInt64())),
+		}
+		tflog.Info(ctx, "ChangeCloudMongoDbConfigCount reqParams="+common.MarshalUncheckedString(reqParams))
+
+		response, err := m.config.Client.Vmongodb.V2Api.ChangeCloudMongoDbConfigCount(reqParams)
+		if err != nil {
+			resp.Diagnostics.AddError("UPDATE ERROR", err.Error())
+			return
+		}
+		tflog.Info(ctx, "ChangeCloudMongoDbConfigCount response="+common.MarshalUncheckedString(response))
+
+		if response == nil || len(response.CloudMongoDbInstanceList) < 1 {
+			resp.Diagnostics.AddError("UPDATE ERROR", "response invalid")
+			return
+		}
+
+		mongodbInstance := response.CloudMongoDbInstanceList[0]
+
+		output, err := waitMongoDbUpdate(ctx, m.config, *mongodbInstance.CloudMongoDbInstanceNo)
+		if err != nil {
+			resp.Diagnostics.AddError("WAITING FOR UPDATE ERROR", err.Error())
+			return
+		}
+
+		plan.refreshFromOutput(ctx, output)
+	}
+
+	if !plan.MongosServerCount.Equal(state.MongosServerCount) {
+		reqParams := &vmongodb.ChangeCloudMongoDbMongosCountRequest{
+			RegionCode:             &m.config.RegionCode,
+			CloudMongoDbInstanceNo: state.ID.ValueStringPointer(),
+			MongosServerCount:      ncloud.Int32(int32(plan.MongosServerCount.ValueInt64())),
+		}
+		tflog.Info(ctx, "ChangeCloudMongoDbMongosCount reqParams="+common.MarshalUncheckedString(reqParams))
+
+		response, err := m.config.Client.Vmongodb.V2Api.ChangeCloudMongoDbMongosCount(reqParams)
+		if err != nil {
+			resp.Diagnostics.AddError("UPDATE ERROR", err.Error())
+			return
+		}
+		tflog.Info(ctx, "ChangeCloudMongoDbMongosCount response="+common.MarshalUncheckedString(response))
+
+		if response == nil || len(response.CloudMongoDbInstanceList) < 1 {
+			resp.Diagnostics.AddError("UPDATE ERROR", "response invalid")
+			return
+		}
+
+		mongodbInstance := response.CloudMongoDbInstanceList[0]
+
+		output, err := waitMongoDbUpdate(ctx, m.config, *mongodbInstance.CloudMongoDbInstanceNo)
+		if err != nil {
+			resp.Diagnostics.AddError("WAITING FOR UPDATE ERROR", err.Error())
+			return
+		}
+
+		plan.refreshFromOutput(ctx, output)
+	}
+
+	if !plan.MemberServerCount.Equal(state.MemberServerCount) ||
+		!plan.ArbiterServerCount.Equal(state.ArbiterServerCount) {
+		reqParams := &vmongodb.ChangeCloudMongoDbSecondaryCountRequest{
+			RegionCode:             &m.config.RegionCode,
+			CloudMongoDbInstanceNo: state.ID.ValueStringPointer(),
+			MemberServerCount:      ncloud.Int32(int32(plan.MemberServerCount.ValueInt64())),
+			ArbiterServerCount:     ncloud.Int32(int32(plan.ArbiterServerCount.ValueInt64())),
+		}
+		tflog.Info(ctx, "ChangeCloudMongoDbSecondaryCount reqParams="+common.MarshalUncheckedString(reqParams))
+
+		response, err := m.config.Client.Vmongodb.V2Api.ChangeCloudMongoDbSecondaryCount(reqParams)
+		if err != nil {
+			resp.Diagnostics.AddError("UPDATE ERROR", err.Error())
+			return
+		}
+		tflog.Info(ctx, "ChangeCloudMongoDbSecondaryCount response="+common.MarshalUncheckedString(response))
+
+		if response == nil || len(response.CloudMongoDbInstanceList) < 1 {
+			resp.Diagnostics.AddError("UPDATE ERROR", "response invalid")
+			return
+		}
+
+		mongodbInstance := response.CloudMongoDbInstanceList[0]
+
+		output, err := waitMongoDbUpdate(ctx, m.config, *mongodbInstance.CloudMongoDbInstanceNo)
+		if err != nil {
+			resp.Diagnostics.AddError("WAITING FOR UPDATE ERROR", err.Error())
+			return
+		}
+
+		plan.refreshFromOutput(ctx, output)
+	}
+
+	if !plan.ShardCount.Equal(state.ShardCount) {
+		reqParams := &vmongodb.ChangeCloudMongoDbShardCountRequest{
+			RegionCode:             &m.config.RegionCode,
+			CloudMongoDbInstanceNo: state.ID.ValueStringPointer(),
+			ShardCount:             ncloud.Int32(int32(plan.ShardCount.ValueInt64())),
+		}
+		tflog.Info(ctx, "ChangeCloudMongoDbShardCount reqParams="+common.MarshalUncheckedString(reqParams))
+
+		response, err := m.config.Client.Vmongodb.V2Api.ChangeCloudMongoDbShardCount(reqParams)
+		if err != nil {
+			resp.Diagnostics.AddError("UPDATE ERROR", err.Error())
+			return
+		}
+		tflog.Info(ctx, "ChangeCloudMongoDbShardCount response="+common.MarshalUncheckedString(response))
+
+		if response == nil || len(response.CloudMongoDbInstanceList) < 1 {
+			resp.Diagnostics.AddError("UPDATE ERROR", "response invalid")
+			return
+		}
+
+		mongodbInstance := response.CloudMongoDbInstanceList[0]
+
+		output, err := waitMongoDbUpdate(ctx, m.config, *mongodbInstance.CloudMongoDbInstanceNo)
+		if err != nil {
+			resp.Diagnostics.AddError("WAITING FOR UPDATE ERROR", err.Error())
+			return
+		}
+
+		plan.refreshFromOutput(ctx, output)
+	}
+
+	resp.Diagnostics.Append(resp.State.Set(ctx, plan)...)
 }
 
 func (m *mongodbResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
 	var state mongodbResourceModel
-	diags := req.State.Get(ctx, &state)
-	resp.Diagnostics.Append(diags...)
+
+	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
@@ -431,35 +750,47 @@ func (m *mongodbResource) Delete(ctx context.Context, req resource.DeleteRequest
 		RegionCode:             &m.config.RegionCode,
 		CloudMongoDbInstanceNo: state.ID.ValueStringPointer(),
 	}
-
-	tflog.Info(ctx, "DeleteMongoDb", map[string]any{
-		"reqParams": common.MarshalUncheckedString(reqParams),
-	})
+	tflog.Info(ctx, "DeleteMongoDb reqParams="+common.MarshalUncheckedString(reqParams))
 
 	response, err := m.config.Client.Vmongodb.V2Api.DeleteCloudMongoDbInstance(reqParams)
 	if err != nil {
-		resp.Diagnostics.AddError(
-			fmt.Sprintf("Delete Mongodb Instance params=%v", *reqParams),
-			err.Error(),
-		)
+		resp.Diagnostics.AddError("DELETING ERROR", err.Error())
 		return
 	}
+	tflog.Info(ctx, "DeleteMongoDb response="+common.MarshalUncheckedString(response))
 
-	tflog.Info(ctx, "DeleteMongoDb response", map[string]any{
-		"deleteMongoDbResponse": common.MarshalUncheckedString(response),
-	})
-
-	if err := WaitForNcloudMongoDbDeletion(ctx, m.config, state.ID.ValueString()); err != nil {
-		resp.Diagnostics.AddError(
-			"fail to wait for mongodb deletion",
-			err.Error(),
-		)
+	if err := waitMongoDbDeleted(ctx, m.config, state.ID.ValueString()); err != nil {
+		resp.Diagnostics.AddError("WAITING FOR DELETE ERROR", err.Error())
 	}
 }
 
-func waitForNcloudMongoDbActive(ctx context.Context, config *conn.ProviderConfig, id string) (*vmongodb.CloudMongoDbInstance, error) {
+func (s *mongodbResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
+	resource.ImportStatePassthroughID(ctx, path.Root("id"), req, resp)
+}
+
+func GetCloudMongoDbInstance(ctx context.Context, config *conn.ProviderConfig, no string) (*vmongodb.CloudMongoDbInstance, error) {
+	reqParams := &vmongodb.GetCloudMongoDbInstanceDetailRequest{
+		RegionCode:             &config.RegionCode,
+		CloudMongoDbInstanceNo: ncloud.String(no),
+	}
+	tflog.Info(ctx, "GetMongoDbDetail reqParams="+common.MarshalUncheckedString(reqParams))
+
+	resp, err := config.Client.Vmongodb.V2Api.GetCloudMongoDbInstanceDetail(reqParams)
+	if err != nil && !(strings.Contains(err.Error(), `"returnCode": "5001017"`)) {
+		return nil, err
+	}
+	tflog.Info(ctx, "GetMongoDbDetail response="+common.MarshalUncheckedString(resp))
+
+	if resp == nil || len(resp.CloudMongoDbInstanceList) < 1 || len(resp.CloudMongoDbInstanceList[0].CloudMongoDbServerInstanceList) < 1 {
+		return nil, nil
+	}
+
+	return resp.CloudMongoDbInstanceList[0], nil
+}
+
+func waitMongoDbCreated(ctx context.Context, config *conn.ProviderConfig, id string) (*vmongodb.CloudMongoDbInstance, error) {
 	var mongodbInstance *vmongodb.CloudMongoDbInstance
-	stateConf := &sdkresource.StateChangeConf{
+	stateConf := &retry.StateChangeConf{
 		Pending: []string{"creating", "settingUp"},
 		Target:  []string{"running"},
 		Refresh: func() (interface{}, string, error) {
@@ -469,18 +800,15 @@ func waitForNcloudMongoDbActive(ctx context.Context, config *conn.ProviderConfig
 				return 0, "", err
 			}
 
-			status := instance.CloudMongoDbInstanceStatus.Code
-			op := instance.CloudMongoDbInstanceOperation.Code
+			if instance == nil {
+				return 0, "", fmt.Errorf("CloudMongoDbInstance is nil")
+			}
 
-			if *status == "INIT" && *op == "CREAT" {
+			if *instance.CloudMongoDbInstanceStatusName == "creating" {
 				return instance, "creating", nil
-			}
-
-			if *status == "CREAT" && *op == "SETUP" {
+			} else if *instance.CloudMongoDbInstanceStatusName == "settingUp" {
 				return instance, "settingUp", nil
-			}
-
-			if *status == "CREAT" && *op == "NULL" {
+			} else if *instance.CloudMongoDbInstanceStatusName == "running" {
 				return instance, "running", nil
 			}
 
@@ -499,8 +827,57 @@ func waitForNcloudMongoDbActive(ctx context.Context, config *conn.ProviderConfig
 	return mongodbInstance, nil
 }
 
-func WaitForNcloudMongoDbDeletion(ctx context.Context, config *conn.ProviderConfig, id string) error {
-	stateConf := &sdkresource.StateChangeConf{
+func waitMongoDbUpdate(ctx context.Context, config *conn.ProviderConfig, id string) (*vmongodb.CloudMongoDbInstance, error) {
+	var mongodbInstance *vmongodb.CloudMongoDbInstance
+	stateConf := &retry.StateChangeConf{
+		Pending: []string{"creating", "settingUp"},
+		Target:  []string{"running"},
+		Refresh: func() (interface{}, string, error) {
+			instance, err := GetCloudMongoDbInstance(ctx, config, id)
+			mongodbInstance = instance
+			if err != nil {
+				return 0, "", err
+			}
+
+			if instance == nil {
+				return 0, "", fmt.Errorf("CloudMongoDbInstance is nil")
+			}
+
+			if *instance.CloudMongoDbInstanceStatusName == "creating" {
+				return instance, "creating", nil
+			} else if *instance.CloudMongoDbInstanceStatusName == "settingUp" {
+				return instance, "settingUp", nil
+			}
+
+			for _, server := range instance.CloudMongoDbServerInstanceList {
+				if *server.CloudMongoDbServerInstanceStatusName == "running" {
+					continue
+				} else if *server.CloudMongoDbServerInstanceStatusName == "creating" {
+					return instance, "creating", nil
+				} else if *server.CloudMongoDbServerInstanceStatusName == "settingUp" {
+					return instance, "settingUp", nil
+				} else {
+					return 0, "", fmt.Errorf("error occurred while waiting to update mongodb")
+				}
+			}
+
+			return instance, "running", nil
+		},
+		Timeout:    6 * conn.DefaultTimeout,
+		Delay:      2 * time.Second,
+		MinTimeout: 3 * time.Second,
+	}
+
+	_, err := stateConf.WaitForState()
+	if err != nil {
+		return nil, fmt.Errorf("error waiting for MongoDbInstance state to be \"CREAT\": %s", err)
+	}
+
+	return mongodbInstance, nil
+}
+
+func waitMongoDbDeleted(ctx context.Context, config *conn.ProviderConfig, id string) error {
+	stateConf := &retry.StateChangeConf{
 		Pending: []string{"deleting"},
 		Target:  []string{"deleted"},
 		Refresh: func() (interface{}, string, error) {
@@ -523,8 +900,8 @@ func WaitForNcloudMongoDbDeletion(ctx context.Context, config *conn.ProviderConf
 
 			return 0, "", fmt.Errorf("error occurred while waiting to delete mongodb")
 		},
-		Timeout:    conn.DefaultTimeout,
-		Delay:      2 * time.Second,
+		Timeout:    2 * conn.DefaultTimeout,
+		Delay:      5 * time.Second,
 		MinTimeout: 3 * time.Second,
 	}
 
@@ -535,79 +912,121 @@ func WaitForNcloudMongoDbDeletion(ctx context.Context, config *conn.ProviderConf
 	return nil
 }
 
-func GetCloudMongoDbInstance(ctx context.Context, config *conn.ProviderConfig, id string) (*vmongodb.CloudMongoDbInstance, error) {
-	reqParams := &vmongodb.GetCloudMongoDbInstanceDetailRequest{
-		RegionCode:             &config.RegionCode,
-		CloudMongoDbInstanceNo: ncloud.String(id),
-	}
-
-	tflog.Info(ctx, "GetMongoDb", map[string]any{
-		"reqParams": common.MarshalUncheckedString(reqParams),
-	})
-
-	resp, err := config.Client.Vmongodb.V2Api.GetCloudMongoDbInstanceDetail(reqParams)
-	if err != nil && !(strings.Contains(err.Error(), `"returnCode": "5001017"`)) {
-		return nil, err
-	}
-
-	tflog.Info(ctx, "GetMongoDb response", map[string]any{
-		"getMongoDbResponse": common.MarshalUncheckedString(resp),
-	})
-
-	if len(resp.CloudMongoDbInstanceList) > 0 {
-		mongodb := resp.CloudMongoDbInstanceList[0]
-		return mongodb, nil
-	}
-
-	return nil, nil
-}
-
 type mongodbResourceModel struct {
-	ID                           types.String `tfsdk:"id"`
-	VpcNo                        types.String `tfsdk:"vpc_no"`
-	SubnetNo                     types.String `tfsdk:"subnet_no"`
-	CloudMongoDbServiceName      types.String `tfsdk:"service_name"`
-	ServerNamePrefix             types.String `tfsdk:"server_name_prefix"`
-	CloudMongoDbUserName         types.String `tfsdk:"user_name"`
-	CloudMongoDbUserPassword     types.String `tfsdk:"user_password"`
-	ClusterTypeCode              types.String `tfsdk:"cluster_type_code"`
-	CloudMongoDbImageProductCode types.String `tfsdk:"image_product_code"`
-	MemberProductCode            types.String `tfsdk:"member_product_code"`
-	ArbiterProductCode           types.String `tfsdk:"arbiter_product_code"`
-	MongosProductCode            types.String `tfsdk:"mongos_product_code"`
-	ConfigProductCode            types.String `tfsdk:"config_product_code"`
-	ShardCount                   types.Int64  `tfsdk:"shard_count"`
-	MemberServerCount            types.Int64  `tfsdk:"member_server_count"`
-	ArbiterServerCount           types.Int64  `tfsdk:"arbiter_server_count"`
-	MongosServerCount            types.Int64  `tfsdk:"mongos_server_count"`
-	ConfigServerCount            types.Int64  `tfsdk:"config_server_count"`
-	BackupFileRetentionPeriod    types.Int64  `tfsdk:"backup_file_retention_period"`
-	BackupTime                   types.String `tfsdk:"backup_time"`
-	DataStorageTypeCode          types.String `tfsdk:"data_storage_type_code"`
-	ArbiterPort                  types.Int64  `tfsdk:"arbiter_port"`
-	MemberPort                   types.Int64  `tfsdk:"member_port"`
-	MongosPort                   types.Int64  `tfsdk:"mongos_port"`
-	ConfigPort                   types.Int64  `tfsdk:"config_port"`
-	CompressCode                 types.String `tfsdk:"compress_code"`
-	AccessControlGroupNoList     types.List   `tfsdk:"access_control_group_no_list"`
+	ID                        types.String `tfsdk:"id"`
+	VpcNo                     types.String `tfsdk:"vpc_no"`
+	SubnetNo                  types.String `tfsdk:"subnet_no"`
+	ServiceName               types.String `tfsdk:"service_name"`
+	ServerNamePrefix          types.String `tfsdk:"server_name_prefix"`
+	UserName                  types.String `tfsdk:"user_name"`
+	UserPassword              types.String `tfsdk:"user_password"`
+	ClusterTypeCode           types.String `tfsdk:"cluster_type_code"`
+	ImageProductCode          types.String `tfsdk:"image_product_code"`
+	MemberProductCode         types.String `tfsdk:"member_product_code"`
+	ArbiterProductCode        types.String `tfsdk:"arbiter_product_code"`
+	MongosProductCode         types.String `tfsdk:"mongos_product_code"`
+	ConfigProductCode         types.String `tfsdk:"config_product_code"`
+	ShardCount                types.Int64  `tfsdk:"shard_count"`
+	MemberServerCount         types.Int64  `tfsdk:"member_server_count"`
+	ArbiterServerCount        types.Int64  `tfsdk:"arbiter_server_count"`
+	MongosServerCount         types.Int64  `tfsdk:"mongos_server_count"`
+	ConfigServerCount         types.Int64  `tfsdk:"config_server_count"`
+	BackupFileRetentionPeriod types.Int64  `tfsdk:"backup_file_retention_period"`
+	BackupTime                types.String `tfsdk:"backup_time"`
+	DataStorageType           types.String `tfsdk:"data_storage_type"`
+	MemberPort                types.Int64  `tfsdk:"member_port"`
+	ArbiterPort               types.Int64  `tfsdk:"arbiter_port"`
+	MongosPort                types.Int64  `tfsdk:"mongos_port"`
+	ConfigPort                types.Int64  `tfsdk:"config_port"`
+	CompressCode              types.String `tfsdk:"compress_code"`
+	EngineVersion             types.String `tfsdk:"engine_version"`
+	RegionCode                types.String `tfsdk:"region_code"`
+	ZoneCode                  types.String `tfsdk:"zone_code"`
+	AccessControlGroupNoList  types.List   `tfsdk:"access_control_group_no_list"`
+	MongoDbServerList         types.List   `tfsdk:"mongodb_server_list"`
 }
 
-func (m *mongodbResourceModel) refreshFromOutput(ctx context.Context, output *vmongodb.CloudMongoDbInstance) error {
+type mongoServer struct {
+	ServerNo        types.String `tfsdk:"server_instance_no"`
+	ServerName      types.String `tfsdk:"server_name"`
+	ServerRole      types.String `tfsdk:"server_role"`
+	ClusterRole     types.String `tfsdk:"cluster_role"`
+	ProductCode     types.String `tfsdk:"product_code"`
+	PrivateDomain   types.String `tfsdk:"private_domain"`
+	PublicDomain    types.String `tfsdk:"public_domain"`
+	ReplicaSetName  types.String `tfsdk:"replica_set_name"`
+	MemorySize      types.Int64  `tfsdk:"memory_size"`
+	CpuCount        types.Int64  `tfsdk:"cpu_count"`
+	DataStorageSize types.Int64  `tfsdk:"data_storage_size"`
+	Uptime          types.String `tfsdk:"uptime"`
+	CreateDate      types.String `tfsdk:"create_date"`
+}
+
+func (m mongoServer) attrTypes() map[string]attr.Type {
+	return map[string]attr.Type{
+		"server_instance_no": types.StringType,
+		"server_name":        types.StringType,
+		"server_role":        types.StringType,
+		"cluster_role":       types.StringType,
+		"product_code":       types.StringType,
+		"private_domain":     types.StringType,
+		"public_domain":      types.StringType,
+		"replica_set_name":   types.StringType,
+		"memory_size":        types.Int64Type,
+		"cpu_count":          types.Int64Type,
+		"data_storage_size":  types.Int64Type,
+		"uptime":             types.StringType,
+		"create_date":        types.StringType,
+	}
+}
+
+func (m *mongodbResourceModel) refreshFromOutput(ctx context.Context, output *vmongodb.CloudMongoDbInstance) {
 	m.ID = types.StringPointerValue(output.CloudMongoDbInstanceNo)
-	m.CloudMongoDbImageProductCode = types.StringPointerValue(output.CloudMongoDbImageProductCode)
+	m.ServiceName = types.StringPointerValue(output.CloudMongoDbServiceName)
+	m.VpcNo = types.StringPointerValue(output.CloudMongoDbServerInstanceList[0].VpcNo)
+	m.SubnetNo = types.StringPointerValue(output.CloudMongoDbServerInstanceList[0].SubnetNo)
+	m.ClusterTypeCode = types.StringPointerValue(output.ClusterType.Code)
+	m.ImageProductCode = types.StringPointerValue(output.CloudMongoDbImageProductCode)
 	m.ShardCount = int32PointerValue(output.ShardCount)
 	m.BackupFileRetentionPeriod = int32PointerValue(output.BackupFileRetentionPeriod)
 	m.BackupTime = types.StringPointerValue(output.BackupTime)
-	m.CloudMongoDbServiceName = types.StringPointerValue(output.CloudMongoDbServiceName)
 	m.ArbiterPort = int32PointerValue(output.ArbiterPort)
 	m.MemberPort = int32PointerValue(output.MemberPort)
 	m.MongosPort = int32PointerValue(output.MongosPort)
 	m.ConfigPort = int32PointerValue(output.ConfigPort)
+	m.DataStorageType = types.StringPointerValue(output.CloudMongoDbServerInstanceList[0].DataStorageType.Code)
+	m.CompressCode = types.StringPointerValue(output.Compress.Code)
+	m.EngineVersion = types.StringPointerValue(output.EngineVersion)
+	m.RegionCode = types.StringPointerValue(output.CloudMongoDbServerInstanceList[0].RegionCode)
+	m.ZoneCode = types.StringPointerValue(output.CloudMongoDbServerInstanceList[0].ZoneCode)
 
 	acgList, _ := types.ListValueFrom(ctx, types.StringType, output.AccessControlGroupNoList)
 	m.AccessControlGroupNoList = acgList
 
-	return nil
+	var serverList []mongoServer
+	for _, server := range output.CloudMongoDbServerInstanceList {
+		mongoServerInstance := mongoServer{
+			ServerNo:        types.StringPointerValue(server.CloudMongoDbServerInstanceNo),
+			ServerName:      types.StringPointerValue(server.CloudMongoDbServerName),
+			ServerRole:      types.StringPointerValue(server.CloudMongoDbServerRole.CodeName),
+			ClusterRole:     types.StringPointerValue(server.ClusterRole.Code),
+			ProductCode:     types.StringPointerValue(server.CloudMongoDbProductCode),
+			PrivateDomain:   types.StringPointerValue(server.PrivateDomain),
+			PublicDomain:    types.StringPointerValue(server.PublicDomain),
+			ReplicaSetName:  types.StringPointerValue(server.ReplicaSetName),
+			MemorySize:      types.Int64Value(*server.MemorySize),
+			CpuCount:        types.Int64Value(*server.CpuCount),
+			DataStorageSize: types.Int64Value(*server.DataStorageSize),
+			Uptime:          types.StringPointerValue(server.Uptime),
+			CreateDate:      types.StringPointerValue(server.CreateDate),
+		}
+		serverList = append(serverList, mongoServerInstance)
+	}
+
+	mongoServers, _ := types.ListValueFrom(ctx, types.ObjectType{AttrTypes: mongoServer{}.attrTypes()}, serverList)
+
+	m.MongoDbServerList = mongoServers
+
 }
 
 func int32PointerValue(value *int32) basetypes.Int64Value {

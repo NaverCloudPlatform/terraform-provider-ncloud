@@ -24,12 +24,10 @@ func TestAccDataSourceNcloudMongoDb_vpc_basic(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					TestAccCheckDataSourceID(dataName),
 					resource.TestCheckResourceAttrPair(dataName, "id", resourceName, "id"),
-					resource.TestCheckResourceAttrPair(dataName, "instance_no", resourceName, "instance_no"),
 					resource.TestCheckResourceAttrPair(dataName, "service_name", resourceName, "service_name"),
 					resource.TestCheckResourceAttrPair(dataName, "image_product_code", resourceName, "image_product_code"),
 					resource.TestCheckResourceAttrPair(dataName, "backup_time", resourceName, "backup_time"),
 					resource.TestCheckResourceAttrPair(dataName, "backup_file_retention_period", resourceName, "backup_file_retention_period"),
-					TestAccCheckDataSourceID("data.ncloud_mongodb.by_filter"),
 				),
 			},
 		},
@@ -64,13 +62,6 @@ resource "ncloud_mongodb" "mongodb" {
 
 data "ncloud_mongodb" "by_id" {
 	id = "${ncloud_mongodb.mongodb.id}"
-}
-
-data "ncloud_mongodb" "by_filter" {
-	filter {
-		name = "instance_no"
-		values = [ncloud_mongodb.mongodb.id]
-	}
 }
 `, testMongoDbName)
 }
