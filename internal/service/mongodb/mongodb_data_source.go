@@ -5,17 +5,18 @@ import (
 	"fmt"
 
 	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/services/vmongodb"
+	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
-	"github.com/hashicorp/terraform-plugin-framework/diag"
+	"github.com/hashicorp/terraform-plugin-framework/path"
+	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 
 	"github.com/terraform-providers/terraform-provider-ncloud/internal/common"
 	"github.com/terraform-providers/terraform-provider-ncloud/internal/conn"
-	"github.com/terraform-providers/terraform-provider-ncloud/internal/verify"
 )
 
 var (
@@ -33,6 +34,129 @@ type mongodbDataSource struct {
 
 func (m *mongodbDataSource) Metadata(_ context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
 	resp.TypeName = req.ProviderTypeName + "_mongodb"
+}
+
+func (m *mongodbDataSource) Schema(_ context.Context, _ datasource.SchemaRequest, resp *datasource.SchemaResponse) {
+	resp.Schema = schema.Schema{
+		Attributes: map[string]schema.Attribute{
+			"id": schema.StringAttribute{
+				Optional: true,
+				Computed: true,
+				Validators: []validator.String{
+					stringvalidator.ConflictsWith(
+						path.MatchRelative().AtParent().AtName("service_name"),
+					),
+				},
+			},
+			"service_name": schema.StringAttribute{
+				Optional: true,
+				Computed: true,
+				Validators: []validator.String{
+					stringvalidator.ConflictsWith(
+						path.MatchRelative().AtParent().AtName("id"),
+					),
+				},
+			},
+			"vpc_no": schema.StringAttribute{
+				Computed: true,
+			},
+			"subnet_no": schema.StringAttribute{
+				Computed: true,
+			},
+			"cluster_type_code": schema.StringAttribute{
+				Computed: true,
+			},
+			"engine_version": schema.StringAttribute{
+				Computed: true,
+			},
+			"image_product_code": schema.StringAttribute{
+				Computed: true,
+			},
+			"backup_file_retention_period": schema.Int64Attribute{
+				Computed: true,
+			},
+			"backup_time": schema.StringAttribute{
+				Computed: true,
+			},
+			"shard_count": schema.Int64Attribute{
+				Computed: true,
+			},
+			"data_storage_type": schema.StringAttribute{
+				Computed: true,
+			},
+			"member_port": schema.Int64Attribute{
+				Computed: true,
+			},
+			"arbiter_port": schema.Int64Attribute{
+				Computed: true,
+			},
+			"mongos_port": schema.Int64Attribute{
+				Computed: true,
+			},
+			"config_port": schema.Int64Attribute{
+				Computed: true,
+			},
+			"compress_code": schema.StringAttribute{
+				Computed: true,
+			},
+			"region_code": schema.StringAttribute{
+				Computed: true,
+			},
+			"zone_code": schema.StringAttribute{
+				Computed: true,
+			},
+			"access_control_group_no_list": schema.ListAttribute{
+				ElementType: types.StringType,
+				Computed:    true,
+			},
+			"mongodb_server_list": schema.ListNestedAttribute{
+				Computed: true,
+				NestedObject: schema.NestedAttributeObject{
+					Attributes: map[string]schema.Attribute{
+						"server_instance_no": schema.StringAttribute{
+							Computed: true,
+						},
+						"server_name": schema.StringAttribute{
+							Computed: true,
+						},
+						"server_role": schema.StringAttribute{
+							Computed: true,
+						},
+						"cluster_role": schema.StringAttribute{
+							Computed: true,
+						},
+						"product_code": schema.StringAttribute{
+							Computed: true,
+						},
+						"private_domain": schema.StringAttribute{
+							Computed: true,
+						},
+						"public_domain": schema.StringAttribute{
+							Computed: true,
+						},
+						"replica_set_name": schema.StringAttribute{
+							Computed: true,
+						},
+						"memory_size": schema.Int64Attribute{
+							Computed: true,
+						},
+						"cpu_count": schema.Int64Attribute{
+							Computed: true,
+						},
+						"data_storage_size": schema.Int64Attribute{
+							Computed: true,
+						},
+						"uptime": schema.StringAttribute{
+							Computed: true,
+						},
+						"create_date": schema.StringAttribute{
+							Computed: true,
+						},
+					},
+				},
+			},
+		},
+	}
 }
 
 func (m *mongodbDataSource) Configure(_ context.Context, req datasource.ConfigureRequest, resp *datasource.ConfigureResponse) {
@@ -53,324 +177,169 @@ func (m *mongodbDataSource) Configure(_ context.Context, req datasource.Configur
 	m.config = config
 }
 
-func (m *mongodbDataSource) Schema(_ context.Context, _ datasource.SchemaRequest, resp *datasource.SchemaResponse) {
-	resp.Schema = schema.Schema{
-		Attributes: map[string]schema.Attribute{
-			"id": schema.StringAttribute{
-				Optional: true,
-				Computed: true,
-			},
-			"service_name": schema.StringAttribute{
-				Optional: true,
-				Computed: true,
-			},
-			"vpc_no": schema.StringAttribute{
-				Computed: true,
-			},
-			"subnet_no": schema.StringAttribute{
-				Computed: true,
-			},
-			"cluster_type_code": schema.StringAttribute{
-				Optional: true,
-				Computed: true,
-			},
-			"engine_version": schema.StringAttribute{
-				Computed: true,
-			},
-			"image_product_code": schema.StringAttribute{
-				Optional: true,
-				Computed: true,
-			},
-			"backup_file_retention_period": schema.Int64Attribute{
-				Computed: true,
-			},
-			"backup_time": schema.StringAttribute{
-				Computed: true,
-			},
-			"shard_count": schema.Int64Attribute{
-				Computed: true,
-			},
-			"access_control_group_no_list": schema.ListAttribute{
-				ElementType: types.StringType,
-				Computed:    true,
-			},
-			"server_instance_list": schema.ListNestedAttribute{
-				Computed: true,
-				NestedObject: schema.NestedAttributeObject{
-					Attributes: map[string]schema.Attribute{
-						"server_instance_no": schema.StringAttribute{
-							Computed: true,
-						},
-						"server_name": schema.StringAttribute{
-							Computed: true,
-						},
-						"cluster_role": schema.StringAttribute{
-							Computed: true,
-						},
-						"server_role": schema.StringAttribute{
-							Computed: true,
-						},
-						"region_code": schema.StringAttribute{
-							Computed: true,
-						},
-						"vpc_no": schema.StringAttribute{
-							Computed: true,
-						},
-						"subnet_no": schema.StringAttribute{
-							Computed: true,
-						},
-						"uptime": schema.StringAttribute{
-							Computed: true,
-						},
-						"zone_code": schema.StringAttribute{
-							Computed: true,
-						},
-						"private_domain": schema.StringAttribute{
-							Computed: true,
-						},
-						"public_domain": schema.StringAttribute{
-							Computed: true,
-						},
-						"memory_size": schema.Int64Attribute{
-							Computed: true,
-						},
-						"cpu_count": schema.Int64Attribute{
-							Computed: true,
-						},
-						"data_storage_size": schema.Int64Attribute{
-							Computed: true,
-						},
-						"used_data_storage_size": schema.Int64Attribute{
-							Computed: true,
-						},
-						"product_code": schema.StringAttribute{
-							Computed: true,
-						},
-						"replica_set_name": schema.StringAttribute{
-							Computed: true,
-						},
-						"data_storage_type": schema.StringAttribute{
-							Computed: true,
-						},
-					},
-				},
-			},
-		},
-		Blocks: map[string]schema.Block{
-			"filter": common.DataSourceFiltersBlock(),
-		},
-	}
-}
-
 func (m *mongodbDataSource) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
+	var data mongodbDataSourceModel
+	var mongodbId string
+
 	if !m.config.SupportVPC {
 		resp.Diagnostics.AddError(
-			"Not supported Classic",
-			"mongodb data source does not supported in classic",
+			"NOT SUPPORT CLASSIC",
+			"does not support CLASSIC. only VPC.",
 		)
 		return
 	}
 
-	var data mongodbDataSourceModel
 	resp.Diagnostics.Append(req.Config.Get(ctx, &data)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
-	reqParams := &vmongodb.GetCloudMongoDbInstanceListRequest{
-		RegionCode: &m.config.RegionCode,
-	}
-
 	if !data.ID.IsNull() && !data.ID.IsUnknown() {
-		reqParams.CloudMongoDbInstanceNoList = []*string{data.ID.ValueStringPointer()}
-	}
-	if !data.CloudMongoDbServiceName.IsNull() && !data.CloudMongoDbServiceName.IsUnknown() {
-		reqParams.CloudMongoDbServiceName = data.CloudMongoDbServiceName.ValueStringPointer()
+		mongodbId = data.ID.ValueString()
 	}
 
-	tflog.Info(ctx, "GetMongoDbList", map[string]any{
-		"reqParams": common.MarshalUncheckedString(reqParams),
-	})
+	if !data.ServiceName.IsNull() && !data.ServiceName.IsUnknown() {
+		reqParams := &vmongodb.GetCloudMongoDbInstanceListRequest{
+			RegionCode:              &m.config.RegionCode,
+			CloudMongoDbServiceName: data.ServiceName.ValueStringPointer(),
+		}
+		tflog.Info(ctx, "GetMongoDbList reqParams="+common.MarshalUncheckedString(reqParams))
 
-	mongodbResp, err := m.config.Client.Vmongodb.V2Api.GetCloudMongoDbInstanceList(reqParams)
+		listResp, err := m.config.Client.Vmongodb.V2Api.GetCloudMongoDbInstanceList(reqParams)
+		if err != nil {
+			resp.Diagnostics.AddError("READING ERROR", err.Error())
+			return
+		}
+		tflog.Info(ctx, "GetMongoDbList response="+common.MarshalUncheckedString(listResp))
 
+		if listResp == nil || len(listResp.CloudMongoDbInstanceList) < 1 {
+			resp.Diagnostics.AddError("READING ERROR", "no result. please change search criteria and try again.")
+			return
+		}
+		mongodbId = *listResp.CloudMongoDbInstanceList[0].CloudMongoDbInstanceNo
+	}
+
+	output, err := GetCloudMongoDbInstance(ctx, m.config, mongodbId)
 	if err != nil {
-		var diags diag.Diagnostics
-		diags.AddError(
-			"GetCloudMongoDbList",
-			fmt.Sprintf("error: %s, reqParams: %s", err.Error(), common.MarshalUncheckedString(reqParams)),
-		)
-		resp.Diagnostics.Append(diags...)
+		resp.Diagnostics.AddError("READING ERROR", err.Error())
 		return
 	}
-	tflog.Info(ctx, "GetMongoDbList response", map[string]any{
-		"mongodbResponse": common.MarshalUncheckedString(mongodbResp),
-	})
 
-	mongodbId := mongodbResp.CloudMongoDbInstanceList[0].CloudMongoDbInstanceNo
-	detailReqParams := &vmongodb.GetCloudMongoDbInstanceDetailRequest{
-		RegionCode:             &m.config.RegionCode,
-		CloudMongoDbInstanceNo: mongodbId,
-	}
-	mongodbDetailResp, err := m.config.Client.Vmongodb.V2Api.GetCloudMongoDbInstanceDetail(detailReqParams)
-
-	if err != nil {
-		var diags diag.Diagnostics
-		diags.AddError(
-			"GetCloudMongoDbDetailList",
-			fmt.Sprintf("error: %s, detailReqParams: %s", err.Error(), common.MarshalUncheckedString(detailReqParams)),
-		)
-		resp.Diagnostics.Append(diags...)
+	if output == nil {
+		resp.Diagnostics.AddError("READING ERROR", "no result. please change search criteria and try again.")
 		return
 	}
-	tflog.Info(ctx, "GetMongoDbDetailList response", map[string]any{
-		"mongodbDetailResponse": common.MarshalUncheckedString(mongodbDetailResp),
-	})
 
-	mongodbList, diags := flattenMongoDbs(ctx, mongodbDetailResp.CloudMongoDbInstanceList, m.config)
-	resp.Diagnostics.Append(diags...)
+	data.refreshFromOutput(ctx, output)
+
+	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
-
-	filteredList := common.FilterModels(ctx, data.Filters, mongodbList)
-
-	if err := verify.ValidateOneResult(len(filteredList)); err != nil {
-		var diags diag.Diagnostics
-		diags.AddError(
-			"GetMongodbList result validation",
-			err.Error(),
-		)
-		resp.Diagnostics.Append(diags...)
-		return
-	}
-
-	state := filteredList[0]
-	state.Filters = data.Filters
-
-	resp.Diagnostics.Append(resp.State.Set(ctx, &state)...)
-}
-
-func flattenMongoDbs(ctx context.Context, mongodbs []*vmongodb.CloudMongoDbInstance, config *conn.ProviderConfig) ([]*mongodbDataSourceModel, diag.Diagnostics) {
-	var outputs []*mongodbDataSourceModel
-
-	for _, m := range mongodbs {
-		var output mongodbDataSourceModel
-
-		diags := output.refreshFromOutput(ctx, m, config)
-		if diags.HasError() {
-			return nil, diags
-		}
-
-		outputs = append(outputs, &output)
-	}
-
-	return outputs, nil
 }
 
 type mongodbDataSourceModel struct {
-	ID                             types.String `tfsdk:"id"`
-	CloudMongoDbServiceName        types.String `tfsdk:"service_name"`
-	VpcNo                          types.String `tfsdk:"vpc_no"`
-	SubnetNo                       types.String `tfsdk:"subnet_no"`
-	ClusterType                    types.String `tfsdk:"cluster_type_code"`
-	EngineVersion                  types.String `tfsdk:"engine_version"`
-	CloudMongoDbImageProductCode   types.String `tfsdk:"image_product_code"`
-	BackupFileRetentionPeriod      types.Int64  `tfsdk:"backup_file_retention_period"`
-	BackupTime                     types.String `tfsdk:"backup_time"`
-	ShardCount                     types.Int64  `tfsdk:"shard_count"`
-	AccessControlGroupNoList       types.List   `tfsdk:"access_control_group_no_list"`
-	CloudMongoDbServerInstanceList types.List   `tfsdk:"server_instance_list"`
-	Filters                        types.Set    `tfsdk:"filter"`
+	ID                        types.String `tfsdk:"id"`
+	ServiceName               types.String `tfsdk:"service_name"`
+	VpcNo                     types.String `tfsdk:"vpc_no"`
+	SubnetNo                  types.String `tfsdk:"subnet_no"`
+	ClusterTypeCode           types.String `tfsdk:"cluster_type_code"`
+	EngineVersion             types.String `tfsdk:"engine_version"`
+	ImageProductCode          types.String `tfsdk:"image_product_code"`
+	BackupFileRetentionPeriod types.Int64  `tfsdk:"backup_file_retention_period"`
+	BackupTime                types.String `tfsdk:"backup_time"`
+	ShardCount                types.Int64  `tfsdk:"shard_count"`
+	DataStorageType           types.String `tfsdk:"data_storage_type"`
+	MemberPort                types.Int64  `tfsdk:"member_port"`
+	ArbiterPort               types.Int64  `tfsdk:"arbiter_port"`
+	MongosPort                types.Int64  `tfsdk:"mongos_port"`
+	ConfigPort                types.Int64  `tfsdk:"config_port"`
+	CompressCode              types.String `tfsdk:"compress_code"`
+	RegionCode                types.String `tfsdk:"region_code"`
+	ZoneCode                  types.String `tfsdk:"zone_code"`
+	AccessControlGroupNoList  types.List   `tfsdk:"access_control_group_no_list"`
+	MongoDbServerList         types.List   `tfsdk:"mongodb_server_list"`
 }
 
-type mongodbServer struct {
-	CloudMongoDbServerInstanceNo types.String `tfsdk:"server_instance_no"`
-	CloudMongoDbServerName       types.String `tfsdk:"server_name"`
-	ClusterRole                  types.String `tfsdk:"cluster_role"`
-	CloudMongoDbServerRole       types.String `tfsdk:"server_role"`
-	RegionCode                   types.String `tfsdk:"region_code"`
-	VpcNo                        types.String `tfsdk:"vpc_no"`
-	SubnetNo                     types.String `tfsdk:"subnet_no"`
-	Uptime                       types.String `tfsdk:"uptime"`
-	ZoneCode                     types.String `tfsdk:"zone_code"`
-	PrivateDomain                types.String `tfsdk:"private_domain"`
-	PublicDomain                 types.String `tfsdk:"public_domain"`
-	MemorySize                   types.Int64  `tfsdk:"memory_size"`
-	CpuCount                     types.Int64  `tfsdk:"cpu_count"`
-	DataStorageSize              types.Int64  `tfsdk:"data_storage_size"`
-	UsedDataStorageSize          types.Int64  `tfsdk:"used_data_storage_size"`
-	ProductCode                  types.String `tfsdk:"product_code"`
-	ReplicaSetName               types.String `tfsdk:"replica_set_name"`
-	DataStorageType              types.String `tfsdk:"data_storage_type"`
+type mongodbServerDataSourceModel struct {
+	ServerNo        types.String `tfsdk:"server_instance_no"`
+	ServerName      types.String `tfsdk:"server_name"`
+	ServerRole      types.String `tfsdk:"server_role"`
+	ClusterRole     types.String `tfsdk:"cluster_role"`
+	ProductCode     types.String `tfsdk:"product_code"`
+	PrivateDomain   types.String `tfsdk:"private_domain"`
+	PublicDomain    types.String `tfsdk:"public_domain"`
+	ReplicaSetName  types.String `tfsdk:"replica_set_name"`
+	MemorySize      types.Int64  `tfsdk:"memory_size"`
+	CpuCount        types.Int64  `tfsdk:"cpu_count"`
+	DataStorageSize types.Int64  `tfsdk:"data_storage_size"`
+	Uptime          types.String `tfsdk:"uptime"`
+	CreateDate      types.String `tfsdk:"create_date"`
 }
 
-func (m mongodbServer) attrTypes() map[string]attr.Type {
+func (m mongodbServerDataSourceModel) attrTypes() map[string]attr.Type {
 	return map[string]attr.Type{
-		"server_instance_no":     types.StringType,
-		"server_name":            types.StringType,
-		"cluster_role":           types.StringType,
-		"server_role":            types.StringType,
-		"region_code":            types.StringType,
-		"vpc_no":                 types.StringType,
-		"subnet_no":              types.StringType,
-		"uptime":                 types.StringType,
-		"zone_code":              types.StringType,
-		"private_domain":         types.StringType,
-		"public_domain":          types.StringType,
-		"memory_size":            types.Int64Type,
-		"cpu_count":              types.Int64Type,
-		"data_storage_size":      types.Int64Type,
-		"used_data_storage_size": types.Int64Type,
-		"product_code":           types.StringType,
-		"replica_set_name":       types.StringType,
-		"data_storage_type":      types.StringType,
+		"server_instance_no": types.StringType,
+		"server_name":        types.StringType,
+		"server_role":        types.StringType,
+		"cluster_role":       types.StringType,
+		"product_code":       types.StringType,
+		"private_domain":     types.StringType,
+		"public_domain":      types.StringType,
+		"replica_set_name":   types.StringType,
+		"memory_size":        types.Int64Type,
+		"cpu_count":          types.Int64Type,
+		"data_storage_size":  types.Int64Type,
+		"uptime":             types.StringType,
+		"create_date":        types.StringType,
 	}
 }
 
-func (d *mongodbDataSourceModel) refreshFromOutput(ctx context.Context, output *vmongodb.CloudMongoDbInstance, config *conn.ProviderConfig) diag.Diagnostics {
-	d.ID = types.StringPointerValue(output.CloudMongoDbInstanceNo)
-	d.VpcNo = types.StringPointerValue(output.CloudMongoDbServerInstanceList[0].VpcNo)
-	d.SubnetNo = types.StringPointerValue(output.CloudMongoDbServerInstanceList[0].SubnetNo)
-	d.CloudMongoDbServiceName = types.StringPointerValue(output.CloudMongoDbServiceName)
-	d.CloudMongoDbImageProductCode = types.StringPointerValue(output.CloudMongoDbImageProductCode)
-	d.BackupFileRetentionPeriod = int32PointerValue(output.BackupFileRetentionPeriod)
-	d.BackupTime = types.StringPointerValue(output.BackupTime)
+func (m *mongodbDataSourceModel) refreshFromOutput(ctx context.Context, output *vmongodb.CloudMongoDbInstance) {
+	m.ID = types.StringPointerValue(output.CloudMongoDbInstanceNo)
+	m.ServiceName = types.StringPointerValue(output.CloudMongoDbServiceName)
+	m.VpcNo = types.StringPointerValue(output.CloudMongoDbServerInstanceList[0].VpcNo)
+	m.SubnetNo = types.StringPointerValue(output.CloudMongoDbServerInstanceList[0].SubnetNo)
+	m.ClusterTypeCode = types.StringPointerValue(output.ClusterType.Code)
+	m.EngineVersion = types.StringPointerValue(output.EngineVersion)
+	m.ImageProductCode = types.StringPointerValue(output.CloudMongoDbImageProductCode)
+	m.BackupFileRetentionPeriod = int32PointerValue(output.BackupFileRetentionPeriod)
+	m.BackupTime = types.StringPointerValue(output.BackupTime)
+	m.ShardCount = int32PointerValue(output.ShardCount)
+	m.DataStorageType = types.StringPointerValue(output.CloudMongoDbServerInstanceList[0].DataStorageType.Code)
+	m.MemberPort = int32PointerValue(output.MemberPort)
+	m.ArbiterPort = int32PointerValue(output.ArbiterPort)
+	m.MongosPort = int32PointerValue(output.MongosPort)
+	m.ConfigPort = int32PointerValue(output.ConfigPort)
+	m.CompressCode = types.StringPointerValue(output.Compress.Code)
+	m.RegionCode = types.StringPointerValue(output.CloudMongoDbServerInstanceList[0].RegionCode)
+	m.ZoneCode = types.StringPointerValue(output.CloudMongoDbServerInstanceList[0].ZoneCode)
 
 	acgList, _ := types.ListValueFrom(ctx, types.StringType, output.AccessControlGroupNoList)
-	d.AccessControlGroupNoList = acgList
+	m.AccessControlGroupNoList = acgList
 
-	var serverList []mongodbServer
+	var serverList []mongodbServerDataSourceModel
 	for _, server := range output.CloudMongoDbServerInstanceList {
-		mongodbServerInstance := mongodbServer{
-			CloudMongoDbServerInstanceNo: types.StringPointerValue(server.CloudMongoDbServerInstanceNo),
-			CloudMongoDbServerName:       types.StringPointerValue(server.CloudMongoDbServerName),
-			ClusterRole:                  types.StringPointerValue(server.ClusterRole.Code),
-			CloudMongoDbServerRole:       types.StringPointerValue(server.CloudMongoDbServerRole.Code),
-			RegionCode:                   types.StringPointerValue(server.RegionCode),
-			VpcNo:                        types.StringPointerValue(server.VpcNo),
-			SubnetNo:                     types.StringPointerValue(server.SubnetNo),
-			Uptime:                       types.StringPointerValue(server.Uptime),
-			ZoneCode:                     types.StringPointerValue(server.ZoneCode),
-			PrivateDomain:                types.StringPointerValue(server.PrivateDomain),
-			PublicDomain:                 types.StringPointerValue(server.PublicDomain),
-			MemorySize:                   types.Int64Value(*server.MemorySize),
-			CpuCount:                     types.Int64Value(*server.CpuCount),
-			DataStorageSize:              types.Int64Value(*server.DataStorageSize),
-			ProductCode:                  types.StringPointerValue(server.CloudMongoDbProductCode),
-			ReplicaSetName:               types.StringPointerValue(server.ReplicaSetName),
-			DataStorageType:              types.StringPointerValue(server.DataStorageType.Code),
+		mongoServerInstance := mongodbServerDataSourceModel{
+			ServerNo:        types.StringPointerValue(server.CloudMongoDbServerInstanceNo),
+			ServerName:      types.StringPointerValue(server.CloudMongoDbServerName),
+			ServerRole:      types.StringPointerValue(server.CloudMongoDbServerRole.CodeName),
+			ClusterRole:     types.StringPointerValue(server.ClusterRole.Code),
+			ProductCode:     types.StringPointerValue(server.CloudMongoDbProductCode),
+			PrivateDomain:   types.StringPointerValue(server.PrivateDomain),
+			PublicDomain:    types.StringPointerValue(server.PublicDomain),
+			ReplicaSetName:  types.StringPointerValue(server.ReplicaSetName),
+			MemorySize:      types.Int64Value(*server.MemorySize),
+			CpuCount:        types.Int64Value(*server.CpuCount),
+			DataStorageSize: types.Int64Value(*server.DataStorageSize),
+			Uptime:          types.StringPointerValue(server.Uptime),
+			CreateDate:      types.StringPointerValue(server.CreateDate),
 		}
-
-		if server.UsedDataStorageSize != nil {
-			mongodbServerInstance.UsedDataStorageSize = types.Int64Value(*server.UsedDataStorageSize)
-		}
-
-		serverList = append(serverList, mongodbServerInstance)
+		serverList = append(serverList, mongoServerInstance)
 	}
 
-	mongodbServers, _ := types.ListValueFrom(ctx, types.ObjectType{AttrTypes: mongodbServer{}.attrTypes()}, serverList)
-	d.CloudMongoDbServerInstanceList = mongodbServers
+	mongoServers, _ := types.ListValueFrom(ctx, types.ObjectType{AttrTypes: mongodbServerDataSourceModel{}.attrTypes()}, serverList)
 
-	return nil
+	m.MongoDbServerList = mongoServers
+
 }
