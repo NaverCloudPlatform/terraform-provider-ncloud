@@ -7,54 +7,43 @@ subcategory: "MySQL"
 
 Get a list of MySQL image products.
 
+~> **NOTE:** This only supports VPC environment.
+
 ## Example Usage
 
-```hcl
-data "ncloud_mysql_image_products" "images_by_code" {
-  product_code = "SW.VDBAS.DBAAS.LNX64.CNTOS.0708.MYSQL.5732.B050"
-
+```terraform
+data "ncloud_mysql_image_products" "example" {
   output_file = "image.json"
 }
 
 output "image_list" {
   value = {
-    for image in data.ncloud_mysql_image_products.images.image_product_list:
+    for image in data.ncloud_mysql_image_products.example.image_product_list:
     image.product_name => image.product_code
   }
 }
 ```
 
-```hcl
-data "ncloud_mysql_image_products" "images_by_filter" {
+```terraform
+data "ncloud_mysql_image_products" "example" {
   filter {
     name = "product_code"
-    values = ["SW.VDBAS.DBAAS.LNX64.CNTOS.0708.MYSQL.5732.B050"]
-  }
-
-  output_file = "image.json"
-}
-
-output "image_list" {
-  value = {
-    for image in data.ncloud_mysql_image_products.images.image_product_list:
-    image.product_name => image.product_code
+    values = ["SW.VDBAS.DBAAS.LNX64.CNTOS.0708.MYSQL.8021.B050"]
   }
 }
 ```
 
 Outputs:
-```hcl
+```terraform
 image_list = {
-  "mysql(5.7.32)": "SW.VDBAS.DBAAS.LNX64.CNTOS.0708.MYSQL.5732.B050",
+  "mysql(8.0.21)": "SW.VDBAS.DBAAS.LNX64.CNTOS.0708.MYSQL.8021.B050",
 }
 ```
+
 ## Argument Reference
 
 The following arguments are supported:
 
-* `product_code` - (Optional) Product code you want to view on the list. Use this for a single search.
-* `exclusion_product_code` - (Optional) Product code you want to exclude on the list.
-* `generation_code` - (Optional) Generation code. The available values are as follows: G2 | G3
 * `output_file` - (Optional) The name of file that can save data source after running `terraform plan`.
 * `filter` - (Optional) Custom filter block as described below.
   * `name` - (Required) The name of the field to filter by
@@ -63,18 +52,12 @@ The following arguments are supported:
 
 ## Attributes Reference
 
-* `id` - The ID of MySQL image product. (ID is UTC time when data source was created)
+This data source exports the following attributes in addition to the arguments above:
+
 * `image_product_list` - List of MySQL image product.
-
-### MySQL Image Product Reference
-
-`image_product_list` are also exported with the following attributes, when there are relevant: Each element supports the following:
-
-* `product_code` - The ID of MySQL image product.
-* `generation_code` - Generation code. (Only `G2` or `G3`)
-* `product_name` - Product name.
-* `product_type` - Product type code.
-* `infra_resource_type` - Infra resource type code.
-* `product_description` - Product description.
-* `platform_type` - Platform type code.
-* `os_information` - OS Information.
+  * `product_code` - The ID of MySQL image product.
+  * `generation_code` - Generation code. (Only `G2` or `G3`)
+  * `product_name` - Product name.
+  * `product_type` - Product type code.
+  * `platform_type` - Platform type code.
+  * `os_information` - OS Information.

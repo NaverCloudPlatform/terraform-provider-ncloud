@@ -7,20 +7,20 @@ subcategory: "MySQL"
 
 Get a list of MySQL products.
 
+~> **NOTE:** This only supports VPC environment.
+
 ## Example Usage
 
-```hcl
+```terraform
 data "ncloud_mysql_products" "all" {
-  cloud_mysql_image_product_code = "SW.VDBAS.DBAAS.LNX64.CNTOS.0708.MYSQL.5732.B050"
-  product_code = "SVR.VDBAS.STAND.C002.M008.NET.HDD.B050.G002"
-  exclusion_product_code = "SVR.VDBAS.HICPU.C004.M008.NET.HDD.B050.G002"
+  image_product_code = "SW.VDBAS.DBAAS.LNX64.CNTOS.0708.MYSQL.8025.B050"
 
   filter {
     name   = "product_type"
     values = ["STAND"]
   }
 
-  output_file = "image.json"
+  output_file = "products.json"
 }
 
 output "product_list" {
@@ -32,7 +32,7 @@ output "product_list" {
 ```
 
 Outputs:
-```hcl
+```terraform
 list_image = {
   "vCPU 2EA, Memory 8GB" = "SVR.VDBAS.STAND.C002.M008.NET.HDD.B050.G002"
 }
@@ -42,9 +42,7 @@ list_image = {
 
 The following arguments are supported:
 
-* `cloud_mysql_image_product_code` - (Required) You can get one from `data ncloud_mysql_image_product`. This is a required value, and each available MySQL's specification varies depending on the MySQL image product.
-* `product_code` - (Optional) Product code you want to view on the list. Use this for a single search.
-* `exclusion_product_code` - (Optional) Product code you want to exclude on the list.
+* `image_product_code` - (Required) You can get one from `data.ncloud_mysql_image_products`. This is a required value, and each available MySQL's specification varies depending on the MySQL image product.
 * `output_file` - (Optional) The name of file that can save data source after running `terraform plan`.
 * `filter` - (Optional) Custom filter block as described below.
   * `name` - (Required) The name of the field to filter by
@@ -53,18 +51,14 @@ The following arguments are supported:
 
 ## Attributes Reference
 
-* `id` - The ID of MySQL product. (ID is UTC time when data source was created)
+This data source exports the following attributes in addition to the arguments above:
+
 * `product_list` - List of MySQL product.
-
-### MySQL Product Reference
-
-`product_list` are also exported with the following attributes, when there are relevant: Each element supports the following:
-
-* `product_name` - Product name.
-* `product_code` - Product code.
-* `product_type` - Product type code.
-* `product_description` - Product description.
-* `infra_resource_type` - Infra resource type code.
-* `cpu_count` - CPU count.
-* `memory_size` - Memory size.
-* `disk_type` - Disk type.
+  * `product_name` - Product name.
+  * `product_code` - Product code.
+  * `product_type` - Product type code.
+  * `product_description` - Product description.
+  * `infra_resource_type` - Infra resource type code.
+  * `cpu_count` - CPU count.
+  * `memory_size` - Memory size.
+  * `disk_type` - Disk type.
