@@ -67,7 +67,6 @@ In addition to all arguments above, the following attributes are exported
 * `id` - MySQL Instance Number.
 * `engine_version_code` - MySQL Engine version code.
 * `region_code` - Region code.
-* `zone_code` - Zone code.
 * `vpc_no` - The ID of the associated Vpc.
 * `access_control_group_no_list` - The ID list of the associated Access Control Group.
 * `mysql_config_list` - The list of config.
@@ -75,6 +74,8 @@ In addition to all arguments above, the following attributes are exported
   * `server_instance_no` - Server instance number.
   * `server_name` - Server name.
   * `server_role` - Member or Arbiter or Mongos or Config.
+  * `zone_code` - Zone code.
+  * `subnet_no` - The ID of the associated Subnet.
   * `product_code` - Product code.
   * `is_public_subnet` - Public subnet status.
   * `private_domain` - Private domain.

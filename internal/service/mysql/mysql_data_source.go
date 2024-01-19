@@ -55,16 +55,10 @@ func (m *mysqlDataSource) Schema(ctx context.Context, req datasource.SchemaReque
 					),
 				},
 			},
-			"vpc_no": schema.StringAttribute{
-				Computed: true,
-			},
-			"subnet_no": schema.StringAttribute{
-				Computed: true,
-			},
 			"region_code": schema.StringAttribute{
 				Computed: true,
 			},
-			"zone_code": schema.StringAttribute{
+			"vpc_no": schema.StringAttribute{
 				Computed: true,
 			},
 			"image_product_code": schema.StringAttribute{
@@ -116,6 +110,12 @@ func (m *mysqlDataSource) Schema(ctx context.Context, req datasource.SchemaReque
 							Computed: true,
 						},
 						"server_role": schema.StringAttribute{
+							Computed: true,
+						},
+						"zone_code": schema.StringAttribute{
+							Computed: true,
+						},
+						"subnet_no": schema.StringAttribute{
 							Computed: true,
 						},
 						"product_code": schema.StringAttribute{
@@ -248,9 +248,7 @@ type mysqlDataSourceModel struct {
 	Port                      types.Int64  `tfsdk:"port"`
 	EngineVersionCode         types.String `tfsdk:"engine_version_code"`
 	RegionCode                types.String `tfsdk:"region_code"`
-	ZoneCode                  types.String `tfsdk:"zone_code"`
 	VpcNo                     types.String `tfsdk:"vpc_no"`
-	SubnetNo                  types.String `tfsdk:"subnet_no"`
 	AccessControlGroupNoList  types.List   `tfsdk:"access_control_group_no_list"`
 	MysqlConfigList           types.List   `tfsdk:"mysql_config_list"`
 	MysqlServerList           types.List   `tfsdk:"mysql_server_list"`
@@ -260,6 +258,8 @@ type mysqlServerDataSourceModel struct {
 	ServerInstanceNo    types.String `tfsdk:"server_instance_no"`
 	ServerName          types.String `tfsdk:"server_name"`
 	ServerRole          types.String `tfsdk:"server_role"`
+	ZoneCode            types.String `tfsdk:"zone_code"`
+	SubnetNo            types.String `tfsdk:"subnet_no"`
 	ProductCode         types.String `tfsdk:"product_code"`
 	IsPublicSubnet      types.Bool   `tfsdk:"is_public_subnet"`
 	PublicDomain        types.String `tfsdk:"public_domain"`
@@ -277,6 +277,8 @@ func (m mysqlServerDataSourceModel) attrTypes() map[string]attr.Type {
 		"server_instance_no":     types.StringType,
 		"server_name":            types.StringType,
 		"server_role":            types.StringType,
+		"zone_code":              types.StringType,
+		"subnet_no":              types.StringType,
 		"product_code":           types.StringType,
 		"is_public_subnet":       types.BoolType,
 		"public_domain":          types.StringType,
@@ -293,7 +295,6 @@ func (m mysqlServerDataSourceModel) attrTypes() map[string]attr.Type {
 func (m *mysqlDataSourceModel) refreshFromOutput(ctx context.Context, output *vmysql.CloudMysqlInstance) {
 	m.ID = types.StringPointerValue(output.CloudMysqlInstanceNo)
 	m.ServiceName = types.StringPointerValue(output.CloudMysqlServiceName)
-
 	m.ImageProductCode = types.StringPointerValue(output.CloudMysqlImageProductCode)
 	m.DataStorageTypeCode = types.StringPointerValue(output.CloudMysqlServerInstanceList[0].DataStorageType.Code)
 	m.IsHa = types.BoolPointerValue(output.IsHa)
@@ -304,10 +305,8 @@ func (m *mysqlDataSourceModel) refreshFromOutput(ctx context.Context, output *vm
 	m.BackupTime = types.StringPointerValue(output.BackupTime)
 	m.Port = types.Int64Value(int64(*output.CloudMysqlPort))
 	m.EngineVersionCode = types.StringPointerValue(output.EngineVersion)
-	m.VpcNo = types.StringPointerValue(output.CloudMysqlServerInstanceList[0].VpcNo)
-	m.SubnetNo = types.StringPointerValue(output.CloudMysqlServerInstanceList[0].SubnetNo)
 	m.RegionCode = types.StringPointerValue(output.CloudMysqlServerInstanceList[0].RegionCode)
-	m.ZoneCode = types.StringPointerValue(output.CloudMysqlServerInstanceList[0].ZoneCode)
+	m.VpcNo = types.StringPointerValue(output.CloudMysqlServerInstanceList[0].VpcNo)
 
 	acgList, _ := types.ListValueFrom(ctx, types.StringType, output.AccessControlGroupNoList)
 	configList, _ := types.ListValueFrom(ctx, types.StringType, output.CloudMysqlConfigList)
@@ -320,6 +319,8 @@ func (m *mysqlDataSourceModel) refreshFromOutput(ctx context.Context, output *vm
 			ServerInstanceNo: types.StringPointerValue(server.CloudMysqlServerInstanceNo),
 			ServerName:       types.StringPointerValue(server.CloudMysqlServerName),
 			ServerRole:       types.StringPointerValue(server.CloudMysqlServerRole.Code),
+			ZoneCode:         types.StringPointerValue(server.ZoneCode),
+			SubnetNo:         types.StringPointerValue(server.SubnetNo),
 			ProductCode:      types.StringPointerValue(server.CloudMysqlProductCode),
 			IsPublicSubnet:   types.BoolPointerValue(server.IsPublicSubnet),
 			PrivateDomain:    types.StringPointerValue(server.PrivateDomain),

@@ -18,7 +18,7 @@ data "ncloud_mysql" "by_id" {
   id = 1234567
 }
 
-data "ncloud_mysql" "by_filter" {
+data "ncloud_mysql" "by_name" {
   service_name = "example"
 }
 ```
@@ -34,10 +34,8 @@ The following arguments are required:
 
 This data source exports the following attributes in addition to the arguments above:
 
-* `vpc_no` - The ID of the associated VPC. 
-* `subnet_no` - The ID of the associated Subnet.
 * `region_code` - Region code.
-* `zone_code` - Zone code.
+* `vpc_no` - The ID of the associated VPC. 
 * `image_product_code` - The image product code of the MySQL instance.
 * `data_storage_type` - The type of data storage.
 * `is_ha` - Whether using high availability of the specific MySQL.
@@ -54,6 +52,8 @@ This data source exports the following attributes in addition to the arguments a
   * `server_instance_no` - Server instance number.
   * `server_name` - Name of the server.
   * `server_role` - Server role.
+  * `zone_code` - Zone code.
+  * `subnet_no` - The ID of the associated Subnet.
   * `product_code` - Product code.
   * `is_public_subnet` - Public subnet status.
   * `private_domain` - Name of the private domain.
@@ -63,4 +63,4 @@ This data source exports the following attributes in addition to the arguments a
   * `data_storage_size` - Data storage size.
   * `used_data_storage_size` - Size of data storage in use.
   * `uptime` - Running start time.
-  * `create_date` - Server create data.
+  * `create_date` - Server create date.
