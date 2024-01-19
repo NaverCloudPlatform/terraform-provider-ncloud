@@ -4,16 +4,16 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"time"
+
 	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/services/vmysql"
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
-	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 	"github.com/terraform-providers/terraform-provider-ncloud/internal/common"
 	"github.com/terraform-providers/terraform-provider-ncloud/internal/conn"
-	"time"
 )
 
 var (
@@ -29,47 +29,24 @@ type mysqlProductsDataSource struct {
 	config *conn.ProviderConfig
 }
 
-func (m *mysqlProductsDataSource) Configure(_ context.Context, req datasource.ConfigureRequest, resp *datasource.ConfigureResponse) {
-	if req.ProviderData == nil {
-		return
-	}
-
-	config, ok := req.ProviderData.(*conn.ProviderConfig)
-
-	if !ok {
-		resp.Diagnostics.AddError(
-			"Unexpected Data Source Configure Type",
-			fmt.Sprintf("Expected *ProviderConfig, got: %T. Please report this issue to the provider developers.", req.ProviderData),
-		)
-		return
-	}
-
-	m.config = config
-}
-
 func (m *mysqlProductsDataSource) Metadata(_ context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
 	resp.TypeName = req.ProviderTypeName + "_mysql_products"
 }
 
-func (m *mysqlProductsDataSource) Schema(_ context.Context, _ datasource.SchemaRequest, resp *datasource.SchemaResponse) {
+func (m *mysqlProductsDataSource) Schema(ctx context.Context, req datasource.SchemaRequest, resp *datasource.SchemaResponse) {
 	resp.Schema = schema.Schema{
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
 				Computed: true,
 			},
-			"cloud_mysql_image_product_code": schema.StringAttribute{
+			"image_product_code": schema.StringAttribute{
 				Required: true,
-			},
-			"product_code": schema.StringAttribute{
-				Optional: true,
-			},
-			"exclusion_product_code": schema.StringAttribute{
-				Optional: true,
 			},
 			"output_file": schema.StringAttribute{
 				Optional: true,
 			},
 			"product_list": schema.ListNestedAttribute{
+				Computed: true,
 				NestedObject: schema.NestedAttributeObject{
 					Attributes: map[string]schema.Attribute{
 						"product_code": schema.StringAttribute{
@@ -98,18 +75,43 @@ func (m *mysqlProductsDataSource) Schema(_ context.Context, _ datasource.SchemaR
 						},
 					},
 				},
-				Computed: true,
 			},
 		},
-
 		Blocks: map[string]schema.Block{
 			"filter": common.DataSourceFiltersBlock(),
 		},
 	}
 }
 
+func (m *mysqlProductsDataSource) Configure(_ context.Context, req datasource.ConfigureRequest, resp *datasource.ConfigureResponse) {
+	if req.ProviderData == nil {
+		return
+	}
+
+	config, ok := req.ProviderData.(*conn.ProviderConfig)
+
+	if !ok {
+		resp.Diagnostics.AddError(
+			"Unexpected Data Source Configure Type",
+			fmt.Sprintf("Expected *ProviderConfig, got: %T. Please report this issue to the provider developers.", req.ProviderData),
+		)
+		return
+	}
+
+	m.config = config
+}
+
 func (m *mysqlProductsDataSource) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
 	var data mysqlProductList
+
+	if !m.config.SupportVPC {
+		resp.Diagnostics.AddError(
+			"NOT SUPPORT CLASSIC",
+			"does not support CLASSIC. only VPC.",
+		)
+		return
+	}
+
 	resp.Diagnostics.Append(req.Config.Get(ctx, &data)...)
 	if resp.Diagnostics.HasError() {
 		return
@@ -119,33 +121,19 @@ func (m *mysqlProductsDataSource) Read(ctx context.Context, req datasource.ReadR
 		RegionCode:                 &m.config.RegionCode,
 		CloudMysqlImageProductCode: data.CloudMysqlImageProductCode.ValueStringPointer(),
 	}
-
-	if !data.ProductCode.IsNull() && !data.ProductCode.IsUnknown() {
-		reqParams.ProductCode = data.ProductCode.ValueStringPointer()
-	}
-
-	if !data.ExclusionProductCode.IsNull() && !data.ExclusionProductCode.IsUnknown() {
-		reqParams.ExclusionProductCode = data.ExclusionProductCode.ValueStringPointer()
-	}
-
-	tflog.Info(ctx, "GetMysqlProductsList", map[string]any{
-		"reqParams": common.MarshalUncheckedString(reqParams),
-	})
+	tflog.Info(ctx, "GetMysqlProductsList reqParams="+common.MarshalUncheckedString(reqParams))
 
 	mysqlProductResp, err := m.config.Client.Vmysql.V2Api.GetCloudMysqlProductList(reqParams)
 	if err != nil {
-		var diags diag.Diagnostics
-		diags.AddError(
-			"GetMysqlProductList",
-			fmt.Sprintf("error: %s, reqParams: %s", err.Error(), common.MarshalUncheckedString(reqParams)),
-		)
-		resp.Diagnostics.Append(diags...)
+		resp.Diagnostics.AddError("READING ERROR", err.Error())
 		return
 	}
+	tflog.Info(ctx, "GetMysqlProductsList response="+common.MarshalUncheckedString(mysqlProductResp))
 
-	tflog.Info(ctx, "GetMysqlProductList response", map[string]any{
-		"mysqlProductResponse": common.MarshalUncheckedString(mysqlProductResp),
-	})
+	if mysqlProductResp == nil || len(mysqlProductResp.ProductList) < 1 {
+		resp.Diagnostics.AddError("READING ERROR", "no result.")
+		return
+	}
 
 	mysqlProductList := flattenMysqlProduct(mysqlProductResp.ProductList)
 	fillteredList := common.FilterModels(ctx, data.Filters, mysqlProductList)
@@ -154,20 +142,11 @@ func (m *mysqlProductsDataSource) Read(ctx context.Context, req datasource.ReadR
 
 	if !data.OutputFile.IsNull() && data.OutputFile.String() != "" {
 		outputPath := data.OutputFile.ValueString()
+
 		if convertedList, err := convertProductsToJsonStruct(data.ProductList.Elements()); err != nil {
-			var diags diag.Diagnostics
-			diags.AddError(
-				"WriteMysqlProductsToFile",
-				fmt.Sprintf("error: %s", err.Error()),
-			)
-			resp.Diagnostics.Append(diags...)
+			resp.Diagnostics.AddError("OUTPUT FILE ERROR", err.Error())
 		} else if err := common.WriteToFile(outputPath, convertedList); err != nil {
-			var diags diag.Diagnostics
-			diags.AddError(
-				"WriteToFile",
-				fmt.Sprintf("error: %s", err.Error()),
-			)
-			resp.Diagnostics.Append(diags...)
+			resp.Diagnostics.AddError("OUTPUT FILE ERROR", err.Error())
 		}
 	}
 
@@ -208,9 +187,7 @@ func (m *mysqlProductList) refreshFromOutput(ctx context.Context, list []*mysqlP
 
 type mysqlProductList struct {
 	ID                         types.String `tfsdk:"id"`
-	CloudMysqlImageProductCode types.String `tfsdk:"cloud_mysql_image_product_code"`
-	ProductCode                types.String `tfsdk:"product_code"`
-	ExclusionProductCode       types.String `tfsdk:"exclusion_product_code"`
+	CloudMysqlImageProductCode types.String `tfsdk:"image_product_code"`
 	ProductList                types.List   `tfsdk:"product_list"`
 	OutputFile                 types.String `tfsdk:"output_file"`
 	Filters                    types.Set    `tfsdk:"filter"`
