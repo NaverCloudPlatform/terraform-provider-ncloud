@@ -9,30 +9,29 @@ import (
 )
 
 func TestAccDataSourceNcloudMysqlImageProducts_basic(t *testing.T) {
-	productCode := "SW.VDBAS.DBAAS.LNX64.CNTOS.0708.MYSQL.5732.B050"
+	productType := "LINUX"
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { acctest.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: acctest.ProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccDataSourceNcloudMysqlImageProductsConfig_basic(productCode),
+				Config: testAccDataSourceNcloudMysqlImageProductsConfig_basic(productType),
 				Check: resource.ComposeTestCheckFunc(
-					acctest.TestAccCheckDataSourceID("data.ncloud_mysql_image_products.all"),
+					resource.TestCheckResourceAttr("data.ncloud_mysql_image_products.all", "image_product_list.0.product_type", productType),
 				),
 			},
 		},
 	})
 }
 
-func testAccDataSourceNcloudMysqlImageProductsConfig_basic(imageProductCode string) string {
+func testAccDataSourceNcloudMysqlImageProductsConfig_basic(productType string) string {
 	return fmt.Sprintf(`
 data "ncloud_mysql_image_products" "all" {
-	product_code = "%s"
 	filter {
-			name = "product_code"
+			name = "product_type"
 			values = ["%s"]
 	}
 }
-`, imageProductCode, imageProductCode)
+`, productType)
 }
