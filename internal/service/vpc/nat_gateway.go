@@ -12,7 +12,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
-	sdkresource "github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
 	"github.com/terraform-providers/terraform-provider-ncloud/internal/framework"
 
 	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/ncloud"
@@ -118,6 +118,7 @@ func (n *natGatewayResource) Schema(_ context.Context, _ resource.SchemaRequest,
 		},
 	}
 }
+
 func (n *natGatewayResource) Configure(_ context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
 	if req.ProviderData == nil {
 		return
@@ -138,17 +139,17 @@ func (n *natGatewayResource) Configure(_ context.Context, req resource.Configure
 
 func (n *natGatewayResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
 	var plan natGatewayResourceModel
-	diags := req.Plan.Get(ctx, &plan)
-	resp.Diagnostics.Append(diags...)
-	if resp.Diagnostics.HasError() {
-		return
-	}
 
 	if !n.config.SupportVPC {
 		resp.Diagnostics.AddError(
-			"Not support classic",
-			fmt.Sprintf("resource %s does not support classic", req.Config.Schema.Type().String()),
+			"NOT SUPPORT CLASSIC",
+			"resource does not support CLASSIC. only VPC.",
 		)
+		return
+	}
+
+	resp.Diagnostics.Append(req.Plan.Get(ctx, &plan)...)
+	if resp.Diagnostics.HasError() {
 		return
 	}
 
@@ -171,50 +172,40 @@ func (n *natGatewayResource) Create(ctx context.Context, req resource.CreateRequ
 		reqParams.PrivateIp = plan.PrivateIp.ValueStringPointer()
 	}
 
-	tflog.Info(ctx, "CreateNatGateway", map[string]any{
-		"reqParams": common.MarshalUncheckedString(reqParams),
-	})
+	tflog.Info(ctx, "CreateNatGateway reqParams="+common.MarshalUncheckedString(reqParams))
 
 	response, err := n.config.Client.Vpc.V2Api.CreateNatGatewayInstance(reqParams)
 	if err != nil {
-		resp.Diagnostics.AddError(
-			fmt.Sprintf("Create NatGateway Instance, err params=%v", *reqParams),
-			err.Error(),
-		)
+		resp.Diagnostics.AddError("CREATING ERROR", err.Error())
 		return
 	}
-	tflog.Info(ctx, "CreateNatGateway response", map[string]any{
-		"createNatGatewayResponse": common.MarshalUncheckedString(response),
-	})
+	tflog.Info(ctx, "CreateNatGateway response="+common.MarshalUncheckedString(response))
 
 	natGatewayInstance := response.NatGatewayInstanceList[0]
 	plan.ID = types.StringPointerValue(natGatewayInstance.NatGatewayInstanceNo)
-	tflog.Info(ctx, "NAT GATEWAY ID", map[string]any{"natGatewayNo": *natGatewayInstance.NatGatewayInstanceNo})
 
-	output, err := waitForNcloudNatGatewayCreation(n.config, *natGatewayInstance.NatGatewayInstanceNo)
+	output, err := waitForNcloudNatGatewayCreation(ctx, n.config, *natGatewayInstance.NatGatewayInstanceNo)
 	if err != nil {
-		resp.Diagnostics.AddError("waiting for Nat Gateway creation", err.Error())
+		resp.Diagnostics.AddError("WAITING FOR CREATION ERROR", err.Error())
 		return
 	}
 
-	if err := plan.refreshFromOutput(output); err != nil {
-		resp.Diagnostics.AddError("refreshing nat gateway details", err.Error())
-	}
+	plan.refreshFromOutput(output)
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, plan)...)
 }
 
 func (n *natGatewayResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
 	var state natGatewayResourceModel
-	diags := req.State.Get(ctx, &state)
-	resp.Diagnostics.Append(diags...)
+
+	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
-	output, err := GetNatGatewayInstance(n.config, state.ID.ValueString())
+	output, err := GetNatGatewayInstance(ctx, n.config, state.ID.ValueString())
 	if err != nil {
-		resp.Diagnostics.AddError("GetNatGateway", err.Error())
+		resp.Diagnostics.AddError("READING ERROR", err.Error())
 		return
 	}
 
@@ -223,12 +214,9 @@ func (n *natGatewayResource) Read(ctx context.Context, req resource.ReadRequest,
 		return
 	}
 
-	if err := state.refreshFromOutput(output); err != nil {
-		resp.Diagnostics.AddError("refreshing nat gateway details", err.Error())
-	}
+	state.refreshFromOutput(output)
 
-	diags = resp.State.Set(ctx, &state)
-	resp.Diagnostics.Append(diags...)
+	resp.Diagnostics.Append(resp.State.Set(ctx, &state)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
@@ -245,48 +233,36 @@ func (n *natGatewayResource) Update(ctx context.Context, req resource.UpdateRequ
 	}
 
 	if !plan.Description.Equal(state.Description) {
-
 		reqParams := &vpc.SetNatGatewayDescriptionRequest{
 			RegionCode:            &n.config.RegionCode,
 			NatGatewayInstanceNo:  state.NatGatewayNo.ValueStringPointer(),
 			NatGatewayDescription: plan.Description.ValueStringPointer(),
 		}
-
-		tflog.Info(ctx, "SetNatGateway", map[string]any{
-			"reqParams": common.MarshalUncheckedString(reqParams),
-		})
+		tflog.Info(ctx, "SetNatGatewayDescription reqParams="+common.MarshalUncheckedString(reqParams))
 
 		response, err := n.config.Client.Vpc.V2Api.SetNatGatewayDescription(reqParams)
-
 		if err != nil {
-			resp.Diagnostics.AddError(
-				fmt.Sprintf("SetNatGateway params=%v", *reqParams),
-				err.Error(),
-			)
+			resp.Diagnostics.AddError("UPDATE ERROR", err.Error())
+			return
+		}
+		tflog.Info(ctx, "SetNatGatewayDescription response="+common.MarshalUncheckedString(response))
+
+		output, err := GetNatGatewayInstance(ctx, n.config, state.ID.ValueString())
+		if err != nil {
+			resp.Diagnostics.AddError("UPDATE ERROR", err.Error())
 			return
 		}
 
-		tflog.Info(ctx, "SetNatGateway", map[string]any{
-			"updateNatGatewayResponse": common.MarshalUncheckedString(response),
-		})
-
-		output, err := GetNatGatewayInstance(n.config, state.ID.ValueString())
-		if err != nil {
-			resp.Diagnostics.AddError("GetNatGateway", err.Error())
-			return
-		}
-
-		if err := state.refreshFromOutput(output); err != nil {
-			resp.Diagnostics.AddError("refreshing nat gateway details", err.Error())
-		}
+		state.refreshFromOutput(output)
 	}
+
 	resp.Diagnostics.Append(resp.State.Set(ctx, state)...)
 }
 
 func (n *natGatewayResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
 	var state natGatewayResourceModel
-	diags := req.State.Get(ctx, &state)
-	resp.Diagnostics.Append(diags...)
+
+	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
@@ -295,37 +271,27 @@ func (n *natGatewayResource) Delete(ctx context.Context, req resource.DeleteRequ
 		RegionCode:           &n.config.RegionCode,
 		NatGatewayInstanceNo: state.NatGatewayNo.ValueStringPointer(),
 	}
+	tflog.Info(ctx, "DeleteNatGateway reqParams="+common.MarshalUncheckedString(reqParams))
 
-	tflog.Info(ctx, "DeleteNatGateway", map[string]any{
-		"reqParams": common.MarshalUncheckedString(reqParams),
-	})
 	response, err := n.config.Client.Vpc.V2Api.DeleteNatGatewayInstance(reqParams)
 	if err != nil {
-		resp.Diagnostics.AddError(
-			fmt.Sprintf("DeleteNatGateway NatGateway Instance params=%v", *reqParams),
-			err.Error(),
-		)
+		resp.Diagnostics.AddError("DELETING ERROR", err.Error())
 		return
 	}
-	tflog.Info(ctx, "DeleteNatGateway response", map[string]any{
-		"deleteNatGatewayResponse": common.MarshalUncheckedString(response),
-	})
+	tflog.Info(ctx, "DeleteNatGateway response="+common.MarshalUncheckedString(response))
 
-	if err := WaitForNcloudNatGatewayDeletion(n.config, state.ID.ValueString()); err != nil {
-		resp.Diagnostics.AddError(
-			"fail to wait for nat gateway deletion",
-			err.Error(),
-		)
+	if err := WaitForNcloudNatGatewayDeletion(ctx, n.config, state.ID.ValueString()); err != nil {
+		resp.Diagnostics.AddError("WAITING FOR DELETE ERROR", err.Error())
 	}
 }
 
-func waitForNcloudNatGatewayCreation(config *conn.ProviderConfig, id string) (*vpc.NatGatewayInstance, error) {
+func waitForNcloudNatGatewayCreation(ctx context.Context, config *conn.ProviderConfig, id string) (*vpc.NatGatewayInstance, error) {
 	var natGatewayInstance *vpc.NatGatewayInstance
-	stateConf := &sdkresource.StateChangeConf{
+	stateConf := &retry.StateChangeConf{
 		Pending: []string{"INIT", "CREATING"},
 		Target:  []string{"RUN"},
 		Refresh: func() (interface{}, string, error) {
-			instance, err := GetNatGatewayInstance(config, id)
+			instance, err := GetNatGatewayInstance(ctx, config, id)
 			natGatewayInstance = instance
 			return VpcCommonStateRefreshFunc(instance, err, "NatGatewayInstanceStatus")
 		},
@@ -341,12 +307,12 @@ func waitForNcloudNatGatewayCreation(config *conn.ProviderConfig, id string) (*v
 	return natGatewayInstance, nil
 }
 
-func WaitForNcloudNatGatewayDeletion(config *conn.ProviderConfig, id string) error {
-	stateConf := &sdkresource.StateChangeConf{
+func WaitForNcloudNatGatewayDeletion(ctx context.Context, config *conn.ProviderConfig, id string) error {
+	stateConf := &retry.StateChangeConf{
 		Pending: []string{"RUN", "TERMTING"},
 		Target:  []string{"TERMINATED"},
 		Refresh: func() (interface{}, string, error) {
-			instance, err := GetNatGatewayInstance(config, id)
+			instance, err := GetNatGatewayInstance(ctx, config, id)
 			return VpcCommonStateRefreshFunc(instance, err, "NatGatewayInstanceStatus")
 		},
 		Timeout:    conn.DefaultTimeout,
@@ -361,26 +327,25 @@ func WaitForNcloudNatGatewayDeletion(config *conn.ProviderConfig, id string) err
 	return nil
 }
 
-func GetNatGatewayInstance(config *conn.ProviderConfig, id string) (*vpc.NatGatewayInstance, error) {
+func GetNatGatewayInstance(ctx context.Context, config *conn.ProviderConfig, id string) (*vpc.NatGatewayInstance, error) {
 	reqParams := &vpc.GetNatGatewayInstanceDetailRequest{
 		RegionCode:           &config.RegionCode,
 		NatGatewayInstanceNo: ncloud.String(id),
 	}
+	tflog.Info(ctx, "GetNatGatewayInstanceDetail reqParams="+common.MarshalUncheckedString(reqParams))
 
-	common.LogCommonRequest("GetNatGatewayInstanceDetail", reqParams)
 	resp, err := config.Client.Vpc.V2Api.GetNatGatewayInstanceDetail(reqParams)
 	if err != nil {
 		common.LogErrorResponse("GetNatGatewayInstanceDetail", err, reqParams)
 		return nil, err
 	}
-	common.LogResponse("GetNatGatewayInstanceDetail", resp)
+	tflog.Info(ctx, "GetNatGatewayInstanceDetail response="+common.MarshalUncheckedString(resp))
 
-	if len(resp.NatGatewayInstanceList) > 0 {
-		instance := resp.NatGatewayInstanceList[0]
-		return instance, nil
+	if resp == nil || len(resp.NatGatewayInstanceList) < 1 {
+		return nil, nil
 	}
 
-	return nil, nil
+	return resp.NatGatewayInstanceList[0], nil
 }
 
 type natGatewayResourceModel struct {
@@ -397,7 +362,7 @@ type natGatewayResourceModel struct {
 	SubnetName   types.String `tfsdk:"subnet_name"`
 }
 
-func (m *natGatewayResourceModel) refreshFromOutput(output *vpc.NatGatewayInstance) error {
+func (m *natGatewayResourceModel) refreshFromOutput(output *vpc.NatGatewayInstance) {
 	m.ID = types.StringPointerValue(output.NatGatewayInstanceNo)
 	m.NatGatewayNo = types.StringPointerValue(output.NatGatewayInstanceNo)
 	m.Name = types.StringPointerValue(output.NatGatewayName)
@@ -409,6 +374,4 @@ func (m *natGatewayResourceModel) refreshFromOutput(output *vpc.NatGatewayInstan
 	m.PublicIpNo = types.StringPointerValue(output.PublicIpInstanceNo)
 	m.PublicIp = types.StringPointerValue(output.PublicIp)
 	m.SubnetName = types.StringPointerValue(output.SubnetName)
-
-	return nil
 }
