@@ -12,8 +12,12 @@ Provides information about a Redis.
 ## Example Usage
 
 ```terraform
-data "ncloud_redis" "example" {
+data "ncloud_redis" "example-id" {
   id = 1234567
+}
+
+data "ncloud_redis" "example-name" {
+  service_name = "example" 
 }
 ```
 
@@ -21,13 +25,13 @@ data "ncloud_redis" "example" {
 
 The following arguments are required:
 
-* `id` - (Required) Redis instance number.
+* `id` - (Required) Redis instance number. Either `id` or `service_name` must be provided.
+* `service_name` - (Required) Redis service name. Either `id` or `service_name` must be provided.
 
 ## Attribute Reference
 
 This data source exports the following attributes in addition to the arguments above:
 
-* `service_name` - Name of the Redis Service.
 * `server_name_prefix` - Prefix name of the Redis Server.
 * `vpc_no` - VPC number.
 * `subnet_no` - Number of the associated Subnet.
