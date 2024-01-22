@@ -157,18 +157,24 @@ func (n *natGatewayResource) Create(ctx context.Context, req resource.CreateRequ
 		RegionCode: &n.config.RegionCode,
 		VpcNo:      plan.VpcNo.ValueStringPointer(),
 		ZoneCode:   plan.Zone.ValueStringPointer(),
-		SubnetNo:   plan.SubnetNo.ValueStringPointer(),
 	}
 
-	if !plan.Name.IsNull() {
+	if !plan.SubnetNo.IsNull() && !plan.SubnetNo.IsUnknown() {
+		reqParams.SubnetNo = plan.SubnetNo.ValueStringPointer()
+	} else {
+		resp.Diagnostics.AddError("CREATING ERROR", "subnet_no is required when creating a new NATGW")
+		return
+	}
+
+	if !plan.Name.IsNull() && !plan.Name.IsUnknown() {
 		reqParams.NatGatewayName = plan.Name.ValueStringPointer()
 	}
 
-	if !plan.Description.IsNull() {
+	if !plan.Description.IsNull() && !plan.Description.IsUnknown() {
 		reqParams.NatGatewayDescription = plan.Description.ValueStringPointer()
 	}
 
-	if !plan.PrivateIp.IsNull() {
+	if !plan.PrivateIp.IsNull() && !plan.PrivateIp.IsUnknown() {
 		reqParams.PrivateIp = plan.PrivateIp.ValueStringPointer()
 	}
 

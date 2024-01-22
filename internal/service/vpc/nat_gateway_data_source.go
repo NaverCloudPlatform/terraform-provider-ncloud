@@ -48,7 +48,7 @@ func (n *natGatewayDataSource) Schema(_ context.Context, _ datasource.SchemaRequ
 				Optional: true,
 			},
 			"description": schema.StringAttribute{
-				Optional: true,
+				Computed: true,
 			},
 			"vpc_no": schema.StringAttribute{
 				Computed: true,
