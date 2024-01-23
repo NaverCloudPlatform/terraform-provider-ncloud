@@ -153,17 +153,16 @@ func (n *natGatewayResource) Create(ctx context.Context, req resource.CreateRequ
 		return
 	}
 
+	if plan.SubnetNo.IsNull() || plan.SubnetNo.IsUnknown() {
+		resp.Diagnostics.AddError("CREATING ERROR", "subnet_no is required when creating a new NATGW")
+		return
+	}
+
 	reqParams := &vpc.CreateNatGatewayInstanceRequest{
 		RegionCode: &n.config.RegionCode,
 		VpcNo:      plan.VpcNo.ValueStringPointer(),
 		ZoneCode:   plan.Zone.ValueStringPointer(),
-	}
-
-	if !plan.SubnetNo.IsNull() && !plan.SubnetNo.IsUnknown() {
-		reqParams.SubnetNo = plan.SubnetNo.ValueStringPointer()
-	} else {
-		resp.Diagnostics.AddError("CREATING ERROR", "subnet_no is required when creating a new NATGW")
-		return
+		SubnetNo:   plan.SubnetNo.ValueStringPointer(),
 	}
 
 	if !plan.Name.IsNull() && !plan.Name.IsUnknown() {
