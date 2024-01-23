@@ -4,13 +4,18 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
+	"github.com/hashicorp/terraform-plugin-framework/path"
+	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
+	"github.com/hashicorp/terraform-plugin-log/tflog"
 
 	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/services/vredis"
 
+	"github.com/terraform-providers/terraform-provider-ncloud/internal/common"
 	"github.com/terraform-providers/terraform-provider-ncloud/internal/conn"
 )
 
@@ -35,10 +40,22 @@ func (r *redisDataSource) Schema(_ context.Context, _ datasource.SchemaRequest, 
 	resp.Schema = schema.Schema{
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
-				Required: true,
+				Optional: true,
+				Computed: true,
+				Validators: []validator.String{
+					stringvalidator.ConflictsWith(
+						path.MatchRelative().AtParent().AtName("service_name"),
+					),
+				},
 			},
 			"service_name": schema.StringAttribute{
+				Optional: true,
 				Computed: true,
+				Validators: []validator.String{
+					stringvalidator.ConflictsWith(
+						path.MatchRelative().AtParent().AtName("id"),
+					),
+				},
 			},
 			"server_name_prefix": schema.StringAttribute{
 				Computed: true,
@@ -141,6 +158,7 @@ func (r *redisDataSource) Configure(_ context.Context, req datasource.ConfigureR
 
 func (r *redisDataSource) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
 	var data redisDataSourceModel
+	var redisId string
 
 	if !r.config.SupportVPC {
 		resp.Diagnostics.AddError(
@@ -155,7 +173,32 @@ func (r *redisDataSource) Read(ctx context.Context, req datasource.ReadRequest, 
 		return
 	}
 
-	output, err := GetRedisDetail(ctx, r.config, data.ID.ValueString())
+	if !data.ID.IsNull() && !data.ID.IsUnknown() {
+		redisId = data.ID.ValueString()
+	}
+
+	if !data.ServiceName.IsNull() && !data.ServiceName.IsUnknown() {
+		reqParams := &vredis.GetCloudRedisInstanceListRequest{
+			RegionCode:            &r.config.RegionCode,
+			CloudRedisServiceName: data.ServiceName.ValueStringPointer(),
+		}
+		tflog.Info(ctx, "GetRedisList reqParams="+common.MarshalUncheckedString(reqParams))
+
+		listResp, err := r.config.Client.Vredis.V2Api.GetCloudRedisInstanceList(reqParams)
+		if err != nil {
+			resp.Diagnostics.AddError("READING ERROR", err.Error())
+			return
+		}
+		tflog.Info(ctx, "GetRedisList response="+common.MarshalUncheckedString(listResp))
+
+		if listResp == nil || len(listResp.CloudRedisInstanceList) < 1 {
+			resp.Diagnostics.AddError("READING ERROR", "no result. please change search criteria and try again.")
+			return
+		}
+		redisId = *listResp.CloudRedisInstanceList[0].CloudRedisInstanceNo
+	}
+
+	output, err := GetRedisDetail(ctx, r.config, redisId)
 	if err != nil {
 		resp.Diagnostics.AddError("READING ERROR", err.Error())
 		return
