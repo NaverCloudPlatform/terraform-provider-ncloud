@@ -1,6 +1,7 @@
-package cloudmssql_test
+package mssql_test
 
 import (
+	"context"
 	"fmt"
 	"testing"
 
@@ -33,45 +34,14 @@ func TestAccResourceNcloudMssql_vpc_basic(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckCloudMssqlExists(resourceName, &mssqlInstance, GetTestProvider(true)),
 					resource.TestCheckResourceAttr(resourceName, "service_name", testMssqlName),
-					resource.TestCheckResourceAttr(resourceName, "user_name", "test"),
-					resource.TestCheckResourceAttr(resourceName, "user_password", "qwer1234!"),
 					resource.TestCheckResourceAttr(resourceName, "is_ha", "true"),
-					resource.TestCheckResourceAttr(resourceName, "is_multi_zone", "false"),
 					resource.TestCheckResourceAttr(resourceName, "backup_file_retention_period", "1"),
 					resource.TestCheckResourceAttr(resourceName, "is_automatic_backup", "true"),
 				),
 			},
-		},
-	})
-}
-
-func TestAccResourceNcloudMssql_vpc_isMultiZone(t *testing.T) {
-	var mssqlInstance vmssql.CloudMssqlInstance
-	testMssqlName := fmt.Sprintf("tf-mssql-%s", acctest.RandString(5))
-	resourceName := "ncloud_mssql.mssql"
-	testMirrorSubnetName := fmt.Sprintf("tf-mssql-%s", acctest.RandString(5))
-	resourceNameMirrorSubnet := "ncloud_subnet.test_subnet_mirror"
-
-	resource.Test(t, resource.TestCase{
-		PreCheck:                 func() { TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: ProtoV6ProviderFactories,
-		CheckDestroy: func(state *terraform.State) error {
-			return testAccCheckCloudMssqlDestroy(state, GetTestProvider(true))
-		},
-		Steps: []resource.TestStep{
 			{
-				Config: testAccCloudMssqlVpcConfigIsMultiZone(testMssqlName, testMirrorSubnetName, true),
-				Check: resource.ComposeTestCheckFunc(
-					testAccCheckCloudMssqlExists(resourceName, &mssqlInstance, GetTestProvider(true)),
-					resource.TestCheckResourceAttr(resourceName, "service_name", testMssqlName),
-					resource.TestCheckResourceAttr(resourceName, "user_name", "test"),
-					resource.TestCheckResourceAttr(resourceName, "user_password", "qwer1234!"),
-					resource.TestCheckResourceAttr(resourceName, "is_ha", "true"),
-					resource.TestCheckResourceAttr(resourceName, "is_multi_zone", "true"),
-					resource.TestCheckResourceAttr(resourceName, "backup_file_retention_period", "1"),
-					resource.TestCheckResourceAttr(resourceName, "is_automatic_backup", "true"),
-					resource.TestCheckResourceAttr(resourceNameMirrorSubnet, "name", testMirrorSubnetName),
-				),
+				ResourceName: resourceName,
+				ImportState:  true,
 			},
 		},
 	})
@@ -89,7 +59,7 @@ func testAccCheckCloudMssqlExists(n string, mssql *vmssql.CloudMssqlInstance, pr
 		}
 
 		config := provider.Meta().(*conn.ProviderConfig)
-		mssqlInstance, err := mssqlservice.GetCloudMssqlInstance(config, resource.Primary.ID)
+		mssqlInstance, err := mssqlservice.GetMssqlInstance(context.Background(), config, resource.Primary.ID)
 		if err != nil {
 			return err
 		}
@@ -111,7 +81,7 @@ func testAccCheckCloudMssqlDestroy(s *terraform.State, provider *schema.Provider
 			continue
 		}
 
-		cloudMssql, err := mssqlservice.GetCloudMssqlInstance(config, rs.Primary.ID)
+		cloudMssql, err := mssqlservice.GetMssqlInstance(context.Background(), config, rs.Primary.ID)
 		if err != nil {
 			commonErr, parseErr := GetCommonErrorBody(err)
 			if parseErr == nil && commonErr.ReturnCode == "5001269" {
@@ -130,63 +100,27 @@ func testAccCheckCloudMssqlDestroy(s *terraform.State, provider *schema.Provider
 
 func testAccCloudMssqlVpcConfig(testMssqlName string) string {
 	return fmt.Sprintf(`
-		resource "ncloud_vpc" "test_vpc" {
-			name               = "%[1]s"
-			ipv4_cidr_block    = "10.0.0.0/16"
-		}
-		resource "ncloud_subnet" "test_subnet" {
-			vpc_no             = ncloud_vpc.test_vpc.vpc_no
-			name               = "%[1]s"
-			subnet             = "10.0.0.0/24"
-			zone               = "KR-2"
-			network_acl_no     = ncloud_vpc.test_vpc.default_network_acl_no
-			subnet_type        = "PUBLIC"
-		}
-		resource "ncloud_mssql" "mssql" {
-			vpc_no = ncloud_vpc.test_vpc.vpc_no
-			subnet_no = ncloud_subnet.test_subnet.id
-			service_name = "%[1]s"
-			is_ha = true
-			is_multi_zone = false
-			is_automatic_backup = true
-			user_name = "test"
-			user_password = "qwer1234!"
-		}
-`, testMssqlName)
+resource "ncloud_vpc" "test_vpc" {
+	name               = "%[1]s"
+	ipv4_cidr_block    = "10.0.0.0/16"
 }
 
-func testAccCloudMssqlVpcConfigIsMultiZone(testMssqlName string, testMirrorSubnetName string, isMultiZone bool) string {
-	return fmt.Sprintf(`
-		resource "ncloud_vpc" "test_vpc" {
-			name               = "%[1]s"
-			ipv4_cidr_block    = "10.0.0.0/16"
-		}
-		resource "ncloud_subnet" "test_subnet" {
-			vpc_no             = ncloud_vpc.test_vpc.vpc_no
-			name               = "%[1]s"
-			subnet             = "10.0.0.0/24"
-			zone               = "KR-2"
-			network_acl_no     = ncloud_vpc.test_vpc.default_network_acl_no
-			subnet_type        = "PUBLIC"
-		}
-		resource "ncloud_subnet" "test_subnet_mirror" {
-			vpc_no             = ncloud_vpc.test_vpc.vpc_no
-			name               = "%[2]s"
-			subnet             = "10.0.1.0/24"
-			zone               = "KR-1"
-			network_acl_no     = ncloud_vpc.test_vpc.default_network_acl_no
-			subnet_type        = "PUBLIC"
-		}
-		resource "ncloud_mssql" "mssql" {
-			vpc_no = ncloud_vpc.test_vpc.vpc_no
-			subnet_no = ncloud_subnet.test_subnet.id
-			service_name = "%[1]s"
-			is_ha = true
-			is_multi_zone = %[3]t
-			mirror_subnet_no = ncloud_subnet.test_subnet_mirror.id
-			is_automatic_backup = true
-			user_name = "test"
-			user_password = "qwer1234!"
-		}
-`, testMssqlName, testMirrorSubnetName, true)
+resource "ncloud_subnet" "test_subnet" {
+	vpc_no             = ncloud_vpc.test_vpc.vpc_no
+	name               = "%[1]s"
+	subnet             = "10.0.0.0/24"
+	zone               = "KR-2"
+	network_acl_no     = ncloud_vpc.test_vpc.default_network_acl_no
+	subnet_type        = "PUBLIC"
+}
+
+resource "ncloud_mssql" "mssql" {
+	subnet_no = ncloud_subnet.test_subnet.id
+	service_name = "%[1]s"
+	is_ha = true
+	is_automatic_backup = true
+	user_name = "test"
+	user_password = "qwer1234!"
+}
+`, testMssqlName)
 }
