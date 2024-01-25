@@ -73,7 +73,7 @@ In addition to all arguments above, the following attributes are exported
 * `mysql_server_list` - The list of the MySQL server.
   * `server_instance_no` - Server instance number.
   * `server_name` - Server name.
-  * `server_role` - Member or Arbiter or Mongos or Config.
+  * `server_role` - Server role code. ex) M(Master), H(Standby Master)
   * `zone_code` - Zone code.
   * `subnet_no` - The ID of the associated Subnet.
   * `product_code` - Product code.

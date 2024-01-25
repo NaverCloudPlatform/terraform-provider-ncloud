@@ -51,7 +51,7 @@ This data source exports the following attributes in addition to the arguments a
 * `mysql_server_list` The list of MySQL server instance.
   * `server_instance_no` - Server instance number.
   * `server_name` - Name of the server.
-  * `server_role` - Server role.
+  * `server_role` - Server role code. ex) M(Master), H(Standby Master)
   * `zone_code` - Zone code.
   * `subnet_no` - The ID of the associated Subnet.
   * `product_code` - Product code.
