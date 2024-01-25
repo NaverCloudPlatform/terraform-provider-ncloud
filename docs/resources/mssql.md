@@ -63,10 +63,10 @@ In addition to all arguments above, the following attributes are exported
 * `region_code` - Region code.
 * `vpc_no` - The ID of the associated Vpc.
 * `access_control_group_no_list` - The ID list of the associated Access Control Group.
-* `mssql_server_list` - The list of the MySQL server.
+* `mssql_server_list` - The list of the MSSQL server.
   * `server_instance_no` - Server instance number.
   * `server_name` - Server name.
-  * `server_role` - Member or Arbiter or Mongos or Config.
+  * `server_role` - Server role code. ex) M(Principal), H(Mirror)
   * `zone_code` - Zone code.
   * `subnet_no` - The ID of the associated Subnet.
   * `product_code` - Product code.
