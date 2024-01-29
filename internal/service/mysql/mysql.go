@@ -582,7 +582,8 @@ func GetMysqlInstance(ctx context.Context, config *conn.ProviderConfig, no strin
 	tflog.Info(ctx, "GetMysqlDetail reqParams="+common.MarshalUncheckedString(reqParams))
 
 	resp, err := config.Client.Vmysql.V2Api.GetCloudMysqlInstanceDetail(reqParams)
-	if err != nil {
+	// If the lookup result is 0 or already deleted, it will respond with a 400 error with a 5001017 return code.
+	if err != nil && !(strings.Contains(err.Error(), `"returnCode": "5001017"`)) {
 		return nil, err
 	}
 	tflog.Info(ctx, "GetMysqlDetail response="+common.MarshalUncheckedString(resp))
@@ -641,8 +642,7 @@ func waitMysqlDeletion(ctx context.Context, config *conn.ProviderConfig, id stri
 		Target:  []string{"deleted"},
 		Refresh: func() (interface{}, string, error) {
 			instance, err := GetMysqlInstance(ctx, config, id)
-
-			if err != nil && !strings.Contains(err.Error(), `"returnCode": "5001017"`) {
+			if err != nil {
 				return 0, "", err
 			}
 
