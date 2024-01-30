@@ -469,8 +469,9 @@ func GetMssqlInstance(ctx context.Context, config *conn.ProviderConfig, no strin
 	tflog.Info(ctx, "GetMssqlDetail reqParams="+common.MarshalUncheckedString(reqParams))
 
 	resp, err := config.Client.Vmssql.V2Api.GetCloudMssqlInstanceDetail(reqParams)
-	// If the lookup result is 0 or already deleted, it will respond with a 400 error with a 5001017 return code.
-	if err != nil && !(strings.Contains(err.Error(), `"returnCode": "5001017"`)) {
+	// If the lookup result is 0, it will respond with a 400 error with a 5001017 return code.
+	// MSSQL deleted, it will respond with a 400 error with a 5001269 return code.
+	if err != nil && !(strings.Contains(err.Error(), `"returnCode": "5001017"`)) && !strings.Contains(err.Error(), `"returnCode": "5001269"`) {
 		return nil, err
 	}
 	tflog.Info(ctx, "GetMssqlDetail response="+common.MarshalUncheckedString(resp))
@@ -529,8 +530,7 @@ func waitMssqlDeletion(ctx context.Context, config *conn.ProviderConfig, id stri
 		Target:  []string{"deleted"},
 		Refresh: func() (interface{}, string, error) {
 			instance, err := GetMssqlInstance(ctx, config, id)
-			// MSSQL deleted, it will respond with a 400 error with a 5001269 return code.
-			if err != nil && !strings.Contains(err.Error(), `"returnCode": "5001269"`) {
+			if err != nil {
 				return 0, "", err
 			}
 
