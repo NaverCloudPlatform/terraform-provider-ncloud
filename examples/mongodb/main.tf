@@ -21,10 +21,11 @@ resource "ncloud_subnet" "subnet" {
 }
 
 resource "ncloud_mongodb" "mongodb" {
-    vpc_no            = ncloud_vpc.id
-    subnet_no         = ncloud_subnet.subnet.id
-    service_name      = "sample-mongodb"
-    user_name         = var.user_name
-    user_password     = var.password
-    cluster_type_code = "STAND_ALONE"
+  vpc_no            = ncloud_vpc.id
+  subnet_no         = ncloud_subnet.subnet.id
+  service_name      = "sample-mongodb"
+  server_name_prefix = "tf-svr"
+  user_name         = var.user_name
+  user_password     = var.password
+  cluster_type_code = "STAND_ALONE"
 }

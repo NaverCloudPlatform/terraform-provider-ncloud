@@ -1,6 +1,7 @@
 package vpc_test
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"regexp"
@@ -241,7 +242,7 @@ func testAccCheckNatGatewayExists(n string, natGateway *vpc.NatGatewayInstance) 
 		}
 
 		config := GetTestProvider(true).Meta().(*conn.ProviderConfig)
-		instance, err := vpcservice.GetNatGatewayInstance(config, rs.Primary.ID)
+		instance, err := vpcservice.GetNatGatewayInstance(context.Background(), config, rs.Primary.ID)
 		if err != nil {
 			return err
 		}
@@ -260,7 +261,7 @@ func testAccCheckNatGatewayDestroy(s *terraform.State) error {
 			continue
 		}
 
-		instance, err := vpcservice.GetNatGatewayInstance(config, rs.Primary.ID)
+		instance, err := vpcservice.GetNatGatewayInstance(context.Background(), config, rs.Primary.ID)
 
 		if err != nil {
 			return err
@@ -285,7 +286,7 @@ func testAccCheckNatGatewayDisappears(instance *vpc.NatGatewayInstance) resource
 
 		_, err := config.Client.Vpc.V2Api.DeleteNatGatewayInstance(reqParams)
 
-		if err := vpcservice.WaitForNcloudNatGatewayDeletion(config, *instance.NatGatewayInstanceNo); err != nil {
+		if err := vpcservice.WaitForNcloudNatGatewayDeletion(context.Background(), config, *instance.NatGatewayInstanceNo); err != nil {
 			return err
 		}
 

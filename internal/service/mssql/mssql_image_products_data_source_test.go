@@ -1,4 +1,4 @@
-package mysql_test
+package mssql_test
 
 import (
 	"fmt"
@@ -8,26 +8,26 @@ import (
 	"github.com/terraform-providers/terraform-provider-ncloud/internal/acctest"
 )
 
-func TestAccDataSourceNcloudMysqlImageProducts_basic(t *testing.T) {
-	productType := "LINUX"
+func TestAccDataSourceNcloudMssqlImageProducts_basic(t *testing.T) {
+	productType := "WINNT"
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { acctest.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: acctest.ProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccDataSourceNcloudMysqlImageProductsConfig_basic(productType),
+				Config: testAccDataSourceNcloudMssqlImageProductsConfig_basic(productType),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("data.ncloud_mysql_image_products.all", "image_product_list.0.product_type", productType),
+					resource.TestCheckResourceAttr("data.ncloud_mssql_image_products.all", "image_product_list.0.product_type", productType),
 				),
 			},
 		},
 	})
 }
 
-func testAccDataSourceNcloudMysqlImageProductsConfig_basic(productType string) string {
+func testAccDataSourceNcloudMssqlImageProductsConfig_basic(productType string) string {
 	return fmt.Sprintf(`
-data "ncloud_mysql_image_products" "all" {
+data "ncloud_mssql_image_products" "all" {
 	filter {
 			name = "product_type"
 			values = ["%s"]

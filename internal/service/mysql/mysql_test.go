@@ -4,6 +4,10 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"regexp"
+	"strings"
+	"testing"
+
 	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/services/vmysql"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
@@ -12,9 +16,6 @@ import (
 	. "github.com/terraform-providers/terraform-provider-ncloud/internal/acctest"
 	"github.com/terraform-providers/terraform-provider-ncloud/internal/conn"
 	mysqlservice "github.com/terraform-providers/terraform-provider-ncloud/internal/service/mysql"
-	"regexp"
-	"strings"
-	"testing"
 )
 
 func TestAccResourceNcloudMysql_vpc_basic(t *testing.T) {
@@ -33,7 +34,7 @@ func TestAccResourceNcloudMysql_vpc_basic(t *testing.T) {
 					testAccCheckMysqlExistsWithProvider(resourceName, &mysqlInstance, GetTestProvider(true)),
 					resource.TestMatchResourceAttr(resourceName, "id", regexp.MustCompile(`^\d+$`)),
 					resource.TestCheckResourceAttr(resourceName, "service_name", testMysqlName),
-					resource.TestCheckResourceAttr(resourceName, "name_prefix", "testprefix"),
+					resource.TestCheckResourceAttr(resourceName, "server_name_prefix", "testprefix"),
 					resource.TestCheckResourceAttr(resourceName, "user_name", "testusername"),
 					resource.TestCheckResourceAttr(resourceName, "user_password", "t123456789!a"),
 					resource.TestCheckResourceAttr(resourceName, "host_ip", "192.168.0.1"),
@@ -209,6 +210,7 @@ func testAccCheckMysqlExistsWithProvider(n string, mysql *vmysql.CloudMysqlInsta
 		return fmt.Errorf("mysql instance not found")
 	}
 }
+
 func testAccCheckMysqlDestroy(s *terraform.State) error {
 	config := GetTestProvider(true).Meta().(*conn.ProviderConfig)
 
@@ -252,7 +254,7 @@ resource "ncloud_subnet" "test_subnet" {
 resource "ncloud_mysql" "mysql" {
 	subnet_no = ncloud_subnet.test_subnet.id
 	service_name = "%[1]s"
-	name_prefix = "testprefix"
+	server_name_prefix = "testprefix"
 	user_name = "testusername"
 	user_password = "t123456789!a"
 	host_ip = "192.168.0.1"
@@ -280,7 +282,7 @@ resource "ncloud_subnet" "test_subnet" {
 resource "ncloud_mysql" "mysql" {
 	subnet_no = ncloud_subnet.test_subnet.id
 	service_name = "%[1]s"
-	name_prefix = "testprefix"
+	server_name_prefix = "testprefix"
 	user_name = "testusername"
 	user_password = "t123456789!"
 	host_ip = "192.168.0.1"
@@ -317,11 +319,10 @@ resource "ncloud_subnet" "test_subnet_standby" {
 	subnet_type        = "PUBLIC"
 }
 
-
 resource "ncloud_mysql" "mysql" {
 	subnet_no = ncloud_subnet.test_subnet.id
 	service_name = "%[1]s"
-	name_prefix = "testprefix"
+	server_name_prefix = "testprefix"
 	user_name = "testusername"
 	user_password = "t123456789!"
 	host_ip = "192.168.0.1"
@@ -354,7 +355,7 @@ resource "ncloud_subnet" "test_subnet" {
 resource "ncloud_mysql" "mysql" {
 	subnet_no = ncloud_subnet.test_subnet.id
 	service_name = "%[1]s"
-	name_prefix = "testprefix"
+	server_name_prefix = "testprefix"
 	user_name = "testusername"
 	user_password = "t123456789!"
 	host_ip = "192.168.0.1"
@@ -388,7 +389,7 @@ resource "ncloud_subnet" "test_subnet" {
 resource "ncloud_mysql" "mysql" {
 	subnet_no = ncloud_subnet.test_subnet.id
 	service_name = "%[1]s"
-	name_prefix = "testprefix"
+	server_name_prefix = "testprefix"
 	user_name = "testusername"
 	user_password = "t123456789!"
 	host_ip = "192.168.0.1"
@@ -403,6 +404,7 @@ resource "ncloud_mysql" "mysql" {
 }
 `, name, isHa, isBackup, isAutomaticBackup, backupPeriod, backupTime)
 }
+
 func testAccMysqlVpcConfigBase(name string) string {
 	return fmt.Sprintf(`
 resource "ncloud_vpc" "test_vpc" {
@@ -420,12 +422,13 @@ resource "ncloud_subnet" "test_subnet" {
 }
 `, name)
 }
+
 func testAccMysqlVpcConfigErrorCaseWhenIsHaSetFalse1(name string) string {
 	return testAccMysqlVpcConfigBase(name) + fmt.Sprintf(`
 resource "ncloud_mysql" "mysql" {
 	subnet_no = ncloud_subnet.test_subnet.id
 	service_name = "%[1]s"
-	name_prefix = "testprefix"
+	server_name_prefix = "testprefix"
 	user_name = "testusername"
 	user_password = "t123456789!"
 	host_ip = "192.168.0.1"
@@ -436,12 +439,13 @@ resource "ncloud_mysql" "mysql" {
 }
 `, name)
 }
+
 func testAccMysqlVpcConfigErrorCaseWhenIsHaSetFalse2(name string) string {
 	return testAccMysqlVpcConfigBase(name) + fmt.Sprintf(`
 resource "ncloud_mysql" "mysql" {
 	subnet_no = ncloud_subnet.test_subnet.id
 	service_name = "%[1]s"
-	name_prefix = "testprefix"
+	server_name_prefix = "testprefix"
 	user_name = "testusername"
 	user_password = "t123456789!"
 	host_ip = "192.168.0.1"
@@ -452,12 +456,13 @@ resource "ncloud_mysql" "mysql" {
 }
 `, name)
 }
+
 func testAccMysqlVpcConfigErrorCaseWhenIsHaSetFalse3(name string) string {
 	return testAccMysqlVpcConfigBase(name) + fmt.Sprintf(`
 resource "ncloud_mysql" "mysql" {
 	subnet_no = ncloud_subnet.test_subnet.id
 	service_name = "%[1]s"
-	name_prefix = "testprefix"
+	server_name_prefix = "testprefix"
 	user_name = "testusername"
 	user_password = "t123456789!"
 	host_ip = "192.168.0.1"
@@ -468,12 +473,13 @@ resource "ncloud_mysql" "mysql" {
 }
 `, name)
 }
+
 func testAccMysqlVpcConfigErrorCaseWhenIsHaSetTrue(name string) string {
 	return testAccMysqlVpcConfigBase(name) + fmt.Sprintf(`
 resource "ncloud_mysql" "mysql" {
 	subnet_no = ncloud_subnet.test_subnet.id
 	service_name = "%[1]s"
-	name_prefix = "testprefix"
+	server_name_prefix = "testprefix"
 	user_name = "testusername"
 	user_password = "t123456789!"
 	host_ip = "192.168.0.1"
@@ -490,7 +496,7 @@ func testAccMysqlVpcConfigErrorCaseWhenAutomaticBackup(name string) string {
 resource "ncloud_mysql" "mysql" {
 	subnet_no = ncloud_subnet.test_subnet.id
 	service_name = "%[1]s"
-	name_prefix = "testprefix"
+	server_name_prefix = "testprefix"
 	user_name = "testusername"
 	user_password = "t123456789!"
 	host_ip = "192.168.0.1"
@@ -502,12 +508,13 @@ resource "ncloud_mysql" "mysql" {
 }
 `, name)
 }
+
 func testAccMysqlVpcConfigErrorCaseWhenEmptyBackupTime(name string) string {
 	return testAccMysqlVpcConfigBase(name) + fmt.Sprintf(`
 resource "ncloud_mysql" "mysql" {
 	subnet_no = ncloud_subnet.test_subnet.id
 	service_name = "%[1]s"
-	name_prefix = "testprefix"
+	server_name_prefix = "testprefix"
 	user_name = "testusername"
 	user_password = "t123456789!"
 	host_ip = "192.168.0.1"

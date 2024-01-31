@@ -1,4 +1,4 @@
-package mysql
+package mssql
 
 import (
 	"context"
@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/services/vmysql"
+	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/services/vmssql"
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
@@ -17,23 +17,23 @@ import (
 )
 
 var (
-	_ datasource.DataSource              = &mysqlProductsDataSource{}
-	_ datasource.DataSourceWithConfigure = &mysqlProductsDataSource{}
+	_ datasource.DataSource              = &mssqlProductsDataSource{}
+	_ datasource.DataSourceWithConfigure = &mssqlProductsDataSource{}
 )
 
-func NewMysqlProductsDataSource() datasource.DataSource {
-	return &mysqlProductsDataSource{}
+func NewMssqlProductsDataSource() datasource.DataSource {
+	return &mssqlProductsDataSource{}
 }
 
-type mysqlProductsDataSource struct {
+type mssqlProductsDataSource struct {
 	config *conn.ProviderConfig
 }
 
-func (m *mysqlProductsDataSource) Metadata(_ context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
-	resp.TypeName = req.ProviderTypeName + "_mysql_products"
+func (m *mssqlProductsDataSource) Metadata(_ context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
+	resp.TypeName = req.ProviderTypeName + "_mssql_products"
 }
 
-func (m *mysqlProductsDataSource) Schema(ctx context.Context, req datasource.SchemaRequest, resp *datasource.SchemaResponse) {
+func (m *mssqlProductsDataSource) Schema(ctx context.Context, req datasource.SchemaRequest, resp *datasource.SchemaResponse) {
 	resp.Schema = schema.Schema{
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
@@ -83,7 +83,7 @@ func (m *mysqlProductsDataSource) Schema(ctx context.Context, req datasource.Sch
 	}
 }
 
-func (m *mysqlProductsDataSource) Configure(_ context.Context, req datasource.ConfigureRequest, resp *datasource.ConfigureResponse) {
+func (m *mssqlProductsDataSource) Configure(_ context.Context, req datasource.ConfigureRequest, resp *datasource.ConfigureResponse) {
 	if req.ProviderData == nil {
 		return
 	}
@@ -101,8 +101,8 @@ func (m *mysqlProductsDataSource) Configure(_ context.Context, req datasource.Co
 	m.config = config
 }
 
-func (m *mysqlProductsDataSource) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
-	var data mysqlProductList
+func (m *mssqlProductsDataSource) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
+	var data mssqlProductList
 
 	if !m.config.SupportVPC {
 		resp.Diagnostics.AddError(
@@ -117,26 +117,26 @@ func (m *mysqlProductsDataSource) Read(ctx context.Context, req datasource.ReadR
 		return
 	}
 
-	reqParams := &vmysql.GetCloudMysqlProductListRequest{
+	reqParams := &vmssql.GetCloudMssqlProductListRequest{
 		RegionCode:                 &m.config.RegionCode,
-		CloudMysqlImageProductCode: data.CloudMysqlImageProductCode.ValueStringPointer(),
+		CloudMssqlImageProductCode: data.CloudMssqlImageProductCode.ValueStringPointer(),
 	}
-	tflog.Info(ctx, "GetMysqlProductsList reqParams="+common.MarshalUncheckedString(reqParams))
+	tflog.Info(ctx, "GetMssqlProductsList reqParams="+common.MarshalUncheckedString(reqParams))
 
-	mysqlProductResp, err := m.config.Client.Vmysql.V2Api.GetCloudMysqlProductList(reqParams)
+	mssqlProductResp, err := m.config.Client.Vmssql.V2Api.GetCloudMssqlProductList(reqParams)
 	if err != nil {
 		resp.Diagnostics.AddError("READING ERROR", err.Error())
 		return
 	}
-	tflog.Info(ctx, "GetMysqlProductsList response="+common.MarshalUncheckedString(mysqlProductResp))
+	tflog.Info(ctx, "GetMssqlProductsList response="+common.MarshalUncheckedString(mssqlProductResp))
 
-	if mysqlProductResp == nil || len(mysqlProductResp.ProductList) < 1 {
+	if mssqlProductResp == nil || len(mssqlProductResp.ProductList) < 1 {
 		resp.Diagnostics.AddError("READING ERROR", "no result.")
 		return
 	}
 
-	mysqlProductList := flattenMysqlProduct(mysqlProductResp.ProductList)
-	fillteredList := common.FilterModels(ctx, data.Filters, mysqlProductList)
+	mssqlProductList := flattenMssqlProduct(mssqlProductResp.ProductList)
+	fillteredList := common.FilterModels(ctx, data.Filters, mssqlProductList)
 
 	data.refreshFromOutput(ctx, fillteredList)
 
@@ -153,25 +153,25 @@ func (m *mysqlProductsDataSource) Read(ctx context.Context, req datasource.ReadR
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
 }
 
-func convertProductsToJsonStruct(images []attr.Value) ([]mysqlProductsToJsonConvert, error) {
-	var mysqlProductsToConvert = []mysqlProductsToJsonConvert{}
+func convertProductsToJsonStruct(images []attr.Value) ([]mssqlProductsToJsonConvert, error) {
+	var mssqlProductsToConvert = []mssqlProductsToJsonConvert{}
 
 	for _, image := range images {
-		imageJasn := mysqlProductsToJsonConvert{}
+		imageJasn := mssqlProductsToJsonConvert{}
 		if err := json.Unmarshal([]byte(image.String()), &imageJasn); err != nil {
 			return nil, err
 		}
-		mysqlProductsToConvert = append(mysqlProductsToConvert, imageJasn)
+		mssqlProductsToConvert = append(mssqlProductsToConvert, imageJasn)
 	}
 
-	return mysqlProductsToConvert, nil
+	return mssqlProductsToConvert, nil
 }
 
-func flattenMysqlProduct(list []*vmysql.Product) []*mysqlProductModel {
-	var outputs []*mysqlProductModel
+func flattenMssqlProduct(list []*vmssql.Product) []*mssqlProductModel {
+	var outputs []*mssqlProductModel
 
 	for _, v := range list {
-		var output mysqlProductModel
+		var output mssqlProductModel
 		output.refreshFromOutput(v)
 
 		outputs = append(outputs, &output)
@@ -179,21 +179,21 @@ func flattenMysqlProduct(list []*vmysql.Product) []*mysqlProductModel {
 	return outputs
 }
 
-func (m *mysqlProductList) refreshFromOutput(ctx context.Context, list []*mysqlProductModel) {
-	productListValue, _ := types.ListValueFrom(ctx, types.ObjectType{AttrTypes: mysqlProductModel{}.attrTypes()}, list)
+func (m *mssqlProductList) refreshFromOutput(ctx context.Context, list []*mssqlProductModel) {
+	productListValue, _ := types.ListValueFrom(ctx, types.ObjectType{AttrTypes: mssqlProductModel{}.attrTypes()}, list)
 	m.ProductList = productListValue
 	m.ID = types.StringValue(time.Now().UTC().String())
 }
 
-type mysqlProductList struct {
+type mssqlProductList struct {
 	ID                         types.String `tfsdk:"id"`
-	CloudMysqlImageProductCode types.String `tfsdk:"image_product_code"`
+	CloudMssqlImageProductCode types.String `tfsdk:"image_product_code"`
 	ProductList                types.List   `tfsdk:"product_list"`
 	OutputFile                 types.String `tfsdk:"output_file"`
 	Filters                    types.Set    `tfsdk:"filter"`
 }
 
-type mysqlProductModel struct {
+type mssqlProductModel struct {
 	ProductCode        types.String `tfsdk:"product_code"`
 	ProductName        types.String `tfsdk:"product_name"`
 	ProductType        types.String `tfsdk:"product_type"`
@@ -203,7 +203,7 @@ type mysqlProductModel struct {
 	MemorySize         types.Int64  `tfsdk:"memory_size"`
 	DiskType           types.String `tfsdk:"disk_type"`
 }
-type mysqlProductsToJsonConvert struct {
+type mssqlProductsToJsonConvert struct {
 	ProductCode        string `json:"product_code"`
 	ProductName        string `json:"product_name"`
 	ProductType        string `json:"product_type"`
@@ -214,7 +214,7 @@ type mysqlProductsToJsonConvert struct {
 	DiskType           string `json:"disk_type"`
 }
 
-func (m mysqlProductModel) attrTypes() map[string]attr.Type {
+func (m mssqlProductModel) attrTypes() map[string]attr.Type {
 	return map[string]attr.Type{
 		"product_code":        types.StringType,
 		"product_name":        types.StringType,
@@ -226,7 +226,7 @@ func (m mysqlProductModel) attrTypes() map[string]attr.Type {
 		"product_description": types.StringType,
 	}
 }
-func (m *mysqlProductModel) refreshFromOutput(output *vmysql.Product) {
+func (m *mssqlProductModel) refreshFromOutput(output *vmssql.Product) {
 	m.ProductCode = types.StringPointerValue(output.ProductCode)
 	m.ProductName = types.StringPointerValue(output.ProductName)
 	m.ProductType = types.StringPointerValue(output.ProductType.Code)

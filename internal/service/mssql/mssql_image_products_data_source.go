@@ -1,40 +1,38 @@
-package mongodb
+package mssql
 
 import (
 	"context"
 	"encoding/json"
 	"fmt"
 
-	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/services/vmongodb"
-	"github.com/hashicorp/terraform-plugin-log/tflog"
-
+	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/services/vmssql"
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/types"
-
+	"github.com/hashicorp/terraform-plugin-log/tflog"
 	"github.com/terraform-providers/terraform-provider-ncloud/internal/common"
 	"github.com/terraform-providers/terraform-provider-ncloud/internal/conn"
 )
 
 var (
-	_ datasource.DataSource              = &mongodbImageProductsDataSource{}
-	_ datasource.DataSourceWithConfigure = &mongodbImageProductsDataSource{}
+	_ datasource.DataSource              = &mssqlImageProductsDataSource{}
+	_ datasource.DataSourceWithConfigure = &mssqlImageProductsDataSource{}
 )
 
-func NewMongoDbImageProductsDataSource() datasource.DataSource {
-	return &mongodbImageProductsDataSource{}
+func NewMssqlImageProductsDataSource() datasource.DataSource {
+	return &mssqlImageProductsDataSource{}
 }
 
-type mongodbImageProductsDataSource struct {
+type mssqlImageProductsDataSource struct {
 	config *conn.ProviderConfig
 }
 
-func (m *mongodbImageProductsDataSource) Metadata(ctx context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
-	resp.TypeName = req.ProviderTypeName + "_mongodb_image_products"
+func (m *mssqlImageProductsDataSource) Metadata(_ context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
+	resp.TypeName = req.ProviderTypeName + "_mssql_image_products"
 }
 
-func (m *mongodbImageProductsDataSource) Schema(ctx context.Context, req datasource.SchemaRequest, resp *datasource.SchemaResponse) {
+func (m *mssqlImageProductsDataSource) Schema(ctx context.Context, req datasource.SchemaRequest, resp *datasource.SchemaResponse) {
 	resp.Schema = schema.Schema{
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
@@ -75,7 +73,7 @@ func (m *mongodbImageProductsDataSource) Schema(ctx context.Context, req datasou
 	}
 }
 
-func (m *mongodbImageProductsDataSource) Configure(ctx context.Context, req datasource.ConfigureRequest, resp *datasource.ConfigureResponse) {
+func (m *mssqlImageProductsDataSource) Configure(_ context.Context, req datasource.ConfigureRequest, resp *datasource.ConfigureResponse) {
 	if req.ProviderData == nil {
 		return
 	}
@@ -93,8 +91,8 @@ func (m *mongodbImageProductsDataSource) Configure(ctx context.Context, req data
 	m.config = config
 }
 
-func (m *mongodbImageProductsDataSource) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
-	var data mongodbImageProductsDataSourceModel
+func (m *mssqlImageProductsDataSource) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
+	var data mssqlImageProductsDataSourceModel
 
 	if !m.config.SupportVPC {
 		resp.Diagnostics.AddError(
@@ -109,25 +107,25 @@ func (m *mongodbImageProductsDataSource) Read(ctx context.Context, req datasourc
 		return
 	}
 
-	reqParams := &vmongodb.GetCloudMongoDbImageProductListRequest{
+	reqParams := &vmssql.GetCloudMssqlImageProductListRequest{
 		RegionCode: &m.config.RegionCode,
 	}
-	tflog.Info(ctx, "GetMongoDbImageProductList reqParams="+common.MarshalUncheckedString(reqParams))
+	tflog.Info(ctx, "GetMssqlImageProductList reqParams="+common.MarshalUncheckedString(reqParams))
 
-	mongodbImageProductResp, err := m.config.Client.Vmongodb.V2Api.GetCloudMongoDbImageProductList(reqParams)
+	mssqlImageProductResp, err := m.config.Client.Vmssql.V2Api.GetCloudMssqlImageProductList(reqParams)
 	if err != nil {
 		resp.Diagnostics.AddError("READING ERROR", err.Error())
 		return
 	}
-	tflog.Info(ctx, "GetMongoDbImageProductList response="+common.MarshalUncheckedString(mongodbImageProductResp))
+	tflog.Info(ctx, "GetMssqlImageProductList response="+common.MarshalUncheckedString(mssqlImageProductResp))
 
-	if mongodbImageProductResp == nil || len(mongodbImageProductResp.ProductList) < 1 {
+	if mssqlImageProductResp == nil || len(mssqlImageProductResp.ProductList) < 1 {
 		resp.Diagnostics.AddError("READING ERROR", "no result.")
 		return
 	}
 
-	mongodbImageProductList := flattenMongoDbImageProduct(ctx, mongodbImageProductResp.ProductList)
-	fillteredList := common.FilterModels(ctx, data.Filters, mongodbImageProductList)
+	mssqlImageProductList := flattenMssqlImageProduct(mssqlImageProductResp.ProductList)
+	fillteredList := common.FilterModels(ctx, data.Filters, mssqlImageProductList)
 	data.refreshFromOutput(ctx, fillteredList)
 
 	if !data.OutputFile.IsNull() && data.OutputFile.String() != "" {
@@ -143,25 +141,25 @@ func (m *mongodbImageProductsDataSource) Read(ctx context.Context, req datasourc
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
 }
 
-func convertToJsonStruct(images []attr.Value) ([]mongodbImageProductToJsonConvert, error) {
-	var mongodbImagesToConvert = []mongodbImageProductToJsonConvert{}
+func convertToJsonStruct(images []attr.Value) ([]mssqlImageProductToJsonConvert, error) {
+	var mssqlImagesToConvert = []mssqlImageProductToJsonConvert{}
 
 	for _, image := range images {
-		imageJasn := mongodbImageProductToJsonConvert{}
+		imageJasn := mssqlImageProductToJsonConvert{}
 		if err := json.Unmarshal([]byte(image.String()), &imageJasn); err != nil {
 			return nil, err
 		}
-		mongodbImagesToConvert = append(mongodbImagesToConvert, imageJasn)
+		mssqlImagesToConvert = append(mssqlImagesToConvert, imageJasn)
 	}
 
-	return mongodbImagesToConvert, nil
+	return mssqlImagesToConvert, nil
 }
 
-func flattenMongoDbImageProduct(ctx context.Context, list []*vmongodb.Product) []*mongodbImageProduct {
-	var outputs []*mongodbImageProduct
+func flattenMssqlImageProduct(list []*vmssql.Product) []*mssqlImageProduct {
+	var outputs []*mssqlImageProduct
 
 	for _, v := range list {
-		var output mongodbImageProduct
+		var output mssqlImageProduct
 		output.refreshFromOutput(v)
 
 		outputs = append(outputs, &output)
@@ -169,20 +167,20 @@ func flattenMongoDbImageProduct(ctx context.Context, list []*vmongodb.Product) [
 	return outputs
 }
 
-func (m *mongodbImageProductsDataSourceModel) refreshFromOutput(ctx context.Context, list []*mongodbImageProduct) {
-	imageProductListValue, _ := types.ListValueFrom(ctx, types.ObjectType{AttrTypes: mongodbImageProduct{}.attrTypes()}, list)
+func (m *mssqlImageProductsDataSourceModel) refreshFromOutput(ctx context.Context, list []*mssqlImageProduct) {
+	imageProductListValue, _ := types.ListValueFrom(ctx, types.ObjectType{AttrTypes: mssqlImageProduct{}.attrTypes()}, list)
 	m.ImageProductList = imageProductListValue
 	m.ID = types.StringValue("")
 }
 
-type mongodbImageProductsDataSourceModel struct {
+type mssqlImageProductsDataSourceModel struct {
 	ID               types.String `tfsdk:"id"`
 	ImageProductList types.List   `tfsdk:"image_product_list"`
 	OutputFile       types.String `tfsdk:"output_file"`
 	Filters          types.Set    `tfsdk:"filter"`
 }
 
-type mongodbImageProduct struct {
+type mssqlImageProduct struct {
 	ProductCode    types.String `tfsdk:"product_code"`
 	GenerationCode types.String `tfsdk:"generation_code"`
 	ProductName    types.String `tfsdk:"product_name"`
@@ -191,7 +189,7 @@ type mongodbImageProduct struct {
 	OsInformation  types.String `tfsdk:"os_information"`
 }
 
-type mongodbImageProductToJsonConvert struct {
+type mssqlImageProductToJsonConvert struct {
 	ProductCode    string `json:"product_code"`
 	GenerationCode string `json:"generation_code"`
 	ProductName    string `json:"product_name"`
@@ -200,7 +198,7 @@ type mongodbImageProductToJsonConvert struct {
 	OsInformation  string `json:"os_information"`
 }
 
-func (m mongodbImageProduct) attrTypes() map[string]attr.Type {
+func (m mssqlImageProduct) attrTypes() map[string]attr.Type {
 	return map[string]attr.Type{
 		"product_code":    types.StringType,
 		"generation_code": types.StringType,
@@ -211,7 +209,7 @@ func (m mongodbImageProduct) attrTypes() map[string]attr.Type {
 	}
 }
 
-func (m *mongodbImageProduct) refreshFromOutput(output *vmongodb.Product) {
+func (m *mssqlImageProduct) refreshFromOutput(output *vmssql.Product) {
 	m.ProductCode = types.StringPointerValue(output.ProductCode)
 	m.GenerationCode = types.StringPointerValue(output.GenerationCode)
 	m.ProductName = types.StringPointerValue(output.ProductName)

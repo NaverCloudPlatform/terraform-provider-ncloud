@@ -1,34 +1,34 @@
 ---
-subcategory: "MySQL"
+subcategory: "Mssql"
 ---
 
 
-# Data Source: ncloud_mysql_image_products
+# Data Source: ncloud_mssql_image_products
 
-Get a list of MySQL image products.
+Get a list of MSSQL image products.
 
 ~> **NOTE:** This only supports VPC environment.
 
 ## Example Usage
 
 ```terraform
-data "ncloud_mysql_image_products" "example" {
+data "ncloud_mssql_image_products" "example" {
   output_file = "image.json"
 }
 
 output "image_list" {
   value = {
-    for image in data.ncloud_mysql_image_products.example.image_product_list:
+    for image in data.ncloud_mssql_image_products.example.image_product_list:
     image.product_name => image.product_code
   }
 }
 ```
 
 ```terraform
-data "ncloud_mysql_image_products" "example" {
+data "ncloud_mssql_image_products" "example" {
   filter {
     name = "product_code"
-    values = ["SW.VDBAS.DBAAS.LNX64.CNTOS.0708.MYSQL.8021.B050"]
+    values = ["SW.VMSSL.OS.WND64.WINNT.SVR2016.MSSQL.15042981.SE.B100"]
   }
 }
 ```
@@ -36,7 +36,7 @@ data "ncloud_mysql_image_products" "example" {
 Outputs:
 ```terraform
 image_list = {
-  "mysql(8.0.21)": "SW.VDBAS.DBAAS.LNX64.CNTOS.0708.MYSQL.8021.B050",
+  "MSSQL 15.0.4298.1 Standard Edition": "SW.VMSSL.OS.WND64.WINNT.SVR2016.MSSQL.15042981.SE.B100",
 }
 ```
 
@@ -54,8 +54,8 @@ The following arguments are supported:
 
 This data source exports the following attributes in addition to the arguments above:
 
-* `image_product_list` - List of MySQL image product.
-  * `product_code` - The ID of MySQL image product.
+* `image_product_list` - List of MSSQL image product.
+  * `product_code` - The ID of MSSQL image product.
   * `generation_code` - Generation code. (Only `G2` or `G3`)
   * `product_name` - Product name.
   * `product_type` - Product type code.

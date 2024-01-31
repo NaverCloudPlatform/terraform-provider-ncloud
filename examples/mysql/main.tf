@@ -22,7 +22,7 @@ resource "ncloud_subnet" "subnet" {
 resource "ncloud_mysql" "mysql" {
   subnet_no = ncloud_subnet.subnet.id
   service_name = var.service_name
-  name_prefix = var.name_prefix
+  server_name_prefix = var.name_prefix
   user_name = var.user_name
   user_password = var.password
   database_name = var.database_name

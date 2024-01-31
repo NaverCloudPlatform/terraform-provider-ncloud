@@ -3,6 +3,7 @@ package vpc
 import (
 	"context"
 	"fmt"
+
 	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/services/vpc"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
@@ -47,7 +48,7 @@ func (n *natGatewayDataSource) Schema(_ context.Context, _ datasource.SchemaRequ
 				Optional: true,
 			},
 			"description": schema.StringAttribute{
-				Optional: true,
+				Computed: true,
 			},
 			"vpc_no": schema.StringAttribute{
 				Computed: true,
@@ -99,15 +100,16 @@ func (n *natGatewayDataSource) Configure(_ context.Context, req datasource.Confi
 }
 
 func (n *natGatewayDataSource) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
+	var data natGatewayDataSourceModel
+
 	if !n.config.SupportVPC {
 		resp.Diagnostics.AddError(
-			"Not Supported Classic",
+			"NOT SUPPORT CLASSIC",
 			"nat gateway data source does not supported in classic",
 		)
 		return
 	}
 
-	var data natGatewayDataSourceModel
 	resp.Diagnostics.Append(req.Config.Get(ctx, &data)...)
 	if resp.Diagnostics.HasError() {
 		return
@@ -128,24 +130,14 @@ func (n *natGatewayDataSource) Read(ctx context.Context, req datasource.ReadRequ
 	if !data.VpcName.IsNull() && !data.VpcName.IsUnknown() {
 		reqParams.VpcName = data.VpcName.ValueStringPointer()
 	}
+	tflog.Info(ctx, "GetNatGatewayList reqParams="+common.MarshalUncheckedString(reqParams))
 
-	tflog.Info(ctx, "GetNatGatewayList", map[string]any{
-		"reqParams": common.MarshalUncheckedString(reqParams),
-	})
 	natGatewayResp, err := n.config.Client.Vpc.V2Api.GetNatGatewayInstanceList(reqParams)
-
 	if err != nil {
-		var diags diag.Diagnostics
-		diags.AddError(
-			"GetNatGatewayList",
-			fmt.Sprintf("error: %s, reqParams: %s", err.Error(), common.MarshalUncheckedString(reqParams)),
-		)
-		resp.Diagnostics.Append(diags...)
+		resp.Diagnostics.AddError("READING ERROR", err.Error())
 		return
 	}
-	tflog.Info(ctx, "GetNatGatewayList response", map[string]any{
-		"natGatewayResponse": common.MarshalUncheckedString(natGatewayResp),
-	})
+	tflog.Info(ctx, "GetNatGatewayList response="+common.MarshalUncheckedString(natGatewayResp))
 
 	natGatewayList, diags := flattenNatGateways(natGatewayResp.NatGatewayInstanceList)
 	resp.Diagnostics.Append(diags...)
@@ -177,11 +169,7 @@ func flattenNatGateways(natGateways []*vpc.NatGatewayInstance) ([]*natGatewayDat
 	for _, v := range natGateways {
 		var output natGatewayDataSourceModel
 
-		diags := output.refreshFromOutput(v)
-		if diags.HasError() {
-			return nil, diags
-		}
-
+		output.refreshFromOutput(v)
 		outputs = append(outputs, &output)
 	}
 
@@ -204,9 +192,7 @@ type natGatewayDataSourceModel struct {
 	Filters      types.Set    `tfsdk:"filter"`
 }
 
-func (d *natGatewayDataSourceModel) refreshFromOutput(output *vpc.NatGatewayInstance) diag.Diagnostics {
-	var diags diag.Diagnostics
-
+func (d *natGatewayDataSourceModel) refreshFromOutput(output *vpc.NatGatewayInstance) {
 	d.ID = types.StringPointerValue(output.NatGatewayInstanceNo)
 	d.NatGatewayNo = types.StringPointerValue(output.NatGatewayInstanceNo)
 	d.Name = types.StringPointerValue(output.NatGatewayName)
@@ -219,6 +205,4 @@ func (d *natGatewayDataSourceModel) refreshFromOutput(output *vpc.NatGatewayInst
 	d.SubnetName = types.StringPointerValue(output.SubnetName)
 	d.PrivateIp = types.StringPointerValue(output.PrivateIp)
 	d.PublicIpNo = types.StringPointerValue(output.PublicIpInstanceNo)
-
-	return diags
 }

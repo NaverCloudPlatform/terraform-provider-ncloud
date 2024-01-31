@@ -9,33 +9,29 @@ import (
 )
 
 func TestAccDataSourceNcloudMongoDbImageProducts_basic(t *testing.T) {
-	productCode := "SW.VMGDB.LNX64.CNTOS.0708.MNGDB.4212.CE.B050"
-	generationCode := "G2"
+	productType := "LINUX"
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { acctest.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: acctest.ProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccDataSourceNcloudMongoDbImageProductsConfig_basic(productCode, generationCode),
+				Config: testAccDataSourceNcloudMongoDbImageProductsConfig_basic(productType),
 				Check: resource.ComposeTestCheckFunc(
-					acctest.TestAccCheckDataSourceID("data.ncloud_mongodb_image_products.all"),
+					resource.TestCheckResourceAttr("data.ncloud_mongodb_image_products.all", "image_product_list.0.product_type", productType),
 				),
 			},
 		},
 	})
 }
 
-func testAccDataSourceNcloudMongoDbImageProductsConfig_basic(productCode string, generationCode string) string {
+func testAccDataSourceNcloudMongoDbImageProductsConfig_basic(productType string) string {
 	return fmt.Sprintf(`
 data "ncloud_mongodb_image_products" "all" {
-	product_code = "%s"
-	generation_code = "%s"
-	
 	filter {
-		name = "product_code"
+		name = "product_type"
 		values = ["%s"]
 	}
 }
-`, productCode, generationCode, productCode)
+`, productType)
 }

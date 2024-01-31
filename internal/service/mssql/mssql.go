@@ -1,404 +1,672 @@
-package cloudmssql
+package mssql
 
 import (
 	"context"
 	"fmt"
-	"log"
 	"regexp"
+	"strings"
 	"time"
 
 	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/ncloud"
 	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/services/vmssql"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 
-	. "github.com/terraform-providers/terraform-provider-ncloud/internal/common"
+	"github.com/hashicorp/terraform-plugin-framework/attr"
+	"github.com/hashicorp/terraform-plugin-framework/path"
+	"github.com/hashicorp/terraform-plugin-framework/resource"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/boolplanmodifier"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/int64default"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/int64planmodifier"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/listplanmodifier"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringdefault"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
+	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
+	"github.com/hashicorp/terraform-plugin-framework/types"
+
+	"github.com/hashicorp/terraform-plugin-framework-validators/int64validator"
+	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
+	"github.com/hashicorp/terraform-plugin-log/tflog"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
+
+	"github.com/terraform-providers/terraform-provider-ncloud/internal/common"
 	"github.com/terraform-providers/terraform-provider-ncloud/internal/conn"
+	"github.com/terraform-providers/terraform-provider-ncloud/internal/framework"
+	"github.com/terraform-providers/terraform-provider-ncloud/internal/service/vpc"
 )
 
-const resourceNotFoundErrorCode = "5001269"
+var (
+	_ resource.Resource                = &mssqlResource{}
+	_ resource.ResourceWithConfigure   = &mssqlResource{}
+	_ resource.ResourceWithImportState = &mssqlResource{}
+)
 
-func ResourceNcloudMssql() *schema.Resource {
-	return &schema.Resource{
-		CreateContext: resourceNcloudMssqlCreate,
-		ReadContext:   resourceNcloudMssqlRead,
-		DeleteContext: resourceNcloudMssqlDelete,
-		Importer: &schema.ResourceImporter{
-			StateContext: schema.ImportStatePassthroughContext,
-		},
-		Timeouts: &schema.ResourceTimeout{
-			Create: schema.DefaultTimeout(conn.DefaultCreateTimeout),
-			Delete: schema.DefaultTimeout(3 * conn.DefaultTimeout),
-		},
-		Schema: map[string]*schema.Schema{
-			"id": {
-				Type:     schema.TypeString,
-				Computed: true,
-			},
-			"vpc_no": {
-				Type:        schema.TypeString,
-				Required:    true,
-				Description: "VPC Number of Cloud DB for MSSQL instance.",
-				ForceNew:    true,
-			},
-			"subnet_no": {
-				Type:        schema.TypeString,
-				Required:    true,
-				Description: "Subnet Number of Cloud DB for MSSQL instance.",
-				ForceNew:    true,
-			},
-			"service_name": {
-				Type:     schema.TypeString,
+func NewMssqlResource() resource.Resource {
+	return &mssqlResource{}
+}
+
+type mssqlResource struct {
+	config *conn.ProviderConfig
+}
+
+func (m *mssqlResource) Metadata(_ context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
+	resp.TypeName = req.ProviderTypeName + "_mssql"
+}
+
+func (m *mssqlResource) Schema(_ context.Context, _ resource.SchemaRequest, resp *resource.SchemaResponse) {
+	resp.Schema = schema.Schema{
+		Attributes: map[string]schema.Attribute{
+			"id": framework.IDAttribute(),
+			"subnet_no": schema.StringAttribute{
 				Required: true,
-				ValidateDiagFunc: validation.ToDiagFunc(validation.All(
-					validation.StringLenBetween(3, 15),
-					validation.StringMatch(regexp.MustCompile(`^[a-zA-Z0-9\-가-힣]+$`), "Composed of alphabets, numbers, korean, hyphen (-)."),
-				)),
-				Description: "Name of Cloud DB for MSSQL instance.",
-				ForceNew:    true,
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.RequiresReplace(),
+				},
 			},
-			"is_ha": {
-				Type:        schema.TypeBool,
-				Required:    true,
-				Description: "Choice of High Availability.",
-				ForceNew:    true,
-			},
-			"user_name": {
-				Type:     schema.TypeString,
+			"service_name": schema.StringAttribute{
 				Required: true,
-				ValidateDiagFunc: validation.ToDiagFunc(validation.All(
-					validation.StringLenBetween(4, 16),
-					validation.StringMatch(regexp.MustCompile(`^[a-zA-Z]+.+`), "starts with an alphabets."),
-					validation.StringMatch(regexp.MustCompile(`^[a-zA-Z]+[a-zA-Z0-9-\\_]+$`), "Composed of alphabets, numbers, hyphen (-), (\\), (_)."),
-				)),
-				Description: "Access username, which will be used for DB admin.",
-				ForceNew:    true,
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.RequiresReplace(),
+				},
+				Validators: []validator.String{
+					stringvalidator.LengthBetween(3, 15),
+					stringvalidator.RegexMatches(
+						regexp.MustCompile(`^[ㄱ-ㅣ가-힣A-Za-z0-9-]+$`),
+						"Composed of alphabets, numbers, hyphen (-).",
+					),
+				},
 			},
-			"user_password": {
-				Type:      schema.TypeString,
-				Required:  true,
+			"is_ha": schema.BoolAttribute{
+				Required: true,
+				PlanModifiers: []planmodifier.Bool{
+					boolplanmodifier.RequiresReplace(),
+				},
+				Description: "default: true",
+			},
+			"user_name": schema.StringAttribute{
+				Required: true,
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.RequiresReplace(),
+				},
+				Validators: []validator.String{
+					stringvalidator.LengthBetween(4, 16),
+					stringvalidator.RegexMatches(
+						regexp.MustCompile(`^[a-zA-Z]+[a-zA-Z0-9-\\_,]+$`),
+						"Composed of alphabets, numbers, hyphen (-), (\\), (_), (,). Must start with an alphabetic character.",
+					),
+				},
+			},
+			"user_password": schema.StringAttribute{
+				Required: true,
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.RequiresReplace(),
+				},
+				Validators: []validator.String{
+					stringvalidator.All(
+						stringvalidator.LengthBetween(8, 20),
+						stringvalidator.RegexMatches(regexp.MustCompile(`[a-zA-Z]+`), "Must have at least one alphabet"),
+						stringvalidator.RegexMatches(regexp.MustCompile(`\d+`), "Must have at least one number"),
+						stringvalidator.RegexMatches(regexp.MustCompile(`[~!@#$%^*()\-_=\[\]\{\};:,.<>?]+`), "Must have at least one special character"),
+						stringvalidator.RegexMatches(regexp.MustCompile(`^[^&+\\"'/\s`+"`"+`]*$`), "Must not have ` & + \\ \" ' / and white space."),
+					),
+				},
 				Sensitive: true,
-				ValidateDiagFunc: validation.ToDiagFunc(validation.All(
-					validation.StringLenBetween(8, 20),
-					validation.StringMatch(regexp.MustCompile(`[a-zA-Z]+`), "Must have at least one alphabet"),
-					validation.StringMatch(regexp.MustCompile(`\d+`), "Must have at least one number"),
-					validation.StringMatch(regexp.MustCompile(`[~!@#$%^*()\-_=\[\]\{\};:,.<>?]+`), "Must have at least one special character"),
-					validation.StringMatch(regexp.MustCompile(`^[^&+\\"'/\s`+"`"+`]*$`), "Must not have ` & + \\ \" ' / and white space."),
-				)),
-				Description: "Access password for user, which will be used for DB admin.",
-				ForceNew:    true,
 			},
-			"mirror_subnet_no": {
-				Type:        schema.TypeString,
-				Optional:    true,
-				Description: "Subnet number of Mirror Server. Required when isMultiZone is true.",
-				ForceNew:    true,
-			},
-			"config_group_no": {
-				Type:        schema.TypeString,
-				Optional:    true,
-				Description: "Config Group number of Cloud DB for MSSQL instance.",
-				Default:     0,
-				ForceNew:    true,
-			},
-			"image_product_code": {
-				Type:        schema.TypeString,
-				Optional:    true,
-				Description: "Image Product Code of Cloud DB for MSSQL instance.",
-				ForceNew:    true,
-			},
-			"product_code": {
-				Type:        schema.TypeString,
-				Optional:    true,
-				Description: "Product Code of Cloud DB for MSSQL instance.",
-				ForceNew:    true,
-			},
-			"data_storage_type_code": {
-				Type:             schema.TypeString,
-				Optional:         true,
-				ValidateDiagFunc: validation.ToDiagFunc(validation.StringInSlice([]string{"HDD", "SSD"}, false)),
-				Description:      "Data Storage Type Code.",
-				Default:          "SSD",
-				ForceNew:         true,
-			},
-			"is_multi_zone": {
-				Type:        schema.TypeBool,
-				Optional:    true,
-				Description: "Multi Zone option. Required when isHa is true.",
-				Default:     false,
-				ForceNew:    true,
-			},
-			"backup_file_retention_period": {
-				Type:             schema.TypeInt,
-				Optional:         true,
-				ValidateDiagFunc: validation.ToDiagFunc(validation.IntBetween(1, 30)),
-				Description:      "Retention period of back-up files.",
-				Default:          1,
-				ForceNew:         true,
-			},
-			"backup_time": {
-				Type:     schema.TypeString,
+			"config_group_no": schema.StringAttribute{
 				Optional: true,
-				ValidateDiagFunc: validation.ToDiagFunc(validation.All(
-					validation.StringMatch(regexp.MustCompile(`^(0[0-9]|1[0-9]|2[0-3])([0-5][0-9])$`), "Must be in the format HHMM."),
-					validation.StringMatch(regexp.MustCompile(`^(0[0-9]|1[0-9]|2[0-3])([0-5][0-9])(00|15|30|45)$`), "Must be in 15-minute intervals."),
-				)),
-				Description: "Back-up time. Required when isAutomaticBackup is false.",
-				ForceNew:    true,
+				Computed: true,
+				Default:  stringdefault.StaticString("0"),
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.RequiresReplace(),
+				},
 			},
-			"is_automatic_backup": {
-				Type:        schema.TypeBool,
-				Optional:    true,
-				Description: "Automatic backup time.",
-				ForceNew:    true,
-			},
-			"port": {
-				Type:     schema.TypeInt,
+			"image_product_code": schema.StringAttribute{
 				Optional: true,
-				ValidateDiagFunc: validation.ToDiagFunc(validation.Any(
-					//validation.
-					validation.IntBetween(10000, 20000),
-					validation.IntBetween(1433, 1433),
-				)),
-				Description: "Port of Cloud DB for MSSQL instance.",
-				Default:     1433,
-				ForceNew:    true,
+				Computed: true,
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.UseStateForUnknown(),
+					stringplanmodifier.RequiresReplace(),
+				},
 			},
-			"character_set_name": {
-				Type:        schema.TypeString,
-				Optional:    true,
-				Description: "DB character set.",
-				Default:     "Korean_Wansung_CI_AS",
-				ForceNew:    true,
+			"product_code": schema.StringAttribute{
+				Optional: true,
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.RequiresReplace(),
+				},
+			},
+			"data_storage_type": schema.StringAttribute{
+				Optional: true,
+				Computed: true,
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.UseStateForUnknown(),
+					stringplanmodifier.RequiresReplace(),
+				},
+				Validators: []validator.String{
+					stringvalidator.OneOf([]string{"SSD", "HDD"}...),
+				},
+				Description: "default: SSD",
+			},
+			"backup_file_retention_period": schema.Int64Attribute{
+				Optional: true,
+				Computed: true,
+				Default:  int64default.StaticInt64(1),
+				PlanModifiers: []planmodifier.Int64{
+					int64planmodifier.UseStateForUnknown(),
+					int64planmodifier.RequiresReplace(),
+				},
+				Validators: []validator.Int64{
+					int64validator.Between(1, 30),
+				},
+			},
+			"backup_time": schema.StringAttribute{
+				Optional: true,
+				Computed: true,
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.UseStateForUnknown(),
+					stringplanmodifier.RequiresReplace(),
+				},
+				Validators: []validator.String{
+					stringvalidator.RegexMatches(regexp.MustCompile(`^(0[0-9]|1[0-9]|2[0-3])(:?(00|15|30|45))$`), "Must be in the format HHMM and 15 minutes internvals."),
+				},
+				Description: "ex) 01:15",
+			},
+			"is_automatic_backup": schema.BoolAttribute{
+				Optional: true,
+				PlanModifiers: []planmodifier.Bool{
+					boolplanmodifier.RequiresReplace(),
+				},
+			},
+			"port": schema.Int64Attribute{
+				Optional: true,
+				Computed: true,
+				Default:  int64default.StaticInt64(1433),
+				PlanModifiers: []planmodifier.Int64{
+					int64planmodifier.UseStateForUnknown(),
+					int64planmodifier.RequiresReplace(),
+				},
+				Validators: []validator.Int64{
+					int64validator.Any(
+						int64validator.Between(10000, 20000),
+						int64validator.OneOf(1433),
+					),
+				},
+			},
+			"character_set_name": schema.StringAttribute{
+				Optional: true,
+				Computed: true,
+				Default:  stringdefault.StaticString("Korean_Wansung_CI_AS"),
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.UseStateForUnknown(),
+					stringplanmodifier.RequiresReplace(),
+				},
+			},
+			"engine_version": schema.StringAttribute{
+				Computed: true,
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.UseStateForUnknown(),
+				},
+			},
+			"region_code": schema.StringAttribute{
+				Computed: true,
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.UseStateForUnknown(),
+				},
+			},
+			"vpc_no": schema.StringAttribute{
+				Computed: true,
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.UseStateForUnknown(),
+				},
+			},
+			"access_control_group_no_list": schema.ListAttribute{
+				ElementType: types.StringType,
+				Computed:    true,
+				PlanModifiers: []planmodifier.List{
+					listplanmodifier.UseStateForUnknown(),
+				},
+			},
+			"mssql_server_list": schema.ListNestedAttribute{
+				Computed: true,
+				NestedObject: schema.NestedAttributeObject{
+					Attributes: map[string]schema.Attribute{
+						"server_instance_no": schema.StringAttribute{
+							Computed: true,
+						},
+						"server_name": schema.StringAttribute{
+							Computed: true,
+						},
+						"server_role": schema.StringAttribute{
+							Computed: true,
+						},
+						"zone_code": schema.StringAttribute{
+							Computed: true,
+						},
+						"subnet_no": schema.StringAttribute{
+							Computed: true,
+						},
+						"product_code": schema.StringAttribute{
+							Computed: true,
+						},
+						"is_public_subnet": schema.BoolAttribute{
+							Computed: true,
+						},
+						"public_domain": schema.StringAttribute{
+							Computed: true,
+						},
+						"private_domain": schema.StringAttribute{
+							Computed: true,
+						},
+						"data_storage_size": schema.Int64Attribute{
+							Computed: true,
+						},
+						"used_data_storage_size": schema.Int64Attribute{
+							Computed: true,
+						},
+						"cpu_count": schema.Int64Attribute{
+							Computed: true,
+						},
+						"memory_size": schema.Int64Attribute{
+							Computed: true,
+						},
+						"uptime": schema.StringAttribute{
+							Computed: true,
+						},
+						"create_date": schema.StringAttribute{
+							Computed: true,
+						},
+					},
+				},
 			},
 		},
 	}
 }
 
-func resourceNcloudMssqlCreate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
-	config := meta.(*conn.ProviderConfig)
-	client := meta.(*conn.ProviderConfig).Client
-	if !config.SupportVPC {
-		return diag.FromErr(NotSupportClassic("resource `ncloud_cloud_mssql`"))
+func (r *mssqlResource) Configure(_ context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
+	if req.ProviderData == nil {
+		return
+	}
+
+	config, ok := req.ProviderData.(*conn.ProviderConfig)
+
+	if !ok {
+		resp.Diagnostics.AddError(
+			"Unexpected Data Source Configure Type",
+			fmt.Sprintf("Expected *ProviderConfig, got: %T. Please report this issue to the provider developers.", req.ProviderData),
+		)
+		return
+	}
+
+	r.config = config
+}
+
+func (r *mssqlResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
+	var plan mssqlResourceModel
+
+	if !r.config.SupportVPC {
+		resp.Diagnostics.AddError(
+			"NOT SUPPORT CLASSIC",
+			"resource does not support CLASSIC. only VPC.",
+		)
+		return
+	}
+
+	resp.Diagnostics.Append(req.Plan.Get(ctx, &plan)...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
+	subnet, err := vpc.GetSubnetInstance(r.config, plan.SubnetNo.ValueString())
+	if err != nil {
+		resp.Diagnostics.AddError(
+			"CREATING ERROR",
+			err.Error(),
+		)
 	}
 
 	reqParams := &vmssql.CreateCloudMssqlInstanceRequest{
-		RegionCode:                 &config.RegionCode,
-		VpcNo:                      StringPtrOrNil(d.GetOk("vpc_no")),
-		SubnetNo:                   StringPtrOrNil(d.GetOk("subnet_no")),
-		CloudMssqlServiceName:      StringPtrOrNil(d.GetOk("service_name")),
-		ConfigGroupNo:              StringPtrOrNil(d.GetOk("config_group_no")),
-		CloudMssqlImageProductCode: StringPtrOrNil(d.GetOk("image_product_code")),
-		CloudMssqlProductCode:      StringPtrOrNil(d.GetOk("product_code")),
-		DataStorageTypeCode:        StringPtrOrNil(d.GetOk("data_storage_type_code")),
-		IsHa:                       BoolPtrOrNil(d.Get("is_ha"), true),
-		BackupFileRetentionPeriod:  Int32PtrOrNil(d.GetOk("backup_file_retention_period")),
-		BackupTime:                 StringPtrOrNil(d.GetOk("backup_time")),
-		IsAutomaticBackup:          BoolPtrOrNil(d.GetOk("is_automatic_backup")),
-		CloudMssqlUserName:         StringPtrOrNil(d.GetOk("user_name")),
-		CloudMssqlUserPassword:     StringPtrOrNil(d.GetOk("user_password")),
-		CloudMssqlPort:             Int32PtrOrNil(d.GetOk("port")),
-		CharacterSetName:           StringPtrOrNil(d.GetOk("character_set_name")),
+		RegionCode:                &r.config.RegionCode,
+		VpcNo:                     subnet.VpcNo,
+		SubnetNo:                  subnet.SubnetNo,
+		CloudMssqlServiceName:     plan.ServiceName.ValueStringPointer(),
+		CloudMssqlUserName:        plan.UserName.ValueStringPointer(),
+		CloudMssqlUserPassword:    plan.UserPassword.ValueStringPointer(),
+		IsHa:                      plan.IsHa.ValueBoolPointer(),
+		ConfigGroupNo:             plan.ConfigGroupNo.ValueStringPointer(),
+		BackupFileRetentionPeriod: ncloud.Int32(int32(plan.BackupFileRetentionPeriod.ValueInt64())),
+		CloudMssqlPort:            ncloud.Int32(int32(plan.Port.ValueInt64())),
+		CharacterSetName:          plan.CharacterSetName.ValueStringPointer(),
+	}
+	plan.VpcNo = types.StringPointerValue(subnet.VpcNo)
+
+	if !plan.DataStorageTypeCode.IsNull() && !plan.DataStorageTypeCode.IsUnknown() {
+		reqParams.DataStorageTypeCode = plan.DataStorageTypeCode.ValueStringPointer()
 	}
 
-	LogCommonRequest("CreateCloudMssqlInstance", reqParams)
-	resp, err := client.Vmssql.V2Api.CreateCloudMssqlInstance(reqParams)
-	if err != nil {
-		LogErrorResponse("CreateCloudMssqlInstance", err, reqParams)
-		return diag.FromErr(err)
-	}
-	LogCommonResponse("CreateCloudMssqlInstance", GetCommonResponse(resp))
-
-	if err := waitForCloudMssqlActive(ctx, d, config, ncloud.StringValue(resp.CloudMssqlInstanceList[0].CloudMssqlInstanceNo)); err != nil {
-		return diag.FromErr(err)
+	if !plan.ProductCode.IsNull() && !plan.ProductCode.IsUnknown() {
+		reqParams.CloudMssqlProductCode = plan.ProductCode.ValueStringPointer()
 	}
 
-	cloudMssqlInstance := resp.CloudMssqlInstanceList[0]
-	d.SetId(*cloudMssqlInstance.CloudMssqlInstanceNo)
-
-	return resourceNcloudMssqlRead(ctx, d, meta)
-}
-
-func resourceNcloudMssqlRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
-	config := meta.(*conn.ProviderConfig)
-	if !config.SupportVPC {
-		return diag.FromErr(NotSupportClassic("resource `ncloud_cloud_mssql`"))
+	if !plan.ImageProductCode.IsNull() && !plan.ImageProductCode.IsUnknown() {
+		reqParams.CloudMssqlImageProductCode = plan.ImageProductCode.ValueStringPointer()
 	}
 
-	ms, err := GetCloudMssqlInstance(config, d.Id())
-	if err != nil {
-		commonErr, parseErr := GetCommonErrorBody(err)
-		if parseErr == nil && commonErr.ReturnCode == resourceNotFoundErrorCode {
-			d.SetId("")
-			return nil
+	if !plan.IsAutomaticBackup.IsNull() && !plan.IsAutomaticBackup.IsUnknown() {
+		reqParams.IsAutomaticBackup = plan.IsAutomaticBackup.ValueBoolPointer()
+	}
+
+	if reqParams.IsAutomaticBackup == nil || *reqParams.IsAutomaticBackup {
+		if !plan.BackupTime.IsNull() && !plan.BackupTime.IsUnknown() {
+			resp.Diagnostics.AddError(
+				"CREATING ERROR",
+				"when `is_automactic_backup` is true, `backup_time` is not used",
+			)
+			return
 		}
-		return diag.FromErr(err)
+	} else {
+		if plan.BackupTime.IsNull() || plan.BackupTime.IsUnknown() {
+			resp.Diagnostics.AddError(
+				"CREATING ERROR",
+				"when `is_automactic_backup` is false, `backup_time` must be entered",
+			)
+			return
+		}
+		reqParams.BackupTime = plan.BackupTime.ValueStringPointer()
 	}
 
-	if ms == nil {
-		log.Printf("unable to find resource: %s", d.Id())
-		d.SetId("") // resource not found
+	tflog.Info(ctx, "CreateMssql reqParams="+common.MarshalUncheckedString(reqParams))
 
-		return nil
-	}
-
-	convertedInstance := ConvertToMap(ms)
-	SetSingularResourceDataFromMapSchema(ResourceNcloudMssql(), d, convertedInstance)
-
-	return nil
-}
-
-func resourceNcloudMssqlDelete(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
-	config := meta.(*conn.ProviderConfig)
-	client := meta.(*conn.ProviderConfig).Client
-	if !config.SupportVPC {
-		return diag.FromErr(NotSupportClassic("resource `ncloud_cloud_mssql`"))
-	}
-
-	deleteInstanceReqParams := &vmssql.DeleteCloudMssqlInstanceRequest{
-		RegionCode:           &config.RegionCode,
-		CloudMssqlInstanceNo: ncloud.String(d.Id()),
-	}
-
-	if err := waitForCloudMssqlActive(ctx, d, config, d.Id()); err != nil {
-		return diag.FromErr(err)
-	}
-
-	LogCommonRequest("resourceNcloudMssqlDelete", deleteInstanceReqParams)
-	resp, err := client.Vmssql.V2Api.DeleteCloudMssqlInstance(deleteInstanceReqParams)
+	response, err := r.config.Client.Vmssql.V2Api.CreateCloudMssqlInstance(reqParams)
 	if err != nil {
-		LogErrorResponse("resourceNcloudMssqlDelete", err, deleteInstanceReqParams)
-		return diag.FromErr(err)
+		resp.Diagnostics.AddError("CREATING ERROR", err.Error())
+		return
 	}
-	LogResponse("resourceNcloudMssqlDelete", resp)
+	tflog.Info(ctx, "CreateMssql response="+common.MarshalUncheckedString(response))
 
-	if err := waitForCloudMssqlDeletion(ctx, d, config); err != nil {
-		return diag.FromErr(err)
+	if response == nil || len(response.CloudMssqlInstanceList) < 1 {
+		resp.Diagnostics.AddError("CREATING ERROR", "response invalid")
+		return
 	}
 
-	return nil
+	mssqlIns := response.CloudMssqlInstanceList[0]
+	plan.ID = types.StringPointerValue(mssqlIns.CloudMssqlInstanceNo)
+
+	output, err := waitMssqlCreation(ctx, r.config, *mssqlIns.CloudMssqlInstanceNo)
+	if err != nil {
+		resp.Diagnostics.AddError("WAITING FOR CREATION ERROR", err.Error())
+		return
+	}
+
+	plan.refreshFromOutput(ctx, output)
+
+	resp.Diagnostics.Append(resp.State.Set(ctx, plan)...)
 }
 
-func waitForCloudMssqlDeletion(ctx context.Context, d *schema.ResourceData, config *conn.ProviderConfig) error {
-	stateConf := &resource.StateChangeConf{
-		Pending: []string{"DEL"},
-		Target:  []string{"NULL"},
-		Refresh: func() (result interface{}, state string, err error) {
-			reqParams := &vmssql.GetCloudMssqlInstanceListRequest{
-				RegionCode:               &config.RegionCode,
-				CloudMssqlInstanceNoList: []*string{ncloud.String(d.Id())},
-			}
-			resp, err := config.Client.Vmssql.V2Api.GetCloudMssqlInstanceList(reqParams)
-			if err != nil {
-				return nil, "", err
-			}
+func (r *mssqlResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
+	var state mssqlResourceModel
 
-			if len(resp.CloudMssqlInstanceList) < 1 {
-				return resp, "NULL", nil
-			}
-
-			ms := resp.CloudMssqlInstanceList[0]
-			status := ncloud.StringValue(ms.CloudMssqlInstanceOperation.Code)
-
-			return ms, status, nil
-		},
-		Timeout:    d.Timeout(schema.TimeoutDelete),
-		Delay:      2 * time.Second,
-		MinTimeout: 3 * time.Second,
+	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
+	if resp.Diagnostics.HasError() {
+		return
 	}
 
-	if _, err := stateConf.WaitForStateContext(ctx); err != nil {
-		return fmt.Errorf("error waiting for Cloud Mssql instance (%s) to become terminating: %s", d.Id(), err)
+	output, err := GetMssqlInstance(ctx, r.config, state.ID.ValueString())
+	if err != nil {
+		resp.Diagnostics.AddError("READING ERROR", err.Error())
+		return
 	}
 
-	return nil
+	if output == nil {
+		resp.State.RemoveResource(ctx)
+		return
+	}
+
+	state.refreshFromOutput(ctx, output)
+
+	resp.Diagnostics.Append(resp.State.Set(ctx, &state)...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
 }
 
-func GetCloudMssqlInstance(config *conn.ProviderConfig, cloudMssqlInstanceNo string) (*vmssql.CloudMssqlInstance, error) {
+func (m *mssqlResource) Update(_ context.Context, _ resource.UpdateRequest, _ *resource.UpdateResponse) {
+}
+
+func (r *mssqlResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
+	var state mssqlResourceModel
+
+	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
+	reqParams := &vmssql.DeleteCloudMssqlInstanceRequest{
+		RegionCode:           &r.config.RegionCode,
+		CloudMssqlInstanceNo: state.ID.ValueStringPointer(),
+	}
+	tflog.Info(ctx, "DeleteMssql reqParams="+common.MarshalUncheckedString(reqParams))
+
+	response, err := r.config.Client.Vmssql.V2Api.DeleteCloudMssqlInstance(reqParams)
+	if err != nil {
+		resp.Diagnostics.AddError("DELETING ERROR", err.Error())
+		return
+	}
+	tflog.Info(ctx, "DeleteMssql response="+common.MarshalUncheckedString(response))
+
+	if err := waitMssqlDeletion(ctx, r.config, state.ID.ValueString()); err != nil {
+		resp.Diagnostics.AddError("WAITING FOR DELETE ERROR", err.Error())
+	}
+}
+
+func (r *mssqlResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
+	resource.ImportStatePassthroughID(ctx, path.Root("id"), req, resp)
+}
+
+func GetMssqlInstance(ctx context.Context, config *conn.ProviderConfig, no string) (*vmssql.CloudMssqlInstance, error) {
 	reqParams := &vmssql.GetCloudMssqlInstanceDetailRequest{
 		RegionCode:           &config.RegionCode,
-		CloudMssqlInstanceNo: ncloud.String(cloudMssqlInstanceNo),
+		CloudMssqlInstanceNo: &no,
 	}
-	LogCommonRequest("GetCloudMssqlInstanceList", reqParams)
+	tflog.Info(ctx, "GetMssqlDetail reqParams="+common.MarshalUncheckedString(reqParams))
+
 	resp, err := config.Client.Vmssql.V2Api.GetCloudMssqlInstanceDetail(reqParams)
-	if err != nil {
-		LogErrorResponse("GetCloudMssqlInstanceList", err, reqParams)
+	// If the lookup result is 0, it will respond with a 400 error with a 5001017 return code.
+	// MSSQL deleted, it will respond with a 400 error with a 5001269 return code.
+	if err != nil && !(strings.Contains(err.Error(), `"returnCode": "5001017"`)) && !strings.Contains(err.Error(), `"returnCode": "5001269"`) {
 		return nil, err
 	}
-	LogCommonResponse("GetCloudMssqlInstanceList", GetCommonResponse(resp))
+	tflog.Info(ctx, "GetMssqlDetail response="+common.MarshalUncheckedString(resp))
 
-	if len(resp.CloudMssqlInstanceList) < 1 {
+	if resp == nil || len(resp.CloudMssqlInstanceList) < 1 || len(resp.CloudMssqlInstanceList[0].CloudMssqlServerInstanceList) < 1 {
 		return nil, nil
 	}
 
 	return resp.CloudMssqlInstanceList[0], nil
 }
 
-func waitForCloudMssqlActive(ctx context.Context, d *schema.ResourceData, config *conn.ProviderConfig, id string) error {
-	stateConf := &resource.StateChangeConf{
+func waitMssqlCreation(ctx context.Context, config *conn.ProviderConfig, id string) (*vmssql.CloudMssqlInstance, error) {
+	var mssqlInstance *vmssql.CloudMssqlInstance
+	stateConf := &retry.StateChangeConf{
 		Pending: []string{"creating", "settingUp"},
 		Target:  []string{"running"},
 		Refresh: func() (interface{}, string, error) {
-			reqParams := &vmssql.GetCloudMssqlInstanceDetailRequest{
-				RegionCode:           &config.RegionCode,
-				CloudMssqlInstanceNo: ncloud.String(id),
-			}
-			resp, err := config.Client.Vmssql.V2Api.GetCloudMssqlInstanceDetail(reqParams)
+			instance, err := GetMssqlInstance(ctx, config, id)
+			mssqlInstance = instance
 			if err != nil {
-				return nil, "", err
+				return 0, "", err
 			}
 
-			if len(resp.CloudMssqlInstanceList) < 1 {
-				return nil, "", fmt.Errorf("not found cloud mssql instance(%s)", id)
-			}
-
-			ms := resp.CloudMssqlInstanceList[0]
-
-			status := ms.CloudMssqlInstanceStatus.Code
-			op := ms.CloudMssqlInstanceOperation.Code
+			status := instance.CloudMssqlInstanceStatus.Code
+			op := instance.CloudMssqlInstanceOperation.Code
 
 			if *status == "INIT" && *op == "CREAT" {
-				return ms, "creating", nil
+				return instance, "creating", nil
 			}
 
 			if *status == "CREAT" && *op == "SETUP" {
-				return ms, "settingUp", nil
+				return instance, "settingUp", nil
 			}
 
 			if *status == "CREAT" && *op == "NULL" {
-				return ms, "running", nil
+				return instance, "running", nil
 			}
 
-			return resp, ncloud.StringValue(ms.CloudMssqlInstanceOperation.Code), nil
+			return 0, "", fmt.Errorf("error occurred while waiting to create mssql")
 		},
-		Timeout:    d.Timeout(schema.TimeoutCreate),
+		Timeout:    90 * time.Minute,
+		Delay:      2 * time.Second,
+		MinTimeout: 3 * time.Second,
+	}
+	_, err := stateConf.WaitForState()
+	if err != nil {
+		return nil, fmt.Errorf("error waiting for MssqlInstance state to be \"CREAT\": %s", err)
+	}
+
+	return mssqlInstance, nil
+}
+
+func waitMssqlDeletion(ctx context.Context, config *conn.ProviderConfig, id string) error {
+	stateConf := &retry.StateChangeConf{
+		Pending: []string{"deleting"},
+		Target:  []string{"deleted"},
+		Refresh: func() (interface{}, string, error) {
+			instance, err := GetMssqlInstance(ctx, config, id)
+			if err != nil {
+				return 0, "", err
+			}
+
+			if instance == nil {
+				return instance, "deleted", nil
+			}
+
+			status := instance.CloudMssqlInstanceStatus.Code
+			op := instance.CloudMssqlInstanceOperation.Code
+
+			if *status == "DEL" && *op == "DEL" {
+				return instance, "deleting", nil
+			}
+
+			return 0, "", fmt.Errorf("error occurred while waiting to delete mssql")
+		},
+		Timeout:    conn.DefaultTimeout,
 		Delay:      2 * time.Second,
 		MinTimeout: 3 * time.Second,
 	}
 
-	if _, err := stateConf.WaitForStateContext(ctx); err != nil {
-		return fmt.Errorf("error waiting for Cloud Mssql instance (%s) to become activating: %s", id, err)
+	if _, err := stateConf.WaitForState(); err != nil {
+		return fmt.Errorf("error waiting for mssql (%s) to become termintaing: %s", id, err)
 	}
 
 	return nil
 }
 
-func convertCloudMssql(instance *vmssql.CloudMssqlInstance) *CloudMssqlInstance {
-	return &CloudMssqlInstance{
-		CloudMssqlInstanceNo:         instance.CloudMssqlInstanceNo,
-		CloudMssqlServiceName:        instance.CloudMssqlServiceName,
-		CloudMssqlInstanceStatusName: instance.CloudMssqlInstanceStatusName,
-		CloudMssqlImageProductCode:   instance.CloudMssqlImageProductCode,
-		IsHa:                         instance.IsHa,
-		CloudMssqlPort:               instance.CloudMssqlPort,
-		BackupFileRetentionPeriod:    instance.BackupFileRetentionPeriod,
-		BackupTime:                   instance.BackupTime,
-		ConfigGroupNo:                instance.ConfigGroupNo,
-		EngineVersion:                instance.EngineVersion,
-		CreateDate:                   instance.CreateDate,
-		DbCollation:                  instance.DbCollation,
-		AccessControlGroupNoList:     instance.AccessControlGroupNoList,
+type mssqlResourceModel struct {
+	ID                        types.String `tfsdk:"id"`
+	SubnetNo                  types.String `tfsdk:"subnet_no"`
+	ServiceName               types.String `tfsdk:"service_name"`
+	IsHa                      types.Bool   `tfsdk:"is_ha"`
+	UserName                  types.String `tfsdk:"user_name"`
+	UserPassword              types.String `tfsdk:"user_password"`
+	ConfigGroupNo             types.String `tfsdk:"config_group_no"`
+	ImageProductCode          types.String `tfsdk:"image_product_code"`
+	ProductCode               types.String `tfsdk:"product_code"`
+	DataStorageTypeCode       types.String `tfsdk:"data_storage_type"`
+	BackupFileRetentionPeriod types.Int64  `tfsdk:"backup_file_retention_period"`
+	BackupTime                types.String `tfsdk:"backup_time"`
+	IsAutomaticBackup         types.Bool   `tfsdk:"is_automatic_backup"`
+	Port                      types.Int64  `tfsdk:"port"`
+	CharacterSetName          types.String `tfsdk:"character_set_name"`
+	EngineVersion             types.String `tfsdk:"engine_version"`
+	RegionCode                types.String `tfsdk:"region_code"`
+	VpcNo                     types.String `tfsdk:"vpc_no"`
+	AccessControlGroupNoList  types.List   `tfsdk:"access_control_group_no_list"`
+	MssqlServerList           types.List   `tfsdk:"mssql_server_list"`
+}
+
+type mssqlServer struct {
+	ServerInstanceNo    types.String `tfsdk:"server_instance_no"`
+	ServerName          types.String `tfsdk:"server_name"`
+	ServerRole          types.String `tfsdk:"server_role"`
+	ZoneCode            types.String `tfsdk:"zone_code"`
+	SubnetNo            types.String `tfsdk:"subnet_no"`
+	ProductCode         types.String `tfsdk:"product_code"`
+	IsPublicSubnet      types.Bool   `tfsdk:"is_public_subnet"`
+	PublicDomain        types.String `tfsdk:"public_domain"`
+	PrivateDomain       types.String `tfsdk:"private_domain"`
+	DataStorageSize     types.Int64  `tfsdk:"data_storage_size"`
+	UsedDataStorageSize types.Int64  `tfsdk:"used_data_storage_size"`
+	CpuCount            types.Int64  `tfsdk:"cpu_count"`
+	MemorySize          types.Int64  `tfsdk:"memory_size"`
+	Uptime              types.String `tfsdk:"uptime"`
+	CreateDate          types.String `tfsdk:"create_date"`
+}
+
+func (m mssqlServer) attrTypes() map[string]attr.Type {
+	return map[string]attr.Type{
+		"server_instance_no":     types.StringType,
+		"server_name":            types.StringType,
+		"server_role":            types.StringType,
+		"zone_code":              types.StringType,
+		"subnet_no":              types.StringType,
+		"product_code":           types.StringType,
+		"is_public_subnet":       types.BoolType,
+		"public_domain":          types.StringType,
+		"private_domain":         types.StringType,
+		"data_storage_size":      types.Int64Type,
+		"used_data_storage_size": types.Int64Type,
+		"cpu_count":              types.Int64Type,
+		"memory_size":            types.Int64Type,
+		"uptime":                 types.StringType,
+		"create_date":            types.StringType,
 	}
+}
+
+func (m *mssqlResourceModel) refreshFromOutput(ctx context.Context, output *vmssql.CloudMssqlInstance) {
+	m.ID = types.StringPointerValue(output.CloudMssqlInstanceNo)
+	m.ServiceName = types.StringPointerValue(output.CloudMssqlServiceName)
+	m.ImageProductCode = types.StringPointerValue(output.CloudMssqlImageProductCode)
+	m.DataStorageTypeCode = types.StringPointerValue(output.CloudMssqlServerInstanceList[0].DataStorageType.Code)
+	m.IsHa = types.BoolPointerValue(output.IsHa)
+	m.BackupFileRetentionPeriod = types.Int64Value(int64(*output.BackupFileRetentionPeriod))
+	m.BackupTime = types.StringPointerValue(output.BackupTime)
+	m.ConfigGroupNo = types.StringPointerValue(output.ConfigGroupNo)
+	m.Port = types.Int64Value(int64(*output.CloudMssqlPort))
+	m.EngineVersion = types.StringPointerValue(output.EngineVersion)
+	m.CharacterSetName = types.StringPointerValue(output.DbCollation)
+	m.RegionCode = types.StringPointerValue(output.CloudMssqlServerInstanceList[0].RegionCode)
+	m.VpcNo = types.StringPointerValue(output.CloudMssqlServerInstanceList[0].VpcNo)
+
+	acgList, _ := types.ListValueFrom(ctx, types.StringType, output.AccessControlGroupNoList)
+	m.AccessControlGroupNoList = acgList
+
+	var serverList []mssqlServer
+	for _, server := range output.CloudMssqlServerInstanceList {
+		mssqlServerInstance := mssqlServer{
+			ServerInstanceNo: types.StringPointerValue(server.CloudMssqlServerInstanceNo),
+			ServerName:       types.StringPointerValue(server.CloudMssqlServerName),
+			ServerRole:       types.StringPointerValue(server.CloudMssqlServerRole.Code),
+			ZoneCode:         types.StringPointerValue(server.ZoneCode),
+			SubnetNo:         types.StringPointerValue(server.SubnetNo),
+			ProductCode:      types.StringPointerValue(server.CloudMssqlProductCode),
+			IsPublicSubnet:   types.BoolPointerValue(server.IsPublicSubnet),
+			PrivateDomain:    types.StringPointerValue(server.PrivateDomain),
+			DataStorageSize:  types.Int64Value(*server.DataStorageSize),
+			CpuCount:         types.Int64Value(int64(*server.CpuCount)),
+			MemorySize:       types.Int64Value(*server.MemorySize),
+			Uptime:           types.StringPointerValue(server.Uptime),
+			CreateDate:       types.StringPointerValue(server.CreateDate),
+		}
+
+		if server.PublicDomain != nil {
+			mssqlServerInstance.PublicDomain = types.StringPointerValue(server.PublicDomain)
+		}
+
+		if server.UsedDataStorageSize != nil {
+			mssqlServerInstance.UsedDataStorageSize = types.Int64Value(*server.UsedDataStorageSize)
+		}
+		serverList = append(serverList, mssqlServerInstance)
+	}
+
+	mssqlServers, _ := types.ListValueFrom(ctx, types.ObjectType{AttrTypes: mssqlServer{}.attrTypes()}, serverList)
+
+	m.MssqlServerList = mssqlServers
 }

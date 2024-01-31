@@ -33,9 +33,6 @@ func TestAccDataSourceNcloudMysql_vpc_basic(t *testing.T) {
 					resource.TestCheckResourceAttrPair(dataName, "is_multi_zone", resourceName, "is_multi_zone"),
 					resource.TestCheckResourceAttrPair(dataName, "is_backup", resourceName, "is_backup"),
 					resource.TestCheckResourceAttrPair(dataName, "backup_file_retention_period", resourceName, "backup_file_retention_period"),
-					resource.TestCheckResourceAttrPair(dataName, "mysql_no", resourceName, "mysql_no"),
-
-					TestAccCheckDataSourceID("data.ncloud_mysql.by_filter"),
 				),
 			},
 		},
@@ -44,40 +41,32 @@ func TestAccDataSourceNcloudMysql_vpc_basic(t *testing.T) {
 
 func testAccDataSourceMysqlConfig(testMysqlName string) string {
 	return fmt.Sprintf(`
-		resource "ncloud_vpc" "test_vpc" {
-		name               = "%[1]s"
-		ipv4_cidr_block    = "10.5.0.0/16"
-		}
+resource "ncloud_vpc" "test_vpc" {
+	name               = "%[1]s"
+	ipv4_cidr_block    = "10.5.0.0/16"
+}
 
-		resource "ncloud_subnet" "test_subnet" {
-		vpc_no             = ncloud_vpc.test_vpc.vpc_no
-		name               = "%[1]s"
-		subnet             = "10.5.0.0/24"
-		zone               = "KR-2"
-		network_acl_no     = ncloud_vpc.test_vpc.default_network_acl_no
-		subnet_type        = "PUBLIC"
-		}
+resource "ncloud_subnet" "test_subnet" {
+	vpc_no             = ncloud_vpc.test_vpc.vpc_no
+	name               = "%[1]s"
+	subnet             = "10.5.0.0/24"
+	zone               = "KR-2"
+	network_acl_no     = ncloud_vpc.test_vpc.default_network_acl_no
+	subnet_type        = "PUBLIC"
+}
 
-		resource "ncloud_mysql" "mysql" {
-		subnet_no = ncloud_subnet.test_subnet.id
-		service_name = "%[1]s"
-		name_prefix = "testprefix"
-		user_name = "testusername"
-		user_password = "t123456789!a"
-		host_ip = "192.168.0.1"
-		database_name = "test_db"
-		}
+resource "ncloud_mysql" "mysql" {
+	subnet_no = ncloud_subnet.test_subnet.id
+	service_name = "%[1]s"
+	server_name_prefix = "testprefix"
+	user_name = "testusername"
+	user_password = "t123456789!a"
+	host_ip = "192.168.0.1"
+	database_name = "test_db"
+}
 
-
-		data "ncloud_mysql" "by_id" {
-			id = ncloud_mysql.mysql.id
-		}
-
-		data "ncloud_mysql" "by_filter" {
-			filter {
-				name = "id"
-				values = [ncloud_mysql.mysql.id]
-			}
-		}
-	`, testMysqlName)
+data "ncloud_mysql" "by_id" {
+	id = ncloud_mysql.mysql.id
+}
+`, testMysqlName)
 }
