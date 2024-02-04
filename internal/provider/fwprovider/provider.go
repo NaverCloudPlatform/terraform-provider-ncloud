@@ -2,6 +2,7 @@ package fwprovider
 
 import (
 	"context"
+	"github.com/terraform-providers/terraform-provider-ncloud/internal/service/hadoop"
 
 	multierror "github.com/hashicorp/go-multierror"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
@@ -83,6 +84,11 @@ func (p *fwprovider) DataSources(ctx context.Context) []func() datasource.DataSo
 	dataSources = append(dataSources, mongodb.NewMongoDbDataSource)
 	dataSources = append(dataSources, mongodb.NewMongoDbProductsDataSource)
 	dataSources = append(dataSources, mongodb.NewMongoDbImageProductsDataSource)
+	dataSources = append(dataSources, hadoop.NewHadoopDataSource)
+	dataSources = append(dataSources, hadoop.NewHadoopsDataSource)
+	dataSources = append(dataSources, hadoop.NewHadoopAddOnDataSource)
+	dataSources = append(dataSources, hadoop.NewHadoopBucketDataSource)
+	dataSources = append(dataSources, hadoop.NewHadoopImagesDataSource)
 	dataSources = append(dataSources, redis.NewRedisConfigGroupDataSource)
 	dataSources = append(dataSources, redis.NewRedisDataSource)
 	dataSources = append(dataSources, redis.NewRedisImageProductsDataSource)
@@ -112,6 +118,7 @@ func (p *fwprovider) Resources(ctx context.Context) []func() resource.Resource {
 	resources = append(resources, server.NewInitScriptResource)
 	resources = append(resources, mysql.NewMysqlResource)
 	resources = append(resources, mongodb.NewMongoDbResource)
+	resources = append(resources, hadoop.NewHadoopResource)
 	resources = append(resources, redis.NewRedisConfigGroupResource)
 	resources = append(resources, redis.NewRedisResource)
 	resources = append(resources, mssql.NewMssqlResource)
