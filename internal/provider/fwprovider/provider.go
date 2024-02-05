@@ -85,7 +85,6 @@ func (p *fwprovider) DataSources(ctx context.Context) []func() datasource.DataSo
 	dataSources = append(dataSources, mongodb.NewMongoDbProductsDataSource)
 	dataSources = append(dataSources, mongodb.NewMongoDbImageProductsDataSource)
 	dataSources = append(dataSources, hadoop.NewHadoopDataSource)
-	dataSources = append(dataSources, hadoop.NewHadoopsDataSource)
 	dataSources = append(dataSources, hadoop.NewHadoopAddOnDataSource)
 	dataSources = append(dataSources, hadoop.NewHadoopBucketDataSource)
 	dataSources = append(dataSources, hadoop.NewHadoopImagesDataSource)
