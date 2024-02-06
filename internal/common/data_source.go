@@ -6,6 +6,8 @@ import (
 	"fmt"
 	"log"
 	"os"
+
+	"github.com/hashicorp/terraform-plugin-framework/types"
 )
 
 // Generates a hash for the set hash function used by the ID
@@ -32,4 +34,30 @@ func WriteToFile(filePath string, data interface{}) error {
 	}
 	str := string(bs)
 	return os.WriteFile(filePath, []byte(str), 0777)
+}
+
+func WriteImageProductToFile(path string, images types.List) error {
+	var imagesToJson []imageProductToJson
+
+	for _, image := range images.Elements() {
+		imageJson := imageProductToJson{}
+		if err := json.Unmarshal([]byte(image.String()), &imageJson); err != nil {
+			return err
+		}
+		imagesToJson = append(imagesToJson, imageJson)
+	}
+
+	if err := WriteToFile(path, imagesToJson); err != nil {
+		return err
+	}
+	return nil
+}
+
+type imageProductToJson struct {
+	ProductCode    string `json:"product_code"`
+	GenerationCode string `json:"generation_code"`
+	ProductName    string `json:"product_name"`
+	ProductType    string `json:"product_type"`
+	PlatformType   string `json:"platform_type"`
+	OsInformation  string `json:"os_information"`
 }
