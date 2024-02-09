@@ -88,6 +88,7 @@ func (p *fwprovider) DataSources(ctx context.Context) []func() datasource.DataSo
 	dataSources = append(dataSources, hadoop.NewHadoopAddOnDataSource)
 	dataSources = append(dataSources, hadoop.NewHadoopBucketDataSource)
 	dataSources = append(dataSources, hadoop.NewHadoopImagesDataSource)
+	dataSources = append(dataSources, hadoop.NewHadoopProductsDataSource)
 	dataSources = append(dataSources, redis.NewRedisConfigGroupDataSource)
 	dataSources = append(dataSources, redis.NewRedisDataSource)
 	dataSources = append(dataSources, redis.NewRedisImageProductsDataSource)
