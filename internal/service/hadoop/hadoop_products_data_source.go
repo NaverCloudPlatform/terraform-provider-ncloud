@@ -198,6 +198,22 @@ func writeHadoopProductsToFile(path string, products types.List) diag.Diagnostic
 	return nil
 }
 
+func flattenHadoopProductList(products []*vhadoop.Product) []*hadoopProductModel {
+	var outputs []*hadoopProductModel
+
+	for _, v := range products {
+		var output hadoopProductModel
+		output.refreshFromOutput(v)
+
+		outputs = append(outputs, &output)
+	}
+	return outputs
+}
+
+func (h *hadoopProductsDataSourceModel) refreshFromOutput(ctx context.Context, output []*hadoopProductModel) {
+	h.ProductList, _ = types.ListValueFrom(ctx, types.ObjectType{AttrTypes: hadoopProductModel{}.attrTypes()}, output)
+}
+
 type hadoopProductsDataSourceModel struct {
 	ID                          types.String `tfsdk:"id"`
 	ImageProductCode            types.String `tfsdk:"image_product_code"`
@@ -247,10 +263,6 @@ func (_ hadoopProductModel) attrTypes() map[string]attr.Type {
 	}
 }
 
-func (h *hadoopProductsDataSourceModel) refreshFromOutput(ctx context.Context, output []*hadoopProductModel) {
-	h.ProductList, _ = types.ListValueFrom(ctx, types.ObjectType{AttrTypes: hadoopProductModel{}.attrTypes()}, output)
-}
-
 func (h *hadoopProductModel) refreshFromOutput(output *vhadoop.Product) {
 	h.ProductName = types.StringPointerValue(output.ProductName)
 	h.ProductCode = types.StringPointerValue(output.ProductCode)
@@ -261,16 +273,4 @@ func (h *hadoopProductModel) refreshFromOutput(output *vhadoop.Product) {
 	h.CpuCount = types.Int64Value(int64(*output.CpuCount))
 	h.MemorySize = types.Int64PointerValue(output.MemorySize)
 	h.DiskType = types.StringPointerValue(output.DiskType.Code)
-}
-
-func flattenHadoopProductList(products []*vhadoop.Product) []*hadoopProductModel {
-	var outputs []*hadoopProductModel
-
-	for _, v := range products {
-		var output hadoopProductModel
-		output.refreshFromOutput(v)
-
-		outputs = append(outputs, &output)
-	}
-	return outputs
 }
