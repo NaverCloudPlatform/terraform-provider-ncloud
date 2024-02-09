@@ -2,6 +2,7 @@ package fwprovider
 
 import (
 	"context"
+
 	"github.com/terraform-providers/terraform-provider-ncloud/internal/service/hadoop"
 
 	multierror "github.com/hashicorp/go-multierror"
@@ -87,8 +88,8 @@ func (p *fwprovider) DataSources(ctx context.Context) []func() datasource.DataSo
 	dataSources = append(dataSources, hadoop.NewHadoopDataSource)
 	dataSources = append(dataSources, hadoop.NewHadoopAddOnDataSource)
 	dataSources = append(dataSources, hadoop.NewHadoopBucketDataSource)
-	dataSources = append(dataSources, hadoop.NewHadoopImagesDataSource)
 	dataSources = append(dataSources, hadoop.NewHadoopProductsDataSource)
+	dataSources = append(dataSources, hadoop.NewHadoopImageProductsDataSource)
 	dataSources = append(dataSources, redis.NewRedisConfigGroupDataSource)
 	dataSources = append(dataSources, redis.NewRedisDataSource)
 	dataSources = append(dataSources, redis.NewRedisImageProductsDataSource)
