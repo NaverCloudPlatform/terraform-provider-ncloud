@@ -13,7 +13,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 	"github.com/terraform-providers/terraform-provider-ncloud/internal/common"
 	"github.com/terraform-providers/terraform-provider-ncloud/internal/conn"
-	"time"
 )
 
 var (
@@ -60,13 +59,7 @@ func (h *hadoopProductsDataSource) Schema(_ context.Context, _ datasource.Schema
 			"image_product_code": schema.StringAttribute{
 				Required: true,
 			},
-			"product_code": schema.StringAttribute{
-				Optional: true,
-			},
 			"infra_resource_detail_type_code": schema.StringAttribute{
-				Optional: true,
-			},
-			"exclusion_product_code": schema.StringAttribute{
 				Optional: true,
 			},
 			"output_file": schema.StringAttribute{
@@ -114,48 +107,43 @@ func (h *hadoopProductsDataSource) Schema(_ context.Context, _ datasource.Schema
 
 func (h *hadoopProductsDataSource) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
 	var data hadoopProductsDataSourceModel
+
+	if !h.config.SupportVPC {
+		resp.Diagnostics.AddError(
+			"NOT SUPPORT CLASSIC",
+			"does not support CLASSIC. only VPC.",
+		)
+		return
+	}
+
 	resp.Diagnostics.Append(req.Config.Get(ctx, &data)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
 	reqParams := &vhadoop.GetCloudHadoopProductListRequest{
-		RegionCode: &h.config.RegionCode,
-	}
-
-	if !data.ImageProductCode.IsNull() && !data.ImageProductCode.IsUnknown() {
-		reqParams.CloudHadoopImageProductCode = data.ImageProductCode.ValueStringPointer()
-	}
-
-	if !data.ProductCode.IsNull() && !data.ProductCode.IsUnknown() {
-		reqParams.ProductCode = data.ProductCode.ValueStringPointer()
+		RegionCode:                  &h.config.RegionCode,
+		CloudHadoopImageProductCode: data.ImageProductCode.ValueStringPointer(),
 	}
 
 	if !data.InfraResourceDetailTypeCode.IsNull() && !data.InfraResourceDetailTypeCode.IsUnknown() {
 		reqParams.InfraResourceDetailTypeCode = data.InfraResourceDetailTypeCode.ValueStringPointer()
 	}
 
-	if !data.ExclusionProductCode.IsNull() && !data.ExclusionProductCode.IsUnknown() {
-		reqParams.ExclusionProductCode = data.ExclusionProductCode.ValueStringPointer()
-	}
-
-	tflog.Info(ctx, "GetHadoopProductList", map[string]any{
-		"reqParams": common.MarshalUncheckedString(reqParams),
-	})
+	tflog.Info(ctx, "GetHadoopProductsList reqParams="+common.MarshalUncheckedString(reqParams))
 
 	productsResp, err := h.config.Client.Vhadoop.V2Api.GetCloudHadoopProductList(reqParams)
 	if err != nil {
-		var diags diag.Diagnostics
-		diags.AddError(
-			"GetHadoopProductList",
-			fmt.Sprintf("error: %s, reqParams: %s", err.Error(), common.MarshalUncheckedString(reqParams)),
-		)
-		resp.Diagnostics.Append(diags...)
+		resp.Diagnostics.AddError("READING ERROR", err.Error())
 		return
 	}
-	tflog.Info(ctx, "GetHadoopProductList response", map[string]any{
-		"productResponse": common.MarshalUncheckedString(productsResp),
-	})
+
+	tflog.Info(ctx, "GetHadoopProductsList response="+common.MarshalUncheckedString(productsResp))
+
+	if productsResp == nil || len(productsResp.ProductList) < 1 {
+		resp.Diagnostics.AddError("READING ERROR", "no result.")
+		return
+	}
 
 	hadoopProductsList := flattenHadoopProductList(productsResp.ProductList)
 	fillteredList := common.FilterModels(ctx, data.Filters, hadoopProductsList)
@@ -168,7 +156,7 @@ func (h *hadoopProductsDataSource) Read(ctx context.Context, req datasource.Read
 			return
 		}
 	}
-	data.ID = types.StringValue(time.Now().UTC().String())
+	data.ID = types.StringValue("")
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
 }
 
@@ -179,20 +167,14 @@ func writeHadoopProductsToFile(path string, products types.List) diag.Diagnostic
 	for _, product := range products.Elements() {
 		hadoopProduct := hadoopProductsToJsonConvert{}
 		if err := json.Unmarshal([]byte(product.String()), &hadoopProduct); err != nil {
-			diags.AddError(
-				"Unmarshal",
-				fmt.Sprintf("error: %s", err.Error()),
-			)
+			diags.AddError("OUTPUT FILE ERROR", err.Error())
 			return diags
 		}
 		hadoopProducts = append(hadoopProducts, hadoopProduct)
 	}
 
 	if err := common.WriteToFile(path, hadoopProducts); err != nil {
-		diags.AddError(
-			"WriteToFile",
-			fmt.Sprintf("error: %s", err.Error()),
-		)
+		diags.AddError("OUTPUT FILE ERROR", err.Error())
 		return diags
 	}
 	return nil
@@ -217,9 +199,7 @@ func (h *hadoopProductsDataSourceModel) refreshFromOutput(ctx context.Context, o
 type hadoopProductsDataSourceModel struct {
 	ID                          types.String `tfsdk:"id"`
 	ImageProductCode            types.String `tfsdk:"image_product_code"`
-	ProductCode                 types.String `tfsdk:"product_code"`
 	InfraResourceDetailTypeCode types.String `tfsdk:"infra_resource_detail_type_code"`
-	ExclusionProductCode        types.String `tfsdk:"exclusion_product_code"`
 	OutputFile                  types.String `tfsdk:"output_file"`
 	ProductList                 types.List   `tfsdk:"product_list"`
 	Filters                     types.Set    `tfsdk:"filter"`
