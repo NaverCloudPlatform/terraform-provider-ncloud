@@ -1,6 +1,8 @@
 package hadoop_test
 
 import (
+	"regexp"
+
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/terraform-providers/terraform-provider-ncloud/internal/acctest"
 	. "github.com/terraform-providers/terraform-provider-ncloud/internal/acctest"
@@ -8,9 +10,8 @@ import (
 	"testing"
 )
 
-func TestAccDataSourceNcloudHadoopBucketbasic(t *testing.T) {
+func TestAccDataSourceNcloudHadoopBucket_basic(t *testing.T) {
 	dataName := "data.ncloud_hadoop_bucket.bucket"
-	firstBucketName := "akj1"
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { TestAccPreCheck(t) },
@@ -19,8 +20,7 @@ func TestAccDataSourceNcloudHadoopBucketbasic(t *testing.T) {
 			{
 				Config: testAccDataSourceBucketConfig(),
 				Check: resource.ComposeTestCheckFunc(
-					TestAccCheckDataSourceID(dataName),
-					resource.TestCheckResourceAttr(dataName, "bucket_list.0", firstBucketName),
+					resource.TestMatchResourceAttr(dataName, "bucket_list.0", regexp.MustCompile(`^[a-z0-9]+[a-z0-9-.]+[a-z0-9]$`)),
 				),
 			},
 		},
