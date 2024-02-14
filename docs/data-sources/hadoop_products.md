@@ -13,7 +13,7 @@ Provides the list of Hadoop server specification codes.
 
 ```terraform
 data "ncloud_hadoop_products" "all" {
-  image_product_code = "SW.VCHDP.LNX64.CNTOS.0708.HDP.15.B050"
+  image_product_code = "SW.VCHDP.LNX64.CNTOS.0708.HDP.21.B050"
 
   filter {
     name   = "product_type"
@@ -49,9 +49,7 @@ product_list = {
 The following arguments are supported:
 
 * `image_product_code` - (Required) You can get one from `data.ncloud_hadoop_images`. This is a required value, and each available Hadoop's specification varies depending on the hadoop image product.
-* `product_code` - (Required) Product code you want to view on the list. Use this when searching for 1 product.
 * `infra_resource_detail_type_code` - (Optional) Hadoop Other Server infra Detailed Product Code. Options : MSTDT | EDGND
-* `exclusion_product_code` - (Optional) Product code you want to exclude on the list.
 * `output_file` - (Optional) The name of file that can save data source after running `terraform plan`.
 * `filter` - (Optional) Custom filter block as described below.
     * `name` - (Required) The name of the field to filter by
