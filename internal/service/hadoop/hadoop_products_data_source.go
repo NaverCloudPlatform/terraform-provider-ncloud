@@ -132,20 +132,20 @@ func (h *hadoopProductsDataSource) Read(ctx context.Context, req datasource.Read
 
 	tflog.Info(ctx, "GetHadoopProductsList reqParams="+common.MarshalUncheckedString(reqParams))
 
-	productsResp, err := h.config.Client.Vhadoop.V2Api.GetCloudHadoopProductList(reqParams)
+	hadoopProductsResp, err := h.config.Client.Vhadoop.V2Api.GetCloudHadoopProductList(reqParams)
 	if err != nil {
 		resp.Diagnostics.AddError("READING ERROR", err.Error())
 		return
 	}
 
-	tflog.Info(ctx, "GetHadoopProductsList response="+common.MarshalUncheckedString(productsResp))
+	tflog.Info(ctx, "GetHadoopProductsList response="+common.MarshalUncheckedString(hadoopProductsResp))
 
-	if productsResp == nil || len(productsResp.ProductList) < 1 {
+	if hadoopProductsResp == nil || len(hadoopProductsResp.ProductList) < 1 {
 		resp.Diagnostics.AddError("READING ERROR", "no result.")
 		return
 	}
 
-	hadoopProductsList := flattenHadoopProductList(productsResp.ProductList)
+	hadoopProductsList := flattenHadoopProductList(hadoopProductsResp.ProductList)
 	fillteredList := common.FilterModels(ctx, data.Filters, hadoopProductsList)
 	data.refreshFromOutput(ctx, fillteredList)
 	if !data.OutputFile.IsNull() && data.OutputFile.String() != "" {
