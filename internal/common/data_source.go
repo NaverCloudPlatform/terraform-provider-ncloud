@@ -36,6 +36,23 @@ func WriteToFile(filePath string, data interface{}) error {
 	return os.WriteFile(filePath, []byte(str), 0777)
 }
 
+func WriteStringListToFile(path string, list types.List) error {
+	var dataList []string
+
+	for _, v := range list.Elements() {
+		var data string
+		if err := json.Unmarshal([]byte(v.String()), &data); err != nil {
+			return err
+		}
+		dataList = append(dataList, data)
+	}
+
+	if err := WriteToFile(path, dataList); err != nil {
+		return err
+	}
+	return nil
+}
+
 func WriteImageProductToFile(path string, images types.List) error {
 	var imagesToJson []imageProductToJson
 
