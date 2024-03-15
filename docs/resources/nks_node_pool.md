@@ -38,7 +38,7 @@ resource "ncloud_subnet" "subnet_lb" {
 data "ncloud_nks_versions" "version" {
   filter {
     name = "value"
-    values = ["1.25"]
+    values = ["1.27"]
     regex = true
   }
 }
@@ -112,6 +112,8 @@ The following arguments are supported:
 * `cluster_uuid` - (Required) Cluster uuid.
 * `node_count` - (Required) Number of nodes.
 * `product_code` - (Optional) Product code. Required for `XEN`/`RHV` cluster nodepool.
+* `server_spec_code` - (Optional) Server spec code. (Required for `KVM` cluster nodepool)
+* `storage_size` - (Optional) Default storage size for `KVM` nodepool. (Default `50GB`)
 * `software_code` - (Optional) Server image code.
 * `autoscale`- (Optional) 
   * `enable` - (Required) Auto scaling availability.
