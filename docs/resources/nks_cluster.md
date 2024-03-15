@@ -80,7 +80,6 @@ The following arguments are supported:
     * 10 ea : `SVR.VNKS.STAND.C002.M008.G003`
     * 50 ea : `SVR.VNKS.STAND.C004.M016.G003`
 * `login_key_name` - (Required) Login key name.
-* `login_key_name` - (Required) Login key name.
 * `zone` - (Required) zone Code.
 * `vpc_no` - (Required) VPC No.
 * `subnet_no_list` - (Required) Subnet No. list.

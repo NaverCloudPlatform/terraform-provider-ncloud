@@ -38,7 +38,7 @@ In addition to all arguments above, the following attributes are exported:
 * `product_code` - Product code.
 * `software_code` - Server image code.
 * `server_spec_code` - Server spec code.
-* `storage_size` -Default storage size. 
+* `storage_size` - Default storage size. 
 * `autoscale`
   * `enable` - Auto scaling availability.
   * `max` - Maximum number of nodes available for auto scaling.
