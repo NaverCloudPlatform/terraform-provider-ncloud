@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+
 	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/services/vhadoop"
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
@@ -250,7 +251,7 @@ func (h *hadoopProductModel) refreshFromOutput(output *vhadoop.Product) {
 	h.ProductDescription = types.StringPointerValue(output.ProductDescription)
 	h.InfraResourceType = types.StringPointerValue(output.InfraResourceType.Code)
 	h.InfraResourceDetailType = types.StringPointerValue(output.InfraResourceDetailType.Code)
-	h.CpuCount = types.Int64Value(int64(*output.CpuCount))
+	h.CpuCount = common.Int64ValueFromInt32(output.CpuCount)
 	h.MemorySize = types.Int64PointerValue(output.MemorySize)
 	h.DiskType = types.StringPointerValue(output.DiskType.Code)
 }

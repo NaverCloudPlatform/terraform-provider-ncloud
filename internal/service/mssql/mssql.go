@@ -626,10 +626,10 @@ func (m *mssqlResourceModel) refreshFromOutput(ctx context.Context, output *vmss
 	m.ImageProductCode = types.StringPointerValue(output.CloudMssqlImageProductCode)
 	m.DataStorageTypeCode = types.StringPointerValue(output.CloudMssqlServerInstanceList[0].DataStorageType.Code)
 	m.IsHa = types.BoolPointerValue(output.IsHa)
-	m.BackupFileRetentionPeriod = types.Int64Value(int64(*output.BackupFileRetentionPeriod))
+	m.BackupFileRetentionPeriod = common.Int64ValueFromInt32(output.BackupFileRetentionPeriod)
 	m.BackupTime = types.StringPointerValue(output.BackupTime)
 	m.ConfigGroupNo = types.StringPointerValue(output.ConfigGroupNo)
-	m.Port = types.Int64Value(int64(*output.CloudMssqlPort))
+	m.Port = common.Int64ValueFromInt32(output.CloudMssqlPort)
 	m.EngineVersion = types.StringPointerValue(output.EngineVersion)
 	m.CharacterSetName = types.StringPointerValue(output.DbCollation)
 	m.RegionCode = types.StringPointerValue(output.CloudMssqlServerInstanceList[0].RegionCode)
@@ -649,9 +649,9 @@ func (m *mssqlResourceModel) refreshFromOutput(ctx context.Context, output *vmss
 			ProductCode:      types.StringPointerValue(server.CloudMssqlProductCode),
 			IsPublicSubnet:   types.BoolPointerValue(server.IsPublicSubnet),
 			PrivateDomain:    types.StringPointerValue(server.PrivateDomain),
-			DataStorageSize:  types.Int64Value(*server.DataStorageSize),
-			CpuCount:         types.Int64Value(int64(*server.CpuCount)),
-			MemorySize:       types.Int64Value(*server.MemorySize),
+			DataStorageSize:  types.Int64PointerValue(server.DataStorageSize),
+			CpuCount:         common.Int64ValueFromInt32(server.CpuCount),
+			MemorySize:       types.Int64PointerValue(server.MemorySize),
 			Uptime:           types.StringPointerValue(server.Uptime),
 			CreateDate:       types.StringPointerValue(server.CreateDate),
 		}
@@ -661,7 +661,7 @@ func (m *mssqlResourceModel) refreshFromOutput(ctx context.Context, output *vmss
 		}
 
 		if server.UsedDataStorageSize != nil {
-			mssqlServerInstance.UsedDataStorageSize = types.Int64Value(*server.UsedDataStorageSize)
+			mssqlServerInstance.UsedDataStorageSize = types.Int64PointerValue(server.UsedDataStorageSize)
 		}
 		serverList = append(serverList, mssqlServerInstance)
 	}
