@@ -486,6 +486,15 @@ func (r *mysqlResource) Create(ctx context.Context, req resource.CreateRequest, 
 			}
 			reqParams.BackupTime = plan.BackupTime.ValueStringPointer()
 		}
+	} else {
+		backupTimeHasValue := !plan.BackupTime.IsNull() && !plan.BackupTime.IsUnknown()
+		if reqParams.IsAutomaticBackup != nil || backupTimeHasValue {
+			resp.Diagnostics.AddError(
+				"CREATING ERROR",
+				"`is_automatic_backup` or `backup_time` should not be specified when `is_backup` has enabled",
+			)
+			return
+		}
 	}
 
 	tflog.Info(ctx, "CreateMysql reqParams="+common.MarshalUncheckedString(reqParams))
