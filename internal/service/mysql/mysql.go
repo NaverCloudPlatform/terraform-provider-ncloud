@@ -174,6 +174,7 @@ func (m *mysqlResource) Schema(_ context.Context, _ resource.SchemaRequest, resp
 				Computed: true,
 				PlanModifiers: []planmodifier.Bool{
 					boolplanmodifier.RequiresReplace(),
+					boolplanmodifier.UseStateForUnknown(),
 				},
 				Description: "default: false",
 			},
@@ -182,6 +183,7 @@ func (m *mysqlResource) Schema(_ context.Context, _ resource.SchemaRequest, resp
 				Computed: true,
 				PlanModifiers: []planmodifier.Bool{
 					boolplanmodifier.RequiresReplace(),
+					boolplanmodifier.UseStateForUnknown(),
 				},
 				Description: "default: false",
 			},
