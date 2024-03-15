@@ -925,9 +925,9 @@ func listValueFromHadoopServerInatanceList(ctx context.Context, serverInatances 
 			VpcNo:             types.StringPointerValue(serverInstance.VpcNo),
 			SubnetNo:          types.StringPointerValue(serverInstance.SubnetNo),
 			IsPublicSubnet:    types.BoolPointerValue(serverInstance.IsPublicSubnet),
-			DataStorageSize:   types.Int64Value(*serverInstance.DataStorageSize),
-			CpuCount:          types.Int64Value(int64(*serverInstance.CpuCount)),
-			MemorySize:        types.Int64Value(*serverInstance.MemorySize),
+			DataStorageSize:   types.Int64PointerValue(serverInstance.DataStorageSize),
+			CpuCount:          common.Int64ValueFromInt32(serverInstance.CpuCount),
+			MemorySize:        types.Int64PointerValue(serverInstance.MemorySize),
 		})
 	}
 

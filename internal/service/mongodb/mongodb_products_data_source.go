@@ -255,7 +255,7 @@ func (m *mongodbProductModel) refreshFromOutput(ctx context.Context, output *vmo
 	m.ProductDescription = types.StringPointerValue(output.ProductDescription)
 	m.InfraResourceType = types.StringPointerValue(output.InfraResourceType.Code)
 	m.InfraResourceDetailType = types.StringPointerValue(output.InfraResourceDetailType.Code)
-	m.CpuCount = types.Int64Value(int64(*output.CpuCount))
-	m.MemorySize = types.Int64Value(int64(*output.MemorySize))
+	m.CpuCount = common.Int64ValueFromInt32(output.CpuCount)
+	m.MemorySize = types.Int64PointerValue(output.MemorySize)
 	m.DiskType = types.StringPointerValue(output.DiskType.Code)
 }

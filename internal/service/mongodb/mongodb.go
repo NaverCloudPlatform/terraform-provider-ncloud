@@ -25,7 +25,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
-	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
 
 	"github.com/terraform-providers/terraform-provider-ncloud/internal/common"
 	"github.com/terraform-providers/terraform-provider-ncloud/internal/conn"
@@ -987,13 +986,13 @@ func (m *mongodbResourceModel) refreshFromOutput(ctx context.Context, output *vm
 	m.SubnetNo = types.StringPointerValue(output.CloudMongoDbServerInstanceList[0].SubnetNo)
 	m.ClusterTypeCode = types.StringPointerValue(output.ClusterType.Code)
 	m.ImageProductCode = types.StringPointerValue(output.CloudMongoDbImageProductCode)
-	m.ShardCount = int32PointerValue(output.ShardCount)
-	m.BackupFileRetentionPeriod = int32PointerValue(output.BackupFileRetentionPeriod)
+	m.ShardCount = common.Int64ValueFromInt32(output.ShardCount)
+	m.BackupFileRetentionPeriod = common.Int64ValueFromInt32(output.BackupFileRetentionPeriod)
 	m.BackupTime = types.StringPointerValue(output.BackupTime)
-	m.ArbiterPort = int32PointerValue(output.ArbiterPort)
-	m.MemberPort = int32PointerValue(output.MemberPort)
-	m.MongosPort = int32PointerValue(output.MongosPort)
-	m.ConfigPort = int32PointerValue(output.ConfigPort)
+	m.ArbiterPort = common.Int64ValueFromInt32(output.ArbiterPort)
+	m.MemberPort = common.Int64ValueFromInt32(output.MemberPort)
+	m.MongosPort = common.Int64ValueFromInt32(output.MongosPort)
+	m.ConfigPort = common.Int64ValueFromInt32(output.ConfigPort)
 	m.DataStorageType = types.StringPointerValue(output.CloudMongoDbServerInstanceList[0].DataStorageType.Code)
 	m.CompressCode = types.StringPointerValue(output.Compress.Code)
 	m.EngineVersion = types.StringPointerValue(output.EngineVersion)
@@ -1014,9 +1013,9 @@ func (m *mongodbResourceModel) refreshFromOutput(ctx context.Context, output *vm
 			PrivateDomain:   types.StringPointerValue(server.PrivateDomain),
 			PublicDomain:    types.StringPointerValue(server.PublicDomain),
 			ReplicaSetName:  types.StringPointerValue(server.ReplicaSetName),
-			MemorySize:      types.Int64Value(*server.MemorySize),
-			CpuCount:        types.Int64Value(*server.CpuCount),
-			DataStorageSize: types.Int64Value(*server.DataStorageSize),
+			MemorySize:      types.Int64PointerValue(server.MemorySize),
+			CpuCount:        types.Int64PointerValue(server.CpuCount),
+			DataStorageSize: types.Int64PointerValue(server.DataStorageSize),
 			Uptime:          types.StringPointerValue(server.Uptime),
 			CreateDate:      types.StringPointerValue(server.CreateDate),
 		}
@@ -1027,13 +1026,4 @@ func (m *mongodbResourceModel) refreshFromOutput(ctx context.Context, output *vm
 
 	m.MongoDbServerList = mongoServers
 
-}
-
-func int32PointerValue(value *int32) basetypes.Int64Value {
-	if value == nil {
-		return basetypes.NewInt64Null()
-	}
-	newVal := int64(*value)
-
-	return basetypes.NewInt64Value(newVal)
 }

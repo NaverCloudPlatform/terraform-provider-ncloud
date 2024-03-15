@@ -301,9 +301,9 @@ func (m *mysqlDataSourceModel) refreshFromOutput(ctx context.Context, output *vm
 	m.IsMultiZone = types.BoolPointerValue(output.IsMultiZone)
 	m.IsStorageEncryption = types.BoolPointerValue(output.CloudMysqlServerInstanceList[0].IsStorageEncryption)
 	m.IsBackup = types.BoolPointerValue(output.IsBackup)
-	m.BackupFileRetentionPeriod = types.Int64Value(int64(*output.BackupFileRetentionPeriod))
+	m.BackupFileRetentionPeriod = common.Int64ValueFromInt32(output.BackupFileRetentionPeriod)
 	m.BackupTime = types.StringPointerValue(output.BackupTime)
-	m.Port = types.Int64Value(int64(*output.CloudMysqlPort))
+	m.Port = common.Int64ValueFromInt32(output.CloudMysqlPort)
 	m.EngineVersionCode = types.StringPointerValue(output.EngineVersion)
 	m.RegionCode = types.StringPointerValue(output.CloudMysqlServerInstanceList[0].RegionCode)
 	m.VpcNo = types.StringPointerValue(output.CloudMysqlServerInstanceList[0].VpcNo)
@@ -324,9 +324,9 @@ func (m *mysqlDataSourceModel) refreshFromOutput(ctx context.Context, output *vm
 			ProductCode:      types.StringPointerValue(server.CloudMysqlProductCode),
 			IsPublicSubnet:   types.BoolPointerValue(server.IsPublicSubnet),
 			PrivateDomain:    types.StringPointerValue(server.PrivateDomain),
-			DataStorageSize:  types.Int64Value(*server.DataStorageSize),
-			CpuCount:         types.Int64Value(int64(*server.CpuCount)),
-			MemorySize:       types.Int64Value(*server.MemorySize),
+			DataStorageSize:  types.Int64PointerValue(server.DataStorageSize),
+			CpuCount:         common.Int64ValueFromInt32(server.CpuCount),
+			MemorySize:       types.Int64PointerValue(server.MemorySize),
 			Uptime:           types.StringPointerValue(server.Uptime),
 			CreateDate:       types.StringPointerValue(server.CreateDate),
 		}
@@ -336,7 +336,7 @@ func (m *mysqlDataSourceModel) refreshFromOutput(ctx context.Context, output *vm
 		}
 
 		if server.UsedDataStorageSize != nil {
-			mysqlServerInstance.UsedDataStorageSize = types.Int64Value(*server.UsedDataStorageSize)
+			mysqlServerInstance.UsedDataStorageSize = types.Int64PointerValue(server.UsedDataStorageSize)
 		}
 		serverList = append(serverList, mysqlServerInstance)
 	}

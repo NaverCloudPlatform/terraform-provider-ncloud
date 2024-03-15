@@ -279,11 +279,11 @@ func (r *redisDataSourceModel) refreshFromOutput(ctx context.Context, output *vr
 	r.RegionCode = types.StringPointerValue(output.CloudRedisServerInstanceList[0].RegionCode)
 
 	if output.BackupFileRetentionPeriod != nil {
-		r.BackupFileRetentionPeriod = types.Int64Value(int64(*output.BackupFileRetentionPeriod))
+		r.BackupFileRetentionPeriod = common.Int64ValueFromInt32(output.BackupFileRetentionPeriod)
 	}
 
 	if output.CloudRedisPort != nil {
-		r.Port = types.Int64Value(int64(*output.CloudRedisPort))
+		r.Port = common.Int64ValueFromInt32(output.CloudRedisPort)
 	}
 
 	acgList, _ := types.ListValueFrom(ctx, types.StringType, output.AccessControlGroupNoList)
@@ -296,8 +296,8 @@ func (r *redisDataSourceModel) refreshFromOutput(ctx context.Context, output *vr
 			RedisServerName: types.StringPointerValue(server.CloudRedisServerName),
 			RedisServerRole: types.StringPointerValue(server.CloudRedisServerRole.CodeName),
 			PrivateDomain:   types.StringPointerValue(server.PrivateDomain),
-			MemorySize:      types.Int64Value(*server.MemorySize),
-			OsMemorySize:    types.Int64Value(*server.OsMemorySize),
+			MemorySize:      types.Int64PointerValue(server.MemorySize),
+			OsMemorySize:    types.Int64PointerValue(server.OsMemorySize),
 			Uptime:          types.StringPointerValue(server.Uptime),
 			CreateDate:      types.StringPointerValue(server.CreateDate),
 		}

@@ -303,14 +303,14 @@ func (m *mongodbDataSourceModel) refreshFromOutput(ctx context.Context, output *
 	m.ClusterTypeCode = types.StringPointerValue(output.ClusterType.Code)
 	m.EngineVersion = types.StringPointerValue(output.EngineVersion)
 	m.ImageProductCode = types.StringPointerValue(output.CloudMongoDbImageProductCode)
-	m.BackupFileRetentionPeriod = int32PointerValue(output.BackupFileRetentionPeriod)
+	m.BackupFileRetentionPeriod = common.Int64ValueFromInt32(output.BackupFileRetentionPeriod)
 	m.BackupTime = types.StringPointerValue(output.BackupTime)
-	m.ShardCount = int32PointerValue(output.ShardCount)
+	m.ShardCount = common.Int64ValueFromInt32(output.ShardCount)
 	m.DataStorageType = types.StringPointerValue(output.CloudMongoDbServerInstanceList[0].DataStorageType.Code)
-	m.MemberPort = int32PointerValue(output.MemberPort)
-	m.ArbiterPort = int32PointerValue(output.ArbiterPort)
-	m.MongosPort = int32PointerValue(output.MongosPort)
-	m.ConfigPort = int32PointerValue(output.ConfigPort)
+	m.MemberPort = common.Int64ValueFromInt32(output.MemberPort)
+	m.ArbiterPort = common.Int64ValueFromInt32(output.ArbiterPort)
+	m.MongosPort = common.Int64ValueFromInt32(output.MongosPort)
+	m.ConfigPort = common.Int64ValueFromInt32(output.ConfigPort)
 	m.CompressCode = types.StringPointerValue(output.Compress.Code)
 	m.RegionCode = types.StringPointerValue(output.CloudMongoDbServerInstanceList[0].RegionCode)
 	m.ZoneCode = types.StringPointerValue(output.CloudMongoDbServerInstanceList[0].ZoneCode)
@@ -329,9 +329,9 @@ func (m *mongodbDataSourceModel) refreshFromOutput(ctx context.Context, output *
 			PrivateDomain:   types.StringPointerValue(server.PrivateDomain),
 			PublicDomain:    types.StringPointerValue(server.PublicDomain),
 			ReplicaSetName:  types.StringPointerValue(server.ReplicaSetName),
-			MemorySize:      types.Int64Value(*server.MemorySize),
-			CpuCount:        types.Int64Value(*server.CpuCount),
-			DataStorageSize: types.Int64Value(*server.DataStorageSize),
+			MemorySize:      types.Int64PointerValue(server.MemorySize),
+			CpuCount:        types.Int64PointerValue(server.CpuCount),
+			DataStorageSize: types.Int64PointerValue(server.DataStorageSize),
 			Uptime:          types.StringPointerValue(server.Uptime),
 			CreateDate:      types.StringPointerValue(server.CreateDate),
 		}

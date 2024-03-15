@@ -6,6 +6,7 @@ import (
 	"reflect"
 	"strings"
 
+	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/terraform-providers/terraform-provider-ncloud/internal/conn"
 
@@ -234,4 +235,11 @@ func ExpandStringList(configured []interface{}) []*string {
 		}
 	}
 	return vs
+}
+
+func Int64ValueFromInt32(value *int32) basetypes.Int64Value {
+	if value == nil {
+		return basetypes.NewInt64Null()
+	}
+	return basetypes.NewInt64Value(int64(*value))
 }
