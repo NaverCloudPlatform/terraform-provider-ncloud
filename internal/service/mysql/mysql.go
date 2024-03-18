@@ -174,6 +174,7 @@ func (m *mysqlResource) Schema(_ context.Context, _ resource.SchemaRequest, resp
 				Computed: true,
 				PlanModifiers: []planmodifier.Bool{
 					boolplanmodifier.RequiresReplace(),
+					boolplanmodifier.UseStateForUnknown(),
 				},
 				Description: "default: false",
 			},
@@ -182,6 +183,7 @@ func (m *mysqlResource) Schema(_ context.Context, _ resource.SchemaRequest, resp
 				Computed: true,
 				PlanModifiers: []planmodifier.Bool{
 					boolplanmodifier.RequiresReplace(),
+					boolplanmodifier.UseStateForUnknown(),
 				},
 				Description: "default: false",
 			},
@@ -483,6 +485,15 @@ func (r *mysqlResource) Create(ctx context.Context, req resource.CreateRequest, 
 				return
 			}
 			reqParams.BackupTime = plan.BackupTime.ValueStringPointer()
+		}
+	} else {
+		backupTimeHasValue := !plan.BackupTime.IsNull() && !plan.BackupTime.IsUnknown()
+		if reqParams.IsAutomaticBackup != nil || backupTimeHasValue {
+			resp.Diagnostics.AddError(
+				"CREATING ERROR",
+				"`is_automatic_backup` or `backup_time` should not be specified when `is_backup` has enabled",
+			)
+			return
 		}
 	}
 
