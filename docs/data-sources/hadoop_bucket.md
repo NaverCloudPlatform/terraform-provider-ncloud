@@ -5,15 +5,15 @@ subcategory: "Hadoop"
 
 # Data Source: ncloud_hadoop_bucket
 
-This module can be useful for getting buckets to create hadoop instance.
+This module can be useful for getting Object Storage buckets to create hadoop instance.
+
+~> **NOTE:** This only supports VPC environment.
 
 ## Example Usage
 
-#### Basic usage
-
 The following example shows how to take buckets.
 
-```hcl
+```terraform
 data "ncloud_hadoop_bucket" "bucket" {
 
 }
@@ -25,9 +25,12 @@ data "ncloud_hadoop_add_on" "bucket_output_file" {
 
 ## Argument Reference
 
+The following arguments are supported:
+
 * `output_file` - (Optional) The name of file that can save data source after running `terraform plan`.
 
 ## Attributes Reference
 
-* `id` - The ID of bucket list.
-* `bucket_list` - The bucket list of Hadoop.
+This data source exports the following attributes in addition to the arguments above:
+
+* `bucket_list` - The Object Storage bucket list of Hadoop.

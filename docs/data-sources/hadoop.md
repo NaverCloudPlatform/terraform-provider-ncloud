@@ -7,44 +7,58 @@ subcategory: "Hadoop"
 
 This module can be useful for getting detail of Hadoop instance created before.
 
-## Example Usage
+~> **NOTE:** This only supports VPC environment.
 
-#### Basic usage
+## Example Usage
 
 The following example shows how to take Hadoop instance ID and obtain the data.
 
-```hcl
-data "ncloud_hadoop" "hadoop_by_id" {
-  id = ncloud_hadoop.hadoop.id
+```terraform
+data "ncloud_hadoop" "by_id" {
+  id = 1234567
 }
 
-data "ncloud_hadoop" "hadoop_by_filter" {
-  filter {
-    name = "id"
-    values = [ncloud_hadoop.hadoop.id]
-  }
+data "ncloud_hadoop" "by_name" {
+  cluster_name = "example"
 }
 ```
 
 ## Argument Reference
 
-* `id` - (Optional) The ID of the specific Hadoop to retrieve.
-* `zone_code` - (Optional) The zone code of the specific Hadoop to retrieve.
-* `vpc_no` - (Optional) The vpc ID of the specific Hadoop to retrieve.
-* `subnet_no` - (Optional) The subnet ID of the specific Hadoop to retrieve.
-* `cluster_name` - (Optional) The name of the specific Hadoop to retrieve.
-* `server_name` - (Optional) The server name in server list of specific Hadoop to retrieve.
-* `server_instance_no` - (Optional) The server ID in server list of the specific Hadoop to retrieve.
-* `filter` - (Optional) Custom filter block as described below.
-    * `name` - (Required) The name of the field to filter by.
-    * `values` - (Reuired) Set of values that are accepted for the given field.
-    * `regex` - (Optional) is `values` treated as a regular expression.
+The following arguments are required:
+
+* `id` - (Required) Hadoop instance number. Either `id` or `cluster_name` must be provided.
+* `cluster_name` - (Required) Hadoop service name. Either `id` or `cluster_name` must be provided.
 
 ## Attributes Reference
 
-* `id` - The ID of Hadoop.
-* `cluster_name` - The name of Hadoop.
-* `cluster_type_code` - The type code of Hadoop.
+This data source exports the following attributes in addition to the arguments above:
+
+* `region_code` - Region code.
+* `vpc_no` - The ID of the associated VPC. 
+* `image_product_code` - The image product code of the Hadoop instance.
+* `cluster_type_code` - The cluster type code.
 * `version` - The version of Hadoop.
-* `image_product_code` - The image product code of Hadoop.
-* `hadoop_server_instance_list` - The server instance list of Hadoop.
+* `ambari_server_host` - The name of ambari host.
+* `cluster_direct_access_account` - Account name with direct access to the cluster.
+* `login_key` - The login key name.
+* `object_storage_bucket` - The name of object storage bucket.
+* `kdc_realm` - Realm information of kerberos authentication.
+* `domain` - Domain.
+* `is_ha` - Whether using high availability of the specific Hadoop.
+* `add_on_code_list` - The list of Hadoop Add-On.
+* `access_control_group_no_list` - The list of access control group number.
+* `hadoop_server_list` The list of Hadoop server instance.
+  * `server_instance_no` - Server instance number.
+  * `server_name` - Name of the server.
+  * `server_role` - Server role code. ex) M(Master), H(Standby Master)
+  * `zone_code` - Zone code.
+  * `subnet_no` - The ID of the associated Subnet.
+  * `product_code` - Product code.
+  * `is_public_subnet` - Public subnet status.
+  * `cpu_count` - the number of the virtual CPU.
+  * `memory_size` - Memory size.
+  * `data_storage_type` - The type of data storage.
+  * `data_storage_size` - Data storage size.
+  * `uptime` - Running start time.
+  * `create_date` - Server create date.
