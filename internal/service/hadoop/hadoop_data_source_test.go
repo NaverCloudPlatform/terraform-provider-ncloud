@@ -2,6 +2,7 @@ package hadoop_test
 
 import (
 	"fmt"
+
 	randacctest "github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/terraform-providers/terraform-provider-ncloud/internal/acctest"
@@ -10,7 +11,7 @@ import (
 	"testing"
 )
 
-func TestAccDataSourceNcloudHadoop_basic(t *testing.T) {
+func TestAccDataSourceNcloudHadoop_vpc_basic(t *testing.T) {
 	dataName := "data.ncloud_hadoop.hadoop"
 	resourceName := "ncloud_hadoop.hadoop"
 	instanceName := fmt.Sprintf("tf-hadoop-%s", randacctest.RandString(3))
@@ -27,9 +28,7 @@ func TestAccDataSourceNcloudHadoop_basic(t *testing.T) {
 					resource.TestCheckResourceAttrPair(dataName, "cluster_name", resourceName, "cluster_name"),
 					resource.TestCheckResourceAttrPair(dataName, "cluster_type_code", resourceName, "cluster_type_code"),
 					resource.TestCheckResourceAttrPair(dataName, "image_product_code", resourceName, "image_product_code"),
-					resource.TestCheckResourceAttrPair(dataName, "hadoop_server_instance_list.1.hadoop_server_name", resourceName, "hadoop_server_instance_list.1.hadoop_server_name"),
-					resource.TestCheckResourceAttrPair(dataName, "hadoop_server_instance_list.2.hadoop_server_name", resourceName, "hadoop_server_instance_list.2.hadoop_server_name"),
-					resource.TestCheckResourceAttrPair(dataName, "hadoop_server_instance_list.3.hadoop_server_name", resourceName, "hadoop_server_instance_list.3.hadoop_server_name"),
+					resource.TestCheckResourceAttrPair(dataName, "hadoop_server_list.1.server_name", resourceName, "hadoop_server_list.1.server_name"),
 				),
 			},
 		},
@@ -92,13 +91,6 @@ resource "ncloud_hadoop" "hadoop" {
 
 data "ncloud_hadoop" "hadoop" {
 	cluster_name = ncloud_hadoop.hadoop.cluster_name
-}
-
-data "ncloud_hadoop" "hadoop_by_filter" {
-	filter {
-		name = "cluster_name"
-		values = [ncloud_hadoop.hadoop.cluster_name]
-	}
 }
 `, name, bucketName)
 }

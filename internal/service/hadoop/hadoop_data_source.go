@@ -3,15 +3,17 @@ package hadoop
 import (
 	"context"
 	"fmt"
+
 	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/services/vhadoop"
+	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
-	"github.com/hashicorp/terraform-plugin-framework/diag"
+	"github.com/hashicorp/terraform-plugin-framework/path"
+	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 	"github.com/terraform-providers/terraform-provider-ncloud/internal/common"
 	"github.com/terraform-providers/terraform-provider-ncloud/internal/conn"
-	"github.com/terraform-providers/terraform-provider-ncloud/internal/verify"
 )
 
 var (
@@ -29,6 +31,121 @@ type hadoopDataSource struct {
 
 func (h *hadoopDataSource) Metadata(ctx context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
 	resp.TypeName = req.ProviderTypeName + "_hadoop"
+}
+
+func (h *hadoopDataSource) Schema(ctx context.Context, req datasource.SchemaRequest, resp *datasource.SchemaResponse) {
+	resp.Schema = schema.Schema{
+		Attributes: map[string]schema.Attribute{
+			"id": schema.StringAttribute{
+				Optional: true,
+				Computed: true,
+				Validators: []validator.String{
+					stringvalidator.ConflictsWith(
+						path.MatchRelative().AtParent().AtName("cluster_name"),
+					),
+				},
+			},
+			"cluster_name": schema.StringAttribute{
+				Optional: true,
+				Computed: true,
+				Validators: []validator.String{
+					stringvalidator.ConflictsWith(
+						path.MatchRelative().AtParent().AtName("id"),
+					),
+				},
+			},
+			"region_code": schema.StringAttribute{
+				Computed: true,
+			},
+			"vpc_no": schema.StringAttribute{
+				Optional: true,
+			},
+			"image_product_code": schema.StringAttribute{
+				Computed: true,
+			},
+			"cluster_type_code": schema.StringAttribute{
+				Computed: true,
+			},
+			"version": schema.StringAttribute{
+				Computed: true,
+			},
+			"ambari_server_host": schema.StringAttribute{
+				Computed: true,
+			},
+			"cluster_direct_access_account": schema.StringAttribute{
+				Computed: true,
+			},
+			"login_key": schema.StringAttribute{
+				Computed: true,
+			},
+			"object_storage_bucket": schema.StringAttribute{
+				Computed: true,
+			},
+			"kdc_realm": schema.StringAttribute{
+				Computed: true,
+			},
+			"domain": schema.StringAttribute{
+				Computed: true,
+			},
+			"is_ha": schema.BoolAttribute{
+				Computed: true,
+			},
+			"add_on_code_list": schema.ListAttribute{
+				ElementType: types.StringType,
+				Computed:    true,
+			},
+			"access_control_group_no_list": schema.ListAttribute{
+				ElementType: types.StringType,
+				Computed:    true,
+			},
+			"hadoop_server_list": schema.ListNestedAttribute{
+				Computed: true,
+				NestedObject: schema.NestedAttributeObject{
+					Attributes: map[string]schema.Attribute{
+						"server_instance_no": schema.StringAttribute{
+							Computed: true,
+						},
+						"server_name": schema.StringAttribute{
+							Computed: true,
+						},
+						"server_role": schema.StringAttribute{
+							Computed: true,
+						},
+						"zone_code": schema.StringAttribute{
+							Computed: true,
+						},
+						"subnet_no": schema.StringAttribute{
+							Computed: true,
+						},
+						"product_code": schema.StringAttribute{
+							Computed: true,
+						},
+						"is_public_subnet": schema.BoolAttribute{
+							Computed: true,
+						},
+						"cpu_count": schema.Int64Attribute{
+							Computed: true,
+						},
+						"memory_size": schema.Int64Attribute{
+							Computed: true,
+						},
+						"data_storage_type": schema.StringAttribute{
+							Computed: true,
+						},
+						"data_storage_size": schema.Int64Attribute{
+							Computed: true,
+						},
+						"uptime": schema.StringAttribute{
+							Computed: true,
+						},
+						"create_date": schema.StringAttribute{
+							Computed: true,
+						},
+					},
+				},
+			},
+		},
+	}
 }
 
 func (h *hadoopDataSource) Configure(ctx context.Context, req datasource.ConfigureRequest, resp *datasource.ConfigureResponse) {
@@ -49,193 +166,108 @@ func (h *hadoopDataSource) Configure(ctx context.Context, req datasource.Configu
 	h.config = config
 }
 
-func (h *hadoopDataSource) Schema(ctx context.Context, req datasource.SchemaRequest, resp *datasource.SchemaResponse) {
-	resp.Schema = schema.Schema{
-		Attributes: map[string]schema.Attribute{
-			"id": schema.StringAttribute{
-				Optional: true,
-				Computed: true,
-			},
-			"zone_code": schema.StringAttribute{
-				Optional: true,
-			},
-			"vpc_no": schema.StringAttribute{
-				Optional: true,
-			},
-			"subnet_no": schema.StringAttribute{
-				Optional: true,
-			},
-			"cluster_name": schema.StringAttribute{
-				Optional: true,
-				Computed: true,
-			},
-			"server_name": schema.StringAttribute{
-				Optional: true,
-			},
-			"server_instance_no": schema.StringAttribute{
-				Optional: true,
-			},
-			"cluster_type_code": schema.StringAttribute{
-				Computed: true,
-			},
-			"version": schema.StringAttribute{
-				Computed: true,
-			},
-			"image_product_code": schema.StringAttribute{
-				Computed: true,
-			},
-			"hadoop_server_instance_list": schema.ListNestedAttribute{
-				NestedObject: schema.NestedAttributeObject{
-					Attributes: map[string]schema.Attribute{
-						"hadoop_server_name": schema.StringAttribute{
-							Computed: true,
-						},
-						"hadoop_server_role": schema.StringAttribute{
-							Computed: true,
-						},
-						"hadoop_product_code": schema.StringAttribute{
-							Computed: true,
-						},
-						"region_code": schema.StringAttribute{
-							Computed: true,
-						},
-						"zone_code": schema.StringAttribute{
-							Computed: true,
-						},
-						"vpc_no": schema.StringAttribute{
-							Computed: true,
-						},
-						"subnet_no": schema.StringAttribute{
-							Computed: true,
-						},
-						"is_public_subnet": schema.BoolAttribute{
-							Computed: true,
-						},
-						"data_storage_size": schema.Int64Attribute{
-							Computed: true,
-						},
-						"cpu_count": schema.Int64Attribute{
-							Computed: true,
-						},
-						"memory_size": schema.Int64Attribute{
-							Computed: true,
-						},
-					},
-				},
-				Computed: true,
-			},
-		},
-		Blocks: map[string]schema.Block{
-			"filter": common.DataSourceFiltersBlock(),
-		},
-	}
-}
-
 func (h *hadoopDataSource) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
 	var data hadoopDataSourceModel
+	var hadoopId string
+
+	if !h.config.SupportVPC {
+		resp.Diagnostics.AddError(
+			"NOT SUPPORT CLASSIC",
+			"does not support CLASSIC. only VPC.",
+		)
+		return
+	}
+
 	resp.Diagnostics.Append(req.Config.Get(ctx, &data)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
-	reqParams := &vhadoop.GetCloudHadoopInstanceListRequest{
-		RegionCode: &h.config.RegionCode,
-	}
-
 	if !data.ID.IsNull() && !data.ID.IsUnknown() {
-		reqParams.CloudHadoopInstanceNoList = []*string{data.ID.ValueStringPointer()}
+		hadoopId = data.ID.ValueString()
 	}
-	if !data.ZoneCode.IsNull() && !data.ZoneCode.IsUnknown() {
-		reqParams.ZoneCode = data.ZoneCode.ValueStringPointer()
-	}
-	if !data.VpcNo.IsNull() && !data.VpcNo.IsUnknown() {
-		reqParams.VpcNo = data.VpcNo.ValueStringPointer()
-	}
-	if !data.SubnetNo.IsNull() && !data.SubnetNo.IsUnknown() {
-		reqParams.SubnetNo = data.SubnetNo.ValueStringPointer()
-	}
+
 	if !data.ClusterName.IsNull() && !data.ClusterName.IsUnknown() {
-		reqParams.CloudHadoopClusterName = data.ClusterName.ValueStringPointer()
-	}
-	if !data.ServerName.IsNull() && !data.ServerName.IsUnknown() {
-		reqParams.CloudHadoopServerName = data.ServerName.ValueStringPointer()
-	}
-	if !data.ServerInstanceNo.IsNull() && !data.ServerInstanceNo.IsUnknown() {
-		reqParams.CloudHadoopServerInstanceNoList = []*string{data.ServerInstanceNo.ValueStringPointer()}
+		reqParams := &vhadoop.GetCloudHadoopInstanceListRequest{
+			RegionCode:             &h.config.RegionCode,
+			CloudHadoopClusterName: data.ClusterName.ValueStringPointer(),
+		}
+		tflog.Info(ctx, "GetHadoopList reqParams="+common.MarshalUncheckedString(reqParams))
+
+		listResp, err := h.config.Client.Vhadoop.V2Api.GetCloudHadoopInstanceList(reqParams)
+		if err != nil {
+			resp.Diagnostics.AddError("READING ERROR", err.Error())
+			return
+		}
+		tflog.Info(ctx, "GetHadoopList response="+common.MarshalUncheckedString(listResp))
+
+		if listResp == nil || len(listResp.CloudHadoopInstanceList) < 1 {
+			resp.Diagnostics.AddError("READING ERROR", "no result. please change search criteria and try again.")
+			return
+		}
+		hadoopId = *listResp.CloudHadoopInstanceList[0].CloudHadoopInstanceNo
 	}
 
-	tflog.Info(ctx, "GetHadoopList", map[string]any{
-		"reqParams": common.MarshalUncheckedString(reqParams),
-	})
-
-	hadoopResp, err := h.config.Client.Vhadoop.V2Api.GetCloudHadoopInstanceList(reqParams)
+	output, err := GetHadoopInstance(ctx, h.config, hadoopId)
 	if err != nil {
-		var diags diag.Diagnostics
-		diags.AddError(
-			"GetCloudHadoopInstanceList",
-			fmt.Sprintf("error: %s, reqParams: %s", err.Error(), common.MarshalUncheckedString(reqParams)),
-		)
-		resp.Diagnostics.Append(diags...)
+		resp.Diagnostics.AddError("READING ERROR", err.Error())
 		return
 	}
 
-	tflog.Info(ctx, "GetHadoopList response", map[string]any{
-		"hadoopResponse": common.MarshalUncheckedString(hadoopResp),
-	})
-
-	hadoopList := flattenHadoopList(ctx, hadoopResp.CloudHadoopInstanceList)
-
-	filteredList := common.FilterModels(ctx, data.Filters, hadoopList)
-
-	if err := verify.ValidateOneResult(len(filteredList)); err != nil {
-		var diags diag.Diagnostics
-		diags.AddError(
-			"GetHadoopList result vaildation",
-			err.Error(),
-		)
-		resp.Diagnostics.Append(diags...)
+	if output == nil {
+		resp.Diagnostics.AddError("READING ERROR", "no result. please change search criteria and try again.")
 		return
 	}
 
-	state := filteredList[0]
-	state.Filters = data.Filters
-	resp.Diagnostics.Append(resp.State.Set(ctx, &state)...)
-}
+	data.refreshFromOutput(ctx, output)
 
-func flattenHadoopList(ctx context.Context, hadoops []*vhadoop.CloudHadoopInstance) []*hadoopDataSourceModel {
-	var outputs []*hadoopDataSourceModel
-
-	for _, v := range hadoops {
-		var output hadoopDataSourceModel
-		output.refreshFromOutput(ctx, v)
-		outputs = append(outputs, &output)
+	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
+	if resp.Diagnostics.HasError() {
+		return
 	}
-
-	return outputs
 }
 
 type hadoopDataSourceModel struct {
-	ID                       types.String `tfsdk:"id"`
-	ZoneCode                 types.String `tfsdk:"zone_code"`
-	VpcNo                    types.String `tfsdk:"vpc_no"`
-	SubnetNo                 types.String `tfsdk:"subnet_no"`
-	ClusterName              types.String `tfsdk:"cluster_name"`
-	ServerName               types.String `tfsdk:"server_name"`
-	ServerInstanceNo         types.String `tfsdk:"server_instance_no"`
-	ClusterTypeCode          types.String `tfsdk:"cluster_type_code"`
-	Version                  types.String `tfsdk:"version"`
-	ImageProductCode         types.String `tfsdk:"image_product_code"`
-	HadoopServerInstanceList types.List   `tfsdk:"hadoop_server_instance_list"`
-	Filters                  types.Set    `tfsdk:"filter"`
+	ID                         types.String `tfsdk:"id"`
+	ClusterName                types.String `tfsdk:"cluster_name"`
+	RegionCode                 types.String `tfsdk:"region_code"`
+	VpcNo                      types.String `tfsdk:"vpc_no"`
+	ImageProductCode           types.String `tfsdk:"image_product_code"`
+	ClusterTypeCode            types.String `tfsdk:"cluster_type_code"`
+	Version                    types.String `tfsdk:"version"`
+	AmbariServerHost           types.String `tfsdk:"ambari_server_host"`
+	ClusterDirectAccessAccount types.String `tfsdk:"cluster_direct_access_account"`
+	LoginKey                   types.String `tfsdk:"login_key"`
+	ObjectStorageBucket        types.String `tfsdk:"object_storage_bucket"`
+	KdcRealm                   types.String `tfsdk:"kdc_realm"`
+	Domain                     types.String `tfsdk:"domain"`
+	IsHa                       types.Bool   `tfsdk:"is_ha"`
+	AddOnCodeList              types.List   `tfsdk:"add_on_code_list"`
+	AccessControlGroupNoList   types.List   `tfsdk:"access_control_group_no_list"`
+	HadoopServerList           types.List   `tfsdk:"hadoop_server_list"`
 }
 
-func (m *hadoopDataSourceModel) refreshFromOutput(ctx context.Context, output *vhadoop.CloudHadoopInstance) {
-	m.ID = types.StringPointerValue(output.CloudHadoopInstanceNo)
-	m.ClusterTypeCode = types.StringPointerValue(output.CloudHadoopClusterType.Code)
-	m.Version = types.StringPointerValue(output.CloudHadoopVersion.Code)
-	m.ImageProductCode = types.StringPointerValue(output.CloudHadoopImageProductCode)
-	m.ClusterName = types.StringPointerValue(output.CloudHadoopClusterName)
-	m.Version = types.StringPointerValue(output.CloudHadoopVersion.Code)
-	m.ImageProductCode = types.StringPointerValue(output.CloudHadoopImageProductCode)
-	m.HadoopServerInstanceList, _ = listValueFromHadoopServerInatanceList(ctx, output.CloudHadoopServerInstanceList)
+func (d *hadoopDataSourceModel) refreshFromOutput(ctx context.Context, output *vhadoop.CloudHadoopInstance) {
+	d.ID = types.StringPointerValue(output.CloudHadoopInstanceNo)
+	d.ClusterName = types.StringPointerValue(output.CloudHadoopClusterName)
+	d.RegionCode = types.StringPointerValue(output.CloudHadoopServerInstanceList[0].RegionCode)
+	d.VpcNo = types.StringPointerValue(output.CloudHadoopServerInstanceList[0].VpcNo)
+	d.ImageProductCode = types.StringPointerValue(output.CloudHadoopImageProductCode)
+	d.ClusterTypeCode = types.StringPointerValue(output.CloudHadoopClusterType.Code)
+	d.Version = types.StringPointerValue(output.CloudHadoopVersion.Code)
+	d.AmbariServerHost = types.StringPointerValue(output.AmbariServerHost)
+	d.ClusterDirectAccessAccount = types.StringPointerValue(output.ClusterDirectAccessAccount)
+	d.LoginKey = types.StringPointerValue(output.LoginKey)
+	d.ObjectStorageBucket = types.StringPointerValue(output.ObjectStorageBucket)
+	d.KdcRealm = types.StringPointerValue(output.KdcRealm)
+	d.Domain = types.StringPointerValue(output.Domain)
+	d.IsHa = types.BoolPointerValue(output.IsHa)
+
+	var addOnList []string
+	for _, addOn := range output.CloudHadoopAddOnList {
+		addOnList = append(addOnList, *addOn.Code)
+	}
+	d.AddOnCodeList, _ = types.ListValueFrom(ctx, types.StringType, addOnList)
+	d.AccessControlGroupNoList, _ = types.ListValueFrom(ctx, types.StringType, output.AccessControlGroupNoList)
+	d.HadoopServerList, _ = listValueFromHadoopServerInatanceList(ctx, output.CloudHadoopServerInstanceList)
 }

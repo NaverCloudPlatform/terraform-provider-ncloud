@@ -234,7 +234,7 @@ func (r *redisProductModel) refreshFromOutput(output *vredis.Product) {
 	r.ProductType = types.StringPointerValue(output.ProductType.Code)
 	r.ProductDescription = types.StringPointerValue(output.ProductDescription)
 	r.InfraResourceType = types.StringPointerValue(output.InfraResourceType.Code)
-	r.CpuCount = types.Int64Value(int64(*output.CpuCount))
+	r.CpuCount = common.Int64ValueFromInt32(output.CpuCount)
 	r.MemorySize = types.Int64PointerValue(output.MemorySize)
 	r.DiskType = types.StringPointerValue(output.DiskType.Code)
 }
