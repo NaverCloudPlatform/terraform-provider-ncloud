@@ -42,8 +42,7 @@ In addition to all arguments above, the following attributes are exported:
     * 10 ea : `SVR.VNKS.STAND.C002.M008.NET.SSD.B050.G002`
     * 50 ea : `SVR.VNKS.STAND.C004.M016.NET.SSD.B050.G002`
   * `KVM`
-    * 10 ea : `SVR.VNKS.STAND.C002.M008.G003`
-    * 50 ea : `SVR.VNKS.STAND.C004.M016.G003`
+    * 250 ea : `SVR.VNKS.STAND.C004.M016.G003`
 * `login_key_name` - Login key name.
 * `zone` - zone Code.
 * `vpc_no` - VPC No.
