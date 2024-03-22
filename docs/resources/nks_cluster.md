@@ -77,8 +77,7 @@ The following arguments are supported:
     * 10 ea : `SVR.VNKS.STAND.C002.M008.NET.SSD.B050.G002`
     * 50 ea : `SVR.VNKS.STAND.C004.M016.NET.SSD.B050.G002`
   * `KVM`
-    * 10 ea : `SVR.VNKS.STAND.C002.M008.G003`
-    * 50 ea : `SVR.VNKS.STAND.C004.M016.G003`
+    * 250 ea : `SVR.VNKS.STAND.C004.M016.G003`
 * `login_key_name` - (Required) Login key name.
 * `zone` - (Required) zone Code.
 * `vpc_no` - (Required) VPC No.
