@@ -19,6 +19,10 @@ func DataSourceNcloudNKSVersions() *schema.Resource {
 
 		Schema: map[string]*schema.Schema{
 			"filter": DataSourceFiltersSchema(),
+			"hypervisor_code": {
+				Type:     schema.TypeString,
+				Optional: true,
+			},
 			"versions": {
 				Type:     schema.TypeList,
 				Computed: true,
@@ -45,7 +49,7 @@ func dataSourceNcloudVersionsRead(d *schema.ResourceData, meta interface{}) erro
 		return NotSupportClassic("datasource `ncloud_nks_versions`")
 	}
 
-	resources, err := getNKSVersion(config)
+	resources, err := getNKSVersion(config, d)
 	if err != nil {
 		return err
 	}
@@ -63,10 +67,17 @@ func dataSourceNcloudVersionsRead(d *schema.ResourceData, meta interface{}) erro
 
 }
 
-func getNKSVersion(config *conn.ProviderConfig) ([]map[string]interface{}, error) {
+func getNKSVersion(config *conn.ProviderConfig, d *schema.ResourceData) ([]map[string]interface{}, error) {
 
 	LogCommonRequest("GetNKSVersion", "")
-	resp, err := config.Client.Vnks.V2Api.OptionVersionGet(context.Background(), map[string]interface{}{})
+	hypervisorCode := StringPtrOrNil(d.GetOk("hypervisor_code"))
+
+	opt := make(map[string]interface{})
+	if hypervisorCode != nil {
+		opt["hypervisorCode"] = hypervisorCode
+	}
+
+	resp, err := config.Client.Vnks.V2Api.OptionVersionGet(context.Background(), opt)
 
 	if err != nil {
 		LogErrorResponse("GetNKSVersion", err, "")
