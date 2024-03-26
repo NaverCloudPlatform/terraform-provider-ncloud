@@ -96,7 +96,7 @@ The following arguments are supported:
 * `kdc_password` - (Required if `use_kdc` is provided) Password of KDC. Can be entered only if useKdc is true. Must include at least 1 alphabetical character (capital letter), special character, and number. Special characters, such as single quotations ('), double quotations ("), the KRW symbol (₩), slashes (/), ampersands (&), back quotes (`), and spaces cannot be included. Min: 8, Max: 20
 * `use_bootstrap_script` - (Optional) Whether to use bootstrap script. Default: false.
 * `bootstrap_script` - (Required if `use_kdc` is provided) Bootstrap script. Script can only be performed with buckets linked to Cloud Hadoop. Requires entering folder and file names excluding bucket name. Only English is supported. Cannot use spaces or special characters. Available up to 1024 bytes.
-* `use_data_catalog` - (Optional) Whether to use data catalog. It is provided by using the Cloud Hadoop Hive Metastore as the catalog for the Data Catalog service. Integration is possible only when the catalog status of the Data Catalog service is normal. Intergration is possible only with Cloud Hadoop version 2.0 or higher. Default: false
+* `use_data_catalog` - (Optional) Whether to use data catalog. Available only `public` site. It is provided by using the Cloud Hadoop Hive Metastore as the catalog for the Data Catalog service. Integration is possible only when the catalog status of the Data Catalog service is normal. Intergration is possible only with Cloud Hadoop version 2.0 or higher. Default: false
 
 ## Attributes Reference
 
