@@ -15,7 +15,7 @@ func TestAccDataSourceNcloudHadoop_vpc_basic(t *testing.T) {
 	dataName := "data.ncloud_hadoop.hadoop"
 	resourceName := "ncloud_hadoop.hadoop"
 	instanceName := fmt.Sprintf("tf-hadoop-%s", randacctest.RandString(3))
-	bucketName := "bbb"
+	bucketName := "hadoop.bucket"
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { TestAccPreCheck(t) },
@@ -40,6 +40,10 @@ func testAccDataSourceHadoopConfig(name, bucketName string) string {
 resource "ncloud_vpc" "test" {
 	name               = "%[1]s"
 	ipv4_cidr_block    = "10.5.0.0/16"
+}
+
+resource "ncloud_login_key" "login_key" {
+   key_name = "hadoop-key"
 }
 
 resource "ncloud_subnet" "edge_subnet" {
@@ -78,9 +82,9 @@ resource "ncloud_hadoop" "hadoop" {
 	cluster_type_code = "CORE_HADOOP_WITH_SPARK"
 	admin_user_name = "admin-test"
 	admin_user_password = "Admin!2Admin"
-	login_key_name = "naverCloud"
-	master_node_subnet_no = ncloud_subnet.master_subnet.subnet_no
+	login_key = ncloud_login_key.login_key.key_name
 	edge_node_subnet_no = ncloud_subnet.edge_subnet.subnet_no
+	master_node_subnet_no = ncloud_subnet.master_subnet.subnet_no
 	worker_node_subnet_no = ncloud_subnet.worker_subnet.subnet_no
 	bucket_name = "%[2]s"
 	master_node_data_storage_type = "SSD"

@@ -35,14 +35,26 @@ The following arguments are required:
 This data source exports the following attributes in addition to the arguments above:
 
 * `region_code` - Region code.
-* `vpc_no` - The ID of the associated VPC. 
+* `vpc_no` - The ID of the associated VPC.
+* `edge_node_subnet_no` - The subnet ID of the associated edge node.
+* `master_node_subnet_no` - The subnet ID of the associated master node.
+* `worker_node_subnet_no` - The subnet ID of the associated worker node.
+* `master_node_data_storage_type` - Data storage type of master node. There are 2-Options(`SSD`, `HDD`).
+* `worker_node_data_storage_type` - Data storage type of master node. There are 2-Options(`SSD`, `HDD`).
+* `master_node_data_storage_size` - Data Storage size of master node. Must be between 100(GBi) and 2000(GBi). 4000(GBi) and 6000(GBi) also available.
+* `worker_node_data_storage_size` - Data Storage size of master node. Must be between 100(GBi) and 2000(GBi). 4000(GBi) and 6000(GBi) also available.
 * `image_product_code` - The image product code of the Hadoop instance.
+* `edge_node_product_code` - Edge server product code.
+* `master_node_product_code` - Master server product code.
+* `worker_node_product_code` - Worker server product code.
+* `worker_node_count` - Number of worker server.
 * `cluster_type_code` - The cluster type code.
 * `version` - The version of Hadoop.
 * `ambari_server_host` - The name of ambari host.
 * `cluster_direct_access_account` - Account name with direct access to the cluster.
 * `login_key` - The login key name.
-* `object_storage_bucket` - The name of object storage bucket.
+* `bucket_name` - The name of object storage bucket.
+* `use_kdc` - Whether to use Kerberos authentication configuration.
 * `kdc_realm` - Realm information of kerberos authentication.
 * `domain` - Domain.
 * `is_ha` - Whether using high availability of the specific Hadoop.
