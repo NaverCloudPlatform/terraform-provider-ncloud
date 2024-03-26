@@ -38,14 +38,6 @@ variable "admin_user_password" {
   default = "admin_user_password"
 }
 
-variable "login_key_name" {
-  default = "login_key_name"
-}
-
-variable "cluster_type_code" {
-  default = "CORE_HADOOP_WITH_SPARK"
-}
-
 variable "bucket_name" {
   default = "bucket_name"
 }
