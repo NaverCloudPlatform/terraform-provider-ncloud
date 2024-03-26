@@ -2,7 +2,6 @@ package hadoop
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"regexp"
 	"strings"
@@ -10,23 +9,27 @@ import (
 
 	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/ncloud"
 	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/services/vhadoop"
+
 	"github.com/hashicorp/terraform-plugin-framework-validators/int64validator"
-	"github.com/hashicorp/terraform-plugin-framework-validators/listvalidator"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/booldefault"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/boolplanmodifier"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/int64default"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/int64planmodifier"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/listplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
-	sdkresource "github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
+
 	"github.com/terraform-providers/terraform-provider-ncloud/internal/common"
 	"github.com/terraform-providers/terraform-provider-ncloud/internal/conn"
 	"github.com/terraform-providers/terraform-provider-ncloud/internal/framework"
@@ -46,57 +49,19 @@ type hadoopResource struct {
 	config *conn.ProviderConfig
 }
 
-func (h *hadoopResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
-	resource.ImportStatePassthroughID(ctx, path.Root("id"), req, resp)
-}
-
-func (h *hadoopResource) Configure(ctx context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
-	if req.ProviderData == nil {
-		return
-	}
-
-	config, ok := req.ProviderData.(*conn.ProviderConfig)
-
-	if !ok {
-		resp.Diagnostics.AddError(
-			"Unexpected Data Source Configure Type",
-			fmt.Sprintf("Expected *ProviderConfig, got: %T. Please report this issue to the provider developers.", req.ProviderData),
-		)
-		return
-	}
-
-	h.config = config
-}
-
-func (h *hadoopResource) Metadata(ctx context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
+func (r *hadoopResource) Metadata(_ context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
 	resp.TypeName = req.ProviderTypeName + "_hadoop"
 }
 
-func (h *hadoopResource) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
+func (r *hadoopResource) Schema(_ context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = schema.Schema{
 		Attributes: map[string]schema.Attribute{
+			"id": framework.IDAttribute(),
 			"vpc_no": schema.StringAttribute{
 				Required: true,
 				PlanModifiers: []planmodifier.String{
 					stringplanmodifier.RequiresReplace(),
 				},
-			},
-			"image_product_code": schema.StringAttribute{
-				Optional:    true,
-				Computed:    true,
-				Description: "default: latest version",
-			},
-			"master_node_product_code": schema.StringAttribute{
-				Optional:    true,
-				Description: "default: minimum spec",
-			},
-			"edge_node_product_code": schema.StringAttribute{
-				Optional:    true,
-				Description: "default: minimum spec",
-			},
-			"worker_node_product_code": schema.StringAttribute{
-				Optional:    true,
-				Description: "default: minimum spec",
 			},
 			"cluster_name": schema.StringAttribute{
 				Required: true,
@@ -118,20 +83,6 @@ func (h *hadoopResource) Schema(ctx context.Context, req resource.SchemaRequest,
 				PlanModifiers: []planmodifier.String{
 					stringplanmodifier.RequiresReplace(),
 				},
-			},
-			"version": schema.StringAttribute{
-				Computed: true,
-			},
-			"add_on_code_list": schema.ListAttribute{
-				Optional:    true,
-				Computed:    true,
-				ElementType: types.StringType,
-				Validators: []validator.List{
-					listvalidator.ValueStringsAre(
-						stringvalidator.OneOf("PRESTO", "HBASE", "IMPALA", "KUDU"),
-					),
-				},
-				Description: "this attribute can used over 1.5 version",
 			},
 			"admin_user_name": schema.StringAttribute{
 				Required: true,
@@ -164,7 +115,7 @@ func (h *hadoopResource) Schema(ctx context.Context, req resource.SchemaRequest,
 				},
 				Sensitive: true,
 			},
-			"login_key_name": schema.StringAttribute{
+			"login_key": schema.StringAttribute{
 				Required: true,
 				PlanModifiers: []planmodifier.String{
 					stringplanmodifier.RequiresReplace(),
@@ -238,30 +189,70 @@ func (h *hadoopResource) Schema(ctx context.Context, req resource.SchemaRequest,
 					),
 				},
 			},
+			"image_product_code": schema.StringAttribute{
+				Optional: true,
+				Computed: true,
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.UseStateForUnknown(),
+					stringplanmodifier.RequiresReplace(),
+				},
+				Description: "default: latest version",
+			},
+			"edge_node_product_code": schema.StringAttribute{
+				Optional: true,
+				Computed: true,
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.UseStateForUnknown(),
+				},
+				Description: "default: minimum spec",
+			},
+			"master_node_product_code": schema.StringAttribute{
+				Optional: true,
+				Computed: true,
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.UseStateForUnknown(),
+				},
+				Description: "default: minimum spec",
+			},
+			"worker_node_product_code": schema.StringAttribute{
+				Optional: true,
+				Computed: true,
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.UseStateForUnknown(),
+				},
+				Description: "default: minimum spec",
+			},
+			"add_on_code_list": schema.ListAttribute{
+				ElementType: types.StringType,
+				Optional:    true,
+				PlanModifiers: []planmodifier.List{
+					listplanmodifier.RequiresReplace(),
+				},
+				Description: "this attribute can used over 1.5 version",
+			},
 			"worker_node_count": schema.Int64Attribute{
 				Optional: true,
+				Computed: true,
+				Default:  int64default.StaticInt64(2),
+				PlanModifiers: []planmodifier.Int64{
+					int64planmodifier.UseStateForUnknown(),
+				},
 				Validators: []validator.Int64{
-					int64validator.Between(2, 8),
+					int64validator.AtLeast(2),
 				},
 				Description: "default: 2",
 			},
 			"use_kdc": schema.BoolAttribute{
 				Optional: true,
+				Computed: true,
+				Default:  booldefault.StaticBool(false),
 				PlanModifiers: []planmodifier.Bool{
 					boolplanmodifier.RequiresReplace(),
 				},
 				Description: "default: false",
 			},
+			// Only uppercase letters (A-Z) are allowed and up to 15 digits are allowed. Only one dot(.) is allowed (ex. EXAMPLE.COM).
 			"kdc_realm": schema.StringAttribute{
-				Optional: true,
-				Computed: true,
-				Validators: []validator.String{
-					stringvalidator.AlsoRequires(path.Expressions{
-						path.MatchRoot("use_kdc"),
-					}...),
-				},
-			},
-			"kdc_password": schema.StringAttribute{
 				Optional: true,
 				PlanModifiers: []planmodifier.String{
 					stringplanmodifier.RequiresReplace(),
@@ -270,6 +261,32 @@ func (h *hadoopResource) Schema(ctx context.Context, req resource.SchemaRequest,
 					stringvalidator.AlsoRequires(path.Expressions{
 						path.MatchRoot("use_kdc"),
 					}...),
+					stringvalidator.All(
+						stringvalidator.LengthBetween(1, 15),
+						stringvalidator.RegexMatches(
+							regexp.MustCompile(`^[A-Z.]+$`),
+							"Only uppercase letters (A-Z) are allowed and up to 15 digits are allowed. Only one dot(.) is allowed (ex. EXAMPLE.COM).",
+						),
+					),
+				},
+			},
+			"kdc_password": schema.StringAttribute{
+				Optional:  true,
+				Sensitive: true,
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.RequiresReplace(),
+				},
+				Validators: []validator.String{
+					stringvalidator.AlsoRequires(path.Expressions{
+						path.MatchRoot("use_kdc"),
+					}...),
+					stringvalidator.All(
+						stringvalidator.LengthBetween(8, 20),
+						stringvalidator.RegexMatches(regexp.MustCompile(`[A-Z]+`), "Must have at least one uppercase alphabet"),
+						stringvalidator.RegexMatches(regexp.MustCompile(`\d+`), "Must have at least one number"),
+						stringvalidator.RegexMatches(regexp.MustCompile(`[~!@#$%^*()\-_=\[\]\{\};:,.<>?]+`), "Must have at least one special character"),
+						stringvalidator.RegexMatches(regexp.MustCompile(`^[^&+\\"'/\s`+"`"+`]*$`), "Must not have ` & + \\ \" ' / and white space."),
+					),
 				},
 			},
 			"use_bootstrap_script": schema.BoolAttribute{
@@ -290,11 +307,12 @@ func (h *hadoopResource) Schema(ctx context.Context, req resource.SchemaRequest,
 					}...),
 					stringvalidator.LengthAtMost(1024),
 					stringvalidator.RegexMatches(
-						regexp.MustCompile(`^[a-zA-Z]$`),
+						regexp.MustCompile(`^[a-zA-Z]+$`),
 						"Composed of alphabets.",
 					),
 				},
 			},
+			// Available only `public` site
 			"use_data_catalog": schema.BoolAttribute{
 				Optional: true,
 				PlanModifiers: []planmodifier.Bool{
@@ -302,47 +320,72 @@ func (h *hadoopResource) Schema(ctx context.Context, req resource.SchemaRequest,
 				},
 				Description: "this attribute can used over 2.0 version",
 			},
+			"region_code": schema.StringAttribute{
+				Computed: true,
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.UseStateForUnknown(),
+				},
+			},
 			"ambari_server_host": schema.StringAttribute{
 				Computed: true,
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.UseStateForUnknown(),
+				},
 			},
 			"cluster_direct_access_account": schema.StringAttribute{
 				Computed: true,
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.UseStateForUnknown(),
+				},
+			},
+			"version": schema.StringAttribute{
+				Computed: true,
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.UseStateForUnknown(),
+				},
 			},
 			"is_ha": schema.BoolAttribute{
 				Computed: true,
+				PlanModifiers: []planmodifier.Bool{
+					boolplanmodifier.UseStateForUnknown(),
+				},
+			},
+			"domain": schema.StringAttribute{
+				Computed: true,
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.UseStateForUnknown(),
+				},
 			},
 			"access_control_group_no_list": schema.ListAttribute{
 				Computed:    true,
 				ElementType: types.StringType,
+				PlanModifiers: []planmodifier.List{
+					listplanmodifier.UseStateForUnknown(),
+				},
 			},
-			"hadoop_server_instance_list": schema.ListNestedAttribute{
+			"hadoop_server_list": schema.ListNestedAttribute{
+				Computed: true,
 				NestedObject: schema.NestedAttributeObject{
 					Attributes: map[string]schema.Attribute{
-						"hadoop_server_name": schema.StringAttribute{
+						"server_instance_no": schema.StringAttribute{
 							Computed: true,
 						},
-						"hadoop_server_role": schema.StringAttribute{
+						"server_name": schema.StringAttribute{
 							Computed: true,
 						},
-						"hadoop_product_code": schema.StringAttribute{
-							Computed: true,
-						},
-						"region_code": schema.StringAttribute{
+						"server_role": schema.StringAttribute{
 							Computed: true,
 						},
 						"zone_code": schema.StringAttribute{
 							Computed: true,
 						},
-						"vpc_no": schema.StringAttribute{
-							Computed: true,
-						},
 						"subnet_no": schema.StringAttribute{
 							Computed: true,
 						},
-						"is_public_subnet": schema.BoolAttribute{
+						"product_code": schema.StringAttribute{
 							Computed: true,
 						},
-						"data_storage_size": schema.Int64Attribute{
+						"is_public_subnet": schema.BoolAttribute{
 							Computed: true,
 						},
 						"cpu_count": schema.Int64Attribute{
@@ -351,46 +394,78 @@ func (h *hadoopResource) Schema(ctx context.Context, req resource.SchemaRequest,
 						"memory_size": schema.Int64Attribute{
 							Computed: true,
 						},
+						"data_storage_type": schema.StringAttribute{
+							Computed: true,
+						},
+						"data_storage_size": schema.Int64Attribute{
+							Computed: true,
+						},
+						"uptime": schema.StringAttribute{
+							Computed: true,
+						},
+						"create_date": schema.StringAttribute{
+							Computed: true,
+						},
 					},
 				},
-				Computed: true,
 			},
-			"id": framework.IDAttribute(),
 		},
 	}
 }
 
-func (h *hadoopResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
-	var plan hadoopResourceModel
-	diags := req.Plan.Get(ctx, &plan)
-	resp.Diagnostics.Append(diags...)
-	if resp.Diagnostics.HasError() {
+func (r *hadoopResource) Configure(ctx context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
+	if req.ProviderData == nil {
 		return
 	}
-	if !h.config.SupportVPC {
+
+	config, ok := req.ProviderData.(*conn.ProviderConfig)
+
+	if !ok {
 		resp.Diagnostics.AddError(
-			"Not support classic",
-			fmt.Sprintf("resource %s does not support classic", req.Config.Schema.Type().String()),
+			"Unexpected Data Source Configure Type",
+			fmt.Sprintf("Expected *ProviderConfig, got: %T. Please report this issue to the provider developers.", req.ProviderData),
 		)
 		return
 	}
 
+	r.config = config
+}
+
+func (r *hadoopResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
+	var plan hadoopResourceModel
+
+	if !r.config.SupportVPC {
+		resp.Diagnostics.AddError(
+			"NOT SUPPORT CLASSIC",
+			"resource does not support CLASSIC. only VPC.",
+		)
+		return
+	}
+
+	resp.Diagnostics.Append(req.Plan.Get(ctx, &plan)...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
 	reqParams := &vhadoop.CreateCloudHadoopInstanceRequest{
-		RegionCode:                    &h.config.RegionCode,
+		RegionCode:                    &r.config.RegionCode,
 		VpcNo:                         plan.VpcNo.ValueStringPointer(),
 		CloudHadoopClusterName:        plan.ClusterName.ValueStringPointer(),
 		CloudHadoopClusterTypeCode:    plan.ClusterTypeCode.ValueStringPointer(),
 		CloudHadoopAdminUserName:      plan.AdminUserName.ValueStringPointer(),
 		CloudHadoopAdminUserPassword:  plan.AdminUserPassword.ValueStringPointer(),
-		LoginKeyName:                  plan.LoginKeyName.ValueStringPointer(),
+		LoginKeyName:                  plan.LoginKey.ValueStringPointer(),
 		EdgeNodeSubnetNo:              plan.EdgeNodeSubnetNo.ValueStringPointer(),
 		MasterNodeSubnetNo:            plan.MasterNodeSubnetNo.ValueStringPointer(),
-		BucketName:                    plan.BucketName.ValueStringPointer(),
 		WorkerNodeSubnetNo:            plan.WorkerNodeSubnetNo.ValueStringPointer(),
+		BucketName:                    plan.BucketName.ValueStringPointer(),
 		MasterNodeDataStorageTypeCode: plan.MasterNodeDataStorageType.ValueStringPointer(),
 		WorkerNodeDataStorageTypeCode: plan.WorkerNodeDataStorageType.ValueStringPointer(),
 		MasterNodeDataStorageSize:     ncloud.Int32(int32(plan.MasterNodeDataStorageSize.ValueInt64())),
 		WorkerNodeDataStorageSize:     ncloud.Int32(int32(plan.WorkerNodeDataStorageSize.ValueInt64())),
+		WorkerNodeCount:               ncloud.Int32(int32(plan.WorkerNodeCount.ValueInt64())),
+		UseKdc:                        plan.UseKdc.ValueBoolPointer(),
+		UseBootstrapScript:            plan.UseBootstrapScript.ValueBoolPointer(),
 	}
 
 	if !plan.ImageProductCode.IsNull() && !plan.ImageProductCode.IsUnknown() {
@@ -406,24 +481,15 @@ func (h *hadoopResource) Create(ctx context.Context, req resource.CreateRequest,
 	}
 
 	if !plan.WorkerNodeProductCode.IsNull() && !plan.WorkerNodeProductCode.IsUnknown() {
-		reqParams.WorkerNodeProductCode = plan.EdgeNodeProductCode.ValueStringPointer()
+		reqParams.WorkerNodeProductCode = plan.WorkerNodeProductCode.ValueStringPointer()
 	}
 
 	if !plan.AddOnCodeList.IsNull() && !plan.AddOnCodeList.IsUnknown() {
 		addOnList := plan.AddOnCodeList.Elements()
-		var addOnListReq []*string
 		for _, addon := range addOnList {
-			addOnListReq = append(addOnListReq, ncloud.String(addon.String()))
+			newStr := strings.Replace(addon.String(), "\"", "", -1)
+			reqParams.CloudHadoopAddOnCodeList = append(reqParams.CloudHadoopAddOnCodeList, &newStr)
 		}
-		reqParams.CloudHadoopAddOnCodeList = addOnListReq
-	}
-
-	if !plan.WorkerNodeCount.IsNull() && !plan.WorkerNodeCount.IsUnknown() {
-		reqParams.WorkerNodeCount = ncloud.Int32(int32(plan.WorkerNodeCount.ValueInt64()))
-	}
-
-	if !plan.UseKdc.IsNull() {
-		reqParams.UseKdc = plan.UseKdc.ValueBoolPointer()
 	}
 
 	if !plan.UseKdc.IsNull() && plan.UseKdc.ValueBool() {
@@ -431,8 +497,8 @@ func (h *hadoopResource) Create(ctx context.Context, req resource.CreateRequest,
 			reqParams.KdcRealm = plan.KdcRealm.ValueStringPointer()
 		} else {
 			resp.Diagnostics.AddError(
-				fmt.Sprintf("`use_kdc` = %t, `kdc_realm` is nil", plan.UseKdc.ValueBool()),
-				errors.New("when `use_kdc` is true, `kdc_realm` must be inputted`").Error(),
+				"CREATING ERROR",
+				"when `use_kdc` is true, `kdc_realm` must be inputted`",
 			)
 			return
 		}
@@ -441,15 +507,21 @@ func (h *hadoopResource) Create(ctx context.Context, req resource.CreateRequest,
 			reqParams.KdcPassword = plan.KdcPassword.ValueStringPointer()
 		} else {
 			resp.Diagnostics.AddError(
-				fmt.Sprintf("`use_kdc` = %t, `Kdc_password` is nil", plan.UseKdc.ValueBool()),
-				errors.New("when `use_kdc` is true, `kdc_realm` must be entered`").Error(),
+				"CREATING ERROR",
+				"when `use_kdc` is true, `kdc_password` must be entered`",
 			)
 			return
 		}
-	}
-
-	if !plan.UseBootstrapScript.IsNull() {
-		reqParams.UseBootstrapScript = plan.UseBootstrapScript.ValueBoolPointer()
+	} else {
+		kdcRealmHasValue := !plan.KdcRealm.IsNull() && !plan.KdcRealm.IsUnknown()
+		kdcPasswordHasValue := !plan.KdcPassword.IsNull() && !plan.KdcPassword.IsUnknown()
+		if kdcRealmHasValue || kdcPasswordHasValue {
+			resp.Diagnostics.AddError(
+				"CREATING ERROR",
+				"when `use_kdc` is false, `kdc_realm` and `kdc_password` must not be entered`",
+			)
+			return
+		}
 	}
 
 	if !plan.UseBootstrapScript.IsNull() && plan.UseBootstrapScript.ValueBool() {
@@ -457,223 +529,193 @@ func (h *hadoopResource) Create(ctx context.Context, req resource.CreateRequest,
 			reqParams.BootstrapScript = plan.BootstrapScript.ValueStringPointer()
 		} else {
 			resp.Diagnostics.AddError(
-				fmt.Sprintf("`use_bootstrap_script` = %t, `bootstrap_script` is nil", plan.UseBootstrapScript.ValueBool()),
-				errors.New("when `use_bootstrap_script` is true, `bootstrap_script` must be entered`").Error(),
+				"CREATING ERROR",
+				"when `use_bootstrap_script` is true, `bootstrap_script` must be entered`",
+			)
+			return
+		}
+	} else {
+		if !plan.BootstrapScript.IsNull() {
+			resp.Diagnostics.AddError(
+				"CREATING ERROR",
+				"when `use_bootstrap_script` is false, `bootstrap_script` must not be entered`",
 			)
 			return
 		}
 	}
 
-	tflog.Info(ctx, "CreateHadoop", map[string]any{
-		"reqParams": common.MarshalUncheckedString(reqParams),
-	})
-	response, err := h.config.Client.Vhadoop.V2Api.CreateCloudHadoopInstance(reqParams)
+	// Available only `public` site
+	if !plan.UseDataCatalog.IsNull() && plan.UseDataCatalog.ValueBool() {
+		reqParams.UseDataCatalog = plan.UseDataCatalog.ValueBoolPointer()
+	}
+
+	tflog.Info(ctx, "CreateHadoop reqParams="+common.MarshalUncheckedString(reqParams))
+
+	response, err := r.config.Client.Vhadoop.V2Api.CreateCloudHadoopInstance(reqParams)
 	if err != nil {
-		resp.Diagnostics.AddError(
-			fmt.Sprintf("Create Hadoop Instance, err params=%v", *reqParams),
-			err.Error(),
-		)
+		resp.Diagnostics.AddError("CREATING ERROR", err.Error())
 		return
 	}
-	tflog.Info(ctx, "CreateHadoop response", map[string]any{
-		"createHadoopResponse": common.MarshalUncheckedString(response),
-	})
+	tflog.Info(ctx, "CreateHadoop response="+common.MarshalUncheckedString(response))
+
+	if response == nil || len(response.CloudHadoopInstanceList) < 1 {
+		resp.Diagnostics.AddError("CREATING ERROR", "response invalid")
+		return
+	}
 
 	hadoopInstance := response.CloudHadoopInstanceList[0]
 	plan.ID = types.StringPointerValue(hadoopInstance.CloudHadoopInstanceNo)
-	tflog.Info(ctx, "Hadoop ID", map[string]any{
-		"HadoopNo": plan.ID,
-	})
-	output, err := waitHadoopForCreation(ctx, h.config, *hadoopInstance.CloudHadoopInstanceNo)
+
+	output, err := waitHadoopCreation(ctx, r.config, *hadoopInstance.CloudHadoopInstanceNo)
 	if err != nil {
-		resp.Diagnostics.AddError("waiting for Hadoop creation", err.Error())
+		resp.Diagnostics.AddError("WAITING FOR CREATION ERROR", err.Error())
 		return
 	}
 
-	if err := plan.refreshFromOutput(ctx, output); err.ErrorsCount() > 0 {
-		resp.Diagnostics.Append(err...)
-	}
-	if resp.Diagnostics.HasError() {
-		return
-	}
+	plan.refreshFromOutput(ctx, output)
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, plan)...)
 }
 
-func (h *hadoopResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
+func (r *hadoopResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
 	var state hadoopResourceModel
-	diags := req.State.Get(ctx, &state)
-	resp.Diagnostics.Append(diags...)
-	if resp.Diagnostics.HasError() {
-		return
-	}
 
-	output, err := GetHadoopInstance(ctx, h.config, state.ID.ValueString())
-	if err != nil {
-		resp.Diagnostics.AddError("GetHadoop", err.Error())
-		return
-	}
-	if output == nil {
-		resp.State.RemoveResource(ctx)
-		return
-	}
-
-	if errors := state.refreshFromOutput(ctx, output); errors.ErrorsCount() > 0 {
-		resp.Diagnostics.Append(errors...)
-		return
-	}
-
-	diags = resp.State.Set(ctx, &state)
-	resp.Diagnostics.Append(diags...)
-	if resp.Diagnostics.HasError() {
-		return
-	}
-}
-
-func (h *hadoopResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
-	var plan, state hadoopResourceModel
-
-	resp.Diagnostics.Append(req.Plan.Get(ctx, &plan)...)
 	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
-	if !plan.WorkerNodeCount.Equal(state.WorkerNodeCount) {
+	output, err := GetHadoopInstance(ctx, r.config, state.ID.ValueString())
+	if err != nil {
+		resp.Diagnostics.AddError("READING ERROR", err.Error())
+		return
+	}
 
+	if output == nil {
+		resp.State.RemoveResource(ctx)
+		return
+	}
+
+	state.refreshFromOutput(ctx, output)
+
+	resp.Diagnostics.Append(resp.State.Set(ctx, &state)...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+}
+
+func (r *hadoopResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
+	var plan, state hadoopResourceModel
+
+	resp.Diagnostics.Append(req.Plan.Get(ctx, &plan)...)
+	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
+
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
+	if !plan.WorkerNodeCount.Equal(state.WorkerNodeCount) {
 		reqParams := &vhadoop.ChangeCloudHadoopNodeCountRequest{
-			RegionCode:            &h.config.RegionCode,
-			CloudHadoopInstanceNo: plan.ID.ValueStringPointer(),
+			RegionCode:            &r.config.RegionCode,
+			CloudHadoopInstanceNo: state.ID.ValueStringPointer(),
 			WorkerNodeCount:       ncloud.Int32(int32(plan.WorkerNodeCount.ValueInt64())),
 		}
+		tflog.Info(ctx, "ChangeHadoopWorkerNodeCount reqParams="+common.MarshalUncheckedString(reqParams))
 
-		tflog.Info(ctx, "ChangeHadoopWorkerNodeCount", map[string]any{
-			"reqParams": common.MarshalUncheckedString(reqParams),
-		})
-		response, err := h.config.Client.Vhadoop.V2Api.ChangeCloudHadoopNodeCount(reqParams)
+		response, err := r.config.Client.Vhadoop.V2Api.ChangeCloudHadoopNodeCount(reqParams)
 		if err != nil {
-			resp.Diagnostics.AddError(
-				fmt.Sprintf("ChangeHadoopWorkerNodeCount params=%v", *reqParams),
-				err.Error(),
-			)
+			resp.Diagnostics.AddError("UPDATE ERROR", err.Error())
+			return
+		}
+		tflog.Info(ctx, "ChangeHadoopWorkerNodeCount response="+common.MarshalUncheckedString(response))
+
+		if response == nil || len(response.CloudHadoopInstanceList) < 1 {
+			resp.Diagnostics.AddError("UPDATE ERROR", "response invalid")
 			return
 		}
 
-		tflog.Info(ctx, "ChangeHadoopWorkerNodeCount", map[string]any{
-			"changeHadoopWorkerNodeResponse": common.MarshalUncheckedString(response),
-		})
-
-		output, err := waitForHadoopUpdate(ctx, h.config, state.ID.ValueString())
+		output, err := waitHadoopUpdate(ctx, r.config, state.ID.ValueString())
 		if err != nil {
-			resp.Diagnostics.AddError(
-				"fail to wait for updating hadoop worker node count",
-				err.Error(),
-			)
+			resp.Diagnostics.AddError("WAITING FOR UPDATE ERROR", err.Error())
+			return
 		}
 
-		if err := state.refreshFromOutput(ctx, output); err.HasError() {
-			resp.Diagnostics.Append(err...)
-		}
-		state.WorkerNodeCount = plan.WorkerNodeCount
+		state.refreshFromOutput(ctx, output)
 	}
 
 	if !plan.MasterNodeProductCode.Equal(state.MasterNodeProductCode) ||
 		!plan.EdgeNodeProductCode.Equal(state.EdgeNodeProductCode) ||
 		!plan.WorkerNodeProductCode.Equal(state.WorkerNodeProductCode) {
-
 		reqParams := &vhadoop.ChangeCloudHadoopNodeSpecRequest{
-			RegionCode:            &h.config.RegionCode,
-			CloudHadoopInstanceNo: plan.ID.ValueStringPointer(),
-
-			MasterNodeProductCode: state.MasterNodeProductCode.ValueStringPointer(),
-			EdgeNodeProductCode:   state.EdgeNodeProductCode.ValueStringPointer(),
-			WorkerNodeProductCode: state.WorkerNodeProductCode.ValueStringPointer(),
+			RegionCode:            &r.config.RegionCode,
+			CloudHadoopInstanceNo: state.ID.ValueStringPointer(),
 		}
 
 		if !plan.MasterNodeProductCode.Equal(state.MasterNodeProductCode) {
 			reqParams.MasterNodeProductCode = plan.MasterNodeProductCode.ValueStringPointer()
-			state.MasterNodeProductCode = types.StringPointerValue(plan.MasterNodeProductCode.ValueStringPointer())
 		}
 
 		if !plan.EdgeNodeProductCode.Equal(state.EdgeNodeProductCode) {
 			reqParams.EdgeNodeProductCode = plan.EdgeNodeProductCode.ValueStringPointer()
-			state.EdgeNodeProductCode = types.StringPointerValue(plan.EdgeNodeProductCode.ValueStringPointer())
 		}
 
 		if !plan.WorkerNodeProductCode.Equal(state.WorkerNodeProductCode) {
 			reqParams.WorkerNodeProductCode = plan.WorkerNodeProductCode.ValueStringPointer()
-			state.WorkerNodeProductCode = types.StringPointerValue(plan.WorkerNodeProductCode.ValueStringPointer())
 		}
+		tflog.Info(ctx, "ChangeHadoopNodeSpec reqParams="+common.MarshalUncheckedString(reqParams))
 
-		tflog.Info(ctx, "ChangeHadoopSpec", map[string]any{
-			"reqParams": common.MarshalUncheckedString(reqParams),
-		})
-
-		response, err := h.config.Client.Vhadoop.V2Api.ChangeCloudHadoopNodeSpec(reqParams)
+		response, err := r.config.Client.Vhadoop.V2Api.ChangeCloudHadoopNodeSpec(reqParams)
 		if err != nil {
-			resp.Diagnostics.AddError(
-				fmt.Sprintf("ChangeHadoopSpec params=%v", *reqParams),
-				err.Error(),
-			)
+			resp.Diagnostics.AddError("UPDATE ERROR", err.Error())
+			return
+		}
+		tflog.Info(ctx, "ChangeHadoopNodeSpec response="+common.MarshalUncheckedString(response))
+
+		if response == nil || len(response.CloudHadoopInstanceList) < 1 {
+			resp.Diagnostics.AddError("UPDATE ERROR", "response invalid")
 			return
 		}
 
-		tflog.Info(ctx, "ChangeHadoopSpec", map[string]any{
-			"changeHadoopSpecResponse": common.MarshalUncheckedString(response),
-		})
-
-		output, err := waitForHadoopUpdate(ctx, h.config, state.ID.ValueString())
+		output, err := waitHadoopUpdate(ctx, r.config, state.ID.ValueString())
 		if err != nil {
-			resp.Diagnostics.AddError(
-				"fail to wait for updating hadoop spec",
-				err.Error(),
-			)
+			resp.Diagnostics.AddError("WAITING FOR UPDATE ERROR", err.Error())
+			return
 		}
 
-		if err := state.refreshFromOutput(ctx, output); err.HasError() {
-			resp.Diagnostics.Append(err...)
-		}
-
+		state.refreshFromOutput(ctx, output)
 	}
 
-	resp.State.Set(ctx, state)
+	resp.Diagnostics.Append(resp.State.Set(ctx, state)...)
 }
 
-func (h *hadoopResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
+func (r *hadoopResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
 	var state hadoopResourceModel
-	diags := req.State.Get(ctx, &state)
-	resp.Diagnostics.Append(diags...)
+
+	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
+
 	reqParams := &vhadoop.DeleteCloudHadoopInstanceRequest{
-		RegionCode:            &h.config.RegionCode,
+		RegionCode:            &r.config.RegionCode,
 		CloudHadoopInstanceNo: state.ID.ValueStringPointer(),
 	}
+	tflog.Info(ctx, "DeleteHadoop reqParams="+common.MarshalUncheckedString(reqParams))
 
-	tflog.Info(ctx, "DeleteHadoop", map[string]any{
-		"reqParams": common.MarshalUncheckedString(reqParams),
-	})
-
-	response, err := h.config.Client.Vhadoop.V2Api.DeleteCloudHadoopInstance(reqParams)
+	response, err := r.config.Client.Vhadoop.V2Api.DeleteCloudHadoopInstance(reqParams)
 	if err != nil {
-		resp.Diagnostics.AddError(
-			fmt.Sprintf("Delete Hadoop Instance params=%v", *reqParams),
-			err.Error(),
-		)
+		resp.Diagnostics.AddError("DELETING ERROR", err.Error())
 		return
 	}
+	tflog.Info(ctx, "DeleteHadoop response="+common.MarshalUncheckedString(response))
 
-	tflog.Info(ctx, "DeleteCloudHadoop response", map[string]any{
-		"deleteHadoopResponse": common.MarshalUncheckedString(response),
-	})
-
-	if err := waitForHadoopDeletion(ctx, h.config, state.ID.ValueString()); err != nil {
-		resp.Diagnostics.AddError(
-			"fail to wait for hadoop deletion",
-			err.Error(),
-		)
+	if err := waitHadoopDeletion(ctx, r.config, state.ID.ValueString()); err != nil {
+		resp.Diagnostics.AddError("WAITING FOR DELETE ERROR", err.Error())
 	}
+}
+
+func (r *hadoopResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
+	resource.ImportStatePassthroughID(ctx, path.Root("id"), req, resp)
 }
 
 func GetHadoopInstance(ctx context.Context, config *conn.ProviderConfig, id string) (*vhadoop.CloudHadoopInstance, error) {
@@ -681,33 +723,26 @@ func GetHadoopInstance(ctx context.Context, config *conn.ProviderConfig, id stri
 		RegionCode:            &config.RegionCode,
 		CloudHadoopInstanceNo: ncloud.String(id),
 	}
-
-	tflog.Info(ctx, "GetHadoop", map[string]any{
-		"reqParams": common.MarshalUncheckedString(reqParams),
-	})
+	tflog.Info(ctx, "GetHadoopDetail reqParams="+common.MarshalUncheckedString(reqParams))
 
 	resp, err := config.Client.Vhadoop.V2Api.GetCloudHadoopInstanceDetail(reqParams)
-	if err != nil {
-		if strings.Contains(err.Error(), "Unable to lookup cluster instance information") {
-			return nil, nil
-		}
+	// If the lookup result is 0 or already deleted, it will respond with a 400 error with a 5001017 return code.
+	if err != nil && !(strings.Contains(err.Error(), `"returnCode": "5001017"`)) {
 		return nil, err
 	}
+	tflog.Info(ctx, "GetHadoopDetail response="+common.MarshalUncheckedString(resp))
 
-	tflog.Info(ctx, "GetHadoop response", map[string]any{
-		"getHadoopResponse": common.MarshalUncheckedString(resp),
-	})
-
-	if len(resp.CloudHadoopInstanceList) > 0 {
-		return resp.CloudHadoopInstanceList[0], nil
+	if resp == nil || len(resp.CloudHadoopInstanceList) < 1 || len(resp.CloudHadoopInstanceList[0].CloudHadoopServerInstanceList) < 1 {
+		return nil, nil
 	}
-	return nil, nil
+
+	return resp.CloudHadoopInstanceList[0], nil
 }
 
-func waitHadoopForCreation(ctx context.Context, config *conn.ProviderConfig, id string) (*vhadoop.CloudHadoopInstance, error) {
+func waitHadoopCreation(ctx context.Context, config *conn.ProviderConfig, id string) (*vhadoop.CloudHadoopInstance, error) {
 	var hadoopInstance *vhadoop.CloudHadoopInstance
 	var err error
-	stateConf := &sdkresource.StateChangeConf{
+	stateConf := &retry.StateChangeConf{
 		Pending: []string{"CREAT"},
 		Target:  []string{"RUN"},
 		Refresh: func() (interface{}, string, error) {
@@ -727,9 +762,9 @@ func waitHadoopForCreation(ctx context.Context, config *conn.ProviderConfig, id 
 			if *status == "CREAT" && *op == "NULL" {
 				return hadoopInstance, "RUN", nil
 			}
-			return 0, "", fmt.Errorf("")
+			return 0, "", fmt.Errorf("error occurred while waiting to create")
 		},
-		Timeout:    15 * conn.DefaultTimeout,
+		Timeout:    90 * time.Minute,
 		Delay:      2 * time.Second,
 		MinTimeout: 3 * time.Second,
 	}
@@ -740,11 +775,11 @@ func waitHadoopForCreation(ctx context.Context, config *conn.ProviderConfig, id 
 	return hadoopInstance, nil
 }
 
-func waitForHadoopUpdate(ctx context.Context, config *conn.ProviderConfig, id string) (*vhadoop.CloudHadoopInstance, error) {
+func waitHadoopUpdate(ctx context.Context, config *conn.ProviderConfig, id string) (*vhadoop.CloudHadoopInstance, error) {
 	var hadoopInstance *vhadoop.CloudHadoopInstance
 	var err error
 
-	stateConf := &sdkresource.StateChangeConf{
+	stateConf := &retry.StateChangeConf{
 		Pending: []string{"SET", "UPGD"},
 		Target:  []string{"RUN"},
 		Refresh: func() (interface{}, string, error) {
@@ -767,7 +802,7 @@ func waitForHadoopUpdate(ctx context.Context, config *conn.ProviderConfig, id st
 
 			return 0, "", fmt.Errorf("")
 		},
-		Timeout:    6 * conn.DefaultTimeout,
+		Timeout:    6 * conn.DefaultUpdateTimeout,
 		Delay:      2 * time.Second,
 		MinTimeout: 3 * time.Second,
 	}
@@ -778,15 +813,16 @@ func waitForHadoopUpdate(ctx context.Context, config *conn.ProviderConfig, id st
 	return hadoopInstance, nil
 }
 
-func waitForHadoopDeletion(ctx context.Context, config *conn.ProviderConfig, id string) error {
-	stateConf := &sdkresource.StateChangeConf{
+func waitHadoopDeletion(ctx context.Context, config *conn.ProviderConfig, id string) error {
+	stateConf := &retry.StateChangeConf{
 		Pending: []string{"PEND"},
 		Target:  []string{"DEL"},
 		Refresh: func() (interface{}, string, error) {
 			hadoopInstance, err := GetHadoopInstance(ctx, config, id)
-			if err != nil && !strings.Contains(err.Error(), `"returnCode": "5001017"`) {
+			if err != nil {
 				return 0, "", err
 			}
+
 			if hadoopInstance == nil {
 				return hadoopInstance, "DEL", nil
 			}
@@ -798,12 +834,13 @@ func waitForHadoopDeletion(ctx context.Context, config *conn.ProviderConfig, id 
 				return hadoopInstance, "PEND", nil
 			}
 
-			return 0, "", fmt.Errorf("")
+			return 0, "", fmt.Errorf("error occurred while waiting to delete")
 		},
 		Timeout:    6 * conn.DefaultTimeout,
 		Delay:      2 * time.Second,
 		MinTimeout: 3 * time.Second,
 	}
+
 	if _, err := stateConf.WaitForState(); err != nil {
 		return err
 	}
@@ -812,18 +849,13 @@ func waitForHadoopDeletion(ctx context.Context, config *conn.ProviderConfig, id 
 }
 
 type hadoopResourceModel struct {
+	ID                         types.String `tfsdk:"id"`
 	VpcNo                      types.String `tfsdk:"vpc_no"`
-	ImageProductCode           types.String `tfsdk:"image_product_code"`
-	MasterNodeProductCode      types.String `tfsdk:"master_node_product_code"`
-	EdgeNodeProductCode        types.String `tfsdk:"edge_node_product_code"`
-	WorkerNodeProductCode      types.String `tfsdk:"worker_node_product_code"`
 	ClusterName                types.String `tfsdk:"cluster_name"`
-	Version                    types.String `tfsdk:"version"`
 	ClusterTypeCode            types.String `tfsdk:"cluster_type_code"`
-	AddOnCodeList              types.List   `tfsdk:"add_on_code_list"`
 	AdminUserName              types.String `tfsdk:"admin_user_name"`
 	AdminUserPassword          types.String `tfsdk:"admin_user_password"`
-	LoginKeyName               types.String `tfsdk:"login_key_name"`
+	LoginKey                   types.String `tfsdk:"login_key"`
 	EdgeNodeSubnetNo           types.String `tfsdk:"edge_node_subnet_no"`
 	MasterNodeSubnetNo         types.String `tfsdk:"master_node_subnet_no"`
 	WorkerNodeSubnetNo         types.String `tfsdk:"worker_node_subnet_no"`
@@ -832,6 +864,11 @@ type hadoopResourceModel struct {
 	WorkerNodeDataStorageType  types.String `tfsdk:"worker_node_data_storage_type"`
 	MasterNodeDataStorageSize  types.Int64  `tfsdk:"master_node_data_storage_size"`
 	WorkerNodeDataStorageSize  types.Int64  `tfsdk:"worker_node_data_storage_size"`
+	ImageProductCode           types.String `tfsdk:"image_product_code"`
+	EdgeNodeProductCode        types.String `tfsdk:"edge_node_product_code"`
+	MasterNodeProductCode      types.String `tfsdk:"master_node_product_code"`
+	WorkerNodeProductCode      types.String `tfsdk:"worker_node_product_code"`
+	AddOnCodeList              types.List   `tfsdk:"add_on_code_list"`
 	WorkerNodeCount            types.Int64  `tfsdk:"worker_node_count"`
 	UseKdc                     types.Bool   `tfsdk:"use_kdc"`
 	KdcRealm                   types.String `tfsdk:"kdc_realm"`
@@ -839,96 +876,138 @@ type hadoopResourceModel struct {
 	UseBootstrapScript         types.Bool   `tfsdk:"use_bootstrap_script"`
 	BootstrapScript            types.String `tfsdk:"bootstrap_script"`
 	UseDataCatalog             types.Bool   `tfsdk:"use_data_catalog"`
+	RegionCode                 types.String `tfsdk:"region_code"`
 	AmbariServerHost           types.String `tfsdk:"ambari_server_host"`
 	ClusterDirectAccessAccount types.String `tfsdk:"cluster_direct_access_account"`
+	Version                    types.String `tfsdk:"version"`
 	IsHa                       types.Bool   `tfsdk:"is_ha"`
+	Domain                     types.String `tfsdk:"domain"`
 	AccessControlGroupNoList   types.List   `tfsdk:"access_control_group_no_list"`
-	HadoopServerInstanceList   types.List   `tfsdk:"hadoop_server_instance_list"`
-	ID                         types.String `tfsdk:"id"`
-}
-
-func (m *hadoopResourceModel) refreshFromOutput(ctx context.Context, output *vhadoop.CloudHadoopInstance) diag.Diagnostics {
-	var diagnostics diag.Diagnostics
-
-	m.ImageProductCode = types.StringPointerValue(output.CloudHadoopImageProductCode)
-	m.ClusterName = types.StringPointerValue(output.CloudHadoopClusterName)
-	m.ClusterTypeCode = types.StringPointerValue(output.CloudHadoopClusterType.Code)
-	m.AddOnCodeList, _ = types.ListValueFrom(ctx, types.StringType, output.CloudHadoopAddOnList)
-	m.KdcRealm = types.StringPointerValue(output.KdcRealm)
-	m.ID = types.StringPointerValue(output.CloudHadoopInstanceNo)
-	m.AmbariServerHost = types.StringPointerValue(output.AmbariServerHost)
-	m.ClusterDirectAccessAccount = types.StringPointerValue(output.ClusterDirectAccessAccount)
-	m.IsHa = types.BoolPointerValue(output.IsHa)
-	m.Version = types.StringPointerValue(output.CloudHadoopVersion.Code)
-
-	if addOnCodeList, err := types.ListValueFrom(ctx, types.StringType, output.CloudHadoopAddOnList); err.HasError() {
-		m.AddOnCodeList = addOnCodeList
-	} else {
-		diagnostics.Append(err...)
-	}
-
-	if acgl, err := types.ListValueFrom(ctx, types.StringType, output.AccessControlGroupNoList); err.HasError() {
-		m.AccessControlGroupNoList = acgl
-	} else {
-		diagnostics.Append(err...)
-	}
-
-	if diagnostics.ErrorsCount() > 0 {
-		return diagnostics
-	}
-
-	m.AccessControlGroupNoList, _ = types.ListValueFrom(ctx, types.StringType, output.AccessControlGroupNoList)
-
-	m.HadoopServerInstanceList, _ = listValueFromHadoopServerInatanceList(ctx, output.CloudHadoopServerInstanceList)
-	return nil
+	HadoopServerList           types.List   `tfsdk:"hadoop_server_list"`
 }
 
 type hadoopServer struct {
-	HadoopServerName  types.String `tfsdk:"hadoop_server_name"`
-	HadoopServerRole  types.String `tfsdk:"hadoop_server_role"`
-	HadoopProductCode types.String `tfsdk:"hadoop_product_code"`
-	RegionCode        types.String `tfsdk:"region_code"`
-	ZoneCode          types.String `tfsdk:"zone_code"`
-	VpcNo             types.String `tfsdk:"vpc_no"`
-	SubnetNo          types.String `tfsdk:"subnet_no"`
-	IsPublicSubnet    types.Bool   `tfsdk:"is_public_subnet"`
-	DataStorageSize   types.Int64  `tfsdk:"data_storage_size"`
-	CpuCount          types.Int64  `tfsdk:"cpu_count"`
-	MemorySize        types.Int64  `tfsdk:"memory_size"`
+	ServerInstanceNo types.String `tfsdk:"server_instance_no"`
+	ServerName       types.String `tfsdk:"server_name"`
+	ServerRole       types.String `tfsdk:"server_role"`
+	ZoneCode         types.String `tfsdk:"zone_code"`
+	SubnetNo         types.String `tfsdk:"subnet_no"`
+	ProductCode      types.String `tfsdk:"product_code"`
+	IsPublicSubnet   types.Bool   `tfsdk:"is_public_subnet"`
+	CpuCount         types.Int64  `tfsdk:"cpu_count"`
+	MemorySize       types.Int64  `tfsdk:"memory_size"`
+	DataStorageType  types.String `tfsdk:"data_storage_type"`
+	DataStorageSize  types.Int64  `tfsdk:"data_storage_size"`
+	Uptime           types.String `tfsdk:"uptime"`
+	CreateDate       types.String `tfsdk:"create_date"`
 }
 
 func (h hadoopServer) attrTypes() map[string]attr.Type {
 	return map[string]attr.Type{
-		"hadoop_server_name":  types.StringType,
-		"hadoop_server_role":  types.StringType,
-		"hadoop_product_code": types.StringType,
-		"region_code":         types.StringType,
-		"zone_code":           types.StringType,
-		"vpc_no":              types.StringType,
-		"subnet_no":           types.StringType,
-		"is_public_subnet":    types.BoolType,
-		"data_storage_size":   types.Int64Type,
-		"cpu_count":           types.Int64Type,
-		"memory_size":         types.Int64Type,
+		"server_instance_no": types.StringType,
+		"server_name":        types.StringType,
+		"server_role":        types.StringType,
+		"zone_code":          types.StringType,
+		"subnet_no":          types.StringType,
+		"product_code":       types.StringType,
+		"is_public_subnet":   types.BoolType,
+		"cpu_count":          types.Int64Type,
+		"memory_size":        types.Int64Type,
+		"data_storage_type":  types.StringType,
+		"data_storage_size":  types.Int64Type,
+		"uptime":             types.StringType,
+		"create_date":        types.StringType,
 	}
+}
+
+func (m *hadoopResourceModel) refreshFromOutput(ctx context.Context, output *vhadoop.CloudHadoopInstance) {
+	m.ID = types.StringPointerValue(output.CloudHadoopInstanceNo)
+	m.VpcNo = types.StringPointerValue(output.CloudHadoopServerInstanceList[0].VpcNo)
+	m.ClusterName = types.StringPointerValue(output.CloudHadoopClusterName)
+	m.ClusterTypeCode = types.StringPointerValue(output.CloudHadoopClusterType.Code)
+	m.LoginKey = types.StringPointerValue(output.LoginKey)
+	m.BucketName = types.StringPointerValue(output.ObjectStorageBucket)
+	m.ImageProductCode = types.StringPointerValue(output.CloudHadoopImageProductCode)
+	m.KdcRealm = types.StringPointerValue(output.KdcRealm)
+	m.RegionCode = types.StringPointerValue(output.CloudHadoopServerInstanceList[0].RegionCode)
+	m.AmbariServerHost = types.StringPointerValue(output.AmbariServerHost)
+	m.ClusterDirectAccessAccount = types.StringPointerValue(output.ClusterDirectAccessAccount)
+	m.Version = types.StringPointerValue(output.CloudHadoopVersion.Code)
+	m.IsHa = types.BoolPointerValue(output.IsHa)
+	m.Domain = types.StringPointerValue(output.Domain)
+
+	if output.KdcRealm != nil {
+		m.UseKdc = types.BoolValue(true)
+	} else {
+		m.UseKdc = types.BoolValue(false)
+	}
+
+	var count int64
+	var storageSize int64
+	for _, server := range output.CloudHadoopServerInstanceList {
+		if server.CloudHadoopServerRole != nil {
+			if *server.CloudHadoopServerRole.Code == "E" {
+				m.EdgeNodeProductCode = types.StringPointerValue(server.CloudHadoopProductCode)
+				m.EdgeNodeSubnetNo = types.StringPointerValue(server.SubnetNo)
+			}
+			if *server.CloudHadoopServerRole.Code == "M" {
+				m.MasterNodeProductCode = types.StringPointerValue(server.CloudHadoopProductCode)
+				m.MasterNodeSubnetNo = types.StringPointerValue(server.SubnetNo)
+				if server.DataStorageType != nil {
+					m.MasterNodeDataStorageType = types.StringPointerValue(server.DataStorageType.Code)
+				}
+				// Byte to GBi
+				storageSize = *server.DataStorageSize / 1024 / 1024 / 1024
+				m.MasterNodeDataStorageSize = types.Int64Value(storageSize)
+			}
+			if *server.CloudHadoopServerRole.Code == "D" {
+				m.WorkerNodeProductCode = types.StringPointerValue(server.CloudHadoopProductCode)
+				m.WorkerNodeSubnetNo = types.StringPointerValue(server.SubnetNo)
+				if server.DataStorageType != nil {
+					m.WorkerNodeDataStorageType = types.StringPointerValue(server.DataStorageType.Code)
+				}
+				// Byte to GBi
+				storageSize = *server.DataStorageSize / 1024 / 1024 / 1024
+				m.WorkerNodeDataStorageSize = types.Int64Value(storageSize)
+				count++
+			}
+		}
+	}
+	m.WorkerNodeCount = types.Int64Value(count)
+
+	var addOnList []string
+	for _, addOn := range output.CloudHadoopAddOnList {
+		addOnList = append(addOnList, *addOn.Code)
+	}
+	m.AddOnCodeList, _ = types.ListValueFrom(ctx, types.StringType, addOnList)
+	m.AccessControlGroupNoList, _ = types.ListValueFrom(ctx, types.StringType, output.AccessControlGroupNoList)
+	m.HadoopServerList, _ = listValueFromHadoopServerInatanceList(ctx, output.CloudHadoopServerInstanceList)
 }
 
 func listValueFromHadoopServerInatanceList(ctx context.Context, serverInatances []*vhadoop.CloudHadoopServerInstance) (basetypes.ListValue, diag.Diagnostics) {
 	var hadoopServerList []hadoopServer
 	for _, serverInstance := range serverInatances {
-		hadoopServerList = append(hadoopServerList, hadoopServer{
-			HadoopServerName:  types.StringPointerValue(serverInstance.CloudHadoopServerName),
-			HadoopServerRole:  types.StringPointerValue(serverInstance.CloudHadoopServerRole.CodeName),
-			HadoopProductCode: types.StringPointerValue(serverInstance.CloudHadoopProductCode),
-			RegionCode:        types.StringPointerValue(serverInstance.RegionCode),
-			ZoneCode:          types.StringPointerValue(serverInstance.ZoneCode),
-			VpcNo:             types.StringPointerValue(serverInstance.VpcNo),
-			SubnetNo:          types.StringPointerValue(serverInstance.SubnetNo),
-			IsPublicSubnet:    types.BoolPointerValue(serverInstance.IsPublicSubnet),
-			DataStorageSize:   types.Int64PointerValue(serverInstance.DataStorageSize),
-			CpuCount:          common.Int64ValueFromInt32(serverInstance.CpuCount),
-			MemorySize:        types.Int64PointerValue(serverInstance.MemorySize),
-		})
+		hadoopServerInstance := hadoopServer{
+			ServerInstanceNo: types.StringPointerValue(serverInstance.CloudHadoopServerInstanceNo),
+			ServerName:       types.StringPointerValue(serverInstance.CloudHadoopServerName),
+			ZoneCode:         types.StringPointerValue(serverInstance.ZoneCode),
+			SubnetNo:         types.StringPointerValue(serverInstance.SubnetNo),
+			ProductCode:      types.StringPointerValue(serverInstance.CloudHadoopProductCode),
+			IsPublicSubnet:   types.BoolPointerValue(serverInstance.IsPublicSubnet),
+			CpuCount:         common.Int64ValueFromInt32(serverInstance.CpuCount),
+			MemorySize:       types.Int64PointerValue(serverInstance.MemorySize),
+			DataStorageSize:  types.Int64PointerValue(serverInstance.DataStorageSize),
+			Uptime:           types.StringPointerValue(serverInstance.Uptime),
+			CreateDate:       types.StringPointerValue(serverInstance.CreateDate),
+		}
+
+		if serverInstance.CloudHadoopServerRole != nil {
+			hadoopServerInstance.ServerRole = types.StringPointerValue(serverInstance.CloudHadoopServerRole.CodeName)
+		}
+		if serverInstance.DataStorageType != nil {
+			hadoopServerInstance.DataStorageType = types.StringPointerValue(serverInstance.DataStorageType.Code)
+		}
+		hadoopServerList = append(hadoopServerList, hadoopServerInstance)
 	}
 
 	return types.ListValueFrom(ctx, types.ObjectType{AttrTypes: hadoopServer{}.attrTypes()}, hadoopServerList)

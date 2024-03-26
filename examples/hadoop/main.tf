@@ -5,6 +5,10 @@ provider "ncloud" {
   region     = var.region
 }
 
+resource "ncloud_login_key" "login_key" {
+  key_name = "hadoop-key"
+}
+
 resource "ncloud_vpc" "vpc" {
   name               = var.vpc_name
   ipv4_cidr_block    = "10.5.0.0/16"
@@ -43,12 +47,12 @@ resource "ncloud_subnet" "worker_subnet" {
 resource "ncloud_hadoop" "hadoop" {
   vpc_no = ncloud_vpc.vpc.vpc_no
   cluster_name = var.hadoop_cluster_name
-  cluster_type_code = var.cluster_type_code
+  cluster_type_code = "CORE_HADOOP_WITH_SPARK"
   admin_user_name = var.admin_user_name
   admin_user_password = var.admin_user_password
-  login_key_name = var.login_key_name
-  master_node_subnet_no = ncloud_subnet.master_subnet.subnet_no
+  login_key = ncloud_login_key.login_key.key_name
   edge_node_subnet_no = ncloud_subnet.edge_subnet.subnet_no
+  master_node_subnet_no = ncloud_subnet.master_subnet.subnet_no
   worker_node_subnet_no = ncloud_subnet.worker_subnet.subnet_no
   bucket_name = var.bucket_name
   master_node_data_storage_type = "SSD"
