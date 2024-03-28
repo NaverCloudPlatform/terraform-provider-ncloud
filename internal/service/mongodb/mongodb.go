@@ -418,10 +418,10 @@ func (m *mongodbResource) Create(ctx context.Context, req resource.CreateRequest
 	}
 
 	if !plan.ArbiterProductCode.IsNull() && !plan.ArbiterProductCode.IsUnknown() {
-		if *reqParams.ClusterTypeCode != "SHARDED_CLUSTER" {
+		if *reqParams.ClusterTypeCode == "STAND_ALONE" {
 			resp.Diagnostics.AddError(
 				"CREATING ERROR",
-				"`arbiter_product_code` invalid. Necessary only if the cluster_type_code is SHARDED_CLUSTER.",
+				"`arbiter_product_code` invalid. Necessary only if the cluster_type_code is SINGLE_REPLICA_SET or SHARDED_CLUSTER.",
 			)
 			return
 		}
