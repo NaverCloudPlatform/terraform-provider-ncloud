@@ -237,9 +237,18 @@ func ExpandStringList(configured []interface{}) []*string {
 	return vs
 }
 
+// value is nil. set null.
 func Int64ValueFromInt32(value *int32) basetypes.Int64Value {
 	if value == nil {
 		return basetypes.NewInt64Null()
+	}
+	return basetypes.NewInt64Value(int64(*value))
+}
+
+// value is nil. set 0.
+func Int64ZeroFromInt32(value *int32) basetypes.Int64Value {
+	if value == nil {
+		return basetypes.NewInt64Value(0)
 	}
 	return basetypes.NewInt64Value(int64(*value))
 }

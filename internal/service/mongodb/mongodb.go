@@ -143,26 +143,33 @@ func (m *mongodbResource) Schema(_ context.Context, _ resource.SchemaRequest, re
 			},
 			"member_product_code": schema.StringAttribute{
 				Optional: true,
+				Computed: true,
 				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.UseStateForUnknown(),
 					stringplanmodifier.RequiresReplace(),
 				},
 			},
 			"arbiter_product_code": schema.StringAttribute{
 				Optional: true,
+				Computed: true,
 				PlanModifiers: []planmodifier.String{
-					stringplanmodifier.RequiresReplace(),
+					stringplanmodifier.RequiresReplaceIfConfigured(),
 				},
 			},
 			"mongos_product_code": schema.StringAttribute{
 				Optional: true,
+				Computed: true,
 				PlanModifiers: []planmodifier.String{
-					stringplanmodifier.RequiresReplace(),
+					stringplanmodifier.UseStateForUnknown(),
+					stringplanmodifier.RequiresReplaceIfConfigured(),
 				},
 			},
 			"config_product_code": schema.StringAttribute{
 				Optional: true,
+				Computed: true,
 				PlanModifiers: []planmodifier.String{
-					stringplanmodifier.RequiresReplace(),
+					stringplanmodifier.UseStateForUnknown(),
+					stringplanmodifier.RequiresReplaceIfConfigured(),
 				},
 			},
 			"shard_count": schema.Int64Attribute{
@@ -177,24 +184,40 @@ func (m *mongodbResource) Schema(_ context.Context, _ resource.SchemaRequest, re
 			},
 			"member_server_count": schema.Int64Attribute{
 				Optional: true,
+				Computed: true,
+				PlanModifiers: []planmodifier.Int64{
+					int64planmodifier.UseStateForUnknown(),
+				},
 				Validators: []validator.Int64{
 					int64validator.Between(2, 7),
 				},
 			},
 			"arbiter_server_count": schema.Int64Attribute{
 				Optional: true,
+				Computed: true,
+				PlanModifiers: []planmodifier.Int64{
+					int64planmodifier.UseStateForUnknown(),
+				},
 				Validators: []validator.Int64{
 					int64validator.Between(0, 1),
 				},
 			},
 			"mongos_server_count": schema.Int64Attribute{
 				Optional: true,
+				Computed: true,
+				PlanModifiers: []planmodifier.Int64{
+					int64planmodifier.UseStateForUnknown(),
+				},
 				Validators: []validator.Int64{
 					int64validator.Between(2, 5),
 				},
 			},
 			"config_server_count": schema.Int64Attribute{
 				Optional: true,
+				Computed: true,
+				PlanModifiers: []planmodifier.Int64{
+					int64planmodifier.UseStateForUnknown(),
+				},
 				Validators: []validator.Int64{
 					int64validator.Between(3, 7),
 				},
@@ -237,7 +260,7 @@ func (m *mongodbResource) Schema(_ context.Context, _ resource.SchemaRequest, re
 				Computed: true,
 				PlanModifiers: []planmodifier.Int64{
 					int64planmodifier.UseStateForUnknown(),
-					int64planmodifier.RequiresReplace(),
+					int64planmodifier.RequiresReplaceIfConfigured(),
 				},
 				Validators: []validator.Int64{
 					int64validator.Any(
@@ -247,16 +270,13 @@ func (m *mongodbResource) Schema(_ context.Context, _ resource.SchemaRequest, re
 			},
 			"arbiter_port": schema.Int64Attribute{
 				Computed: true,
-				PlanModifiers: []planmodifier.Int64{
-					int64planmodifier.UseStateForUnknown(),
-				},
 			},
 			"mongos_port": schema.Int64Attribute{
 				Optional: true,
 				Computed: true,
 				PlanModifiers: []planmodifier.Int64{
 					int64planmodifier.UseStateForUnknown(),
-					int64planmodifier.RequiresReplace(),
+					int64planmodifier.RequiresReplaceIfConfigured(),
 				},
 				Validators: []validator.Int64{
 					int64validator.Any(
@@ -269,7 +289,7 @@ func (m *mongodbResource) Schema(_ context.Context, _ resource.SchemaRequest, re
 				Computed: true,
 				PlanModifiers: []planmodifier.Int64{
 					int64planmodifier.UseStateForUnknown(),
-					int64planmodifier.RequiresReplace(),
+					int64planmodifier.RequiresReplaceIfConfigured(),
 				},
 				Validators: []validator.Int64{
 					int64validator.Any(
@@ -601,6 +621,7 @@ func (m *mongodbResource) Read(ctx context.Context, req resource.ReadRequest, re
 func (m *mongodbResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
 	var plan, state mongodbResourceModel
 
+	// plan is NEW, state is OLD
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &plan)...)
 	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
 
@@ -636,7 +657,7 @@ func (m *mongodbResource) Update(ctx context.Context, req resource.UpdateRequest
 			return
 		}
 
-		plan.refreshFromOutput(ctx, output)
+		state.refreshFromOutput(ctx, output)
 	}
 
 	if !plan.MongosServerCount.Equal(state.MongosServerCount) {
@@ -667,7 +688,7 @@ func (m *mongodbResource) Update(ctx context.Context, req resource.UpdateRequest
 			return
 		}
 
-		plan.refreshFromOutput(ctx, output)
+		state.refreshFromOutput(ctx, output)
 	}
 
 	if !plan.MemberServerCount.Equal(state.MemberServerCount) ||
@@ -700,7 +721,7 @@ func (m *mongodbResource) Update(ctx context.Context, req resource.UpdateRequest
 			return
 		}
 
-		plan.refreshFromOutput(ctx, output)
+		state.refreshFromOutput(ctx, output)
 	}
 
 	if !plan.ShardCount.Equal(state.ShardCount) {
@@ -731,10 +752,10 @@ func (m *mongodbResource) Update(ctx context.Context, req resource.UpdateRequest
 			return
 		}
 
-		plan.refreshFromOutput(ctx, output)
+		state.refreshFromOutput(ctx, output)
 	}
 
-	resp.Diagnostics.Append(resp.State.Set(ctx, plan)...)
+	resp.Diagnostics.Append(resp.State.Set(ctx, state)...)
 }
 
 func (m *mongodbResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
@@ -984,31 +1005,37 @@ func (m *mongodbResourceModel) refreshFromOutput(ctx context.Context, output *vm
 	m.ServiceName = types.StringPointerValue(output.CloudMongoDbServiceName)
 	m.VpcNo = types.StringPointerValue(output.CloudMongoDbServerInstanceList[0].VpcNo)
 	m.SubnetNo = types.StringPointerValue(output.CloudMongoDbServerInstanceList[0].SubnetNo)
-	m.ClusterTypeCode = types.StringPointerValue(output.ClusterType.Code)
 	m.ImageProductCode = types.StringPointerValue(output.CloudMongoDbImageProductCode)
 	m.ShardCount = common.Int64ValueFromInt32(output.ShardCount)
 	m.BackupFileRetentionPeriod = common.Int64ValueFromInt32(output.BackupFileRetentionPeriod)
 	m.BackupTime = types.StringPointerValue(output.BackupTime)
-	m.ArbiterPort = common.Int64ValueFromInt32(output.ArbiterPort)
-	m.MemberPort = common.Int64ValueFromInt32(output.MemberPort)
-	m.MongosPort = common.Int64ValueFromInt32(output.MongosPort)
-	m.ConfigPort = common.Int64ValueFromInt32(output.ConfigPort)
-	m.DataStorageType = types.StringPointerValue(output.CloudMongoDbServerInstanceList[0].DataStorageType.Code)
-	m.CompressCode = types.StringPointerValue(output.Compress.Code)
+	m.ArbiterPort = common.Int64ZeroFromInt32(output.ArbiterPort)
+	m.MemberPort = common.Int64ZeroFromInt32(output.MemberPort)
+	m.MongosPort = common.Int64ZeroFromInt32(output.MongosPort)
+	m.ConfigPort = common.Int64ZeroFromInt32(output.ConfigPort)
 	m.EngineVersion = types.StringPointerValue(output.EngineVersion)
 	m.RegionCode = types.StringPointerValue(output.CloudMongoDbServerInstanceList[0].RegionCode)
 	m.ZoneCode = types.StringPointerValue(output.CloudMongoDbServerInstanceList[0].ZoneCode)
 
+	if output.CloudMongoDbServerInstanceList[0].DataStorageType != nil {
+		m.DataStorageType = types.StringPointerValue(output.CloudMongoDbServerInstanceList[0].DataStorageType.Code)
+	}
+	if output.Compress != nil {
+		m.CompressCode = types.StringPointerValue(output.Compress.Code)
+	}
+
 	acgList, _ := types.ListValueFrom(ctx, types.StringType, output.AccessControlGroupNoList)
 	m.AccessControlGroupNoList = acgList
 
+	var memberCount int64
+	var arbiterCount int64
+	var mongosCount int64
+	var configCount int64
 	var serverList []mongoServer
 	for _, server := range output.CloudMongoDbServerInstanceList {
 		mongoServerInstance := mongoServer{
 			ServerNo:        types.StringPointerValue(server.CloudMongoDbServerInstanceNo),
 			ServerName:      types.StringPointerValue(server.CloudMongoDbServerName),
-			ServerRole:      types.StringPointerValue(server.CloudMongoDbServerRole.CodeName),
-			ClusterRole:     types.StringPointerValue(server.ClusterRole.Code),
 			ProductCode:     types.StringPointerValue(server.CloudMongoDbProductCode),
 			PrivateDomain:   types.StringPointerValue(server.PrivateDomain),
 			PublicDomain:    types.StringPointerValue(server.PublicDomain),
@@ -1019,7 +1046,50 @@ func (m *mongodbResourceModel) refreshFromOutput(ctx context.Context, output *vm
 			Uptime:          types.StringPointerValue(server.Uptime),
 			CreateDate:      types.StringPointerValue(server.CreateDate),
 		}
+
+		if server.CloudMongoDbServerRole != nil {
+			mongoServerInstance.ServerRole = types.StringPointerValue(server.CloudMongoDbServerRole.CodeName)
+			if *server.CloudMongoDbServerRole.Code == "A" || *server.CloudMongoDbServerRole.Code == "MB" {
+				m.MemberProductCode = types.StringPointerValue(server.CloudMongoDbProductCode)
+				memberCount++
+			} else if *server.CloudMongoDbServerRole.Code == "AB" {
+				m.ArbiterProductCode = types.StringPointerValue(server.CloudMongoDbProductCode)
+				arbiterCount++
+			} else if *server.CloudMongoDbServerRole.Code == "RT" {
+				m.MongosProductCode = types.StringPointerValue(server.CloudMongoDbProductCode)
+				mongosCount++
+			} else if *server.CloudMongoDbServerRole.Code == "C" {
+				m.ConfigProductCode = types.StringPointerValue(server.CloudMongoDbProductCode)
+				configCount++
+			}
+		}
+		if server.ClusterRole != nil {
+			mongoServerInstance.ClusterRole = types.StringPointerValue(server.ClusterRole.Code)
+		}
 		serverList = append(serverList, mongoServerInstance)
+	}
+
+	if output.ClusterType != nil {
+		m.ClusterTypeCode = types.StringPointerValue(output.ClusterType.Code)
+		if *output.ClusterType.Code == "SHARDED_CLUSTER" {
+			memberCount = memberCount / int64(*output.ShardCount)
+			if arbiterCount > 0 {
+				arbiterCount = arbiterCount / int64(*output.ShardCount)
+			}
+		}
+	}
+	m.MemberServerCount = types.Int64Value(memberCount)
+	m.ArbiterServerCount = types.Int64Value(arbiterCount)
+	m.MongosServerCount = types.Int64Value(mongosCount)
+	m.ConfigServerCount = types.Int64Value(configCount)
+	if arbiterCount == 0 {
+		m.ArbiterProductCode = types.StringValue("not allocated")
+	}
+	if mongosCount == 0 {
+		m.MongosProductCode = types.StringValue("not allocated")
+	}
+	if configCount == 0 {
+		m.ConfigProductCode = types.StringValue("not allocated")
 	}
 
 	mongoServers, _ := types.ListValueFrom(ctx, types.ObjectType{AttrTypes: mongoServer{}.attrTypes()}, serverList)
