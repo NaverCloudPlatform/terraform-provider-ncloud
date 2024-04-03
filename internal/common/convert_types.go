@@ -6,6 +6,7 @@ import (
 	"reflect"
 	"strings"
 
+	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/terraform-providers/terraform-provider-ncloud/internal/conn"
@@ -237,7 +238,8 @@ func ExpandStringList(configured []interface{}) []*string {
 	return vs
 }
 
-// value is nil. set null.
+// Int64ValueFromInt32 converts an int32 pointer to a Framework Int64 value.
+// A nil int32 pointer is converted to a null Int64.
 func Int64ValueFromInt32(value *int32) basetypes.Int64Value {
 	if value == nil {
 		return basetypes.NewInt64Null()
@@ -245,10 +247,22 @@ func Int64ValueFromInt32(value *int32) basetypes.Int64Value {
 	return basetypes.NewInt64Value(int64(*value))
 }
 
-// value is nil. set 0.
-func Int64ZeroFromInt32(value *int32) basetypes.Int64Value {
+// Int64FromInt32OrDefault converts an int32 pointer to a Framework Int64 value.
+// A nil int32 pointer is converted to a zero Int64.
+// Used when the optional and computed attribute have no response value
+func Int64FromInt32OrDefault(value *int32) basetypes.Int64Value {
 	if value == nil {
 		return basetypes.NewInt64Value(0)
 	}
 	return basetypes.NewInt64Value(int64(*value))
+}
+
+// StringFrameworkOrDefault converts a Framework StringValue struct to a same Framework StringValue.
+// A null or unknown state is converted to a default(not aloocated) string.
+// Used when the optional and computed attribute have no response value
+func StringFrameworkOrDefault(value types.String) basetypes.StringValue {
+	if value.IsNull() || value.IsUnknown() {
+		return types.StringValue("not allocated")
+	}
+	return value
 }

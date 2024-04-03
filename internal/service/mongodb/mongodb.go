@@ -621,7 +621,6 @@ func (m *mongodbResource) Read(ctx context.Context, req resource.ReadRequest, re
 func (m *mongodbResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
 	var plan, state mongodbResourceModel
 
-	// plan is NEW, state is OLD
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &plan)...)
 	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
 
@@ -1009,10 +1008,10 @@ func (m *mongodbResourceModel) refreshFromOutput(ctx context.Context, output *vm
 	m.ShardCount = common.Int64ValueFromInt32(output.ShardCount)
 	m.BackupFileRetentionPeriod = common.Int64ValueFromInt32(output.BackupFileRetentionPeriod)
 	m.BackupTime = types.StringPointerValue(output.BackupTime)
-	m.ArbiterPort = common.Int64ZeroFromInt32(output.ArbiterPort)
-	m.MemberPort = common.Int64ZeroFromInt32(output.MemberPort)
-	m.MongosPort = common.Int64ZeroFromInt32(output.MongosPort)
-	m.ConfigPort = common.Int64ZeroFromInt32(output.ConfigPort)
+	m.ArbiterPort = common.Int64FromInt32OrDefault(output.ArbiterPort)
+	m.MemberPort = common.Int64FromInt32OrDefault(output.MemberPort)
+	m.MongosPort = common.Int64FromInt32OrDefault(output.MongosPort)
+	m.ConfigPort = common.Int64FromInt32OrDefault(output.ConfigPort)
 	m.EngineVersion = types.StringPointerValue(output.EngineVersion)
 	m.RegionCode = types.StringPointerValue(output.CloudMongoDbServerInstanceList[0].RegionCode)
 	m.ZoneCode = types.StringPointerValue(output.CloudMongoDbServerInstanceList[0].ZoneCode)
@@ -1027,10 +1026,7 @@ func (m *mongodbResourceModel) refreshFromOutput(ctx context.Context, output *vm
 	acgList, _ := types.ListValueFrom(ctx, types.StringType, output.AccessControlGroupNoList)
 	m.AccessControlGroupNoList = acgList
 
-	var memberCount int64
-	var arbiterCount int64
-	var mongosCount int64
-	var configCount int64
+	var memberCount, arbiterCount, mongosCount, configCount int64
 	var serverList []mongoServer
 	for _, server := range output.CloudMongoDbServerInstanceList {
 		mongoServerInstance := mongoServer{
@@ -1082,15 +1078,9 @@ func (m *mongodbResourceModel) refreshFromOutput(ctx context.Context, output *vm
 	m.ArbiterServerCount = types.Int64Value(arbiterCount)
 	m.MongosServerCount = types.Int64Value(mongosCount)
 	m.ConfigServerCount = types.Int64Value(configCount)
-	if arbiterCount == 0 {
-		m.ArbiterProductCode = types.StringValue("not allocated")
-	}
-	if mongosCount == 0 {
-		m.MongosProductCode = types.StringValue("not allocated")
-	}
-	if configCount == 0 {
-		m.ConfigProductCode = types.StringValue("not allocated")
-	}
+	m.ArbiterProductCode = common.StringFrameworkOrDefault(m.ArbiterProductCode)
+	m.MongosProductCode = common.StringFrameworkOrDefault(m.MongosProductCode)
+	m.ConfigProductCode = common.StringFrameworkOrDefault(m.ConfigProductCode)
 
 	mongoServers, _ := types.ListValueFrom(ctx, types.ObjectType{AttrTypes: mongoServer{}.attrTypes()}, serverList)
 
