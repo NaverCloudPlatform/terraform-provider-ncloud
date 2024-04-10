@@ -36,10 +36,12 @@ data "ncloud_mongodb_image_products" "example" {
 Outputs:
 ```terraform
 image_list = {
-  "MongoDB 4.4.18 Enterprise Edition": "SW.VMGDB.LNX64.CNTOS.0708.MNGDB.4418.EE.B050",
   "MongoDB 4.4.18 Community Edition": "SW.VMGDB.LNX64.CNTOS.0708.MNGDB.4418.CE.B050",
-  "MongoDB 5.0.19 Enterprise Edition": "SW.VMGDB.LNX64.CNTOS.0708.MNGDB.5019.EE.B050",
-  "MongoDB 5.0.19 Community Edition": "SW.VMGDB.LNX64.CNTOS.0708.MNGDB.4418.CE.B050"
+  "MongoDB 4.4.18 Enterprise Edition": "SW.VMGDB.LNX64.CNTOS.0708.MNGDB.4418.EE.B050",
+  "MongoDB 4.4.25 Community Edition": "SW.VMGDB.LNX64.CNTOS.0708.MNGDB.4425.CE.B050",
+  "MongoDB 4.4.25 Enterprise Edition": "SW.VMGDB.LNX64.CNTOS.0708.MNGDB.4425.EE.B050",
+  "MongoDB 5.0.19 Community Edition": "SW.VMGDB.LNX64.CNTOS.0708.MNGDB.5019.CE.B050",
+  "MongoDB 5.0.19 Enterprise Edition": "SW.VMGDB.LNX64.CNTOS.0708.MNGDB.5019.EE.B050"
 }
 ```
 
