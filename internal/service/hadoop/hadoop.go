@@ -240,7 +240,6 @@ func (r *hadoopResource) Schema(_ context.Context, req resource.SchemaRequest, r
 				Validators: []validator.Int64{
 					int64validator.AtLeast(2),
 				},
-				Description: "default: 2",
 			},
 			"use_kdc": schema.BoolAttribute{
 				Optional: true,
@@ -249,9 +248,7 @@ func (r *hadoopResource) Schema(_ context.Context, req resource.SchemaRequest, r
 				PlanModifiers: []planmodifier.Bool{
 					boolplanmodifier.RequiresReplace(),
 				},
-				Description: "default: false",
 			},
-			// Only uppercase letters (A-Z) are allowed and up to 15 digits are allowed. Only one dot(.) is allowed (ex. EXAMPLE.COM).
 			"kdc_realm": schema.StringAttribute{
 				Optional: true,
 				PlanModifiers: []planmodifier.String{
