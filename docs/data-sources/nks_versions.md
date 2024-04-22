@@ -26,6 +26,7 @@ data "ncloud_nks_versions" "v1_20" {
 
 The following arguments are supported:
 
+* `hypervisor_code` - (Optional) Hypervisor code. (Default `XEN`)
 * `filter` - (Optional) Custom filter block as described below.
   * `name` - (Required) The name of the field to filter by.
   * `values` - (Required) Set of values that are accepted for the given field.
