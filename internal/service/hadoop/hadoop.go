@@ -304,8 +304,8 @@ func (r *hadoopResource) Schema(_ context.Context, req resource.SchemaRequest, r
 					}...),
 					stringvalidator.LengthAtMost(1024),
 					stringvalidator.RegexMatches(
-						regexp.MustCompile(`^[a-zA-Z]+$`),
-						"Composed of alphabets.",
+						regexp.MustCompile(`^[a-zA-Z.]+$`),
+						"Only English and dot characters are supported. Maximum length only up to 1024 Bytes",
 					),
 				},
 			},
