@@ -115,7 +115,7 @@ func (r *hadoopResource) Schema(_ context.Context, req resource.SchemaRequest, r
 				},
 				Sensitive: true,
 			},
-			"login_key": schema.StringAttribute{
+			"login_key_name": schema.StringAttribute{
 				Required: true,
 				PlanModifiers: []planmodifier.String{
 					stringplanmodifier.RequiresReplace(),
@@ -852,7 +852,7 @@ type hadoopResourceModel struct {
 	ClusterTypeCode            types.String `tfsdk:"cluster_type_code"`
 	AdminUserName              types.String `tfsdk:"admin_user_name"`
 	AdminUserPassword          types.String `tfsdk:"admin_user_password"`
-	LoginKey                   types.String `tfsdk:"login_key"`
+	LoginKey                   types.String `tfsdk:"login_key_name"`
 	EdgeNodeSubnetNo           types.String `tfsdk:"edge_node_subnet_no"`
 	MasterNodeSubnetNo         types.String `tfsdk:"master_node_subnet_no"`
 	WorkerNodeSubnetNo         types.String `tfsdk:"worker_node_subnet_no"`

@@ -52,7 +52,7 @@ This data source exports the following attributes in addition to the arguments a
 * `version` - The version of Hadoop.
 * `ambari_server_host` - The name of ambari host.
 * `cluster_direct_access_account` - Account name with direct access to the cluster.
-* `login_key` - The login key name.
+* `login_key_name` - The login key name.
 * `bucket_name` - The name of object storage bucket.
 * `use_kdc` - Whether to use Kerberos authentication configuration.
 * `kdc_realm` - Realm information of kerberos authentication.
