@@ -76,7 +76,7 @@ The following arguments are supported:
 * `cluster_type_code` - (Required) Cluster type code to determine the cluster type to create. Options: CORE_HADOOP_WITH_SPARK 
 * `admin_user_name` - (Required) Admin user name of cluster to create. It is the administrator account required to access the Ambari management console. Can only be composed of English letters (lowercase), numbers, and dashes (-).  Must start and end with an English letter (lowercase) or a number.  Min: 3, Max: 15
 * `admin_user_password` - (Required) Admin user password of cluster to create. Must include at least 1 alphabetical character (capital letter), special character, and number. Special characters, such as single quotations ('), double quotations ("), the KRW symbol (₩), slashes (/), ampersands (&), back quotes (`), and spaces cannot be included. Min: 8, Max: 20
-* `login_key` - (Required) Login key name to set the SSH authentication key required when connecting directly to the node.
+* `login_key_name` - (Required) Login key name to set the SSH authentication key required when connecting directly to the node.
 * `edge_node_subnet_no` - (Required) The Subnet ID of edge node. Can select a subnet that will locate the edge node. Edge nodes are located in private/public subnets.
 * `master_node_subnet_no` - (Required) The Subnet ID of master node. Can select a subnet that will locate the master node.  Master nodes are located in private/public subnets
 * `worker_node_subnet_no` - (Required) The Subnet ID of worker node. Must be located in Private Subnet.

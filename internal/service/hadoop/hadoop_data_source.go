@@ -108,7 +108,7 @@ func (d *hadoopDataSource) Schema(ctx context.Context, req datasource.SchemaRequ
 			"cluster_direct_access_account": schema.StringAttribute{
 				Computed: true,
 			},
-			"login_key": schema.StringAttribute{
+			"login_key_name": schema.StringAttribute{
 				Computed: true,
 			},
 			"bucket_name": schema.StringAttribute{
@@ -284,7 +284,7 @@ type hadoopDataSourceModel struct {
 	Version                    types.String `tfsdk:"version"`
 	AmbariServerHost           types.String `tfsdk:"ambari_server_host"`
 	ClusterDirectAccessAccount types.String `tfsdk:"cluster_direct_access_account"`
-	LoginKey                   types.String `tfsdk:"login_key"`
+	LoginKey                   types.String `tfsdk:"login_key_name"`
 	BucketName                 types.String `tfsdk:"bucket_name"`
 	UseKdc                     types.Bool   `tfsdk:"use_kdc"`
 	KdcRealm                   types.String `tfsdk:"kdc_realm"`

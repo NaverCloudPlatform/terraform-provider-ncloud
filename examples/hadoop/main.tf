@@ -50,7 +50,7 @@ resource "ncloud_hadoop" "hadoop" {
   cluster_type_code = "CORE_HADOOP_WITH_SPARK"
   admin_user_name = var.admin_user_name
   admin_user_password = var.admin_user_password
-  login_key = ncloud_login_key.login_key.key_name
+  login_key_name = ncloud_login_key.login_key.key_name
   edge_node_subnet_no = ncloud_subnet.edge_subnet.subnet_no
   master_node_subnet_no = ncloud_subnet.master_subnet.subnet_no
   worker_node_subnet_no = ncloud_subnet.worker_subnet.subnet_no

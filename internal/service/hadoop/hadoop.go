@@ -109,13 +109,13 @@ func (r *hadoopResource) Schema(_ context.Context, req resource.SchemaRequest, r
 						stringvalidator.LengthBetween(8, 20),
 						stringvalidator.RegexMatches(regexp.MustCompile(`[A-Z]+`), "Must have at least one uppercase alphabet"),
 						stringvalidator.RegexMatches(regexp.MustCompile(`\d+`), "Must have at least one number"),
-						stringvalidator.RegexMatches(regexp.MustCompile(`[~!@#$%^*()\-_=\[\]\{\};:,.<>?]+`), "Must have at least one special character"),
-						stringvalidator.RegexMatches(regexp.MustCompile(`^[^&+\\"'/\s`+"`"+`]*$`), "Must not have ` & + \\ \" ' / and white space."),
+						stringvalidator.RegexMatches(regexp.MustCompile(`[\W_]+`), "Must have at least one special character"),
+						stringvalidator.RegexMatches(regexp.MustCompile(`^[^&\\"'/\s`+"`"+`]*$`), "Must not have ` & \\ \" ' / and white space."),
 					),
 				},
 				Sensitive: true,
 			},
-			"login_key": schema.StringAttribute{
+			"login_key_name": schema.StringAttribute{
 				Required: true,
 				PlanModifiers: []planmodifier.String{
 					stringplanmodifier.RequiresReplace(),
@@ -304,8 +304,8 @@ func (r *hadoopResource) Schema(_ context.Context, req resource.SchemaRequest, r
 					}...),
 					stringvalidator.LengthAtMost(1024),
 					stringvalidator.RegexMatches(
-						regexp.MustCompile(`^[a-zA-Z]+$`),
-						"Composed of alphabets.",
+						regexp.MustCompile(`^[a-zA-Z.]+$`),
+						"Only English and dot characters are supported. Maximum length only up to 1024 Bytes",
 					),
 				},
 			},
@@ -852,7 +852,7 @@ type hadoopResourceModel struct {
 	ClusterTypeCode            types.String `tfsdk:"cluster_type_code"`
 	AdminUserName              types.String `tfsdk:"admin_user_name"`
 	AdminUserPassword          types.String `tfsdk:"admin_user_password"`
-	LoginKey                   types.String `tfsdk:"login_key"`
+	LoginKey                   types.String `tfsdk:"login_key_name"`
 	EdgeNodeSubnetNo           types.String `tfsdk:"edge_node_subnet_no"`
 	MasterNodeSubnetNo         types.String `tfsdk:"master_node_subnet_no"`
 	WorkerNodeSubnetNo         types.String `tfsdk:"worker_node_subnet_no"`
