@@ -109,7 +109,7 @@ func (r *hadoopResource) Schema(_ context.Context, req resource.SchemaRequest, r
 						stringvalidator.LengthBetween(8, 20),
 						stringvalidator.RegexMatches(regexp.MustCompile(`[A-Z]+`), "Must have at least one uppercase alphabet"),
 						stringvalidator.RegexMatches(regexp.MustCompile(`\d+`), "Must have at least one number"),
-						stringvalidator.RegexMatches(regexp.MustCompile(`[~!@#$%^*+()\-_=\[\]\{\};:,.<>?]+`), "Must have at least one special character"),
+						stringvalidator.RegexMatches(regexp.MustCompile(`[\W_]+`), "Must have at least one special character"),
 						stringvalidator.RegexMatches(regexp.MustCompile(`^[^&\\"'/\s`+"`"+`]*$`), "Must not have ` & \\ \" ' / and white space."),
 					),
 				},
