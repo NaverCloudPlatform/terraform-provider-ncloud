@@ -97,6 +97,7 @@ func (p *fwprovider) DataSources(ctx context.Context) []func() datasource.DataSo
 	dataSources = append(dataSources, mssql.NewMssqlDataSource)
 	dataSources = append(dataSources, mssql.NewMssqlImageProductsDataSource)
 	dataSources = append(dataSources, mssql.NewMssqlProductsDataSource)
+	dataSources = append(dataSources, autoscaling.NewLaunchConfigurationDataSource)
 
 	if err := errs.ErrorOrNil(); err != nil {
 		tflog.Warn(ctx, "registering resources", map[string]interface{}{
@@ -123,6 +124,7 @@ func (p *fwprovider) Resources(ctx context.Context) []func() resource.Resource {
 	resources = append(resources, redis.NewRedisConfigGroupResource)
 	resources = append(resources, redis.NewRedisResource)
 	resources = append(resources, mssql.NewMssqlResource)
+	resources = append(resources, autoscaling.NewLaunchConfigurationResource)
 
 	if err := errs.ErrorOrNil(); err != nil {
 		tflog.Warn(ctx, "registering resources", map[string]interface{}{
