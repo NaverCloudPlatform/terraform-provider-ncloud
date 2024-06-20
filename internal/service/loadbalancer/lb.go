@@ -84,7 +84,7 @@ func ResourceNcloudLb() *schema.Resource {
 				Type:             schema.TypeString,
 				Optional:         true,
 				Computed:         true,
-				ValidateDiagFunc: validation.ToDiagFunc(validation.StringInSlice([]string{"SMALL", "MEDIUM", "LARGE"}, false)),
+				ValidateDiagFunc: validation.ToDiagFunc(validation.StringInSlice([]string{"SMALL", "MEDIUM", "LARGE", "DYNAMIC"}, false)),
 			},
 			"vpc_no": {
 				Type:     schema.TypeString,
@@ -115,6 +115,12 @@ func resourceNcloudLbCreate(ctx context.Context, d *schema.ResourceData, meta in
 	if !config.SupportVPC {
 		return diag.FromErr(NotSupportClassic("resource `ncloud_lb`"))
 	}
+
+	throughput_type := StringPtrOrNil(d.GetOk("throughput_type"))
+	if (d.Get("type").(string) == "NETWORK") && (throughput_type != nil && *throughput_type != "DYNAMIC") {
+		return diag.FromErr(fmt.Errorf("Network Loadbalancer throughput_type can only be set to empty or DYNAMIC"))
+	}
+
 	reqParams := &vloadbalancer.CreateLoadBalancerInstanceRequest{
 		RegionCode: &config.RegionCode,
 		// Optional
@@ -150,13 +156,14 @@ func resourceNcloudLbCreate(ctx context.Context, d *schema.ResourceData, meta in
 
 	reqParams.VpcNo = subnetList[0].VpcNo
 
-	LogCommonRequest("resourceNcloudLbCreate", reqParams)
+	LogCommonRequest("createLoadBalancerInstance", reqParams)
 	resp, err := config.Client.Vloadbalancer.V2Api.CreateLoadBalancerInstance(reqParams)
 	if err != nil {
-		LogErrorResponse("resourceNcloudLbCreate", err, reqParams)
+		LogErrorResponse("createLoadBalancerInstance", err, reqParams)
 		return diag.FromErr(err)
 	}
-	LogResponse("resourceNcloudLbCreate", resp)
+	LogResponse("createLoadBalancerInstance", resp)
+
 	if err := waitForLoadBalancerActive(ctx, d, config, ncloud.StringValue(resp.LoadBalancerInstanceList[0].LoadBalancerInstanceNo)); err != nil {
 		return diag.FromErr(err)
 	}
@@ -316,10 +323,14 @@ func GetVpcLoadBalancer(config *conn.ProviderConfig, id string) (*LoadBalancerIn
 		RegionCode:             &config.RegionCode,
 		LoadBalancerInstanceNo: ncloud.String(id),
 	}
+	LogCommonRequest("getLoadBalancerInstanceDetail", reqParams)
+
 	resp, err := config.Client.Vloadbalancer.V2Api.GetLoadBalancerInstanceDetail(reqParams)
 	if err != nil {
+		LogErrorResponse("getLoadBalancerInstanceDetail", err, reqParams)
 		return nil, err
 	}
+	LogResponse("getLoadBalancerInstanceDetail", resp)
 
 	if len(resp.LoadBalancerInstanceList) < 1 {
 		return nil, nil
