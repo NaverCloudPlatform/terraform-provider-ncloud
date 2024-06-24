@@ -106,3 +106,39 @@ func (l *launchConfigurationResource) Schema(_ context.Context, _ resource.Schem
 		},
 	}
 }
+
+func (l *launchConfigurationResource) Configure(_ context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
+	if req.ProviderData == nil {
+		return
+	}
+
+	config, ok := req.ProviderData.(*conn.ProviderConfig)
+
+	if !ok {
+		resp.Diagnostics.AddError(
+			"Unexpected Data Source Configure Type",
+			fmt.Sprintf("Expected *ProviderConfig, got: %T. Please report this issue to the provider developers.", req.ProviderData),
+		)
+		return
+	}
+
+	v.config = config
+}
+
+func (l *launchConfigurationResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse){
+	var plan launchConfigurationResourceModel
+	diags := req.Plan.Get(ctx, &plan)
+	resp.Diagnostics.Append(diags...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+	if !v.config.SupportVPC {
+		// [TODO] createclassicLaunchConfiguration
+	}else{
+		//[TODO] createVPClaucnhCOnfiguration
+	}
+	
+	}
+
+
+}
