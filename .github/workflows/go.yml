@@ -40,7 +40,7 @@ jobs:
         name: Run GoReleaser
         uses: goreleaser/goreleaser-action@v6
         with:
-          args: release --rm-dist
+          args: release --clean
         env:
           GPG_FINGERPRINT: ${{ steps.import_gpg.outputs.fingerprint }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
