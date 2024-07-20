@@ -289,7 +289,10 @@ func (l *lbResource) Update(ctx context.Context, req resource.UpdateRequest, res
 	}
 	if !plan.IdleTimeout.Equal(state.IdleTimeout) {
 		if err := waitForFwLoadBalancerActive(ctx, plan, l.config, state.LoadBalancerNo.String()); err != nil {
-			resp.Diagnostics.AddError("", "")
+			resp.Diagnostics.AddError(
+				"Failed to wait for load balancer to become active",
+				fmt.Sprintf("Error: %s", err),
+			)
 			return
 		}
 		_, err := l.config.Client.Vloadbalancer.V2Api.ChangeLoadBalancerInstanceConfiguration(&vloadbalancer.ChangeLoadBalancerInstanceConfigurationRequest{
@@ -298,14 +301,20 @@ func (l *lbResource) Update(ctx context.Context, req resource.UpdateRequest, res
 			IdleTimeout:            ncloud.Int32(int32(plan.IdleTimeout.ValueInt64())),
 		})
 		if err != nil {
-			resp.Diagnostics.AddError("", "")
+			resp.Diagnostics.AddError(
+				"Failed to change idle timeout configuration",
+				fmt.Sprintf("Error: %s", err),
+			)
 			return
 		}
 	}
 
 	if !plan.ThroughputType.Equal(state.ThroughputType) {
 		if err := waitForFwLoadBalancerActive(ctx, plan, l.config, state.LoadBalancerNo.String()); err != nil {
-			resp.Diagnostics.AddError("", "")
+			resp.Diagnostics.AddError(
+				"Failed to wait for load balancer to become active",
+				fmt.Sprintf("Error: %s", err),
+			)
 			return
 		}
 		_, err := l.config.Client.Vloadbalancer.V2Api.ChangeLoadBalancerInstanceConfiguration(&vloadbalancer.ChangeLoadBalancerInstanceConfigurationRequest{
@@ -314,14 +323,20 @@ func (l *lbResource) Update(ctx context.Context, req resource.UpdateRequest, res
 			ThroughputTypeCode:     plan.ThroughputType.ValueStringPointer(),
 		})
 		if err != nil {
-			resp.Diagnostics.AddError("", "")
+			resp.Diagnostics.AddError(
+				"Failed to change throughput type configuration",
+				fmt.Sprintf("Error: %s", err),
+			)
 			return
 		}
 	}
 
 	if !plan.Description.Equal(state.Description) {
 		if err := waitForFwLoadBalancerActive(ctx, plan, l.config, state.LoadBalancerNo.String()); err != nil {
-			resp.Diagnostics.AddError("", "")
+			resp.Diagnostics.AddError(
+				"Failed to wait for load balancer to become active",
+				fmt.Sprintf("Error: %s", err),
+			)
 			return
 		}
 		_, err := l.config.Client.Vloadbalancer.V2Api.SetLoadBalancerDescription(&vloadbalancer.SetLoadBalancerDescriptionRequest{
@@ -330,7 +345,10 @@ func (l *lbResource) Update(ctx context.Context, req resource.UpdateRequest, res
 			LoadBalancerDescription: plan.Description.ValueStringPointer(),
 		})
 		if err != nil {
-			resp.Diagnostics.AddError("", "")
+			resp.Diagnostics.AddError(
+				"Failed to set load balancer description",
+				fmt.Sprintf("Error: %s", err),
+			)
 			return
 		}
 	}
