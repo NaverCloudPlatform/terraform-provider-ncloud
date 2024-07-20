@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"github.com/terraform-providers/terraform-provider-ncloud/internal/service/hadoop"
+	"github.com/terraform-providers/terraform-provider-ncloud/internal/service/loadbalancer"
 	"github.com/terraform-providers/terraform-provider-ncloud/internal/service/objectstorage"
 	"github.com/terraform-providers/terraform-provider-ncloud/internal/service/loadbalancer"
 
@@ -81,7 +82,6 @@ func (p *fwprovider) DataSources(ctx context.Context) []func() datasource.DataSo
 	dataSources = append(dataSources, vpc.NewNatGatewayDataSource)
 	dataSources = append(dataSources, vpc.NewVpcPeeringDataSource)
 	dataSources = append(dataSources, server.NewInitScriptDataSource)
-	dataSources = append(dataSources, server.NewLoginKeyDataSource)
 	dataSources = append(dataSources, mysql.NewMysqlDataSource)
 	dataSources = append(dataSources, mysql.NewMysqlImageProductsDataSource)
 	dataSources = append(dataSources, mysql.NewMysqlProductsDataSource)
@@ -100,6 +100,7 @@ func (p *fwprovider) DataSources(ctx context.Context) []func() datasource.DataSo
 	dataSources = append(dataSources, mssql.NewMssqlDataSource)
 	dataSources = append(dataSources, mssql.NewMssqlImageProductsDataSource)
 	dataSources = append(dataSources, mssql.NewMssqlProductsDataSource)
+	dataSources = append(dataSources, loadbalancer.NewLoadBalancerDataSource)
 	dataSources = append(dataSources, objectstorage.NewBucketDataSource)
 	dataSources = append(dataSources, objectstorage.NewObjectDataSource)
 	dataSources = append(dataSources, loadbalancer.NewLoadBalancerDataSource)
@@ -129,6 +130,7 @@ func (p *fwprovider) Resources(ctx context.Context) []func() resource.Resource {
 	resources = append(resources, redis.NewRedisConfigGroupResource)
 	resources = append(resources, redis.NewRedisResource)
 	resources = append(resources, mssql.NewMssqlResource)
+	resources = append(resources, loadbalancer.NewLbResource)
 	resources = append(resources, objectstorage.NewBucketResource)
 	resources = append(resources, objectstorage.NewObjectResource)
 	resources = append(resources, objectstorage.NewObjectACLResource)
