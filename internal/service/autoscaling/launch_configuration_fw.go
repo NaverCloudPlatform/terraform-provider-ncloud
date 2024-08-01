@@ -3,7 +3,7 @@ package autoscaling
 import (
 	"context"
 	"fmt"
-	"time"
+	// "time"
 	// "strings"
 
 	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/ncloud"
@@ -23,14 +23,14 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
+	// "github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
 
 	// "github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	// "github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
-	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/services/vpc"
+	// "github.com/NaverCloudPlatform/ncloud-sdk-go-v2/services/vpc"
 	"github.com/terraform-providers/terraform-provider-ncloud/internal/common"
 	"github.com/terraform-providers/terraform-provider-ncloud/internal/conn"
-	// "github.com/terraform-providers/terraform-provider-ncloud/internal/framework"
+	"github.com/terraform-providers/terraform-provider-ncloud/internal/framework"
 )
 
 var (
@@ -136,7 +136,8 @@ func (l *launchConfigurationResource) Schema(_ context.Context, _ resource.Schem
 				PlanModifiers: []planmodifier.Bool{
 					boolplanmodifier.RequiresReplace(),
 				},
-			},
+			}, 
+			"id": framework.IDAttribute(),
 		},
 	}
 }
@@ -162,7 +163,7 @@ func (l *launchConfigurationResource) Configure(_ context.Context, req resource.
 func (l *launchConfigurationResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
 	var plan launchConfigurationResourceModel
 	var err error
-	var id *string
+	var launchConfigNo *string
 
 	diags := req.Plan.Get(ctx, &plan)
 	resp.Diagnostics.Append(diags...)
@@ -171,9 +172,9 @@ func (l *launchConfigurationResource) Create(ctx context.Context, req resource.C
 	}
 
 	if l.config.SupportVPC {
-		id, err = createVpcLaunchConfiguration(ctx, l.config, &plan)
+		launchConfigNo, err = createVpcLaunchConfiguration(ctx, l.config, &plan)
 	} else {
-		id, err = createClassicLaunchConfiguration(ctx, l.config, &plan)
+		launchConfigNo, err = createClassicLaunchConfiguration(ctx, l.config, &plan)
 	}
 
 	if err != nil {
@@ -183,77 +184,10 @@ func (l *launchConfigurationResource) Create(ctx context.Context, req resource.C
 		)
 		return
 	}
-
-	output, err := waitForNcloudLaunchConfiguration(l.config, *id)
-	if err != nil {
-		resp.Diagnostics.AddError(
-			"wating for LaunchConfiguration creation",
-			err.Error(),
-		)
-		return
-	}
-
-	plan.refreshFromOutput(output)
-	plan.id = types.StringValue(ncloud.StringValue(id)) // [TODO] check it
+ 
+	plan.ID = types.StringValue(ncloud.StringValue(launchConfigNo)) // [TODO] check it
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, plan)...)
-
-}
-
-func (l *launchConfigurationResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
-	var state launchConfigurationResourceModel
-	diags := req.State.Get(ctx, &state)
-	resp.Diagnostics.Append(diags...)
-	if resp.Diagnostics.HasError() {
-		return
-	}
-	if !l.config.SupportVPC {
-		// [TODO] GetLaunchConfiguration
-	} else {
-		// [TODO] getVpcLaunchConfiguration
-	}
-}
-
-// [TODO] Framework should implement Udpate function even if resource does not support Update function
-func (l *launchConfigurationResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
-
-}
-
-func (l *launchConfigurationResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
-	var state launchConfigurationResourceModel
-	diags := req.State.Get(ctx, &state)
-	resp.Diagnostics.Append(diags...)
-	if resp.Diagnostics.HasError() {
-		return
-	}
-	if !l.config.SupportVPC {
-		// [TODO] deleteClassicLaunchConfiguration
-	} else {
-		// [TODO] deleteVpcLaunchConfiguration
-	}
-}
-
-type launchConfigurationResourceModel struct {
-	LaunchConfigurationNo       types.String `tfsdk:"launch_configuration_no"`
-	LaunchConfigurationName     types.String `tfsdk:"name"`
-	ServerImageProductCode      types.String `tfsdk:"server_image_product_code"`
-	ServerProductCode           types.String `tfsdk:"server_product_code"`
-	MemberServerImageInstanceNo types.String `tfsdk:"member_server_image_no"`
-	LoginKeyName                types.String `tfsdk:"login_key_name"`
-	InitScriptNo                types.String `tfsdk:"init_script_no"`
-	UserData                    types.String `tfsdk:"user_data"`
-	AccessControlGroupNoList    types.List   `tfsdk:"access_control_group_no_list"`
-	IsEncryptedVolume           types.Bool   `tfsdk:"is_encrypted_volume"`
-}
-
-func (l *launchConfigurationResourceModel) refreshFromOutput(output *LaunchConfiguration){
-	l.LaunchConfigurationNo = types.StringPointerValue(output.LaunchConfigurationNo)
-	l.LaunchConfigurationName = types.StringPointerValue(output.LaunchConfigurationNo)
-	l.LaunchConfigurationNo = types.StringPointerValue(output.LaunchConfigurationNo)
-	l.LaunchConfigurationNo = types.StringPointerValue(output.LaunchConfigurationNo)
-	l.LaunchConfigurationNo = types.StringPointerValue(output.LaunchConfigurationNo)
-	l.LaunchConfigurationNo = types.StringPointerValue(output.LaunchConfigurationNo)
-	l.LaunchConfigurationNo = types.StringPointerValue(output.LaunchConfigurationNo)
 
 }
 
@@ -293,15 +227,12 @@ func createClassicLaunchConfiguration(ctx context.Context, config *conn.Provider
 		RegionNo:                &config.RegionNo,
 	}
 
-	// [TODO]
-	// if param, ok := d.GetOk("access_control_group_no_list"); ok {
-	// 	reqParams.AccessControlGroupConfigurationNoList = ExpandStringInterfaceList(param.([]interface{}))
-	// } -> ?
-	// if !data.AccessControlGroupNoList.IsNull() && !data.AccessControlGroupNoList(){
-	// 	reqParams.AccessControlGroupConfigurationNoList = ExpandStringInterfaceList(param.([]interaface{}))
-	// }
+	if !plan.AccessControlGroupNoList.IsNull(){
+		reqParams.AccessControlGroupConfigurationNoList = plan.AccessControlGroupNoList.ValueListPointer()
+	}
+	
 
-	tflog.Info(ctx, "DeleteClassicLaunchConfiguration", map[string]any{
+	tflog.Info(ctx, "CreateClassicLaunchConfiguration", map[string]any{
 		"reqParams": common.MarshalUncheckedString(reqParams),
 	})
 
@@ -313,31 +244,223 @@ func createClassicLaunchConfiguration(ctx context.Context, config *conn.Provider
 	return resp.LaunchConfigurationList[0].LaunchConfigurationNo, err
 }
 
-func waitForNcloudLaunchConfiguration(config *conn.ProviderConfig, id string) (*vpc.LaunchConfiguration, error) {
-	var launchConfiguration *LaunchConfiguration
-	stateConf := &retry.StateChangeConf{
-		Pending: []string{""},
-		Target:  []string{"OK"},
-		Refresh: func() (interface{}, string, error) {
-			resp, err := GetLaunchConfiguration(ctx, config, id)
-			launchConfiguration = resp
-			if err != nil {
-				return 0, "", err
-			}
-			return resp, "", nil
-			// [TODO] what should return ? 
-			// return VpcCommonStateRefreshFunc(launchConfiguration, err, "LaunchConfigurationStatus")
-		},
-		Timeout:    conn.DefaultCreateTimeout,
-		Delay:      2 * time.Second,
-		MinTimeout: 3 * time.Second,
+
+func (l *launchConfigurationResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
+	var state launchConfigurationResourceModel
+	var err error
+	var launchConfig *LaunchConfiguration
+
+	diags := req.State.Get(ctx, &state)
+	resp.Diagnostics.Append(diags...)
+
+	if resp.Diagnostics.HasError() {
+		return
 	}
 
-	if _, err := stateConf.WaitForState(); err != nil {
-		return nil, fmt.Errorf("Error wating for LaunchConfiguration (%s) to become available: %s", id, err)
+	if l.config.SupportVPC {
+		launchConfig, err = getVpcLaunchConfiguration(ctx, l.config, state.LaunchConfigurationNo.ValueString()) // [TODO] 어떤 ID를 넘겨야함? 
+	} else {
+		launchConfig, err = getClassicLaunchConfiguration(ctx, l.config, state.LaunchConfigurationNo.ValueString())
 	}
-	return launchConfiguration, nil
+
+	if err != nil {
+		resp.Diagnostics.AddError("Error Reading LaunchConfiguration",err.Error())
+		return
+	}
+
+	if launchConfig == nil {
+		resp.State.RemoveResource(ctx)
+		return
+	}
+
+	state.refreshFromOutput(launchConfig)
+
+	resp.Diagnostics.Append(resp.State.Set(ctx, &state)...)
+	if resp.Diagnostics.HasError(){
+		return
+	}
 }
 
 
-// func GetLaunchConfiguration(config *conn.ProviderConfig, )
+func getVpcLaunchConfiguration(ctx context.Context, config *conn.ProviderConfig, id string)(*LaunchConfiguration, error) {
+	reqParams := &vautoscaling.GetLaunchConfigurationListRequest{
+		RegionCode: &config.RegionCode,
+	}
+
+	if id != "" {
+		reqParams.LaunchConfigurationNoList = []*string{ncloud.String(id)}
+	}
+
+	tflog.Info(ctx, "getVpcLaunchConfiguration reqParams", map[string]any{
+		"getVpcLaunchConfiguration": common.MarshalUncheckedString(reqParams),
+	})
+	resp, err := config.Client.Vautoscaling.V2Api.GetLaunchConfigurationList(reqParams)
+	
+	if err != nil {
+		return nil, err
+	}
+	tflog.Info(ctx, "getVpcLaunchConfiguration response", map[string]any{
+		"getVpcLaunchConfiguration": common.MarshalUncheckedString(resp),
+	})
+
+	if len(resp.LaunchConfigurationList) < 1 {
+		return nil, nil
+	}
+
+	l := resp.LaunchConfigurationList[0]
+
+	return &LaunchConfiguration{
+		LaunchConfigurationName:     l.LaunchConfigurationName,
+		ServerImageProductCode:      l.ServerImageProductCode,
+		MemberServerImageInstanceNo: l.MemberServerImageInstanceNo,
+		ServerProductCode:           l.ServerProductCode,
+		LoginKeyName:                l.LoginKeyName,
+		InitScriptNo:                l.InitScriptNo,
+		IsEncryptedVolume:           l.IsEncryptedVolume,
+		LaunchConfigurationNo:       l.LaunchConfigurationNo,
+		AccessControlGroupNoList:    []*string{},
+	}, nil
+
+
+}
+
+
+func getClassicLaunchConfiguration(ctx context.Context, config *conn.ProviderConfig, id string)(*LaunchConfiguration, error){
+	no := ncloud.String(id)
+
+	reqParams := &autoscaling.GetLaunchConfigurationListRequest{
+		RegionNo: &config.RegionNo,
+	}
+	tflog.Info(ctx, "getClassicLaunchConfiguration reqParams", map[string]any{
+		"getClassicLaunchConfiguration reqParams": common.MarshalUncheckedString(reqParams),
+	})
+
+	resp, err := config.Client.Autoscaling.V2Api.GetLaunchConfigurationList(reqParams)
+	if err != nil {
+		// [TODO] add logging
+		return nil, err
+	}
+	tflog.Info(ctx, "getClassicLaunchConfiguration response", map[string]any{
+		"getClassicLaunchConfiguration response": common.MarshalUncheckedString(resp),
+	})
+
+	for _, l := range resp.LaunchConfigurationList {
+		if *l.LaunchConfigurationNo == *no {
+			return &LaunchConfiguration{
+				LaunchConfigurationNo:       l.LaunchConfigurationNo,
+				LaunchConfigurationName:     l.LaunchConfigurationName,
+				ServerImageProductCode:      l.ServerImageProductCode,
+				MemberServerImageInstanceNo: l.MemberServerImageNo,
+				ServerProductCode:           l.ServerProductCode,
+				LoginKeyName:                l.LoginKeyName,
+				UserData:                    l.UserData,
+				AccessControlGroupNoList:    flattenAccessControlGroupList(l.AccessControlGroupList),
+			}, nil
+		}
+	}
+
+	return nil, nil
+
+}
+
+
+// [TODO] Framework should implement Udpate function even if resource does not support Update function
+func (l *launchConfigurationResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
+
+}
+
+func (l *launchConfigurationResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
+	var state launchConfigurationResourceModel
+	var err error
+
+	diags := req.State.Get(ctx, &state)
+	resp.Diagnostics.Append(diags...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+	if l.config.SupportVPC {
+		err = deleteVpcLaunchConfiguration(ctx, l.config, state.LaunchConfigurationNo.ValueString())
+	} else {
+		err = deleteClassicLaunchConfiguration(ctx, l.config, state.LaunchConfigurationNo.ValueString())
+	}
+
+	if err != nil {
+		// return err
+	}
+
+}
+
+func deleteVpcLaunchConfiguration(ctx context.Context, config *conn.ProviderConfig, id string) error {
+	reqParams := &vautoscaling.DeleteLaunchConfigurationRequest{
+		LaunchConfigurationNo: ncloud.String(id),
+	}
+	tflog.Info(ctx, "deleteVpcLaunchConfiguration reqParams", map[string]any{
+		"deleteVpcLaunchConfiguration reqParams": common.MarshalUncheckedString(reqParams),
+	})
+	resp, err := config.Client.Vautoscaling.V2Api.DeleteLaunchConfiguration(reqParams)
+	if err != nil {
+		// add log
+		return err
+	}
+
+	tflog.Info(ctx, "deleteVpcLaunchConfiguration response", map[string]any{
+		"deleteVpcLaunchConfiguration response": common.MarshalUncheckedString(resp),
+	})
+	return nil
+}
+
+func deleteClassicLaunchConfiguration(ctx context.Context, config *conn.ProviderConfig, id string) error {
+	launchConfig, err := getClassicLaunchConfiguration(ctx, config, id)
+	if err != nil {
+		return err
+	}
+
+	if launchConfig == nil {
+		return nil
+	}
+
+	reqParams := &autoscaling.DeleteAutoScalingLaunchConfigurationRequest{
+		LaunchConfigurationName: launchConfig.LaunchConfigurationName,
+	}
+	tflog.Info(ctx, "deleteClassicLaunchConfiguration reqParams", map[string]any{
+		"deleteClassicLaunchConfiguration reqParams": common.MarshalUncheckedString(reqParams),
+	})
+	resp, err := config.Client.Autoscaling.V2Api.DeleteAutoScalingLaunchConfiguration(reqParams)
+	if err != nil {
+		// add log
+		return err
+	}
+	tflog.Info(ctx, "deleteClassicLaunchConfiguration response", map[string]any{
+		"deleteClassicLaunchConfiguration response": common.MarshalUncheckedString(resp),
+	})
+	return nil
+}
+
+type launchConfigurationResourceModel struct {
+	ID types.String `tfsdk:"id"`
+	LaunchConfigurationNo       types.String `tfsdk:"launch_configuration_no"`
+	LaunchConfigurationName     types.String `tfsdk:"name"`
+	ServerImageProductCode      types.String `tfsdk:"server_image_product_code"`
+	ServerProductCode           types.String `tfsdk:"server_product_code"`
+	MemberServerImageInstanceNo types.String `tfsdk:"member_server_image_no"`
+	LoginKeyName                types.String `tfsdk:"login_key_name"`
+	InitScriptNo                types.String `tfsdk:"init_script_no"`
+	UserData                    types.String `tfsdk:"user_data"`
+	AccessControlGroupNoList    types.List   `tfsdk:"access_control_group_no_list"`
+	IsEncryptedVolume           types.Bool   `tfsdk:"is_encrypted_volume"`
+}
+
+func (l *launchConfigurationResourceModel) refreshFromOutput(output *LaunchConfiguration){
+	l.ID = types.StringPointerValue(output.LaunchConfigurationNo)
+	l.LaunchConfigurationNo = types.StringPointerValue(output.LaunchConfigurationNo)
+	l.LaunchConfigurationName = types.StringPointerValue(output.LaunchConfigurationName)
+	l.ServerImageProductCode = types.StringPointerValue(output.ServerImageProductCode)
+	l.ServerProductCode = types.StringPointerValue(output.ServerProductCode)
+	l.MemberServerImageInstanceNo = types.StringPointerValue(output.MemberServerImageInstanceNo)
+	l.LoginKeyName = types.StringPointerValue(output.LoginKeyName)
+	l.InitScriptNo = types.StringPointerValue(output.InitScriptNo)
+	l.UserData = types.StringPointerValue(output.UserData)
+	l.AccessControlGroupNoList = types.ListPointerValue(output.AccessControlGroupNoList)
+	l.IsEncryptedVolume = types.BoolPointerValue(output.IsEncryptedVolume)
+}
+

@@ -179,72 +179,72 @@ func GetLaunchConfiguration(config *conn.ProviderConfig, id string) (*LaunchConf
 	}
 }
 
-func getVpcLaunchConfiguration(config *conn.ProviderConfig, id string) (*LaunchConfiguration, error) {
-	reqParams := &vautoscaling.GetLaunchConfigurationListRequest{
-		RegionCode: &config.RegionCode,
-	}
+// func getVpcLaunchConfiguration(config *conn.ProviderConfig, id string) (*LaunchConfiguration, error) {
+// 	reqParams := &vautoscaling.GetLaunchConfigurationListRequest{
+// 		RegionCode: &config.RegionCode,
+// 	}
 
-	if id != "" {
-		reqParams.LaunchConfigurationNoList = []*string{ncloud.String(id)}
-	}
+// 	if id != "" {
+// 		reqParams.LaunchConfigurationNoList = []*string{ncloud.String(id)}
+// 	}
 
-	LogCommonRequest("getVpcLaunchConfiguration", reqParams)
-	resp, err := config.Client.Vautoscaling.V2Api.GetLaunchConfigurationList(reqParams)
-	if err != nil {
-		LogErrorResponse("getVpcLaunchConfiguration", err, reqParams)
-		return nil, err
-	}
-	LogResponse("getVpcLaunchConfiguration", resp)
+// 	LogCommonRequest("getVpcLaunchConfiguration", reqParams)
+// 	resp, err := config.Client.Vautoscaling.V2Api.GetLaunchConfigurationList(reqParams)
+// 	if err != nil {
+// 		LogErrorResponse("getVpcLaunchConfiguration", err, reqParams)
+// 		return nil, err
+// 	}
+// 	LogResponse("getVpcLaunchConfiguration", resp)
 
-	if len(resp.LaunchConfigurationList) < 1 {
-		return nil, nil
-	}
+// 	if len(resp.LaunchConfigurationList) < 1 {
+// 		return nil, nil
+// 	}
 
-	l := resp.LaunchConfigurationList[0]
+// 	l := resp.LaunchConfigurationList[0]
 
-	return &LaunchConfiguration{
-		LaunchConfigurationName:     l.LaunchConfigurationName,
-		ServerImageProductCode:      l.ServerImageProductCode,
-		MemberServerImageInstanceNo: l.MemberServerImageInstanceNo,
-		ServerProductCode:           l.ServerProductCode,
-		LoginKeyName:                l.LoginKeyName,
-		InitScriptNo:                l.InitScriptNo,
-		IsEncryptedVolume:           l.IsEncryptedVolume,
-		LaunchConfigurationNo:       l.LaunchConfigurationNo,
-		AccessControlGroupNoList:    []*string{},
-	}, nil
-}
+// 	return &LaunchConfiguration{
+// 		LaunchConfigurationName:     l.LaunchConfigurationName,
+// 		ServerImageProductCode:      l.ServerImageProductCode,
+// 		MemberServerImageInstanceNo: l.MemberServerImageInstanceNo,
+// 		ServerProductCode:           l.ServerProductCode,
+// 		LoginKeyName:                l.LoginKeyName,
+// 		InitScriptNo:                l.InitScriptNo,
+// 		IsEncryptedVolume:           l.IsEncryptedVolume,
+// 		LaunchConfigurationNo:       l.LaunchConfigurationNo,
+// 		AccessControlGroupNoList:    []*string{},
+// 	}, nil
+// }
 
-func GetClassicLaunchConfiguration(config *conn.ProviderConfig, id string) (*LaunchConfiguration, error) {
-	no := ncloud.String(id)
-	reqParams := &autoscaling.GetLaunchConfigurationListRequest{
-		RegionNo: &config.RegionNo,
-	}
-	LogCommonRequest("getClassicLaunchConfiguration", reqParams)
-	resp, err := config.Client.Autoscaling.V2Api.GetLaunchConfigurationList(reqParams)
-	if err != nil {
-		LogErrorResponse("getClassicLaunchConfiguration", err, reqParams)
-		return nil, err
-	}
-	LogResponse("getClassicLaunchConfiguration", resp)
+// func GetClassicLaunchConfiguration(config *conn.ProviderConfig, id string) (*LaunchConfiguration, error) {
+// 	no := ncloud.String(id)
+// 	reqParams := &autoscaling.GetLaunchConfigurationListRequest{
+// 		RegionNo: &config.RegionNo,
+// 	}
+// 	LogCommonRequest("getClassicLaunchConfiguration", reqParams)
+// 	resp, err := config.Client.Autoscaling.V2Api.GetLaunchConfigurationList(reqParams)
+// 	if err != nil {
+// 		LogErrorResponse("getClassicLaunchConfiguration", err, reqParams)
+// 		return nil, err
+// 	}
+// 	LogResponse("getClassicLaunchConfiguration", resp)
 
-	for _, l := range resp.LaunchConfigurationList {
-		if *l.LaunchConfigurationNo == *no {
-			return &LaunchConfiguration{
-				LaunchConfigurationNo:       l.LaunchConfigurationNo,
-				LaunchConfigurationName:     l.LaunchConfigurationName,
-				ServerImageProductCode:      l.ServerImageProductCode,
-				MemberServerImageInstanceNo: l.MemberServerImageNo,
-				ServerProductCode:           l.ServerProductCode,
-				LoginKeyName:                l.LoginKeyName,
-				UserData:                    l.UserData,
-				AccessControlGroupNoList:    flattenAccessControlGroupList(l.AccessControlGroupList),
-			}, nil
-		}
-	}
+// 	for _, l := range resp.LaunchConfigurationList {
+// 		if *l.LaunchConfigurationNo == *no {
+// 			return &LaunchConfiguration{
+// 				LaunchConfigurationNo:       l.LaunchConfigurationNo,
+// 				LaunchConfigurationName:     l.LaunchConfigurationName,
+// 				ServerImageProductCode:      l.ServerImageProductCode,
+// 				MemberServerImageInstanceNo: l.MemberServerImageNo,
+// 				ServerProductCode:           l.ServerProductCode,
+// 				LoginKeyName:                l.LoginKeyName,
+// 				UserData:                    l.UserData,
+// 				AccessControlGroupNoList:    flattenAccessControlGroupList(l.AccessControlGroupList),
+// 			}, nil
+// 		}
+// 	}
 
-	return nil, nil
-}
+// 	return nil, nil
+// }
 
 func resourceNcloudLaunchConfigurationDelete(d *schema.ResourceData, meta interface{}) error {
 	config := meta.(*conn.ProviderConfig)
@@ -265,45 +265,45 @@ func deleteLaunchConfiguration(config *conn.ProviderConfig, id string) error {
 	}
 }
 
-func deleteVpcLaunchConfiguration(config *conn.ProviderConfig, id string) error {
-	reqParams := &vautoscaling.DeleteLaunchConfigurationRequest{
-		LaunchConfigurationNo: ncloud.String(id),
-	}
+// func deleteVpcLaunchConfiguration(config *conn.ProviderConfig, id string) error {
+// 	reqParams := &vautoscaling.DeleteLaunchConfigurationRequest{
+// 		LaunchConfigurationNo: ncloud.String(id),
+// 	}
 
-	LogCommonRequest("deleteVpcLaunchConfiguration", reqParams)
-	res, err := config.Client.Vautoscaling.V2Api.DeleteLaunchConfiguration(reqParams)
-	if err != nil {
-		LogErrorResponse("deleteVpcLaunchConfiguration", err, reqParams)
-		return err
-	}
-	LogResponse("deleteVpcLaunchConfiguration", res)
-	return nil
-}
+// 	LogCommonRequest("deleteVpcLaunchConfiguration", reqParams)
+// 	res, err := config.Client.Vautoscaling.V2Api.DeleteLaunchConfiguration(reqParams)
+// 	if err != nil {
+// 		LogErrorResponse("deleteVpcLaunchConfiguration", err, reqParams)
+// 		return err
+// 	}
+// 	LogResponse("deleteVpcLaunchConfiguration", res)
+// 	return nil
+// }
 
-func deleteClassicLaunchConfiguration(config *conn.ProviderConfig, id string) error {
-	launchConfig, err := GetClassicLaunchConfiguration(config, id)
-	if err != nil {
-		return err
-	}
+// func deleteClassicLaunchConfiguration(config *conn.ProviderConfig, id string) error {
+// 	launchConfig, err := GetClassicLaunchConfiguration(config, id)
+// 	if err != nil {
+// 		return err
+// 	}
 
-	if launchConfig == nil {
-		return nil
-	}
+// 	if launchConfig == nil {
+// 		return nil
+// 	}
 
-	reqParams := &autoscaling.DeleteAutoScalingLaunchConfigurationRequest{
-		LaunchConfigurationName: launchConfig.LaunchConfigurationName,
-	}
+// 	reqParams := &autoscaling.DeleteAutoScalingLaunchConfigurationRequest{
+// 		LaunchConfigurationName: launchConfig.LaunchConfigurationName,
+// 	}
 
-	LogCommonRequest("deleteClassicLaunchConfiguration", reqParams)
-	res, err := config.Client.Autoscaling.V2Api.DeleteAutoScalingLaunchConfiguration(reqParams)
-	if err != nil {
-		LogErrorResponse("deleteClassicLaunchConfiguration", err, reqParams)
-		return err
-	}
-	LogResponse("deleteClassicLaunchConfiguration", res)
+// 	LogCommonRequest("deleteClassicLaunchConfiguration", reqParams)
+// 	res, err := config.Client.Autoscaling.V2Api.DeleteAutoScalingLaunchConfiguration(reqParams)
+// 	if err != nil {
+// 		LogErrorResponse("deleteClassicLaunchConfiguration", err, reqParams)
+// 		return err
+// 	}
+// 	LogResponse("deleteClassicLaunchConfiguration", res)
 
-	return nil
-}
+// 	return nil
+// }
 
 func GetClassicLaunchConfigurationByNo(no *string, config *conn.ProviderConfig) (*LaunchConfiguration, error) {
 	reqParams := &autoscaling.GetLaunchConfigurationListRequest{
