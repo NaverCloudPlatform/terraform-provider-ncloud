@@ -226,7 +226,7 @@ func (l *lbResource) Create(ctx context.Context, req resource.CreateRequest, res
 	}
 	LogResponse("createLoadBalancerInstance", createResp)
 
-	if err := waitForFwLoadBalancerActive(ctx, plan, l.config, ncloud.StringValue(createResp.LoadBalancerInstanceList[0].LoadBalancerInstanceNo)); err != nil {
+	if err := waitForLoadBalancerActive(ctx, plan, l.config, ncloud.StringValue(createResp.LoadBalancerInstanceList[0].LoadBalancerInstanceNo)); err != nil {
 		resp.Diagnostics.AddError(
 			"Error waiting for load balancer to become active",
 			err.Error(),
@@ -300,7 +300,7 @@ func (l *lbResource) Update(ctx context.Context, req resource.UpdateRequest, res
 		!plan.ThroughputType.Equal(state.ThroughputType) ||
 		!plan.Description.Equal(state.Description) {
 
-		if err := waitForFwLoadBalancerActive(ctx, plan, l.config, state.LoadBalancerNo.String()); err != nil {
+		if err := waitForLoadBalancerActive(ctx, plan, l.config, state.LoadBalancerNo.String()); err != nil {
 			resp.Diagnostics.AddError(
 				"Failed to wait for load balancer to become active",
 				fmt.Sprintf("Error: %s", err),
@@ -351,6 +351,11 @@ func (r *lbResource) Delete(ctx context.Context, req resource.DeleteRequest, res
 
 	tflog.Info(ctx, "DeleteLoadBalancer reqParams="+common.MarshalUncheckedString(reqParams))
 
+	if err := waitForLoadBalancerActive(ctx, state, r.config, state.LoadBalancerNo.ValueString()); err != nil {
+		resp.Diagnostics.AddError("WAIT FOR LOADBALANCER ERROR", err.Error())
+		return
+	}
+
 	response, err := r.config.Client.Vloadbalancer.V2Api.DeleteLoadBalancerInstances(reqParams)
 	if err != nil {
 		resp.Diagnostics.AddError("DELETING ERROR", err.Error())
@@ -358,7 +363,7 @@ func (r *lbResource) Delete(ctx context.Context, req resource.DeleteRequest, res
 	}
 	tflog.Info(ctx, "DeleteLoadBalancer response="+common.MarshalUncheckedString(response))
 
-	if err := waitFwForLoadBalancerDeletion(ctx, r.config, state.LoadBalancerNo.ValueString()); err != nil {
+	if err := waitForLoadBalancerDeletion(ctx, r.config, state.LoadBalancerNo.ValueString()); err != nil {
 		resp.Diagnostics.AddError("WAITING FOR DELETE ERROR", err.Error())
 		return
 	}
@@ -396,7 +401,7 @@ func listValueToSubnetNoList(ctx context.Context, list basetypes.ListValue) []*s
 	return result
 }
 
-func waitForFwLoadBalancerActive(ctx context.Context, plan lbResourceModel, config *conn.ProviderConfig, id string) error {
+func waitForLoadBalancerActive(ctx context.Context, plan lbResourceModel, config *conn.ProviderConfig, id string) error {
 	createTimeout := 20 * time.Minute
 
 	err := retry.RetryContext(ctx, createTimeout, func() *retry.RetryError {
@@ -433,7 +438,7 @@ func waitForFwLoadBalancerActive(ctx context.Context, plan lbResourceModel, conf
 	return nil
 }
 
-func waitFwForLoadBalancerDeletion(ctx context.Context, config *conn.ProviderConfig, id string) error {
+func waitForLoadBalancerDeletion(ctx context.Context, config *conn.ProviderConfig, id string) error {
 	stateConf := &retry.StateChangeConf{
 		Pending: []string{"PEND"},
 		Target:  []string{"DEL"},
