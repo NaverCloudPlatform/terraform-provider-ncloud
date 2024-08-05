@@ -296,29 +296,10 @@ func (l *lbResource) Update(ctx context.Context, req resource.UpdateRequest, res
 	if resp.Diagnostics.HasError() {
 		return
 	}
-	if !plan.IdleTimeout.Equal(state.IdleTimeout) {
-		if err := waitForFwLoadBalancerActive(ctx, plan, l.config, state.LoadBalancerNo.String()); err != nil {
-			resp.Diagnostics.AddError(
-				"Failed to wait for load balancer to become active",
-				fmt.Sprintf("Error: %s", err),
-			)
-			return
-		}
-		_, err := l.config.Client.Vloadbalancer.V2Api.ChangeLoadBalancerInstanceConfiguration(&vloadbalancer.ChangeLoadBalancerInstanceConfigurationRequest{
-			RegionCode:             &l.config.RegionCode,
-			LoadBalancerInstanceNo: ncloud.String(state.LoadBalancerNo.String()),
-			IdleTimeout:            ncloud.Int32(int32(plan.IdleTimeout.ValueInt64())),
-		})
-		if err != nil {
-			resp.Diagnostics.AddError(
-				"Failed to change idle timeout configuration",
-				fmt.Sprintf("Error: %s", err),
-			)
-			return
-		}
-	}
+	if !plan.IdleTimeout.Equal(state.IdleTimeout) ||
+		!plan.ThroughputType.Equal(state.ThroughputType) ||
+		!plan.Description.Equal(state.Description) {
 
-	if !plan.ThroughputType.Equal(state.ThroughputType) {
 		if err := waitForFwLoadBalancerActive(ctx, plan, l.config, state.LoadBalancerNo.String()); err != nil {
 			resp.Diagnostics.AddError(
 				"Failed to wait for load balancer to become active",
@@ -326,36 +307,26 @@ func (l *lbResource) Update(ctx context.Context, req resource.UpdateRequest, res
 			)
 			return
 		}
-		_, err := l.config.Client.Vloadbalancer.V2Api.ChangeLoadBalancerInstanceConfiguration(&vloadbalancer.ChangeLoadBalancerInstanceConfigurationRequest{
-			RegionCode:             &l.config.RegionCode,
-			LoadBalancerInstanceNo: ncloud.String(state.LoadBalancerNo.String()),
-			ThroughputTypeCode:     plan.ThroughputType.ValueStringPointer(),
-		})
-		if err != nil {
-			resp.Diagnostics.AddError(
-				"Failed to change throughput type configuration",
-				fmt.Sprintf("Error: %s", err),
-			)
-			return
-		}
-	}
 
-	if !plan.Description.Equal(state.Description) {
-		if err := waitForFwLoadBalancerActive(ctx, plan, l.config, state.LoadBalancerNo.String()); err != nil {
-			resp.Diagnostics.AddError(
-				"Failed to wait for load balancer to become active",
-				fmt.Sprintf("Error: %s", err),
-			)
-			return
+		var err error
+		if !plan.IdleTimeout.Equal(state.IdleTimeout) || !plan.ThroughputType.Equal(state.ThroughputType) {
+			_, err = l.config.Client.Vloadbalancer.V2Api.ChangeLoadBalancerInstanceConfiguration(&vloadbalancer.ChangeLoadBalancerInstanceConfigurationRequest{
+				RegionCode:             &l.config.RegionCode,
+				LoadBalancerInstanceNo: ncloud.String(state.LoadBalancerNo.String()),
+				IdleTimeout:            ncloud.Int32(int32(plan.IdleTimeout.ValueInt64())),
+				ThroughputTypeCode:     plan.ThroughputType.ValueStringPointer(),
+			})
+		} else if !plan.Description.Equal(state.Description) {
+			_, err = l.config.Client.Vloadbalancer.V2Api.SetLoadBalancerDescription(&vloadbalancer.SetLoadBalancerDescriptionRequest{
+				RegionCode:              &l.config.RegionCode,
+				LoadBalancerInstanceNo:  ncloud.String(state.LoadBalancerNo.String()),
+				LoadBalancerDescription: plan.Description.ValueStringPointer(),
+			})
 		}
-		_, err := l.config.Client.Vloadbalancer.V2Api.SetLoadBalancerDescription(&vloadbalancer.SetLoadBalancerDescriptionRequest{
-			RegionCode:              &l.config.RegionCode,
-			LoadBalancerInstanceNo:  ncloud.String(state.LoadBalancerNo.String()),
-			LoadBalancerDescription: plan.Description.ValueStringPointer(),
-		})
+
 		if err != nil {
 			resp.Diagnostics.AddError(
-				"Failed to set load balancer description",
+				"Failed to update load balancer configuration",
 				fmt.Sprintf("Error: %s", err),
 			)
 			return
