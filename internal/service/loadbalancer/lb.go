@@ -24,6 +24,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-ncloud/internal/common"
 	. "github.com/terraform-providers/terraform-provider-ncloud/internal/common"
 	"github.com/terraform-providers/terraform-provider-ncloud/internal/conn"
+	"github.com/terraform-providers/terraform-provider-ncloud/internal/framework"
 	vpcservice "github.com/terraform-providers/terraform-provider-ncloud/internal/service/vpc"
 )
 
@@ -62,6 +63,7 @@ func (l *lbResource) Schema(_ context.Context, req resource.SchemaRequest, resp 
 					stringplanmodifier.UseStateForUnknown(),
 				},
 			},
+			"id": framework.IDAttribute(),
 			"name": schema.StringAttribute{
 				Optional: true,
 				Computed: true,
@@ -154,10 +156,17 @@ func (l *lbResource) Create(ctx context.Context, req resource.CreateRequest, res
 		return
 	}
 
+	var idleTimeoutValue int32
+	if !plan.IdleTimeout.IsNull() {
+		idleTimeoutValue = int32(plan.IdleTimeout.ValueInt64())
+	} else {
+		idleTimeoutValue = 0
+	}
+
 	reqParams := &vloadbalancer.CreateLoadBalancerInstanceRequest{
 		RegionCode: &l.config.RegionCode,
 		// Optional
-		IdleTimeout:                 ncloud.Int32(int32(plan.IdleTimeout.ValueInt64())),
+		IdleTimeout:                 ncloud.Int32(idleTimeoutValue),
 		LoadBalancerDescription:     plan.Description.ValueStringPointer(),
 		LoadBalancerNetworkTypeCode: plan.NetworkType.ValueStringPointer(),
 		LoadBalancerName:            plan.Name.ValueStringPointer(),
