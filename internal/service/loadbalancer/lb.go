@@ -50,7 +50,7 @@ type lbResource struct {
 }
 
 func (l *lbResource) Metadata(ctx context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
-	resp.TypeName = "ncloud"
+	resp.TypeName = req.ProviderTypeName + "_lb"
 }
 
 func (l *lbResource) Schema(_ context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
