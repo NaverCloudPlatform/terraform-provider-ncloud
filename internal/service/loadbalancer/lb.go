@@ -40,6 +40,10 @@ const (
 	LoadBalancerInstanceOperationPendingTerminationCode = "PTERM"
 	LoadBalancerInstanceOperationTerminateCode          = "TERMT"
 	LoadBalancerInstanceOperationUseCode                = "USE"
+	LoadBalancerStatusPending                           = "PEND"
+	LoadBalancerStatusDeleted                           = "DEL"
+	LoadBalancerStatusTerminated                        = "TERMINATED"
+	LoadBalancerStatusTerminating                       = "TERMINATING"
 )
 
 func NewLbResource() resource.Resource {
@@ -156,6 +160,16 @@ func (l *lbResource) Create(ctx context.Context, req resource.CreateRequest, res
 		return
 	}
 
+	// Validate throughput_type for NETWORK load balancer type
+	throughputType := plan.ThroughputType.ValueString()
+	if plan.Type.ValueString() == "NETWORK" && throughputType != "" && throughputType != "DYNAMIC" {
+		resp.Diagnostics.AddError(
+			"Invalid Throughput Type",
+			"Network Load Balancer throughput_type can only be set to empty or DYNAMIC",
+		)
+		return
+	}
+
 	var idleTimeoutValue int32
 	if !plan.IdleTimeout.IsNull() {
 		idleTimeoutValue = int32(plan.IdleTimeout.ValueInt64())
@@ -226,7 +240,7 @@ func (l *lbResource) Create(ctx context.Context, req resource.CreateRequest, res
 	}
 	LogResponse("createLoadBalancerInstance", createResp)
 
-	if err := waitForLoadBalancerActive(ctx, plan, l.config, ncloud.StringValue(createResp.LoadBalancerInstanceList[0].LoadBalancerInstanceNo)); err != nil {
+	if err := waitForLoadBalancerActive(ctx, l.config, ncloud.StringValue(createResp.LoadBalancerInstanceList[0].LoadBalancerInstanceNo)); err != nil {
 		resp.Diagnostics.AddError(
 			"Error waiting for load balancer to become active",
 			err.Error(),
@@ -300,7 +314,7 @@ func (l *lbResource) Update(ctx context.Context, req resource.UpdateRequest, res
 		!plan.ThroughputType.Equal(state.ThroughputType) ||
 		!plan.Description.Equal(state.Description) {
 
-		if err := waitForLoadBalancerActive(ctx, plan, l.config, state.LoadBalancerNo.String()); err != nil {
+		if err := waitForLoadBalancerActive(ctx, l.config, state.LoadBalancerNo.String()); err != nil {
 			resp.Diagnostics.AddError(
 				"Failed to wait for load balancer to become active",
 				fmt.Sprintf("Error: %s", err),
@@ -351,7 +365,7 @@ func (r *lbResource) Delete(ctx context.Context, req resource.DeleteRequest, res
 
 	tflog.Info(ctx, "DeleteLoadBalancer reqParams="+common.MarshalUncheckedString(reqParams))
 
-	if err := waitForLoadBalancerActive(ctx, state, r.config, state.LoadBalancerNo.ValueString()); err != nil {
+	if err := waitForLoadBalancerActive(ctx, r.config, state.LoadBalancerNo.ValueString()); err != nil {
 		resp.Diagnostics.AddError("WAIT FOR LOADBALANCER ERROR", err.Error())
 		return
 	}
@@ -401,47 +415,41 @@ func listValueToSubnetNoList(ctx context.Context, list basetypes.ListValue) []*s
 	return result
 }
 
-func waitForLoadBalancerActive(ctx context.Context, plan lbResourceModel, config *conn.ProviderConfig, id string) error {
-	createTimeout := 20 * time.Minute
+func waitForLoadBalancerActive(ctx context.Context, config *conn.ProviderConfig, id string) error {
+	stateConf := &retry.StateChangeConf{
+		Pending: []string{LoadBalancerInstanceOperationCreateCode, LoadBalancerInstanceOperationChangeCode},
+		Target:  []string{LoadBalancerInstanceOperationNullCode},
+		Refresh: func() (result interface{}, state string, err error) {
+			reqParams := &vloadbalancer.GetLoadBalancerInstanceDetailRequest{
+				RegionCode:             &config.RegionCode,
+				LoadBalancerInstanceNo: ncloud.String(id),
+			}
+			resp, err := config.Client.Vloadbalancer.V2Api.GetLoadBalancerInstanceDetail(reqParams)
+			if err != nil {
+				return nil, "", err
+			}
 
-	err := retry.RetryContext(ctx, createTimeout, func() *retry.RetryError {
-		reqParams := &vloadbalancer.GetLoadBalancerInstanceDetailRequest{
-			RegionCode:             &config.RegionCode,
-			LoadBalancerInstanceNo: ncloud.String(id),
-		}
-		resp, err := config.Client.Vloadbalancer.V2Api.GetLoadBalancerInstanceDetail(reqParams)
-		if err != nil {
-			return retry.NonRetryableError(err)
-		}
+			if len(resp.LoadBalancerInstanceList) < 1 {
+				return nil, "", fmt.Errorf("not found load balancer instance(%s)", id)
+			}
 
-		if len(resp.LoadBalancerInstanceList) < 1 {
-			return retry.NonRetryableError(fmt.Errorf("not found load balancer instance(%s)", id))
-		}
-
-		lb := resp.LoadBalancerInstanceList[0]
-		operation := ncloud.StringValue(lb.LoadBalancerInstanceOperation.Code)
-
-		switch operation {
-		case LoadBalancerInstanceOperationCreateCode, LoadBalancerInstanceOperationChangeCode:
-			return retry.RetryableError(fmt.Errorf("expected instance to be active, was %s", operation))
-		case LoadBalancerInstanceOperationNullCode:
-			return nil
-		default:
-			return retry.NonRetryableError(fmt.Errorf("unexpected load balancer instance operation: %s", operation))
-		}
-	})
-
-	if err != nil {
-		return fmt.Errorf("error waiting for Load Balancer instance (%s) to become active: %s", id, err)
+			lb := resp.LoadBalancerInstanceList[0]
+			return resp, ncloud.StringValue(lb.LoadBalancerInstanceOperation.Code), nil
+		},
+		Timeout:    6 * conn.DefaultTimeout,
+		MinTimeout: 3 * time.Second,
+		Delay:      2 * time.Second,
 	}
-
+	if _, err := stateConf.WaitForStateContext(ctx); err != nil {
+		return fmt.Errorf("error waiting for Load Balancer instance (%s) to become activating: %s", id, err)
+	}
 	return nil
 }
 
 func waitForLoadBalancerDeletion(ctx context.Context, config *conn.ProviderConfig, id string) error {
 	stateConf := &retry.StateChangeConf{
-		Pending: []string{"PEND"},
-		Target:  []string{"DEL"},
+		Pending: []string{LoadBalancerStatusPending},
+		Target:  []string{LoadBalancerStatusDeleted},
 		Refresh: func() (interface{}, string, error) {
 			reqParams := &vloadbalancer.GetLoadBalancerInstanceDetailRequest{
 				RegionCode:             &config.RegionCode,
@@ -453,18 +461,7 @@ func waitForLoadBalancerDeletion(ctx context.Context, config *conn.ProviderConfi
 			}
 
 			if len(resp.LoadBalancerInstanceList) < 1 {
-				return resp, "DEL", nil
-			}
-
-			lb := resp.LoadBalancerInstanceList[0]
-			status := ncloud.StringValue(lb.LoadBalancerInstanceStatus.Code)
-			op := ncloud.StringValue(lb.LoadBalancerInstanceOperation.Code)
-
-			if status == "TERMINATED" && op == "NULL" {
-				return resp, "DEL", nil
-			}
-			if op == "TERMINATING" {
-				return resp, "PEND", nil
+				return resp, LoadBalancerStatusDeleted, nil
 			}
 
 			return nil, "", fmt.Errorf("error occurred while waiting to delete load balancer instance")

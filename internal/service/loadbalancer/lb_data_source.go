@@ -6,13 +6,16 @@ import (
 
 	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/ncloud"
 	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/services/vloadbalancer"
+	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
+	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 
 	"github.com/terraform-providers/terraform-provider-ncloud/internal/common"
+	. "github.com/terraform-providers/terraform-provider-ncloud/internal/common"
 	"github.com/terraform-providers/terraform-provider-ncloud/internal/conn"
 	"github.com/terraform-providers/terraform-provider-ncloud/internal/verify"
 )
@@ -34,35 +37,89 @@ func (l *loadBalancerDataSource) Metadata(ctx context.Context, req datasource.Me
 	resp.TypeName = req.ProviderTypeName + "_lb"
 }
 
+var lbResourceSchema = schema.Schema{
+	Attributes: map[string]schema.Attribute{
+		"load_balancer_no": schema.StringAttribute{
+			Computed: true,
+		},
+		"id": schema.StringAttribute{
+			Computed: true,
+		},
+		"name": schema.StringAttribute{
+			Optional: true,
+			Computed: true,
+		},
+		"description": schema.StringAttribute{
+			Optional: true,
+		},
+		"domain": schema.StringAttribute{
+			Computed: true,
+		},
+		"network_type": schema.StringAttribute{
+			Optional: true,
+			Computed: true,
+			Validators: []validator.String{
+				stringvalidator.OneOf("PUBLIC", "PRIVATE"),
+			},
+		},
+		"idle_timeout": schema.Int64Attribute{
+			Optional: true,
+			Computed: true,
+		},
+		"type": schema.StringAttribute{
+			Required: true,
+		},
+		"throughput_type": schema.StringAttribute{
+			Optional: true,
+			Computed: true,
+		},
+		"vpc_no": schema.StringAttribute{
+			Computed: true,
+		},
+		"subnet_no_list": schema.ListAttribute{
+			ElementType: types.StringType,
+			Required:    true,
+		},
+		"ip_list": schema.ListAttribute{
+			ElementType: types.StringType,
+			Computed:    true,
+		},
+		"listener_no_list": schema.ListAttribute{
+			ElementType: types.StringType,
+			Computed:    true,
+		},
+	},
+}
+
 func (l *loadBalancerDataSource) Schema(ctx context.Context, req datasource.SchemaRequest, resp *datasource.SchemaResponse) {
-	resp.Schema = schema.Schema{
-		Attributes: map[string]schema.Attribute{
-			"id": schema.StringAttribute{
-				Optional: true,
-				Computed: true,
-			},
-			"description": schema.StringAttribute{
-				Computed: true,
-			},
-			"filter": schema.SetNestedAttribute{
-				Optional: true,
-				NestedObject: schema.NestedAttributeObject{
-					Attributes: map[string]schema.Attribute{
-						"name": schema.StringAttribute{
-							Required: true,
-						},
-						"values": schema.ListAttribute{
-							Required:    true,
-							ElementType: types.StringType,
-						},
-						"regex": schema.BoolAttribute{
-							Optional: true,
-						},
+	extraFields := map[string]schema.Attribute{
+		"id": schema.StringAttribute{
+			Optional: true,
+			Computed: true,
+		},
+		"description": schema.StringAttribute{
+			Computed: true,
+		},
+		"filter": schema.SetNestedAttribute{
+			Optional: true,
+			NestedObject: schema.NestedAttributeObject{
+				Attributes: map[string]schema.Attribute{
+					"name": schema.StringAttribute{
+						Required: true,
+					},
+					"values": schema.ListAttribute{
+						Required:    true,
+						ElementType: types.StringType,
+					},
+					"regex": schema.BoolAttribute{
+						Optional: true,
 					},
 				},
 			},
 		},
 	}
+
+	resp.Schema = CopyResourceSchemaToDataSourceSchema(lbResourceSchema, extraFields)
 }
 
 func (l *loadBalancerDataSource) Configure(ctx context.Context, req datasource.ConfigureRequest, resp *datasource.ConfigureResponse) {
@@ -162,28 +219,6 @@ func flattenLoadBalancers(ctx context.Context, list []*vloadbalancer.LoadBalance
 	}
 
 	return lbList, diags
-}
-
-func getVpcLoadBalancerList(config *conn.ProviderConfig, id string) ([]*LoadBalancerInstance, error) {
-	reqParams := &vloadbalancer.GetLoadBalancerInstanceListRequest{
-		RegionCode: &config.RegionCode,
-	}
-
-	if id != "" {
-		reqParams.LoadBalancerInstanceNoList = []*string{ncloud.String(id)}
-	}
-
-	resp, err := config.Client.Vloadbalancer.V2Api.GetLoadBalancerInstanceList(reqParams)
-	if err != nil {
-		return nil, err
-	}
-
-	lbList := make([]*LoadBalancerInstance, 0)
-	for _, lb := range resp.LoadBalancerInstanceList {
-		lbList = append(lbList, convertVpcLoadBalancer(lb))
-	}
-
-	return lbList, nil
 }
 
 type loadBalancerDataSourceModel struct {
