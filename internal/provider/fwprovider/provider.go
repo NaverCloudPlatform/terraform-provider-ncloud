@@ -12,6 +12,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 	"github.com/terraform-providers/terraform-provider-ncloud/internal/conn"
+
 	"github.com/terraform-providers/terraform-provider-ncloud/internal/service/autoscaling"
 	"github.com/terraform-providers/terraform-provider-ncloud/internal/service/mongodb"
 	"github.com/terraform-providers/terraform-provider-ncloud/internal/service/mssql"
@@ -125,7 +126,7 @@ func (p *fwprovider) Resources(ctx context.Context) []func() resource.Resource {
 	resources = append(resources, redis.NewRedisConfigGroupResource)
 	resources = append(resources, redis.NewRedisResource)
 	resources = append(resources, mssql.NewMssqlResource)
-	resources = append(resources, autoscaling.NewLaunchConfigurationResource)
+	resources = append(resources, autoscaling.NewLaunchConfigResource)
 
 	if err := errs.ErrorOrNil(); err != nil {
 		tflog.Warn(ctx, "registering resources", map[string]interface{}{

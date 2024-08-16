@@ -10,6 +10,8 @@ import (
 
 	"github.com/terraform-providers/terraform-provider-ncloud/internal/conn"
 	"github.com/terraform-providers/terraform-provider-ncloud/internal/region"
+
+	// "github.com/terraform-providers/terraform-provider-ncloud/internal/service/autoscaling"
 	"github.com/terraform-providers/terraform-provider-ncloud/internal/service/autoscaling"
 	"github.com/terraform-providers/terraform-provider-ncloud/internal/service/cdss"
 	"github.com/terraform-providers/terraform-provider-ncloud/internal/service/classicloadbalancer"
