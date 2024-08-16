@@ -60,7 +60,7 @@ func (m *mysqlResource) Schema(_ context.Context, _ resource.SchemaRequest, resp
 					stringplanmodifier.RequiresReplace(),
 				},
 				Validators: []validator.String{
-					stringvalidator.LengthBetween(3, 20),
+					stringvalidator.LengthBetween(3, 30),
 					stringvalidator.RegexMatches(
 						regexp.MustCompile(`^[ㄱ-ㅣ가-힣A-Za-z0-9-]+$`),
 						"Composed of alphabets, numbers, hyphen (-).",
@@ -74,7 +74,7 @@ func (m *mysqlResource) Schema(_ context.Context, _ resource.SchemaRequest, resp
 					stringplanmodifier.RequiresReplace(),
 				},
 				Validators: []validator.String{
-					stringvalidator.LengthBetween(3, 30),
+					stringvalidator.LengthBetween(3, 20),
 					stringvalidator.RegexMatches(
 						regexp.MustCompile(`^[a-z]+[a-z0-9-]+[a-z0-9]$`),
 						"Composed of lowercase alphabets, numbers, hyphen (-). Must start with an alphabetic character, and the last character can only be an English letter or number.",
