@@ -159,6 +159,9 @@ func (o *bucketResource) Schema(_ context.Context, req resource.SchemaRequest, r
 				},
 				Description: "Bucket Name for Object Storage",
 			},
+			"bucket_region": schema.StringAttribute{
+				Computed: true,
+			},
 		},
 	}
 }
@@ -248,8 +251,9 @@ func waitBucketDeleted(ctx context.Context, config *conn.ProviderConfig, bucketN
 }
 
 type bucketResourceModel struct {
-	ID         types.String `tfsdk:"id"`
-	BucketName types.String `tfsdk:"bucket_name"`
+	ID           types.String `tfsdk:"id"`
+	BucketName   types.String `tfsdk:"bucket_name"`
+	BucketRegion types.String `tfsdk:"bucket_region"`
 }
 
 func (o *bucketResourceModel) refreshFromOutput(output *s3.HeadBucketOutput, config *conn.ProviderConfig, bucketName string) {
@@ -259,4 +263,5 @@ func (o *bucketResourceModel) refreshFromOutput(output *s3.HeadBucketOutput, con
 
 	o.ID = types.StringValue(fmt.Sprintf("https://%s.object.ncloudstorage.com/%s", strings.ToLower(config.RegionCode), bucketName))
 	o.BucketName = types.StringValue(bucketName)
+	o.BucketRegion = types.StringValue(*output.BucketRegion)
 }
