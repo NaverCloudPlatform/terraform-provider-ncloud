@@ -8,6 +8,8 @@ import (
 	"time"
 
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
+	"github.com/hashicorp/terraform-plugin-framework/attr"
+	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
@@ -15,6 +17,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
+	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
 	"github.com/terraform-providers/terraform-provider-ncloud/internal/common"
@@ -79,7 +82,7 @@ func (o *objectACLResource) Create(ctx context.Context, req resource.CreateReque
 		return
 	}
 
-	plan.refreshFromOutput(output)
+	plan.refreshFromOutput(ctx, output)
 	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
 }
 
@@ -109,7 +112,7 @@ func (o *objectACLResource) Read(ctx context.Context, req resource.ReadRequest, 
 		return
 	}
 
-	plan.refreshFromOutput(output)
+	plan.refreshFromOutput(ctx, output)
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
 	if resp.Diagnostics.HasError() {
@@ -147,8 +150,39 @@ func (o *objectACLResource) Schema(_ context.Context, req resource.SchemaRequest
 					),
 				},
 			},
-			"grants": schema.StringAttribute{
+			"grants": schema.ListNestedAttribute{
 				Computed: true,
+				NestedObject: schema.NestedAttributeObject{
+					Attributes: map[string]schema.Attribute{
+						"grantee": schema.SingleNestedAttribute{
+							Computed: true,
+							Attributes: map[string]schema.Attribute{
+								"type": schema.StringAttribute{
+									Computed: true,
+								},
+								"display_name": schema.StringAttribute{
+									Computed: true,
+									Optional: true,
+								},
+								"email_address": schema.StringAttribute{
+									Computed: true,
+									Optional: true,
+								},
+								"id": schema.StringAttribute{
+									Computed: true,
+									Optional: true,
+								},
+								"uri": schema.StringAttribute{
+									Computed: true,
+									Optional: true,
+								},
+							},
+						},
+						"permission": schema.StringAttribute{
+							Computed: true,
+						},
+					},
+				},
 			},
 			"owner": schema.StringAttribute{
 				Computed: true,
@@ -218,22 +252,84 @@ type objectACLResourceModel struct {
 	ID       types.String             `tfsdk:"id"` // computed
 	ObjectID types.String             `tfsdk:"object_id"`
 	Rule     awsTypes.ObjectCannedACL `tfsdk:"rule"`
-	Grants   types.String             `tfsdk:"grants"` // computed
+	Grants   types.List               `tfsdk:"grants"` // computed
 	Owner    types.String             `tfsdk:"owner"`  // computed
 }
 
-func (o *objectACLResourceModel) refreshFromOutput(output *s3.GetObjectAclOutput) {
+// type grant struct {
+// 	Grantee    types.ObjectType `tfsdk:"grantee"`
+// 	Permission types.String     `tfsdk:"permission"`
+// }
+
+// func (g grant) attrTypes() map[string]attr.Type {
+
+// 	return map[string]attr.Type{
+// 		"grantee": &types.ObjectType{
+// 			AttrTypes: map[string]attr.Type{
+// 				"id":            types.StringType,
+// 				"type":          types.StringType,
+// 				"display_name":  types.StringType,
+// 				"email_address": types.StringType,
+// 				"uri":           types.StringType,
+// 			},
+// 		},
+// 		"permission": types.StringType,
+// 	}
+// }
+
+// type grantee struct {
+// 	ID           types.String `tfsdk:"id"`
+// 	Type         types.String `tfsdk:"type"`
+// 	DisplayName  types.String `tfsdk:"display_name"`
+// 	EmailAddress types.String `tfsdk:"email_address"`
+// 	URI          types.String `tfsdk:"uri"`
+// }
+
+// func (ge grantee) attrTypes() map[string]attr.Type {
+// 	return map[string]attr.Type{
+// 		"id":            types.StringType,
+// 		"type":          types.StringType,
+// 		"display_name":  types.StringType,
+// 		"email_address": types.StringType,
+// 		"uri":           types.StringType,
+// 	}
+// }
+
+func (o *objectACLResourceModel) refreshFromOutput(ctx context.Context, output *s3.GetObjectAclOutput) {
 	if output == nil {
 		return
 	}
+	var grantList []awsTypes.Grant
+	for _, grant := range output.Grants {
+		var indivGrant awsTypes.Grant
 
-	if len(output.Grants) != 0 {
-		o.Grants = types.StringPointerValue(output.Grants[0].Grantee.DisplayName)
-	} else {
-		o.Grants = types.StringValue("")
+		indivGrant.Grantee = &awsTypes.Grantee{}
+		indivGrant.Grantee.Type = grant.Grantee.Type
+		indivGrant.Permission = grant.Permission
+
+		if !types.StringPointerValue(grant.Grantee.ID).IsNull() {
+			indivGrant.Grantee.ID = grant.Grantee.ID
+		}
+
+		if !types.StringPointerValue(grant.Grantee.DisplayName).IsNull() {
+			indivGrant.Grantee.DisplayName = grant.Grantee.DisplayName
+		}
+
+		if !types.StringPointerValue(grant.Grantee.EmailAddress).IsNull() {
+			indivGrant.Grantee.EmailAddress = grant.Grantee.EmailAddress
+		}
+
+		if !types.StringPointerValue(grant.Grantee.URI).IsNull() {
+			indivGrant.Grantee.URI = grant.Grantee.URI
+		}
+
+		grantList = append(grantList, indivGrant)
 	}
+	newGrants, _ := convertGrantsToListValue(ctx, grantList)
+	o.Grants = newGrants
 	o.ID = types.StringValue(fmt.Sprintf("bucket_acl_%s", o.ObjectID))
 	o.Owner = types.StringValue(*output.Owner.ID)
+	// logGrants, _ := listValueFromGrants(ctx, output.Grants)
 }
 
 func ObjectIDParser(id string) (bucket string, key string) {
@@ -250,4 +346,55 @@ func ObjectIDParser(id string) (bucket string, key string) {
 	}
 
 	return parts[3], parts[4]
+}
+
+func convertGrantsToListValue(ctx context.Context, grants []awsTypes.Grant) (basetypes.ListValue, diag.Diagnostics) {
+	var grantValues []attr.Value
+
+	for _, grant := range grants {
+		granteeMap := map[string]attr.Value{
+			"type":          types.StringValue(string(grant.Grantee.Type)),
+			"display_name":  types.StringPointerValue(grant.Grantee.DisplayName),
+			"email_address": types.StringPointerValue(grant.Grantee.EmailAddress),
+			"id":            types.StringPointerValue(grant.Grantee.ID),
+			"uri":           types.StringPointerValue(grant.Grantee.URI),
+		}
+
+		granteeObj, diags := types.ObjectValue(map[string]attr.Type{
+			"type":          types.StringType,
+			"display_name":  types.StringType,
+			"email_address": types.StringType,
+			"id":            types.StringType,
+			"uri":           types.StringType,
+		}, granteeMap)
+		if diags.HasError() {
+			return basetypes.ListValue{}, diags
+		}
+
+		grantMap := map[string]attr.Value{
+			"grantee":    granteeObj,
+			"permission": types.StringValue(string(grant.Permission)),
+		}
+
+		grantObj, diags := types.ObjectValue(map[string]attr.Type{
+			"grantee":    granteeObj.Type(ctx),
+			"permission": types.StringType,
+		}, grantMap)
+		if diags.HasError() {
+			return basetypes.ListValue{}, diags
+		}
+
+		grantValues = append(grantValues, grantObj)
+	}
+
+	return types.ListValue(types.ObjectType{AttrTypes: map[string]attr.Type{
+		"grantee": types.ObjectType{AttrTypes: map[string]attr.Type{
+			"type":          types.StringType,
+			"display_name":  types.StringType,
+			"email_address": types.StringType,
+			"id":            types.StringType,
+			"uri":           types.StringType,
+		}},
+		"permission": types.StringType,
+	}}, grantValues)
 }
