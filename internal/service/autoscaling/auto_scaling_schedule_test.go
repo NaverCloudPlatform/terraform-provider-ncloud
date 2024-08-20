@@ -22,7 +22,7 @@ func TestAccResourceNcloudAutoScalingSchedule_classic_basic(t *testing.T) {
 	resourceName := "ncloud_auto_scaling_schedule.test-schedule"
 	start := testAccNcloudAutoscalingScheduleValidStart(t)
 	end := testAccNcloudAutoscalingScheduleValidEnd(t)
-	resource.ParallelTest(t, resource.TestCase{
+	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: ClassicProtoV6ProviderFactories,
 		CheckDestroy: func(state *terraform.State) error {
@@ -33,6 +33,7 @@ func TestAccResourceNcloudAutoScalingSchedule_classic_basic(t *testing.T) {
 				Config: testAccNcloudAutoScalingScheduleClassicConfig(name, start, end),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckNcloudAutoScalingScheduleExists(resourceName, &schedule, GetTestProvider(false)),
+					resource.TestCheckResourceAttr(resourceName, "desired_capacity", "1"),
 				),
 			},
 		},
@@ -45,7 +46,7 @@ func TestAccResourceNcloudAutoScalingSchedule_vpc_basic(t *testing.T) {
 	resourceName := "ncloud_auto_scaling_schedule.test-schedule"
 	start := testAccNcloudAutoscalingScheduleValidStart(t)
 	end := testAccNcloudAutoscalingScheduleValidEnd(t)
-	resource.ParallelTest(t, resource.TestCase{
+	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: ProtoV6ProviderFactories,
 		CheckDestroy: func(state *terraform.State) error {
@@ -68,7 +69,7 @@ func TestAccResourceNcloudAutoScalingSchedule_classic_disappears(t *testing.T) {
 	resourceName := "ncloud_auto_scaling_schedule.test-schedule"
 	start := testAccNcloudAutoscalingScheduleValidStart(t)
 	end := testAccNcloudAutoscalingScheduleValidEnd(t)
-	resource.ParallelTest(t, resource.TestCase{
+	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: ClassicProtoV6ProviderFactories,
 		CheckDestroy: func(state *terraform.State) error {
@@ -80,6 +81,7 @@ func TestAccResourceNcloudAutoScalingSchedule_classic_disappears(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckNcloudAutoScalingScheduleExists(resourceName, &schedule, GetTestProvider(false)),
 					TestAccCheckResourceDisappears(GetTestProvider(false), autoscaling.ResourceNcloudAutoScalingSchedule(), resourceName),
+					resource.TestCheckResourceAttr(resourceName, "desired_capacity", "1"),
 				),
 				ExpectNonEmptyPlan: true,
 			},
@@ -93,7 +95,7 @@ func TestAccResourceNcloudAutoScalingSchedule_vpc_disappears(t *testing.T) {
 	resourceName := "ncloud_auto_scaling_schedule.test-schedule"
 	start := testAccNcloudAutoscalingScheduleValidStart(t)
 	end := testAccNcloudAutoscalingScheduleValidEnd(t)
-	resource.ParallelTest(t, resource.TestCase{
+	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: ProtoV6ProviderFactories,
 		CheckDestroy: func(state *terraform.State) error {
