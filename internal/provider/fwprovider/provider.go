@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"github.com/terraform-providers/terraform-provider-ncloud/internal/service/hadoop"
+	"github.com/terraform-providers/terraform-provider-ncloud/internal/service/objectstorage"
 
 	multierror "github.com/hashicorp/go-multierror"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
@@ -123,6 +124,10 @@ func (p *fwprovider) Resources(ctx context.Context) []func() resource.Resource {
 	resources = append(resources, redis.NewRedisConfigGroupResource)
 	resources = append(resources, redis.NewRedisResource)
 	resources = append(resources, mssql.NewMssqlResource)
+	resources = append(resources, objectstorage.NewBucketResource)
+	resources = append(resources, objectstorage.NewObjectResource)
+	resources = append(resources, objectstorage.NewObjectACLResource)
+	resources = append(resources, objectstorage.NewBucketACLResource)
 
 	if err := errs.ErrorOrNil(); err != nil {
 		tflog.Warn(ctx, "registering resources", map[string]interface{}{
