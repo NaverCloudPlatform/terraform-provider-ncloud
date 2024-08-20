@@ -247,13 +247,12 @@ func waitObjectACLApplied(ctx context.Context, config *conn.ProviderConfig, buck
 	return nil
 }
 
-// TODO: type casting between awsTypes <=> basetypes
 type objectACLResourceModel struct {
-	ID       types.String             `tfsdk:"id"` // computed
+	ID       types.String             `tfsdk:"id"`
 	ObjectID types.String             `tfsdk:"object_id"`
 	Rule     awsTypes.ObjectCannedACL `tfsdk:"rule"`
-	Grants   types.List               `tfsdk:"grants"` // computed
-	Owner    types.String             `tfsdk:"owner"`  // computed
+	Grants   types.List               `tfsdk:"grants"`
+	Owner    types.String             `tfsdk:"owner"`
 }
 
 func (o *objectACLResourceModel) refreshFromOutput(ctx context.Context, output *s3.GetObjectAclOutput) {
@@ -287,7 +286,13 @@ func (o *objectACLResourceModel) refreshFromOutput(ctx context.Context, output *
 		grantList = append(grantList, indivGrant)
 	}
 
-	listValueWithGrants, _ := convertGrantsToListValueAtObject(ctx, grantList)
+	listValueWithGrants, diag := convertGrantsToListValueAtObject(ctx, grantList)
+
+	if diag.HasError() {
+		fmt.Printf("Error Occured with parsing Grants to ListValue")
+		return
+	}
+
 	o.Grants = listValueWithGrants
 	o.ID = types.StringValue(fmt.Sprintf("bucket_acl_%s", o.ObjectID))
 	o.Owner = types.StringValue(*output.Owner.ID)

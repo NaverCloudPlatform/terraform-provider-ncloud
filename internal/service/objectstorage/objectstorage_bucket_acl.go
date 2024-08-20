@@ -278,8 +278,14 @@ func (b *bucketACLResourceModel) refreshFromOutput(ctx context.Context, output *
 		grantList = append(grantList, indivGrant)
 	}
 
-	listValueWithGrants, _ := convertGrantsToListValueAtBucket(ctx, grantList)
-	b.Grants = listValueWithGrants
+	listValueFromGrants, diag := convertGrantsToListValueAtBucket(ctx, grantList)
+
+	if diag.HasError() {
+		fmt.Printf("Error Occured with parsing Grants to ListValue")
+		return
+	}
+
+	b.Grants = listValueFromGrants
 	b.ID = types.StringValue(fmt.Sprintf("bucket_acl_%s", b.BucketID))
 	b.Owner = types.StringValue(*output.Owner.ID)
 }
