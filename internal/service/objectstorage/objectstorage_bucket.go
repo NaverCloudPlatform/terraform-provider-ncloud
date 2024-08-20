@@ -108,7 +108,7 @@ func (o *bucketResource) Delete(ctx context.Context, req resource.DeleteRequest,
 }
 
 func (o *bucketResource) Metadata(_ context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
-	resp.TypeName = req.ProviderTypeName + "_objectstorage"
+	resp.TypeName = req.ProviderTypeName + "_objectstorage_bucket"
 }
 
 func (o *bucketResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {

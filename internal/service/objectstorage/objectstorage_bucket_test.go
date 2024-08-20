@@ -19,7 +19,7 @@ import (
 func TestAccResourceNcloudObjectStorage_bucket_basic(t *testing.T) {
 	var bucket types.Bucket
 	bucketName := "tf-state-new8"
-	resourceName := "ncloud_objectstorage.testing_bucket"
+	resourceName := "ncloud_objectstorage_bucket.testing_bucket"
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { TestAccPreCheck(t) },
@@ -94,7 +94,7 @@ func testAccCheckBucketDestroy(s *terraform.State) error {
 
 func testAccBucketConfig(bucketName string) string {
 	return fmt.Sprintf(`
-	resource "ncloud_objectstorage" "testing_bucket" {
+	resource "ncloud_objectstorage_bucket" "testing_bucket" {
 		bucket_name				= "%[1]s"
 	}`, bucketName)
 }
