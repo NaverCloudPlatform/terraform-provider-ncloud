@@ -11,6 +11,8 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/s3"
 	awsTypes "github.com/aws/aws-sdk-go-v2/service/s3/types"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
+	"github.com/hashicorp/terraform-plugin-framework/attr"
+	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
@@ -18,6 +20,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
+	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
 	"github.com/terraform-providers/terraform-provider-ncloud/internal/common"
@@ -66,8 +69,39 @@ func (b *bucketACLResource) Schema(_ context.Context, req resource.SchemaRequest
 					),
 				},
 			},
-			"grants": schema.StringAttribute{
+			"grants": schema.ListNestedAttribute{
 				Computed: true,
+				NestedObject: schema.NestedAttributeObject{
+					Attributes: map[string]schema.Attribute{
+						"grantee": schema.SingleNestedAttribute{
+							Computed: true,
+							Attributes: map[string]schema.Attribute{
+								"type": schema.StringAttribute{
+									Computed: true,
+								},
+								"display_name": schema.StringAttribute{
+									Computed: true,
+									Optional: true,
+								},
+								"email_address": schema.StringAttribute{
+									Computed: true,
+									Optional: true,
+								},
+								"id": schema.StringAttribute{
+									Computed: true,
+									Optional: true,
+								},
+								"uri": schema.StringAttribute{
+									Computed: true,
+									Optional: true,
+								},
+							},
+						},
+						"permission": schema.StringAttribute{
+							Computed: true,
+						},
+					},
+				},
 			},
 			"owner": schema.StringAttribute{
 				Computed: true,
@@ -113,7 +147,7 @@ func (b *bucketACLResource) Create(ctx context.Context, req resource.CreateReque
 		return
 	}
 
-	plan.refreshFromOutput(output)
+	plan.refreshFromOutput(ctx, output)
 	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
 }
 
@@ -138,7 +172,7 @@ func (b *bucketACLResource) Read(ctx context.Context, req resource.ReadRequest, 
 		return
 	}
 
-	plan.refreshFromOutput(output)
+	plan.refreshFromOutput(ctx, output)
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
 	if resp.Diagnostics.HasError() {
@@ -209,20 +243,43 @@ type bucketACLResourceModel struct {
 	ID       types.String             `tfsdk:"id"`
 	BucketID types.String             `tfsdk:"bucket_id"`
 	Rule     awsTypes.BucketCannedACL `tfsdk:"rule"`
-	Grants   types.String             `tfsdk:"grants"`
+	Grants   types.List               `tfsdk:"grants"`
 	Owner    types.String             `tfsdk:"owner"`
 }
 
-func (b *bucketACLResourceModel) refreshFromOutput(output *s3.GetBucketAclOutput) {
+func (b *bucketACLResourceModel) refreshFromOutput(ctx context.Context, output *s3.GetBucketAclOutput) {
 	if output == nil {
 		return
 	}
+	var grantList []awsTypes.Grant
+	for _, grant := range output.Grants {
+		var indivGrant awsTypes.Grant
 
-	if len(output.Grants) != 0 {
-		b.Grants = types.StringPointerValue(output.Grants[0].Grantee.DisplayName)
-	} else {
-		b.Grants = types.StringValue("")
+		indivGrant.Grantee = &awsTypes.Grantee{}
+		indivGrant.Grantee.Type = grant.Grantee.Type
+		indivGrant.Permission = grant.Permission
+
+		if !types.StringPointerValue(grant.Grantee.ID).IsNull() {
+			indivGrant.Grantee.ID = grant.Grantee.ID
+		}
+
+		if !types.StringPointerValue(grant.Grantee.DisplayName).IsNull() {
+			indivGrant.Grantee.DisplayName = grant.Grantee.DisplayName
+		}
+
+		if !types.StringPointerValue(grant.Grantee.EmailAddress).IsNull() {
+			indivGrant.Grantee.EmailAddress = grant.Grantee.EmailAddress
+		}
+
+		if !types.StringPointerValue(grant.Grantee.URI).IsNull() {
+			indivGrant.Grantee.URI = grant.Grantee.URI
+		}
+
+		grantList = append(grantList, indivGrant)
 	}
+
+	listValueWithGrants, _ := convertGrantsToListValueAtBucket(ctx, grantList)
+	b.Grants = listValueWithGrants
 	b.ID = types.StringValue(fmt.Sprintf("bucket_acl_%s", b.BucketID))
 	b.Owner = types.StringValue(*output.Owner.ID)
 }
@@ -241,4 +298,55 @@ func BucketIDParser(id string) string {
 	}
 
 	return parts[3]
+}
+
+func convertGrantsToListValueAtBucket(ctx context.Context, grants []awsTypes.Grant) (basetypes.ListValue, diag.Diagnostics) {
+	var grantValues []attr.Value
+
+	for _, grant := range grants {
+		granteeMap := map[string]attr.Value{
+			"type":          types.StringValue(string(grant.Grantee.Type)),
+			"display_name":  types.StringPointerValue(grant.Grantee.DisplayName),
+			"email_address": types.StringPointerValue(grant.Grantee.EmailAddress),
+			"id":            types.StringPointerValue(grant.Grantee.ID),
+			"uri":           types.StringPointerValue(grant.Grantee.URI),
+		}
+
+		granteeObj, diags := types.ObjectValue(map[string]attr.Type{
+			"type":          types.StringType,
+			"display_name":  types.StringType,
+			"email_address": types.StringType,
+			"id":            types.StringType,
+			"uri":           types.StringType,
+		}, granteeMap)
+		if diags.HasError() {
+			return basetypes.ListValue{}, diags
+		}
+
+		grantMap := map[string]attr.Value{
+			"grantee":    granteeObj,
+			"permission": types.StringValue(string(grant.Permission)),
+		}
+
+		grantObj, diags := types.ObjectValue(map[string]attr.Type{
+			"grantee":    granteeObj.Type(ctx),
+			"permission": types.StringType,
+		}, grantMap)
+		if diags.HasError() {
+			return basetypes.ListValue{}, diags
+		}
+
+		grantValues = append(grantValues, grantObj)
+	}
+
+	return types.ListValue(types.ObjectType{AttrTypes: map[string]attr.Type{
+		"grantee": types.ObjectType{AttrTypes: map[string]attr.Type{
+			"type":          types.StringType,
+			"display_name":  types.StringType,
+			"email_address": types.StringType,
+			"id":            types.StringType,
+			"uri":           types.StringType,
+		}},
+		"permission": types.StringType,
+	}}, grantValues)
 }

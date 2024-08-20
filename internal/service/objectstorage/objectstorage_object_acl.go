@@ -256,45 +256,6 @@ type objectACLResourceModel struct {
 	Owner    types.String             `tfsdk:"owner"`  // computed
 }
 
-// type grant struct {
-// 	Grantee    types.ObjectType `tfsdk:"grantee"`
-// 	Permission types.String     `tfsdk:"permission"`
-// }
-
-// func (g grant) attrTypes() map[string]attr.Type {
-
-// 	return map[string]attr.Type{
-// 		"grantee": &types.ObjectType{
-// 			AttrTypes: map[string]attr.Type{
-// 				"id":            types.StringType,
-// 				"type":          types.StringType,
-// 				"display_name":  types.StringType,
-// 				"email_address": types.StringType,
-// 				"uri":           types.StringType,
-// 			},
-// 		},
-// 		"permission": types.StringType,
-// 	}
-// }
-
-// type grantee struct {
-// 	ID           types.String `tfsdk:"id"`
-// 	Type         types.String `tfsdk:"type"`
-// 	DisplayName  types.String `tfsdk:"display_name"`
-// 	EmailAddress types.String `tfsdk:"email_address"`
-// 	URI          types.String `tfsdk:"uri"`
-// }
-
-// func (ge grantee) attrTypes() map[string]attr.Type {
-// 	return map[string]attr.Type{
-// 		"id":            types.StringType,
-// 		"type":          types.StringType,
-// 		"display_name":  types.StringType,
-// 		"email_address": types.StringType,
-// 		"uri":           types.StringType,
-// 	}
-// }
-
 func (o *objectACLResourceModel) refreshFromOutput(ctx context.Context, output *s3.GetObjectAclOutput) {
 	if output == nil {
 		return
@@ -325,11 +286,11 @@ func (o *objectACLResourceModel) refreshFromOutput(ctx context.Context, output *
 
 		grantList = append(grantList, indivGrant)
 	}
-	newGrants, _ := convertGrantsToListValue(ctx, grantList)
-	o.Grants = newGrants
+
+	listValueWithGrants, _ := convertGrantsToListValueAtObject(ctx, grantList)
+	o.Grants = listValueWithGrants
 	o.ID = types.StringValue(fmt.Sprintf("bucket_acl_%s", o.ObjectID))
 	o.Owner = types.StringValue(*output.Owner.ID)
-	// logGrants, _ := listValueFromGrants(ctx, output.Grants)
 }
 
 func ObjectIDParser(id string) (bucket string, key string) {
@@ -348,7 +309,7 @@ func ObjectIDParser(id string) (bucket string, key string) {
 	return parts[3], parts[4]
 }
 
-func convertGrantsToListValue(ctx context.Context, grants []awsTypes.Grant) (basetypes.ListValue, diag.Diagnostics) {
+func convertGrantsToListValueAtObject(ctx context.Context, grants []awsTypes.Grant) (basetypes.ListValue, diag.Diagnostics) {
 	var grantValues []attr.Value
 
 	for _, grant := range grants {
