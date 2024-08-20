@@ -2,8 +2,10 @@ package conn
 
 import (
 	"fmt"
-	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/services/vhadoop"
 	"time"
+
+	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/services/vhadoop"
+	"github.com/aws/aws-sdk-go-v2/service/s3"
 
 	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/services/vautoscaling"
 	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/services/vcdss"
@@ -40,6 +42,7 @@ const DefaultTimeout = 5 * time.Minute
 const DefaultCreateTimeout = 1 * time.Hour
 const DefaultUpdateTimeout = 10 * time.Minute
 const DefaultStopTimeout = 5 * time.Minute
+const s3Endpoint = "https://kr.object.ncloudstorage.com/"
 
 var version = ""
 
@@ -47,6 +50,7 @@ type Config struct {
 	AccessKey string
 	SecretKey string
 	Region    string
+	Endpoint  string
 }
 
 type NcloudAPIClient struct {
@@ -73,6 +77,7 @@ type NcloudAPIClient struct {
 	Vmssql          *vmssql.APIClient
 	Vhadoop         *vhadoop.APIClient
 	Vredis          *vredis.APIClient
+	ObjectStorage   *s3.Client
 }
 
 func (c *Config) Client() (*NcloudAPIClient, error) {
@@ -105,6 +110,7 @@ func (c *Config) Client() (*NcloudAPIClient, error) {
 		Vmssql:          vmssql.NewAPIClient(vmssql.NewConfiguration(apiKey)),
 		Vhadoop:         vhadoop.NewAPIClient(vhadoop.NewConfiguration(apiKey)),
 		Vredis:          vredis.NewAPIClient(vredis.NewConfiguration(apiKey)),
+		ObjectStorage:   NewS3Client(c.Region, apiKey, s3Endpoint),
 	}, nil
 }
 
