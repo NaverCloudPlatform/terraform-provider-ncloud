@@ -207,7 +207,7 @@ func waitBucketCreated(ctx context.Context, config *conn.ProviderConfig, bucketN
 			}
 
 			for _, bucket := range output.Buckets {
-				if "\""+*bucket.Name+"\"" == bucketName {
+				if TrimForParsing(*bucket.Name) == bucketName {
 					return bucket, CREATED, nil
 				}
 			}

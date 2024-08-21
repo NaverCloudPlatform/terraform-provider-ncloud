@@ -300,7 +300,7 @@ func BucketIDParser(id string) string {
 		return ""
 	}
 
-	id = TrimForIDParsing(id)
+	id = TrimForParsing(id)
 
 	parts := strings.Split(id, "/")
 	if len(parts) < 4 {
@@ -361,9 +361,9 @@ func convertGrantsToListValueAtBucket(ctx context.Context, grants []awsTypes.Gra
 	}}, grantValues)
 }
 
-func TrimForIDParsing(id string) string {
-	id = strings.TrimSuffix(id, "\"")
-	id = strings.TrimPrefix(id, "\"")
+func TrimForParsing(s string) string {
+	s = strings.TrimSuffix(s, "\"")
+	s = strings.TrimPrefix(s, "\"")
 
-	return id
+	return s
 }

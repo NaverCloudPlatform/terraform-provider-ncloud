@@ -280,7 +280,7 @@ func (o *objectResourceModel) refreshFromOutput(ctx context.Context, config *con
 	}
 	defer output.Body.Close()
 
-	bucketName, key := TrimForIDParsing(o.Bucket.String()), TrimForIDParsing(o.Key.String())
+	bucketName, key := TrimForParsing(o.Bucket.String()), TrimForParsing(o.Key.String())
 
 	o.ID = types.StringValue(fmt.Sprintf("https://%s.object.ncloudstorage.com/%s/%s", strings.ToLower(config.RegionCode), bucketName, key))
 	o.ContentLength = types.Int64PointerValue(output.ContentLength)
