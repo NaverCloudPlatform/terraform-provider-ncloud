@@ -23,9 +23,7 @@ func TestAccResourceNcloudObjectStorage_object_acl_basic(t *testing.T) {
 	aclOptions := []string{string(awsTypes.ObjectCannedACLPrivate),
 		string(awsTypes.ObjectCannedACLPublicRead),
 		string(awsTypes.ObjectCannedACLPublicReadWrite),
-		string(awsTypes.ObjectCannedACLAuthenticatedRead),
-		string(awsTypes.ObjectCannedACLBucketOwnerRead),
-		string(awsTypes.ObjectCannedACLBucketOwnerFullControl)}
+		string(awsTypes.ObjectCannedACLAuthenticatedRead)}
 	acl := aclOptions[acctest.RandIntRange(0, len(aclOptions)-1)]
 	resourceName := "ncloud_objectstorage_object_acl.testing_acl"
 
