@@ -23,6 +23,13 @@ import (
 	"github.com/terraform-providers/terraform-provider-ncloud/internal/framework"
 )
 
+const (
+	CREATING = "creating"
+	CREATED  = "created"
+	DELETING = "deleting"
+	DELETED  = "deleted"
+)
+
 var (
 	_ resource.Resource                = &bucketResource{}
 	_ resource.ResourceWithConfigure   = &bucketResource{}
@@ -191,8 +198,8 @@ func (o *bucketResource) ImportState(ctx context.Context, req resource.ImportSta
 
 func waitBucketCreated(ctx context.Context, config *conn.ProviderConfig, bucketName string) error {
 	stateConf := &retry.StateChangeConf{
-		Pending: []string{"creating"},
-		Target:  []string{"created"},
+		Pending: []string{CREATING},
+		Target:  []string{CREATED},
 		Refresh: func() (interface{}, string, error) {
 			output, err := config.Client.ObjectStorage.ListBuckets(ctx, &s3.ListBucketsInput{})
 			if err != nil {
@@ -201,11 +208,11 @@ func waitBucketCreated(ctx context.Context, config *conn.ProviderConfig, bucketN
 
 			for _, bucket := range output.Buckets {
 				if "\""+*bucket.Name+"\"" == bucketName {
-					return bucket, "created", nil
+					return bucket, CREATED, nil
 				}
 			}
 
-			return output.Buckets, "creating", nil
+			return output.Buckets, CREATING, nil
 		},
 		Timeout:    conn.DefaultTimeout,
 		Delay:      5 * time.Second,
@@ -220,8 +227,8 @@ func waitBucketCreated(ctx context.Context, config *conn.ProviderConfig, bucketN
 
 func waitBucketDeleted(ctx context.Context, config *conn.ProviderConfig, bucketName string) error {
 	stateConf := &retry.StateChangeConf{
-		Pending: []string{"deleting"},
-		Target:  []string{"deleted"},
+		Pending: []string{DELETING},
+		Target:  []string{DELETED},
 		Refresh: func() (interface{}, string, error) {
 			output, err := config.Client.ObjectStorage.ListBuckets(ctx, &s3.ListBucketsInput{})
 			if err != nil {
@@ -230,11 +237,11 @@ func waitBucketDeleted(ctx context.Context, config *conn.ProviderConfig, bucketN
 
 			for _, bucket := range output.Buckets {
 				if "\""+*bucket.Name+"\"" == bucketName {
-					return bucket, "deleting", nil
+					return bucket, DELETING, nil
 				}
 			}
 
-			return output.Buckets, "deleted", nil
+			return output.Buckets, DELETED, nil
 		},
 		Timeout:    2 * conn.DefaultTimeout,
 		Delay:      5 * time.Second,

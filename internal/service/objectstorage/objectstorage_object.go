@@ -201,22 +201,22 @@ func (o *objectResource) Configure(_ context.Context, req resource.ConfigureRequ
 
 func waitObjectUploaded(ctx context.Context, config *conn.ProviderConfig, bucketName, key string) error {
 	stateConf := &retry.StateChangeConf{
-		Pending: []string{"uploading"},
-		Target:  []string{"uploaded"},
+		Pending: []string{CREATING},
+		Target:  []string{CREATED},
 		Refresh: func() (interface{}, string, error) {
 			output, err := config.Client.ObjectStorage.GetObject(ctx, &s3.GetObjectInput{
 				Bucket: ncloud.String(bucketName),
 				Key:    ncloud.String(key),
 			})
 			if output != nil {
-				return output, "uploaded", nil
+				return output, CREATED, nil
 			}
 
 			if err != nil {
-				return output, "uploading", nil
+				return output, CREATING, nil
 			}
 
-			return output, "uploading", nil
+			return output, CREATING, nil
 		},
 		Timeout:    conn.DefaultTimeout,
 		Delay:      5 * time.Second,
@@ -231,22 +231,22 @@ func waitObjectUploaded(ctx context.Context, config *conn.ProviderConfig, bucket
 
 func waitObjectDeleted(ctx context.Context, config *conn.ProviderConfig, bucketName, key string) error {
 	stateConf := &retry.StateChangeConf{
-		Pending: []string{"deleting"},
-		Target:  []string{"deleted"},
+		Pending: []string{DELETING},
+		Target:  []string{DELETED},
 		Refresh: func() (interface{}, string, error) {
 			output, err := config.Client.ObjectStorage.GetObject(ctx, &s3.GetObjectInput{
 				Bucket: ncloud.String(bucketName),
 				Key:    ncloud.String(key),
 			})
 			if output != nil {
-				return output, "deleting", nil
+				return output, DELETING, nil
 			}
 
 			if err != nil {
-				return output, "deleted", nil
+				return output, DELETED, nil
 			}
 
-			return output, "deleted", nil
+			return output, DELETED, nil
 		},
 		Timeout:    conn.DefaultTimeout,
 		Delay:      5 * time.Second,

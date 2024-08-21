@@ -28,6 +28,11 @@ import (
 	"github.com/terraform-providers/terraform-provider-ncloud/internal/framework"
 )
 
+const (
+	APPLYING = "applying"
+	APPLIED  = "applied"
+)
+
 var (
 	_ resource.Resource                = &bucketACLResource{}
 	_ resource.ResourceWithConfigure   = &bucketACLResource{}
@@ -211,22 +216,22 @@ func (b *bucketACLResource) ImportState(ctx context.Context, req resource.Import
 
 func waitBucketACLApplied(ctx context.Context, config *conn.ProviderConfig, bucketName string) error {
 	stateConf := &retry.StateChangeConf{
-		Pending: []string{"applying"},
-		Target:  []string{"applied"},
+		Pending: []string{APPLYING},
+		Target:  []string{APPLIED},
 		Refresh: func() (interface{}, string, error) {
 			output, err := config.Client.ObjectStorage.GetBucketAcl(ctx, &s3.GetBucketAclInput{
 				Bucket: ncloud.String(bucketName),
 			})
 
 			if output != nil {
-				return output, "applied", nil
+				return output, APPLIED, nil
 			}
 
 			if err != nil {
-				return output, "applying", nil
+				return output, APPLYING, nil
 			}
 
-			return output, "applying", nil
+			return output, APPLYING, nil
 		},
 		Timeout:    conn.DefaultTimeout,
 		Delay:      5 * time.Second,

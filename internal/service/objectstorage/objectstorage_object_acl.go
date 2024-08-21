@@ -217,22 +217,22 @@ func (o *objectACLResource) Configure(_ context.Context, req resource.ConfigureR
 
 func waitObjectACLApplied(ctx context.Context, config *conn.ProviderConfig, bucketName, key string) error {
 	stateConf := &retry.StateChangeConf{
-		Pending: []string{"applying"},
-		Target:  []string{"applied"},
+		Pending: []string{APPLYING},
+		Target:  []string{APPLIED},
 		Refresh: func() (interface{}, string, error) {
 			output, err := config.Client.ObjectStorage.GetObjectAcl(ctx, &s3.GetObjectAclInput{
 				Bucket: ncloud.String(bucketName),
 				Key:    ncloud.String(key),
 			})
 			if output != nil {
-				return output, "applied", nil
+				return output, APPLIED, nil
 			}
 
 			if err != nil {
-				return output, "applying", nil
+				return output, APPLYING, nil
 			}
 
-			return output, "applying", nil
+			return output, APPLYING, nil
 		},
 		Timeout:    conn.DefaultTimeout,
 		Delay:      5 * time.Second,
