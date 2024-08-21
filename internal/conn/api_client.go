@@ -18,7 +18,7 @@ func NewS3Client(region string, api *ncloud.APIKey, endpoint string) *s3.Client 
 
 	cfg, err := config.LoadDefaultConfig(context.TODO(),
 		config.WithCredentialsProvider(credentials.NewStaticCredentialsProvider(api.AccessKey, api.SecretKey, "")),
-		config.WithRegion("KR"),
+		config.WithRegion(region),
 	)
 
 	if err != nil {

@@ -2,6 +2,7 @@ package conn
 
 import (
 	"fmt"
+	"strings"
 	"time"
 
 	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/services/vhadoop"
@@ -42,7 +43,6 @@ const DefaultTimeout = 5 * time.Minute
 const DefaultCreateTimeout = 1 * time.Hour
 const DefaultUpdateTimeout = 10 * time.Minute
 const DefaultStopTimeout = 5 * time.Minute
-const s3Endpoint = "https://kr.object.ncloudstorage.com/"
 
 var version = ""
 
@@ -81,6 +81,8 @@ type NcloudAPIClient struct {
 }
 
 func (c *Config) Client() (*NcloudAPIClient, error) {
+	s3Endpoint := fmt.Sprintf("https://%s.object.ncloudstorage.com", strings.ToLower(c.Region))
+
 	apiKey := &ncloud.APIKey{
 		AccessKey: c.AccessKey,
 		SecretKey: c.SecretKey,
