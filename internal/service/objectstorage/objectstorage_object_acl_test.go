@@ -58,7 +58,6 @@ func testAccCheckObjectACLExists(n string, object *s3.GetObjectAclOutput, provid
 			Bucket: aws.String(bucketName),
 			Key:    aws.String(key),
 		})
-
 		if err != nil {
 			return err
 		}

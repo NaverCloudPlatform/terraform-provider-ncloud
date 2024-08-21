@@ -208,7 +208,6 @@ func waitObjectUploaded(ctx context.Context, config *conn.ProviderConfig, bucket
 				Bucket: aws.String(bucketName),
 				Key:    aws.String(key),
 			})
-
 			if output != nil {
 				return output, "uploaded", nil
 			}
@@ -239,7 +238,6 @@ func waitObjectDeleted(ctx context.Context, config *conn.ProviderConfig, bucketN
 				Bucket: aws.String(bucketName),
 				Key:    aws.String(key),
 			})
-
 			if output != nil {
 				return output, "deleting", nil
 			}
@@ -272,7 +270,6 @@ type objectResourceModel struct {
 	Body          types.String `tfsdk:"body"`
 }
 
-// Set Model Id Attr with ETag from output
 func (o *objectResourceModel) refreshFromOutput(ctx context.Context, config *conn.ProviderConfig) {
 	output, err := config.Client.ObjectStorage.GetObject(ctx, &s3.GetObjectInput{
 		Bucket: o.Bucket.ValueStringPointer(),
@@ -283,17 +280,17 @@ func (o *objectResourceModel) refreshFromOutput(ctx context.Context, config *con
 	}
 	defer output.Body.Close()
 
-	// Set ID to Link
-	o.ID = types.StringValue(fmt.Sprintf("https://%s.object.ncloudstorage.com/%s/%s", strings.ToLower(config.RegionCode), o.Bucket.String(), o.Key.String()))
+	bucketName, key := TrimForIDParsing(o.Bucket.String()), TrimForIDParsing(o.Key.String())
+
+	o.ID = types.StringValue(fmt.Sprintf("https://%s.object.ncloudstorage.com/%s/%s", strings.ToLower(config.RegionCode), bucketName, key))
 	o.ContentLength = types.Int64PointerValue(output.ContentLength)
 	o.ContentType = types.StringPointerValue(output.ContentType)
+	o.LastModified = types.StringValue(output.LastModified.String())
 
-	// Read the body content into a string
 	bodyBytes, err := io.ReadAll(output.Body)
 	if err != nil {
 		return
 	}
 
 	o.Body = types.StringValue(string(bodyBytes))
-	o.LastModified = types.StringValue(output.LastModified.String())
 }

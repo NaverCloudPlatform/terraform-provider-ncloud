@@ -225,7 +225,6 @@ func waitObjectACLApplied(ctx context.Context, config *conn.ProviderConfig, buck
 				Bucket: aws.String(bucketName),
 				Key:    aws.String(key),
 			})
-
 			if output != nil {
 				return output, "applied", nil
 			}
@@ -287,7 +286,6 @@ func (o *objectACLResourceModel) refreshFromOutput(ctx context.Context, output *
 	}
 
 	listValueWithGrants, diag := convertGrantsToListValueAtObject(ctx, grantList)
-
 	if diag.HasError() {
 		fmt.Printf("Error Occured with parsing Grants to ListValue")
 		return
