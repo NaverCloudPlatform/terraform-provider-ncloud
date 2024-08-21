@@ -144,7 +144,6 @@ func (o *objectACLResource) Schema(_ context.Context, req resource.SchemaRequest
 						string(awsTypes.ObjectCannedACLPublicRead),
 						string(awsTypes.ObjectCannedACLPublicReadWrite),
 						string(awsTypes.ObjectCannedACLAuthenticatedRead),
-						string(awsTypes.ObjectCannedACLAwsExecRead),
 						string(awsTypes.ObjectCannedACLBucketOwnerRead),
 						string(awsTypes.ObjectCannedACLBucketOwnerFullControl),
 					),

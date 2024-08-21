@@ -7,19 +7,26 @@ import (
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/s3"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 
+	awsTypes "github.com/aws/aws-sdk-go-v2/service/s3/types"
 	. "github.com/terraform-providers/terraform-provider-ncloud/internal/acctest"
 	"github.com/terraform-providers/terraform-provider-ncloud/internal/conn"
 	"github.com/terraform-providers/terraform-provider-ncloud/internal/service/objectstorage"
 )
 
 func TestAccResourceNcloudObjectStorage_object_acl_basic(t *testing.T) {
-	var aclOutput s3.GetObjectAclOutput
 	objectID := "https://kr.object.ncloudstorage.com/tfstate-backend/hello.md"
-	acl := "public-read-write"
+	aclOptions := []string{string(awsTypes.ObjectCannedACLPrivate),
+		string(awsTypes.ObjectCannedACLPublicRead),
+		string(awsTypes.ObjectCannedACLPublicReadWrite),
+		string(awsTypes.ObjectCannedACLAuthenticatedRead),
+		string(awsTypes.ObjectCannedACLBucketOwnerRead),
+		string(awsTypes.ObjectCannedACLBucketOwnerFullControl)}
+	acl := aclOptions[acctest.RandIntRange(0, len(aclOptions)-1)]
 	resourceName := "ncloud_objectstorage_object_acl.testing_acl"
 
 	resource.Test(t, resource.TestCase{
@@ -29,7 +36,7 @@ func TestAccResourceNcloudObjectStorage_object_acl_basic(t *testing.T) {
 			{
 				Config: testAccObjectACLConfig(objectID, acl),
 				Check: resource.ComposeAggregateTestCheckFunc(
-					testAccCheckObjectACLExists(resourceName, &aclOutput, GetTestProvider(true)),
+					testAccCheckObjectACLExists(resourceName, GetTestProvider(true)),
 					resource.TestCheckResourceAttr(resourceName, "object_id", objectID),
 					resource.TestCheckResourceAttr(resourceName, "rule", acl),
 				),
@@ -38,7 +45,7 @@ func TestAccResourceNcloudObjectStorage_object_acl_basic(t *testing.T) {
 	})
 }
 
-func testAccCheckObjectACLExists(n string, object *s3.GetObjectAclOutput, provider *schema.Provider) resource.TestCheckFunc {
+func testAccCheckObjectACLExists(n string, provider *schema.Provider) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		resource, ok := s.RootModule().Resources[n]
 		if !ok {
@@ -63,7 +70,6 @@ func testAccCheckObjectACLExists(n string, object *s3.GetObjectAclOutput, provid
 		}
 
 		if resp != nil {
-			object = resp
 			return nil
 		}
 

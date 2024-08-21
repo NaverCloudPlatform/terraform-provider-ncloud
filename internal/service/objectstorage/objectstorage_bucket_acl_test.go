@@ -7,6 +7,8 @@ import (
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/s3"
+	awsTypes "github.com/aws/aws-sdk-go-v2/service/s3/types"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
@@ -19,7 +21,11 @@ import (
 func TestAccResourceNcloudObjectStorage_bucket_acl_basic(t *testing.T) {
 	var aclOutput s3.GetBucketAclOutput
 	bucketID := "https://kr.object.ncloudstorage.com/tfstate-backend"
-	acl := "public-read-write"
+	aclOptions := []string{string(awsTypes.BucketCannedACLPrivate),
+		string(awsTypes.BucketCannedACLPublicRead),
+		string(awsTypes.BucketCannedACLPublicReadWrite),
+		string(awsTypes.BucketCannedACLAuthenticatedRead)}
+	acl := aclOptions[acctest.RandIntRange(0, len(aclOptions)-1)]
 	resourceName := "ncloud_objectstorage_bucket_acl.testing_acl"
 
 	resource.Test(t, resource.TestCase{
