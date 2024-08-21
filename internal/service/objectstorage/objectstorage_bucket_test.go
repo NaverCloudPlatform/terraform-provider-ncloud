@@ -7,7 +7,7 @@ import (
 	"testing"
 
 	"github.com/aws/aws-sdk-go-v2/service/s3"
-	"github.com/aws/aws-sdk-go-v2/service/s3/types"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
@@ -17,8 +17,7 @@ import (
 )
 
 func TestAccResourceNcloudObjectStorage_bucket_basic(t *testing.T) {
-	var bucket types.Bucket
-	bucketName := "tf-state-new8"
+	bucketName := fmt.Sprintf("tf-test-%s", acctest.RandString(5))
 	resourceName := "ncloud_objectstorage_bucket.testing_bucket"
 
 	resource.Test(t, resource.TestCase{
@@ -29,8 +28,8 @@ func TestAccResourceNcloudObjectStorage_bucket_basic(t *testing.T) {
 			{
 				Config: testAccBucketConfig(bucketName),
 				Check: resource.ComposeAggregateTestCheckFunc(
-					testAccCheckBucketExists(resourceName, &bucket, GetTestProvider(true)),
-					resource.TestMatchResourceAttr(resourceName, "id", regexp.MustCompile(`\d+$`)),
+					testAccCheckBucketExists(resourceName, GetTestProvider(true)),
+					resource.TestMatchResourceAttr(resourceName, "id", regexp.MustCompile(`^https:\/\/.*\.object\.ncloudstorage\.com\/[^\/]+\.*$`)),
 					resource.TestCheckResourceAttr(resourceName, "bucket_name", bucketName),
 				),
 			},
@@ -38,7 +37,7 @@ func TestAccResourceNcloudObjectStorage_bucket_basic(t *testing.T) {
 	})
 }
 
-func testAccCheckBucketExists(n string, objectStorage *types.Bucket, provider *schema.Provider) resource.TestCheckFunc {
+func testAccCheckBucketExists(n string, provider *schema.Provider) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		resource, ok := s.RootModule().Resources[n]
 		if !ok {
@@ -51,14 +50,12 @@ func testAccCheckBucketExists(n string, objectStorage *types.Bucket, provider *s
 
 		config := provider.Meta().(*conn.ProviderConfig)
 		resp, err := config.Client.ObjectStorage.ListBuckets(context.Background(), &s3.ListBucketsInput{})
-
 		if err != nil {
 			return err
 		}
 
 		for _, bucket := range resp.Buckets {
 			if *bucket.Name == resource.Primary.Attributes["bucket_name"] {
-				*objectStorage = bucket
 				return nil
 			}
 		}
@@ -77,7 +74,6 @@ func testAccCheckBucketDestroy(s *terraform.State) error {
 
 		config := GetTestProvider(true).Meta().(*conn.ProviderConfig)
 		resp, err := config.Client.ObjectStorage.ListBuckets(context.Background(), &s3.ListBucketsInput{})
-
 		if err != nil {
 			return err
 		}

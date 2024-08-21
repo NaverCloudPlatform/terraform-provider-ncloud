@@ -3,11 +3,11 @@ package objectstorage_test
 import (
 	"context"
 	"fmt"
+	"regexp"
 	"testing"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/s3"
-	"github.com/aws/aws-sdk-go-v2/service/s3/types"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
@@ -17,9 +17,8 @@ import (
 )
 
 func TestAccResourceNcloudObjectStorage_object_basic(t *testing.T) {
-	var object types.Object
 	bucket := "tfstate-backend"
-	key := "/test.md"
+	key := "test.md"
 	source := "./hello.md"
 	resourceName := "ncloud_objectstorage_object.testing_object"
 
@@ -31,7 +30,8 @@ func TestAccResourceNcloudObjectStorage_object_basic(t *testing.T) {
 			{
 				Config: testAccObjectConfig(bucket, key, source),
 				Check: resource.ComposeAggregateTestCheckFunc(
-					testAccCheckObjectExists(resourceName, &object, GetTestProvider(true)),
+					testAccCheckObjectExists(resourceName, GetTestProvider(true)),
+					resource.TestMatchResourceAttr(resourceName, "id", regexp.MustCompile(`^https:\/\/.*\.object\.ncloudstorage\.com\/[^\/]+\/[^\/]+\.*$`)),
 					resource.TestCheckResourceAttr(resourceName, "bucket", bucket),
 					resource.TestCheckResourceAttr(resourceName, "key", key),
 					resource.TestCheckResourceAttr(resourceName, "source", source),
@@ -41,7 +41,7 @@ func TestAccResourceNcloudObjectStorage_object_basic(t *testing.T) {
 	})
 }
 
-func testAccCheckObjectExists(n string, object *types.Object, provider *schema.Provider) resource.TestCheckFunc {
+func testAccCheckObjectExists(n string, provider *schema.Provider) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		resource, ok := s.RootModule().Resources[n]
 		if !ok {
@@ -62,10 +62,6 @@ func testAccCheckObjectExists(n string, object *types.Object, provider *schema.P
 		}
 
 		if resp != nil {
-			object = &types.Object{
-				ETag: resp.ETag,
-				Key:  aws.String(resource.Primary.Attributes["key"]),
-			}
 			return nil
 		}
 
@@ -85,7 +81,6 @@ func testAccCheckObjectDestroy(s *terraform.State) error {
 			Bucket: aws.String(rs.Primary.Attributes["bucket"]),
 			Key:    aws.String(rs.Primary.Attributes["key"]),
 		})
-
 		if resp != nil {
 			return fmt.Errorf("Object found")
 		}
