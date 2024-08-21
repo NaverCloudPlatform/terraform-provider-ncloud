@@ -70,7 +70,7 @@ func (o *bucketResource) Create(ctx context.Context, req resource.CreateRequest,
 		resp.Diagnostics.AddError("CREATING ERROR", "HeadBucket call failed")
 	}
 
-	err = waitBucketeCreated(ctx, o.config, plan.BucketName.String())
+	err = waitBucketCreated(ctx, o.config, plan.BucketName.String())
 	if err != nil {
 		resp.Diagnostics.AddError("CREATING ERROR", err.Error())
 		return
@@ -189,7 +189,7 @@ func (o *bucketResource) ImportState(ctx context.Context, req resource.ImportSta
 	resource.ImportStatePassthroughID(ctx, path.Root("id"), req, resp)
 }
 
-func waitBucketeCreated(ctx context.Context, config *conn.ProviderConfig, bucketName string) error {
+func waitBucketCreated(ctx context.Context, config *conn.ProviderConfig, bucketName string) error {
 	stateConf := &retry.StateChangeConf{
 		Pending: []string{"creating"},
 		Target:  []string{"created"},
