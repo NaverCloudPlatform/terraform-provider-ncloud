@@ -29,7 +29,7 @@ func TestAccResourceNcloudObjectStorage_bucket_basic(t *testing.T) {
 				Config: testAccBucketConfig(bucketName),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					testAccCheckBucketExists(resourceName, GetTestProvider(true)),
-					resource.TestMatchResourceAttr(resourceName, "id", regexp.MustCompile(`^https:\/\/.*\.object\.ncloudstorage\.com\/[^\/]+\.*$`)),
+					resource.TestMatchResourceAttr(resourceName, "id", regexp.MustCompile(`^[a-z0-9][a-z0-9\.-]{1,61}[a-z0-9]$`)),
 					resource.TestCheckResourceAttr(resourceName, "bucket_name", bucketName),
 				),
 			},

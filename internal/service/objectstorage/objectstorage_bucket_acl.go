@@ -58,7 +58,7 @@ func (b *bucketACLResource) Schema(_ context.Context, req resource.SchemaRequest
 				},
 				Validators: []validator.String{
 					stringvalidator.All(
-						stringvalidator.RegexMatches(regexp.MustCompile(`^https:\/\/.*\.object\.ncloudstorage\.com\/[^\/]+\.*$`), "Requires pattern with link of target bucket"),
+						stringvalidator.RegexMatches(regexp.MustCompile(`^[a-z0-9][a-z0-9\.-]{1,61}[a-z0-9]$`), "Requires pattern with link of target bucket"),
 					),
 				},
 				Description: "Target bucket id",
@@ -123,7 +123,7 @@ func (b *bucketACLResource) Create(ctx context.Context, req resource.CreateReque
 		return
 	}
 
-	bucketName := BucketIDParser(plan.BucketID.String())
+	bucketName := TrimForParsing(plan.BucketID.String())
 
 	reqParams := &s3.PutBucketAclInput{
 		Bucket: ncloud.String(bucketName),
@@ -167,7 +167,7 @@ func (b *bucketACLResource) Read(ctx context.Context, req resource.ReadRequest, 
 		return
 	}
 
-	bucketName := BucketIDParser(plan.BucketID.String())
+	bucketName := TrimForParsing(plan.BucketID.String())
 
 	output, err := b.config.Client.ObjectStorage.GetBucketAcl(ctx, &s3.GetBucketAclInput{
 		Bucket: ncloud.String(bucketName),
@@ -293,21 +293,6 @@ func (b *bucketACLResourceModel) refreshFromOutput(ctx context.Context, output *
 	b.Grants = listValueFromGrants
 	b.ID = types.StringValue(fmt.Sprintf("bucket_acl_%s", b.BucketID))
 	b.Owner = types.StringValue(*output.Owner.ID)
-}
-
-func BucketIDParser(id string) string {
-	if id == "" {
-		return ""
-	}
-
-	id = TrimForParsing(id)
-
-	parts := strings.Split(id, "/")
-	if len(parts) < 4 {
-		return ""
-	}
-
-	return parts[3]
 }
 
 func convertGrantsToListValueAtBucket(ctx context.Context, grants []awsTypes.Grant) (basetypes.ListValue, diag.Diagnostics) {
