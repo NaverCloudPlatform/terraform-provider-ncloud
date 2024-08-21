@@ -3,11 +3,13 @@ package objectstorage_test
 import (
 	"context"
 	"fmt"
+	"os"
 	"regexp"
 	"testing"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/s3"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
@@ -18,9 +20,13 @@ import (
 
 func TestAccResourceNcloudObjectStorage_object_basic(t *testing.T) {
 	bucket := "tfstate-backend"
-	key := "test.md"
-	source := "./hello.md"
+	key := fmt.Sprintf("%s.md", acctest.RandString(5))
 	resourceName := "ncloud_objectstorage_object.testing_object"
+	content := "content for file upload testing"
+
+	tmpFile := createTempFile(t, content, key)
+	source := tmpFile.Name()
+	defer os.Remove(source)
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { TestAccPreCheck(t) },
@@ -100,4 +106,20 @@ func testAccObjectConfig(bucket, key, source string) string {
 		key 				= "%[2]s"
 		source				= "%[3]s"	
 	}`, bucket, key, source)
+}
+
+func createTempFile(t *testing.T, content, key string) *os.File {
+	tmpFile, err := os.CreateTemp("", key)
+	if err != nil {
+		t.Error("Error Occur: ", err)
+	}
+
+	if _, err := tmpFile.WriteString(content); err != nil {
+		t.Error("Error Occur: ", err)
+	}
+	if err := tmpFile.Close(); err != nil {
+		t.Error("Error Occur: ", err)
+	}
+
+	return tmpFile
 }
