@@ -16,7 +16,7 @@ func TestAccDataSourceNcloudAutoScalingSchedule_classic_basic(t *testing.T) {
 	resourceName := "ncloud_auto_scaling_schedule.test-schedule"
 	start := testAccNcloudAutoscalingScheduleValidStart(t)
 	end := testAccNcloudAutoscalingScheduleValidEnd(t)
-	resource.ParallelTest(t, resource.TestCase{
+	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: ClassicProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
@@ -44,7 +44,7 @@ func TestAccDataSourceNcloudAutoScalingSchedule_vpc_basic(t *testing.T) {
 	resourceName := "ncloud_auto_scaling_schedule.test-schedule"
 	start := testAccNcloudAutoscalingScheduleValidStart(t)
 	end := testAccNcloudAutoscalingScheduleValidEnd(t)
-	resource.ParallelTest(t, resource.TestCase{
+	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: ProtoV6ProviderFactories,
 		Steps: []resource.TestStep{

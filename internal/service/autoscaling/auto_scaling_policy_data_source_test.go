@@ -15,7 +15,7 @@ func TestAccDataSourceNcloudAutoScalingPolicy_classic_basic(t *testing.T) {
 	dataName := "data.ncloud_auto_scaling_policy.policy"
 	resourceName := "ncloud_auto_scaling_policy.test-policy-CHANG"
 
-	resource.ParallelTest(t, resource.TestCase{
+	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: ClassicProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
@@ -40,7 +40,7 @@ func TestAccDataSourceNcloudAutoScalingPolicy_vpc_basic(t *testing.T) {
 	dataName := "data.ncloud_auto_scaling_policy.policy"
 	resourceName := "ncloud_auto_scaling_policy.test-policy-CHANG"
 
-	resource.ParallelTest(t, resource.TestCase{
+	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: ProtoV6ProviderFactories,
 		Steps: []resource.TestStep{

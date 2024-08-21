@@ -12,7 +12,7 @@ func TestAccDataSourceNcloudLaunchConfiguration_classic_basic(t *testing.T) {
 	dataName := "data.ncloud_launch_configuration.lc"
 	resourceName := "ncloud_launch_configuration.lc"
 
-	resource.ParallelTest(t, resource.TestCase{
+	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: ClassicProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
@@ -38,7 +38,7 @@ func TestAccDataSourceNcloudLaunchConfiguration_vpc_basic(t *testing.T) {
 	dataName := "data.ncloud_launch_configuration.lc"
 	resourceName := "ncloud_launch_configuration.lc"
 
-	resource.ParallelTest(t, resource.TestCase{
+	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: ProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
@@ -78,6 +78,7 @@ func testAccDataSourceNcloudLaunchConfigurationVpcConfig() string {
 	return `
 resource "ncloud_launch_configuration" "lc" {
 	server_image_product_code = "SW.VSVR.OS.LNX64.CNTOS.0703.B050"
+	server_product_code = "SVR.VSVR.STAND.C002.M008.NET.SSD.B050.G002"
 }
 
 data "ncloud_launch_configuration" "lc" {

@@ -14,7 +14,7 @@ func TestAccDataSourceNcloudAutoScalingAdjustmentTypes_classic_basic(t *testing.
 	policyName := fmt.Sprintf("policy-%s", acctest.RandString(5))
 	dataName := "data.ncloud_auto_scaling_adjustment_types.test"
 
-	resource.ParallelTest(t, resource.TestCase{
+	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: ClassicProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
@@ -33,7 +33,7 @@ func TestAccDataSourceNcloudAutoScalingAdjustmentTypes_vpc_basic(t *testing.T) {
 	policyName := fmt.Sprintf("policy-%s", acctest.RandString(5))
 	dataName := "data.ncloud_auto_scaling_adjustment_types.test"
 
-	resource.ParallelTest(t, resource.TestCase{
+	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: ClassicProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
@@ -50,7 +50,7 @@ func TestAccDataSourceNcloudAutoScalingAdjustmentTypes_vpc_basic(t *testing.T) {
 func TestAccDataSourceNcloudAutoScalingAdjustmentTypes_classic_byFilterCode(t *testing.T) {
 	dataName := "data.ncloud_auto_scaling_adjustment_types.by_filter"
 
-	resource.ParallelTest(t, resource.TestCase{
+	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: ClassicProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
@@ -67,7 +67,7 @@ func TestAccDataSourceNcloudAutoScalingAdjustmentTypes_classic_byFilterCode(t *t
 func TestAccDataSourceNcloudAutoScalingAdjustmentTypes_vpc_byFilterCode(t *testing.T) {
 	dataName := "data.ncloud_auto_scaling_adjustment_types.by_filter"
 
-	resource.ParallelTest(t, resource.TestCase{
+	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: ClassicProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
