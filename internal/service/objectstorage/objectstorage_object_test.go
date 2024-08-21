@@ -19,7 +19,7 @@ import (
 )
 
 func TestAccResourceNcloudObjectStorage_object_basic(t *testing.T) {
-	bucket := "tfstate-backend"
+	bucket := fmt.Sprintf("tf-bucket-%s", acctest.RandString(5))
 	key := fmt.Sprintf("%s.md", acctest.RandString(5))
 	resourceName := "ncloud_objectstorage_object.testing_object"
 	content := "content for file upload testing"
@@ -101,8 +101,12 @@ func testAccCheckObjectDestroy(s *terraform.State) error {
 
 func testAccObjectConfig(bucket, key, source string) string {
 	return fmt.Sprintf(`
+	resource "ncloud_objectstorage_bucket" "testing_bucket" {
+		bucket_name			= "%[1]s"
+	}
+
 	resource "ncloud_objectstorage_object" "testing_object" {
-		bucket				= "%[1]s"
+		bucket				= ncloud_objectstorage_bucket.testing_bucket.bucket_name
 		key 				= "%[2]s"
 		source				= "%[3]s"	
 	}`, bucket, key, source)
