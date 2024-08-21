@@ -8,7 +8,6 @@ import (
 	"github.com/aws/aws-sdk-go-v2/config"
 	"github.com/aws/aws-sdk-go-v2/credentials"
 	"github.com/aws/aws-sdk-go-v2/service/s3"
-	"github.com/aws/aws-sdk-go/aws"
 )
 
 func NewS3Client(region string, api *ncloud.APIKey, endpoint string) *s3.Client {
@@ -27,7 +26,7 @@ func NewS3Client(region string, api *ncloud.APIKey, endpoint string) *s3.Client 
 	}
 
 	newClient := s3.NewFromConfig(cfg, func(o *s3.Options) {
-		o.BaseEndpoint = aws.String(endpoint)
+		o.BaseEndpoint = ncloud.String(endpoint)
 	})
 
 	return newClient

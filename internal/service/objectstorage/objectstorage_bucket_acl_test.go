@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/ncloud"
 	"github.com/aws/aws-sdk-go-v2/service/s3"
 	awsTypes "github.com/aws/aws-sdk-go-v2/service/s3/types"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
@@ -61,7 +61,7 @@ func testAccCheckBucketACLExists(n string, object *s3.GetBucketAclOutput, provid
 
 		config := provider.Meta().(*conn.ProviderConfig)
 		resp, err := config.Client.ObjectStorage.GetBucketAcl(context.Background(), &s3.GetBucketAclInput{
-			Bucket: aws.String(bucketName),
+			Bucket: ncloud.String(bucketName),
 		})
 
 		if err != nil {

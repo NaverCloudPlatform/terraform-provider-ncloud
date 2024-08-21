@@ -7,7 +7,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/ncloud"
 	"github.com/aws/aws-sdk-go-v2/service/s3"
 	awsTypes "github.com/aws/aws-sdk-go-v2/service/s3/types"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
@@ -121,7 +121,7 @@ func (b *bucketACLResource) Create(ctx context.Context, req resource.CreateReque
 	bucketName := BucketIDParser(plan.BucketID.String())
 
 	reqParams := &s3.PutBucketAclInput{
-		Bucket: aws.String(bucketName),
+		Bucket: ncloud.String(bucketName),
 		ACL:    plan.Rule,
 	}
 
@@ -140,7 +140,7 @@ func (b *bucketACLResource) Create(ctx context.Context, req resource.CreateReque
 	}
 
 	output, err := b.config.Client.ObjectStorage.GetBucketAcl(ctx, &s3.GetBucketAclInput{
-		Bucket: aws.String(bucketName),
+		Bucket: ncloud.String(bucketName),
 	})
 	if err != nil {
 		resp.Diagnostics.AddError("READING ERROR", err.Error())
@@ -165,7 +165,7 @@ func (b *bucketACLResource) Read(ctx context.Context, req resource.ReadRequest, 
 	bucketName := BucketIDParser(plan.BucketID.String())
 
 	output, err := b.config.Client.ObjectStorage.GetBucketAcl(ctx, &s3.GetBucketAclInput{
-		Bucket: aws.String(bucketName),
+		Bucket: ncloud.String(bucketName),
 	})
 	if err != nil {
 		resp.Diagnostics.AddError("READING ERROR", err.Error())
@@ -215,7 +215,7 @@ func waitBucketACLApplied(ctx context.Context, config *conn.ProviderConfig, buck
 		Target:  []string{"applied"},
 		Refresh: func() (interface{}, string, error) {
 			output, err := config.Client.ObjectStorage.GetBucketAcl(ctx, &s3.GetBucketAclInput{
-				Bucket: aws.String(bucketName),
+				Bucket: ncloud.String(bucketName),
 			})
 
 			if output != nil {

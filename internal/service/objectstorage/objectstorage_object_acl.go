@@ -7,6 +7,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/ncloud"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
@@ -26,7 +27,6 @@ import (
 
 	"github.com/aws/aws-sdk-go-v2/service/s3"
 	awsTypes "github.com/aws/aws-sdk-go-v2/service/s3/types"
-	"github.com/aws/aws-sdk-go/aws"
 )
 
 var (
@@ -54,8 +54,8 @@ func (o *objectACLResource) Create(ctx context.Context, req resource.CreateReque
 	bucketName, key := ObjectIDParser(plan.ObjectID.String())
 
 	reqParams := &s3.PutObjectAclInput{
-		Bucket: aws.String(bucketName),
-		Key:    aws.String(key),
+		Bucket: ncloud.String(bucketName),
+		Key:    ncloud.String(key),
 		ACL:    plan.Rule,
 	}
 
@@ -74,8 +74,8 @@ func (o *objectACLResource) Create(ctx context.Context, req resource.CreateReque
 	}
 
 	output, err := o.config.Client.ObjectStorage.GetObjectAcl(ctx, &s3.GetObjectAclInput{
-		Bucket: aws.String(bucketName),
-		Key:    aws.String(key),
+		Bucket: ncloud.String(bucketName),
+		Key:    ncloud.String(key),
 	})
 	if err != nil {
 		resp.Diagnostics.AddError("READING ERROR", err.Error())
@@ -104,8 +104,8 @@ func (o *objectACLResource) Read(ctx context.Context, req resource.ReadRequest, 
 	bucketName, key := ObjectIDParser(plan.ObjectID.String())
 
 	output, err := o.config.Client.ObjectStorage.GetObjectAcl(ctx, &s3.GetObjectAclInput{
-		Bucket: aws.String(bucketName),
-		Key:    aws.String(key),
+		Bucket: ncloud.String(bucketName),
+		Key:    ncloud.String(key),
 	})
 	if err != nil {
 		resp.Diagnostics.AddError("READING ERROR", err.Error())
@@ -221,8 +221,8 @@ func waitObjectACLApplied(ctx context.Context, config *conn.ProviderConfig, buck
 		Target:  []string{"applied"},
 		Refresh: func() (interface{}, string, error) {
 			output, err := config.Client.ObjectStorage.GetObjectAcl(ctx, &s3.GetObjectAclInput{
-				Bucket: aws.String(bucketName),
-				Key:    aws.String(key),
+				Bucket: ncloud.String(bucketName),
+				Key:    ncloud.String(key),
 			})
 			if output != nil {
 				return output, "applied", nil

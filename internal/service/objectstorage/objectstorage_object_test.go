@@ -7,7 +7,7 @@ import (
 	"regexp"
 	"testing"
 
-	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/ncloud"
 	"github.com/aws/aws-sdk-go-v2/service/s3"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
@@ -60,8 +60,8 @@ func testAccCheckObjectExists(n string, provider *schema.Provider) resource.Test
 
 		config := provider.Meta().(*conn.ProviderConfig)
 		resp, err := config.Client.ObjectStorage.GetObject(context.Background(), &s3.GetObjectInput{
-			Bucket: aws.String(resource.Primary.Attributes["bucket"]),
-			Key:    aws.String(resource.Primary.Attributes["key"]),
+			Bucket: ncloud.String(resource.Primary.Attributes["bucket"]),
+			Key:    ncloud.String(resource.Primary.Attributes["key"]),
 		})
 		if err != nil {
 			return err
@@ -84,8 +84,8 @@ func testAccCheckObjectDestroy(s *terraform.State) error {
 		}
 
 		resp, err := config.Client.ObjectStorage.GetObject(context.Background(), &s3.GetObjectInput{
-			Bucket: aws.String(rs.Primary.Attributes["bucket"]),
-			Key:    aws.String(rs.Primary.Attributes["key"]),
+			Bucket: ncloud.String(rs.Primary.Attributes["bucket"]),
+			Key:    ncloud.String(rs.Primary.Attributes["key"]),
 		})
 		if resp != nil {
 			return fmt.Errorf("Object found")
