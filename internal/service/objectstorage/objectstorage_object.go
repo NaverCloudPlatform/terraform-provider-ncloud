@@ -141,8 +141,15 @@ func (o *objectResource) Schema(_ context.Context, req resource.SchemaRequest, r
 				},
 				Validators: []validator.String{
 					stringvalidator.All(
-						stringvalidator.LengthBetween(3, 15),
-						stringvalidator.RegexMatches(regexp.MustCompile(`^[가-힣A-Za-z0-9-]+$`), "Allows only hangeuls, alphabets, numbers, hyphen (-)."),
+						stringvalidator.LengthBetween(3, 63),
+						stringvalidator.RegexMatches(
+							regexp.MustCompile(`^[a-z0-9][a-z0-9\.-]{1,61}[a-z0-9]$`),
+							"Bucket name must be between 3 and 63 characters long, can contain lowercase letters, numbers, periods, and hyphens. It must start and end with a letter or number, and cannot have consecutive periods.",
+						),
+						stringvalidator.RegexMatches(
+							regexp.MustCompile(`^(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}$|.+)`),
+							"Bucket name cannot be formatted as an IP address.",
+						),
 					),
 				},
 				Description: "Bucket name for object",
@@ -293,4 +300,20 @@ func (o *objectResourceModel) refreshFromOutput(ctx context.Context, config *con
 	}
 
 	o.Body = types.StringValue(string(bodyBytes))
+}
+
+func ObjectIDParser(id string) (bucket string, key string) {
+	if id == "" {
+		return "", ""
+	}
+
+	id = strings.TrimPrefix(id, "\"")
+	id = strings.TrimSuffix(id, "\"")
+
+	parts := strings.Split(id, "/")
+	if len(parts) < 5 {
+		return "", ""
+	}
+
+	return parts[3], parts[4]
 }

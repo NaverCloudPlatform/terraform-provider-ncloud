@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"regexp"
-	"strings"
 	"time"
 
 	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/ncloud"
@@ -293,22 +292,6 @@ func (o *objectACLResourceModel) refreshFromOutput(ctx context.Context, output *
 	o.Grants = listValueWithGrants
 	o.ID = types.StringValue(fmt.Sprintf("bucket_acl_%s", o.ObjectID))
 	o.Owner = types.StringValue(*output.Owner.ID)
-}
-
-func ObjectIDParser(id string) (bucket string, key string) {
-	if id == "" {
-		return "", ""
-	}
-
-	id = strings.TrimPrefix(id, "\"")
-	id = strings.TrimSuffix(id, "\"")
-
-	parts := strings.Split(id, "/")
-	if len(parts) < 5 {
-		return "", ""
-	}
-
-	return parts[3], parts[4]
 }
 
 func convertGrantsToListValueAtObject(ctx context.Context, grants []awsTypes.Grant) (basetypes.ListValue, diag.Diagnostics) {

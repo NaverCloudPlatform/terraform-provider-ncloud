@@ -24,7 +24,7 @@ func TestAccResourceNcloudObjectStorage_object_basic(t *testing.T) {
 	resourceName := "ncloud_objectstorage_object.testing_object"
 	content := "content for file upload testing"
 
-	tmpFile := createTempFile(t, content, key)
+	tmpFile := CreateTempFile(t, content, key)
 	source := tmpFile.Name()
 	defer os.Remove(source)
 
@@ -112,7 +112,7 @@ func testAccObjectConfig(bucket, key, source string) string {
 	}`, bucket, key, source)
 }
 
-func createTempFile(t *testing.T, content, key string) *os.File {
+func CreateTempFile(t *testing.T, content, key string) *os.File {
 	tmpFile, err := os.CreateTemp("", key)
 	if err != nil {
 		t.Error("Error Occur: ", err)
