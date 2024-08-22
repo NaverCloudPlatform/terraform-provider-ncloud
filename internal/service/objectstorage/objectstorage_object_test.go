@@ -37,7 +37,7 @@ func TestAccResourceNcloudObjectStorage_object_basic(t *testing.T) {
 				Config: testAccObjectConfig(bucket, key, source),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					testAccCheckObjectExists(resourceName, GetTestProvider(true)),
-					resource.TestMatchResourceAttr(resourceName, "id", regexp.MustCompile(`^https:\/\/.*\.object\.ncloudstorage\.com\/[^\/]+\/[^\/]+\.*$`)),
+					resource.TestMatchResourceAttr(resourceName, "id", regexp.MustCompile(`^objectstorage_object::[a-z]{2}::[a-z0-9-_]+::[a-zA-Z0-9_.-]+$`)),
 					resource.TestCheckResourceAttr(resourceName, "bucket", bucket),
 					resource.TestCheckResourceAttr(resourceName, "key", key),
 					resource.TestCheckResourceAttr(resourceName, "source", source),

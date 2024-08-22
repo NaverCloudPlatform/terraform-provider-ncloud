@@ -57,7 +57,7 @@ func (o *objectDataSource) Read(ctx context.Context, req datasource.ReadRequest,
 		return
 	}
 
-	bucketName, key := ObjectIDParser(data.ObjectID.String())
+	_, _, bucketName, key := ObjectIDParser(data.ObjectID.String())
 
 	output, err := o.config.Client.ObjectStorage.GetObject(ctx, &s3.GetObjectInput{
 		Bucket: ncloud.String(bucketName),
@@ -68,7 +68,7 @@ func (o *objectDataSource) Read(ctx context.Context, req datasource.ReadRequest,
 	}
 	defer output.Body.Close()
 
-	data.ID = types.StringValue(fmt.Sprintf("https://%s.object.ncloudstorage.com/%s/%s", strings.ToLower(o.config.RegionCode), bucketName, key))
+	data.ID = types.StringValue(ObjectIDGenerator(strings.ToLower(o.config.RegionCode), bucketName, key))
 	data.ContentLength = types.Int64PointerValue(output.ContentLength)
 	data.ContentType = types.StringPointerValue(output.ContentType)
 	data.LastModified = types.StringValue(output.LastModified.String())

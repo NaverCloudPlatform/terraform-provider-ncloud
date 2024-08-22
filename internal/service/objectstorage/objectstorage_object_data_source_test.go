@@ -29,7 +29,7 @@ func TestAccDataSourceNcloudObjectStorage_object_basic(t *testing.T) {
 			{
 				Config: testAccDataSourceObjectConfig(bucket, key, source),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestMatchResourceAttr(resourceName, "id", regexp.MustCompile(`^https:\/\/.*\.object\.ncloudstorage\.com\/[^\/]+\/[^\/]+\.*$`)),
+					resource.TestMatchResourceAttr(resourceName, "id", regexp.MustCompile(`^objectstorage_object::[a-z]{2}::[a-z0-9-_]+::[a-zA-Z0-9_.-]+$`)),
 					resource.TestCheckResourceAttrPair(dataName, "object_id", resourceName, "id"),
 				),
 			},

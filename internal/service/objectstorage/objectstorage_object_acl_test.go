@@ -3,6 +3,7 @@ package objectstorage_test
 import (
 	"context"
 	"fmt"
+	"strings"
 	"testing"
 
 	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/ncloud"
@@ -19,7 +20,7 @@ import (
 )
 
 func TestAccResourceNcloudObjectStorage_object_acl_basic(t *testing.T) {
-	objectID := "https://kr.object.ncloudstorage.com/tfstate-backend/hello.md"
+	objectID := objectstorage.ObjectIDGenerator(strings.ToLower("KR"), "tfstate-backend", "hello.md")
 	aclOptions := []string{string(awsTypes.ObjectCannedACLPrivate),
 		string(awsTypes.ObjectCannedACLPublicRead),
 		string(awsTypes.ObjectCannedACLPublicReadWrite),
@@ -56,7 +57,7 @@ func testAccCheckObjectACLExists(n string, provider *schema.Provider) resource.T
 
 		objectID := resource.Primary.Attributes["object_id"]
 
-		bucketName, key := objectstorage.ObjectIDParser(objectID)
+		_, _, bucketName, key := objectstorage.ObjectIDParser(objectID)
 
 		config := provider.Meta().(*conn.ProviderConfig)
 		resp, err := config.Client.ObjectStorage.GetObjectAcl(context.Background(), &s3.GetObjectAclInput{
