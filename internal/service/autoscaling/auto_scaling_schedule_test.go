@@ -33,6 +33,7 @@ func TestAccResourceNcloudAutoScalingSchedule_classic_basic(t *testing.T) {
 				Config: testAccNcloudAutoScalingScheduleClassicConfig(name, start, end),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckNcloudAutoScalingScheduleExists(resourceName, &schedule, GetTestProvider(false)),
+					resource.TestCheckResourceAttr(resourceName, "desired_capacity", "1"),
 				),
 			},
 		},
@@ -80,6 +81,7 @@ func TestAccResourceNcloudAutoScalingSchedule_classic_disappears(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckNcloudAutoScalingScheduleExists(resourceName, &schedule, GetTestProvider(false)),
 					TestAccCheckResourceDisappears(GetTestProvider(false), autoscaling.ResourceNcloudAutoScalingSchedule(), resourceName),
+					resource.TestCheckResourceAttr(resourceName, "desired_capacity", "1"),
 				),
 				ExpectNonEmptyPlan: true,
 			},
