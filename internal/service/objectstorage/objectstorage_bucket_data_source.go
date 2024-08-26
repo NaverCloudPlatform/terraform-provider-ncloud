@@ -62,6 +62,9 @@ func (b *bucketDataSource) Read(ctx context.Context, req datasource.ReadRequest,
 		return
 	}
 
+	data.OwnerID = types.StringValue(*output.Owner.ID)
+	data.OwnerDisplayName = types.StringValue(*output.Owner.DisplayName)
+
 	for _, bucket := range output.Buckets {
 		if *bucket.Name == *data.BucketName.ValueStringPointer() {
 			_, err := b.config.Client.ObjectStorage.HeadBucket(ctx, &s3.HeadBucketInput{
@@ -73,6 +76,10 @@ func (b *bucketDataSource) Read(ctx context.Context, req datasource.ReadRequest,
 
 			data.ID = types.StringValue(*bucket.Name)
 			data.BucketName = types.StringValue(*bucket.Name)
+
+			if !data.CreationDate.IsNull() || !data.CreationDate.IsUnknown() {
+				data.CreationDate = types.StringValue(bucket.CreationDate.String())
+			}
 
 			break
 		}
@@ -107,11 +114,24 @@ func (b *bucketDataSource) Schema(_ context.Context, _ datasource.SchemaRequest,
 				},
 				Description: "Bucket Name for Object Storage",
 			},
+			"owner_id": schema.StringAttribute{
+				Computed: true,
+			},
+			"owner_displayname": schema.StringAttribute{
+				Computed: true,
+			},
+			"creation_date": schema.StringAttribute{
+				Computed: true,
+				Optional: true,
+			},
 		},
 	}
 }
 
 type bucketDataSourceModel struct {
-	ID         types.String `tfsdk:"id"`
-	BucketName types.String `tfsdk:"bucket_name"`
+	ID               types.String `tfsdk:"id"`
+	BucketName       types.String `tfsdk:"bucket_name"`
+	OwnerID          types.String `tfsdk:"owner_id"`
+	OwnerDisplayName types.String `tfsdk:"owner_displayname"`
+	CreationDate     types.String `tfsdk:"creation_date"`
 }
