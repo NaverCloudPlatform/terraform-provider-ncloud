@@ -182,7 +182,10 @@ func (o *objectACLResource) Schema(_ context.Context, req resource.SchemaRequest
 					},
 				},
 			},
-			"owner": schema.StringAttribute{
+			"owner_id": schema.StringAttribute{
+				Computed: true,
+			},
+			"owner_displayname": schema.StringAttribute{
 				Computed: true,
 			},
 		},
@@ -245,11 +248,12 @@ func waitObjectACLApplied(ctx context.Context, config *conn.ProviderConfig, buck
 }
 
 type objectACLResourceModel struct {
-	ID       types.String             `tfsdk:"id"`
-	ObjectID types.String             `tfsdk:"object_id"`
-	Rule     awsTypes.ObjectCannedACL `tfsdk:"rule"`
-	Grants   types.List               `tfsdk:"grants"`
-	Owner    types.String             `tfsdk:"owner"`
+	ID               types.String             `tfsdk:"id"`
+	ObjectID         types.String             `tfsdk:"object_id"`
+	Rule             awsTypes.ObjectCannedACL `tfsdk:"rule"`
+	Grants           types.List               `tfsdk:"grants"`
+	OwnerID          types.String             `tfsdk:"owner_id"`
+	OwnerDisplayName types.String             `tfsdk:"owner_displayname"`
 }
 
 func (o *objectACLResourceModel) refreshFromOutput(ctx context.Context, output *s3.GetObjectAclOutput) {
@@ -291,7 +295,8 @@ func (o *objectACLResourceModel) refreshFromOutput(ctx context.Context, output *
 
 	o.Grants = listValueWithGrants
 	o.ID = types.StringValue(fmt.Sprintf("bucket_acl_%s", o.ObjectID))
-	o.Owner = types.StringValue(*output.Owner.ID)
+	o.OwnerID = types.StringValue(*output.Owner.ID)
+	o.OwnerDisplayName = types.StringValue(*output.Owner.DisplayName)
 }
 
 func convertGrantsToListValueAtObject(ctx context.Context, grants []awsTypes.Grant) (basetypes.ListValue, diag.Diagnostics) {
