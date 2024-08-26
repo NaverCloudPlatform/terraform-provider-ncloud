@@ -3,7 +3,7 @@ package objectstorage_test
 import (
 	"context"
 	"fmt"
-	"strings"
+	"os"
 	"testing"
 
 	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/ncloud"
@@ -20,7 +20,9 @@ import (
 )
 
 func TestAccResourceNcloudObjectStorage_object_acl_basic(t *testing.T) {
-	objectID := objectstorage.ObjectIDGenerator(strings.ToLower("KR"), "tfstate-backend", "hello.md")
+	bucketName := fmt.Sprintf("tf-bucket-%s", acctest.RandString(5))
+	key := fmt.Sprintf("%s.md", acctest.RandString(5))
+	content := "content for file upload testing"
 	aclOptions := []string{string(awsTypes.ObjectCannedACLPrivate),
 		string(awsTypes.ObjectCannedACLPublicRead),
 		string(awsTypes.ObjectCannedACLPublicReadWrite),
@@ -28,15 +30,18 @@ func TestAccResourceNcloudObjectStorage_object_acl_basic(t *testing.T) {
 	acl := aclOptions[acctest.RandIntRange(0, len(aclOptions)-1)]
 	resourceName := "ncloud_objectstorage_object_acl.testing_acl"
 
+	tmpFile := CreateTempFile(t, content, key)
+	source := tmpFile.Name()
+	defer os.Remove(source)
+
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: ProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccObjectACLConfig(objectID, acl),
+				Config: testAccObjectACLConfig(bucketName, key, source, acl),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					testAccCheckObjectACLExists(resourceName, GetTestProvider(true)),
-					resource.TestCheckResourceAttr(resourceName, "object_id", objectID),
 					resource.TestCheckResourceAttr(resourceName, "rule", acl),
 				),
 			},
@@ -76,10 +81,20 @@ func testAccCheckObjectACLExists(n string, provider *schema.Provider) resource.T
 	}
 }
 
-func testAccObjectACLConfig(objectID, acl string) string {
+func testAccObjectACLConfig(bucketName, key, source, acl string) string {
 	return fmt.Sprintf(`
+	resource "ncloud_objectstorage_bucket" "testing_bucket" {
+		bucket_name			= "%[1]s"
+	}
+
+	resource "ncloud_objectstorage_object" "testing_object" {
+		bucket 				= ncloud_objectstorage_bucket.testing_bucket.bucket_name
+		key					= "%[2]s"
+		source				= "%[3]s"
+	}
+
 	resource "ncloud_objectstorage_object_acl" "testing_acl" {
-		object_id			= "%[1]s"
-		rule				= "%[2]s" 
-	}`, objectID, acl)
+		object_id			= ncloud_objectstorage_object.testing_object.id
+		rule				= "%[4]s" 
+	}`, bucketName, key, source, acl)
 }

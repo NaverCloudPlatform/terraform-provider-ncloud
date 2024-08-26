@@ -19,7 +19,7 @@ import (
 )
 
 func TestAccResourceNcloudObjectStorage_object_basic(t *testing.T) {
-	bucket := fmt.Sprintf("tf-bucket-%s", acctest.RandString(5))
+	bucketName := fmt.Sprintf("tf-bucket-%s", acctest.RandString(5))
 	key := fmt.Sprintf("%s.md", acctest.RandString(5))
 	resourceName := "ncloud_objectstorage_object.testing_object"
 	content := "content for file upload testing"
@@ -34,11 +34,11 @@ func TestAccResourceNcloudObjectStorage_object_basic(t *testing.T) {
 		CheckDestroy:             testAccCheckObjectDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccObjectConfig(bucket, key, source),
+				Config: testAccObjectConfig(bucketName, key, source),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					testAccCheckObjectExists(resourceName, GetTestProvider(true)),
 					resource.TestMatchResourceAttr(resourceName, "id", regexp.MustCompile(`^objectstorage_object::[a-z]{2}::[a-z0-9-_]+::[a-zA-Z0-9_.-]+$`)),
-					resource.TestCheckResourceAttr(resourceName, "bucket", bucket),
+					resource.TestCheckResourceAttr(resourceName, "bucket", bucketName),
 					resource.TestCheckResourceAttr(resourceName, "key", key),
 					resource.TestCheckResourceAttr(resourceName, "source", source),
 				),
@@ -99,7 +99,7 @@ func testAccCheckObjectDestroy(s *terraform.State) error {
 	return nil
 }
 
-func testAccObjectConfig(bucket, key, source string) string {
+func testAccObjectConfig(bucketName, key, source string) string {
 	return fmt.Sprintf(`
 	resource "ncloud_objectstorage_bucket" "testing_bucket" {
 		bucket_name			= "%[1]s"
@@ -109,7 +109,7 @@ func testAccObjectConfig(bucket, key, source string) string {
 		bucket				= ncloud_objectstorage_bucket.testing_bucket.bucket_name
 		key 				= "%[2]s"
 		source				= "%[3]s"	
-	}`, bucket, key, source)
+	}`, bucketName, key, source)
 }
 
 func CreateTempFile(t *testing.T, content, key string) *os.File {
