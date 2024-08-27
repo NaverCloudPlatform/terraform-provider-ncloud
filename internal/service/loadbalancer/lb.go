@@ -21,6 +21,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
 
+	"github.com/hashicorp/terraform-plugin-framework-timeouts/resource/timeouts"
 	"github.com/terraform-providers/terraform-provider-ncloud/internal/common"
 	. "github.com/terraform-providers/terraform-provider-ncloud/internal/common"
 	"github.com/terraform-providers/terraform-provider-ncloud/internal/conn"
@@ -58,7 +59,7 @@ func (l *lbResource) Metadata(ctx context.Context, req resource.MetadataRequest,
 	resp.TypeName = req.ProviderTypeName + "_lb"
 }
 
-func (l *lbResource) Schema(_ context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
+func (l *lbResource) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = schema.Schema{
 		Attributes: map[string]schema.Attribute{
 			"load_balancer_no": schema.StringAttribute{
@@ -133,6 +134,11 @@ func (l *lbResource) Schema(_ context.Context, req resource.SchemaRequest, resp 
 				Computed:    true,
 			},
 		},
+		Blocks: map[string]schema.Block{
+			"timeouts": timeouts.Block(ctx, timeouts.Opts{
+				Create: true,
+			}),
+		},
 	}
 }
 
@@ -159,6 +165,17 @@ func (l *lbResource) Create(ctx context.Context, req resource.CreateRequest, res
 	if resp.Diagnostics.HasError() {
 		return
 	}
+
+	createTimeout, diags := plan.Timeouts.Create(ctx, conn.DefaultCreateTimeout)
+
+	resp.Diagnostics.Append(diags...)
+
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
+	ctx, cancel := context.WithTimeout(ctx, createTimeout)
+	defer cancel()
 
 	// Validate throughput_type for NETWORK load balancer type
 	throughputType := plan.ThroughputType.ValueString()
@@ -307,6 +324,17 @@ func (l *lbResource) Update(ctx context.Context, req resource.UpdateRequest, res
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &plan)...)
 	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
 
+	updateTimeout, diags := state.Timeouts.Update(ctx, conn.DefaultUpdateTimeout)
+
+	resp.Diagnostics.Append(diags...)
+
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
+	ctx, cancel := context.WithTimeout(ctx, updateTimeout)
+	defer cancel()
+
 	if resp.Diagnostics.HasError() {
 		return
 	}
@@ -357,6 +385,17 @@ func (l *lbResource) Delete(ctx context.Context, req resource.DeleteRequest, res
 	if resp.Diagnostics.HasError() {
 		return
 	}
+
+	deleteTimeout, diags := state.Timeouts.Delete(ctx, conn.DefaultTimeout)
+
+	resp.Diagnostics.Append(diags...)
+
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
+	ctx, cancel := context.WithTimeout(ctx, deleteTimeout)
+	defer cancel()
 
 	reqParams := &vloadbalancer.DeleteLoadBalancerInstancesRequest{
 		RegionCode:                 &l.config.RegionCode,
@@ -562,17 +601,18 @@ func convertVpcLoadBalancer(instance *vloadbalancer.LoadBalancerInstance) *LoadB
 }
 
 type lbResourceModel struct {
-	ID             types.String `tfsdk:"id"`
-	LoadBalancerNo types.String `tfsdk:"load_balancer_no"`
-	Name           types.String `tfsdk:"name"`
-	Description    types.String `tfsdk:"description"`
-	Domain         types.String `tfsdk:"domain"`
-	NetworkType    types.String `tfsdk:"network_type"`
-	IdleTimeout    types.Int64  `tfsdk:"idle_timeout"`
-	Type           types.String `tfsdk:"type"`
-	ThroughputType types.String `tfsdk:"throughput_type"`
-	VpcNo          types.String `tfsdk:"vpc_no"`
-	SubnetNoList   types.List   `tfsdk:"subnet_no_list"`
-	IpList         types.List   `tfsdk:"ip_list"`
-	ListenerNoList types.List   `tfsdk:"listener_no_list"`
+	ID             types.String   `tfsdk:"id"`
+	LoadBalancerNo types.String   `tfsdk:"load_balancer_no"`
+	Name           types.String   `tfsdk:"name"`
+	Description    types.String   `tfsdk:"description"`
+	Domain         types.String   `tfsdk:"domain"`
+	NetworkType    types.String   `tfsdk:"network_type"`
+	IdleTimeout    types.Int64    `tfsdk:"idle_timeout"`
+	Type           types.String   `tfsdk:"type"`
+	ThroughputType types.String   `tfsdk:"throughput_type"`
+	VpcNo          types.String   `tfsdk:"vpc_no"`
+	SubnetNoList   types.List     `tfsdk:"subnet_no_list"`
+	IpList         types.List     `tfsdk:"ip_list"`
+	ListenerNoList types.List     `tfsdk:"listener_no_list"`
+	Timeouts       timeouts.Value `tfsdk:"timeouts"`
 }

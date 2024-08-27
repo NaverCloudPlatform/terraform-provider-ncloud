@@ -6,7 +6,8 @@ require (
 	github.com/NaverCloudPlatform/ncloud-sdk-go-v2 v1.6.11
 	github.com/hashicorp/go-multierror v1.1.1
 	github.com/hashicorp/terraform-plugin-framework v1.3.2
-	github.com/hashicorp/terraform-plugin-go v0.17.0
+	github.com/hashicorp/terraform-plugin-framework-timeouts v0.4.1
+	github.com/hashicorp/terraform-plugin-go v0.18.0
 	github.com/hashicorp/terraform-plugin-log v0.9.0
 	github.com/hashicorp/terraform-plugin-mux v0.11.1
 	github.com/hashicorp/terraform-plugin-sdk/v2 v2.26.1
