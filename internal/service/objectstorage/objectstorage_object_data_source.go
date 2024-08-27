@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"io"
-	"strings"
 
 	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/ncloud"
 	"github.com/aws/aws-sdk-go-v2/service/s3"
@@ -57,7 +56,7 @@ func (o *objectDataSource) Read(ctx context.Context, req datasource.ReadRequest,
 		return
 	}
 
-	_, _, bucketName, key := ObjectIDParser(data.ObjectID.String())
+	bucketName, key := ObjectIDParser(data.ObjectID.String())
 
 	output, err := o.config.Client.ObjectStorage.GetObject(ctx, &s3.GetObjectInput{
 		Bucket: ncloud.String(bucketName),
@@ -68,7 +67,7 @@ func (o *objectDataSource) Read(ctx context.Context, req datasource.ReadRequest,
 	}
 	defer output.Body.Close()
 
-	data.ID = types.StringValue(ObjectIDGenerator(strings.ToLower(o.config.RegionCode), bucketName, key))
+	data.ID = types.StringValue(ObjectIDGenerator(bucketName, key))
 	data.ContentLength = types.Int64PointerValue(output.ContentLength)
 	data.ContentType = types.StringPointerValue(output.ContentType)
 	data.LastModified = types.StringValue(output.LastModified.String())

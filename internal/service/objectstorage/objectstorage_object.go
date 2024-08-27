@@ -289,7 +289,7 @@ func (o *objectResourceModel) refreshFromOutput(ctx context.Context, config *con
 
 	bucketName, key := TrimForParsing(o.Bucket.String()), TrimForParsing(o.Key.String())
 
-	o.ID = types.StringValue(ObjectIDGenerator(strings.ToLower(config.RegionCode), bucketName, key))
+	o.ID = types.StringValue(ObjectIDGenerator(bucketName, key))
 	o.ContentLength = types.Int64PointerValue(output.ContentLength)
 	o.ContentType = types.StringPointerValue(output.ContentType)
 	o.LastModified = types.StringValue(output.LastModified.String())
@@ -302,22 +302,22 @@ func (o *objectResourceModel) refreshFromOutput(ctx context.Context, config *con
 	o.Body = types.StringValue(string(bodyBytes))
 }
 
-func ObjectIDGenerator(region, bucketName, key string) string {
-	return fmt.Sprintf("objectstorage_object::%s::%s::%s", region, bucketName, key)
+func ObjectIDGenerator(bucketName, key string) string {
+	return fmt.Sprintf("%s::%s", bucketName, key)
 }
 
-func ObjectIDParser(id string) (resource, region, bucketName, key string) {
+func ObjectIDParser(id string) (bucketName, key string) {
 	if id == "" {
-		return "", "", "", ""
+		return "", ""
 	}
 
 	id = strings.TrimPrefix(id, "\"")
 	id = strings.TrimSuffix(id, "\"")
 
 	parts := strings.Split(id, "::")
-	if len(parts) < 3 {
-		return "", "", "", ""
+	if len(parts) < 2 {
+		return "", ""
 	}
 
-	return parts[0], parts[1], parts[2], parts[3]
+	return parts[0], parts[1]
 }

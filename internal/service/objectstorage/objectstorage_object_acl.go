@@ -50,7 +50,7 @@ func (o *objectACLResource) Create(ctx context.Context, req resource.CreateReque
 		return
 	}
 
-	_, _, bucketName, key := ObjectIDParser(plan.ObjectID.String())
+	bucketName, key := ObjectIDParser(plan.ObjectID.String())
 
 	reqParams := &s3.PutObjectAclInput{
 		Bucket: ncloud.String(bucketName),
@@ -100,7 +100,7 @@ func (o *objectACLResource) Read(ctx context.Context, req resource.ReadRequest, 
 		return
 	}
 
-	_, _, bucketName, key := ObjectIDParser(plan.ObjectID.String())
+	bucketName, key := ObjectIDParser(plan.ObjectID.String())
 
 	output, err := o.config.Client.ObjectStorage.GetObjectAcl(ctx, &s3.GetObjectAclInput{
 		Bucket: ncloud.String(bucketName),
@@ -130,7 +130,7 @@ func (o *objectACLResource) Schema(_ context.Context, req resource.SchemaRequest
 				},
 				Validators: []validator.String{
 					stringvalidator.All(
-						stringvalidator.RegexMatches(regexp.MustCompile(`^objectstorage_object::[a-z]{2}::[a-z0-9-_]+::[a-zA-Z0-9_.-]+$`), "Requires pattern with link of target object"),
+						stringvalidator.RegexMatches(regexp.MustCompile(`^[a-z0-9-_]+::[a-zA-Z0-9_.-]+$`), "Requires pattern with link of target object"),
 					),
 				},
 				Description: "Target object id",

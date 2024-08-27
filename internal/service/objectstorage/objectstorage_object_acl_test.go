@@ -62,7 +62,7 @@ func testAccCheckObjectACLExists(n string, provider *schema.Provider) resource.T
 
 		objectID := resource.Primary.Attributes["object_id"]
 
-		_, _, bucketName, key := objectstorage.ObjectIDParser(objectID)
+		bucketName, key := objectstorage.ObjectIDParser(objectID)
 
 		config := provider.Meta().(*conn.ProviderConfig)
 		resp, err := config.Client.ObjectStorage.GetObjectAcl(context.Background(), &s3.GetObjectAclInput{
