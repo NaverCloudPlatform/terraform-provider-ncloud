@@ -350,7 +350,7 @@ func (l *lbResource) Update(ctx context.Context, req resource.UpdateRequest, res
 
 }
 
-func (r *lbResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
+func (l *lbResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
 	var state lbResourceModel
 
 	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
@@ -359,25 +359,25 @@ func (r *lbResource) Delete(ctx context.Context, req resource.DeleteRequest, res
 	}
 
 	reqParams := &vloadbalancer.DeleteLoadBalancerInstancesRequest{
-		RegionCode:                 &r.config.RegionCode,
+		RegionCode:                 &l.config.RegionCode,
 		LoadBalancerInstanceNoList: []*string{ncloud.String(state.LoadBalancerNo.ValueString())},
 	}
 
 	tflog.Info(ctx, "DeleteLoadBalancer reqParams="+common.MarshalUncheckedString(reqParams))
 
-	if err := waitForLoadBalancerActive(ctx, r.config, state.LoadBalancerNo.ValueString()); err != nil {
+	if err := waitForLoadBalancerActive(ctx, l.config, state.LoadBalancerNo.ValueString()); err != nil {
 		resp.Diagnostics.AddError("WAIT FOR LOADBALANCER ERROR", err.Error())
 		return
 	}
 
-	response, err := r.config.Client.Vloadbalancer.V2Api.DeleteLoadBalancerInstances(reqParams)
+	response, err := l.config.Client.Vloadbalancer.V2Api.DeleteLoadBalancerInstances(reqParams)
 	if err != nil {
 		resp.Diagnostics.AddError("DELETING ERROR", err.Error())
 		return
 	}
 	tflog.Info(ctx, "DeleteLoadBalancer response="+common.MarshalUncheckedString(response))
 
-	if err := waitForLoadBalancerDeletion(ctx, r.config, state.LoadBalancerNo.ValueString()); err != nil {
+	if err := waitForLoadBalancerDeletion(ctx, l.config, state.LoadBalancerNo.ValueString()); err != nil {
 		resp.Diagnostics.AddError("WAITING FOR DELETE ERROR", err.Error())
 		return
 	}
@@ -500,6 +500,7 @@ func GetVpcLoadBalancer(config *conn.ProviderConfig, id string) (*LoadBalancerIn
 }
 
 func (l *lbResourceModel) refreshFromOutput(ctx context.Context, output *LoadBalancerInstance) {
+	l.ID = types.StringPointerValue(output.LoadBalancerInstanceNo)
 	l.LoadBalancerNo = types.StringPointerValue(output.LoadBalancerInstanceNo)
 	l.Name = types.StringPointerValue(output.LoadBalancerName)
 	l.Description = types.StringPointerValue(output.LoadBalancerDescription)
@@ -547,6 +548,7 @@ func convertVpcLoadBalancer(instance *vloadbalancer.LoadBalancerInstance) *LoadB
 }
 
 type lbResourceModel struct {
+	ID             types.String `tfsdk:"id"`
 	LoadBalancerNo types.String `tfsdk:"load_balancer_no"`
 	Name           types.String `tfsdk:"name"`
 	Description    types.String `tfsdk:"description"`
