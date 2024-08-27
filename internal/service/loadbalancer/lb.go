@@ -499,7 +499,7 @@ func GetVpcLoadBalancer(config *conn.ProviderConfig, id string) (*LoadBalancerIn
 	return convertVpcLoadBalancer(resp.LoadBalancerInstanceList[0]), nil
 }
 
-func (l *lbResourceModel) refreshFromOutput(ctx context.Context, output *LoadBalancerInstance) {
+func (l *lbResourceModel) refreshFromOutput(ctx context.Context, output *LoadBalancerInstance) error {
 	l.ID = types.StringPointerValue(output.LoadBalancerInstanceNo)
 	l.LoadBalancerNo = types.StringPointerValue(output.LoadBalancerInstanceNo)
 	l.Name = types.StringPointerValue(output.LoadBalancerName)
@@ -515,19 +515,33 @@ func (l *lbResourceModel) refreshFromOutput(ctx context.Context, output *LoadBal
 	for _, subnet := range output.SubnetNoList {
 		subnetNoList = append(subnetNoList, *subnet)
 	}
-	l.SubnetNoList, _ = types.ListValueFrom(ctx, types.StringType, subnetNoList)
+	subnetValueList, err := types.ListValueFrom(ctx, types.StringType, subnetNoList)
+	if err != nil {
+		return fmt.Errorf("error creating ListValue for SubnetNoList: %s", err)
+	}
+	l.SubnetNoList = subnetValueList
 
 	ipList := make([]string, 0)
 	for _, ip := range output.LoadBalancerIpList {
 		ipList = append(ipList, *ip)
 	}
-	l.IpList, _ = types.ListValueFrom(ctx, types.StringType, ipList)
+	ipValueList, err := types.ListValueFrom(ctx, types.StringType, ipList)
+	if err != nil {
+		return fmt.Errorf("error creating ListValue for IpList: %s", err)
+	}
+	l.IpList = ipValueList
 
 	listenerNoList := make([]string, 0)
 	for _, listener := range output.LoadBalancerListenerList {
 		listenerNoList = append(listenerNoList, *listener)
 	}
-	l.ListenerNoList, _ = types.ListValueFrom(ctx, types.StringType, listenerNoList)
+	listenerValueList, err := types.ListValueFrom(ctx, types.StringType, listenerNoList)
+	if err != nil {
+		return fmt.Errorf("error creating ListValue for ListenerNoList: %s", err)
+	}
+	l.ListenerNoList = listenerValueList
+
+	return nil
 }
 
 func convertVpcLoadBalancer(instance *vloadbalancer.LoadBalancerInstance) *LoadBalancerInstance {
