@@ -393,11 +393,9 @@ func (l *launchConfigurationResource) Delete(ctx context.Context, req resource.D
 	}
 
 	if l.config.SupportVPC {
-		// [deleteVpcLaunchCOnfiguration]
 		err = deleteVpcLaunchConfiguration(ctx, l.config, state.LaunchConfigurationNo.ValueString())
 
 	} else {
-		// [deleteClassicLaucnhConfiguration]
 		err = deleteClassicLaunchConfiguration(ctx, l.config, state.LaunchConfigurationNo.ValueString())
 	}
 
