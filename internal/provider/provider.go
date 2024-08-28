@@ -10,6 +10,8 @@ import (
 
 	"github.com/terraform-providers/terraform-provider-ncloud/internal/conn"
 	"github.com/terraform-providers/terraform-provider-ncloud/internal/region"
+
+	// "github.com/terraform-providers/terraform-provider-ncloud/internal/service/autoscaling"
 	"github.com/terraform-providers/terraform-provider-ncloud/internal/service/autoscaling"
 	"github.com/terraform-providers/terraform-provider-ncloud/internal/service/cdss"
 	"github.com/terraform-providers/terraform-provider-ncloud/internal/service/classicloadbalancer"
@@ -25,25 +27,25 @@ import (
 
 func New(ctx context.Context) *schema.Provider {
 	dataSourceMap := map[string]*schema.Resource{
-		"ncloud_access_control_group":                    server.DataSourceNcloudAccessControlGroup(),
-		"ncloud_access_control_groups":                   server.DataSourceNcloudAccessControlGroups(),
-		"ncloud_access_control_rule":                     server.DataSourceNcloudAccessControlRule(),
-		"ncloud_access_control_rules":                    server.DataSourceNcloudAccessControlRules(),
-		"ncloud_auto_scaling_group":                      autoscaling.DataSourceNcloudAutoScalingGroup(),
-		"ncloud_auto_scaling_policy":                     autoscaling.DataSourceNcloudAutoScalingPolicy(),
-		"ncloud_auto_scaling_schedule":                   autoscaling.DataSourceNcloudAutoScalingSchedule(),
-		"ncloud_auto_scaling_adjustment_types":           autoscaling.DataSourceNcloudAutoScalingAdjustmentTypes(),
-		"ncloud_block_storage":                           server.DataSourceNcloudBlockStorage(),
-		"ncloud_block_storage_snapshot":                  server.DataSourceNcloudBlockStorageSnapshot(),
-		"ncloud_cdss_cluster":                            cdss.DataSourceNcloudCDSSCluster(),
-		"ncloud_cdss_config_group":                       cdss.DataSourceNcloudCDSSConfigGroup(),
-		"ncloud_cdss_kafka_version":                      cdss.DataSourceNcloudCDSSKafkaVersion(),
-		"ncloud_cdss_kafka_versions":                     cdss.DataSourceNcloudCDSSKafkaVersions(),
-		"ncloud_cdss_node_product":                       cdss.DataSourceNcloudCDSSNodeProduct(),
-		"ncloud_cdss_node_products":                      cdss.DataSourceNcloudCDSSNodeProducts(),
-		"ncloud_cdss_os_image":                           cdss.DataSourceNcloudCDSSOsImage(),
-		"ncloud_cdss_os_images":                          cdss.DataSourceNcloudCDSSOsImages(),
-		"ncloud_launch_configuration":                    autoscaling.DataSourceNcloudLaunchConfiguration(),
+		"ncloud_access_control_group":          server.DataSourceNcloudAccessControlGroup(),
+		"ncloud_access_control_groups":         server.DataSourceNcloudAccessControlGroups(),
+		"ncloud_access_control_rule":           server.DataSourceNcloudAccessControlRule(),
+		"ncloud_access_control_rules":          server.DataSourceNcloudAccessControlRules(),
+		"ncloud_auto_scaling_group":            autoscaling.DataSourceNcloudAutoScalingGroup(),
+		"ncloud_auto_scaling_policy":           autoscaling.DataSourceNcloudAutoScalingPolicy(),
+		"ncloud_auto_scaling_schedule":         autoscaling.DataSourceNcloudAutoScalingSchedule(),
+		"ncloud_auto_scaling_adjustment_types": autoscaling.DataSourceNcloudAutoScalingAdjustmentTypes(),
+		"ncloud_block_storage":                 server.DataSourceNcloudBlockStorage(),
+		"ncloud_block_storage_snapshot":        server.DataSourceNcloudBlockStorageSnapshot(),
+		"ncloud_cdss_cluster":                  cdss.DataSourceNcloudCDSSCluster(),
+		"ncloud_cdss_config_group":             cdss.DataSourceNcloudCDSSConfigGroup(),
+		"ncloud_cdss_kafka_version":            cdss.DataSourceNcloudCDSSKafkaVersion(),
+		"ncloud_cdss_kafka_versions":           cdss.DataSourceNcloudCDSSKafkaVersions(),
+		"ncloud_cdss_node_product":             cdss.DataSourceNcloudCDSSNodeProduct(),
+		"ncloud_cdss_node_products":            cdss.DataSourceNcloudCDSSNodeProducts(),
+		"ncloud_cdss_os_image":                 cdss.DataSourceNcloudCDSSOsImage(),
+		"ncloud_cdss_os_images":                cdss.DataSourceNcloudCDSSOsImages(),
+		// "ncloud_launch_configuration":                    autoscaling.DataSourceNcloudLaunchConfiguration(),
 		"ncloud_lb":                                      loadbalancer.DataSourceNcloudLb(),
 		"ncloud_lb_listener":                             loadbalancer.DataSourceNcloudLbListener(),
 		"ncloud_lb_target_group":                         loadbalancer.DataSourceNcloudLbTargetGroup(),
@@ -103,16 +105,16 @@ func New(ctx context.Context) *schema.Provider {
 	}
 
 	resourceMap := map[string]*schema.Resource{
-		"ncloud_access_control_group_rule":           server.ResourceNcloudAccessControlGroupRule(),
-		"ncloud_access_control_group":                server.ResourceNcloudAccessControlGroup(),
-		"ncloud_auto_scaling_group":                  autoscaling.ResourceNcloudAutoScalingGroup(),
-		"ncloud_auto_scaling_policy":                 autoscaling.ResourceNcloudAutoScalingPolicy(),
-		"ncloud_auto_scaling_schedule":               autoscaling.ResourceNcloudAutoScalingSchedule(),
-		"ncloud_block_storage_snapshot":              server.ResourceNcloudBlockStorageSnapshot(),
-		"ncloud_block_storage":                       server.ResourceNcloudBlockStorage(),
-		"ncloud_cdss_cluster":                        cdss.ResourceNcloudCDSSCluster(),
-		"ncloud_cdss_config_group":                   cdss.ResourceNcloudCDSSConfigGroup(),
-		"ncloud_launch_configuration":                autoscaling.ResourceNcloudLaunchConfiguration(),
+		"ncloud_access_control_group_rule": server.ResourceNcloudAccessControlGroupRule(),
+		"ncloud_access_control_group":      server.ResourceNcloudAccessControlGroup(),
+		"ncloud_auto_scaling_group":        autoscaling.ResourceNcloudAutoScalingGroup(),
+		"ncloud_auto_scaling_policy":       autoscaling.ResourceNcloudAutoScalingPolicy(),
+		"ncloud_auto_scaling_schedule":     autoscaling.ResourceNcloudAutoScalingSchedule(),
+		"ncloud_block_storage_snapshot":    server.ResourceNcloudBlockStorageSnapshot(),
+		"ncloud_block_storage":             server.ResourceNcloudBlockStorage(),
+		"ncloud_cdss_cluster":              cdss.ResourceNcloudCDSSCluster(),
+		"ncloud_cdss_config_group":         cdss.ResourceNcloudCDSSConfigGroup(),
+		// "ncloud_launch_configuration":                autoscaling.ResourceNcloudLaunchConfiguration(),
 		"ncloud_lb_listener":                         loadbalancer.ResourceNcloudLbListener(),
 		"ncloud_lb_target_group_attachment":          loadbalancer.ResourceNcloudLbTargetGroupAttachment(),
 		"ncloud_lb_target_group":                     loadbalancer.ResourceNcloudLbTargetGroup(),
