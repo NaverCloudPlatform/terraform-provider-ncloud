@@ -303,7 +303,7 @@ func (o *objectResourceModel) refreshFromOutput(ctx context.Context, config *con
 }
 
 func ObjectIDGenerator(bucketName, key string) string {
-	return fmt.Sprintf("%s::%s", bucketName, key)
+	return fmt.Sprintf("%s/%s", bucketName, key)
 }
 
 func ObjectIDParser(id string) (bucketName, key string) {
@@ -314,7 +314,7 @@ func ObjectIDParser(id string) (bucketName, key string) {
 	id = strings.TrimPrefix(id, "\"")
 	id = strings.TrimSuffix(id, "\"")
 
-	parts := strings.Split(id, "::")
+	parts := strings.Split(id, "/")
 	if len(parts) < 2 {
 		return "", ""
 	}

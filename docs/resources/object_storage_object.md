@@ -45,7 +45,7 @@ The following arguments are supported:
 * Object Storage Object can be imported using the `id`. For example:
 
 ```console
-$ terraform import ncloud_objectstorage_object.rsc_name bucket-name::key
+$ terraform import ncloud_objectstorage_object.rsc_name bucket-name/key
 ```
 
 ### `import` block
@@ -55,6 +55,6 @@ $ terraform import ncloud_objectstorage_object.rsc_name bucket-name::key
 ```terraform
 import {
     to = ncloud_objectstorage_object.rsc_name
-    id = "bucket-name::key"
+    id = "bucket-name/key"
 }
 ```

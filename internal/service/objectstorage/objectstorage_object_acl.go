@@ -130,7 +130,7 @@ func (o *objectACLResource) Schema(_ context.Context, req resource.SchemaRequest
 				},
 				Validators: []validator.String{
 					stringvalidator.All(
-						stringvalidator.RegexMatches(regexp.MustCompile(`^[a-z0-9-_]+::[a-zA-Z0-9_.-]+$`), "Requires pattern with link of target object"),
+						stringvalidator.RegexMatches(regexp.MustCompile(`^[a-z0-9-_]+\/[a-zA-Z0-9_.-]+$`), "Requires pattern with link of target object"),
 					),
 				},
 				Description: "Target object id",
