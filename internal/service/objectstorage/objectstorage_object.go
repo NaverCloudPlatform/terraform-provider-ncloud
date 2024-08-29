@@ -9,7 +9,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/ncloud"
 	"github.com/aws/aws-sdk-go-v2/service/s3"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/path"
@@ -212,8 +211,8 @@ func waitObjectUploaded(ctx context.Context, config *conn.ProviderConfig, bucket
 		Target:  []string{CREATED},
 		Refresh: func() (interface{}, string, error) {
 			output, err := config.Client.ObjectStorage.GetObject(ctx, &s3.GetObjectInput{
-				Bucket: ncloud.String(bucketName),
-				Key:    ncloud.String(key),
+				Bucket: &bucketName,
+				Key:    &key,
 			})
 			if output != nil {
 				return output, CREATED, nil
@@ -242,8 +241,8 @@ func waitObjectDeleted(ctx context.Context, config *conn.ProviderConfig, bucketN
 		Target:  []string{DELETED},
 		Refresh: func() (interface{}, string, error) {
 			output, err := config.Client.ObjectStorage.GetObject(ctx, &s3.GetObjectInput{
-				Bucket: ncloud.String(bucketName),
-				Key:    ncloud.String(key),
+				Bucket: &bucketName,
+				Key:    &key,
 			})
 			if output != nil {
 				return output, DELETING, nil
