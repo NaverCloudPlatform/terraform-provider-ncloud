@@ -130,6 +130,7 @@ func (p *fwprovider) Resources(ctx context.Context) []func() resource.Resource {
 	resources = append(resources, objectstorage.NewObjectResource)
 	resources = append(resources, objectstorage.NewObjectACLResource)
 	resources = append(resources, objectstorage.NewBucketACLResource)
+	resources = append(resources, objectstorage.NewObjectCopyResource)
 
 	if err := errs.ErrorOrNil(); err != nil {
 		tflog.Warn(ctx, "registering resources", map[string]interface{}{
