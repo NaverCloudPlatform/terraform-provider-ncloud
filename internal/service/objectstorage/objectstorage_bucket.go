@@ -82,7 +82,7 @@ func (o *bucketResource) Create(ctx context.Context, req resource.CreateRequest,
 		return
 	}
 
-	plan.refreshFromOutput(ctx, o.config, plan.BucketName.String())
+	plan.refreshFromOutput(ctx, o.config, plan.BucketName.ValueString())
 	resp.Diagnostics.Append(resp.State.Set(ctx, plan)...)
 }
 
@@ -282,7 +282,9 @@ func (o *bucketResourceModel) refreshFromOutput(ctx context.Context, config *con
 
 	for _, bucket := range output.Buckets {
 		if *bucket.Name == TrimForParsing(bucketName) {
-			o.CreationDate = types.StringValue(bucket.CreationDate.GoString())
+			if !types.StringValue(bucket.CreationDate.GoString()).IsNull() {
+				o.CreationDate = types.StringValue(bucket.CreationDate.GoString())
+			}
 		}
 	}
 }
