@@ -2,7 +2,7 @@
 subcategory: "Object Storage"
 ---
 
-# Data Source: ncloud_objectstorage_ bucket
+# Data Source: ncloud_objectstorage_bucket
 
 Prvides information about a bucket.
 
