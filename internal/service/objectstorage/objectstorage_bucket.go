@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/aws/aws-sdk-go-v2/service/s3"
+	awsTypes "github.com/aws/aws-sdk-go-v2/service/s3/types"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
@@ -69,7 +70,7 @@ func (o *bucketResource) Create(ctx context.Context, req resource.CreateRequest,
 
 	tflog.Info(ctx, "CreateObjectStorage response="+common.MarshalUncheckedString(response))
 
-	output, err := o.config.Client.ObjectStorage.HeadBucket(ctx, &s3.HeadBucketInput{
+	_, err = o.config.Client.ObjectStorage.HeadBucket(ctx, &s3.HeadBucketInput{
 		Bucket: plan.BucketName.ValueStringPointer(),
 	})
 	if err != nil {
@@ -82,7 +83,7 @@ func (o *bucketResource) Create(ctx context.Context, req resource.CreateRequest,
 		return
 	}
 
-	plan.refreshFromOutput(output, plan.BucketName.ValueString())
+	plan.refreshFromOutput(ctx, o.config, plan.BucketName.String())
 	resp.Diagnostics.Append(resp.State.Set(ctx, plan)...)
 }
 
@@ -173,6 +174,9 @@ func (o *bucketResource) Schema(_ context.Context, req resource.SchemaRequest, r
 				},
 				Description: "Bucket Name for Object Storage",
 			},
+			"creation_date": schema.StringAttribute{
+				Computed: true,
+			},
 		},
 	}
 }
@@ -262,16 +266,26 @@ func waitBucketDeleted(ctx context.Context, config *conn.ProviderConfig, bucketN
 }
 
 type bucketResourceModel struct {
-	ID         types.String `tfsdk:"id"`
-	BucketName types.String `tfsdk:"bucket_name"`
+	ID           types.String `tfsdk:"id"`
+	BucketName   types.String `tfsdk:"bucket_name"`
+	CreationDate types.String `tfsdk:"creation_date"`
 }
 
-func (o *bucketResourceModel) refreshFromOutput(output *s3.HeadBucketOutput, bucketName string) {
-	if output == nil {
-		return
+func (o *bucketResourceModel) refreshFromOutput(ctx context.Context, config *conn.ProviderConfig, bucketName string) {
+	var targetBucket awsTypes.Bucket
+
+	output, err := config.Client.ObjectStorage.ListBuckets(ctx, &s3.ListBucketsInput{})
+	if err != nil {
+		fmt.Errorf("error listing buckets: %v", err)
+	}
+
+	for _, bucket := range output.Buckets {
+		if *bucket.Name == TrimForParsing(bucketName) {
+			targetBucket = bucket
+		}
 	}
 
 	o.ID = types.StringValue(bucketName)
 	o.BucketName = types.StringValue(bucketName)
-
+	o.CreationDate = types.StringValue(targetBucket.CreationDate.GoString())
 }
