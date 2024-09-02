@@ -7,7 +7,6 @@ import (
 	"time"
 
 	"github.com/aws/aws-sdk-go-v2/service/s3"
-	awsTypes "github.com/aws/aws-sdk-go-v2/service/s3/types"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
@@ -176,6 +175,7 @@ func (o *bucketResource) Schema(_ context.Context, req resource.SchemaRequest, r
 			},
 			"creation_date": schema.StringAttribute{
 				Computed: true,
+				Optional: true,
 			},
 		},
 	}
@@ -272,20 +272,17 @@ type bucketResourceModel struct {
 }
 
 func (o *bucketResourceModel) refreshFromOutput(ctx context.Context, config *conn.ProviderConfig, bucketName string) {
-	var targetBucket awsTypes.Bucket
+	o.ID = types.StringValue(bucketName)
+	o.BucketName = types.StringValue(bucketName)
 
-	output, err := config.Client.ObjectStorage.ListBuckets(ctx, &s3.ListBucketsInput{})
-	if err != nil {
-		fmt.Errorf("error listing buckets: %v", err)
+	output, _ := config.Client.ObjectStorage.ListBuckets(ctx, &s3.ListBucketsInput{})
+	if output == nil {
+		return
 	}
 
 	for _, bucket := range output.Buckets {
 		if *bucket.Name == TrimForParsing(bucketName) {
-			targetBucket = bucket
+			o.CreationDate = types.StringValue(bucket.CreationDate.GoString())
 		}
 	}
-
-	o.ID = types.StringValue(bucketName)
-	o.BucketName = types.StringValue(bucketName)
-	o.CreationDate = types.StringValue(targetBucket.CreationDate.GoString())
 }
