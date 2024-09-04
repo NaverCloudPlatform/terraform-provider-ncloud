@@ -16,7 +16,7 @@ resource "ncloud_objectstorage_object" "object" {
 }
 
 resource "ncloud_objectstorage_bucket_acl" "bucket_acl" {
-    bucket_id               = ncloud_objectstorage.bucket.id
+    bucket_name             = ncloud_objectstorage.bucket.bucket_name
     rule                    = "private"
 }
 

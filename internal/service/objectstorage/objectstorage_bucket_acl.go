@@ -25,7 +25,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
 	"github.com/terraform-providers/terraform-provider-ncloud/internal/common"
 	"github.com/terraform-providers/terraform-provider-ncloud/internal/conn"
-	"github.com/terraform-providers/terraform-provider-ncloud/internal/framework"
 )
 
 const (
@@ -50,8 +49,7 @@ type bucketACLResource struct {
 func (b *bucketACLResource) Schema(_ context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = schema.Schema{
 		Attributes: map[string]schema.Attribute{
-			"id": framework.IDAttribute(),
-			"bucket_id": schema.StringAttribute{
+			"bucket_name": schema.StringAttribute{
 				Required: true,
 				PlanModifiers: []planmodifier.String{
 					stringplanmodifier.RequiresReplace(),
@@ -61,7 +59,7 @@ func (b *bucketACLResource) Schema(_ context.Context, req resource.SchemaRequest
 						stringvalidator.RegexMatches(regexp.MustCompile(`^[a-z0-9][a-z0-9\.-]{1,61}[a-z0-9]$`), "Requires pattern with link of target bucket"),
 					),
 				},
-				Description: "Target bucket id",
+				Description: "Target bucket name",
 			},
 			"rule": schema.StringAttribute{
 				Required: true,
@@ -123,7 +121,7 @@ func (b *bucketACLResource) Create(ctx context.Context, req resource.CreateReque
 		return
 	}
 
-	bucketName := TrimForParsing(plan.BucketID.String())
+	bucketName := TrimForParsing(plan.BucketName.String())
 
 	reqParams := &s3.PutBucketAclInput{
 		Bucket: ncloud.String(bucketName),
@@ -167,7 +165,7 @@ func (b *bucketACLResource) Read(ctx context.Context, req resource.ReadRequest, 
 		return
 	}
 
-	bucketName := TrimForParsing(plan.BucketID.String())
+	bucketName := TrimForParsing(plan.BucketName.String())
 
 	output, err := b.config.Client.ObjectStorage.GetBucketAcl(ctx, &s3.GetBucketAclInput{
 		Bucket: ncloud.String(bucketName),
@@ -211,7 +209,7 @@ func (b *bucketACLResource) Configure(_ context.Context, req resource.ConfigureR
 }
 
 func (b *bucketACLResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
-	resource.ImportStatePassthroughID(ctx, path.Root("id"), req, resp)
+	resource.ImportStatePassthroughID(ctx, path.Root("bucket_name"), req, resp)
 }
 
 func waitBucketACLApplied(ctx context.Context, config *conn.ProviderConfig, bucketName string) error {
@@ -245,11 +243,10 @@ func waitBucketACLApplied(ctx context.Context, config *conn.ProviderConfig, buck
 }
 
 type bucketACLResourceModel struct {
-	ID       types.String             `tfsdk:"id"`
-	BucketID types.String             `tfsdk:"bucket_id"`
-	Rule     awsTypes.BucketCannedACL `tfsdk:"rule"`
-	Grants   types.List               `tfsdk:"grants"`
-	Owner    types.String             `tfsdk:"owner"`
+	BucketName types.String             `tfsdk:"bucket_name"`
+	Rule       awsTypes.BucketCannedACL `tfsdk:"rule"`
+	Grants     types.List               `tfsdk:"grants"`
+	Owner      types.String             `tfsdk:"owner"`
 }
 
 func (b *bucketACLResourceModel) refreshFromOutput(ctx context.Context, output *s3.GetBucketAclOutput) {
@@ -291,7 +288,7 @@ func (b *bucketACLResourceModel) refreshFromOutput(ctx context.Context, output *
 	}
 
 	b.Grants = listValueFromGrants
-	b.ID = types.StringValue(fmt.Sprintf("bucket_acl_%s", b.BucketID))
+	b.BucketName = types.StringValue(fmt.Sprintf("bucket_acl_%s", b.BucketName))
 	b.Owner = types.StringValue(*output.Owner.ID)
 }
 

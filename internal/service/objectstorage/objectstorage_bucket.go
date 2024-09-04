@@ -19,7 +19,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
 	"github.com/terraform-providers/terraform-provider-ncloud/internal/common"
 	"github.com/terraform-providers/terraform-provider-ncloud/internal/conn"
-	"github.com/terraform-providers/terraform-provider-ncloud/internal/framework"
 )
 
 const (
@@ -140,7 +139,6 @@ func (o *bucketResource) Read(ctx context.Context, req resource.ReadRequest, res
 			}
 
 			plan = bucketResourceModel{
-				ID:         types.StringValue(*bucket.Name),
 				BucketName: types.StringValue(*bucket.Name),
 			}
 
@@ -152,7 +150,6 @@ func (o *bucketResource) Read(ctx context.Context, req resource.ReadRequest, res
 func (o *bucketResource) Schema(_ context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = schema.Schema{
 		Attributes: map[string]schema.Attribute{
-			"id": framework.IDAttribute(),
 			"bucket_name": schema.StringAttribute{
 				Required: true,
 				PlanModifiers: []planmodifier.String{
@@ -202,7 +199,7 @@ func (o *bucketResource) Configure(_ context.Context, req resource.ConfigureRequ
 }
 
 func (o *bucketResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
-	resource.ImportStatePassthroughID(ctx, path.Root("id"), req, resp)
+	resource.ImportStatePassthroughID(ctx, path.Root("bucket_name"), req, resp)
 }
 
 func waitBucketCreated(ctx context.Context, config *conn.ProviderConfig, bucketName string) error {
@@ -265,13 +262,11 @@ func waitBucketDeleted(ctx context.Context, config *conn.ProviderConfig, bucketN
 }
 
 type bucketResourceModel struct {
-	ID           types.String `tfsdk:"id"`
 	BucketName   types.String `tfsdk:"bucket_name"`
 	CreationDate types.String `tfsdk:"creation_date"`
 }
 
 func (o *bucketResourceModel) refreshFromOutput(ctx context.Context, config *conn.ProviderConfig, bucketName string) {
-	o.ID = types.StringValue(bucketName)
 	o.BucketName = types.StringValue(bucketName)
 
 	output, _ := config.Client.ObjectStorage.ListBuckets(ctx, &s3.ListBucketsInput{})

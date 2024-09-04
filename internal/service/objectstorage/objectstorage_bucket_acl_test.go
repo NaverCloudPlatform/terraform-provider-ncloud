@@ -53,7 +53,7 @@ func testAccCheckBucketACLExists(n string, object *s3.GetBucketAclOutput, provid
 			return fmt.Errorf("no ID is set")
 		}
 
-		bucketName := resource.Primary.Attributes["bucket_id"]
+		bucketName := resource.Primary.Attributes["bucket_name"]
 
 		config := provider.Meta().(*conn.ProviderConfig)
 		resp, err := config.Client.ObjectStorage.GetBucketAcl(context.Background(), &s3.GetBucketAclInput{
@@ -80,7 +80,7 @@ func testAccBucketACLConfig(bucketName, acl string) string {
 		}
 
 		resource "ncloud_objectstorage_bucket_acl" "testing_acl" {
-			bucket_id				= ncloud_objectstorage_bucket.testing_bucket.id
+			bucket_name				= ncloud_objectstorage_bucket.testing_bucket.bucket_name
 			rule					= "%[2]s"
 		}
 	`, bucketName, acl)

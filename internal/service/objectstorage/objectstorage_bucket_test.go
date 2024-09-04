@@ -3,7 +3,6 @@ package objectstorage_test
 import (
 	"context"
 	"fmt"
-	"regexp"
 	"testing"
 
 	"github.com/aws/aws-sdk-go-v2/service/s3"
@@ -29,7 +28,6 @@ func TestAccResourceNcloudObjectStorage_bucket_basic(t *testing.T) {
 				Config: testAccBucketConfig(bucketName),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					testAccCheckBucketExists(resourceName, GetTestProvider(true)),
-					resource.TestMatchResourceAttr(resourceName, "id", regexp.MustCompile(`^[a-z0-9][a-z0-9\.-]{1,61}[a-z0-9]$`)),
 					resource.TestCheckResourceAttr(resourceName, "bucket_name", bucketName),
 				),
 			},
