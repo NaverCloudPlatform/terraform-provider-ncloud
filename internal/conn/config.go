@@ -50,7 +50,6 @@ type Config struct {
 	AccessKey string
 	SecretKey string
 	Region    string
-	Endpoint  string
 }
 
 type NcloudAPIClient struct {
