@@ -195,7 +195,6 @@ func (o *objectCopyResource) Schema(ctx context.Context, req resource.SchemaRequ
 }
 
 func (o *objectCopyResource) Update(context.Context, resource.UpdateRequest, *resource.UpdateResponse) {
-	panic("unimplemented")
 }
 
 func waitObjectCopied(ctx context.Context, config *conn.ProviderConfig, bucketName string, key string) error {
