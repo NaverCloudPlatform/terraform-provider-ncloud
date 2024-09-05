@@ -2,7 +2,6 @@ package conn
 
 import (
 	"fmt"
-	"strings"
 	"time"
 
 	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/services/vhadoop"
@@ -79,9 +78,7 @@ type NcloudAPIClient struct {
 	ObjectStorage   *s3.Client
 }
 
-func (c *Config) Client() (*NcloudAPIClient, error) {
-	s3Endpoint := fmt.Sprintf("https://%s.object.ncloudstorage.com", strings.ToLower(c.Region))
-
+func (c *Config) Client(site string) (*NcloudAPIClient, error) {
 	apiKey := &ncloud.APIKey{
 		AccessKey: c.AccessKey,
 		SecretKey: c.SecretKey,
@@ -111,7 +108,7 @@ func (c *Config) Client() (*NcloudAPIClient, error) {
 		Vmssql:          vmssql.NewAPIClient(vmssql.NewConfiguration(apiKey)),
 		Vhadoop:         vhadoop.NewAPIClient(vhadoop.NewConfiguration(apiKey)),
 		Vredis:          vredis.NewAPIClient(vredis.NewConfiguration(apiKey)),
-		ObjectStorage:   NewS3Client(c.Region, apiKey, s3Endpoint),
+		ObjectStorage:   NewS3Client(c.Region, apiKey, site),
 	}, nil
 }
 

@@ -226,7 +226,7 @@ func ProviderConfigure(ctx context.Context, d *schema.ResourceData) (interface{}
 		Region:    region.(string),
 	}
 
-	if client, err := config.Client(); err != nil {
+	if client, err := config.Client(providerConfig.Site); err != nil {
 		return nil, diag.FromErr(err)
 	} else {
 		providerConfig.Client = client
