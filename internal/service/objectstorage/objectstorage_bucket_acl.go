@@ -144,15 +144,7 @@ func (b *bucketACLResource) Create(ctx context.Context, req resource.CreateReque
 		return
 	}
 
-	output, err := b.config.Client.ObjectStorage.GetBucketAcl(ctx, &s3.GetBucketAclInput{
-		Bucket: ncloud.String(bucketName),
-	})
-	if err != nil {
-		resp.Diagnostics.AddError("READING ERROR", err.Error())
-		return
-	}
-
-	plan.refreshFromOutput(ctx, output)
+	plan.refreshFromOutput(ctx, b.config, bucketName)
 	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
 }
 
@@ -162,22 +154,14 @@ func (b *bucketACLResource) Delete(context.Context, resource.DeleteRequest, *res
 func (b *bucketACLResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
 	var plan bucketACLResourceModel
 
+	bucketName := TrimForParsing(plan.BucketName.String())
+
 	resp.Diagnostics.Append(req.State.Get(ctx, &plan)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
-	bucketName := TrimForParsing(plan.BucketName.String())
-
-	output, err := b.config.Client.ObjectStorage.GetBucketAcl(ctx, &s3.GetBucketAclInput{
-		Bucket: ncloud.String(bucketName),
-	})
-	if err != nil {
-		resp.Diagnostics.AddError("READING ERROR", err.Error())
-		return
-	}
-
-	plan.refreshFromOutput(ctx, output)
+	plan.refreshFromOutput(ctx, b.config, bucketName)
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
 	if resp.Diagnostics.HasError() {
@@ -252,10 +236,17 @@ type bucketACLResourceModel struct {
 	Owner      types.String             `tfsdk:"owner"`
 }
 
-func (b *bucketACLResourceModel) refreshFromOutput(ctx context.Context, output *s3.GetBucketAclOutput) {
+func (b *bucketACLResourceModel) refreshFromOutput(ctx context.Context, config *conn.ProviderConfig, bucketName string) {
+	output, err := config.Client.ObjectStorage.GetBucketAcl(ctx, &s3.GetBucketAclInput{
+		Bucket: ncloud.String(bucketName),
+	})
+	if err != nil {
+		return
+	}
 	if output == nil {
 		return
 	}
+
 	var grantList []awsTypes.Grant
 	for _, grant := range output.Grants {
 		var indivGrant awsTypes.Grant

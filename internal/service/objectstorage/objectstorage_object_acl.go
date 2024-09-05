@@ -72,16 +72,7 @@ func (o *objectACLResource) Create(ctx context.Context, req resource.CreateReque
 		return
 	}
 
-	output, err := o.config.Client.ObjectStorage.GetObjectAcl(ctx, &s3.GetObjectAclInput{
-		Bucket: ncloud.String(bucketName),
-		Key:    ncloud.String(key),
-	})
-	if err != nil {
-		resp.Diagnostics.AddError("READING ERROR", err.Error())
-		return
-	}
-
-	plan.refreshFromOutput(ctx, output)
+	plan.refreshFromOutput(ctx, o.config, bucketName, key)
 	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
 }
 
@@ -95,23 +86,14 @@ func (o *objectACLResource) Metadata(_ context.Context, req resource.MetadataReq
 func (o *objectACLResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
 	var plan objectACLResourceModel
 
+	bucketName, key := ObjectIDParser(plan.ObjectID.String())
+
 	resp.Diagnostics.Append(req.State.Get(ctx, &plan)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
-	bucketName, key := ObjectIDParser(plan.ObjectID.String())
-
-	output, err := o.config.Client.ObjectStorage.GetObjectAcl(ctx, &s3.GetObjectAclInput{
-		Bucket: ncloud.String(bucketName),
-		Key:    ncloud.String(key),
-	})
-	if err != nil {
-		resp.Diagnostics.AddError("READING ERROR", err.Error())
-		return
-	}
-
-	plan.refreshFromOutput(ctx, output)
+	plan.refreshFromOutput(ctx, o.config, bucketName, key)
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
 	if resp.Diagnostics.HasError() {
@@ -256,10 +238,18 @@ type objectACLResourceModel struct {
 	OwnerDisplayName types.String             `tfsdk:"owner_displayname"`
 }
 
-func (o *objectACLResourceModel) refreshFromOutput(ctx context.Context, output *s3.GetObjectAclOutput) {
+func (o *objectACLResourceModel) refreshFromOutput(ctx context.Context, config *conn.ProviderConfig, bucketName, key string) {
+	output, err := config.Client.ObjectStorage.GetObjectAcl(ctx, &s3.GetObjectAclInput{
+		Bucket: ncloud.String(bucketName),
+		Key:    ncloud.String(key),
+	})
+	if err != nil {
+		return
+	}
 	if output == nil {
 		return
 	}
+
 	var grantList []awsTypes.Grant
 	for _, grant := range output.Grants {
 		var indivGrant awsTypes.Grant
