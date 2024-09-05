@@ -3,7 +3,6 @@ package objectstorage
 import (
 	"context"
 	"fmt"
-	"io"
 	"os"
 	"regexp"
 	"strings"
@@ -164,16 +163,104 @@ func (o *objectResource) Schema(_ context.Context, req resource.SchemaRequest, r
 				Required:    true,
 				Description: "(Required) Path of the object",
 			},
+			"accept_ranges": schema.StringAttribute{
+				Computed: true,
+				Optional: true,
+			},
+			"bucket_key_enabled": schema.BoolAttribute{
+				Computed: true,
+				Optional: true,
+			},
+			"cache_control": schema.StringAttribute{
+				Computed: true,
+				Optional: true,
+			},
+			"checksum_crc32": schema.StringAttribute{
+				Computed: true,
+				Optional: true,
+			},
+			"checksum_crc32c": schema.StringAttribute{
+				Computed: true,
+				Optional: true,
+			},
+			"checksum_sha1": schema.StringAttribute{
+				Computed: true,
+				Optional: true,
+			},
+			"checksum_sha256": schema.StringAttribute{
+				Computed: true,
+				Optional: true,
+			},
+			"content_disposition": schema.StringAttribute{
+				Computed: true,
+				Optional: true,
+			},
+			"content_encoding": schema.StringAttribute{
+				Computed: true,
+				Optional: true,
+			},
+			"content_language": schema.StringAttribute{
+				Computed: true,
+				Optional: true,
+			},
 			"content_length": schema.Int64Attribute{
 				Computed: true,
 			},
 			"content_type": schema.StringAttribute{
 				Computed: true,
 			},
-			"last_modified": schema.StringAttribute{
+			"delete_marker": schema.BoolAttribute{
+				Computed: true,
+				Optional: true,
+			},
+			"etag": schema.StringAttribute{
 				Computed: true,
 			},
-			"body": schema.StringAttribute{
+			"expiration": schema.StringAttribute{
+				Computed: true,
+				Optional: true,
+			},
+			"expires_string": schema.StringAttribute{
+				Computed: true,
+				Optional: true,
+			},
+			"parts_count": schema.Int64Attribute{
+				Computed: true,
+				Optional: true,
+			},
+			"restore": schema.StringAttribute{
+				Computed: true,
+				Optional: true,
+			},
+			"sse_customer_algorithm": schema.StringAttribute{
+				Computed: true,
+				Optional: true,
+			},
+			"sse_customer_key_md5": schema.StringAttribute{
+				Computed: true,
+				Optional: true,
+			},
+			"sse_customer_key_id": schema.StringAttribute{
+				Computed: true,
+				Optional: true,
+			},
+			"server_side_encryption": schema.StringAttribute{
+				Computed: true,
+				Optional: true,
+			},
+			"storage_class": schema.StringAttribute{
+				Computed: true,
+				Optional: true,
+			},
+			"version_id": schema.StringAttribute{
+				Computed: true,
+				Optional: true,
+			},
+			"website_redirect_location": schema.StringAttribute{
+				Computed: true,
+				Optional: true,
+			},
+			"last_modified": schema.StringAttribute{
 				Computed: true,
 			},
 		},
@@ -210,7 +297,7 @@ func waitObjectUploaded(ctx context.Context, config *conn.ProviderConfig, bucket
 		Pending: []string{CREATING},
 		Target:  []string{CREATED},
 		Refresh: func() (interface{}, string, error) {
-			output, err := config.Client.ObjectStorage.GetObject(ctx, &s3.GetObjectInput{
+			output, err := config.Client.ObjectStorage.HeadObject(ctx, &s3.HeadObjectInput{
 				Bucket: &bucketName,
 				Key:    &key,
 			})
@@ -240,7 +327,7 @@ func waitObjectDeleted(ctx context.Context, config *conn.ProviderConfig, bucketN
 		Pending: []string{DELETING},
 		Target:  []string{DELETED},
 		Refresh: func() (interface{}, string, error) {
-			output, err := config.Client.ObjectStorage.GetObject(ctx, &s3.GetObjectInput{
+			output, err := config.Client.ObjectStorage.HeadObject(ctx, &s3.HeadObjectInput{
 				Bucket: &bucketName,
 				Key:    &key,
 			})
@@ -266,41 +353,154 @@ func waitObjectDeleted(ctx context.Context, config *conn.ProviderConfig, bucketN
 }
 
 type objectResourceModel struct {
-	ID            types.String `tfsdk:"id"`
-	Bucket        types.String `tfsdk:"bucket"`
-	Key           types.String `tfsdk:"key"`
-	Source        types.String `tfsdk:"source"`
-	ContentLength types.Int64  `tfsdk:"content_length"`
-	ContentType   types.String `tfsdk:"content_type"`
-	LastModified  types.String `tfsdk:"last_modified"`
-	Body          types.String `tfsdk:"body"`
+	ID                      types.String `tfsdk:"id"`
+	Bucket                  types.String `tfsdk:"bucket"`
+	Key                     types.String `tfsdk:"key"`
+	Source                  types.String `tfsdk:"source"`
+	AcceptRanges            types.String `tfsdk:"accept_ranges"`
+	BucketKeyEnabled        types.Bool   `tfsdk:"bucket_key_enabled"`
+	CacheControl            types.String `tfsdk:"cache_control"`
+	ChecksumCRC32           types.String `tfsdk:"checksum_crc32"`
+	ChecksumCRC32C          types.String `tfsdk:"checksum_crc32c"`
+	ChecksumSHA1            types.String `tfsdk:"checksum_sha1"`
+	ChecksumSHA256          types.String `tfsdk:"checksum_sha256"`
+	ContentDisposition      types.String `tfsdk:"content_disposition"`
+	ContentEncoding         types.String `tfsdk:"content_encoding"`
+	ContentLanguage         types.String `tfsdk:"content_language"`
+	ContentLength           types.Int64  `tfsdk:"content_length"`
+	ContentType             types.String `tfsdk:"content_type"`
+	DeleteMarker            types.Bool   `tfsdk:"delete_marker"`
+	ETag                    types.String `tfsdk:"etag"`
+	Expiration              types.String `tfsdk:"expiration"`
+	ExpiresString           types.String `tfsdk:"expires_string"`
+	LastModified            types.String `tfsdk:"last_modified"`
+	PartsCount              types.Int64  `tfsdk:"parts_count"`
+	Restore                 types.String `tfsdk:"restore"`
+	SSECustomerAlgorithm    types.String `tfsdk:"sse_customer_algorithm"`
+	SSECustomerKeyMD5       types.String `tfsdk:"sse_customer_key_md5"`
+	SSECustomerKeyID        types.String `tfsdk:"sse_customer_key_id"`
+	ServerSideEncryption    types.String `tfsdk:"server_side_encryption"`
+	StroageClass            types.String `tfsdk:"storage_class"`
+	VersionId               types.String `tfsdk:"version_id"`
+	WebsiteRedirectLocation types.String `tfsdk:"website_redirect_location"`
 }
 
 func (o *objectResourceModel) refreshFromOutput(ctx context.Context, config *conn.ProviderConfig) {
-	output, err := config.Client.ObjectStorage.GetObject(ctx, &s3.GetObjectInput{
+	output, err := config.Client.ObjectStorage.HeadObject(ctx, &s3.HeadObjectInput{
 		Bucket: o.Bucket.ValueStringPointer(),
 		Key:    o.Key.ValueStringPointer(),
 	})
 	if err != nil {
 		return
 	}
-	defer output.Body.Close()
 
 	bucketName, key := TrimForParsing(o.Bucket.String()), TrimForParsing(o.Key.String())
 
 	o.ID = types.StringValue(ObjectIDGenerator(bucketName, key))
-	o.ContentLength = types.Int64PointerValue(output.ContentLength)
-	o.ContentType = types.StringPointerValue(output.ContentType)
-	o.LastModified = types.StringValue(output.LastModified.String())
-
-	bodyBytes, err := io.ReadAll(output.Body)
-	if err != nil {
-		return
+	if !types.StringPointerValue(output.AcceptRanges).IsNull() || !types.StringPointerValue(output.AcceptRanges).IsUnknown() {
+		o.AcceptRanges = types.StringPointerValue(output.AcceptRanges)
 	}
 
-	o.Body = types.StringValue(string(bodyBytes))
-}
+	if !types.BoolPointerValue(output.BucketKeyEnabled).IsNull() || !types.BoolPointerValue(output.BucketKeyEnabled).IsUnknown() {
+		o.BucketKeyEnabled = types.BoolPointerValue(output.BucketKeyEnabled)
+	}
 
+	if !types.StringPointerValue(output.CacheControl).IsNull() || !types.StringPointerValue(output.CacheControl).IsUnknown() {
+		o.CacheControl = types.StringPointerValue(output.CacheControl)
+	}
+
+	if !types.StringPointerValue(output.ChecksumCRC32).IsNull() || !types.StringPointerValue(output.ChecksumCRC32).IsUnknown() {
+		o.ChecksumCRC32 = types.StringPointerValue(output.ChecksumCRC32)
+	}
+
+	if !types.StringPointerValue(output.ChecksumCRC32C).IsNull() || !types.StringPointerValue(output.ChecksumCRC32C).IsUnknown() {
+		o.ChecksumCRC32C = types.StringPointerValue(output.ChecksumCRC32C)
+	}
+
+	if !types.StringPointerValue(output.ChecksumSHA1).IsNull() || !types.StringPointerValue(output.ChecksumSHA1).IsUnknown() {
+		o.ChecksumSHA1 = types.StringPointerValue(output.ChecksumSHA1)
+	}
+
+	if !types.StringPointerValue(output.ChecksumSHA256).IsNull() || !types.StringPointerValue(output.ChecksumSHA256).IsUnknown() {
+		o.ChecksumSHA256 = types.StringPointerValue(output.ChecksumSHA256)
+	}
+
+	if !types.StringPointerValue(output.ContentDisposition).IsNull() || !types.StringPointerValue(output.ContentDisposition).IsUnknown() {
+		o.ContentDisposition = types.StringPointerValue(output.ContentDisposition)
+	}
+
+	if !types.StringPointerValue(output.ContentEncoding).IsNull() || !types.StringPointerValue(output.ContentEncoding).IsUnknown() {
+		o.ContentEncoding = types.StringPointerValue(output.ContentEncoding)
+	}
+
+	if !types.StringPointerValue(output.ContentLanguage).IsNull() || !types.StringPointerValue(output.ContentLanguage).IsUnknown() {
+		o.ContentLanguage = types.StringPointerValue(output.ContentLanguage)
+	}
+
+	if !types.Int64PointerValue(output.ContentLength).IsNull() || !types.Int64PointerValue(output.ContentLength).IsUnknown() {
+		o.ContentLength = types.Int64PointerValue(output.ContentLength)
+	}
+
+	if !types.StringPointerValue(output.ContentType).IsNull() || !types.StringPointerValue(output.ContentType).IsUnknown() {
+		o.ContentType = types.StringPointerValue(output.ContentType)
+	}
+
+	if !types.BoolPointerValue(output.DeleteMarker).IsNull() || !types.BoolPointerValue(output.DeleteMarker).IsUnknown() {
+		o.DeleteMarker = types.BoolPointerValue(output.DeleteMarker)
+	}
+
+	if !types.StringPointerValue(output.ETag).IsNull() || !types.StringPointerValue(output.ETag).IsUnknown() {
+		o.ETag = types.StringPointerValue(output.ETag)
+	}
+
+	if !types.StringPointerValue(output.Expiration).IsNull() || !types.StringPointerValue(output.Expiration).IsUnknown() {
+		o.Expiration = types.StringPointerValue(output.Expiration)
+	}
+
+	if !types.StringPointerValue(output.ExpiresString).IsNull() || !types.StringPointerValue(output.ExpiresString).IsUnknown() {
+		o.ExpiresString = types.StringPointerValue(output.ExpiresString)
+	}
+
+	if !types.Int32PointerValue(output.PartsCount).IsNull() || !types.Int32PointerValue(output.PartsCount).IsUnknown() {
+		o.PartsCount = common.Int64ValueFromInt32(output.PartsCount)
+	}
+
+	if !types.StringPointerValue(output.Restore).IsNull() || !types.StringPointerValue(output.Restore).IsUnknown() {
+		o.Restore = types.StringPointerValue(output.Restore)
+	}
+
+	if !types.StringPointerValue(output.SSECustomerAlgorithm).IsNull() || !types.StringPointerValue(output.SSECustomerAlgorithm).IsUnknown() {
+		o.SSECustomerAlgorithm = types.StringPointerValue(output.SSECustomerAlgorithm)
+	}
+
+	if !types.StringPointerValue(output.SSECustomerKeyMD5).IsNull() || !types.StringPointerValue(output.SSECustomerKeyMD5).IsUnknown() {
+		o.SSECustomerKeyMD5 = types.StringPointerValue(output.SSECustomerKeyMD5)
+	}
+
+	if !types.StringPointerValue(output.SSEKMSKeyId).IsNull() || !types.StringPointerValue(output.SSEKMSKeyId).IsUnknown() {
+		o.SSECustomerKeyID = types.StringPointerValue(output.SSEKMSKeyId)
+	}
+
+	if !types.StringPointerValue((*string)(&output.ServerSideEncryption)).IsNull() || !types.StringPointerValue((*string)(&output.ServerSideEncryption)).IsUnknown() {
+		o.ServerSideEncryption = types.StringPointerValue((*string)(&output.ServerSideEncryption))
+	}
+
+	if !types.StringPointerValue((*string)(&output.StorageClass)).IsNull() || !types.StringPointerValue((*string)(&output.StorageClass)).IsUnknown() {
+		o.StroageClass = types.StringPointerValue((*string)(&output.StorageClass))
+	}
+
+	if !types.StringPointerValue(output.VersionId).IsNull() || !types.StringPointerValue(output.VersionId).IsUnknown() {
+		o.VersionId = types.StringPointerValue(output.VersionId)
+	}
+
+	if !types.StringPointerValue(output.WebsiteRedirectLocation).IsNull() || !types.StringPointerValue(output.WebsiteRedirectLocation).IsUnknown() {
+		o.WebsiteRedirectLocation = types.StringPointerValue(output.WebsiteRedirectLocation)
+	}
+
+	if output.LastModified != nil {
+		o.LastModified = types.StringValue(output.LastModified.Format(time.RFC3339))
+	}
+}
 func ObjectIDGenerator(bucketName, key string) string {
 	return fmt.Sprintf("%s/%s", bucketName, key)
 }
