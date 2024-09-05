@@ -25,6 +25,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
 	"github.com/terraform-providers/terraform-provider-ncloud/internal/common"
 	"github.com/terraform-providers/terraform-provider-ncloud/internal/conn"
+	"github.com/terraform-providers/terraform-provider-ncloud/internal/framework"
 )
 
 const (
@@ -49,6 +50,7 @@ type bucketACLResource struct {
 func (b *bucketACLResource) Schema(_ context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = schema.Schema{
 		Attributes: map[string]schema.Attribute{
+			"id": framework.IDAttribute(),
 			"bucket_name": schema.StringAttribute{
 				Required: true,
 				PlanModifiers: []planmodifier.String{
@@ -209,7 +211,7 @@ func (b *bucketACLResource) Configure(_ context.Context, req resource.ConfigureR
 }
 
 func (b *bucketACLResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
-	resource.ImportStatePassthroughID(ctx, path.Root("bucket_name"), req, resp)
+	resource.ImportStatePassthroughID(ctx, path.Root("id"), req, resp)
 }
 
 func waitBucketACLApplied(ctx context.Context, config *conn.ProviderConfig, bucketName string) error {
@@ -243,6 +245,7 @@ func waitBucketACLApplied(ctx context.Context, config *conn.ProviderConfig, buck
 }
 
 type bucketACLResourceModel struct {
+	ID         types.String             `tfsdk:"id"`
 	BucketName types.String             `tfsdk:"bucket_name"`
 	Rule       awsTypes.BucketCannedACL `tfsdk:"rule"`
 	Grants     types.List               `tfsdk:"grants"`
@@ -288,7 +291,7 @@ func (b *bucketACLResourceModel) refreshFromOutput(ctx context.Context, output *
 	}
 
 	b.Grants = listValueFromGrants
-	b.BucketName = types.StringValue(fmt.Sprintf("bucket_acl_%s", b.BucketName))
+	b.ID = types.StringValue(fmt.Sprintf("bucket_acl_%s", b.BucketName))
 	b.Owner = types.StringValue(*output.Owner.ID)
 }
 
