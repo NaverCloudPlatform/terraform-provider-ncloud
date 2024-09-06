@@ -41,7 +41,15 @@ func NewS3Client(region string, api *ncloud.APIKey, site, endpointFromEnv string
 }
 
 func genEndpointWithCode(region, site string) string {
-	s3Endpoint := fmt.Sprintf("https://%[1]s.object.%[2]s-ncloudstorage.com", strings.ToLower(region), strings.ToLower(site))
+	var s3Endpoint string
+	switch site {
+	case "gov":
+		s3Endpoint = fmt.Sprintf("https://%[1]s.object.gov-ncloudstorage.com", strings.ToLower(region))
+	case "fin":
+		s3Endpoint = fmt.Sprintf("https://%[1]s.object.fin-ncloudstorage.com", strings.ToLower(region))
+	default:
+		s3Endpoint = fmt.Sprintf("https://%[1]s.object.ncloudstorage.com", strings.ToLower(region))
+	}
 
 	return s3Endpoint
 }

@@ -202,7 +202,7 @@ func ProviderConfigure(ctx context.Context, d *schema.ResourceData) (interface{}
 	}
 
 	// Set endpoint
-	if endpoint, ok := getOrFromEnv(d, "site", "NCLOUD_ENDPOINT"); ok {
+	if endpoint, ok := getOrFromEnv(d, "endpoint", "NCLOUD_ENDPOINT"); ok {
 		providerConfig.Endpoint = endpoint.(string)
 	}
 
