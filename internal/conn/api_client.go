@@ -12,8 +12,13 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/s3"
 )
 
-func NewS3Client(region string, api *ncloud.APIKey, site string) *s3.Client {
-	endpoint := genEndpointWithCode(region, site)
+func NewS3Client(region string, api *ncloud.APIKey, site, endpointFromEnv string) *s3.Client {
+	var endpoint string
+	if endpointFromEnv != "" {
+		endpoint = endpointFromEnv
+	} else {
+		endpoint = genEndpointWithCode(region, site)
+	}
 
 	if api.AccessKey == "" || api.SecretKey == "" {
 		log.Fatal("AccessKey and SecretKey must not be empty")

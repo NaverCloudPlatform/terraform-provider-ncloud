@@ -78,7 +78,7 @@ type NcloudAPIClient struct {
 	ObjectStorage   *s3.Client
 }
 
-func (c *Config) Client(site string) (*NcloudAPIClient, error) {
+func (c *Config) Client(site, endpoint string) (*NcloudAPIClient, error) {
 	apiKey := &ncloud.APIKey{
 		AccessKey: c.AccessKey,
 		SecretKey: c.SecretKey,
@@ -108,7 +108,7 @@ func (c *Config) Client(site string) (*NcloudAPIClient, error) {
 		Vmssql:          vmssql.NewAPIClient(vmssql.NewConfiguration(apiKey)),
 		Vhadoop:         vhadoop.NewAPIClient(vhadoop.NewConfiguration(apiKey)),
 		Vredis:          vredis.NewAPIClient(vredis.NewConfiguration(apiKey)),
-		ObjectStorage:   NewS3Client(c.Region, apiKey, site),
+		ObjectStorage:   NewS3Client(c.Region, apiKey, site, endpoint),
 	}, nil
 }
 
@@ -117,5 +117,6 @@ type ProviderConfig struct {
 	SupportVPC bool
 	RegionCode string
 	RegionNo   string
+	Endpoint   string
 	Client     *NcloudAPIClient
 }
