@@ -201,11 +201,6 @@ func ProviderConfigure(ctx context.Context, d *schema.ResourceData) (interface{}
 		}
 	}
 
-	// Set endpoint
-	if endpoint, ok := getOrFromEnv(d, "endpoint", "NCLOUD_ENDPOINT"); ok {
-		providerConfig.Endpoint = endpoint.(string)
-	}
-
 	// Fin only supports VPC
 	if providerConfig.Site == "fin" {
 		providerConfig.SupportVPC = true
@@ -231,7 +226,10 @@ func ProviderConfigure(ctx context.Context, d *schema.ResourceData) (interface{}
 		Region:    region.(string),
 	}
 
-	if client, err := config.Client(providerConfig.Site, providerConfig.Endpoint); err != nil {
+	// Set endpoint
+	endpoint, _ := getOrFromEnv(d, "endpoint", "NCLOUD_OBS_ENDPOINT")
+
+	if client, err := config.Client(providerConfig.Site, (endpoint).(string)); err != nil {
 		return nil, diag.FromErr(err)
 	} else {
 		providerConfig.Client = client
