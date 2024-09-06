@@ -6,6 +6,10 @@ variable "secret_key" {
   description = "secret_key, provide through environment variables"
 }
 
+variable "site" {
+  default = ""
+}
+
 variable "region" {
   default = "KR"
 }
