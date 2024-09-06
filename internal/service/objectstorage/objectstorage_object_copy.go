@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/aws/aws-sdk-go-v2/service/s3"
+	awsTypes "github.com/aws/aws-sdk-go-v2/service/s3/types"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
@@ -68,6 +69,30 @@ func (o *objectCopyResource) Create(ctx context.Context, req resource.CreateRequ
 		Key:        plan.Key.ValueStringPointer(),
 	}
 
+	if !plan.BucketKeyEnabled.IsNull() && !plan.BucketKeyEnabled.IsUnknown() {
+		reqParams.BucketKeyEnabled = plan.BucketKeyEnabled.ValueBoolPointer()
+	}
+
+	if !plan.ContentEncoding.IsNull() && !plan.ContentEncoding.IsUnknown() {
+		reqParams.ContentEncoding = plan.ContentEncoding.ValueStringPointer()
+	}
+
+	if !plan.ContentLanguage.IsNull() && !plan.ContentLanguage.IsUnknown() {
+		reqParams.ContentLanguage = plan.ContentLanguage.ValueStringPointer()
+	}
+
+	if !plan.ContentType.IsNull() && !plan.ContentType.IsUnknown() {
+		reqParams.ContentType = plan.ContentType.ValueStringPointer()
+	}
+
+	if !plan.ServerSideEncryption.IsNull() && !plan.ServerSideEncryption.IsUnknown() {
+		reqParams.ServerSideEncryption = awsTypes.ServerSideEncryption(*plan.ServerSideEncryption.ValueStringPointer())
+	}
+
+	if !plan.WebsiteRedirectLocation.IsNull() && !plan.WebsiteRedirectLocation.IsUnknown() {
+		reqParams.WebsiteRedirectLocation = plan.WebsiteRedirectLocation.ValueStringPointer()
+	}
+
 	tflog.Info(ctx, "CopyObject reqParams="+common.MarshalUncheckedString(reqParams))
 
 	output, err := o.config.Client.ObjectStorage.CopyObject(ctx, reqParams)
@@ -127,7 +152,7 @@ func (o *objectCopyResource) Metadata(_ context.Context, req resource.MetadataRe
 }
 
 func (o *objectCopyResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
-	var plan objectResourceModel
+	var plan objectCopyResourceModel
 
 	resp.Diagnostics.Append(req.State.Get(ctx, &plan)...)
 	if resp.Diagnostics.HasError() {
@@ -182,7 +207,6 @@ func (o *objectCopyResource) Schema(ctx context.Context, req resource.SchemaRequ
 				Optional: true,
 			},
 			"bucket_key_enabled": schema.BoolAttribute{
-				Computed: true,
 				Optional: true,
 			},
 			"cache_control": schema.StringAttribute{
@@ -205,16 +229,10 @@ func (o *objectCopyResource) Schema(ctx context.Context, req resource.SchemaRequ
 				Computed: true,
 				Optional: true,
 			},
-			"content_disposition": schema.StringAttribute{
-				Computed: true,
-				Optional: true,
-			},
 			"content_encoding": schema.StringAttribute{
-				Computed: true,
 				Optional: true,
 			},
 			"content_language": schema.StringAttribute{
-				Computed: true,
 				Optional: true,
 			},
 			"content_length": schema.Int64Attribute{
@@ -223,10 +241,6 @@ func (o *objectCopyResource) Schema(ctx context.Context, req resource.SchemaRequ
 			"content_type": schema.StringAttribute{
 				Computed: true,
 			},
-			"delete_marker": schema.BoolAttribute{
-				Computed: true,
-				Optional: true,
-			},
 			"etag": schema.StringAttribute{
 				Computed: true,
 			},
@@ -234,23 +248,7 @@ func (o *objectCopyResource) Schema(ctx context.Context, req resource.SchemaRequ
 				Computed: true,
 				Optional: true,
 			},
-			"expires_string": schema.StringAttribute{
-				Computed: true,
-				Optional: true,
-			},
 			"parts_count": schema.Int64Attribute{
-				Computed: true,
-				Optional: true,
-			},
-			"restore": schema.StringAttribute{
-				Computed: true,
-				Optional: true,
-			},
-			"sse_customer_algorithm": schema.StringAttribute{
-				Computed: true,
-				Optional: true,
-			},
-			"sse_customer_key_md5": schema.StringAttribute{
 				Computed: true,
 				Optional: true,
 			},
@@ -262,16 +260,11 @@ func (o *objectCopyResource) Schema(ctx context.Context, req resource.SchemaRequ
 				Computed: true,
 				Optional: true,
 			},
-			"storage_class": schema.StringAttribute{
-				Computed: true,
-				Optional: true,
-			},
 			"version_id": schema.StringAttribute{
 				Computed: true,
 				Optional: true,
 			},
 			"website_redirect_location": schema.StringAttribute{
-				Computed: true,
 				Optional: true,
 			},
 			"last_modified": schema.StringAttribute{
@@ -281,7 +274,7 @@ func (o *objectCopyResource) Schema(ctx context.Context, req resource.SchemaRequ
 	}
 }
 
-func (o *objectCopyResource) Update(context.Context, resource.UpdateRequest, *resource.UpdateResponse) {
+func (o *objectCopyResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
 }
 
 func waitObjectCopied(ctx context.Context, config *conn.ProviderConfig, bucketName string, key string) error {
@@ -356,23 +349,16 @@ type objectCopyResourceModel struct {
 	ChecksumCRC32C          types.String `tfsdk:"checksum_crc32c"`
 	ChecksumSHA1            types.String `tfsdk:"checksum_sha1"`
 	ChecksumSHA256          types.String `tfsdk:"checksum_sha256"`
-	ContentDisposition      types.String `tfsdk:"content_disposition"`
 	ContentEncoding         types.String `tfsdk:"content_encoding"`
 	ContentLanguage         types.String `tfsdk:"content_language"`
 	ContentLength           types.Int64  `tfsdk:"content_length"`
 	ContentType             types.String `tfsdk:"content_type"`
-	DeleteMarker            types.Bool   `tfsdk:"delete_marker"`
 	ETag                    types.String `tfsdk:"etag"`
 	Expiration              types.String `tfsdk:"expiration"`
-	ExpiresString           types.String `tfsdk:"expires_string"`
 	LastModified            types.String `tfsdk:"last_modified"`
 	PartsCount              types.Int64  `tfsdk:"parts_count"`
-	Restore                 types.String `tfsdk:"restore"`
-	SSECustomerAlgorithm    types.String `tfsdk:"sse_customer_algorithm"`
-	SSECustomerKeyMD5       types.String `tfsdk:"sse_customer_key_md5"`
 	SSECustomerKeyID        types.String `tfsdk:"sse_customer_key_id"`
 	ServerSideEncryption    types.String `tfsdk:"server_side_encryption"`
-	StroageClass            types.String `tfsdk:"storage_class"`
 	VersionId               types.String `tfsdk:"version_id"`
 	WebsiteRedirectLocation types.String `tfsdk:"website_redirect_location"`
 }
@@ -417,10 +403,6 @@ func (o *objectCopyResourceModel) refreshFromOutput(ctx context.Context, config 
 		o.ChecksumSHA256 = types.StringPointerValue(output.ChecksumSHA256)
 	}
 
-	if !types.StringPointerValue(output.ContentDisposition).IsNull() || !types.StringPointerValue(output.ContentDisposition).IsUnknown() {
-		o.ContentDisposition = types.StringPointerValue(output.ContentDisposition)
-	}
-
 	if !types.StringPointerValue(output.ContentEncoding).IsNull() || !types.StringPointerValue(output.ContentEncoding).IsUnknown() {
 		o.ContentEncoding = types.StringPointerValue(output.ContentEncoding)
 	}
@@ -437,10 +419,6 @@ func (o *objectCopyResourceModel) refreshFromOutput(ctx context.Context, config 
 		o.ContentType = types.StringPointerValue(output.ContentType)
 	}
 
-	if !types.BoolPointerValue(output.DeleteMarker).IsNull() || !types.BoolPointerValue(output.DeleteMarker).IsUnknown() {
-		o.DeleteMarker = types.BoolPointerValue(output.DeleteMarker)
-	}
-
 	if !types.StringPointerValue(output.ETag).IsNull() || !types.StringPointerValue(output.ETag).IsUnknown() {
 		o.ETag = types.StringPointerValue(output.ETag)
 	}
@@ -449,24 +427,8 @@ func (o *objectCopyResourceModel) refreshFromOutput(ctx context.Context, config 
 		o.Expiration = types.StringPointerValue(output.Expiration)
 	}
 
-	if !types.StringPointerValue(output.ExpiresString).IsNull() || !types.StringPointerValue(output.ExpiresString).IsUnknown() {
-		o.ExpiresString = types.StringPointerValue(output.ExpiresString)
-	}
-
 	if !types.Int32PointerValue(output.PartsCount).IsNull() || !types.Int32PointerValue(output.PartsCount).IsUnknown() {
 		o.PartsCount = common.Int64ValueFromInt32(output.PartsCount)
-	}
-
-	if !types.StringPointerValue(output.Restore).IsNull() || !types.StringPointerValue(output.Restore).IsUnknown() {
-		o.Restore = types.StringPointerValue(output.Restore)
-	}
-
-	if !types.StringPointerValue(output.SSECustomerAlgorithm).IsNull() || !types.StringPointerValue(output.SSECustomerAlgorithm).IsUnknown() {
-		o.SSECustomerAlgorithm = types.StringPointerValue(output.SSECustomerAlgorithm)
-	}
-
-	if !types.StringPointerValue(output.SSECustomerKeyMD5).IsNull() || !types.StringPointerValue(output.SSECustomerKeyMD5).IsUnknown() {
-		o.SSECustomerKeyMD5 = types.StringPointerValue(output.SSECustomerKeyMD5)
 	}
 
 	if !types.StringPointerValue(output.SSEKMSKeyId).IsNull() || !types.StringPointerValue(output.SSEKMSKeyId).IsUnknown() {
@@ -475,10 +437,6 @@ func (o *objectCopyResourceModel) refreshFromOutput(ctx context.Context, config 
 
 	if !types.StringPointerValue((*string)(&output.ServerSideEncryption)).IsNull() || !types.StringPointerValue((*string)(&output.ServerSideEncryption)).IsUnknown() {
 		o.ServerSideEncryption = types.StringPointerValue((*string)(&output.ServerSideEncryption))
-	}
-
-	if !types.StringPointerValue((*string)(&output.StorageClass)).IsNull() || !types.StringPointerValue((*string)(&output.StorageClass)).IsUnknown() {
-		o.StroageClass = types.StringPointerValue((*string)(&output.StorageClass))
 	}
 
 	if !types.StringPointerValue(output.VersionId).IsNull() || !types.StringPointerValue(output.VersionId).IsUnknown() {

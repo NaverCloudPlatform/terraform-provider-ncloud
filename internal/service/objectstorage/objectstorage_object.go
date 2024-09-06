@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/aws/aws-sdk-go-v2/service/s3"
+	awsTypes "github.com/aws/aws-sdk-go-v2/service/s3/types"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
@@ -56,6 +57,34 @@ func (o *objectResource) Create(ctx context.Context, req resource.CreateRequest,
 		Bucket: plan.Bucket.ValueStringPointer(),
 		Key:    plan.Key.ValueStringPointer(),
 		Body:   file,
+	}
+
+	if !plan.BucketKeyEnabled.IsNull() && !plan.BucketKeyEnabled.IsUnknown() {
+		reqParams.BucketKeyEnabled = plan.BucketKeyEnabled.ValueBoolPointer()
+	}
+
+	if !plan.ChecksumAlgorithm.IsNull() && !plan.ChecksumAlgorithm.IsUnknown() {
+		reqParams.ChecksumAlgorithm = awsTypes.ChecksumAlgorithm(*plan.ChecksumAlgorithm.ValueStringPointer())
+	}
+
+	if !plan.ContentEncoding.IsNull() && !plan.ContentEncoding.IsUnknown() {
+		reqParams.ContentEncoding = plan.ContentEncoding.ValueStringPointer()
+	}
+
+	if !plan.ContentLanguage.IsNull() && !plan.ContentLanguage.IsUnknown() {
+		reqParams.ContentLanguage = plan.ContentLanguage.ValueStringPointer()
+	}
+
+	if !plan.ContentType.IsNull() && !plan.ContentType.IsUnknown() {
+		reqParams.ContentType = plan.ContentType.ValueStringPointer()
+	}
+
+	if !plan.ServerSideEncryption.IsNull() && !plan.ServerSideEncryption.IsUnknown() {
+		reqParams.ServerSideEncryption = awsTypes.ServerSideEncryption(*plan.ServerSideEncryption.ValueStringPointer())
+	}
+
+	if !plan.WebsiteRedirectLocation.IsNull() && !plan.WebsiteRedirectLocation.IsUnknown() {
+		reqParams.WebsiteRedirectLocation = plan.WebsiteRedirectLocation.ValueStringPointer()
 	}
 
 	tflog.Info(ctx, "PutObject reqParams="+common.MarshalUncheckedString(reqParams))
@@ -168,11 +197,13 @@ func (o *objectResource) Schema(_ context.Context, req resource.SchemaRequest, r
 				Optional: true,
 			},
 			"bucket_key_enabled": schema.BoolAttribute{
-				Computed: true,
 				Optional: true,
 			},
 			"cache_control": schema.StringAttribute{
 				Computed: true,
+				Optional: true,
+			},
+			"checksum_algorithm": schema.StringAttribute{
 				Optional: true,
 			},
 			"checksum_crc32": schema.StringAttribute{
@@ -191,16 +222,10 @@ func (o *objectResource) Schema(_ context.Context, req resource.SchemaRequest, r
 				Computed: true,
 				Optional: true,
 			},
-			"content_disposition": schema.StringAttribute{
-				Computed: true,
-				Optional: true,
-			},
 			"content_encoding": schema.StringAttribute{
-				Computed: true,
 				Optional: true,
 			},
 			"content_language": schema.StringAttribute{
-				Computed: true,
 				Optional: true,
 			},
 			"content_length": schema.Int64Attribute{
@@ -209,10 +234,6 @@ func (o *objectResource) Schema(_ context.Context, req resource.SchemaRequest, r
 			"content_type": schema.StringAttribute{
 				Computed: true,
 			},
-			"delete_marker": schema.BoolAttribute{
-				Computed: true,
-				Optional: true,
-			},
 			"etag": schema.StringAttribute{
 				Computed: true,
 			},
@@ -220,23 +241,7 @@ func (o *objectResource) Schema(_ context.Context, req resource.SchemaRequest, r
 				Computed: true,
 				Optional: true,
 			},
-			"expires_string": schema.StringAttribute{
-				Computed: true,
-				Optional: true,
-			},
 			"parts_count": schema.Int64Attribute{
-				Computed: true,
-				Optional: true,
-			},
-			"restore": schema.StringAttribute{
-				Computed: true,
-				Optional: true,
-			},
-			"sse_customer_algorithm": schema.StringAttribute{
-				Computed: true,
-				Optional: true,
-			},
-			"sse_customer_key_md5": schema.StringAttribute{
 				Computed: true,
 				Optional: true,
 			},
@@ -248,16 +253,11 @@ func (o *objectResource) Schema(_ context.Context, req resource.SchemaRequest, r
 				Computed: true,
 				Optional: true,
 			},
-			"storage_class": schema.StringAttribute{
-				Computed: true,
-				Optional: true,
-			},
 			"version_id": schema.StringAttribute{
 				Computed: true,
 				Optional: true,
 			},
 			"website_redirect_location": schema.StringAttribute{
-				Computed: true,
 				Optional: true,
 			},
 			"last_modified": schema.StringAttribute{
@@ -267,7 +267,7 @@ func (o *objectResource) Schema(_ context.Context, req resource.SchemaRequest, r
 	}
 }
 
-func (o *objectResource) Update(context.Context, resource.UpdateRequest, *resource.UpdateResponse) {
+func (o *objectResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
 }
 
 func (o *objectResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
@@ -360,27 +360,21 @@ type objectResourceModel struct {
 	AcceptRanges            types.String `tfsdk:"accept_ranges"`
 	BucketKeyEnabled        types.Bool   `tfsdk:"bucket_key_enabled"`
 	CacheControl            types.String `tfsdk:"cache_control"`
+	ChecksumAlgorithm       types.String `tfsdk:"checksum_algorithm"`
 	ChecksumCRC32           types.String `tfsdk:"checksum_crc32"`
 	ChecksumCRC32C          types.String `tfsdk:"checksum_crc32c"`
 	ChecksumSHA1            types.String `tfsdk:"checksum_sha1"`
 	ChecksumSHA256          types.String `tfsdk:"checksum_sha256"`
-	ContentDisposition      types.String `tfsdk:"content_disposition"`
 	ContentEncoding         types.String `tfsdk:"content_encoding"`
 	ContentLanguage         types.String `tfsdk:"content_language"`
 	ContentLength           types.Int64  `tfsdk:"content_length"`
 	ContentType             types.String `tfsdk:"content_type"`
-	DeleteMarker            types.Bool   `tfsdk:"delete_marker"`
 	ETag                    types.String `tfsdk:"etag"`
 	Expiration              types.String `tfsdk:"expiration"`
-	ExpiresString           types.String `tfsdk:"expires_string"`
 	LastModified            types.String `tfsdk:"last_modified"`
 	PartsCount              types.Int64  `tfsdk:"parts_count"`
-	Restore                 types.String `tfsdk:"restore"`
-	SSECustomerAlgorithm    types.String `tfsdk:"sse_customer_algorithm"`
-	SSECustomerKeyMD5       types.String `tfsdk:"sse_customer_key_md5"`
 	SSECustomerKeyID        types.String `tfsdk:"sse_customer_key_id"`
 	ServerSideEncryption    types.String `tfsdk:"server_side_encryption"`
-	StroageClass            types.String `tfsdk:"storage_class"`
 	VersionId               types.String `tfsdk:"version_id"`
 	WebsiteRedirectLocation types.String `tfsdk:"website_redirect_location"`
 }
@@ -425,10 +419,6 @@ func (o *objectResourceModel) refreshFromOutput(ctx context.Context, config *con
 		o.ChecksumSHA256 = types.StringPointerValue(output.ChecksumSHA256)
 	}
 
-	if !types.StringPointerValue(output.ContentDisposition).IsNull() || !types.StringPointerValue(output.ContentDisposition).IsUnknown() {
-		o.ContentDisposition = types.StringPointerValue(output.ContentDisposition)
-	}
-
 	if !types.StringPointerValue(output.ContentEncoding).IsNull() || !types.StringPointerValue(output.ContentEncoding).IsUnknown() {
 		o.ContentEncoding = types.StringPointerValue(output.ContentEncoding)
 	}
@@ -445,10 +435,6 @@ func (o *objectResourceModel) refreshFromOutput(ctx context.Context, config *con
 		o.ContentType = types.StringPointerValue(output.ContentType)
 	}
 
-	if !types.BoolPointerValue(output.DeleteMarker).IsNull() || !types.BoolPointerValue(output.DeleteMarker).IsUnknown() {
-		o.DeleteMarker = types.BoolPointerValue(output.DeleteMarker)
-	}
-
 	if !types.StringPointerValue(output.ETag).IsNull() || !types.StringPointerValue(output.ETag).IsUnknown() {
 		o.ETag = types.StringPointerValue(output.ETag)
 	}
@@ -457,24 +443,8 @@ func (o *objectResourceModel) refreshFromOutput(ctx context.Context, config *con
 		o.Expiration = types.StringPointerValue(output.Expiration)
 	}
 
-	if !types.StringPointerValue(output.ExpiresString).IsNull() || !types.StringPointerValue(output.ExpiresString).IsUnknown() {
-		o.ExpiresString = types.StringPointerValue(output.ExpiresString)
-	}
-
 	if !types.Int32PointerValue(output.PartsCount).IsNull() || !types.Int32PointerValue(output.PartsCount).IsUnknown() {
 		o.PartsCount = common.Int64ValueFromInt32(output.PartsCount)
-	}
-
-	if !types.StringPointerValue(output.Restore).IsNull() || !types.StringPointerValue(output.Restore).IsUnknown() {
-		o.Restore = types.StringPointerValue(output.Restore)
-	}
-
-	if !types.StringPointerValue(output.SSECustomerAlgorithm).IsNull() || !types.StringPointerValue(output.SSECustomerAlgorithm).IsUnknown() {
-		o.SSECustomerAlgorithm = types.StringPointerValue(output.SSECustomerAlgorithm)
-	}
-
-	if !types.StringPointerValue(output.SSECustomerKeyMD5).IsNull() || !types.StringPointerValue(output.SSECustomerKeyMD5).IsUnknown() {
-		o.SSECustomerKeyMD5 = types.StringPointerValue(output.SSECustomerKeyMD5)
 	}
 
 	if !types.StringPointerValue(output.SSEKMSKeyId).IsNull() || !types.StringPointerValue(output.SSEKMSKeyId).IsUnknown() {
@@ -483,10 +453,6 @@ func (o *objectResourceModel) refreshFromOutput(ctx context.Context, config *con
 
 	if !types.StringPointerValue((*string)(&output.ServerSideEncryption)).IsNull() || !types.StringPointerValue((*string)(&output.ServerSideEncryption)).IsUnknown() {
 		o.ServerSideEncryption = types.StringPointerValue((*string)(&output.ServerSideEncryption))
-	}
-
-	if !types.StringPointerValue((*string)(&output.StorageClass)).IsNull() || !types.StringPointerValue((*string)(&output.StorageClass)).IsUnknown() {
-		o.StroageClass = types.StringPointerValue((*string)(&output.StorageClass))
 	}
 
 	if !types.StringPointerValue(output.VersionId).IsNull() || !types.StringPointerValue(output.VersionId).IsUnknown() {
