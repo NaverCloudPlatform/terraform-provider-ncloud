@@ -120,6 +120,7 @@ func (o *bucketResource) Read(ctx context.Context, req resource.ReadRequest, res
 
 	output, err := o.config.Client.ObjectStorage.ListBuckets(ctx, &s3.ListBucketsInput{})
 	if err != nil {
+		resp.Diagnostics.AddError("READING ERROR", err.Error())
 		return
 	}
 
@@ -129,6 +130,7 @@ func (o *bucketResource) Read(ctx context.Context, req resource.ReadRequest, res
 				Bucket: plan.BucketName.ValueStringPointer(),
 			})
 			if err != nil {
+				resp.Diagnostics.AddError("READING ERROR", err.Error())
 				return
 			}
 

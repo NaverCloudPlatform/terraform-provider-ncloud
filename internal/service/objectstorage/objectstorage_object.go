@@ -10,6 +10,7 @@ import (
 
 	"github.com/aws/aws-sdk-go-v2/service/s3"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
+	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
@@ -79,6 +80,7 @@ func (o *objectResource) Create(ctx context.Context, req resource.CreateRequest,
 	output, err := o.config.Client.ObjectStorage.PutObject(ctx, reqParams)
 	if err != nil {
 		resp.Diagnostics.AddError("CREATING ERROR", err.Error())
+		return
 	}
 	if output == nil {
 		resp.Diagnostics.AddError("CREATING ERROR", "response invalid")
@@ -92,7 +94,7 @@ func (o *objectResource) Create(ctx context.Context, req resource.CreateRequest,
 		return
 	}
 
-	plan.refreshFromOutput(ctx, o.config)
+	plan.refreshFromOutput(ctx, o.config, &resp.Diagnostics)
 	resp.Diagnostics.Append(resp.State.Set(ctx, plan)...)
 }
 
@@ -136,7 +138,7 @@ func (o *objectResource) Read(ctx context.Context, req resource.ReadRequest, res
 		return
 	}
 
-	plan.refreshFromOutput(ctx, o.config)
+	plan.refreshFromOutput(ctx, o.config, &resp.Diagnostics)
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
 	if resp.Diagnostics.HasError() {
@@ -323,12 +325,13 @@ type objectResourceModel struct {
 	WebsiteRedirectLocation types.String `tfsdk:"website_redirect_location"`
 }
 
-func (o *objectResourceModel) refreshFromOutput(ctx context.Context, config *conn.ProviderConfig) {
+func (o *objectResourceModel) refreshFromOutput(ctx context.Context, config *conn.ProviderConfig, diag *diag.Diagnostics) {
 	output, err := config.Client.ObjectStorage.HeadObject(ctx, &s3.HeadObjectInput{
 		Bucket: o.Bucket.ValueStringPointer(),
 		Key:    o.Key.ValueStringPointer(),
 	})
 	if err != nil {
+		diag.AddError("HeadObject ERROR", err.Error())
 		return
 	}
 

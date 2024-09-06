@@ -135,6 +135,7 @@ func (b *bucketACLResource) Create(ctx context.Context, req resource.CreateReque
 	response, err := b.config.Client.ObjectStorage.PutBucketAcl(ctx, reqParams)
 	if err != nil {
 		resp.Diagnostics.AddError("CREATING ERROR", err.Error())
+		return
 	}
 
 	tflog.Info(ctx, "PutObjectACL response="+common.MarshalUncheckedString(response))
@@ -144,7 +145,7 @@ func (b *bucketACLResource) Create(ctx context.Context, req resource.CreateReque
 		return
 	}
 
-	plan.refreshFromOutput(ctx, b.config, bucketName)
+	plan.refreshFromOutput(ctx, b.config, bucketName, &resp.Diagnostics)
 	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
 }
 
@@ -161,7 +162,7 @@ func (b *bucketACLResource) Read(ctx context.Context, req resource.ReadRequest, 
 		return
 	}
 
-	plan.refreshFromOutput(ctx, b.config, bucketName)
+	plan.refreshFromOutput(ctx, b.config, bucketName, &resp.Diagnostics)
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
 	if resp.Diagnostics.HasError() {
@@ -236,14 +237,16 @@ type bucketACLResourceModel struct {
 	Owner      types.String             `tfsdk:"owner"`
 }
 
-func (b *bucketACLResourceModel) refreshFromOutput(ctx context.Context, config *conn.ProviderConfig, bucketName string) {
+func (b *bucketACLResourceModel) refreshFromOutput(ctx context.Context, config *conn.ProviderConfig, bucketName string, diag *diag.Diagnostics) {
 	output, err := config.Client.ObjectStorage.GetBucketAcl(ctx, &s3.GetBucketAclInput{
 		Bucket: ncloud.String(bucketName),
 	})
 	if err != nil {
+		diag.AddError("GetBucketAcl ERROR", err.Error())
 		return
 	}
 	if output == nil {
+		diag.AddError("GetBucketAcl ERROR", "output is nil")
 		return
 	}
 
@@ -274,10 +277,9 @@ func (b *bucketACLResourceModel) refreshFromOutput(ctx context.Context, config *
 		grantList = append(grantList, indivGrant)
 	}
 
-	listValueFromGrants, diag := convertGrantsToListValueAtBucket(ctx, grantList)
-
-	if diag.HasError() {
-		fmt.Printf("Error Occured with parsing Grants to ListValue")
+	listValueFromGrants, diagFromConverting := convertGrantsToListValueAtBucket(ctx, grantList)
+	if diagFromConverting.HasError() {
+		diag.AddError("CONVERTING ERROR", "Error from converting grants to listValue at Object")
 		return
 	}
 

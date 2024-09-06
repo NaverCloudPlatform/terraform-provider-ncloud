@@ -65,6 +65,7 @@ func (o *objectDataSource) Read(ctx context.Context, req datasource.ReadRequest,
 		Key:    ncloud.String(key),
 	})
 	if err != nil {
+		resp.Diagnostics.AddError("READING ERROR", err.Error())
 		return
 	}
 	defer output.Body.Close()
@@ -119,6 +120,7 @@ func (o *objectDataSource) Read(ctx context.Context, req datasource.ReadRequest,
 
 	bodyBytes, err := io.ReadAll(output.Body)
 	if err != nil {
+		resp.Diagnostics.AddError("READING ERROR", err.Error())
 		return
 	}
 

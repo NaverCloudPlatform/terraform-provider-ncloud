@@ -63,6 +63,7 @@ func (o *objectACLResource) Create(ctx context.Context, req resource.CreateReque
 	response, err := o.config.Client.ObjectStorage.PutObjectAcl(ctx, reqParams)
 	if err != nil {
 		resp.Diagnostics.AddError("CREATING ERROR", err.Error())
+		return
 	}
 
 	tflog.Info(ctx, "PutObjectACL response="+common.MarshalUncheckedString(response))
@@ -72,7 +73,7 @@ func (o *objectACLResource) Create(ctx context.Context, req resource.CreateReque
 		return
 	}
 
-	plan.refreshFromOutput(ctx, o.config, bucketName, key)
+	plan.refreshFromOutput(ctx, o.config, bucketName, key, &resp.Diagnostics)
 	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
 }
 
@@ -93,7 +94,7 @@ func (o *objectACLResource) Read(ctx context.Context, req resource.ReadRequest, 
 		return
 	}
 
-	plan.refreshFromOutput(ctx, o.config, bucketName, key)
+	plan.refreshFromOutput(ctx, o.config, bucketName, key, &resp.Diagnostics)
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
 	if resp.Diagnostics.HasError() {
@@ -238,15 +239,17 @@ type objectACLResourceModel struct {
 	OwnerDisplayName types.String             `tfsdk:"owner_displayname"`
 }
 
-func (o *objectACLResourceModel) refreshFromOutput(ctx context.Context, config *conn.ProviderConfig, bucketName, key string) {
+func (o *objectACLResourceModel) refreshFromOutput(ctx context.Context, config *conn.ProviderConfig, bucketName, key string, diag *diag.Diagnostics) {
 	output, err := config.Client.ObjectStorage.GetObjectAcl(ctx, &s3.GetObjectAclInput{
 		Bucket: ncloud.String(bucketName),
 		Key:    ncloud.String(key),
 	})
 	if err != nil {
+		diag.AddError("GetObjectAcl ERROR", err.Error())
 		return
 	}
 	if output == nil {
+		diag.AddError("GetObjectAcl ERROR", "output is nil")
 		return
 	}
 
@@ -277,9 +280,9 @@ func (o *objectACLResourceModel) refreshFromOutput(ctx context.Context, config *
 		grantList = append(grantList, indivGrant)
 	}
 
-	listValueWithGrants, diag := convertGrantsToListValueAtObject(ctx, grantList)
-	if diag.HasError() {
-		fmt.Printf("Error Occured with parsing Grants to ListValue")
+	listValueWithGrants, diagFromConverting := convertGrantsToListValueAtObject(ctx, grantList)
+	if diagFromConverting.HasError() {
+		diag.AddError("CONVERTING ERROR", "Error from converting grants to listValue at Object")
 		return
 	}
 
