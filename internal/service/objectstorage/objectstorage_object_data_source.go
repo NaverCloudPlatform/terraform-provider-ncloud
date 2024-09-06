@@ -77,30 +77,6 @@ func (o *objectDataSource) Read(ctx context.Context, req datasource.ReadRequest,
 		data.AcceptRanges = types.StringPointerValue(output.AcceptRanges)
 	}
 
-	if !types.BoolPointerValue(output.BucketKeyEnabled).IsNull() || !types.BoolPointerValue(output.BucketKeyEnabled).IsUnknown() {
-		data.BucketKeyEnabled = types.BoolPointerValue(output.BucketKeyEnabled)
-	}
-
-	if !types.StringPointerValue(output.CacheControl).IsNull() || !types.StringPointerValue(output.CacheControl).IsUnknown() {
-		data.CacheControl = types.StringPointerValue(output.CacheControl)
-	}
-
-	if !types.StringPointerValue(output.ChecksumCRC32).IsNull() || !types.StringPointerValue(output.ChecksumCRC32).IsUnknown() {
-		data.ChecksumCRC32 = types.StringPointerValue(output.ChecksumCRC32)
-	}
-
-	if !types.StringPointerValue(output.ChecksumCRC32C).IsNull() || !types.StringPointerValue(output.ChecksumCRC32C).IsUnknown() {
-		data.ChecksumCRC32C = types.StringPointerValue(output.ChecksumCRC32C)
-	}
-
-	if !types.StringPointerValue(output.ChecksumSHA1).IsNull() || !types.StringPointerValue(output.ChecksumSHA1).IsUnknown() {
-		data.ChecksumSHA1 = types.StringPointerValue(output.ChecksumSHA1)
-	}
-
-	if !types.StringPointerValue(output.ChecksumSHA256).IsNull() || !types.StringPointerValue(output.ChecksumSHA256).IsUnknown() {
-		data.ChecksumSHA256 = types.StringPointerValue(output.ChecksumSHA256)
-	}
-
 	if !types.StringPointerValue(output.ContentEncoding).IsNull() || !types.StringPointerValue(output.ContentEncoding).IsUnknown() {
 		data.ContentEncoding = types.StringPointerValue(output.ContentEncoding)
 	}
@@ -127,14 +103,6 @@ func (o *objectDataSource) Read(ctx context.Context, req datasource.ReadRequest,
 
 	if !types.Int32PointerValue(output.PartsCount).IsNull() || !types.Int32PointerValue(output.PartsCount).IsUnknown() {
 		data.PartsCount = common.Int64ValueFromInt32(output.PartsCount)
-	}
-
-	if !types.StringPointerValue(output.SSEKMSKeyId).IsNull() || !types.StringPointerValue(output.SSEKMSKeyId).IsUnknown() {
-		data.SSECustomerKeyID = types.StringPointerValue(output.SSEKMSKeyId)
-	}
-
-	if !types.StringPointerValue((*string)(&output.ServerSideEncryption)).IsNull() || !types.StringPointerValue((*string)(&output.ServerSideEncryption)).IsUnknown() {
-		data.ServerSideEncryption = types.StringPointerValue((*string)(&output.ServerSideEncryption))
 	}
 
 	if !types.StringPointerValue(output.VersionId).IsNull() || !types.StringPointerValue(output.VersionId).IsUnknown() {
@@ -183,28 +151,6 @@ func (o *objectDataSource) Schema(_ context.Context, _ datasource.SchemaRequest,
 			"accept_ranges": schema.StringAttribute{
 				Computed: true,
 			},
-			"bucket_key_enabled": schema.BoolAttribute{
-				Computed: true,
-			},
-			"cache_control": schema.StringAttribute{
-				Computed: true,
-			},
-			"checksum_algorithm": schema.StringAttribute{
-				Computed: true,
-			},
-			"checksum_crc32": schema.StringAttribute{
-				Computed: true,
-			},
-			"checksum_crc32c": schema.StringAttribute{
-				Computed: true,
-			},
-			"checksum_sha1": schema.StringAttribute{
-				Computed: true,
-			},
-			"checksum_sha256": schema.StringAttribute{
-				Computed: true,
-				Optional: true,
-			},
 			"content_encoding": schema.StringAttribute{
 				Computed: true,
 			},
@@ -224,12 +170,6 @@ func (o *objectDataSource) Schema(_ context.Context, _ datasource.SchemaRequest,
 				Computed: true,
 			},
 			"parts_count": schema.Int64Attribute{
-				Computed: true,
-			},
-			"sse_customer_key_id": schema.StringAttribute{
-				Computed: true,
-			},
-			"server_side_encryption": schema.StringAttribute{
 				Computed: true,
 			},
 			"version_id": schema.StringAttribute{
@@ -256,13 +196,6 @@ type objectDataResourceModel struct {
 	Source                  types.String `tfsdk:"source"`
 	ContentLength           types.Int64  `tfsdk:"content_length"`
 	AcceptRanges            types.String `tfsdk:"accept_ranges"`
-	BucketKeyEnabled        types.Bool   `tfsdk:"bucket_key_enabled"`
-	CacheControl            types.String `tfsdk:"cache_control"`
-	ChecksumAlgorithm       types.String `tfsdk:"checksum_algorithm"`
-	ChecksumCRC32           types.String `tfsdk:"checksum_crc32"`
-	ChecksumCRC32C          types.String `tfsdk:"checksum_crc32c"`
-	ChecksumSHA1            types.String `tfsdk:"checksum_sha1"`
-	ChecksumSHA256          types.String `tfsdk:"checksum_sha256"`
 	ContentEncoding         types.String `tfsdk:"content_encoding"`
 	ContentLanguage         types.String `tfsdk:"content_language"`
 	ContentType             types.String `tfsdk:"content_type"`
@@ -270,8 +203,6 @@ type objectDataResourceModel struct {
 	Expiration              types.String `tfsdk:"expiration"`
 	LastModified            types.String `tfsdk:"last_modified"`
 	PartsCount              types.Int64  `tfsdk:"parts_count"`
-	SSECustomerKeyID        types.String `tfsdk:"sse_customer_key_id"`
-	ServerSideEncryption    types.String `tfsdk:"server_side_encryption"`
 	VersionId               types.String `tfsdk:"version_id"`
 	WebsiteRedirectLocation types.String `tfsdk:"website_redirect_location"`
 	Body                    types.String `tfsdk:"body"`

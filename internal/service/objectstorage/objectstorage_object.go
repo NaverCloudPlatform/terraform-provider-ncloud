@@ -9,7 +9,6 @@ import (
 	"time"
 
 	"github.com/aws/aws-sdk-go-v2/service/s3"
-	awsTypes "github.com/aws/aws-sdk-go-v2/service/s3/types"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
@@ -59,14 +58,6 @@ func (o *objectResource) Create(ctx context.Context, req resource.CreateRequest,
 		Body:   file,
 	}
 
-	if !plan.BucketKeyEnabled.IsNull() && !plan.BucketKeyEnabled.IsUnknown() {
-		reqParams.BucketKeyEnabled = plan.BucketKeyEnabled.ValueBoolPointer()
-	}
-
-	if !plan.ChecksumAlgorithm.IsNull() && !plan.ChecksumAlgorithm.IsUnknown() {
-		reqParams.ChecksumAlgorithm = awsTypes.ChecksumAlgorithm(*plan.ChecksumAlgorithm.ValueStringPointer())
-	}
-
 	if !plan.ContentEncoding.IsNull() && !plan.ContentEncoding.IsUnknown() {
 		reqParams.ContentEncoding = plan.ContentEncoding.ValueStringPointer()
 	}
@@ -77,10 +68,6 @@ func (o *objectResource) Create(ctx context.Context, req resource.CreateRequest,
 
 	if !plan.ContentType.IsNull() && !plan.ContentType.IsUnknown() {
 		reqParams.ContentType = plan.ContentType.ValueStringPointer()
-	}
-
-	if !plan.ServerSideEncryption.IsNull() && !plan.ServerSideEncryption.IsUnknown() {
-		reqParams.ServerSideEncryption = awsTypes.ServerSideEncryption(*plan.ServerSideEncryption.ValueStringPointer())
 	}
 
 	if !plan.WebsiteRedirectLocation.IsNull() && !plan.WebsiteRedirectLocation.IsUnknown() {
@@ -196,32 +183,6 @@ func (o *objectResource) Schema(_ context.Context, req resource.SchemaRequest, r
 				Computed: true,
 				Optional: true,
 			},
-			"bucket_key_enabled": schema.BoolAttribute{
-				Optional: true,
-			},
-			"cache_control": schema.StringAttribute{
-				Computed: true,
-				Optional: true,
-			},
-			"checksum_algorithm": schema.StringAttribute{
-				Optional: true,
-			},
-			"checksum_crc32": schema.StringAttribute{
-				Computed: true,
-				Optional: true,
-			},
-			"checksum_crc32c": schema.StringAttribute{
-				Computed: true,
-				Optional: true,
-			},
-			"checksum_sha1": schema.StringAttribute{
-				Computed: true,
-				Optional: true,
-			},
-			"checksum_sha256": schema.StringAttribute{
-				Computed: true,
-				Optional: true,
-			},
 			"content_encoding": schema.StringAttribute{
 				Optional: true,
 			},
@@ -242,14 +203,6 @@ func (o *objectResource) Schema(_ context.Context, req resource.SchemaRequest, r
 				Optional: true,
 			},
 			"parts_count": schema.Int64Attribute{
-				Computed: true,
-				Optional: true,
-			},
-			"sse_customer_key_id": schema.StringAttribute{
-				Computed: true,
-				Optional: true,
-			},
-			"server_side_encryption": schema.StringAttribute{
 				Computed: true,
 				Optional: true,
 			},
@@ -358,13 +311,6 @@ type objectResourceModel struct {
 	Key                     types.String `tfsdk:"key"`
 	Source                  types.String `tfsdk:"source"`
 	AcceptRanges            types.String `tfsdk:"accept_ranges"`
-	BucketKeyEnabled        types.Bool   `tfsdk:"bucket_key_enabled"`
-	CacheControl            types.String `tfsdk:"cache_control"`
-	ChecksumAlgorithm       types.String `tfsdk:"checksum_algorithm"`
-	ChecksumCRC32           types.String `tfsdk:"checksum_crc32"`
-	ChecksumCRC32C          types.String `tfsdk:"checksum_crc32c"`
-	ChecksumSHA1            types.String `tfsdk:"checksum_sha1"`
-	ChecksumSHA256          types.String `tfsdk:"checksum_sha256"`
 	ContentEncoding         types.String `tfsdk:"content_encoding"`
 	ContentLanguage         types.String `tfsdk:"content_language"`
 	ContentLength           types.Int64  `tfsdk:"content_length"`
@@ -373,8 +319,6 @@ type objectResourceModel struct {
 	Expiration              types.String `tfsdk:"expiration"`
 	LastModified            types.String `tfsdk:"last_modified"`
 	PartsCount              types.Int64  `tfsdk:"parts_count"`
-	SSECustomerKeyID        types.String `tfsdk:"sse_customer_key_id"`
-	ServerSideEncryption    types.String `tfsdk:"server_side_encryption"`
 	VersionId               types.String `tfsdk:"version_id"`
 	WebsiteRedirectLocation types.String `tfsdk:"website_redirect_location"`
 }
@@ -393,30 +337,6 @@ func (o *objectResourceModel) refreshFromOutput(ctx context.Context, config *con
 	o.ID = types.StringValue(ObjectIDGenerator(bucketName, key))
 	if !types.StringPointerValue(output.AcceptRanges).IsNull() || !types.StringPointerValue(output.AcceptRanges).IsUnknown() {
 		o.AcceptRanges = types.StringPointerValue(output.AcceptRanges)
-	}
-
-	if !types.BoolPointerValue(output.BucketKeyEnabled).IsNull() || !types.BoolPointerValue(output.BucketKeyEnabled).IsUnknown() {
-		o.BucketKeyEnabled = types.BoolPointerValue(output.BucketKeyEnabled)
-	}
-
-	if !types.StringPointerValue(output.CacheControl).IsNull() || !types.StringPointerValue(output.CacheControl).IsUnknown() {
-		o.CacheControl = types.StringPointerValue(output.CacheControl)
-	}
-
-	if !types.StringPointerValue(output.ChecksumCRC32).IsNull() || !types.StringPointerValue(output.ChecksumCRC32).IsUnknown() {
-		o.ChecksumCRC32 = types.StringPointerValue(output.ChecksumCRC32)
-	}
-
-	if !types.StringPointerValue(output.ChecksumCRC32C).IsNull() || !types.StringPointerValue(output.ChecksumCRC32C).IsUnknown() {
-		o.ChecksumCRC32C = types.StringPointerValue(output.ChecksumCRC32C)
-	}
-
-	if !types.StringPointerValue(output.ChecksumSHA1).IsNull() || !types.StringPointerValue(output.ChecksumSHA1).IsUnknown() {
-		o.ChecksumSHA1 = types.StringPointerValue(output.ChecksumSHA1)
-	}
-
-	if !types.StringPointerValue(output.ChecksumSHA256).IsNull() || !types.StringPointerValue(output.ChecksumSHA256).IsUnknown() {
-		o.ChecksumSHA256 = types.StringPointerValue(output.ChecksumSHA256)
 	}
 
 	if !types.StringPointerValue(output.ContentEncoding).IsNull() || !types.StringPointerValue(output.ContentEncoding).IsUnknown() {
@@ -445,14 +365,6 @@ func (o *objectResourceModel) refreshFromOutput(ctx context.Context, config *con
 
 	if !types.Int32PointerValue(output.PartsCount).IsNull() || !types.Int32PointerValue(output.PartsCount).IsUnknown() {
 		o.PartsCount = common.Int64ValueFromInt32(output.PartsCount)
-	}
-
-	if !types.StringPointerValue(output.SSEKMSKeyId).IsNull() || !types.StringPointerValue(output.SSEKMSKeyId).IsUnknown() {
-		o.SSECustomerKeyID = types.StringPointerValue(output.SSEKMSKeyId)
-	}
-
-	if !types.StringPointerValue((*string)(&output.ServerSideEncryption)).IsNull() || !types.StringPointerValue((*string)(&output.ServerSideEncryption)).IsUnknown() {
-		o.ServerSideEncryption = types.StringPointerValue((*string)(&output.ServerSideEncryption))
 	}
 
 	if !types.StringPointerValue(output.VersionId).IsNull() || !types.StringPointerValue(output.VersionId).IsUnknown() {
