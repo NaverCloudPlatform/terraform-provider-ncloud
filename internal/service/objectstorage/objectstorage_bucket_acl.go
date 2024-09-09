@@ -155,12 +155,12 @@ func (b *bucketACLResource) Delete(context.Context, resource.DeleteRequest, *res
 func (b *bucketACLResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
 	var plan bucketACLResourceModel
 
-	bucketName := TrimForParsing(plan.BucketName.String())
-
 	resp.Diagnostics.Append(req.State.Get(ctx, &plan)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
+
+	bucketName := TrimForParsing(plan.BucketName.String())
 
 	plan.refreshFromOutput(ctx, b.config, bucketName, &resp.Diagnostics)
 

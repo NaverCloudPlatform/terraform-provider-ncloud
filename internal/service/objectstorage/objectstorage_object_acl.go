@@ -87,12 +87,12 @@ func (o *objectACLResource) Metadata(_ context.Context, req resource.MetadataReq
 func (o *objectACLResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
 	var plan objectACLResourceModel
 
-	bucketName, key := ObjectIDParser(plan.ObjectID.String())
-
 	resp.Diagnostics.Append(req.State.Get(ctx, &plan)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
+
+	bucketName, key := ObjectIDParser(plan.ObjectID.String())
 
 	plan.refreshFromOutput(ctx, o.config, bucketName, key, &resp.Diagnostics)
 
