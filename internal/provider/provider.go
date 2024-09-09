@@ -227,9 +227,15 @@ func ProviderConfigure(ctx context.Context, d *schema.ResourceData) (interface{}
 	}
 
 	// Set endpoint
-	endpoint, _ := getOrFromEnv(d, "endpoint", "NCLOUD_OBS_ENDPOINT")
+	var obs_endpoint string
 
-	if client, err := config.Client(providerConfig.Site, (endpoint).(string)); err != nil {
+	if endpoint, ok := getOrFromEnv(d, "obs_endpoint", "NCLOUD_OBS_ENDPOINT"); ok {
+		obs_endpoint = (endpoint).(string)
+	} else {
+		obs_endpoint = ""
+	}
+
+	if client, err := config.Client(providerConfig.Site, obs_endpoint); err != nil {
 		return nil, diag.FromErr(err)
 	} else {
 		providerConfig.Client = client
