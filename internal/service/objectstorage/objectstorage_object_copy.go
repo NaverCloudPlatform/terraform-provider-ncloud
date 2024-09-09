@@ -3,18 +3,15 @@ package objectstorage
 import (
 	"context"
 	"fmt"
-	"regexp"
 	"time"
 
 	"github.com/aws/aws-sdk-go-v2/service/s3"
-	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
-	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
@@ -169,19 +166,7 @@ func (o *objectCopyResource) Schema(ctx context.Context, req resource.SchemaRequ
 				PlanModifiers: []planmodifier.String{
 					stringplanmodifier.RequiresReplace(),
 				},
-				Validators: []validator.String{
-					stringvalidator.All(
-						stringvalidator.LengthBetween(3, 63),
-						stringvalidator.RegexMatches(
-							regexp.MustCompile(`^[a-z0-9][a-z0-9\.-]{1,61}[a-z0-9]$`),
-							"Bucket name must be between 3 and 63 characters long, can contain lowercase letters, numbers, periods, and hyphens. It must start and end with a letter or number, and cannot have consecutive periods.",
-						),
-						stringvalidator.RegexMatches(
-							regexp.MustCompile(`^(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}$|.+)`),
-							"Bucket name cannot be formatted as an IP address.",
-						),
-					),
-				},
+				Validators:  BucketNameValidator(),
 				Description: "Bucket name for object",
 			},
 			"key": schema.StringAttribute{
@@ -237,6 +222,60 @@ func (o *objectCopyResource) Schema(ctx context.Context, req resource.SchemaRequ
 }
 
 func (o *objectCopyResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
+	var plan, state objectCopyResourceModel
+
+	resp.Diagnostics.Append(req.Plan.Get(ctx, &plan)...)
+	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
+
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
+	if !plan.Source.Equal(state.Source) {
+		reqParams := &s3.CopyObjectInput{
+			Bucket:     state.Bucket.ValueStringPointer(),
+			CopySource: plan.Source.ValueStringPointer(),
+			Key:        state.Key.ValueStringPointer(),
+		}
+
+		// attributes that has dependancies with source
+		if !plan.ContentEncoding.IsNull() && !plan.ContentEncoding.IsUnknown() {
+			reqParams.ContentEncoding = plan.ContentEncoding.ValueStringPointer()
+		}
+
+		if !plan.ContentLanguage.IsNull() && !plan.ContentLanguage.IsUnknown() {
+			reqParams.ContentLanguage = plan.ContentLanguage.ValueStringPointer()
+		}
+
+		if !plan.ContentType.IsNull() && !plan.ContentType.IsUnknown() {
+			reqParams.ContentType = plan.ContentType.ValueStringPointer()
+		}
+
+		if !plan.WebsiteRedirectLocation.IsNull() && !plan.WebsiteRedirectLocation.IsUnknown() {
+			reqParams.WebsiteRedirectLocation = plan.WebsiteRedirectLocation.ValueStringPointer()
+		}
+
+		tflog.Info(ctx, "CopyObject at update operation reqParams="+common.MarshalUncheckedString(reqParams))
+
+		output, err := o.config.Client.ObjectStorage.CopyObject(ctx, reqParams)
+		if err != nil {
+			resp.Diagnostics.AddError("UPDATING ERROR", err.Error())
+			return
+		}
+		if output == nil {
+			resp.Diagnostics.AddError("UPDATING ERROR", "response invalid")
+			return
+		}
+
+		tflog.Info(ctx, "CopyObject at update operation response="+common.MarshalUncheckedString(output))
+
+		if err := waitObjectCopied(ctx, o.config, plan.Bucket.ValueString(), plan.Key.ValueString()); err != nil {
+			resp.Diagnostics.AddError("UPDATING ERROR", err.Error())
+			return
+		}
+
+		plan.refreshFromOutput(ctx, o.config, &resp.Diagnostics)
+	}
 }
 
 func waitObjectCopied(ctx context.Context, config *conn.ProviderConfig, bucketName string, key string) error {

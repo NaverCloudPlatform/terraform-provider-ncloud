@@ -152,19 +152,7 @@ func (o *bucketResource) Schema(_ context.Context, req resource.SchemaRequest, r
 				PlanModifiers: []planmodifier.String{
 					stringplanmodifier.RequiresReplace(),
 				},
-				Validators: []validator.String{
-					stringvalidator.All(
-						stringvalidator.LengthBetween(3, 63),
-						stringvalidator.RegexMatches(
-							regexp.MustCompile(`^[a-z0-9][a-z0-9\.-]{1,61}[a-z0-9]$`),
-							"Bucket name must be between 3 and 63 characters long, can contain lowercase letters, numbers, periods, and hyphens. It must start and end with a letter or number, and cannot have consecutive periods.",
-						),
-						stringvalidator.RegexMatches(
-							regexp.MustCompile(`^(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}$|.+)`),
-							"Bucket name cannot be formatted as an IP address.",
-						),
-					),
-				},
+				Validators:  BucketNameValidator(),
 				Description: "Bucket Name for Object Storage",
 			},
 			"creation_date": schema.StringAttribute{
@@ -204,6 +192,8 @@ func waitBucketCreated(ctx context.Context, config *conn.ProviderConfig, bucketN
 		Pending: []string{CREATING},
 		Target:  []string{CREATED},
 		Refresh: func() (interface{}, string, error) {
+
+			// Since HeadBucket does not work when bucket created immediately, use ListBuckets instead for check bucket creation operated successfully.
 			output, err := config.Client.ObjectStorage.ListBuckets(ctx, &s3.ListBucketsInput{})
 			if err != nil {
 				return 0, "", fmt.Errorf("ListBuckets is nil")
@@ -279,5 +269,21 @@ func (o *bucketResourceModel) refreshFromOutput(ctx context.Context, config *con
 				o.CreationDate = types.StringValue(bucket.CreationDate.GoString())
 			}
 		}
+	}
+}
+
+func BucketNameValidator() []validator.String {
+	return []validator.String{
+		stringvalidator.All(
+			stringvalidator.LengthBetween(3, 63),
+			stringvalidator.RegexMatches(
+				regexp.MustCompile(`^[a-z0-9][a-z0-9\.-]{1,61}[a-z0-9]$`),
+				"Bucket name must be between 3 and 63 characters long, can contain lowercase letters, numbers, periods, and hyphens. It must start and end with a letter or number, and cannot have consecutive periods.",
+			),
+			stringvalidator.RegexMatches(
+				regexp.MustCompile(`^(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}$|.+)`),
+				"Bucket name cannot be formatted as an IP address.",
+			),
+		),
 	}
 }

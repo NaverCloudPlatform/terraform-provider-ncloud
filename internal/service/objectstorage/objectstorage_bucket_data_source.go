@@ -3,13 +3,10 @@ package objectstorage
 import (
 	"context"
 	"fmt"
-	"regexp"
 
 	"github.com/aws/aws-sdk-go-v2/service/s3"
-	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
-	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/terraform-providers/terraform-provider-ncloud/internal/conn"
 )
@@ -100,20 +97,8 @@ func (b *bucketDataSource) Schema(_ context.Context, _ datasource.SchemaRequest,
 				Computed: true,
 			},
 			"bucket_name": schema.StringAttribute{
-				Required: true,
-				Validators: []validator.String{
-					stringvalidator.All(
-						stringvalidator.LengthBetween(3, 63),
-						stringvalidator.RegexMatches(
-							regexp.MustCompile(`^[a-z0-9][a-z0-9\.-]{1,61}[a-z0-9]$`),
-							"Bucket name must be between 3 and 63 characters long, can contain lowercase letters, numbers, periods, and hyphens. It must start and end with a letter or number, and cannot have consecutive periods.",
-						),
-						stringvalidator.RegexMatches(
-							regexp.MustCompile(`^(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}$|.+)`),
-							"Bucket name cannot be formatted as an IP address.",
-						),
-					),
-				},
+				Required:    true,
+				Validators:  BucketNameValidator(),
 				Description: "Bucket Name for Object Storage",
 			},
 			"owner_id": schema.StringAttribute{
