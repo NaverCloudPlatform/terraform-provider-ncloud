@@ -74,9 +74,9 @@ provider "ncloud" {
 
 ### Environment variables
 
-* `NCLOUD_ACCESS_KEY` - (Required) Ncloud access key.
-* `NCLOUD_SECRET_KEY` - (Required) Ncloud secret key.
-* `NCLOUD_REGION` - (Required) Ncloud region. 
+* `NCLOUD_ACCESS_KEY` - (Optional, Required if `access_key` is not provided) Ncloud access key.
+* `NCLOUD_SECRET_KEY` - (Optional, Required if `secret_key` is not provided) Ncloud secret key.
+* `NCLOUD_REGION` - (Optional, Required if `region` is not provided) Ncloud region. 
 
 ~> **Note** `access_key`, `secret_key` : [Get authentication keys for your account](http://docs.ncloud.com/en/api_new/api_new-1-1.html#preparation)
 
