@@ -40,6 +40,8 @@ func NewS3Client(region string, api *ncloud.APIKey, site, endpointFromEnv string
 	return newClient
 }
 
+// API docs: https://api.ncloud-docs.com/docs/platform-region-getregionlist
+// Common object storage docs; https://api.ncloud-docs.com/docs/storage-objectstorage
 func genEndpointWithCode(region, site string) string {
 	var s3Endpoint string
 	switch site {
@@ -48,7 +50,7 @@ func genEndpointWithCode(region, site string) string {
 	case "fin":
 		s3Endpoint = fmt.Sprintf("https://%[1]s.object.fin-ncloudstorage.com", strings.ToLower(region))
 	default:
-		s3Endpoint = fmt.Sprintf("https://%[1]s.object.ncloudstorage.com", strings.ToLower(region))
+		s3Endpoint = fmt.Sprintf("https://%[1]s.object.ncloudstorage.com", strings.ToLower(region[:2]))
 	}
 
 	return s3Endpoint
