@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"github.com/terraform-providers/terraform-provider-ncloud/internal/service/hadoop"
+	"github.com/terraform-providers/terraform-provider-ncloud/internal/service/objectstorage"
 	"github.com/terraform-providers/terraform-provider-ncloud/internal/service/loadbalancer"
 
 	multierror "github.com/hashicorp/go-multierror"
@@ -98,6 +99,8 @@ func (p *fwprovider) DataSources(ctx context.Context) []func() datasource.DataSo
 	dataSources = append(dataSources, mssql.NewMssqlDataSource)
 	dataSources = append(dataSources, mssql.NewMssqlImageProductsDataSource)
 	dataSources = append(dataSources, mssql.NewMssqlProductsDataSource)
+	dataSources = append(dataSources, objectstorage.NewBucketDataSource)
+	dataSources = append(dataSources, objectstorage.NewObjectDataSource)
 	dataSources = append(dataSources, loadbalancer.NewLoadBalancerDataSource)
 
 	if err := errs.ErrorOrNil(); err != nil {
@@ -125,6 +128,11 @@ func (p *fwprovider) Resources(ctx context.Context) []func() resource.Resource {
 	resources = append(resources, redis.NewRedisConfigGroupResource)
 	resources = append(resources, redis.NewRedisResource)
 	resources = append(resources, mssql.NewMssqlResource)
+	resources = append(resources, objectstorage.NewBucketResource)
+	resources = append(resources, objectstorage.NewObjectResource)
+	resources = append(resources, objectstorage.NewObjectACLResource)
+	resources = append(resources, objectstorage.NewBucketACLResource)
+	resources = append(resources, objectstorage.NewObjectCopyResource)
 	resources = append(resources, loadbalancer.NewLbResource)
 
 	if err := errs.ErrorOrNil(); err != nil {
