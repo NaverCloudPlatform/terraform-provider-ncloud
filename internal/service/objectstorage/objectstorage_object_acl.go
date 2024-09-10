@@ -175,7 +175,43 @@ func (o *objectACLResource) Schema(_ context.Context, req resource.SchemaRequest
 	}
 }
 
-func (o *objectACLResource) Update(context.Context, resource.UpdateRequest, *resource.UpdateResponse) {
+func (o *objectACLResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
+	var plan, state objectACLResourceModel
+
+	resp.Diagnostics.Append(req.Plan.Get(ctx, &plan)...)
+	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
+
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
+	if plan.Rule != state.Rule {
+		bucketName, key := ObjectIDParser(state.ObjectID.String())
+
+		reqParams := &s3.PutObjectAclInput{
+			Bucket: ncloud.String(bucketName),
+			Key:    ncloud.String(key),
+			ACL:    plan.Rule,
+		}
+
+		tflog.Info(ctx, "PutObjectACL update operation reqParams="+common.MarshalUncheckedString(reqParams))
+
+		response, err := o.config.Client.ObjectStorage.PutObjectAcl(ctx, reqParams)
+		if err != nil {
+			resp.Diagnostics.AddError("UPDATING ERROR", err.Error())
+			return
+		}
+
+		tflog.Info(ctx, "PutObjectACL update operation response="+common.MarshalUncheckedString(response))
+
+		if err := waitObjectACLApplied(ctx, o.config, bucketName, key); err != nil {
+			resp.Diagnostics.AddError("UPDATING ERROR", err.Error())
+			return
+		}
+
+		plan.refreshFromOutput(ctx, o.config, bucketName, key, &resp.Diagnostics)
+		resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
+	}
 }
 
 func (o *objectACLResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
