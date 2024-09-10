@@ -39,8 +39,12 @@ resource "ncloud_objectstorage_object_acl" "testing_acl" {
 
 The following arguments are supported:
 
+* `id` - Unique ID for ACL. Has format of `object_acl_${object_id}`.
 * `object_id` - (Required) Target object id to create.
 * `rule` - (Required) Rule to apply. Value must be one of "private", "public-read", "public-read-write", "authenticated-read".
+* `grants` - List of member who grants this rule. Consists of `grantee`, `permission`. Individual `grantee` has `type`, `display_name`, `email-address`, `id`, `uri` attributes.
+* `owner_id` - ID of owner.
+* `owner_displayname` - Name of owner.
 
 ## Import
 

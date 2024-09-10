@@ -28,7 +28,9 @@ resource "ncloud_objectstorage_bucket" "testing_bucket" {
 
 The following arguments are supported:
 
+* `id` - Unique ID for bucket. Since bucket name is already unique in specific region, ID is same as `bucket_name`.
 * `bucket_name` - (Required) Bucket name to create. Bucket name must be between 3 and 63 characters long, can contain lowercase letters, numbers, periods, and hyphens. It must start and end with a letter or number, and cannot have consecutive periods.
+* `creation_date` - Date of when this bucket created.
 
 ## Import
 
