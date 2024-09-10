@@ -287,7 +287,7 @@ func (o *objectACLResourceModel) refreshFromOutput(ctx context.Context, config *
 	}
 
 	o.Grants = listValueWithGrants
-	o.ID = types.StringValue(fmt.Sprintf("bucket_acl_%s", o.ObjectID))
+	o.ID = types.StringValue(fmt.Sprintf("object_acl_%s", o.ObjectID))
 	o.OwnerID = types.StringValue(*output.Owner.ID)
 	o.OwnerDisplayName = types.StringValue(*output.Owner.DisplayName)
 }
