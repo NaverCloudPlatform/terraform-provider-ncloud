@@ -81,6 +81,7 @@ func (p *fwprovider) DataSources(ctx context.Context) []func() datasource.DataSo
 	dataSources = append(dataSources, vpc.NewNatGatewayDataSource)
 	dataSources = append(dataSources, vpc.NewVpcPeeringDataSource)
 	dataSources = append(dataSources, server.NewInitScriptDataSource)
+	dataSources = append(dataSources, server.NewLoginKeyDataSource)
 	dataSources = append(dataSources, mysql.NewMysqlDataSource)
 	dataSources = append(dataSources, mysql.NewMysqlImageProductsDataSource)
 	dataSources = append(dataSources, mysql.NewMysqlProductsDataSource)
