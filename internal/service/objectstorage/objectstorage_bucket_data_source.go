@@ -109,7 +109,6 @@ func (b *bucketDataSource) Schema(_ context.Context, _ datasource.SchemaRequest,
 			},
 			"creation_date": schema.StringAttribute{
 				Computed: true,
-				Optional: true,
 			},
 		},
 	}
