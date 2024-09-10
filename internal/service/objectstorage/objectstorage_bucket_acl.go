@@ -170,7 +170,42 @@ func (b *bucketACLResource) Read(ctx context.Context, req resource.ReadRequest, 
 	}
 }
 
-func (b *bucketACLResource) Update(context.Context, resource.UpdateRequest, *resource.UpdateResponse) {
+func (b *bucketACLResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
+	var plan, state bucketACLResourceModel
+
+	resp.Diagnostics.Append(req.Plan.Get(ctx, &plan)...)
+	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
+
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
+	if plan.Rule != state.Rule {
+		bucketName := TrimForParsing(state.BucketName.String())
+
+		reqParams := &s3.PutBucketAclInput{
+			Bucket: ncloud.String(bucketName),
+			ACL:    plan.Rule,
+		}
+
+		tflog.Info(ctx, "PutBucketACL update operation reqParams="+common.MarshalUncheckedString(reqParams))
+
+		response, err := b.config.Client.ObjectStorage.PutBucketAcl(ctx, reqParams)
+		if err != nil {
+			resp.Diagnostics.AddError("UPDATING ERROR", err.Error())
+			return
+		}
+
+		tflog.Info(ctx, "PutObjectACL update operation response="+common.MarshalUncheckedString(response))
+
+		if err := waitBucketACLApplied(ctx, b.config, bucketName); err != nil {
+			resp.Diagnostics.AddError("UPDATING ERROR", err.Error())
+			return
+		}
+
+		plan.refreshFromOutput(ctx, b.config, bucketName, &resp.Diagnostics)
+		resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
+	}
 }
 
 func (b *bucketACLResource) Metadata(ctx context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
