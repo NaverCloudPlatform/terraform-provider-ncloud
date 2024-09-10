@@ -7,7 +7,7 @@ subcategory: "Object Storage"
 
 Provides Object Storage Object Copy service resource.
 
-~> **NOTE:** This resources operates in serverless environment. Does not need VPC configuration.
+~> **NOTE:** This resource is platform independent. Does not need VPC configuration.
 
 ## Example Usage
 

@@ -6,7 +6,7 @@ subcategory: "Object Storage"
 
 Prvides information about a object.
 
-~> **NOTE:** This resources operates in serverless environment. Does not need VPC configuration.
+~> **NOTE:** This resource is platform independent. Does not need VPC configuration.
 
 ## Example Usage
 
