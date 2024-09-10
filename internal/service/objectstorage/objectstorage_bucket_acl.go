@@ -138,7 +138,7 @@ func (b *bucketACLResource) Create(ctx context.Context, req resource.CreateReque
 		return
 	}
 
-	tflog.Info(ctx, "PutObjectACL response="+common.MarshalUncheckedString(response))
+	tflog.Info(ctx, "PutBucketACL response="+common.MarshalUncheckedString(response))
 
 	if err := waitBucketACLApplied(ctx, b.config, bucketName); err != nil {
 		resp.Diagnostics.AddError("CREATING ERROR", err.Error())
@@ -196,7 +196,7 @@ func (b *bucketACLResource) Update(ctx context.Context, req resource.UpdateReque
 			return
 		}
 
-		tflog.Info(ctx, "PutObjectACL update operation response="+common.MarshalUncheckedString(response))
+		tflog.Info(ctx, "PutBucketACL update operation response="+common.MarshalUncheckedString(response))
 
 		if err := waitBucketACLApplied(ctx, b.config, bucketName); err != nil {
 			resp.Diagnostics.AddError("UPDATING ERROR", err.Error())
