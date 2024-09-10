@@ -54,7 +54,7 @@ data "ncloud_redis_products" "all" {
 
 output "product_list" {
   value = {
-    for product in data.ncloud_redis_products.all.product_list:
+  for product in data.ncloud_redis_products.all.product_list:
     product.product_name => product.product_code
   }
 }

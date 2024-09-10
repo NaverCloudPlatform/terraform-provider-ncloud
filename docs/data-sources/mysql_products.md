@@ -26,7 +26,7 @@ data "ncloud_mysql_products" "all" {
 output "product_list" {
   value = {
   for product in data.ncloud_mysql_products.all.product_list :
-    image.product_name => image.product_code
+    product.product_name => product.product_code
   }
 }
 ```
