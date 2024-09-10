@@ -46,7 +46,7 @@ data "ncloud_server_products" "products" {
 
 output "products" {
   value = {
-    for product in data.ncloud_server_products.products.server_products:
+  for product in data.ncloud_server_products.products.server_products:
     product.id => product.product_name
   }
 }
