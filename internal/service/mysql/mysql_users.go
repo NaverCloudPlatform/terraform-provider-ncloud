@@ -159,13 +159,13 @@ func (r *mysqlUsersResource) Create(ctx context.Context, req resource.CreateRequ
 
 	response, err := r.config.Client.Vmysql.V2Api.AddCloudMysqlUserList(reqParams)
 	if err != nil {
-		resp.Diagnostics.AddError("CREATING ERROR- USER1", err.Error())
+		resp.Diagnostics.AddError("CREATING ERROR", err.Error())
 		return
 	}
 	tflog.Info(ctx, "CreateMysqlUserList response="+common.MarshalUncheckedString(response))
 
 	if response == nil || *response.ReturnCode != "0" {
-		resp.Diagnostics.AddError("CREATING ERROR - USER2", "response invalid")
+		resp.Diagnostics.AddError("CREATING ERROR", "response invalid")
 	}
 
 	_, err = waitMysqlCreation(ctx, r.config, plan.MysqlInstanceNo.ValueString())
@@ -194,7 +194,7 @@ func (r *mysqlUsersResource) Read(ctx context.Context, req resource.ReadRequest,
 
 	output, err := GetMysqlUserList(ctx, r.config, state.MysqlInstanceNo.ValueString())
 	if err != nil {
-		resp.Diagnostics.AddError("READING ERROR- user", err.Error())
+		resp.Diagnostics.AddError("READING ERROR", err.Error())
 		return
 	}
 
