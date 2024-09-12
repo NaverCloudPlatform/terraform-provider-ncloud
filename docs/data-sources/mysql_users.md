@@ -24,7 +24,7 @@ data "ncloud_mysql_users" "all" {
 output "user_list" {
     values = {
         for user in data.ncloud_mysql_users.all.mysql_user_list:
-            user.name => 
+            user.name => user.host_ip
     }
 }
 ```
@@ -32,7 +32,7 @@ output "user_list" {
 Outputs:
 ```terraform
 user_list = {
-
+    "test-user1": "192.168.0.1"
 }
 ```
 
