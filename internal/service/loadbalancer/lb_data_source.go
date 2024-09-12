@@ -3,6 +3,7 @@ package loadbalancer
 import (
 	"context"
 	"fmt"
+	"github.com/hashicorp/terraform-plugin-framework-timeouts/datasource/timeouts"
 
 	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/ncloud"
 	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/services/vloadbalancer"
@@ -13,6 +14,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 
 	"github.com/terraform-providers/terraform-provider-ncloud/internal/common"
+	. "github.com/terraform-providers/terraform-provider-ncloud/internal/common"
 	"github.com/terraform-providers/terraform-provider-ncloud/internal/conn"
 	"github.com/terraform-providers/terraform-provider-ncloud/internal/verify"
 )
@@ -34,35 +36,83 @@ func (l *loadBalancerDataSource) Metadata(ctx context.Context, req datasource.Me
 	resp.TypeName = req.ProviderTypeName + "_lb"
 }
 
+var lbResourceSchema = schema.Schema{
+	Attributes: map[string]schema.Attribute{
+		"load_balancer_no": schema.StringAttribute{
+			Computed: true,
+		},
+		"id": schema.StringAttribute{
+			Computed: true,
+		},
+		"name": schema.StringAttribute{
+			Optional: true,
+			Computed: true,
+		},
+		"description": schema.StringAttribute{
+			Computed: true,
+		},
+		"domain": schema.StringAttribute{
+			Computed: true,
+		},
+		"network_type": schema.StringAttribute{
+			Computed: true,
+		},
+		"idle_timeout": schema.Int64Attribute{
+			Computed: true,
+		},
+		"type": schema.StringAttribute{
+			Computed: true,
+		},
+		"throughput_type": schema.StringAttribute{
+			Computed: true,
+		},
+		"vpc_no": schema.StringAttribute{
+			Computed: true,
+		},
+		"subnet_no_list": schema.ListAttribute{
+			ElementType: types.StringType,
+			Required:    true,
+		},
+		"ip_list": schema.ListAttribute{
+			ElementType: types.StringType,
+			Computed:    true,
+		},
+		"listener_no_list": schema.ListAttribute{
+			ElementType: types.StringType,
+			Computed:    true,
+		},
+	},
+}
+
 func (l *loadBalancerDataSource) Schema(ctx context.Context, req datasource.SchemaRequest, resp *datasource.SchemaResponse) {
-	resp.Schema = schema.Schema{
-		Attributes: map[string]schema.Attribute{
-			"id": schema.StringAttribute{
-				Optional: true,
-				Computed: true,
-			},
-			"description": schema.StringAttribute{
-				Computed: true,
-			},
-			"filter": schema.SetNestedAttribute{
-				Optional: true,
-				NestedObject: schema.NestedAttributeObject{
-					Attributes: map[string]schema.Attribute{
-						"name": schema.StringAttribute{
-							Required: true,
-						},
-						"values": schema.ListAttribute{
-							Required:    true,
-							ElementType: types.StringType,
-						},
-						"regex": schema.BoolAttribute{
-							Optional: true,
-						},
+	extraFields := map[string]schema.Attribute{
+		"id": schema.StringAttribute{
+			Optional: true,
+			Computed: true,
+		},
+		"description": schema.StringAttribute{
+			Computed: true,
+		},
+		"filter": schema.SetNestedAttribute{
+			Optional: true,
+			NestedObject: schema.NestedAttributeObject{
+				Attributes: map[string]schema.Attribute{
+					"name": schema.StringAttribute{
+						Required: true,
+					},
+					"values": schema.ListAttribute{
+						Required:    true,
+						ElementType: types.StringType,
+					},
+					"regex": schema.BoolAttribute{
+						Optional: true,
 					},
 				},
 			},
 		},
 	}
+
+	resp.Schema = CopyResourceSchemaToDataSourceSchema(lbResourceSchema, extraFields)
 }
 
 func (l *loadBalancerDataSource) Configure(ctx context.Context, req datasource.ConfigureRequest, resp *datasource.ConfigureResponse) {
@@ -154,9 +204,24 @@ func flattenLoadBalancers(ctx context.Context, list []*vloadbalancer.LoadBalance
 	var diags diag.Diagnostics
 
 	for _, lb := range list {
+		subnetNumList, _ := types.ListValueFrom(ctx, types.StringType, ncloud.StringListValue(lb.SubnetNoList))
+		ipList, _ := types.ListValueFrom(ctx, types.StringType, ncloud.StringListValue(lb.LoadBalancerIpList))
+		listenerNoList, _ := types.ListValueFrom(ctx, types.StringType, ncloud.StringListValue(lb.LoadBalancerListenerNoList))
+
 		item := loadBalancerDataSourceModel{
-			ID:          types.StringValue(ncloud.StringValue(lb.LoadBalancerInstanceNo)),
-			Description: types.StringValue(ncloud.StringValue(lb.LoadBalancerDescription)),
+			ID:             types.StringValue(ncloud.StringValue(lb.LoadBalancerInstanceNo)),
+			LoadBalancerNo: types.StringValue(ncloud.StringValue(lb.LoadBalancerInstanceNo)),
+			Name:           types.StringValue(ncloud.StringValue(lb.LoadBalancerName)),
+			Description:    types.StringValue(ncloud.StringValue(lb.LoadBalancerDescription)),
+			Domain:         types.StringValue(ncloud.StringValue(lb.LoadBalancerDomain)),
+			NetworkType:    types.StringPointerValue(lb.LoadBalancerNetworkType.Code),
+			IdleTimeout:    types.Int32Value(ncloud.Int32Value(lb.IdleTimeout)),
+			Type:           types.StringValue(ncloud.StringValue(lb.LoadBalancerType.Code)),
+			ThroughputType: types.StringValue(ncloud.StringValue(lb.ThroughputType.Code)),
+			VpcNo:          types.StringValue(ncloud.StringValue(lb.VpcNo)),
+			SubnetNoList:   subnetNumList,
+			IpList:         ipList,
+			ListenerNoList: listenerNoList,
 		}
 		lbList = append(lbList, item)
 	}
@@ -164,32 +229,22 @@ func flattenLoadBalancers(ctx context.Context, list []*vloadbalancer.LoadBalance
 	return lbList, diags
 }
 
-func getVpcLoadBalancerList(config *conn.ProviderConfig, id string) ([]*LoadBalancerInstance, error) {
-	reqParams := &vloadbalancer.GetLoadBalancerInstanceListRequest{
-		RegionCode: &config.RegionCode,
-	}
-
-	if id != "" {
-		reqParams.LoadBalancerInstanceNoList = []*string{ncloud.String(id)}
-	}
-
-	resp, err := config.Client.Vloadbalancer.V2Api.GetLoadBalancerInstanceList(reqParams)
-	if err != nil {
-		return nil, err
-	}
-
-	lbList := make([]*LoadBalancerInstance, 0)
-	for _, lb := range resp.LoadBalancerInstanceList {
-		lbList = append(lbList, convertVpcLoadBalancer(lb))
-	}
-
-	return lbList, nil
-}
-
 type loadBalancerDataSourceModel struct {
-	ID          types.String `tfsdk:"id"`
-	Description types.String `tfsdk:"description"`
-	Filter      types.Set    `tfsdk:"filter"`
+	ID             types.String   `tfsdk:"id"`
+	LoadBalancerNo types.String   `tfsdk:"load_balancer_no"`
+	Name           types.String   `tfsdk:"name"`
+	Description    types.String   `tfsdk:"description"`
+	Domain         types.String   `tfsdk:"domain"`
+	NetworkType    types.String   `tfsdk:"network_type"`
+	IdleTimeout    types.Int32    `tfsdk:"idle_timeout"`
+	Type           types.String   `tfsdk:"type"`
+	ThroughputType types.String   `tfsdk:"throughput_type"`
+	VpcNo          types.String   `tfsdk:"vpc_no"`
+	SubnetNoList   types.List     `tfsdk:"subnet_no_list"`
+	IpList         types.List     `tfsdk:"ip_list"`
+	ListenerNoList types.List     `tfsdk:"listener_no_list"`
+	Timeouts       timeouts.Value `tfsdk:"timeouts"`
+	Filter         types.Set      `tfsdk:"filter"`
 }
 
 type filterModel struct {
