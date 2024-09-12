@@ -445,5 +445,9 @@ func ObjectIDParser(id string) (bucketName, key string) {
 		return "", ""
 	}
 
-	return parts[0], parts[1]
+	fmt.Println(id)
+	fmt.Println(parts[0])
+	fmt.Println(strings.Join(parts[1:], "/"))
+
+	return parts[0], strings.Join(parts[1:], "/")
 }
