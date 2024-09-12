@@ -6,7 +6,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-ncloud/internal/service/hadoop"
 	"github.com/terraform-providers/terraform-provider-ncloud/internal/service/loadbalancer"
 	"github.com/terraform-providers/terraform-provider-ncloud/internal/service/objectstorage"
-	"github.com/terraform-providers/terraform-provider-ncloud/internal/service/loadbalancer"
+
 
 	multierror "github.com/hashicorp/go-multierror"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
@@ -82,6 +82,7 @@ func (p *fwprovider) DataSources(ctx context.Context) []func() datasource.DataSo
 	dataSources = append(dataSources, vpc.NewNatGatewayDataSource)
 	dataSources = append(dataSources, vpc.NewVpcPeeringDataSource)
 	dataSources = append(dataSources, server.NewInitScriptDataSource)
+	dataSources = append(dataSources, server.NewLoginKeyDataSource)
 	dataSources = append(dataSources, mysql.NewMysqlDataSource)
 	dataSources = append(dataSources, mysql.NewMysqlImageProductsDataSource)
 	dataSources = append(dataSources, mysql.NewMysqlProductsDataSource)
@@ -103,7 +104,6 @@ func (p *fwprovider) DataSources(ctx context.Context) []func() datasource.DataSo
 	dataSources = append(dataSources, loadbalancer.NewLoadBalancerDataSource)
 	dataSources = append(dataSources, objectstorage.NewBucketDataSource)
 	dataSources = append(dataSources, objectstorage.NewObjectDataSource)
-	dataSources = append(dataSources, loadbalancer.NewLoadBalancerDataSource)
 
 	if err := errs.ErrorOrNil(); err != nil {
 		tflog.Warn(ctx, "registering resources", map[string]interface{}{
@@ -136,7 +136,6 @@ func (p *fwprovider) Resources(ctx context.Context) []func() resource.Resource {
 	resources = append(resources, objectstorage.NewObjectACLResource)
 	resources = append(resources, objectstorage.NewBucketACLResource)
 	resources = append(resources, objectstorage.NewObjectCopyResource)
-	resources = append(resources, loadbalancer.NewLbResource)
 
 	if err := errs.ErrorOrNil(); err != nil {
 		tflog.Warn(ctx, "registering resources", map[string]interface{}{
