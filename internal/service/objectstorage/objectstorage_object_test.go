@@ -20,11 +20,12 @@ import (
 
 func TestAccResourceNcloudObjectStorage_object_basic(t *testing.T) {
 	bucketName := fmt.Sprintf("tf-bucket-%s", acctest.RandString(5))
-	key := fmt.Sprintf("%s.md", acctest.RandString(5))
+	sourceName := fmt.Sprintf("%s.md", acctest.RandString(5))
+	key := "test/key/" + sourceName
 	resourceName := "ncloud_objectstorage_object.testing_object"
 	content := "content for file upload testing"
 
-	tmpFile := CreateTempFile(t, content, key)
+	tmpFile := CreateTempFile(t, content, sourceName)
 	source := tmpFile.Name()
 	defer os.Remove(source)
 
@@ -37,7 +38,7 @@ func TestAccResourceNcloudObjectStorage_object_basic(t *testing.T) {
 				Config: testAccObjectConfig(bucketName, key, source),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					testAccCheckObjectExists(resourceName, GetTestProvider(true)),
-					resource.TestMatchResourceAttr(resourceName, "id", regexp.MustCompile(`^[a-z0-9-_]+\/[a-zA-Z0-9_.-]+$`)),
+					resource.TestMatchResourceAttr(resourceName, "id", regexp.MustCompile(`^[a-z0-9-_.-]+(\/[a-z0-9-_.-]+)+$`)),
 					resource.TestCheckResourceAttr(resourceName, "bucket", bucketName),
 					resource.TestCheckResourceAttr(resourceName, "key", key),
 					resource.TestCheckResourceAttr(resourceName, "source", source),

@@ -37,7 +37,7 @@ func TestAccResourceNcloudObjectStorage_object_copy_basic(t *testing.T) {
 				Config: testAccObjectCopyConfig(bucketName, key, source),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					testAccCheckObjectCopyExists(resourceName, GetTestProvider(true)),
-					resource.TestMatchResourceAttr(resourceName, "id", regexp.MustCompile(`^[a-z0-9-_]+\/[a-zA-Z0-9_.-]+$`)),
+					resource.TestMatchResourceAttr(resourceName, "id", regexp.MustCompile(`^[a-z0-9-_.-]+(\/[a-z0-9-_.-]+)+$`)),
 					resource.TestCheckResourceAttr(resourceName, "bucket", bucketName+"-to"),
 					resource.TestCheckResourceAttr(resourceName, "key", key),
 				),
