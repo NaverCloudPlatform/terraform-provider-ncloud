@@ -47,6 +47,52 @@ func TestAccResourceNcloudObjectStorage_object_basic(t *testing.T) {
 	})
 }
 
+func TestAccResourceNcloudObjectStorage_object_update(t *testing.T) {
+	bucketName := fmt.Sprintf("tf-bucket-%s", acctest.RandString(5))
+	sourceName := fmt.Sprintf("%s.md", acctest.RandString(5))
+	newSourceName := fmt.Sprintf("%s.md", acctest.RandString(5))
+	key := "test/key/" + sourceName
+
+	content := "content for file upload testing"
+	newContent := "new content for file update testing"
+	resourceName := "ncloud_objectstorage_object.testing_object"
+
+	tmpFile := CreateTempFile(t, content, sourceName)
+	source := tmpFile.Name()
+	defer os.Remove(source)
+
+	newTmpFile := CreateTempFile(t, newContent, newSourceName)
+	newSource := newTmpFile.Name()
+	defer os.Remove(newSource)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: ProtoV6ProviderFactories,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccObjectConfig(bucketName, key, source),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					testAccCheckObjectExists(resourceName, GetTestProvider(true)),
+					resource.TestMatchResourceAttr(resourceName, "id", regexp.MustCompile(`^[a-z0-9-_.-]+(\/[a-z0-9-_.-]+)+$`)),
+					resource.TestCheckResourceAttr(resourceName, "bucket", bucketName),
+					resource.TestCheckResourceAttr(resourceName, "key", key),
+					resource.TestCheckResourceAttr(resourceName, "source", source),
+				),
+			},
+			{
+				Config: testAccObjectConfig(bucketName, key, newSource),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					testAccCheckObjectExists(resourceName, GetTestProvider(true)),
+					resource.TestMatchResourceAttr(resourceName, "id", regexp.MustCompile(`^[a-z0-9-_.-]+(\/[a-z0-9-_.-]+)+$`)),
+					resource.TestCheckResourceAttr(resourceName, "bucket", bucketName),
+					resource.TestCheckResourceAttr(resourceName, "key", key),
+					resource.TestCheckResourceAttr(resourceName, "source", newSource),
+				),
+			},
+		},
+	})
+}
+
 func testAccCheckObjectExists(n string, provider *schema.Provider) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		resource, ok := s.RootModule().Resources[n]

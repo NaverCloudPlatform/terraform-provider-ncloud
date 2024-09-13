@@ -50,6 +50,42 @@ func TestAccResourceNcloudObjectStorage_object_acl_basic(t *testing.T) {
 	})
 }
 
+func TestAccResourceNcloudObjectStorage_object_acl_update(t *testing.T) {
+	bucketName := fmt.Sprintf("tf-bucket-%s", acctest.RandString(5))
+	sourceName := fmt.Sprintf("%s.md", acctest.RandString(5))
+	key := "test/key/path" + sourceName
+	content := "content for file upload testing"
+
+	acl := "public-read"
+	newACL := "private"
+	resourceName := "ncloud_objectstorage_object_acl.testing_acl"
+
+	tmpFile := CreateTempFile(t, content, sourceName)
+	source := tmpFile.Name()
+	defer os.Remove(source)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: ProtoV6ProviderFactories,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccObjectACLConfig(bucketName, key, source, acl),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					testAccCheckObjectACLExists(resourceName, GetTestProvider(true)),
+					resource.TestCheckResourceAttr(resourceName, "rule", acl),
+				),
+			},
+			{
+				Config: testAccObjectACLConfig(bucketName, key, source, newACL),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					testAccCheckObjectACLExists(resourceName, GetTestProvider(true)),
+					resource.TestCheckResourceAttr(resourceName, "rule", newACL),
+				),
+			},
+		},
+	})
+}
+
 func testAccCheckObjectACLExists(n string, provider *schema.Provider) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		resource, ok := s.RootModule().Resources[n]
