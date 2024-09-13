@@ -163,7 +163,10 @@ func (o *objectResource) Schema(_ context.Context, req resource.SchemaRequest, r
 				Description: "(Required) Name of the object once it is in the bucket",
 			},
 			"source": schema.StringAttribute{
-				Required:    true,
+				Required: true,
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.RequiresReplace(),
+				},
 				Description: "(Required) Path of the object",
 			},
 			"accept_ranges": schema.StringAttribute{
@@ -224,9 +227,28 @@ func (o *objectResource) Update(ctx context.Context, req resource.UpdateRequest,
 			return
 		}
 
-		reqParams := &s3.PutObjectInput{
+		deleteReqParams := &s3.DeleteObjectInput{
 			Bucket: state.Bucket.ValueStringPointer(),
 			Key:    state.Key.ValueStringPointer(),
+		}
+
+		tflog.Info(ctx, "DeleteObject reqParams="+common.MarshalUncheckedString(deleteReqParams))
+
+		response, err := o.config.Client.ObjectStorage.DeleteObject(ctx, deleteReqParams)
+		if err != nil {
+			resp.Diagnostics.AddError("DELETING ERROR AT UPDATE OPERATION", err.Error())
+			return
+		}
+
+		tflog.Info(ctx, "DeleteObject response="+common.MarshalUncheckedString(response))
+
+		if err := waitObjectDeleted(ctx, o.config, plan.Bucket.String(), plan.Key.String()); err != nil {
+			resp.Diagnostics.AddError("WAITING FOR DELETE ERROR", err.Error())
+		}
+
+		reqParams := &s3.PutObjectInput{
+			Bucket: plan.Bucket.ValueStringPointer(),
+			Key:    plan.Key.ValueStringPointer(),
 			Body:   file,
 		}
 
