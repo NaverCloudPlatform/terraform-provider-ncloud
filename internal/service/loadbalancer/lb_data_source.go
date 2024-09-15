@@ -3,7 +3,6 @@ package loadbalancer
 import (
 	"context"
 	"fmt"
-	"github.com/hashicorp/terraform-plugin-framework-timeouts/datasource/timeouts"
 
 	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/ncloud"
 	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/services/vloadbalancer"
@@ -13,7 +12,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 
-	"github.com/terraform-providers/terraform-provider-ncloud/internal/common"
 	. "github.com/terraform-providers/terraform-provider-ncloud/internal/common"
 	"github.com/terraform-providers/terraform-provider-ncloud/internal/conn"
 	"github.com/terraform-providers/terraform-provider-ncloud/internal/verify"
@@ -57,7 +55,7 @@ var lbResourceSchema = schema.Schema{
 		"network_type": schema.StringAttribute{
 			Computed: true,
 		},
-		"idle_timeout": schema.Int64Attribute{
+		"idle_timeout": schema.Int32Attribute{
 			Computed: true,
 		},
 		"type": schema.StringAttribute{
@@ -71,7 +69,7 @@ var lbResourceSchema = schema.Schema{
 		},
 		"subnet_no_list": schema.ListAttribute{
 			ElementType: types.StringType,
-			Required:    true,
+			Computed:    true,
 		},
 		"ip_list": schema.ListAttribute{
 			ElementType: types.StringType,
@@ -158,22 +156,22 @@ func (l *loadBalancerDataSource) Read(ctx context.Context, req datasource.ReadRe
 	}
 
 	tflog.Info(ctx, "GetLoadBalancerInstanceList", map[string]any{
-		"reqParams": common.MarshalUncheckedString(reqParams),
+		"reqParams": MarshalUncheckedString(reqParams),
 	})
 	lbResp, err := l.config.Client.Vloadbalancer.V2Api.GetLoadBalancerInstanceList(reqParams)
 
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"GetLoadBalancerInstanceList",
-			fmt.Sprintf("error: %s, reqParams: %s", err.Error(), common.MarshalUncheckedString(reqParams)),
+			fmt.Sprintf("error: %s, reqParams: %s", err.Error(), MarshalUncheckedString(reqParams)),
 		)
 		return
 	}
 	tflog.Info(ctx, "GetLoadBalancerInstanceList response", map[string]any{
-		"lbResponse": common.MarshalUncheckedString(lbResp),
+		"lbResponse": MarshalUncheckedString(lbResp),
 	})
 
-	lbList, diags := flattenLoadBalancers(ctx, lbResp.LoadBalancerInstanceList, l.config)
+	lbList, diags := flattenLoadBalancers(ctx, lbResp.LoadBalancerInstanceList)
 	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
 		return
@@ -183,7 +181,7 @@ func (l *loadBalancerDataSource) Read(ctx context.Context, req datasource.ReadRe
 	for i := range lbList {
 		lbPointerList[i] = &lbList[i]
 	}
-	filteredList := common.FilterModels(ctx, data.Filter, lbPointerList)
+	filteredList := FilterModels(ctx, data.Filter, lbPointerList)
 
 	if err := verify.ValidateOneResult(len(filteredList)); err != nil {
 		resp.Diagnostics.AddError(
@@ -199,7 +197,7 @@ func (l *loadBalancerDataSource) Read(ctx context.Context, req datasource.ReadRe
 	resp.Diagnostics.Append(resp.State.Set(ctx, &state)...)
 }
 
-func flattenLoadBalancers(ctx context.Context, list []*vloadbalancer.LoadBalancerInstance, config *conn.ProviderConfig) ([]loadBalancerDataSourceModel, diag.Diagnostics) {
+func flattenLoadBalancers(ctx context.Context, list []*vloadbalancer.LoadBalancerInstance) ([]loadBalancerDataSourceModel, diag.Diagnostics) {
 	var lbList []loadBalancerDataSourceModel
 	var diags diag.Diagnostics
 
@@ -230,25 +228,18 @@ func flattenLoadBalancers(ctx context.Context, list []*vloadbalancer.LoadBalance
 }
 
 type loadBalancerDataSourceModel struct {
-	ID             types.String   `tfsdk:"id"`
-	LoadBalancerNo types.String   `tfsdk:"load_balancer_no"`
-	Name           types.String   `tfsdk:"name"`
-	Description    types.String   `tfsdk:"description"`
-	Domain         types.String   `tfsdk:"domain"`
-	NetworkType    types.String   `tfsdk:"network_type"`
-	IdleTimeout    types.Int32    `tfsdk:"idle_timeout"`
-	Type           types.String   `tfsdk:"type"`
-	ThroughputType types.String   `tfsdk:"throughput_type"`
-	VpcNo          types.String   `tfsdk:"vpc_no"`
-	SubnetNoList   types.List     `tfsdk:"subnet_no_list"`
-	IpList         types.List     `tfsdk:"ip_list"`
-	ListenerNoList types.List     `tfsdk:"listener_no_list"`
-	Timeouts       timeouts.Value `tfsdk:"timeouts"`
-	Filter         types.Set      `tfsdk:"filter"`
-}
-
-type filterModel struct {
-	Name   types.String `tfsdk:"name"`
-	Values types.List   `tfsdk:"values"`
-	Regex  types.Bool   `tfsdk:"regex"`
+	ID             types.String `tfsdk:"id"`
+	LoadBalancerNo types.String `tfsdk:"load_balancer_no"`
+	Name           types.String `tfsdk:"name"`
+	Description    types.String `tfsdk:"description"`
+	Domain         types.String `tfsdk:"domain"`
+	NetworkType    types.String `tfsdk:"network_type"`
+	IdleTimeout    types.Int32  `tfsdk:"idle_timeout"`
+	Type           types.String `tfsdk:"type"`
+	ThroughputType types.String `tfsdk:"throughput_type"`
+	VpcNo          types.String `tfsdk:"vpc_no"`
+	SubnetNoList   types.List   `tfsdk:"subnet_no_list"`
+	IpList         types.List   `tfsdk:"ip_list"`
+	ListenerNoList types.List   `tfsdk:"listener_no_list"`
+	Filter         types.Set    `tfsdk:"filter"`
 }

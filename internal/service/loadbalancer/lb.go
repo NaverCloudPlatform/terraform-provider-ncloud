@@ -8,21 +8,20 @@ import (
 	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/ncloud"
 	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/services/vloadbalancer"
 	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/services/vpc"
-	"github.com/hashicorp/terraform-plugin-framework-validators/int64validator"
+	"github.com/hashicorp/terraform-plugin-framework-validators/int32validator"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/int32planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/listplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
-	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
 
 	"github.com/hashicorp/terraform-plugin-framework-timeouts/resource/timeouts"
-	"github.com/terraform-providers/terraform-provider-ncloud/internal/common"
 	. "github.com/terraform-providers/terraform-provider-ncloud/internal/common"
 	"github.com/terraform-providers/terraform-provider-ncloud/internal/conn"
 	"github.com/terraform-providers/terraform-provider-ncloud/internal/framework"
@@ -41,10 +40,6 @@ const (
 	LoadBalancerInstanceOperationPendingTerminationCode = "PTERM"
 	LoadBalancerInstanceOperationTerminateCode          = "TERMT"
 	LoadBalancerInstanceOperationUseCode                = "USE"
-	LoadBalancerStatusPending                           = "PEND"
-	LoadBalancerStatusDeleted                           = "DEL"
-	LoadBalancerStatusTerminated                        = "TERMINATED"
-	LoadBalancerStatusTerminating                       = "TERMINATING"
 )
 
 func NewLbResource() resource.Resource {
@@ -81,6 +76,9 @@ func (l *lbResource) Schema(ctx context.Context, req resource.SchemaRequest, res
 			},
 			"domain": schema.StringAttribute{
 				Computed: true,
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.UseStateForUnknown(),
+				},
 			},
 			"network_type": schema.StringAttribute{
 				Optional: true,
@@ -92,11 +90,14 @@ func (l *lbResource) Schema(ctx context.Context, req resource.SchemaRequest, res
 					stringplanmodifier.RequiresReplace(),
 				},
 			},
-			"idle_timeout": schema.Int64Attribute{
+			"idle_timeout": schema.Int32Attribute{
 				Optional: true,
 				Computed: true,
-				Validators: []validator.Int64{
-					int64validator.Between(1, 3600),
+				Validators: []validator.Int32{
+					int32validator.Between(1, 3600),
+				},
+				PlanModifiers: []planmodifier.Int32{
+					int32planmodifier.UseStateForUnknown(),
 				},
 			},
 			"type": schema.StringAttribute{
@@ -114,9 +115,15 @@ func (l *lbResource) Schema(ctx context.Context, req resource.SchemaRequest, res
 				Validators: []validator.String{
 					stringvalidator.OneOf("SMALL", "MEDIUM", "LARGE", "DYNAMIC"),
 				},
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.UseStateForUnknown(),
+				},
 			},
 			"vpc_no": schema.StringAttribute{
 				Computed: true,
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.UseStateForUnknown(),
+				},
 			},
 			"subnet_no_list": schema.ListAttribute{
 				ElementType: types.StringType,
@@ -128,15 +135,23 @@ func (l *lbResource) Schema(ctx context.Context, req resource.SchemaRequest, res
 			"ip_list": schema.ListAttribute{
 				ElementType: types.StringType,
 				Computed:    true,
+				PlanModifiers: []planmodifier.List{
+					listplanmodifier.UseStateForUnknown(),
+				},
 			},
 			"listener_no_list": schema.ListAttribute{
 				ElementType: types.StringType,
 				Computed:    true,
+				PlanModifiers: []planmodifier.List{
+					listplanmodifier.UseStateForUnknown(),
+				},
 			},
 		},
 		Blocks: map[string]schema.Block{
 			"timeouts": timeouts.Block(ctx, timeouts.Opts{
 				Create: true,
+				Update: true,
+				Delete: true,
 			}),
 		},
 	}
@@ -187,30 +202,28 @@ func (l *lbResource) Create(ctx context.Context, req resource.CreateRequest, res
 		return
 	}
 
-	var idleTimeoutValue int32
-	if !plan.IdleTimeout.IsNull() {
-		idleTimeoutValue = int32(plan.IdleTimeout.ValueInt64())
-	} else {
-		idleTimeoutValue = 0
-	}
-
 	reqParams := &vloadbalancer.CreateLoadBalancerInstanceRequest{
 		RegionCode: &l.config.RegionCode,
 		// Optional
-		IdleTimeout:                 ncloud.Int32(idleTimeoutValue),
 		LoadBalancerDescription:     plan.Description.ValueStringPointer(),
 		LoadBalancerNetworkTypeCode: plan.NetworkType.ValueStringPointer(),
 		LoadBalancerName:            plan.Name.ValueStringPointer(),
-		ThroughputTypeCode:          plan.ThroughputType.ValueStringPointer(),
 
 		// Required
 		LoadBalancerTypeCode: ncloud.String(plan.Type.ValueString()),
-		// SubnetNoList:         listValueToSubnetNoList(ctx, plan.SubnetNoList),
 		SubnetNoList: func() []*string {
 			elements := make([]*string, 0, len(plan.SubnetNoList.Elements()))
 			plan.SubnetNoList.ElementsAs(ctx, &elements, true)
 			return elements
 		}(),
+	}
+
+	if !plan.ThroughputType.IsNull() && !plan.ThroughputType.IsUnknown() {
+		reqParams.ThroughputTypeCode = plan.ThroughputType.ValueStringPointer()
+	}
+
+	if !plan.IdleTimeout.IsNull() && !plan.IdleTimeout.IsUnknown() {
+		reqParams.IdleTimeout = plan.IdleTimeout.ValueInt32Pointer()
 	}
 
 	vpcNoMap := make(map[string]int)
@@ -342,7 +355,7 @@ func (l *lbResource) Update(ctx context.Context, req resource.UpdateRequest, res
 		!plan.ThroughputType.Equal(state.ThroughputType) ||
 		!plan.Description.Equal(state.Description) {
 
-		if err := waitForLoadBalancerActive(ctx, l.config, state.LoadBalancerNo.String()); err != nil {
+		if err := waitForLoadBalancerActive(ctx, l.config, state.LoadBalancerNo.ValueString()); err != nil {
 			resp.Diagnostics.AddError(
 				"Failed to wait for load balancer to become active",
 				fmt.Sprintf("Error: %s", err),
@@ -354,24 +367,43 @@ func (l *lbResource) Update(ctx context.Context, req resource.UpdateRequest, res
 		if !plan.IdleTimeout.Equal(state.IdleTimeout) || !plan.ThroughputType.Equal(state.ThroughputType) {
 			_, err = l.config.Client.Vloadbalancer.V2Api.ChangeLoadBalancerInstanceConfiguration(&vloadbalancer.ChangeLoadBalancerInstanceConfigurationRequest{
 				RegionCode:             &l.config.RegionCode,
-				LoadBalancerInstanceNo: ncloud.String(state.LoadBalancerNo.String()),
-				IdleTimeout:            ncloud.Int32(int32(plan.IdleTimeout.ValueInt64())),
+				LoadBalancerInstanceNo: ncloud.String(state.LoadBalancerNo.ValueString()),
+				IdleTimeout:            plan.IdleTimeout.ValueInt32Pointer(),
 				ThroughputTypeCode:     plan.ThroughputType.ValueStringPointer(),
 			})
-		} else if !plan.Description.Equal(state.Description) {
-			_, err = l.config.Client.Vloadbalancer.V2Api.SetLoadBalancerDescription(&vloadbalancer.SetLoadBalancerDescriptionRequest{
-				RegionCode:              &l.config.RegionCode,
-				LoadBalancerInstanceNo:  ncloud.String(state.LoadBalancerNo.String()),
-				LoadBalancerDescription: plan.Description.ValueStringPointer(),
-			})
+			if err != nil {
+				resp.Diagnostics.AddError(
+					"Failed to update load balancer configuration", err.Error(),
+				)
+				return
+			}
+
+			state.IdleTimeout = plan.IdleTimeout
+			state.ThroughputType = plan.ThroughputType
 		}
 
-		if err != nil {
+		if err := waitForLoadBalancerActive(ctx, l.config, state.LoadBalancerNo.ValueString()); err != nil {
 			resp.Diagnostics.AddError(
-				"Failed to update load balancer configuration",
+				"Failed to wait for load balancer to become active",
 				fmt.Sprintf("Error: %s", err),
 			)
 			return
+		}
+
+		if !plan.Description.Equal(state.Description) {
+			_, err = l.config.Client.Vloadbalancer.V2Api.SetLoadBalancerDescription(&vloadbalancer.SetLoadBalancerDescriptionRequest{
+				RegionCode:              &l.config.RegionCode,
+				LoadBalancerInstanceNo:  ncloud.String(state.LoadBalancerNo.ValueString()),
+				LoadBalancerDescription: plan.Description.ValueStringPointer(),
+			})
+			if err != nil {
+				resp.Diagnostics.AddError(
+					"Failed to update load balancer description", err.Error(),
+				)
+				return
+			}
+
+			state.Description = plan.Description
 		}
 	}
 	resp.Diagnostics.Append(resp.State.Set(ctx, state)...)
@@ -402,7 +434,7 @@ func (l *lbResource) Delete(ctx context.Context, req resource.DeleteRequest, res
 		LoadBalancerInstanceNoList: []*string{ncloud.String(state.LoadBalancerNo.ValueString())},
 	}
 
-	tflog.Info(ctx, "DeleteLoadBalancer reqParams="+common.MarshalUncheckedString(reqParams))
+	tflog.Info(ctx, "DeleteLoadBalancer reqParams="+MarshalUncheckedString(reqParams))
 
 	if err := waitForLoadBalancerActive(ctx, l.config, state.LoadBalancerNo.ValueString()); err != nil {
 		resp.Diagnostics.AddError("WAIT FOR LOADBALANCER ERROR", err.Error())
@@ -414,7 +446,7 @@ func (l *lbResource) Delete(ctx context.Context, req resource.DeleteRequest, res
 		resp.Diagnostics.AddError("DELETING ERROR", err.Error())
 		return
 	}
-	tflog.Info(ctx, "DeleteLoadBalancer response="+common.MarshalUncheckedString(response))
+	tflog.Info(ctx, "DeleteLoadBalancer response="+MarshalUncheckedString(response))
 
 	if err := waitForLoadBalancerDeletion(ctx, l.config, state.LoadBalancerNo.ValueString()); err != nil {
 		resp.Diagnostics.AddError("WAITING FOR DELETE ERROR", err.Error())
@@ -441,17 +473,6 @@ func GetFwVpcLoadBalancer(ctx context.Context, config *conn.ProviderConfig, id s
 	}
 
 	return convertVpcLoadBalancer(resp.LoadBalancerInstanceList[0]), nil
-}
-
-func listValueToSubnetNoList(ctx context.Context, list basetypes.ListValue) []*string {
-	result := make([]*string, 0, len(list.Elements()))
-	for _, v := range list.Elements() {
-		if str, ok := v.(basetypes.StringValue); ok {
-			value := str.ValueString()
-			result = append(result, &value)
-		}
-	}
-	return result
 }
 
 func waitForLoadBalancerActive(ctx context.Context, config *conn.ProviderConfig, id string) error {
@@ -487,8 +508,8 @@ func waitForLoadBalancerActive(ctx context.Context, config *conn.ProviderConfig,
 
 func waitForLoadBalancerDeletion(ctx context.Context, config *conn.ProviderConfig, id string) error {
 	stateConf := &retry.StateChangeConf{
-		Pending: []string{LoadBalancerStatusPending},
-		Target:  []string{LoadBalancerStatusDeleted},
+		Pending: []string{LoadBalancerInstanceOperationTerminateCode},
+		Target:  []string{LoadBalancerInstanceOperationNullCode},
 		Refresh: func() (interface{}, string, error) {
 			reqParams := &vloadbalancer.GetLoadBalancerInstanceDetailRequest{
 				RegionCode:             &config.RegionCode,
@@ -500,10 +521,11 @@ func waitForLoadBalancerDeletion(ctx context.Context, config *conn.ProviderConfi
 			}
 
 			if len(resp.LoadBalancerInstanceList) < 1 {
-				return resp, LoadBalancerStatusDeleted, nil
+				return resp, LoadBalancerInstanceOperationNullCode, nil
 			}
 
-			return nil, "", fmt.Errorf("error occurred while waiting to delete load balancer instance")
+			respCode := resp.LoadBalancerInstanceList[0].LoadBalancerInstanceOperation.Code
+			return nil, ncloud.StringValue(respCode), nil
 		},
 		Timeout:    6 * conn.DefaultTimeout,
 		Delay:      2 * time.Second,
@@ -542,13 +564,16 @@ func (l *lbResourceModel) refreshFromOutput(ctx context.Context, output *LoadBal
 	l.ID = types.StringPointerValue(output.LoadBalancerInstanceNo)
 	l.LoadBalancerNo = types.StringPointerValue(output.LoadBalancerInstanceNo)
 	l.Name = types.StringPointerValue(output.LoadBalancerName)
-	l.Description = types.StringPointerValue(output.LoadBalancerDescription)
 	l.Domain = types.StringPointerValue(output.LoadBalancerDomain)
 	l.NetworkType = types.StringPointerValue(output.LoadBalancerNetworkType)
-	l.IdleTimeout = types.Int64Value(int64(ncloud.Int32Value(output.IdleTimeout)))
+	l.IdleTimeout = types.Int32PointerValue(output.IdleTimeout)
 	l.Type = types.StringPointerValue(output.LoadBalancerType)
 	l.ThroughputType = types.StringPointerValue(output.ThroughputType)
 	l.VpcNo = types.StringPointerValue(output.VpcNo)
+
+	if output.LoadBalancerDescription != nil && *output.LoadBalancerDescription != "" {
+		l.Description = types.StringPointerValue(output.LoadBalancerDescription)
+	}
 
 	subnetNoList := make([]string, 0)
 	for _, subnet := range output.SubnetNoList {
@@ -607,7 +632,7 @@ type lbResourceModel struct {
 	Description    types.String   `tfsdk:"description"`
 	Domain         types.String   `tfsdk:"domain"`
 	NetworkType    types.String   `tfsdk:"network_type"`
-	IdleTimeout    types.Int64    `tfsdk:"idle_timeout"`
+	IdleTimeout    types.Int32    `tfsdk:"idle_timeout"`
 	Type           types.String   `tfsdk:"type"`
 	ThroughputType types.String   `tfsdk:"throughput_type"`
 	VpcNo          types.String   `tfsdk:"vpc_no"`
