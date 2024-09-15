@@ -1,4 +1,4 @@
-package loadbalancer
+package verify
 
 import (
 	"context"
@@ -8,27 +8,28 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types"
 )
 
-var _ validator.Int32 = idleTimeoutValidator{}
+var _ validator.Int32 = conflictsWithValueValidator{}
 
-type idleTimeoutValidator struct {
-	ty string
+type conflictsWithValueValidator struct {
+	ty    string
+	value string
 }
 
-func (v idleTimeoutValidator) Description(_ context.Context) string {
-	return fmt.Sprintf("idleTimeout is not supported for the %s type load balancer", v.ty)
+func (v conflictsWithValueValidator) Description(_ context.Context) string {
+	return fmt.Sprintf("conflicts with %s value in %s attritube ", v.value, v.ty)
 }
 
-func (v idleTimeoutValidator) MarkdownDescription(ctx context.Context) string {
+func (v conflictsWithValueValidator) MarkdownDescription(ctx context.Context) string {
 	return v.Description(ctx)
 }
 
-func (v idleTimeoutValidator) ValidateInt32(ctx context.Context, req validator.Int32Request, resp *validator.Int32Response) {
+func (v conflictsWithValueValidator) ValidateInt32(ctx context.Context, req validator.Int32Request, resp *validator.Int32Response) {
 	if req.ConfigValue.IsNull() || req.ConfigValue.IsUnknown() {
 		// If code block does not exist, config is valid.
 		return
 	}
 
-	typePath := req.Path.ParentPath().AtName("type")
+	typePath := req.Path.ParentPath().AtName(v.ty)
 
 	var m types.String
 
@@ -44,7 +45,7 @@ func (v idleTimeoutValidator) ValidateInt32(ctx context.Context, req validator.I
 		return
 	}
 
-	if m.ValueString() == v.ty {
+	if m.ValueString() == v.value {
 		resp.Diagnostics.AddAttributeError(
 			typePath,
 			"Unsupported attribute combination (network type and idleTimeout)",
@@ -53,8 +54,9 @@ func (v idleTimeoutValidator) ValidateInt32(ctx context.Context, req validator.I
 	}
 }
 
-func checkUnsupportedIdleTimeout(ty string) validator.Int32 {
-	return idleTimeoutValidator{
-		ty: ty,
+func ConflictsWithVaule(ty string, value string) validator.Int32 {
+	return conflictsWithValueValidator{
+		ty:    ty,
+		value: value,
 	}
 }

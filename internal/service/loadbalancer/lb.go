@@ -26,6 +26,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-ncloud/internal/conn"
 	"github.com/terraform-providers/terraform-provider-ncloud/internal/framework"
 	vpcservice "github.com/terraform-providers/terraform-provider-ncloud/internal/service/vpc"
+	verify "github.com/terraform-providers/terraform-provider-ncloud/internal/verify/int32"
 )
 
 var (
@@ -95,7 +96,7 @@ func (l *lbResource) Schema(ctx context.Context, req resource.SchemaRequest, res
 				Computed: true,
 				Validators: []validator.Int32{
 					int32validator.Between(1, 3600),
-					checkUnsupportedIdleTimeout("NETWORK"),
+					verify.ConflictsWithVaule("type", "NETWORK"),
 				},
 				PlanModifiers: []planmodifier.Int32{
 					int32planmodifier.UseStateForUnknown(),
