@@ -95,6 +95,7 @@ func (l *lbResource) Schema(ctx context.Context, req resource.SchemaRequest, res
 				Computed: true,
 				Validators: []validator.Int32{
 					int32validator.Between(1, 3600),
+					checkUnsupportedIdleTimeout("NETWORK"),
 				},
 				PlanModifiers: []planmodifier.Int32{
 					int32planmodifier.UseStateForUnknown(),
