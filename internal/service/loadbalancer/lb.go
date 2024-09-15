@@ -10,6 +10,7 @@ import (
 	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/services/vpc"
 	"github.com/hashicorp/terraform-plugin-framework-validators/int32validator"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
+	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/int32planmodifier"
@@ -96,7 +97,8 @@ func (l *lbResource) Schema(ctx context.Context, req resource.SchemaRequest, res
 				Computed: true,
 				Validators: []validator.Int32{
 					int32validator.Between(1, 3600),
-					verify.ConflictsWithVaule("type", "NETWORK"),
+					verify.ConflictsWithVaule(
+						path.MatchRelative().AtName("type"), types.StringValue("NETWORK")),
 				},
 				PlanModifiers: []planmodifier.Int32{
 					int32planmodifier.UseStateForUnknown(),
