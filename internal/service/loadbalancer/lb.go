@@ -289,7 +289,13 @@ func (l *lbResource) Create(ctx context.Context, req resource.CreateRequest, res
 	}
 
 	plan.LoadBalancerNo = types.StringValue(ncloud.StringValue(createResp.LoadBalancerInstanceList[0].LoadBalancerInstanceNo))
-	plan.refreshFromOutput(ctx, output)
+	if err := plan.refreshFromOutput(ctx, output); err != nil {
+		resp.Diagnostics.AddError(
+			"Error while getting output values of load balancer instance",
+			err.Error(),
+		)
+		return
+	}
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
 
@@ -314,7 +320,13 @@ func (l *lbResource) Read(ctx context.Context, req resource.ReadRequest, resp *r
 		return
 	}
 
-	state.refreshFromOutput(ctx, output)
+	if err := state.refreshFromOutput(ctx, output); err != nil {
+		resp.Diagnostics.AddError(
+			"Error while getting output values of load balancer instance",
+			err.Error(),
+		)
+		return
+	}
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &state)...)
 	if resp.Diagnostics.HasError() {
