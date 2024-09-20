@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/services/vmysql"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
@@ -18,10 +19,10 @@ import (
 )
 
 func TestAccResourceNcloudMysqlRecovery_vpc_basic(t *testing.T) {
-	var mysqlSErverInstance vmysql.CloudMysqlServerInstance
+	var mysqlServerInstance vmysql.CloudMysqlServerInstance
 	testName := fmt.Sprintf("tf-mysqlsv-%s", acctest.RandString(5))
 	resourceName := "ncloud_mysql_recovery.mysql_recovery"
-	testDate := "20240920"
+	testDate := time.Now().Format("20060102")
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { TestAccPreCheck(t) },
@@ -31,7 +32,7 @@ func TestAccResourceNcloudMysqlRecovery_vpc_basic(t *testing.T) {
 			{
 				Config: testAccMysqlRecoveryConfig(testName, testDate),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckMysqlRecoveryExists(resourceName, &mysqlSErverInstance, GetTestProvider(true)),
+					testAccCheckMysqlRecoveryExists(resourceName, &mysqlServerInstance, GetTestProvider(true)),
 					resource.TestCheckResourceAttrSet(resourceName, "mysql_instance_no"),
 				),
 			},
