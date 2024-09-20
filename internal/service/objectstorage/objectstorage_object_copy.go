@@ -273,6 +273,57 @@ func (o *objectCopyResource) Update(ctx context.Context, req resource.UpdateRequ
 
 		plan.refreshFromOutput(ctx, o.config, &resp.Diagnostics)
 	}
+
+	if !plan.ContentType.Equal(state.ContentType) {
+
+		getReqParams := &s3.GetObjectInput{
+			Bucket: state.Bucket.ValueStringPointer(),
+			Key:    state.Key.ValueStringPointer(),
+		}
+
+		tflog.Info(ctx, "GetObject at update operation reqParams="+common.MarshalUncheckedString(getReqParams))
+
+		getOutput, err := o.config.Client.ObjectStorage.GetObject(ctx, getReqParams)
+		if err != nil {
+			resp.Diagnostics.AddError("UPDATING ERROR", err.Error())
+			return
+		}
+		if getOutput == nil {
+			resp.Diagnostics.AddError("UPDATING ERROR", "response invalid at get object")
+			return
+		}
+
+		tflog.Info(ctx, "GetObject at update operation response="+common.MarshalUncheckedString(getOutput))
+
+		reqParams := &s3.PutObjectInput{
+			Bucket:      plan.Bucket.ValueStringPointer(),
+			Key:         plan.Key.ValueStringPointer(),
+			Body:        getOutput.Body,
+			ContentType: plan.ContentType.ValueStringPointer(),
+		}
+
+		tflog.Info(ctx, "PutObject at update operation reqParams="+common.MarshalUncheckedString(reqParams))
+
+		output, err := o.config.Client.ObjectStorage.PutObject(ctx, reqParams)
+		if err != nil {
+			resp.Diagnostics.AddError("UPDATING ERROR", err.Error())
+			return
+		}
+		if output == nil {
+			resp.Diagnostics.AddError("UPDATING ERROR", "response invalid")
+			return
+		}
+
+		tflog.Info(ctx, "PutObject at update operation response="+common.MarshalUncheckedString(output))
+
+		if err := waitObjectUploaded(ctx, o.config, plan.Bucket.ValueString(), plan.Key.ValueString()); err != nil {
+			resp.Diagnostics.AddError("UPDATING ERROR", err.Error())
+			return
+		}
+
+		plan.refreshFromOutput(ctx, o.config, &resp.Diagnostics)
+		resp.Diagnostics.Append(resp.State.Set(ctx, plan)...)
+	}
 }
 
 func waitObjectCopied(ctx context.Context, config *conn.ProviderConfig, bucketName string, key string) error {
