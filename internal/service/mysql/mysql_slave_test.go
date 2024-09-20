@@ -40,16 +40,21 @@ func TestAccrResourceNcloudMysqlSlave_vpc_basic(t *testing.T) {
 
 func testAccMysqlSlaveConfig(testName string) string {
 	return fmt.Sprintf(`
-data "ncloud_vpc" "test_vpc" {
-	id = "75658"
+resource "ncloud_vpc" "test_vpc" {
+	name             = "%[1]s"
+	ipv4_cidr_block  = "10.5.0.0/16"
 }
-
-data "ncloud_subnet" "test_subnet" {
-	id = "172709"
+resource "ncloud_subnet" "test_subnet" {
+	vpc_no             = ncloud_vpc.test_vpc.vpc_no
+	name               = "%[1]s"
+	subnet             = "10.5.0.0/24"
+	zone               = "KR-2"
+	network_acl_no     = ncloud_vpc.test_vpc.default_network_acl_no
+	subnet_type        = "PUBLIC"
 }
 
 resource "ncloud_mysql" "mysql" {
-	subnet_no = data.ncloud_subnet.test_subnet.id
+	subnet_no = ncloud_subnet.test_subnet.id
 	service_name = "%[1]s"
 	server_name_prefix = "testprefix"
 	user_name = "testusername"
