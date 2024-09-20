@@ -182,37 +182,34 @@ func (o *objectCopyResource) Schema(ctx context.Context, req resource.SchemaRequ
 			},
 			"accept_ranges": schema.StringAttribute{
 				Computed: true,
-				Optional: true,
 			},
 			"content_encoding": schema.StringAttribute{
-				Optional: true,
+				Computed: true,
 			},
 			"content_language": schema.StringAttribute{
-				Optional: true,
+				Computed: true,
 			},
 			"content_length": schema.Int64Attribute{
 				Computed: true,
 			},
 			"content_type": schema.StringAttribute{
 				Computed: true,
+				Optional: true,
 			},
 			"etag": schema.StringAttribute{
 				Computed: true,
 			},
 			"expiration": schema.StringAttribute{
 				Computed: true,
-				Optional: true,
 			},
 			"parts_count": schema.Int64Attribute{
 				Computed: true,
-				Optional: true,
 			},
 			"version_id": schema.StringAttribute{
 				Computed: true,
-				Optional: true,
 			},
 			"website_redirect_location": schema.StringAttribute{
-				Optional: true,
+				Computed: true,
 			},
 			"last_modified": schema.StringAttribute{
 				Computed: true,

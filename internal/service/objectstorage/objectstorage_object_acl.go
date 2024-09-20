@@ -143,19 +143,15 @@ func (o *objectACLResource) Schema(_ context.Context, req resource.SchemaRequest
 								},
 								"display_name": schema.StringAttribute{
 									Computed: true,
-									Optional: true,
 								},
 								"email_address": schema.StringAttribute{
 									Computed: true,
-									Optional: true,
 								},
 								"id": schema.StringAttribute{
 									Computed: true,
-									Optional: true,
 								},
 								"uri": schema.StringAttribute{
 									Computed: true,
-									Optional: true,
 								},
 							},
 						},
