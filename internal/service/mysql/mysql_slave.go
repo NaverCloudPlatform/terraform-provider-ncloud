@@ -3,7 +3,6 @@ package mysql
 import (
 	"context"
 	"fmt"
-	"strings"
 	"time"
 
 	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/ncloud"
@@ -19,6 +18,14 @@ import (
 	"github.com/terraform-providers/terraform-provider-ncloud/internal/common"
 	"github.com/terraform-providers/terraform-provider-ncloud/internal/conn"
 	"github.com/terraform-providers/terraform-provider-ncloud/internal/framework"
+)
+
+const (
+	CREATING = "creating"
+	SETTING  = "settingUp"
+	RUNNING  = "running"
+	DELETING = "deleting"
+	DELETED  = "deleted"
 )
 
 var (
@@ -214,8 +221,8 @@ func (r *mysqlSlaveResource) Delete(ctx context.Context, req resource.DeleteRequ
 func waitMysqlSlaveCreation(ctx context.Context, config *conn.ProviderConfig, id string) (*vmysql.CloudMysqlServerInstance, error) {
 	var mysqlInstance *vmysql.CloudMysqlServerInstance
 	stateConf := &retry.StateChangeConf{
-		Pending: []string{"creating", "settingUp"},
-		Target:  []string{"running"},
+		Pending: []string{CREATING, SETTING},
+		Target:  []string{RUNNING},
 		Refresh: func() (interface{}, string, error) {
 			instance, err := GetMysqlSlave(ctx, config, id)
 			mysqlInstance = instance
@@ -224,16 +231,16 @@ func waitMysqlSlaveCreation(ctx context.Context, config *conn.ProviderConfig, id
 			}
 
 			status := instance.CloudMysqlServerInstanceStatusName
-			if *status == "creating" {
-				return instance, "creating", nil
+			if *status == CREATING {
+				return instance, CREATING, nil
 			}
 
-			if *status == "settingUp" {
-				return instance, "settingUp", nil
+			if *status == SETTING {
+				return instance, SETTING, nil
 			}
 
-			if *status == "running" {
-				return instance, "running", nil
+			if *status == RUNNING {
+				return instance, RUNNING, nil
 			}
 
 			return 0, "", fmt.Errorf("error occurred while waiting to create mysql slave")
@@ -253,8 +260,8 @@ func waitMysqlSlaveCreation(ctx context.Context, config *conn.ProviderConfig, id
 
 func waitMysqlSlaveDeletion(ctx context.Context, config *conn.ProviderConfig, id string) error {
 	stateConf := &retry.StateChangeConf{
-		Pending: []string{"deleting"},
-		Target:  []string{"deleted"},
+		Pending: []string{DELETING},
+		Target:  []string{DELETED},
 		Refresh: func() (interface{}, string, error) {
 			instance, err := GetMysqlSlave(ctx, config, id)
 			if err != nil {
@@ -262,17 +269,17 @@ func waitMysqlSlaveDeletion(ctx context.Context, config *conn.ProviderConfig, id
 			}
 
 			if instance == nil {
-				return instance, "deleted", nil
+				return instance, DELETED, nil
 			}
 
 			status := instance.CloudMysqlServerInstanceStatusName
 
-			if *status == "deleting" {
-				return instance, "deleting", nil
+			if *status == DELETING {
+				return instance, DELETING, nil
 			}
 
-			if *status == "deleted" {
-				return instance, "deleted", nil
+			if *status == DELETED {
+				return instance, DELETED, nil
 			}
 
 			return 0, "", fmt.Errorf("error occurred while waiting to delete mysql slave")
@@ -297,7 +304,7 @@ func GetMysqlSlave(ctx context.Context, config *conn.ProviderConfig, no string) 
 	tflog.Info(ctx, "GetMysqlDetail reqParams="+common.MarshalUncheckedString(reqParams))
 
 	resp, err := config.Client.Vmysql.V2Api.GetCloudMysqlInstanceDetail(reqParams)
-	if err != nil && !(strings.Contains(err.Error(), `"returnCode": "5001017"`)) {
+	if err != nil && !CheckIfAlreadyDeleted(err) {
 		return nil, err
 	}
 	tflog.Info(ctx, "GetMysqlDetail response="+common.MarshalUncheckedString(resp))
