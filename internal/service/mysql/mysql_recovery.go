@@ -24,6 +24,14 @@ import (
 	"github.com/terraform-providers/terraform-provider-ncloud/internal/framework"
 )
 
+const (
+	CREATING = "creating"
+	SETTING  = "settingUp"
+	RUNNING  = "running"
+	DELETING = "deleting"
+	DELETED  = "deleted"
+)
+
 var (
 	_ resource.Resource                = &mysqlRecoveryResource{}
 	_ resource.ResourceWithConfigure   = &mysqlRecoveryResource{}
@@ -256,8 +264,8 @@ func (r *mysqlRecoveryResource) Delete(ctx context.Context, req resource.DeleteR
 func waitMysqlRecoveryCreation(ctx context.Context, config *conn.ProviderConfig, id string) (*vmysql.CloudMysqlServerInstance, error) {
 	var mysqlInstance *vmysql.CloudMysqlServerInstance
 	stateConf := &retry.StateChangeConf{
-		Pending: []string{"creating", "settingUp"},
-		Target:  []string{"running"},
+		Pending: []string{CREATING, SETTING},
+		Target:  []string{RUNNING},
 		Refresh: func() (interface{}, string, error) {
 			instance, err := GetMysqlRecovery(ctx, config, id)
 			mysqlInstance = instance
@@ -266,16 +274,16 @@ func waitMysqlRecoveryCreation(ctx context.Context, config *conn.ProviderConfig,
 			}
 
 			status := instance.CloudMysqlServerInstanceStatusName
-			if *status == "creating" {
-				return instance, "creating", nil
+			if *status == CREATING {
+				return instance, CREATING, nil
 			}
 
-			if *status == "settingUp" {
-				return instance, "settingUp", nil
+			if *status == SETTING {
+				return instance, SETTING, nil
 			}
 
-			if *status == "running" {
-				return instance, "running", nil
+			if *status == RUNNING {
+				return instance, RUNNING, nil
 			}
 
 			return 0, "", fmt.Errorf("error occurred while waiting to create mysql recovery")
@@ -295,8 +303,8 @@ func waitMysqlRecoveryCreation(ctx context.Context, config *conn.ProviderConfig,
 
 func waitMysqlRecoveryDeletion(ctx context.Context, config *conn.ProviderConfig, id string) error {
 	stateConf := &retry.StateChangeConf{
-		Pending: []string{"deleting"},
-		Target:  []string{"deleted"},
+		Pending: []string{DELETING},
+		Target:  []string{DELETED},
 		Refresh: func() (interface{}, string, error) {
 			instance, err := GetMysqlRecovery(ctx, config, id)
 			if err != nil {
@@ -304,17 +312,17 @@ func waitMysqlRecoveryDeletion(ctx context.Context, config *conn.ProviderConfig,
 			}
 
 			if instance == nil {
-				return instance, "deleted", nil
+				return instance, DELETED, nil
 			}
 
 			status := instance.CloudMysqlServerInstanceStatusName
 
-			if *status == "deleting" {
-				return instance, "deleting", nil
+			if *status == DELETING {
+				return instance, DELETING, nil
 			}
 
-			if *status == "deleted" {
-				return instance, "deleted", nil
+			if *status == DELETED {
+				return instance, DELETED, nil
 			}
 
 			return 0, "", fmt.Errorf("error occurred while waiting to delete mysql recovery")
