@@ -4,7 +4,6 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"strings"
 	"testing"
 
 	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/services/vmysql"
@@ -103,7 +102,7 @@ func testAccCheckMysqlSlaveDestroy(s *terraform.State) error {
 			continue
 		}
 		instance, err := mysqlservice.GetMysqlSlave(context.Background(), config, rs.Primary.Attributes["mysql_instance_no"])
-		if err != nil && !strings.Contains(err.Error(), "5001017") {
+		if err != nil && !mysqlservice.CheckIfAlreadyDeleted(err) {
 			return nil
 		}
 

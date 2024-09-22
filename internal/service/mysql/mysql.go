@@ -593,8 +593,7 @@ func GetMysqlInstance(ctx context.Context, config *conn.ProviderConfig, no strin
 	tflog.Info(ctx, "GetMysqlDetail reqParams="+common.MarshalUncheckedString(reqParams))
 
 	resp, err := config.Client.Vmysql.V2Api.GetCloudMysqlInstanceDetail(reqParams)
-	// If the lookup result is 0 or already deleted, it will respond with a 400 error with a 5001017 return code.
-	if err != nil && !(strings.Contains(err.Error(), `"returnCode": "5001017"`)) {
+	if err != nil && !CheckIfAlreadyDeleted(err) {
 		return nil, err
 	}
 	tflog.Info(ctx, "GetMysqlDetail response="+common.MarshalUncheckedString(resp))
@@ -801,4 +800,9 @@ func (m *mysqlResourceModel) refreshFromOutput(ctx context.Context, output *vmys
 	mysqlServers, _ := types.ListValueFrom(ctx, types.ObjectType{AttrTypes: mysqlServer{}.attrTypes()}, serverList)
 
 	m.MysqlServerList = mysqlServers
+}
+
+// If the lookup result is 0 or already deleted, it will respond with a 400 error with a 5001017 return code.
+func CheckIfAlreadyDeleted(err error) bool {
+	return strings.Contains(err.Error(), "5001017")
 }
