@@ -40,7 +40,9 @@ The following arguments are required:
 
 The following arguments are optional:
 
-* `content_type` - (Optional) Standard MIME type describing the format of the object data, e.g., application/octet-stream. All Valid MIME Types are valid for this input.
+* `content_type` - (Optional) Standard MIME type describing the format of the object data, e.g., application/octet-stream. All Valid MIME Types are valid for this input. 
+
+~> **NOTE:** Specially in `JPN` region, updating resource with only `content_type` changed will be blocked. 
 
 ## Attribute Reference.
 
