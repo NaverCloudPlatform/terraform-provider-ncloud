@@ -276,6 +276,11 @@ func (o *objectCopyResource) Update(ctx context.Context, req resource.UpdateRequ
 
 	if !plan.ContentType.Equal(state.ContentType) {
 
+		if o.config.RegionCode == "JPN" {
+			resp.Diagnostics.AddError("UPDATING ERROR", "updating object Content-Type is unavailable in this region")
+			return
+		}
+
 		getReqParams := &s3.GetObjectInput{
 			Bucket: state.Bucket.ValueStringPointer(),
 			Key:    state.Key.ValueStringPointer(),
@@ -296,9 +301,10 @@ func (o *objectCopyResource) Update(ctx context.Context, req resource.UpdateRequ
 		tflog.Info(ctx, "GetObject at update operation response="+common.MarshalUncheckedString(getOutput))
 
 		reqParams := &s3.PutObjectInput{
-			Bucket:      plan.Bucket.ValueStringPointer(),
-			Key:         plan.Key.ValueStringPointer(),
-			Body:        getOutput.Body,
+			Bucket: plan.Bucket.ValueStringPointer(),
+			Key:    plan.Key.ValueStringPointer(),
+			Body:   getOutput.Body,
+			// this option is only available in KR region
 			ContentType: plan.ContentType.ValueStringPointer(),
 		}
 
