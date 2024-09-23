@@ -1,9 +1,10 @@
-package verify
+package verify_test
 
 import (
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
+	"github.com/terraform-providers/terraform-provider-ncloud/internal/verify"
 )
 
 func Test_validateInstanceName(t *testing.T) {
@@ -62,7 +63,7 @@ func Test_validateInstanceName(t *testing.T) {
 	}
 
 	for _, tc := range cases {
-		_, errors := ValidateInstanceName(tc.Value, "name")
+		_, errors := verify.ValidateInstanceName(tc.Value, "name")
 
 		if len(errors) != tc.ErrCount {
 			t.Fatalf("Expected the Instance Name to trigger a validation error for %q", tc.Value)
@@ -126,7 +127,7 @@ func Test_ValidatePortRange(t *testing.T) {
 	}
 
 	for _, tc := range cases {
-		_, errors := ValidatePortRange(tc.Value, "portRange")
+		_, errors := verify.ValidatePortRange(tc.Value, "portRange")
 
 		if len(errors) != tc.ErrCount {
 			t.Fatalf("Expected the portRange to trigger a validation error for %q", tc.Value)
@@ -189,7 +190,7 @@ func Test_ValidateDateISO8601(t *testing.T) {
 		},
 	}
 	for _, tc := range cases {
-		_, errors := ValidateDateISO8601(tc.Value, "date")
+		_, errors := verify.ValidateDateISO8601(tc.Value, "date")
 
 		if len(errors) != tc.ErrCount {
 			t.Fatalf("Expected the Date Format to trigger a validation error for %q", tc.Value)
