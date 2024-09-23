@@ -218,16 +218,36 @@ func (o *objectResource) Update(ctx context.Context, req resource.UpdateRequest,
 		return
 	}
 
+	getReqParams := &s3.GetObjectInput{
+		Bucket: state.Bucket.ValueStringPointer(),
+		Key:    state.Key.ValueStringPointer(),
+	}
+
+	tflog.Info(ctx, "GetObject at update operation reqParams="+common.MarshalUncheckedString(getReqParams))
+
+	getOutput, err := o.config.Client.ObjectStorage.GetObject(ctx, getReqParams)
+	if err != nil {
+		resp.Diagnostics.AddError("UPDATING ERROR", err.Error())
+		return
+	}
+	if getOutput == nil {
+		resp.Diagnostics.AddError("UPDATING ERROR", "response invalid at get object")
+		return
+	}
+
+	tflog.Info(ctx, "GetObject at update operation response="+common.MarshalUncheckedString(getOutput))
+
 	file, err := os.Open(state.Source.ValueString())
 	if err != nil {
 		resp.Diagnostics.AddError("UPDATING ERROR", "invalid source path")
 	}
 	defer file.Close()
 
+	// set default putobject parameter with get operation output
 	reqParams := &s3.PutObjectInput{
 		Bucket: state.Bucket.ValueStringPointer(),
 		Key:    state.Key.ValueStringPointer(),
-		Body:   file,
+		Body:   getOutput.Body,
 	}
 
 	if !plan.Source.Equal(state.Source) {
