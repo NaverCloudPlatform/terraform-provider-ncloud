@@ -234,6 +234,12 @@ func (o *objectResource) Update(ctx context.Context, req resource.UpdateRequest,
 
 		reqParams.Body = file
 	} else {
+		// Prevent wasting of GetObject operation
+		if !plan.ContentType.Equal(state.ContentType) && o.config.RegionCode == "JPN" {
+			resp.Diagnostics.AddError("UPDATING ERROR", "updating object Content-Type is unavailable in this region")
+			return
+		}
+
 		getReqParams := &s3.GetObjectInput{
 			Bucket: state.Bucket.ValueStringPointer(),
 			Key:    state.Key.ValueStringPointer(),

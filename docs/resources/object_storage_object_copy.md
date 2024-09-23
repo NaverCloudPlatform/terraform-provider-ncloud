@@ -52,6 +52,8 @@ The following arguments are supported:
 
 * `content_type` - (Optional) Standard MIME type describing the format of the object data, e.g., application/octet-stream. All Valid MIME Types are valid for this input. This attribute is only available in update operation.
 
+~> **NOTE:** Specially in `JPN` region, updating resource with only `content_type` changed will be blocked. 
+
 ## Attribute Reference.
 
 ~> **NOTE:** Since Ncloud Object Stroage uses S3 Compatible SDK, these arguments are served as best-effort.

@@ -48,7 +48,7 @@ func genEndpointWithCode(region, site string) string {
 	case "gov":
 		s3Endpoint = fmt.Sprintf("https://%[1]s.object.gov-ncloudstorage.com", strings.ToLower(region))
 	case "fin":
-		s3Endpoint = fmt.Sprintf("https://%[1]s.object.fin-ncloudstorage.com", strings.ToLower(region))
+		s3Endpoint = "https://kr.object.fin-ncloudstorage.com"
 	default:
 		s3Endpoint = fmt.Sprintf("https://%[1]s.object.ncloudstorage.com", strings.ToLower(region[:2]))
 	}
