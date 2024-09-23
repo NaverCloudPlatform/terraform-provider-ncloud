@@ -304,7 +304,7 @@ func (o *objectCopyResource) Update(ctx context.Context, req resource.UpdateRequ
 			Bucket: plan.Bucket.ValueStringPointer(),
 			Key:    plan.Key.ValueStringPointer(),
 			Body:   getOutput.Body,
-			// this option is only available in KR region
+			// this option is unavailable in JPN region
 			ContentType: plan.ContentType.ValueStringPointer(),
 		}
 
