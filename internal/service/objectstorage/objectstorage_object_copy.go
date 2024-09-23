@@ -182,37 +182,34 @@ func (o *objectCopyResource) Schema(ctx context.Context, req resource.SchemaRequ
 			},
 			"accept_ranges": schema.StringAttribute{
 				Computed: true,
-				Optional: true,
 			},
 			"content_encoding": schema.StringAttribute{
-				Optional: true,
+				Computed: true,
 			},
 			"content_language": schema.StringAttribute{
-				Optional: true,
+				Computed: true,
 			},
 			"content_length": schema.Int64Attribute{
 				Computed: true,
 			},
 			"content_type": schema.StringAttribute{
 				Computed: true,
+				Optional: true,
 			},
 			"etag": schema.StringAttribute{
 				Computed: true,
 			},
 			"expiration": schema.StringAttribute{
 				Computed: true,
-				Optional: true,
 			},
 			"parts_count": schema.Int64Attribute{
 				Computed: true,
-				Optional: true,
 			},
 			"version_id": schema.StringAttribute{
 				Computed: true,
-				Optional: true,
 			},
 			"website_redirect_location": schema.StringAttribute{
-				Optional: true,
+				Computed: true,
 			},
 			"last_modified": schema.StringAttribute{
 				Computed: true,
@@ -275,6 +272,57 @@ func (o *objectCopyResource) Update(ctx context.Context, req resource.UpdateRequ
 		}
 
 		plan.refreshFromOutput(ctx, o.config, &resp.Diagnostics)
+	}
+
+	if !plan.ContentType.Equal(state.ContentType) {
+
+		getReqParams := &s3.GetObjectInput{
+			Bucket: state.Bucket.ValueStringPointer(),
+			Key:    state.Key.ValueStringPointer(),
+		}
+
+		tflog.Info(ctx, "GetObject at update operation reqParams="+common.MarshalUncheckedString(getReqParams))
+
+		getOutput, err := o.config.Client.ObjectStorage.GetObject(ctx, getReqParams)
+		if err != nil {
+			resp.Diagnostics.AddError("UPDATING ERROR", err.Error())
+			return
+		}
+		if getOutput == nil {
+			resp.Diagnostics.AddError("UPDATING ERROR", "response invalid at get object")
+			return
+		}
+
+		tflog.Info(ctx, "GetObject at update operation response="+common.MarshalUncheckedString(getOutput))
+
+		reqParams := &s3.PutObjectInput{
+			Bucket:      plan.Bucket.ValueStringPointer(),
+			Key:         plan.Key.ValueStringPointer(),
+			Body:        getOutput.Body,
+			ContentType: plan.ContentType.ValueStringPointer(),
+		}
+
+		tflog.Info(ctx, "PutObject at update operation reqParams="+common.MarshalUncheckedString(reqParams))
+
+		output, err := o.config.Client.ObjectStorage.PutObject(ctx, reqParams)
+		if err != nil {
+			resp.Diagnostics.AddError("UPDATING ERROR", err.Error())
+			return
+		}
+		if output == nil {
+			resp.Diagnostics.AddError("UPDATING ERROR", "response invalid")
+			return
+		}
+
+		tflog.Info(ctx, "PutObject at update operation response="+common.MarshalUncheckedString(output))
+
+		if err := waitObjectUploaded(ctx, o.config, plan.Bucket.ValueString(), plan.Key.ValueString()); err != nil {
+			resp.Diagnostics.AddError("UPDATING ERROR", err.Error())
+			return
+		}
+
+		plan.refreshFromOutput(ctx, o.config, &resp.Diagnostics)
+		resp.Diagnostics.Append(resp.State.Set(ctx, plan)...)
 	}
 }
 

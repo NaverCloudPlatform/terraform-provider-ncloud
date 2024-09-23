@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"github.com/terraform-providers/terraform-provider-ncloud/internal/service/hadoop"
+	"github.com/terraform-providers/terraform-provider-ncloud/internal/service/loadbalancer"
 	"github.com/terraform-providers/terraform-provider-ncloud/internal/service/objectstorage"
 	"github.com/terraform-providers/terraform-provider-ncloud/internal/service/postgresql"
 
@@ -103,6 +104,7 @@ func (p *fwprovider) DataSources(ctx context.Context) []func() datasource.DataSo
 	dataSources = append(dataSources, postgresql.NewPostgresqlDataSource)
 	dataSources = append(dataSources, postgresql.NewPostgresqlProductsDataSource)
 	dataSources = append(dataSources, postgresql.NewPostgresqlImageProductsDataSource)
+	dataSources = append(dataSources, loadbalancer.NewLoadBalancerDataSource)
 	dataSources = append(dataSources, objectstorage.NewBucketDataSource)
 	dataSources = append(dataSources, objectstorage.NewObjectDataSource)
 
@@ -132,6 +134,7 @@ func (p *fwprovider) Resources(ctx context.Context) []func() resource.Resource {
 	resources = append(resources, redis.NewRedisResource)
 	resources = append(resources, mssql.NewMssqlResource)
 	resources = append(resources, postgresql.NewPostgresqlResource)
+	resources = append(resources, loadbalancer.NewLbResource)
 	resources = append(resources, objectstorage.NewBucketResource)
 	resources = append(resources, objectstorage.NewObjectResource)
 	resources = append(resources, objectstorage.NewObjectACLResource)

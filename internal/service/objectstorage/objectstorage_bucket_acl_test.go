@@ -42,6 +42,36 @@ func TestAccResourceNcloudObjectStorage_bucket_acl_basic(t *testing.T) {
 	})
 }
 
+func TestAccResourceNcloudObjectStorage_bucket_acl_update(t *testing.T) {
+	var aclOutput s3.GetBucketAclOutput
+	bucketName := fmt.Sprintf("tf-test-%s", acctest.RandString(5))
+
+	acl := "public-read"
+	newACL := "private"
+	resourceName := "ncloud_objectstorage_bucket_acl.testing_acl"
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: ProtoV6ProviderFactories,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccBucketACLConfig(bucketName, acl),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					testAccCheckBucketACLExists(resourceName, &aclOutput, GetTestProvider(true)),
+					resource.TestCheckResourceAttr(resourceName, "rule", acl),
+				),
+			},
+			{
+				Config: testAccBucketACLConfig(bucketName, newACL),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					testAccCheckBucketACLExists(resourceName, &aclOutput, GetTestProvider(true)),
+					resource.TestCheckResourceAttr(resourceName, "rule", newACL),
+				),
+			},
+		},
+	})
+}
+
 func testAccCheckBucketACLExists(n string, object *s3.GetBucketAclOutput, provider *schema.Provider) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		resource, ok := s.RootModule().Resources[n]
