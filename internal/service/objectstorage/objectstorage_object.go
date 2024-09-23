@@ -49,6 +49,7 @@ func (o *objectResource) Create(ctx context.Context, req resource.CreateRequest,
 		resp.Diagnostics.AddError("CREATING ERROR", "invalid source path")
 		return
 	}
+	defer file.Close()
 
 	reqParams := &s3.PutObjectInput{
 		Bucket: plan.Bucket.ValueStringPointer(),
@@ -221,6 +222,7 @@ func (o *objectResource) Update(ctx context.Context, req resource.UpdateRequest,
 	if err != nil {
 		resp.Diagnostics.AddError("UPDATING ERROR", "invalid source path")
 	}
+	defer file.Close()
 
 	reqParams := &s3.PutObjectInput{
 		Bucket: state.Bucket.ValueStringPointer(),
@@ -234,6 +236,8 @@ func (o *objectResource) Update(ctx context.Context, req resource.UpdateRequest,
 			resp.Diagnostics.AddError("UPDATING ERROR", "invalid source path")
 			return
 		}
+		defer file.Close()
+
 		reqParams.Body = file
 
 		// attributes that has dependancies with source
