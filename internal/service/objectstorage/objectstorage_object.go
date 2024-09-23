@@ -218,38 +218,12 @@ func (o *objectResource) Update(ctx context.Context, req resource.UpdateRequest,
 		return
 	}
 
-	getReqParams := &s3.GetObjectInput{
-		Bucket: state.Bucket.ValueStringPointer(),
-		Key:    state.Key.ValueStringPointer(),
-	}
-
-	tflog.Info(ctx, "GetObject at update operation reqParams="+common.MarshalUncheckedString(getReqParams))
-
-	getOutput, err := o.config.Client.ObjectStorage.GetObject(ctx, getReqParams)
-	if err != nil {
-		resp.Diagnostics.AddError("UPDATING ERROR", err.Error())
-		return
-	}
-	if getOutput == nil {
-		resp.Diagnostics.AddError("UPDATING ERROR", "response invalid at get object")
-		return
-	}
-
-	tflog.Info(ctx, "GetObject at update operation response="+common.MarshalUncheckedString(getOutput))
-
-	file, err := os.Open(state.Source.ValueString())
-	if err != nil {
-		resp.Diagnostics.AddError("UPDATING ERROR", "invalid source path")
-	}
-	defer file.Close()
-
-	// set default putobject parameter with get operation output
 	reqParams := &s3.PutObjectInput{
 		Bucket: state.Bucket.ValueStringPointer(),
 		Key:    state.Key.ValueStringPointer(),
-		Body:   getOutput.Body,
 	}
 
+	// get body from plan with source path or existing object
 	if !plan.Source.Equal(state.Source) {
 		file, err := os.Open(plan.Source.ValueString())
 		if err != nil {
@@ -259,19 +233,40 @@ func (o *objectResource) Update(ctx context.Context, req resource.UpdateRequest,
 		defer file.Close()
 
 		reqParams.Body = file
-
-		// attributes that has dependancies with source
-		if !plan.ContentEncoding.IsNull() && !plan.ContentEncoding.IsUnknown() {
-			reqParams.ContentEncoding = plan.ContentEncoding.ValueStringPointer()
+	} else {
+		getReqParams := &s3.GetObjectInput{
+			Bucket: state.Bucket.ValueStringPointer(),
+			Key:    state.Key.ValueStringPointer(),
 		}
 
-		if !plan.ContentLanguage.IsNull() && !plan.ContentLanguage.IsUnknown() {
-			reqParams.ContentLanguage = plan.ContentLanguage.ValueStringPointer()
+		tflog.Info(ctx, "GetObject at update operation reqParams="+common.MarshalUncheckedString(getReqParams))
+
+		getOutput, err := o.config.Client.ObjectStorage.GetObject(ctx, getReqParams)
+		if err != nil {
+			resp.Diagnostics.AddError("UPDATING ERROR", err.Error())
+			return
+		}
+		if getOutput == nil {
+			resp.Diagnostics.AddError("UPDATING ERROR", "response invalid at get object")
+			return
 		}
 
-		if !plan.WebsiteRedirectLocation.IsNull() && !plan.WebsiteRedirectLocation.IsUnknown() {
-			reqParams.WebsiteRedirectLocation = plan.WebsiteRedirectLocation.ValueStringPointer()
-		}
+		tflog.Info(ctx, "GetObject at update operation response="+common.MarshalUncheckedString(getOutput))
+
+		reqParams.Body = getOutput.Body
+	}
+
+	// attributes that has dependancies with source
+	if !plan.ContentEncoding.IsNull() && !plan.ContentEncoding.IsUnknown() {
+		reqParams.ContentEncoding = plan.ContentEncoding.ValueStringPointer()
+	}
+
+	if !plan.ContentLanguage.IsNull() && !plan.ContentLanguage.IsUnknown() {
+		reqParams.ContentLanguage = plan.ContentLanguage.ValueStringPointer()
+	}
+
+	if !plan.WebsiteRedirectLocation.IsNull() && !plan.WebsiteRedirectLocation.IsUnknown() {
+		reqParams.WebsiteRedirectLocation = plan.WebsiteRedirectLocation.ValueStringPointer()
 	}
 
 	if !plan.ContentType.Equal(state.ContentType) && !plan.ContentType.IsNull() && !plan.ContentType.IsUnknown() {
