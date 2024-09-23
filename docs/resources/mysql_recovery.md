@@ -4,7 +4,7 @@ subcategory: "MySQL"
 
 # Resource: ncloud_mysql_recovery
 
-Provides a MySQL instance resource.
+Provides a MySQL recovery resource.
  
 ~> **NOTE:** This resource only supports VPC environment.
 
