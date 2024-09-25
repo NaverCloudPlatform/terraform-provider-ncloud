@@ -4,7 +4,7 @@ subcategory: "MySQL"
 
 # Resource: ncloud_mysql_slave
 
-Provides a MySQL instance resource.
+Provides a MySQL slave resource.
 
 ~> **NOTE:** This resource only supports VPC environment.
 
