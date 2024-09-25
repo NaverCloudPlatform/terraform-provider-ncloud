@@ -49,6 +49,7 @@ func (o *objectResource) Create(ctx context.Context, req resource.CreateRequest,
 		resp.Diagnostics.AddError("CREATING ERROR", "invalid source path")
 		return
 	}
+	defer file.Close()
 
 	reqParams := &s3.PutObjectInput{
 		Bucket: plan.Bucket.ValueStringPointer(),
@@ -163,42 +164,42 @@ func (o *objectResource) Schema(_ context.Context, req resource.SchemaRequest, r
 				Description: "(Required) Name of the object once it is in the bucket",
 			},
 			"source": schema.StringAttribute{
-				Required:    true,
+				Required: true,
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.RequiresReplace(),
+				},
 				Description: "(Required) Path of the object",
 			},
 			"accept_ranges": schema.StringAttribute{
 				Computed: true,
-				Optional: true,
 			},
 			"content_encoding": schema.StringAttribute{
-				Optional: true,
+				Computed: true,
 			},
 			"content_language": schema.StringAttribute{
-				Optional: true,
+				Computed: true,
 			},
 			"content_length": schema.Int64Attribute{
 				Computed: true,
 			},
 			"content_type": schema.StringAttribute{
 				Computed: true,
+				Optional: true,
 			},
 			"etag": schema.StringAttribute{
 				Computed: true,
 			},
 			"expiration": schema.StringAttribute{
 				Computed: true,
-				Optional: true,
 			},
 			"parts_count": schema.Int64Attribute{
 				Computed: true,
-				Optional: true,
 			},
 			"version_id": schema.StringAttribute{
 				Computed: true,
-				Optional: true,
 			},
 			"website_redirect_location": schema.StringAttribute{
-				Optional: true,
+				Computed: true,
 			},
 			"last_modified": schema.StringAttribute{
 				Computed: true,
@@ -217,58 +218,88 @@ func (o *objectResource) Update(ctx context.Context, req resource.UpdateRequest,
 		return
 	}
 
+	reqParams := &s3.PutObjectInput{
+		Bucket: state.Bucket.ValueStringPointer(),
+		Key:    state.Key.ValueStringPointer(),
+	}
+
+	// get body from plan with source path or existing object
 	if !plan.Source.Equal(state.Source) {
 		file, err := os.Open(plan.Source.ValueString())
 		if err != nil {
 			resp.Diagnostics.AddError("UPDATING ERROR", "invalid source path")
 			return
 		}
+		defer file.Close()
 
-		reqParams := &s3.PutObjectInput{
+		reqParams.Body = file
+	} else {
+		// Prevent wasting of GetObject operation
+		if !plan.ContentType.Equal(state.ContentType) && o.config.RegionCode == "JPN" {
+			resp.Diagnostics.AddError("UPDATING ERROR", "updating object Content-Type is unavailable in this region")
+			return
+		}
+
+		getReqParams := &s3.GetObjectInput{
 			Bucket: state.Bucket.ValueStringPointer(),
 			Key:    state.Key.ValueStringPointer(),
-			Body:   file,
 		}
 
-		// attributes that has dependancies with source
-		if !plan.ContentEncoding.IsNull() && !plan.ContentEncoding.IsUnknown() {
-			reqParams.ContentEncoding = plan.ContentEncoding.ValueStringPointer()
-		}
+		tflog.Info(ctx, "GetObject at update operation reqParams="+common.MarshalUncheckedString(getReqParams))
 
-		if !plan.ContentLanguage.IsNull() && !plan.ContentLanguage.IsUnknown() {
-			reqParams.ContentLanguage = plan.ContentLanguage.ValueStringPointer()
-		}
-
-		if !plan.ContentType.IsNull() && !plan.ContentType.IsUnknown() {
-			reqParams.ContentType = plan.ContentType.ValueStringPointer()
-		}
-
-		if !plan.WebsiteRedirectLocation.IsNull() && !plan.WebsiteRedirectLocation.IsUnknown() {
-			reqParams.WebsiteRedirectLocation = plan.WebsiteRedirectLocation.ValueStringPointer()
-		}
-
-		tflog.Info(ctx, "PutObject at update operation reqParams="+common.MarshalUncheckedString(reqParams))
-
-		output, err := o.config.Client.ObjectStorage.PutObject(ctx, reqParams)
+		getOutput, err := o.config.Client.ObjectStorage.GetObject(ctx, getReqParams)
 		if err != nil {
 			resp.Diagnostics.AddError("UPDATING ERROR", err.Error())
 			return
 		}
-		if output == nil {
-			resp.Diagnostics.AddError("UPDATING ERROR", "response invalid")
+		if getOutput == nil {
+			resp.Diagnostics.AddError("UPDATING ERROR", "response invalid at get object")
 			return
 		}
 
-		tflog.Info(ctx, "PutObject at update operation response="+common.MarshalUncheckedString(output))
+		tflog.Info(ctx, "GetObject at update operation response="+common.MarshalUncheckedString(getOutput))
 
-		if err := waitObjectUploaded(ctx, o.config, plan.Bucket.ValueString(), plan.Key.ValueString()); err != nil {
-			resp.Diagnostics.AddError("UPDATING ERROR", err.Error())
-			return
-		}
-
-		plan.refreshFromOutput(ctx, o.config, &resp.Diagnostics)
-		resp.Diagnostics.Append(resp.State.Set(ctx, plan)...)
+		reqParams.Body = getOutput.Body
 	}
+
+	// attributes that has dependancies with source
+	if !plan.ContentEncoding.IsNull() && !plan.ContentEncoding.IsUnknown() {
+		reqParams.ContentEncoding = plan.ContentEncoding.ValueStringPointer()
+	}
+
+	if !plan.ContentLanguage.IsNull() && !plan.ContentLanguage.IsUnknown() {
+		reqParams.ContentLanguage = plan.ContentLanguage.ValueStringPointer()
+	}
+
+	if !plan.WebsiteRedirectLocation.IsNull() && !plan.WebsiteRedirectLocation.IsUnknown() {
+		reqParams.WebsiteRedirectLocation = plan.WebsiteRedirectLocation.ValueStringPointer()
+	}
+
+	if !plan.ContentType.Equal(state.ContentType) && !plan.ContentType.IsNull() && !plan.ContentType.IsUnknown() {
+		reqParams.ContentType = plan.ContentType.ValueStringPointer()
+	}
+
+	tflog.Info(ctx, "PutObject at update operation reqParams="+common.MarshalUncheckedString(reqParams))
+
+	output, err := o.config.Client.ObjectStorage.PutObject(ctx, reqParams)
+	if err != nil {
+		resp.Diagnostics.AddError("UPDATING ERROR", err.Error())
+		return
+	}
+	if output == nil {
+		resp.Diagnostics.AddError("UPDATING ERROR", "response invalid at put object")
+		return
+	}
+
+	tflog.Info(ctx, "PutObject at update operation response="+common.MarshalUncheckedString(output))
+
+	if err := waitObjectUploaded(ctx, o.config, plan.Bucket.ValueString(), plan.Key.ValueString()); err != nil {
+		resp.Diagnostics.AddError("UPDATING ERROR", err.Error())
+		return
+	}
+
+	plan.refreshFromOutput(ctx, o.config, &resp.Diagnostics)
+	resp.Diagnostics.Append(resp.State.Set(ctx, plan)...)
 }
 
 func (o *objectResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
@@ -445,5 +476,5 @@ func ObjectIDParser(id string) (bucketName, key string) {
 		return "", ""
 	}
 
-	return parts[0], parts[1]
+	return parts[0], strings.Join(parts[1:], "/")
 }

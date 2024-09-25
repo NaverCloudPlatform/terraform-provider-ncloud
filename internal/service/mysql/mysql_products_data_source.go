@@ -167,7 +167,7 @@ func convertProductsToJsonStruct(images []attr.Value) ([]mysqlProductsToJsonConv
 	return mysqlProductsToConvert, nil
 }
 
-func flattenMysqlProduct(list []*vmysql.Product) []*mysqlProductModel {
+func flattenMysqlProduct(list []*vmysql.CloudDbProduct) []*mysqlProductModel {
 	var outputs []*mysqlProductModel
 
 	for _, v := range list {
@@ -226,7 +226,7 @@ func (m mysqlProductModel) attrTypes() map[string]attr.Type {
 		"product_description": types.StringType,
 	}
 }
-func (m *mysqlProductModel) refreshFromOutput(output *vmysql.Product) {
+func (m *mysqlProductModel) refreshFromOutput(output *vmysql.CloudDbProduct) {
 	m.ProductCode = types.StringPointerValue(output.ProductCode)
 	m.ProductName = types.StringPointerValue(output.ProductName)
 	m.ProductType = types.StringPointerValue(output.ProductType.Code)
