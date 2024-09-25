@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"regexp"
-	"strings"
 	"time"
 
 	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/ncloud"
@@ -347,7 +346,7 @@ func GetMysqlRecovery(ctx context.Context, config *conn.ProviderConfig, no strin
 	tflog.Info(ctx, "GetMysqlDetail reqParams="+common.MarshalUncheckedString(reqParams))
 
 	resp, err := config.Client.Vmysql.V2Api.GetCloudMysqlInstanceDetail(reqParams)
-	if err != nil && !(strings.Contains(err.Error(), `"returnCode": "5001017"`)) {
+	if err != nil && !CheckIfAlreadyDeleted(err) {
 		return nil, err
 	}
 	tflog.Info(ctx, "GetMysqlDetail response="+common.MarshalUncheckedString(resp))

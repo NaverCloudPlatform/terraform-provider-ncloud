@@ -20,14 +20,6 @@ import (
 	"github.com/terraform-providers/terraform-provider-ncloud/internal/framework"
 )
 
-const (
-	CREATING = "creating"
-	SETTING  = "settingUp"
-	RUNNING  = "running"
-	DELETING = "deleting"
-	DELETED  = "deleted"
-)
-
 var (
 	_ resource.Resource                = &mysqlSlaveResource{}
 	_ resource.ResourceWithConfigure   = &mysqlSlaveResource{}
