@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"strings"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
@@ -77,7 +78,7 @@ func testAccCheckMysqlDatabasesDestroy(s *terraform.State) error {
 			continue
 		}
 		instance, err := mysqlservice.GetMysqlDatabaseList(context.Background(), config, rs.Primary.ID)
-		if err != nil && !mysqlservice.CheckIfAlreadyDeleted(err) {
+		if err != nil && !strings.Contains(err.Error(), "5001017") {
 			return err
 		}
 
