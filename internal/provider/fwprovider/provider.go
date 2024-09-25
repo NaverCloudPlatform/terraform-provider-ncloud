@@ -124,7 +124,6 @@ func (p *fwprovider) Resources(ctx context.Context) []func() resource.Resource {
 	resources = append(resources, server.NewLoginKeyResource)
 	resources = append(resources, server.NewInitScriptResource)
 	resources = append(resources, mysql.NewMysqlResource)
-	resources = append(resources, mysql.NewMysqlSlaveResource)
 	resources = append(resources, mysql.NewMysqlRecoveryResource)
 	resources = append(resources, mysql.NewMysqlSlaveResource)
 	resources = append(resources, mongodb.NewMongoDbResource)
