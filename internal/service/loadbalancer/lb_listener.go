@@ -279,7 +279,14 @@ func getVpcLoadBalancerListenerTargetGroupNo(config *conn.ProviderConfig, id str
 				return nil
 			}
 
-			return l.LoadBalancerRuleActionList[0].TargetGroupAction.TargetGroupWeightList[0].TargetGroupNo
+			var listenerWithTargetGroup *string
+			for _, t := range l.LoadBalancerRuleActionList {
+				if t.TargetGroupAction != nil {
+					listenerWithTargetGroup = t.TargetGroupAction.TargetGroupWeightList[0].TargetGroupNo
+				}
+			}
+
+			return listenerWithTargetGroup
 		}
 	}
 
