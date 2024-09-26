@@ -257,6 +257,26 @@ func Int64FromInt32OrDefault(value *int32) basetypes.Int64Value {
 	return basetypes.NewInt64Value(int64(*value))
 }
 
+// Int64FromInt64OrDefault converts an int64 pointer to a Framework Int64 value.
+// A nil int64 pointer is converted to a zero Int64.
+// Used when the optional and computed attribute have no response value
+func Int64FromInt64OrDefault(value *int64) basetypes.Int64Value {
+	if value == nil {
+		return basetypes.NewInt64Value(0)
+	}
+	return basetypes.NewInt64Value(int64(*value))
+}
+
+// Int32FromInt32OrDefault converts an int32 pointer to a Framework Int32 value.
+// A nil int32 pointer is converted to a zero Int32.
+// Used when the optional and computed attribute have no response value
+func Int32FromInt32OrDefault(value *int32) basetypes.Int32Value {
+	if value == nil {
+		return basetypes.NewInt32Value(0)
+	}
+	return basetypes.NewInt32Value(int32(*value))
+}
+
 // StringFrameworkOrDefault converts a Framework StringValue struct to a same Framework StringValue.
 // A null or unknown state is converted to a default(not aloocated) string.
 // Used when the optional and computed attribute have no response value
