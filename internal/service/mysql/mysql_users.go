@@ -350,12 +350,10 @@ func GetMysqlUserList(ctx context.Context, config *conn.ProviderConfig, id strin
 
 		resp, err := config.Client.Vmysql.V2Api.GetCloudMysqlUserList(reqParams)
 		if err != nil {
-			fmt.Println("Error occurred:", err)
 			return nil, err
 		}
 
 		if resp == nil {
-			fmt.Println("Response is nil")
 			break
 		}
 
