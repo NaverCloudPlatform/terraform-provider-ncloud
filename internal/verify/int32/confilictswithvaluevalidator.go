@@ -66,7 +66,7 @@ func (v conflictsWithValueValidator[V]) ValidateInt32(ctx context.Context, req v
 	}
 }
 
-func ConflictsWithVaule[V attr.Value](expr path.Expression, value V) validator.Int32 {
+func ConflictsWithValue[V attr.Value](expr path.Expression, value V) validator.Int32 {
 	return conflictsWithValueValidator[V]{
 		expr:  expr,
 		value: value,

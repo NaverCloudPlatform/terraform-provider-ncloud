@@ -97,7 +97,7 @@ func (l *lbResource) Schema(ctx context.Context, req resource.SchemaRequest, res
 				Computed: true,
 				Validators: []validator.Int32{
 					int32validator.Between(1, 3600),
-					verify.ConflictsWithVaule(
+					verify.ConflictsWithValue(
 						path.MatchRelative().AtName("type"), types.StringValue("NETWORK")),
 				},
 				PlanModifiers: []planmodifier.Int32{
