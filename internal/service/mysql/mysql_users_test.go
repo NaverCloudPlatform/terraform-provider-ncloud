@@ -103,7 +103,7 @@ func testAccCheckMysqlUsersDestroy(s *terraform.State) error {
 		}
 
 		instance, err := mysqlservice.GetMysqlUserList(context.Background(), config, rs.Primary.ID, []string{"testuser1", "testuser2"})
-		if err != nil && !checkNoInstanceResponse(err) {
+		if err != nil && !mysqlservice.CheckIfAlreadyDeleted(err) {
 			return err
 		}
 
