@@ -11,7 +11,7 @@ This module can be useful for getting detail of Server instance created before.
 
 #### Basic usage
 
-```hcl
+```terraform
 variable "instance_no" {}
 
 data "ncloud_server" "server" {
@@ -21,7 +21,7 @@ data "ncloud_server" "server" {
 
 #### Usage of using filter
 
-```hcl
+```terraform
 variable "subnet_no" {}
 variable "name" {}
 
@@ -85,3 +85,6 @@ The following arguments are supported:
 * `init_script_no` - The ID of Init script.
 * `placement_group_no` - The ID of Physical placement group.
 * `is_encrypted_base_block_storage_volume` - Whether to encrypt basic block storage if server image is RHV.
+* `hypervisor_type` - Hypervisor type. (`XEN` or `KVM`)
+* `server_image_number` - Server image number.
+* `server_spec_code` - Server spec code.
