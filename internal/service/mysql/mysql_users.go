@@ -14,6 +14,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/booldefault"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/boolplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
@@ -124,6 +126,14 @@ func (r *mysqlUsersResource) Schema(_ context.Context, _ resource.SchemaRequest,
 								stringvalidator.OneOf([]string{"READ", "CRUD", "DDL"}...),
 							},
 						},
+						"is_system_table_access": schema.BoolAttribute{
+							Optional: true,
+							Computed: true,
+							PlanModifiers: []planmodifier.Bool{
+								boolplanmodifier.RequiresReplace(),
+							},
+							Default: booldefault.StaticBool(true),
+						},
 					},
 				},
 			},
@@ -174,7 +184,7 @@ func (r *mysqlUsersResource) Create(ctx context.Context, req resource.CreateRequ
 		return
 	}
 
-	output, err := GetMysqlUserList(ctx, r.config, plan.MysqlInstanceNo.ValueString())
+	output, err := GetMysqlUserList(ctx, r.config, plan.MysqlInstanceNo.ValueString(), convertToCloudMysqlUserStringList(plan.MysqlUserList))
 	if err != nil {
 		resp.Diagnostics.AddError("READING ERROR", err.Error())
 		return
@@ -192,7 +202,7 @@ func (r *mysqlUsersResource) Read(ctx context.Context, req resource.ReadRequest,
 		return
 	}
 
-	output, err := GetMysqlUserList(ctx, r.config, state.MysqlInstanceNo.ValueString())
+	output, err := GetMysqlUserList(ctx, r.config, state.MysqlInstanceNo.ValueString(), convertToCloudMysqlUserStringList(state.MysqlUserList))
 	if err != nil {
 		resp.Diagnostics.AddError("READING ERROR", err.Error())
 		return
@@ -210,7 +220,52 @@ func (r *mysqlUsersResource) Read(ctx context.Context, req resource.ReadRequest,
 	}
 }
 
-func (r *mysqlUsersResource) Update(_ context.Context, _ resource.UpdateRequest, _ *resource.UpdateResponse) {
+func (r *mysqlUsersResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
+	var plan, state mysqlUsersResourceModel
+
+	resp.Diagnostics.Append(req.Plan.Get(ctx, &plan)...)
+	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
+
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
+	if !plan.MysqlUserList.Equal(state.MysqlUserList) {
+		reqParams := &vmysql.ChangeCloudMysqlUserListRequest{
+			RegionCode:           &r.config.RegionCode,
+			CloudMysqlInstanceNo: state.ID.ValueStringPointer(),
+			CloudMysqlUserList:   convertToCloudMysqlUserParameter(plan.MysqlUserList),
+		}
+		tflog.Info(ctx, "ChangecloudMysqlUserList reqParams="+common.MarshalUncheckedString(reqParams))
+
+		response, err := r.config.Client.Vmysql.V2Api.ChangeCloudMysqlUserList(reqParams)
+		if err != nil {
+			resp.Diagnostics.AddError("UPDATE ERROR", err.Error())
+			return
+		}
+		tflog.Info(ctx, "ChangeCloudMysqlUserList response="+common.MarshalUncheckedString(response))
+
+		if response == nil || *response.ReturnCode != "0" {
+			resp.Diagnostics.AddError("UPDATE ERROR", "response invalid")
+			return
+		}
+
+		_, err = waitMysqlCreation(ctx, r.config, state.ID.ValueString())
+		if err != nil {
+			resp.Diagnostics.AddError("WAITING FOR UPDATE ERROR", err.Error())
+			return
+		}
+
+		output, err := GetMysqlUserList(ctx, r.config, state.ID.ValueString(), convertToCloudMysqlUserStringList(plan.MysqlUserList))
+		if err != nil {
+			resp.Diagnostics.AddError("READING ERROR", err.Error())
+			return
+		}
+
+		state.refreshFromOutput(ctx, output, state.ID.String())
+	}
+
+	resp.Diagnostics.Append(resp.State.Set(ctx, state)...)
 }
 
 func (r *mysqlUsersResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
@@ -241,27 +296,27 @@ func (r *mysqlUsersResource) Delete(ctx context.Context, req resource.DeleteRequ
 	}
 	tflog.Info(ctx, "DeleteMysqlUserList response="+common.MarshalUncheckedString(response))
 
-	if err := waitMysqlUsersDeletion(ctx, r.config, state.ID.ValueString()); err != nil {
+	if err := waitMysqlUsersDeletion(ctx, r.config, state.ID.ValueString(), convertToCloudMysqlUserStringList(state.MysqlUserList)); err != nil {
 		resp.Diagnostics.AddError("WAITING FOR DELETE ERROR", err.Error())
 	}
 }
 
-func waitMysqlUsersDeletion(ctx context.Context, config *conn.ProviderConfig, id string) error {
+func waitMysqlUsersDeletion(ctx context.Context, config *conn.ProviderConfig, id string, users []string) error {
 	stateConf := &retry.StateChangeConf{
-		Pending: []string{"deleting"},
-		Target:  []string{"deleted"},
+		Pending: []string{DELETING},
+		Target:  []string{DELETED},
 		Refresh: func() (interface{}, string, error) {
-			userList, err := GetMysqlUserList(ctx, config, id)
+			userList, err := GetMysqlUserList(ctx, config, id, users)
 			if err != nil {
 				return 0, "", err
 			}
 
 			if len(userList) > 1 {
-				return userList, "deleting", nil
+				return userList, DELETING, nil
 			}
 
 			if len(userList) == 1 || userList == nil {
-				return userList, "deleted", nil
+				return userList, DELETED, nil
 			}
 
 			return 0, "", fmt.Errorf("error occurred while waiting to delete mysql user")
@@ -278,28 +333,59 @@ func waitMysqlUsersDeletion(ctx context.Context, config *conn.ProviderConfig, id
 	return nil
 }
 
-func GetMysqlUserList(ctx context.Context, config *conn.ProviderConfig, id string) ([]*vmysql.CloudMysqlUser, error) {
-	reqParams := &vmysql.GetCloudMysqlUserListRequest{
-		RegionCode:           &config.RegionCode,
-		CloudMysqlInstanceNo: ncloud.String(id),
-		PageNo:               ncloud.Int32(0),
-		PageSize:             ncloud.Int32(2147483647),
-	}
-	tflog.Info(ctx, "GetMysqlUserList reqParams="+common.MarshalUncheckedString(reqParams))
+func GetMysqlUserList(ctx context.Context, config *conn.ProviderConfig, id string, users []string) ([]*vmysql.CloudMysqlUser, error) {
+	var allUsers []*vmysql.CloudMysqlUser
+	pageNo := int32(0)
+	pageSize := int32(100)
+	hasMore := true
 
-	resp, err := config.Client.Vmysql.V2Api.GetCloudMysqlUserList(reqParams)
-	if err != nil {
-		return nil, err
+	for hasMore {
+		reqParams := &vmysql.GetCloudMysqlUserListRequest{
+			RegionCode:           &config.RegionCode,
+			CloudMysqlInstanceNo: ncloud.String(id),
+			PageNo:               ncloud.Int32(pageNo),
+			PageSize:             ncloud.Int32(pageSize),
+		}
+		tflog.Info(ctx, "GetMysqlUserList reqParams="+common.MarshalUncheckedString(reqParams))
+
+		resp, err := config.Client.Vmysql.V2Api.GetCloudMysqlUserList(reqParams)
+		if err != nil {
+			fmt.Println("Error occurred:", err)
+			return nil, err
+		}
+
+		if resp == nil {
+			fmt.Println("Response is nil")
+			break
+		}
+
+		allUsers = append(allUsers, resp.CloudMysqlUserList...)
+
+		hasMore = len(resp.CloudMysqlUserList) == int(pageSize)
+		pageNo++
 	}
 
-	if resp == nil || len(resp.CloudMysqlUserList) < 1 {
+	userMap := make(map[string]*vmysql.CloudMysqlUser)
+	for _, user := range allUsers {
+		if user != nil && user.UserName != nil {
+			userMap[*user.UserName] = user
+		}
+	}
+
+	var filteredUsers []*vmysql.CloudMysqlUser
+	for _, username := range users {
+		if user, exists := userMap[username]; exists {
+			filteredUsers = append(filteredUsers, user)
+		}
+	}
+
+	if len(filteredUsers) == 0 {
 		return nil, nil
 	}
 
-	resp.CloudMysqlUserList = reverseAndExcludeFirst(resp.CloudMysqlUserList)
-	tflog.Info(ctx, "GetMysqlUserList response="+common.MarshalUncheckedString(resp))
+	tflog.Info(ctx, "GetMysqlUserList response="+common.MarshalUncheckedString(filteredUsers))
 
-	return resp.CloudMysqlUserList, nil
+	return filteredUsers, nil
 }
 
 type mysqlUsersResourceModel struct {
@@ -309,17 +395,19 @@ type mysqlUsersResourceModel struct {
 }
 
 type MysqlUser struct {
-	UserName     types.String `tfsdk:"name"`
-	UserPassword types.String `tfsdk:"password"`
-	HostIp       types.String `tfsdk:"host_ip"`
-	Authority    types.String `tfsdk:"authority"`
+	UserName            types.String `tfsdk:"name"`
+	UserPassword        types.String `tfsdk:"password"`
+	HostIp              types.String `tfsdk:"host_ip"`
+	Authority           types.String `tfsdk:"authority"`
+	IsSystemTableAccess types.Bool   `tfsdk:"is_system_table_access"`
 }
 
 func (r MysqlUser) AttrTypes() map[string]attr.Type {
 	return map[string]attr.Type{
-		"name":      types.StringType,
-		"host_ip":   types.StringType,
-		"authority": types.StringType,
+		"name":                   types.StringType,
+		"host_ip":                types.StringType,
+		"authority":              types.StringType,
+		"is_system_table_access": types.BoolType,
 	}
 }
 
@@ -331,9 +419,10 @@ func (r *mysqlUsersResourceModel) refreshFromOutput(ctx context.Context, output 
 
 	for _, user := range output {
 		mysqlUser := MysqlUser{
-			UserName:  types.StringPointerValue(user.UserName),
-			HostIp:    types.StringPointerValue(user.HostIp),
-			Authority: types.StringPointerValue(user.Authority),
+			UserName:            types.StringPointerValue(user.UserName),
+			HostIp:              types.StringPointerValue(user.HostIp),
+			Authority:           types.StringPointerValue(user.Authority),
+			IsSystemTableAccess: types.BoolPointerValue(user.IsSystemTableAccess),
 		}
 
 		userList = append(userList, mysqlUser)
@@ -362,6 +451,10 @@ func convertToCloudMysqlUserParameter(values basetypes.ListValue) []*vmysql.Clou
 			Authority: attrs["authority"].(types.String).ValueStringPointer(),
 		}
 
+		if !attrs["is_system_table_access"].(types.Bool).IsNull() && !attrs["is_system_table_access"].(types.Bool).IsUnknown() {
+			param.IsSystemTableAccess = attrs["is_system_table_access"].(types.Bool).ValueBoolPointer()
+		}
+
 		result = append(result, param)
 	}
 
@@ -385,14 +478,16 @@ func convertToCloudMysqlUserKeyParameter(values basetypes.ListValue) []*vmysql.C
 	return result
 }
 
-func reverseAndExcludeFirst(users []*vmysql.CloudMysqlUser) []*vmysql.CloudMysqlUser {
-	if len(users) <= 1 {
-		return users
+func convertToCloudMysqlUserStringList(values basetypes.ListValue) []string {
+	result := make([]string, 0, len(values.Elements()))
+
+	for _, v := range values.Elements() {
+		obj := v.(types.Object)
+		attrs := obj.Attributes()
+
+		name := attrs["name"].(types.String).ValueString()
+		result = append(result, name)
 	}
 
-	for i, j := 0, len(users)-1; i < j; i, j = i+1, j-1 {
-		users[i], users[j] = users[j], users[i]
-	}
-
-	return users[1:]
+	return result
 }

@@ -15,9 +15,11 @@ import (
 	mysqlservice "github.com/terraform-providers/terraform-provider-ncloud/internal/service/mysql"
 )
 
-func TestAccResourceNcloudMysqlUsers_vpc_basic(t *testing.T) {
+func TestAccResourceNcloudMysqlUsers_vpc_basic_update(t *testing.T) {
 	testName := fmt.Sprintf("tf-mysqluser-%s", acctest.RandString(5))
 	resourceName := "ncloud_mysql_users.mysql_users"
+	testUserBefore := "test"
+	testUserAfter := "testuser"
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { TestAccPreCheck(t) },
@@ -25,7 +27,7 @@ func TestAccResourceNcloudMysqlUsers_vpc_basic(t *testing.T) {
 		CheckDestroy:             testAccCheckMysqlUsersDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccMysqlUsersConfig(testName),
+				Config: testAccMysqlUsersConfig(testName, testUserBefore),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr(resourceName, "mysql_user_list.0.name", "test1"),
 					resource.TestCheckResourceAttr(resourceName, "mysql_user_list.0.host_ip", "%"),
@@ -35,11 +37,18 @@ func TestAccResourceNcloudMysqlUsers_vpc_basic(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "mysql_user_list.1.authority", "DDL"),
 				),
 			},
+			{
+				Config: testAccMysqlUsersConfig(testName, testUserAfter),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr(resourceName, "mysql_user_list.0.name", "testuser1"),
+					resource.TestCheckResourceAttr(resourceName, "mysql_user_list.1.name", "testuser2"),
+				),
+			},
 		},
 	})
 }
 
-func testAccMysqlUsersConfig(testMysqlName string) string {
+func testAccMysqlUsersConfig(testMysqlName string, testUser string) string {
 	return fmt.Sprintf(`
 resource "ncloud_vpc" "test_vpc" {
 	name             = "%[1]s"
@@ -64,25 +73,25 @@ resource "ncloud_mysql" "mysql" {
 	host_ip = "192.168.0.1"
 	database_name = "test_db"
 }
-
+	
 resource "ncloud_mysql_users" "mysql_users" {
 	mysql_instance_no = ncloud_mysql.mysql.id
 	mysql_user_list = [
 		{
-			name = "test1",
+			name = "%[2]s1",
 			password = "t123456789!",
 			host_ip = "%%",
 			authority = "READ"
 		},
 		{
-			name = "test2",
+			name = "%[2]s2",
 			password = "t123456789!",
 			host_ip = "%%",
 			authority = "DDL"
 		}
 	]
 }
-`, testMysqlName)
+`, testMysqlName, testUser)
 }
 
 func testAccCheckMysqlUsersDestroy(s *terraform.State) error {
@@ -92,13 +101,14 @@ func testAccCheckMysqlUsersDestroy(s *terraform.State) error {
 		if rs.Type != "ncloud_mysql_users" {
 			continue
 		}
-		instance, err := mysqlservice.GetMysqlUserList(context.Background(), config, rs.Primary.ID)
+
+		instance, err := mysqlservice.GetMysqlUserList(context.Background(), config, rs.Primary.ID, []string{"testuser1", "testuser2"})
 		if err != nil && !checkNoInstanceResponse(err) {
 			return err
 		}
 
 		if len(instance) > 1 {
-			return errors.New("mysql still exists")
+			return errors.New("mysql users still exists")
 		}
 	}
 
