@@ -145,8 +145,10 @@ func (m *mssqlProductsDataSource) Read(ctx context.Context, req datasource.ReadR
 
 		if convertedList, err := convertProductsToJsonStruct(data.ProductList.Elements()); err != nil {
 			resp.Diagnostics.AddError("OUTPUT FILE ERROR", err.Error())
+			return
 		} else if err := common.WriteToFile(outputPath, convertedList); err != nil {
 			resp.Diagnostics.AddError("OUTPUT FILE ERROR", err.Error())
+			return
 		}
 	}
 

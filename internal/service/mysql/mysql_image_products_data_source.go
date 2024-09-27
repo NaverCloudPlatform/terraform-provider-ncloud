@@ -133,8 +133,10 @@ func (m *mysqlImageProductsDataSource) Read(ctx context.Context, req datasource.
 
 		if convertedList, err := convertToJsonStruct(data.ImageProductList.Elements()); err != nil {
 			resp.Diagnostics.AddError("OUTPUT FILE ERROR", err.Error())
+			return
 		} else if err := common.WriteToFile(outputPath, convertedList); err != nil {
 			resp.Diagnostics.AddError("OUTPUT FILE ERROR", err.Error())
+			return
 		}
 	}
 
