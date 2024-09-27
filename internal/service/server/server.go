@@ -12,6 +12,7 @@ import (
 	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/ncloud"
 	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/services/server"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 
@@ -86,11 +87,6 @@ func ResourceNcloudServer() *schema.Resource {
 				Type:     schema.TypeString,
 				Optional: true,
 				Computed: true,
-				ForceNew: true,
-			},
-			"associate_with_public_ip": {
-				Type:     schema.TypeBool,
-				Optional: true,
 				ForceNew: true,
 			},
 			"is_protect_server_termination": {
@@ -342,7 +338,7 @@ func resourceNcloudServerDelete(d *schema.ResourceData, meta interface{}) error 
 				return err
 			}
 
-			if err := waitForDisconnectBlockStorage(config, d, blockStorage); err != nil {
+			if err := waitForDisconnectBlockStorage(config, *blockStorage.BlockStorageInstanceNo); err != nil {
 				return err
 			}
 		}
@@ -477,7 +473,6 @@ func createVpcServerInstance(d *schema.ResourceData, config *conn.ProviderConfig
 		ServerDescription:                 StringPtrOrNil(d.GetOk("description")),
 		LoginKeyName:                      StringPtrOrNil(d.GetOk("login_key_name")),
 		IsProtectServerTermination:        BoolPtrOrNil(d.GetOk("is_protect_server_termination")),
-		AssociateWithPublicIp:             BoolPtrOrNil(d.GetOk("associate_with_public_ip")),
 		FeeSystemTypeCode:                 StringPtrOrNil(d.GetOk("fee_system_type_code")),
 		InitScriptNo:                      StringPtrOrNil(d.GetOk("init_script_no")),
 		VpcNo:                             subnet.VpcNo,
@@ -543,7 +538,7 @@ func createVpcServerInstance(d *schema.ResourceData, config *conn.ProviderConfig
 
 	if len(blockStorageList) > 0 {
 		for _, blockStorage := range blockStorageList {
-			if err := waitForAttachedBlockStorage(config, d, blockStorage); err != nil {
+			if err := waitForAttachedBlockStorage(config, *blockStorage.BlockStorageInstanceNo); err != nil {
 				return nil, err
 			}
 		}
@@ -553,7 +548,7 @@ func createVpcServerInstance(d *schema.ResourceData, config *conn.ProviderConfig
 }
 
 func waitStateNcloudServerForCreation(config *conn.ProviderConfig, id string) error {
-	stateConf := &resource.StateChangeConf{
+	stateConf := &retry.StateChangeConf{
 		Pending: []string{"INIT", "CREAT"},
 		Target:  []string{"RUN"},
 		Refresh: func() (interface{}, string, error) {
@@ -613,7 +608,7 @@ func changeServerInstanceSpec(d *schema.ResourceData, config *conn.ProviderConfi
 		return err
 	}
 
-	stateConf := &resource.StateChangeConf{
+	stateConf := &retry.StateChangeConf{
 		Pending: []string{"CHNG"},
 		Target:  []string{"NULL"},
 		Refresh: func() (interface{}, string, error) {
@@ -734,7 +729,7 @@ func startThenWaitServerInstance(config *conn.ProviderConfig, id string) error {
 		return err
 	}
 
-	stateConf := &resource.StateChangeConf{
+	stateConf := &retry.StateChangeConf{
 		Pending: []string{"NSTOP"},
 		Target:  []string{"RUN"},
 		Refresh: func() (interface{}, string, error) {
@@ -957,7 +952,7 @@ func buildNetworkInterfaceList(config *conn.ProviderConfig, r *ServerInstance) e
 func stopThenWaitServerInstance(config *conn.ProviderConfig, id string) error {
 	var err error
 
-	stateConf := &resource.StateChangeConf{
+	stateConf := &retry.StateChangeConf{
 		Pending: []string{"SETUP"},
 		Target:  []string{"NULL"},
 		Refresh: func() (interface{}, string, error) {
@@ -988,7 +983,7 @@ func stopThenWaitServerInstance(config *conn.ProviderConfig, id string) error {
 		return err
 	}
 
-	stateConf = &resource.StateChangeConf{
+	stateConf = &retry.StateChangeConf{
 		Pending: []string{"RUN"},
 		Target:  []string{"NSTOP"},
 		Refresh: func() (interface{}, string, error) {
@@ -1013,7 +1008,7 @@ func stopThenWaitServerInstance(config *conn.ProviderConfig, id string) error {
 }
 
 func detachThenWaitServerInstance(config *conn.ProviderConfig, id string) error {
-	stateConf := &resource.StateChangeConf{
+	stateConf := &retry.StateChangeConf{
 		Pending: []string{"SETUP"},
 		Target:  []string{"NULL"},
 		Refresh: func() (interface{}, string, error) {
@@ -1080,7 +1075,7 @@ func terminateThenWaitServerInstance(config *conn.ProviderConfig, id string) err
 		return err
 	}
 
-	stateConf := &resource.StateChangeConf{
+	stateConf := &retry.StateChangeConf{
 		Pending: []string{"NSTOP"},
 		Target:  []string{"TERMINATED"},
 		Refresh: func() (interface{}, string, error) {
@@ -1307,30 +1302,74 @@ func disconnectClassicBlockStorage(config *conn.ProviderConfig, storage *BlockSt
 	return nil
 }
 
-func waitForDisconnectBlockStorage(config *conn.ProviderConfig, d *schema.ResourceData, storage *BlockStorage) error {
-	return resource.Retry(d.Timeout(schema.TimeoutDelete), func() *resource.RetryError {
-		blockStorage, err := GetBlockStorage(config, *storage.BlockStorageInstanceNo)
-		if err != nil {
-			return resource.RetryableError(err)
-		}
-		if *blockStorage.Status != BlockStorageStatusCodeCreate {
-			return resource.RetryableError(fmt.Errorf("sill connected block storage(%s)", *blockStorage.BlockStorageInstanceNo))
-		}
-		return nil
-	})
+func waitForDisconnectBlockStorage(config *conn.ProviderConfig, no string) error {
+	stateConf := &retry.StateChangeConf{
+		Pending: []string{BlockStorageStatusNameAttach},
+		Target:  []string{BlockStorageStatusNameDetach},
+		Refresh: func() (interface{}, string, error) {
+			resp, err := GetBlockStorage(config, no)
+			if err != nil {
+				return 0, "", err
+			}
+
+			if resp == nil {
+				return 0, "", fmt.Errorf("GetBlockStorage is nil")
+			}
+
+			if *resp.StatusName == BlockStorageStatusNameAttach {
+				return resp, BlockStorageStatusNameAttach, nil
+			} else if *resp.StatusName == BlockStorageStatusNameDetach {
+				return resp, BlockStorageStatusNameDetach, nil
+			}
+
+			return 0, "", fmt.Errorf("error occurred while waiting to detached")
+		},
+		Timeout:    6 * conn.DefaultTimeout,
+		Delay:      2 * time.Second,
+		MinTimeout: 3 * time.Second,
+	}
+
+	if _, err := stateConf.WaitForState(); err != nil {
+		return fmt.Errorf("Error waiting for BlockStorage (%s) to become available: %s", no, err)
+	}
+
+	return nil
 }
 
-func waitForAttachedBlockStorage(config *conn.ProviderConfig, d *schema.ResourceData, storage *BlockStorage) error {
-	return resource.Retry(d.Timeout(schema.TimeoutCreate), func() *resource.RetryError {
-		blockStorage, err := GetBlockStorage(config, *storage.BlockStorageInstanceNo)
-		if err != nil {
-			return resource.RetryableError(err)
-		}
-		if *blockStorage.StatusName != BlockStorageStatusNameAttach {
-			return resource.RetryableError(fmt.Errorf("sill optimizing block storage(%s)", *blockStorage.BlockStorageInstanceNo))
-		}
-		return nil
-	})
+func waitForAttachedBlockStorage(config *conn.ProviderConfig, no string) error {
+	stateConf := &retry.StateChangeConf{
+		Pending: []string{BlockStorageStatusNameInit, BlockStorageStatusNameOptimizing},
+		Target:  []string{BlockStorageStatusNameAttach},
+		Refresh: func() (interface{}, string, error) {
+			resp, err := GetBlockStorage(config, no)
+			if err != nil {
+				return 0, "", err
+			}
+
+			if resp == nil {
+				return 0, "", fmt.Errorf("GetBlockStorage is nil")
+			}
+
+			if *resp.StatusName == BlockStorageStatusNameInit {
+				return resp, BlockStorageStatusNameInit, nil
+			} else if *resp.StatusName == BlockStorageStatusNameOptimizing {
+				return resp, BlockStorageStatusNameOptimizing, nil
+			} else if *resp.StatusName == BlockStorageStatusNameAttach {
+				return resp, BlockStorageStatusNameAttach, nil
+			}
+
+			return 0, "", fmt.Errorf("error occurred while waiting to attached")
+		},
+		Timeout:    6 * conn.DefaultTimeout,
+		Delay:      2 * time.Second,
+		MinTimeout: 3 * time.Second,
+	}
+
+	if _, err := stateConf.WaitForState(); err != nil {
+		return fmt.Errorf("Error waiting for BlockStorage (%s) to become available: %s", no, err)
+	}
+
+	return nil
 }
 
 func getServerZoneNo(config *conn.ProviderConfig, serverInstanceNo string) (string, error) {
@@ -1352,7 +1391,6 @@ type ServerInstance struct {
 	ServerDescription              *string               `json:"description,omitempty"`
 	LoginKeyName                   *string               `json:"login_key_name,omitempty"`
 	IsProtectServerTermination     *bool                 `json:"is_protect_server_termination,omitempty"`
-	AssociateWithPublicIp          *bool                 `json:"associate_with_public_ip,omitempty"`
 	FeeSystemTypeCode              *string               `json:"fee_system_type_code,omitempty"`
 	UserData                       *string               `json:"user_data,omitempty"`
 	RaidTypeName                   *string               `json:"raid_type_name,omitempty"`

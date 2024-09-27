@@ -26,15 +26,6 @@ output "spec_list" {
 }
 ```
 
-```terraform
-data "ncloud_server_specs" "example" {
-  filter {
-    name = "server_spec_code"
-    values = ["c2-g3"]
-  }
-}
-```
-
 Outputs: 
 ```terraform
 spec_list = {
@@ -50,6 +41,15 @@ spec_list = {
     "vCPU 2EA, Memory 4GB, [SSD]Disk 50GB",
     "G2",
   ]
+}
+```
+
+```terraform
+data "ncloud_server_specs" "example" {
+  filter {
+    name = "server_spec_code"
+    values = ["c2-g3"]
+  }
 }
 ```
 

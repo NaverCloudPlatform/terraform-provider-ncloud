@@ -19,10 +19,13 @@ import (
 )
 
 const (
-	BlockStorageStatusCodeCreate = "CREAT"
-	BlockStorageStatusCodeInit   = "INIT"
-	BlockStorageStatusCodeAttach = "ATTAC"
-	BlockStorageStatusNameAttach = "attached"
+	BlockStorageStatusCodeCreate     = "CREAT"
+	BlockStorageStatusCodeInit       = "INIT"
+	BlockStorageStatusCodeAttach     = "ATTAC"
+	BlockStorageStatusNameInit       = "initialized"
+	BlockStorageStatusNameOptimizing = "optimizing"
+	BlockStorageStatusNameAttach     = "attached"
+	BlockStorageStatusNameDetach     = "detached"
 )
 
 func ResourceNcloudBlockStorage() *schema.Resource {

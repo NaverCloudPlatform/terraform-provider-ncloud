@@ -107,10 +107,17 @@ resource "ncloud_subnet" "test" {
 	usage_type         = "GEN"
 }
 
+data "ncloud_server_image_numbers" "server_images" {
+    filter {
+        name = "name"
+        values = ["ubuntu-22.04-base"]
+  }
+}
+
 resource "ncloud_server" "server" {
 	subnet_no = ncloud_subnet.test.id
 	name = "%[1]s"
-	server_image_number = "25495367"
+	server_image_number = data.ncloud_server_image_numbers.server_images.image_number_list.0.server_image_number
 	server_spec_code = "s2-g3"
 	login_key_name = ncloud_login_key.loginkey.key_name
 }

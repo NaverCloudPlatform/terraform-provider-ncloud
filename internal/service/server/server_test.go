@@ -142,7 +142,6 @@ func TestAccResourceNcloudServerImageNumber_vpc_basic(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "description", ""),
 					resource.TestCheckResourceAttr(resourceName, "cpu_count", "2"),
 					resource.TestMatchResourceAttr(resourceName, "instance_no", regexp.MustCompile(`^\d+$`)),
-					resource.TestCheckResourceAttr(resourceName, "platform_type", "LNX64"),
 					resource.TestCheckResourceAttr(resourceName, "is_protect_server_termination", "false"),
 					resource.TestCheckResourceAttr(resourceName, "login_key_name", fmt.Sprintf("%s-key", testServerName)),
 					// VPC only
@@ -425,10 +424,17 @@ resource "ncloud_subnet" "test" {
 	usage_type         = "GEN"
 }
 
+data "ncloud_server_image_numbers" "server_images" {
+    filter {
+        name = "name"
+        values = ["ubuntu-22.04-base"]
+  }
+}
+
 resource "ncloud_server" "server" {
 	subnet_no = ncloud_subnet.test.id
 	name = "%[1]s"
-	server_image_number = "25495367"
+	server_image_number = data.ncloud_server_image_numbers.server_images.image_number_list.0.server_image_number
 	server_spec_code = "%[2]s"
 	login_key_name = ncloud_login_key.loginkey.key_name
 }

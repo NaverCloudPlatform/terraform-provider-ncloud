@@ -26,15 +26,6 @@ output "image_list" {
 }
 ```
 
-```terraform
-data "ncloud_server_image_numbers" "example" {
-  filter {
-    name = "name"
-    values = ["rocky-8.10-base"]
-  }
-}
-```
-
 Outputs: 
 ```terraform
 image_list = {
@@ -66,6 +57,15 @@ image_list = {
     "rocky-8.10-base",
     "XEN",
   ]
+}
+```
+
+```terraform
+data "ncloud_server_image_numbers" "example" {
+  filter {
+    name = "name"
+    values = ["rocky-8.10-base"]
+  }
 }
 ```
 

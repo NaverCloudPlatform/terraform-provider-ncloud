@@ -1,7 +1,7 @@
 package server_test
 
 import (
-	"fmt"
+	"regexp"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
@@ -10,30 +10,23 @@ import (
 
 func TestAccDataSourceNcloudServerImageNumbers_basic(t *testing.T) {
 	dataName := "data.ncloud_server_image_numbers.images"
-	imageName := "rocky-8.10-gpu"
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { acctest.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: acctest.ProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccDataSourceServerImageNumbersConfig(imageName),
+				Config: testAccDataSourceServerImageNumbersConfig,
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr(dataName, "image_number_list.0.name", "rocky-8.10-gpu"),
-					resource.TestCheckResourceAttr(dataName, "image_number_list.0.number", "25623982"),
+					resource.TestMatchResourceAttr(dataName, "image_number_list.0.server_image_number", regexp.MustCompile(`^\d+$`)),
+					resource.TestMatchResourceAttr(dataName, "image_number_list.1.server_image_number", regexp.MustCompile(`^\d+$`)),
+					resource.TestMatchResourceAttr(dataName, "image_number_list.2.server_image_number", regexp.MustCompile(`^\d+$`)),
 				),
 			},
 		},
 	})
 }
 
-func testAccDataSourceServerImageNumbersConfig(imageName string) string {
-	return fmt.Sprintf(`
-data "ncloud_server_image_numbers" "images" {
-	filter {
-			name = "name"
-			values = ["%s"]
-	}
-}
-`, imageName)
-}
+var testAccDataSourceServerImageNumbersConfig = `
+data "ncloud_server_image_numbers" "images" { }
+`

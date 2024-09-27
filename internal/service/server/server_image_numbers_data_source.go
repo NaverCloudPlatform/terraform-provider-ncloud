@@ -9,6 +9,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
+	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 	"github.com/terraform-providers/terraform-provider-ncloud/internal/common"
@@ -167,9 +168,17 @@ func (d *serverImageNumbersDataSource) Read(ctx context.Context, req datasource.
 		return
 	}
 
-	imagesNoList := flattenServerImageList(ctx, imageNoResp.ServerImageList)
+	imagesNoList, diags := flattenServerImageList(ctx, imageNoResp.ServerImageList)
+	if diags.HasError() {
+		resp.Diagnostics.AddError("READING ERROR", "refreshFromOutput error")
+		return
+	}
 	fillteredList := common.FilterModels(ctx, data.Filters, imagesNoList)
-	data.refreshFromOutput(ctx, fillteredList)
+	diags = data.refreshFromOutput(ctx, fillteredList)
+	if diags.HasError() {
+		resp.Diagnostics.AddError("READING ERROR", "refreshFromOutput error")
+		return
+	}
 
 	if !data.OutputFile.IsNull() && data.OutputFile.String() != "" {
 		outputPath := data.OutputFile.ValueString()
@@ -191,7 +200,7 @@ func convertImagesToJsonStruct(images []attr.Value) ([]serverImageNoToJsonConver
 
 	for _, image := range images {
 		imageJasn := serverImageNoToJsonConvert{}
-		if err := json.Unmarshal([]byte(image.String()), &imageJasn); err != nil {
+		if err := json.Unmarshal([]byte(common.ReplaceNull(image.String())), &imageJasn); err != nil {
 			return nil, err
 		}
 		serverImagesToConvert = append(serverImagesToConvert, imageJasn)
@@ -200,16 +209,20 @@ func convertImagesToJsonStruct(images []attr.Value) ([]serverImageNoToJsonConver
 	return serverImagesToConvert, nil
 }
 
-func flattenServerImageList(ctx context.Context, list []*vserver.ServerImage) []*serverImageNo {
+func flattenServerImageList(ctx context.Context, list []*vserver.ServerImage) ([]*serverImageNo, diag.Diagnostics) {
 	var outputs []*serverImageNo
+	var diags diag.Diagnostics
 
 	for _, v := range list {
 		var output serverImageNo
-		output.refreshFromOutput(ctx, v)
+		diags = output.refreshFromOutput(ctx, v)
+		if diags.HasError() {
+			return nil, diags
+		}
 
 		outputs = append(outputs, &output)
 	}
-	return outputs
+	return outputs, diags
 }
 
 type serverImageNumbersDataSourceModel struct {
@@ -233,15 +246,15 @@ type serverImageNo struct {
 }
 
 type blockStorageMap struct {
-	Order                      types.Int32  `tfsdk:"order"`
-	BlockStorageSnapshotInstNo types.Int32  `tfsdk:"block_storage_snapshot_instance_no"`
-	BlockStorageSnapshotName   types.String `tfsdk:"block_storage_snapshot_name"`
-	BlockStorageSize           types.Int64  `tfsdk:"block_storage_size"`
-	BlockStorageName           types.String `tfsdk:"block_storage_name"`
-	BlockStorageVolumeType     types.String `tfsdk:"block_storage_volume_type"`
-	Iops                       types.Int32  `tfsdk:"iops"`
-	Throughput                 types.Int64  `tfsdk:"throughput"`
-	IsEncryptedVolume          types.Bool   `tfsdk:"is_encrypted_volume"`
+	Order                          types.Int32  `tfsdk:"order"`
+	BlockStorageSnapshotInstanceNo types.Int32  `tfsdk:"block_storage_snapshot_instance_no"`
+	BlockStorageSnapshotName       types.String `tfsdk:"block_storage_snapshot_name"`
+	BlockStorageSize               types.Int64  `tfsdk:"block_storage_size"`
+	BlockStorageName               types.String `tfsdk:"block_storage_name"`
+	BlockStorageVolumeType         types.String `tfsdk:"block_storage_volume_type"`
+	Iops                           types.Int32  `tfsdk:"iops"`
+	Throughput                     types.Int64  `tfsdk:"throughput"`
+	IsEncryptedVolume              types.Bool   `tfsdk:"is_encrypted_volume"`
 }
 
 type serverImageNoToJsonConvert struct {
@@ -258,15 +271,15 @@ type serverImageNoToJsonConvert struct {
 }
 
 type blockStorageMapToJsonConvert struct {
-	Order                      int32  `json:"order"`
-	BlockStorageSnapshotInstNo int32  `json:"block_storage_snapshot_instance_no"`
-	BlockStorageSnapshotName   string `json:"block_storage_snapshot_name"`
-	BlockStorageSize           int64  `json:"block_storage_size"`
-	BlockStorageName           string `json:"block_storage_name"`
-	BlockStorageVolumeType     string `json:"block_storage_volume_type"`
-	Iops                       int32  `json:"iops"`
-	Throughput                 int64  `json:"throughput"`
-	IsEncryptedVolume          bool   `json:"is_encrypted_volume"`
+	Order                          int32  `json:"order"`
+	BlockStorageSnapshotInstanceNo int32  `json:"block_storage_snapshot_instance_no,omitempty"`
+	BlockStorageSnapshotName       string `json:"block_storage_snapshot_name,omitempty"`
+	BlockStorageSize               int64  `json:"block_storage_size"`
+	BlockStorageName               string `json:"block_storage_name,omitempty"`
+	BlockStorageVolumeType         string `json:"block_storage_volume_type"`
+	Iops                           int32  `json:"iops,omitempty"`
+	Throughput                     int64  `json:"throughput,omitempty"`
+	IsEncryptedVolume              bool   `json:"is_encrypted_volume"`
 }
 
 func (d serverImageNo) attrTypes() map[string]attr.Type {
@@ -298,13 +311,19 @@ func (d blockStorageMap) attrTypes() map[string]attr.Type {
 	}
 }
 
-func (d *serverImageNumbersDataSourceModel) refreshFromOutput(ctx context.Context, list []*serverImageNo) {
-	imageNoListValue, _ := types.ListValueFrom(ctx, types.ObjectType{AttrTypes: serverImageNo{}.attrTypes()}, list)
+func (d *serverImageNumbersDataSourceModel) refreshFromOutput(ctx context.Context, list []*serverImageNo) diag.Diagnostics {
+	imageNoListValue, diags := types.ListValueFrom(ctx, types.ObjectType{AttrTypes: serverImageNo{}.attrTypes()}, list)
+	if diags.HasError() {
+		return diags
+	}
+
 	d.ImageNumberList = imageNoListValue
 	d.ID = types.StringValue("")
+
+	return diags
 }
 
-func (d *serverImageNo) refreshFromOutput(ctx context.Context, output *vserver.ServerImage) {
+func (d *serverImageNo) refreshFromOutput(ctx context.Context, output *vserver.ServerImage) diag.Diagnostics {
 	d.Number = types.StringPointerValue(output.ServerImageNo)
 	d.Name = types.StringPointerValue(output.ServerImageName)
 	d.Description = types.StringPointerValue(output.ServerImageDescription)
@@ -318,18 +337,23 @@ func (d *serverImageNo) refreshFromOutput(ctx context.Context, output *vserver.S
 	var blockStorageList []blockStorageMap
 	for _, block := range output.BlockStorageMappingList {
 		blockStorage := blockStorageMap{
-			Order:                      types.Int32PointerValue(block.Order),
-			BlockStorageSnapshotInstNo: common.Int32FromInt32OrDefault(block.BlockStorageSnapshotInstanceNo),
-			BlockStorageSnapshotName:   types.StringValue(common.StringOrEmpty(block.BlockStorageSnapshotName)),
-			BlockStorageSize:           types.Int64PointerValue(block.BlockStorageSize),
-			BlockStorageName:           types.StringValue(common.StringOrEmpty(block.BlockStorageName)),
-			BlockStorageVolumeType:     types.StringPointerValue(block.BlockStorageVolumeType.Code),
-			Iops:                       common.Int32FromInt32OrDefault(block.Iops),
-			Throughput:                 common.Int64FromInt64OrDefault(block.Throughput),
-			IsEncryptedVolume:          types.BoolPointerValue(block.IsEncryptedVolume),
+			Order:                          types.Int32PointerValue(block.Order),
+			BlockStorageSnapshotInstanceNo: types.Int32PointerValue(block.BlockStorageSnapshotInstanceNo),
+			BlockStorageSnapshotName:       types.StringPointerValue(block.BlockStorageSnapshotName),
+			BlockStorageSize:               types.Int64PointerValue(block.BlockStorageSize),
+			BlockStorageName:               types.StringPointerValue(block.BlockStorageName),
+			BlockStorageVolumeType:         types.StringPointerValue(block.BlockStorageVolumeType.Code),
+			Iops:                           types.Int32PointerValue(block.Iops),
+			Throughput:                     types.Int64PointerValue(block.Throughput),
+			IsEncryptedVolume:              types.BoolPointerValue(block.IsEncryptedVolume),
 		}
 		blockStorageList = append(blockStorageList, blockStorage)
 	}
-	blockStorageMaps, _ := types.ListValueFrom(ctx, types.ObjectType{AttrTypes: blockStorageMap{}.attrTypes()}, blockStorageList)
+	blockStorageMaps, diags := types.ListValueFrom(ctx, types.ObjectType{AttrTypes: blockStorageMap{}.attrTypes()}, blockStorageList)
+	if diags.HasError() {
+		return diags
+	}
 	d.BlockStorageMapList = blockStorageMaps
+
+	return diags
 }

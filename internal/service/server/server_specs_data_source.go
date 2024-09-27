@@ -9,6 +9,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
+	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 	"github.com/terraform-providers/terraform-provider-ncloud/internal/common"
@@ -150,7 +151,11 @@ func (d *serverSpecsDataSource) Read(ctx context.Context, req datasource.ReadReq
 
 	specList := flattenServerSpecList(specResp.ServerSpecList)
 	fillteredList := common.FilterModels(ctx, data.Filters, specList)
-	data.refreshFromOutput(ctx, fillteredList)
+	diags := data.refreshFromOutput(ctx, fillteredList)
+	if diags.HasError() {
+		resp.Diagnostics.AddError("READING ERROR", "refreshFromOutput error")
+		return
+	}
 
 	if !data.OutputFile.IsNull() && data.OutputFile.String() != "" {
 		outputPath := data.OutputFile.ValueString()
@@ -172,7 +177,7 @@ func convertSpecToJsonStruct(specs []attr.Value) ([]serverSpecToJsonConvert, err
 
 	for _, spec := range specs {
 		specJson := serverSpecToJsonConvert{}
-		if err := json.Unmarshal([]byte(spec.String()), &specJson); err != nil {
+		if err := json.Unmarshal([]byte(common.ReplaceNull(spec.String())), &specJson); err != nil {
 			return nil, err
 		}
 		serverSpecToConvert = append(serverSpecToConvert, specJson)
@@ -222,14 +227,14 @@ type serverSpecToJsonConvert struct {
 	HypervisorType            string `json:"hypervisor_type"`
 	GenerationCode            string `json:"generation_code"`
 	CpuArchitectureType       string `json:"cpu_architecture_type"`
-	CpuCount                  int    `json:"cpu_count"`
-	MemorySize                int64  `json:"memory_size"`
-	BlockStorageMaxCount      int    `json:"block_storage_max_count"`
-	BlockStorageMaxIops       int    `json:"block_storage_max_iops"`
-	BlockStorageMaxThroughput int    `json:"block_storage_max_throughput"`
-	NetworkPerformance        int64  `json:"network_performance"`
-	NetworkInterfaceMaxCount  int    `json:"network_interface_max_count"`
-	GpuCount                  int    `json:"gpu_count"`
+	CpuCount                  int    `json:"cpu_count,omitempty"`
+	MemorySize                int64  `json:"memory_size,omitempty"`
+	BlockStorageMaxCount      int    `json:"block_storage_max_count,omitempty"`
+	BlockStorageMaxIops       int    `json:"block_storage_max_iops,omitempty"`
+	BlockStorageMaxThroughput int    `json:"block_storage_max_throughput,omitempty"`
+	NetworkPerformance        int64  `json:"network_performance,omitempty"`
+	NetworkInterfaceMaxCount  int    `json:"network_interface_max_count,omitempty"`
+	GpuCount                  int    `json:"gpu_count,omitempty"`
 	Description               string `json:"description"`
 	ProductCode               string `json:"product_code"`
 }
@@ -253,30 +258,34 @@ func (d serverSpec) attrTypes() map[string]attr.Type {
 	}
 }
 
-func (d *serverSpecsDataSourceModel) refreshFromOutput(ctx context.Context, list []*serverSpec) {
-	specListValue, _ := types.ListValueFrom(ctx, types.ObjectType{AttrTypes: serverSpec{}.attrTypes()}, list)
+func (d *serverSpecsDataSourceModel) refreshFromOutput(ctx context.Context, list []*serverSpec) diag.Diagnostics {
+	specListValue, diags := types.ListValueFrom(ctx, types.ObjectType{AttrTypes: serverSpec{}.attrTypes()}, list)
+	if diags.HasError() {
+		return diags
+	}
+
 	d.ServerSpecList = specListValue
 	d.ID = types.StringValue("")
+
+	return diags
 }
 
 func (d *serverSpec) refreshFromOutput(output *vserver.ServerSpec) {
 	d.ServerSpecCode = types.StringPointerValue(output.ServerSpecCode)
 	d.GenerationCode = types.StringPointerValue(output.GenerationCode)
 	d.CpuArchitectureType = types.StringPointerValue(output.CpuArchitectureType.Code)
-	d.CpuCount = common.Int32FromInt32OrDefault(output.CpuCount)
-	d.MemorySize = common.Int64FromInt64OrDefault(output.MemorySize)
-	d.BlockStorageMaxCount = common.Int32FromInt32OrDefault(output.BlockStorageMaxCount)
-	d.BlockStorageMaxIops = common.Int32FromInt32OrDefault(output.BlockStorageMaxIops)
-	d.BlockStorageMaxThroughput = common.Int32FromInt32OrDefault(output.BlockStorageMaxThroughput)
-	d.NetworkPerformance = common.Int64FromInt64OrDefault(output.NetworkPerformance)
-	d.NetworkInterfaceMaxCount = common.Int32FromInt32OrDefault(output.NetworkInterfaceMaxCount)
-	d.GpuCount = common.Int32FromInt32OrDefault(output.GpuCount)
+	d.CpuCount = types.Int32PointerValue(output.CpuCount)
+	d.MemorySize = types.Int64PointerValue(output.MemorySize)
+	d.BlockStorageMaxCount = types.Int32PointerValue(output.BlockStorageMaxCount)
+	d.BlockStorageMaxIops = types.Int32PointerValue(output.BlockStorageMaxIops)
+	d.BlockStorageMaxThroughput = types.Int32PointerValue(output.BlockStorageMaxThroughput)
+	d.NetworkPerformance = types.Int64PointerValue(output.NetworkPerformance)
+	d.NetworkInterfaceMaxCount = types.Int32PointerValue(output.NetworkInterfaceMaxCount)
+	d.GpuCount = types.Int32PointerValue(output.GpuCount)
 	d.Description = types.StringPointerValue(output.ServerSpecDescription)
 	d.ProductCode = types.StringPointerValue(output.ServerProductCode)
 
 	if output.HypervisorType != nil {
 		d.HypervisorType = types.StringPointerValue(output.HypervisorType.Code)
-	} else {
-		d.HypervisorType = types.StringValue("")
 	}
 }
