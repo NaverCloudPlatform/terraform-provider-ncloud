@@ -161,8 +161,10 @@ func (m *mongodbProductsDataSource) Read(ctx context.Context, req datasource.Rea
 
 		if convertedList, err := convertProductsToJsonStruct(data.ProductList.Elements()); err != nil {
 			resp.Diagnostics.AddError("OUTPUT FILE ERROR", err.Error())
+			return
 		} else if err := common.WriteToFile(outputPath, convertedList); err != nil {
 			resp.Diagnostics.AddError("OUTPUT FILE ERROR", err.Error())
+			return
 		}
 	}
 
