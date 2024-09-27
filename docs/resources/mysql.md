@@ -40,8 +40,8 @@ resource "ncloud_mysql" "mysql" {
 
 The following arguments are supported:
 
-* `service_name` - (Required) Service name to create. Only English alphabets, numbers, dash ( - ) and Korean letters can be entered. Min: 3, Max: 20
-* `server_name_prefix` - (Required) Server name prefix to create. In order to prevent overlapping host names, random text is added. Can comprise only lower-case English alphabets, numbers and dash ( - ). The first letter must be an English alphabet and the last letter must be an English alphabet or a number. Min: 3, Max: 30
+* `service_name` - (Required) Service name to create. Only English alphabets, numbers, dash ( - ) and Korean letters can be entered. Min: 3, Max: 30
+* `server_name_prefix` - (Required) Server name prefix to create. In order to prevent overlapping host names, random text is added. Can comprise only lower-case English alphabets, numbers and dash ( - ). The first letter must be an English alphabet and the last letter must be an English alphabet or a number. Min: 3, Max: 20
 * `user_name` - (Required) MySQL User ID. Only English alphabets, numbers and special characters ( \ _ , - ) are allowed and must start with an English alphabet. Min: 4, Max: 16
 * `user_password` - (Required) MySQL User Password. At least one English alphabet, number and special character must be included. Certain special characters ( ` & + \ " ' / space ) cannot be used. Min: 8, Max: 20
 * `host_ip` - (Required) MySQL user host. ex) Overall connection permitted: %, Connection by specific IPs permitted: 1.1.1.1, IP band connection permitted: 1.1.1.%
