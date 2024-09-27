@@ -157,8 +157,10 @@ func (d *serverSpecsDataSource) Read(ctx context.Context, req datasource.ReadReq
 
 		if convertedList, err := convertSpecToJsonStruct(data.ServerSpecList.Elements()); err != nil {
 			resp.Diagnostics.AddError("OUTPUT FILE ERROR", err.Error())
+			return
 		} else if err := common.WriteToFile(outputPath, convertedList); err != nil {
 			resp.Diagnostics.AddError("OUTPUT FILE ERROR", err.Error())
+			return
 		}
 	}
 

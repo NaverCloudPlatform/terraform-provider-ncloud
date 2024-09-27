@@ -176,8 +176,10 @@ func (d *serverImageNumbersDataSource) Read(ctx context.Context, req datasource.
 
 		if convertedList, err := convertImagesToJsonStruct(data.ImageNumberList.Elements()); err != nil {
 			resp.Diagnostics.AddError("OUTPUT FILE ERROR", err.Error())
+			return
 		} else if err := common.WriteToFile(outputPath, convertedList); err != nil {
 			resp.Diagnostics.AddError("OUTPUT FILE ERROR", err.Error())
+			return
 		}
 	}
 
