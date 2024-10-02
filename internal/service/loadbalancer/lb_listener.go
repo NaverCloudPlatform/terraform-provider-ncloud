@@ -279,7 +279,13 @@ func getVpcLoadBalancerListenerTargetGroupNo(config *conn.ProviderConfig, id str
 				return nil
 			}
 
-			return l.LoadBalancerRuleActionList[0].TargetGroupAction.TargetGroupWeightList[0].TargetGroupNo
+			// check if target group listener exists and return it.
+			// nothing happens if listener has only redirection rules.
+			for _, t := range l.LoadBalancerRuleActionList {
+				if t.TargetGroupAction != nil {
+					return t.TargetGroupAction.TargetGroupWeightList[0].TargetGroupNo
+				}
+			}
 		}
 	}
 

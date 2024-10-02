@@ -122,6 +122,47 @@ func TestAccResourceNcloudServer_vpc_basic(t *testing.T) {
 	})
 }
 
+func TestAccResourceNcloudServerImageNumber_vpc_basic(t *testing.T) {
+	var serverInstance serverservice.ServerInstance
+	testServerName := GetTestServerName()
+	resourceName := "ncloud_server.server"
+	specCode := "s2-g3"
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: ProtoV6ProviderFactories,
+		CheckDestroy:             testAccCheckServerDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccServerImageNumberVpcConfig(testServerName, specCode),
+				Check: resource.ComposeTestCheckFunc(testAccCheckServerExistsWithProvider("ncloud_server.server", &serverInstance, GetTestProvider(true)),
+					resource.TestMatchResourceAttr(resourceName, "id", regexp.MustCompile(`^\d+$`)),
+					resource.TestCheckResourceAttr(resourceName, "server_spec_code", specCode),
+					resource.TestCheckResourceAttr(resourceName, "name", testServerName),
+					resource.TestCheckResourceAttr(resourceName, "description", ""),
+					resource.TestCheckResourceAttr(resourceName, "cpu_count", "2"),
+					resource.TestMatchResourceAttr(resourceName, "instance_no", regexp.MustCompile(`^\d+$`)),
+					resource.TestCheckResourceAttr(resourceName, "is_protect_server_termination", "false"),
+					resource.TestCheckResourceAttr(resourceName, "login_key_name", fmt.Sprintf("%s-key", testServerName)),
+					// VPC only
+					resource.TestMatchResourceAttr(resourceName, "subnet_no", regexp.MustCompile(`^\d+$`)),
+					resource.TestMatchResourceAttr(resourceName, "vpc_no", regexp.MustCompile(`^\d+$`)),
+					resource.TestCheckResourceAttr(resourceName, "network_interface.#", "1"),
+					resource.TestCheckResourceAttrSet(resourceName, "network_interface.0.order"),
+					resource.TestCheckResourceAttrSet(resourceName, "network_interface.0.network_interface_no"),
+					resource.TestCheckResourceAttrSet(resourceName, "network_interface.0.subnet_no"),
+					resource.TestCheckResourceAttrSet(resourceName, "network_interface.0.private_ip"),
+				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+		},
+	})
+}
+
 func TestAccResourceNcloudServer_vpc_networkInterface(t *testing.T) {
 	var serverInstance serverservice.ServerInstance
 	testServerName := GetTestServerName()
@@ -360,6 +401,44 @@ func testAccCheckInstanceDestroyWithProvider(s *terraform.State, provider *schem
 	}
 
 	return nil
+}
+
+func testAccServerImageNumberVpcConfig(testServerName, specCode string) string {
+	return fmt.Sprintf(`
+resource "ncloud_login_key" "loginkey" {
+	key_name = "%[1]s-key"
+}
+
+resource "ncloud_vpc" "test" {
+	name               = "%[1]s"
+	ipv4_cidr_block    = "10.5.0.0/16"
+}
+
+resource "ncloud_subnet" "test" {
+	vpc_no             = ncloud_vpc.test.vpc_no
+	name               = "%[1]s"
+	subnet             = "10.5.0.0/24"
+	zone               = "KR-2"
+	network_acl_no     = ncloud_vpc.test.default_network_acl_no
+	subnet_type        = "PUBLIC"
+	usage_type         = "GEN"
+}
+
+data "ncloud_server_image_numbers" "server_images" {
+    filter {
+        name = "name"
+        values = ["ubuntu-22.04-base"]
+  }
+}
+
+resource "ncloud_server" "server" {
+	subnet_no = ncloud_subnet.test.id
+	name = "%[1]s"
+	server_image_number = data.ncloud_server_image_numbers.server_images.image_number_list.0.server_image_number
+	server_spec_code = "%[2]s"
+	login_key_name = ncloud_login_key.loginkey.key_name
+}
+`, testServerName, specCode)
 }
 
 func testAccServerVpcConfig(testServerName, productCode string) string {

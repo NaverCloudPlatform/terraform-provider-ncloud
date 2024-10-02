@@ -110,8 +110,10 @@ func (d *loginKeyDataSource) Read(ctx context.Context, req datasource.ReadReques
 
 		if convertedList, err := convertToJsonStruct(data.KeyList.Elements()); err != nil {
 			resp.Diagnostics.AddError("OUTPUT FILE ERROR", err.Error())
+			return
 		} else if err := common.WriteToFile(outputPath, convertedList); err != nil {
 			resp.Diagnostics.AddError("OUTPUT FILE ERROR", err.Error())
+			return
 		}
 	}
 
