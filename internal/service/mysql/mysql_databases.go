@@ -3,7 +3,6 @@ package mysql
 import (
 	"context"
 	"fmt"
-	"log"
 	"regexp"
 
 	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/ncloud"
@@ -11,6 +10,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework-validators/listvalidator"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/attr"
+	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
@@ -130,13 +130,13 @@ func (r *mysqlDatabasesResource) Create(ctx context.Context, req resource.Create
 
 	response, err := r.config.Client.Vmysql.V2Api.AddCloudMysqlDatabaseList(reqParams)
 	if err != nil {
-		resp.Diagnostics.AddError("CREATING ERROR-dbs", err.Error())
+		resp.Diagnostics.AddError("CREATING ERROR", err.Error())
 		return
 	}
 	tflog.Info(ctx, "CreateMysqlDatabaseList response="+common.MarshalUncheckedString(response))
 
 	if response == nil || *response.ReturnCode != "0" {
-		resp.Diagnostics.AddError("CREATING ERROR-dbs", "response invalid")
+		resp.Diagnostics.AddError("CREATING ERROR", "response invalid")
 		return
 	}
 
@@ -152,7 +152,7 @@ func (r *mysqlDatabasesResource) Create(ctx context.Context, req resource.Create
 		return
 	}
 
-	plan.refreshFromOutput(ctx, output, plan.MysqlInstanceNo.ValueString())
+	plan.refreshFromOutput(ctx, output, plan.MysqlInstanceNo.ValueString(), &resp.Diagnostics)
 	resp.Diagnostics.Append(resp.State.Set(ctx, plan)...)
 }
 
@@ -175,7 +175,7 @@ func (r *mysqlDatabasesResource) Read(ctx context.Context, req resource.ReadRequ
 		return
 	}
 
-	state.refreshFromOutput(ctx, output, state.MysqlInstanceNo.ValueString())
+	state.refreshFromOutput(ctx, output, state.MysqlInstanceNo.ValueString(), &resp.Diagnostics)
 	resp.Diagnostics.Append(resp.State.Set(ctx, &state)...)
 	if resp.Diagnostics.HasError() {
 		return
@@ -283,7 +283,7 @@ func (r mysqlDatabase) AttrTypes() map[string]attr.Type {
 	}
 }
 
-func (r *mysqlDatabasesResourceModel) refreshFromOutput(ctx context.Context, output []*vmysql.CloudMysqlDatabase, instance string) {
+func (r *mysqlDatabasesResourceModel) refreshFromOutput(ctx context.Context, output []*vmysql.CloudMysqlDatabase, instance string, resp *diag.Diagnostics) {
 	r.ID = types.StringValue(instance)
 	r.MysqlInstanceNo = types.StringValue(instance)
 
@@ -297,7 +297,7 @@ func (r *mysqlDatabasesResourceModel) refreshFromOutput(ctx context.Context, out
 
 	mysqlDatabases, err := types.ListValueFrom(ctx, types.ObjectType{AttrTypes: mysqlDatabase{}.AttrTypes()}, databaseList)
 	if err != nil {
-		log.Printf("Error converting database list: %v", err)
+		resp.AddError("Error converting database list", fmt.Sprintf("Could not convert database list: %v", err))
 		return
 	}
 
