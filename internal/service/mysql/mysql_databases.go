@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"log"
 	"regexp"
-	"time"
 
 	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/ncloud"
 	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/services/vmysql"
@@ -21,7 +20,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
 	"github.com/terraform-providers/terraform-provider-ncloud/internal/common"
 	"github.com/terraform-providers/terraform-provider-ncloud/internal/conn"
 	"github.com/terraform-providers/terraform-provider-ncloud/internal/framework"
@@ -148,7 +146,7 @@ func (r *mysqlDatabasesResource) Create(ctx context.Context, req resource.Create
 		return
 	}
 
-	output, err := GetMysqlDatabaseList(ctx, r.config, plan.MysqlInstanceNo.ValueString())
+	output, err := GetMysqlDatabaseList(ctx, r.config, plan.MysqlInstanceNo.ValueString(), convertToCloudMysqlDbStringList(plan.MysqlDatabaseList))
 	if err != nil {
 		resp.Diagnostics.AddError("READING ERROR", err.Error())
 		return
@@ -166,7 +164,7 @@ func (r *mysqlDatabasesResource) Read(ctx context.Context, req resource.ReadRequ
 		return
 	}
 
-	output, err := GetMysqlDatabaseList(ctx, r.config, state.MysqlInstanceNo.ValueString())
+	output, err := GetMysqlDatabaseList(ctx, r.config, state.MysqlInstanceNo.ValueString(), convertToCloudMysqlDbStringList(state.MysqlDatabaseList))
 	if err != nil {
 		resp.Diagnostics.AddError("READING ERROR", err.Error())
 		return
@@ -195,7 +193,6 @@ func (r *mysqlDatabasesResource) Delete(ctx context.Context, req resource.Delete
 		return
 	}
 
-	fmt.Println(len(state.MysqlDatabaseList.Elements()))
 	_, err := waitMysqlCreation(ctx, r.config, state.MysqlInstanceNo.ValueString())
 	if err != nil {
 		resp.Diagnostics.AddError("WAITING FOR MYSQAL CREATION ERROR", err.Error())
@@ -215,71 +212,59 @@ func (r *mysqlDatabasesResource) Delete(ctx context.Context, req resource.Delete
 		return
 	}
 	tflog.Info(ctx, "DeleteMysqlDatabaseList response="+common.MarshalUncheckedString(response))
-
-	if err := waitMysqlDatabasesDeletion(ctx, r.config, state.ID.ValueString()); err != nil {
-		resp.Diagnostics.AddError("WAITING FOR DELETE ERROR", err.Error())
-	}
 }
 
-func waitMysqlDatabasesDeletion(ctx context.Context, config *conn.ProviderConfig, id string) error {
-	stateConf := &retry.StateChangeConf{
-		Pending: []string{DELETING},
-		Target:  []string{DELETED},
-		Refresh: func() (interface{}, string, error) {
-			dbList, err := GetMysqlDatabaseList(ctx, config, id)
-			if err != nil {
-				return 0, "", err
-			}
+func GetMysqlDatabaseList(ctx context.Context, config *conn.ProviderConfig, id string, dbs []string) ([]*vmysql.CloudMysqlDatabase, error) {
+	var allDbs []*vmysql.CloudMysqlDatabase
+	pageNo := int32(0)
+	pageSize := int32(100)
+	hasMore := true
 
-			if len(dbList) > 0 {
-				return dbList, DELETING, nil
-			}
+	for hasMore {
+		reqParams := &vmysql.GetCloudMysqlDatabaseListRequest{
+			RegionCode:           &config.RegionCode,
+			CloudMysqlInstanceNo: ncloud.String(id),
+			PageNo:               ncloud.Int32(pageNo),
+			PageSize:             ncloud.Int32(pageSize),
+		}
+		tflog.Info(ctx, "GetMysqlDatabaseList reqParams="+common.MarshalUncheckedString(reqParams))
 
-			if len(dbList) == 0 || dbList == nil {
-				return dbList, DELETED, nil
-			}
+		resp, err := config.Client.Vmysql.V2Api.GetCloudMysqlDatabaseList(reqParams)
+		if err != nil {
+			return nil, err
+		}
 
-			return 0, "", fmt.Errorf("error occurred while waiting to delete postgresql database")
-		},
-		Timeout:    conn.DefaultTimeout,
-		Delay:      1 * time.Minute,
-		MinTimeout: 3 * time.Second,
+		if resp == nil {
+			break
+		}
+
+		allDbs = append(allDbs, resp.CloudMysqlDatabaseList...)
+
+		hasMore = len(resp.CloudMysqlDatabaseList) == int(pageSize)
+		pageNo++
 	}
 
-	if _, err := stateConf.WaitForStateContext(ctx); err != nil {
-		return fmt.Errorf("error waiting for postgresql database (%s) to become terminating: %s", id, err)
+	dbMap := make(map[string]*vmysql.CloudMysqlDatabase)
+	for _, db := range allDbs {
+		if db != nil && db.DatabaseName != nil {
+			dbMap[*db.DatabaseName] = db
+		}
 	}
 
-	return nil
-}
-
-func GetMysqlDatabaseList(ctx context.Context, config *conn.ProviderConfig, id string) ([]*vmysql.CloudMysqlDatabase, error) {
-	reqParams := &vmysql.GetCloudMysqlDatabaseListRequest{
-		RegionCode:           &config.RegionCode,
-		CloudMysqlInstanceNo: ncloud.String(id),
-		PageNo:               ncloud.Int32(0),
-		PageSize:             ncloud.Int32(2147483647),
-	}
-	tflog.Info(ctx, "GetMysqlDatabaseList reqParams="+common.MarshalUncheckedString(reqParams))
-
-	resp, err := config.Client.Vmysql.V2Api.GetCloudMysqlDatabaseList(reqParams)
-	if err != nil {
-		return nil, err
-	}
-	tflog.Info(ctx, "GetMysqlDatabaseList response="+common.MarshalUncheckedString(resp))
-
-	fmt.Println("database list:")
-	for _, i := range resp.CloudMysqlDatabaseList {
-		fmt.Println(*i.DatabaseName)
+	var filteredDbs []*vmysql.CloudMysqlDatabase
+	for _, dbname := range dbs {
+		if db, exists := dbMap[dbname]; exists {
+			filteredDbs = append(filteredDbs, db)
+		}
 	}
 
-	if resp == nil || len(resp.CloudMysqlDatabaseList) == 1 {
+	if len(filteredDbs) == 0 {
 		return nil, nil
 	}
 
-	tflog.Info(ctx, "GetMysqlUserList response="+common.MarshalUncheckedString(resp))
+	tflog.Info(ctx, "GetMysqlUserList response="+common.MarshalUncheckedString(filteredDbs))
 
-	return resp.CloudMysqlDatabaseList[1:], nil
+	return filteredDbs, nil
 }
 
 type mysqlDatabasesResourceModel struct {
@@ -307,7 +292,6 @@ func (r *mysqlDatabasesResourceModel) refreshFromOutput(ctx context.Context, out
 		mysqlDb := mysqlDatabase{
 			DatabaseName: types.StringPointerValue(db.DatabaseName),
 		}
-		fmt.Printf("refresh: %s", *db.DatabaseName)
 		databaseList = append(databaseList, mysqlDb)
 	}
 
@@ -329,6 +313,20 @@ func convertToStringList(values basetypes.ListValue) []*string {
 		attrs := obj.Attributes()
 
 		name := attrs["name"].(types.String).ValueStringPointer()
+		result = append(result, name)
+	}
+
+	return result
+}
+
+func convertToCloudMysqlDbStringList(values basetypes.ListValue) []string {
+	result := make([]string, 0, len(values.Elements()))
+
+	for _, v := range values.Elements() {
+		obj := v.(types.Object)
+		attrs := obj.Attributes()
+
+		name := attrs["name"].(types.String).ValueString()
 		result = append(result, name)
 	}
 

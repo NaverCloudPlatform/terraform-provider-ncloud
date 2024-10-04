@@ -88,6 +88,7 @@ func (p *fwprovider) DataSources(ctx context.Context) []func() datasource.DataSo
 	dataSources = append(dataSources, mysql.NewMysqlImageProductsDataSource)
 	dataSources = append(dataSources, mysql.NewMysqlProductsDataSource)
 	dataSources = append(dataSources, mysql.NewMysqlUsersDataSource)
+	dataSources = append(dataSources, mysql.NewMysqlDatabasesDataSource)
 	dataSources = append(dataSources, mongodb.NewMongoDbDataSource)
 	dataSources = append(dataSources, mongodb.NewMongoDbProductsDataSource)
 	dataSources = append(dataSources, mongodb.NewMongoDbImageProductsDataSource)

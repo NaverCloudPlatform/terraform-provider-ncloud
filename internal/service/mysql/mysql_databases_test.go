@@ -77,8 +77,8 @@ func testAccCheckMysqlDatabasesDestroy(s *terraform.State) error {
 		if rs.Type != "ncloud_mysql_databases" {
 			continue
 		}
-		instance, err := mysqlservice.GetMysqlDatabaseList(context.Background(), config, rs.Primary.ID)
-		if err != nil && !strings.Contains(err.Error(), "5001017") {
+		instance, err := mysqlservice.GetMysqlDatabaseList(context.Background(), config, rs.Primary.ID, []string{"testdb1", "testdb2"})
+		if err != nil && !strings.Contains(err.Error(), "5001067") {
 			return err
 		}
 
