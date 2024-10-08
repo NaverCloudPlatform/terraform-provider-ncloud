@@ -36,8 +36,7 @@ database_list = [
 
 The following arguments are required:
 
-* `id` - (Required) Mysql Databases number(Mysql Instance number). Either `id` or `mysql_instance_no` must be provided.
-* `mysql_instance_no` - (Required) Mysql Instance No, either `id` or `mysql_instance_no` must be provided.
+* `mysql_instance_no` - (Required) The ID of the associated Mysql Instance.
 * `output_file` - (Optional) The name of file that can save data source after running `terraform plan`.
 * `filter` - (Optional) Custom filter block as described below.
   * `name` - (Required) The name of the field to filter by
@@ -48,5 +47,6 @@ The following arguments are required:
 
 This data source exports the following attributes in addition to the argument above: 
 
+* `id` - Mysql Databases number(Mysql Instance number).
 * `mysql_database_list` - The list of databases to add .
   * `name` - MySQL Database Name.

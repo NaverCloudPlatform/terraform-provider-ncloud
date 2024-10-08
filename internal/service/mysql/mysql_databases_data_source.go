@@ -7,12 +7,9 @@ import (
 
 	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/ncloud"
 	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/services/vmysql"
-	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
-	"github.com/hashicorp/terraform-plugin-framework/path"
-	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 	"github.com/terraform-providers/terraform-provider-ncloud/internal/common"
@@ -58,22 +55,10 @@ func (d *mysqlDatabasesDataSource) Schema(ctx context.Context, req datasource.Sc
 	resp.Schema = schema.Schema{
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
-				Optional: true,
 				Computed: true,
-				Validators: []validator.String{
-					stringvalidator.ConflictsWith(
-						path.MatchRelative().AtParent().AtName("mysql_instance_no"),
-					),
-				},
 			},
 			"mysql_instance_no": schema.StringAttribute{
-				Optional: true,
-				Computed: true,
-				Validators: []validator.String{
-					stringvalidator.ConflictsWith(
-						path.MatchRelative().AtParent().AtName("id"),
-					),
-				},
+				Required: true,
 			},
 			"output_file": schema.StringAttribute{
 				Optional: true,
@@ -97,7 +82,6 @@ func (d *mysqlDatabasesDataSource) Schema(ctx context.Context, req datasource.Sc
 
 func (d *mysqlDatabasesDataSource) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
 	var data mysqlDatabasesDataSourceModel
-	var mysqlId string
 
 	if !d.config.SupportVPC {
 		resp.Diagnostics.AddError(
@@ -112,17 +96,7 @@ func (d *mysqlDatabasesDataSource) Read(ctx context.Context, req datasource.Read
 		return
 	}
 
-	if !data.ID.IsNull() && !data.ID.IsUnknown() {
-		mysqlId = data.ID.ValueString()
-		data.MysqlInstanceNo = data.ID
-	}
-
-	if !data.MysqlInstanceNo.IsNull() && !data.MysqlInstanceNo.IsUnknown() {
-		mysqlId = data.MysqlInstanceNo.ValueString()
-		data.ID = data.MysqlInstanceNo
-	}
-
-	output, err := GetMysqlDatabaseAllList(ctx, d.config, mysqlId)
+	output, err := GetMysqlDatabaseAllList(ctx, d.config, data.MysqlInstanceNo.ValueString())
 	if err != nil {
 		resp.Diagnostics.AddError("READING ERROR", err.Error())
 		return
@@ -135,7 +109,13 @@ func (d *mysqlDatabasesDataSource) Read(ctx context.Context, req datasource.Read
 
 	mysqlDbList := flattenMysqlDatabases(output)
 	fillteredList := common.FilterModels(ctx, data.Filters, mysqlDbList)
-	data.refreshFromOutput(ctx, fillteredList, data.MysqlInstanceNo.ValueString())
+	if err := data.refreshFromOutput(ctx, fillteredList, data.MysqlInstanceNo.ValueString()); err != nil {
+		resp.Diagnostics.AddError(
+			"Error while getting output values of mysql databases list",
+			err.Error(),
+		)
+		return
+	}
 
 	if !data.OutputFile.IsNull() && data.OutputFile.String() != "" {
 		outputPath := data.OutputFile.ValueString()
@@ -240,11 +220,16 @@ func flattenMysqlDatabases(list []*vmysql.CloudMysqlDatabase) []*mysqlDb {
 	return outputs
 }
 
-func (d *mysqlDatabasesDataSourceModel) refreshFromOutput(ctx context.Context, output []*mysqlDb, instance string) {
+func (d *mysqlDatabasesDataSourceModel) refreshFromOutput(ctx context.Context, output []*mysqlDb, instance string) error {
 	d.ID = types.StringValue(instance)
 	d.MysqlInstanceNo = types.StringValue(instance)
-	dbListValue, _ := types.ListValueFrom(ctx, types.ObjectType{AttrTypes: mysqlDb{}.attrTypes()}, output)
+	dbListValue, err := types.ListValueFrom(ctx, types.ObjectType{AttrTypes: mysqlDb{}.attrTypes()}, output)
+	if err != nil {
+		return fmt.Errorf("error creating ListValue for Mysql Databases: %s", err)
+	}
 	d.MysqlDatabaseList = dbListValue
+
+	return nil
 }
 
 func (d *mysqlDb) refreshFromOutput(output *vmysql.CloudMysqlDatabase) {

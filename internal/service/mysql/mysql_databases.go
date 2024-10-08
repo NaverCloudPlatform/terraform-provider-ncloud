@@ -10,7 +10,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework-validators/listvalidator"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/attr"
-	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
@@ -152,7 +151,14 @@ func (r *mysqlDatabasesResource) Create(ctx context.Context, req resource.Create
 		return
 	}
 
-	plan.refreshFromOutput(ctx, output, plan.MysqlInstanceNo.ValueString(), &resp.Diagnostics)
+	if err := plan.refreshFromOutput(ctx, output, plan.MysqlInstanceNo.ValueString()); err != nil {
+		resp.Diagnostics.AddError(
+			"Error while getting output values of mysql databases list",
+			err.Error(),
+		)
+		return
+	}
+
 	resp.Diagnostics.Append(resp.State.Set(ctx, plan)...)
 }
 
@@ -175,11 +181,15 @@ func (r *mysqlDatabasesResource) Read(ctx context.Context, req resource.ReadRequ
 		return
 	}
 
-	state.refreshFromOutput(ctx, output, state.MysqlInstanceNo.ValueString(), &resp.Diagnostics)
-	resp.Diagnostics.Append(resp.State.Set(ctx, &state)...)
-	if resp.Diagnostics.HasError() {
+	if err := state.refreshFromOutput(ctx, output, state.MysqlInstanceNo.ValueString()); err != nil {
+		resp.Diagnostics.AddError(
+			"Error while getting output values of mysql databases list",
+			err.Error(),
+		)
 		return
 	}
+
+	resp.Diagnostics.Append(resp.State.Set(ctx, &state)...)
 }
 
 func (r *mysqlDatabasesResource) Update(_ context.Context, _ resource.UpdateRequest, _ *resource.UpdateResponse) {
@@ -283,7 +293,7 @@ func (r mysqlDatabase) AttrTypes() map[string]attr.Type {
 	}
 }
 
-func (r *mysqlDatabasesResourceModel) refreshFromOutput(ctx context.Context, output []*vmysql.CloudMysqlDatabase, instance string, resp *diag.Diagnostics) {
+func (r *mysqlDatabasesResourceModel) refreshFromOutput(ctx context.Context, output []*vmysql.CloudMysqlDatabase, instance string) error {
 	r.ID = types.StringValue(instance)
 	r.MysqlInstanceNo = types.StringValue(instance)
 
@@ -297,11 +307,12 @@ func (r *mysqlDatabasesResourceModel) refreshFromOutput(ctx context.Context, out
 
 	mysqlDatabases, err := types.ListValueFrom(ctx, types.ObjectType{AttrTypes: mysqlDatabase{}.AttrTypes()}, databaseList)
 	if err != nil {
-		resp.AddError("Error converting database list", fmt.Sprintf("Could not convert database list: %v", err))
-		return
+		return fmt.Errorf("error creating ListValue for Mysql Databases: %s", err)
 	}
 
 	r.MysqlDatabaseList = mysqlDatabases
+
+	return nil
 }
 
 func convertToStringList(values basetypes.ListValue) []*string {
