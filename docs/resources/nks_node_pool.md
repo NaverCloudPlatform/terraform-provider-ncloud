@@ -124,7 +124,7 @@ The following arguments are supported:
 
 * `node_pool_name` - (Required) Nodepool name. 
 * `cluster_uuid` - (Required) Cluster uuid.
-* `node_count` - (Required) Number of nodes.
+* `node_count` - (Optioanl) Number of nodes. (Required when autoscale is disabled) 
 * `product_code` - (Optional) Product code. Required for `XEN`/`RHV` cluster nodepool.
 * `server_spec_code` - (Optional) Server spec code. (Required for `KVM` cluster nodepool)
 * `storage_size` - (Optional) Default storage size for `KVM` nodepool. (Default `100GB`)
