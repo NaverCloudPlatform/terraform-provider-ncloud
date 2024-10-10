@@ -92,7 +92,8 @@ func ResourceNcloudNKSNodePool() *schema.Resource {
 			},
 			"node_count": {
 				Type:     schema.TypeInt,
-				Required: true,
+				Computed: true,
+				Optional: true,
 			},
 			"subnet_no": {
 				Type:          schema.TypeString,

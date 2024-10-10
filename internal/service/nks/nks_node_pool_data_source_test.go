@@ -85,7 +85,7 @@ data "ncloud_nks_server_images" "image"{
   hypervisor_code = ncloud_nks_cluster.cluster.hypervisor_code
     filter {
     name = "label"
-    values = ["ubuntu-20.04"]
+    values = ["ubuntu-22.04"]
     regex = true
   }
 }

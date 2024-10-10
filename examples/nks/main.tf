@@ -34,7 +34,18 @@ resource "ncloud_subnet" "lb_subnet" {
 }
 
 
+resource "ncloud_subnet" "lb_subnet_pub" {
+  vpc_no         = ncloud_vpc.vpc.id
+  subnet         = "10.0.101.0/24"
+  zone           = "KR-1"
+  network_acl_no = ncloud_vpc.vpc.default_network_acl_no
+  subnet_type    = "PUBLIC"
+  name           = "lb-subnet-pub"
+  usage_type     = "LOADB"
+}
+
 data "ncloud_nks_versions" "version" {
+  hypervisor_code = "KVM"
   filter {
     name = "value"
     values = [var.nks_version]
@@ -46,30 +57,32 @@ resource "ncloud_login_key" "loginkey" {
 }
 
 resource "ncloud_nks_cluster" "cluster" {
-  cluster_type                = "SVR.VNKS.STAND.C002.M008.NET.SSD.B050.G002"
-  k8s_version                 = data.ncloud_nks_versions.version.versions.0.value
-  login_key_name              = ncloud_login_key.loginkey.key_name
-  name                        = "sample-cluster"
-  lb_private_subnet_no        = ncloud_subnet.lb_subnet.id
-  kube_network_plugin         = "cilium"
-  subnet_no_list              = [ ncloud_subnet.node_subnet.id ]
-  vpc_no                      = ncloud_vpc.vpc.id
-  zone                        = "KR-1"
-  log {
-    audit = true
-  }
+  hypervisor_code        = "KVM"
+  cluster_type           = "SVR.VNKS.STAND.C002.M008.G003"
+  k8s_version            = data.ncloud_nks_versions.version.versions.0.value
+  login_key_name         = ncloud_login_key.loginkey.key_name
+  name                   = "sample-cluster"
+  lb_private_subnet_no   = ncloud_subnet.lb_subnet.id
+  lb_public_subnet_no    = ncloud_subnet.lb_subnet_pub.id
+  kube_network_plugin    = "cilium"
+  subnet_no_list         = [ ncloud_subnet.node_subnet.id ]
+  vpc_no                 = ncloud_vpc.vpc.id
+  public_network         = false
+  zone                   = "KR-1"
+
 }
 
 data "ncloud_nks_server_images" "image"{
-  hypervisor_code = "XEN"
+  hypervisor_code = "KVM"
   filter {
     name = "label"
-    values = ["ubuntu-20.04"]
+    values = ["ubuntu-22.04"]
     regex = true
   }
 }
 
-data "ncloud_nks_server_products" "nks_products"{
+
+data "ncloud_nks_server_products" "product"{
   software_code = data.ncloud_nks_server_images.image.images[0].value
   zone = "KR-1"
 
@@ -90,16 +103,16 @@ data "ncloud_nks_server_products" "nks_products"{
 }
 
 resource "ncloud_nks_node_pool" "node_pool" {
-  cluster_uuid = ncloud_nks_cluster.cluster.uuid
-  node_pool_name = "pool1"
-  node_count     = 1
-  software_code  = data.ncloud_nks_server_images.image.images[0].value
-  product_code   = data.ncloud_nks_server_products.nks_products.products[0].value
-  subnet_no_list = [ncloud_subnet.node_subnet.id]
+  cluster_uuid     = ncloud_nks_cluster.cluster.uuid
+  node_pool_name   =  "pool1"
+  node_count       = 2
+  software_code    = data.ncloud_nks_server_images.image.images[0].value
+  server_spec_code = data.ncloud_nks_server_products.product.products.0.value
+  storage_size = 200
   autoscale {
-    enabled = true
-    min = 1
-    max = 2
+    enabled = false
+    min = 0
+    max = 0
   }
   label {
     key = "foo"

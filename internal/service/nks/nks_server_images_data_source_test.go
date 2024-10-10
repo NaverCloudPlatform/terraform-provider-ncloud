@@ -52,7 +52,7 @@ func testAccDataSourceNcloudNKSServerImagestWithFilterConfig() string {
 data "ncloud_nks_server_images" "filter"{
   filter {
     name = "label"
-    values = ["ubuntu-20.04-64-server"]
+    values = ["ubuntu-22.04"]
   }
 }
 `

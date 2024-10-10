@@ -46,6 +46,35 @@ func TestAccResourceNcloudNKSNodePool_basic_XEN(t *testing.T) {
 	})
 }
 
+func TestAccResourceNcloudNKSNodePool_basic_KVM(t *testing.T) {
+	validateAcctestEnvironment(t)
+
+	clusterName := GetTestClusterName()
+	resourceName := "ncloud_nks_node_pool.node_pool"
+
+	nksInfo, err := getNKSTestInfo("KVM")
+	if err != nil {
+		t.Error(err)
+	}
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:                 func() { TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: ProtoV6ProviderFactories,
+		CheckDestroy:             testAccCheckNKSClusterDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccResourceNcloudNKSNodePoolConfig(clusterName, TF_TEST_NKS_LOGIN_KEY, nksInfo, 1),
+				Check:  testAccResourceNcloudNKSNodePoolBasicCheck(resourceName, clusterName, nksInfo),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+		},
+	})
+}
+
 func TestAccResourceNcloudNKSNodePool_Update_XEN(t *testing.T) {
 	validateAcctestEnvironment(t)
 
@@ -78,6 +107,38 @@ func TestAccResourceNcloudNKSNodePool_Update_XEN(t *testing.T) {
 	})
 }
 
+func TestAccResourceNcloudNKSNodePool_Update_KVM(t *testing.T) {
+	validateAcctestEnvironment(t)
+
+	var nodePool vnks.NodePool
+	clusterName := fmt.Sprintf("m3-%s", GetTestClusterName())
+	resourceName := "ncloud_nks_node_pool.node_pool"
+
+	nksInfo, err := getNKSTestInfo("KVM")
+	if err != nil {
+		t.Error(err)
+	}
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:                 func() { TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: ProtoV6ProviderFactories,
+		CheckDestroy:             testAccCheckNKSNodePoolDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccResourceNcloudNKSNodePoolConfig(clusterName, TF_TEST_NKS_LOGIN_KEY, nksInfo, 1),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckNKSNodePoolExists(resourceName, &nodePool),
+				),
+				Destroy: false,
+			},
+			{
+				Config:  testAccResourceNcloudNKSNodePoolConfigUpdateAll(clusterName, TF_TEST_NKS_LOGIN_KEY, nksInfo, 2),
+				Check:   testAccResourceNcloudNKSNodePoolUpdateAllCheck(resourceName, clusterName, nksInfo),
+				Destroy: false,
+			},
+		},
+	})
+}
+
 func TestAccResourceNcloudNKSNodePool_publicNetwork_XEN(t *testing.T) {
 	validateAcctestEnvironment(t)
 
@@ -85,6 +146,29 @@ func TestAccResourceNcloudNKSNodePool_publicNetwork_XEN(t *testing.T) {
 	resourceName := "ncloud_nks_node_pool.node_pool"
 
 	nksInfo, err := getNKSTestInfo("XEN")
+	if err != nil {
+		t.Error(err)
+	}
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:                 func() { TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: ProtoV6ProviderFactories,
+		CheckDestroy:             testAccCheckNKSClusterDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccResourceNcloudNKSNodePoolConfigPublicNetwork(clusterName, TF_TEST_NKS_LOGIN_KEY, nksInfo, 1),
+				Check:  testAccResourceNcloudNKSNodePoolPublicNetworkCheck(resourceName, clusterName),
+			},
+		},
+	})
+}
+
+func TestAccResourceNcloudNKSNodePool_publicNetwork_KVM(t *testing.T) {
+	validateAcctestEnvironment(t)
+
+	clusterName := GetTestClusterName()
+	resourceName := "ncloud_nks_node_pool.node_pool"
+
+	nksInfo, err := getNKSTestInfo("KVM")
 	if err != nil {
 		t.Error(err)
 	}
@@ -113,11 +197,11 @@ resource "ncloud_nks_cluster" "cluster" {
   hypervisor_code             = "%[6]s"
   kube_network_plugin         = "cilium"
   subnet_no_list              = [
-    %[7]s
+    %[7]s,  %[10]s
   ]
   vpc_no                      = %[8]s
   zone                        = "%[9]s-1"
-`, name, nksInfo.ClusterType, nksInfo.K8sVersion, loginKeyName, *nksInfo.PrivateLbSubnetList[0].SubnetNo, nksInfo.HypervisorCode, *nksInfo.PrivateSubnetList[0].SubnetNo, *nksInfo.Vpc.VpcNo, nksInfo.Region))
+`, name, nksInfo.ClusterType, nksInfo.K8sVersion, loginKeyName, *nksInfo.PrivateLbSubnetList[0].SubnetNo, nksInfo.HypervisorCode, *nksInfo.PrivateSubnetList[0].SubnetNo, *nksInfo.Vpc.VpcNo, nksInfo.Region, *nksInfo.PrivateSubnetList[1].SubnetNo))
 
 	if nksInfo.needPublicLb {
 		b.WriteString(fmt.Sprintf(`
@@ -134,7 +218,7 @@ data "ncloud_nks_server_images" "image"{
   hypervisor_code = ncloud_nks_cluster.cluster.hypervisor_code
     filter {
     name = "label"
-    values = ["ubuntu-20.04"]
+    values = ["ubuntu-22.04"]
     regex = true
   }
 
@@ -213,12 +297,12 @@ resource "ncloud_nks_cluster" "cluster" {
   hypervisor_code             = "%[6]s"
   kube_network_plugin         = "cilium"
   subnet_no_list              = [
-    %[7]s
+    %[7]s,  %[10]s
   ]
   vpc_no                      = %[8]s
   zone                        = "%[9]s-1"
   public_network              = true
-`, name, nksInfo.ClusterType, nksInfo.K8sVersion, loginKeyName, *nksInfo.PrivateLbSubnetList[0].SubnetNo, nksInfo.HypervisorCode, *nksInfo.PublicSubnetList[0].SubnetNo, *nksInfo.Vpc.VpcNo, nksInfo.Region))
+`, name, nksInfo.ClusterType, nksInfo.K8sVersion, loginKeyName, *nksInfo.PrivateLbSubnetList[0].SubnetNo, nksInfo.HypervisorCode, *nksInfo.PrivateSubnetList[0].SubnetNo, *nksInfo.Vpc.VpcNo, nksInfo.Region, *nksInfo.PrivateSubnetList[1].SubnetNo))
 
 	if nksInfo.needPublicLb {
 		b.WriteString(fmt.Sprintf(`
@@ -235,7 +319,7 @@ data "ncloud_nks_server_images" "image"{
   hypervisor_code = ncloud_nks_cluster.cluster.hypervisor_code
     filter {
     name = "label"
-    values = ["ubuntu-20.04"]
+    values = ["ubuntu-22.04"]
     regex = true
   }
 
@@ -335,7 +419,7 @@ data "ncloud_nks_server_images" "image"{
   hypervisor_code = ncloud_nks_cluster.cluster.hypervisor_code
     filter {
     name = "label"
-    values = ["ubuntu-20.04"]
+    values = ["ubuntu-22.04"]
     regex = true
   }
 
