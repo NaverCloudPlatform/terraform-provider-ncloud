@@ -89,7 +89,7 @@ resource "ncloud_server" "server" {
 data "ncloud_server_image_numbers" "server_image" {
   filter {
     name = "name"
-    values = ["ubuntu-20.04-base"]
+    values = ["ubuntu-22.04-base"]
   }
 }
 
@@ -113,7 +113,7 @@ The following arguments are supported:
   - [`ncloud_server_product` data source](../data-sources/server_product.md)
   - [`ncloud_server_products` data source](../data-sources/server_products.md)
 
-* `member_server_image_no` - (Optional, Required if `server_image_product_code` or `server_image_number` is not provided) Required value when creating a server from a manually created server image. It can be obtained through the `data.ncloud_member_server_image(s)` action.
+* `member_server_image_no` - (Optional, Required if `server_image_product_code` or `server_image_number` is not provided) Required value when creating a server from a manually created server image. KVM hypervisor type server images are not supported. It can be obtained through the `data.ncloud_member_server_image(s)` action.
   - [`ncloud_member_server_image` data source](../data-sources/member_server_image.md)
   - [`ncloud_member_server_images` data source](../data-sources/member_server_images.md)
 
@@ -145,7 +145,8 @@ The following arguments are supported:
 * `network_interface` - (Optional) List of Network Interface. You can assign up to three network interfaces.
   * `network_interface_no` - (Required) If you want to add a network interface that you created yourself, set the network interface ID.
   * `order` - (Required) Sets the order of network interfaces to be assigned to the server to create. The unit name (eth0, eth1, etc.) is determined in that order. There must be one primary network interface. If you set `0`, network interface is set by default. You can assign up to three network interfaces.
-* `is_encrypted_base_block_storage_volume` - (Optional) you can set whether to encrypt basic block storage if server image is RHV. Default `false`. 
+* `is_encrypted_base_block_storage_volume` - (Optional) you can set whether to encrypt basic block storage if server image is RHV. Default `false`.
+* `is_delete_blockstorage_server_termination` - (Optional) you can set whether to delete all attached BlockStorages when returning the server. Default `false`.
 
 ## Attributes Reference
 

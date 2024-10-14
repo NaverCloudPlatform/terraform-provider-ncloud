@@ -83,20 +83,29 @@ resource "ncloud_subnet" "test" {
 	usage_type         = "GEN"
 }
 
+data "ncloud_server_image_numbers" "server_images" {
+    filter {
+        name = "name"
+        values = ["ubuntu-22.04-base"]
+    }
+}
+
 resource "ncloud_server" "test" {
 	subnet_no = ncloud_subnet.test.id
 	name = "%[1]s"
-	server_image_product_code = "SW.VSVR.OS.LNX64.CNTOS.0703.B050"
-	server_product_code = "SVR.VSVR.STAND.C002.M008.NET.HDD.B050.G002"
+	server_image_number = data.ncloud_server_image_numbers.server_images.image_number_list.0.server_image_number
+	server_spec_code = "s2-g3"
 	login_key_name = ncloud_login_key.loginkey.key_name
+	is_delete_blockstorage_server_termination = true
 }
 
 resource "ncloud_server" "test2" {
 	subnet_no = ncloud_subnet.test.id
 	name = "%[2]s"
-	server_image_product_code = "SW.VSVR.OS.LNX64.CNTOS.0703.B050"
-	server_product_code = "SVR.VSVR.STAND.C002.M008.NET.HDD.B050.G002"
+	server_image_number = data.ncloud_server_image_numbers.server_images.image_number_list.0.server_image_number
+	server_spec_code = "s2-g3"
 	login_key_name = ncloud_login_key.loginkey.key_name
+	is_delete_blockstorage_server_termination = true
 }
 
 data "ncloud_servers" "by_id" {

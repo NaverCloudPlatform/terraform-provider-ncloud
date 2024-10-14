@@ -94,6 +94,11 @@ func ResourceNcloudServer() *schema.Resource {
 				Optional: true,
 				Computed: true,
 			},
+			"is_delete_blockstorage_server_termination": {
+				Type:     schema.TypeBool,
+				Optional: true,
+				Default:  false,
+			},
 			// Deprecated
 			"internet_line_type": {
 				Type:             schema.TypeString,
@@ -340,6 +345,13 @@ func resourceNcloudServerDelete(d *schema.ResourceData, meta interface{}) error 
 
 			if err := waitForDisconnectBlockStorage(config, *blockStorage.BlockStorageInstanceNo); err != nil {
 				return err
+			}
+
+			if d.Get("is_delete_blockstorage_server_termination").(bool) {
+				log.Printf("[INFO] Delete BlockStorage %s", *blockStorage.BlockStorageInstanceNo)
+				if err := deleteBlockStorage(d, config, *blockStorage.BlockStorageInstanceNo); err != nil {
+					return err
+				}
 			}
 		}
 
@@ -868,7 +880,7 @@ func getVpcServerInstance(config *conn.ProviderConfig, id string) (*ServerInstan
 
 	LogResponse("getVpcServerInstance", resp)
 
-	if len(resp.ServerInstanceList) == 0 {
+	if resp == nil || len(resp.ServerInstanceList) == 0 {
 		return nil, nil
 	}
 
