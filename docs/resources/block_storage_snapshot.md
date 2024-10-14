@@ -3,7 +3,7 @@ subcategory: "Server"
 ---
 
 
-# Resource: ncloud_block_storage
+# Resource: ncloud_block_storage_snapshot
 
 Provides a ncloud Block Storage Snapshot resource.
 
@@ -11,7 +11,7 @@ Provides a ncloud Block Storage Snapshot resource.
 
 ## Example Usage
 
-```hcl
+```terraform
 resource "ncloud_block_storage_snapshot" "snapshot" {
 	block_storage_instance_no = "812345"
 	name = "tf-test-snapshot1"
@@ -31,14 +31,21 @@ The following arguments are supported:
 
 * `instance_no` - Block Storage Snapshot Instance Number
 * `volume_size` - Block Storage Snapshot Volume Size
-* `original_block_storage_instance_no` - Original Block Storage Instance Number
-* `original_block_storage_name` - Original Block Storage Name
 * `instance_status` - Block Storage Snapshot Instance Status code
 * `instance_status_name` - Block Storage Snapshot Instance Status Name
 * `instance_operation` - Block Storage Snapshot Instance Operation code
-* `create_date` - Creation date of the block storage snapshot instance
+
+~> **NOTE:** Below arguments only support Classic environment.
+
+* `original_block_storage_instance_no` - Original Block Storage Instance Number
+* `original_block_storage_name` - Original Block Storage Name
 * `server_image_product_code` - Server Image Product Code
 * `os_information` - OS Information
+
+~> **NOTE:** Below arguments only support VPC environment.
+
+* `hypervisor_type` - Hypervisor type. (`XEN` or `KVM`)
+
 
 ## Import
 

@@ -9,7 +9,7 @@ This module can be useful for getting detail of Snapshot (Block Storage) created
 
 ## Example Usage
 
-```hcl
+```terraform
 variable "snapshot_no" {}
 
 data "ncloud_block_storage_snapshot" "snapshot" {

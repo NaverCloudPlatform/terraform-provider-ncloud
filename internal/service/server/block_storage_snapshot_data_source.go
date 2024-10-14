@@ -123,11 +123,11 @@ func convertClassicSnapshotInstance(r *server.BlockStorageSnapshotInstance) *Blo
 	}
 
 	return &BlockStorageSnapshot{
-		SnapshotNo:             r.BlockStorageSnapshotInstanceNo,
-		Name:                   r.BlockStorageSnapshotName,
-		VolumeSize:             r.BlockStorageSnapshotVolumeSize,
-		BlockStorageInstanceNo: r.OriginalBlockStorageInstanceNo,
-		Description:            r.BlockStorageSnapshotInstanceDescription,
+		SnapshotNo:                     r.BlockStorageSnapshotInstanceNo,
+		BlockStorageSnapshotName:       r.BlockStorageSnapshotName,
+		BlockStorageSnapshotVolumeSize: r.BlockStorageSnapshotVolumeSize,
+		BlockStorageNo:                 r.OriginalBlockStorageInstanceNo,
+		Description:                    r.BlockStorageSnapshotInstanceDescription,
 	}
 }
 
@@ -166,19 +166,10 @@ func convertVpcSnapshotInstance(r *vserver.BlockStorageSnapshotInstance) *BlockS
 	}
 
 	return &BlockStorageSnapshot{
-		SnapshotNo:             r.BlockStorageSnapshotInstanceNo,
-		Name:                   r.BlockStorageSnapshotName,
-		VolumeSize:             r.BlockStorageSnapshotVolumeSize,
-		BlockStorageInstanceNo: r.OriginalBlockStorageInstanceNo,
-		Description:            r.BlockStorageSnapshotDescription,
+		SnapshotNo:                     r.BlockStorageSnapshotInstanceNo,
+		BlockStorageSnapshotName:       r.BlockStorageSnapshotName,
+		BlockStorageSnapshotVolumeSize: r.BlockStorageSnapshotVolumeSize,
+		BlockStorageNo:                 r.OriginalBlockStorageInstanceNo,
+		Description:                    r.BlockStorageSnapshotDescription,
 	}
-}
-
-// BlockStorageSnapshot Dto for block storage snapshot
-type BlockStorageSnapshot struct {
-	SnapshotNo             *string `json:"snapshot_no,omitempty"`
-	Name                   *string `json:"name,omitempty"`
-	VolumeSize             *int64  `json:"volume_size,omitempty"`
-	BlockStorageInstanceNo *string `json:"block_storage_no,omitempty"`
-	Description            *string `json:"description,omitempty"`
 }
