@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"github.com/terraform-providers/terraform-provider-ncloud/internal/service/hadoop"
+	"github.com/terraform-providers/terraform-provider-ncloud/internal/service/loadbalancer"
 	"github.com/terraform-providers/terraform-provider-ncloud/internal/service/objectstorage"
 	"github.com/terraform-providers/terraform-provider-ncloud/internal/service/postgresql"
 
@@ -82,9 +83,12 @@ func (p *fwprovider) DataSources(ctx context.Context) []func() datasource.DataSo
 	dataSources = append(dataSources, vpc.NewVpcPeeringDataSource)
 	dataSources = append(dataSources, server.NewInitScriptDataSource)
 	dataSources = append(dataSources, server.NewLoginKeyDataSource)
+	dataSources = append(dataSources, server.NewServerImageNumbersDataSource)
+	dataSources = append(dataSources, server.NewServerSpecsDataSource)
 	dataSources = append(dataSources, mysql.NewMysqlDataSource)
 	dataSources = append(dataSources, mysql.NewMysqlImageProductsDataSource)
 	dataSources = append(dataSources, mysql.NewMysqlProductsDataSource)
+	dataSources = append(dataSources, mysql.NewMysqlUsersDataSource)
 	dataSources = append(dataSources, mongodb.NewMongoDbDataSource)
 	dataSources = append(dataSources, mongodb.NewMongoDbProductsDataSource)
 	dataSources = append(dataSources, mongodb.NewMongoDbImageProductsDataSource)
@@ -103,6 +107,7 @@ func (p *fwprovider) DataSources(ctx context.Context) []func() datasource.DataSo
 	dataSources = append(dataSources, postgresql.NewPostgresqlDataSource)
 	dataSources = append(dataSources, postgresql.NewPostgresqlProductsDataSource)
 	dataSources = append(dataSources, postgresql.NewPostgresqlImageProductsDataSource)
+	dataSources = append(dataSources, loadbalancer.NewLoadBalancerDataSource)
 	dataSources = append(dataSources, objectstorage.NewBucketDataSource)
 	dataSources = append(dataSources, objectstorage.NewObjectDataSource)
 
@@ -126,12 +131,16 @@ func (p *fwprovider) Resources(ctx context.Context) []func() resource.Resource {
 	resources = append(resources, server.NewLoginKeyResource)
 	resources = append(resources, server.NewInitScriptResource)
 	resources = append(resources, mysql.NewMysqlResource)
+	resources = append(resources, mysql.NewMysqlUsersResource)
+	resources = append(resources, mysql.NewMysqlRecoveryResource)
+	resources = append(resources, mysql.NewMysqlSlaveResource)
 	resources = append(resources, mongodb.NewMongoDbResource)
 	resources = append(resources, hadoop.NewHadoopResource)
 	resources = append(resources, redis.NewRedisConfigGroupResource)
 	resources = append(resources, redis.NewRedisResource)
 	resources = append(resources, mssql.NewMssqlResource)
 	resources = append(resources, postgresql.NewPostgresqlResource)
+	resources = append(resources, loadbalancer.NewLbResource)
 	resources = append(resources, objectstorage.NewBucketResource)
 	resources = append(resources, objectstorage.NewObjectResource)
 	resources = append(resources, objectstorage.NewObjectACLResource)

@@ -11,7 +11,7 @@ Provides a Server instance resource.
 
 #### Basic (Classic)
 
-```hcl
+```terraform
 resource "ncloud_server" "server" {
     name = "tf-test-vm1"
     server_image_product_code = "SPSW0LINUX000032"
@@ -31,7 +31,7 @@ resource "ncloud_server" "server" {
 
 #### Basic (VPC)
 
-```hcl
+```terraform
 resource "ncloud_login_key" "loginkey" {
   key_name = "test-key"
 }
@@ -52,14 +52,15 @@ resource "ncloud_subnet" "test" {
 resource "ncloud_server" "server" {
   subnet_no                 = ncloud_subnet.test.id
   name                      = "my-tf-server"
-  server_image_product_code = "SW.VSVR.OS.LNX64.CNTOS.0703.B050"
+  server_image_number       = "25495367"
+  server_spec_code          = "s2-g3"
   login_key_name            = ncloud_login_key.loginkey.key_name
 }
 ```
 
-#### Create VPC instance reference by data source  (retrieve image and product code)
+#### Create VPC instance reference by data source  (retrieve server_image_number and server_spec_code)
 
-```hcl
+```terraform
 resource "ncloud_login_key" "loginkey" {
   key_name = "test-key"
 }
@@ -80,34 +81,22 @@ resource "ncloud_subnet" "test" {
 resource "ncloud_server" "server" {
   subnet_no                 = ncloud_subnet.test.id
   name                      = "my-tf-server"
-  server_image_product_code = data.ncloud_server_image.server_image.id
-  server_product_code       = data.ncloud_server_product.product.id
+  server_image_number       = data.ncloud_server_image_numbers.server_image.image_number_list.0.server_image_number
+  server_spec_code          = data.ncloud_server_specs.spec.server_spec_list.0.server_sepc_code
   login_key_name            = ncloud_login_key.loginkey.key_name
 }
 
-data "ncloud_server_image" "server_image" {
+data "ncloud_server_image_numbers" "server_image" {
   filter {
-    name = "os_information"
-    values = ["CentOS 7.3 (64-bit)"]
+    name = "name"
+    values = ["ubuntu-20.04-base"]
   }
 }
 
-data "ncloud_server_product" "product" {
-  server_image_product_code = data.ncloud_server_image.server_image.id
-
+data "ncloud_server_specs" "spec" {
   filter {
-    name   = "product_code"
-    values = ["SSD"]
-  }
-
-  filter {
-    name   = "cpu_count"
-    values = ["2"]
-  }
-
-  filter {
-    name   = "memory_size"
-    values = ["8GB"]
+    name   = "server_spec_code"
+    values = ["s2-g3"]
   }
 }
 ```
@@ -116,17 +105,15 @@ data "ncloud_server_product" "product" {
 
 The following arguments are supported:
 
-* `server_image_product_code` - (Optional, Required if `member_server_image_no` is not provided) Server image product code to determine which server image to create. It can be obtained through `data.ncloud_server_image(s)`.
-  - [Docs server Image Products](https://github.com/NaverCloudPlatform/terraform-ncloud-docs/blob/main/docs/server_image_product.md)
+* `server_image_product_code` - (Optional, Required if `member_server_image_no` or `server_image_number` is not provided) Server image product code to determine which server image to create. It can be obtained through `data.ncloud_server_image(s)`.
   - [`ncloud_server_image` data source](../data-sources/server_image.md)
   - [`ncloud_server_images` data source](../data-sources/server_images.md)
 
 * `server_product_code` - (Optional) Server product code to determine the server specification to create. It can be obtained through the `data.ncloud_server_product(s)` action. Default : Selected as minimum specification. The minimum standards are 1. memory 2. CPU 3. basic block storage size 4. disk type (NET,LOCAL)
-  - [Docs server Image Products](https://github.com/NaverCloudPlatform/terraform-ncloud-docs/blob/main/docs/server_image_product.md)
   - [`ncloud_server_product` data source](../data-sources/server_product.md)
   - [`ncloud_server_products` data source](../data-sources/server_products.md)
 
-* `member_server_image_no` - (Optional, Required if `server_image_product_code` is not provided) Required value when creating a server from a manually created server image. It can be obtained through the `data.ncloud_member_server_image(s)` action.
+* `member_server_image_no` - (Optional, Required if `server_image_product_code` or `server_image_number` is not provided) Required value when creating a server from a manually created server image. It can be obtained through the `data.ncloud_member_server_image(s)` action.
   - [`ncloud_member_server_image` data source](../data-sources/member_server_image.md)
   - [`ncloud_member_server_images` data source](../data-sources/member_server_images.md)
 
@@ -149,6 +136,10 @@ The following arguments are supported:
 ~> **NOTE:** Below arguments only support VPC environment. Please set `support_vpc` of provider to `true`
 
 * `subnet_no` - (Required) The ID of the associated Subnet.
+* `server_image_number` - (Optional, Required if `server_image_product_code` or `member_server_image_no` is not provided) Required to create a KVM hypervisor type 3rd generation server. Server image number to determine which server image to create. It can be obtained through `data.ncloud_server_image_numbers`.
+  - [`ncloud_server_image_numbers` data source](../data-sources/server_image_numbers.md)
+* `server_spec_code` - (Optional, Required if to select the spec) Available only if `server_image_number` is entered. Server spec code to determine the server specification to create. It can be obtained through the `data.ncloud_server_specs` action. Default : Selected as minimum specification. The minimum standards are 1. memory 2. CPU 3. basic block storage size 4. disk type (NET,LOCAL)
+  - [`ncloud_server_specs` data source](../data-sources/server_specs.md)
 * `init_script_no` - (Optional) Set init script ID, The server can run a user-set initialization script at first boot.
 * `placement_group_no` - (Optional) Physical placement group that belongs to the server instance.
 * `network_interface` - (Optional) List of Network Interface. You can assign up to three network interfaces.
@@ -176,6 +167,7 @@ The following arguments are supported:
 ~> **NOTE:** Below attributes only provide VPC environment.
 
 * `vpc_no` - The ID of the VPC where you want to place the Server Instance.
+* `hypervisor_type` - Hypervisor type. (`XEN` or `KVM`)
 * `network_interface` - List of Network Interface.
   * `subnet_no` - Subnet ID of the network interface.
   * `private_ip` - IP address of the network interface.

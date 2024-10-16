@@ -19,9 +19,13 @@ import (
 )
 
 const (
-	BlockStorageStatusCodeCreate = "CREAT"
-	BlockStorageStatusCodeInit   = "INIT"
-	BlockStorageStatusCodeAttach = "ATTAC"
+	BlockStorageStatusCodeCreate     = "CREAT"
+	BlockStorageStatusCodeInit       = "INIT"
+	BlockStorageStatusCodeAttach     = "ATTAC"
+	BlockStorageStatusNameInit       = "initialized"
+	BlockStorageStatusNameOptimizing = "optimizing"
+	BlockStorageStatusNameAttach     = "attached"
+	BlockStorageStatusNameDetach     = "detached"
 )
 
 func ResourceNcloudBlockStorage() *schema.Resource {
@@ -378,7 +382,7 @@ func getVpcBlockStorage(config *conn.ProviderConfig, id string) (*BlockStorage, 
 	if len(resp.BlockStorageInstanceList) > 0 {
 		inst := resp.BlockStorageInstanceList[0]
 
-		return &BlockStorage{
+		blockStorage := BlockStorage{
 			BlockStorageInstanceNo:  inst.BlockStorageInstanceNo,
 			ServerInstanceNo:        inst.ServerInstanceNo,
 			BlockStorageType:        inst.BlockStorageType.Code,
@@ -387,12 +391,17 @@ func getVpcBlockStorage(config *conn.ProviderConfig, id string) (*BlockStorage, 
 			DeviceName:              inst.DeviceName,
 			BlockStorageProductCode: inst.BlockStorageProductCode,
 			Status:                  inst.BlockStorageInstanceStatus.Code,
-			Operation:               inst.BlockStorageInstanceOperation.Code,
+			StatusName:              inst.BlockStorageInstanceStatusName,
 			Description:             inst.BlockStorageDescription,
 			DiskType:                inst.BlockStorageDiskType.Code,
 			DiskDetailType:          inst.BlockStorageDiskDetailType.Code,
 			ZoneCode:                inst.ZoneCode,
-		}, nil
+		}
+		if inst.BlockStorageInstanceOperation != nil {
+			blockStorage.Operation = inst.BlockStorageInstanceOperation.Code
+		}
+
+		return &blockStorage, nil
 	}
 
 	return nil, nil
@@ -722,6 +731,7 @@ type BlockStorage struct {
 	BlockStorageProductCode *string `json:"product_code,omitempty"`
 	Status                  *string `json:"status,omitempty"`
 	Operation               *string `json:"operation,omitempty"`
+	StatusName              *string `json:"status_name,omitempty"`
 	Description             *string `json:"description,omitempty"`
 	DiskType                *string `json:"disk_type,omitempty"`
 	DiskDetailType          *string `json:"disk_detail_type,omitempty"`

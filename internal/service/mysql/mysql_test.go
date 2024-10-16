@@ -5,7 +5,6 @@ import (
 	"errors"
 	"fmt"
 	"regexp"
-	"strings"
 	"testing"
 
 	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/services/vmysql"
@@ -219,7 +218,7 @@ func testAccCheckMysqlDestroy(s *terraform.State) error {
 			continue
 		}
 		instance, err := mysqlservice.GetMysqlInstance(context.Background(), config, rs.Primary.ID)
-		if err != nil && !checkNoInstanceResponse(err) {
+		if err != nil && !mysqlservice.CheckIfAlreadyDeleted(err) {
 			return err
 		}
 
@@ -229,10 +228,6 @@ func testAccCheckMysqlDestroy(s *terraform.State) error {
 	}
 
 	return nil
-}
-
-func checkNoInstanceResponse(err error) bool {
-	return strings.Contains(err.Error(), "5001017")
 }
 
 func testAccMysqlVpcConfig(testMysqlName string) string {
