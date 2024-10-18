@@ -390,6 +390,9 @@ func createVpcBlockStorage(d *schema.ResourceData, config *conn.ProviderConfig) 
 		}
 
 		server, err := GetServerInstance(config, d.Get("server_instance_no").(string))
+		if err == nil && server == nil {
+			err = fmt.Errorf("fail to get serverInstance")
+		}
 		if err != nil {
 			LogErrorResponse("createVpcBlockStorage", err, reqParams)
 			return nil, err
