@@ -170,7 +170,6 @@ The following arguments are supported:
   * `network_interface_no` - (Required) If you want to add a network interface that you created yourself, set the network interface ID.
   * `order` - (Required) Sets the order of network interfaces to be assigned to the server to create. The unit name (eth0, eth1, etc.) is determined in that order. There must be one primary network interface. If you set `0`, network interface is set by default. You can assign up to three network interfaces.
 * `is_encrypted_base_block_storage_volume` - (Optional) you can set whether to encrypt basic block storage if server image is RHV. Default `false`.
-* `delete_blockstorage_server_termination` - (Optional) you can set whether to delete all attached BlockStorages when returning the server. Default `false`.
 
 ## Attributes Reference
 

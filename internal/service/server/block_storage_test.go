@@ -384,7 +384,6 @@ resource "ncloud_server" "server" {
 	server_image_number = data.ncloud_server_image_numbers.server_images.image_number_list.0.server_image_number
 	server_spec_code = "s2-g2-s50"
 	login_key_name = ncloud_login_key.loginkey.key_name
-	delete_blockstorage_server_termination = true
 }
 
 resource "ncloud_block_storage" "storage" {
@@ -462,7 +461,6 @@ resource "ncloud_server" "foo" {
 	server_image_number = data.ncloud_server_image_numbers.server_images.image_number_list.0.server_image_number
 	server_spec_code = "s2-g2-s50"
 	login_key_name = ncloud_login_key.loginkey.key_name
-	delete_blockstorage_server_termination = true
 }
 
 resource "ncloud_server" "bar" {
@@ -471,7 +469,6 @@ resource "ncloud_server" "bar" {
 	server_image_number = data.ncloud_server_image_numbers.server_images.image_number_list.0.server_image_number
 	server_spec_code = "s2-g2-s50"
 	login_key_name = ncloud_login_key.loginkey.key_name
-	delete_blockstorage_server_termination = true
 }
 
 resource "ncloud_block_storage" "storage" {
@@ -517,7 +514,6 @@ resource "ncloud_server" "server" {
 	server_image_number = data.ncloud_server_image_numbers.server_images.image_number_list.0.server_image_number
 	server_spec_code = "s2-g3"
 	login_key_name = ncloud_login_key.loginkey.key_name
-	delete_blockstorage_server_termination = true
 }
 
 resource "ncloud_block_storage" "storage" {
