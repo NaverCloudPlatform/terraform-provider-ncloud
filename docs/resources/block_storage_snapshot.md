@@ -7,8 +7,6 @@ subcategory: "Server"
 
 Provides a ncloud Block Storage Snapshot resource.
 
-~> **NOTE:** This resource only supports Classic environment.
-
 ## Example Usage
 
 ```terraform
