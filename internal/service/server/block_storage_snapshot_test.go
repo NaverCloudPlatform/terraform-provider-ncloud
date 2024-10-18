@@ -229,6 +229,7 @@ resource "ncloud_subnet" "test" {
 }
 
 data "ncloud_server_image_numbers" "server_images" {
+	hypervisor_type = "%[2]s"
 	filter {
         name = "name"
         values = ["ubuntu-22.04-base"]

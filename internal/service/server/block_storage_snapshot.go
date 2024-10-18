@@ -12,8 +12,15 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 
+	"github.com/terraform-providers/terraform-provider-ncloud/internal/common"
 	. "github.com/terraform-providers/terraform-provider-ncloud/internal/common"
 	"github.com/terraform-providers/terraform-provider-ncloud/internal/conn"
+)
+
+const (
+	BlockStorageSnapshotStatusCodeCreate     = "CREAT"
+	BlockStorageSnapshotStatusCodeInit       = "INIT"
+	BlockStorageSnapshotStatusCodeTerminated = "TERMINATED"
 )
 
 func ResourceNcloudBlockStorageSnapshot() *schema.Resource {
@@ -143,31 +150,20 @@ func resourceNcloudBlockStorageSnapshotRead(d *schema.ResourceData, meta interfa
 		return nil
 	}
 
-	d.SetId(*r.BlockStorageSnapshotInstanceNo)
-	d.Set("block_storage_instance_no", *r.BlockStorageInstanceNo)
-	d.Set("name", *r.BlockStorageSnapshotName)
-	d.Set("description", *r.Description)
-	d.Set("instance_no", *r.BlockStorageSnapshotInstanceNo)
-	d.Set("volume_size", *r.BlockStorageSnapshotVolumeSize)
-	d.Set("instance_status", *r.Status)
-	d.Set("instance_operation", *r.Operation)
-	d.Set("instance_status_name", *r.StatusName)
-
-	if r.OriginalBlockStorageInstanceNo != nil {
-		d.Set("original_block_storage_instance_no", *r.OriginalBlockStorageInstanceNo)
-	}
-	if r.OriginalBlockStorageName != nil {
-		d.Set("original_block_storage_name", *r.OriginalBlockStorageName)
-	}
-	if r.ServerImageProductCode != nil {
-		d.Set("server_image_product_code", *r.ServerImageProductCode)
-	}
-	if r.OsInformation != nil {
-		d.Set("os_information", *r.OsInformation)
-	}
-	if r.HypervisorType != nil {
-		d.Set("hypervisor_type", *r.HypervisorType)
-	}
+	d.SetId(ncloud.StringValue(r.BlockStorageSnapshotInstanceNo))
+	d.Set("block_storage_instance_no", ncloud.StringValue(r.BlockStorageInstanceNo))
+	d.Set("name", ncloud.StringValue(r.BlockStorageSnapshotName))
+	d.Set("description", ncloud.StringValue(r.Description))
+	d.Set("instance_no", ncloud.StringValue(r.BlockStorageSnapshotInstanceNo))
+	d.Set("volume_size", ncloud.Int64Value(r.BlockStorageSnapshotVolumeSize))
+	d.Set("instance_status", ncloud.StringValue(r.Status))
+	d.Set("instance_operation", ncloud.StringValue(r.Operation))
+	d.Set("instance_status_name", ncloud.StringValue(r.StatusName))
+	d.Set("original_block_storage_instance_no", ncloud.StringValue(r.OriginalBlockStorageInstanceNo))
+	d.Set("original_block_storage_name", ncloud.StringValue(r.OriginalBlockStorageName))
+	d.Set("server_image_product_code", ncloud.StringValue(r.ServerImageProductCode))
+	d.Set("os_information", ncloud.StringValue(r.OsInformation))
+	d.Set("hypervisor_type", ncloud.StringValue(r.HypervisorType))
 
 	return nil
 }
@@ -230,8 +226,8 @@ func createVpcBlockStorageSnapshot(d *schema.ResourceData, config *conn.Provider
 
 func waitForBlockStorageSnapshotCreation(config *conn.ProviderConfig, id string) error {
 	stateConf := &retry.StateChangeConf{
-		Pending: []string{"INIT"},
-		Target:  []string{"CREAT"},
+		Pending: []string{BlockStorageSnapshotStatusCodeInit},
+		Target:  []string{BlockStorageSnapshotStatusCodeCreate},
 		Refresh: func() (interface{}, string, error) {
 			resp, err := GetVpcBlockStorageSnapshotDetail(config, id)
 			if err != nil {
@@ -271,8 +267,8 @@ func createClassicBlockStorageSnapshot(d *schema.ResourceData, config *conn.Prov
 	blockStorageSnapshotInstanceNo := ncloud.StringValue(blockStorageSnapshotInstance.BlockStorageSnapshotInstanceNo)
 
 	stateConf := &retry.StateChangeConf{
-		Pending: []string{"INIT"},
-		Target:  []string{"CREAT"},
+		Pending: []string{BlockStorageSnapshotStatusCodeInit},
+		Target:  []string{BlockStorageSnapshotStatusCodeCreate},
 		Refresh: func() (interface{}, string, error) {
 			instance, err := GetClassicBlockStorageSnapshotInstance(config, blockStorageSnapshotInstanceNo)
 			if err != nil {
@@ -333,8 +329,8 @@ func GetClassicBlockStorageSnapshotInstance(config *conn.ProviderConfig, blockSt
 			Description:                    inst.BlockStorageSnapshotInstanceDescription,
 			BlockStorageSnapshotInstanceNo: inst.BlockStorageSnapshotInstanceNo,
 			BlockStorageSnapshotVolumeSize: inst.BlockStorageSnapshotVolumeSize,
-			Status:                         inst.BlockStorageSnapshotInstanceStatus.Code,
-			Operation:                      inst.BlockStorageSnapshotInstanceOperation.Code,
+			Status:                         common.GetCodePtrByCommonCode(inst.BlockStorageSnapshotInstanceStatus),
+			Operation:                      common.GetCodePtrByCommonCode(inst.BlockStorageSnapshotInstanceOperation),
 			StatusName:                     inst.BlockStorageSnapshotInstanceStatusName,
 			OriginalBlockStorageInstanceNo: inst.OriginalBlockStorageInstanceNo,
 			OriginalBlockStorageName:       inst.OriginalBlockStorageName,
@@ -371,8 +367,8 @@ func GetVpcBlockStorageSnapshotDetail(config *conn.ProviderConfig, blockStorageS
 			Description:                    inst.BlockStorageSnapshotDescription,
 			BlockStorageSnapshotInstanceNo: inst.BlockStorageSnapshotInstanceNo,
 			BlockStorageSnapshotVolumeSize: inst.BlockStorageSnapshotVolumeSize,
-			Status:                         inst.BlockStorageSnapshotInstanceStatus.Code,
-			Operation:                      inst.BlockStorageSnapshotInstanceOperation.Code,
+			Status:                         common.GetCodePtrByCommonCode(inst.BlockStorageSnapshotInstanceStatus),
+			Operation:                      common.GetCodePtrByCommonCode(inst.BlockStorageSnapshotInstanceOperation),
 			StatusName:                     inst.BlockStorageSnapshotInstanceStatusName,
 			HypervisorType:                 inst.HypervisorType.Code,
 		}
@@ -409,8 +405,8 @@ func deleteVpcBlockStorageSnapshot(config *conn.ProviderConfig, id string) error
 
 func waitForBlockStorageSnapshotDelete(config *conn.ProviderConfig, id string) error {
 	stateConf := &retry.StateChangeConf{
-		Pending: []string{"CREAT"},
-		Target:  []string{"TERMINATED"},
+		Pending: []string{BlockStorageSnapshotStatusCodeCreate},
+		Target:  []string{BlockStorageSnapshotStatusCodeTerminated},
 		Refresh: func() (interface{}, string, error) {
 			resp, err := GetVpcBlockStorageSnapshotDetail(config, id)
 			if err != nil {
@@ -418,7 +414,7 @@ func waitForBlockStorageSnapshotDelete(config *conn.ProviderConfig, id string) e
 			}
 
 			if resp == nil {
-				return resp, "TERMINATED", nil
+				return resp, BlockStorageSnapshotStatusCodeTerminated, nil
 			}
 
 			return resp, *resp.Status, nil
@@ -450,15 +446,15 @@ func deleteClassicBlockStorageSnapshot(config *conn.ProviderConfig, id string) e
 	LogResponse("DeleteBlockStorageSnapshotInstances", resp)
 
 	stateConf := &retry.StateChangeConf{
-		Pending: []string{"CREAT"},
-		Target:  []string{"TERMINATED"},
+		Pending: []string{BlockStorageSnapshotStatusCodeCreate},
+		Target:  []string{BlockStorageSnapshotStatusCodeTerminated},
 		Refresh: func() (interface{}, string, error) {
 			instance, err := GetClassicBlockStorageSnapshotInstance(config, id)
 			if err != nil {
 				return 0, "", err
 			}
 			if instance == nil { // Instance is terminated.
-				return instance, "TERMINATED", nil
+				return instance, BlockStorageSnapshotStatusCodeTerminated, nil
 			}
 			return instance, *instance.Status, nil
 		},

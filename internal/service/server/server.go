@@ -16,6 +16,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 
+	"github.com/terraform-providers/terraform-provider-ncloud/internal/common"
 	. "github.com/terraform-providers/terraform-provider-ncloud/internal/common"
 	"github.com/terraform-providers/terraform-provider-ncloud/internal/conn"
 	"github.com/terraform-providers/terraform-provider-ncloud/internal/service/vpc"
@@ -854,11 +855,11 @@ func convertClassicServerInstance(r *server.ServerInstance) *ServerInstance {
 		PortForwardingPublicIp:         r.PortForwardingPublicIp,
 		PortForwardingExternalPort:     r.PortForwardingExternalPort,
 		PortForwardingInternalPort:     r.PortForwardingInternalPort,
-		ServerInstanceStatus:           r.ServerInstanceStatus.Code,
-		PlatformType:                   r.PlatformType.Code,
-		ServerInstanceOperation:        r.ServerInstanceOperation.Code,
+		ServerInstanceStatus:           common.GetCodePtrByCommonCode(r.ServerInstanceStatus),
+		PlatformType:                   common.GetCodePtrByCommonCode(r.PlatformType),
+		ServerInstanceOperation:        common.GetCodePtrByCommonCode(r.ServerInstanceOperation),
 		Zone:                           r.Zone.ZoneCode,
-		BaseBlockStorageDiskType:       r.BaseBlockStorageDiskType.Code,
+		BaseBlockStorageDiskType:       common.GetCodePtrByCommonCode(r.BaseBlockStorageDiskType),
 		BaseBlockStorageDiskDetailType: flattenMapByKey(r.BaseBlockStorageDiskDetailType, "code"),
 		InstanceTagList:                r.InstanceTagList,
 	}
@@ -909,17 +910,17 @@ func convertVcpServerInstance(r *vserver.ServerInstance) *ServerInstance {
 		CpuCount:                       r.CpuCount,
 		MemorySize:                     r.MemorySize,
 		PublicIp:                       r.PublicIp,
-		ServerInstanceStatus:           r.ServerInstanceStatus.Code,
-		PlatformType:                   r.PlatformType.Code,
-		ServerInstanceOperation:        r.ServerInstanceOperation.Code,
+		ServerInstanceStatus:           common.GetCodePtrByCommonCode(r.ServerInstanceStatus),
+		PlatformType:                   common.GetCodePtrByCommonCode(r.PlatformType),
+		ServerInstanceOperation:        common.GetCodePtrByCommonCode(r.ServerInstanceOperation),
 		Zone:                           r.ZoneCode,
-		BaseBlockStorageDiskType:       r.BaseBlockStorageDiskType.Code,
+		BaseBlockStorageDiskType:       common.GetCodePtrByCommonCode(r.BaseBlockStorageDiskType),
 		BaseBlockStorageDiskDetailType: flattenMapByKey(r.BaseBlockStorageDiskDetailType, "code"),
 		VpcNo:                          r.VpcNo,
 		SubnetNo:                       r.SubnetNo,
 		InitScriptNo:                   r.InitScriptNo,
 		PlacementGroupNo:               r.PlacementGroupNo,
-		HypervisorType:                 r.HypervisorType.Code,
+		HypervisorType:                 common.GetCodePtrByCommonCode(r.HypervisorType),
 	}
 
 	for _, networkInterfaceNo := range r.NetworkInterfaceNoList {
@@ -1248,16 +1249,16 @@ func convertVpcBlockStorage(storage *vserver.BlockStorageInstance) *BlockStorage
 	return &BlockStorage{
 		BlockStorageInstanceNo:  storage.BlockStorageInstanceNo,
 		ServerInstanceNo:        storage.ServerInstanceNo,
-		BlockStorageType:        storage.BlockStorageType.Code,
+		BlockStorageType:        common.GetCodePtrByCommonCode(storage.BlockStorageType),
 		BlockStorageName:        storage.BlockStorageName,
 		BlockStorageSize:        storage.BlockStorageSize,
 		DeviceName:              storage.DeviceName,
 		BlockStorageProductCode: storage.BlockStorageProductCode,
-		Status:                  storage.BlockStorageInstanceStatus.Code,
+		Status:                  common.GetCodePtrByCommonCode(storage.BlockStorageInstanceStatus),
 		StatusName:              storage.BlockStorageInstanceStatusName,
 		Description:             storage.BlockStorageDescription,
-		DiskType:                storage.BlockStorageDiskType.Code,
-		DiskDetailType:          storage.BlockStorageDiskDetailType.Code,
+		DiskType:                common.GetCodePtrByCommonCode(storage.BlockStorageDiskType),
+		DiskDetailType:          common.GetCodePtrByCommonCode(storage.BlockStorageDiskDetailType),
 		ZoneCode:                storage.ZoneCode,
 	}
 }
@@ -1267,16 +1268,16 @@ func convertClassicBlockStorage(storage *server.BlockStorageInstance) *BlockStor
 		BlockStorageInstanceNo:  storage.BlockStorageInstanceNo,
 		ServerInstanceNo:        storage.ServerInstanceNo,
 		ServerName:              storage.ServerName,
-		BlockStorageType:        storage.BlockStorageType.Code,
+		BlockStorageType:        common.GetCodePtrByCommonCode(storage.BlockStorageType),
 		BlockStorageName:        storage.BlockStorageName,
 		BlockStorageSize:        storage.BlockStorageSize,
 		DeviceName:              storage.DeviceName,
 		BlockStorageProductCode: storage.BlockStorageProductCode,
-		Status:                  storage.BlockStorageInstanceStatus.Code,
-		Operation:               storage.BlockStorageInstanceOperation.Code,
+		Status:                  common.GetCodePtrByCommonCode(storage.BlockStorageInstanceStatus),
+		Operation:               common.GetCodePtrByCommonCode(storage.BlockStorageInstanceOperation),
 		Description:             storage.BlockStorageInstanceDescription,
-		DiskType:                storage.DiskType.Code,
-		DiskDetailType:          storage.DiskDetailType.Code,
+		DiskType:                common.GetCodePtrByCommonCode(storage.DiskType),
+		DiskDetailType:          common.GetCodePtrByCommonCode(storage.DiskDetailType),
 		ZoneCode:                storage.Zone.ZoneCode,
 	}
 }
