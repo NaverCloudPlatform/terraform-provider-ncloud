@@ -61,10 +61,19 @@ image_list = {
 ```
 
 ```terraform
-data "ncloud_server_image_numbers" "example" {
+data "ncloud_server_image_numbers" "example-xen" {
+  server_image_name = "rocky-8.10-base"
   filter {
-    name = "name"
-    values = ["rocky-8.10-base"]
+    name = "hypervisor_type"
+    values = ["XEN"]
+  }
+}
+
+data "ncloud_server_image_numbers" "example-kvm" {
+  server_image_name = "rocky-8.10-base"
+  filter {
+    name = "hypervisor_type"
+    values = ["KVM"]
   }
 }
 ```
@@ -73,6 +82,8 @@ data "ncloud_server_image_numbers" "example" {
 
 The following arguments are supported:
 
+* `server_image_name` - (Optional) Server image name.
+* `hypervisor_type` - (Optional) Server image hypervisor type. Options: `XEN` | `KVM`
 * `output_file` - (Optional) The name of file that can save data source after running `terraform plan`.
 * `filter` - (Optional) Custom filter block as described below.
   * `name` - (Required) The name of the field to filter by

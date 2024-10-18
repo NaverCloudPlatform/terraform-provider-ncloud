@@ -9,11 +9,38 @@ Provides a Block Storage resource.
 
 ## Example Usage
 
+#### Basic (Classic and VPC)
+
 ```terraform
 resource "ncloud_block_storage" "storage" {
-	server_instance_no = "812345"
-	name = "tf-test-storage1"
-	size = "10"
+  size = "10"
+  server_instance_no = "812345"
+  name = "tf-test-storage1"
+}
+```
+
+#### VPC XEN type 
+
+```terraform
+resource "ncloud_block_storage" "xen-storage" {
+  size = "10"
+  server_instance_no = "123456"
+  name = "tf-xen-storage"
+  hypervisor_type = "XEN"
+  volume_type = "SSD"
+}
+```
+
+#### VPC KVM type 
+
+```terraform
+resource "ncloud_block_storage" "kvm-storage" {
+  size = "10"
+  server_instance_no = "123456"
+  name = "tf-kvm-storage"
+  hypervisor_type = "KVM"
+  volume_type = "CB1"
+  zone = "KR-2"
 }
 ```
 
@@ -35,7 +62,7 @@ The following arguments are supported:
 * `snapshot_no` - (Optional) Create the block storage from the snapshots you take.
 * `hypervisor_type` - (Optional) Hypervisor type. Requied with `volume_type`. (`XEN` or `KVM`)
 * `volume_type` - (Optional) Decides the volume type of the block storage to be created. Required for KVM block storage. Conflicts with `disk_detail_type`. Required with `hypervisor_type`. Options : `XEN` type(` SSD` | `HDD`), `KVM`type(`FB1` | `CB1`)
-* `is_return_protection` - (Optional) Enable return protection. Default: `false`. Options: `true`| `false`
+* `return_protection` - (Optional) Enable return protection. Default: `false`. Options: `true`| `false`
 
 ## Attributes Reference
 
@@ -48,7 +75,7 @@ The following arguments are supported:
 * `status` - Block storage instance status code.
 * `disk_type` - Disk type code.
 * `max_iops` - Maximum IOPS.
-* `is_encrypted_volume` - Volume encryption status. (`true` or `false`)
+* `encrypted_volume` - Volume encryption status. (`true` or `false`)
 
 ## Import
 
