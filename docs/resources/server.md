@@ -97,7 +97,7 @@ resource "ncloud_server" "kvm-server" {
   subnet_no                 = ncloud_subnet.test.id
   name                      = "tf-kvm-server"
   server_image_number       = data.ncloud_server_image_numbers.kvm-image.image_number_list.0.server_image_number
-  server_spec_code          = data.ncloud_server_specs.kvm-spec.server_spec_list.0.server_sepc_code
+  server_spec_code          = data.ncloud_server_specs.kvm-spec.server_spec_list.0.server_spec_code
   login_key_name            = ncloud_login_key.loginkey.key_name
 }
 
@@ -120,7 +120,7 @@ resource "ncloud_server" "xen-server" {
   subnet_no                 = ncloud_subnet.test.id
   name                      = "tf-xen-server"
   server_image_number       = data.ncloud_server_image_numbers.xen-image.image_number_list.0.server_image_number
-  server_spec_code          = data.ncloud_server_specs.xen-spec.server_spec_list.0.server_sepc_code
+  server_spec_code          = data.ncloud_server_specs.xen-spec.server_spec_list.0.server_spec_code
   login_key_name            = ncloud_login_key.loginkey.key_name
 }
 ```

@@ -80,5 +80,5 @@ This data source exports the following attributes in addition to the arguments a
   * `network_performance` - Network performance(bps).
   * `network_interface_max_count` - Maximum number of network interfaces that can be allocated.
   * `gpu_count` - GPU count.
-  * `description` - Server sepc description.
+  * `description` - Server spec description.
   * `product_code` - The code of server product.
