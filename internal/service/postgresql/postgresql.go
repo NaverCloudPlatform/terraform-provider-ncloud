@@ -339,8 +339,9 @@ func (r *postgresqlResource) Schema(_ context.Context, _ resource.SchemaRequest,
 				},
 				Description: "default: SSD",
 			},
-			"engine_version": schema.StringAttribute{
+			"engine_version_code": schema.StringAttribute{
 				Computed: true,
+				Optional: true,
 				PlanModifiers: []planmodifier.String{
 					stringplanmodifier.UseStateForUnknown(),
 				},
@@ -453,6 +454,10 @@ func (r *postgresqlResource) Create(ctx context.Context, req resource.CreateRequ
 
 	if !plan.ImageProductCode.IsNull() {
 		reqParams.CloudPostgresqlImageProductCode = plan.ImageProductCode.ValueStringPointer()
+	}
+
+	if !plan.EngineVersionCode.IsNull() && !plan.EngineVersionCode.IsUnknown() {
+		reqParams.EngineVersionCode = plan.EngineVersionCode.ValueStringPointer()
 	}
 
 	if !plan.DataStorageTypeCode.IsNull() {
@@ -768,7 +773,7 @@ type postgresqlResourceModel struct {
 	Port                      types.Int64  `tfsdk:"port"`
 	ClientCidr                types.String `tfsdk:"client_cidr"`
 	DataStorageTypeCode       types.String `tfsdk:"data_storage_type_code"`
-	EngineVersion             types.String `tfsdk:"engine_version"`
+	EngineVersionCode         types.String `tfsdk:"engine_version_code"`
 	AccessControlGroupNoList  types.List   `tfsdk:"access_control_group_no_list"`
 	PostgresqlConfigList      types.List   `tfsdk:"postgresql_config_list"`
 	PostgresqlServerList      types.List   `tfsdk:"postgresql_server_list"`
@@ -815,6 +820,7 @@ func (r *postgresqlResourceModel) refreshFromOutput(ctx context.Context, output 
 	r.PostgresqlInstanceNo = types.StringPointerValue(output.CloudPostgresqlInstanceNo)
 	r.ServiceName = types.StringPointerValue(output.CloudPostgresqlServiceName)
 	r.ImageProductCode = types.StringPointerValue(output.CloudPostgresqlImageProductCode)
+	r.EngineVersionCode = types.StringPointerValue(output.EngineVersion)
 	r.VpcNo = types.StringPointerValue(output.CloudPostgresqlServerInstanceList[0].VpcNo)
 	r.SubnetNo = types.StringPointerValue(output.CloudPostgresqlServerInstanceList[0].SubnetNo)
 	r.IsMultiZone = types.BoolPointerValue(output.IsMultiZone)
@@ -824,7 +830,6 @@ func (r *postgresqlResourceModel) refreshFromOutput(ctx context.Context, output 
 	r.BackupTime = types.StringPointerValue(output.BackupTime)
 	r.BackupFileRetentionPeriod = common.Int64ValueFromInt32(output.BackupFileRetentionPeriod)
 	r.IsStorageEncryption = types.BoolPointerValue(output.CloudPostgresqlServerInstanceList[0].IsStorageEncryption)
-	r.EngineVersion = types.StringPointerValue(output.EngineVersion)
 
 	acgList, _ := types.ListValueFrom(ctx, types.StringType, output.AccessControlGroupNoList)
 	r.AccessControlGroupNoList = acgList

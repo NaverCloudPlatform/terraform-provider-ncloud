@@ -62,6 +62,9 @@ func (d *postgresqlImageProductsDataSource) Schema(ctx context.Context, req data
 						"generation_code": schema.StringAttribute{
 							Computed: true,
 						},
+						"engine_version_code": schema.StringAttribute{
+							Computed: true,
+						},
 					},
 				},
 				Computed: true,
@@ -181,31 +184,34 @@ type postgresqlImageProductsDataSourceModel struct {
 }
 
 type postgresqlImageProduct struct {
-	ProductCode    types.String `tfsdk:"product_code"`
-	ProductName    types.String `tfsdk:"product_name"`
-	ProductType    types.String `tfsdk:"product_type"`
-	PlatformType   types.String `tfsdk:"platform_type"`
-	OsInformation  types.String `tfsdk:"os_information"`
-	GenerationCode types.String `tfsdk:"generation_code"`
+	ProductCode       types.String `tfsdk:"product_code"`
+	ProductName       types.String `tfsdk:"product_name"`
+	ProductType       types.String `tfsdk:"product_type"`
+	PlatformType      types.String `tfsdk:"platform_type"`
+	OsInformation     types.String `tfsdk:"os_information"`
+	GenerationCode    types.String `tfsdk:"generation_code"`
+	EngineVersionCode types.String `tfsdk:"engine_version_code"`
 }
 
 type postgresqlImageProductToJsonConvert struct {
-	ProductCode    string `json:"product_code"`
-	ProductName    string `json:"product_name"`
-	ProductType    string `json:"product_type"`
-	PlatformType   string `json:"platform_type"`
-	OsInformation  string `json:"os_information"`
-	GenerationCode string `json:"generation_code"`
+	ProductCode       string `json:"product_code"`
+	ProductName       string `json:"product_name"`
+	ProductType       string `json:"product_type"`
+	PlatformType      string `json:"platform_type"`
+	OsInformation     string `json:"os_information"`
+	GenerationCode    string `json:"generation_code"`
+	EngineVersionCode string `json:"engine_version_code"`
 }
 
 func (d postgresqlImageProduct) attrTypes() map[string]attr.Type {
 	return map[string]attr.Type{
-		"product_code":    types.StringType,
-		"product_name":    types.StringType,
-		"product_type":    types.StringType,
-		"platform_type":   types.StringType,
-		"os_information":  types.StringType,
-		"generation_code": types.StringType,
+		"product_code":        types.StringType,
+		"product_name":        types.StringType,
+		"product_type":        types.StringType,
+		"platform_type":       types.StringType,
+		"os_information":      types.StringType,
+		"generation_code":     types.StringType,
+		"engine_version_code": types.StringType,
 	}
 }
 
@@ -216,4 +222,5 @@ func (d *postgresqlImageProduct) refreshFromOutput(output *vpostgresql.Product) 
 	d.PlatformType = types.StringPointerValue(output.PlatformType.Code)
 	d.OsInformation = types.StringPointerValue(output.OsInformation)
 	d.GenerationCode = types.StringPointerValue(output.GenerationCode)
+	d.EngineVersionCode = types.StringPointerValue(output.EngineVersionCode)
 }
