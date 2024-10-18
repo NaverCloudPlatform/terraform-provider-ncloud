@@ -1030,6 +1030,17 @@ func detachThenWaitServerInstance(config *conn.ProviderConfig, id string) error 
 				return 0, "", err
 			}
 
+			// FIXME: When deleting a server if user detach block storage what they attached by themself
+			//        and keep that block storage alive
+			// 1. during the server deletion process, block storage detached
+			// 2. attempt to detach from the server during the block storage in-place update process
+			// 2-1. but the server is already destroyed and detachThenWaitServerInstance() is called
+			//      by block storage to get serverInstance info, and the instance inquiry result is nil,
+			//      causing panic when access ServerInstance(nil) field.
+			if instance == nil {
+				return &server.ServerInstance{}, "NULL", nil
+			}
+
 			return instance, ncloud.StringValue(instance.ServerInstanceOperation), nil
 		},
 		Timeout:    conn.DefaultStopTimeout,
