@@ -50,6 +50,18 @@ func FlattenCommonCode(i interface{}) map[string]interface{} {
 	}
 }
 
+func GetCodePtrByCommonCode(i interface{}) *string {
+	if i == nil || !reflect.ValueOf(i).Elem().IsValid() {
+		return nil
+	}
+
+	if f := reflect.ValueOf(i).Elem().FieldByName("Code"); ValidField(f) {
+		return StringField(f)
+	}
+
+	return nil
+}
+
 func flattenAccessControlGroups(accessControlGroups []*server.AccessControlGroup) []string {
 	var s []string
 	for _, accessControlGroup := range accessControlGroups {

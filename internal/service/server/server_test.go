@@ -89,7 +89,7 @@ func TestAccResourceNcloudServer_vpc_basic(t *testing.T) {
 				Config: testAccServerVpcConfig(testServerName, productCode),
 				Check: resource.ComposeTestCheckFunc(testAccCheckServerExistsWithProvider("ncloud_server.server", &serverInstance, GetTestProvider(true)),
 					resource.TestMatchResourceAttr(resourceName, "id", regexp.MustCompile(`^\d+$`)),
-					resource.TestCheckResourceAttr(resourceName, "server_image_product_code", "SW.VSVR.OS.LNX64.CNTOS.0703.B050"),
+					resource.TestCheckResourceAttr(resourceName, "server_image_product_code", "SW.VSVR.OS.LNX64.ROCKY.0810.B050"),
 					resource.TestCheckResourceAttr(resourceName, "server_product_code", productCode),
 					resource.TestCheckResourceAttr(resourceName, "name", testServerName),
 					resource.TestCheckResourceAttr(resourceName, "description", ""),
@@ -122,7 +122,7 @@ func TestAccResourceNcloudServer_vpc_basic(t *testing.T) {
 	})
 }
 
-func TestAccResourceNcloudServerImageNumber_vpc_basic(t *testing.T) {
+func TestAccResourceNcloudServer_vpc_kvm(t *testing.T) {
 	var serverInstance serverservice.ServerInstance
 	testServerName := GetTestServerName()
 	resourceName := "ncloud_server.server"
@@ -178,7 +178,7 @@ func TestAccResourceNcloudServer_vpc_networkInterface(t *testing.T) {
 				Config: testAccServerVpcConfigNetworkInterface(testServerName, productCode),
 				Check: resource.ComposeTestCheckFunc(testAccCheckServerExistsWithProvider("ncloud_server.server", &serverInstance, GetTestProvider(true)),
 					resource.TestMatchResourceAttr(resourceName, "id", regexp.MustCompile(`^\d+$`)),
-					resource.TestCheckResourceAttr(resourceName, "server_image_product_code", "SW.VSVR.OS.LNX64.CNTOS.0703.B050"),
+					resource.TestCheckResourceAttr(resourceName, "server_image_product_code", "SW.VSVR.OS.LNX64.ROCKY.0810.B050"),
 					resource.TestCheckResourceAttr(resourceName, "server_product_code", productCode),
 					resource.TestCheckResourceAttr(resourceName, "name", testServerName),
 					resource.TestCheckResourceAttr(resourceName, "description", ""),
@@ -428,7 +428,7 @@ data "ncloud_server_image_numbers" "server_images" {
     filter {
         name = "name"
         values = ["ubuntu-22.04-base"]
-  }
+    }
 }
 
 resource "ncloud_server" "server" {
@@ -437,6 +437,7 @@ resource "ncloud_server" "server" {
 	server_image_number = data.ncloud_server_image_numbers.server_images.image_number_list.0.server_image_number
 	server_spec_code = "%[2]s"
 	login_key_name = ncloud_login_key.loginkey.key_name
+	delete_blockstorage_server_termination = true
 }
 `, testServerName, specCode)
 }
@@ -465,7 +466,7 @@ resource "ncloud_subnet" "test" {
 resource "ncloud_server" "server" {
 	subnet_no = ncloud_subnet.test.id
 	name = "%[1]s"
-	server_image_product_code = "SW.VSVR.OS.LNX64.CNTOS.0703.B050"
+	server_image_product_code = "SW.VSVR.OS.LNX64.ROCKY.0810.B050"
 	server_product_code = "%[2]s"
 	login_key_name = ncloud_login_key.loginkey.key_name
 }
@@ -518,7 +519,7 @@ resource "ncloud_network_interface" "eth1" {
 resource "ncloud_server" "server" {
 	subnet_no = ncloud_subnet.public_subnet.id
 	name = "%[1]s"
-	server_image_product_code = "SW.VSVR.OS.LNX64.CNTOS.0703.B050"
+	server_image_product_code = "SW.VSVR.OS.LNX64.ROCKY.0810.B050"
 	server_product_code = "%[2]s"
 	login_key_name = ncloud_login_key.loginkey.key_name
 	network_interface {
