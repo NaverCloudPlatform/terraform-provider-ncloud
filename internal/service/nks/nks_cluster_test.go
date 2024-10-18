@@ -77,6 +77,36 @@ func TestAccResourceNcloudNKSCluster_basic_XEN(t *testing.T) {
 	})
 }
 
+func TestAccResourceNcloudNKSCluster_basic_KVM(t *testing.T) {
+	validateAcctestEnvironment(t)
+
+	name := GetTestClusterName()
+
+	resourceName := "ncloud_nks_cluster.cluster"
+
+	nksInfo, err := getNKSTestInfo("KVM")
+	if err != nil {
+		t.Error(err)
+	}
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:                 func() { TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: ProtoV6ProviderFactories,
+		CheckDestroy:             testAccCheckNKSClusterDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccResourceNcloudNKSClusterDefaultConfig(name, TF_TEST_NKS_LOGIN_KEY, true, nksInfo),
+				Check:  testAccResourceNcloudNKSClusterDefaultConfigCheck(resourceName, name, nksInfo),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+		},
+	})
+}
+
 func TestAccResourceNcloudNKSCluster_public_network_XEN(t *testing.T) {
 	validateAcctestEnvironment(t)
 
@@ -101,6 +131,30 @@ func TestAccResourceNcloudNKSCluster_public_network_XEN(t *testing.T) {
 	})
 }
 
+func TestAccResourceNcloudNKSCluster_public_network_KVM(t *testing.T) {
+	validateAcctestEnvironment(t)
+
+	name := GetTestClusterName()
+	resourceName := "ncloud_nks_cluster.cluster"
+
+	nksInfo, err := getNKSTestInfo("KVM")
+	if err != nil {
+		t.Error(err)
+	}
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:                 func() { TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: ProtoV6ProviderFactories,
+		CheckDestroy:             testAccCheckNKSClusterDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccResourceNcloudNKSClusterPublicNetworkConfig(name, TF_TEST_NKS_LOGIN_KEY, nksInfo),
+				Check:  testAccResourceNcloudNKSClusterPublicNetworkConfigCheck(name, resourceName, nksInfo),
+			},
+		},
+	})
+}
+
 func TestAccResourceNcloudNKSCluster_Update_XEN(t *testing.T) {
 	validateAcctestEnvironment(t)
 
@@ -108,6 +162,36 @@ func TestAccResourceNcloudNKSCluster_Update_XEN(t *testing.T) {
 	resourceName := "ncloud_nks_cluster.cluster"
 
 	nksInfo, err := getNKSTestInfo("XEN")
+	if err != nil {
+		t.Error(err)
+	}
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:                 func() { TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: ProtoV6ProviderFactories,
+		CheckDestroy:             testAccCheckNKSClusterDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config:  testAccResourceNcloudNKSClusterDefaultConfig(name, TF_TEST_NKS_LOGIN_KEY, true, nksInfo),
+				Check:   testAccResourceNcloudNKSClusterDefaultConfigCheck(resourceName, name, nksInfo),
+				Destroy: false,
+			},
+			{
+				Config:  testAccResourceNcloudNKSClusterUpdateConfig(name, TF_TEST_NKS_LOGIN_KEY, false, nksInfo),
+				Check:   testAccResourceNcloudNKSClusterUpdateConfigCheck(resourceName, nksInfo),
+				Destroy: false,
+			},
+		},
+	})
+}
+
+func TestAccResourceNcloudNKSCluster_Update_KVM(t *testing.T) {
+	validateAcctestEnvironment(t)
+
+	name := fmt.Sprintf("m3-%s", GetTestClusterName())
+	resourceName := "ncloud_nks_cluster.cluster"
+
+	nksInfo, err := getNKSTestInfo("KVM")
 	if err != nil {
 		t.Error(err)
 	}
@@ -348,8 +432,8 @@ func getNKSTestInfo(hypervisor string) (*NKSTestInfo, error) {
 
 	nksInfo := &NKSTestInfo{
 		Region:            os.Getenv("NCLOUD_REGION"),
-		K8sVersion:        "1.26.10-nks.1",
-		UpgradeK8sVersion: "1.27.9-nks.1",
+		K8sVersion:        "1.27.9",
+		UpgradeK8sVersion: "1.27.9",
 		HypervisorCode:    hypervisor,
 	}
 	zoneCode := ncloud.String(fmt.Sprintf("%s-1", nksInfo.Region))
@@ -369,6 +453,8 @@ func getNKSTestInfo(hypervisor string) (*NKSTestInfo, error) {
 		default:
 			nksInfo.ClusterType = "SVR.VNKS.STAND.C002.M008.G003"
 		}
+		nksInfo.K8sVersion = fmt.Sprintf("%s-nks.2", nksInfo.K8sVersion)
+		nksInfo.UpgradeK8sVersion = fmt.Sprintf("%s-nks.2", nksInfo.UpgradeK8sVersion)
 	} else {
 		switch nksInfo.Region {
 		case "FKR":
@@ -376,6 +462,8 @@ func getNKSTestInfo(hypervisor string) (*NKSTestInfo, error) {
 		default:
 			nksInfo.ClusterType = "SVR.VNKS.STAND.C002.M008.NET.SSD.B050.G002"
 		}
+		nksInfo.K8sVersion = fmt.Sprintf("%s-nks.1", nksInfo.K8sVersion)
+		nksInfo.UpgradeK8sVersion = fmt.Sprintf("%s-nks.1", nksInfo.UpgradeK8sVersion)
 	}
 
 	vpcName := ncloud.String("tf-test-vpc")

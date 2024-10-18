@@ -12,10 +12,11 @@ Provides list of available Kubernetes Nodepool ServerImages.
 ```hcl
 data "ncloud_nks_server_images" "images" {}
 
-data "ncloud_nks_server_images" "ubuntu20" {
+data "ncloud_nks_server_images" "ubuntu22" {
+  hypervisor_code = "KVM"
   filter {
     name = "label"
-    values = ["ubuntu-20.04"]
+    values = ["ubuntu-22.04"]
     regex = true
   }
 }
