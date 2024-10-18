@@ -96,7 +96,6 @@ resource "ncloud_server" "test" {
 	server_image_number = data.ncloud_server_image_numbers.server_images.image_number_list.0.server_image_number
 	server_spec_code = "s2-g3"
 	login_key_name = ncloud_login_key.loginkey.key_name
-	delete_blockstorage_server_termination = true
 }
 
 resource "ncloud_server" "test2" {
@@ -105,7 +104,6 @@ resource "ncloud_server" "test2" {
 	server_image_number = data.ncloud_server_image_numbers.server_images.image_number_list.0.server_image_number
 	server_spec_code = "s2-g3"
 	login_key_name = ncloud_login_key.loginkey.key_name
-	delete_blockstorage_server_termination = true
 }
 
 data "ncloud_servers" "by_id" {
