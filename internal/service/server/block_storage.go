@@ -119,7 +119,7 @@ func ResourceNcloudBlockStorage() *schema.Resource {
 				Optional: true,
 				Default:  false,
 			},
-			"is_return_protection": {
+			"return_protection": {
 				Type:     schema.TypeBool,
 				Optional: true,
 				Computed: true,
@@ -156,7 +156,7 @@ func ResourceNcloudBlockStorage() *schema.Resource {
 				Type:     schema.TypeInt,
 				Computed: true,
 			},
-			"is_encrypted_volume": {
+			"encrypted_volume": {
 				Type:     schema.TypeBool,
 				Computed: true,
 			},
@@ -291,9 +291,9 @@ func resourceNcloudBlockStorageUpdate(d *schema.ResourceData, meta interface{}) 
 		}
 	}
 
-	if d.HasChange("is_return_protection") {
+	if d.HasChange("return_protection") {
 		if !config.SupportVPC {
-			return fmt.Errorf("`is_return_protection` only available in VPC environments")
+			return fmt.Errorf("`return_protection` only available in VPC environments")
 		}
 
 		if err := changeVpcBlockStorageReturnProtection(d, config); err != nil {
@@ -357,7 +357,7 @@ func createVpcBlockStorage(d *schema.ResourceData, config *conn.ProviderConfig) 
 		BlockStorageSnapshotInstanceNo: StringPtrOrNil(d.GetOk("snapshot_no")),
 		BlockStorageVolumeTypeCode:     StringPtrOrNil(d.GetOk("volume_type")),
 		ZoneCode:                       StringPtrOrNil(d.GetOk("zone")),
-		IsReturnProtection:             BoolPtrOrNil(d.GetOk("is_return_protection")),
+		IsReturnProtection:             BoolPtrOrNil(d.GetOk("return_protection")),
 	}
 
 	hypervisorType := d.Get("hypervisor_type").(string)
@@ -511,8 +511,8 @@ func getVpcBlockStorage(config *conn.ProviderConfig, id string) (*BlockStorage, 
 			DiskDetailType:          inst.BlockStorageDiskDetailType.Code,
 			ZoneCode:                inst.ZoneCode,
 			MaxIops:                 inst.MaxIopsThroughput,
-			IsEncryptedVolume:       inst.IsEncryptedVolume,
-			IsReturnProtection:      inst.IsReturnProtection,
+			EncryptedVolume:         inst.IsEncryptedVolume,
+			ReturnProtection:        inst.IsReturnProtection,
 			VolumeType:              inst.BlockStorageVolumeType.Code,
 			HypervisorType:          inst.HypervisorType.Code,
 		}
@@ -888,7 +888,7 @@ func changeVpcBlockStorageReturnProtection(d *schema.ResourceData, config *conn.
 	reqParams := &vserver.SetBlockStorageReturnProtectionRequest{
 		RegionCode:             &config.RegionCode,
 		BlockStorageInstanceNo: ncloud.String(d.Id()),
-		IsReturnProtection:     ncloud.Bool(d.Get("is_return_protection").(bool)),
+		IsReturnProtection:     ncloud.Bool(d.Get("return_protection").(bool)),
 	}
 
 	LogCommonRequest("changeVpcBlockStorageReturnProtection", reqParams)
@@ -920,8 +920,8 @@ type BlockStorage struct {
 	DiskDetailType          *string `json:"disk_detail_type,omitempty"`
 	ZoneCode                *string `json:"zone,omitempty"`
 	MaxIops                 *int32  `json:"max_iops,omitempty"`
-	IsEncryptedVolume       *bool   `json:"is_encrypted_volume,omitempty"`
-	IsReturnProtection      *bool   `json:"is_return_protection,omitempty"`
+	EncryptedVolume         *bool   `json:"encrypted_volume,omitempty"`
+	ReturnProtection        *bool   `json:"return_protection,omitempty"`
 	VolumeType              *string `json:"volume_type,omitempty"`
 	HypervisorType          *string `json:"hypervisor_type,omitempty"`
 }

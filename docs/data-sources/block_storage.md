@@ -27,7 +27,7 @@ The following arguments are supported:
   * `name` - (Required) The name of the field to filter by.
   * `values` - (Required) Set of values that are accepted for the given field.
   * `regex` - (Optional) is `values` treated as a regular expression.
-  
+ 
 ## Attributes Reference
 
 * `block_storage_no` - The ID of Block Storage. (It is the same result as `id`)
@@ -50,7 +50,7 @@ The following arguments are supported:
 ~> **NOTE:** Arguments below only support VPC environment.
 
 * `max_iops` - Maximum IOPS.
-* `is_encrypted_volume` - Volume encryption status. (`true` or `false`)
-* `is_return_protection` - Enable return protection. (`true` or `false`)
+* `encrypted_volume` - Volume encryption status. (`true` or `false`)
+* `return_protection` - Enable return protection. (`true` or `false`)
 * `hypervisor_type` - Hypervisor type. (`XEN` or `KVM`)
 * `volume_type` - Volume type of the block storage. `XEN` type(` SSD` | `HDD`), `KVM`type(`FB1` | `CB1`)

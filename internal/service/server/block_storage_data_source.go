@@ -148,8 +148,8 @@ func getVpcBlockStorageList(d *schema.ResourceData, config *conn.ProviderConfig)
 			DiskDetailType:          r.BlockStorageDiskDetailType.Code,
 			ZoneCode:                r.ZoneCode,
 			MaxIops:                 r.MaxIopsThroughput,
-			IsEncryptedVolume:       r.IsEncryptedVolume,
-			IsReturnProtection:      r.IsReturnProtection,
+			EncryptedVolume:         r.IsEncryptedVolume,
+			ReturnProtection:        r.IsReturnProtection,
 			VolumeType:              r.BlockStorageVolumeType.Code,
 			HypervisorType:          r.HypervisorType.Code,
 		}

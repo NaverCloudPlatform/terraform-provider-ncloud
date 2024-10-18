@@ -94,7 +94,7 @@ func ResourceNcloudServer() *schema.Resource {
 				Optional: true,
 				Computed: true,
 			},
-			"is_delete_blockstorage_server_termination": {
+			"delete_blockstorage_server_termination": {
 				Type:     schema.TypeBool,
 				Optional: true,
 				Default:  false,
@@ -347,7 +347,7 @@ func resourceNcloudServerDelete(d *schema.ResourceData, meta interface{}) error 
 				return err
 			}
 
-			if d.Get("is_delete_blockstorage_server_termination").(bool) {
+			if d.Get("delete_blockstorage_server_termination").(bool) {
 				log.Printf("[INFO] Delete BlockStorage %s", *blockStorage.BlockStorageInstanceNo)
 				if err := deleteBlockStorage(d, config, *blockStorage.BlockStorageInstanceNo); err != nil {
 					return err

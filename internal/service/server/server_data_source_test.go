@@ -121,7 +121,7 @@ resource "ncloud_server" "server" {
 	server_image_number = data.ncloud_server_image_numbers.server_images.image_number_list.0.server_image_number
 	server_spec_code = "%[2]s"
 	login_key_name = ncloud_login_key.loginkey.key_name
-	is_delete_blockstorage_server_termination = true
+	delete_blockstorage_server_termination = true
 }
 
 data "ncloud_server" "by_id" {
