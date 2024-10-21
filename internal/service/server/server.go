@@ -321,6 +321,11 @@ func resourceNcloudServerDelete(d *schema.ResourceData, meta interface{}) error 
 		return err
 	}
 
+	if serverInstance == nil {
+		d.SetId("")
+		return nil
+	}
+
 	if ncloud.StringValue(serverInstance.ServerInstanceStatus) != "NSTOP" {
 		log.Printf("[INFO] Stopping Instance %q for terminate", d.Id())
 		if err := stopThenWaitServerInstance(config, d.Id()); err != nil {
@@ -557,6 +562,11 @@ func waitStateNcloudServerForCreation(config *conn.ProviderConfig, id string) er
 			if err != nil {
 				return 0, "", err
 			}
+
+			if instance == nil {
+				return 0, "", fmt.Errorf("GetServerInstance is nil")
+			}
+
 			return instance, ncloud.StringValue(instance.ServerInstanceStatus), nil
 		},
 		Timeout:    conn.DefaultCreateTimeout,
@@ -576,6 +586,10 @@ func updateServerInstanceSpec(d *schema.ResourceData, config *conn.ProviderConfi
 	serverInstance, err := GetServerInstance(config, d.Id())
 	if err != nil {
 		return err
+	}
+
+	if serverInstance == nil {
+		return fmt.Errorf("GetServerInstance is nil")
 	}
 
 	log.Printf("[INFO] Stopping Instance %q for server_product_code change", d.Id())
@@ -617,6 +631,10 @@ func changeServerInstanceSpec(d *schema.ResourceData, config *conn.ProviderConfi
 
 			if err != nil {
 				return 0, "", err
+			}
+
+			if instance == nil {
+				return 0, "", fmt.Errorf("GetServerInstance is nil")
 			}
 
 			return instance, ncloud.StringValue(instance.ServerInstanceOperation), nil
@@ -737,6 +755,10 @@ func startThenWaitServerInstance(config *conn.ProviderConfig, id string) error {
 			instance, err := GetServerInstance(config, id)
 			if err != nil {
 				return 0, "", err
+			}
+
+			if instance == nil {
+				return 0, "", fmt.Errorf("GetServerInstance is nil")
 			}
 
 			return instance, ncloud.StringValue(instance.ServerInstanceStatus), nil
@@ -962,6 +984,10 @@ func stopThenWaitServerInstance(config *conn.ProviderConfig, id string) error {
 				return 0, "", err
 			}
 
+			if instance == nil {
+				return &server.ServerInstance{}, "NULL", nil
+			}
+
 			return instance, ncloud.StringValue(instance.ServerInstanceOperation), nil
 		},
 		Timeout:    conn.DefaultStopTimeout,
@@ -991,6 +1017,10 @@ func stopThenWaitServerInstance(config *conn.ProviderConfig, id string) error {
 			instance, err := GetServerInstance(config, id)
 			if err != nil {
 				return 0, "", err
+			}
+
+			if instance == nil {
+				return &server.ServerInstance{}, "NULL", nil
 			}
 
 			return instance, ncloud.StringValue(instance.ServerInstanceStatus), nil

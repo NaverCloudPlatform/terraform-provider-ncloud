@@ -274,6 +274,10 @@ func createClassicBlockStorageSnapshot(d *schema.ResourceData, config *conn.Prov
 			if err != nil {
 				return 0, "", err
 			}
+
+			if instance == nil {
+				return 0, "", fmt.Errorf("GetClassicBlockStorageSnapshotInstance is nil")
+			}
 			return instance, *instance.Status, nil
 		},
 		Timeout:    conn.DefaultCreateTimeout,
