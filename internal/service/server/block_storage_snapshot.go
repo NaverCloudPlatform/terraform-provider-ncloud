@@ -235,7 +235,7 @@ func waitForBlockStorageSnapshotCreation(config *conn.ProviderConfig, id string)
 			}
 
 			if resp == nil {
-				return 0, "", fmt.Errorf("GetVpcBlockStorageSnapshotDetail is nil")
+				return 0, "", fmt.Errorf("fail to get VPC BlockStorageSnapshot instance, %s doesn't exist", id)
 			}
 
 			return resp, *resp.Status, nil
@@ -273,6 +273,10 @@ func createClassicBlockStorageSnapshot(d *schema.ResourceData, config *conn.Prov
 			instance, err := GetClassicBlockStorageSnapshotInstance(config, blockStorageSnapshotInstanceNo)
 			if err != nil {
 				return 0, "", err
+			}
+
+			if instance == nil {
+				return 0, "", fmt.Errorf("fail to get Classic BlockStorageSnapshot instance, %s doesn't exist", blockStorageSnapshotInstanceNo)
 			}
 			return instance, *instance.Status, nil
 		},

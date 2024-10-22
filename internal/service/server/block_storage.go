@@ -668,6 +668,10 @@ func waitForBlockStorageDetachment(config *conn.ProviderConfig, id string) error
 			if err != nil {
 				return 0, "", err
 			}
+
+			if instance == nil {
+				return 0, "", fmt.Errorf("fail to get BlockStorage instance, %s doesn't exist", id)
+			}
 			return instance, ncloud.StringValue(instance.Status), nil
 		},
 		Timeout:    conn.DefaultUpdateTimeout,
@@ -750,7 +754,7 @@ func waitForBlockStorageCreation(config *conn.ProviderConfig, id string) (*Block
 			}
 
 			if resp == nil {
-				return 0, "", fmt.Errorf("GetBlockStorage is nil")
+				return 0, "", fmt.Errorf("fail to get BlockStorage instance, %s doesn't exist", id)
 			}
 			blockStorageInstance = resp
 
@@ -776,6 +780,10 @@ func waitForBlockStorageAttachment(config *conn.ProviderConfig, id string) error
 			instance, err := GetBlockStorage(config, id)
 			if err != nil {
 				return 0, "", err
+			}
+
+			if instance == nil {
+				return 0, "", fmt.Errorf("fail to get BlockStorage instance, %s doesn't exist", id)
 			}
 			return instance, ncloud.StringValue(instance.Status), nil
 		},
@@ -876,6 +884,10 @@ func waitForBlockStorageOperationIsNull(config *conn.ProviderConfig, id string) 
 			instance, err := GetBlockStorage(config, id)
 			if err != nil {
 				return 0, "", err
+			}
+
+			if instance == nil {
+				return 0, "", fmt.Errorf("fail to get BlockStorage instance, %s doesn't exist", id)
 			}
 			return instance, ncloud.StringValue(instance.Operation), nil
 		},
