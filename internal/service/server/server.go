@@ -564,7 +564,7 @@ func waitStateNcloudServerForCreation(config *conn.ProviderConfig, id string) er
 			}
 
 			if instance == nil {
-				return 0, "", fmt.Errorf("GetServerInstance is nil")
+				return 0, "", fmt.Errorf("fail to get Server instance, %s doesn't exist", id)
 			}
 
 			return instance, ncloud.StringValue(instance.ServerInstanceStatus), nil
@@ -589,7 +589,7 @@ func updateServerInstanceSpec(d *schema.ResourceData, config *conn.ProviderConfi
 	}
 
 	if serverInstance == nil {
-		return fmt.Errorf("GetServerInstance is nil")
+		return fmt.Errorf("fail to get Server instance, %s doesn't exist", d.Id())
 	}
 
 	log.Printf("[INFO] Stopping Instance %q for server_product_code change", d.Id())
@@ -634,7 +634,7 @@ func changeServerInstanceSpec(d *schema.ResourceData, config *conn.ProviderConfi
 			}
 
 			if instance == nil {
-				return 0, "", fmt.Errorf("GetServerInstance is nil")
+				return 0, "", fmt.Errorf("fail to get Server instance, %s doesn't exist", d.Id())
 			}
 
 			return instance, ncloud.StringValue(instance.ServerInstanceOperation), nil
@@ -758,7 +758,7 @@ func startThenWaitServerInstance(config *conn.ProviderConfig, id string) error {
 			}
 
 			if instance == nil {
-				return 0, "", fmt.Errorf("GetServerInstance is nil")
+				return 0, "", fmt.Errorf("fail to get Server instance, %s doesn't exist", id)
 			}
 
 			return instance, ncloud.StringValue(instance.ServerInstanceStatus), nil
@@ -1355,7 +1355,7 @@ func waitForDisconnectBlockStorage(config *conn.ProviderConfig, no string) error
 			}
 
 			if resp == nil {
-				return 0, "", fmt.Errorf("GetBlockStorage is nil")
+				return 0, "", fmt.Errorf("fail to get BlockStorage instance, %s doesn't exist", no)
 			}
 
 			if *resp.StatusName == BlockStorageStatusNameAttach {
@@ -1389,7 +1389,7 @@ func waitForAttachedBlockStorage(config *conn.ProviderConfig, no string) error {
 			}
 
 			if resp == nil {
-				return 0, "", fmt.Errorf("GetBlockStorage is nil")
+				return 0, "", fmt.Errorf("fail to get BlockStorage instance, %s doesn't exist", no)
 			}
 
 			if *resp.StatusName == BlockStorageStatusNameInit {
