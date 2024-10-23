@@ -19,6 +19,8 @@ func TestAccResourceNcloudMongoDbUsers_vpc_basic(t *testing.T) {
 	testName := fmt.Sprintf("tf-monuser-%s", acctest.RandString(3))
 	resourceName := "ncloud_mongodb_users.mongodb_users"
 	dbResourceName := "ncloud_mongodb.mongodb"
+	testUserBefore := "testuser"
+	testUserAfter := "user"
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { TestAccPreCheck(t) },
@@ -26,7 +28,7 @@ func TestAccResourceNcloudMongoDbUsers_vpc_basic(t *testing.T) {
 		CheckDestroy:             testAccCheckMongoDbDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccMongoDbUsersConfig(testName),
+				Config: testAccMongoDbUsersConfig(testName, testUserBefore),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr(resourceName, "mongodb_user_list.0.name", "testuser1"),
 					resource.TestCheckResourceAttr(resourceName, "mongodb_user_list.0.database_name", "testdb1"),
@@ -34,6 +36,13 @@ func TestAccResourceNcloudMongoDbUsers_vpc_basic(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "mongodb_user_list.1.name", "testuser2"),
 					resource.TestCheckResourceAttr(resourceName, "mongodb_user_list.1.database_name", "testdb2"),
 					resource.TestCheckResourceAttr(resourceName, "mongodb_user_list.1.authority", "READ_WRITE"),
+				),
+			},
+			{
+				Config: testAccMongoDbUsersConfig(testName, testUserAfter),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr(resourceName, "mongodb_user_list.0.name", "user1"),
+					resource.TestCheckResourceAttr(resourceName, "mongodb_user_list.1.name", "user2"),
 				),
 				Destroy: false,
 			},
@@ -47,19 +56,25 @@ func TestAccResourceNcloudMongoDbUsers_vpc_basic(t *testing.T) {
 	})
 }
 
-func testAccMongoDbUsersConfig(testMongodbName string) string {
+func testAccMongoDbUsersConfig(testMongodbName, testUserName string) string {
 	return fmt.Sprintf(`
-data "ncloud_vpc" "test_vpc" {
-	id = "75658"
+resource "ncloud_vpc" "test_vpc" {
+	name               = "%[1]s"
+	ipv4_cidr_block    = "10.5.0.0/16"
 }
 
-data "ncloud_subnet" "test_subnet" {
-	id = "172709"
+resource "ncloud_subnet" "test_subnet" {
+	vpc_no             = ncloud_vpc.test_vpc.vpc_no
+	name               = "%[1]s"
+	subnet             = "10.5.0.0/24"
+	zone               = "KR-2"
+	network_acl_no     = ncloud_vpc.test_vpc.default_network_acl_no
+	subnet_type        = "PUBLIC"
 }
 
 resource "ncloud_mongodb" "mongodb" {
-	vpc_no = data.ncloud_vpc.test_vpc.vpc_no
-	subnet_no = data.ncloud_subnet.test_subnet.id
+	vpc_no = ncloud_vpc.test_vpc.vpc_no
+	subnet_no = ncloud_subnet.test_subnet.id
 	service_name = "%[1]s"
     server_name_prefix = "ex-svr"
 	cluster_type_code = "STAND_ALONE"
@@ -71,35 +86,41 @@ resource "ncloud_mongodb_users" "mongodb_users" {
 	mongodb_instance_no = ncloud_mongodb.mongodb.id
 	mongodb_user_list = [
 		{
-			name = "testuser1",
+			name = "%[2]s1",
 			password = "t123456789!",
 			database_name = "testdb1",
 			authority = "READ"
 		},
 		{
-			name = "testuser2",
+			name = "%[2]s2",
 			password = "t123456789!",
 			database_name = "testdb2",
 			authority = "READ_WRITE"
 		}
 	]
 }
-`, testMongodbName)
+`, testMongodbName, testUserName)
 }
 
 func testAccMongoDbUsersRemoveConfig(testName string) string {
 	return fmt.Sprintf(`
-data "ncloud_vpc" "test_vpc" {
-	id = "75658"
+resource "ncloud_vpc" "test_vpc" {
+	name               = "%[1]s"
+	ipv4_cidr_block    = "10.5.0.0/16"
 }
 
-data "ncloud_subnet" "test_subnet" {
-	id = "172709"
+resource "ncloud_subnet" "test_subnet" {
+	vpc_no             = ncloud_vpc.test_vpc.vpc_no
+	name               = "%[1]s"
+	subnet             = "10.5.0.0/24"
+	zone               = "KR-2"
+	network_acl_no     = ncloud_vpc.test_vpc.default_network_acl_no
+	subnet_type        = "PUBLIC"
 }
 
 resource "ncloud_mongodb" "mongodb" {
-	vpc_no = data.ncloud_vpc.test_vpc.vpc_no
-	subnet_no = data.ncloud_subnet.test_subnet.id
+	vpc_no = ncloud_vpc.test_vpc.vpc_no
+	subnet_no = ncloud_subnet.test_subnet.id
 	service_name = "%[1]s"
     server_name_prefix = "ex-svr"
 	cluster_type_code = "STAND_ALONE"
