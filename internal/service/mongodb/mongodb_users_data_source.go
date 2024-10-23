@@ -11,6 +11,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
+	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -141,15 +142,20 @@ func (d *mongodbUsersDataSource) Read(ctx context.Context, req datasource.ReadRe
 
 	mongodbUserList := flattenMongodbUsers(output)
 	fillteredList := common.FilterModels(ctx, data.Filters, mongodbUserList)
-	data.refreshFromOutput(ctx, fillteredList, data.MongodbInstanceNo.ValueString())
+	if diags := data.refreshFromOutput(ctx, fillteredList, data.MongodbInstanceNo.ValueString()); diags.HasError() {
+		resp.Diagnostics.AddError("READING ERROR", "refreshFromOutput error")
+		return
+	}
 
 	if !data.OutputFile.IsNull() && data.OutputFile.String() != "" {
 		outputPath := data.OutputFile.ValueString()
 
 		if convertedList, err := convertUsersToJsonStruct(data.MongodbUserList.Elements()); err != nil {
 			resp.Diagnostics.AddError("OUTPUT FILE ERROR", err.Error())
+			return
 		} else if err := common.WriteToFile(outputPath, convertedList); err != nil {
 			resp.Diagnostics.AddError("OUTPUT FILE ERROR", err.Error())
+			return
 		}
 	}
 
@@ -234,11 +240,16 @@ func flattenMongodbUsers(list []*vmongodb.CloudMongoDbUser) []*mongodbUser {
 	return outputs
 }
 
-func (d *mongodbUsersDataSourceModel) refreshFromOutput(ctx context.Context, output []*mongodbUser, instance string) {
+func (d *mongodbUsersDataSourceModel) refreshFromOutput(ctx context.Context, output []*mongodbUser, instance string) diag.Diagnostics {
 	d.ID = types.StringValue(instance)
 	d.MongodbInstanceNo = types.StringValue(instance)
-	userListValue, _ := types.ListValueFrom(ctx, types.ObjectType{AttrTypes: mongodbUser{}.attrTypes()}, output)
+	userListValue, diags := types.ListValueFrom(ctx, types.ObjectType{AttrTypes: mongodbUser{}.attrTypes()}, output)
+	if diags.HasError() {
+		return diags
+	}
 	d.MongodbUserList = userListValue
+
+	return nil
 }
 
 func (d *mongodbUser) refreshFromOutput(output *vmongodb.CloudMongoDbUser) {
