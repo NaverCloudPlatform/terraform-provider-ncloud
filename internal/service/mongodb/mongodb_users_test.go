@@ -15,7 +15,7 @@ import (
 	mongodbservice "github.com/terraform-providers/terraform-provider-ncloud/internal/service/mongodb"
 )
 
-func TestAccResourceNcloudMongoDbUsers_vpc_basic(t *testing.T) {
+func TestAccResourceNcloudMongoDbUsers_vpc_update(t *testing.T) {
 	testName := fmt.Sprintf("tf-monuser-%s", acctest.RandString(3))
 	resourceName := "ncloud_mongodb_users.mongodb_users"
 	dbResourceName := "ncloud_mongodb.mongodb"

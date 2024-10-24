@@ -11,7 +11,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
-	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -142,10 +141,7 @@ func (d *mongodbUsersDataSource) Read(ctx context.Context, req datasource.ReadRe
 
 	mongodbUserList := flattenMongodbUsers(output)
 	fillteredList := common.FilterModels(ctx, data.Filters, mongodbUserList)
-	if diags := data.refreshFromOutput(ctx, fillteredList, data.MongodbInstanceNo.ValueString()); diags.HasError() {
-		resp.Diagnostics.AddError("READING ERROR", "refreshFromOutput error")
-		return
-	}
+	data.refreshFromOutput(ctx, fillteredList, data.MongodbInstanceNo.ValueString())
 
 	if !data.OutputFile.IsNull() && data.OutputFile.String() != "" {
 		outputPath := data.OutputFile.ValueString()
@@ -240,16 +236,11 @@ func flattenMongodbUsers(list []*vmongodb.CloudMongoDbUser) []*mongodbUser {
 	return outputs
 }
 
-func (d *mongodbUsersDataSourceModel) refreshFromOutput(ctx context.Context, output []*mongodbUser, instance string) diag.Diagnostics {
+func (d *mongodbUsersDataSourceModel) refreshFromOutput(ctx context.Context, output []*mongodbUser, instance string) {
 	d.ID = types.StringValue(instance)
 	d.MongodbInstanceNo = types.StringValue(instance)
-	userListValue, diags := types.ListValueFrom(ctx, types.ObjectType{AttrTypes: mongodbUser{}.attrTypes()}, output)
-	if diags.HasError() {
-		return diags
-	}
+	userListValue, _ := types.ListValueFrom(ctx, types.ObjectType{AttrTypes: mongodbUser{}.attrTypes()}, output)
 	d.MongodbUserList = userListValue
-
-	return nil
 }
 
 func (d *mongodbUser) refreshFromOutput(output *vmongodb.CloudMongoDbUser) {
