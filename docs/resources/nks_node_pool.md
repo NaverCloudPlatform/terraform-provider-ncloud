@@ -129,6 +129,7 @@ The following arguments are supported:
 * `server_spec_code` - (Optional) Server spec code. (Required for `KVM` cluster nodepool)
 * `storage_size` - (Optional) Default storage size for `KVM` nodepool. (Default `100GB`)
 * `software_code` - (Optional) Server image code.
+* `server_role_id` - (Optional) SubAccount Server Role ID.
 * `autoscale`- (Optional) 
   * `enable` - (Required) Auto scaling availability.
   * `max` - (Required) Maximum number of nodes available for auto scaling.
