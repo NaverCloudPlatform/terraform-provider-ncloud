@@ -24,6 +24,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework-validators/int64validator"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/attr"
+	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
@@ -589,7 +590,15 @@ func (r *postgresqlResource) Create(ctx context.Context, req resource.CreateRequ
 		return
 	}
 
-	plan.refreshFromOutput(ctx, output)
+	if output == nil {
+		resp.State.RemoveResource(ctx)
+		return
+	}
+
+	if diags := plan.refreshFromOutput(ctx, output); diags.HasError() {
+		resp.Diagnostics.AddError("READING ERROR", "refreshFromOutput error")
+		return
+	}
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, plan)...)
 }
@@ -613,7 +622,10 @@ func (r *postgresqlResource) Read(ctx context.Context, req resource.ReadRequest,
 		return
 	}
 
-	state.refreshFromOutput(ctx, output)
+	if diags := state.refreshFromOutput(ctx, output); diags.HasError() {
+		resp.Diagnostics.AddError("READING ERROR", "refreshFromOutput error")
+		return
+	}
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &state)...)
 	if resp.Diagnostics.HasError() {
@@ -815,7 +827,7 @@ func (r postgresqlServer) attrTypes() map[string]attr.Type {
 	}
 }
 
-func (r *postgresqlResourceModel) refreshFromOutput(ctx context.Context, output *vpostgresql.CloudPostgresqlInstance) {
+func (r *postgresqlResourceModel) refreshFromOutput(ctx context.Context, output *vpostgresql.CloudPostgresqlInstance) diag.Diagnostics {
 	r.ID = types.StringPointerValue(output.CloudPostgresqlInstanceNo)
 	r.PostgresqlInstanceNo = types.StringPointerValue(output.CloudPostgresqlInstanceNo)
 	r.ServiceName = types.StringPointerValue(output.CloudPostgresqlServiceName)
@@ -831,9 +843,15 @@ func (r *postgresqlResourceModel) refreshFromOutput(ctx context.Context, output 
 	r.BackupFileRetentionPeriod = common.Int64ValueFromInt32(output.BackupFileRetentionPeriod)
 	r.IsStorageEncryption = types.BoolPointerValue(output.CloudPostgresqlServerInstanceList[0].IsStorageEncryption)
 
-	acgList, _ := types.ListValueFrom(ctx, types.StringType, output.AccessControlGroupNoList)
+	acgList, diags := types.ListValueFrom(ctx, types.StringType, output.AccessControlGroupNoList)
+	if diags.HasError() {
+		return diags
+	}
 	r.AccessControlGroupNoList = acgList
-	configList, _ := types.ListValueFrom(ctx, types.StringType, output.CloudPostgresqlConfigList)
+	configList, diags := types.ListValueFrom(ctx, types.StringType, output.CloudPostgresqlConfigList)
+	if diags.HasError() {
+		return diags
+	}
 	r.PostgresqlConfigList = configList
 
 	var serverList []postgresqlServer
@@ -863,7 +881,12 @@ func (r *postgresqlResourceModel) refreshFromOutput(ctx context.Context, output 
 		serverList = append(serverList, postgresqlServerInstance)
 	}
 
-	postgresqlServers, _ := types.ListValueFrom(ctx, types.ObjectType{AttrTypes: postgresqlServer{}.attrTypes()}, serverList)
+	postgresqlServers, diags := types.ListValueFrom(ctx, types.ObjectType{AttrTypes: postgresqlServer{}.attrTypes()}, serverList)
+	if diags.HasError() {
+		return diags
+	}
 
 	r.PostgresqlServerList = postgresqlServers
+
+	return nil
 }

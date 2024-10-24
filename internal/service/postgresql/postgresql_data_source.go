@@ -8,6 +8,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
+	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -234,7 +235,10 @@ func (d *postgresqlDataSource) Read(ctx context.Context, req datasource.ReadRequ
 		return
 	}
 
-	data.refreshFromOutput(ctx, output)
+	if diags := data.refreshFromOutput(ctx, output); diags.HasError() {
+		resp.Diagnostics.AddError("READING ERROR", "refreshFromOutput error")
+		return
+	}
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
 	if resp.Diagnostics.HasError() {
@@ -266,7 +270,7 @@ type postgresqlDataSourceModel struct {
 	PostgresqlServerList      types.List   `tfsdk:"postgresql_server_list"`
 }
 
-func (d *postgresqlDataSourceModel) refreshFromOutput(ctx context.Context, output *vpostgresql.CloudPostgresqlInstance) {
+func (d *postgresqlDataSourceModel) refreshFromOutput(ctx context.Context, output *vpostgresql.CloudPostgresqlInstance) diag.Diagnostics {
 	d.ID = types.StringPointerValue(output.CloudPostgresqlInstanceNo)
 	d.ServiceName = types.StringPointerValue(output.CloudPostgresqlServiceName)
 	d.ImageProductCode = types.StringPointerValue(output.CloudPostgresqlImageProductCode)
@@ -281,9 +285,15 @@ func (d *postgresqlDataSourceModel) refreshFromOutput(ctx context.Context, outpu
 	d.Port = common.Int64ValueFromInt32(output.CloudPostgresqlPort)
 	d.EngineVersion = types.StringPointerValue(output.EngineVersion)
 
-	acgList, _ := types.ListValueFrom(ctx, types.StringType, output.AccessControlGroupNoList)
+	acgList, diags := types.ListValueFrom(ctx, types.StringType, output.AccessControlGroupNoList)
+	if diags.HasError() {
+		return diags
+	}
 	d.AccessControlGroupNoList = acgList
-	configList, _ := types.ListValueFrom(ctx, types.StringType, output.CloudPostgresqlConfigList)
+	configList, diags := types.ListValueFrom(ctx, types.StringType, output.CloudPostgresqlConfigList)
+	if diags.HasError() {
+		return diags
+	}
 	d.PostgresqlConfigList = configList
 
 	var serverList []postgresqlServer
@@ -313,7 +323,12 @@ func (d *postgresqlDataSourceModel) refreshFromOutput(ctx context.Context, outpu
 		serverList = append(serverList, postgresqlServerInstance)
 	}
 
-	postgresqlServers, _ := types.ListValueFrom(ctx, types.ObjectType{AttrTypes: postgresqlServer{}.attrTypes()}, serverList)
+	postgresqlServers, diags := types.ListValueFrom(ctx, types.ObjectType{AttrTypes: postgresqlServer{}.attrTypes()}, serverList)
+	if diags.HasError() {
+		return diags
+	}
 
 	d.PostgresqlServerList = postgresqlServers
+
+	return nil
 }

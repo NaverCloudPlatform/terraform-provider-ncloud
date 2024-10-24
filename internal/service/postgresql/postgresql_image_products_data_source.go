@@ -9,6 +9,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
+	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 	"github.com/terraform-providers/terraform-provider-ncloud/internal/common"
@@ -129,15 +130,21 @@ func (d *postgresqlImageProductsDataSource) Read(ctx context.Context, req dataso
 
 	postgresqlImageProductList := flattenPostgresqlImageProduct(postgresqlImageProductResp.ProductList)
 	fillteredList := common.FilterModels(ctx, data.Filters, postgresqlImageProductList)
-	data.refreshFromOutput(ctx, fillteredList)
+
+	if diags := data.refreshFromOutput(ctx, fillteredList); diags.HasError() {
+		resp.Diagnostics.AddError("READING ERROR", "refreshFromOutput error")
+		return
+	}
 
 	if !data.OutputFile.IsNull() && data.OutputFile.String() != "" {
 		outputPath := data.OutputFile.ValueString()
 
 		if convertedList, err := convertToJsonStruct(data.ImageProductList.Elements()); err != nil {
 			resp.Diagnostics.AddError("OUTPUT FILE ERROR", err.Error())
+			return
 		} else if err := common.WriteToFile(outputPath, convertedList); err != nil {
 			resp.Diagnostics.AddError("OUTPUT FILE ERROR", err.Error())
+			return
 		}
 	}
 
@@ -170,10 +177,15 @@ func flattenPostgresqlImageProduct(list []*vpostgresql.Product) []*postgresqlIma
 	return outputs
 }
 
-func (d *postgresqlImageProductsDataSourceModel) refreshFromOutput(ctx context.Context, list []*postgresqlImageProduct) {
-	imageProductListValue, _ := types.ListValueFrom(ctx, types.ObjectType{AttrTypes: postgresqlImageProduct{}.attrTypes()}, list)
+func (d *postgresqlImageProductsDataSourceModel) refreshFromOutput(ctx context.Context, list []*postgresqlImageProduct) diag.Diagnostics {
+	imageProductListValue, diags := types.ListValueFrom(ctx, types.ObjectType{AttrTypes: postgresqlImageProduct{}.attrTypes()}, list)
+	if diags.HasError() {
+		return diags
+	}
 	d.ImageProductList = imageProductListValue
 	d.ID = types.StringValue("")
+
+	return nil
 }
 
 type postgresqlImageProductsDataSourceModel struct {
