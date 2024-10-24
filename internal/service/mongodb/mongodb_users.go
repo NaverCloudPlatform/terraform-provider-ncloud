@@ -3,7 +3,6 @@ package mongodb
 import (
 	"context"
 	"fmt"
-	"log"
 	"regexp"
 	"time"
 
@@ -92,7 +91,7 @@ func (r *mongodbUsersResource) Schema(_ context.Context, _ resource.SchemaReques
 						"name": schema.StringAttribute{
 							Required: true,
 							PlanModifiers: []planmodifier.String{
-								stringplanmodifier.RequiresReplace(),
+								stringplanmodifier.UseStateForUnknown(),
 							},
 							Validators: []validator.String{
 								stringvalidator.All(
@@ -105,7 +104,7 @@ func (r *mongodbUsersResource) Schema(_ context.Context, _ resource.SchemaReques
 							Required:  true,
 							Sensitive: true,
 							PlanModifiers: []planmodifier.String{
-								stringplanmodifier.RequiresReplace(),
+								stringplanmodifier.UseStateForUnknown(),
 							},
 							Validators: []validator.String{
 								stringvalidator.All(
@@ -120,7 +119,7 @@ func (r *mongodbUsersResource) Schema(_ context.Context, _ resource.SchemaReques
 						"database_name": schema.StringAttribute{
 							Required: true,
 							PlanModifiers: []planmodifier.String{
-								stringplanmodifier.RequiresReplace(),
+								stringplanmodifier.UseStateForUnknown(),
 							},
 							Validators: []validator.String{
 								stringvalidator.All(
@@ -132,9 +131,11 @@ func (r *mongodbUsersResource) Schema(_ context.Context, _ resource.SchemaReques
 						"authority": schema.StringAttribute{
 							Required: true,
 							PlanModifiers: []planmodifier.String{
-								stringplanmodifier.RequiresReplace(),
+								stringplanmodifier.UseStateForUnknown(),
 							},
-							Validators: []validator.String{},
+							Validators: []validator.String{
+								stringvalidator.OneOf([]string{"READ", "READ_WRITE"}...),
+							},
 						},
 					},
 				},
@@ -178,6 +179,7 @@ func (r *mongodbUsersResource) Create(ctx context.Context, req resource.CreateRe
 
 	if response == nil || *response.ReturnCode != "0" {
 		resp.Diagnostics.AddError("CREATING ERROR", "response invalid")
+		return
 	}
 
 	_, err = waitMongoDbCreated(ctx, r.config, plan.MongoDbInstanceNo.ValueString())
@@ -186,9 +188,14 @@ func (r *mongodbUsersResource) Create(ctx context.Context, req resource.CreateRe
 		return
 	}
 
-	output, err := GetMongoDbUserList(ctx, r.config, plan.MongoDbInstanceNo.ValueString(), convertToCloudMongoDbUserStringList(plan.MongoDbUserList))
+	output, err := GetMongoDbUserList(ctx, r.config, plan.MongoDbInstanceNo.ValueString(), common.ConvertToStringList(plan.MongoDbUserList, "name"))
 	if err != nil {
 		resp.Diagnostics.AddError("READING ERROR", err.Error())
+		return
+	}
+
+	if output == nil {
+		resp.State.RemoveResource(ctx)
 		return
 	}
 
@@ -204,12 +211,7 @@ func (r *mongodbUsersResource) Read(ctx context.Context, req resource.ReadReques
 		return
 	}
 
-	output, err := GetMongoDbUserList(ctx, r.config, state.MongoDbInstanceNo.ValueString(), convertToCloudMongoDbUserStringList(state.MongoDbUserList))
-	if err != nil {
-		resp.Diagnostics.AddError("READING ERROR", err.Error())
-		return
-	}
-
+	output, err := GetMongoDbUserList(ctx, r.config, state.MongoDbInstanceNo.ValueString(), common.ConvertToStringList(state.MongoDbUserList, "name"))
 	if err != nil {
 		resp.Diagnostics.AddError("READING ERROR", err.Error())
 		return
@@ -227,7 +229,52 @@ func (r *mongodbUsersResource) Read(ctx context.Context, req resource.ReadReques
 	}
 }
 
-func (r *mongodbUsersResource) Update(_ context.Context, _ resource.UpdateRequest, _ *resource.UpdateResponse) {
+func (r *mongodbUsersResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
+	var plan, state mongodbUsersResourceModel
+
+	resp.Diagnostics.Append(req.Plan.Get(ctx, &plan)...)
+	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
+
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
+	if !plan.MongoDbUserList.Equal(state.MongoDbUserList) {
+		reqParams := &vmongodb.ChangeCloudMongoDbUserListRequest{
+			RegionCode:             &r.config.RegionCode,
+			CloudMongoDbInstanceNo: state.ID.ValueStringPointer(),
+			CloudMongoDbUserList:   convertToCloudMongodbUserParameter(plan.MongoDbUserList),
+		}
+		tflog.Info(ctx, "ChangeCloudMongoDbUserList reqParams="+common.MarshalUncheckedString(reqParams))
+
+		response, err := r.config.Client.Vmongodb.V2Api.ChangeCloudMongoDbUserList(reqParams)
+		if err != nil {
+			resp.Diagnostics.AddError("UPDATE ERROR", err.Error())
+			return
+		}
+		tflog.Info(ctx, "ChangeCloudMongoDbUserList response="+common.MarshalUncheckedString(response))
+
+		if response == nil || *response.ReturnCode != "0" {
+			resp.Diagnostics.AddError("UPDATE ERROR", "response invalid")
+			return
+		}
+
+		_, err = waitMongoDbUpdate(ctx, r.config, state.ID.ValueString())
+		if err != nil {
+			resp.Diagnostics.AddError("WAITING FOR UPDATE ERROR", err.Error())
+			return
+		}
+
+		output, err := GetMongoDbUserList(ctx, r.config, state.ID.ValueString(), common.ConvertToStringList(plan.MongoDbUserList, "name"))
+		if err != nil {
+			resp.Diagnostics.AddError("READING ERROR", err.Error())
+			return
+		}
+
+		state.refreshFromOutput(ctx, output, state.ID.String())
+	}
+
+	resp.Diagnostics.Append(resp.State.Set(ctx, state)...)
 }
 
 func (r *mongodbUsersResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
@@ -258,7 +305,7 @@ func (r *mongodbUsersResource) Delete(ctx context.Context, req resource.DeleteRe
 	}
 	tflog.Info(ctx, "DeleteMongodbUserList response="+common.MarshalUncheckedString(response))
 
-	if err := waitMongodbUsersDeletion(ctx, r.config, state.ID.ValueString(), convertToCloudMongoDbUserStringList(state.MongoDbUserList)); err != nil {
+	if err := waitMongodbUsersDeletion(ctx, r.config, state.ID.ValueString(), common.ConvertToStringList(state.MongoDbUserList, "name")); err != nil {
 		resp.Diagnostics.AddError("WAITING FOR DELETE ERROR", err.Error())
 	}
 }
@@ -342,7 +389,7 @@ type mongodbUsersResourceModel struct {
 
 type MongodbUser struct {
 	UserName     types.String `tfsdk:"name"`
-	UserPassword types.String `tfsdk:"user_password"`
+	Password     types.String `tfsdk:"password"`
 	DatabaseName types.String `tfsdk:"database_name"`
 	Authority    types.String `tfsdk:"authority"`
 }
@@ -351,13 +398,13 @@ func (r MongodbUser) AttrTypes() map[string]attr.Type {
 	return map[string]attr.Type{
 		"name":          types.StringType,
 		"database_name": types.StringType,
-		"authrotiy":     types.StringType,
+		"authority":     types.StringType,
 	}
 }
 
-func (r *mongodbUsersResourceModel) refreshFromOutput(ctx context.Context, output []*vmongodb.CloudMongoDbUser, instance string) {
-	r.ID = types.StringValue(instance)
-	r.MongoDbInstanceNo = types.StringValue(instance)
+func (r *mongodbUsersResourceModel) refreshFromOutput(ctx context.Context, output []*vmongodb.CloudMongoDbUser, instanceNo string) {
+	r.ID = types.StringValue(instanceNo)
+	r.MongoDbInstanceNo = types.StringValue(instanceNo)
 
 	var userList []MongodbUser
 
@@ -371,11 +418,7 @@ func (r *mongodbUsersResourceModel) refreshFromOutput(ctx context.Context, outpu
 		userList = append(userList, mongodbUser)
 	}
 
-	mongodbUsers, err := types.ListValueFrom(ctx, types.ObjectType{AttrTypes: MongodbUser{}.AttrTypes()}, userList)
-	if err != nil {
-		log.Printf("Error converting user list: %v", err)
-		return
-	}
+	mongodbUsers, _ := types.ListValueFrom(ctx, types.ObjectType{AttrTypes: MongodbUser{}.AttrTypes()}, userList)
 
 	r.MongoDbUserList = mongodbUsers
 }
@@ -411,20 +454,6 @@ func convertToCloudMongodbUser(values basetypes.ListValue) []*vmongodb.DeleteClo
 			DatabaseName: attrs["database_name"].(types.String).ValueStringPointer(),
 		}
 		result = append(result, param)
-	}
-
-	return result
-}
-
-func convertToCloudMongoDbUserStringList(values basetypes.ListValue) []string {
-	result := make([]string, 0, len(values.Elements()))
-
-	for _, v := range values.Elements() {
-		obj := v.(types.Object)
-		attrs := obj.Attributes()
-
-		name := attrs["name"].(types.String).ValueString()
-		result = append(result, name)
 	}
 
 	return result
