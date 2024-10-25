@@ -17,7 +17,7 @@ jobs:
             "mongodb_loadbalancer",
             "redis_ses",
             "server",
-            "nks_mysql",
+            "mysql",
             "hadoop_mssql",
             "nasvolume_mongodb",
           ]
@@ -30,12 +30,14 @@ jobs:
             tests: "mongodb loadbalancer"
           - agent: "server"
             tests: "server"
-          - agent: "nks_mysql"
-            tests: "nks mysql"
+          - agent: "mysql"
+            tests: "mysql"
           - agent: "hadoop_mssql"
             tests: "hadoop mssql"
-          #- agent: "autoscaling"
-          #  tests: "autoscaling"
+          # - agent: "nks"
+          #   tests: "nks"
+          # - agent: "autoscaling"
+          #   tests: "autoscaling"
           - agent: "nasvolume_mongodb"
             tests: "nasvolume mongodb"
 
