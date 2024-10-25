@@ -103,9 +103,6 @@ func (r *mongodbUsersResource) Schema(_ context.Context, _ resource.SchemaReques
 						"password": schema.StringAttribute{
 							Required:  true,
 							Sensitive: true,
-							PlanModifiers: []planmodifier.String{
-								stringplanmodifier.UseStateForUnknown(),
-							},
 							Validators: []validator.String{
 								stringvalidator.All(
 									stringvalidator.LengthBetween(8, 20),
