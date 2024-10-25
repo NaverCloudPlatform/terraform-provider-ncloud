@@ -184,7 +184,7 @@ func (r *mysqlUsersResource) Create(ctx context.Context, req resource.CreateRequ
 		return
 	}
 
-	output, err := GetMysqlUserList(ctx, r.config, plan.MysqlInstanceNo.ValueString(), convertToCloudMysqlUserStringList(plan.MysqlUserList))
+	output, err := GetMysqlUserList(ctx, r.config, plan.MysqlInstanceNo.ValueString(), common.ConvertToStringList(plan.MysqlUserList, "name"))
 	if err != nil {
 		resp.Diagnostics.AddError("READING ERROR", err.Error())
 		return
@@ -202,7 +202,7 @@ func (r *mysqlUsersResource) Read(ctx context.Context, req resource.ReadRequest,
 		return
 	}
 
-	output, err := GetMysqlUserList(ctx, r.config, state.MysqlInstanceNo.ValueString(), convertToCloudMysqlUserStringList(state.MysqlUserList))
+	output, err := GetMysqlUserList(ctx, r.config, state.MysqlInstanceNo.ValueString(), common.ConvertToStringList(state.MysqlUserList, "name"))
 	if err != nil {
 		resp.Diagnostics.AddError("READING ERROR", err.Error())
 		return
@@ -256,7 +256,7 @@ func (r *mysqlUsersResource) Update(ctx context.Context, req resource.UpdateRequ
 			return
 		}
 
-		output, err := GetMysqlUserList(ctx, r.config, state.ID.ValueString(), convertToCloudMysqlUserStringList(plan.MysqlUserList))
+		output, err := GetMysqlUserList(ctx, r.config, state.ID.ValueString(), common.ConvertToStringList(plan.MysqlUserList, "name"))
 		if err != nil {
 			resp.Diagnostics.AddError("READING ERROR", err.Error())
 			return
@@ -296,7 +296,7 @@ func (r *mysqlUsersResource) Delete(ctx context.Context, req resource.DeleteRequ
 	}
 	tflog.Info(ctx, "DeleteMysqlUserList response="+common.MarshalUncheckedString(response))
 
-	if err := waitMysqlUsersDeletion(ctx, r.config, state.ID.ValueString(), convertToCloudMysqlUserStringList(state.MysqlUserList)); err != nil {
+	if err := waitMysqlUsersDeletion(ctx, r.config, state.ID.ValueString(), common.ConvertToStringList(state.MysqlUserList, "name")); err != nil {
 		resp.Diagnostics.AddError("WAITING FOR DELETE ERROR", err.Error())
 	}
 }
@@ -471,20 +471,6 @@ func convertToCloudMysqlUserKeyParameter(values basetypes.ListValue) []*vmysql.C
 			HostIp: attrs["host_ip"].(types.String).ValueStringPointer(),
 		}
 		result = append(result, param)
-	}
-
-	return result
-}
-
-func convertToCloudMysqlUserStringList(values basetypes.ListValue) []string {
-	result := make([]string, 0, len(values.Elements()))
-
-	for _, v := range values.Elements() {
-		obj := v.(types.Object)
-		attrs := obj.Attributes()
-
-		name := attrs["name"].(types.String).ValueString()
-		result = append(result, name)
 	}
 
 	return result
