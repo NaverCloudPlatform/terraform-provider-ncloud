@@ -132,6 +132,11 @@ func ResourceNcloudNKSNodePool() *schema.Resource {
 				Optional: true,
 				ForceNew: true,
 			},
+			"server_role_id": {
+				Type:     schema.TypeString,
+				Optional: true,
+				ForceNew: true,
+			},
 			"autoscale": {
 				Type:     schema.TypeList,
 				Optional: true,
@@ -253,6 +258,7 @@ func resourceNcloudNKSNodePoolCreate(ctx context.Context, d *schema.ResourceData
 		SoftwareCode:   StringPtrOrNil(d.GetOk("software_code")),
 		ServerSpecCode: StringPtrOrNil(d.GetOk("server_spec_code")),
 		StorageSize:    Int32PtrOrNil(d.GetOk("storage_size")),
+		ServerRoleId:   StringPtrOrNil(d.GetOk("server_role_id")),
 	}
 
 	if list, ok := d.GetOk("subnet_no_list"); ok {
@@ -365,6 +371,7 @@ func resourceNcloudNKSNodePoolRead(ctx context.Context, d *schema.ResourceData, 
 	d.Set("k8s_version", nodePool.K8sVersion)
 	d.Set("server_spec_code", nodePool.ServerSpecCode)
 	d.Set("storage_size", nodePool.StorageSize)
+	d.Set("server_role_id", nodePool.ServerRoleId)
 
 	if err := d.Set("autoscale", flattenNKSNodePoolAutoScale(nodePool.Autoscale)); err != nil {
 		log.Printf("[WARN] Error setting Autoscale set for (%s): %s", d.Id(), err)
