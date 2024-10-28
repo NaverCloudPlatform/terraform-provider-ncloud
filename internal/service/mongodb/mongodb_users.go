@@ -91,7 +91,7 @@ func (r *mongodbUsersResource) Schema(_ context.Context, _ resource.SchemaReques
 						"name": schema.StringAttribute{
 							Required: true,
 							PlanModifiers: []planmodifier.String{
-								stringplanmodifier.UseStateForUnknown(),
+								stringplanmodifier.RequiresReplace(),
 							},
 							Validators: []validator.String{
 								stringvalidator.All(
@@ -101,8 +101,10 @@ func (r *mongodbUsersResource) Schema(_ context.Context, _ resource.SchemaReques
 							},
 						},
 						"password": schema.StringAttribute{
-							Required:  true,
-							Sensitive: true,
+							Required: true,
+							PlanModifiers: []planmodifier.String{
+								stringplanmodifier.UseStateForUnknown(),
+							},
 							Validators: []validator.String{
 								stringvalidator.All(
 									stringvalidator.LengthBetween(8, 20),
@@ -116,7 +118,7 @@ func (r *mongodbUsersResource) Schema(_ context.Context, _ resource.SchemaReques
 						"database_name": schema.StringAttribute{
 							Required: true,
 							PlanModifiers: []planmodifier.String{
-								stringplanmodifier.UseStateForUnknown(),
+								stringplanmodifier.RequiresReplace(),
 							},
 							Validators: []validator.String{
 								stringvalidator.All(

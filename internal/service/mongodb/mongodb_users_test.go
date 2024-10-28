@@ -19,8 +19,6 @@ func TestAccResourceNcloudMongoDbUsers_vpc_update(t *testing.T) {
 	testName := fmt.Sprintf("tf-monuser-%s", acctest.RandString(3))
 	resourceName := "ncloud_mongodb_users.mongodb_users"
 	dbResourceName := "ncloud_mongodb.mongodb"
-	testUserBefore := "testuser"
-	testUserAfter := "user"
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { TestAccPreCheck(t) },
@@ -28,7 +26,7 @@ func TestAccResourceNcloudMongoDbUsers_vpc_update(t *testing.T) {
 		CheckDestroy:             testAccCheckMongoDbDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccMongoDbUsersConfig(testName, testUserBefore),
+				Config: testAccMongoDbUsersConfig(testName, "READ", "READ_WRITE"),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr(resourceName, "mongodb_user_list.0.name", "testuser1"),
 					resource.TestCheckResourceAttr(resourceName, "mongodb_user_list.0.database_name", "testdb1"),
@@ -39,10 +37,10 @@ func TestAccResourceNcloudMongoDbUsers_vpc_update(t *testing.T) {
 				),
 			},
 			{
-				Config: testAccMongoDbUsersConfig(testName, testUserAfter),
+				Config: testAccMongoDbUsersConfig(testName, "READ_WRITE", "READ"),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr(resourceName, "mongodb_user_list.0.name", "user1"),
-					resource.TestCheckResourceAttr(resourceName, "mongodb_user_list.1.name", "user2"),
+					resource.TestCheckResourceAttr(resourceName, "mongodb_user_list.0.authority", "READ_WRITE"),
+					resource.TestCheckResourceAttr(resourceName, "mongodb_user_list.1.authority", "READ"),
 				),
 				Destroy: false,
 			},
@@ -56,7 +54,7 @@ func TestAccResourceNcloudMongoDbUsers_vpc_update(t *testing.T) {
 	})
 }
 
-func testAccMongoDbUsersConfig(testMongodbName, testUserName string) string {
+func testAccMongoDbUsersConfig(testMongodbName, testAuthority1, testAuthority2 string) string {
 	return fmt.Sprintf(`
 resource "ncloud_vpc" "test_vpc" {
 	name               = "%[1]s"
@@ -86,20 +84,20 @@ resource "ncloud_mongodb_users" "mongodb_users" {
 	mongodb_instance_no = ncloud_mongodb.mongodb.id
 	mongodb_user_list = [
 		{
-			name = "%[2]s1",
+			name = "testuser1",
 			password = "t123456789!",
 			database_name = "testdb1",
-			authority = "READ"
+			authority = "%[2]s"
 		},
 		{
-			name = "%[2]s2",
+			name = "testuser2",
 			password = "t123456789!",
 			database_name = "testdb2",
-			authority = "READ_WRITE"
+			authority = "%[3]s"
 		}
 	]
 }
-`, testMongodbName, testUserName)
+`, testMongodbName, testAuthority1, testAuthority2)
 }
 
 func testAccMongoDbUsersRemoveConfig(testName string) string {
