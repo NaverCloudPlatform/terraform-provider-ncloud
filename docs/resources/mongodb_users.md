@@ -26,7 +26,7 @@ resource "ncloud_subnet" "test_subnet" {
 resource "ncloud_mongodb" "mongodb" {
 	vpc_no = data.ncloud_vpc.test_vpc.vpc_no
 	subnet_no = data.ncloud_subnet.test_subnet.id
-	service_name = "%[1]s"
+	service_name = "sample-mongodb"
 	server_name_prefix = "ex-svr"
 	cluster_type_code = "STAND_ALONE"
 	user_name = "testuser"
