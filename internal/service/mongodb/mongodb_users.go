@@ -8,7 +8,6 @@ import (
 
 	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/ncloud"
 	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/services/vmongodb"
-	"github.com/hashicorp/terraform-plugin-framework-validators/listvalidator"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/path"
@@ -83,9 +82,6 @@ func (r *mongodbUsersResource) Schema(_ context.Context, _ resource.SchemaReques
 			},
 			"mongodb_user_list": schema.ListNestedAttribute{
 				Required: true,
-				Validators: []validator.List{
-					listvalidator.SizeAtMost(10),
-				},
 				NestedObject: schema.NestedAttributeObject{
 					Attributes: map[string]schema.Attribute{
 						"name": schema.StringAttribute{
@@ -105,6 +101,7 @@ func (r *mongodbUsersResource) Schema(_ context.Context, _ resource.SchemaReques
 							PlanModifiers: []planmodifier.String{
 								stringplanmodifier.UseStateForUnknown(),
 							},
+							Sensitive: true,
 							Validators: []validator.String{
 								stringvalidator.All(
 									stringvalidator.LengthBetween(8, 20),
@@ -181,13 +178,13 @@ func (r *mongodbUsersResource) Create(ctx context.Context, req resource.CreateRe
 		return
 	}
 
-	_, err = waitMongoDbCreated(ctx, r.config, plan.MongoDbInstanceNo.ValueString())
+	_, err = waitMongoDbCreated(ctx, r.config, plan.ID.ValueString())
 	if err != nil {
 		resp.Diagnostics.AddError("WAITING FOR MONGODB CREATING ERROR", err.Error())
 		return
 	}
 
-	output, err := GetMongoDbUserList(ctx, r.config, plan.MongoDbInstanceNo.ValueString(), common.ConvertToStringList(plan.MongoDbUserList, "name"))
+	output, err := GetMongoDbUserList(ctx, r.config, plan.ID.ValueString(), common.ConvertToStringList(plan.MongoDbUserList, "name"))
 	if err != nil {
 		resp.Diagnostics.AddError("READING ERROR", err.Error())
 		return
@@ -198,7 +195,7 @@ func (r *mongodbUsersResource) Create(ctx context.Context, req resource.CreateRe
 		return
 	}
 
-	plan.refreshFromOutput(ctx, output, plan.MongoDbInstanceNo.ValueString())
+	plan.refreshFromOutput(ctx, output, plan)
 	resp.Diagnostics.Append(resp.State.Set(ctx, plan)...)
 }
 
@@ -210,7 +207,7 @@ func (r *mongodbUsersResource) Read(ctx context.Context, req resource.ReadReques
 		return
 	}
 
-	output, err := GetMongoDbUserList(ctx, r.config, state.MongoDbInstanceNo.ValueString(), common.ConvertToStringList(state.MongoDbUserList, "name"))
+	output, err := GetMongoDbUserList(ctx, r.config, state.ID.ValueString(), common.ConvertToStringList(state.MongoDbUserList, "name"))
 	if err != nil {
 		resp.Diagnostics.AddError("READING ERROR", err.Error())
 		return
@@ -221,7 +218,7 @@ func (r *mongodbUsersResource) Read(ctx context.Context, req resource.ReadReques
 		return
 	}
 
-	state.refreshFromOutput(ctx, output, state.MongoDbInstanceNo.ValueString())
+	state.refreshFromOutput(ctx, output, state)
 	resp.Diagnostics.Append(resp.State.Set(ctx, &state)...)
 	if resp.Diagnostics.HasError() {
 		return
@@ -270,7 +267,7 @@ func (r *mongodbUsersResource) Update(ctx context.Context, req resource.UpdateRe
 			return
 		}
 
-		state.refreshFromOutput(ctx, output, state.ID.String())
+		state.refreshFromOutput(ctx, output, plan)
 	}
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, state)...)
@@ -284,7 +281,7 @@ func (r *mongodbUsersResource) Delete(ctx context.Context, req resource.DeleteRe
 		return
 	}
 
-	_, err := waitMongoDbCreated(ctx, r.config, state.MongoDbInstanceNo.ValueString())
+	_, err := waitMongoDbCreated(ctx, r.config, state.ID.ValueString())
 	if err != nil {
 		resp.Diagnostics.AddError("WATING FOR MONGODB CREATION ERROR", err.Error())
 		return
@@ -319,12 +316,16 @@ func waitMongodbUsersDeletion(ctx context.Context, config *conn.ProviderConfig, 
 				return 0, "", err
 			}
 
-			if len(userList) > 0 {
-				return userList, DELETING, nil
+			if len(userList) == 1 || userList == nil {
+				return userList, DELETED, nil
 			}
 
-			if len(userList) == 0 || userList == nil {
-				return userList, DELETED, nil
+			for idx, v := range userList {
+				if users[idx] != *v.UserName {
+					return userList, DELETED, nil
+				} else {
+					return userList, DELETING, nil
+				}
 			}
 
 			return 0, "", fmt.Errorf("error occurred while waiting to delete mongodb user")
@@ -375,6 +376,14 @@ func GetMongoDbUserList(ctx context.Context, config *conn.ProviderConfig, id str
 		return nil, nil
 	}
 
+	for _, user := range resp.CloudMongoDbUserList {
+		if user != nil && user.UserName != nil {
+			if !containsInUsergList(*user.UserName, filteredUsers) {
+				filteredUsers = append(filteredUsers, user)
+			}
+		}
+	}
+
 	tflog.Info(ctx, "GetMongodbUserList response="+common.MarshalUncheckedString(resp))
 
 	return filteredUsers, nil
@@ -398,20 +407,23 @@ func (r MongodbUser) AttrTypes() map[string]attr.Type {
 		"name":          types.StringType,
 		"database_name": types.StringType,
 		"authority":     types.StringType,
+		"password":      types.StringType,
 	}
 }
 
-func (r *mongodbUsersResourceModel) refreshFromOutput(ctx context.Context, output []*vmongodb.CloudMongoDbUser, instanceNo string) {
-	r.ID = types.StringValue(instanceNo)
-	r.MongoDbInstanceNo = types.StringValue(instanceNo)
+func (r *mongodbUsersResourceModel) refreshFromOutput(ctx context.Context, output []*vmongodb.CloudMongoDbUser, plan mongodbUsersResourceModel) {
+	r.ID = plan.ID
+	r.MongoDbInstanceNo = plan.ID
 
 	var userList []MongodbUser
 
-	for _, user := range output {
+	for idx, user := range output[:len(plan.MongoDbUserList.Elements())] {
+		pswd := plan.MongoDbUserList.Elements()[idx].(types.Object).Attributes()
 		mongodbUser := MongodbUser{
 			UserName:     types.StringPointerValue(user.UserName),
 			DatabaseName: types.StringPointerValue(user.DatabaseName),
 			Authority:    types.StringPointerValue(user.Authority),
+			Password:     pswd["password"].(types.String),
 		}
 
 		userList = append(userList, mongodbUser)
@@ -456,4 +468,13 @@ func convertToCloudMongodbUser(values basetypes.ListValue) []*vmongodb.DeleteClo
 	}
 
 	return result
+}
+
+func containsInUsergList(userName string, users []*vmongodb.CloudMongoDbUser) bool {
+	for _, v := range users {
+		if *v.UserName == userName {
+			return true
+		}
+	}
+	return false
 }
