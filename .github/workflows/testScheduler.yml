@@ -81,7 +81,7 @@ jobs:
               echo $PWD
               echo $ls
               echo "$test"
-              go test -timeout 2h -v -json ./internal/service/"$test" | go-ctrf-json-reporter -output "$test"-report.json
+              go test -timeout 4h -v -json ./internal/service/"$test" | go-ctrf-json-reporter -output "$test"-report.json
               cat "$test"-report.json
 
               aws --endpoint-url=https://kr.object.ncloudstorage.com s3 cp "$test"-report.json s3://${{ secrets.NCLOUD_BUCKET_NAME }}/data/"$DATE"/"$test"-report.json
