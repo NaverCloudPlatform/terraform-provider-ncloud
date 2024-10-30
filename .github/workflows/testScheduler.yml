@@ -8,6 +8,7 @@ jobs:
   test:
     name: Test
     runs-on: ubuntu-latest
+    if: ${{ github.repository == 'NaverCloudPlatform/terraform-provider-ncloud' }}
     strategy:
       matrix:
         go-version: ["1.21"]
