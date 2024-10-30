@@ -10,6 +10,7 @@ import (
 	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/services/vmongodb"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/attr"
+	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
@@ -195,7 +196,10 @@ func (r *mongodbUsersResource) Create(ctx context.Context, req resource.CreateRe
 		return
 	}
 
-	plan.refreshFromOutput(ctx, output, plan)
+	if diags := plan.refreshFromOutput(ctx, output, plan); diags.HasError() {
+		resp.Diagnostics.AddError("READING ERROR", "refreshFromOutput error")
+		return
+	}
 	resp.Diagnostics.Append(resp.State.Set(ctx, plan)...)
 }
 
@@ -218,7 +222,10 @@ func (r *mongodbUsersResource) Read(ctx context.Context, req resource.ReadReques
 		return
 	}
 
-	state.refreshFromOutput(ctx, output, state)
+	if diags := state.refreshFromOutput(ctx, output, state); diags.HasError() {
+		resp.Diagnostics.AddError("READING ERROR", "refreshFromOutput error")
+		return
+	}
 	resp.Diagnostics.Append(resp.State.Set(ctx, &state)...)
 	if resp.Diagnostics.HasError() {
 		return
@@ -267,7 +274,10 @@ func (r *mongodbUsersResource) Update(ctx context.Context, req resource.UpdateRe
 			return
 		}
 
-		state.refreshFromOutput(ctx, output, plan)
+		if diags := state.refreshFromOutput(ctx, output, plan); diags.HasError() {
+			resp.Diagnostics.AddError("READING ERROR", "refreshFromOutput error")
+			return
+		}
 	}
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, state)...)
@@ -411,7 +421,7 @@ func (r MongodbUser) AttrTypes() map[string]attr.Type {
 	}
 }
 
-func (r *mongodbUsersResourceModel) refreshFromOutput(ctx context.Context, output []*vmongodb.CloudMongoDbUser, plan mongodbUsersResourceModel) {
+func (r *mongodbUsersResourceModel) refreshFromOutput(ctx context.Context, output []*vmongodb.CloudMongoDbUser, plan mongodbUsersResourceModel) diag.Diagnostics {
 	r.ID = plan.ID
 	r.MongoDbInstanceNo = plan.ID
 
@@ -429,9 +439,14 @@ func (r *mongodbUsersResourceModel) refreshFromOutput(ctx context.Context, outpu
 		userList = append(userList, mongodbUser)
 	}
 
-	mongodbUsers, _ := types.ListValueFrom(ctx, types.ObjectType{AttrTypes: MongodbUser{}.AttrTypes()}, userList)
+	mongodbUsers, diags := types.ListValueFrom(ctx, types.ObjectType{AttrTypes: MongodbUser{}.AttrTypes()}, userList)
+	if diags.HasError() {
+		return diags
+	}
 
 	r.MongoDbUserList = mongodbUsers
+
+	return nil
 }
 
 func convertToCloudMongodbUserParameter(values basetypes.ListValue) []*vmongodb.AddOrChangeCloudMongoDbUserParameter {
