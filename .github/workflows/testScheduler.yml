@@ -8,6 +8,7 @@ jobs:
   test:
     name: Test
     runs-on: ubuntu-latest
+    if: ${{ github.repository == 'NaverCloudPlatform/terraform-provider-ncloud' }}
     strategy:
       matrix:
         go-version: ["1.21"]
@@ -68,7 +69,7 @@ jobs:
           go install github.com/ctrf-io/go-ctrf-json-reporter/cmd/go-ctrf-json-reporter@latest
 
       - name: Get current date in YYYYMMDD format
-        run: echo "DATE=$(date +'%Y%m%d')" >> $GITHUB_ENV
+        run: echo "DATE=$(TZ=Asia/Seoul date +'%Y%m%d')" >> $GITHUB_ENV
 
       - name: Run tests on agent ${{ matrix.agent }}
         run: |
