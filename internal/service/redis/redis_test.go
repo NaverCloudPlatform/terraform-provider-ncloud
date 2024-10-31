@@ -38,9 +38,10 @@ func TestAccResourceNcloudRedis_vpc_basic(t *testing.T) {
 				),
 			},
 			{
-				ResourceName:      resourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
+				ResourceName:            resourceName,
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"engine_version_code"},
 			},
 		},
 	})
@@ -119,12 +120,13 @@ resource "ncloud_redis_config_group" "example" {
 }
 
 resource "ncloud_redis" "test" {
-    service_name       = "%[1]s"
-    server_name_prefix = "ex-svr"
-	vpc_no             = ncloud_vpc.test_vpc.vpc_no
-    subnet_no          = ncloud_subnet.test_subnet.id
-    config_group_no    = ncloud_redis_config_group.example.id
-	image_product_code = "SW.VDBAS.VRDS.LNX64.CNTOS.0708.REDIS.7013.B050"
+    service_name        = "%[1]s"
+    server_name_prefix  = "ex-svr"
+	vpc_no              = ncloud_vpc.test_vpc.vpc_no
+    subnet_no           = ncloud_subnet.test_subnet.id
+    config_group_no     = ncloud_redis_config_group.example.id
+	image_product_code  = "SW.VRDS.OS.LNX64.ROCKY.0810.REDIS.B050"
+	engine_version_code = "7.0.13"
     mode = "SIMPLE"
 }
 `, testRedisName)

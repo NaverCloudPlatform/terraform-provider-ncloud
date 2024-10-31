@@ -62,6 +62,9 @@ func (r *redisImageProductsDataSource) Schema(_ context.Context, _ datasource.Sc
 						"os_information": schema.StringAttribute{
 							Computed: true,
 						},
+						"engine_version_code": schema.StringAttribute{
+							Computed: true,
+						},
 					},
 				},
 				Computed: true,
@@ -183,31 +186,34 @@ type redisImageProductsDataSourceModel struct {
 }
 
 type redisImageProduct struct {
-	ProductCode    types.String `tfsdk:"product_code"`
-	GenerationCode types.String `tfsdk:"generation_code"`
-	ProductName    types.String `tfsdk:"product_name"`
-	ProductType    types.String `tfsdk:"product_type"`
-	PlatformType   types.String `tfsdk:"platform_type"`
-	OsInformation  types.String `tfsdk:"os_information"`
+	ProductCode       types.String `tfsdk:"product_code"`
+	GenerationCode    types.String `tfsdk:"generation_code"`
+	ProductName       types.String `tfsdk:"product_name"`
+	ProductType       types.String `tfsdk:"product_type"`
+	PlatformType      types.String `tfsdk:"platform_type"`
+	OsInformation     types.String `tfsdk:"os_information"`
+	EngineVersionCode types.String `tfsdk:"engine_version_code"`
 }
 
 type redisImageProductToJsonConvert struct {
-	ProductCode    string `json:"product_code"`
-	GenerationCode string `json:"generation_code"`
-	ProductName    string `json:"product_name"`
-	ProductType    string `json:"product_type"`
-	PlatformType   string `json:"platform_type"`
-	OsInformation  string `json:"os_information"`
+	ProductCode       string `json:"product_code"`
+	GenerationCode    string `json:"generation_code"`
+	ProductName       string `json:"product_name"`
+	ProductType       string `json:"product_type"`
+	PlatformType      string `json:"platform_type"`
+	OsInformation     string `json:"os_information"`
+	EngineVersionCode string `json:"engine_version_code"`
 }
 
 func (r redisImageProduct) attrTypes() map[string]attr.Type {
 	return map[string]attr.Type{
-		"product_code":    types.StringType,
-		"generation_code": types.StringType,
-		"product_name":    types.StringType,
-		"product_type":    types.StringType,
-		"platform_type":   types.StringType,
-		"os_information":  types.StringType,
+		"product_code":        types.StringType,
+		"generation_code":     types.StringType,
+		"product_name":        types.StringType,
+		"product_type":        types.StringType,
+		"platform_type":       types.StringType,
+		"os_information":      types.StringType,
+		"engine_version_code": types.StringType,
 	}
 }
 
@@ -218,4 +224,5 @@ func (r *redisImageProduct) refreshFromOutput(output *vredis.Product) {
 	r.ProductType = types.StringPointerValue(output.ProductType.Code)
 	r.PlatformType = types.StringPointerValue(output.PlatformType.Code)
 	r.OsInformation = types.StringPointerValue(output.OsInformation)
+	r.EngineVersionCode = types.StringPointerValue(output.EngineVersionCode)
 }
