@@ -61,6 +61,9 @@ func (h *hadoopImageProductsDataSource) Schema(_ context.Context, _ datasource.S
 						"os_information": schema.StringAttribute{
 							Computed: true,
 						},
+						"engine_version_code": schema.StringAttribute{
+							Computed: true,
+						},
 					},
 				},
 				Computed: true,
@@ -159,22 +162,24 @@ type hadoopImageProductsDataSourceModel struct {
 }
 
 type hadoopImageProduct struct {
-	ProductCode    types.String `tfsdk:"product_code"`
-	GenerationCode types.String `tfsdk:"generation_code"`
-	ProductName    types.String `tfsdk:"product_name"`
-	ProductType    types.String `tfsdk:"product_type"`
-	PlatformType   types.String `tfsdk:"platform_type"`
-	OsInformation  types.String `tfsdk:"os_information"`
+	ProductCode       types.String `tfsdk:"product_code"`
+	GenerationCode    types.String `tfsdk:"generation_code"`
+	ProductName       types.String `tfsdk:"product_name"`
+	ProductType       types.String `tfsdk:"product_type"`
+	PlatformType      types.String `tfsdk:"platform_type"`
+	OsInformation     types.String `tfsdk:"os_information"`
+	EngineVersionCode types.String `tfsdk:"engine_version_code"`
 }
 
 func (h hadoopImageProduct) attrTypes() map[string]attr.Type {
 	return map[string]attr.Type{
-		"product_code":    types.StringType,
-		"generation_code": types.StringType,
-		"product_name":    types.StringType,
-		"product_type":    types.StringType,
-		"platform_type":   types.StringType,
-		"os_information":  types.StringType,
+		"product_code":        types.StringType,
+		"generation_code":     types.StringType,
+		"product_name":        types.StringType,
+		"product_type":        types.StringType,
+		"platform_type":       types.StringType,
+		"os_information":      types.StringType,
+		"engine_version_code": types.StringType,
 	}
 }
 
@@ -191,4 +196,5 @@ func (h *hadoopImageProduct) refreshFromOutput(output *vhadoop.Product) {
 	h.ProductType = types.StringPointerValue(output.ProductType.Code)
 	h.PlatformType = types.StringPointerValue(output.PlatformType.Code)
 	h.OsInformation = types.StringPointerValue(output.OsInformation)
+	h.EngineVersionCode = types.StringPointerValue(output.EngineVersionCode)
 }

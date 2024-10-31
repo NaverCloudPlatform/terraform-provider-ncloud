@@ -198,6 +198,12 @@ func (r *hadoopResource) Schema(_ context.Context, req resource.SchemaRequest, r
 				},
 				Description: "default: latest version",
 			},
+			"engine_version_code": schema.StringAttribute{
+				Optional: true,
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.RequiresReplace(),
+				},
+			},
 			"edge_node_product_code": schema.StringAttribute{
 				Optional: true,
 				Computed: true,
@@ -467,6 +473,10 @@ func (r *hadoopResource) Create(ctx context.Context, req resource.CreateRequest,
 
 	if !plan.ImageProductCode.IsNull() && !plan.ImageProductCode.IsUnknown() {
 		reqParams.CloudHadoopImageProductCode = plan.ImageProductCode.ValueStringPointer()
+	}
+
+	if !plan.EngineVersionCode.IsNull() {
+		reqParams.EngineVersionCode = plan.EngineVersionCode.ValueStringPointer()
 	}
 
 	if !plan.MasterNodeProductCode.IsNull() && !plan.MasterNodeProductCode.IsUnknown() {
@@ -862,6 +872,7 @@ type hadoopResourceModel struct {
 	MasterNodeDataStorageSize  types.Int64  `tfsdk:"master_node_data_storage_size"`
 	WorkerNodeDataStorageSize  types.Int64  `tfsdk:"worker_node_data_storage_size"`
 	ImageProductCode           types.String `tfsdk:"image_product_code"`
+	EngineVersionCode          types.String `tfsdk:"engine_version_code"`
 	EdgeNodeProductCode        types.String `tfsdk:"edge_node_product_code"`
 	MasterNodeProductCode      types.String `tfsdk:"master_node_product_code"`
 	WorkerNodeProductCode      types.String `tfsdk:"worker_node_product_code"`
