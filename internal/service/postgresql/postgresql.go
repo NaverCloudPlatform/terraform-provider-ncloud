@@ -341,7 +341,6 @@ func (r *postgresqlResource) Schema(_ context.Context, _ resource.SchemaRequest,
 				Description: "default: SSD",
 			},
 			"engine_version_code": schema.StringAttribute{
-				Computed: true,
 				Optional: true,
 				PlanModifiers: []planmodifier.String{
 					stringplanmodifier.UseStateForUnknown(),
@@ -457,7 +456,7 @@ func (r *postgresqlResource) Create(ctx context.Context, req resource.CreateRequ
 		reqParams.CloudPostgresqlImageProductCode = plan.ImageProductCode.ValueStringPointer()
 	}
 
-	if !plan.EngineVersionCode.IsNull() && !plan.EngineVersionCode.IsUnknown() {
+	if !plan.EngineVersionCode.IsNull() {
 		reqParams.EngineVersionCode = plan.EngineVersionCode.ValueStringPointer()
 	}
 
@@ -832,7 +831,6 @@ func (r *postgresqlResourceModel) refreshFromOutput(ctx context.Context, output 
 	r.PostgresqlInstanceNo = types.StringPointerValue(output.CloudPostgresqlInstanceNo)
 	r.ServiceName = types.StringPointerValue(output.CloudPostgresqlServiceName)
 	r.ImageProductCode = types.StringPointerValue(output.CloudPostgresqlImageProductCode)
-	r.EngineVersionCode = types.StringPointerValue(output.EngineVersion)
 	r.VpcNo = types.StringPointerValue(output.CloudPostgresqlServerInstanceList[0].VpcNo)
 	r.SubnetNo = types.StringPointerValue(output.CloudPostgresqlServerInstanceList[0].SubnetNo)
 	r.IsMultiZone = types.BoolPointerValue(output.IsMultiZone)
