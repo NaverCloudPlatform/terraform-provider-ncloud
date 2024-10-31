@@ -343,7 +343,7 @@ func (r *postgresqlResource) Schema(_ context.Context, _ resource.SchemaRequest,
 			"engine_version_code": schema.StringAttribute{
 				Optional: true,
 				PlanModifiers: []planmodifier.String{
-					stringplanmodifier.UseStateForUnknown(),
+					stringplanmodifier.RequiresReplace(),
 				},
 			},
 			"access_control_group_no_list": schema.ListAttribute{
