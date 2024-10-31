@@ -243,9 +243,9 @@ func (m *mysqlResource) Schema(_ context.Context, _ resource.SchemaRequest, resp
 				},
 			},
 			"engine_version_code": schema.StringAttribute{
-				Computed: true,
+				Optional: true,
 				PlanModifiers: []planmodifier.String{
-					stringplanmodifier.UseStateForUnknown(),
+					stringplanmodifier.RequiresReplace(),
 				},
 			},
 			"region_code": schema.StringAttribute{
@@ -397,6 +397,11 @@ func (r *mysqlResource) Create(ctx context.Context, req resource.CreateRequest, 
 	if !plan.ImageProductCode.IsNull() {
 		reqParams.CloudMysqlImageProductCode = plan.ImageProductCode.ValueStringPointer()
 	}
+
+	if !plan.EngineVersionCode.IsNull() {
+		reqParams.EngineVersionCode = plan.EngineVersionCode.ValueStringPointer()
+	}
+
 	if !plan.IsHa.IsNull() && !plan.IsHa.IsUnknown() {
 		reqParams.IsHa = plan.IsHa.ValueBoolPointer()
 		if plan.IsHa.ValueBool() {
@@ -760,7 +765,6 @@ func (m *mysqlResourceModel) refreshFromOutput(ctx context.Context, output *vmys
 	m.BackupFileRetentionPeriod = common.Int64ValueFromInt32(output.BackupFileRetentionPeriod)
 	m.BackupTime = types.StringPointerValue(output.BackupTime)
 	m.Port = common.Int64ValueFromInt32(output.CloudMysqlPort)
-	m.EngineVersionCode = types.StringPointerValue(output.EngineVersion)
 	m.RegionCode = types.StringPointerValue(output.CloudMysqlServerInstanceList[0].RegionCode)
 	m.VpcNo = types.StringPointerValue(output.CloudMysqlServerInstanceList[0].VpcNo)
 
