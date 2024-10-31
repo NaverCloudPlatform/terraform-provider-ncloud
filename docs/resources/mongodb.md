@@ -74,9 +74,9 @@ In addition to all arguments above, the following attributes are exported:
 
 * `id` - MondoDb instance number. 
 * `arbiter_port` - TCP port number for access to the MongoDB Arbiter Server.
-* `engine_version` - Engine Version.
 * `region_code` - Region code.
 * `zone_code` - Zone code.
+* `engine_version_code` - MongoDB Engine version code.
 * `access_control_group_no_list` - The ID list of the associated Access Control Group.
 * `mongodb_server_list` - The list of the MongoDB server.
   * `server_instance_no` - Server instance number.

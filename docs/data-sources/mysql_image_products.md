@@ -61,3 +61,4 @@ This data source exports the following attributes in addition to the arguments a
   * `product_type` - Product type code.
   * `platform_type` - Platform type code.
   * `os_information` - OS Information.
+  * `engine_version_code` - Engine version code.

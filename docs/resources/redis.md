@@ -69,6 +69,7 @@ In addition to all arguments above, the following attributes are exported
 * `id` - Redis instance number.
 * `backup_schedule` - Automatic or User-defined.
 * `region_code` - Region code.
+* `engine_version_code` - Redis Engine version code.
 * `access_control_group_no_list` - The ID list of the associated Access Control Group.
 * `redis_server_list` - The list of the Redis server.
   * `redis_server_instance_no` - Redis Server instance number.
