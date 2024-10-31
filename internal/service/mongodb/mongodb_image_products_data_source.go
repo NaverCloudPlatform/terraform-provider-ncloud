@@ -64,6 +64,9 @@ func (m *mongodbImageProductsDataSource) Schema(ctx context.Context, req datasou
 						"os_information": schema.StringAttribute{
 							Computed: true,
 						},
+						"engine_version_code": schema.StringAttribute{
+							Computed: true,
+						},
 					},
 				},
 				Computed: true,
@@ -185,31 +188,34 @@ type mongodbImageProductsDataSourceModel struct {
 }
 
 type mongodbImageProduct struct {
-	ProductCode    types.String `tfsdk:"product_code"`
-	GenerationCode types.String `tfsdk:"generation_code"`
-	ProductName    types.String `tfsdk:"product_name"`
-	ProductType    types.String `tfsdk:"product_type"`
-	PlatformType   types.String `tfsdk:"platform_type"`
-	OsInformation  types.String `tfsdk:"os_information"`
+	ProductCode       types.String `tfsdk:"product_code"`
+	GenerationCode    types.String `tfsdk:"generation_code"`
+	ProductName       types.String `tfsdk:"product_name"`
+	ProductType       types.String `tfsdk:"product_type"`
+	PlatformType      types.String `tfsdk:"platform_type"`
+	OsInformation     types.String `tfsdk:"os_information"`
+	EngineVersionCode types.String `tfsdk:"engine_version_code"`
 }
 
 type mongodbImageProductToJsonConvert struct {
-	ProductCode    string `json:"product_code"`
-	GenerationCode string `json:"generation_code"`
-	ProductName    string `json:"product_name"`
-	ProductType    string `json:"product_type"`
-	PlatformType   string `json:"platform_type"`
-	OsInformation  string `json:"os_information"`
+	ProductCode       string `json:"product_code"`
+	GenerationCode    string `json:"generation_code"`
+	ProductName       string `json:"product_name"`
+	ProductType       string `json:"product_type"`
+	PlatformType      string `json:"platform_type"`
+	OsInformation     string `json:"os_information"`
+	EngineVersionCode string `json:"engine_version_code"`
 }
 
 func (m mongodbImageProduct) attrTypes() map[string]attr.Type {
 	return map[string]attr.Type{
-		"product_code":    types.StringType,
-		"generation_code": types.StringType,
-		"product_name":    types.StringType,
-		"product_type":    types.StringType,
-		"platform_type":   types.StringType,
-		"os_information":  types.StringType,
+		"product_code":        types.StringType,
+		"generation_code":     types.StringType,
+		"product_name":        types.StringType,
+		"product_type":        types.StringType,
+		"platform_type":       types.StringType,
+		"os_information":      types.StringType,
+		"engine_version_code": types.StringType,
 	}
 }
 
@@ -220,4 +226,5 @@ func (m *mongodbImageProduct) refreshFromOutput(output *vmongodb.Product) {
 	m.ProductType = types.StringPointerValue(output.ProductType.Code)
 	m.PlatformType = types.StringPointerValue(output.PlatformType.Code)
 	m.OsInformation = types.StringPointerValue(output.OsInformation)
+	m.EngineVersionCode = types.StringPointerValue(output.EngineVersionCode)
 }
