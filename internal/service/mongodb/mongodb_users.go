@@ -427,13 +427,23 @@ func (r *mongodbUsersResourceModel) refreshFromOutput(ctx context.Context, outpu
 
 	var userList []MongodbUser
 
-	for idx, user := range output[:len(plan.MongoDbUserList.Elements())] {
-		pswd := plan.MongoDbUserList.Elements()[idx].(types.Object).Attributes()
+	for idx, user := range output {
+		var password types.String
+
+		if idx < len(plan.MongoDbUserList.Elements()) {
+			pswd := plan.MongoDbUserList.Elements()[idx].(types.Object).Attributes()
+			if val, ok := pswd["password"].(types.String); ok {
+				password = val
+			}
+		} else {
+			password = types.StringNull()
+		}
+
 		mongodbUser := MongodbUser{
 			UserName:     types.StringPointerValue(user.UserName),
 			DatabaseName: types.StringPointerValue(user.DatabaseName),
 			Authority:    types.StringPointerValue(user.Authority),
-			Password:     pswd["password"].(types.String),
+			Password:     password,
 		}
 
 		userList = append(userList, mongodbUser)
