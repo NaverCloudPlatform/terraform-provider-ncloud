@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"regexp"
-	"time"
 
 	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/ncloud"
 	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/services/vmongodb"
@@ -20,7 +19,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
 	"github.com/terraform-providers/terraform-provider-ncloud/internal/common"
 	"github.com/terraform-providers/terraform-provider-ncloud/internal/conn"
 	"github.com/terraform-providers/terraform-provider-ncloud/internal/framework"
@@ -310,46 +308,6 @@ func (r *mongodbUsersResource) Delete(ctx context.Context, req resource.DeleteRe
 		return
 	}
 	tflog.Info(ctx, "DeleteMongodbUserList response="+common.MarshalUncheckedString(response))
-
-	if err := waitMongodbUsersDeletion(ctx, r.config, state.ID.ValueString(), common.ConvertToStringList(state.MongoDbUserList, "name")); err != nil {
-		resp.Diagnostics.AddError("WAITING FOR DELETE ERROR", err.Error())
-	}
-}
-
-func waitMongodbUsersDeletion(ctx context.Context, config *conn.ProviderConfig, id string, users []string) error {
-	stateConf := &retry.StateChangeConf{
-		Pending: []string{DELETING},
-		Target:  []string{DELETED},
-		Refresh: func() (interface{}, string, error) {
-			userList, err := GetMongoDbUserList(ctx, config, id, users)
-			if err != nil {
-				return 0, "", err
-			}
-
-			if len(userList) == 1 || userList == nil {
-				return userList, DELETED, nil
-			}
-
-			for idx, v := range userList {
-				if users[idx] != *v.UserName {
-					return userList, DELETED, nil
-				} else {
-					return userList, DELETING, nil
-				}
-			}
-
-			return 0, "", fmt.Errorf("error occurred while waiting to delete mongodb user")
-		},
-		Timeout:    conn.DefaultTimeout,
-		Delay:      2 * time.Second,
-		MinTimeout: 3 * time.Second,
-	}
-
-	if _, err := stateConf.WaitForStateContext(ctx); err != nil {
-		return fmt.Errorf("error waiting for mongodb user (%s) to become terminating: %s", id, err)
-	}
-
-	return nil
 }
 
 func GetMongoDbUserList(ctx context.Context, config *conn.ProviderConfig, id string, users []string) ([]*vmongodb.CloudMongoDbUser, error) {
@@ -421,17 +379,17 @@ func (r MongodbUser) AttrTypes() map[string]attr.Type {
 	}
 }
 
-func (r *mongodbUsersResourceModel) refreshFromOutput(ctx context.Context, output []*vmongodb.CloudMongoDbUser, plan mongodbUsersResourceModel) diag.Diagnostics {
-	r.ID = plan.ID
-	r.MongoDbInstanceNo = plan.ID
+func (r *mongodbUsersResourceModel) refreshFromOutput(ctx context.Context, output []*vmongodb.CloudMongoDbUser, resourceModel mongodbUsersResourceModel) diag.Diagnostics {
+	r.ID = resourceModel.ID
+	r.MongoDbInstanceNo = resourceModel.ID
 
 	var userList []MongodbUser
 
 	for idx, user := range output {
 		var password types.String
 
-		if idx < len(plan.MongoDbUserList.Elements()) {
-			pswd := plan.MongoDbUserList.Elements()[idx].(types.Object).Attributes()
+		if idx < len(resourceModel.MongoDbUserList.Elements()) {
+			pswd := resourceModel.MongoDbUserList.Elements()[idx].(types.Object).Attributes()
 			if val, ok := pswd["password"].(types.String); ok {
 				password = val
 			}
