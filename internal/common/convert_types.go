@@ -266,3 +266,17 @@ func StringFrameworkOrDefault(value types.String) basetypes.StringValue {
 	}
 	return value
 }
+
+func ConvertToStringList(values basetypes.ListValue, attrValue string) []string {
+	result := make([]string, 0, len(values.Elements()))
+
+	for _, v := range values.Elements() {
+		obj := v.(types.Object)
+		attrs := obj.Attributes()
+
+		name := attrs[attrValue].(types.String).ValueString()
+		result = append(result, name)
+	}
+
+	return result
+}
