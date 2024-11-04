@@ -10,6 +10,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
+	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 	"github.com/terraform-providers/terraform-provider-ncloud/internal/common"
@@ -109,11 +110,8 @@ func (d *mysqlDatabasesDataSource) Read(ctx context.Context, req datasource.Read
 
 	mysqlDbList := flattenMysqlDatabases(output)
 	fillteredList := common.FilterModels(ctx, data.Filters, mysqlDbList)
-	if err := data.refreshFromOutput(ctx, fillteredList, data.MysqlInstanceNo.ValueString()); err != nil {
-		resp.Diagnostics.AddError(
-			"Error while getting output values of mysql databases list",
-			err.Error(),
-		)
+	if diags := data.refreshFromOutput(ctx, fillteredList, data.MysqlInstanceNo.ValueString()); diags != nil {
+		resp.Diagnostics.AddError("READING ERROR", "refreshFromOutput error")
 		return
 	}
 
@@ -220,12 +218,12 @@ func flattenMysqlDatabases(list []*vmysql.CloudMysqlDatabase) []*mysqlDb {
 	return outputs
 }
 
-func (d *mysqlDatabasesDataSourceModel) refreshFromOutput(ctx context.Context, output []*mysqlDb, instance string) error {
+func (d *mysqlDatabasesDataSourceModel) refreshFromOutput(ctx context.Context, output []*mysqlDb, instance string) diag.Diagnostics {
 	d.ID = types.StringValue(instance)
 	d.MysqlInstanceNo = types.StringValue(instance)
-	dbListValue, err := types.ListValueFrom(ctx, types.ObjectType{AttrTypes: mysqlDb{}.attrTypes()}, output)
-	if err != nil {
-		return fmt.Errorf("error creating ListValue for Mysql Databases: %s", err)
+	dbListValue, diags := types.ListValueFrom(ctx, types.ObjectType{AttrTypes: mysqlDb{}.attrTypes()}, output)
+	if diags.HasError() {
+		return diags
 	}
 	d.MysqlDatabaseList = dbListValue
 
