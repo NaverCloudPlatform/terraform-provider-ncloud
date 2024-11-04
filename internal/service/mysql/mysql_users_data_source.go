@@ -11,6 +11,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
+	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -141,11 +142,8 @@ func (d *mysqlUsersDataSource) Read(ctx context.Context, req datasource.ReadRequ
 
 	mysqlUserList := flattenMysqlUsers(output)
 	fillteredList := common.FilterModels(ctx, data.Filters, mysqlUserList)
-	if err = data.refreshFromOutput(ctx, fillteredList, data.MysqlInstanceNo.ValueString()); err != nil {
-		resp.Diagnostics.AddError(
-			"Error while getting output values of mysql users",
-			err.Error(),
-		)
+	if diags := data.refreshFromOutput(ctx, fillteredList, data.MysqlInstanceNo.ValueString()); diags.HasError() {
+		resp.Diagnostics.AddError("READING ERROR", "refreshFromOutput error")
 		return
 	}
 
@@ -262,12 +260,12 @@ func flattenMysqlUsers(list []*vmysql.CloudMysqlUser) []*mysqlUser {
 	return outputs
 }
 
-func (d *mysqlUsersDataSourceModel) refreshFromOutput(ctx context.Context, output []*mysqlUser, instance string) error {
+func (d *mysqlUsersDataSourceModel) refreshFromOutput(ctx context.Context, output []*mysqlUser, instance string) diag.Diagnostics {
 	d.ID = types.StringValue(instance)
 	d.MysqlInstanceNo = types.StringValue(instance)
-	userListValue, err := types.ListValueFrom(ctx, types.ObjectType{AttrTypes: mysqlUser{}.attrTypes()}, output)
-	if err != nil {
-		return fmt.Errorf("error creating ListValue for userList: %s", err)
+	userListValue, diags := types.ListValueFrom(ctx, types.ObjectType{AttrTypes: mysqlUser{}.attrTypes()}, output)
+	if diags.HasError() {
+		return diags
 	}
 	d.MysqlUserList = userListValue
 	return nil
