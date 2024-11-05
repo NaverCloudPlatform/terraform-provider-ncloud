@@ -49,6 +49,7 @@ The following arguments are supported:
 * `subnet_no` - (Required) The ID of the associated Subnet. Public domain can only be used on a DB server generated on Public Subnet. 
 * `image_product_code` - (Optional) Image product code to determine the MySQL instance server image specification to create. If not entered, the instance is created for default value. It can be obtained through [`ncloud_mysql_image_products` data source](../data-sources/mysql_image_products.md)
 * `product_code` - (Optional) Product code to determine the MySQL instance server image specification to create. It can be obtained through [`ncloud_mysql_products` data source](../data-sources/mysql_products.md). Default : Minimum specifications(1 memory, 2 cpu)
+* `engine_version_code` - (Optional) MySQL engine version code. Only entered when `generation_code` is G3, If not entered, generate with the latest version currently available.
 * `data_storage_type` - (Optional) Data storage type. If `generationCode` is `G2`, You can select `SSD|HDD`, else if `generationCode` is `G3`, you can select CB1. Default : SSD in G2, CB1 in G3
 * `is_ha` - (Optional) High-availability (True/False).  If high availability is selected, 2 servers including a Standby Master server are generated, and additional fees are incurred. If the high availability status `is_ha` is false, `is_multi_zone` and `standby_master_subnet_no` parameters are not used. Default : true.
 * `is_multi_zone` - (Optional) Multi-zone (True/False). If the high availability status `is_ha` is true, multi-zone can be selected. If multi-zone is selected, the Master server and Standby Master server are generated in mutually different zones, providing higher availability. Default : false
@@ -65,7 +66,6 @@ The following arguments are supported:
 In addition to all arguments above, the following attributes are exported
 
 * `id` - MySQL Instance Number.
-* `engine_version_code` - MySQL Engine version code.
 * `region_code` - Region code.
 * `vpc_no` - The ID of the associated Vpc.
 * `access_control_group_no_list` - The ID list of the associated Access Control Group.
