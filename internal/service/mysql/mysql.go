@@ -244,6 +244,7 @@ func (m *mysqlResource) Schema(_ context.Context, _ resource.SchemaRequest, resp
 			},
 			"engine_version_code": schema.StringAttribute{
 				Optional: true,
+				Computed: true,
 				PlanModifiers: []planmodifier.String{
 					stringplanmodifier.RequiresReplace(),
 				},
@@ -758,6 +759,7 @@ func (m *mysqlResourceModel) refreshFromOutput(ctx context.Context, output *vmys
 	m.ServiceName = types.StringPointerValue(output.CloudMysqlServiceName)
 	m.ImageProductCode = types.StringPointerValue(output.CloudMysqlImageProductCode)
 	m.DataStorageTypeCode = types.StringPointerValue(output.CloudMysqlServerInstanceList[0].DataStorageType.Code)
+	m.EngineVersionCode = types.StringValue(common.ExtractEngineVersion(*output.EngineVersion))
 	m.IsHa = types.BoolPointerValue(output.IsHa)
 	m.IsMultiZone = types.BoolPointerValue(output.IsMultiZone)
 	m.IsStorageEncryption = types.BoolPointerValue(output.CloudMysqlServerInstanceList[0].IsStorageEncryption)

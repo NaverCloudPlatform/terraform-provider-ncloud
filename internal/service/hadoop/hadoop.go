@@ -200,8 +200,9 @@ func (r *hadoopResource) Schema(_ context.Context, req resource.SchemaRequest, r
 			},
 			"engine_version_code": schema.StringAttribute{
 				Optional: true,
+				Computed: true,
 				PlanModifiers: []planmodifier.String{
-					stringplanmodifier.RequiresReplace(),
+					stringplanmodifier.UseStateForUnknown(),
 				},
 			},
 			"edge_node_product_code": schema.StringAttribute{
@@ -336,12 +337,6 @@ func (r *hadoopResource) Schema(_ context.Context, req resource.SchemaRequest, r
 				},
 			},
 			"cluster_direct_access_account": schema.StringAttribute{
-				Computed: true,
-				PlanModifiers: []planmodifier.String{
-					stringplanmodifier.UseStateForUnknown(),
-				},
-			},
-			"version": schema.StringAttribute{
 				Computed: true,
 				PlanModifiers: []planmodifier.String{
 					stringplanmodifier.UseStateForUnknown(),
@@ -887,7 +882,6 @@ type hadoopResourceModel struct {
 	RegionCode                 types.String `tfsdk:"region_code"`
 	AmbariServerHost           types.String `tfsdk:"ambari_server_host"`
 	ClusterDirectAccessAccount types.String `tfsdk:"cluster_direct_access_account"`
-	Version                    types.String `tfsdk:"version"`
 	IsHa                       types.Bool   `tfsdk:"is_ha"`
 	Domain                     types.String `tfsdk:"domain"`
 	AccessControlGroupNoList   types.List   `tfsdk:"access_control_group_no_list"`
@@ -940,7 +934,7 @@ func (m *hadoopResourceModel) refreshFromOutput(ctx context.Context, output *vha
 	m.RegionCode = types.StringPointerValue(output.CloudHadoopServerInstanceList[0].RegionCode)
 	m.AmbariServerHost = types.StringPointerValue(output.AmbariServerHost)
 	m.ClusterDirectAccessAccount = types.StringPointerValue(output.ClusterDirectAccessAccount)
-	m.Version = types.StringPointerValue(output.CloudHadoopVersion.Code)
+	m.EngineVersionCode = types.StringPointerValue(output.CloudHadoopVersion.Code)
 	m.IsHa = types.BoolPointerValue(output.IsHa)
 	m.Domain = types.StringPointerValue(output.Domain)
 

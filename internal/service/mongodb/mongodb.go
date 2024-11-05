@@ -310,6 +310,7 @@ func (m *mongodbResource) Schema(_ context.Context, _ resource.SchemaRequest, re
 			},
 			"engine_version_code": schema.StringAttribute{
 				Optional: true,
+				Computed: true,
 				PlanModifiers: []planmodifier.String{
 					stringplanmodifier.RequiresReplace(),
 				},
@@ -1009,6 +1010,7 @@ func (m *mongodbResourceModel) refreshFromOutput(ctx context.Context, output *vm
 	m.VpcNo = types.StringPointerValue(output.CloudMongoDbServerInstanceList[0].VpcNo)
 	m.SubnetNo = types.StringPointerValue(output.CloudMongoDbServerInstanceList[0].SubnetNo)
 	m.ImageProductCode = types.StringPointerValue(output.CloudMongoDbImageProductCode)
+	m.EngineVersionCode = types.StringValue(common.ExtractEngineVersion(*output.EngineVersion))
 	m.ShardCount = common.Int64ValueFromInt32(output.ShardCount)
 	m.BackupFileRetentionPeriod = common.Int64ValueFromInt32(output.BackupFileRetentionPeriod)
 	m.BackupTime = types.StringPointerValue(output.BackupTime)

@@ -156,6 +156,7 @@ func (r *redisResource) Schema(_ context.Context, _ resource.SchemaRequest, resp
 			},
 			"engine_version_code": schema.StringAttribute{
 				Optional: true,
+				Computed: true,
 				PlanModifiers: []planmodifier.String{
 					stringplanmodifier.RequiresReplace(),
 				},
@@ -691,6 +692,7 @@ func (r *redisResourceModel) refreshFromOutput(ctx context.Context, output *vred
 	r.SubnetNo = types.StringPointerValue(output.CloudRedisServerInstanceList[0].SubnetNo)
 	r.ConfigGroupNo = types.StringPointerValue(output.ConfigGroupNo)
 	r.Mode = types.StringPointerValue(output.Role.Code)
+	r.EngineVersionCode = types.StringValue(common.ExtractEngineVersion(*output.EngineVersion))
 	r.ImageProductCode = types.StringPointerValue(output.CloudRedisImageProductCode)
 	r.ProductCode = types.StringPointerValue(output.CloudRedisServerInstanceList[0].CloudRedisProductCode)
 	r.IsHa = types.BoolPointerValue(output.IsHa)

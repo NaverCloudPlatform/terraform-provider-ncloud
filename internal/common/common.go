@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"log"
+	"regexp"
 
 	"strings"
 
@@ -94,4 +95,11 @@ func ContainsInStringList(str string, s []string) bool {
 		}
 	}
 	return false
+}
+
+func ExtractEngineVersion(input string) string {
+	re := regexp.MustCompile(`\d+\.\d+\.\d+`)
+	version := re.FindString(input)
+
+	return version
 }
