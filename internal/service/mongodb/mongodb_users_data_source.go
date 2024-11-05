@@ -179,7 +179,7 @@ func GetMongoDbUserAllList(ctx context.Context, config *conn.ProviderConfig, id 
 
 	tflog.Info(ctx, "GetMongodbUserList response="+common.MarshalUncheckedString(resp))
 
-	return reverse(resp.CloudMongoDbUserList), nil
+	return common.ReverseList(resp.CloudMongoDbUserList), nil
 }
 
 type mongodbUsersDataSourceModel struct {
@@ -247,16 +247,4 @@ func (d *mongodbUser) refreshFromOutput(output *vmongodb.CloudMongoDbUser) {
 	d.UserName = types.StringPointerValue(output.UserName)
 	d.DatabaseName = types.StringPointerValue(output.DatabaseName)
 	d.Authority = types.StringPointerValue(output.Authority)
-}
-
-func reverse(users []*vmongodb.CloudMongoDbUser) []*vmongodb.CloudMongoDbUser {
-	if len(users) <= 1 {
-		return users
-	}
-
-	for i, j := 0, len(users)-1; i < j; i, j = i+1, j-1 {
-		users[i], users[j] = users[j], users[i]
-	}
-
-	return users
 }

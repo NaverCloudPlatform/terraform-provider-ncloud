@@ -225,3 +225,15 @@ func expandSourceBuildEnvVarsParams(eVars []interface{}) ([]*sourcebuild.Project
 
 	return envVars, nil
 }
+
+func ReverseList[T any](list []T) []T {
+	if len(list) <= 1 {
+		return list
+	}
+
+	for i, j := 0, len(list)-1; i < j; i, j = i+1, j-1 {
+		list[i], list[j] = list[j], list[i]
+	}
+
+	return list
+}
