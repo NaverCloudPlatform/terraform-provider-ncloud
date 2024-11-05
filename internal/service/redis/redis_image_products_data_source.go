@@ -2,7 +2,6 @@ package redis
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
 
 	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/services/vredis"
@@ -134,30 +133,13 @@ func (r *redisImageProductsDataSource) Read(ctx context.Context, req datasource.
 	if !data.OutputFile.IsNull() && data.OutputFile.String() != "" {
 		outputPath := data.OutputFile.ValueString()
 
-		if convertedList, err := convertToJsonStruct(data.ImageProductList.Elements()); err != nil {
-			resp.Diagnostics.AddError("OUTPUT FILE ERROR", err.Error())
-			return
-		} else if err := common.WriteToFile(outputPath, convertedList); err != nil {
+		if err := common.WriteImageProductToFile(outputPath, data.ImageProductList); err != nil {
 			resp.Diagnostics.AddError("OUTPUT FILE ERROR", err.Error())
 			return
 		}
 	}
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
-}
-
-func convertToJsonStruct(images []attr.Value) ([]redisImageProductToJsonConvert, error) {
-	var redisImagesToConvert = []redisImageProductToJsonConvert{}
-
-	for _, image := range images {
-		imageJasn := redisImageProductToJsonConvert{}
-		if err := json.Unmarshal([]byte(image.String()), &imageJasn); err != nil {
-			return nil, err
-		}
-		redisImagesToConvert = append(redisImagesToConvert, imageJasn)
-	}
-
-	return redisImagesToConvert, nil
 }
 
 func flattenRedisImageProduct(list []*vredis.Product) []*redisImageProduct {

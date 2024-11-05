@@ -2,7 +2,6 @@ package mongodb
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
 
 	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/services/vmongodb"
@@ -136,30 +135,13 @@ func (m *mongodbImageProductsDataSource) Read(ctx context.Context, req datasourc
 	if !data.OutputFile.IsNull() && data.OutputFile.String() != "" {
 		outputPath := data.OutputFile.ValueString()
 
-		if convertedList, err := convertToJsonStruct(data.ImageProductList.Elements()); err != nil {
-			resp.Diagnostics.AddError("OUTPUT FILE ERROR", err.Error())
-			return
-		} else if err := common.WriteToFile(outputPath, convertedList); err != nil {
+		if err := common.WriteImageProductToFile(outputPath, data.ImageProductList); err != nil {
 			resp.Diagnostics.AddError("OUTPUT FILE ERROR", err.Error())
 			return
 		}
 	}
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
-}
-
-func convertToJsonStruct(images []attr.Value) ([]mongodbImageProductToJsonConvert, error) {
-	var mongodbImagesToConvert = []mongodbImageProductToJsonConvert{}
-
-	for _, image := range images {
-		imageJasn := mongodbImageProductToJsonConvert{}
-		if err := json.Unmarshal([]byte(image.String()), &imageJasn); err != nil {
-			return nil, err
-		}
-		mongodbImagesToConvert = append(mongodbImagesToConvert, imageJasn)
-	}
-
-	return mongodbImagesToConvert, nil
 }
 
 func flattenMongoDbImageProduct(ctx context.Context, list []*vmongodb.Product) []*mongodbImageProduct {
