@@ -54,6 +54,6 @@ This data source exports the following attributes in addition to the argument ab
 
 * `mysql_user_list` - The list of users to add .
   * `name` - MySQL User ID.
-  * `password` - MySQL User Password.
   * `host_ip` -  MySQL user host.
   * `authority` - MySQL User Authority.
+  * `is_system_table_access` - MySQL User system table accessibility.
