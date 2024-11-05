@@ -19,7 +19,7 @@ data "ncloud_mongodb_image_products" "example" {
 output "image_list" {
   value = {
     for image in data.ncloud_mongodb_image_products.example.image_product_list:
-    image.product_name => image.product_code
+    image.engine_version_code => image.product_code
   }
 }
 ```
@@ -36,12 +36,16 @@ data "ncloud_mongodb_image_products" "example" {
 Outputs:
 ```terraform
 image_list = {
-  "MongoDB 4.4.18 Community Edition": "SW.VMGDB.LNX64.CNTOS.0708.MNGDB.4418.CE.B050",
-  "MongoDB 4.4.18 Enterprise Edition": "SW.VMGDB.LNX64.CNTOS.0708.MNGDB.4418.EE.B050",
-  "MongoDB 4.4.25 Community Edition": "SW.VMGDB.LNX64.CNTOS.0708.MNGDB.4425.CE.B050",
-  "MongoDB 4.4.25 Enterprise Edition": "SW.VMGDB.LNX64.CNTOS.0708.MNGDB.4425.EE.B050",
-  "MongoDB 5.0.19 Community Edition": "SW.VMGDB.LNX64.CNTOS.0708.MNGDB.5019.CE.B050",
-  "MongoDB 5.0.19 Enterprise Edition": "SW.VMGDB.LNX64.CNTOS.0708.MNGDB.5019.EE.B050"
+  "6.0.15": "SW.VMGDB.OS.LNX64.ROCKY.0810.MNGDB.CE.B050",
+  "6.0.15": "SW.VMGDB.OS.LNX64.ROCKY.0810.MNGDB.EE.B050",
+  "5.0.25": "SW.VMGDB.OS.LNX64.ROCKY.0810.MNGDB.CE.B050",
+  "5.0.25": "SW.VMGDB.OS.LNX64.ROCKY.0810.MNGDB.EE.B050",
+  "5.0.19": "SW.VMGDB.OS.LNX64.ROCKY.0810.MNGDB.CE.B050",
+  "5.0.19": "SW.VMGDB.OS.LNX64.ROCKY.0810.MNGDB.EE.B050",
+  "4.4.25": "SW.VMGDB.OS.LNX64.ROCKY.0810.MNGDB.CE.B050",
+  "4.4.25": "SW.VMGDB.OS.LNX64.ROCKY.0810.MNGDB.EE.B050",
+  "4.4.18": "SW.VMGDB.OS.LNX64.ROCKY.0810.MNGDB.CE.B050",
+  "4.4.18": "SW.VMGDB.OS.LNX64.ROCKY.0810.MNGDB.EE.B050"
 }
 ```
 

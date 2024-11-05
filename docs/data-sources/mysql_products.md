@@ -13,7 +13,7 @@ Get a list of MySQL products.
 
 ```terraform
 data "ncloud_mysql_products" "all" {
-  image_product_code = "SW.VDBAS.DBAAS.LNX64.CNTOS.0708.MYSQL.8025.B050"
+  image_product_code = "SW.VMYSL.OS.LNX64.ROCKY.0810.MYSQL.B050"
 
   filter {
     name   = "product_type"
@@ -34,7 +34,11 @@ output "product_list" {
 Outputs:
 ```terraform
 list_image = {
-  "vCPU 2EA, Memory 8GB" = "SVR.VDBAS.STAND.C002.M008.NET.HDD.B050.G002"
+  "vCPU 2EA, Memory 8GB" = "SVR.VDBAS.STAND.C002.M008.NET.HDD.B050.G002",
+  "vCPU 4EA, Memory 16GB" = "SVR.VDBAS.STAND.C004.M016.NET.HDD.B050.G002",
+  "vCPU 8EA, Memory 32GB" = "SVR.VDBAS.STAND.C008.M032.NET.HDD.B050.G002",
+  "vCPU 16EA, Memory 64GB" = "SVR.VDBAS.STAND.C016.M064.NET.HDD.B050.G002",
+  "vCPU 32EA, Memory 128GB" = "SVR.VDBAS.STAND.C032.M128.NET.HDD.B050.G002"
 }
 ```
 

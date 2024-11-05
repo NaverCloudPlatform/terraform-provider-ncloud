@@ -19,7 +19,7 @@ data "ncloud_mysql_image_products" "example" {
 output "image_list" {
   value = {
     for image in data.ncloud_mysql_image_products.example.image_product_list:
-    image.product_name => image.product_code
+    image.engine_version_code => image.product_code
   }
 }
 ```
@@ -27,8 +27,8 @@ output "image_list" {
 ```terraform
 data "ncloud_mysql_image_products" "example" {
   filter {
-    name = "product_code"
-    values = ["SW.VDBAS.DBAAS.LNX64.CNTOS.0708.MYSQL.8021.B050"]
+    name = "engine_version_code"
+    values = ["8.0.36"]
   }
 }
 ```
@@ -36,7 +36,7 @@ data "ncloud_mysql_image_products" "example" {
 Outputs:
 ```terraform
 image_list = {
-  "mysql(8.0.21)": "SW.VDBAS.DBAAS.LNX64.CNTOS.0708.MYSQL.8021.B050",
+  "8.0.36": "SW.VMYSL.OS.LNX64.ROCKY.0810.MYSQL.B050"
 }
 ```
 
