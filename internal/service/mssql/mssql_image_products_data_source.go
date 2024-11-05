@@ -173,15 +173,6 @@ type mssqlImageProduct struct {
 	OsInformation  types.String `tfsdk:"os_information"`
 }
 
-type mssqlImageProductToJsonConvert struct {
-	ProductCode    string `json:"product_code"`
-	GenerationCode string `json:"generation_code"`
-	ProductName    string `json:"product_name"`
-	ProductType    string `json:"product_type"`
-	PlatformType   string `json:"platform_type"`
-	OsInformation  string `json:"os_information"`
-}
-
 func (m mssqlImageProduct) attrTypes() map[string]attr.Type {
 	return map[string]attr.Type{
 		"product_code":    types.StringType,

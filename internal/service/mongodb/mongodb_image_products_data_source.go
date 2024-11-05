@@ -179,16 +179,6 @@ type mongodbImageProduct struct {
 	EngineVersionCode types.String `tfsdk:"engine_version_code"`
 }
 
-type mongodbImageProductToJsonConvert struct {
-	ProductCode       string `json:"product_code"`
-	GenerationCode    string `json:"generation_code"`
-	ProductName       string `json:"product_name"`
-	ProductType       string `json:"product_type"`
-	PlatformType      string `json:"platform_type"`
-	OsInformation     string `json:"os_information"`
-	EngineVersionCode string `json:"engine_version_code"`
-}
-
 func (m mongodbImageProduct) attrTypes() map[string]attr.Type {
 	return map[string]attr.Type{
 		"product_code":        types.StringType,
