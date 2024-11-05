@@ -98,7 +98,7 @@ func ContainsInStringList(str string, s []string) bool {
 }
 
 func ExtractEngineVersion(input string) string {
-	re := regexp.MustCompile(`\d+\.\d+\.\d+`)
+	re := regexp.MustCompile(`\d+\.\d+(\.\d+)?`)
 	version := re.FindString(input)
 
 	return version
