@@ -3,14 +3,13 @@ package mysql
 import (
 	"context"
 	"fmt"
-	"log"
 	"regexp"
-	"time"
 
 	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/ncloud"
 	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/services/vmysql"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/attr"
+	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
@@ -22,7 +21,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
 	"github.com/terraform-providers/terraform-provider-ncloud/internal/common"
 	"github.com/terraform-providers/terraform-provider-ncloud/internal/conn"
 	"github.com/terraform-providers/terraform-provider-ncloud/internal/framework"
@@ -105,7 +103,7 @@ func (r *mysqlUsersResource) Schema(_ context.Context, _ resource.SchemaRequest,
 							Required:  true,
 							Sensitive: true,
 							PlanModifiers: []planmodifier.String{
-								stringplanmodifier.RequiresReplace(),
+								stringplanmodifier.UseStateForUnknown(),
 							},
 							Validators: []validator.String{
 								stringvalidator.All(
@@ -120,7 +118,7 @@ func (r *mysqlUsersResource) Schema(_ context.Context, _ resource.SchemaRequest,
 						"authority": schema.StringAttribute{
 							Required: true,
 							PlanModifiers: []planmodifier.String{
-								stringplanmodifier.RequiresReplace(),
+								stringplanmodifier.UseStateForUnknown(),
 							},
 							Validators: []validator.String{
 								stringvalidator.OneOf([]string{"READ", "CRUD", "DDL"}...),
@@ -130,7 +128,7 @@ func (r *mysqlUsersResource) Schema(_ context.Context, _ resource.SchemaRequest,
 							Optional: true,
 							Computed: true,
 							PlanModifiers: []planmodifier.Bool{
-								boolplanmodifier.RequiresReplace(),
+								boolplanmodifier.UseStateForUnknown(),
 							},
 							Default: booldefault.StaticBool(true),
 						},
@@ -190,7 +188,15 @@ func (r *mysqlUsersResource) Create(ctx context.Context, req resource.CreateRequ
 		return
 	}
 
-	plan.refreshFromOutput(ctx, output, plan.MysqlInstanceNo.ValueString())
+	if output == nil {
+		resp.State.RemoveResource(ctx)
+		return
+	}
+
+	if diags := plan.refreshFromOutput(ctx, output, plan); diags.HasError() {
+		resp.Diagnostics.AddError("READING ERROR", "refreshFromOutput error")
+		return
+	}
 	resp.Diagnostics.Append(resp.State.Set(ctx, plan)...)
 }
 
@@ -213,11 +219,11 @@ func (r *mysqlUsersResource) Read(ctx context.Context, req resource.ReadRequest,
 		return
 	}
 
-	state.refreshFromOutput(ctx, output, state.MysqlInstanceNo.ValueString())
-	resp.Diagnostics.Append(resp.State.Set(ctx, &state)...)
-	if resp.Diagnostics.HasError() {
+	if diags := state.refreshFromOutput(ctx, output, state); diags.HasError() {
+		resp.Diagnostics.AddError("READING ERROR", "refreshFromOutput error")
 		return
 	}
+	resp.Diagnostics.Append(resp.State.Set(ctx, &state)...)
 }
 
 func (r *mysqlUsersResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
@@ -262,7 +268,15 @@ func (r *mysqlUsersResource) Update(ctx context.Context, req resource.UpdateRequ
 			return
 		}
 
-		state.refreshFromOutput(ctx, output, state.ID.String())
+		if output == nil {
+			resp.State.RemoveResource(ctx)
+			return
+		}
+
+		if diags := state.refreshFromOutput(ctx, output, state); diags.HasError() {
+			resp.Diagnostics.AddError("READING ERROR", "refreshFromOutput error")
+			return
+		}
 	}
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, state)...)
@@ -295,42 +309,6 @@ func (r *mysqlUsersResource) Delete(ctx context.Context, req resource.DeleteRequ
 		return
 	}
 	tflog.Info(ctx, "DeleteMysqlUserList response="+common.MarshalUncheckedString(response))
-
-	if err := waitMysqlUsersDeletion(ctx, r.config, state.ID.ValueString(), common.ConvertToStringList(state.MysqlUserList, "name")); err != nil {
-		resp.Diagnostics.AddError("WAITING FOR DELETE ERROR", err.Error())
-	}
-}
-
-func waitMysqlUsersDeletion(ctx context.Context, config *conn.ProviderConfig, id string, users []string) error {
-	stateConf := &retry.StateChangeConf{
-		Pending: []string{DELETING},
-		Target:  []string{DELETED},
-		Refresh: func() (interface{}, string, error) {
-			userList, err := GetMysqlUserList(ctx, config, id, users)
-			if err != nil {
-				return 0, "", err
-			}
-
-			if len(userList) > 1 {
-				return userList, DELETING, nil
-			}
-
-			if len(userList) == 1 || userList == nil {
-				return userList, DELETED, nil
-			}
-
-			return 0, "", fmt.Errorf("error occurred while waiting to delete mysql user")
-		},
-		Timeout:    conn.DefaultTimeout,
-		Delay:      1 * time.Minute,
-		MinTimeout: 3 * time.Second,
-	}
-
-	if _, err := stateConf.WaitForStateContext(ctx); err != nil {
-		return fmt.Errorf("error waiting for mysql user (%s) to become terminating: %s", id, err)
-	}
-
-	return nil
 }
 
 func GetMysqlUserList(ctx context.Context, config *conn.ProviderConfig, id string, users []string) ([]*vmysql.CloudMysqlUser, error) {
@@ -403,36 +381,40 @@ type MysqlUser struct {
 func (r MysqlUser) AttrTypes() map[string]attr.Type {
 	return map[string]attr.Type{
 		"name":                   types.StringType,
+		"password":               types.StringType,
 		"host_ip":                types.StringType,
 		"authority":              types.StringType,
 		"is_system_table_access": types.BoolType,
 	}
 }
 
-func (r *mysqlUsersResourceModel) refreshFromOutput(ctx context.Context, output []*vmysql.CloudMysqlUser, instance string) {
-	r.ID = types.StringValue(instance)
-	r.MysqlInstanceNo = types.StringValue(instance)
+func (r *mysqlUsersResourceModel) refreshFromOutput(ctx context.Context, output []*vmysql.CloudMysqlUser, resourceModel mysqlUsersResourceModel) diag.Diagnostics {
+	r.ID = resourceModel.ID
+	r.MysqlInstanceNo = resourceModel.MysqlInstanceNo
 
 	var userList []MysqlUser
 
-	for _, user := range output {
+	for idx, user := range output {
+		pswd := resourceModel.MysqlUserList.Elements()[idx].(types.Object).Attributes()
 		mysqlUser := MysqlUser{
 			UserName:            types.StringPointerValue(user.UserName),
 			HostIp:              types.StringPointerValue(user.HostIp),
 			Authority:           types.StringPointerValue(user.Authority),
 			IsSystemTableAccess: types.BoolPointerValue(user.IsSystemTableAccess),
+			UserPassword:        pswd["password"].(types.String),
 		}
 
 		userList = append(userList, mysqlUser)
 	}
 
-	mysqlUsers, err := types.ListValueFrom(ctx, types.ObjectType{AttrTypes: MysqlUser{}.AttrTypes()}, userList)
-	if err != nil {
-		log.Printf("Error converting user list: %v", err)
-		return
+	mysqlUsers, diags := types.ListValueFrom(ctx, types.ObjectType{AttrTypes: MysqlUser{}.AttrTypes()}, userList)
+	if diags.HasError() {
+		return diags
 	}
 
 	r.MysqlUserList = mysqlUsers
+
+	return nil
 }
 
 func convertToCloudMysqlUserParameter(values basetypes.ListValue) []*vmysql.CloudMysqlUserParameter {
