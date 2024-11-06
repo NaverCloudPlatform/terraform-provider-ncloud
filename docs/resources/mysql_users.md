@@ -56,11 +56,12 @@ resource "ncloud_mysql_users" "mysql_users" {
 The following arguments are supported:
 
 * `mysql_instance_no` - (Required) The ID of the associated Mysql Instance.
-* `mysql_user_list` - The list of users to add .
+* `mysql_user_list` - The list of users to add.
   * `name` - (Required) MySQL User ID. Only English alphabets, numbers and special characters ( \ _ , - ) are allowed and must start with an English alphabet. Min: 4, Max: 16
   * `password` - (Required) MySQL User Password. At least one English alphabet, number and special character must be included. Certain special characters ( ` & + \ " ' / space ) cannot be used. Min: 8, Max: 20
   * `host_ip` - (Required) MySQL user host. ex) Overall connection permitted: %, Connection by specific IPs permitted: 1.1.1.1, IP band connection permitted: 1.1.1.%
   * `authority` - (Required) MySQL User Authority. You can select `READ|CRUD|DDL`.
+  * `is_system_table_access` - (Optional) Enable system table accessibility. Default: `true`. Options: `true`| `false`
 
 ## Attribute Reference
 In addition to all arguments above, the following attributes are exported

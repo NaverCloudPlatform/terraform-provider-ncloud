@@ -92,6 +92,9 @@ func (d *mysqlUsersDataSource) Schema(ctx context.Context, req datasource.Schema
 						"authority": schema.StringAttribute{
 							Computed: true,
 						},
+						"is_system_table_access": schema.BoolAttribute{
+							Computed: true,
+						},
 					},
 				},
 			},
@@ -121,12 +124,10 @@ func (d *mysqlUsersDataSource) Read(ctx context.Context, req datasource.ReadRequ
 
 	if !data.ID.IsNull() && !data.ID.IsUnknown() {
 		mysqlId = data.ID.ValueString()
-		data.MysqlInstanceNo = data.ID
 	}
 
 	if !data.MysqlInstanceNo.IsNull() && !data.MysqlInstanceNo.IsUnknown() {
 		mysqlId = data.MysqlInstanceNo.ValueString()
-		data.ID = data.MysqlInstanceNo
 	}
 
 	output, err := GetMysqlUserAllList(ctx, d.config, mysqlId)
@@ -142,7 +143,7 @@ func (d *mysqlUsersDataSource) Read(ctx context.Context, req datasource.ReadRequ
 
 	mysqlUserList := flattenMysqlUsers(output)
 	fillteredList := common.FilterModels(ctx, data.Filters, mysqlUserList)
-	if diags := data.refreshFromOutput(ctx, fillteredList, data.MysqlInstanceNo.ValueString()); diags.HasError() {
+	if diags := data.refreshFromOutput(ctx, fillteredList, mysqlId); diags.HasError() {
 		resp.Diagnostics.AddError("READING ERROR", "refreshFromOutput error")
 		return
 	}
@@ -199,11 +200,10 @@ func GetMysqlUserAllList(ctx context.Context, config *conn.ProviderConfig, id st
 		return nil, nil
 	}
 
-	allUsers = reverseAndExcludeFirst(allUsers)
+	reverseUsers := common.ReverseList(allUsers)
+	tflog.Info(ctx, "GetMysqlUserList response="+common.MarshalUncheckedString(reverseUsers))
 
-	tflog.Info(ctx, "GetMysqlUserList response="+common.MarshalUncheckedString(allUsers))
-
-	return allUsers, nil
+	return reverseUsers, nil
 }
 
 type mysqlUsersDataSourceModel struct {
@@ -215,22 +215,25 @@ type mysqlUsersDataSourceModel struct {
 }
 
 type mysqlUser struct {
-	UserName  types.String `tfsdk:"name"`
-	HostIp    types.String `tfsdk:"host_ip"`
-	Authority types.String `tfsdk:"authority"`
+	UserName            types.String `tfsdk:"name"`
+	HostIp              types.String `tfsdk:"host_ip"`
+	Authority           types.String `tfsdk:"authority"`
+	IsSystemTableAccess types.Bool   `tfsdk:"is_system_table_access"`
 }
 
 type mysqlUserToJsonConvert struct {
-	UserName  string `json:"name"`
-	HostIp    string `json:"host_ip"`
-	Authority string `json:"authority"`
+	UserName            string `json:"name"`
+	HostIp              string `json:"host_ip"`
+	Authority           string `json:"authority"`
+	IsSystemTableAccess bool   `json:"is_system_table_access"`
 }
 
 func (d mysqlUser) attrTypes() map[string]attr.Type {
 	return map[string]attr.Type{
-		"name":      types.StringType,
-		"host_ip":   types.StringType,
-		"authority": types.StringType,
+		"name":                   types.StringType,
+		"host_ip":                types.StringType,
+		"authority":              types.StringType,
+		"is_system_table_access": types.BoolType,
 	}
 }
 
@@ -275,16 +278,5 @@ func (d *mysqlUser) refreshFromOutput(output *vmysql.CloudMysqlUser) {
 	d.UserName = types.StringPointerValue(output.UserName)
 	d.HostIp = types.StringPointerValue(output.HostIp)
 	d.Authority = types.StringPointerValue(output.Authority)
-}
-
-func reverseAndExcludeFirst(users []*vmysql.CloudMysqlUser) []*vmysql.CloudMysqlUser {
-	if len(users) <= 1 {
-		return users
-	}
-
-	for i, j := 0, len(users)-1; i < j; i, j = i+1, j-1 {
-		users[i], users[j] = users[j], users[i]
-	}
-
-	return users[1:]
+	d.IsSystemTableAccess = types.BoolPointerValue(output.IsSystemTableAccess)
 }

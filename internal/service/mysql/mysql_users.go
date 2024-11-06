@@ -208,7 +208,7 @@ func (r *mysqlUsersResource) Read(ctx context.Context, req resource.ReadRequest,
 		return
 	}
 
-	output, err := GetMysqlUserList(ctx, r.config, state.MysqlInstanceNo.ValueString(), common.ConvertToStringList(state.MysqlUserList, "name"))
+	output, err := GetMysqlUserList(ctx, r.config, state.ID.ValueString(), common.ConvertToStringList(state.MysqlUserList, "name"))
 	if err != nil {
 		resp.Diagnostics.AddError("READING ERROR", err.Error())
 		return
@@ -273,7 +273,7 @@ func (r *mysqlUsersResource) Update(ctx context.Context, req resource.UpdateRequ
 			return
 		}
 
-		if diags := state.refreshFromOutput(ctx, output, state); diags.HasError() {
+		if diags := state.refreshFromOutput(ctx, output, plan); diags.HasError() {
 			resp.Diagnostics.AddError("READING ERROR", "refreshFromOutput error")
 			return
 		}
@@ -290,7 +290,7 @@ func (r *mysqlUsersResource) Delete(ctx context.Context, req resource.DeleteRequ
 		return
 	}
 
-	_, err := waitMysqlCreation(ctx, r.config, state.MysqlInstanceNo.ValueString())
+	_, err := waitMysqlCreation(ctx, r.config, state.ID.ValueString())
 	if err != nil {
 		resp.Diagnostics.AddError("WAITING FOR MYSQL CREATION ERROR", err.Error())
 		return
@@ -414,7 +414,7 @@ func (r *mysqlUsersResourceModel) refreshFromOutput(ctx context.Context, output 
 
 	r.MysqlUserList = mysqlUsers
 
-	return nil
+	return diags
 }
 
 func convertToCloudMysqlUserParameter(values basetypes.ListValue) []*vmysql.CloudMysqlUserParameter {
