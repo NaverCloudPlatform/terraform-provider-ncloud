@@ -202,7 +202,7 @@ func (r *hadoopResource) Schema(_ context.Context, req resource.SchemaRequest, r
 				Optional: true,
 				Computed: true,
 				PlanModifiers: []planmodifier.String{
-					stringplanmodifier.UseStateForUnknown(),
+					stringplanmodifier.RequiresReplace(),
 				},
 			},
 			"edge_node_product_code": schema.StringAttribute{
