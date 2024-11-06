@@ -12,35 +12,26 @@ jobs:
     strategy:
       matrix:
         go-version: ["1.21"]
+        # TODO: enable cloud db resources and nks
         agent:
           [
             "obs_vpc",
-            "mongodb_loadbalancer",
-            "redis_ses",
+            "loadbalancer",
+            "ses",
             "server",
-            "mysql",
-            "hadoop_mssql",
-            "nasvolume_mongodb",
+            "nasvolume",
           ]
         include:
           - agent: "obs_vpc"
             tests: "objectstorage vpc"
-          - agent: "redis_ses"
-            tests: "redis ses"
-          - agent: "mongodb_loadbalancer"
-            tests: "mongodb loadbalancer"
+          - agent: "ses"
+            tests: "ses"
+          - agent: "loadbalancer"
+            tests: "loadbalancer"
           - agent: "server"
             tests: "server"
-          - agent: "mysql"
-            tests: "mysql"
-          - agent: "hadoop_mssql"
-            tests: "hadoop mssql"
-          # - agent: "nks"
-          #   tests: "nks"
-          # - agent: "autoscaling"
-          #   tests: "autoscaling"
-          - agent: "nasvolume_mongodb"
-            tests: "nasvolume mongodb"
+          - agent: "nasvolume"
+            tests: "nasvolume"
 
     steps:
       - name: checkout branch
