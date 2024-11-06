@@ -2,6 +2,7 @@ package mssql
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 
 	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/services/vmssql"
@@ -130,13 +131,30 @@ func (m *mssqlImageProductsDataSource) Read(ctx context.Context, req datasource.
 	if !data.OutputFile.IsNull() && data.OutputFile.String() != "" {
 		outputPath := data.OutputFile.ValueString()
 
-		if err := common.WriteImageProductToFile(outputPath, data.ImageProductList); err != nil {
+		if convertedList, err := convertToJsonStruct(data.ImageProductList.Elements()); err != nil {
+			resp.Diagnostics.AddError("OUTPUT FILE ERROR", err.Error())
+			return
+		} else if err := common.WriteToFile(outputPath, convertedList); err != nil {
 			resp.Diagnostics.AddError("OUTPUT FILE ERROR", err.Error())
 			return
 		}
 	}
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
+}
+
+func convertToJsonStruct(images []attr.Value) ([]mssqlImageProductToJsonConvert, error) {
+	var mssqlImagesToConvert = []mssqlImageProductToJsonConvert{}
+
+	for _, image := range images {
+		imageJasn := mssqlImageProductToJsonConvert{}
+		if err := json.Unmarshal([]byte(image.String()), &imageJasn); err != nil {
+			return nil, err
+		}
+		mssqlImagesToConvert = append(mssqlImagesToConvert, imageJasn)
+	}
+
+	return mssqlImagesToConvert, nil
 }
 
 func flattenMssqlImageProduct(list []*vmssql.Product) []*mssqlImageProduct {
@@ -171,6 +189,15 @@ type mssqlImageProduct struct {
 	ProductType    types.String `tfsdk:"product_type"`
 	PlatformType   types.String `tfsdk:"platform_type"`
 	OsInformation  types.String `tfsdk:"os_information"`
+}
+
+type mssqlImageProductToJsonConvert struct {
+	ProductCode    string `json:"product_code"`
+	GenerationCode string `json:"generation_code"`
+	ProductName    string `json:"product_name"`
+	ProductType    string `json:"product_type"`
+	PlatformType   string `json:"platform_type"`
+	OsInformation  string `json:"os_information"`
 }
 
 func (m mssqlImageProduct) attrTypes() map[string]attr.Type {
