@@ -107,7 +107,6 @@ In addition to all arguments above, the following attributes are exported
 * `region_code` - Region code.
 * `ambari_server_host` - Ambari server host.
 * `cluster_direct_access_account` - Account to access the cluster directly.
-* `version` - The version of Hadoop.
 * `is_ha` - Whether using high availability of the specific Hadoop.
 * `domain` - Domain.
 * `access_control_group_no_list` - Access control group number list.
