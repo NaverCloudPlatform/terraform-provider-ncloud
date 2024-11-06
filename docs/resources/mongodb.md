@@ -51,7 +51,7 @@ The following arguments are supported:
 * `subnet_no` - (Required) The ID of the associated Subnet.
 * `cluster_type_code` - (Required) MongoDB cluster type code determines the cluster type of MongoDB. Options: STAND_ALONE | SINGLE_REPLICA_SET | SHARDED_CLUSTER
 * `image_product_code` - (Optional) MongoDB image product code. If not entered, it is created as a default value. It can be obtained through [`data.ncloud_mongodb_image_products`](../data-sources/mongodb_image_products.md).
-* `engine_version_code` - (Optional) MongoDB engine version code. Only entered when `generation_code` is G3, If not entered, generate with the latest version currently available.
+* `engine_version_code` - (Optional) MongoDB engine version code. If not entered, generate with the default version currently available.
 * `member_product_code` - (Optional) Member server product code. It can be obtained through [`data.ncloud_mongodb_products`](../data-sources/mongodb_products.md). Default: select the minimum specifications and must be based on 1. Memory and 2. CPU
 * `arbiter_product_code` - (Optional) Arbiter server product code. It can be obtained through [`data.ncloud_mongodb_products`](../data-sources/mongodb_products.md). Default: select the minimum specifications and must be based on 1. Memory and 2. CPU
 * `mongos_product_code` - (Optional) Mongos server product code. It can be obtained through [`data.ncloud_mongodb_products`](../data-sources/mongodb_products.md). Default: select the minimum specifications and must be based on 1. Memory and 2. CPU
