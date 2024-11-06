@@ -86,6 +86,7 @@ The following arguments are supported:
 * `master_node_data_storage_size` - (Required) Data Storage size of master node. Must be between 100(GBi) and 2000(GBi) in 10(GBi) increaments. 4000(GBi) and 6000(GBi) also available.
 * `worker_node_data_storage_size` - (Required) Data Storage size of worker node. Must be between 100(GBi) and 2000(GBi) in 10(GBi) increaments. 4000(GBi) and 6000(GBi) also available.
 * `image_product_code` - (Optional) Image product code to determine the Hadoop instance server image specification to create. If not entered, the instance is created for default value. Default: Cloud Hadoop's latest version. It can be obtained through [`ncloud_hadoop_image_products` data source](../data-sources/hadoop_image_products.md)
+* `engine_version_code` - (Optional) Hadoop Engine version code. Only entered when creating with a Rocky cluster, If not entered, generate with the latest version currently available.
 * `edge_node_product_code` - (Optional, Changeable) Edge node product code to determine the edge node server specification to create. The specification upgrade will be performed after a full service stop, so please stop work in advance. Upgrading to a server with more memory than the current specification is only possible and incurs an additional fee. Default: Selected as minimum specification. The minimum standards are 1. memory 2. CPU. It can be obtained through [`ncloud_hadoop_products` data source](../data-source/hadoop_products.md).
 * `master_node_product_code` - (Optional, Changeable) Master node product code to determine the master node server specification to create. The specification upgrade will be performed after a full service stop, so please stop work in advance. Upgrading to a server with more memory than the current specification is only possible and incurs an additional fee. Default: Selected as minimum specification. The minimum standards are 1. memory 2. CPU. It can be obtained through [`ncloud_hadoop_products` data source](../data-sources/hadoop_products.md).
 * `worker_node_product_code` - (Optional, Changeable) Worker node product code to determine the worker node server specification to create. The specification upgrade will be performed after a full service stop, so please stop work in advance. Upgrading to a server with more memory than the current specification is only possible and incurs an additional fee. Default: Selected as minimum specification. The minimum standards are 1. memory 2. CPU. It can be obtained through [`ncloud_hadoop_products` data source](../data-sources/hadoop_products.md).
@@ -106,7 +107,6 @@ In addition to all arguments above, the following attributes are exported
 * `region_code` - Region code.
 * `ambari_server_host` - Ambari server host.
 * `cluster_direct_access_account` - Account to access the cluster directly.
-* `version` - The version of Hadoop.
 * `is_ha` - Whether using high availability of the specific Hadoop.
 * `domain` - Domain.
 * `access_control_group_no_list` - Access control group number list.

@@ -308,10 +308,11 @@ func (m *mongodbResource) Schema(_ context.Context, _ resource.SchemaRequest, re
 					stringvalidator.OneOf([]string{"SNPP", "ZLIB", "ZSTD", "NONE"}...),
 				},
 			},
-			"engine_version": schema.StringAttribute{
+			"engine_version_code": schema.StringAttribute{
+				Optional: true,
 				Computed: true,
 				PlanModifiers: []planmodifier.String{
-					stringplanmodifier.UseStateForUnknown(),
+					stringplanmodifier.RequiresReplace(),
 				},
 			},
 			"region_code": schema.StringAttribute{
@@ -435,6 +436,10 @@ func (m *mongodbResource) Create(ctx context.Context, req resource.CreateRequest
 
 	if !plan.MemberProductCode.IsNull() && !plan.MemberProductCode.IsUnknown() {
 		reqParams.MemberProductCode = plan.MemberProductCode.ValueStringPointer()
+	}
+
+	if !plan.EngineVersionCode.IsNull() {
+		reqParams.EngineVersionCode = plan.EngineVersionCode.ValueStringPointer()
 	}
 
 	if !plan.ArbiterProductCode.IsNull() && !plan.ArbiterProductCode.IsUnknown() {
@@ -958,7 +963,7 @@ type mongodbResourceModel struct {
 	MongosPort                types.Int64  `tfsdk:"mongos_port"`
 	ConfigPort                types.Int64  `tfsdk:"config_port"`
 	CompressCode              types.String `tfsdk:"compress_code"`
-	EngineVersion             types.String `tfsdk:"engine_version"`
+	EngineVersionCode         types.String `tfsdk:"engine_version_code"`
 	RegionCode                types.String `tfsdk:"region_code"`
 	ZoneCode                  types.String `tfsdk:"zone_code"`
 	AccessControlGroupNoList  types.List   `tfsdk:"access_control_group_no_list"`
@@ -1005,6 +1010,7 @@ func (m *mongodbResourceModel) refreshFromOutput(ctx context.Context, output *vm
 	m.VpcNo = types.StringPointerValue(output.CloudMongoDbServerInstanceList[0].VpcNo)
 	m.SubnetNo = types.StringPointerValue(output.CloudMongoDbServerInstanceList[0].SubnetNo)
 	m.ImageProductCode = types.StringPointerValue(output.CloudMongoDbImageProductCode)
+	m.EngineVersionCode = types.StringValue(common.ExtractEngineVersion(*output.EngineVersion))
 	m.ShardCount = common.Int64ValueFromInt32(output.ShardCount)
 	m.BackupFileRetentionPeriod = common.Int64ValueFromInt32(output.BackupFileRetentionPeriod)
 	m.BackupTime = types.StringPointerValue(output.BackupTime)
@@ -1012,7 +1018,6 @@ func (m *mongodbResourceModel) refreshFromOutput(ctx context.Context, output *vm
 	m.MemberPort = common.Int64FromInt32OrDefault(output.MemberPort)
 	m.MongosPort = common.Int64FromInt32OrDefault(output.MongosPort)
 	m.ConfigPort = common.Int64FromInt32OrDefault(output.ConfigPort)
-	m.EngineVersion = types.StringPointerValue(output.EngineVersion)
 	m.RegionCode = types.StringPointerValue(output.CloudMongoDbServerInstanceList[0].RegionCode)
 	m.ZoneCode = types.StringPointerValue(output.CloudMongoDbServerInstanceList[0].ZoneCode)
 

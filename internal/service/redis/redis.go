@@ -154,6 +154,13 @@ func (r *redisResource) Schema(_ context.Context, _ resource.SchemaRequest, resp
 					stringplanmodifier.RequiresReplace(),
 				},
 			},
+			"engine_version_code": schema.StringAttribute{
+				Optional: true,
+				Computed: true,
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.RequiresReplace(),
+				},
+			},
 			"shard_count": schema.Int64Attribute{
 				Optional: true,
 				PlanModifiers: []planmodifier.Int64{
@@ -332,6 +339,10 @@ func (r *redisResource) Create(ctx context.Context, req resource.CreateRequest, 
 
 	if !plan.ProductCode.IsNull() && !plan.ProductCode.IsUnknown() {
 		reqParams.CloudRedisProductCode = plan.ProductCode.ValueStringPointer()
+	}
+
+	if !plan.EngineVersionCode.IsNull() {
+		reqParams.EngineVersionCode = plan.EngineVersionCode.ValueStringPointer()
 	}
 
 	if !plan.Port.IsNull() && !plan.Port.IsUnknown() {
@@ -634,6 +645,7 @@ type redisResourceModel struct {
 	Mode                      types.String `tfsdk:"mode"`
 	ImageProductCode          types.String `tfsdk:"image_product_code"`
 	ProductCode               types.String `tfsdk:"product_code"`
+	EngineVersionCode         types.String `tfsdk:"engine_version_code"`
 	ShardCount                types.Int64  `tfsdk:"shard_count"`
 	ShardCopyCount            types.Int64  `tfsdk:"shard_copy_count"`
 	IsHa                      types.Bool   `tfsdk:"is_ha"`
@@ -680,6 +692,7 @@ func (r *redisResourceModel) refreshFromOutput(ctx context.Context, output *vred
 	r.SubnetNo = types.StringPointerValue(output.CloudRedisServerInstanceList[0].SubnetNo)
 	r.ConfigGroupNo = types.StringPointerValue(output.ConfigGroupNo)
 	r.Mode = types.StringPointerValue(output.Role.Code)
+	r.EngineVersionCode = types.StringValue(common.ExtractEngineVersion(*output.EngineVersion))
 	r.ImageProductCode = types.StringPointerValue(output.CloudRedisImageProductCode)
 	r.ProductCode = types.StringPointerValue(output.CloudRedisServerInstanceList[0].CloudRedisProductCode)
 	r.IsHa = types.BoolPointerValue(output.IsHa)

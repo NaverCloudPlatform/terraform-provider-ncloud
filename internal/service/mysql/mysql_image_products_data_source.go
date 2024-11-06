@@ -2,7 +2,6 @@ package mysql
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
 
 	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/services/vmysql"
@@ -60,6 +59,9 @@ func (m *mysqlImageProductsDataSource) Schema(ctx context.Context, req datasourc
 							Computed: true,
 						},
 						"os_information": schema.StringAttribute{
+							Computed: true,
+						},
+						"engine_version_code": schema.StringAttribute{
 							Computed: true,
 						},
 					},
@@ -131,30 +133,13 @@ func (m *mysqlImageProductsDataSource) Read(ctx context.Context, req datasource.
 	if !data.OutputFile.IsNull() && data.OutputFile.String() != "" {
 		outputPath := data.OutputFile.ValueString()
 
-		if convertedList, err := convertToJsonStruct(data.ImageProductList.Elements()); err != nil {
-			resp.Diagnostics.AddError("OUTPUT FILE ERROR", err.Error())
-			return
-		} else if err := common.WriteToFile(outputPath, convertedList); err != nil {
+		if err := common.WriteImageProductToFile(outputPath, data.ImageProductList); err != nil {
 			resp.Diagnostics.AddError("OUTPUT FILE ERROR", err.Error())
 			return
 		}
 	}
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
-}
-
-func convertToJsonStruct(images []attr.Value) ([]mysqlImageProductToJsonConvert, error) {
-	var mysqlImagesToConvert = []mysqlImageProductToJsonConvert{}
-
-	for _, image := range images {
-		imageJasn := mysqlImageProductToJsonConvert{}
-		if err := json.Unmarshal([]byte(image.String()), &imageJasn); err != nil {
-			return nil, err
-		}
-		mysqlImagesToConvert = append(mysqlImagesToConvert, imageJasn)
-	}
-
-	return mysqlImagesToConvert, nil
 }
 
 func flattenMysqlImageProduct(list []*vmysql.CloudDbProduct) []*mysqlImageProduct {
@@ -183,31 +168,24 @@ type mysqlImageProductsDataSourceModel struct {
 }
 
 type mysqlImageProduct struct {
-	ProductCode    types.String `tfsdk:"product_code"`
-	GenerationCode types.String `tfsdk:"generation_code"`
-	ProductName    types.String `tfsdk:"product_name"`
-	ProductType    types.String `tfsdk:"product_type"`
-	PlatformType   types.String `tfsdk:"platform_type"`
-	OsInformation  types.String `tfsdk:"os_information"`
-}
-
-type mysqlImageProductToJsonConvert struct {
-	ProductCode    string `json:"product_code"`
-	GenerationCode string `json:"generation_code"`
-	ProductName    string `json:"product_name"`
-	ProductType    string `json:"product_type"`
-	PlatformType   string `json:"platform_type"`
-	OsInformation  string `json:"os_information"`
+	ProductCode       types.String `tfsdk:"product_code"`
+	GenerationCode    types.String `tfsdk:"generation_code"`
+	ProductName       types.String `tfsdk:"product_name"`
+	ProductType       types.String `tfsdk:"product_type"`
+	PlatformType      types.String `tfsdk:"platform_type"`
+	OsInformation     types.String `tfsdk:"os_information"`
+	EngineVersionCode types.String `tfsdk:"engine_version_code"`
 }
 
 func (m mysqlImageProduct) attrTypes() map[string]attr.Type {
 	return map[string]attr.Type{
-		"product_code":    types.StringType,
-		"generation_code": types.StringType,
-		"product_name":    types.StringType,
-		"product_type":    types.StringType,
-		"platform_type":   types.StringType,
-		"os_information":  types.StringType,
+		"product_code":        types.StringType,
+		"generation_code":     types.StringType,
+		"product_name":        types.StringType,
+		"product_type":        types.StringType,
+		"platform_type":       types.StringType,
+		"os_information":      types.StringType,
+		"engine_version_code": types.StringType,
 	}
 }
 
@@ -218,4 +196,5 @@ func (m *mysqlImageProduct) refreshFromOutput(output *vmysql.CloudDbProduct) {
 	m.ProductType = types.StringPointerValue(output.ProductType.Code)
 	m.PlatformType = types.StringPointerValue(output.PlatformType.Code)
 	m.OsInformation = types.StringPointerValue(output.OsInformation)
+	m.EngineVersionCode = types.StringPointerValue(output.EngineVersionCode)
 }
