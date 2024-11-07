@@ -30,6 +30,7 @@ import (
 	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/services/vmssql"
 	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/services/vmysql"
 	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/services/vpc"
+	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/services/vpostgresql"
 	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/services/vsourcedeploy"
 	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/services/vsourcepipeline"
 )
@@ -63,6 +64,7 @@ type NcloudAPIClient struct {
 	Vautoscaling    *vautoscaling.APIClient
 	Vloadbalancer   *vloadbalancer.APIClient
 	Vnks            *vnks.APIClient
+	Vpostgresql     *vpostgresql.APIClient
 	Sourcecommit    *sourcecommit.APIClient
 	Sourcebuild     *sourcebuild.APIClient
 	Sourcepipeline  *sourcepipeline.APIClient
@@ -106,6 +108,7 @@ func (c *Config) Client(site, endpoint string) (*NcloudAPIClient, error) {
 		Vmysql:          vmysql.NewAPIClient(vmysql.NewConfiguration(apiKey)),
 		Vmongodb:        vmongodb.NewAPIClient(vmongodb.NewConfiguration(apiKey)),
 		Vmssql:          vmssql.NewAPIClient(vmssql.NewConfiguration(apiKey)),
+		Vpostgresql:     vpostgresql.NewAPIClient(vpostgresql.NewConfiguration(apiKey)),
 		Vhadoop:         vhadoop.NewAPIClient(vhadoop.NewConfiguration(apiKey)),
 		Vredis:          vredis.NewAPIClient(vredis.NewConfiguration(apiKey)),
 		ObjectStorage:   NewS3Client(c.Region, apiKey, site, endpoint),
