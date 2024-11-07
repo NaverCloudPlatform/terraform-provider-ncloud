@@ -22,7 +22,7 @@ data "ncloud_postgresql_products" "all" {
 output "product_list" {
     value = {
         for product in data.ncloud_postgresql_products.all.product.list :
-        image.product_name => image.product_coe
+        image.product_name => image.product_code
     }
 }
 ```
@@ -30,7 +30,11 @@ output "product_list" {
 Outputs:
 `terraform
 list_image = {
-    "vCPU 2EA, Memory 8G" = "SVR.VPGSL.DBSVR.STAND.C002.M008.NET.SSD.B050.G002"
+    "vCPU 2EA, Memory 8GB": "SVR.VPGSL.DBSVR.STAND.C002.M008.NET.SSD.B050.G002",
+    "vCPU 4EA, Memory 16GB": "SVR.VPGSL.DBSVR.STAND.C004.M016.NET.SSD.B050.G002",
+    "vCPU 8EA, Memory 32GB": "SVR.VPGSL.DBSVR.STAND.C008.M032.NET.SSD.B050.G002",
+    "vCPU 16EA, Memory 64GB": "SVR.VPGSL.DBSVR.STAND.C016.M064.NET.SSD.B050.G002",
+    "vCPU 32EA, Memory 128GB": "SVR.VPGSL.DBSVR.STAND.C032.M128.NET.SSD.B050.G002"
 }
 
 ## Argument Reference

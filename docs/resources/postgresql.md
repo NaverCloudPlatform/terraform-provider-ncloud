@@ -44,6 +44,7 @@ The following arguments are supported:
 * `client_cidr` - (Required) Access Control (CIDR) of the client you want to connect to EX) Allow all access: 0.0.0.0/0, Allow specific IP access: 192.168.1.1/32, Allow IP band access: 192.168.1.0/24
 * `image_product_code` - (Optional) Image product code to determine the PostgreSQL instance server image specification to create. If not entered, the instance is created for default value. It can be obtained through [`ncloud_postgresql_image_products` data source](../data-sources/postgresql_image_products.md)
 * `product_code` - (Optional) Product code to determine the PostgreSQL instance server image specification to create. It can be obtained through [`ncloud_postgresql_products` data source](../data-sources/postgresql_products.md). Default: Minimum specifications(1 memory, 2 cpu)
+* `engine_version_code` - (Optional) Postgresql engine version code. If not entered, generate with the default version currently available. 
 * `data_storage_type_code` - (Optional) Data storage type. You can select `SSD|HDD`. Default: SSD
 * `is_ha` - (Optional) High-availability (true/false). If high availability is selected, 2 servers including a Secondary server are generated, and additional fees are incurred. If the high availability status `is_ha` is false, `is_multi_zone` and `secondary_subnet_no` parameters are not used. Default: true.
 * `is_multi_zone` - (Optional) Multi-zone (true/false). If the high availability status `is_ha` is true, multi-zone can be selected. If multi-zone is selected, Primary server and Secondary server are generated in mutually different zones, providing higher availability. Default: false 
@@ -65,7 +66,6 @@ In addition to all arguments above, the following attributes are exported
 * `region_code` - Region code.
 * `vpc_no` - The ID of the associated Vpc.
 * `access_control_group_no_list` - The ID list of the associated Access Control Group.
-* `engine_version_code` - PostgreSQL Engine version code.
 * `postgresql_config_list` - The list of config.
 * `postgresql_server_list` - The list of the PostgreSQL server.
   * `server_instance_no` - Server instance number.
