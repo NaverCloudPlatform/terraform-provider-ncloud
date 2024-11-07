@@ -13,19 +13,19 @@ Provides a Server instance resource.
 
 ```terraform
 resource "ncloud_server" "server" {
-    name = "tf-test-vm1"
-    server_image_product_code = "SPSW0LINUX000032"
-    server_product_code = "SPSVRSTAND000004"
+  name = "tf-test-vm1"
+  server_image_product_code = "SPSW0LINUX000032"
+  server_product_code = "SPSVRSTAND000004"
 
-    tag_list {
-      tag_key = "samplekey1"
-      tag_value = "samplevalue1"
-    }
+  tag_list {
+    tag_key = "samplekey1"
+    tag_value = "samplevalue1"
+  }
   
-    tag_list {
-      tag_key = "samplekey2"
-      tag_value = "samplevalue2"
-    }
+  tag_list {
+    tag_key = "samplekey2"
+    tag_value = "samplevalue2"
+  }
 }
 ```
 
@@ -78,26 +78,50 @@ resource "ncloud_subnet" "test" {
   usage_type     = "GEN"
 }
 
-resource "ncloud_server" "server" {
-  subnet_no                 = ncloud_subnet.test.id
-  name                      = "my-tf-server"
-  server_image_number       = data.ncloud_server_image_numbers.server_image.image_number_list.0.server_image_number
-  server_spec_code          = data.ncloud_server_specs.spec.server_spec_list.0.server_sepc_code
-  login_key_name            = ncloud_login_key.loginkey.key_name
-}
-
-data "ncloud_server_image_numbers" "server_image" {
+data "ncloud_server_image_numbers" "kvm-image" {
+  server_image_name = "rocky-8.10-base"
   filter {
-    name = "name"
-    values = ["ubuntu-20.04-base"]
+    name = "hypervisor_type"
+    values = ["KVM"]
   }
 }
 
-data "ncloud_server_specs" "spec" {
+data "ncloud_server_specs" "kvm-spec" {
   filter {
     name   = "server_spec_code"
     values = ["s2-g3"]
   }
+}
+
+resource "ncloud_server" "kvm-server" {
+  subnet_no                 = ncloud_subnet.test.id
+  name                      = "tf-kvm-server"
+  server_image_number       = data.ncloud_server_image_numbers.kvm-image.image_number_list.0.server_image_number
+  server_spec_code          = data.ncloud_server_specs.kvm-spec.server_spec_list.0.server_spec_code
+  login_key_name            = ncloud_login_key.loginkey.key_name
+}
+
+data "ncloud_server_image_numbers" "xen-image" {
+  server_image_name = "rocky-8.10-base"
+  filter {
+    name = "hypervisor_type"
+    values = ["XEN"]
+  }
+}
+
+data "ncloud_server_specs" "xen-spec" {
+  filter {
+    name   = "server_spec_code"
+    values = ["s2-g2-s50"]
+  }
+}
+
+resource "ncloud_server" "xen-server" {
+  subnet_no                 = ncloud_subnet.test.id
+  name                      = "tf-xen-server"
+  server_image_number       = data.ncloud_server_image_numbers.xen-image.image_number_list.0.server_image_number
+  server_spec_code          = data.ncloud_server_specs.xen-spec.server_spec_list.0.server_spec_code
+  login_key_name            = ncloud_login_key.loginkey.key_name
 }
 ```
 
@@ -113,7 +137,7 @@ The following arguments are supported:
   - [`ncloud_server_product` data source](../data-sources/server_product.md)
   - [`ncloud_server_products` data source](../data-sources/server_products.md)
 
-* `member_server_image_no` - (Optional, Required if `server_image_product_code` or `server_image_number` is not provided) Required value when creating a server from a manually created server image. It can be obtained through the `data.ncloud_member_server_image(s)` action.
+* `member_server_image_no` - (Optional, Required if `server_image_product_code` or `server_image_number` is not provided) Required value when creating a server from a manually created server image. KVM hypervisor type server images are not supported. It can be obtained through the `data.ncloud_member_server_image(s)` action.
   - [`ncloud_member_server_image` data source](../data-sources/member_server_image.md)
   - [`ncloud_member_server_images` data source](../data-sources/member_server_images.md)
 
@@ -145,7 +169,7 @@ The following arguments are supported:
 * `network_interface` - (Optional) List of Network Interface. You can assign up to three network interfaces.
   * `network_interface_no` - (Required) If you want to add a network interface that you created yourself, set the network interface ID.
   * `order` - (Required) Sets the order of network interfaces to be assigned to the server to create. The unit name (eth0, eth1, etc.) is determined in that order. There must be one primary network interface. If you set `0`, network interface is set by default. You can assign up to three network interfaces.
-* `is_encrypted_base_block_storage_volume` - (Optional) you can set whether to encrypt basic block storage if server image is RHV. Default `false`. 
+* `is_encrypted_base_block_storage_volume` - (Optional) you can set whether to encrypt basic block storage if server image is RHV. Default `false`.
 
 ## Attributes Reference
 

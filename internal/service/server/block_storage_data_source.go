@@ -8,6 +8,7 @@ import (
 	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/services/vserver"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 
+	"github.com/terraform-providers/terraform-provider-ncloud/internal/common"
 	. "github.com/terraform-providers/terraform-provider-ncloud/internal/common"
 	"github.com/terraform-providers/terraform-provider-ncloud/internal/conn"
 	. "github.com/terraform-providers/terraform-provider-ncloud/internal/verify"
@@ -96,15 +97,15 @@ func getClassicBlockStorageList(d *schema.ResourceData, config *conn.ProviderCon
 			BlockStorageInstanceNo:  r.BlockStorageInstanceNo,
 			ServerInstanceNo:        r.ServerInstanceNo,
 			ServerName:              r.ServerName,
-			BlockStorageType:        r.BlockStorageType.Code,
+			BlockStorageType:        common.GetCodePtrByCommonCode(r.BlockStorageType),
 			BlockStorageName:        r.BlockStorageName,
 			BlockStorageSize:        ncloud.Int64(*r.BlockStorageSize / GIGABYTE),
 			DeviceName:              r.DeviceName,
 			BlockStorageProductCode: r.BlockStorageProductCode,
-			Status:                  r.BlockStorageInstanceStatus.Code,
+			Status:                  common.GetCodePtrByCommonCode(r.BlockStorageInstanceStatus),
 			Description:             r.BlockStorageInstanceDescription,
-			DiskType:                r.DiskType.Code,
-			DiskDetailType:          r.DiskDetailType.Code,
+			DiskType:                common.GetCodePtrByCommonCode(r.DiskType),
+			DiskDetailType:          common.GetCodePtrByCommonCode(r.DiskDetailType),
 		}
 
 		list = append(list, instance)
@@ -137,16 +138,21 @@ func getVpcBlockStorageList(d *schema.ResourceData, config *conn.ProviderConfig)
 		instance := &BlockStorage{
 			BlockStorageInstanceNo:  r.BlockStorageInstanceNo,
 			ServerInstanceNo:        r.ServerInstanceNo,
-			BlockStorageType:        r.BlockStorageType.Code,
+			BlockStorageType:        common.GetCodePtrByCommonCode(r.BlockStorageType),
 			BlockStorageName:        r.BlockStorageName,
 			BlockStorageSize:        ncloud.Int64(*r.BlockStorageSize / GIGABYTE),
 			DeviceName:              r.DeviceName,
 			BlockStorageProductCode: r.BlockStorageProductCode,
-			Status:                  r.BlockStorageInstanceStatus.Code,
+			Status:                  common.GetCodePtrByCommonCode(r.BlockStorageInstanceStatus),
 			Description:             r.BlockStorageDescription,
-			DiskType:                r.BlockStorageDiskType.Code,
-			DiskDetailType:          r.BlockStorageDiskDetailType.Code,
+			DiskType:                common.GetCodePtrByCommonCode(r.BlockStorageDiskType),
+			DiskDetailType:          common.GetCodePtrByCommonCode(r.BlockStorageDiskDetailType),
 			ZoneCode:                r.ZoneCode,
+			MaxIops:                 r.MaxIopsThroughput,
+			EncryptedVolume:         r.IsEncryptedVolume,
+			ReturnProtection:        r.IsReturnProtection,
+			VolumeType:              common.GetCodePtrByCommonCode(r.BlockStorageVolumeType),
+			HypervisorType:          common.GetCodePtrByCommonCode(r.HypervisorType),
 		}
 
 		list = append(list, instance)

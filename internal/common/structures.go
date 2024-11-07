@@ -50,6 +50,18 @@ func FlattenCommonCode(i interface{}) map[string]interface{} {
 	}
 }
 
+func GetCodePtrByCommonCode(i interface{}) *string {
+	if i == nil || !reflect.ValueOf(i).Elem().IsValid() {
+		return nil
+	}
+
+	if f := reflect.ValueOf(i).Elem().FieldByName("Code"); ValidField(f) {
+		return StringField(f)
+	}
+
+	return nil
+}
+
 func flattenAccessControlGroups(accessControlGroups []*server.AccessControlGroup) []string {
 	var s []string
 	for _, accessControlGroup := range accessControlGroups {
@@ -212,4 +224,16 @@ func expandSourceBuildEnvVarsParams(eVars []interface{}) ([]*sourcebuild.Project
 	}
 
 	return envVars, nil
+}
+
+func ReverseList[T any](list []T) []T {
+	if len(list) <= 1 {
+		return list
+	}
+
+	for i, j := 0, len(list)-1; i < j; i, j = i+1, j-1 {
+		list[i], list[j] = list[j], list[i]
+	}
+
+	return list
 }

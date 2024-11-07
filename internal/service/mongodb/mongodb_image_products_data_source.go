@@ -2,7 +2,6 @@ package mongodb
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
 
 	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/services/vmongodb"
@@ -62,6 +61,9 @@ func (m *mongodbImageProductsDataSource) Schema(ctx context.Context, req datasou
 							Computed: true,
 						},
 						"os_information": schema.StringAttribute{
+							Computed: true,
+						},
+						"engine_version_code": schema.StringAttribute{
 							Computed: true,
 						},
 					},
@@ -133,30 +135,13 @@ func (m *mongodbImageProductsDataSource) Read(ctx context.Context, req datasourc
 	if !data.OutputFile.IsNull() && data.OutputFile.String() != "" {
 		outputPath := data.OutputFile.ValueString()
 
-		if convertedList, err := convertToJsonStruct(data.ImageProductList.Elements()); err != nil {
-			resp.Diagnostics.AddError("OUTPUT FILE ERROR", err.Error())
-			return
-		} else if err := common.WriteToFile(outputPath, convertedList); err != nil {
+		if err := common.WriteImageProductToFile(outputPath, data.ImageProductList); err != nil {
 			resp.Diagnostics.AddError("OUTPUT FILE ERROR", err.Error())
 			return
 		}
 	}
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
-}
-
-func convertToJsonStruct(images []attr.Value) ([]mongodbImageProductToJsonConvert, error) {
-	var mongodbImagesToConvert = []mongodbImageProductToJsonConvert{}
-
-	for _, image := range images {
-		imageJasn := mongodbImageProductToJsonConvert{}
-		if err := json.Unmarshal([]byte(image.String()), &imageJasn); err != nil {
-			return nil, err
-		}
-		mongodbImagesToConvert = append(mongodbImagesToConvert, imageJasn)
-	}
-
-	return mongodbImagesToConvert, nil
 }
 
 func flattenMongoDbImageProduct(ctx context.Context, list []*vmongodb.Product) []*mongodbImageProduct {
@@ -185,31 +170,24 @@ type mongodbImageProductsDataSourceModel struct {
 }
 
 type mongodbImageProduct struct {
-	ProductCode    types.String `tfsdk:"product_code"`
-	GenerationCode types.String `tfsdk:"generation_code"`
-	ProductName    types.String `tfsdk:"product_name"`
-	ProductType    types.String `tfsdk:"product_type"`
-	PlatformType   types.String `tfsdk:"platform_type"`
-	OsInformation  types.String `tfsdk:"os_information"`
-}
-
-type mongodbImageProductToJsonConvert struct {
-	ProductCode    string `json:"product_code"`
-	GenerationCode string `json:"generation_code"`
-	ProductName    string `json:"product_name"`
-	ProductType    string `json:"product_type"`
-	PlatformType   string `json:"platform_type"`
-	OsInformation  string `json:"os_information"`
+	ProductCode       types.String `tfsdk:"product_code"`
+	GenerationCode    types.String `tfsdk:"generation_code"`
+	ProductName       types.String `tfsdk:"product_name"`
+	ProductType       types.String `tfsdk:"product_type"`
+	PlatformType      types.String `tfsdk:"platform_type"`
+	OsInformation     types.String `tfsdk:"os_information"`
+	EngineVersionCode types.String `tfsdk:"engine_version_code"`
 }
 
 func (m mongodbImageProduct) attrTypes() map[string]attr.Type {
 	return map[string]attr.Type{
-		"product_code":    types.StringType,
-		"generation_code": types.StringType,
-		"product_name":    types.StringType,
-		"product_type":    types.StringType,
-		"platform_type":   types.StringType,
-		"os_information":  types.StringType,
+		"product_code":        types.StringType,
+		"generation_code":     types.StringType,
+		"product_name":        types.StringType,
+		"product_type":        types.StringType,
+		"platform_type":       types.StringType,
+		"os_information":      types.StringType,
+		"engine_version_code": types.StringType,
 	}
 }
 
@@ -220,4 +198,5 @@ func (m *mongodbImageProduct) refreshFromOutput(output *vmongodb.Product) {
 	m.ProductType = types.StringPointerValue(output.ProductType.Code)
 	m.PlatformType = types.StringPointerValue(output.PlatformType.Code)
 	m.OsInformation = types.StringPointerValue(output.OsInformation)
+	m.EngineVersionCode = types.StringPointerValue(output.EngineVersionCode)
 }

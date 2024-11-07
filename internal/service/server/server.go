@@ -16,6 +16,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 
+	"github.com/terraform-providers/terraform-provider-ncloud/internal/common"
 	. "github.com/terraform-providers/terraform-provider-ncloud/internal/common"
 	"github.com/terraform-providers/terraform-provider-ncloud/internal/conn"
 	"github.com/terraform-providers/terraform-provider-ncloud/internal/service/vpc"
@@ -320,6 +321,11 @@ func resourceNcloudServerDelete(d *schema.ResourceData, meta interface{}) error 
 		return err
 	}
 
+	if serverInstance == nil {
+		d.SetId("")
+		return nil
+	}
+
 	if ncloud.StringValue(serverInstance.ServerInstanceStatus) != "NSTOP" {
 		log.Printf("[INFO] Stopping Instance %q for terminate", d.Id())
 		if err := stopThenWaitServerInstance(config, d.Id()); err != nil {
@@ -556,6 +562,11 @@ func waitStateNcloudServerForCreation(config *conn.ProviderConfig, id string) er
 			if err != nil {
 				return 0, "", err
 			}
+
+			if instance == nil {
+				return 0, "", fmt.Errorf("fail to get Server instance, %s doesn't exist", id)
+			}
+
 			return instance, ncloud.StringValue(instance.ServerInstanceStatus), nil
 		},
 		Timeout:    conn.DefaultCreateTimeout,
@@ -575,6 +586,10 @@ func updateServerInstanceSpec(d *schema.ResourceData, config *conn.ProviderConfi
 	serverInstance, err := GetServerInstance(config, d.Id())
 	if err != nil {
 		return err
+	}
+
+	if serverInstance == nil {
+		return fmt.Errorf("fail to get Server instance, %s doesn't exist", d.Id())
 	}
 
 	log.Printf("[INFO] Stopping Instance %q for server_product_code change", d.Id())
@@ -616,6 +631,10 @@ func changeServerInstanceSpec(d *schema.ResourceData, config *conn.ProviderConfi
 
 			if err != nil {
 				return 0, "", err
+			}
+
+			if instance == nil {
+				return 0, "", fmt.Errorf("fail to get Server instance, %s doesn't exist", d.Id())
 			}
 
 			return instance, ncloud.StringValue(instance.ServerInstanceOperation), nil
@@ -738,6 +757,10 @@ func startThenWaitServerInstance(config *conn.ProviderConfig, id string) error {
 				return 0, "", err
 			}
 
+			if instance == nil {
+				return 0, "", fmt.Errorf("fail to get Server instance, %s doesn't exist", id)
+			}
+
 			return instance, ncloud.StringValue(instance.ServerInstanceStatus), nil
 		},
 		Timeout:    conn.DefaultTimeout,
@@ -842,11 +865,11 @@ func convertClassicServerInstance(r *server.ServerInstance) *ServerInstance {
 		PortForwardingPublicIp:         r.PortForwardingPublicIp,
 		PortForwardingExternalPort:     r.PortForwardingExternalPort,
 		PortForwardingInternalPort:     r.PortForwardingInternalPort,
-		ServerInstanceStatus:           r.ServerInstanceStatus.Code,
-		PlatformType:                   r.PlatformType.Code,
-		ServerInstanceOperation:        r.ServerInstanceOperation.Code,
+		ServerInstanceStatus:           common.GetCodePtrByCommonCode(r.ServerInstanceStatus),
+		PlatformType:                   common.GetCodePtrByCommonCode(r.PlatformType),
+		ServerInstanceOperation:        common.GetCodePtrByCommonCode(r.ServerInstanceOperation),
 		Zone:                           r.Zone.ZoneCode,
-		BaseBlockStorageDiskType:       r.BaseBlockStorageDiskType.Code,
+		BaseBlockStorageDiskType:       common.GetCodePtrByCommonCode(r.BaseBlockStorageDiskType),
 		BaseBlockStorageDiskDetailType: flattenMapByKey(r.BaseBlockStorageDiskDetailType, "code"),
 		InstanceTagList:                r.InstanceTagList,
 	}
@@ -868,7 +891,7 @@ func getVpcServerInstance(config *conn.ProviderConfig, id string) (*ServerInstan
 
 	LogResponse("getVpcServerInstance", resp)
 
-	if len(resp.ServerInstanceList) == 0 {
+	if resp == nil || len(resp.ServerInstanceList) == 0 {
 		return nil, nil
 	}
 
@@ -897,17 +920,17 @@ func convertVcpServerInstance(r *vserver.ServerInstance) *ServerInstance {
 		CpuCount:                       r.CpuCount,
 		MemorySize:                     r.MemorySize,
 		PublicIp:                       r.PublicIp,
-		ServerInstanceStatus:           r.ServerInstanceStatus.Code,
-		PlatformType:                   r.PlatformType.Code,
-		ServerInstanceOperation:        r.ServerInstanceOperation.Code,
+		ServerInstanceStatus:           common.GetCodePtrByCommonCode(r.ServerInstanceStatus),
+		PlatformType:                   common.GetCodePtrByCommonCode(r.PlatformType),
+		ServerInstanceOperation:        common.GetCodePtrByCommonCode(r.ServerInstanceOperation),
 		Zone:                           r.ZoneCode,
-		BaseBlockStorageDiskType:       r.BaseBlockStorageDiskType.Code,
+		BaseBlockStorageDiskType:       common.GetCodePtrByCommonCode(r.BaseBlockStorageDiskType),
 		BaseBlockStorageDiskDetailType: flattenMapByKey(r.BaseBlockStorageDiskDetailType, "code"),
 		VpcNo:                          r.VpcNo,
 		SubnetNo:                       r.SubnetNo,
 		InitScriptNo:                   r.InitScriptNo,
 		PlacementGroupNo:               r.PlacementGroupNo,
-		HypervisorType:                 r.HypervisorType.Code,
+		HypervisorType:                 common.GetCodePtrByCommonCode(r.HypervisorType),
 	}
 
 	for _, networkInterfaceNo := range r.NetworkInterfaceNoList {
@@ -961,6 +984,10 @@ func stopThenWaitServerInstance(config *conn.ProviderConfig, id string) error {
 				return 0, "", err
 			}
 
+			if instance == nil {
+				return &server.ServerInstance{}, "NULL", nil
+			}
+
 			return instance, ncloud.StringValue(instance.ServerInstanceOperation), nil
 		},
 		Timeout:    conn.DefaultStopTimeout,
@@ -992,6 +1019,10 @@ func stopThenWaitServerInstance(config *conn.ProviderConfig, id string) error {
 				return 0, "", err
 			}
 
+			if instance == nil {
+				return &server.ServerInstance{}, "NULL", nil
+			}
+
 			return instance, ncloud.StringValue(instance.ServerInstanceStatus), nil
 		},
 		Timeout:    conn.DefaultStopTimeout,
@@ -1015,6 +1046,17 @@ func detachThenWaitServerInstance(config *conn.ProviderConfig, id string) error 
 			instance, err := GetServerInstance(config, id)
 			if err != nil {
 				return 0, "", err
+			}
+
+			// FIXME: When deleting a server if user detach block storage what they attached by themself
+			//        and keep that block storage alive
+			// 1. during the server deletion process, block storage detached
+			// 2. attempt to detach from the server during the block storage in-place update process
+			// 2-1. but the server is already destroyed and detachThenWaitServerInstance() is called
+			//      by block storage to get serverInstance info, and the instance inquiry result is nil,
+			//      causing panic when access ServerInstance(nil) field.
+			if instance == nil {
+				return &server.ServerInstance{}, "NULL", nil
 			}
 
 			return instance, ncloud.StringValue(instance.ServerInstanceOperation), nil
@@ -1236,16 +1278,16 @@ func convertVpcBlockStorage(storage *vserver.BlockStorageInstance) *BlockStorage
 	return &BlockStorage{
 		BlockStorageInstanceNo:  storage.BlockStorageInstanceNo,
 		ServerInstanceNo:        storage.ServerInstanceNo,
-		BlockStorageType:        storage.BlockStorageType.Code,
+		BlockStorageType:        common.GetCodePtrByCommonCode(storage.BlockStorageType),
 		BlockStorageName:        storage.BlockStorageName,
 		BlockStorageSize:        storage.BlockStorageSize,
 		DeviceName:              storage.DeviceName,
 		BlockStorageProductCode: storage.BlockStorageProductCode,
-		Status:                  storage.BlockStorageInstanceStatus.Code,
+		Status:                  common.GetCodePtrByCommonCode(storage.BlockStorageInstanceStatus),
 		StatusName:              storage.BlockStorageInstanceStatusName,
 		Description:             storage.BlockStorageDescription,
-		DiskType:                storage.BlockStorageDiskType.Code,
-		DiskDetailType:          storage.BlockStorageDiskDetailType.Code,
+		DiskType:                common.GetCodePtrByCommonCode(storage.BlockStorageDiskType),
+		DiskDetailType:          common.GetCodePtrByCommonCode(storage.BlockStorageDiskDetailType),
 		ZoneCode:                storage.ZoneCode,
 	}
 }
@@ -1255,16 +1297,16 @@ func convertClassicBlockStorage(storage *server.BlockStorageInstance) *BlockStor
 		BlockStorageInstanceNo:  storage.BlockStorageInstanceNo,
 		ServerInstanceNo:        storage.ServerInstanceNo,
 		ServerName:              storage.ServerName,
-		BlockStorageType:        storage.BlockStorageType.Code,
+		BlockStorageType:        common.GetCodePtrByCommonCode(storage.BlockStorageType),
 		BlockStorageName:        storage.BlockStorageName,
 		BlockStorageSize:        storage.BlockStorageSize,
 		DeviceName:              storage.DeviceName,
 		BlockStorageProductCode: storage.BlockStorageProductCode,
-		Status:                  storage.BlockStorageInstanceStatus.Code,
-		Operation:               storage.BlockStorageInstanceOperation.Code,
+		Status:                  common.GetCodePtrByCommonCode(storage.BlockStorageInstanceStatus),
+		Operation:               common.GetCodePtrByCommonCode(storage.BlockStorageInstanceOperation),
 		Description:             storage.BlockStorageInstanceDescription,
-		DiskType:                storage.DiskType.Code,
-		DiskDetailType:          storage.DiskDetailType.Code,
+		DiskType:                common.GetCodePtrByCommonCode(storage.DiskType),
+		DiskDetailType:          common.GetCodePtrByCommonCode(storage.DiskDetailType),
 		ZoneCode:                storage.Zone.ZoneCode,
 	}
 }
@@ -1313,7 +1355,7 @@ func waitForDisconnectBlockStorage(config *conn.ProviderConfig, no string) error
 			}
 
 			if resp == nil {
-				return 0, "", fmt.Errorf("GetBlockStorage is nil")
+				return 0, "", fmt.Errorf("fail to get BlockStorage instance, %s doesn't exist", no)
 			}
 
 			if *resp.StatusName == BlockStorageStatusNameAttach {
@@ -1347,7 +1389,7 @@ func waitForAttachedBlockStorage(config *conn.ProviderConfig, no string) error {
 			}
 
 			if resp == nil {
-				return 0, "", fmt.Errorf("GetBlockStorage is nil")
+				return 0, "", fmt.Errorf("fail to get BlockStorage instance, %s doesn't exist", no)
 			}
 
 			if *resp.StatusName == BlockStorageStatusNameInit {

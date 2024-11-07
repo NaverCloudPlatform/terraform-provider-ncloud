@@ -2,6 +2,7 @@ package server
 
 import (
 	"fmt"
+	"regexp"
 	"time"
 
 	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/services/vserver"
@@ -10,10 +11,11 @@ import (
 
 	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/ncloud"
 	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/services/server"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 
+	"github.com/terraform-providers/terraform-provider-ncloud/internal/common"
 	. "github.com/terraform-providers/terraform-provider-ncloud/internal/common"
 	"github.com/terraform-providers/terraform-provider-ncloud/internal/conn"
 )
@@ -23,9 +25,17 @@ const (
 	BlockStorageStatusCodeInit       = "INIT"
 	BlockStorageStatusCodeAttach     = "ATTAC"
 	BlockStorageStatusNameInit       = "initialized"
+	BlockStorageStatusNameCreating   = "creating"
 	BlockStorageStatusNameOptimizing = "optimizing"
+	BlockStorageStatusNameAttaching  = "attaching"
 	BlockStorageStatusNameAttach     = "attached"
 	BlockStorageStatusNameDetach     = "detached"
+	BlockStorageVolumeTypeHdd        = "HDD"
+	BlockStorageVolumeTypeSsd        = "SSD"
+	BlockStorageVolumeTypeFb1        = "FB1"
+	BlockStorageVolumeTypeCb1        = "CB1"
+	BlockStorageHypervisorTypeXen    = "XEN"
+	BlockStorageHypervisorTypeKvm    = "KVM"
 )
 
 func ResourceNcloudBlockStorage() *schema.Resource {
@@ -51,24 +61,48 @@ func ResourceNcloudBlockStorage() *schema.Resource {
 			"size": {
 				Type:             schema.TypeInt,
 				Required:         true,
-				ValidateDiagFunc: validation.ToDiagFunc(validation.IntBetween(10, 2000)),
+				ValidateDiagFunc: validation.ToDiagFunc(validation.IntAtLeast(10)),
 			},
 			"name": {
 				Type:     schema.TypeString,
 				Optional: true,
 				Computed: true,
 				ForceNew: true,
+				ValidateDiagFunc: validation.ToDiagFunc(validation.All(
+					validation.StringLenBetween(3, 30),
+					validation.StringMatch(regexp.MustCompile(`^[A-Za-z][A-Za-z0-9-_]+$`), "Allows only alphabets, numbers, hyphen (-) and underbar (_). Must start with an alphabetic character"),
+				)),
 			},
 			"description": {
-				Type:     schema.TypeString,
-				Optional: true,
-				Computed: true,
+				Type:             schema.TypeString,
+				Optional:         true,
+				Computed:         true,
+				ValidateDiagFunc: validation.ToDiagFunc(validation.StringLenBetween(0, 1000)),
 			},
 			"disk_detail_type": {
-				Type:     schema.TypeString,
-				Optional: true,
-				Computed: true,
-				ForceNew: true,
+				Type:             schema.TypeString,
+				Optional:         true,
+				Computed:         true,
+				ForceNew:         true,
+				ConflictsWith:    []string{"volume_type"},
+				ValidateDiagFunc: validation.ToDiagFunc(validation.StringInSlice([]string{BlockStorageVolumeTypeHdd, BlockStorageVolumeTypeSsd}, false)),
+			},
+			"hypervisor_type": {
+				Type:             schema.TypeString,
+				Optional:         true,
+				Computed:         true,
+				ForceNew:         true,
+				RequiredWith:     []string{"volume_type"},
+				ValidateDiagFunc: validation.ToDiagFunc(validation.StringInSlice([]string{BlockStorageHypervisorTypeXen, BlockStorageHypervisorTypeKvm}, false)),
+			},
+			"volume_type": {
+				Type:             schema.TypeString,
+				Optional:         true,
+				Computed:         true,
+				ForceNew:         true,
+				ConflictsWith:    []string{"disk_detail_type"},
+				RequiredWith:     []string{"hypervisor_type"},
+				ValidateDiagFunc: validation.ToDiagFunc(validation.StringInSlice([]string{BlockStorageVolumeTypeHdd, BlockStorageVolumeTypeSsd, BlockStorageVolumeTypeFb1, BlockStorageVolumeTypeCb1}, false)),
 			},
 			"zone": {
 				Type:     schema.TypeString,
@@ -81,7 +115,16 @@ func ResourceNcloudBlockStorage() *schema.Resource {
 				Optional: true,
 				ForceNew: true,
 			},
-
+			"stop_instance_before_detaching": {
+				Type:     schema.TypeBool,
+				Optional: true,
+				Default:  false,
+			},
+			"return_protection": {
+				Type:     schema.TypeBool,
+				Optional: true,
+				Computed: true,
+			},
 			"block_storage_no": {
 				Type:     schema.TypeString,
 				Computed: true,
@@ -110,10 +153,13 @@ func ResourceNcloudBlockStorage() *schema.Resource {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
-			"stop_instance_before_detaching": {
+			"max_iops": {
+				Type:     schema.TypeInt,
+				Computed: true,
+			},
+			"encrypted_volume": {
 				Type:     schema.TypeBool,
-				Optional: true,
-				Default:  false,
+				Computed: true,
 			},
 		},
 	}
@@ -246,6 +292,16 @@ func resourceNcloudBlockStorageUpdate(d *schema.ResourceData, meta interface{}) 
 		}
 	}
 
+	if d.HasChange("return_protection") {
+		if !config.SupportVPC {
+			return fmt.Errorf("`return_protection` only available in VPC environments")
+		}
+
+		if err := changeVpcBlockStorageReturnProtection(d, config); err != nil {
+			return err
+		}
+	}
+
 	return resourceNcloudBlockStorageRead(d, meta)
 }
 
@@ -260,10 +316,6 @@ func createBlockStorage(d *schema.ResourceData, config *conn.ProviderConfig) (*s
 	}
 
 	if err != nil {
-		return nil, err
-	}
-
-	if err := waitForBlockStorageAttachment(config, *id); err != nil {
 		return nil, err
 	}
 
@@ -289,6 +341,9 @@ func createClassicBlockStorage(d *schema.ResourceData, config *conn.ProviderConf
 	LogResponse("createClassicBlockStorage", resp)
 
 	instance := resp.BlockStorageInstanceList[0]
+	if err := waitForBlockStorageAttachment(config, *instance.BlockStorageInstanceNo); err != nil {
+		return nil, err
+	}
 
 	return instance.BlockStorageInstanceNo, nil
 }
@@ -297,12 +352,57 @@ func createVpcBlockStorage(d *schema.ResourceData, config *conn.ProviderConfig) 
 	reqParams := &vserver.CreateBlockStorageInstanceRequest{
 		RegionCode:                     &config.RegionCode,
 		BlockStorageSize:               ncloud.Int32(int32(d.Get("size").(int))),
-		ServerInstanceNo:               ncloud.String(d.Get("server_instance_no").(string)),
 		BlockStorageName:               StringPtrOrNil(d.GetOk("name")),
 		BlockStorageDescription:        StringPtrOrNil(d.GetOk("description")),
 		BlockStorageDiskDetailTypeCode: StringPtrOrNil(d.GetOk("disk_detail_type")),
 		BlockStorageSnapshotInstanceNo: StringPtrOrNil(d.GetOk("snapshot_no")),
+		BlockStorageVolumeTypeCode:     StringPtrOrNil(d.GetOk("volume_type")),
 		ZoneCode:                       StringPtrOrNil(d.GetOk("zone")),
+		IsReturnProtection:             BoolPtrOrNil(d.GetOk("return_protection")),
+	}
+
+	hypervisorType, hypervisorTypeOk := d.GetOk("hypervisor_type")
+	_, diskTypeOk := d.GetOk("disk_detail_type")
+	volumeType := d.Get("volume_type").(string)
+
+	if (!hypervisorTypeOk && !diskTypeOk) || diskTypeOk || (hypervisorType == BlockStorageHypervisorTypeXen) {
+		reqParams.ServerInstanceNo = ncloud.String(d.Get("server_instance_no").(string))
+	}
+
+	if (hypervisorType == BlockStorageHypervisorTypeXen) && ((volumeType == BlockStorageVolumeTypeFb1) || (volumeType == BlockStorageVolumeTypeCb1)) {
+		err := fmt.Errorf("Only `%s` and `%s` can be entered as `%s` hypervisor type", BlockStorageVolumeTypeSsd, BlockStorageVolumeTypeHdd, BlockStorageHypervisorTypeXen)
+		LogErrorResponse("createVpcBlockStorage", err, reqParams)
+		return nil, err
+	}
+
+	if (hypervisorType == BlockStorageHypervisorTypeKvm) && ((volumeType == BlockStorageVolumeTypeHdd) || (volumeType == BlockStorageVolumeTypeSsd)) {
+		err := fmt.Errorf("Only `%s` and `%s` can be entered as `%s` hypervisor type", BlockStorageVolumeTypeCb1, BlockStorageVolumeTypeFb1, BlockStorageHypervisorTypeKvm)
+		LogErrorResponse("createVpcBlockStorage", err, reqParams)
+		return nil, err
+	}
+
+	if hypervisorType == BlockStorageHypervisorTypeKvm {
+		zone := d.Get("zone").(string)
+		if len(zone) == 0 {
+			err := fmt.Errorf("`zone` is required for KVM type")
+			LogErrorResponse("createVpcBlockStorage", err, reqParams)
+			return nil, err
+		}
+
+		server, err := GetServerInstance(config, d.Get("server_instance_no").(string))
+		if err == nil && server == nil {
+			err = fmt.Errorf("fail to get serverInstance")
+		}
+		if err != nil {
+			LogErrorResponse("createVpcBlockStorage", err, reqParams)
+			return nil, err
+		}
+
+		if *server.Zone != zone {
+			err := fmt.Errorf("Different from the server's zone code %s", *server.Zone)
+			LogErrorResponse("createVpcBlockStorage", err, reqParams)
+			return nil, err
+		}
 	}
 
 	LogCommonRequest("createVpcBlockStorage", reqParams)
@@ -314,7 +414,25 @@ func createVpcBlockStorage(d *schema.ResourceData, config *conn.ProviderConfig) 
 	}
 	LogResponse("createVpcBlockStorage", resp)
 
+	if resp == nil || len(resp.BlockStorageInstanceList) < 1 {
+		err := fmt.Errorf("response invalid")
+		LogErrorResponse("createVpcBlockStorage", err, reqParams)
+		return nil, err
+	}
+
 	instance := resp.BlockStorageInstanceList[0]
+	output, err := waitForBlockStorageCreation(config, *instance.BlockStorageInstanceNo)
+	if err != nil {
+		LogErrorResponse("createVpcBlockStorage", err, reqParams)
+		return nil, err
+	}
+
+	if *output.StatusName == BlockStorageStatusNameDetach {
+		d.SetId(*instance.BlockStorageInstanceNo)
+		if err := attachBlockStorage(d, config); err != nil {
+			return nil, err
+		}
+	}
 
 	return instance.BlockStorageInstanceNo, nil
 }
@@ -348,16 +466,16 @@ func getClassicBlockStorage(config *conn.ProviderConfig, id string) (*BlockStora
 			BlockStorageInstanceNo:  inst.BlockStorageInstanceNo,
 			ServerInstanceNo:        inst.ServerInstanceNo,
 			ServerName:              inst.ServerName,
-			BlockStorageType:        inst.BlockStorageType.Code,
+			BlockStorageType:        common.GetCodePtrByCommonCode(inst.BlockStorageType),
 			BlockStorageName:        inst.BlockStorageName,
 			BlockStorageSize:        ncloud.Int64(*inst.BlockStorageSize / GIGABYTE),
 			DeviceName:              inst.DeviceName,
 			BlockStorageProductCode: inst.BlockStorageProductCode,
-			Status:                  inst.BlockStorageInstanceStatus.Code,
-			Operation:               inst.BlockStorageInstanceOperation.Code,
+			Status:                  common.GetCodePtrByCommonCode(inst.BlockStorageInstanceStatus),
+			Operation:               common.GetCodePtrByCommonCode(inst.BlockStorageInstanceOperation),
 			Description:             inst.BlockStorageInstanceDescription,
-			DiskType:                inst.DiskType.Code,
-			DiskDetailType:          inst.DiskDetailType.Code,
+			DiskType:                common.GetCodePtrByCommonCode(inst.DiskType),
+			DiskDetailType:          common.GetCodePtrByCommonCode(inst.DiskDetailType),
 		}, nil
 	}
 
@@ -390,15 +508,18 @@ func getVpcBlockStorage(config *conn.ProviderConfig, id string) (*BlockStorage, 
 			BlockStorageSize:        ncloud.Int64(*inst.BlockStorageSize / GIGABYTE),
 			DeviceName:              inst.DeviceName,
 			BlockStorageProductCode: inst.BlockStorageProductCode,
-			Status:                  inst.BlockStorageInstanceStatus.Code,
+			Status:                  common.GetCodePtrByCommonCode(inst.BlockStorageInstanceStatus),
+			Operation:               common.GetCodePtrByCommonCode(inst.BlockStorageInstanceOperation),
 			StatusName:              inst.BlockStorageInstanceStatusName,
 			Description:             inst.BlockStorageDescription,
-			DiskType:                inst.BlockStorageDiskType.Code,
-			DiskDetailType:          inst.BlockStorageDiskDetailType.Code,
+			DiskType:                common.GetCodePtrByCommonCode(inst.BlockStorageDiskType),
+			DiskDetailType:          common.GetCodePtrByCommonCode(inst.BlockStorageDiskDetailType),
 			ZoneCode:                inst.ZoneCode,
-		}
-		if inst.BlockStorageInstanceOperation != nil {
-			blockStorage.Operation = inst.BlockStorageInstanceOperation.Code
+			MaxIops:                 inst.MaxIopsThroughput,
+			EncryptedVolume:         inst.IsEncryptedVolume,
+			ReturnProtection:        inst.IsReturnProtection,
+			VolumeType:              common.GetCodePtrByCommonCode(inst.BlockStorageVolumeType),
+			HypervisorType:          common.GetCodePtrByCommonCode(inst.HypervisorType),
 		}
 
 		return &blockStorage, nil
@@ -421,7 +542,7 @@ func deleteBlockStorage(d *schema.ResourceData, config *conn.ProviderConfig, id 
 		return err
 	}
 
-	stateConf := &resource.StateChangeConf{
+	stateConf := &retry.StateChangeConf{
 		Pending: []string{BlockStorageStatusCodeCreate, BlockStorageStatusCodeInit, BlockStorageStatusCodeAttach},
 		Target:  []string{"TERMINATED"},
 		Refresh: func() (interface{}, string, error) {
@@ -539,13 +660,17 @@ func detachVpcBlockStorage(config *conn.ProviderConfig, id string) error {
 }
 
 func waitForBlockStorageDetachment(config *conn.ProviderConfig, id string) error {
-	stateConf := &resource.StateChangeConf{
+	stateConf := &retry.StateChangeConf{
 		Pending: []string{BlockStorageStatusCodeAttach},
 		Target:  []string{BlockStorageStatusCodeCreate},
 		Refresh: func() (interface{}, string, error) {
 			instance, err := GetBlockStorage(config, id)
 			if err != nil {
 				return 0, "", err
+			}
+
+			if instance == nil {
+				return 0, "", fmt.Errorf("fail to get BlockStorage instance, %s doesn't exist", id)
 			}
 			return instance, ncloud.StringValue(instance.Status), nil
 		},
@@ -617,14 +742,48 @@ func attachVpcBlockStorage(d *schema.ResourceData, config *conn.ProviderConfig) 
 	return nil
 }
 
+func waitForBlockStorageCreation(config *conn.ProviderConfig, id string) (*BlockStorage, error) {
+	var blockStorageInstance *BlockStorage
+	stateConf := &retry.StateChangeConf{
+		Pending: []string{BlockStorageStatusNameInit, BlockStorageStatusNameCreating, BlockStorageStatusNameAttaching},
+		Target:  []string{BlockStorageStatusNameAttach, BlockStorageStatusNameDetach},
+		Refresh: func() (interface{}, string, error) {
+			resp, err := GetBlockStorage(config, id)
+			if err != nil {
+				return 0, "", err
+			}
+
+			if resp == nil {
+				return 0, "", fmt.Errorf("fail to get BlockStorage instance, %s doesn't exist", id)
+			}
+			blockStorageInstance = resp
+
+			return resp, *resp.StatusName, nil
+		},
+		Timeout:    conn.DefaultTimeout,
+		Delay:      2 * time.Second,
+		MinTimeout: 3 * time.Second,
+	}
+
+	if _, err := stateConf.WaitForState(); err != nil {
+		return nil, fmt.Errorf("error waiting for BlockStorageInstance create: %s", err)
+	}
+
+	return blockStorageInstance, nil
+}
+
 func waitForBlockStorageAttachment(config *conn.ProviderConfig, id string) error {
-	stateConf := &resource.StateChangeConf{
+	stateConf := &retry.StateChangeConf{
 		Pending: []string{BlockStorageStatusCodeInit, BlockStorageStatusCodeCreate},
 		Target:  []string{BlockStorageStatusCodeAttach},
 		Refresh: func() (interface{}, string, error) {
 			instance, err := GetBlockStorage(config, id)
 			if err != nil {
 				return 0, "", err
+			}
+
+			if instance == nil {
+				return 0, "", fmt.Errorf("fail to get BlockStorage instance, %s doesn't exist", id)
 			}
 			return instance, ncloud.StringValue(instance.Status), nil
 		},
@@ -644,7 +803,11 @@ func waitForBlockStorageAttachment(config *conn.ProviderConfig, id string) error
 func changeBlockStorageSize(d *schema.ResourceData, config *conn.ProviderConfig) error {
 	var err error
 	if config.SupportVPC {
-		err = changeVpcBlockStorageSize(d, config)
+		if d.Get("hypervisor_type").(string) == BlockStorageHypervisorTypeXen {
+			err = changeVpcBlockStorageVolumeSize(d, config)
+		} else {
+			err = changeVpcBlockStorageInstance(d, config)
+		}
 	} else {
 		err = changeClassicBlockStorageSize(d, config)
 	}
@@ -660,20 +823,38 @@ func changeBlockStorageSize(d *schema.ResourceData, config *conn.ProviderConfig)
 	return nil
 }
 
-func changeVpcBlockStorageSize(d *schema.ResourceData, config *conn.ProviderConfig) error {
+func changeVpcBlockStorageVolumeSize(d *schema.ResourceData, config *conn.ProviderConfig) error {
 	reqParams := &vserver.ChangeBlockStorageVolumeSizeRequest{
 		RegionCode:             &config.RegionCode,
 		BlockStorageInstanceNo: ncloud.String(d.Id()),
 		BlockStorageSize:       ncloud.Int32(int32(d.Get("size").(int))),
 	}
 
-	LogCommonRequest("changeVpcBlockStorageSize", reqParams)
+	LogCommonRequest("changeVpcBlockStorageVolumeSize", reqParams)
 	resp, err := config.Client.Vserver.V2Api.ChangeBlockStorageVolumeSize(reqParams)
 	if err != nil {
-		LogErrorResponse("changeVpcBlockStorageSize", err, reqParams)
+		LogErrorResponse("changeVpcBlockStorageVolumeSize", err, reqParams)
 		return err
 	}
-	LogResponse("changeVpcBlockStorageSize", resp)
+	LogResponse("changeVpcBlockStorageVolumeSize", resp)
+
+	return nil
+}
+
+func changeVpcBlockStorageInstance(d *schema.ResourceData, config *conn.ProviderConfig) error {
+	reqParams := &vserver.ChangeBlockStorageInstanceRequest{
+		RegionCode:             &config.RegionCode,
+		BlockStorageInstanceNo: ncloud.String(d.Id()),
+		BlockStorageSize:       ncloud.Int32(int32(d.Get("size").(int))),
+	}
+
+	LogCommonRequest("changeVpcBlockStorageInstance", reqParams)
+	resp, err := config.Client.Vserver.V2Api.ChangeBlockStorageInstance(reqParams)
+	if err != nil {
+		LogErrorResponse("changeVpcBlockStorageInstance", err, reqParams)
+		return err
+	}
+	LogResponse("changeVpcBlockStorageInstance", resp)
 
 	return nil
 }
@@ -696,13 +877,17 @@ func changeClassicBlockStorageSize(d *schema.ResourceData, config *conn.Provider
 }
 
 func waitForBlockStorageOperationIsNull(config *conn.ProviderConfig, id string) error {
-	stateConf := &resource.StateChangeConf{
+	stateConf := &retry.StateChangeConf{
 		Pending: []string{"CHNG"},
 		Target:  []string{"NULL"},
 		Refresh: func() (interface{}, string, error) {
 			instance, err := GetBlockStorage(config, id)
 			if err != nil {
 				return 0, "", err
+			}
+
+			if instance == nil {
+				return 0, "", fmt.Errorf("fail to get BlockStorage instance, %s doesn't exist", id)
 			}
 			return instance, ncloud.StringValue(instance.Operation), nil
 		},
@@ -715,6 +900,24 @@ func waitForBlockStorageOperationIsNull(config *conn.ProviderConfig, id string) 
 	if err != nil {
 		return fmt.Errorf("error waiting for BlockStorageInstance operation to be \"NULL\": %s", err)
 	}
+
+	return nil
+}
+
+func changeVpcBlockStorageReturnProtection(d *schema.ResourceData, config *conn.ProviderConfig) error {
+	reqParams := &vserver.SetBlockStorageReturnProtectionRequest{
+		RegionCode:             &config.RegionCode,
+		BlockStorageInstanceNo: ncloud.String(d.Id()),
+		IsReturnProtection:     ncloud.Bool(d.Get("return_protection").(bool)),
+	}
+
+	LogCommonRequest("changeVpcBlockStorageReturnProtection", reqParams)
+	resp, err := config.Client.Vserver.V2Api.SetBlockStorageReturnProtection(reqParams)
+	if err != nil {
+		LogErrorResponse("changeVpcBlockStorageReturnProtection", err, reqParams)
+		return err
+	}
+	LogResponse("changeVpcBlockStorageReturnProtection", resp)
 
 	return nil
 }
@@ -736,4 +939,9 @@ type BlockStorage struct {
 	DiskType                *string `json:"disk_type,omitempty"`
 	DiskDetailType          *string `json:"disk_detail_type,omitempty"`
 	ZoneCode                *string `json:"zone,omitempty"`
+	MaxIops                 *int32  `json:"max_iops,omitempty"`
+	EncryptedVolume         *bool   `json:"encrypted_volume,omitempty"`
+	ReturnProtection        *bool   `json:"return_protection,omitempty"`
+	VolumeType              *string `json:"volume_type,omitempty"`
+	HypervisorType          *string `json:"hypervisor_type,omitempty"`
 }

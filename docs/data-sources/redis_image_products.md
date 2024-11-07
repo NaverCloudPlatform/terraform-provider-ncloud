@@ -19,7 +19,7 @@ data "ncloud_redis_image_products" "example" {
 output "image_list" {
   value = {
     for image in data.ncloud_redis_image_products.example.image_product_list:
-    image.product_name => image.product_code
+    image.engine_version_code => image.product_code
   }
 }
 ```
@@ -36,8 +36,9 @@ data "ncloud_redis_image_products" "example" {
 Outputs:
 ```terraform
 image_list = {
-  "Redis(5.0.14)": "SW.VDBAS.VRDS.LNX64.CNTOS.0708.REDIS.5014.B050",
-  "Redis(7.0.13)": "SW.VDBAS.VRDS.LNX64.CNTOS.0708.REDIS.7013.B050"
+  "7.0.15": "SW.VRDS.OS.LNX64.ROCKY.0810.REDIS.B050",
+  "7.0.13": "SW.VRDS.OS.LNX64.ROCKY.0810.REDIS.B050",
+  "5.0.14": "SW.VRDS.OS.LNX64.ROCKY.0810.REDIS.B050"
 }
 ```
 
@@ -62,3 +63,4 @@ This data source exports the following attributes in addition to the arguments a
   * `product_type` - Product type code.
   * `platform_type` - Platform type code.
   * `os_information` - OS Information.
+  * `engine_version_code` - Engine version code.

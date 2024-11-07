@@ -12,10 +12,11 @@ Provides list of available Kubernetes Service versions.
 ```hcl
 data "ncloud_nks_versions" "versions" {}
 
-data "ncloud_nks_versions" "v1_20" {
+data "ncloud_nks_versions" "v1_22" {
+  hypervisor_code = "KVM"
   filter {
     name = "value"
-    values = ["1.20"]
+    values = ["1.22"]
     regex = true
   }
 }

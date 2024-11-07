@@ -1,0 +1,82 @@
+name: Regular regression testing
+
+on:
+  schedule:
+    - cron: "0 22 * * *"
+
+jobs:
+  test:
+    name: Test
+    runs-on: ubuntu-latest
+    if: ${{ github.repository == 'NaverCloudPlatform/terraform-provider-ncloud' }}
+    strategy:
+      matrix:
+        go-version: ["1.21"]
+        # TODO: enable cloud db resources and nks
+        agent:
+          [
+            "obs_vpc",
+            "loadbalancer",
+            "ses",
+            "server",
+            "nasvolume",
+          ]
+        include:
+          - agent: "obs_vpc"
+            tests: "objectstorage vpc"
+          - agent: "ses"
+            tests: "ses"
+          - agent: "loadbalancer"
+            tests: "loadbalancer"
+          - agent: "server"
+            tests: "server"
+          - agent: "nasvolume"
+            tests: "nasvolume"
+
+    steps:
+      - name: checkout branch
+        uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: ${{ matrix.go-version }}
+          cache: false
+
+      - name: Install AWS CLI
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y awscli
+
+      - name: Configure AWS CLI with NCP S3 compatible endpoint
+        run: |
+          aws configure set aws_access_key_id ${{ secrets.NCLOUD_ACCESS_KEY }}
+          aws configure set aws_secret_access_key ${{ secrets.NCLOUD_SECRET_KEY }}
+          aws configure set region kr-standard
+          aws configure set s3.endpoint_url https://kr.object.ncloudstorage.com
+
+      - name: Install ctrf cli tool
+        run: |
+          go install github.com/ctrf-io/go-ctrf-json-reporter/cmd/go-ctrf-json-reporter@latest
+
+      - name: Get current date in YYYYMMDD format
+        run: echo "DATE=$(TZ=Asia/Seoul date +'%Y%m%d')" >> $GITHUB_ENV
+
+      - name: Run tests on agent ${{ matrix.agent }}
+        run: |
+          echo "Running tests on agent ${{ matrix.agent }}"
+          for test in ${{ matrix.tests }}; do
+              export TF_ACC=1
+              export NCLOUD_REGION=${{ secrets.NCLOUD_REGION }}
+              export NCLOUD_ACCESS_KEY=${{ secrets.NCLOUD_ACCESS_KEY }}
+              export NCLOUD_SECRET_KEY=${{ secrets.NCLOUD_SECRET_KEY }}
+              echo $PWD
+              echo $ls
+              echo "$test"
+              go test -timeout 4h -v -json ./internal/service/"$test" | go-ctrf-json-reporter -output "$test"-report.json
+              cat "$test"-report.json
+
+              aws --endpoint-url=https://kr.object.ncloudstorage.com s3 cp "$test"-report.json s3://${{ secrets.NCLOUD_BUCKET_NAME }}/data/"$DATE"/"$test"-report.json
+              aws --endpoint-url=https://kr.object.ncloudstorage.com s3api put-object-acl --bucket ${{ secrets.NCLOUD_BUCKET_NAME }} --key data/"$DATE"/"$test"-report.json --grant-read uri=http://acs.amazonaws.com/groups/global/AllUsers
+              
+          done

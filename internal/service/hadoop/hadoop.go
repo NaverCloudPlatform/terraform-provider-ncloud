@@ -198,6 +198,13 @@ func (r *hadoopResource) Schema(_ context.Context, req resource.SchemaRequest, r
 				},
 				Description: "default: latest version",
 			},
+			"engine_version_code": schema.StringAttribute{
+				Optional: true,
+				Computed: true,
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.RequiresReplace(),
+				},
+			},
 			"edge_node_product_code": schema.StringAttribute{
 				Optional: true,
 				Computed: true,
@@ -335,12 +342,6 @@ func (r *hadoopResource) Schema(_ context.Context, req resource.SchemaRequest, r
 					stringplanmodifier.UseStateForUnknown(),
 				},
 			},
-			"version": schema.StringAttribute{
-				Computed: true,
-				PlanModifiers: []planmodifier.String{
-					stringplanmodifier.UseStateForUnknown(),
-				},
-			},
 			"is_ha": schema.BoolAttribute{
 				Computed: true,
 				PlanModifiers: []planmodifier.Bool{
@@ -467,6 +468,10 @@ func (r *hadoopResource) Create(ctx context.Context, req resource.CreateRequest,
 
 	if !plan.ImageProductCode.IsNull() && !plan.ImageProductCode.IsUnknown() {
 		reqParams.CloudHadoopImageProductCode = plan.ImageProductCode.ValueStringPointer()
+	}
+
+	if !plan.EngineVersionCode.IsNull() {
+		reqParams.EngineVersionCode = plan.EngineVersionCode.ValueStringPointer()
 	}
 
 	if !plan.MasterNodeProductCode.IsNull() && !plan.MasterNodeProductCode.IsUnknown() {
@@ -862,6 +867,7 @@ type hadoopResourceModel struct {
 	MasterNodeDataStorageSize  types.Int64  `tfsdk:"master_node_data_storage_size"`
 	WorkerNodeDataStorageSize  types.Int64  `tfsdk:"worker_node_data_storage_size"`
 	ImageProductCode           types.String `tfsdk:"image_product_code"`
+	EngineVersionCode          types.String `tfsdk:"engine_version_code"`
 	EdgeNodeProductCode        types.String `tfsdk:"edge_node_product_code"`
 	MasterNodeProductCode      types.String `tfsdk:"master_node_product_code"`
 	WorkerNodeProductCode      types.String `tfsdk:"worker_node_product_code"`
@@ -876,7 +882,6 @@ type hadoopResourceModel struct {
 	RegionCode                 types.String `tfsdk:"region_code"`
 	AmbariServerHost           types.String `tfsdk:"ambari_server_host"`
 	ClusterDirectAccessAccount types.String `tfsdk:"cluster_direct_access_account"`
-	Version                    types.String `tfsdk:"version"`
 	IsHa                       types.Bool   `tfsdk:"is_ha"`
 	Domain                     types.String `tfsdk:"domain"`
 	AccessControlGroupNoList   types.List   `tfsdk:"access_control_group_no_list"`
@@ -929,7 +934,7 @@ func (m *hadoopResourceModel) refreshFromOutput(ctx context.Context, output *vha
 	m.RegionCode = types.StringPointerValue(output.CloudHadoopServerInstanceList[0].RegionCode)
 	m.AmbariServerHost = types.StringPointerValue(output.AmbariServerHost)
 	m.ClusterDirectAccessAccount = types.StringPointerValue(output.ClusterDirectAccessAccount)
-	m.Version = types.StringPointerValue(output.CloudHadoopVersion.Code)
+	m.EngineVersionCode = types.StringPointerValue(output.CloudHadoopVersion.Code)
 	m.IsHa = types.BoolPointerValue(output.IsHa)
 	m.Domain = types.StringPointerValue(output.Domain)
 

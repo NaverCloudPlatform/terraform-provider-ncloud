@@ -13,7 +13,7 @@ Provides the list of available Cloud DB for MongoDB server specification codes.
 
 ```terraform
 data "ncloud_mongodb_products" "all" {
-  image_product_code = "SW.VMGDB.LNX64.CNTOS.0708.MNGDB.4223.CE.B050"
+  image_product_code = "SW.VMGDB.OS.LNX64.ROCKY.0810.MNGDB.CE.B050"
 
   filter {
     name   = "product_type"
@@ -36,7 +36,7 @@ Outputs:
 product_list = {
   "vCPU 2EA, Memory 8GB": "SVR.VMGDB.MNGOD.STAND.C002.M008.NET.SSD.B050.G002",
   "vCPU 2EA, Memory 8GB": "SVR.VMGDB.CFGSV.STAND.C002.M008.NET.SSD.B050.G002",
-  "vCPU 2EA, Memory 8GB": "SVR.VMGDB.MNGOS.STAND.C002.M008.NET.SSD.B050.G002",
+  "vCPU 2EA, Memory 8GB": "SVR.VMGDB.MNGOS.STAND.C002.M008.NET.SSD.B050.G002"
 }
 ```
 

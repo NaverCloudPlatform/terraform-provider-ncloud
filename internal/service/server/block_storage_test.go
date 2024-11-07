@@ -79,9 +79,45 @@ func TestAccResourceNcloudBlockStorage_vpc_basic(t *testing.T) {
 					resource.TestMatchResourceAttr(resourceName, "block_storage_no", regexp.MustCompile(`^\d+$`)),
 					resource.TestMatchResourceAttr(resourceName, "server_instance_no", regexp.MustCompile(`^\d+$`)),
 					resource.TestCheckResourceAttr(resourceName, "description", ""),
-					resource.TestCheckResourceAttr(resourceName, "device_name", "/dev/xvdb"),
 					resource.TestCheckResourceAttr(resourceName, "product_code", "SPBSTBSTAD000006"),
 					resource.TestCheckResourceAttr(resourceName, "disk_detail_type", "SSD"),
+				),
+			},
+			{
+				ResourceName:            resourceName,
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"stop_instance_before_detaching"},
+			},
+		},
+	})
+}
+
+func TestAccResourceNcloudBlockStorage_vpc_kvm(t *testing.T) {
+	var storageInstance server.BlockStorage
+	name := fmt.Sprintf("tf-storage-kvm-%s", acctest.RandString(5))
+	resourceName := "ncloud_block_storage.storage"
+	zone := "KR-2"
+	volumeType := "CB1"
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: ProtoV6ProviderFactories,
+		CheckDestroy:             testAccCheckBlockStorageDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccBlockStorageVpcConfigKvm(name, zone, volumeType),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckBlockStorageExistsWithProvider(resourceName, &storageInstance, GetTestProvider(true)),
+					resource.TestMatchResourceAttr(resourceName, "id", regexp.MustCompile(`^\d+$`)),
+					resource.TestCheckResourceAttr(resourceName, "name", name+"-tf"),
+					resource.TestCheckResourceAttr(resourceName, "size", "10"),
+					resource.TestCheckResourceAttr(resourceName, "type", "SVRBS"),
+					resource.TestCheckResourceAttr(resourceName, "disk_type", "NET"),
+					resource.TestMatchResourceAttr(resourceName, "block_storage_no", regexp.MustCompile(`^\d+$`)),
+					resource.TestMatchResourceAttr(resourceName, "server_instance_no", regexp.MustCompile(`^\d+$`)),
+					resource.TestCheckResourceAttr(resourceName, "description", ""),
+					resource.TestCheckResourceAttr(resourceName, "hypervisor_type", "KVM"),
 				),
 			},
 			{
@@ -161,8 +197,8 @@ func TestAccResourceNcloudBlockStorage_classic_size(t *testing.T) {
 		},
 		Steps: []resource.TestStep{
 			{
-				Config:      testAccBlockStorageClassicConfigWithSize(name, 2500),
-				ExpectError: regexp.MustCompile(`expected size to be in the range \(10 - 2000\), got 2500`),
+				Config:      testAccBlockStorageClassicConfigWithSize(name, 5),
+				ExpectError: regexp.MustCompile(`expected size to be at least \(10\), got 5`),
 			},
 			{
 				Config: testAccBlockStorageClassicConfigWithSize(name, 10),
@@ -204,8 +240,8 @@ func TestAccResourceNcloudBlockStorage_vpc_size(t *testing.T) {
 		CheckDestroy:             testAccCheckBlockStorageDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config:      testAccBlockStorageVpcConfigWithSize(name+acctest.RandString(5), 2500),
-				ExpectError: regexp.MustCompile(`expected size to be in the range \(10 - 2000\), got 2500`),
+				Config:      testAccBlockStorageVpcConfigWithSize(name+acctest.RandString(5), 5),
+				ExpectError: regexp.MustCompile(`expected size to be at least \(10\), got 5`),
 			},
 			{
 				Config: testAccBlockStorageVpcConfigWithSize(name, 10),
@@ -335,11 +371,18 @@ resource "ncloud_subnet" "test" {
 	usage_type         = "GEN"
 }
 
+data "ncloud_server_image_numbers" "server_images" {
+	filter {
+        name = "hypervisor_type"
+        values = ["XEN"]
+    }
+}
+
 resource "ncloud_server" "server" {
 	subnet_no = ncloud_subnet.test.id
 	name = "%[1]s"
-	server_image_product_code = "SW.VSVR.OS.LNX64.CNTOS.0703.B050"
-	server_product_code = "SVR.VSVR.STAND.C002.M008.NET.HDD.B050.G002"
+	server_image_number = data.ncloud_server_image_numbers.server_images.image_number_list.0.server_image_number
+	server_spec_code = "s2-g2-s50"
 	login_key_name = ncloud_login_key.loginkey.key_name
 }
 
@@ -347,6 +390,8 @@ resource "ncloud_block_storage" "storage" {
 	server_instance_no = ncloud_server.server.id
 	name = "%[1]s-tf"
 	size = "%[2]d"
+	hypervisor_type = "XEN"
+	volume_type = "SSD"
 }
 `, name, size)
 }
@@ -403,19 +448,26 @@ resource "ncloud_subnet" "test" {
 	usage_type         = "GEN"
 }
 
+data "ncloud_server_image_numbers" "server_images" {
+	filter {
+        name = "hypervisor_type"
+        values = ["XEN"]
+    }
+}
+
 resource "ncloud_server" "foo" {
 	subnet_no = ncloud_subnet.test.id
 	name = "%[1]s-foo"
-	server_image_product_code = "SW.VSVR.OS.LNX64.CNTOS.0703.B050"
-	server_product_code = "SVR.VSVR.STAND.C002.M008.NET.HDD.B050.G002"
+	server_image_number = data.ncloud_server_image_numbers.server_images.image_number_list.0.server_image_number
+	server_spec_code = "s2-g2-s50"
 	login_key_name = ncloud_login_key.loginkey.key_name
 }
 
 resource "ncloud_server" "bar" {
 	subnet_no = ncloud_subnet.test.id
 	name = "%[1]s-bar"
-	server_image_product_code = "SW.VSVR.OS.LNX64.CNTOS.0703.B050"
-	server_product_code = "SVR.VSVR.STAND.C002.M008.NET.HDD.B050.G002"
+	server_image_number = data.ncloud_server_image_numbers.server_images.image_number_list.0.server_image_number
+	server_spec_code = "s2-g2-s50"
 	login_key_name = ncloud_login_key.loginkey.key_name
 }
 
@@ -425,4 +477,52 @@ resource "ncloud_block_storage" "storage" {
 	size = "10"
 }
 `, name, serverInstanceNo)
+}
+
+func testAccBlockStorageVpcConfigKvm(name string, zone string, volumeType string) string {
+	return fmt.Sprintf(`
+resource "ncloud_login_key" "loginkey" {
+	key_name = "%[1]s-key"
+}
+
+resource "ncloud_vpc" "test" {
+	name               = "%[1]s"
+	ipv4_cidr_block    = "10.5.0.0/16"
+}
+
+resource "ncloud_subnet" "test" {
+	vpc_no             = ncloud_vpc.test.vpc_no
+	name               = "%[1]s"
+	subnet             = "10.5.0.0/24"
+	zone               = "%[2]s"
+	network_acl_no     = ncloud_vpc.test.default_network_acl_no
+	subnet_type        = "PUBLIC"
+	usage_type         = "GEN"
+}
+
+data "ncloud_server_image_numbers" "server_images" {
+	hypervisor_type = "KVM"
+	filter {
+        name = "name"
+        values = ["ubuntu-22.04-base"]
+    }
+}
+
+resource "ncloud_server" "server" {
+	subnet_no = ncloud_subnet.test.id
+	name = "%[1]s"
+	server_image_number = data.ncloud_server_image_numbers.server_images.image_number_list.0.server_image_number
+	server_spec_code = "s2-g3"
+	login_key_name = ncloud_login_key.loginkey.key_name
+}
+
+resource "ncloud_block_storage" "storage" {
+	server_instance_no = ncloud_server.server.id
+	name = "%[1]s-tf"
+	size = "10"
+	hypervisor_type = "KVM"
+	volume_type = "%[3]s"
+	zone = "%[2]s"
+}
+`, name, zone, volumeType)
 }

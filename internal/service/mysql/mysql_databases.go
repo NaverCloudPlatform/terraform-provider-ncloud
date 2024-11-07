@@ -10,6 +10,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework-validators/listvalidator"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/attr"
+	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
@@ -151,11 +152,8 @@ func (r *mysqlDatabasesResource) Create(ctx context.Context, req resource.Create
 		return
 	}
 
-	if err := plan.refreshFromOutput(ctx, output, plan.MysqlInstanceNo.ValueString()); err != nil {
-		resp.Diagnostics.AddError(
-			"Error while getting output values of mysql databases list",
-			err.Error(),
-		)
+	if diags := plan.refreshFromOutput(ctx, output, plan.MysqlInstanceNo.ValueString()); diags.HasError() {
+		resp.Diagnostics.AddError("READING ERROR", "refreshFromOutput error")
 		return
 	}
 
@@ -181,11 +179,8 @@ func (r *mysqlDatabasesResource) Read(ctx context.Context, req resource.ReadRequ
 		return
 	}
 
-	if err := state.refreshFromOutput(ctx, output, state.MysqlInstanceNo.ValueString()); err != nil {
-		resp.Diagnostics.AddError(
-			"Error while getting output values of mysql databases list",
-			err.Error(),
-		)
+	if diags := state.refreshFromOutput(ctx, output, state.MysqlInstanceNo.ValueString()); diags.HasError() {
+		resp.Diagnostics.AddError("READING ERROR", "refreshFromOutput error")
 		return
 	}
 
@@ -293,7 +288,7 @@ func (r mysqlDatabase) AttrTypes() map[string]attr.Type {
 	}
 }
 
-func (r *mysqlDatabasesResourceModel) refreshFromOutput(ctx context.Context, output []*vmysql.CloudMysqlDatabase, instance string) error {
+func (r *mysqlDatabasesResourceModel) refreshFromOutput(ctx context.Context, output []*vmysql.CloudMysqlDatabase, instance string) diag.Diagnostics {
 	r.ID = types.StringValue(instance)
 	r.MysqlInstanceNo = types.StringValue(instance)
 
@@ -305,9 +300,9 @@ func (r *mysqlDatabasesResourceModel) refreshFromOutput(ctx context.Context, out
 		databaseList = append(databaseList, mysqlDb)
 	}
 
-	mysqlDatabases, err := types.ListValueFrom(ctx, types.ObjectType{AttrTypes: mysqlDatabase{}.AttrTypes()}, databaseList)
-	if err != nil {
-		return fmt.Errorf("error creating ListValue for Mysql Databases: %s", err)
+	mysqlDatabases, diags := types.ListValueFrom(ctx, types.ObjectType{AttrTypes: mysqlDatabase{}.AttrTypes()}, databaseList)
+	if diags.HasError() {
+		return diags
 	}
 
 	r.MysqlDatabaseList = mysqlDatabases

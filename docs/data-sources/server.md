@@ -38,6 +38,8 @@ data "ncloud_server" "server" {
 }
 ```
 
+## Argument Reference
+
 The following arguments are supported:
 
 * `id` - (Optional) The ID of the specific Server instance to retrieve.

@@ -14,13 +14,14 @@ func TestAccDataSourceNcloudServer_vpc_basic(t *testing.T) {
 	dataName := "data.ncloud_server.by_id"
 	resourceName := "ncloud_server.server"
 	testServerName := GetTestServerName()
+	specCode := "s2-g3"
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: ProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccDataSourceServerVpcConfig(testServerName),
+				Config: testAccDataSourceServerVpcConfig(testServerName, specCode),
 				Check: resource.ComposeTestCheckFunc(
 					TestAccCheckDataSourceID(dataName),
 					resource.TestMatchResourceAttr(dataName, "id", regexp.MustCompile(`^\d+$`)),
@@ -86,7 +87,7 @@ func TestAccDataSourceNcloudServer_classic_basic(t *testing.T) {
 	})
 }
 
-func testAccDataSourceServerVpcConfig(testServerName string) string {
+func testAccDataSourceServerVpcConfig(testServerName string, specCode string) string {
 	return fmt.Sprintf(`
 resource "ncloud_login_key" "loginkey" {
 	key_name = "%[1]s-key"
@@ -111,14 +112,14 @@ data "ncloud_server_image_numbers" "server_images" {
     filter {
         name = "name"
         values = ["ubuntu-22.04-base"]
-  }
+    }
 }
 
 resource "ncloud_server" "server" {
 	subnet_no = ncloud_subnet.test.id
 	name = "%[1]s"
 	server_image_number = data.ncloud_server_image_numbers.server_images.image_number_list.0.server_image_number
-	server_spec_code = "s2-g3"
+	server_spec_code = "%[2]s"
 	login_key_name = ncloud_login_key.loginkey.key_name
 }
 
@@ -132,7 +133,7 @@ data "ncloud_server" "by_filter" {
 		values = [ncloud_server.server.id]
 	}
 }
-`, testServerName)
+`, testServerName, specCode)
 }
 
 func testAccDataSourceServerClassicConfig(testServerName string) string {

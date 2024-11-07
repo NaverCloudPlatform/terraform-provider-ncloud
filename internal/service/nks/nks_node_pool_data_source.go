@@ -63,6 +63,10 @@ func DataSourceNcloudNKSNodePool() *schema.Resource {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
+			"server_role_id": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
 			"autoscale": {
 				Type:     schema.TypeList,
 				Computed: true,
@@ -196,6 +200,7 @@ func dataSourceNcloudNKSNodePoolRead(ctx context.Context, d *schema.ResourceData
 	d.Set("k8s_version", nodePool.K8sVersion)
 	d.Set("server_spec_code", nodePool.ServerSpecCode)
 	d.Set("storage_size", strconv.Itoa(int(ncloud.Int32Value(nodePool.StorageSize))))
+	d.Set("server_role_id", nodePool.ServerRoleId)
 
 	if len(nodePool.SubnetNoList) > 0 {
 		if err := d.Set("subnet_no_list", flattenInt32ListToStringList(nodePool.SubnetNoList)); err != nil {

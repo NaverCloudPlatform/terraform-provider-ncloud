@@ -16,7 +16,7 @@ data "ncloud_nks_server_products" "products" {}
 data "ncloud_nks_server_images" "images"{
   filter {
     name = "label"
-    values = ["ubuntu-20.04"]
+    values = ["ubuntu-22.04"]
     regex = true
   }
 }

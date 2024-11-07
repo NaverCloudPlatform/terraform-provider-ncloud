@@ -6,10 +6,12 @@ import (
 	"fmt"
 
 	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/services/vserver"
+	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
+	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 	"github.com/terraform-providers/terraform-provider-ncloud/internal/common"
@@ -38,6 +40,15 @@ func (d *serverImageNumbersDataSource) Schema(_ context.Context, _ datasource.Sc
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
 				Computed: true,
+			},
+			"server_image_name": schema.StringAttribute{
+				Optional: true,
+			},
+			"hypervisor_type": schema.StringAttribute{
+				Optional: true,
+				Validators: []validator.String{
+					stringvalidator.OneOf([]string{"XEN", "KVM"}...),
+				},
 			},
 			"output_file": schema.StringAttribute{
 				Optional: true,
@@ -152,7 +163,9 @@ func (d *serverImageNumbersDataSource) Read(ctx context.Context, req datasource.
 	}
 
 	reqParams := &vserver.GetServerImageListRequest{
-		RegionCode: &d.config.RegionCode,
+		RegionCode:         &d.config.RegionCode,
+		ServerImageName:    data.ServerImageName.ValueStringPointer(),
+		HypervisorCodeList: []*string{data.HypervisorType.ValueStringPointer()},
 	}
 	tflog.Info(ctx, "GetServerImageListRequest reqParams="+common.MarshalUncheckedString(reqParams))
 
@@ -170,7 +183,7 @@ func (d *serverImageNumbersDataSource) Read(ctx context.Context, req datasource.
 
 	imagesNoList, diags := flattenServerImageList(ctx, imageNoResp.ServerImageList)
 	if diags.HasError() {
-		resp.Diagnostics.AddError("READING ERROR", "refreshFromOutput error")
+		resp.Diagnostics.AddError("READING ERROR", "flattenServerImageList error")
 		return
 	}
 	fillteredList := common.FilterModels(ctx, data.Filters, imagesNoList)
@@ -227,6 +240,8 @@ func flattenServerImageList(ctx context.Context, list []*vserver.ServerImage) ([
 
 type serverImageNumbersDataSourceModel struct {
 	ID              types.String `tfsdk:"id"`
+	ServerImageName types.String `tfsdk:"server_image_name"`
+	HypervisorType  types.String `tfsdk:"hypervisor_type"`
 	ImageNumberList types.List   `tfsdk:"image_number_list"`
 	OutputFile      types.String `tfsdk:"output_file"`
 	Filters         types.Set    `tfsdk:"filter"`

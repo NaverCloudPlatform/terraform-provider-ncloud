@@ -7,9 +7,11 @@ subcategory: "Server"
 
 Gets a member server image.
 
+~> **NOTE:** Server images on KVM servers are not supported.
+
 ## Example Usage
 
-```hcl
+```terraform
 data "ncloud_member_server_image" "test" {
 }
 ```

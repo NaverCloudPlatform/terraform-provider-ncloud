@@ -48,7 +48,7 @@ output "image_list" {
 }
 
 data "ncloud_redis_products" "all" {
-  redis_image_product_code = "SW.VDBAS.VRDS.LNX64.CNTOS.0708.REDIS.7013.B050"
+  redis_image_product_code = "SW.VRDS.OS.LNX64.ROCKY.0810.REDIS.B050"
   output_file = "products.json"
 }
 
