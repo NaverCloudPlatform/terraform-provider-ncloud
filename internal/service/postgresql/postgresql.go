@@ -342,6 +342,7 @@ func (r *postgresqlResource) Schema(_ context.Context, _ resource.SchemaRequest,
 			},
 			"engine_version_code": schema.StringAttribute{
 				Optional: true,
+				Computed: true,
 				PlanModifiers: []planmodifier.String{
 					stringplanmodifier.RequiresReplace(),
 				},
@@ -742,13 +743,13 @@ func waitPostgresqlDeletion(ctx context.Context, config *conn.ProviderConfig, id
 			}
 
 			if *status == DELETED {
-				return instance, DELETING, nil
+				return instance, DELETED, nil
 			}
 
 			return 0, "", fmt.Errorf("error occurred while waiting to delete postgresql")
 		},
 		Timeout:    conn.DefaultTimeout,
-		Delay:      5 * time.Second,
+		Delay:      2 * time.Minute,
 		MinTimeout: 3 * time.Second,
 	}
 
@@ -840,6 +841,7 @@ func (r *postgresqlResourceModel) refreshFromOutput(ctx context.Context, output 
 	r.BackupTime = types.StringPointerValue(output.BackupTime)
 	r.BackupFileRetentionPeriod = common.Int64ValueFromInt32(output.BackupFileRetentionPeriod)
 	r.IsStorageEncryption = types.BoolPointerValue(output.CloudPostgresqlServerInstanceList[0].IsStorageEncryption)
+	r.EngineVersionCode = types.StringValue(common.ExtractEngineVersion(*output.EngineVersion))
 
 	acgList, diags := types.ListValueFrom(ctx, types.StringType, output.AccessControlGroupNoList)
 	if diags.HasError() {
