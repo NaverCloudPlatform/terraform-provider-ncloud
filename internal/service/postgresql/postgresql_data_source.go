@@ -100,7 +100,7 @@ func (d *postgresqlDataSource) Schema(ctx context.Context, req datasource.Schema
 			"port": schema.Int64Attribute{
 				Computed: true,
 			},
-			"engine_version_code": schema.StringAttribute{
+			"engine_version": schema.StringAttribute{
 				Computed: true,
 			},
 			"access_control_group_no_list": schema.ListAttribute{
@@ -264,7 +264,7 @@ type postgresqlDataSourceModel struct {
 	Port                      types.Int64  `tfsdk:"port"`
 	ClientCidr                types.String `tfsdk:"client_cidr"`
 	DataStorageTypeCode       types.String `tfsdk:"data_storage_type_code"`
-	EngineVersionCode         types.String `tfsdk:"engine_version_code"`
+	EngineVersion             types.String `tfsdk:"engine_version"`
 	AccessControlGroupNoList  types.List   `tfsdk:"access_control_group_no_list"`
 	PostgresqlConfigList      types.List   `tfsdk:"postgresql_config_list"`
 	PostgresqlServerList      types.List   `tfsdk:"postgresql_server_list"`
@@ -283,7 +283,7 @@ func (d *postgresqlDataSourceModel) refreshFromOutput(ctx context.Context, outpu
 	d.BackupTime = types.StringPointerValue(output.BackupTime)
 	d.BackupFileRetentionPeriod = common.Int64ValueFromInt32(output.BackupFileRetentionPeriod)
 	d.Port = common.Int64ValueFromInt32(output.CloudPostgresqlPort)
-	d.EngineVersionCode = types.StringValue(common.ExtractEngineVersion(*output.EngineVersion))
+	d.EngineVersion = types.StringPointerValue(output.EngineVersion)
 
 	acgList, diags := types.ListValueFrom(ctx, types.StringType, output.AccessControlGroupNoList)
 	if diags.HasError() {

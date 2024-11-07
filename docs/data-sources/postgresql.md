@@ -45,7 +45,7 @@ This data source exports the following attributes in addition to the argument ab
 * `backup_file_storage_count` -  Number of backup files kept.
 * `backup_time` - The backup time fo the PostgreSQL database.
 * `port` - Port of PostgreSQL instance.
-* `engine_version_code` - The engien version of the specific PostgreSQL.
+* `engine_version` - The engien version of the specific PostgreSQL.
 * `access_control_group_no_list` - The list of access control group number.
 * `postgresql_config_list` - The list of config.
 * `postgresql_server_list` - The list of PostgreSQL server instance.
