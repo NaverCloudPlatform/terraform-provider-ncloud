@@ -1,7 +1,7 @@
 package postgresql_test
 
 import (
-	"fmt"
+	"regexp"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
@@ -9,29 +9,23 @@ import (
 )
 
 func TestAccDataSourceNcloudPostgresqlImageProducts_basic(t *testing.T) {
-	productType := "LINUX"
+	dataName := "data.ncloud_postgresql_image_products.all"
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: ProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccDataSourceNcloudPostgresqlImageProductsConfig_basic(productType),
+				Config: testAccDataSourcePostgresqlImageProductsConfig,
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("data.ncloud_postgresql_image_products.all", "image_product_list.0.product_type", productType),
+					resource.TestMatchResourceAttr(dataName, "image_product_list.0.product_code", regexp.MustCompile(`^[A-Z0-9]+[A-Z0-9-.]+[A-Z0-9]$`)),
+					resource.TestMatchResourceAttr(dataName, "image_product_list.1.product_code", regexp.MustCompile(`^[A-Z0-9]+[A-Z0-9-.]+[A-Z0-9]$`)),
 				),
 			},
 		},
 	})
 }
 
-func testAccDataSourceNcloudPostgresqlImageProductsConfig_basic(productType string) string {
-	return fmt.Sprintf(`
-data "ncloud_postgresql_image_products" "all" {
-	filter {
-			name = "product_type"
-			values = ["%s"]
-	}
-}
-`, productType)
-}
+var testAccDataSourcePostgresqlImageProductsConfig = `
+data "ncloud_postgresql_image_products" "all" { }
+`

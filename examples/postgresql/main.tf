@@ -37,12 +37,12 @@ data "ncloud_postgresql_image_products" "images_by_code" {
 output "image_list" {
   value = {
     for image in data.ncloud_postgresql_image_products.images_by_code.image_product_list:
-    image.product_name => image.product_code
+    image.engine_version_code => image.product_code
   }
 }
 
 data "ncloud_postgresql_products" "all" {
-  postgresql_image_product_code = "SW.VSVR.DBMS.LNX64.CNTOS.0708.PSTGR.1403.B050"
+  image_product_code = data.ncloud_postgresql_image_products.images_by_code.image_product_list.0.product_code
   output_file = "products.json"
 }
 
