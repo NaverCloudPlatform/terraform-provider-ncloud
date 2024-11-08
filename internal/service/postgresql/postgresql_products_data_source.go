@@ -193,7 +193,7 @@ func (d *postgresqlProductList) refreshFromOutput(ctx context.Context, list []*p
 	d.ProductList = productListValue
 	d.ID = types.StringValue(time.Now().UTC().String())
 
-	return nil
+	return diags
 }
 
 type postgresqlProductList struct {
@@ -214,6 +214,7 @@ type postgresqlProductModel struct {
 	MemorySize         types.Int64  `tfsdk:"memory_size"`
 	DiskType           types.String `tfsdk:"disk_type"`
 }
+
 type postgresqlProductsToJsonConvert struct {
 	ProductCode        string `json:"product_code"`
 	ProductName        string `json:"product_name"`
@@ -237,6 +238,7 @@ func (d postgresqlProductModel) attrTypes() map[string]attr.Type {
 		"product_description": types.StringType,
 	}
 }
+
 func (d *postgresqlProductModel) refreshFromOutput(output *vpostgresql.Product) {
 	d.ProductCode = types.StringPointerValue(output.ProductCode)
 	d.ProductName = types.StringPointerValue(output.ProductName)
