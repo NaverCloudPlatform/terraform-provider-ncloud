@@ -2,7 +2,6 @@ package postgresql
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
 
 	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/services/vpostgresql"
@@ -139,30 +138,13 @@ func (d *postgresqlImageProductsDataSource) Read(ctx context.Context, req dataso
 	if !data.OutputFile.IsNull() && data.OutputFile.String() != "" {
 		outputPath := data.OutputFile.ValueString()
 
-		if convertedList, err := convertToJsonStruct(data.ImageProductList.Elements()); err != nil {
-			resp.Diagnostics.AddError("OUTPUT FILE ERROR", err.Error())
-			return
-		} else if err := common.WriteToFile(outputPath, convertedList); err != nil {
+		if err := common.WriteImageProductToFile(outputPath, data.ImageProductList); err != nil {
 			resp.Diagnostics.AddError("OUTPUT FILE ERROR", err.Error())
 			return
 		}
 	}
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
-}
-
-func convertToJsonStruct(images []attr.Value) ([]postgresqlImageProductToJsonConvert, error) {
-	var postgresqlImagesToConvert = []postgresqlImageProductToJsonConvert{}
-
-	for _, image := range images {
-		imageJasn := postgresqlImageProductToJsonConvert{}
-		if err := json.Unmarshal([]byte(image.String()), &imageJasn); err != nil {
-			return nil, err
-		}
-		postgresqlImagesToConvert = append(postgresqlImagesToConvert, imageJasn)
-	}
-
-	return postgresqlImagesToConvert, nil
 }
 
 func flattenPostgresqlImageProduct(list []*vpostgresql.Product) []*postgresqlImageProduct {
@@ -203,16 +185,6 @@ type postgresqlImageProduct struct {
 	OsInformation     types.String `tfsdk:"os_information"`
 	GenerationCode    types.String `tfsdk:"generation_code"`
 	EngineVersionCode types.String `tfsdk:"engine_version_code"`
-}
-
-type postgresqlImageProductToJsonConvert struct {
-	ProductCode       string `json:"product_code"`
-	ProductName       string `json:"product_name"`
-	ProductType       string `json:"product_type"`
-	PlatformType      string `json:"platform_type"`
-	OsInformation     string `json:"os_information"`
-	GenerationCode    string `json:"generation_code"`
-	EngineVersionCode string `json:"engine_version_code"`
 }
 
 func (d postgresqlImageProduct) attrTypes() map[string]attr.Type {
