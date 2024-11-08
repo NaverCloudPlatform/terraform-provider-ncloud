@@ -167,7 +167,7 @@ func (d *postgresqlImageProductsDataSourceModel) refreshFromOutput(ctx context.C
 	d.ImageProductList = imageProductListValue
 	d.ID = types.StringValue("")
 
-	return nil
+	return diags
 }
 
 type postgresqlImageProductsDataSourceModel struct {

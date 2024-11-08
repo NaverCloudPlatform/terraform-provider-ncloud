@@ -14,6 +14,7 @@ Get a list of PostgreSQL image products.
 data "ncloud_postgresql_image_products" "example" {
     output_file = "image.json"
 }
+
 output "image_list" {
     value = {
         for image in data.ncloud_postgresql_image_products.example.image_product_list:
@@ -22,19 +23,21 @@ output "image_list" {
 }
 ```
 
-```terraform
-data "ncloud_postgresql_image_products" "example" {
-    filter {
-        name = "engine_Version_code"
-        values = ["13.13"]
-    }
-}
-```
-
 Outputs:
 ```terraform
 image_list = {
-    "13.13": "SW.VPGSL.OS.LNX64.ROCKY.0810.PGSQL.B050"
+  "13.15" = "SW.VPGSL.OS.LNX64.ROCKY.0810.PGSQL.B050"
+  "13.13" = "SW.VPGSL.OS.LNX64.ROCKY.0810.PGSQL.B050"
+  "13.10" = "SW.VPGSL.OS.LNX64.ROCKY.0810.PGSQL.B050"
+}
+```
+
+```terraform
+data "ncloud_postgresql_image_products" "example" {
+    filter {
+        name = "engine_version_code"
+        values = ["13.13"]
+    }
 }
 ```
 
