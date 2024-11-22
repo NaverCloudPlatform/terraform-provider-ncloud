@@ -61,46 +61,37 @@ func (d *postgresqlDataSource) Schema(ctx context.Context, req datasource.Schema
 			"vpc_no": schema.StringAttribute{
 				Computed: true,
 			},
-			"subnet_no": schema.StringAttribute{
-				Computed: true,
-			},
 			"image_product_code": schema.StringAttribute{
 				Computed: true,
 			},
-			"product_code": schema.StringAttribute{
+			"generation_code": schema.StringAttribute{
 				Computed: true,
 			},
-			"data_storage_type_code": schema.StringAttribute{
+			"engine_version": schema.StringAttribute{
 				Computed: true,
 			},
-			"client_cidr": schema.StringAttribute{
+			"ha": schema.BoolAttribute{
 				Computed: true,
 			},
-			"is_multi_zone": schema.BoolAttribute{
+			"multi_zone": schema.BoolAttribute{
 				Computed: true,
 			},
-			"is_ha": schema.BoolAttribute{
+			"data_storage_type": schema.StringAttribute{
 				Computed: true,
 			},
-			"is_storage_encryption": schema.BoolAttribute{
+			"storage_encryption": schema.BoolAttribute{
 				Computed: true,
 			},
-			"is_backup": schema.BoolAttribute{
-				Computed: true,
-			},
-			"backup_time": schema.StringAttribute{
+			"backup": schema.BoolAttribute{
 				Computed: true,
 			},
 			"backup_file_retention_period": schema.Int64Attribute{
 				Computed: true,
 			},
-			"backup_file_storage_count": schema.Int64Attribute{
+			"backup_time": schema.StringAttribute{
 				Computed: true,
 			},
 			"port": schema.Int64Attribute{
-				Computed: true,
-			},
-			"engine_version": schema.StringAttribute{
 				Computed: true,
 			},
 			"access_control_group_no_list": schema.ListAttribute{
@@ -127,7 +118,13 @@ func (d *postgresqlDataSource) Schema(ctx context.Context, req datasource.Schema
 						"product_code": schema.StringAttribute{
 							Computed: true,
 						},
-						"is_public_subnet": schema.BoolAttribute{
+						"zone_code": schema.StringAttribute{
+							Computed: true,
+						},
+						"subnet_no": schema.StringAttribute{
+							Computed: true,
+						},
+						"public_subnet": schema.BoolAttribute{
 							Computed: true,
 						},
 						"public_domain": schema.StringAttribute{
@@ -145,10 +142,10 @@ func (d *postgresqlDataSource) Schema(ctx context.Context, req datasource.Schema
 						"used_data_storage_size": schema.Int64Attribute{
 							Computed: true,
 						},
-						"memory_size": schema.Int64Attribute{
+						"cpu_count": schema.Int64Attribute{
 							Computed: true,
 						},
-						"cpu_count": schema.Int64Attribute{
+						"memory_size": schema.Int64Attribute{
 							Computed: true,
 						},
 						"uptime": schema.StringAttribute{
@@ -249,22 +246,19 @@ func (d *postgresqlDataSource) Read(ctx context.Context, req datasource.ReadRequ
 type postgresqlDataSourceModel struct {
 	ID                        types.String `tfsdk:"id"`
 	ServiceName               types.String `tfsdk:"service_name"`
-	VpcNo                     types.String `tfsdk:"vpc_no"`
-	SubnetNo                  types.String `tfsdk:"subnet_no"`
 	RegionCode                types.String `tfsdk:"region_code"`
+	VpcNo                     types.String `tfsdk:"vpc_no"`
 	ImageProductCode          types.String `tfsdk:"image_product_code"`
-	ProductCode               types.String `tfsdk:"product_code"`
-	IsMultiZone               types.Bool   `tfsdk:"is_multi_zone"`
-	IsHa                      types.Bool   `tfsdk:"is_ha"`
-	IsStorageEncryption       types.Bool   `tfsdk:"is_storage_encryption"`
-	IsBackup                  types.Bool   `tfsdk:"is_backup"`
-	BackupTime                types.String `tfsdk:"backup_time"`
-	BackupFileStorageCount    types.Int64  `tfsdk:"backup_file_storage_count"`
-	BackupFileRetentionPeriod types.Int64  `tfsdk:"backup_file_retention_period"`
-	Port                      types.Int64  `tfsdk:"port"`
-	ClientCidr                types.String `tfsdk:"client_cidr"`
-	DataStorageTypeCode       types.String `tfsdk:"data_storage_type_code"`
+	GenerationCode            types.String `tfsdk:"generation_code"`
 	EngineVersion             types.String `tfsdk:"engine_version"`
+	Ha                        types.Bool   `tfsdk:"ha"`
+	MultiZone                 types.Bool   `tfsdk:"multi_zone"`
+	DataStorageTypeCode       types.String `tfsdk:"data_storage_type"`
+	StorageEncryption         types.Bool   `tfsdk:"storage_encryption"`
+	Backup                    types.Bool   `tfsdk:"backup"`
+	BackupFileRetentionPeriod types.Int64  `tfsdk:"backup_file_retention_period"`
+	BackupTime                types.String `tfsdk:"backup_time"`
+	Port                      types.Int64  `tfsdk:"port"`
 	AccessControlGroupNoList  types.List   `tfsdk:"access_control_group_no_list"`
 	PostgresqlConfigList      types.List   `tfsdk:"postgresql_config_list"`
 	PostgresqlServerList      types.List   `tfsdk:"postgresql_server_list"`
@@ -273,17 +267,19 @@ type postgresqlDataSourceModel struct {
 func (d *postgresqlDataSourceModel) refreshFromOutput(ctx context.Context, output *vpostgresql.CloudPostgresqlInstance) diag.Diagnostics {
 	d.ID = types.StringPointerValue(output.CloudPostgresqlInstanceNo)
 	d.ServiceName = types.StringPointerValue(output.CloudPostgresqlServiceName)
-	d.ImageProductCode = types.StringPointerValue(output.CloudPostgresqlImageProductCode)
-	d.VpcNo = types.StringPointerValue(output.CloudPostgresqlServerInstanceList[0].VpcNo)
-	d.SubnetNo = types.StringPointerValue(output.CloudPostgresqlServerInstanceList[0].SubnetNo)
 	d.RegionCode = types.StringPointerValue(output.CloudPostgresqlServerInstanceList[0].RegionCode)
-	d.IsMultiZone = types.BoolPointerValue(output.IsMultiZone)
-	d.IsHa = types.BoolPointerValue(output.IsHa)
-	d.IsBackup = types.BoolPointerValue(output.IsBackup)
-	d.BackupTime = types.StringPointerValue(output.BackupTime)
-	d.BackupFileRetentionPeriod = common.Int64ValueFromInt32(output.BackupFileRetentionPeriod)
-	d.Port = common.Int64ValueFromInt32(output.CloudPostgresqlPort)
+	d.VpcNo = types.StringPointerValue(output.CloudPostgresqlServerInstanceList[0].VpcNo)
+	d.ImageProductCode = types.StringPointerValue(output.CloudPostgresqlImageProductCode)
+	d.GenerationCode = types.StringPointerValue(output.GenerationCode)
 	d.EngineVersion = types.StringPointerValue(output.EngineVersion)
+	d.Ha = types.BoolPointerValue(output.IsHa)
+	d.MultiZone = types.BoolPointerValue(output.IsMultiZone)
+	d.DataStorageTypeCode = types.StringPointerValue(common.GetCodePtrByCommonCode(output.CloudPostgresqlServerInstanceList[0].DataStorageType))
+	d.StorageEncryption = types.BoolPointerValue(output.CloudPostgresqlServerInstanceList[0].IsStorageEncryption)
+	d.Backup = types.BoolPointerValue(output.IsBackup)
+	d.BackupFileRetentionPeriod = common.Int64ValueFromInt32(output.BackupFileRetentionPeriod)
+	d.BackupTime = types.StringPointerValue(output.BackupTime)
+	d.Port = common.Int64ValueFromInt32(output.CloudPostgresqlPort)
 
 	acgList, diags := types.ListValueFrom(ctx, types.StringType, output.AccessControlGroupNoList)
 	if diags.HasError() {
@@ -296,39 +292,7 @@ func (d *postgresqlDataSourceModel) refreshFromOutput(ctx context.Context, outpu
 	}
 	d.PostgresqlConfigList = configList
 
-	var serverList []postgresqlServer
-	for _, server := range output.CloudPostgresqlServerInstanceList {
-		postgresqlServerInstance := postgresqlServer{
-			ServerInstanceNo: types.StringPointerValue(server.CloudPostgresqlServerInstanceNo),
-			ServerName:       types.StringPointerValue(server.CloudPostgresqlServerName),
-			ServerRole:       types.StringPointerValue(server.CloudPostgresqlServerRole.Code),
-			IsPublicSubnet:   types.BoolPointerValue(server.IsPublicSubnet),
-			PublicDomain:     types.StringPointerValue(server.PublicDomain),
-			PrivateIp:        types.StringPointerValue(server.PrivateIp),
-			DataStorageSize:  types.Int64PointerValue(server.DataStorageSize),
-			ProductCode:      types.StringPointerValue(server.CloudPostgresqlProductCode),
-			MemorySize:       types.Int64PointerValue(server.MemorySize),
-			CpuCount:         common.Int64ValueFromInt32(server.CpuCount),
-			Uptime:           types.StringPointerValue(server.Uptime),
-			CreateDate:       types.StringPointerValue(server.CreateDate),
-		}
+	d.PostgresqlServerList, diags = listValueFromPostgresqlServerInatanceList(ctx, output.CloudPostgresqlServerInstanceList)
 
-		if server.PublicDomain != nil {
-			postgresqlServerInstance.PublicDomain = types.StringPointerValue(server.PublicDomain)
-		}
-
-		if server.UsedDataStorageSize != nil {
-			postgresqlServerInstance.UsedDataStorageSize = types.Int64PointerValue(server.UsedDataStorageSize)
-		}
-		serverList = append(serverList, postgresqlServerInstance)
-	}
-
-	postgresqlServers, diags := types.ListValueFrom(ctx, types.ObjectType{AttrTypes: postgresqlServer{}.attrTypes()}, serverList)
-	if diags.HasError() {
-		return diags
-	}
-
-	d.PostgresqlServerList = postgresqlServers
-
-	return nil
+	return diags
 }
