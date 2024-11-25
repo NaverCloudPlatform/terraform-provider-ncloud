@@ -8,6 +8,7 @@ import (
 
 	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/ncloud"
 	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/services/vpostgresql"
+	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
@@ -36,7 +37,18 @@ type postgresqlReadReplicaResource struct {
 }
 
 func (r *postgresqlReadReplicaResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
-	resource.ImportStatePassthroughID(ctx, path.Root("id"), req, resp)
+	idParts := strings.Split(req.ID, ":")
+
+	if len(idParts) != 2 || idParts[0] == "" || idParts[1] == "" {
+		resp.Diagnostics.AddError(
+			"Unexpected Import Identifier",
+			fmt.Sprintf("Expected import identifier with format: postgresql_instance_no:id Got: %q", req.ID),
+		)
+		return
+	}
+
+	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("postgresql_instance_no"), idParts[0])...)
+	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("id"), idParts[1])...)
 }
 
 func (r *postgresqlReadReplicaResource) Configure(_ context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
@@ -71,11 +83,68 @@ func (r *postgresqlReadReplicaResource) Schema(_ context.Context, _ resource.Sch
 					stringplanmodifier.RequiresReplace(),
 				},
 			},
+			// Available only `pub` and `fin` site. But GOV response message have both values.
 			"subnet_no": schema.StringAttribute{
 				Optional: true,
 				Computed: true,
 				PlanModifiers: []planmodifier.String{
 					stringplanmodifier.RequiresReplace(),
+					stringplanmodifier.UseStateForUnknown(),
+				},
+			},
+			"postgresql_server_list": schema.ListNestedAttribute{
+				Computed: true,
+				NestedObject: schema.NestedAttributeObject{
+					Attributes: map[string]schema.Attribute{
+						"server_instance_no": schema.StringAttribute{
+							Computed: true,
+						},
+						"server_name": schema.StringAttribute{
+							Computed: true,
+						},
+						"server_role": schema.StringAttribute{
+							Computed: true,
+						},
+						"product_code": schema.StringAttribute{
+							Computed: true,
+						},
+						"zone_code": schema.StringAttribute{
+							Computed: true,
+						},
+						"subnet_no": schema.StringAttribute{
+							Computed: true,
+						},
+						"public_subnet": schema.BoolAttribute{
+							Computed: true,
+						},
+						"public_domain": schema.StringAttribute{
+							Computed: true,
+						},
+						"private_domain": schema.StringAttribute{
+							Computed: true,
+						},
+						"private_ip": schema.StringAttribute{
+							Computed: true,
+						},
+						"data_storage_size": schema.Int64Attribute{
+							Computed: true,
+						},
+						"used_data_storage_size": schema.Int64Attribute{
+							Computed: true,
+						},
+						"cpu_count": schema.Int64Attribute{
+							Computed: true,
+						},
+						"memory_size": schema.Int64Attribute{
+							Computed: true,
+						},
+						"uptime": schema.StringAttribute{
+							Computed: true,
+						},
+						"create_date": schema.StringAttribute{
+							Computed: true,
+						},
+					},
 				},
 			},
 		},
@@ -102,7 +171,14 @@ func (r *postgresqlReadReplicaResource) Create(ctx context.Context, req resource
 		CloudPostgresqlInstanceNo: plan.PostgresqlInstanceNo.ValueStringPointer(),
 	}
 
-	if !plan.SubnetNo.IsNull() {
+	if !plan.SubnetNo.IsNull() && !plan.SubnetNo.IsUnknown() {
+		if r.config.Site == "gov" {
+			resp.Diagnostics.AddError(
+				"NOT SUPPORT GOV SITE",
+				"`subnet_no` does not support gov site",
+			)
+			return
+		}
 		reqParams.SubnetNo = plan.SubnetNo.ValueStringPointer()
 	}
 
@@ -113,6 +189,7 @@ func (r *postgresqlReadReplicaResource) Create(ctx context.Context, req resource
 		resp.Diagnostics.AddError("CREATING ERROR", err.Error())
 		return
 	}
+	tflog.Info(ctx, "CreateCloudPostgresqlReadReplica response="+common.MarshalUncheckedString(response))
 
 	if response == nil || len(response.CloudPostgresqlInstanceList) < 1 {
 		resp.Diagnostics.AddError("CREATING ERROR", "response invalid")
@@ -121,34 +198,25 @@ func (r *postgresqlReadReplicaResource) Create(ctx context.Context, req resource
 
 	postgresqlIns := response.CloudPostgresqlInstanceList[0]
 	serverList := postgresqlIns.CloudPostgresqlServerInstanceList
+	var index int
 
-	if !*postgresqlIns.IsHa {
-		resp.Diagnostics.AddError(
-			"CREATIG ERROR",
-			"when `is_ha` is false, Read Replica can't be created",
-		)
+	for i, server := range serverList {
+		if (*server.CloudPostgresqlServerRole.Code == "S") && (*server.CloudPostgresqlServerInstanceStatusName == CREATING) {
+			index = i
+			break
+		}
 	}
 
-	if len(serverList) < 2 {
-		resp.Diagnostics.AddError("CREATING ERROR", "response invalid")
-		return
-	}
-
-	readReplicaServer, err := GetPostgresqlReadReplica(ctx, r.config, plan.PostgresqlInstanceNo.ValueString())
-	if err != nil {
-		resp.Diagnostics.AddError("READ ERROR", err.Error())
-		return
-	}
-
-	plan.ID = types.StringPointerValue(readReplicaServer.CloudPostgresqlServerInstanceNo)
-
-	output, err := waitPostgresqlReadReplicaCreation(ctx, r.config, *postgresqlIns.CloudPostgresqlInstanceNo)
+	output, err := waitPostgresqlReadReplicaCreation(ctx, r.config, *postgresqlIns.CloudPostgresqlInstanceNo, index)
 	if err != nil {
 		resp.Diagnostics.AddError("WAITING FOR CREATION ERROR", err.Error())
 		return
 	}
 
-	plan.refreshFromOutput(output, plan.PostgresqlInstanceNo.ValueStringPointer())
+	if diags := plan.refreshFromOutput(ctx, output, postgresqlIns.CloudPostgresqlInstanceNo); diags.HasError() {
+		resp.Diagnostics.AddError("CREATING ERROR", "refreshFromOutput error")
+		return
+	}
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, plan)...)
 }
@@ -161,7 +229,7 @@ func (r *postgresqlReadReplicaResource) Read(ctx context.Context, req resource.R
 		return
 	}
 
-	output, err := GetPostgresqlReadReplica(ctx, r.config, state.PostgresqlInstanceNo.ValueString())
+	output, err := GetPostgresqlReadReplicaServer(ctx, r.config, state.PostgresqlInstanceNo.ValueString(), state.ID.ValueString())
 	if err != nil {
 		resp.Diagnostics.AddError("READING ERROR", err.Error())
 		return
@@ -172,12 +240,12 @@ func (r *postgresqlReadReplicaResource) Read(ctx context.Context, req resource.R
 		return
 	}
 
-	state.refreshFromOutput(output, state.PostgresqlInstanceNo.ValueStringPointer())
-
-	resp.Diagnostics.Append(resp.State.Set(ctx, &state)...)
-	if resp.Diagnostics.HasError() {
+	if diags := state.refreshFromOutput(ctx, output, state.PostgresqlInstanceNo.ValueStringPointer()); diags.HasError() {
+		resp.Diagnostics.AddError("READING ERROR", "refreshFromOutput error")
 		return
 	}
+
+	resp.Diagnostics.Append(resp.State.Set(ctx, &state)...)
 }
 
 func (r *postgresqlReadReplicaResource) Update(_ context.Context, _ resource.UpdateRequest, _ *resource.UpdateResponse) {
@@ -205,36 +273,30 @@ func (r *postgresqlReadReplicaResource) Delete(ctx context.Context, req resource
 
 	tflog.Info(ctx, "DeletePostgresqlReadReplica response="+common.MarshalUncheckedString(response))
 
-	if err := waitPostgresqlReadReplicaDeletion(ctx, r.config, state.PostgresqlInstanceNo.ValueString()); err != nil {
+	if err := waitPostgresqlReadReplicaDeletion(ctx, r.config, state.PostgresqlInstanceNo.ValueString(), state.ID.ValueString()); err != nil {
 		resp.Diagnostics.AddError("WAITING FOR DELETE ERROR", err.Error())
 	}
 }
 
-func waitPostgresqlReadReplicaCreation(ctx context.Context, config *conn.ProviderConfig, id string) (*vpostgresql.CloudPostgresqlServerInstance, error) {
-	var postgresqlInstance *vpostgresql.CloudPostgresqlServerInstance
+func waitPostgresqlReadReplicaCreation(ctx context.Context, config *conn.ProviderConfig, instanceNo string, index int) ([]*vpostgresql.CloudPostgresqlServerInstance, error) {
+	var serverInstance []*vpostgresql.CloudPostgresqlServerInstance
 	stateConf := &retry.StateChangeConf{
-		Pending: []string{"creating", "settingUp"},
-		Target:  []string{"running"},
+		Pending: []string{CREATING, SETTING},
+		Target:  []string{RUNNING},
 		Refresh: func() (interface{}, string, error) {
-			instance, err := GetPostgresqlReadReplica(ctx, config, id)
-			postgresqlInstance = instance
+			instance, err := findPostgresqlReadReplicaServer(ctx, config, instanceNo, index)
+			serverInstance = instance
 			if err != nil {
 				return 0, "", err
 			}
 
-			status := instance.CloudPostgresqlServerInstanceStatus.Code
-			op := instance.CloudPostgresqlServerInstanceOperation.Code
-
-			if *status == "PEND" && *op == "CREAT" {
-				return instance, "creating", nil
+			if instance == nil {
+				return 0, "", fmt.Errorf("Instance is nil")
 			}
 
-			if *status == "RUN" && *op == "SETUP" {
-				return instance, "settingUp", nil
-			}
-
-			if *status == "RUN" && *op == "NOOP" {
-				return instance, "running", nil
+			status := instance[0].CloudPostgresqlServerInstanceStatusName
+			if *status == CREATING || *status == SETTING || *status == RUNNING {
+				return instance, *status, nil
 			}
 
 			return 0, "", fmt.Errorf("error occurred while waiting to create postgresql read replica")
@@ -249,15 +311,15 @@ func waitPostgresqlReadReplicaCreation(ctx context.Context, config *conn.Provide
 		return nil, fmt.Errorf("error waiting for postgresql read replica state to be \"CREAT\": %s", err)
 	}
 
-	return postgresqlInstance, nil
+	return serverInstance, nil
 }
 
-func waitPostgresqlReadReplicaDeletion(ctx context.Context, config *conn.ProviderConfig, id string) error {
+func waitPostgresqlReadReplicaDeletion(ctx context.Context, config *conn.ProviderConfig, instanceNo string, serverInstanceNo string) error {
 	stateConf := &retry.StateChangeConf{
 		Pending: []string{DELETING},
 		Target:  []string{DELETED},
 		Refresh: func() (interface{}, string, error) {
-			instance, err := GetPostgresqlReadReplica(ctx, config, id)
+			instance, err := GetPostgresqlReadReplicaServer(ctx, config, instanceNo, serverInstanceNo)
 			if err != nil {
 				return 0, "", err
 			}
@@ -266,7 +328,7 @@ func waitPostgresqlReadReplicaDeletion(ctx context.Context, config *conn.Provide
 				return instance, DELETED, nil
 			}
 
-			statusName := instance.CloudPostgresqlServerInstanceStatusName
+			statusName := instance[0].CloudPostgresqlServerInstanceStatusName
 
 			if *statusName == DELETING {
 				return instance, DELETING, nil
@@ -284,16 +346,43 @@ func waitPostgresqlReadReplicaDeletion(ctx context.Context, config *conn.Provide
 	}
 
 	if _, err := stateConf.WaitForStateContext(ctx); err != nil {
-		return fmt.Errorf("error waiting for postgresql read replica (%s) to become termintaing: %s", id, err)
+		return fmt.Errorf("error waiting for postgresql read replica (%s) to become termintaing: %s", serverInstanceNo, err)
 	}
 
 	return nil
 }
 
-func GetPostgresqlReadReplica(ctx context.Context, config *conn.ProviderConfig, no string) (*vpostgresql.CloudPostgresqlServerInstance, error) {
+func findPostgresqlReadReplicaServer(ctx context.Context, config *conn.ProviderConfig, instanceNo string, index int) ([]*vpostgresql.CloudPostgresqlServerInstance, error) {
 	reqParams := &vpostgresql.GetCloudPostgresqlInstanceDetailRequest{
 		RegionCode:                &config.RegionCode,
-		CloudPostgresqlInstanceNo: ncloud.String(no),
+		CloudPostgresqlInstanceNo: ncloud.String(instanceNo),
+	}
+	tflog.Info(ctx, "GetPostgresqlDetail reqParams="+common.MarshalUncheckedString(reqParams))
+
+	resp, err := config.Client.Vpostgresql.V2Api.GetCloudPostgresqlInstanceDetail(reqParams)
+	if err != nil && !(strings.Contains(err.Error(), `"returnCode": "5001017"`)) {
+		return nil, err
+	}
+	tflog.Info(ctx, "GetPostgresqlDetail response="+common.MarshalUncheckedString(resp))
+
+	if resp == nil || len(resp.CloudPostgresqlInstanceList) < 1 {
+		return nil, fmt.Errorf("response is nil")
+	}
+
+	serverList := resp.CloudPostgresqlInstanceList[0].CloudPostgresqlServerInstanceList
+
+	for i, server := range serverList {
+		if i == index {
+			return []*vpostgresql.CloudPostgresqlServerInstance{server}, nil
+		}
+	}
+	return nil, nil
+}
+
+func GetPostgresqlReadReplicaServer(ctx context.Context, config *conn.ProviderConfig, instanceNo string, serverInstanceNo string) ([]*vpostgresql.CloudPostgresqlServerInstance, error) {
+	reqParams := &vpostgresql.GetCloudPostgresqlInstanceDetailRequest{
+		RegionCode:                &config.RegionCode,
+		CloudPostgresqlInstanceNo: ncloud.String(instanceNo),
 	}
 	tflog.Info(ctx, "GetPostgresqlDetail reqParams="+common.MarshalUncheckedString(reqParams))
 
@@ -310,8 +399,8 @@ func GetPostgresqlReadReplica(ctx context.Context, config *conn.ProviderConfig, 
 	serverList := resp.CloudPostgresqlInstanceList[0].CloudPostgresqlServerInstanceList
 
 	for _, server := range serverList {
-		if *server.CloudPostgresqlServerRole.Code == "S" {
-			return server, nil
+		if (*server.CloudPostgresqlServerRole.Code == "S") && (*server.CloudPostgresqlServerInstanceNo == serverInstanceNo) {
+			return []*vpostgresql.CloudPostgresqlServerInstance{server}, nil
 		}
 	}
 	return nil, nil
@@ -321,10 +410,16 @@ type postgresqlReadReplicaResourceModel struct {
 	ID                   types.String `tfsdk:"id"`
 	PostgresqlInstanceNo types.String `tfsdk:"postgresql_instance_no"`
 	SubnetNo             types.String `tfsdk:"subnet_no"`
+	PostgresqlServerList types.List   `tfsdk:"postgresql_server_list"`
 }
 
-func (r *postgresqlReadReplicaResourceModel) refreshFromOutput(output *vpostgresql.CloudPostgresqlServerInstance, id *string) {
-	r.ID = types.StringPointerValue(output.CloudPostgresqlServerInstanceNo)
-	r.PostgresqlInstanceNo = types.StringPointerValue(id)
-	r.SubnetNo = types.StringPointerValue(output.SubnetNo)
+func (r *postgresqlReadReplicaResourceModel) refreshFromOutput(ctx context.Context, output []*vpostgresql.CloudPostgresqlServerInstance, instanceNo *string) diag.Diagnostics {
+	r.ID = types.StringPointerValue(output[0].CloudPostgresqlServerInstanceNo)
+	r.PostgresqlInstanceNo = types.StringPointerValue(instanceNo)
+	r.SubnetNo = types.StringPointerValue(output[0].SubnetNo)
+
+	serverList, diags := listValueFromPostgresqlServerInatanceList(ctx, output)
+	r.PostgresqlServerList = serverList
+
+	return diags
 }
