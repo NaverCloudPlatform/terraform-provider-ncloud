@@ -4,7 +4,7 @@ import (
 	"context"
 	"fmt"
 	"regexp"
-	"time"
+	"strings"
 
 	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/ncloud"
 	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/services/vpostgresql"
@@ -14,18 +14,15 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/listplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
 	"github.com/terraform-providers/terraform-provider-ncloud/internal/common"
 	"github.com/terraform-providers/terraform-provider-ncloud/internal/conn"
-	"github.com/terraform-providers/terraform-provider-ncloud/internal/framework"
-
-	"github.com/hashicorp/terraform-plugin-framework/path"
 )
 
 var (
@@ -43,7 +40,33 @@ type postgresqlDatabasesResource struct {
 }
 
 func (r *postgresqlDatabasesResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
-	resource.ImportStatePassthroughID(ctx, path.Root("id"), req, resp)
+	var plan postgresqlDatabasesResourceModel
+	var databaseList []PostgresqlDatabase
+	idParts := strings.Split(req.ID, ":")
+
+	if len(idParts) < 2 || idParts[0] == "" || idParts[1] == "" {
+		resp.Diagnostics.AddError(
+			"Unexpected Import Identifier",
+			fmt.Sprintf("Expected import identifier with format: id:name1:name2:... Got: %q", req.ID),
+		)
+		return
+	}
+
+	for idx, v := range idParts {
+		if idx == 0 {
+			plan.ID = types.StringValue(v)
+		} else {
+			postgresqlDatabase := PostgresqlDatabase{
+				DatabaseName: types.StringValue(v),
+			}
+			databaseList = append(databaseList, postgresqlDatabase)
+		}
+	}
+
+	postgresqlDatabases, _ := types.ListValueFrom(ctx, types.ObjectType{AttrTypes: PostgresqlDatabase{}.AttrTypes()}, databaseList)
+	plan.PostgresqlDatabaseList = postgresqlDatabases
+
+	resp.Diagnostics.Append(resp.State.Set(ctx, plan)...)
 }
 
 func (r *postgresqlDatabasesResource) Configure(_ context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
@@ -71,8 +94,7 @@ func (r *postgresqlDatabasesResource) Metadata(_ context.Context, req resource.M
 func (r *postgresqlDatabasesResource) Schema(_ context.Context, _ resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = schema.Schema{
 		Attributes: map[string]schema.Attribute{
-			"id": framework.IDAttribute(),
-			"postgresql_instance_no": schema.StringAttribute{
+			"id": schema.StringAttribute{
 				Required: true,
 				PlanModifiers: []planmodifier.String{
 					stringplanmodifier.RequiresReplace(),
@@ -80,6 +102,9 @@ func (r *postgresqlDatabasesResource) Schema(_ context.Context, _ resource.Schem
 			},
 			"postgresql_database_list": schema.ListNestedAttribute{
 				Required: true,
+				PlanModifiers: []planmodifier.List{
+					listplanmodifier.RequiresReplace(),
+				},
 				NestedObject: schema.NestedAttributeObject{
 					Attributes: map[string]schema.Attribute{
 						"name": schema.StringAttribute{
@@ -129,11 +154,9 @@ func (r *postgresqlDatabasesResource) Create(ctx context.Context, req resource.C
 
 	reqParams := &vpostgresql.AddCloudPostgresqlDatabaseListRequest{
 		RegionCode:                  &r.config.RegionCode,
-		CloudPostgresqlInstanceNo:   plan.PostgresqlInstanceNo.ValueStringPointer(),
+		CloudPostgresqlInstanceNo:   plan.ID.ValueStringPointer(),
 		CloudPostgresqlDatabaseList: convertToCloudPostgresqlDatabaseParameters(plan.PostgresqlDatabaseList),
 	}
-
-	plan.ID = plan.PostgresqlInstanceNo
 
 	tflog.Info(ctx, "CreatePostgresqlDatabaseList reqParams="+common.MarshalUncheckedString(reqParams))
 
@@ -149,13 +172,13 @@ func (r *postgresqlDatabasesResource) Create(ctx context.Context, req resource.C
 		return
 	}
 
-	_, err = WaitPostgresqlCreation(ctx, r.config, plan.PostgresqlInstanceNo.ValueString())
+	_, err = WaitPostgresqlCreation(ctx, r.config, plan.ID.ValueString())
 	if err != nil {
 		resp.Diagnostics.AddError("WATING FOR POSTGRESQL CREATION ERROR", err.Error())
 		return
 	}
 
-	output, err := GetPostgresqlDatabaseList(ctx, r.config, plan.PostgresqlInstanceNo.ValueString(), convertToCloudPostgresqlDatabaseStringList(plan.PostgresqlDatabaseList))
+	output, err := GetPostgresqlDatabaseList(ctx, r.config, plan.ID.ValueString(), common.ConvertToStringList(plan.PostgresqlDatabaseList, "name"))
 	if err != nil {
 		resp.Diagnostics.AddError("READING ERROR", err.Error())
 		return
@@ -166,7 +189,7 @@ func (r *postgresqlDatabasesResource) Create(ctx context.Context, req resource.C
 		return
 	}
 
-	if diags := plan.refreshFromOutput(ctx, output, plan.PostgresqlInstanceNo.ValueString()); diags.HasError() {
+	if diags := plan.refreshFromOutput(ctx, output, plan.ID.ValueString()); diags.HasError() {
 		resp.Diagnostics.AddError("READING ERROR", "refreshFromOutput error")
 		return
 	}
@@ -181,7 +204,7 @@ func (r *postgresqlDatabasesResource) Read(ctx context.Context, req resource.Rea
 		return
 	}
 
-	output, err := GetPostgresqlDatabaseList(ctx, r.config, state.PostgresqlInstanceNo.ValueString(), convertToCloudPostgresqlDatabaseStringList(state.PostgresqlDatabaseList))
+	output, err := GetPostgresqlDatabaseList(ctx, r.config, state.ID.ValueString(), common.ConvertToStringList(state.PostgresqlDatabaseList, "name"))
 	if err != nil {
 		resp.Diagnostics.AddError("READING ERROR", err.Error())
 		return
@@ -192,15 +215,12 @@ func (r *postgresqlDatabasesResource) Read(ctx context.Context, req resource.Rea
 		return
 	}
 
-	if diags := state.refreshFromOutput(ctx, output, state.PostgresqlInstanceNo.ValueString()); diags.HasError() {
+	if diags := state.refreshFromOutput(ctx, output, state.ID.ValueString()); diags.HasError() {
 		resp.Diagnostics.AddError("READING ERROR", "refreshFromOutput error")
 		return
 	}
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &state)...)
-	if resp.Diagnostics.HasError() {
-		return
-	}
 }
 
 func (r *postgresqlDatabasesResource) Update(_ context.Context, _ resource.UpdateRequest, _ *resource.UpdateResponse) {
@@ -216,7 +236,7 @@ func (r *postgresqlDatabasesResource) Delete(ctx context.Context, req resource.D
 
 	reqParams := &vpostgresql.DeleteCloudPostgresqlDatabaseListRequest{
 		RegionCode:                  &r.config.RegionCode,
-		CloudPostgresqlInstanceNo:   state.PostgresqlInstanceNo.ValueStringPointer(),
+		CloudPostgresqlInstanceNo:   state.ID.ValueStringPointer(),
 		CloudPostgresqlDatabaseList: convertToCloudPostgresqlDatabaseKeyParameter(state.PostgresqlDatabaseList),
 	}
 	tflog.Info(ctx, "DeletePostgresqlDatabseList reqParams="+common.MarshalUncheckedString(reqParams))
@@ -228,41 +248,11 @@ func (r *postgresqlDatabasesResource) Delete(ctx context.Context, req resource.D
 	}
 	tflog.Info(ctx, "DeletePostgresqlDatabseList response="+common.MarshalUncheckedString(response))
 
-	if err := waitPostgresqlDatabasesDeletion(ctx, r.config, state.ID.ValueString(), convertToCloudPostgresqlDatabaseStringList(state.PostgresqlDatabaseList)); err != nil {
+	_, err = WaitPostgresqlCreation(ctx, r.config, state.ID.ValueString())
+	if err != nil {
 		resp.Diagnostics.AddError("WAITING FOR DELETE ERROR", err.Error())
+		return
 	}
-}
-
-func waitPostgresqlDatabasesDeletion(ctx context.Context, config *conn.ProviderConfig, id string, dbs []string) error {
-	stateConf := &retry.StateChangeConf{
-		Pending: []string{DELETING},
-		Target:  []string{DELETED},
-		Refresh: func() (interface{}, string, error) {
-			dbList, err := GetPostgresqlDatabaseList(ctx, config, id, dbs)
-			if err != nil {
-				return 0, "", err
-			}
-
-			if len(dbList) > 0 {
-				return dbList, DELETING, nil
-			}
-
-			if dbList == nil {
-				return dbList, DELETED, nil
-			}
-
-			return 0, "", fmt.Errorf("error occurred while waiting to delete postgresql database")
-		},
-		Timeout:    conn.DefaultTimeout,
-		Delay:      5 * time.Second,
-		MinTimeout: 3 * time.Second,
-	}
-
-	if _, err := stateConf.WaitForStateContext(ctx); err != nil {
-		return fmt.Errorf("error waiting for postgresql database (%s) to become terminating: %s", id, err)
-	}
-
-	return nil
 }
 
 func GetPostgresqlDatabaseList(ctx context.Context, config *conn.ProviderConfig, id string, dbs []string) ([]*vpostgresql.CloudPostgresqlDatabase, error) {
@@ -306,7 +296,6 @@ func GetPostgresqlDatabaseList(ctx context.Context, config *conn.ProviderConfig,
 
 type postgresqlDatabasesResourceModel struct {
 	ID                     types.String `tfsdk:"id"`
-	PostgresqlInstanceNo   types.String `tfsdk:"postgresql_instance_no"`
 	PostgresqlDatabaseList types.List   `tfsdk:"postgresql_database_list"`
 }
 
@@ -324,7 +313,6 @@ func (r PostgresqlDatabase) AttrTypes() map[string]attr.Type {
 
 func (r *postgresqlDatabasesResourceModel) refreshFromOutput(ctx context.Context, output []*vpostgresql.CloudPostgresqlDatabase, instance string) diag.Diagnostics {
 	r.ID = types.StringValue(instance)
-	r.PostgresqlInstanceNo = types.StringValue(instance)
 
 	var databaseList []PostgresqlDatabase
 
@@ -352,7 +340,6 @@ func convertToCloudPostgresqlDatabaseParameters(values basetypes.ListValue) []*v
 
 	for _, v := range values.Elements() {
 		obj := v.(types.Object)
-
 		attrs := obj.Attributes()
 
 		param := &vpostgresql.CloudPostgresqlDatabaseParameter{
@@ -370,27 +357,12 @@ func convertToCloudPostgresqlDatabaseKeyParameter(values basetypes.ListValue) []
 
 	for _, v := range values.Elements() {
 		obj := v.(types.Object)
-
 		attrs := obj.Attributes()
 
 		param := &vpostgresql.CloudPostgresqlDatabaseKeyParameter{
 			Name: attrs["name"].(types.String).ValueStringPointer(),
 		}
 		result = append(result, param)
-	}
-
-	return result
-}
-
-func convertToCloudPostgresqlDatabaseStringList(values basetypes.ListValue) []string {
-	result := make([]string, 0, len(values.Elements()))
-
-	for _, v := range values.Elements() {
-		obj := v.(types.Object)
-		attrs := obj.Attributes()
-
-		name := attrs["name"].(types.String).ValueString()
-		result = append(result, name)
 	}
 
 	return result
