@@ -31,7 +31,9 @@ import (
 )
 
 var (
-	_ resource.Resource = &lbResource{}
+	_ resource.Resource                = &lbResource{}
+	_ resource.ResourceWithConfigure   = &lbResource{}
+	_ resource.ResourceWithImportState = &lbResource{}
 )
 
 const (
@@ -50,6 +52,10 @@ func NewLbResource() resource.Resource {
 
 type lbResource struct {
 	config *conn.ProviderConfig
+}
+
+func (r *lbResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
+	resource.ImportStatePassthroughID(ctx, path.Root("load_balancer_no"), req, resp)
 }
 
 func (l *lbResource) Metadata(ctx context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
