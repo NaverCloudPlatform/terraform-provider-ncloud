@@ -41,7 +41,6 @@ user_list = {
 The following arguments are required:
 
 * `id` - (Required) MongoDB Users number. Either `id` or `mongodb_instance_no` must be provided.
-* `mongodb_instance_no` - (Required) MongoDB Instance No, either `id` or `mongodb_instance_no` must be provided.
 * `output_file` - (Optional) The name of file that can save data source after running `terraform plan`.
 * `filter` - (Optional) Custom filter block as described below.
   * `name` - (Required) The name of the field to filter by
@@ -54,6 +53,5 @@ This data source exports the following attributes in addition to the argument ab
 
 * `mongodb_user_list` - The list of users to add.
   * `name` - MongoDB User ID.
-  * `password` - MongoDB User Password.
   * `database_name` - MongoDB Database Name that MongoDB User belongs to.
   * `authority` - Mongodb User Authority.
