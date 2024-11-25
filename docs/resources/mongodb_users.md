@@ -34,7 +34,7 @@ resource "ncloud_mongodb" "mongodb" {
 }
 
 resource "ncloud_mongodb_users" "mongodb_users" {
-	mongodb_instance_no = ncloud_mongodb.mongodb.id
+	id = ncloud_mongodb.mongodb.id
 	mongodb_user_list = [
 		{
 			name = "testuser1",
@@ -53,19 +53,15 @@ resource "ncloud_mongodb_users" "mongodb_users" {
 ```
 
 ## Argument Reference
+
 The following arguments are supported:
 
-* `mongodb_instance_no` - (Required) The ID of the associated MongoDB Instance.
+* `id` - (Required) The ID of the associated MongoDB Instance.
 * `mongodb_user_list` - The list of users to add.
   * `name` - (Required) MongoDB User ID. Allows only alphabets, numbers and underbar (_). Must start with an alphabetic character. Min: 4, Max: 16
   * `password` - (Required) MongoDB User Password. At least one English alphabet, number and special character must be included. Certain special characters ( ` & + \ " ' / space ) cannot be used. Min: 8 , Max: 20
   * `database_name` - (Required) MongoDB Database Name to add MongoDB User. Allows only alphabets, numbers and underbar (_). Must start with an alphabetic character. Min: 4 , Max: 30
   * `authority` - (Required) MongoDB User Authority. You can select `READ|READ_WRITE`.
-
-## Attribute Reference
-In addition to all arguments above, the following attributes are exported
-
-* `id` - MongoDB User list number. (MongoDB Instance number)
 
 ## Import
 
