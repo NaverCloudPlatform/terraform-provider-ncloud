@@ -191,6 +191,7 @@ func (r *postgresqlUsersResource) Create(ctx context.Context, req resource.Creat
 
 	if response == nil || *response.ReturnCode != "0" {
 		resp.Diagnostics.AddError("CREATING ERROR", "response invalid")
+		return
 	}
 
 	_, err = WaitPostgresqlCreation(ctx, r.config, plan.ID.ValueString())
@@ -440,7 +441,7 @@ func convertToCloudPostgresqlUserParameter(values basetypes.ListValue) []*vpostg
 }
 
 func convertToCloudPostgresqlUserKeyParameter(values basetypes.ListValue) []*vpostgresql.CloudPostgresqlUserKeyParameter {
-	result := make([]*vpostgresql.CloudPostgresqlUserKeyParameter, 0, len(values.Elements())-1)
+	result := make([]*vpostgresql.CloudPostgresqlUserKeyParameter, 0, len(values.Elements()))
 
 	for _, v := range values.Elements() {
 		obj := v.(types.Object)
