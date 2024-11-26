@@ -46,6 +46,12 @@ func TestAccResourceNcloudObjectStorage_object_acl_basic(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "rule", acl),
 				),
 			},
+			{
+				ResourceName:            resourceName,
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"rule"},
+			},
 		},
 	})
 }
@@ -81,6 +87,12 @@ func TestAccResourceNcloudObjectStorage_object_acl_update(t *testing.T) {
 					testAccCheckObjectACLExists(resourceName, GetTestProvider(true)),
 					resource.TestCheckResourceAttr(resourceName, "rule", newACL),
 				),
+			},
+			{
+				ResourceName:            resourceName,
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"rule"},
 			},
 		},
 	})
