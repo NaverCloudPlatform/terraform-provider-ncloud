@@ -123,7 +123,7 @@ func (b *bucketACLResource) Create(ctx context.Context, req resource.CreateReque
 
 	reqParams := &s3.PutBucketAclInput{
 		Bucket: ncloud.String(bucketName),
-		ACL:    plan.Rule,
+		ACL:    *plan.Rule,
 	}
 
 	tflog.Info(ctx, "PutBucketACL reqParams="+common.MarshalUncheckedString(reqParams))
@@ -156,9 +156,7 @@ func (b *bucketACLResource) Read(ctx context.Context, req resource.ReadRequest, 
 		return
 	}
 
-	bucketName := TrimForParsing(plan.BucketName.String())
-
-	plan.refreshFromOutput(ctx, b.config, bucketName, &resp.Diagnostics)
+	plan.refreshFromOutput(ctx, b.config, strings.Split(plan.ID.String(), "_")[2], &resp.Diagnostics)
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
 	if resp.Diagnostics.HasError() {
@@ -181,7 +179,7 @@ func (b *bucketACLResource) Update(ctx context.Context, req resource.UpdateReque
 
 		reqParams := &s3.PutBucketAclInput{
 			Bucket: ncloud.String(bucketName),
-			ACL:    plan.Rule,
+			ACL:    *plan.Rule,
 		}
 
 		tflog.Info(ctx, "PutBucketACL update operation reqParams="+common.MarshalUncheckedString(reqParams))
@@ -261,11 +259,11 @@ func waitBucketACLApplied(ctx context.Context, config *conn.ProviderConfig, buck
 }
 
 type bucketACLResourceModel struct {
-	ID         types.String             `tfsdk:"id"`
-	BucketName types.String             `tfsdk:"bucket_name"`
-	Rule       awsTypes.BucketCannedACL `tfsdk:"rule"`
-	Grants     types.List               `tfsdk:"grants"`
-	Owner      types.String             `tfsdk:"owner"`
+	ID         types.String              `tfsdk:"id"`
+	BucketName types.String              `tfsdk:"bucket_name"`
+	Rule       *awsTypes.BucketCannedACL `tfsdk:"rule"`
+	Grants     types.List                `tfsdk:"grants"`
+	Owner      types.String              `tfsdk:"owner"`
 }
 
 func (b *bucketACLResourceModel) refreshFromOutput(ctx context.Context, config *conn.ProviderConfig, bucketName string, diag *diag.Diagnostics) {
