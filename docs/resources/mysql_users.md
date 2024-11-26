@@ -72,19 +72,19 @@ In addition to all arguments above, the following attributes are exported
 
 ### `terraform import` command
 
-* MySQL User can be imported using the `id`. For example:
+* MySQL User can be imported using the `id`:`name`:`name`:... . For example:
 
 ```console
-$ terraform import ncloud_mysql_users.rsc_name 12345
+$ terraform import ncloud_mysql_users.rsc_name 12345:name1:name2
 ```
 
 ### `import` block
 
-* In Terraform v1.5.0 and later, use an [`import` block](https://developer.hashicorp.com/terraform/language/import) to import MySQL User using the `id`. For example:
+* In Terraform v1.5.0 and later, use an [`import` block](https://developer.hashicorp.com/terraform/language/import) to import MySQL User using the `id`:`name`:`name`:... . For example:
 
 ```terraform
 import {
     to = ncloud_mysql_users.rsc_name
-    id = "12345"
+    id = "12345:name1:name2"
 }
 ```
