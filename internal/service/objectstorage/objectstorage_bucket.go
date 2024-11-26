@@ -157,9 +157,9 @@ func (o *bucketResource) Schema(_ context.Context, req resource.SchemaRequest, r
 			},
 			"creation_date": schema.StringAttribute{
 				Computed: true,
-				PlanModifiers: []planmodifier.String{
-					stringplanmodifier.UseStateForUnknown(),
-				},
+				// PlanModifiers: []planmodifier.String{
+				// 	stringplanmodifier.UseStateForUnknown(),
+				// },
 			},
 		},
 	}
