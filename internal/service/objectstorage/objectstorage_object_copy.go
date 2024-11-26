@@ -424,6 +424,10 @@ func (o *objectCopyResourceModel) refreshFromOutput(ctx context.Context, config 
 		diag.AddError("HeadObject ERROR", err.Error())
 		return
 	}
+	if output == nil {
+		diag.AddError("HeadObject ERROR", "invalid output")
+		return
+	}
 
 	bucketName, key := RemoveQuotes(o.Bucket.String()), RemoveQuotes(o.Key.String())
 
