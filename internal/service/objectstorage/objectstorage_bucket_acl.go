@@ -119,7 +119,7 @@ func (b *bucketACLResource) Create(ctx context.Context, req resource.CreateReque
 		return
 	}
 
-	bucketName := TrimForParsing(plan.BucketName.String())
+	bucketName := RemoveQuotes(plan.BucketName.String())
 
 	reqParams := &s3.PutBucketAclInput{
 		Bucket: ncloud.String(bucketName),
@@ -177,7 +177,7 @@ func (b *bucketACLResource) Update(ctx context.Context, req resource.UpdateReque
 	}
 
 	if plan.Rule != state.Rule {
-		bucketName := TrimForParsing(state.BucketName.String())
+		bucketName := RemoveQuotes(state.BucketName.String())
 
 		reqParams := &s3.PutBucketAclInput{
 			Bucket: ncloud.String(bucketName),
@@ -270,7 +270,7 @@ type bucketACLResourceModel struct {
 
 func (b *bucketACLResourceModel) refreshFromOutput(ctx context.Context, config *conn.ProviderConfig, bucketName string, diag *diag.Diagnostics) {
 	output, err := config.Client.ObjectStorage.GetBucketAcl(ctx, &s3.GetBucketAclInput{
-		Bucket: ncloud.String(bucketName),
+		Bucket: ncloud.String(RemoveQuotes(bucketName)),
 	})
 	if err != nil {
 		diag.AddError("GetBucketAcl ERROR", err.Error())
@@ -370,9 +370,6 @@ func convertGrantsToListValueAtBucket(ctx context.Context, grants []awsTypes.Gra
 	}}, grantValues)
 }
 
-func TrimForParsing(s string) string {
-	s = strings.TrimSuffix(s, "\"")
-	s = strings.TrimPrefix(s, "\"")
-
-	return s
+func RemoveQuotes(s string) string {
+	return strings.ReplaceAll(strings.ReplaceAll(s, "\"", ""), "\\", "")
 }

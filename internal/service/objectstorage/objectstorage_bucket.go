@@ -203,7 +203,7 @@ func waitBucketCreated(ctx context.Context, config *conn.ProviderConfig, bucketN
 			}
 
 			for _, bucket := range output.Buckets {
-				if *bucket.Name == TrimForParsing(bucketName) {
+				if *bucket.Name == RemoveQuotes(bucketName) {
 					return bucket, CREATED, nil
 				}
 			}
@@ -232,7 +232,7 @@ func waitBucketDeleted(ctx context.Context, config *conn.ProviderConfig, bucketN
 			}
 
 			for _, bucket := range output.Buckets {
-				if *bucket.Name == TrimForParsing(bucketName) {
+				if *bucket.Name == RemoveQuotes(bucketName) {
 					return bucket, DELETING, nil
 				}
 			}
@@ -267,7 +267,7 @@ func (o *bucketResourceModel) refreshFromOutput(ctx context.Context, config *con
 	}
 
 	for _, bucket := range output.Buckets {
-		if *bucket.Name == TrimForParsing(bucketName) {
+		if *bucket.Name == RemoveQuotes(bucketName) {
 			if !types.StringValue(bucket.CreationDate.GoString()).IsNull() {
 				o.CreationDate = types.StringValue(bucket.CreationDate.GoString())
 			}

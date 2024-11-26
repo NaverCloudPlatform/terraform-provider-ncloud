@@ -420,7 +420,7 @@ func (o *objectCopyResourceModel) refreshFromOutput(ctx context.Context, config 
 		return
 	}
 
-	bucketName, key := TrimForParsing(o.Bucket.String()), TrimForParsing(o.Key.String())
+	bucketName, key := RemoveQuotes(o.Bucket.String()), RemoveQuotes(o.Key.String())
 
 	o.ID = types.StringValue(ObjectIDGenerator(bucketName, key))
 	if !types.StringPointerValue(output.AcceptRanges).IsNull() || !types.StringPointerValue(output.AcceptRanges).IsUnknown() {
