@@ -315,7 +315,8 @@ func (b *bucketACLResourceModel) refreshFromOutput(ctx context.Context, config *
 	}
 
 	b.Grants = listValueFromGrants
-	b.ID = types.StringValue(fmt.Sprintf("bucket_acl_%s", b.BucketName))
+	b.ID = types.StringValue(fmt.Sprintf("bucket_acl_%s", RemoveQuotes(bucketName)))
+	b.BucketName = types.StringValue(RemoveQuotes(bucketName))
 	b.Owner = types.StringValue(*output.Owner.ID)
 }
 

@@ -73,7 +73,7 @@ func (o *objectACLResource) Create(ctx context.Context, req resource.CreateReque
 		return
 	}
 
-	plan.refreshFromOutput(ctx, o.config, bucketName, key, &resp.Diagnostics)
+	plan.refreshFromOutput(ctx, o.config, plan.ObjectID.String(), &resp.Diagnostics)
 	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
 }
 
@@ -92,9 +92,7 @@ func (o *objectACLResource) Read(ctx context.Context, req resource.ReadRequest, 
 		return
 	}
 
-	bucketName, key := ObjectIDParser(plan.ObjectID.String())
-
-	plan.refreshFromOutput(ctx, o.config, bucketName, key, &resp.Diagnostics)
+	plan.refreshFromOutput(ctx, o.config, plan.ObjectID.String(), &resp.Diagnostics)
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
 	if resp.Diagnostics.HasError() {
@@ -205,13 +203,16 @@ func (o *objectACLResource) Update(ctx context.Context, req resource.UpdateReque
 			return
 		}
 
-		plan.refreshFromOutput(ctx, o.config, bucketName, key, &resp.Diagnostics)
+		plan.refreshFromOutput(ctx, o.config, state.ObjectID.String(), &resp.Diagnostics)
 		resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
 	}
 }
 
 func (o *objectACLResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
-	resource.ImportStatePassthroughID(ctx, path.Root("id"), req, resp)
+	objectId := strings.Split(req.ID, "_")[2]
+
+	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("id"), req.ID)...)
+	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("object_id"), objectId)...)
 }
 
 func (o *objectACLResource) Configure(_ context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
@@ -271,10 +272,12 @@ type objectACLResourceModel struct {
 	OwnerDisplayName types.String             `tfsdk:"owner_displayname"`
 }
 
-func (o *objectACLResourceModel) refreshFromOutput(ctx context.Context, config *conn.ProviderConfig, bucketName, key string, diag *diag.Diagnostics) {
+func (o *objectACLResourceModel) refreshFromOutput(ctx context.Context, config *conn.ProviderConfig, id string, diag *diag.Diagnostics) {
+	bucketName, key := ObjectIDParser(id)
+
 	output, err := config.Client.ObjectStorage.GetObjectAcl(ctx, &s3.GetObjectAclInput{
-		Bucket: ncloud.String(bucketName),
-		Key:    ncloud.String(key),
+		Bucket: ncloud.String(RemoveQuotes(bucketName)),
+		Key:    ncloud.String(RemoveQuotes(key)),
 	})
 	if err != nil {
 		diag.AddError("GetObjectAcl ERROR", err.Error())

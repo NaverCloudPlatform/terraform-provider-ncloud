@@ -134,7 +134,10 @@ func (o *objectCopyResource) Delete(ctx context.Context, req resource.DeleteRequ
 }
 
 func (o *objectCopyResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
-	resource.ImportStatePassthroughID(ctx, path.Root("id"), req, resp)
+	bucketName, key := ObjectIDParser(req.ID)
+
+	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("bucket"), bucketName)...)
+	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("key"), key)...)
 }
 
 func (o *objectCopyResource) Metadata(_ context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
@@ -177,7 +180,9 @@ func (o *objectCopyResource) Schema(ctx context.Context, req resource.SchemaRequ
 				Description: "(Required) Name of the object once it is in the bucket",
 			},
 			"source": schema.StringAttribute{
-				Required:    true,
+				Optional:    true,
+				Sensitive:   true,
+				Computed:    false,
 				Description: "(Required) Path of the object",
 			},
 			"accept_ranges": schema.StringAttribute{
