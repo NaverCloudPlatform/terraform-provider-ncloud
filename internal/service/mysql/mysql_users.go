@@ -4,17 +4,18 @@ import (
 	"context"
 	"fmt"
 	"regexp"
+	"strings"
 
 	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/ncloud"
 	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/services/vmysql"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
-	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/booldefault"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/boolplanmodifier"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/listplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
@@ -41,7 +42,34 @@ type mysqlUsersResource struct {
 }
 
 func (r *mysqlUsersResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
-	resource.ImportStatePassthroughID(ctx, path.Root("id"), req, resp)
+	var plan mysqlUsersResourceModel
+	var userList []mysqlResourceUser
+	idParts := strings.Split(req.ID, ":")
+
+	if len(idParts) < 2 || idParts[0] == "" || idParts[1] == "" {
+		resp.Diagnostics.AddError(
+			"Unexpected Import Identifier",
+			fmt.Sprintf("Expected import identifier with format: id:name1:name2:... Got: %q", req.ID),
+		)
+		return
+	}
+
+	for idx, v := range idParts {
+		if idx == 0 {
+			plan.ID = types.StringValue(v)
+			plan.MysqlInstanceNo = types.StringValue(v)
+		} else {
+			user := mysqlResourceUser{
+				UserName: types.StringValue(v),
+			}
+			userList = append(userList, user)
+		}
+	}
+
+	mysqlUsers, _ := types.ListValueFrom(ctx, types.ObjectType{AttrTypes: mysqlResourceUser{}.attrTypes()}, userList)
+	plan.MysqlUserList = mysqlUsers
+
+	resp.Diagnostics.Append(resp.State.Set(ctx, plan)...)
 }
 
 func (r *mysqlUsersResource) Configure(_ context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
@@ -78,6 +106,9 @@ func (r *mysqlUsersResource) Schema(_ context.Context, _ resource.SchemaRequest,
 			},
 			"mysql_user_list": schema.ListNestedAttribute{
 				Required: true,
+				PlanModifiers: []planmodifier.List{
+					listplanmodifier.RequiresReplace(),
+				},
 				NestedObject: schema.NestedAttributeObject{
 					Attributes: map[string]schema.Attribute{
 						"name": schema.StringAttribute{
@@ -160,8 +191,6 @@ func (r *mysqlUsersResource) Create(ctx context.Context, req resource.CreateRequ
 		CloudMysqlInstanceNo: plan.MysqlInstanceNo.ValueStringPointer(),
 		CloudMysqlUserList:   convertToCloudMysqlUserParameter(plan.MysqlUserList),
 	}
-
-	plan.ID = plan.MysqlInstanceNo
 
 	tflog.Info(ctx, "CreateMysqlUserList reqParams="+common.MarshalUncheckedString(reqParams))
 
@@ -370,7 +399,7 @@ type mysqlUsersResourceModel struct {
 	MysqlUserList   types.List   `tfsdk:"mysql_user_list"`
 }
 
-type MysqlUser struct {
+type mysqlResourceUser struct {
 	UserName            types.String `tfsdk:"name"`
 	UserPassword        types.String `tfsdk:"password"`
 	HostIp              types.String `tfsdk:"host_ip"`
@@ -378,7 +407,7 @@ type MysqlUser struct {
 	IsSystemTableAccess types.Bool   `tfsdk:"is_system_table_access"`
 }
 
-func (r MysqlUser) AttrTypes() map[string]attr.Type {
+func (r mysqlResourceUser) attrTypes() map[string]attr.Type {
 	return map[string]attr.Type{
 		"name":                   types.StringType,
 		"password":               types.StringType,
@@ -389,14 +418,14 @@ func (r MysqlUser) AttrTypes() map[string]attr.Type {
 }
 
 func (r *mysqlUsersResourceModel) refreshFromOutput(ctx context.Context, output []*vmysql.CloudMysqlUser, resourceModel mysqlUsersResourceModel) diag.Diagnostics {
-	r.ID = resourceModel.ID
+	r.ID = resourceModel.MysqlInstanceNo
 	r.MysqlInstanceNo = resourceModel.MysqlInstanceNo
 
-	var userList []MysqlUser
+	var userList []mysqlResourceUser
 
 	for idx, user := range output {
 		pswd := resourceModel.MysqlUserList.Elements()[idx].(types.Object).Attributes()
-		mysqlUser := MysqlUser{
+		mysqlUser := mysqlResourceUser{
 			UserName:            types.StringPointerValue(user.UserName),
 			HostIp:              types.StringPointerValue(user.HostIp),
 			Authority:           types.StringPointerValue(user.Authority),
@@ -407,7 +436,7 @@ func (r *mysqlUsersResourceModel) refreshFromOutput(ctx context.Context, output 
 		userList = append(userList, mysqlUser)
 	}
 
-	mysqlUsers, diags := types.ListValueFrom(ctx, types.ObjectType{AttrTypes: MysqlUser{}.AttrTypes()}, userList)
+	mysqlUsers, diags := types.ListValueFrom(ctx, types.ObjectType{AttrTypes: mysqlResourceUser{}.attrTypes()}, userList)
 	if diags.HasError() {
 		return diags
 	}
