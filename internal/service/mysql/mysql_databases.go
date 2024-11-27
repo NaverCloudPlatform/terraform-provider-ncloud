@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"regexp"
+	"strings"
 
 	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/ncloud"
 	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/services/vmysql"
@@ -11,9 +12,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
-	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/listplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
@@ -40,7 +41,34 @@ type mysqlDatabasesResource struct {
 }
 
 func (r *mysqlDatabasesResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
-	resource.ImportStatePassthroughID(ctx, path.Root("id"), req, resp)
+	var plan mysqlDatabasesResourceModel
+	var dbList []mysqlDatabase
+	idParts := strings.Split(req.ID, ":")
+
+	if len(idParts) < 2 || idParts[0] == "" || idParts[1] == "" {
+		resp.Diagnostics.AddError(
+			"Unexpected Import Identifier",
+			fmt.Sprintf("Expected import identifier with format: id:name1:name2:... Got: %q", req.ID),
+		)
+		return
+	}
+
+	for idx, v := range idParts {
+		if idx == 0 {
+			plan.ID = types.StringValue(v)
+			plan.MysqlInstanceNo = types.StringValue(v)
+		} else {
+			db := mysqlDatabase{
+				DatabaseName: types.StringValue(v),
+			}
+			dbList = append(dbList, db)
+		}
+	}
+
+	mysqlDatabases, _ := types.ListValueFrom(ctx, types.ObjectType{AttrTypes: mysqlDatabase{}.attrTypes()}, dbList)
+	plan.MysqlDatabaseList = mysqlDatabases
+
+	resp.Diagnostics.Append(resp.State.Set(ctx, plan)...)
 }
 
 func (r *mysqlDatabasesResource) Configure(_ context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
@@ -77,6 +105,9 @@ func (r *mysqlDatabasesResource) Schema(_ context.Context, _ resource.SchemaRequ
 			},
 			"mysql_database_list": schema.ListNestedAttribute{
 				Required: true,
+				PlanModifiers: []planmodifier.List{
+					listplanmodifier.RequiresReplace(),
+				},
 				NestedObject: schema.NestedAttributeObject{
 					Attributes: map[string]schema.Attribute{
 						"name": schema.StringAttribute{
@@ -124,8 +155,6 @@ func (r *mysqlDatabasesResource) Create(ctx context.Context, req resource.Create
 		CloudMysqlDatabaseNameList: convertToStringList(plan.MysqlDatabaseList),
 	}
 
-	plan.ID = plan.MysqlInstanceNo
-
 	tflog.Info(ctx, "CreateMysqlDatabaseList reqParams="+common.MarshalUncheckedString(reqParams))
 
 	response, err := r.config.Client.Vmysql.V2Api.AddCloudMysqlDatabaseList(reqParams)
@@ -146,9 +175,14 @@ func (r *mysqlDatabasesResource) Create(ctx context.Context, req resource.Create
 		return
 	}
 
-	output, err := GetMysqlDatabaseList(ctx, r.config, plan.MysqlInstanceNo.ValueString(), convertToCloudMysqlDbStringList(plan.MysqlDatabaseList))
+	output, err := GetMysqlDatabaseList(ctx, r.config, plan.MysqlInstanceNo.ValueString(), common.ConvertToStringList(plan.MysqlDatabaseList, "name"))
 	if err != nil {
 		resp.Diagnostics.AddError("READING ERROR", err.Error())
+		return
+	}
+
+	if output == nil {
+		resp.State.RemoveResource(ctx)
 		return
 	}
 
@@ -168,7 +202,7 @@ func (r *mysqlDatabasesResource) Read(ctx context.Context, req resource.ReadRequ
 		return
 	}
 
-	output, err := GetMysqlDatabaseList(ctx, r.config, state.MysqlInstanceNo.ValueString(), convertToCloudMysqlDbStringList(state.MysqlDatabaseList))
+	output, err := GetMysqlDatabaseList(ctx, r.config, state.MysqlInstanceNo.ValueString(), common.ConvertToStringList(state.MysqlDatabaseList, "name"))
 	if err != nil {
 		resp.Diagnostics.AddError("READING ERROR", err.Error())
 		return
@@ -200,7 +234,7 @@ func (r *mysqlDatabasesResource) Delete(ctx context.Context, req resource.Delete
 
 	_, err := waitMysqlCreation(ctx, r.config, state.MysqlInstanceNo.ValueString())
 	if err != nil {
-		resp.Diagnostics.AddError("WAITING FOR MYSQAL CREATION ERROR", err.Error())
+		resp.Diagnostics.AddError("WAITING FOR MYSQL DELETE ERROR", err.Error())
 		return
 	}
 
@@ -267,7 +301,7 @@ func GetMysqlDatabaseList(ctx context.Context, config *conn.ProviderConfig, id s
 		return nil, nil
 	}
 
-	tflog.Info(ctx, "GetMysqlUserList response="+common.MarshalUncheckedString(filteredDbs))
+	tflog.Info(ctx, "GetMysqlDatabseList response="+common.MarshalUncheckedString(filteredDbs))
 
 	return filteredDbs, nil
 }
@@ -282,15 +316,15 @@ type mysqlDatabase struct {
 	DatabaseName types.String `tfsdk:"name"`
 }
 
-func (r mysqlDatabase) AttrTypes() map[string]attr.Type {
+func (r mysqlDatabase) attrTypes() map[string]attr.Type {
 	return map[string]attr.Type{
 		"name": types.StringType,
 	}
 }
 
-func (r *mysqlDatabasesResourceModel) refreshFromOutput(ctx context.Context, output []*vmysql.CloudMysqlDatabase, instance string) diag.Diagnostics {
-	r.ID = types.StringValue(instance)
-	r.MysqlInstanceNo = types.StringValue(instance)
+func (r *mysqlDatabasesResourceModel) refreshFromOutput(ctx context.Context, output []*vmysql.CloudMysqlDatabase, instanceNo string) diag.Diagnostics {
+	r.ID = types.StringValue(instanceNo)
+	r.MysqlInstanceNo = types.StringValue(instanceNo)
 
 	var databaseList []mysqlDatabase
 	for _, db := range output {
@@ -300,14 +334,14 @@ func (r *mysqlDatabasesResourceModel) refreshFromOutput(ctx context.Context, out
 		databaseList = append(databaseList, mysqlDb)
 	}
 
-	mysqlDatabases, diags := types.ListValueFrom(ctx, types.ObjectType{AttrTypes: mysqlDatabase{}.AttrTypes()}, databaseList)
+	mysqlDatabases, diags := types.ListValueFrom(ctx, types.ObjectType{AttrTypes: mysqlDatabase{}.attrTypes()}, databaseList)
 	if diags.HasError() {
 		return diags
 	}
 
 	r.MysqlDatabaseList = mysqlDatabases
 
-	return nil
+	return diags
 }
 
 func convertToStringList(values basetypes.ListValue) []*string {
@@ -319,20 +353,6 @@ func convertToStringList(values basetypes.ListValue) []*string {
 		attrs := obj.Attributes()
 
 		name := attrs["name"].(types.String).ValueStringPointer()
-		result = append(result, name)
-	}
-
-	return result
-}
-
-func convertToCloudMysqlDbStringList(values basetypes.ListValue) []string {
-	result := make([]string, 0, len(values.Elements()))
-
-	for _, v := range values.Elements() {
-		obj := v.(types.Object)
-		attrs := obj.Attributes()
-
-		name := attrs["name"].(types.String).ValueString()
 		result = append(result, name)
 	}
 
