@@ -11,6 +11,7 @@ import (
 	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/services/vmysql"
 
 	"github.com/hashicorp/terraform-plugin-framework/attr"
+	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
@@ -21,6 +22,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
+	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
 
 	"github.com/hashicorp/terraform-plugin-framework-validators/int64validator"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
@@ -31,6 +33,16 @@ import (
 	"github.com/terraform-providers/terraform-provider-ncloud/internal/conn"
 	"github.com/terraform-providers/terraform-provider-ncloud/internal/framework"
 	"github.com/terraform-providers/terraform-provider-ncloud/internal/service/vpc"
+	"github.com/terraform-providers/terraform-provider-ncloud/internal/verify/verifybool"
+	"github.com/terraform-providers/terraform-provider-ncloud/internal/verify/verifystring"
+)
+
+const (
+	CREATING = "creating"
+	SETTING  = "settingUp"
+	RUNNING  = "running"
+	DELETING = "deleting"
+	DELETED  = "deleted"
 )
 
 var (
@@ -169,12 +181,18 @@ func (m *mysqlResource) Schema(_ context.Context, _ resource.SchemaRequest, resp
 				},
 				Description: "default: true",
 			},
+			// Available only `pub` and `fin` site. But GOV response message have both values.
 			"is_multi_zone": schema.BoolAttribute{
 				Optional: true,
 				Computed: true,
 				PlanModifiers: []planmodifier.Bool{
 					boolplanmodifier.RequiresReplace(),
 					boolplanmodifier.UseStateForUnknown(),
+				},
+				Validators: []validator.Bool{
+					verifybool.RequiresIfTrue(path.Expressions{
+						path.MatchRoot("is_ha"),
+					}...),
 				},
 				Description: "default: false",
 			},
@@ -236,10 +254,21 @@ func (m *mysqlResource) Schema(_ context.Context, _ resource.SchemaRequest, resp
 				},
 				Description: "default: 3306",
 			},
+			// Available only `pub` and `fin` site. All sites response message have neither values.
 			"standby_master_subnet_no": schema.StringAttribute{
 				Optional: true,
 				PlanModifiers: []planmodifier.String{
 					stringplanmodifier.RequiresReplace(),
+				},
+				Validators: []validator.String{
+					stringvalidator.All(
+						verifystring.RequiresIfTrue(path.Expressions{
+							path.MatchRoot("is_ha"),
+						}...),
+						verifystring.RequiresIfTrue(path.Expressions{
+							path.MatchRoot("is_multi_zone"),
+						}...),
+					),
 				},
 			},
 			"engine_version_code": schema.StringAttribute{
@@ -526,7 +555,15 @@ func (r *mysqlResource) Create(ctx context.Context, req resource.CreateRequest, 
 		return
 	}
 
-	plan.refreshFromOutput(ctx, output)
+	if output == nil {
+		resp.State.RemoveResource(ctx)
+		return
+	}
+
+	if diags := plan.refreshFromOutput(ctx, output); diags.HasError() {
+		resp.Diagnostics.AddError("CREATING ERROR", "refreshFromOutput error")
+		return
+	}
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, plan)...)
 }
@@ -550,7 +587,10 @@ func (r *mysqlResource) Read(ctx context.Context, req resource.ReadRequest, resp
 		return
 	}
 
-	state.refreshFromOutput(ctx, output)
+	if diags := state.refreshFromOutput(ctx, output); diags.HasError() {
+		resp.Diagnostics.AddError("READING ERROR", "refreshFromOutput error")
+		return
+	}
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &state)...)
 	if resp.Diagnostics.HasError() {
@@ -614,8 +654,8 @@ func GetMysqlInstance(ctx context.Context, config *conn.ProviderConfig, no strin
 func waitMysqlCreation(ctx context.Context, config *conn.ProviderConfig, id string) (*vmysql.CloudMysqlInstance, error) {
 	var mysqlInstance *vmysql.CloudMysqlInstance
 	stateConf := &retry.StateChangeConf{
-		Pending: []string{"creating", "settingUp"},
-		Target:  []string{"running"},
+		Pending: []string{CREATING, SETTING},
+		Target:  []string{RUNNING},
 		Refresh: func() (interface{}, string, error) {
 			instance, err := GetMysqlInstance(ctx, config, id)
 			mysqlInstance = instance
@@ -627,21 +667,21 @@ func waitMysqlCreation(ctx context.Context, config *conn.ProviderConfig, id stri
 			op := instance.CloudMysqlInstanceOperation.Code
 
 			if *status == "INIT" && *op == "CREAT" {
-				return instance, "creating", nil
+				return instance, CREATING, nil
 			}
 
 			if *status == "CREAT" && *op == "SETUP" {
-				return instance, "settingUp", nil
+				return instance, SETTING, nil
 			}
 
 			if *status == "CREAT" && *op == "NULL" {
-				return instance, "running", nil
+				return instance, RUNNING, nil
 			}
 
 			return 0, "", fmt.Errorf("error occurred while waiting to create mysql")
 		},
 		Timeout:    6 * conn.DefaultTimeout,
-		Delay:      2 * time.Second,
+		Delay:      3 * time.Minute,
 		MinTimeout: 3 * time.Second,
 	}
 	_, err := stateConf.WaitForState()
@@ -654,8 +694,8 @@ func waitMysqlCreation(ctx context.Context, config *conn.ProviderConfig, id stri
 
 func waitMysqlDeletion(ctx context.Context, config *conn.ProviderConfig, id string) error {
 	stateConf := &retry.StateChangeConf{
-		Pending: []string{"deleting"},
-		Target:  []string{"deleted"},
+		Pending: []string{DELETING},
+		Target:  []string{DELETED},
 		Refresh: func() (interface{}, string, error) {
 			instance, err := GetMysqlInstance(ctx, config, id)
 			if err != nil {
@@ -663,20 +703,20 @@ func waitMysqlDeletion(ctx context.Context, config *conn.ProviderConfig, id stri
 			}
 
 			if instance == nil {
-				return instance, "deleted", nil
+				return instance, DELETED, nil
 			}
 
 			status := instance.CloudMysqlInstanceStatus.Code
 			op := instance.CloudMysqlInstanceOperation.Code
 
 			if *status == "DEL" && *op == "DEL" {
-				return instance, "deleting", nil
+				return instance, DELETING, nil
 			}
 
 			return 0, "", fmt.Errorf("error occurred while waiting to delete mysql")
 		},
 		Timeout:    conn.DefaultTimeout,
-		Delay:      2 * time.Second,
+		Delay:      1 * time.Minute,
 		MinTimeout: 3 * time.Second,
 	}
 
@@ -734,7 +774,7 @@ type mysqlServer struct {
 	CreateDate          types.String `tfsdk:"create_date"`
 }
 
-func (m mysqlServer) attrTypes() map[string]attr.Type {
+func (r mysqlServer) attrTypes() map[string]attr.Type {
 	return map[string]attr.Type{
 		"server_instance_no":     types.StringType,
 		"server_name":            types.StringType,
@@ -754,33 +794,44 @@ func (m mysqlServer) attrTypes() map[string]attr.Type {
 	}
 }
 
-func (m *mysqlResourceModel) refreshFromOutput(ctx context.Context, output *vmysql.CloudMysqlInstance) {
-	m.ID = types.StringPointerValue(output.CloudMysqlInstanceNo)
-	m.ServiceName = types.StringPointerValue(output.CloudMysqlServiceName)
-	m.ImageProductCode = types.StringPointerValue(output.CloudMysqlImageProductCode)
-	m.DataStorageTypeCode = types.StringPointerValue(output.CloudMysqlServerInstanceList[0].DataStorageType.Code)
-	m.EngineVersionCode = types.StringValue(common.ExtractEngineVersion(*output.EngineVersion))
-	m.IsHa = types.BoolPointerValue(output.IsHa)
-	m.IsMultiZone = types.BoolPointerValue(output.IsMultiZone)
-	m.IsStorageEncryption = types.BoolPointerValue(output.CloudMysqlServerInstanceList[0].IsStorageEncryption)
-	m.IsBackup = types.BoolPointerValue(output.IsBackup)
-	m.BackupFileRetentionPeriod = common.Int64ValueFromInt32(output.BackupFileRetentionPeriod)
-	m.BackupTime = types.StringPointerValue(output.BackupTime)
-	m.Port = common.Int64ValueFromInt32(output.CloudMysqlPort)
-	m.RegionCode = types.StringPointerValue(output.CloudMysqlServerInstanceList[0].RegionCode)
-	m.VpcNo = types.StringPointerValue(output.CloudMysqlServerInstanceList[0].VpcNo)
+func (r *mysqlResourceModel) refreshFromOutput(ctx context.Context, output *vmysql.CloudMysqlInstance) diag.Diagnostics {
+	r.ID = types.StringPointerValue(output.CloudMysqlInstanceNo)
+	r.ServiceName = types.StringPointerValue(output.CloudMysqlServiceName)
+	r.ImageProductCode = types.StringPointerValue(output.CloudMysqlImageProductCode)
+	r.DataStorageTypeCode = types.StringPointerValue(common.GetCodePtrByCommonCode(output.CloudMysqlServerInstanceList[0].DataStorageType))
+	r.EngineVersionCode = types.StringValue(common.ExtractEngineVersion(*output.EngineVersion))
+	r.IsHa = types.BoolPointerValue(output.IsHa)
+	r.IsMultiZone = types.BoolPointerValue(output.IsMultiZone)
+	r.IsStorageEncryption = types.BoolPointerValue(output.CloudMysqlServerInstanceList[0].IsStorageEncryption)
+	r.IsBackup = types.BoolPointerValue(output.IsBackup)
+	r.BackupFileRetentionPeriod = common.Int64ValueFromInt32(output.BackupFileRetentionPeriod)
+	r.BackupTime = types.StringPointerValue(output.BackupTime)
+	r.Port = common.Int64ValueFromInt32(output.CloudMysqlPort)
+	r.RegionCode = types.StringPointerValue(output.CloudMysqlServerInstanceList[0].RegionCode)
+	r.VpcNo = types.StringPointerValue(output.CloudMysqlServerInstanceList[0].VpcNo)
 
-	acgList, _ := types.ListValueFrom(ctx, types.StringType, output.AccessControlGroupNoList)
-	m.AccessControlGroupNoList = acgList
-	configList, _ := types.ListValueFrom(ctx, types.StringType, output.CloudMysqlConfigList)
-	m.MysqlConfigList = configList
+	acgList, diags := types.ListValueFrom(ctx, types.StringType, output.AccessControlGroupNoList)
+	if diags.HasError() {
+		return diags
+	}
+	r.AccessControlGroupNoList = acgList
+	configList, diags := types.ListValueFrom(ctx, types.StringType, output.CloudMysqlConfigList)
+	if diags.HasError() {
+		return diags
+	}
+	r.MysqlConfigList = configList
+	r.MysqlServerList, diags = listValueFromMysqlServerList(ctx, output.CloudMysqlServerInstanceList)
 
+	return diags
+}
+
+func listValueFromMysqlServerList(ctx context.Context, serverInatances []*vmysql.CloudMysqlServerInstance) (basetypes.ListValue, diag.Diagnostics) {
 	var serverList []mysqlServer
-	for _, server := range output.CloudMysqlServerInstanceList {
+	for _, server := range serverInatances {
 		mysqlServerInstance := mysqlServer{
 			ServerInstanceNo: types.StringPointerValue(server.CloudMysqlServerInstanceNo),
 			ServerName:       types.StringPointerValue(server.CloudMysqlServerName),
-			ServerRole:       types.StringPointerValue(server.CloudMysqlServerRole.Code),
+			ServerRole:       types.StringPointerValue(common.GetCodePtrByCommonCode(server.CloudMysqlServerRole)),
 			ZoneCode:         types.StringPointerValue(server.ZoneCode),
 			SubnetNo:         types.StringPointerValue(server.SubnetNo),
 			ProductCode:      types.StringPointerValue(server.CloudMysqlProductCode),
@@ -803,9 +854,7 @@ func (m *mysqlResourceModel) refreshFromOutput(ctx context.Context, output *vmys
 		serverList = append(serverList, mysqlServerInstance)
 	}
 
-	mysqlServers, _ := types.ListValueFrom(ctx, types.ObjectType{AttrTypes: mysqlServer{}.attrTypes()}, serverList)
-
-	m.MysqlServerList = mysqlServers
+	return types.ListValueFrom(ctx, types.ObjectType{AttrTypes: mysqlServer{}.attrTypes()}, serverList)
 }
 
 // If the lookup result is 0 or already deleted, it will respond with a 400 error with a 5001017 return code.
