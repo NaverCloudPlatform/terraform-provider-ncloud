@@ -36,6 +36,12 @@ func TestAccResourceNcloudMysqlRecovery_vpc_basic(t *testing.T) {
 					resource.TestCheckResourceAttrSet(resourceName, "mysql_instance_no"),
 				),
 			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateIdFunc: testAccMysqlServerAssociationImportStateIDFunc(resourceName),
+				ImportStateVerify: true,
+			},
 		},
 	})
 }
@@ -86,13 +92,13 @@ func testAccCheckMysqlRecoveryExists(n string, recovery *vmysql.CloudMysqlServer
 		}
 
 		config := provider.Meta().(*conn.ProviderConfig)
-		mysqlRecovery, err := mysqlservice.GetMysqlRecovery(context.Background(), config, resource.Primary.Attributes["mysql_instance_no"])
+		mysqlRecovery, err := mysqlservice.GetMysqlRecovery(context.Background(), config, resource.Primary.Attributes["mysql_instance_no"], resource.Primary.Attributes["id"])
 		if err != nil {
 			return nil
 		}
 
 		if mysqlRecovery != nil {
-			*recovery = *mysqlRecovery
+			*recovery = *mysqlRecovery[0]
 			return nil
 		}
 
@@ -107,7 +113,7 @@ func testAccCheckMysqlRecoveryDestroy(s *terraform.State) error {
 		if rs.Type != "ncloud_mysql_recovery" {
 			continue
 		}
-		instance, err := mysqlservice.GetMysqlRecovery(context.Background(), config, rs.Primary.Attributes["mysql_instance_no"])
+		instance, err := mysqlservice.GetMysqlRecovery(context.Background(), config, rs.Primary.Attributes["mysql_instance_no"], rs.Primary.Attributes["id"])
 		if err != nil && !strings.Contains(err.Error(), "5001017") {
 			return nil
 		}
@@ -118,4 +124,17 @@ func testAccCheckMysqlRecoveryDestroy(s *terraform.State) error {
 	}
 
 	return nil
+}
+
+func testAccMysqlServerAssociationImportStateIDFunc(resourceName string) resource.ImportStateIdFunc {
+	return func(s *terraform.State) (string, error) {
+		rs, ok := s.RootModule().Resources[resourceName]
+		if !ok {
+			return "", fmt.Errorf("not found: %s", resourceName)
+		}
+		instanceNo := rs.Primary.Attributes["mysql_instance_no"]
+		id := rs.Primary.Attributes["id"]
+
+		return fmt.Sprintf("%s:%s", instanceNo, id), nil
+	}
 }

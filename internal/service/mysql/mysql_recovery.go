@@ -4,11 +4,13 @@ import (
 	"context"
 	"fmt"
 	"regexp"
+	"strings"
 	"time"
 
 	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/ncloud"
 	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/services/vmysql"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
+	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
@@ -21,14 +23,6 @@ import (
 	"github.com/terraform-providers/terraform-provider-ncloud/internal/common"
 	"github.com/terraform-providers/terraform-provider-ncloud/internal/conn"
 	"github.com/terraform-providers/terraform-provider-ncloud/internal/framework"
-)
-
-const (
-	CREATING = "creating"
-	SETTING  = "settingUp"
-	RUNNING  = "running"
-	DELETING = "deleting"
-	DELETED  = "deleted"
 )
 
 var (
@@ -46,7 +40,18 @@ type mysqlRecoveryResource struct {
 }
 
 func (r *mysqlRecoveryResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
-	resource.ImportStatePassthroughID(ctx, path.Root("id"), req, resp)
+	idParts := strings.Split(req.ID, ":")
+
+	if len(idParts) != 2 || idParts[0] == "" || idParts[1] == "" {
+		resp.Diagnostics.AddError(
+			"Unexpected Import Identifier",
+			fmt.Sprintf("Expected import identifier with format: mysql_instance_no:id Got: %q", req.ID),
+		)
+		return
+	}
+
+	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("mysql_instance_no"), idParts[0])...)
+	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("id"), idParts[1])...)
 }
 
 func (r *mysqlRecoveryResource) Configure(_ context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
@@ -81,13 +86,6 @@ func (r *mysqlRecoveryResource) Schema(_ context.Context, _ resource.SchemaReque
 					stringplanmodifier.RequiresReplace(),
 				},
 			},
-			"subnet_no": schema.StringAttribute{
-				Optional: true,
-				Computed: true,
-				PlanModifiers: []planmodifier.String{
-					stringplanmodifier.RequiresReplace(),
-				},
-			},
 			"recovery_server_name": schema.StringAttribute{
 				Required: true,
 				PlanModifiers: []planmodifier.String{
@@ -101,6 +99,14 @@ func (r *mysqlRecoveryResource) Schema(_ context.Context, _ resource.SchemaReque
 					),
 				},
 			},
+			"subnet_no": schema.StringAttribute{
+				Optional: true,
+				Computed: true,
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.RequiresReplace(),
+					stringplanmodifier.UseStateForUnknown(),
+				},
+			},
 			"file_name": schema.StringAttribute{
 				Optional: true,
 				PlanModifiers: []planmodifier.String{
@@ -110,12 +116,72 @@ func (r *mysqlRecoveryResource) Schema(_ context.Context, _ resource.SchemaReque
 					stringvalidator.AtLeastOneOf(path.Expressions{
 						path.MatchRoot("recovery_time"),
 					}...),
+					stringvalidator.ConflictsWith(
+						path.MatchRelative().AtParent().AtName("recovery_time"),
+					),
 				},
 			},
 			"recovery_time": schema.StringAttribute{
 				Optional: true,
 				PlanModifiers: []planmodifier.String{
 					stringplanmodifier.RequiresReplace(),
+				},
+				Validators: []validator.String{
+					stringvalidator.ConflictsWith(
+						path.MatchRelative().AtParent().AtName("file_name"),
+					),
+				},
+			},
+			"mysql_server_list": schema.ListNestedAttribute{
+				Computed: true,
+				NestedObject: schema.NestedAttributeObject{
+					Attributes: map[string]schema.Attribute{
+						"server_instance_no": schema.StringAttribute{
+							Computed: true,
+						},
+						"server_name": schema.StringAttribute{
+							Computed: true,
+						},
+						"server_role": schema.StringAttribute{
+							Computed: true,
+						},
+						"zone_code": schema.StringAttribute{
+							Computed: true,
+						},
+						"subnet_no": schema.StringAttribute{
+							Computed: true,
+						},
+						"product_code": schema.StringAttribute{
+							Computed: true,
+						},
+						"is_public_subnet": schema.BoolAttribute{
+							Computed: true,
+						},
+						"public_domain": schema.StringAttribute{
+							Computed: true,
+						},
+						"private_domain": schema.StringAttribute{
+							Computed: true,
+						},
+						"data_storage_size": schema.Int64Attribute{
+							Computed: true,
+						},
+						"used_data_storage_size": schema.Int64Attribute{
+							Computed: true,
+						},
+						"cpu_count": schema.Int64Attribute{
+							Computed: true,
+						},
+						"memory_size": schema.Int64Attribute{
+							Computed: true,
+						},
+						"uptime": schema.StringAttribute{
+							Computed: true,
+						},
+						"create_date": schema.StringAttribute{
+							Computed: true,
+						},
+					},
 				},
 			},
 		},
@@ -152,13 +218,26 @@ func (r *mysqlRecoveryResource) Create(ctx context.Context, req resource.CreateR
 		reqParams.RecoveryTime = plan.RecoveryTime.ValueStringPointer()
 	}
 
-	tflog.Info(ctx, "CreateCloudMysqlRecovery reqParams="+common.MarshalUncheckedString(reqParams))
+	if !plan.SubnetNo.IsNull() && !plan.SubnetNo.IsUnknown() {
+		// In `gov`, multi_zone is always false, so subnet is auto-generated with default value
+		if r.config.Site == "gov" {
+			resp.Diagnostics.AddError(
+				"NOT SUPPORT GOV SITE",
+				"`subnet_no` does not support gov site",
+			)
+			return
+		}
+		reqParams.SubnetNo = plan.SubnetNo.ValueStringPointer()
+	}
+
+	tflog.Info(ctx, "CreateMysqlRecovery reqParams="+common.MarshalUncheckedString(reqParams))
 
 	response, err := r.config.Client.Vmysql.V2Api.CreateCloudMysqlRecoveryInstance(reqParams)
 	if err != nil {
 		resp.Diagnostics.AddError("CREATING ERROR", err.Error())
 		return
 	}
+	tflog.Info(ctx, "CreateMysqlRecovery response="+common.MarshalUncheckedString(response))
 
 	if response == nil || len(response.CloudMysqlInstanceList) < 1 {
 		resp.Diagnostics.AddError("CREATING ERROR", "response valid")
@@ -167,38 +246,25 @@ func (r *mysqlRecoveryResource) Create(ctx context.Context, req resource.CreateR
 
 	mysqlIns := response.CloudMysqlInstanceList[0]
 	serverList := mysqlIns.CloudMysqlServerInstanceList
+	var index int
 
-	if *mysqlIns.IsMultiZone {
-		if !plan.SubnetNo.IsNull() {
-			reqParams.SubnetNo = plan.SubnetNo.ValueStringPointer()
-		} else {
-			resp.Diagnostics.AddError(
-				"CREATING ERROR",
-				"when `is_multi_zone` is true, SubnetNo should be set",
-			)
+	for i, server := range serverList {
+		if (server.CloudMysqlServerRole != nil && *server.CloudMysqlServerRole.Code == "R") && (*server.CloudMysqlServerInstanceStatusName == CREATING) {
+			index = i
+			break
 		}
 	}
 
-	if len(serverList) < 2 {
-		resp.Diagnostics.AddError("CREATING ERROR", "response invalid")
-		return
-	}
-
-	recoveryServer, err := GetMysqlRecovery(ctx, r.config, plan.MysqlInstanceNo.ValueString())
-	if err != nil {
-		resp.Diagnostics.AddError("READ ERROR", err.Error())
-		return
-	}
-
-	plan.ID = types.StringPointerValue(recoveryServer.CloudMysqlServerInstanceNo)
-
-	output, err := waitMysqlRecoveryCreation(ctx, r.config, *mysqlIns.CloudMysqlInstanceNo)
+	output, err := waitMysqlServerCreation(ctx, r.config, *mysqlIns.CloudMysqlInstanceNo, index)
 	if err != nil {
 		resp.Diagnostics.AddError("WAITING FOR CREATION ERROR", err.Error())
 		return
 	}
 
-	plan.refreshFromOutput(output, plan.MysqlInstanceNo.ValueStringPointer())
+	if diags := plan.refreshFromOutput(ctx, output, mysqlIns.CloudMysqlInstanceNo); diags.HasError() {
+		resp.Diagnostics.AddError("CREATING ERROR", "refreshFromOutput error")
+		return
+	}
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, plan)...)
 }
@@ -211,7 +277,7 @@ func (r *mysqlRecoveryResource) Read(ctx context.Context, req resource.ReadReque
 		return
 	}
 
-	output, err := GetMysqlRecovery(ctx, r.config, state.MysqlInstanceNo.ValueString())
+	output, err := GetMysqlRecovery(ctx, r.config, state.MysqlInstanceNo.ValueString(), state.ID.ValueString())
 	if err != nil {
 		resp.Diagnostics.AddError("READING ERROR", err.Error())
 		return
@@ -222,12 +288,12 @@ func (r *mysqlRecoveryResource) Read(ctx context.Context, req resource.ReadReque
 		return
 	}
 
-	state.refreshFromOutput(output, state.MysqlInstanceNo.ValueStringPointer())
-
-	resp.Diagnostics.Append(resp.State.Set(ctx, &state)...)
-	if resp.Diagnostics.HasError() {
+	if diags := state.refreshFromOutput(ctx, output, state.MysqlInstanceNo.ValueStringPointer()); diags.HasError() {
+		resp.Diagnostics.AddError("READING ERROR", "refreshFromOutput error")
 		return
 	}
+
+	resp.Diagnostics.Append(resp.State.Set(ctx, &state)...)
 }
 
 func (r *mysqlRecoveryResource) Update(_ context.Context, _ resource.UpdateRequest, _ *resource.UpdateResponse) {
@@ -252,60 +318,20 @@ func (r *mysqlRecoveryResource) Delete(ctx context.Context, req resource.DeleteR
 		resp.Diagnostics.AddError("DELETING ERROR", err.Error())
 		return
 	}
-
 	tflog.Info(ctx, "DeleteMysqlRecovery response="+common.MarshalUncheckedString(response))
 
-	if err := waitMysqlRecoveryDeletion(ctx, r.config, state.MysqlInstanceNo.ValueString()); err != nil {
+	if err := waitMysqlRecoveryDeletion(ctx, r.config, state.MysqlInstanceNo.ValueString(), state.ID.ValueString()); err != nil {
 		resp.Diagnostics.AddError("WAITING FOR DELETE ERROR", err.Error())
+		return
 	}
 }
 
-func waitMysqlRecoveryCreation(ctx context.Context, config *conn.ProviderConfig, id string) (*vmysql.CloudMysqlServerInstance, error) {
-	var mysqlInstance *vmysql.CloudMysqlServerInstance
-	stateConf := &retry.StateChangeConf{
-		Pending: []string{CREATING, SETTING},
-		Target:  []string{RUNNING},
-		Refresh: func() (interface{}, string, error) {
-			instance, err := GetMysqlRecovery(ctx, config, id)
-			mysqlInstance = instance
-			if err != nil {
-				return 0, "", err
-			}
-
-			status := instance.CloudMysqlServerInstanceStatusName
-			if *status == CREATING {
-				return instance, CREATING, nil
-			}
-
-			if *status == SETTING {
-				return instance, SETTING, nil
-			}
-
-			if *status == RUNNING {
-				return instance, RUNNING, nil
-			}
-
-			return 0, "", fmt.Errorf("error occurred while waiting to create mysql recovery")
-		},
-		Timeout:    6 * conn.DefaultCreateTimeout,
-		Delay:      2 * time.Second,
-		MinTimeout: 3 * time.Second,
-	}
-
-	_, err := stateConf.WaitForStateContext(ctx)
-	if err != nil {
-		return nil, fmt.Errorf("error waiting for mysql recovery state to be \"running\": %s", err)
-	}
-
-	return mysqlInstance, nil
-}
-
-func waitMysqlRecoveryDeletion(ctx context.Context, config *conn.ProviderConfig, id string) error {
+func waitMysqlRecoveryDeletion(ctx context.Context, config *conn.ProviderConfig, instanceNo string, serverInstanceNo string) error {
 	stateConf := &retry.StateChangeConf{
 		Pending: []string{DELETING},
 		Target:  []string{DELETED},
 		Refresh: func() (interface{}, string, error) {
-			instance, err := GetMysqlRecovery(ctx, config, id)
+			instance, err := GetMysqlRecovery(ctx, config, instanceNo, serverInstanceNo)
 			if err != nil {
 				return 0, "", err
 			}
@@ -314,34 +340,30 @@ func waitMysqlRecoveryDeletion(ctx context.Context, config *conn.ProviderConfig,
 				return instance, DELETED, nil
 			}
 
-			status := instance.CloudMysqlServerInstanceStatusName
+			status := instance[0].CloudMysqlServerInstanceStatusName
 
-			if *status == DELETING {
-				return instance, DELETING, nil
-			}
-
-			if *status == DELETED {
-				return instance, DELETED, nil
+			if *status == DELETING || *status == DELETED {
+				return instance, *status, nil
 			}
 
 			return 0, "", fmt.Errorf("error occurred while waiting to delete mysql recovery")
 		},
 		Timeout:    conn.DefaultTimeout,
-		Delay:      2 * time.Second,
+		Delay:      1 * time.Minute,
 		MinTimeout: 3 * time.Second,
 	}
 
 	if _, err := stateConf.WaitForStateContext(ctx); err != nil {
-		return fmt.Errorf("error waiting for mysql recovery (%s) to become terminating: %s", id, err)
+		return fmt.Errorf("error waiting for mysql recovery (%s) to become terminating: %s", serverInstanceNo, err)
 	}
 
 	return nil
 }
 
-func GetMysqlRecovery(ctx context.Context, config *conn.ProviderConfig, no string) (*vmysql.CloudMysqlServerInstance, error) {
+func GetMysqlRecovery(ctx context.Context, config *conn.ProviderConfig, instanceNo string, serverInstanceNo string) ([]*vmysql.CloudMysqlServerInstance, error) {
 	reqParams := &vmysql.GetCloudMysqlInstanceDetailRequest{
 		RegionCode:           &config.RegionCode,
-		CloudMysqlInstanceNo: ncloud.String(no),
+		CloudMysqlInstanceNo: ncloud.String(instanceNo),
 	}
 	tflog.Info(ctx, "GetMysqlDetail reqParams="+common.MarshalUncheckedString(reqParams))
 
@@ -358,8 +380,8 @@ func GetMysqlRecovery(ctx context.Context, config *conn.ProviderConfig, no strin
 	serverList := resp.CloudMysqlInstanceList[0].CloudMysqlServerInstanceList
 
 	for _, server := range serverList {
-		if *server.CloudMysqlServerRole.CodeName == "Recovery" {
-			return server, nil
+		if (server.CloudMysqlServerRole != nil && *server.CloudMysqlServerRole.Code == "R") && (*server.CloudMysqlServerInstanceNo == serverInstanceNo) {
+			return []*vmysql.CloudMysqlServerInstance{server}, nil
 		}
 	}
 	return nil, nil
@@ -372,10 +394,16 @@ type mysqlRecoveryResourceModel struct {
 	MysqlRecoveryServerName types.String `tfsdk:"recovery_server_name"`
 	FileName                types.String `tfsdk:"file_name"`
 	RecoveryTime            types.String `tfsdk:"recovery_time"`
+	MysqlServerList         types.List   `tfsdk:"mysql_server_list"`
 }
 
-func (r *mysqlRecoveryResourceModel) refreshFromOutput(output *vmysql.CloudMysqlServerInstance, id *string) {
-	r.ID = types.StringPointerValue(output.CloudMysqlServerInstanceNo)
-	r.MysqlInstanceNo = types.StringPointerValue(id)
-	r.SubnetNo = types.StringPointerValue(output.SubnetNo)
+func (r *mysqlRecoveryResourceModel) refreshFromOutput(ctx context.Context, output []*vmysql.CloudMysqlServerInstance, instanceNo *string) diag.Diagnostics {
+	r.ID = types.StringPointerValue(output[0].CloudMysqlServerInstanceNo)
+	r.MysqlInstanceNo = types.StringPointerValue(instanceNo)
+	r.SubnetNo = types.StringPointerValue(output[0].SubnetNo)
+
+	serverList, diags := listValueFromMysqlServerList(ctx, output)
+	r.MysqlServerList = serverList
+
+	return diags
 }

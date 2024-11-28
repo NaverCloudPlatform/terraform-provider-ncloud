@@ -16,7 +16,7 @@ import (
 	mysqlservice "github.com/terraform-providers/terraform-provider-ncloud/internal/service/mysql"
 )
 
-func TestAccrResourceNcloudMysqlSlave_vpc_basic(t *testing.T) {
+func TestAccResourceNcloudMysqlSlave_vpc_basic(t *testing.T) {
 	var mysqlServerInstance vmysql.CloudMysqlServerInstance
 	testName := fmt.Sprintf("tf-mysqlsv-%s", acctest.RandString(5))
 	resourceName := "ncloud_mysql_slave.mysql_slave"
@@ -33,6 +33,12 @@ func TestAccrResourceNcloudMysqlSlave_vpc_basic(t *testing.T) {
 					resource.TestCheckResourceAttrSet(resourceName, "mysql_instance_no"),
 				),
 			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateIdFunc: testAccMysqlServerAssociationImportStateIDFunc(resourceName),
+				ImportStateVerify: true,
+			},
 		},
 	})
 }
@@ -43,6 +49,7 @@ resource "ncloud_vpc" "test_vpc" {
 	name             = "%[1]s"
 	ipv4_cidr_block  = "10.5.0.0/16"
 }
+
 resource "ncloud_subnet" "test_subnet" {
 	vpc_no             = ncloud_vpc.test_vpc.vpc_no
 	name               = "%[1]s"
@@ -80,13 +87,13 @@ func testAccCheckMysqlSlaveExists(n string, slave *vmysql.CloudMysqlServerInstan
 		}
 
 		config := provider.Meta().(*conn.ProviderConfig)
-		mysqlSlave, err := mysqlservice.GetMysqlSlave(context.Background(), config, resource.Primary.Attributes["mysql_instance_no"])
+		mysqlSlave, err := mysqlservice.GetMysqlSlave(context.Background(), config, resource.Primary.Attributes["mysql_instance_no"], resource.Primary.Attributes["id"])
 		if err != nil {
 			return err
 		}
 
 		if mysqlSlave != nil {
-			*slave = *mysqlSlave
+			*slave = *mysqlSlave[0]
 			return nil
 		}
 
@@ -101,7 +108,7 @@ func testAccCheckMysqlSlaveDestroy(s *terraform.State) error {
 		if rs.Type != "ncloud_mysql_slave" {
 			continue
 		}
-		instance, err := mysqlservice.GetMysqlSlave(context.Background(), config, rs.Primary.Attributes["mysql_instance_no"])
+		instance, err := mysqlservice.GetMysqlSlave(context.Background(), config, rs.Primary.Attributes["mysql_instance_no"], rs.Primary.Attributes["id"])
 		if err != nil && !mysqlservice.CheckIfAlreadyDeleted(err) {
 			return nil
 		}

@@ -6,9 +6,9 @@ import (
 
 	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/services/vmysql"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
-	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
+	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -30,11 +30,11 @@ type mysqlDataSource struct {
 	config *conn.ProviderConfig
 }
 
-func (m *mysqlDataSource) Metadata(ctx context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
+func (d *mysqlDataSource) Metadata(ctx context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
 	resp.TypeName = req.ProviderTypeName + "_mysql"
 }
 
-func (m *mysqlDataSource) Schema(ctx context.Context, req datasource.SchemaRequest, resp *datasource.SchemaResponse) {
+func (d *mysqlDataSource) Schema(ctx context.Context, req datasource.SchemaRequest, resp *datasource.SchemaResponse) {
 	resp.Schema = schema.Schema{
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
@@ -155,7 +155,7 @@ func (m *mysqlDataSource) Schema(ctx context.Context, req datasource.SchemaReque
 	}
 }
 
-func (m *mysqlDataSource) Configure(ctx context.Context, req datasource.ConfigureRequest, resp *datasource.ConfigureResponse) {
+func (d *mysqlDataSource) Configure(ctx context.Context, req datasource.ConfigureRequest, resp *datasource.ConfigureResponse) {
 	if req.ProviderData == nil {
 		return
 	}
@@ -170,14 +170,14 @@ func (m *mysqlDataSource) Configure(ctx context.Context, req datasource.Configur
 		return
 	}
 
-	m.config = config
+	d.config = config
 }
 
-func (m *mysqlDataSource) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
+func (d *mysqlDataSource) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
 	var data mysqlDataSourceModel
 	var mysqlId string
 
-	if !m.config.SupportVPC {
+	if !d.config.SupportVPC {
 		resp.Diagnostics.AddError(
 			"NOT SUPPORT CLASSIC",
 			"does not support CLASSIC. only VPC.",
@@ -196,12 +196,12 @@ func (m *mysqlDataSource) Read(ctx context.Context, req datasource.ReadRequest, 
 
 	if !data.ServiceName.IsNull() && !data.ServiceName.IsUnknown() {
 		reqParams := &vmysql.GetCloudMysqlInstanceListRequest{
-			RegionCode:            &m.config.RegionCode,
+			RegionCode:            &d.config.RegionCode,
 			CloudMysqlServiceName: data.ServiceName.ValueStringPointer(),
 		}
 		tflog.Info(ctx, "GetMysqlList reqParams="+common.MarshalUncheckedString(reqParams))
 
-		listResp, err := m.config.Client.Vmysql.V2Api.GetCloudMysqlInstanceList(reqParams)
+		listResp, err := d.config.Client.Vmysql.V2Api.GetCloudMysqlInstanceList(reqParams)
 		if err != nil {
 			resp.Diagnostics.AddError("READING ERROR", err.Error())
 			return
@@ -215,7 +215,7 @@ func (m *mysqlDataSource) Read(ctx context.Context, req datasource.ReadRequest, 
 		mysqlId = *listResp.CloudMysqlInstanceList[0].CloudMysqlInstanceNo
 	}
 
-	output, err := GetMysqlInstance(ctx, m.config, mysqlId)
+	output, err := GetMysqlInstance(ctx, d.config, mysqlId)
 	if err != nil {
 		resp.Diagnostics.AddError("READING ERROR", err.Error())
 		return
@@ -226,7 +226,10 @@ func (m *mysqlDataSource) Read(ctx context.Context, req datasource.ReadRequest, 
 		return
 	}
 
-	data.refreshFromOutput(ctx, output)
+	if diags := data.refreshFromOutput(ctx, output); diags.HasError() {
+		resp.Diagnostics.AddError("READING ERROR", "refreshFromOutput error")
+		return
+	}
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
 	if resp.Diagnostics.HasError() {
@@ -254,93 +257,34 @@ type mysqlDataSourceModel struct {
 	MysqlServerList           types.List   `tfsdk:"mysql_server_list"`
 }
 
-type mysqlServerDataSourceModel struct {
-	ServerInstanceNo    types.String `tfsdk:"server_instance_no"`
-	ServerName          types.String `tfsdk:"server_name"`
-	ServerRole          types.String `tfsdk:"server_role"`
-	ZoneCode            types.String `tfsdk:"zone_code"`
-	SubnetNo            types.String `tfsdk:"subnet_no"`
-	ProductCode         types.String `tfsdk:"product_code"`
-	IsPublicSubnet      types.Bool   `tfsdk:"is_public_subnet"`
-	PublicDomain        types.String `tfsdk:"public_domain"`
-	PrivateDomain       types.String `tfsdk:"private_domain"`
-	DataStorageSize     types.Int64  `tfsdk:"data_storage_size"`
-	UsedDataStorageSize types.Int64  `tfsdk:"used_data_storage_size"`
-	CpuCount            types.Int64  `tfsdk:"cpu_count"`
-	MemorySize          types.Int64  `tfsdk:"memory_size"`
-	Uptime              types.String `tfsdk:"uptime"`
-	CreateDate          types.String `tfsdk:"create_date"`
-}
+func (d *mysqlDataSourceModel) refreshFromOutput(ctx context.Context, output *vmysql.CloudMysqlInstance) diag.Diagnostics {
+	d.ID = types.StringPointerValue(output.CloudMysqlInstanceNo)
+	d.ServiceName = types.StringPointerValue(output.CloudMysqlServiceName)
+	d.ImageProductCode = types.StringPointerValue(output.CloudMysqlImageProductCode)
+	d.DataStorageTypeCode = types.StringPointerValue(common.GetCodePtrByCommonCode(output.CloudMysqlServerInstanceList[0].DataStorageType))
+	d.IsHa = types.BoolPointerValue(output.IsHa)
+	d.IsMultiZone = types.BoolPointerValue(output.IsMultiZone)
+	d.IsStorageEncryption = types.BoolPointerValue(output.CloudMysqlServerInstanceList[0].IsStorageEncryption)
+	d.IsBackup = types.BoolPointerValue(output.IsBackup)
+	d.BackupFileRetentionPeriod = common.Int64ValueFromInt32(output.BackupFileRetentionPeriod)
+	d.BackupTime = types.StringPointerValue(output.BackupTime)
+	d.Port = common.Int64ValueFromInt32(output.CloudMysqlPort)
+	d.EngineVersionCode = types.StringPointerValue(output.EngineVersion)
+	d.RegionCode = types.StringPointerValue(output.CloudMysqlServerInstanceList[0].RegionCode)
+	d.VpcNo = types.StringPointerValue(output.CloudMysqlServerInstanceList[0].VpcNo)
 
-func (m mysqlServerDataSourceModel) attrTypes() map[string]attr.Type {
-	return map[string]attr.Type{
-		"server_instance_no":     types.StringType,
-		"server_name":            types.StringType,
-		"server_role":            types.StringType,
-		"zone_code":              types.StringType,
-		"subnet_no":              types.StringType,
-		"product_code":           types.StringType,
-		"is_public_subnet":       types.BoolType,
-		"public_domain":          types.StringType,
-		"private_domain":         types.StringType,
-		"data_storage_size":      types.Int64Type,
-		"used_data_storage_size": types.Int64Type,
-		"cpu_count":              types.Int64Type,
-		"memory_size":            types.Int64Type,
-		"uptime":                 types.StringType,
-		"create_date":            types.StringType,
+	acgList, diags := types.ListValueFrom(ctx, types.StringType, output.AccessControlGroupNoList)
+	if diags.HasError() {
+		return diags
 	}
-}
-
-func (m *mysqlDataSourceModel) refreshFromOutput(ctx context.Context, output *vmysql.CloudMysqlInstance) {
-	m.ID = types.StringPointerValue(output.CloudMysqlInstanceNo)
-	m.ServiceName = types.StringPointerValue(output.CloudMysqlServiceName)
-	m.ImageProductCode = types.StringPointerValue(output.CloudMysqlImageProductCode)
-	m.DataStorageTypeCode = types.StringPointerValue(output.CloudMysqlServerInstanceList[0].DataStorageType.Code)
-	m.IsHa = types.BoolPointerValue(output.IsHa)
-	m.IsMultiZone = types.BoolPointerValue(output.IsMultiZone)
-	m.IsStorageEncryption = types.BoolPointerValue(output.CloudMysqlServerInstanceList[0].IsStorageEncryption)
-	m.IsBackup = types.BoolPointerValue(output.IsBackup)
-	m.BackupFileRetentionPeriod = common.Int64ValueFromInt32(output.BackupFileRetentionPeriod)
-	m.BackupTime = types.StringPointerValue(output.BackupTime)
-	m.Port = common.Int64ValueFromInt32(output.CloudMysqlPort)
-	m.EngineVersionCode = types.StringPointerValue(output.EngineVersion)
-	m.RegionCode = types.StringPointerValue(output.CloudMysqlServerInstanceList[0].RegionCode)
-	m.VpcNo = types.StringPointerValue(output.CloudMysqlServerInstanceList[0].VpcNo)
-
-	acgList, _ := types.ListValueFrom(ctx, types.StringType, output.AccessControlGroupNoList)
-	configList, _ := types.ListValueFrom(ctx, types.StringType, output.CloudMysqlConfigList)
-	m.AccessControlGroupNoList = acgList
-	m.MysqlConfigList = configList
-
-	var serverList []mysqlServerDataSourceModel
-	for _, server := range output.CloudMysqlServerInstanceList {
-		mysqlServerInstance := mysqlServerDataSourceModel{
-			ServerInstanceNo: types.StringPointerValue(server.CloudMysqlServerInstanceNo),
-			ServerName:       types.StringPointerValue(server.CloudMysqlServerName),
-			ServerRole:       types.StringPointerValue(server.CloudMysqlServerRole.Code),
-			ZoneCode:         types.StringPointerValue(server.ZoneCode),
-			SubnetNo:         types.StringPointerValue(server.SubnetNo),
-			ProductCode:      types.StringPointerValue(server.CloudMysqlProductCode),
-			IsPublicSubnet:   types.BoolPointerValue(server.IsPublicSubnet),
-			PrivateDomain:    types.StringPointerValue(server.PrivateDomain),
-			DataStorageSize:  types.Int64PointerValue(server.DataStorageSize),
-			CpuCount:         common.Int64ValueFromInt32(server.CpuCount),
-			MemorySize:       types.Int64PointerValue(server.MemorySize),
-			Uptime:           types.StringPointerValue(server.Uptime),
-			CreateDate:       types.StringPointerValue(server.CreateDate),
-		}
-
-		if server.PublicDomain != nil {
-			mysqlServerInstance.PublicDomain = types.StringPointerValue(server.PublicDomain)
-		}
-
-		if server.UsedDataStorageSize != nil {
-			mysqlServerInstance.UsedDataStorageSize = types.Int64PointerValue(server.UsedDataStorageSize)
-		}
-		serverList = append(serverList, mysqlServerInstance)
+	d.AccessControlGroupNoList = acgList
+	configList, diags := types.ListValueFrom(ctx, types.StringType, output.CloudMysqlConfigList)
+	if diags.HasError() {
+		return diags
 	}
+	d.MysqlConfigList = configList
 
-	listValue, _ := types.ListValueFrom(ctx, types.ObjectType{AttrTypes: mysqlServerDataSourceModel{}.attrTypes()}, serverList)
-	m.MysqlServerList = listValue
+	d.MysqlServerList, diags = listValueFromMysqlServerList(ctx, output.CloudMysqlServerInstanceList)
+
+	return diags
 }
