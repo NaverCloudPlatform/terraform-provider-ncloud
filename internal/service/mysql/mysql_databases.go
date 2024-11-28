@@ -301,7 +301,7 @@ func GetMysqlDatabaseList(ctx context.Context, config *conn.ProviderConfig, id s
 		return nil, nil
 	}
 
-	tflog.Info(ctx, "GetMysqlDatabseList response="+common.MarshalUncheckedString(filteredDbs))
+	tflog.Info(ctx, "GetMysqlDatabaseList response="+common.MarshalUncheckedString(filteredDbs))
 
 	return filteredDbs, nil
 }
