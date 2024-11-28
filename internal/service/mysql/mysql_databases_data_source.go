@@ -120,8 +120,10 @@ func (d *mysqlDatabasesDataSource) Read(ctx context.Context, req datasource.Read
 
 		if convertedList, err := convertDbsToJsonStruct(data.MysqlDatabaseList.Elements()); err != nil {
 			resp.Diagnostics.AddError("OUTPUT FILE ERROR", err.Error())
+			return
 		} else if err := common.WriteToFile(outputPath, convertedList); err != nil {
 			resp.Diagnostics.AddError("OUTPUT FILE ERROR", err.Error())
+			return
 		}
 	}
 

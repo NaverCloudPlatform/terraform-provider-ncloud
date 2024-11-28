@@ -12,7 +12,7 @@ Get a list of MySQL databases.
 
 ```terraform
 data "ncloud_mysql_databases" "all" {
-    id = 12345
+    mysql_instance_no = 12345
     filter {
         name = "name"
         values = ["testdb1"]
@@ -20,6 +20,7 @@ data "ncloud_mysql_databases" "all" {
     
     output_file = "databases.json"
 }
+
 output "database_list" {
     values = [for db in data.ncloud_mysql_databases.all.mysql_database_list : db.name]
 }
@@ -48,5 +49,5 @@ The following arguments are required:
 This data source exports the following attributes in addition to the argument above: 
 
 * `id` - Mysql Databases number(Mysql Instance number).
-* `mysql_database_list` - The list of databases to add .
+* `mysql_database_list` - The list of databases to add.
   * `name` - MySQL Database Name.
