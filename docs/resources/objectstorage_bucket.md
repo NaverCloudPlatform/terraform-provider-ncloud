@@ -36,10 +36,10 @@ The following arguments are supported:
 
 ### `terraform import` command
 
-* Object Storage Bucket can be imported using the `bucket_name`. For example:
+* Object Storage Bucket can be imported using the `bucket-name`. For example:
 
 ```console
-$ terraform import ncloud_objectstorage_object.rsc_name bucket-name
+$ terraform import ncloud_objectstorage_bucket.rsc_name bucket-name
 ```
 
 ### `import` block
@@ -48,7 +48,7 @@ $ terraform import ncloud_objectstorage_object.rsc_name bucket-name
 
 ```terraform
 import {
-    to = ncloud_objectstorage_object.rsc_name
-    bucket_name = "bucket-name"
+    to = ncloud_objectstorage_bucket.rsc_name
+    id = "bucket-name"
 }
 ```
