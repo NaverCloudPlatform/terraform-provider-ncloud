@@ -41,6 +41,8 @@ The following arguments are supported:
 
 ## Import
 
+~> **NOTE:** Import is temporary unavailable in `ncloud_objectstorage_bucket_acl`. Please import by manually written terraform code with right `rule` attribute in it.
+
 ### `terraform import` command
 
 * Object Storage Bucket ACL can be imported using the `bucket_name`. For example:
@@ -56,6 +58,6 @@ $ terraform import ncloud_objectstorage_bucket_acl.rsc_name bucket_acl_bucket-na
 ```terraform
 import {
     to = ncloud_objectstorage_bucket_acl.rsc_name
-    bucket_name = "bucket_acl_bucket-name"
+    id = "bucket_acl_bucket-name"
 }
 ```

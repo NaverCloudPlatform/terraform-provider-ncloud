@@ -48,12 +48,14 @@ The following arguments are supported:
 
 ## Import
 
+~> **NOTE:** Import is temporary unavailable in `ncloud_objectstorage_object_acl`. Please import by manually written terraform code with right `rule` attribute in it.
+
 ### `terraform import` command
 
-* Object Storage Object ACL can be imported using the `id`. For example:
+* Object Storage Object ACL can be imported using the `object-id`. For example:
 
 ```console
-$ terraform import ncloud_objectstorage_object_acl.rsc_name object_acl_objectID
+$ terraform import ncloud_objectstorage_object_acl.rsc_name object_acl_object-id
 ```
 
 ### `import` block
@@ -63,6 +65,6 @@ $ terraform import ncloud_objectstorage_object_acl.rsc_name object_acl_objectID
 ```terraform
 import {
     to = ncloud_objectstorage_object_acl.rsc_name
-    id = "object_acl_objectID"
+    id = "object_acl_object-id"
 }
 ```
