@@ -29,7 +29,7 @@ The following arguments are supported:
 * `subnet_no_list` - (Required) A list of IDs in the associated Subnets.
 * `network_type` - (Optional) The network type of load balancer to create. Accepted values: `PUBLIC` | `PRIVATE`. Default: `PUBLIC`.
 * `idle_timeout` - (Optional) The time in seconds that the idle timeout. Valid only if the load balancer type is not `NETWORK`. Default: 60.
-* `throughput_type` - (Optional) The performance type code of load balancer. `SMALL` | `MEDIUM` | `LARGE` | `DYNAMIC`. If the `type` is `APPLICATION` or `NETWORK_PROXY` Options : `SMALL` | `MEDIUM` | `LARGE`, Default : `SMALL`. If the `type` is `NETWORK` Options : `DYNAMIC`, Default : `DYNAMIC`.
+* `throughput_type` - (Optional) The performance type code of load balancer. `SMALL` | `MEDIUM` | `LARGE` | `DYNAMIC` | `XLARGE`. If the `type` is `APPLICATION` or `NETWORK_PROXY` Options : `SMALL` | `MEDIUM` | `LARGE` | `XLARGE`, Default : `SMALL`. If the `type` is `NETWORK` Options : `DYNAMIC`, Default : `DYNAMIC`.
 * `description` - (Optional) The description of the load balancer.
 
 ## Attributes Reference
