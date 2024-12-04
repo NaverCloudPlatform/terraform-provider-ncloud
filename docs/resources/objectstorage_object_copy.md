@@ -46,7 +46,7 @@ The following arguments are required:
 
 * `bucket` - (Required) Name of the bucket to read the object from. Bucket name must be between 3 and 63 characters long, can contain lowercase letters, numbers, periods, and hyphens. It must start and end with a letter or number, and cannot have consecutive periods.
 * `key` - (Required) Full path to the object inside the bucket.
-* `source` - (Required) Path to the file you want to upload. 
+* `source` - (Required) Path to the file you want to upload.
 
 The following arguments are supported:
 
@@ -54,7 +54,7 @@ The following arguments are supported:
 
 ~> **NOTE:** Specially in `JPN` region, updating resource with only `content_type` changed will be blocked. 
 
-## Attribute Reference.
+## Attribute Reference
 
 ~> **NOTE:** Since Ncloud Object Stroage uses S3 Compatible SDK, these arguments are served as best-effort.
 
