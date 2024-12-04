@@ -33,7 +33,7 @@ resource "ncloud_objectstorage_bucket_acl" "testing_acl" {
 
 The following arguments are supported:
 
-* `id` - Unique ID for bucket. Has format of `bucket_acl_${bucket_name}`.
+* `id` - Unique ID for bucket. As same as `bucket_name`.
 * `bucket_name` - (Required) Target bucket id to create(same as bucket name). Bucket name must be between 3 and 63 characters long, can contain lowercase letters, numbers, periods, and hyphens. It must start and end with a letter or number, and cannot have consecutive periods.
 * `rule` - (Required) Rule to apply. Value must be one of "private", "public-read", "public-read-write", "authenticated-read".
 * `grants` - List of member who grants this rule. Consists of `grantee`, `permission`. Individual `grantee` has `type`, `display_name`, `email-address`, `id`, `uri` attributes.
@@ -48,7 +48,7 @@ The following arguments are supported:
 * Object Storage Bucket ACL can be imported using the `bucket_name`. For example:
 
 ```console
-$ terraform import ncloud_objectstorage_bucket_acl.rsc_name bucket_acl_bucket-name
+$ terraform import ncloud_objectstorage_bucket_acl.rsc_name bucket-name
 ```
 
 ### `import` block
@@ -58,6 +58,6 @@ $ terraform import ncloud_objectstorage_bucket_acl.rsc_name bucket_acl_bucket-na
 ```terraform
 import {
     to = ncloud_objectstorage_bucket_acl.rsc_name
-    id = "bucket_acl_bucket-name"
+    id = "bucket-name"
 }
 ```

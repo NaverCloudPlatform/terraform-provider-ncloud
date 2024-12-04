@@ -31,7 +31,7 @@ resource "ncloud_objectstorage_object" "testing_object" {
 
 resource "ncloud_objectstorage_object_acl" "testing_acl" {
     object_id			= ncloud_objectstorage_object.testing_object.id
-    rule				= "RULL_TO_APPLY" 
+    rule				= "RULL_TO_APPLY"
 }
 ```
 
@@ -39,7 +39,7 @@ resource "ncloud_objectstorage_object_acl" "testing_acl" {
 
 The following arguments are supported:
 
-* `id` - Unique ID for ACL. Has format of `object_acl_${object_id}`.
+* `id` - Unique ID for ACL. As same as `object_id`.
 * `object_id` - (Required) Target object id to create.
 * `rule` - (Required) Rule to apply. Value must be one of "private", "public-read", "public-read-write", "authenticated-read".
 * `grants` - List of member who grants this rule. Consists of `grantee`, `permission`. Individual `grantee` has `type`, `display_name`, `email-address`, `id`, `uri` attributes.
@@ -55,16 +55,16 @@ The following arguments are supported:
 * Object Storage Object ACL can be imported using the `object-id`. For example:
 
 ```console
-$ terraform import ncloud_objectstorage_object_acl.rsc_name object_acl_object-id
+$ terraform import ncloud_objectstorage_object_acl.rsc_name object-id
 ```
 
 ### `import` block
 
-* In Terraform v1.5.0 and later, use a [`import` block](https://developer.hashicorp.com/terraform/language/import) to import Object Storage Bucket ACL using the `id`. For example:
+* In Terraform v1.5.0 and later, use a [`import` block](https://developer.hashicorp.com/terraform/language/import) to import Object Storage Object ACL using the `object-id`. For example:
 
 ```terraform
 import {
     to = ncloud_objectstorage_object_acl.rsc_name
-    id = "object_acl_object-id"
+    id = "object-id"
 }
 ```
