@@ -68,7 +68,7 @@ func ResourceNcloudLbListener() *schema.Resource {
 			"protocol": {
 				Type:             schema.TypeString,
 				Required:         true,
-				ValidateDiagFunc: validation.ToDiagFunc(validation.StringInSlice([]string{"HTTP", "HTTPS", "TCP", "TLS"}, false)),
+				ValidateDiagFunc: validation.ToDiagFunc(validation.StringInSlice([]string{"HTTP", "HTTPS", "TCP", "TLS", "UDP"}, false)),
 			},
 			"tls_min_version_type": {
 				Type:             schema.TypeString,
