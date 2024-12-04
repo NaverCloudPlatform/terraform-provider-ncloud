@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"regexp"
-	"strings"
 	"time"
 
 	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/ncloud"
@@ -210,10 +209,8 @@ func (o *objectACLResource) Update(ctx context.Context, req resource.UpdateReque
 }
 
 func (o *objectACLResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
-	objectId := strings.Split(req.ID, "_")[2]
-
 	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("id"), req.ID)...)
-	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("object_id"), objectId)...)
+	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("object_id"), req.ID)...)
 }
 
 func (o *objectACLResource) Configure(_ context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
@@ -323,7 +320,7 @@ func (o *objectACLResourceModel) refreshFromOutput(ctx context.Context, config *
 	}
 
 	o.Grants = listValueWithGrants
-	o.ID = types.StringValue(fmt.Sprintf("object_acl_%s", RemoveQuotes(o.ObjectID.String())))
+	o.ID = types.StringValue(RemoveQuotes(o.ObjectID.String()))
 	o.OwnerID = types.StringValue(*output.Owner.ID)
 	o.OwnerDisplayName = types.StringValue(*output.Owner.DisplayName)
 }

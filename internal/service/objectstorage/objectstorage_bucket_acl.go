@@ -156,7 +156,7 @@ func (b *bucketACLResource) Read(ctx context.Context, req resource.ReadRequest, 
 		return
 	}
 
-	plan.refreshFromOutput(ctx, b.config, strings.Split(plan.ID.String(), "_")[2], &resp.Diagnostics)
+	plan.refreshFromOutput(ctx, b.config, plan.ID.String(), &resp.Diagnostics)
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
 	if resp.Diagnostics.HasError() {
@@ -313,7 +313,7 @@ func (b *bucketACLResourceModel) refreshFromOutput(ctx context.Context, config *
 	}
 
 	b.Grants = listValueFromGrants
-	b.ID = types.StringValue(fmt.Sprintf("bucket_acl_%s", RemoveQuotes(bucketName)))
+	b.ID = types.StringValue(RemoveQuotes(bucketName))
 	b.BucketName = types.StringValue(RemoveQuotes(bucketName))
 	b.Owner = types.StringValue(*output.Owner.ID)
 }
