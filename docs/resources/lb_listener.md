@@ -34,7 +34,7 @@ The following arguments are supported:
 * `load_balancer_no` - (Required) The ID of the load balancer.
 * `target_group_no` - (Required) The ID of the target group.
 * `port` - (Required) The port on which the load balancer is listening. Valid from `1` to `65534`.
-* `protocol` - (Required) The protocol type for the listener. The types of protocols available are limited by the type of load balancer. `APPLICATION` Load Balancer Accepted values: `HTTP` | `HTTPS`, `NETWORK` Load Balancer Accepted values : `TCP`, `NETWORK_PROXY` Load Balancer Accepted values : `TCP` | `TLS`. 
+* `protocol` - (Required) The protocol type for the listener. The types of protocols available are limited by the type of load balancer. `APPLICATION` Load Balancer Accepted values: `HTTP` | `HTTPS`, `NETWORK` Load Balancer Accepted values : `TCP`, `UDP`, `NETWORK_PROXY` Load Balancer Accepted values : `TCP` | `TLS`. 
 * `tls_min_version_type` - (Optional) The TLS minimum supported version type code. Valid only if the listener protocol type is `HTTPS` or `TLS`. Accepted values : `TLSV10`(TLSv1.0) | `TLSV11`(TLSv1.1) | `TLSV12`(TLSv1.2). Default: `TLSV10`.
 * `use_http2` - (Optional) Whether to use HTTP/2 protocol. Valid only if the listener protocol type is `HTTPS`. Accepted values : `true`, `false`. Default: `false`.
 * `ssl_certificate_no` - (Optional) The ID of the SSL certificate. If the listener protocol type is `HTTPS` or `TLS`, an SSL certificate must be set.
