@@ -33,13 +33,20 @@ resource "ncloud_objectstorage_bucket_acl" "testing_acl" {
 
 The following arguments are supported:
 
-* `id` - Unique ID for bucket. As same as `bucket_name`.
 * `bucket_name` - (Required) Target bucket id to create(same as bucket name). Bucket name must be between 3 and 63 characters long, can contain lowercase letters, numbers, periods, and hyphens. It must start and end with a letter or number, and cannot have consecutive periods.
 * `rule` - (Required) Rule to apply. Value must be one of "private", "public-read", "public-read-write", "authenticated-read".
 
 ## Attribute Reference
 
-* `grants` - List of member who grants this rule. Consists of `grantee`, `permission`. Individual `grantee` has `type`, `display_name`, `email-address`, `id`, `uri` attributes.
+* `id` - Unique ID for bucket. As same as `bucket_name`.
+* `grants` - List of member who grants this rule.
+  * `grantee` - The person being granted permissions.
+    * `type` - Type of grantee
+    * `display_name` - Screen name of the grantee.
+    * `email_address` - Email address of the grantee.
+    * `id` - The canonical user ID of the grantee.
+    * `uri` - URI of the grantee group.
+  * `permission` - Specifies the permission given to the grantee.
 * `owner` - Who owns this ACL.
 
 ## Import
