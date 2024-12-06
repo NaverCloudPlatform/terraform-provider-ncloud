@@ -49,7 +49,7 @@ resource "ncloud_objectstorage_object_acl" "testing_acl" {
 
 ## Import
 
-~> **NOTE:** Import is temporary unavailable in `ncloud_objectstorage_object_acl`. Please import by manually written terraform code with right `rule` attribute in it.
+~> **NOTE:** When importing `ncloud_objectstorage_object_acl`, the `rule` value cannot be retrieved automatically. User need to manually set the `rule` value in your Terraform state file before import.
 
 ### `terraform import` command
 
