@@ -119,11 +119,11 @@ func (b *bucketACLResource) Create(ctx context.Context, req resource.CreateReque
 		return
 	}
 
-	bucketName := TrimForParsing(plan.BucketName.String())
+	bucketName := RemoveQuotes(plan.BucketName.String())
 
 	reqParams := &s3.PutBucketAclInput{
 		Bucket: ncloud.String(bucketName),
-		ACL:    plan.Rule,
+		ACL:    *plan.Rule,
 	}
 
 	tflog.Info(ctx, "PutBucketACL reqParams="+common.MarshalUncheckedString(reqParams))
@@ -156,9 +156,7 @@ func (b *bucketACLResource) Read(ctx context.Context, req resource.ReadRequest, 
 		return
 	}
 
-	bucketName := TrimForParsing(plan.BucketName.String())
-
-	plan.refreshFromOutput(ctx, b.config, bucketName, &resp.Diagnostics)
+	plan.refreshFromOutput(ctx, b.config, plan.ID.String(), &resp.Diagnostics)
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
 	if resp.Diagnostics.HasError() {
@@ -177,11 +175,11 @@ func (b *bucketACLResource) Update(ctx context.Context, req resource.UpdateReque
 	}
 
 	if plan.Rule != state.Rule {
-		bucketName := TrimForParsing(state.BucketName.String())
+		bucketName := RemoveQuotes(state.BucketName.String())
 
 		reqParams := &s3.PutBucketAclInput{
 			Bucket: ncloud.String(bucketName),
-			ACL:    plan.Rule,
+			ACL:    *plan.Rule,
 		}
 
 		tflog.Info(ctx, "PutBucketACL update operation reqParams="+common.MarshalUncheckedString(reqParams))
@@ -261,16 +259,16 @@ func waitBucketACLApplied(ctx context.Context, config *conn.ProviderConfig, buck
 }
 
 type bucketACLResourceModel struct {
-	ID         types.String             `tfsdk:"id"`
-	BucketName types.String             `tfsdk:"bucket_name"`
-	Rule       awsTypes.BucketCannedACL `tfsdk:"rule"`
-	Grants     types.List               `tfsdk:"grants"`
-	Owner      types.String             `tfsdk:"owner"`
+	ID         types.String              `tfsdk:"id"`
+	BucketName types.String              `tfsdk:"bucket_name"`
+	Rule       *awsTypes.BucketCannedACL `tfsdk:"rule"`
+	Grants     types.List                `tfsdk:"grants"`
+	Owner      types.String              `tfsdk:"owner"`
 }
 
 func (b *bucketACLResourceModel) refreshFromOutput(ctx context.Context, config *conn.ProviderConfig, bucketName string, diag *diag.Diagnostics) {
 	output, err := config.Client.ObjectStorage.GetBucketAcl(ctx, &s3.GetBucketAclInput{
-		Bucket: ncloud.String(bucketName),
+		Bucket: ncloud.String(RemoveQuotes(bucketName)),
 	})
 	if err != nil {
 		diag.AddError("GetBucketAcl ERROR", err.Error())
@@ -315,7 +313,8 @@ func (b *bucketACLResourceModel) refreshFromOutput(ctx context.Context, config *
 	}
 
 	b.Grants = listValueFromGrants
-	b.ID = types.StringValue(fmt.Sprintf("bucket_acl_%s", b.BucketName))
+	b.ID = types.StringValue(RemoveQuotes(bucketName))
+	b.BucketName = types.StringValue(RemoveQuotes(bucketName))
 	b.Owner = types.StringValue(*output.Owner.ID)
 }
 
@@ -370,9 +369,6 @@ func convertGrantsToListValueAtBucket(ctx context.Context, grants []awsTypes.Gra
 	}}, grantValues)
 }
 
-func TrimForParsing(s string) string {
-	s = strings.TrimSuffix(s, "\"")
-	s = strings.TrimPrefix(s, "\"")
-
-	return s
+func RemoveQuotes(s string) string {
+	return strings.ReplaceAll(strings.ReplaceAll(s, "\"", ""), "\\", "")
 }

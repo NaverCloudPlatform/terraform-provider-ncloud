@@ -125,22 +125,22 @@ func (o *bucketResource) Read(ctx context.Context, req resource.ReadRequest, res
 	}
 
 	for _, bucket := range output.Buckets {
-		if *bucket.Name == *plan.BucketName.ValueStringPointer() {
-			_, err := o.config.Client.ObjectStorage.HeadBucket(ctx, &s3.HeadBucketInput{
-				Bucket: plan.BucketName.ValueStringPointer(),
-			})
-			if err != nil {
-				resp.Diagnostics.AddError("READING ERROR", err.Error())
-				return
+		if *bucket.Name == *plan.ID.ValueStringPointer() {
+			if bucket.CreationDate != nil {
+				plan.CreationDate = types.StringValue(bucket.CreationDate.Format(time.RFC3339))
 			}
 
-			plan = bucketResourceModel{
-				BucketName: types.StringValue(*bucket.Name),
-			}
+			plan.BucketName = types.StringValue(*bucket.Name)
 
-			break
+			diags := resp.State.Set(ctx, &plan)
+			resp.Diagnostics.Append(diags...)
+
+			return
 		}
 	}
+
+	// Clear tf state if resource doesn't exist.
+	resp.State.RemoveResource(ctx)
 }
 
 func (o *bucketResource) Schema(_ context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
@@ -184,7 +184,7 @@ func (o *bucketResource) Configure(_ context.Context, req resource.ConfigureRequ
 }
 
 func (o *bucketResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
-	resource.ImportStatePassthroughID(ctx, path.Root("bucket_name"), req, resp)
+	resource.ImportStatePassthroughID(ctx, path.Root("id"), req, resp)
 }
 
 func waitBucketCreated(ctx context.Context, config *conn.ProviderConfig, bucketName string) error {
@@ -200,7 +200,7 @@ func waitBucketCreated(ctx context.Context, config *conn.ProviderConfig, bucketN
 			}
 
 			for _, bucket := range output.Buckets {
-				if *bucket.Name == TrimForParsing(bucketName) {
+				if *bucket.Name == RemoveQuotes(bucketName) {
 					return bucket, CREATED, nil
 				}
 			}
@@ -229,7 +229,7 @@ func waitBucketDeleted(ctx context.Context, config *conn.ProviderConfig, bucketN
 			}
 
 			for _, bucket := range output.Buckets {
-				if *bucket.Name == TrimForParsing(bucketName) {
+				if *bucket.Name == RemoveQuotes(bucketName) {
 					return bucket, DELETING, nil
 				}
 			}
@@ -264,7 +264,7 @@ func (o *bucketResourceModel) refreshFromOutput(ctx context.Context, config *con
 	}
 
 	for _, bucket := range output.Buckets {
-		if *bucket.Name == TrimForParsing(bucketName) {
+		if *bucket.Name == RemoveQuotes(bucketName) {
 			if !types.StringValue(bucket.CreationDate.GoString()).IsNull() {
 				o.CreationDate = types.StringValue(bucket.CreationDate.GoString())
 			}

@@ -44,7 +44,7 @@ The following arguments are optional:
 
 ~> **NOTE:** Specially in `JPN` region, updating resource with only `content_type` changed will be blocked. 
 
-## Attribute Reference.
+## Attribute Reference
 
 ~> **NOTE:** Since Ncloud Object Stroage uses S3 Compatible SDK, these arguments are served as best-effort.
 

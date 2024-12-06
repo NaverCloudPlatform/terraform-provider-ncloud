@@ -31,6 +31,11 @@ func TestAccResourceNcloudObjectStorage_bucket_basic(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "bucket_name", bucketName),
 				),
 			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
 		},
 	})
 }

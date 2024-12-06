@@ -164,7 +164,9 @@ func (o *objectResource) Schema(_ context.Context, req resource.SchemaRequest, r
 				Description: "(Required) Name of the object once it is in the bucket",
 			},
 			"source": schema.StringAttribute{
-				Required: true,
+				Optional:  true,
+				Computed:  false,
+				Sensitive: true,
 				PlanModifiers: []planmodifier.String{
 					stringplanmodifier.RequiresReplace(),
 				},
@@ -303,7 +305,10 @@ func (o *objectResource) Update(ctx context.Context, req resource.UpdateRequest,
 }
 
 func (o *objectResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
-	resource.ImportStatePassthroughID(ctx, path.Root("id"), req, resp)
+	bucketName, key := ObjectIDParser(req.ID)
+
+	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("bucket"), bucketName)...)
+	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("key"), key)...)
 }
 
 func (o *objectResource) Configure(_ context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
@@ -411,8 +416,12 @@ func (o *objectResourceModel) refreshFromOutput(ctx context.Context, config *con
 		diag.AddError("HeadObject ERROR", err.Error())
 		return
 	}
+	if output == nil {
+		diag.AddError("HeadObject ERROR", "invalid output")
+		return
+	}
 
-	bucketName, key := TrimForParsing(o.Bucket.String()), TrimForParsing(o.Key.String())
+	bucketName, key := RemoveQuotes(o.Bucket.String()), RemoveQuotes(o.Key.String())
 
 	o.ID = types.StringValue(ObjectIDGenerator(bucketName, key))
 	if !types.StringPointerValue(output.AcceptRanges).IsNull() || !types.StringPointerValue(output.AcceptRanges).IsUnknown() {
