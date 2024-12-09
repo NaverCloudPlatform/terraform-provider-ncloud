@@ -51,7 +51,7 @@ The following arguments are supported:
 
 ## Import
 
-~> **NOTE:** When importing `ncloud_objectstorage_bucket_acl`, the `rule` value cannot be retrieved automatically. User need to manually set the `rule` value in your Terraform state file before import.
+~> **NOTE:** When importing `ncloud_objectstorage_bucket_acl`, the `rule` value cannot be retrieved automatically. User need to manually set the `rule` value in your Terraform state file after import.
 
 ### `terraform import` command
 
