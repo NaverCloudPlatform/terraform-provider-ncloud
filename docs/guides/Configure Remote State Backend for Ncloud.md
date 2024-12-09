@@ -2,9 +2,28 @@
 subcategory: "Guide"
 ---
 
-# Remote State Backend
+# [Terraform Remote State](https://developer.hashicorp.com/terraform/language/state/remote)
 
 ~> **NOTE** This configuration is applicable from Terraform version 1.10.0 onwards.
+
+By default, Terraform stores state locally in a file named `terraform.tfstate`. When working with Terraform in a team, use of a local file makes Terraform usage complicated because each user must make sure they always have the latest state data before running Terraform and make sure that nobody else runs Terraform at the same time.
+
+With remote state, Terraform writes the state data to a remote data store, which can then be shared between all members of a team. Terraform supports storing state in Terraform Cloud, HashiCorp Consul, Amazon S3, Azure Blob Storage, Google Cloud Storage, etcd, and more.
+
+Remote state is implemented by a [backend](https://developer.hashicorp.com/terraform/language/backend/configuration). Backends are configured with a nested `backend` block within the top-level `terraform` block:
+
+```hcl
+terraform {
+  backend "s3" {
+    ...
+  }
+}
+```
+
+There are some important limitations on backend configuration:
+
+- A configuration can only provide one backend block.
+- A backend block cannot refer to **named values** (like input variables, locals, or data source attributes).
 
 Ncloud object storage uses the Amazon S3 Compatible API, which now supports conditional writing. Therefore, built-in remote state and state locking features are available.
 
