@@ -29,7 +29,7 @@ Ncloud object storage uses the Amazon S3 Compatible API, which now supports cond
 
 ## Example Configuration
 
-~> **NOTE** The storage must be created before using the remote state locking feature.
+~> **NOTE** The storage must be created before using this feature.
 
 ```hcl
 terraform {
