@@ -30,10 +30,10 @@ func TestAccResourceNcloudPostgresqlUsers_vpc_basic(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr(resourceName, "postgresql_user_list.0.name", "test1"),
 					resource.TestCheckResourceAttr(resourceName, "postgresql_user_list.0.client_cidr", "0.0.0.0/0"),
-					resource.TestCheckResourceAttr(resourceName, "postgresql_user_list.0.is_replication_role", "false"),
+					resource.TestCheckResourceAttr(resourceName, "postgresql_user_list.0.replication_role", "false"),
 					resource.TestCheckResourceAttr(resourceName, "postgresql_user_list.1.name", "test2"),
 					resource.TestCheckResourceAttr(resourceName, "postgresql_user_list.1.client_cidr", "0.0.0.0/0"),
-					resource.TestCheckResourceAttr(resourceName, "postgresql_user_list.1.is_replication_role", "false"),
+					resource.TestCheckResourceAttr(resourceName, "postgresql_user_list.1.replication_role", "false"),
 				),
 				Destroy: false,
 			},
@@ -74,19 +74,19 @@ resource "ncloud_postgresql" "postgresql" {
 }
 
 resource "ncloud_postgresql_users" "postgresql_users" {
-	postgresql_instance_no = ncloud_postgresql.postgresql.postgresql_instance_no
+	id = ncloud_postgresql.postgresql.id
 	postgresql_user_list = [
 		{
 			name = "test1",
 			password = "t123456789!",
 			client_cidr = "0.0.0.0/0",
-			is_replication_role = "false"
+			replication_role = "false"
 		},
 		{
 			name = "test2",
 			password = "t123456789!",
 			client_cidr = "0.0.0.0/0",
-			is_replication_role = "false"
+			replication_role = "false"
 		}
 	]
 }

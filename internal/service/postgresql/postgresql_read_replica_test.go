@@ -66,7 +66,7 @@ resource "ncloud_postgresql" "postgresql" {
 }
 
 resource "ncloud_postgresql_read_replica" "postgresql_rr" {
-	postgresql_instance_no = ncloud_postgresql.postgresql.postgresql_instance_no
+	postgresql_instance_no = ncloud_postgresql.postgresql.id
 }
 `, testPostgresqlName)
 }
@@ -83,13 +83,13 @@ func testAccCheckPostgresqlReadReplicaExists(n string, readreplica *vpostgresql.
 		}
 
 		config := provider.Meta().(*conn.ProviderConfig)
-		postgresqlReadReplica, err := postgresqlservice.GetPostgresqlReadReplica(context.Background(), config, resource.Primary.Attributes["postgresql_instance_no"])
+		postgresqlReadReplica, err := postgresqlservice.GetPostgresqlReadReplicaServer(context.Background(), config, resource.Primary.Attributes["postgresql_instance_no"], resource.Primary.Attributes["id"])
 		if err != nil {
 			return err
 		}
 
 		if postgresqlReadReplica != nil {
-			*readreplica = *postgresqlReadReplica
+			*readreplica = *postgresqlReadReplica[0]
 			return nil
 		}
 
@@ -104,7 +104,7 @@ func testAccCheckPostgresqlReadReplicaDestroy(s *terraform.State) error {
 		if rs.Type != "ncloud_postgresql_read_replica" {
 			continue
 		}
-		instance, err := postgresqlservice.GetPostgresqlReadReplica(context.Background(), config, rs.Primary.Attributes["postgresql_instance_no"])
+		instance, err := postgresqlservice.GetPostgresqlReadReplicaServer(context.Background(), config, rs.Primary.Attributes["postgresql_instance_no"], rs.Primary.Attributes["id"])
 		if err != nil && !strings.Contains(err.Error(), "5001017") {
 			return err
 		}
