@@ -57,7 +57,7 @@ resource "ncloud_mongodb" "mongodb" {
 }
 
 resource "ncloud_mongodb_users" "mongodb_users" {
-	mongodb_instance_no = ncloud_mongodb.mongodb.id
+	id = ncloud_mongodb.mongodb.id
 	mongodb_user_list = [
 		{
 			name = "test1",
@@ -75,7 +75,7 @@ resource "ncloud_mongodb_users" "mongodb_users" {
 }
 
 data "ncloud_mongodb_users" "all" {
-	mongodb_instance_no = ncloud_mongodb.mongodb.id
+	id = ncloud_mongodb.mongodb.id
 	filter {
 		name = "name"
 		values = [ncloud_mongodb_users.mongodb_users.mongodb_user_list.0.name, ncloud_mongodb_users.mongodb_users.mongodb_user_list.1.name]

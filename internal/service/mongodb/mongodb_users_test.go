@@ -81,7 +81,7 @@ resource "ncloud_mongodb" "mongodb" {
 }
 
 resource "ncloud_mongodb_users" "mongodb_users" {
-	mongodb_instance_no = ncloud_mongodb.mongodb.id
+	id = ncloud_mongodb.mongodb.id
 	mongodb_user_list = [
 		{
 			name = "testuser1",

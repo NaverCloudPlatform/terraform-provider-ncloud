@@ -7,12 +7,10 @@ import (
 
 	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/ncloud"
 	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/services/vmongodb"
-	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
-	"github.com/hashicorp/terraform-plugin-framework/path"
-	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
+	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 	"github.com/terraform-providers/terraform-provider-ncloud/internal/common"
@@ -58,22 +56,7 @@ func (d *mongodbUsersDataSource) Schema(ctx context.Context, req datasource.Sche
 	resp.Schema = schema.Schema{
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
-				Optional: true,
-				Computed: true,
-				Validators: []validator.String{
-					stringvalidator.ConflictsWith(
-						path.MatchRelative().AtParent().AtName("mongodb_instance_no"),
-					),
-				},
-			},
-			"mongodb_instance_no": schema.StringAttribute{
-				Optional: true,
-				Computed: true,
-				Validators: []validator.String{
-					stringvalidator.ConflictsWith(
-						path.MatchRelative().AtParent().AtName("id"),
-					),
-				},
+				Required: true,
 			},
 			"output_file": schema.StringAttribute{
 				Optional: true,
@@ -103,7 +86,6 @@ func (d *mongodbUsersDataSource) Schema(ctx context.Context, req datasource.Sche
 
 func (d *mongodbUsersDataSource) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
 	var data mongodbUsersDataSourceModel
-	var mongodbId string
 
 	if !d.config.SupportVPC {
 		resp.Diagnostics.AddError(
@@ -118,17 +100,7 @@ func (d *mongodbUsersDataSource) Read(ctx context.Context, req datasource.ReadRe
 		return
 	}
 
-	if !data.ID.IsNull() && !data.ID.IsUnknown() {
-		mongodbId = data.ID.ValueString()
-		data.MongodbInstanceNo = data.ID
-	}
-
-	if !data.MongodbInstanceNo.IsNull() && !data.MongodbInstanceNo.IsUnknown() {
-		mongodbId = data.MongodbInstanceNo.ValueString()
-		data.ID = data.MongodbInstanceNo
-	}
-
-	output, err := GetMongoDbUserAllList(ctx, d.config, mongodbId)
+	output, err := GetMongoDbUserAllList(ctx, d.config, data.ID.ValueString())
 	if err != nil {
 		resp.Diagnostics.AddError("READING ERROR", err.Error())
 		return
@@ -141,7 +113,10 @@ func (d *mongodbUsersDataSource) Read(ctx context.Context, req datasource.ReadRe
 
 	mongodbUserList := flattenMongodbUsers(output)
 	fillteredList := common.FilterModels(ctx, data.Filters, mongodbUserList)
-	data.refreshFromOutput(ctx, fillteredList, data.MongodbInstanceNo.ValueString())
+	if diags := data.refreshFromOutput(ctx, fillteredList, data.ID.ValueString()); diags.HasError() {
+		resp.Diagnostics.AddError("READIG EROROR", "refreshFromOutput error")
+		return
+	}
 
 	if !data.OutputFile.IsNull() && data.OutputFile.String() != "" {
 		outputPath := data.OutputFile.ValueString()
@@ -172,22 +147,20 @@ func GetMongoDbUserAllList(ctx context.Context, config *conn.ProviderConfig, id 
 	if err != nil {
 		return nil, err
 	}
+	tflog.Info(ctx, "GetMongodbUserList response="+common.MarshalUncheckedString(resp))
 
 	if resp == nil || len(resp.CloudMongoDbUserList) < 1 {
 		return nil, nil
 	}
 
-	tflog.Info(ctx, "GetMongodbUserList response="+common.MarshalUncheckedString(resp))
-
 	return common.ReverseList(resp.CloudMongoDbUserList), nil
 }
 
 type mongodbUsersDataSourceModel struct {
-	ID                types.String `tfsdk:"id"`
-	MongodbInstanceNo types.String `tfsdk:"mongodb_instance_no"`
-	MongodbUserList   types.List   `tfsdk:"mongodb_user_list"`
-	OutputFile        types.String `tfsdk:"output_file"`
-	Filters           types.Set    `tfsdk:"filter"`
+	ID              types.String `tfsdk:"id"`
+	MongodbUserList types.List   `tfsdk:"mongodb_user_list"`
+	OutputFile      types.String `tfsdk:"output_file"`
+	Filters         types.Set    `tfsdk:"filter"`
 }
 
 type mongodbUser struct {
@@ -236,11 +209,16 @@ func flattenMongodbUsers(list []*vmongodb.CloudMongoDbUser) []*mongodbUser {
 	return outputs
 }
 
-func (d *mongodbUsersDataSourceModel) refreshFromOutput(ctx context.Context, output []*mongodbUser, instance string) {
+func (d *mongodbUsersDataSourceModel) refreshFromOutput(ctx context.Context, output []*mongodbUser, instance string) diag.Diagnostics {
 	d.ID = types.StringValue(instance)
-	d.MongodbInstanceNo = types.StringValue(instance)
-	userListValue, _ := types.ListValueFrom(ctx, types.ObjectType{AttrTypes: mongodbUser{}.attrTypes()}, output)
+	userListValue, diags := types.ListValueFrom(ctx, types.ObjectType{AttrTypes: mongodbUser{}.attrTypes()}, output)
+	if diags.HasError() {
+		return diags
+	}
+
 	d.MongodbUserList = userListValue
+
+	return diags
 }
 
 func (d *mongodbUser) refreshFromOutput(output *vmongodb.CloudMongoDbUser) {
