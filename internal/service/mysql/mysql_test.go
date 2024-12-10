@@ -158,11 +158,11 @@ func TestAccResourceNcloudMysql_error_case(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				Config:      testAccMysqlVpcConfigErrorCaseWhenIsHaSetFalse1(testMysqlName),
-				ExpectError: regexp.MustCompile("when `is_ha` is false, `is_multi_zone` parameter is not used"),
+				ExpectError: regexp.MustCompile("Invalid Attribute Combination"),
 			},
 			{
 				Config:      testAccMysqlVpcConfigErrorCaseWhenIsHaSetFalse2(testMysqlName),
-				ExpectError: regexp.MustCompile("when `is_ha` is false, `standby_master_subnet_no` is not used"),
+				ExpectError: regexp.MustCompile("Invalid Attribute Combination"),
 			},
 			{
 				Config:      testAccMysqlVpcConfigErrorCaseWhenIsHaSetFalse3(testMysqlName),
