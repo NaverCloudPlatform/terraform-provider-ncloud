@@ -295,9 +295,9 @@ func (r mysqlDatabase) AttrTypes() map[string]attr.Type {
 	}
 }
 
-func (r *mysqlDatabasesResourceModel) refreshFromOutput(ctx context.Context, output []*vmysql.CloudMysqlDatabase, instance string) diag.Diagnostics {
-	r.ID = types.StringValue(instance)
-	r.MysqlInstanceNo = types.StringValue(instance)
+func (r *mysqlDatabasesResourceModel) refreshFromOutput(ctx context.Context, output []*vmysql.CloudMysqlDatabase, instanceNo string) diag.Diagnostics {
+	r.ID = types.StringValue(instanceNo)
+	r.MysqlInstanceNo = types.StringValue(instanceNo)
 
 	var databaseList []mysqlDatabase
 	for _, db := range output {
