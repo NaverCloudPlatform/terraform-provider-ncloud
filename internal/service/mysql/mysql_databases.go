@@ -282,7 +282,7 @@ type mysqlDatabase struct {
 	DatabaseName types.String `tfsdk:"name"`
 }
 
-func (r mysqlDatabase) AttrTypes() map[string]attr.Type {
+func (r mysqlDatabase) attrTypes() map[string]attr.Type {
 	return map[string]attr.Type{
 		"name": types.StringType,
 	}
@@ -300,7 +300,7 @@ func (r *mysqlDatabasesResourceModel) refreshFromOutput(ctx context.Context, out
 		databaseList = append(databaseList, mysqlDb)
 	}
 
-	mysqlDatabases, diags := types.ListValueFrom(ctx, types.ObjectType{AttrTypes: mysqlDatabase{}.AttrTypes()}, databaseList)
+	mysqlDatabases, diags := types.ListValueFrom(ctx, types.ObjectType{AttrTypes: mysqlDatabase{}.attrTypes()}, databaseList)
 	if diags.HasError() {
 		return diags
 	}
