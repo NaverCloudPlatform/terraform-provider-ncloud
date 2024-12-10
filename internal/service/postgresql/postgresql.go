@@ -15,7 +15,6 @@ import (
 	"github.com/terraform-providers/terraform-provider-ncloud/internal/common"
 	"github.com/terraform-providers/terraform-provider-ncloud/internal/conn"
 	"github.com/terraform-providers/terraform-provider-ncloud/internal/framework"
-	"github.com/terraform-providers/terraform-provider-ncloud/internal/service/vpc"
 	"github.com/terraform-providers/terraform-provider-ncloud/internal/verify"
 	"github.com/terraform-providers/terraform-provider-ncloud/internal/verify/verifybool"
 	"github.com/terraform-providers/terraform-provider-ncloud/internal/verify/verifyint64"
@@ -35,6 +34,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
+	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
 )
 
 const (
@@ -88,6 +88,7 @@ func (r *postgresqlResource) Metadata(_ context.Context, req resource.MetadataRe
 func (r *postgresqlResource) Schema(_ context.Context, _ resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = schema.Schema{
 		Attributes: map[string]schema.Attribute{
+			"id": framework.IDAttribute(),
 			"service_name": schema.StringAttribute{
 				Required: true,
 				PlanModifiers: []planmodifier.String{
@@ -111,48 +112,6 @@ func (r *postgresqlResource) Schema(_ context.Context, _ resource.SchemaRequest,
 					stringvalidator.RegexMatches(
 						regexp.MustCompile(`^[a-z]+[a-z0-9-]+[a-z0-9]$`),
 						"Composed of lowercase alphabets, numbers, hyphen (-). Must start with an alphabetic character, and the last character can only be an English letter or number.",
-					),
-				},
-			},
-			"id": framework.IDAttribute(),
-			"postgresql_instance_no": schema.StringAttribute{
-				Computed: true,
-			},
-			"database_name": schema.StringAttribute{
-				Required: true,
-				PlanModifiers: []planmodifier.String{
-					stringplanmodifier.RequiresReplace(),
-				},
-				Validators: []validator.String{
-					stringvalidator.LengthBetween(1, 30),
-					stringvalidator.RegexMatches(
-						regexp.MustCompile(`^[a-z]+[a-z0-9_]+$`),
-						"Composed of lowercase alphabets, numbers, underbar (_). Must start with an alphabetic character.",
-					),
-				},
-			},
-			"vpc_no": schema.StringAttribute{
-				Required: true,
-				PlanModifiers: []planmodifier.String{
-					stringplanmodifier.RequiresReplace(),
-				},
-			},
-			"subnet_no": schema.StringAttribute{
-				Required: true,
-				PlanModifiers: []planmodifier.String{
-					stringplanmodifier.RequiresReplace(),
-				},
-			},
-			"secondary_subnet_no": schema.StringAttribute{
-				Optional: true,
-				PlanModifiers: []planmodifier.String{
-					stringplanmodifier.RequiresReplace(),
-				},
-				Validators: []validator.String{
-					stringvalidator.All(
-						verifystring.RequiresIfTrue(path.Expressions{
-							path.MatchRoot("is_ha"),
-						}...),
 					),
 				},
 			},
@@ -186,12 +145,44 @@ func (r *postgresqlResource) Schema(_ context.Context, _ resource.SchemaRequest,
 				},
 				Sensitive: true,
 			},
+			"vpc_no": schema.StringAttribute{
+				Required: true,
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.RequiresReplace(),
+				},
+			},
+			"subnet_no": schema.StringAttribute{
+				Required: true,
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.RequiresReplace(),
+				},
+			},
+			"client_cidr": schema.StringAttribute{
+				Required: true,
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.RequiresReplace(),
+				},
+				Validators: verify.CidrBlockValidator(),
+			},
+			"database_name": schema.StringAttribute{
+				Required: true,
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.RequiresReplace(),
+				},
+				Validators: []validator.String{
+					stringvalidator.LengthBetween(1, 30),
+					stringvalidator.RegexMatches(
+						regexp.MustCompile(`^[a-z]+[a-z0-9_]+$`),
+						"Composed of lowercase alphabets, numbers, underbar (_). Must start with an alphabetic character.",
+					),
+				},
+			},
 			"image_product_code": schema.StringAttribute{
 				Optional: true,
 				Computed: true,
 				PlanModifiers: []planmodifier.String{
-					stringplanmodifier.UseStateForUnknown(),
 					stringplanmodifier.RequiresReplace(),
+					stringplanmodifier.UseStateForUnknown(),
 				},
 			},
 			"product_code": schema.StringAttribute{
@@ -200,28 +191,28 @@ func (r *postgresqlResource) Schema(_ context.Context, _ resource.SchemaRequest,
 					stringplanmodifier.RequiresReplace(),
 				},
 			},
-			"is_ha": schema.BoolAttribute{
+			"engine_version_code": schema.StringAttribute{
 				Optional: true,
 				Computed: true,
-				PlanModifiers: []planmodifier.Bool{
-					boolplanmodifier.RequiresReplace(),
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.RequiresReplace(),
+					stringplanmodifier.UseStateForUnknown(),
 				},
-				Default: booldefault.StaticBool(true),
 			},
-			"is_multi_zone": schema.BoolAttribute{
+			"data_storage_type": schema.StringAttribute{
 				Optional: true,
 				Computed: true,
-				PlanModifiers: []planmodifier.Bool{
-					boolplanmodifier.RequiresReplace(),
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.RequiresReplace(),
+					stringplanmodifier.UseStateForUnknown(),
 				},
-				Validators: []validator.Bool{
-					verifybool.RequiresIfTrue(path.Expressions{
-						path.MatchRoot("is_ha"),
-					}...),
+				Validators: []validator.String{
+					stringvalidator.OneOf([]string{"SSD", "HDD"}...),
 				},
-				Description: "default: false",
+				Description: "default: SSD",
 			},
-			"is_storage_encryption": schema.BoolAttribute{
+			// Available only `pub` and `fin` site. But GOV response message have both values.
+			"storage_encryption": schema.BoolAttribute{
 				Optional: true,
 				Computed: true,
 				PlanModifiers: []planmodifier.Bool{
@@ -230,7 +221,7 @@ func (r *postgresqlResource) Schema(_ context.Context, _ resource.SchemaRequest,
 				},
 				Description: "default: false",
 			},
-			"is_backup": schema.BoolAttribute{
+			"ha": schema.BoolAttribute{
 				Optional: true,
 				Computed: true,
 				PlanModifiers: []planmodifier.Bool{
@@ -238,19 +229,45 @@ func (r *postgresqlResource) Schema(_ context.Context, _ resource.SchemaRequest,
 				},
 				Default: booldefault.StaticBool(true),
 			},
-			"backup_time": schema.StringAttribute{
+			// Available only `pub` and `fin` site. But GOV response message have both values.
+			"multi_zone": schema.BoolAttribute{
 				Optional: true,
 				Computed: true,
+				PlanModifiers: []planmodifier.Bool{
+					boolplanmodifier.RequiresReplace(),
+					boolplanmodifier.UseStateForUnknown(),
+				},
+				Validators: []validator.Bool{
+					verifybool.RequiresIfTrue(path.Expressions{
+						path.MatchRoot("ha"),
+					}...),
+				},
+				Description: "default: false",
+			},
+			// Available only `pub` and `fin` site. All sites response message have neither values.
+			"secondary_subnet_no": schema.StringAttribute{
+				Optional: true,
 				PlanModifiers: []planmodifier.String{
-					stringplanmodifier.UseStateForUnknown(),
 					stringplanmodifier.RequiresReplace(),
 				},
 				Validators: []validator.String{
-					verifystring.RequiresIfTrue(path.Expressions{
-						path.MatchRoot("is_backup"),
-					}...),
+					stringvalidator.All(
+						verifystring.RequiresIfTrue(path.Expressions{
+							path.MatchRoot("ha"),
+						}...),
+						verifystring.RequiresIfTrue(path.Expressions{
+							path.MatchRoot("multi_zone"),
+						}...),
+					),
 				},
-				Description: "ex) 01:15",
+			},
+			"backup": schema.BoolAttribute{
+				Optional: true,
+				Computed: true,
+				PlanModifiers: []planmodifier.Bool{
+					boolplanmodifier.RequiresReplace(),
+				},
+				Default: booldefault.StaticBool(true),
 			},
 			"backup_file_retention_period": schema.Int64Attribute{
 				Optional: true,
@@ -263,46 +280,59 @@ func (r *postgresqlResource) Schema(_ context.Context, _ resource.SchemaRequest,
 					int64validator.All(
 						int64validator.Between(1, 30),
 						verifyint64.RequiresIfTrue(path.Expressions{
-							path.MatchRoot("is_backup"),
+							path.MatchRoot("backup"),
 						}...),
 					),
 				},
 			},
+			"backup_time": schema.StringAttribute{
+				Optional: true,
+				Computed: true,
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.UseStateForUnknown(),
+					stringplanmodifier.RequiresReplace(),
+				},
+				Validators: []validator.String{
+					verifystring.RequiresIfTrue(path.Expressions{
+						path.MatchRoot("backup"),
+					}...),
+				},
+				Description: "ex) 01:15",
+			},
 			"backup_file_storage_count": schema.Int64Attribute{
 				Optional: true,
 				PlanModifiers: []planmodifier.Int64{
-					int64planmodifier.UseStateForUnknown(),
 					int64planmodifier.RequiresReplace(),
 				},
 				Validators: []validator.Int64{
 					int64validator.All(
 						int64validator.Between(1, 30),
 						verifyint64.RequiresIfTrue(path.Expressions{
-							path.MatchRoot("is_backup"),
+							path.MatchRoot("backup"),
 						}...),
 					),
 				},
 			},
-			"is_backup_file_compression": schema.BoolAttribute{
+			"backup_file_compression": schema.BoolAttribute{
 				Optional: true,
 				PlanModifiers: []planmodifier.Bool{
 					boolplanmodifier.RequiresReplace(),
 				},
 				Validators: []validator.Bool{
 					verifybool.RequiresIfTrue(path.Expressions{
-						path.MatchRoot("is_backup"),
+						path.MatchRoot("backup"),
 					}...),
 				},
 				Description: "default: true",
 			},
-			"is_automatic_backup": schema.BoolAttribute{
+			"automatic_backup": schema.BoolAttribute{
 				Optional: true,
 				PlanModifiers: []planmodifier.Bool{
 					boolplanmodifier.RequiresReplace(),
 				},
 				Validators: []validator.Bool{
 					verifybool.RequiresIfTrue(path.Expressions{
-						path.MatchRoot("is_backup"),
+						path.MatchRoot("backup"),
 					}...),
 				},
 				Description: "default: true",
@@ -322,29 +352,16 @@ func (r *postgresqlResource) Schema(_ context.Context, _ resource.SchemaRequest,
 				},
 				Description: "default: 5432",
 			},
-			"client_cidr": schema.StringAttribute{
-				Required: true,
-				PlanModifiers: []planmodifier.String{
-					stringplanmodifier.RequiresReplace(),
-				},
-				Validators: verify.CidrBlockValidator(),
-			},
-			"data_storage_type_code": schema.StringAttribute{
-				Optional: true,
-				PlanModifiers: []planmodifier.String{
-					stringplanmodifier.UseStateForUnknown(),
-					stringplanmodifier.RequiresReplace(),
-				},
-				Validators: []validator.String{
-					stringvalidator.OneOf([]string{"SSD", "HDD"}...),
-				},
-				Description: "default: SSD",
-			},
-			"engine_version_code": schema.StringAttribute{
-				Optional: true,
+			"region_code": schema.StringAttribute{
 				Computed: true,
 				PlanModifiers: []planmodifier.String{
-					stringplanmodifier.RequiresReplace(),
+					stringplanmodifier.UseStateForUnknown(),
+				},
+			},
+			"generation_code": schema.StringAttribute{
+				Computed: true,
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.UseStateForUnknown(),
 				},
 			},
 			"access_control_group_no_list": schema.ListAttribute{
@@ -371,7 +388,13 @@ func (r *postgresqlResource) Schema(_ context.Context, _ resource.SchemaRequest,
 						"product_code": schema.StringAttribute{
 							Computed: true,
 						},
-						"is_public_subnet": schema.BoolAttribute{
+						"zone_code": schema.StringAttribute{
+							Computed: true,
+						},
+						"subnet_no": schema.StringAttribute{
+							Computed: true,
+						},
+						"public_subnet": schema.BoolAttribute{
 							Computed: true,
 						},
 						"public_domain": schema.StringAttribute{
@@ -389,10 +412,10 @@ func (r *postgresqlResource) Schema(_ context.Context, _ resource.SchemaRequest,
 						"used_data_storage_size": schema.Int64Attribute{
 							Computed: true,
 						},
-						"memory_size": schema.Int64Attribute{
+						"cpu_count": schema.Int64Attribute{
 							Computed: true,
 						},
-						"cpu_count": schema.Int64Attribute{
+						"memory_size": schema.Int64Attribute{
 							Computed: true,
 						},
 						"uptime": schema.StringAttribute{
@@ -424,113 +447,99 @@ func (r *postgresqlResource) Create(ctx context.Context, req resource.CreateRequ
 		return
 	}
 
-	subnet, err := vpc.GetSubnetInstance(r.config, plan.SubnetNo.ValueString())
-	if err != nil {
-		resp.Diagnostics.AddError(
-			"CREATING ERROR",
-			err.Error(),
-		)
-	}
-
 	reqParams := &vpostgresql.CreateCloudPostgresqlInstanceRequest{
 		RegionCode:                      &r.config.RegionCode,
 		CloudPostgresqlServiceName:      plan.ServiceName.ValueStringPointer(),
 		CloudPostgresqlServerNamePrefix: plan.ServerNamePrefix.ValueStringPointer(),
 		CloudPostgresqlUserName:         plan.UserName.ValueStringPointer(),
 		CloudPostgresqlUserPassword:     plan.UserPassword.ValueStringPointer(),
-		CloudPostgresqlDatabaseName:     plan.DatabaseName.ValueStringPointer(),
+		VpcNo:                           plan.VpcNo.ValueStringPointer(),
+		SubnetNo:                        plan.SubnetNo.ValueStringPointer(),
 		ClientCidr:                      plan.ClientCidr.ValueStringPointer(),
-		VpcNo:                           subnet.VpcNo,
-		SubnetNo:                        subnet.SubnetNo,
+		CloudPostgresqlDatabaseName:     plan.DatabaseName.ValueStringPointer(),
 	}
-	plan.VpcNo = types.StringPointerValue(subnet.VpcNo)
 
-	if !plan.Port.IsNull() && !plan.Port.IsUnknown() {
-		reqParams.CloudPostgresqlPort = ncloud.Int32(int32(plan.Port.ValueInt64()))
+	if !plan.ImageProductCode.IsNull() && !plan.ImageProductCode.IsUnknown() {
+		reqParams.CloudPostgresqlImageProductCode = plan.ImageProductCode.ValueStringPointer()
 	}
 
 	if !plan.ProductCode.IsNull() {
 		reqParams.CloudPostgresqlProductCode = plan.ProductCode.ValueStringPointer()
 	}
 
-	if !plan.ImageProductCode.IsNull() {
-		reqParams.CloudPostgresqlImageProductCode = plan.ImageProductCode.ValueStringPointer()
-	}
-
-	if !plan.EngineVersionCode.IsNull() {
+	if !plan.EngineVersionCode.IsNull() && !plan.EngineVersionCode.IsUnknown() {
 		reqParams.EngineVersionCode = plan.EngineVersionCode.ValueStringPointer()
 	}
 
-	if !plan.DataStorageTypeCode.IsNull() {
-		reqParams.DataStorageTypeCode = plan.DataStorageTypeCode.ValueStringPointer()
+	if !plan.DataStorageType.IsNull() && !plan.DataStorageType.IsUnknown() {
+		reqParams.DataStorageTypeCode = plan.DataStorageType.ValueStringPointer()
 	}
 
-	if !plan.IsStorageEncryption.IsNull() && !plan.IsStorageEncryption.IsUnknown() {
-		reqParams.IsStorageEncryption = plan.IsStorageEncryption.ValueBoolPointer()
-	}
-
-	if !plan.IsHa.IsNull() && !plan.IsHa.IsUnknown() {
-		reqParams.IsHa = plan.IsHa.ValueBoolPointer()
-		if plan.IsHa.ValueBool() {
-			if !plan.IsMultiZone.IsNull() && !plan.IsMultiZone.IsUnknown() {
-				reqParams.IsMultiZone = plan.IsMultiZone.ValueBoolPointer()
-			}
-			if !plan.IsBackup.IsNull() && !plan.IsBackup.IsUnknown() && !plan.IsBackup.ValueBool() {
-				resp.Diagnostics.AddError(
-					"CREATING ERROR",
-					"when `is_ha` is true, `is_backup` must be true or not be input",
-				)
-				return
-			}
-
-		} else {
-			if !plan.IsMultiZone.IsNull() && !plan.IsMultiZone.IsUnknown() {
-				resp.Diagnostics.AddError(
-					"CREATING ERROR",
-					"when `is_ha` is false, `is_multi_zone` parameter is not used",
-				)
-				return
-			}
-			if !plan.IsBackup.IsNull() && !plan.IsBackup.IsUnknown() {
-				reqParams.IsBackup = plan.IsBackup.ValueBoolPointer()
-			}
-			if !plan.SecondarySubnetNo.IsNull() && !plan.SecondarySubnetNo.IsUnknown() {
-				resp.Diagnostics.AddError(
-					"CREATING ERROR",
-					"when `is_ha` is false, `secondary_subnet_no` is not used",
-				)
-				return
-			}
-		}
-	}
-
-	if plan.IsMultiZone.ValueBool() {
-		if plan.SecondarySubnetNo.IsNull() || plan.SecondarySubnetNo.IsUnknown() {
+	if !plan.StorageEncryption.IsNull() && !plan.StorageEncryption.IsUnknown() {
+		if r.config.Site == "gov" {
 			resp.Diagnostics.AddError(
-				"CREATING ERROR",
-				"when `is_multi_zone` is true, `secondary_subnet_no` must be entered",
+				"NOT SUPPORT GOV SITE",
+				"`storage_encryption` does not support gov site",
 			)
 			return
 		}
-		reqParams.SecondarySubnetNo = plan.SecondarySubnetNo.ValueStringPointer()
-	} else if !plan.SecondarySubnetNo.IsNull() && !plan.SecondarySubnetNo.IsUnknown() {
-		resp.Diagnostics.AddError(
-			"CREATING ERROR",
-			"when `is_multi_zone` is false, `secondary_subnet_no` is not used",
-		)
-		return
+		reqParams.IsStorageEncryption = plan.StorageEncryption.ValueBoolPointer()
+	}
+
+	if !plan.Port.IsNull() && !plan.Port.IsUnknown() {
+		reqParams.CloudPostgresqlPort = ncloud.Int32(int32(plan.Port.ValueInt64()))
+	}
+
+	if !plan.Ha.IsNull() && !plan.Ha.IsUnknown() {
+		reqParams.IsHa = plan.Ha.ValueBoolPointer()
+	}
+
+	if !plan.MultiZone.IsNull() && !plan.MultiZone.IsUnknown() {
+		if r.config.Site == "gov" {
+			resp.Diagnostics.AddError(
+				"NOT SUPPORT GOV SITE",
+				"`multi_zone` does not support gov site",
+			)
+			return
+		}
+		reqParams.IsMultiZone = plan.MultiZone.ValueBoolPointer()
+	}
+
+	if !plan.Backup.IsNull() && !plan.Backup.IsUnknown() {
+		reqParams.IsBackup = plan.Backup.ValueBoolPointer()
+	}
+
+	if plan.Ha.ValueBool() {
+		if !plan.Backup.IsNull() && !plan.Backup.IsUnknown() && !plan.Backup.ValueBool() {
+			resp.Diagnostics.AddError(
+				"CREATING ERROR",
+				"when `ha` is true, `backup` must be true or not be input",
+			)
+			return
+		}
+
+		if plan.MultiZone.ValueBool() {
+			if plan.SecondarySubnetNo.IsNull() || plan.SecondarySubnetNo.IsUnknown() {
+				resp.Diagnostics.AddError(
+					"CREATING ERROR",
+					"when `multi_zone` is true, `secondary_subnet_no` must be entered",
+				)
+				return
+			}
+			reqParams.SecondarySubnetNo = plan.SecondarySubnetNo.ValueStringPointer()
+		}
 	}
 
 	if !plan.BackupFileRetentionPeriod.IsNull() && !plan.BackupFileRetentionPeriod.IsUnknown() {
 		reqParams.BackupFileRetentionPeriod = ncloud.Int32(int32(plan.BackupFileRetentionPeriod.ValueInt64()))
 	}
 
-	if !plan.IsAutomaticBackup.IsNull() && !plan.IsAutomaticBackup.IsUnknown() {
-		reqParams.IsAutomaticBackup = plan.IsAutomaticBackup.ValueBoolPointer()
+	if !plan.AutomaticBackup.IsNull() && !plan.AutomaticBackup.IsUnknown() {
+		reqParams.IsAutomaticBackup = plan.AutomaticBackup.ValueBoolPointer()
 	}
 
-	if !plan.IsBackupFileCompression.IsNull() && !plan.IsBackupFileCompression.IsUnknown() {
-		reqParams.IsBackupFileCompression = plan.IsBackupFileCompression.ValueBoolPointer()
+	if !plan.BackupFileCompression.IsNull() && !plan.BackupFileCompression.IsUnknown() {
+		reqParams.IsBackupFileCompression = plan.BackupFileCompression.ValueBoolPointer()
 	}
 
 	if !plan.BackupFileStorageCount.IsNull() && !plan.BackupFileStorageCount.IsUnknown() {
@@ -542,7 +551,7 @@ func (r *postgresqlResource) Create(ctx context.Context, req resource.CreateRequ
 			if !plan.BackupTime.IsNull() && !plan.BackupTime.IsUnknown() {
 				resp.Diagnostics.AddError(
 					"CREATING ERROR",
-					"when `is_backup` is true and `is_automactic_backup` is true, `backup_time` is not used",
+					"when `backup` and `automatic_backup` is true, `backup_time` must not be entered",
 				)
 				return
 			}
@@ -550,20 +559,11 @@ func (r *postgresqlResource) Create(ctx context.Context, req resource.CreateRequ
 			if plan.BackupTime.IsNull() || plan.BackupTime.IsUnknown() {
 				resp.Diagnostics.AddError(
 					"CREATING ERROR",
-					"when `is_backup` is true and `is_automactic_backup` is false, `backup_time` must be entered",
+					"when `backup` is true and `automatic_backup` is false, `backup_time` must be entered",
 				)
 				return
 			}
 			reqParams.BackupTime = plan.BackupTime.ValueStringPointer()
-		}
-	} else {
-		backupTimeHasValue := !plan.BackupTime.IsNull() && !plan.BackupTime.IsUnknown()
-		if reqParams.IsAutomaticBackup != nil || backupTimeHasValue {
-			resp.Diagnostics.AddError(
-				"CREATING ERROR",
-				"`is_automatic_backup` or `backup_time` should not be specified when `is_backup` has enabled",
-			)
-			return
 		}
 	}
 
@@ -670,6 +670,7 @@ func GetPostgresqlInstance(ctx context.Context, config *conn.ProviderConfig, no 
 	tflog.Info(ctx, "GetPostgresqlDetail reqParams="+common.MarshalUncheckedString(reqParams))
 
 	resp, err := config.Client.Vpostgresql.V2Api.GetCloudPostgresqlInstanceDetail(reqParams)
+	// If the lookup result is 0 or already deleted, it will respond with a 400 error with a 5001017 return code.
 	if err != nil && !(strings.Contains(err.Error(), `"returnCode": "5001017"`)) {
 		return nil, err
 	}
@@ -692,6 +693,10 @@ func WaitPostgresqlCreation(ctx context.Context, config *conn.ProviderConfig, id
 			postgresqlInstance = instance
 			if err != nil {
 				return 0, "", err
+			}
+
+			if instance == nil {
+				return 0, "", fmt.Errorf("Instance is nil")
 			}
 
 			status := instance.CloudPostgresqlInstanceStatus.Code
@@ -738,18 +743,14 @@ func waitPostgresqlDeletion(ctx context.Context, config *conn.ProviderConfig, id
 			}
 
 			status := instance.CloudPostgresqlInstanceStatusName
-			if *status == DELETING {
+			if *status == DELETING || *status == DELETED {
 				return instance, DELETING, nil
-			}
-
-			if *status == DELETED {
-				return instance, DELETED, nil
 			}
 
 			return 0, "", fmt.Errorf("error occurred while waiting to delete postgresql")
 		},
-		Timeout:    conn.DefaultTimeout,
-		Delay:      2 * time.Minute,
+		Timeout:    2 * conn.DefaultTimeout,
+		Delay:      5 * time.Second,
 		MinTimeout: 3 * time.Second,
 	}
 
@@ -762,30 +763,31 @@ func waitPostgresqlDeletion(ctx context.Context, config *conn.ProviderConfig, id
 
 type postgresqlResourceModel struct {
 	ID                        types.String `tfsdk:"id"`
-	PostgresqlInstanceNo      types.String `tfsdk:"postgresql_instance_no"`
 	ServiceName               types.String `tfsdk:"service_name"`
 	ServerNamePrefix          types.String `tfsdk:"server_name_prefix"`
-	DatabaseName              types.String `tfsdk:"database_name"`
-	VpcNo                     types.String `tfsdk:"vpc_no"`
-	SubnetNo                  types.String `tfsdk:"subnet_no"`
-	ImageProductCode          types.String `tfsdk:"image_product_code"`
-	ProductCode               types.String `tfsdk:"product_code"`
-	SecondarySubnetNo         types.String `tfsdk:"secondary_subnet_no"`
 	UserName                  types.String `tfsdk:"user_name"`
 	UserPassword              types.String `tfsdk:"user_password"`
-	IsMultiZone               types.Bool   `tfsdk:"is_multi_zone"`
-	IsHa                      types.Bool   `tfsdk:"is_ha"`
-	IsStorageEncryption       types.Bool   `tfsdk:"is_storage_encryption"`
-	IsBackup                  types.Bool   `tfsdk:"is_backup"`
+	VpcNo                     types.String `tfsdk:"vpc_no"`
+	SubnetNo                  types.String `tfsdk:"subnet_no"`
+	ClientCidr                types.String `tfsdk:"client_cidr"`
+	DatabaseName              types.String `tfsdk:"database_name"`
+	ImageProductCode          types.String `tfsdk:"image_product_code"`
+	ProductCode               types.String `tfsdk:"product_code"`
+	EngineVersionCode         types.String `tfsdk:"engine_version_code"`
+	DataStorageType           types.String `tfsdk:"data_storage_type"`
+	StorageEncryption         types.Bool   `tfsdk:"storage_encryption"`
+	Ha                        types.Bool   `tfsdk:"ha"`
+	MultiZone                 types.Bool   `tfsdk:"multi_zone"`
+	SecondarySubnetNo         types.String `tfsdk:"secondary_subnet_no"`
+	Backup                    types.Bool   `tfsdk:"backup"`
+	BackupFileRetentionPeriod types.Int64  `tfsdk:"backup_file_retention_period"`
 	BackupTime                types.String `tfsdk:"backup_time"`
 	BackupFileStorageCount    types.Int64  `tfsdk:"backup_file_storage_count"`
-	BackupFileRetentionPeriod types.Int64  `tfsdk:"backup_file_retention_period"`
-	IsBackupFileCompression   types.Bool   `tfsdk:"is_backup_file_compression"`
-	IsAutomaticBackup         types.Bool   `tfsdk:"is_automatic_backup"`
+	BackupFileCompression     types.Bool   `tfsdk:"backup_file_compression"`
+	AutomaticBackup           types.Bool   `tfsdk:"automatic_backup"`
 	Port                      types.Int64  `tfsdk:"port"`
-	ClientCidr                types.String `tfsdk:"client_cidr"`
-	DataStorageTypeCode       types.String `tfsdk:"data_storage_type_code"`
-	EngineVersionCode         types.String `tfsdk:"engine_version_code"`
+	RegionCode                types.String `tfsdk:"region_code"`
+	GenerationCode            types.String `tfsdk:"generation_code"`
 	AccessControlGroupNoList  types.List   `tfsdk:"access_control_group_no_list"`
 	PostgresqlConfigList      types.List   `tfsdk:"postgresql_config_list"`
 	PostgresqlServerList      types.List   `tfsdk:"postgresql_server_list"`
@@ -795,15 +797,17 @@ type postgresqlServer struct {
 	ServerInstanceNo    types.String `tfsdk:"server_instance_no"`
 	ServerName          types.String `tfsdk:"server_name"`
 	ServerRole          types.String `tfsdk:"server_role"`
-	IsPublicSubnet      types.Bool   `tfsdk:"is_public_subnet"`
+	ProductCode         types.String `tfsdk:"product_code"`
+	ZoneCode            types.String `tfsdk:"zone_code"`
+	SubnetNo            types.String `tfsdk:"subnet_no"`
+	PublicSubnet        types.Bool   `tfsdk:"public_subnet"`
 	PublicDomain        types.String `tfsdk:"public_domain"`
 	PrivateDomain       types.String `tfsdk:"private_domain"`
 	PrivateIp           types.String `tfsdk:"private_ip"`
-	ProductCode         types.String `tfsdk:"product_code"`
 	DataStorageSize     types.Int64  `tfsdk:"data_storage_size"`
 	UsedDataStorageSize types.Int64  `tfsdk:"used_data_storage_size"`
-	MemorySize          types.Int64  `tfsdk:"memory_size"`
 	CpuCount            types.Int64  `tfsdk:"cpu_count"`
+	MemorySize          types.Int64  `tfsdk:"memory_size"`
 	Uptime              types.String `tfsdk:"uptime"`
 	CreateDate          types.String `tfsdk:"create_date"`
 }
@@ -813,15 +817,17 @@ func (r postgresqlServer) attrTypes() map[string]attr.Type {
 		"server_instance_no":     types.StringType,
 		"server_name":            types.StringType,
 		"server_role":            types.StringType,
-		"is_public_subnet":       types.BoolType,
+		"product_code":           types.StringType,
+		"zone_code":              types.StringType,
+		"subnet_no":              types.StringType,
+		"public_subnet":          types.BoolType,
 		"public_domain":          types.StringType,
 		"private_domain":         types.StringType,
 		"private_ip":             types.StringType,
-		"product_code":           types.StringType,
 		"data_storage_size":      types.Int64Type,
 		"used_data_storage_size": types.Int64Type,
-		"memory_size":            types.Int64Type,
 		"cpu_count":              types.Int64Type,
+		"memory_size":            types.Int64Type,
 		"uptime":                 types.StringType,
 		"create_date":            types.StringType,
 	}
@@ -829,19 +835,20 @@ func (r postgresqlServer) attrTypes() map[string]attr.Type {
 
 func (r *postgresqlResourceModel) refreshFromOutput(ctx context.Context, output *vpostgresql.CloudPostgresqlInstance) diag.Diagnostics {
 	r.ID = types.StringPointerValue(output.CloudPostgresqlInstanceNo)
-	r.PostgresqlInstanceNo = types.StringPointerValue(output.CloudPostgresqlInstanceNo)
 	r.ServiceName = types.StringPointerValue(output.CloudPostgresqlServiceName)
-	r.ImageProductCode = types.StringPointerValue(output.CloudPostgresqlImageProductCode)
 	r.VpcNo = types.StringPointerValue(output.CloudPostgresqlServerInstanceList[0].VpcNo)
-	r.SubnetNo = types.StringPointerValue(output.CloudPostgresqlServerInstanceList[0].SubnetNo)
-	r.IsMultiZone = types.BoolPointerValue(output.IsMultiZone)
-	r.IsHa = types.BoolPointerValue(output.IsHa)
-	r.IsBackup = types.BoolPointerValue(output.IsBackup)
-	r.Port = common.Int64ValueFromInt32(output.CloudPostgresqlPort)
-	r.BackupTime = types.StringPointerValue(output.BackupTime)
-	r.BackupFileRetentionPeriod = common.Int64ValueFromInt32(output.BackupFileRetentionPeriod)
-	r.IsStorageEncryption = types.BoolPointerValue(output.CloudPostgresqlServerInstanceList[0].IsStorageEncryption)
+	r.ImageProductCode = types.StringPointerValue(output.CloudPostgresqlImageProductCode)
 	r.EngineVersionCode = types.StringValue(common.ExtractEngineVersion(*output.EngineVersion))
+	r.DataStorageType = types.StringPointerValue(common.GetCodePtrByCommonCode(output.CloudPostgresqlServerInstanceList[0].DataStorageType))
+	r.StorageEncryption = types.BoolPointerValue(output.CloudPostgresqlServerInstanceList[0].IsStorageEncryption)
+	r.Ha = types.BoolPointerValue(output.IsHa)
+	r.MultiZone = types.BoolPointerValue(output.IsMultiZone)
+	r.Backup = types.BoolPointerValue(output.IsBackup)
+	r.BackupFileRetentionPeriod = common.Int64ValueFromInt32(output.BackupFileRetentionPeriod)
+	r.BackupTime = types.StringPointerValue(output.BackupTime)
+	r.Port = common.Int64ValueFromInt32(output.CloudPostgresqlPort)
+	r.RegionCode = types.StringPointerValue(output.CloudPostgresqlServerInstanceList[0].RegionCode)
+	r.GenerationCode = types.StringPointerValue(output.GenerationCode)
 
 	acgList, diags := types.ListValueFrom(ctx, types.StringType, output.AccessControlGroupNoList)
 	if diags.HasError() {
@@ -854,39 +861,35 @@ func (r *postgresqlResourceModel) refreshFromOutput(ctx context.Context, output 
 	}
 	r.PostgresqlConfigList = configList
 
+	r.PostgresqlServerList, diags = listValueFromPostgresqlServerInatanceList(ctx, output.CloudPostgresqlServerInstanceList)
+
+	return diags
+}
+
+func listValueFromPostgresqlServerInatanceList(ctx context.Context, serverInatances []*vpostgresql.CloudPostgresqlServerInstance) (basetypes.ListValue, diag.Diagnostics) {
 	var serverList []postgresqlServer
-	for _, server := range output.CloudPostgresqlServerInstanceList {
+	for _, server := range serverInatances {
 		postgresqlServerInstance := postgresqlServer{
-			ServerInstanceNo: types.StringPointerValue(server.CloudPostgresqlServerInstanceNo),
-			ServerName:       types.StringPointerValue(server.CloudPostgresqlServerName),
-			ServerRole:       types.StringPointerValue(server.CloudPostgresqlServerRole.Code),
-			IsPublicSubnet:   types.BoolPointerValue(server.IsPublicSubnet),
-			PublicDomain:     types.StringPointerValue(server.PublicDomain),
-			PrivateIp:        types.StringPointerValue(server.PrivateIp),
-			DataStorageSize:  types.Int64PointerValue(server.DataStorageSize),
-			ProductCode:      types.StringPointerValue(server.CloudPostgresqlProductCode),
-			MemorySize:       types.Int64PointerValue(server.MemorySize),
-			CpuCount:         common.Int64ValueFromInt32(server.CpuCount),
-			Uptime:           types.StringPointerValue(server.Uptime),
-			CreateDate:       types.StringPointerValue(server.CreateDate),
+			ServerInstanceNo:    types.StringPointerValue(server.CloudPostgresqlServerInstanceNo),
+			ServerName:          types.StringPointerValue(server.CloudPostgresqlServerName),
+			ServerRole:          types.StringPointerValue(common.GetCodePtrByCommonCode(server.CloudPostgresqlServerRole)),
+			ProductCode:         types.StringPointerValue(server.CloudPostgresqlProductCode),
+			ZoneCode:            types.StringPointerValue(server.ZoneCode),
+			SubnetNo:            types.StringPointerValue(server.SubnetNo),
+			PublicSubnet:        types.BoolPointerValue(server.IsPublicSubnet),
+			PublicDomain:        types.StringPointerValue(server.PublicDomain),
+			PrivateDomain:       types.StringPointerValue(server.PrivateDomain),
+			PrivateIp:           types.StringPointerValue(server.PrivateIp),
+			DataStorageSize:     types.Int64PointerValue(server.DataStorageSize),
+			UsedDataStorageSize: types.Int64PointerValue(server.UsedDataStorageSize),
+			CpuCount:            common.Int64ValueFromInt32(server.CpuCount),
+			MemorySize:          types.Int64PointerValue(server.MemorySize),
+			Uptime:              types.StringPointerValue(server.Uptime),
+			CreateDate:          types.StringPointerValue(server.CreateDate),
 		}
 
-		if server.PublicDomain != nil {
-			postgresqlServerInstance.PublicDomain = types.StringPointerValue(server.PublicDomain)
-		}
-
-		if server.UsedDataStorageSize != nil {
-			postgresqlServerInstance.UsedDataStorageSize = types.Int64PointerValue(server.UsedDataStorageSize)
-		}
 		serverList = append(serverList, postgresqlServerInstance)
 	}
 
-	postgresqlServers, diags := types.ListValueFrom(ctx, types.ObjectType{AttrTypes: postgresqlServer{}.attrTypes()}, serverList)
-	if diags.HasError() {
-		return diags
-	}
-
-	r.PostgresqlServerList = postgresqlServers
-
-	return nil
+	return types.ListValueFrom(ctx, types.ObjectType{AttrTypes: postgresqlServer{}.attrTypes()}, serverList)
 }
