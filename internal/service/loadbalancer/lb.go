@@ -123,7 +123,7 @@ func (l *lbResource) Schema(ctx context.Context, req resource.SchemaRequest, res
 				Optional: true,
 				Computed: true,
 				Validators: []validator.String{
-					stringvalidator.OneOf("SMALL", "MEDIUM", "LARGE", "DYNAMIC"),
+					stringvalidator.OneOf("SMALL", "MEDIUM", "LARGE", "DYNAMIC", "XLARGE"),
 				},
 				PlanModifiers: []planmodifier.String{
 					stringplanmodifier.UseStateForUnknown(),
