@@ -58,11 +58,11 @@ func (r *lbResource) ImportState(ctx context.Context, req resource.ImportStateRe
 	resource.ImportStatePassthroughID(ctx, path.Root("load_balancer_no"), req, resp)
 }
 
-func (l *lbResource) Metadata(ctx context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
+func (r *lbResource) Metadata(ctx context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
 	resp.TypeName = req.ProviderTypeName + "_lb"
 }
 
-func (l *lbResource) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
+func (r *lbResource) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = schema.Schema{
 		Attributes: map[string]schema.Attribute{
 			"load_balancer_no": schema.StringAttribute{
@@ -167,18 +167,18 @@ func (l *lbResource) Schema(ctx context.Context, req resource.SchemaRequest, res
 	}
 }
 
-func (l *lbResource) Configure(_ context.Context, req resource.ConfigureRequest, _ *resource.ConfigureResponse) {
+func (r *lbResource) Configure(_ context.Context, req resource.ConfigureRequest, _ *resource.ConfigureResponse) {
 	if req.ProviderData == nil {
 		return
 	}
 
-	l.config = req.ProviderData.(*conn.ProviderConfig)
+	r.config = req.ProviderData.(*conn.ProviderConfig)
 }
 
-func (l *lbResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
+func (r *lbResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
 	var plan lbResourceModel
 
-	if !l.config.SupportVPC {
+	if !r.config.SupportVPC {
 		resp.Diagnostics.AddError(
 			"NOT SUPPORT CLASSIC",
 			"The `ncloud_lb` resource is not supported in Classic environment",
@@ -213,7 +213,7 @@ func (l *lbResource) Create(ctx context.Context, req resource.CreateRequest, res
 	}
 
 	reqParams := &vloadbalancer.CreateLoadBalancerInstanceRequest{
-		RegionCode: &l.config.RegionCode,
+		RegionCode: &r.config.RegionCode,
 		// Optional
 		LoadBalancerDescription:     plan.Description.ValueStringPointer(),
 		LoadBalancerNetworkTypeCode: plan.NetworkType.ValueStringPointer(),
@@ -239,7 +239,7 @@ func (l *lbResource) Create(ctx context.Context, req resource.CreateRequest, res
 	vpcNoMap := make(map[string]int)
 	subnetList := make([]*vpc.Subnet, 0)
 	for _, subnetNo := range reqParams.SubnetNoList {
-		subnet, err := vpcservice.GetSubnetInstance(l.config, *subnetNo)
+		subnet, err := vpcservice.GetSubnetInstance(r.config, *subnetNo)
 		if err != nil {
 			resp.Diagnostics.AddError(
 				"Error retrieving subnet instance",
@@ -269,7 +269,7 @@ func (l *lbResource) Create(ctx context.Context, req resource.CreateRequest, res
 	reqParams.VpcNo = subnetList[0].VpcNo
 
 	LogCommonRequest("createLoadBalancerInstance", reqParams)
-	createResp, err := l.config.Client.Vloadbalancer.V2Api.CreateLoadBalancerInstance(reqParams)
+	createResp, err := r.config.Client.Vloadbalancer.V2Api.CreateLoadBalancerInstance(reqParams)
 	if err != nil {
 		LogErrorResponse("createLoadBalancerInstance", err, reqParams)
 		resp.Diagnostics.AddError(
@@ -280,7 +280,7 @@ func (l *lbResource) Create(ctx context.Context, req resource.CreateRequest, res
 	}
 	LogResponse("createLoadBalancerInstance", createResp)
 
-	if err := waitForLoadBalancerActive(ctx, l.config, ncloud.StringValue(createResp.LoadBalancerInstanceList[0].LoadBalancerInstanceNo)); err != nil {
+	if err := waitForLoadBalancerActive(ctx, r.config, ncloud.StringValue(createResp.LoadBalancerInstanceList[0].LoadBalancerInstanceNo)); err != nil {
 		resp.Diagnostics.AddError(
 			"Error waiting for load balancer to become active",
 			err.Error(),
@@ -288,7 +288,7 @@ func (l *lbResource) Create(ctx context.Context, req resource.CreateRequest, res
 		return
 	}
 
-	output, err := GetFwVpcLoadBalancer(ctx, l.config, ncloud.StringValue(createResp.LoadBalancerInstanceList[0].LoadBalancerInstanceNo))
+	output, err := GetFwVpcLoadBalancer(ctx, r.config, ncloud.StringValue(createResp.LoadBalancerInstanceList[0].LoadBalancerInstanceNo))
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error retrieving created load balancer instance",
@@ -310,7 +310,7 @@ func (l *lbResource) Create(ctx context.Context, req resource.CreateRequest, res
 
 }
 
-func (l *lbResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
+func (r *lbResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
 	var state lbResourceModel
 
 	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
@@ -318,7 +318,7 @@ func (l *lbResource) Read(ctx context.Context, req resource.ReadRequest, resp *r
 		return
 	}
 
-	output, err := GetFwVpcLoadBalancer(ctx, l.config, state.LoadBalancerNo.ValueString())
+	output, err := GetFwVpcLoadBalancer(ctx, r.config, state.LoadBalancerNo.ValueString())
 	if err != nil {
 		resp.Diagnostics.AddError("READING ERROR", err.Error())
 		return
@@ -344,11 +344,11 @@ func (l *lbResource) Read(ctx context.Context, req resource.ReadRequest, resp *r
 
 }
 
-func (l *lbResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
+func (r *lbResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
 
 	var plan, state lbResourceModel
 
-	if !l.config.SupportVPC {
+	if !r.config.SupportVPC {
 		resp.Diagnostics.AddError(
 			"NOT SUPPORT CLASSIC",
 			"The `ncloud_lb` resource is not supported in Classic environment",
@@ -377,7 +377,7 @@ func (l *lbResource) Update(ctx context.Context, req resource.UpdateRequest, res
 		!plan.ThroughputType.Equal(state.ThroughputType) ||
 		!plan.Description.Equal(state.Description) {
 
-		if err := waitForLoadBalancerActive(ctx, l.config, state.LoadBalancerNo.ValueString()); err != nil {
+		if err := waitForLoadBalancerActive(ctx, r.config, state.LoadBalancerNo.ValueString()); err != nil {
 			resp.Diagnostics.AddError(
 				"Failed to wait for load balancer to become active",
 				fmt.Sprintf("Error: %s", err),
@@ -387,8 +387,8 @@ func (l *lbResource) Update(ctx context.Context, req resource.UpdateRequest, res
 
 		var err error
 		if !plan.IdleTimeout.Equal(state.IdleTimeout) || !plan.ThroughputType.Equal(state.ThroughputType) {
-			_, err = l.config.Client.Vloadbalancer.V2Api.ChangeLoadBalancerInstanceConfiguration(&vloadbalancer.ChangeLoadBalancerInstanceConfigurationRequest{
-				RegionCode:             &l.config.RegionCode,
+			_, err = r.config.Client.Vloadbalancer.V2Api.ChangeLoadBalancerInstanceConfiguration(&vloadbalancer.ChangeLoadBalancerInstanceConfigurationRequest{
+				RegionCode:             &r.config.RegionCode,
 				LoadBalancerInstanceNo: ncloud.String(state.LoadBalancerNo.ValueString()),
 				IdleTimeout:            plan.IdleTimeout.ValueInt32Pointer(),
 				ThroughputTypeCode:     plan.ThroughputType.ValueStringPointer(),
@@ -404,7 +404,7 @@ func (l *lbResource) Update(ctx context.Context, req resource.UpdateRequest, res
 			state.ThroughputType = plan.ThroughputType
 		}
 
-		if err := waitForLoadBalancerActive(ctx, l.config, state.LoadBalancerNo.ValueString()); err != nil {
+		if err := waitForLoadBalancerActive(ctx, r.config, state.LoadBalancerNo.ValueString()); err != nil {
 			resp.Diagnostics.AddError(
 				"Failed to wait for load balancer to become active",
 				fmt.Sprintf("Error: %s", err),
@@ -413,8 +413,8 @@ func (l *lbResource) Update(ctx context.Context, req resource.UpdateRequest, res
 		}
 
 		if !plan.Description.Equal(state.Description) {
-			_, err = l.config.Client.Vloadbalancer.V2Api.SetLoadBalancerDescription(&vloadbalancer.SetLoadBalancerDescriptionRequest{
-				RegionCode:              &l.config.RegionCode,
+			_, err = r.config.Client.Vloadbalancer.V2Api.SetLoadBalancerDescription(&vloadbalancer.SetLoadBalancerDescriptionRequest{
+				RegionCode:              &r.config.RegionCode,
 				LoadBalancerInstanceNo:  ncloud.String(state.LoadBalancerNo.ValueString()),
 				LoadBalancerDescription: plan.Description.ValueStringPointer(),
 			})
@@ -432,7 +432,7 @@ func (l *lbResource) Update(ctx context.Context, req resource.UpdateRequest, res
 
 }
 
-func (l *lbResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
+func (r *lbResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
 	var state lbResourceModel
 
 	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
@@ -452,25 +452,25 @@ func (l *lbResource) Delete(ctx context.Context, req resource.DeleteRequest, res
 	defer cancel()
 
 	reqParams := &vloadbalancer.DeleteLoadBalancerInstancesRequest{
-		RegionCode:                 &l.config.RegionCode,
+		RegionCode:                 &r.config.RegionCode,
 		LoadBalancerInstanceNoList: []*string{ncloud.String(state.LoadBalancerNo.ValueString())},
 	}
 
 	tflog.Info(ctx, "DeleteLoadBalancer reqParams="+MarshalUncheckedString(reqParams))
 
-	if err := waitForLoadBalancerActive(ctx, l.config, state.LoadBalancerNo.ValueString()); err != nil {
+	if err := waitForLoadBalancerActive(ctx, r.config, state.LoadBalancerNo.ValueString()); err != nil {
 		resp.Diagnostics.AddError("WAIT FOR LOADBALANCER ERROR", err.Error())
 		return
 	}
 
-	response, err := l.config.Client.Vloadbalancer.V2Api.DeleteLoadBalancerInstances(reqParams)
+	response, err := r.config.Client.Vloadbalancer.V2Api.DeleteLoadBalancerInstances(reqParams)
 	if err != nil {
 		resp.Diagnostics.AddError("DELETING ERROR", err.Error())
 		return
 	}
 	tflog.Info(ctx, "DeleteLoadBalancer response="+MarshalUncheckedString(response))
 
-	if err := waitForLoadBalancerDeletion(ctx, l.config, state.LoadBalancerNo.ValueString()); err != nil {
+	if err := waitForLoadBalancerDeletion(ctx, r.config, state.LoadBalancerNo.ValueString()); err != nil {
 		resp.Diagnostics.AddError("WAITING FOR DELETE ERROR", err.Error())
 		return
 	}
@@ -582,19 +582,19 @@ func GetVpcLoadBalancer(config *conn.ProviderConfig, id string) (*LoadBalancerIn
 	return convertVpcLoadBalancer(resp.LoadBalancerInstanceList[0]), nil
 }
 
-func (l *lbResourceModel) refreshFromOutput(ctx context.Context, output *LoadBalancerInstance) error {
-	l.ID = types.StringPointerValue(output.LoadBalancerInstanceNo)
-	l.LoadBalancerNo = types.StringPointerValue(output.LoadBalancerInstanceNo)
-	l.Name = types.StringPointerValue(output.LoadBalancerName)
-	l.Domain = types.StringPointerValue(output.LoadBalancerDomain)
-	l.NetworkType = types.StringPointerValue(output.LoadBalancerNetworkType)
-	l.IdleTimeout = types.Int32PointerValue(output.IdleTimeout)
-	l.Type = types.StringPointerValue(output.LoadBalancerType)
-	l.ThroughputType = types.StringPointerValue(output.ThroughputType)
-	l.VpcNo = types.StringPointerValue(output.VpcNo)
+func (r *lbResourceModel) refreshFromOutput(ctx context.Context, output *LoadBalancerInstance) error {
+	r.ID = types.StringPointerValue(output.LoadBalancerInstanceNo)
+	r.LoadBalancerNo = types.StringPointerValue(output.LoadBalancerInstanceNo)
+	r.Name = types.StringPointerValue(output.LoadBalancerName)
+	r.Domain = types.StringPointerValue(output.LoadBalancerDomain)
+	r.NetworkType = types.StringPointerValue(output.LoadBalancerNetworkType)
+	r.IdleTimeout = types.Int32PointerValue(output.IdleTimeout)
+	r.Type = types.StringPointerValue(output.LoadBalancerType)
+	r.ThroughputType = types.StringPointerValue(output.ThroughputType)
+	r.VpcNo = types.StringPointerValue(output.VpcNo)
 
 	if output.LoadBalancerDescription != nil && *output.LoadBalancerDescription != "" {
-		l.Description = types.StringPointerValue(output.LoadBalancerDescription)
+		r.Description = types.StringPointerValue(output.LoadBalancerDescription)
 	}
 
 	subnetNoList := make([]string, 0)
@@ -605,7 +605,7 @@ func (l *lbResourceModel) refreshFromOutput(ctx context.Context, output *LoadBal
 	if err != nil {
 		return fmt.Errorf("error creating ListValue for SubnetNoList: %s", err)
 	}
-	l.SubnetNoList = subnetValueList
+	r.SubnetNoList = subnetValueList
 
 	ipList := make([]string, 0)
 	for _, ip := range output.LoadBalancerIpList {
@@ -615,7 +615,7 @@ func (l *lbResourceModel) refreshFromOutput(ctx context.Context, output *LoadBal
 	if err != nil {
 		return fmt.Errorf("error creating ListValue for IpList: %s", err)
 	}
-	l.IpList = ipValueList
+	r.IpList = ipValueList
 
 	listenerNoList := make([]string, 0)
 	for _, listener := range output.LoadBalancerListenerList {
@@ -625,7 +625,7 @@ func (l *lbResourceModel) refreshFromOutput(ctx context.Context, output *LoadBal
 	if err != nil {
 		return fmt.Errorf("error creating ListValue for ListenerNoList: %s", err)
 	}
-	l.ListenerNoList = listenerValueList
+	r.ListenerNoList = listenerValueList
 
 	return nil
 }
