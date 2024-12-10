@@ -29,6 +29,7 @@ func ResourceNcloudLoadBalancerSSLCertificate() *schema.Resource {
 			"certificate_name": {
 				Type:        schema.TypeString,
 				Required:    true,
+				Deprecated:  "This resource is deprecated!",
 				Description: "Name of a certificate to add",
 			},
 			"privatekey": {
