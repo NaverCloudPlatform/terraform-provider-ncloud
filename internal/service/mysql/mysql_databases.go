@@ -314,7 +314,7 @@ func (r *mysqlDatabasesResourceModel) refreshFromOutput(ctx context.Context, out
 
 	r.MysqlDatabaseList = mysqlDatabases
 
-	return nil
+	return diags
 }
 
 func convertToStringList(values basetypes.ListValue) []*string {
