@@ -154,6 +154,11 @@ func (r *mysqlDatabasesResource) Create(ctx context.Context, req resource.Create
 		return
 	}
 
+	if output == nil {
+		resp.State.RemoveResource(ctx)
+		return
+	}
+
 	if diags := plan.refreshFromOutput(ctx, output, plan.MysqlInstanceNo.ValueString()); diags.HasError() {
 		resp.Diagnostics.AddError("READING ERROR", "refreshFromOutput error")
 		return
