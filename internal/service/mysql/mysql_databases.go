@@ -128,8 +128,6 @@ func (r *mysqlDatabasesResource) Create(ctx context.Context, req resource.Create
 		CloudMysqlDatabaseNameList: convertToStringList(plan.MysqlDatabaseList),
 	}
 
-	plan.ID = plan.MysqlInstanceNo
-
 	tflog.Info(ctx, "CreateMysqlDatabaseList reqParams="+common.MarshalUncheckedString(reqParams))
 
 	response, err := r.config.Client.Vmysql.V2Api.AddCloudMysqlDatabaseList(reqParams)
