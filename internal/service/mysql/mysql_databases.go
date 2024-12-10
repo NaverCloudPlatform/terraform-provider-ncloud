@@ -148,7 +148,7 @@ func (r *mysqlDatabasesResource) Create(ctx context.Context, req resource.Create
 		return
 	}
 
-	output, err := GetMysqlDatabaseList(ctx, r.config, plan.MysqlInstanceNo.ValueString(), convertToCloudMysqlDbStringList(plan.MysqlDatabaseList))
+	output, err := GetMysqlDatabaseList(ctx, r.config, plan.MysqlInstanceNo.ValueString(), common.ConvertToStringList(plan.MysqlDatabaseList, "name"))
 	if err != nil {
 		resp.Diagnostics.AddError("READING ERROR", err.Error())
 		return
@@ -170,7 +170,7 @@ func (r *mysqlDatabasesResource) Read(ctx context.Context, req resource.ReadRequ
 		return
 	}
 
-	output, err := GetMysqlDatabaseList(ctx, r.config, state.MysqlInstanceNo.ValueString(), convertToCloudMysqlDbStringList(state.MysqlDatabaseList))
+	output, err := GetMysqlDatabaseList(ctx, r.config, state.MysqlInstanceNo.ValueString(), common.ConvertToStringList(state.MysqlDatabaseList, "name"))
 	if err != nil {
 		resp.Diagnostics.AddError("READING ERROR", err.Error())
 		return
@@ -321,20 +321,6 @@ func convertToStringList(values basetypes.ListValue) []*string {
 		attrs := obj.Attributes()
 
 		name := attrs["name"].(types.String).ValueStringPointer()
-		result = append(result, name)
-	}
-
-	return result
-}
-
-func convertToCloudMysqlDbStringList(values basetypes.ListValue) []string {
-	result := make([]string, 0, len(values.Elements()))
-
-	for _, v := range values.Elements() {
-		obj := v.(types.Object)
-		attrs := obj.Attributes()
-
-		name := attrs["name"].(types.String).ValueString()
 		result = append(result, name)
 	}
 
