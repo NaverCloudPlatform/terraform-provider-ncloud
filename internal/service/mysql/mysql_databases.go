@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"regexp"
+	"strings"
 
 	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/ncloud"
 	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/services/vmysql"
@@ -11,7 +12,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
-	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/listplanmodifier"
@@ -41,7 +41,34 @@ type mysqlDatabasesResource struct {
 }
 
 func (r *mysqlDatabasesResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
-	resource.ImportStatePassthroughID(ctx, path.Root("id"), req, resp)
+	var plan mysqlDatabasesResourceModel
+	var dbList []mysqlDatabase
+	idParts := strings.Split(req.ID, ":")
+
+	if len(idParts) < 2 || idParts[0] == "" || idParts[1] == "" {
+		resp.Diagnostics.AddError(
+			"Unexpected Import Identifier",
+			fmt.Sprintf("Expected import identifier with format: id:name1:name2:... Got: %q", req.ID),
+		)
+		return
+	}
+
+	for idx, v := range idParts {
+		if idx == 0 {
+			plan.ID = types.StringValue(v)
+			plan.MysqlInstanceNo = types.StringValue(v)
+		} else {
+			db := mysqlDatabase{
+				DatabaseName: types.StringValue(v),
+			}
+			dbList = append(dbList, db)
+		}
+	}
+
+	mysqlDatabases, _ := types.ListValueFrom(ctx, types.ObjectType{AttrTypes: mysqlDatabase{}.attrTypes()}, dbList)
+	plan.MysqlDatabaseList = mysqlDatabases
+
+	resp.Diagnostics.Append(resp.State.Set(ctx, plan)...)
 }
 
 func (r *mysqlDatabasesResource) Configure(_ context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
@@ -289,7 +316,7 @@ type mysqlDatabase struct {
 	DatabaseName types.String `tfsdk:"name"`
 }
 
-func (r mysqlDatabase) AttrTypes() map[string]attr.Type {
+func (r mysqlDatabase) attrTypes() map[string]attr.Type {
 	return map[string]attr.Type{
 		"name": types.StringType,
 	}
@@ -307,7 +334,7 @@ func (r *mysqlDatabasesResourceModel) refreshFromOutput(ctx context.Context, out
 		databaseList = append(databaseList, mysqlDb)
 	}
 
-	mysqlDatabases, diags := types.ListValueFrom(ctx, types.ObjectType{AttrTypes: mysqlDatabase{}.AttrTypes()}, databaseList)
+	mysqlDatabases, diags := types.ListValueFrom(ctx, types.ObjectType{AttrTypes: mysqlDatabase{}.attrTypes()}, databaseList)
 	if diags.HasError() {
 		return diags
 	}
