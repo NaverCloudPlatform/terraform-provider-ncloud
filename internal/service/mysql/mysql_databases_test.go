@@ -24,6 +24,7 @@ func TestAccResourceNcloudMysqlDatabases_vpc_basic(t *testing.T) {
 
 	testName := fmt.Sprintf("tf-mysqldb-%s", acctest.RandString(5))
 	resourceName := "ncloud_mysql_databases.mysql_dbs"
+	dataName := "data.ncloud_mysql_databases.all"
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { TestAccPreCheck(t) },
@@ -35,6 +36,8 @@ func TestAccResourceNcloudMysqlDatabases_vpc_basic(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr(resourceName, "mysql_database_list.0.name", "testdb1"),
 					resource.TestCheckResourceAttr(resourceName, "mysql_database_list.1.name", "testdb2"),
+					resource.TestCheckResourceAttr(dataName, "mysql_database_list.0.name", "testdb1"),
+					resource.TestCheckResourceAttr(dataName, "mysql_database_list.1.name", "testdb2"),
 				),
 			},
 		},
@@ -77,6 +80,14 @@ resource "ncloud_mysql_databases" "mysql_dbs" {
 			name = "testdb2"
 		}
 	]
+}
+
+data "ncloud_mysql_databases" "all" {
+	mysql_instance_no = ncloud_mysql_databases.mysql_dbs.id
+	filter {
+		name = "name"
+		values = [ncloud_mysql_databases.mysql_dbs.mysql_database_list.0.name, ncloud_mysql_databases.mysql_dbs.mysql_database_list.1.name]
+	}
 }
 `, testMysqlName)
 }
