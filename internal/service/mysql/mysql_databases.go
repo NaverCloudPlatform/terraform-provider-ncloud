@@ -207,7 +207,7 @@ func (r *mysqlDatabasesResource) Delete(ctx context.Context, req resource.Delete
 
 	_, err := waitMysqlCreation(ctx, r.config, state.MysqlInstanceNo.ValueString())
 	if err != nil {
-		resp.Diagnostics.AddError("WAITING FOR MYSQAL CREATION ERROR", err.Error())
+		resp.Diagnostics.AddError("WAITING FOR MYSQL DELETE ERROR", err.Error())
 		return
 	}
 
@@ -274,7 +274,7 @@ func GetMysqlDatabaseList(ctx context.Context, config *conn.ProviderConfig, id s
 		return nil, nil
 	}
 
-	tflog.Info(ctx, "GetMysqlUserList response="+common.MarshalUncheckedString(filteredDbs))
+	tflog.Info(ctx, "GetMysqlDatabaseList response="+common.MarshalUncheckedString(filteredDbs))
 
 	return filteredDbs, nil
 }
