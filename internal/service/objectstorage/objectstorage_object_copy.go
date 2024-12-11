@@ -128,7 +128,7 @@ func (o *objectCopyResource) Delete(ctx context.Context, req resource.DeleteRequ
 
 	tflog.Info(ctx, "DeleteObject response="+common.MarshalUncheckedString(response))
 
-	if err := waitObjectCopyDeleted(ctx, o.config, plan.Bucket.String(), plan.Key.String()); err != nil {
+	if err := waitObjectCopyDeleted(ctx, o.config, plan.Bucket.ValueString(), plan.Key.ValueString()); err != nil {
 		resp.Diagnostics.AddError("WAITING FOR DELETE ERROR", err.Error())
 	}
 }
@@ -436,9 +436,7 @@ func (o *objectCopyResourceModel) refreshFromOutput(ctx context.Context, config 
 		return
 	}
 
-	bucketName, key := RemoveQuotes(o.Bucket.String()), RemoveQuotes(o.Key.String())
-
-	o.ID = types.StringValue(ObjectIDGenerator(bucketName, key))
+	o.ID = types.StringValue(ObjectIDGenerator(o.Bucket.ValueString(), o.Key.ValueString()))
 	if !types.StringPointerValue(output.AcceptRanges).IsNull() || !types.StringPointerValue(output.AcceptRanges).IsUnknown() {
 		o.AcceptRanges = types.StringPointerValue(output.AcceptRanges)
 	}

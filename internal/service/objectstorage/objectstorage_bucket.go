@@ -69,7 +69,7 @@ func (o *bucketResource) Create(ctx context.Context, req resource.CreateRequest,
 
 	tflog.Info(ctx, "CreateObjectStorage response="+common.MarshalUncheckedString(response))
 
-	err = waitBucketCreated(ctx, o.config, plan.BucketName.String())
+	err = waitBucketCreated(ctx, o.config, plan.BucketName.ValueString())
 	if err != nil {
 		resp.Diagnostics.AddError("CREATING ERROR", err.Error())
 		return
@@ -104,7 +104,7 @@ func (o *bucketResource) Delete(ctx context.Context, req resource.DeleteRequest,
 
 	tflog.Info(ctx, "DeleteBucket response="+common.MarshalUncheckedString(response))
 
-	if err := waitBucketDeleted(ctx, o.config, plan.BucketName.String()); err != nil {
+	if err := waitBucketDeleted(ctx, o.config, plan.BucketName.ValueString()); err != nil {
 		resp.Diagnostics.AddError("WAITING FOR DELETE ERROR", err.Error())
 	}
 }
@@ -203,7 +203,7 @@ func waitBucketCreated(ctx context.Context, config *conn.ProviderConfig, bucketN
 			}
 
 			for _, bucket := range output.Buckets {
-				if *bucket.Name == RemoveQuotes(bucketName) {
+				if *bucket.Name == bucketName {
 					return bucket, CREATED, nil
 				}
 			}
@@ -232,7 +232,7 @@ func waitBucketDeleted(ctx context.Context, config *conn.ProviderConfig, bucketN
 			}
 
 			for _, bucket := range output.Buckets {
-				if *bucket.Name == RemoveQuotes(bucketName) {
+				if *bucket.Name == bucketName {
 					return bucket, DELETING, nil
 				}
 			}
@@ -267,7 +267,7 @@ func (o *bucketResourceModel) refreshFromOutput(ctx context.Context, config *con
 	}
 
 	for _, bucket := range output.Buckets {
-		if *bucket.Name == RemoveQuotes(bucketName) {
+		if *bucket.Name == bucketName {
 			if !types.StringValue(bucket.CreationDate.GoString()).IsNull() {
 				o.CreationDate = types.StringValue(bucket.CreationDate.GoString())
 			}

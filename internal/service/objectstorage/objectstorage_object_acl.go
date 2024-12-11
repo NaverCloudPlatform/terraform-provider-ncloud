@@ -50,7 +50,7 @@ func (o *objectACLResource) Create(ctx context.Context, req resource.CreateReque
 		return
 	}
 
-	bucketName, key := ObjectIDParser(plan.ObjectID.String())
+	bucketName, key := ObjectIDParser(plan.ObjectID.ValueString())
 
 	reqParams := &s3.PutObjectAclInput{
 		Bucket: ncloud.String(bucketName),
@@ -73,7 +73,7 @@ func (o *objectACLResource) Create(ctx context.Context, req resource.CreateReque
 		return
 	}
 
-	if err := plan.refreshFromOutput(ctx, o.config, plan.ObjectID.String(), &resp.Diagnostics); err != nil {
+	if err := plan.refreshFromOutput(ctx, o.config, plan.ObjectID.ValueString(), &resp.Diagnostics); err != nil {
 		return
 	}
 	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
@@ -94,7 +94,7 @@ func (o *objectACLResource) Read(ctx context.Context, req resource.ReadRequest, 
 		return
 	}
 
-	if err := plan.refreshFromOutput(ctx, o.config, plan.ObjectID.String(), &resp.Diagnostics); err != nil {
+	if err := plan.refreshFromOutput(ctx, o.config, plan.ObjectID.ValueString(), &resp.Diagnostics); err != nil {
 		return
 	}
 
@@ -184,7 +184,7 @@ func (o *objectACLResource) Update(ctx context.Context, req resource.UpdateReque
 	}
 
 	if plan.Rule != state.Rule {
-		bucketName, key := ObjectIDParser(state.ObjectID.String())
+		bucketName, key := ObjectIDParser(state.ObjectID.ValueString())
 
 		reqParams := &s3.PutObjectAclInput{
 			Bucket: ncloud.String(bucketName),
@@ -207,7 +207,7 @@ func (o *objectACLResource) Update(ctx context.Context, req resource.UpdateReque
 			return
 		}
 
-		if err := plan.refreshFromOutput(ctx, o.config, state.ObjectID.String(), &resp.Diagnostics); err != nil {
+		if err := plan.refreshFromOutput(ctx, o.config, state.ObjectID.ValueString(), &resp.Diagnostics); err != nil {
 			return
 		}
 		resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
@@ -280,8 +280,8 @@ func (o *objectACLResourceModel) refreshFromOutput(ctx context.Context, config *
 	bucketName, key := ObjectIDParser(id)
 
 	output, err := config.Client.ObjectStorage.GetObjectAcl(ctx, &s3.GetObjectAclInput{
-		Bucket: ncloud.String(RemoveQuotes(bucketName)),
-		Key:    ncloud.String(RemoveQuotes(key)),
+		Bucket: ncloud.String(bucketName),
+		Key:    ncloud.String(key),
 	})
 	if err != nil {
 		diag.AddError("GetObjectAcl ERROR", err.Error())
@@ -326,7 +326,7 @@ func (o *objectACLResourceModel) refreshFromOutput(ctx context.Context, config *
 	}
 
 	o.Grants = listValueWithGrants
-	o.ID = types.StringValue(RemoveQuotes(o.ObjectID.String()))
+	o.ID = types.StringValue(o.ObjectID.ValueString())
 	o.OwnerID = types.StringValue(*output.Owner.ID)
 	o.OwnerDisplayName = types.StringValue(*output.Owner.DisplayName)
 

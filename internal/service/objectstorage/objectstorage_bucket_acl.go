@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"regexp"
-	"strings"
 	"time"
 
 	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/ncloud"
@@ -119,7 +118,7 @@ func (b *bucketACLResource) Create(ctx context.Context, req resource.CreateReque
 		return
 	}
 
-	bucketName := RemoveQuotes(plan.BucketName.String())
+	bucketName := plan.BucketName.ValueString()
 
 	reqParams := &s3.PutBucketAclInput{
 		Bucket: ncloud.String(bucketName),
@@ -158,7 +157,7 @@ func (b *bucketACLResource) Read(ctx context.Context, req resource.ReadRequest, 
 		return
 	}
 
-	if err := plan.refreshFromOutput(ctx, b.config, plan.ID.String(), &resp.Diagnostics); err != nil {
+	if err := plan.refreshFromOutput(ctx, b.config, plan.ID.ValueString(), &resp.Diagnostics); err != nil {
 		return
 	}
 
@@ -179,7 +178,7 @@ func (b *bucketACLResource) Update(ctx context.Context, req resource.UpdateReque
 	}
 
 	if plan.Rule != state.Rule {
-		bucketName := RemoveQuotes(state.BucketName.String())
+		bucketName := state.BucketName.ValueString()
 
 		reqParams := &s3.PutBucketAclInput{
 			Bucket: ncloud.String(bucketName),
@@ -274,7 +273,7 @@ type bucketACLResourceModel struct {
 
 func (b *bucketACLResourceModel) refreshFromOutput(ctx context.Context, config *conn.ProviderConfig, bucketName string, diag *diag.Diagnostics) error {
 	output, err := config.Client.ObjectStorage.GetBucketAcl(ctx, &s3.GetBucketAclInput{
-		Bucket: ncloud.String(RemoveQuotes(bucketName)),
+		Bucket: ncloud.String(bucketName),
 	})
 	if err != nil {
 		diag.AddError("GetBucketAcl ERROR", err.Error())
@@ -319,8 +318,8 @@ func (b *bucketACLResourceModel) refreshFromOutput(ctx context.Context, config *
 	}
 
 	b.Grants = listValueFromGrants
-	b.ID = types.StringValue(RemoveQuotes(bucketName))
-	b.BucketName = types.StringValue(RemoveQuotes(bucketName))
+	b.ID = types.StringValue(bucketName)
+	b.BucketName = types.StringValue(bucketName)
 	b.Owner = types.StringValue(*output.Owner.ID)
 
 	return nil
@@ -375,8 +374,4 @@ func convertGrantsToListValueAtBucket(ctx context.Context, grants []awsTypes.Gra
 		}},
 		"permission": types.StringType,
 	}}, grantValues)
-}
-
-func RemoveQuotes(s string) string {
-	return strings.ReplaceAll(strings.ReplaceAll(s, "\"", ""), "\\", "")
 }
