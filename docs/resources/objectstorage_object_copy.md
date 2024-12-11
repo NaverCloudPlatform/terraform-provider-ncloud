@@ -60,6 +60,7 @@ The following arguments are supported:
 
 This resource exports the following attributes in addition to the arguments above:
 
+* `id` - Unique ID for object. A combined string of bucket name and key in the format `bucket-name/key`.
 * `accept_ranges` - Indicates that a range of bytes was specified.
 * `content_encoding` - Content encodings that have been applied to the object and thus what decoding mechanisms must be applied to obtain the media-type referenced by the Content-Type header field. Read [w3c content encoding](https://www.w3.org/Protocols/rfc2616/rfc2616-sec14.html#sec14.11) for further information.
 * `content_language` - Language the content is in e.g., en-US or en-GB.

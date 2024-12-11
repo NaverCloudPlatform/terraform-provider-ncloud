@@ -31,19 +31,26 @@ resource "ncloud_objectstorage_object" "testing_object" {
 
 resource "ncloud_objectstorage_object_acl" "testing_acl" {
     object_id			= ncloud_objectstorage_object.testing_object.id
-    rule				= "RULL_TO_APPLY"
+    rule				= "public-read'
 }
 ```
 
 ## Argument Reference
 
-* `object_id` - (Required) Target object id to create.
+* `object_id` - (Required) Target object id to create. Has format of `bucket-name/key`.
 * `rule` - (Required) Rule to apply. Value must be one of "private", "public-read", "public-read-write", "authenticated-read".
 
 ## Attribute Reference
 
-* `id` - Unique ID for ACL. As same as `object_id`.
-* `grants` - List of member who grants this rule. Consists of `grantee`, `permission`. Individual `grantee` has `type`, `display_name`, `email-address`, `id`, `uri` attributes.
+* `id` - Unique ID for ACL. As same as `object_id`. Has format of `bucket-name/key`.
+* `grants` - List of member who grants this rule.
+  * `grantee` - The person being granted permissions.
+    * `type` - Type of grantee
+    * `display_name` - Screen name of the grantee.
+    * `email_address` - Email address of the grantee.
+    * `id` - The canonical user ID of the grantee.
+    * `uri` - URI of the grantee group.
+  * `permission` - Specifies the permission given to the grantee.
 * `owner_id` - ID of owner.
 * `owner_displayname` - Name of owner.
 

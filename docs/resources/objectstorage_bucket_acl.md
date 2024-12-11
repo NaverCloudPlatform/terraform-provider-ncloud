@@ -25,7 +25,7 @@ resource "ncloud_objectstorage_bucket" "testing_bucket" {
 
 resource "ncloud_objectstorage_bucket_acl" "testing_acl" {
     bucket_name				= ncloud_objectstorage_bucket.testing_bucket.bucket_name
-    rule					= "RULL_TO_APPLY"
+    rule					= "public-read"
 }
 ```
 
