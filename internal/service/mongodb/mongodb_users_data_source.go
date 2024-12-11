@@ -114,7 +114,7 @@ func (d *mongodbUsersDataSource) Read(ctx context.Context, req datasource.ReadRe
 	mongodbUserList := flattenMongodbUsers(output)
 	fillteredList := common.FilterModels(ctx, data.Filters, mongodbUserList)
 	if diags := data.refreshFromOutput(ctx, fillteredList, data.ID.ValueString()); diags.HasError() {
-		resp.Diagnostics.AddError("READIG EROROR", "refreshFromOutput error")
+		resp.Diagnostics.AddError("READING EROROR", "refreshFromOutput error")
 		return
 	}
 
