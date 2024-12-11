@@ -43,6 +43,12 @@ func TestAccResourceNcloudObjectStorage_object_copy_basic(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "key", key),
 				),
 			},
+			{
+				ResourceName:            resourceName,
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"source"},
+			},
 		},
 	})
 }
@@ -86,6 +92,12 @@ func TestAccResourceNcloudObjectStorage_object_copy_update_source(t *testing.T) 
 					resource.TestCheckResourceAttrPair(resourceName, "source", postObjectResourceName, "id"),
 				),
 			},
+			{
+				ResourceName:            resourceName,
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"source"},
+			},
 		},
 	})
 }
@@ -125,6 +137,12 @@ func TestAccResourceNcloudObjectStorage_object_copy_update_content_type(t *testi
 					resource.TestCheckResourceAttr(resourceName, "key", key),
 					resource.TestCheckResourceAttr(resourceName, "content_type", newContentType),
 				),
+			},
+			{
+				ResourceName:            resourceName,
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"source"},
 			},
 		},
 	})

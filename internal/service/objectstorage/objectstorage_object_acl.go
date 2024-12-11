@@ -55,7 +55,7 @@ func (o *objectACLResource) Create(ctx context.Context, req resource.CreateReque
 	reqParams := &s3.PutObjectAclInput{
 		Bucket: ncloud.String(bucketName),
 		Key:    ncloud.String(key),
-		ACL:    plan.Rule,
+		ACL:    *plan.Rule,
 	}
 
 	tflog.Info(ctx, "PutObjectACL reqParams="+common.MarshalUncheckedString(reqParams))
@@ -73,7 +73,9 @@ func (o *objectACLResource) Create(ctx context.Context, req resource.CreateReque
 		return
 	}
 
-	plan.refreshFromOutput(ctx, o.config, bucketName, key, &resp.Diagnostics)
+	if err := plan.refreshFromOutput(ctx, o.config, plan.ObjectID.String(), &resp.Diagnostics); err != nil {
+		return
+	}
 	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
 }
 
@@ -92,9 +94,9 @@ func (o *objectACLResource) Read(ctx context.Context, req resource.ReadRequest, 
 		return
 	}
 
-	bucketName, key := ObjectIDParser(plan.ObjectID.String())
-
-	plan.refreshFromOutput(ctx, o.config, bucketName, key, &resp.Diagnostics)
+	if err := plan.refreshFromOutput(ctx, o.config, plan.ObjectID.String(), &resp.Diagnostics); err != nil {
+		return
+	}
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
 	if resp.Diagnostics.HasError() {
@@ -187,7 +189,7 @@ func (o *objectACLResource) Update(ctx context.Context, req resource.UpdateReque
 		reqParams := &s3.PutObjectAclInput{
 			Bucket: ncloud.String(bucketName),
 			Key:    ncloud.String(key),
-			ACL:    plan.Rule,
+			ACL:    *plan.Rule,
 		}
 
 		tflog.Info(ctx, "PutObjectACL update operation reqParams="+common.MarshalUncheckedString(reqParams))
@@ -205,13 +207,16 @@ func (o *objectACLResource) Update(ctx context.Context, req resource.UpdateReque
 			return
 		}
 
-		plan.refreshFromOutput(ctx, o.config, bucketName, key, &resp.Diagnostics)
+		if err := plan.refreshFromOutput(ctx, o.config, state.ObjectID.String(), &resp.Diagnostics); err != nil {
+			return
+		}
 		resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
 	}
 }
 
 func (o *objectACLResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
-	resource.ImportStatePassthroughID(ctx, path.Root("id"), req, resp)
+	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("id"), req.ID)...)
+	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("object_id"), req.ID)...)
 }
 
 func (o *objectACLResource) Configure(_ context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
@@ -263,26 +268,28 @@ func waitObjectACLApplied(ctx context.Context, config *conn.ProviderConfig, buck
 }
 
 type objectACLResourceModel struct {
-	ID               types.String             `tfsdk:"id"`
-	ObjectID         types.String             `tfsdk:"object_id"`
-	Rule             awsTypes.ObjectCannedACL `tfsdk:"rule"`
-	Grants           types.List               `tfsdk:"grants"`
-	OwnerID          types.String             `tfsdk:"owner_id"`
-	OwnerDisplayName types.String             `tfsdk:"owner_displayname"`
+	ID               types.String              `tfsdk:"id"`
+	ObjectID         types.String              `tfsdk:"object_id"`
+	Rule             *awsTypes.ObjectCannedACL `tfsdk:"rule"`
+	Grants           types.List                `tfsdk:"grants"`
+	OwnerID          types.String              `tfsdk:"owner_id"`
+	OwnerDisplayName types.String              `tfsdk:"owner_displayname"`
 }
 
-func (o *objectACLResourceModel) refreshFromOutput(ctx context.Context, config *conn.ProviderConfig, bucketName, key string, diag *diag.Diagnostics) {
+func (o *objectACLResourceModel) refreshFromOutput(ctx context.Context, config *conn.ProviderConfig, id string, diag *diag.Diagnostics) error {
+	bucketName, key := ObjectIDParser(id)
+
 	output, err := config.Client.ObjectStorage.GetObjectAcl(ctx, &s3.GetObjectAclInput{
-		Bucket: ncloud.String(bucketName),
-		Key:    ncloud.String(key),
+		Bucket: ncloud.String(RemoveQuotes(bucketName)),
+		Key:    ncloud.String(RemoveQuotes(key)),
 	})
 	if err != nil {
 		diag.AddError("GetObjectAcl ERROR", err.Error())
-		return
+		return err
 	}
 	if output == nil {
 		diag.AddError("GetObjectAcl ERROR", "output is nil")
-		return
+		return fmt.Errorf("output is nil for object: %s", id)
 	}
 
 	var grantList []awsTypes.Grant
@@ -315,13 +322,15 @@ func (o *objectACLResourceModel) refreshFromOutput(ctx context.Context, config *
 	listValueWithGrants, diagFromConverting := convertGrantsToListValueAtObject(ctx, grantList)
 	if diagFromConverting.HasError() {
 		diag.AddError("CONVERTING ERROR", "Error from converting grants to listValue at Object")
-		return
+		return fmt.Errorf("error from converting operation for object: %s", id)
 	}
 
 	o.Grants = listValueWithGrants
-	o.ID = types.StringValue(fmt.Sprintf("object_acl_%s", o.ObjectID))
+	o.ID = types.StringValue(RemoveQuotes(o.ObjectID.String()))
 	o.OwnerID = types.StringValue(*output.Owner.ID)
 	o.OwnerDisplayName = types.StringValue(*output.Owner.DisplayName)
+
+	return nil
 }
 
 func convertGrantsToListValueAtObject(ctx context.Context, grants []awsTypes.Grant) (basetypes.ListValue, diag.Diagnostics) {
