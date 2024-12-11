@@ -141,7 +141,9 @@ func (b *bucketACLResource) Create(ctx context.Context, req resource.CreateReque
 		return
 	}
 
-	plan.refreshFromOutput(ctx, b.config, bucketName, &resp.Diagnostics)
+	if err := plan.refreshFromOutput(ctx, b.config, bucketName, &resp.Diagnostics); err != nil {
+		return
+	}
 	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
 }
 
@@ -156,7 +158,9 @@ func (b *bucketACLResource) Read(ctx context.Context, req resource.ReadRequest, 
 		return
 	}
 
-	plan.refreshFromOutput(ctx, b.config, plan.ID.String(), &resp.Diagnostics)
+	if err := plan.refreshFromOutput(ctx, b.config, plan.ID.String(), &resp.Diagnostics); err != nil {
+		return
+	}
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
 	if resp.Diagnostics.HasError() {
@@ -197,7 +201,9 @@ func (b *bucketACLResource) Update(ctx context.Context, req resource.UpdateReque
 			return
 		}
 
-		plan.refreshFromOutput(ctx, b.config, bucketName, &resp.Diagnostics)
+		if err := plan.refreshFromOutput(ctx, b.config, bucketName, &resp.Diagnostics); err != nil {
+			return
+		}
 		resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
 	}
 }
@@ -266,17 +272,17 @@ type bucketACLResourceModel struct {
 	Owner      types.String              `tfsdk:"owner"`
 }
 
-func (b *bucketACLResourceModel) refreshFromOutput(ctx context.Context, config *conn.ProviderConfig, bucketName string, diag *diag.Diagnostics) {
+func (b *bucketACLResourceModel) refreshFromOutput(ctx context.Context, config *conn.ProviderConfig, bucketName string, diag *diag.Diagnostics) error {
 	output, err := config.Client.ObjectStorage.GetBucketAcl(ctx, &s3.GetBucketAclInput{
 		Bucket: ncloud.String(RemoveQuotes(bucketName)),
 	})
 	if err != nil {
 		diag.AddError("GetBucketAcl ERROR", err.Error())
-		return
+		return err
 	}
 	if output == nil {
 		diag.AddError("GetBucketAcl ERROR", "output is nil")
-		return
+		return fmt.Errorf("output is nil for bucket: %s", bucketName)
 	}
 
 	var grantList []awsTypes.Grant
@@ -309,13 +315,15 @@ func (b *bucketACLResourceModel) refreshFromOutput(ctx context.Context, config *
 	listValueFromGrants, diagFromConverting := convertGrantsToListValueAtBucket(ctx, grantList)
 	if diagFromConverting.HasError() {
 		diag.AddError("CONVERTING ERROR", "Error from converting grants to listValue at Object")
-		return
+		return fmt.Errorf("error from converting operation for bucket: %s", bucketName)
 	}
 
 	b.Grants = listValueFromGrants
 	b.ID = types.StringValue(RemoveQuotes(bucketName))
 	b.BucketName = types.StringValue(RemoveQuotes(bucketName))
 	b.Owner = types.StringValue(*output.Owner.ID)
+
+	return nil
 }
 
 func convertGrantsToListValueAtBucket(ctx context.Context, grants []awsTypes.Grant) (basetypes.ListValue, diag.Diagnostics) {

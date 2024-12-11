@@ -75,7 +75,10 @@ func (o *bucketResource) Create(ctx context.Context, req resource.CreateRequest,
 		return
 	}
 
-	plan.refreshFromOutput(ctx, o.config, plan.BucketName.ValueString())
+	if err := plan.refreshFromOutput(ctx, o.config, plan.BucketName.ValueString()); err != nil {
+		resp.Diagnostics.AddError("REFRESHING ERROR", err.Error())
+		return
+	}
 	resp.Diagnostics.Append(resp.State.Set(ctx, plan)...)
 }
 
@@ -254,13 +257,13 @@ type bucketResourceModel struct {
 	CreationDate types.String `tfsdk:"creation_date"`
 }
 
-func (o *bucketResourceModel) refreshFromOutput(ctx context.Context, config *conn.ProviderConfig, bucketName string) {
+func (o *bucketResourceModel) refreshFromOutput(ctx context.Context, config *conn.ProviderConfig, bucketName string) error {
 	o.BucketName = types.StringValue(bucketName)
 	o.ID = types.StringValue(bucketName)
 
 	output, _ := config.Client.ObjectStorage.ListBuckets(ctx, &s3.ListBucketsInput{})
 	if output == nil {
-		return
+		return fmt.Errorf("output is nil for bucket: %s", bucketName)
 	}
 
 	for _, bucket := range output.Buckets {
@@ -270,6 +273,8 @@ func (o *bucketResourceModel) refreshFromOutput(ctx context.Context, config *con
 			}
 		}
 	}
+
+	return nil
 }
 
 func BucketNameValidator() []validator.String {
