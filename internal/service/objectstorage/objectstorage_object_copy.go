@@ -180,9 +180,8 @@ func (o *objectCopyResource) Schema(ctx context.Context, req resource.SchemaRequ
 				Description: "(Required) Name of the object once it is in the bucket",
 			},
 			"source": schema.StringAttribute{
-				Optional:    true,
 				Sensitive:   true,
-				Computed:    false,
+				Required:    true,
 				Description: "(Required) Path of the object",
 			},
 			"accept_ranges": schema.StringAttribute{

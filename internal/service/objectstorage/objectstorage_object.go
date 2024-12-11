@@ -164,8 +164,7 @@ func (o *objectResource) Schema(_ context.Context, req resource.SchemaRequest, r
 				Description: "(Required) Name of the object once it is in the bucket",
 			},
 			"source": schema.StringAttribute{
-				Optional:  true,
-				Computed:  false,
+				Required:  true,
 				Sensitive: true,
 				PlanModifiers: []planmodifier.String{
 					stringplanmodifier.RequiresReplace(),
