@@ -40,7 +40,7 @@ user_list = {
 
 The following arguments are required:
 
-* `id` - (Required) MongoDB Users number. Either `id` or `mongodb_instance_no` must be provided.
+* `id` - (Required) MongoDB instance number.
 * `output_file` - (Optional) The name of file that can save data source after running `terraform plan`.
 * `filter` - (Optional) Custom filter block as described below.
   * `name` - (Required) The name of the field to filter by
