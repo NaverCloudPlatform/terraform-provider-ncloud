@@ -306,6 +306,14 @@ func (o *objectResource) Update(ctx context.Context, req resource.UpdateRequest,
 func (o *objectResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
 	bucketName, key := ObjectIDParser(req.ID)
 
+	if bucketName == "" || key == "" {
+		resp.Diagnostics.AddError(
+			"Unexpected Import Identifier",
+			fmt.Sprintf("Expected import identifier with format: bucket-name/key Got: %q", req.ID),
+		)
+		return
+	}
+
 	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("bucket"), bucketName)...)
 	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("key"), key)...)
 }
