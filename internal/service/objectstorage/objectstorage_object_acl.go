@@ -73,9 +73,10 @@ func (o *objectACLResource) Create(ctx context.Context, req resource.CreateReque
 		return
 	}
 
-	if err := plan.refreshFromOutput(ctx, o.config, plan.ObjectID.ValueString(), &resp.Diagnostics); err != nil {
+	if diag := plan.refreshFromOutput(ctx, o.config, plan.ObjectID.ValueString(), &resp.Diagnostics); diag.HasError() {
 		return
 	}
+
 	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
 }
 
@@ -94,7 +95,7 @@ func (o *objectACLResource) Read(ctx context.Context, req resource.ReadRequest, 
 		return
 	}
 
-	if err := plan.refreshFromOutput(ctx, o.config, plan.ObjectID.ValueString(), &resp.Diagnostics); err != nil {
+	if diag := plan.refreshFromOutput(ctx, o.config, plan.ObjectID.ValueString(), &resp.Diagnostics); diag.HasError() {
 		return
 	}
 
@@ -207,9 +208,10 @@ func (o *objectACLResource) Update(ctx context.Context, req resource.UpdateReque
 			return
 		}
 
-		if err := plan.refreshFromOutput(ctx, o.config, state.ObjectID.ValueString(), &resp.Diagnostics); err != nil {
+		if diag := plan.refreshFromOutput(ctx, o.config, state.ObjectID.ValueString(), &resp.Diagnostics); diag.HasError() {
 			return
 		}
+
 		resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
 	}
 }
@@ -276,7 +278,7 @@ type objectACLResourceModel struct {
 	OwnerDisplayName types.String              `tfsdk:"owner_displayname"`
 }
 
-func (o *objectACLResourceModel) refreshFromOutput(ctx context.Context, config *conn.ProviderConfig, id string, diag *diag.Diagnostics) error {
+func (o *objectACLResourceModel) refreshFromOutput(ctx context.Context, config *conn.ProviderConfig, id string, diag *diag.Diagnostics) diag.Diagnostics {
 	bucketName, key := ObjectIDParser(id)
 
 	output, err := config.Client.ObjectStorage.GetObjectAcl(ctx, &s3.GetObjectAclInput{
@@ -285,11 +287,11 @@ func (o *objectACLResourceModel) refreshFromOutput(ctx context.Context, config *
 	})
 	if err != nil {
 		diag.AddError("GetObjectAcl ERROR", err.Error())
-		return err
+		return *diag
 	}
 	if output == nil {
 		diag.AddError("GetObjectAcl ERROR", "output is nil")
-		return fmt.Errorf("output is nil for object: %s", id)
+		return *diag
 	}
 
 	var grantList []awsTypes.Grant
@@ -322,7 +324,7 @@ func (o *objectACLResourceModel) refreshFromOutput(ctx context.Context, config *
 	listValueWithGrants, diagFromConverting := convertGrantsToListValueAtObject(ctx, grantList)
 	if diagFromConverting.HasError() {
 		diag.AddError("CONVERTING ERROR", "Error from converting grants to listValue at Object")
-		return fmt.Errorf("error from converting operation for object: %s", id)
+		return *diag
 	}
 
 	o.Grants = listValueWithGrants

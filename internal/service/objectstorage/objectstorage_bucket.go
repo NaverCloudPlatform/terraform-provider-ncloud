@@ -8,6 +8,7 @@ import (
 
 	"github.com/aws/aws-sdk-go-v2/service/s3"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
+	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
@@ -75,8 +76,7 @@ func (o *bucketResource) Create(ctx context.Context, req resource.CreateRequest,
 		return
 	}
 
-	if err := plan.refreshFromOutput(ctx, o.config, plan.BucketName.ValueString()); err != nil {
-		resp.Diagnostics.AddError("REFRESHING ERROR", err.Error())
+	if diag := plan.refreshFromOutput(ctx, o.config, plan.BucketName.ValueString(), &resp.Diagnostics); diag.HasError() {
 		return
 	}
 	resp.Diagnostics.Append(resp.State.Set(ctx, plan)...)
@@ -257,13 +257,14 @@ type bucketResourceModel struct {
 	CreationDate types.String `tfsdk:"creation_date"`
 }
 
-func (o *bucketResourceModel) refreshFromOutput(ctx context.Context, config *conn.ProviderConfig, bucketName string) error {
+func (o *bucketResourceModel) refreshFromOutput(ctx context.Context, config *conn.ProviderConfig, bucketName string, diag *diag.Diagnostics) diag.Diagnostics {
 	o.BucketName = types.StringValue(bucketName)
 	o.ID = types.StringValue(bucketName)
 
 	output, _ := config.Client.ObjectStorage.ListBuckets(ctx, &s3.ListBucketsInput{})
 	if output == nil {
-		return fmt.Errorf("output is nil for bucket: %s", bucketName)
+		diag.AddError("REFRESHING ERROR", "invalid output from ListBuckets")
+		return *diag
 	}
 
 	for _, bucket := range output.Buckets {
