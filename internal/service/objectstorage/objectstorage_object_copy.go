@@ -101,7 +101,8 @@ func (o *objectCopyResource) Create(ctx context.Context, req resource.CreateRequ
 		return
 	}
 
-	if diag := plan.refreshFromOutput(ctx, o.config, &resp.Diagnostics); diag.HasError() {
+	plan.refreshFromOutput(ctx, o.config, &resp.Diagnostics)
+	if resp.Diagnostics.HasError() {
 		return
 	}
 	resp.Diagnostics.Append(resp.State.Set(ctx, plan)...)
@@ -162,7 +163,8 @@ func (o *objectCopyResource) Read(ctx context.Context, req resource.ReadRequest,
 		return
 	}
 
-	if diag := plan.refreshFromOutput(ctx, o.config, &resp.Diagnostics); diag.HasError() {
+	plan.refreshFromOutput(ctx, o.config, &resp.Diagnostics)
+	if resp.Diagnostics.HasError() {
 		return
 	}
 
@@ -287,7 +289,8 @@ func (o *objectCopyResource) Update(ctx context.Context, req resource.UpdateRequ
 			return
 		}
 
-		if diag := plan.refreshFromOutput(ctx, o.config, &resp.Diagnostics); diag.HasError() {
+		plan.refreshFromOutput(ctx, o.config, &resp.Diagnostics)
+		if resp.Diagnostics.HasError() {
 			return
 		}
 	}
@@ -345,7 +348,8 @@ func (o *objectCopyResource) Update(ctx context.Context, req resource.UpdateRequ
 			return
 		}
 
-		if diag := plan.refreshFromOutput(ctx, o.config, &resp.Diagnostics); diag.HasError() {
+		plan.refreshFromOutput(ctx, o.config, &resp.Diagnostics)
+		if resp.Diagnostics.HasError() {
 			return
 		}
 
@@ -431,18 +435,18 @@ type objectCopyResourceModel struct {
 	WebsiteRedirectLocation types.String `tfsdk:"website_redirect_location"`
 }
 
-func (o *objectCopyResourceModel) refreshFromOutput(ctx context.Context, config *conn.ProviderConfig, diag *diag.Diagnostics) diag.Diagnostics {
+func (o *objectCopyResourceModel) refreshFromOutput(ctx context.Context, config *conn.ProviderConfig, diag *diag.Diagnostics) {
 	output, err := config.Client.ObjectStorage.HeadObject(ctx, &s3.HeadObjectInput{
 		Bucket: o.Bucket.ValueStringPointer(),
 		Key:    o.Key.ValueStringPointer(),
 	})
 	if err != nil {
 		diag.AddError("HeadObject ERROR", err.Error())
-		return *diag
+		return
 	}
 	if output == nil {
 		diag.AddError("HeadObject ERROR", "invalid output")
-		return *diag
+		return
 	}
 
 	o.ID = types.StringValue(ObjectIDGenerator(o.Bucket.ValueString(), o.Key.ValueString()))
@@ -489,6 +493,4 @@ func (o *objectCopyResourceModel) refreshFromOutput(ctx context.Context, config 
 	if output.LastModified != nil {
 		o.LastModified = types.StringValue(output.LastModified.Format(time.RFC3339))
 	}
-
-	return nil
 }

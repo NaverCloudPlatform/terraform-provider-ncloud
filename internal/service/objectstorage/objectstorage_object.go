@@ -92,7 +92,8 @@ func (o *objectResource) Create(ctx context.Context, req resource.CreateRequest,
 		return
 	}
 
-	if diag := plan.refreshFromOutput(ctx, o.config, &resp.Diagnostics); diag.HasError() {
+	plan.refreshFromOutput(ctx, o.config, &resp.Diagnostics)
+	if resp.Diagnostics.HasError() {
 		return
 	}
 
@@ -139,7 +140,8 @@ func (o *objectResource) Read(ctx context.Context, req resource.ReadRequest, res
 		return
 	}
 
-	if diag := plan.refreshFromOutput(ctx, o.config, &resp.Diagnostics); diag.HasError() {
+	plan.refreshFromOutput(ctx, o.config, &resp.Diagnostics)
+	if resp.Diagnostics.HasError() {
 		return
 	}
 
@@ -304,7 +306,8 @@ func (o *objectResource) Update(ctx context.Context, req resource.UpdateRequest,
 		return
 	}
 
-	if diag := plan.refreshFromOutput(ctx, o.config, &resp.Diagnostics); diag.HasError() {
+	plan.refreshFromOutput(ctx, o.config, &resp.Diagnostics)
+	if resp.Diagnostics.HasError() {
 		return
 	}
 
@@ -422,18 +425,18 @@ type objectResourceModel struct {
 	WebsiteRedirectLocation types.String `tfsdk:"website_redirect_location"`
 }
 
-func (o *objectResourceModel) refreshFromOutput(ctx context.Context, config *conn.ProviderConfig, diag *diag.Diagnostics) diag.Diagnostics {
+func (o *objectResourceModel) refreshFromOutput(ctx context.Context, config *conn.ProviderConfig, diag *diag.Diagnostics) {
 	output, err := config.Client.ObjectStorage.HeadObject(ctx, &s3.HeadObjectInput{
 		Bucket: o.Bucket.ValueStringPointer(),
 		Key:    o.Key.ValueStringPointer(),
 	})
 	if err != nil {
 		diag.AddError("HeadObject ERROR", err.Error())
-		return *diag
+		return
 	}
 	if output == nil {
 		diag.AddError("HeadObject ERROR", "invalid output")
-		return *diag
+		return
 	}
 
 	o.ID = types.StringValue(ObjectIDGenerator(o.Bucket.ValueString(), o.Key.ValueString()))
@@ -480,9 +483,8 @@ func (o *objectResourceModel) refreshFromOutput(ctx context.Context, config *con
 	if output.LastModified != nil {
 		o.LastModified = types.StringValue(output.LastModified.Format(time.RFC3339))
 	}
-
-	return nil
 }
+
 func ObjectIDGenerator(bucketName, key string) string {
 	return fmt.Sprintf("%s/%s", bucketName, key)
 }
