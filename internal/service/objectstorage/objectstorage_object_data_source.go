@@ -58,7 +58,7 @@ func (o *objectDataSource) Read(ctx context.Context, req datasource.ReadRequest,
 		return
 	}
 
-	bucketName, key := ObjectIDParser(data.ObjectID.String())
+	bucketName, key := ObjectIDParser(data.ObjectID.ValueString())
 
 	output, err := o.config.Client.ObjectStorage.GetObject(ctx, &s3.GetObjectInput{
 		Bucket: ncloud.String(bucketName),

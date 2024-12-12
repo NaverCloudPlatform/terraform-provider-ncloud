@@ -102,6 +102,9 @@ func (o *objectCopyResource) Create(ctx context.Context, req resource.CreateRequ
 	}
 
 	plan.refreshFromOutput(ctx, o.config, &resp.Diagnostics)
+	if resp.Diagnostics.HasError() {
+		return
+	}
 	resp.Diagnostics.Append(resp.State.Set(ctx, plan)...)
 }
 
@@ -128,13 +131,24 @@ func (o *objectCopyResource) Delete(ctx context.Context, req resource.DeleteRequ
 
 	tflog.Info(ctx, "DeleteObject response="+common.MarshalUncheckedString(response))
 
-	if err := waitObjectCopyDeleted(ctx, o.config, plan.Bucket.String(), plan.Key.String()); err != nil {
+	if err := waitObjectCopyDeleted(ctx, o.config, plan.Bucket.ValueString(), plan.Key.ValueString()); err != nil {
 		resp.Diagnostics.AddError("WAITING FOR DELETE ERROR", err.Error())
 	}
 }
 
 func (o *objectCopyResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
-	resource.ImportStatePassthroughID(ctx, path.Root("id"), req, resp)
+	bucketName, key := ObjectIDParser(req.ID)
+
+	if bucketName == "" || key == "" {
+		resp.Diagnostics.AddError(
+			"Unexpected Import Identifier",
+			fmt.Sprintf("Expected import identifier with format: bucket-name/key Got: %q", req.ID),
+		)
+		return
+	}
+
+	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("bucket"), bucketName)...)
+	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("key"), key)...)
 }
 
 func (o *objectCopyResource) Metadata(_ context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
@@ -150,6 +164,9 @@ func (o *objectCopyResource) Read(ctx context.Context, req resource.ReadRequest,
 	}
 
 	plan.refreshFromOutput(ctx, o.config, &resp.Diagnostics)
+	if resp.Diagnostics.HasError() {
+		return
+	}
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
 	if resp.Diagnostics.HasError() {
@@ -177,6 +194,7 @@ func (o *objectCopyResource) Schema(ctx context.Context, req resource.SchemaRequ
 				Description: "(Required) Name of the object once it is in the bucket",
 			},
 			"source": schema.StringAttribute{
+				Sensitive:   true,
 				Required:    true,
 				Description: "(Required) Path of the object",
 			},
@@ -272,6 +290,9 @@ func (o *objectCopyResource) Update(ctx context.Context, req resource.UpdateRequ
 		}
 
 		plan.refreshFromOutput(ctx, o.config, &resp.Diagnostics)
+		if resp.Diagnostics.HasError() {
+			return
+		}
 	}
 
 	if !plan.ContentType.Equal(state.ContentType) {
@@ -328,6 +349,10 @@ func (o *objectCopyResource) Update(ctx context.Context, req resource.UpdateRequ
 		}
 
 		plan.refreshFromOutput(ctx, o.config, &resp.Diagnostics)
+		if resp.Diagnostics.HasError() {
+			return
+		}
+
 		resp.Diagnostics.Append(resp.State.Set(ctx, plan)...)
 	}
 }
@@ -419,10 +444,12 @@ func (o *objectCopyResourceModel) refreshFromOutput(ctx context.Context, config 
 		diag.AddError("HeadObject ERROR", err.Error())
 		return
 	}
+	if output == nil {
+		diag.AddError("HeadObject ERROR", "invalid output")
+		return
+	}
 
-	bucketName, key := TrimForParsing(o.Bucket.String()), TrimForParsing(o.Key.String())
-
-	o.ID = types.StringValue(ObjectIDGenerator(bucketName, key))
+	o.ID = types.StringValue(ObjectIDGenerator(o.Bucket.ValueString(), o.Key.ValueString()))
 	if !types.StringPointerValue(output.AcceptRanges).IsNull() || !types.StringPointerValue(output.AcceptRanges).IsUnknown() {
 		o.AcceptRanges = types.StringPointerValue(output.AcceptRanges)
 	}

@@ -93,6 +93,10 @@ func (o *objectResource) Create(ctx context.Context, req resource.CreateRequest,
 	}
 
 	plan.refreshFromOutput(ctx, o.config, &resp.Diagnostics)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
 	resp.Diagnostics.Append(resp.State.Set(ctx, plan)...)
 }
 
@@ -119,7 +123,7 @@ func (o *objectResource) Delete(ctx context.Context, req resource.DeleteRequest,
 
 	tflog.Info(ctx, "DeleteObject response="+common.MarshalUncheckedString(response))
 
-	if err := waitObjectDeleted(ctx, o.config, plan.Bucket.String(), plan.Key.String()); err != nil {
+	if err := waitObjectDeleted(ctx, o.config, plan.Bucket.ValueString(), plan.Key.ValueString()); err != nil {
 		resp.Diagnostics.AddError("WAITING FOR DELETE ERROR", err.Error())
 	}
 }
@@ -137,6 +141,9 @@ func (o *objectResource) Read(ctx context.Context, req resource.ReadRequest, res
 	}
 
 	plan.refreshFromOutput(ctx, o.config, &resp.Diagnostics)
+	if resp.Diagnostics.HasError() {
+		return
+	}
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
 	if resp.Diagnostics.HasError() {
@@ -164,7 +171,8 @@ func (o *objectResource) Schema(_ context.Context, req resource.SchemaRequest, r
 				Description: "(Required) Name of the object once it is in the bucket",
 			},
 			"source": schema.StringAttribute{
-				Required: true,
+				Required:  true,
+				Sensitive: true,
 				PlanModifiers: []planmodifier.String{
 					stringplanmodifier.RequiresReplace(),
 				},
@@ -299,11 +307,26 @@ func (o *objectResource) Update(ctx context.Context, req resource.UpdateRequest,
 	}
 
 	plan.refreshFromOutput(ctx, o.config, &resp.Diagnostics)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
 	resp.Diagnostics.Append(resp.State.Set(ctx, plan)...)
 }
 
 func (o *objectResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
-	resource.ImportStatePassthroughID(ctx, path.Root("id"), req, resp)
+	bucketName, key := ObjectIDParser(req.ID)
+
+	if bucketName == "" || key == "" {
+		resp.Diagnostics.AddError(
+			"Unexpected Import Identifier",
+			fmt.Sprintf("Expected import identifier with format: bucket-name/key Got: %q", req.ID),
+		)
+		return
+	}
+
+	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("bucket"), bucketName)...)
+	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("key"), key)...)
 }
 
 func (o *objectResource) Configure(_ context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
@@ -411,10 +434,12 @@ func (o *objectResourceModel) refreshFromOutput(ctx context.Context, config *con
 		diag.AddError("HeadObject ERROR", err.Error())
 		return
 	}
+	if output == nil {
+		diag.AddError("HeadObject ERROR", "invalid output")
+		return
+	}
 
-	bucketName, key := TrimForParsing(o.Bucket.String()), TrimForParsing(o.Key.String())
-
-	o.ID = types.StringValue(ObjectIDGenerator(bucketName, key))
+	o.ID = types.StringValue(ObjectIDGenerator(o.Bucket.ValueString(), o.Key.ValueString()))
 	if !types.StringPointerValue(output.AcceptRanges).IsNull() || !types.StringPointerValue(output.AcceptRanges).IsUnknown() {
 		o.AcceptRanges = types.StringPointerValue(output.AcceptRanges)
 	}
@@ -459,6 +484,7 @@ func (o *objectResourceModel) refreshFromOutput(ctx context.Context, config *con
 		o.LastModified = types.StringValue(output.LastModified.Format(time.RFC3339))
 	}
 }
+
 func ObjectIDGenerator(bucketName, key string) string {
 	return fmt.Sprintf("%s/%s", bucketName, key)
 }
