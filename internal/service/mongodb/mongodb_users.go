@@ -288,7 +288,7 @@ func (r *mongodbUsersResource) Delete(ctx context.Context, req resource.DeleteRe
 
 	_, err := waitMongoDbCreated(ctx, r.config, state.ID.ValueString())
 	if err != nil {
-		resp.Diagnostics.AddError("WATING FOR MONGODB DELETE ERROR", err.Error())
+		resp.Diagnostics.AddError("Unable to delete. Please try again later", err.Error())
 		return
 	}
 
@@ -308,7 +308,7 @@ func (r *mongodbUsersResource) Delete(ctx context.Context, req resource.DeleteRe
 
 	_, err = waitMongoDbCreated(ctx, r.config, state.ID.ValueString())
 	if err != nil {
-		resp.Diagnostics.AddError("WAITING FOR DELETE ERROR", err.Error())
+		resp.Diagnostics.AddError("WAITING FOR DELETION ERROR", err.Error())
 		return
 	}
 }
