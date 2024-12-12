@@ -56,9 +56,6 @@ func (d *postgresqlUsersDataSource) Schema(ctx context.Context, req datasource.S
 	resp.Schema = schema.Schema{
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
-				Computed: true,
-			},
-			"postgresql_instance_no": schema.StringAttribute{
 				Required: true,
 			},
 			"output_file": schema.StringAttribute{
@@ -74,7 +71,7 @@ func (d *postgresqlUsersDataSource) Schema(ctx context.Context, req datasource.S
 						"client_cidr": schema.StringAttribute{
 							Computed: true,
 						},
-						"is_replication_role": schema.BoolAttribute{
+						"replication_role": schema.BoolAttribute{
 							Computed: true,
 						},
 					},
@@ -89,7 +86,6 @@ func (d *postgresqlUsersDataSource) Schema(ctx context.Context, req datasource.S
 
 func (d *postgresqlUsersDataSource) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
 	var data postgresqlUsersDataSourceModel
-	var postgresqlId string
 
 	if !d.config.SupportVPC {
 		resp.Diagnostics.AddError(
@@ -104,7 +100,7 @@ func (d *postgresqlUsersDataSource) Read(ctx context.Context, req datasource.Rea
 		return
 	}
 
-	output, err := GetPostgresqlUserAllList(ctx, d.config, postgresqlId)
+	output, err := GetPostgresqlUserAllList(ctx, d.config, data.ID.ValueString())
 	if err != nil {
 		resp.Diagnostics.AddError("READING ERROR", err.Error())
 		return
@@ -117,7 +113,7 @@ func (d *postgresqlUsersDataSource) Read(ctx context.Context, req datasource.Rea
 
 	postgresqlUserList := flattenPostgresqlUsers(output)
 	fillteredList := common.FilterModels(ctx, data.Filters, postgresqlUserList)
-	if diags := data.refreshFromOutput(ctx, fillteredList, data.PostgresqlInstanceNo.ValueString()); diags.HasError() {
+	if diags := data.refreshFromOutput(ctx, fillteredList, data.ID.ValueString()); diags.HasError() {
 		resp.Diagnostics.AddError("READIG EROROR", "refreshFromOutput error")
 		return
 	}
@@ -154,38 +150,37 @@ func GetPostgresqlUserAllList(ctx context.Context, config *conn.ProviderConfig, 
 
 	tflog.Info(ctx, "GetPostgresqlUserList response="+common.MarshalUncheckedString(resp))
 
-	if resp == nil || len(resp.CloudPostgresqlUserList) < 2 {
+	if resp == nil || len(resp.CloudPostgresqlUserList) < 1 {
 		return nil, nil
 	}
 
-	return common.ReverseList(resp.CloudPostgresqlUserList[:len(resp.CloudPostgresqlUserList)-1]), nil
+	return common.ReverseList(resp.CloudPostgresqlUserList), nil
 }
 
 type postgresqlUsersDataSourceModel struct {
-	ID                   types.String `tfsdk:"id"`
-	PostgresqlInstanceNo types.String `tfsdk:"postgresql_instance_no"`
-	PostgresqlUserList   types.List   `tfsdk:"postgresql_user_list"`
-	OutputFile           types.String `tfsdk:"output_file"`
-	Filters              types.Set    `tfsdk:"filter"`
+	ID                 types.String `tfsdk:"id"`
+	PostgresqlUserList types.List   `tfsdk:"postgresql_user_list"`
+	OutputFile         types.String `tfsdk:"output_file"`
+	Filters            types.Set    `tfsdk:"filter"`
 }
 
 type postgresqlUser struct {
-	UserName          types.String `tfsdk:"name"`
-	ClientCidr        types.String `tfsdk:"client_cidr"`
-	IsReplicationRole types.Bool   `tfsdk:"is_replication_role"`
+	UserName        types.String `tfsdk:"name"`
+	ClientCidr      types.String `tfsdk:"client_cidr"`
+	ReplicationRole types.Bool   `tfsdk:"replication_role"`
 }
 
 type postgresqlUserToJsonConvert struct {
-	UserName          types.String `tfsdk:"name"`
-	ClientCidr        types.String `tfsdk:"client_cidr"`
-	IsReplicationRole types.Bool   `tfsdk:"is_replication_role"`
+	UserName        string `json:"name"`
+	ClientCidr      string `json:"client_cidr"`
+	ReplicationRole bool   `json:"replication_role"`
 }
 
 func (r postgresqlUser) attrTypes() map[string]attr.Type {
 	return map[string]attr.Type{
-		"name":                types.StringType,
-		"client_cidr":         types.StringType,
-		"is_replication_role": types.BoolType,
+		"name":             types.StringType,
+		"client_cidr":      types.StringType,
+		"replication_role": types.BoolType,
 	}
 }
 
@@ -218,18 +213,17 @@ func flattenPostgresqlUsers(list []*vpostgresql.CloudPostgresqlUser) []*postgres
 func (d *postgresqlUser) refreshFromOutput(output *vpostgresql.CloudPostgresqlUser) {
 	d.UserName = types.StringPointerValue(output.UserName)
 	d.ClientCidr = types.StringPointerValue(output.ClientCidr)
-	d.IsReplicationRole = types.BoolPointerValue(output.IsReplicationRole)
+	d.ReplicationRole = types.BoolPointerValue(output.IsReplicationRole)
 }
 
-func (r *postgresqlUsersDataSourceModel) refreshFromOutput(ctx context.Context, output []*postgresqlUser, instance string) diag.Diagnostics {
-	r.ID = types.StringValue(instance)
-	r.PostgresqlInstanceNo = types.StringValue(instance)
+func (d *postgresqlUsersDataSourceModel) refreshFromOutput(ctx context.Context, output []*postgresqlUser, instance string) diag.Diagnostics {
+	d.ID = types.StringValue(instance)
 	userListValue, diags := types.ListValueFrom(ctx, types.ObjectType{AttrTypes: postgresqlUser{}.attrTypes()}, output)
 	if diags.HasError() {
 		return diags
 	}
 
-	r.PostgresqlUserList = userListValue
+	d.PostgresqlUserList = userListValue
 
-	return nil
+	return diags
 }

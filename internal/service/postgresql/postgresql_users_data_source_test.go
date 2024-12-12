@@ -63,25 +63,25 @@ resource "ncloud_postgresql" "postgresql" {
 }
 
 resource "ncloud_postgresql_users" "postgresql_users" {
-	postgresql_instance_no = ncloud_postgresql.postgresql.postgresql_instance_no
+	id = ncloud_postgresql.postgresql.id
 	postgresql_user_list = [
 		{
 			name = "test1",
 			password = "t123456789!",
 			client_cidr = "0.0.0.0/0",
-			is_replication_role = "false"
+			replication_role = "false"
 		},
 		{
 			name = "test2",
 			password = "t123456789!",
 			client_cidr = "0.0.0.0/0",
-			is_replication_role = "false"
+			replication_role = "false"
 		}
 	]
 }
 
 data "ncloud_postgresql_users" "all" {
-	postgresql_instance_no = ncloud_postgresql.postgresql.id
+	id = ncloud_postgresql.postgresql.id
 	filter {
 		name = "name"
 		values = [ncloud_postgresql_users.postgresql_users.postgresql_user_list.0.name, ncloud_postgresql_users.postgresql_users.postgresql_user_list.1.name]

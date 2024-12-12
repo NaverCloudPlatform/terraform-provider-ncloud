@@ -71,25 +71,25 @@ resource "ncloud_postgresql" "postgresql" {
 	database_name     = "test_db"
 }
 resource "ncloud_postgresql_users" "postgresql_users" {
-	postgresql_instance_no = ncloud_postgresql.postgresql.postgresql_instance_no
+	id = ncloud_postgresql.postgresql.id
 	postgresql_user_list = [
 		{
 			name = "testowner1",
 			password = "t123456789!",
 			client_cidr = "0.0.0.0/0",
-			is_replication_role = "false"
+			replication_role = "false"
 		},
 		{
 			name = "testowner2",
 			password = "t123456789!",
 			client_cidr = "0.0.0.0/0",
-			is_replication_role = "false"
+			replication_role = "false"
 		}
 	]
 }
 
 resource "ncloud_postgresql_databases" "postgresql_db" {
-	postgresql_instance_no   = ncloud_postgresql.postgresql.postgresql_instance_no
+	id = ncloud_postgresql.postgresql.id
 	postgresql_database_list = [
 		{
 			name = "testdb1",
@@ -106,16 +106,23 @@ resource "ncloud_postgresql_databases" "postgresql_db" {
 
 func testAccPostgresqlDatabasesRemoveConfig(testPostgresqlName string) string {
 	return fmt.Sprintf(`
-data "ncloud_vpc" "test_vpc" {
-	id = "75658"
+resource "ncloud_vpc" "test_vpc" {
+	name               = "%[1]s"
+	ipv4_cidr_block    = "10.5.0.0/16"
 }
-data "ncloud_subnet" "test_subnet" {
-	id = "172709"
+
+resource "ncloud_subnet" "test_subnet" {
+	vpc_no             = ncloud_vpc.test_vpc.vpc_no
+	name               = "%[1]s"
+	subnet             = "10.5.0.0/24"
+	zone               = "KR-2"
+	network_acl_no     = ncloud_vpc.test_vpc.default_network_acl_no
+	subnet_type        = "PUBLIC"
 }
 
 resource "ncloud_postgresql" "postgresql" {
-	vpc_no            = data.ncloud_vpc.test_vpc.vpc_no
-	subnet_no         = data.ncloud_subnet.test_subnet.id
+	vpc_no            = ncloud_vpc.test_vpc.vpc_no
+	subnet_no         = ncloud_subnet.test_subnet.id
 	service_name      = "%[1]s"
 	server_name_prefix = "testprefix"
 	user_name         = "testusername"
@@ -123,20 +130,21 @@ resource "ncloud_postgresql" "postgresql" {
 	client_cidr       = "0.0.0.0/0"
 	database_name     = "test_db"
 }
+
 resource "ncloud_postgresql_users" "postgresql_users" {
-	postgresql_instance_no = ncloud_postgresql.postgresql.postgresql_instance_no
+	id = ncloud_postgresql.postgresql.id
 	postgresql_user_list = [
 		{
 			name = "testowner1",
 			password = "t123456789!",
 			client_cidr = "0.0.0.0/0",
-			is_replication_role = "false"
+			replication_role = "false"
 		},
 		{
 			name = "testowner2",
 			password = "t123456789!",
 			client_cidr = "0.0.0.0/0",
-			is_replication_role = "false"
+			replication_role = "false"
 		}
 	]
 }
