@@ -37,6 +37,12 @@ func TestAccResourceNcloudMysqlDatabases_vpc_basic(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "mysql_database_list.1.name", "testdb2"),
 				),
 			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateIdFunc: testAccMysqlAssociationImportStateIDFunc(resourceName),
+				ImportStateVerify: true,
+			},
 		},
 	})
 }
@@ -60,11 +66,11 @@ resource "ncloud_subnet" "test_subnet" {
 resource "ncloud_mysql" "mysql" {
 	subnet_no = ncloud_subnet.test_subnet.id
 	service_name = "%[1]s"
-	server_name_prefix = "testprefix"
-	user_name = "testusername"
+	server_name_prefix = "rprefix"
+	user_name = "rusername"
 	user_password = "t123456789!a"
 	host_ip = "192.168.0.1"
-	database_name = "test_db"
+	database_name = "admin_r_db"
 }
 
 resource "ncloud_mysql_databases" "mysql_dbs" {
@@ -99,4 +105,18 @@ func testAccCheckMysqlDatabasesDestroy(s *terraform.State) error {
 	}
 
 	return nil
+}
+
+func testAccMysqlAssociationImportStateIDFunc(resourceName string) resource.ImportStateIdFunc {
+	return func(s *terraform.State) (string, error) {
+		rs, ok := s.RootModule().Resources[resourceName]
+		if !ok {
+			return "", fmt.Errorf("not found: %s", resourceName)
+		}
+		id := rs.Primary.Attributes["id"]
+		name1 := rs.Primary.Attributes["mysql_database_list.0.name"]
+		name2 := rs.Primary.Attributes["mysql_database_list.1.name"]
+
+		return fmt.Sprintf("%s:%s:%s", id, name1, name2), nil
+	}
 }
