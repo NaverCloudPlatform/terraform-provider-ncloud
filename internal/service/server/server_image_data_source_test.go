@@ -34,6 +34,11 @@ func TestAccDataSourceNcloudServerImage_classic_byCode(t *testing.T) {
 }
 
 func TestAccDataSourceNcloudServerImage_vpc_byCode(t *testing.T) {
+	t.Skip()
+	{
+		// Skip: deprecated server_image_product_code
+	}
+
 	dataName := "data.ncloud_server_image.test1"
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -73,6 +78,11 @@ func TestAccDataSourceNcloudServerImage_classic_byFilterProductCode(t *testing.T
 }
 
 func TestAccDataSourceNcloudServerImage_vpc_byFilterProductCode(t *testing.T) {
+	t.Skip()
+	{
+		// Skip: deprecated server_image_product_code
+	}
+
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: ProtoV6ProviderFactories,
@@ -134,6 +144,11 @@ func testAccDataSourceNcloudServerImageByBlockStorageSize(t *testing.T, isVpc bo
 }
 
 func TestAccDataSourceNcloudServerImage_vpc_byPlatformType(t *testing.T) {
+	t.Skip()
+	{
+		// Skip: deprecated server_image_product_code
+	}
+
 	dataName := "data.ncloud_server_image.test5"
 
 	resource.ParallelTest(t, resource.TestCase{

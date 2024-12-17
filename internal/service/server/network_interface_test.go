@@ -52,6 +52,11 @@ func TestAccresourceNcloudNetworkInterface_basic(t *testing.T) {
 }
 
 func TestAccresourceNcloudNetworkInterface_update(t *testing.T) {
+	t.Skip()
+	{
+		// Skip: deprecated server_image_product_code
+	}
+
 	var networkInterface vserver.NetworkInterface
 	resourceName := "ncloud_network_interface.foo"
 	name := fmt.Sprintf("tf-nic-update-%s", acctest.RandString(5))

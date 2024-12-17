@@ -26,6 +26,11 @@ func TestAccDataSourceNcloudSESNodeOsImages(t *testing.T) {
 }
 
 func TestAccDataSourceNcloudSESNodeOsImagesFilter(t *testing.T) {
+	t.Skip()
+	{
+		// Skip: deprecated server_image_product_code
+	}
+
 	dataName := "data.ncloud_ses_node_os_images.filter"
 
 	resource.ParallelTest(t, resource.TestCase{

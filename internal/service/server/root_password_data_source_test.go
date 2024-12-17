@@ -30,6 +30,11 @@ func TestAccDataSourceNcloudRootPassword_classic_basic(t *testing.T) {
 }
 
 func TestAccDataSourceNcloudRootPassword_vpc_basic(t *testing.T) {
+	t.Skip()
+	{
+		// Skip: deprecated server_image_product_code
+	}
+
 	resourceName := "data.ncloud_root_password.default"
 	name := fmt.Sprintf("tf-passwd-basic-%s", acctest.RandString(5))
 
