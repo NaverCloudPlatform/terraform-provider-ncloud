@@ -43,6 +43,11 @@ func TestAccDataSourceNcloudAutoScalingGroup_classic_basic(t *testing.T) {
 }
 
 func TestAccDataSourceNcloudAutoScalingGroup_vpc_basic(t *testing.T) {
+	t.Skip()
+	{
+		// Skip: deprecated server_image_product_code
+	}
+
 	dataName := "data.ncloud_auto_scaling_group.auto"
 	resourceName := "ncloud_auto_scaling_group.auto"
 

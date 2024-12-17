@@ -42,6 +42,11 @@ func TestAccResourceNcloudLaunchConfiguration_classic_basic(t *testing.T) {
 }
 
 func TestAccResourceNcloudLaunchConfiguration_vpc_basic(t *testing.T) {
+	t.Skip()
+	{
+		// Skip: deprecated server_image_product_code
+	}
+
 	var launchConfiguration autoscaling.LaunchConfiguration
 	resourceName := "ncloud_launch_configuration.lc"
 	serverImageProductCode := "SW.VSVR.OS.LNX64.CNTOS.0703.B050"
@@ -93,6 +98,11 @@ func TestAccResourceNcloudLaunchConfiguration_classic_disappears(t *testing.T) {
 }
 
 func TestAccResourceNcloudLaunchConfiguration_vpc_disappears(t *testing.T) {
+	t.Skip()
+	{
+		// Skip: deprecated server_image_product_code
+	}
+
 	var launchConfiguration autoscaling.LaunchConfiguration
 	resourceName := "ncloud_launch_configuration.lc"
 	serverImageProductCode := "SW.VSVR.OS.LNX64.CNTOS.0703.B050"

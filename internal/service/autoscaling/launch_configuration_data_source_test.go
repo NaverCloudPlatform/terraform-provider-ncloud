@@ -35,6 +35,11 @@ func TestAccDataSourceNcloudLaunchConfiguration_classic_basic(t *testing.T) {
 }
 
 func TestAccDataSourceNcloudLaunchConfiguration_vpc_basic(t *testing.T) {
+	t.Skip()
+	{
+		// Skip: deprecated server_image_product_code
+	}
+
 	dataName := "data.ncloud_launch_configuration.lc"
 	resourceName := "ncloud_launch_configuration.lc"
 

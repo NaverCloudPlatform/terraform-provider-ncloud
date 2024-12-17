@@ -49,6 +49,11 @@ func TestAccResourceNcloudPublicIpInstance_classic_basic(t *testing.T) {
 }
 
 func TestAccResourceNcloudPublicIpInstance_vpc_basic(t *testing.T) {
+	t.Skip()
+	{
+		// Skip: deprecated server_image_product_code
+	}
+
 	var instance *server.PublicIpInstance
 
 	name := fmt.Sprintf("test-public-ip-basic-%s", acctest.RandString(5))
@@ -115,6 +120,11 @@ func TestAccResourceNcloudPublicIpInstance_classic_updateServerInstanceNo(t *tes
 }
 
 func TestAccResourceNcloudPublicIpInstance_vpc_updateServerInstanceNo(t *testing.T) {
+	t.Skip()
+	{
+		// Skip: deprecated server_image_product_code
+	}
+
 	var instance *server.PublicIpInstance
 	serverNameFoo := fmt.Sprintf("test-public-ip-foo-%s", acctest.RandString(5))
 	serverNameBar := fmt.Sprintf("test-public-ip-bar-%s", acctest.RandString(5))

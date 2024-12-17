@@ -110,6 +110,11 @@ func TestAccResourceNcloudAutoScalingGroup_classic_zero_value(t *testing.T) {
 }
 
 func TestAccResourceNcloudAutoScalingGroup_vpc_zero_value(t *testing.T) {
+	t.Skip()
+	{
+		// Skip: deprecated server_image_product_code
+	}
+
 	var autoScalingGroup autoscaling.AutoScalingGroup
 	resourceName := "ncloud_auto_scaling_group.auto"
 	resource.ParallelTest(t, resource.TestCase{
@@ -164,6 +169,11 @@ func TestAccResourceNcloudAutoScalingGroup_classic_disappears(t *testing.T) {
 }
 
 func TestAccResourceNcloudAutoScalingGroup_vpc_disappears(t *testing.T) {
+	t.Skip()
+	{
+		// Skip: deprecated server_image_product_code
+	}
+
 	var autoScalingGroup autoscaling.AutoScalingGroup
 	resourceName := "ncloud_auto_scaling_group.auto"
 	resource.ParallelTest(t, resource.TestCase{

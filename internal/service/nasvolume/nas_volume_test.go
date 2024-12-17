@@ -141,6 +141,11 @@ func TestAccResourceNcloudNasVolume_classic_changeAccessControl(t *testing.T) {
 }
 
 func TestAccResourceNcloudNasVolume_vpc_changeAccessControl(t *testing.T) {
+	t.Skip()
+	{
+		// Skip: deprecated server_image_product_code
+	}
+
 	var before nasvolume.NasVolume
 	var after nasvolume.NasVolume
 	postfix := GetTestPrefix()

@@ -27,6 +27,11 @@ func TestAccDataSourceNcloudServerProducts_classic_basic(t *testing.T) {
 }
 
 func TestAccDataSourceNcloudServerProducts_vpc_basic(t *testing.T) {
+	t.Skip()
+	{
+		// Skip: deprecated server_image_product_code
+	}
+
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { TestAccPreCheck(t) },
 		IsUnitTest:               false,

@@ -16,6 +16,11 @@ import (
 )
 
 func TestAccResourceNcloudLbTargetGroupAttachment_basic(t *testing.T) {
+	t.Skip()
+	{
+		// Skip: deprecated server_image_product_code
+	}
+
 	var target string
 	targetGroupName := fmt.Sprintf("terraform-testacc-tga-%s", acctest.RandString(5))
 	testServerName := GetTestServerName()
