@@ -19,9 +19,10 @@ resource "ncloud_placement_group" "group-a" {
 }
 
 resource "ncloud_server" "server" {
-  subnet_no                 = var.subnet_no
-  server_image_product_code = "SW.VSVR.OS.LNX64.CNTOS.0703.B050"
-  placement_group_no        = ncloud_placement_group.group-a.id
+  subnet_no           = var.subnet_no
+  server_image_number = "25495367"
+  server_spec_code    = "s2-g3"
+  placement_group_no  = ncloud_placement_group.group-a.id
 }
 ```
 

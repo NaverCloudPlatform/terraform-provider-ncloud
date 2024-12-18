@@ -10,10 +10,9 @@ To this end, we provide data source by which you can search a server product.
 
 ## Example Usage
 
-```hcl
+```terraform
 data "ncloud_server_products" "products" {
-  server_image_product_code = "SW.VSVR.OS.LNX64.CNTOS.0703.B050"  // Search by 'CentOS 7.3 (64-bit)' image vpc
-  // server_image_product_code = "SPSW0LINUX000032"  // Search by 'CentOS 7.3 (64-bit)' image classic
+  server_image_product_code = "SW.VSVR.OS.LNX64.ROCKY.0810.B050"  // Search by 'Rocky 8.10 (64-bit)' image vpc
   
   filter {
     name   = "product_code"

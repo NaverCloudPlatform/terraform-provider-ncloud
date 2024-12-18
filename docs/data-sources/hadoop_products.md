@@ -13,7 +13,7 @@ Provides the list of Hadoop server specification codes.
 
 ```terraform
 data "ncloud_hadoop_products" "all" {
-  image_product_code = "SW.VCHDP.LNX64.CNTOS.0708.HDP.21.B050"
+  image_product_code = "SW.VCHDP.OS.LNX64.ROCKY.0810.HDP.B050"
 
   filter {
     name   = "product_type"

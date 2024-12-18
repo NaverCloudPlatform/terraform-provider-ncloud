@@ -20,9 +20,10 @@ resource "ncloud_init_script" "init" {
 }
 
 resource "ncloud_server" "server" {
-  subnet_no                 = var.subnet_no
-  server_image_product_code = "SW.VSVR.OS.LNX64.CNTOS.0703.B050"
-  init_script_no            = ncloud_init_script.init.id
+  subnet_no           = var.subnet_no
+  server_image_number = "25495367"
+  server_spec_code    = "s2-g3"
+  init_script_no      = ncloud_init_script.init.id
 }
 ```
 

@@ -26,22 +26,19 @@ output "image_list" {
 }
 ```
 
+Outputs:
+```terraform
+image_list = {
+  "Cloud Hadoop": "SW.VCHDP.OS.LNX64.ROCKY.0810.HDP.B050",
+}
+```
+
 ```terraform
 data "ncloud_hadoop_image_products" "example" {
   filter {
     name = "product_name"
-    values = ["Cloud Hadoop 2.1"]
+    values = ["Cloud Hadoop"]
   }
-}
-```
-
-Outputs:
-```terraform
-image_list = {
-  "Cloud Hadoop 1.8": "SW.VCHDP.LNX64.CNTOS.0708.HDP.18.B050",
-  "Cloud Hadoop 1.9": "SW.VCHDP.LNX64.CNTOS.0708.HDP.19.B050",
-  "Cloud Hadoop 2.0": "SW.VCHDP.LNX64.CNTOS.0708.HDP.20.B050",
-  "Cloud Hadoop 2.1": "SW.VCHDP.LNX64.CNTOS.0708.HDP.21.B050",
 }
 ```
 
