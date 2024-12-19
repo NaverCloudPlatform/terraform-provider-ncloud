@@ -45,8 +45,10 @@ jobs:
 
       - name: Install AWS CLI
         run: |
-          sudo apt-get update
-          sudo apt-get install -y awscli
+          sudo apt install -y curl unzip
+          curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscli.zip"
+          unzip awscli.zip
+          sudo ./aws/install
 
       - name: Configure AWS CLI with NCP S3 compatible endpoint
         run: |
