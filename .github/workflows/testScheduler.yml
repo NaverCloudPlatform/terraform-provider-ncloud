@@ -43,13 +43,6 @@ jobs:
           go-version: ${{ matrix.go-version }}
           cache: false
 
-      - name: Install AWS CLI
-        run: |
-          sudo apt install -y curl unzip
-          curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscli.zip"
-          unzip awscli.zip
-          sudo ./aws/install
-
       - name: Configure AWS CLI with NCP S3 compatible endpoint
         run: |
           aws configure set aws_access_key_id ${{ secrets.NCLOUD_ACCESS_KEY }}
