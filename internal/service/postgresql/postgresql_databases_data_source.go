@@ -56,9 +56,6 @@ func (d *postgresqlDatabasesDataSource) Schema(ctx context.Context, req datasour
 	resp.Schema = schema.Schema{
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
-				Computed: true,
-			},
-			"postgresql_instance_no": schema.StringAttribute{
 				Required: true,
 			},
 			"output_file": schema.StringAttribute{
@@ -100,7 +97,7 @@ func (d *postgresqlDatabasesDataSource) Read(ctx context.Context, req datasource
 		return
 	}
 
-	output, err := GetPostgresqlDatabaseAllList(ctx, d.config, data.PostgresqlInstanceNo.ValueString())
+	output, err := GetPostgresqlDatabaseAllList(ctx, d.config, data.ID.ValueString())
 	if err != nil {
 		resp.Diagnostics.AddError("READING ERROR", err.Error())
 		return
@@ -113,7 +110,7 @@ func (d *postgresqlDatabasesDataSource) Read(ctx context.Context, req datasource
 
 	postgresqlDbList := flattenPostgresqlDatabases(output)
 	filteredList := common.FilterModels(ctx, data.Filters, postgresqlDbList)
-	if diags := data.refreshFromOutput(ctx, filteredList, data.PostgresqlInstanceNo.ValueString()); diags.HasError() {
+	if diags := data.refreshFromOutput(ctx, filteredList, data.ID.ValueString()); diags.HasError() {
 		resp.Diagnostics.AddError("READING ERROR", "refreshFromOutput error")
 		return
 	}
@@ -123,8 +120,10 @@ func (d *postgresqlDatabasesDataSource) Read(ctx context.Context, req datasource
 
 		if convertedList, err := convertDbsToJsonStruct(data.PostgresqlDatabaseList.Elements()); err != nil {
 			resp.Diagnostics.AddError("OUTPUT FILE ERROR", err.Error())
+			return
 		} else if err := common.WriteToFile(outputPath, convertedList); err != nil {
 			resp.Diagnostics.AddError("OUTPUT FILE ERROR", err.Error())
+			return
 		}
 	}
 
@@ -145,36 +144,35 @@ func GetPostgresqlDatabaseAllList(ctx context.Context, config *conn.ProviderConf
 
 	tflog.Info(ctx, "GetPostgresqlDatabaseList response="+common.MarshalUncheckedString(resp))
 
-	if resp == nil || len(resp.CloudPostgresqlDatabaseList) < 2 {
+	if resp == nil || len(resp.CloudPostgresqlDatabaseList) < 1 {
 		return nil, nil
 	}
 
-	return resp.CloudPostgresqlDatabaseList[1:], nil
+	return resp.CloudPostgresqlDatabaseList, nil
 }
 
 type postgresqlDatabasesDataSourceModel struct {
 	ID                     types.String `tfsdk:"id"`
-	PostgresqlInstanceNo   types.String `tfsdk:"postgresql_instance_no"`
 	PostgresqlDatabaseList types.List   `tfsdk:"postgresql_database_list"`
 	OutputFile             types.String `tfsdk:"output_file"`
 	Filters                types.Set    `tfsdk:"filter"`
 }
 
-func (r *postgresqlDatabasesDataSourceModel) refreshFromOutput(ctx context.Context, output []*postgresqlDb, instanceNo string) diag.Diagnostics {
-	r.ID = types.StringValue(instanceNo)
-	r.PostgresqlInstanceNo = types.StringValue(instanceNo)
-	dbList, diags := types.ListValueFrom(ctx, types.ObjectType{AttrTypes: postgresqlDb{}.attrTypes()}, output)
-	if diags.HasError() {
-		return diags
-	}
-	r.PostgresqlDatabaseList = dbList
-
-	return nil
+type postgresqlDb struct {
+	DatabaseName types.String `tfsdk:"name"`
+	Owner        types.String `tfsdk:"owner"`
 }
 
-func (d *postgresqlDb) refreshFromOutput(output *vpostgresql.CloudPostgresqlDatabase) {
-	d.DatabaseName = types.StringPointerValue(output.DatabaseName)
-	d.Owner = types.StringPointerValue(output.Owner)
+type postgresqlDbToJsonConvert struct {
+	DatabaseName string `json:"name"`
+	Owner        string `json:"owner"`
+}
+
+func (d postgresqlDb) attrTypes() map[string]attr.Type {
+	return map[string]attr.Type{
+		"name":  types.StringType,
+		"owner": types.StringType,
+	}
 }
 
 func convertDbsToJsonStruct(dbs []attr.Value) ([]postgresqlDbToJsonConvert, error) {
@@ -203,19 +201,18 @@ func flattenPostgresqlDatabases(list []*vpostgresql.CloudPostgresqlDatabase) []*
 	return outputs
 }
 
-type postgresqlDb struct {
-	DatabaseName types.String `tfsdk:"name"`
-	Owner        types.String `tfsdk:"owner"`
+func (d *postgresqlDb) refreshFromOutput(output *vpostgresql.CloudPostgresqlDatabase) {
+	d.DatabaseName = types.StringPointerValue(output.DatabaseName)
+	d.Owner = types.StringPointerValue(output.Owner)
 }
 
-type postgresqlDbToJsonConvert struct {
-	DatabaseName string `json:"name"`
-	Owner        string `json:"owner"`
-}
-
-func (d postgresqlDb) attrTypes() map[string]attr.Type {
-	return map[string]attr.Type{
-		"name":  types.StringType,
-		"owner": types.StringType,
+func (d *postgresqlDatabasesDataSourceModel) refreshFromOutput(ctx context.Context, output []*postgresqlDb, instanceNo string) diag.Diagnostics {
+	d.ID = types.StringValue(instanceNo)
+	dbList, diags := types.ListValueFrom(ctx, types.ObjectType{AttrTypes: postgresqlDb{}.attrTypes()}, output)
+	if diags.HasError() {
+		return diags
 	}
+	d.PostgresqlDatabaseList = dbList
+
+	return diags
 }

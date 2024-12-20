@@ -1,5 +1,5 @@
 ---
-subcategory: "PostgresSQL"
+subcategory: "PostgreSQL"
 ---
 
 # Data Source: ncloud_postgresql_users
@@ -29,7 +29,6 @@ output "user_list" {
 }
 ```
 
-
 Outputs:
 ```terraform
 user_list = {
@@ -41,7 +40,7 @@ user_list = {
 
 The following arguments are required:
 
-* `postgresql_instance_no` - (Required) Postgresql Instance No.
+* `id` - (Required) Postgresql Instance No.
 * `output_file` - (Optional) The name of file that can save data source after running `terraform plan`.
 * `filter` - (Optional) Custom filter block as described below.
   * `name` - (Required) The name of the field to filter by
@@ -54,6 +53,5 @@ This data source exports the following attributes in adddition to the argument a
 
 * `postgresql_user_list` - The list of users to add.
   * `name` - PostgreSQL User ID.
-  * `password` - PostgreSQL User Password.
   * `client_cidr` - Access Control (CIDR) of the client you want to connect 
-  * `is_replication_role` - Replication Role or not
+  * `replication_role` - Replication Role or not
