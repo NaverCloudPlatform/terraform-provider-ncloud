@@ -15,6 +15,9 @@ import (
 )
 
 func TestAccResourceNcloudLaunchConfiguration_classic_basic(t *testing.T) {
+	// Images are all deprecated in Classic
+	t.Skip()
+
 	var launchConfiguration autoscaling.LaunchConfiguration
 	resourceName := "ncloud_launch_configuration.lc"
 	serverImageProductCode := "SPSW0LINUX000046"
@@ -74,6 +77,9 @@ func TestAccResourceNcloudLaunchConfiguration_vpc_basic(t *testing.T) {
 }
 
 func TestAccResourceNcloudLaunchConfiguration_classic_disappears(t *testing.T) {
+	// Images are all deprecated in Classic
+	t.Skip()
+
 	var launchConfiguration autoscaling.LaunchConfiguration
 	resourceName := "ncloud_launch_configuration.lc"
 	serverImageProductCode := "SPSW0LINUX000046"

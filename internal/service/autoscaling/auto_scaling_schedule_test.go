@@ -17,6 +17,9 @@ import (
 )
 
 func TestAccResourceNcloudAutoScalingSchedule_classic_basic(t *testing.T) {
+	// Images are all deprecated in Classic
+	t.Skip()
+
 	var schedule autoscaling.AutoScalingSchedule
 	name := fmt.Sprintf("terraform-testacc-asp-%s", acctest.RandString(5))
 	resourceName := "ncloud_auto_scaling_schedule.test-schedule"
@@ -69,6 +72,9 @@ func TestAccResourceNcloudAutoScalingSchedule_vpc_basic(t *testing.T) {
 }
 
 func TestAccResourceNcloudAutoScalingSchedule_classic_disappears(t *testing.T) {
+	// Images are all deprecated in Classic
+	t.Skip()
+
 	var schedule autoscaling.AutoScalingSchedule
 	name := fmt.Sprintf("terraform-testacc-asp-%s", acctest.RandString(5))
 	resourceName := "ncloud_auto_scaling_schedule.test-schedule"

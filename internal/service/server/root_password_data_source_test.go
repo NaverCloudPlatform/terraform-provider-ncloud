@@ -11,6 +11,9 @@ import (
 )
 
 func TestAccDataSourceNcloudRootPassword_classic_basic(t *testing.T) {
+	// Images are all deprecated in Classic
+	t.Skip()
+
 	resourceName := "data.ncloud_root_password.default"
 	name := fmt.Sprintf("tf-passwd-basic-%s", acctest.RandString(5))
 

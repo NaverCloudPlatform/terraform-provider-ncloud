@@ -20,6 +20,9 @@ import (
 )
 
 func TestAccResourceNcloudPortForwardingRuleBasic(t *testing.T) {
+	// Images are all deprecated in Classic
+	t.Skip()
+
 	var portForwarding server.PortForwardingRule
 
 	externalPort := int(generateExternalPort(1024, 65534)) // acctest.RandIntRange(1024, 65534+1024)

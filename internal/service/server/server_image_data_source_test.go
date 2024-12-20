@@ -10,6 +10,9 @@ import (
 )
 
 func TestAccDataSourceNcloudServerImage_classic_byCode(t *testing.T) {
+	// Images are all deprecated in Classic
+	t.Skip()
+
 	dataName := "data.ncloud_server_image.test1"
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -63,6 +66,9 @@ func TestAccDataSourceNcloudServerImage_vpc_byCode(t *testing.T) {
 }
 
 func TestAccDataSourceNcloudServerImage_classic_byFilterProductCode(t *testing.T) {
+	// Images are all deprecated in Classic
+	t.Skip()
+
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: ClassicProtoV6ProviderFactories,
@@ -98,6 +104,9 @@ func TestAccDataSourceNcloudServerImage_vpc_byFilterProductCode(t *testing.T) {
 }
 
 func TestAccDataSourceNcloudServerImage_classic_byFilterProductName(t *testing.T) {
+	// Images are all deprecated in Classic
+	t.Skip()
+
 	testAccDataSourceNcloudServerImageByFilterProductName(t, false)
 }
 
@@ -121,6 +130,9 @@ func testAccDataSourceNcloudServerImageByFilterProductName(t *testing.T, isVpc b
 }
 
 func TestAccDataSourceNcloudServerImage_classic_byBlockStorageSize(t *testing.T) {
+	// Images are all deprecated in Classic
+	t.Skip()
+
 	testAccDataSourceNcloudServerImageByBlockStorageSize(t, false)
 }
 

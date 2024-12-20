@@ -16,6 +16,9 @@ import (
 )
 
 func TestAccResourceNcloudAutoScalingPolicy_classic_basic(t *testing.T) {
+	// Images are all deprecated in Classic
+	t.Skip()
+
 	var policy autoscaling.AutoScalingPolicy
 	name := fmt.Sprintf("terraform-testacc-asp-%s", acctest.RandString(5))
 	resourceCHANG := "ncloud_auto_scaling_policy.test-policy-CHANG"
@@ -55,6 +58,9 @@ func TestAccResourceNcloudAutoScalingPolicy_classic_basic(t *testing.T) {
 }
 
 func TestAccResourceNcloudAutoScalingPolicy_classic_zero_value(t *testing.T) {
+	// Images are all deprecated in Classic
+	t.Skip()
+
 	var policy autoscaling.AutoScalingPolicy
 	name := fmt.Sprintf("terraform-testacc-asp-%s", acctest.RandString(5))
 	resourceCHANG := "ncloud_auto_scaling_policy.test-policy-CHANG"
@@ -186,6 +192,9 @@ func TestAccResourceNcloudAutoScalingPolicy_vpc_zero_value(t *testing.T) {
 }
 
 func TestAccResourceNcloudAutoScalingPolicy_classic_disappears(t *testing.T) {
+	// Images are all deprecated in Classic
+	t.Skip()
+
 	var policy autoscaling.AutoScalingPolicy
 	name := fmt.Sprintf("terraform-testacc-asp-%s", acctest.RandString(5))
 	resourceCHANG := "ncloud_auto_scaling_policy.test-policy-CHANG"

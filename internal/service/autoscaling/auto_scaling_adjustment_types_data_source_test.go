@@ -10,6 +10,9 @@ import (
 )
 
 func TestAccDataSourceNcloudAutoScalingAdjustmentTypes_classic_basic(t *testing.T) {
+	// Images are all deprecated in Classic
+	t.Skip()
+
 	lcName := fmt.Sprintf("lc-%s", acctest.RandString(5))
 	policyName := fmt.Sprintf("policy-%s", acctest.RandString(5))
 	dataName := "data.ncloud_auto_scaling_adjustment_types.test"
@@ -48,6 +51,9 @@ func TestAccDataSourceNcloudAutoScalingAdjustmentTypes_vpc_basic(t *testing.T) {
 }
 
 func TestAccDataSourceNcloudAutoScalingAdjustmentTypes_classic_byFilterCode(t *testing.T) {
+	// Images are all deprecated in Classic
+	t.Skip()
+
 	dataName := "data.ncloud_auto_scaling_adjustment_types.by_filter"
 
 	resource.ParallelTest(t, resource.TestCase{

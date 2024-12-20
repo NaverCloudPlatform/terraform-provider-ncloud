@@ -105,6 +105,9 @@ func testAccResourceNcloudNasVolumeResize(t *testing.T, isVpc bool) {
 }
 
 func TestAccResourceNcloudNasVolume_classic_changeAccessControl(t *testing.T) {
+	// Images are all deprecated in Classic
+	t.Skip()
+
 	var before nasvolume.NasVolume
 	var after nasvolume.NasVolume
 	postfix := GetTestPrefix()

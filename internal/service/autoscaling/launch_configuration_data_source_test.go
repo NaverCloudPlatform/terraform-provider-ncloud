@@ -9,6 +9,9 @@ import (
 )
 
 func TestAccDataSourceNcloudLaunchConfiguration_classic_basic(t *testing.T) {
+	// Images are all deprecated in Classic
+	t.Skip()
+
 	dataName := "data.ncloud_launch_configuration.lc"
 	resourceName := "ncloud_launch_configuration.lc"
 

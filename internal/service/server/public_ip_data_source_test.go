@@ -13,9 +13,7 @@ import (
 )
 
 func TestAccDataSourceNcloudPublicIp_classic_basic(t *testing.T) {
-	/*
-		TODO - it's	for atomicity of regression testing. remove when error has solved.
-	*/
+	// Images are all deprecated in Classic
 	t.Skip()
 
 	resourceName := "ncloud_public_ip.public_ip"
@@ -164,7 +162,7 @@ resource "ncloud_subnet" "test" {
 resource "ncloud_server" "server" {
 	subnet_no = ncloud_subnet.test.id
 	name = "%[1]s"
-	server_image_product_code = "SW.VSVR.OS.LNX64.CNTOS.0703.B050"
+	server_image_product_code = "SW.VSVR.OS.LNX64.ROCKY.0810.B050"
 	login_key_name = ncloud_login_key.loginkey.key_name
 }
 

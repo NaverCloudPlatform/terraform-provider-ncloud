@@ -9,6 +9,9 @@ import (
 )
 
 func TestAccDataSourceNcloudAutoScalingGroup_classic_basic(t *testing.T) {
+	// Images are all deprecated in Classic
+	t.Skip()
+
 	dataName := "data.ncloud_auto_scaling_group.auto"
 	resourceName := "ncloud_auto_scaling_group.auto"
 
