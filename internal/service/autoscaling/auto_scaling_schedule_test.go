@@ -44,11 +44,6 @@ func TestAccResourceNcloudAutoScalingSchedule_classic_basic(t *testing.T) {
 }
 
 func TestAccResourceNcloudAutoScalingSchedule_vpc_basic(t *testing.T) {
-	t.Skip()
-	{
-		// Skip: deprecated server_image_product_code
-	}
-
 	var schedule autoscaling.AutoScalingSchedule
 	name := fmt.Sprintf("terraform-testacc-asp-%s", acctest.RandString(5))
 	resourceName := "ncloud_auto_scaling_schedule.test-schedule"
@@ -101,11 +96,6 @@ func TestAccResourceNcloudAutoScalingSchedule_classic_disappears(t *testing.T) {
 }
 
 func TestAccResourceNcloudAutoScalingSchedule_vpc_disappears(t *testing.T) {
-	t.Skip()
-	{
-		// Skip: deprecated server_image_product_code
-	}
-
 	var schedule autoscaling.AutoScalingSchedule
 	name := fmt.Sprintf("terraform-testacc-asp-%s", acctest.RandString(5))
 	resourceName := "ncloud_auto_scaling_schedule.test-schedule"
@@ -243,7 +233,7 @@ resource "ncloud_subnet" "test" {
 
 resource "ncloud_launch_configuration" "test" {
     name = "%[1]s"
-    server_image_product_code = "SW.VSVR.OS.LNX64.CNTOS.0703.B050"
+    server_image_product_code = "SW.VSVR.OS.LNX64.ROCKY.0810.B050"
     server_product_code = "SVR.VSVR.HICPU.C002.M004.NET.SSD.B050.G002"
 }
 

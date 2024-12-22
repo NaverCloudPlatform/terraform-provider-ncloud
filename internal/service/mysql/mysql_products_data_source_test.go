@@ -9,7 +9,7 @@ import (
 )
 
 func TestAccDataSourceNcloudMysqlProducts_basic(t *testing.T) {
-	imageProductCode := "SW.VDBAS.DBAAS.LNX64.CNTOS.0708.MYSQL.8025.B050"
+	imageProductCode := "SW.VMYSL.OS.LNX64.ROCKY.0810.MYSQL.B050"
 	productType := "STAND"
 
 	resource.Test(t, resource.TestCase{

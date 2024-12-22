@@ -39,11 +39,6 @@ func TestAccDataSourceNcloudAutoScalingSchedule_classic_basic(t *testing.T) {
 }
 
 func TestAccDataSourceNcloudAutoScalingSchedule_vpc_basic(t *testing.T) {
-	t.Skip()
-	{
-		// Skip: deprecated server_image_product_code
-	}
-
 	name := fmt.Sprintf("terraform-testacc-asp-%s", acctest.RandString(5))
 	dataName := "data.ncloud_auto_scaling_schedule.schedule"
 	resourceName := "ncloud_auto_scaling_schedule.test-schedule"

@@ -52,11 +52,6 @@ func TestAccResourceNcloudPublicIpInstance_classic_basic(t *testing.T) {
 }
 
 func TestAccResourceNcloudPublicIpInstance_vpc_basic(t *testing.T) {
-	t.Skip()
-	{
-		// Skip: deprecated server_image_product_code
-	}
-
 	var instance *server.PublicIpInstance
 
 	name := fmt.Sprintf("test-public-ip-basic-%s", acctest.RandString(5))
@@ -126,11 +121,6 @@ func TestAccResourceNcloudPublicIpInstance_classic_updateServerInstanceNo(t *tes
 }
 
 func TestAccResourceNcloudPublicIpInstance_vpc_updateServerInstanceNo(t *testing.T) {
-	t.Skip()
-	{
-		// Skip: deprecated server_image_product_code
-	}
-
 	var instance *server.PublicIpInstance
 	serverNameFoo := fmt.Sprintf("test-public-ip-foo-%s", acctest.RandString(5))
 	serverNameBar := fmt.Sprintf("test-public-ip-bar-%s", acctest.RandString(5))
@@ -257,10 +247,17 @@ resource "ncloud_subnet" "test" {
 	usage_type         = "GEN"
 }
 
+data "ncloud_server_image" "image" {
+  filter {
+    name = "product_name"
+    values = ["Rocky Linux 8.10"]
+  }
+}
+
 resource "ncloud_server" "server" {
 	subnet_no = ncloud_subnet.test.id
 	name = "%[1]s"
-	server_image_product_code = "SW.VSVR.OS.LNX64.CNTOS.0703.B050"
+	server_image_product_code = data.ncloud_server_image.image.product_code
 	login_key_name = ncloud_login_key.loginkey.key_name
 }
 
@@ -319,10 +316,17 @@ resource "ncloud_subnet" "test" {
 	usage_type         = "GEN"
 }
 
+data "ncloud_server_image" "image" {
+  filter {
+    name = "product_name"
+    values = ["Rocky Linux 8.10"]
+  }
+}
+
 resource "ncloud_server" "foo" {
 	subnet_no = ncloud_subnet.test.id
 	name = "%[1]s"
-	server_image_product_code = "SW.VSVR.OS.LNX64.CNTOS.0703.B050"
+	server_image_product_code = data.ncloud_server_image.image.product_code
 	server_product_code = "SVR.VSVR.STAND.C002.M008.NET.HDD.B050.G002"
 	login_key_name = ncloud_login_key.loginkey.key_name
 }
@@ -330,7 +334,7 @@ resource "ncloud_server" "foo" {
 resource "ncloud_server" "bar" {
 	subnet_no = ncloud_subnet.test.id
 	name = "%[2]s"
-	server_image_product_code = "SW.VSVR.OS.LNX64.CNTOS.0703.B050"
+	server_image_product_code = data.ncloud_server_image.image.product_code
 	server_product_code = "SVR.VSVR.STAND.C002.M008.NET.HDD.B050.G002"
 	login_key_name = ncloud_login_key.loginkey.key_name
 }

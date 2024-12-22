@@ -9,7 +9,7 @@ import (
 )
 
 func TestAccDataSourceNcloudMongoDbProducts_basic(t *testing.T) {
-	imageProductCode := "SW.VMGDB.LNX64.CNTOS.0708.MNGDB.4223.CE.B050"
+	imageProductCode := "SW.VMGDB.OS.LNX64.ROCKY.0810.MNGDB.CE.B050"
 	infraResourceDetailTypeCode := "MNGOD"
 	productType := "STAND"
 

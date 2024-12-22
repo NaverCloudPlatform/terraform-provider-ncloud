@@ -38,11 +38,6 @@ func TestAccDataSourceNcloudLaunchConfiguration_classic_basic(t *testing.T) {
 }
 
 func TestAccDataSourceNcloudLaunchConfiguration_vpc_basic(t *testing.T) {
-	t.Skip()
-	{
-		// Skip: deprecated server_image_product_code
-	}
-
 	dataName := "data.ncloud_launch_configuration.lc"
 	resourceName := "ncloud_launch_configuration.lc"
 
@@ -85,7 +80,7 @@ data "ncloud_launch_configuration" "lc" {
 func testAccDataSourceNcloudLaunchConfigurationVpcConfig() string {
 	return `
 resource "ncloud_launch_configuration" "lc" {
-	server_image_product_code = "SW.VSVR.OS.LNX64.CNTOS.0703.B050"
+	server_image_product_code = "SW.VSVR.OS.LNX64.ROCKY.0810.B050"
 	server_product_code = "SVR.VSVR.STAND.C002.M008.NET.SSD.B050.G002"
 }
 
