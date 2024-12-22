@@ -10,6 +10,9 @@ import (
 )
 
 func TestAccDataSourceNcloudServerProducts_classic_basic(t *testing.T) {
+	// Images are all deprecated in Classic
+	t.Skip()
+
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { TestAccPreCheck(t) },
 		IsUnitTest:               false,

@@ -11,6 +11,9 @@ import (
 )
 
 func TestAccDataSourceNcloudAutoScalingPolicy_classic_basic(t *testing.T) {
+	// Images are all deprecated in Classic
+	t.Skip()
+
 	name := fmt.Sprintf("terraform-testacc-asp-%s", acctest.RandString(5))
 	dataName := "data.ncloud_auto_scaling_policy.policy"
 	resourceName := "ncloud_auto_scaling_policy.test-policy-CHANG"
