@@ -39,7 +39,7 @@ func TestAccDataSourceNcloudAutoScalingAdjustmentTypes_vpc_basic(t *testing.T) {
 		ProtoV6ProviderFactories: ProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccDataSourceNcloudAutoScalingAdjustmentTypesVpcConfig(),
+				Config: testAccDataSourceNcloudAutoScalingAdjustmentTypesVpcConfig,
 				Check: resource.ComposeTestCheckFunc(
 					TestAccCheckDataSourceID(dataName),
 				),
@@ -115,12 +115,9 @@ func testAccDataSourceNcloudAutoScalingAdjustmentTypesClassicConfig(lcName strin
 	`, lcName, policyName)
 }
 
-func testAccDataSourceNcloudAutoScalingAdjustmentTypesVpcConfig() string {
-	return fmt.Sprintf(`
-	data "ncloud_auto_scaling_adjustment_types" "test" {
-	}
-	`)
-}
+var testAccDataSourceNcloudAutoScalingAdjustmentTypesVpcConfig = `
+	data "ncloud_auto_scaling_adjustment_types" "test" { }
+`
 
 func testAccDataSourceNcloudAutoScalingAdjustmentTypesByFilterCodeConfig(code string) string {
 	return fmt.Sprintf(`
