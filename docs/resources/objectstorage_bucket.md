@@ -28,18 +28,21 @@ resource "ncloud_objectstorage_bucket" "testing_bucket" {
 
 The following arguments are supported:
 
-* `id` - Unique ID for bucket. Since bucket name is already unique in specific region, ID is same as `bucket_name`.
 * `bucket_name` - (Required) Bucket name to create. Bucket name must be between 3 and 63 characters long, can contain lowercase letters, numbers, periods, and hyphens. It must start and end with a letter or number, and cannot have consecutive periods.
+
+## Attribute Reference
+
+* `id` - Unique ID for bucket. Since bucket name is already unique in specific region, ID is same as `bucket_name`.
 * `creation_date` - Date of when this bucket created.
 
 ## Import
 
 ### `terraform import` command
 
-* Object Storage Bucket can be imported using the `bucket_name`. For example:
+* Object Storage Bucket can be imported using the `id`. For example:
 
 ```console
-$ terraform import ncloud_objectstorage_object.rsc_name bucket-name
+$ terraform import ncloud_objectstorage_bucket.rsc_name example-id
 ```
 
 ### `import` block
@@ -48,7 +51,7 @@ $ terraform import ncloud_objectstorage_object.rsc_name bucket-name
 
 ```terraform
 import {
-    to = ncloud_objectstorage_object.rsc_name
-    bucket_name = "bucket-name"
+    to = ncloud_objectstorage_bucket.rsc_name
+    id = "example-id"
 }
 ```

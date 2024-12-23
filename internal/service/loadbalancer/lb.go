@@ -23,6 +23,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
 
 	"github.com/hashicorp/terraform-plugin-framework-timeouts/resource/timeouts"
+	"github.com/terraform-providers/terraform-provider-ncloud/internal/common"
 	. "github.com/terraform-providers/terraform-provider-ncloud/internal/common"
 	"github.com/terraform-providers/terraform-provider-ncloud/internal/conn"
 	"github.com/terraform-providers/terraform-provider-ncloud/internal/framework"
@@ -123,7 +124,7 @@ func (r *lbResource) Schema(ctx context.Context, req resource.SchemaRequest, res
 				Optional: true,
 				Computed: true,
 				Validators: []validator.String{
-					stringvalidator.OneOf("SMALL", "MEDIUM", "LARGE", "DYNAMIC"),
+					stringvalidator.OneOf("SMALL", "MEDIUM", "LARGE", "DYNAMIC", "XLARGE"),
 				},
 				PlanModifiers: []planmodifier.String{
 					stringplanmodifier.UseStateForUnknown(),
@@ -268,7 +269,7 @@ func (r *lbResource) Create(ctx context.Context, req resource.CreateRequest, res
 
 	reqParams.VpcNo = subnetList[0].VpcNo
 
-	LogCommonRequest("createLoadBalancerInstance", reqParams)
+	tflog.Info(ctx, "CreateLoadBalancerInstance reqParams="+common.MarshalUncheckedString(reqParams))
 	createResp, err := r.config.Client.Vloadbalancer.V2Api.CreateLoadBalancerInstance(reqParams)
 	if err != nil {
 		LogErrorResponse("createLoadBalancerInstance", err, reqParams)
@@ -278,7 +279,7 @@ func (r *lbResource) Create(ctx context.Context, req resource.CreateRequest, res
 		)
 		return
 	}
-	LogResponse("createLoadBalancerInstance", createResp)
+	tflog.Info(ctx, "CreateLoadBalancerInstance response="+common.MarshalUncheckedString(createResp))
 
 	if err := waitForLoadBalancerActive(ctx, r.config, ncloud.StringValue(createResp.LoadBalancerInstanceList[0].LoadBalancerInstanceNo)); err != nil {
 		resp.Diagnostics.AddError(
@@ -481,14 +482,14 @@ func GetFwVpcLoadBalancer(ctx context.Context, config *conn.ProviderConfig, id s
 		RegionCode:             &config.RegionCode,
 		LoadBalancerInstanceNo: ncloud.String(id),
 	}
-	LogCommonRequest("getLoadBalancerInstanceDetail", reqParams)
+	tflog.Info(ctx, "GetLoadBalancerInstanceDetail reqParams="+MarshalUncheckedString(reqParams))
 
 	resp, err := config.Client.Vloadbalancer.V2Api.GetLoadBalancerInstanceDetail(reqParams)
 	if err != nil {
 		LogErrorResponse("getLoadBalancerInstanceDetail", err, reqParams)
 		return nil, err
 	}
-	LogResponse("getLoadBalancerInstanceDetail", resp)
+	tflog.Info(ctx, "GetLoadBalancerInstanceDetail response="+MarshalUncheckedString(resp))
 
 	if len(resp.LoadBalancerInstanceList) < 1 {
 		return nil, nil

@@ -17,6 +17,9 @@ import (
 )
 
 func TestAccResourceNcloudBlockStorage_classic_basic(t *testing.T) {
+	// Images are all deprecated in Classic
+	t.Skip()
+
 	var storageInstance server.BlockStorage
 	name := fmt.Sprintf("tf-storage-basic-%s", acctest.RandString(5))
 	resourceName := "ncloud_block_storage.storage"
@@ -131,6 +134,9 @@ func TestAccResourceNcloudBlockStorage_vpc_kvm(t *testing.T) {
 }
 
 func TestAccResourceNcloudBlockStorage_classic_ChangeServerInstance(t *testing.T) {
+	// Images are all deprecated in Classic
+	t.Skip()
+
 	var storageInstance server.BlockStorage
 	name := fmt.Sprintf("tf-storage-update-%s", acctest.RandString(5))
 	resourceName := "ncloud_block_storage.storage"
@@ -185,6 +191,9 @@ func TestAccResourceNcloudBlockStorage_vpc_ChangeServerInstance(t *testing.T) {
 }
 
 func TestAccResourceNcloudBlockStorage_classic_size(t *testing.T) {
+	// Images are all deprecated in Classic
+	t.Skip()
+
 	var storageInstance server.BlockStorage
 	name := fmt.Sprintf("tf-storage-size-%s", acctest.RandString(5))
 	resourceName := "ncloud_block_storage.storage"

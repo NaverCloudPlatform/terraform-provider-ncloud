@@ -16,6 +16,9 @@ import (
 )
 
 func TestAccNcloudLoadBalancerSSLCertificateBasic(t *testing.T) {
+	// Deprecated
+	t.Skip()
+
 	var sc loadbalancer.SslCertificate
 	prefix := GetTestPrefix()
 	testSSLCertificateName := prefix + "_cert"

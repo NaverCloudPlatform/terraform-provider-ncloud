@@ -29,7 +29,7 @@ func TestAccDataSourceNcloudRedisProducts_vpc_basic(t *testing.T) {
 func testAccDataSourceNcloudRedisProductsConfig(productType string) string {
 	return fmt.Sprintf(`
 data "ncloud_redis_products" "all" {
-    redis_image_product_code = "SW.VDBAS.VRDS.LNX64.CNTOS.0708.REDIS.7013.B050"
+    redis_image_product_code = "SW.VRDS.OS.LNX64.ROCKY.0810.REDIS.B050"
 	filter {
 			name = "product_type"
 			values = ["%[1]s"]

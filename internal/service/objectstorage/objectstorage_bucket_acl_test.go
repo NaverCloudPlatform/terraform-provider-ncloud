@@ -38,6 +38,12 @@ func TestAccResourceNcloudObjectStorage_bucket_acl_basic(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "rule", acl),
 				),
 			},
+			{
+				ResourceName:            resourceName,
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"rule"},
+			},
 		},
 	})
 }

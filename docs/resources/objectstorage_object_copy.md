@@ -46,7 +46,7 @@ The following arguments are required:
 
 * `bucket` - (Required) Name of the bucket to read the object from. Bucket name must be between 3 and 63 characters long, can contain lowercase letters, numbers, periods, and hyphens. It must start and end with a letter or number, and cannot have consecutive periods.
 * `key` - (Required) Full path to the object inside the bucket.
-* `source` - (Required) Path to the file you want to upload. 
+* `source` - (Required) Path to the file you want to upload.
 
 The following arguments are supported:
 
@@ -54,12 +54,13 @@ The following arguments are supported:
 
 ~> **NOTE:** Specially in `JPN` region, updating resource with only `content_type` changed will be blocked. 
 
-## Attribute Reference.
+## Attribute Reference
 
 ~> **NOTE:** Since Ncloud Object Stroage uses S3 Compatible SDK, these arguments are served as best-effort.
 
 This resource exports the following attributes in addition to the arguments above:
 
+* `id` - Unique ID for object. A combined string of bucket name and key in the format `bucket-name/key`.
 * `accept_ranges` - Indicates that a range of bytes was specified.
 * `content_encoding` - Content encodings that have been applied to the object and thus what decoding mechanisms must be applied to obtain the media-type referenced by the Content-Type header field. Read [w3c content encoding](https://www.w3.org/Protocols/rfc2616/rfc2616-sec14.html#sec14.11) for further information.
 * `content_language` - Language the content is in e.g., en-US or en-GB.

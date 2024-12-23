@@ -10,6 +10,9 @@ import (
 )
 
 func TestAccDataSourceNcloudAutoScalingAdjustmentTypes_classic_basic(t *testing.T) {
+	// Images are all deprecated in Classic
+	t.Skip()
+
 	lcName := fmt.Sprintf("lc-%s", acctest.RandString(5))
 	policyName := fmt.Sprintf("policy-%s", acctest.RandString(5))
 	dataName := "data.ncloud_auto_scaling_adjustment_types.test"
@@ -29,16 +32,14 @@ func TestAccDataSourceNcloudAutoScalingAdjustmentTypes_classic_basic(t *testing.
 }
 
 func TestAccDataSourceNcloudAutoScalingAdjustmentTypes_vpc_basic(t *testing.T) {
-	lcName := fmt.Sprintf("lc-%s", acctest.RandString(5))
-	policyName := fmt.Sprintf("policy-%s", acctest.RandString(5))
 	dataName := "data.ncloud_auto_scaling_adjustment_types.test"
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: ClassicProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: ProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccDataSourceNcloudAutoScalingAdjustmentTypesVpcConfig(lcName, policyName),
+				Config: testAccDataSourceNcloudAutoScalingAdjustmentTypesVpcConfig,
 				Check: resource.ComposeTestCheckFunc(
 					TestAccCheckDataSourceID(dataName),
 				),
@@ -48,6 +49,9 @@ func TestAccDataSourceNcloudAutoScalingAdjustmentTypes_vpc_basic(t *testing.T) {
 }
 
 func TestAccDataSourceNcloudAutoScalingAdjustmentTypes_classic_byFilterCode(t *testing.T) {
+	// Images are all deprecated in Classic
+	t.Skip()
+
 	dataName := "data.ncloud_auto_scaling_adjustment_types.by_filter"
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -69,7 +73,7 @@ func TestAccDataSourceNcloudAutoScalingAdjustmentTypes_vpc_byFilterCode(t *testi
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: ClassicProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: ProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccDataSourceNcloudAutoScalingAdjustmentTypesByFilterCodeConfig("EXACT"),
@@ -111,34 +115,9 @@ func testAccDataSourceNcloudAutoScalingAdjustmentTypesClassicConfig(lcName strin
 	`, lcName, policyName)
 }
 
-func testAccDataSourceNcloudAutoScalingAdjustmentTypesVpcConfig(lcName string, policyName string) string {
-	return fmt.Sprintf(`
-	resource "ncloud_launch_configuration" "lc" {
-		name = "%s"
-		server_image_product_code = "SPSW0LINUX000046"
-		server_product_code = "SPSVRSSD00000003"
-	}
-
-	resource "ncloud_auto_scaling_group" "asg" {
-		launch_configuration_no = ncloud_launch_configuration.lc.launch_configuration_no
-		min_size = 1
-		max_size = 1
-		zone_no_list = ["2"]
-		wait_for_capacity_timeout = "0"
-	}
-
-	resource "ncloud_auto_scaling_policy" "policy" {
-		name = "%s"
-		adjustment_type_code = data.ncloud_auto_scaling_adjustment_types.test.types[2].code 
-		scaling_adjustment = 2
-		auto_scaling_group_no = ncloud_auto_scaling_group.asg.auto_scaling_group_no
-	}
-	
-	
-	data "ncloud_auto_scaling_adjustment_types" "test" {
-	}
-	`, lcName, policyName)
-}
+var testAccDataSourceNcloudAutoScalingAdjustmentTypesVpcConfig = `
+	data "ncloud_auto_scaling_adjustment_types" "test" { }
+`
 
 func testAccDataSourceNcloudAutoScalingAdjustmentTypesByFilterCodeConfig(code string) string {
 	return fmt.Sprintf(`

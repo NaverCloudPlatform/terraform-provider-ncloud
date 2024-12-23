@@ -161,7 +161,7 @@ resource "ncloud_login_key" "loginkey" {
 resource "ncloud_server" "server" {
 	subnet_no = ncloud_subnet.test.id
 	name = "%[1]s"
-	server_image_product_code = "SW.VSVR.OS.LNX64.CNTOS.0703.B050"
+	server_image_product_code = "SW.VSVR.OS.LNX64.ROCKY.0810.B050"
 	login_key_name = ncloud_login_key.loginkey.key_name
 }
 

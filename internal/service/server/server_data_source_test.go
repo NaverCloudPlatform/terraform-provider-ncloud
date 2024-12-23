@@ -53,6 +53,9 @@ func TestAccDataSourceNcloudServer_vpc_basic(t *testing.T) {
 }
 
 func TestAccDataSourceNcloudServer_classic_basic(t *testing.T) {
+	// Images are all deprecated in Classic
+	t.Skip()
+
 	dataName := "data.ncloud_server.by_id"
 	resourceName := "ncloud_server.server"
 	testServerName := GetTestServerName()

@@ -25,7 +25,7 @@ resource "ncloud_objectstorage_bucket" "testing_bucket" {
 
 resource "ncloud_objectstorage_bucket_acl" "testing_acl" {
     bucket_name				= ncloud_objectstorage_bucket.testing_bucket.bucket_name
-    rule					= "RULL_TO_APPLY"
+    rule					= "public-read"
 }
 ```
 
@@ -33,20 +33,32 @@ resource "ncloud_objectstorage_bucket_acl" "testing_acl" {
 
 The following arguments are supported:
 
-* `id` - Unique ID for bucket. Has format of `bucket_acl_${bucket_name}`.
 * `bucket_name` - (Required) Target bucket id to create(same as bucket name). Bucket name must be between 3 and 63 characters long, can contain lowercase letters, numbers, periods, and hyphens. It must start and end with a letter or number, and cannot have consecutive periods.
 * `rule` - (Required) Rule to apply. Value must be one of "private", "public-read", "public-read-write", "authenticated-read".
-* `grants` - List of member who grants this rule. Consists of `grantee`, `permission`. Individual `grantee` has `type`, `display_name`, `email-address`, `id`, `uri` attributes.
+
+## Attribute Reference
+
+* `id` - Unique ID for bucket. As same as `bucket_name`.
+* `grants` - List of member who grants this rule.
+  * `grantee` - The person being granted permissions.
+    * `type` - Type of grantee
+    * `display_name` - Screen name of the grantee.
+    * `email_address` - Email address of the grantee.
+    * `id` - The canonical user ID of the grantee.
+    * `uri` - URI of the grantee group.
+  * `permission` - Specifies the permission given to the grantee.
 * `owner` - Who owns this ACL.
 
 ## Import
+
+~> **NOTE:** When importing `ncloud_objectstorage_bucket_acl`, the `rule` value cannot be retrieved automatically. User need to manually set the `rule` value in your Terraform state file after import.
 
 ### `terraform import` command
 
 * Object Storage Bucket ACL can be imported using the `bucket_name`. For example:
 
 ```console
-$ terraform import ncloud_objectstorage_bucket_acl.rsc_name bucket_acl_bucket-name
+$ terraform import ncloud_objectstorage_bucket_acl.rsc_name bucket-name
 ```
 
 ### `import` block
@@ -56,6 +68,6 @@ $ terraform import ncloud_objectstorage_bucket_acl.rsc_name bucket_acl_bucket-na
 ```terraform
 import {
     to = ncloud_objectstorage_bucket_acl.rsc_name
-    bucket_name = "bucket_acl_bucket-name"
+    id = "bucket-name"
 }
 ```

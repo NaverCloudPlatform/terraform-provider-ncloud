@@ -10,6 +10,9 @@ import (
 )
 
 func TestAccDataSourceNcloudServerProduct_classic_basic(t *testing.T) {
+	// Images are all deprecated in Classic
+	t.Skip()
+
 	dataName := "data.ncloud_server_product.test1"
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { TestAccPreCheck(t) },
@@ -43,10 +46,10 @@ func TestAccDataSourceNcloudServerProduct_vpc_basic(t *testing.T) {
 		ProtoV6ProviderFactories: ProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccDataSourceNcloudServerProductConfig("SW.VSVR.OS.LNX64.CNTOS.0703.B050", "SVR.VSVR.STAND.C002.M008.NET.HDD.B050.G002"),
+				Config: testAccDataSourceNcloudServerProductConfig("SW.VSVR.OS.LNX64.ROCKY.0810.B050", "SVR.VSVR.STAND.C002.M008.NET.HDD.B050.G002"),
 				Check: resource.ComposeTestCheckFunc(
 					TestAccCheckDataSourceID(dataName),
-					resource.TestCheckResourceAttr(dataName, "server_image_product_code", "SW.VSVR.OS.LNX64.CNTOS.0703.B050"),
+					resource.TestCheckResourceAttr(dataName, "server_image_product_code", "SW.VSVR.OS.LNX64.ROCKY.0810.B050"),
 					resource.TestCheckResourceAttr(dataName, "product_code", "SVR.VSVR.STAND.C002.M008.NET.HDD.B050.G002"),
 					resource.TestCheckResourceAttr(dataName, "product_name", "vCPU 2EA, Memory 8GB, Disk 50GB"),
 					resource.TestCheckResourceAttr(dataName, "product_description", "vCPU 2EA, Memory 8GB, Disk 50GB"),
@@ -63,6 +66,9 @@ func TestAccDataSourceNcloudServerProduct_vpc_basic(t *testing.T) {
 }
 
 func TestAccDataSourceNcloudServerProduct_classic_FilterByProductCode(t *testing.T) {
+	// Images are all deprecated in Classic
+	t.Skip()
+
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: ClassicProtoV6ProviderFactories,
@@ -83,7 +89,7 @@ func TestAccDataSourceNcloudServerProduct_vpc_FilterByProductCode(t *testing.T) 
 		ProtoV6ProviderFactories: ProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccDataSourceNcloudServerProductFilterByProductCodeConfig("SW.VSVR.OS.LNX64.CNTOS.0703.B050", "SVR.VSVR.STAND.C002.M008.NET.HDD.B050.G002"),
+				Config: testAccDataSourceNcloudServerProductFilterByProductCodeConfig("SW.VSVR.OS.LNX64.ROCKY.0810.B050", "SVR.VSVR.STAND.C002.M008.NET.HDD.B050.G002"),
 				Check: resource.ComposeTestCheckFunc(
 					TestAccCheckDataSourceID("data.ncloud_server_product.test2"),
 				),
@@ -93,6 +99,9 @@ func TestAccDataSourceNcloudServerProduct_vpc_FilterByProductCode(t *testing.T) 
 }
 
 func TestAccDataSourceNcloudServerProduct_classic_FilterByProductNameProductType(t *testing.T) {
+	// Images are all deprecated in Classic
+	t.Skip()
+
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: ClassicProtoV6ProviderFactories,
@@ -113,7 +122,7 @@ func TestAccDataSourceNcloudServerProduct_vpc_FilterByProductNameProductType(t *
 		ProtoV6ProviderFactories: ProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccDataSourceNcloudServerProductFilterByProductNameProductTypeConfig("SW.VSVR.OS.LNX64.CNTOS.0703.B050", "G2"),
+				Config: testAccDataSourceNcloudServerProductFilterByProductNameProductTypeConfig("SW.VSVR.OS.LNX64.ROCKY.0810.B050", "G2"),
 				Check: resource.ComposeTestCheckFunc(
 					TestAccCheckDataSourceID("data.ncloud_server_product.test3"),
 				),

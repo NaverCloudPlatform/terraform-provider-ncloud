@@ -10,6 +10,9 @@ import (
 )
 
 func TestAccDataSourceNcloudServerProducts_classic_basic(t *testing.T) {
+	// Images are all deprecated in Classic
+	t.Skip()
+
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { TestAccPreCheck(t) },
 		IsUnitTest:               false,
@@ -34,7 +37,7 @@ func TestAccDataSourceNcloudServerProducts_vpc_basic(t *testing.T) {
 
 		Steps: []resource.TestStep{
 			{
-				Config: testAccDataSourceNcloudServerProductsConfig("SW.VSVR.OS.LNX64.CNTOS.0703.B050"),
+				Config: testAccDataSourceNcloudServerProductsConfig("SW.VSVR.OS.LNX64.ROCKY.0810.B050"),
 				Check: resource.ComposeTestCheckFunc(
 					TestAccCheckDataSourceID("data.ncloud_server_products.all"),
 				),

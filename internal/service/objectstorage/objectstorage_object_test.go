@@ -44,6 +44,12 @@ func TestAccResourceNcloudObjectStorage_object_basic(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "source", source),
 				),
 			},
+			{
+				ResourceName:            resourceName,
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"source"},
+			},
 		},
 	})
 }
@@ -90,6 +96,12 @@ func TestAccResourceNcloudObjectStorage_object_update_source(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "source", newSource),
 				),
 			},
+			{
+				ResourceName:            resourceName,
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"source"},
+			},
 		},
 	})
 }
@@ -131,6 +143,12 @@ func TestAccResourceNcloudObjectStorage_object_update_content_type(t *testing.T)
 					resource.TestCheckResourceAttr(resourceName, "source", source),
 					resource.TestCheckResourceAttr(resourceName, "content_type", newContentType),
 				),
+			},
+			{
+				ResourceName:            resourceName,
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"source"},
 			},
 		},
 	})
@@ -197,7 +215,7 @@ func testAccObjectConfig(bucketName, key, source string) string {
 	resource "ncloud_objectstorage_object" "testing_object" {
 		bucket				= ncloud_objectstorage_bucket.testing_bucket.bucket_name
 		key 				= "%[2]s"
-		source				= "%[3]s"	
+		source				= "%[3]s"
 	}`, bucketName, key, source)
 }
 
@@ -210,7 +228,7 @@ func testAccObjectContentType(bucketName, key, source, contentType string) strin
 	resource "ncloud_objectstorage_object" "testing_object" {
 		bucket				= ncloud_objectstorage_bucket.testing_bucket.bucket_name
 		key 				= "%[2]s"
-		source				= "%[3]s"	
+		source				= "%[3]s"
 		content_type		= "%[4]s"
 	}`, bucketName, key, source, contentType)
 }

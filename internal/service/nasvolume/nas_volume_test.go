@@ -105,6 +105,9 @@ func testAccResourceNcloudNasVolumeResize(t *testing.T, isVpc bool) {
 }
 
 func TestAccResourceNcloudNasVolume_classic_changeAccessControl(t *testing.T) {
+	// Images are all deprecated in Classic
+	t.Skip()
+
 	var before nasvolume.NasVolume
 	var after nasvolume.NasVolume
 	postfix := GetTestPrefix()
@@ -301,10 +304,17 @@ resource "ncloud_subnet" "test" {
 	usage_type         = "GEN"
 }
 
+data "ncloud_server_image" "image" {
+  filter {
+    name = "product_name"
+    values = ["Rocky Linux 8.10"]
+  }
+}
+
 resource "ncloud_server" "server-foo" {
 	subnet_no = ncloud_subnet.test.id
 	name = "%[1]s"
-	server_image_product_code = "SW.VSVR.OS.LNX64.CNTOS.0703.B050"
+	server_image_product_code = data.ncloud_server_image.image.product_code
 	server_product_code = "SVR.VSVR.STAND.C002.M008.NET.HDD.B050.G002"
 	login_key_name = ncloud_login_key.loginkey.key_name
 }
@@ -312,7 +322,7 @@ resource "ncloud_server" "server-foo" {
 resource "ncloud_server" "server-bar" {
 	subnet_no = ncloud_subnet.test.id
 	name = "%[1]s"
-	server_image_product_code = "SW.VSVR.OS.LNX64.CNTOS.0703.B050"
+	server_image_product_code = data.ncloud_server_image.image.product_code
 	server_product_code = "SVR.VSVR.STAND.C002.M008.NET.HDD.B050.G002"
 	login_key_name = ncloud_login_key.loginkey.key_name
 }
