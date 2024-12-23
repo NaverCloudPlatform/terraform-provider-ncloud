@@ -16,6 +16,9 @@ import (
 )
 
 func TestAccResourceNcloudAutoScalingPolicy_classic_basic(t *testing.T) {
+	// Images are all deprecated in Classic
+	t.Skip()
+
 	var policy autoscaling.AutoScalingPolicy
 	name := fmt.Sprintf("terraform-testacc-asp-%s", acctest.RandString(5))
 	resourceCHANG := "ncloud_auto_scaling_policy.test-policy-CHANG"
@@ -55,6 +58,9 @@ func TestAccResourceNcloudAutoScalingPolicy_classic_basic(t *testing.T) {
 }
 
 func TestAccResourceNcloudAutoScalingPolicy_classic_zero_value(t *testing.T) {
+	// Images are all deprecated in Classic
+	t.Skip()
+
 	var policy autoscaling.AutoScalingPolicy
 	name := fmt.Sprintf("terraform-testacc-asp-%s", acctest.RandString(5))
 	resourceCHANG := "ncloud_auto_scaling_policy.test-policy-CHANG"
@@ -117,11 +123,6 @@ func TestAccResourceNcloudAutoScalingPolicy_classic_zero_value(t *testing.T) {
 }
 
 func TestAccResourceNcloudAutoScalingPolicy_vpc_zero_value(t *testing.T) {
-	t.Skip()
-	{
-		// Skip: deprecated server_image_product_code
-	}
-
 	var policy autoscaling.AutoScalingPolicy
 	name := fmt.Sprintf("terraform-testacc-asp-%s", acctest.RandString(5))
 	resourceCHANG := "ncloud_auto_scaling_policy.test-policy-CHANG"
@@ -186,6 +187,9 @@ func TestAccResourceNcloudAutoScalingPolicy_vpc_zero_value(t *testing.T) {
 }
 
 func TestAccResourceNcloudAutoScalingPolicy_classic_disappears(t *testing.T) {
+	// Images are all deprecated in Classic
+	t.Skip()
+
 	var policy autoscaling.AutoScalingPolicy
 	name := fmt.Sprintf("terraform-testacc-asp-%s", acctest.RandString(5))
 	resourceCHANG := "ncloud_auto_scaling_policy.test-policy-CHANG"
@@ -216,11 +220,6 @@ func TestAccResourceNcloudAutoScalingPolicy_classic_disappears(t *testing.T) {
 }
 
 func TestAccResourceNcloudAutoScalingPolicy_vpc_disappears(t *testing.T) {
-	t.Skip()
-	{
-		// Skip: deprecated server_image_product_code
-	}
-
 	var policy autoscaling.AutoScalingPolicy
 	name := fmt.Sprintf("terraform-testacc-asp-%s", acctest.RandString(5))
 	resourceCHANG := "ncloud_auto_scaling_policy.test-policy-CHANG"
@@ -310,7 +309,7 @@ resource "ncloud_subnet" "test" {
 
 resource "ncloud_launch_configuration" "test" {
     name = "%[1]s"
-    server_image_product_code = "SW.VSVR.OS.LNX64.CNTOS.0703.B050"
+    server_image_product_code = "SW.VSVR.OS.LNX64.ROCKY.0810.B050"
     server_product_code = "SVR.VSVR.HICPU.C002.M004.NET.SSD.B050.G002"
 }
 

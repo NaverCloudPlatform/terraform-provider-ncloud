@@ -15,6 +15,9 @@ import (
 )
 
 func TestAccResourceNcloudLaunchConfiguration_classic_basic(t *testing.T) {
+	// Images are all deprecated in Classic
+	t.Skip()
+
 	var launchConfiguration autoscaling.LaunchConfiguration
 	resourceName := "ncloud_launch_configuration.lc"
 	serverImageProductCode := "SPSW0LINUX000046"
@@ -42,14 +45,9 @@ func TestAccResourceNcloudLaunchConfiguration_classic_basic(t *testing.T) {
 }
 
 func TestAccResourceNcloudLaunchConfiguration_vpc_basic(t *testing.T) {
-	t.Skip()
-	{
-		// Skip: deprecated server_image_product_code
-	}
-
 	var launchConfiguration autoscaling.LaunchConfiguration
 	resourceName := "ncloud_launch_configuration.lc"
-	serverImageProductCode := "SW.VSVR.OS.LNX64.CNTOS.0703.B050"
+	serverImageProductCode := "SW.VSVR.OS.LNX64.ROCKY.0810.B050"
 	serverProductCode := "SVR.VSVR.STAND.C002.M008.NET.SSD.B050.G002"
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { TestAccPreCheck(t) },
@@ -74,6 +72,9 @@ func TestAccResourceNcloudLaunchConfiguration_vpc_basic(t *testing.T) {
 }
 
 func TestAccResourceNcloudLaunchConfiguration_classic_disappears(t *testing.T) {
+	// Images are all deprecated in Classic
+	t.Skip()
+
 	var launchConfiguration autoscaling.LaunchConfiguration
 	resourceName := "ncloud_launch_configuration.lc"
 	serverImageProductCode := "SPSW0LINUX000046"
@@ -98,14 +99,9 @@ func TestAccResourceNcloudLaunchConfiguration_classic_disappears(t *testing.T) {
 }
 
 func TestAccResourceNcloudLaunchConfiguration_vpc_disappears(t *testing.T) {
-	t.Skip()
-	{
-		// Skip: deprecated server_image_product_code
-	}
-
 	var launchConfiguration autoscaling.LaunchConfiguration
 	resourceName := "ncloud_launch_configuration.lc"
-	serverImageProductCode := "SW.VSVR.OS.LNX64.CNTOS.0703.B050"
+	serverImageProductCode := "SW.VSVR.OS.LNX64.ROCKY.0810.B050"
 	serverProductCode := "SVR.VSVR.STAND.C002.M008.NET.SSD.B050.G002"
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { TestAccPreCheck(t) },

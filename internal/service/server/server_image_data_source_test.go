@@ -10,6 +10,9 @@ import (
 )
 
 func TestAccDataSourceNcloudServerImage_classic_byCode(t *testing.T) {
+	// Images are all deprecated in Classic
+	t.Skip()
+
 	dataName := "data.ncloud_server_image.test1"
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -34,11 +37,6 @@ func TestAccDataSourceNcloudServerImage_classic_byCode(t *testing.T) {
 }
 
 func TestAccDataSourceNcloudServerImage_vpc_byCode(t *testing.T) {
-	t.Skip()
-	{
-		// Skip: deprecated server_image_product_code
-	}
-
 	dataName := "data.ncloud_server_image.test1"
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -46,10 +44,10 @@ func TestAccDataSourceNcloudServerImage_vpc_byCode(t *testing.T) {
 		ProtoV6ProviderFactories: ProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccDataSourceNcloudServerImageByCodeConfig("SW.VSVR.OS.LNX64.CNTOS.0703.B050"),
+				Config: testAccDataSourceNcloudServerImageByCodeConfig("SW.VSVR.OS.LNX64.ROCKY.0810.B050"),
 				Check: resource.ComposeTestCheckFunc(
 					TestAccCheckDataSourceID(dataName),
-					resource.TestCheckResourceAttr(dataName, "product_code", "SW.VSVR.OS.LNX64.CNTOS.0703.B050"),
+					resource.TestCheckResourceAttr(dataName, "product_code", "SW.VSVR.OS.LNX64.ROCKY.0810.B050"),
 					resource.TestCheckResourceAttr(dataName, "product_name", "centos-7.3-64"),
 					resource.TestCheckResourceAttr(dataName, "product_description", "CentOS 7.3 (64-bit)"),
 					resource.TestCheckResourceAttr(dataName, "infra_resource_type", "SW"),
@@ -63,6 +61,9 @@ func TestAccDataSourceNcloudServerImage_vpc_byCode(t *testing.T) {
 }
 
 func TestAccDataSourceNcloudServerImage_classic_byFilterProductCode(t *testing.T) {
+	// Images are all deprecated in Classic
+	t.Skip()
+
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: ClassicProtoV6ProviderFactories,
@@ -78,17 +79,12 @@ func TestAccDataSourceNcloudServerImage_classic_byFilterProductCode(t *testing.T
 }
 
 func TestAccDataSourceNcloudServerImage_vpc_byFilterProductCode(t *testing.T) {
-	t.Skip()
-	{
-		// Skip: deprecated server_image_product_code
-	}
-
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: ProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccDataSourceNcloudServerImageByFilterProductCodeConfig("SW.VSVR.OS.LNX64.CNTOS.0703.B050"),
+				Config: testAccDataSourceNcloudServerImageByFilterProductCodeConfig("SW.VSVR.OS.LNX64.ROCKY.0810.B050"),
 				Check: resource.ComposeTestCheckFunc(
 					TestAccCheckDataSourceID("data.ncloud_server_image.test2"),
 				),
@@ -98,6 +94,9 @@ func TestAccDataSourceNcloudServerImage_vpc_byFilterProductCode(t *testing.T) {
 }
 
 func TestAccDataSourceNcloudServerImage_classic_byFilterProductName(t *testing.T) {
+	// Images are all deprecated in Classic
+	t.Skip()
+
 	testAccDataSourceNcloudServerImageByFilterProductName(t, false)
 }
 
@@ -121,6 +120,9 @@ func testAccDataSourceNcloudServerImageByFilterProductName(t *testing.T, isVpc b
 }
 
 func TestAccDataSourceNcloudServerImage_classic_byBlockStorageSize(t *testing.T) {
+	// Images are all deprecated in Classic
+	t.Skip()
+
 	testAccDataSourceNcloudServerImageByBlockStorageSize(t, false)
 }
 
@@ -195,7 +197,7 @@ var testAccDataSourceNcloudServerImageByFilterProductNameConfig = `
 data "ncloud_server_image" "test3" {
   filter {
     name = "product_name"
-    values = ["centos-7.3-64"]
+    values = ["Rocky Linux 8.10"]
   }
 }
 `
@@ -204,7 +206,7 @@ var testAccDataSourceNcloudServerImageByBlockStorageSizeConfig = `
 data "ncloud_server_image" "test4" {
 	filter {
 		name = "product_name"
-		values = ["centos-7.3-64"]
+		values = ["Rocky Linux 8.10"]
 	}
 
 	filter {

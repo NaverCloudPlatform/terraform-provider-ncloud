@@ -17,6 +17,9 @@ import (
 )
 
 func TestAccResourceNcloudServer_classic_basic(t *testing.T) {
+	// Images are all deprecated in Classic
+	t.Skip()
+
 	var serverInstance serverservice.ServerInstance
 	testServerName := GetTestServerName()
 	resourceName := "ncloud_server.server"
@@ -212,6 +215,9 @@ func TestAccResourceNcloudServer_vpc_networkInterface(t *testing.T) {
 }
 
 func TestAccResourceNcloudServer_classic_changeSpec(t *testing.T) {
+	// Images are all deprecated in Classic
+	t.Skip()
+
 	var before serverservice.ServerInstance
 	var after serverservice.ServerInstance
 	testServerName := GetTestServerName()

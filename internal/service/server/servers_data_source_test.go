@@ -40,6 +40,9 @@ func TestAccDataSourceNcloudServers_vpc_basic(t *testing.T) {
 }
 
 func TestAccDataSourceNcloudServers_classic_basic(t *testing.T) {
+	// Images are all deprecated in Classic
+	t.Skip()
+
 	testServerName := GetTestServerName()
 	testServerName2 := GetTestServerName()
 
