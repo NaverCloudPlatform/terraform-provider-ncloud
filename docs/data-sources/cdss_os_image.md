@@ -11,14 +11,14 @@ subcategory: "Cloud Data Streaming Service"
 data "ncloud_cdss_os_image" "sample_01" {
   filter {
     name   = "id"
-    values = ["SW.VCDSS.OS.LNX64.CNTOS.0708.B050"]
+    values = ["SW.VCDSS.OS.LNX64.ROCKY.0808.B050"]
   }
 }
 
 data "ncloud_cdss_os_image" "sample_02" {
   filter {
     name   = "image_name"
-    values = ["CentOS 7.8 (64-bit)"]
+    values = ["Rocky Linux 8.8"]
   }
 }
 ```

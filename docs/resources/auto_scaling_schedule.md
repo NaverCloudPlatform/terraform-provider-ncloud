@@ -12,8 +12,7 @@ Provides a ncloud auto scaling schedule resource.
 ```hcl
 resource "ncloud_launch_configuration" "lc" {
   name = "my-lc"
-  server_image_product_code = "SPSW0LINUX000046"
-  server_product_code = "SPSVRSSD00000003"
+  member_server_image_no = "12345"
 }
 
 resource "ncloud_auto_scaling_group" "asg" {
@@ -39,7 +38,7 @@ resource "ncloud_auto_scaling_schedule" "schedule" {
 ```hcl
 resource "ncloud_launch_configuration" "lc" {
   name = "my-lc"
-  server_image_product_code = "SW.VSVR.OS.LNX64.CNTOS.0703.B050"
+  server_image_product_code = "SW.VSVR.OS.LNX64.ROCKY.0810.B050"
   server_product_code = "SVR.VSVR.HICPU.C002.M004.NET.SSD.B050.G002"
 }
 

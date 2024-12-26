@@ -14,8 +14,7 @@ Provides a Server instance resource.
 ```terraform
 resource "ncloud_server" "server" {
   name = "tf-test-vm1"
-  server_image_product_code = "SPSW0LINUX000032"
-  server_product_code = "SPSVRSTAND000004"
+  member_server_image_no = "12345"
 
   tag_list {
     tag_key = "samplekey1"

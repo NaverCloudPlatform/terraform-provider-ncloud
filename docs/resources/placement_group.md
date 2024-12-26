@@ -11,17 +11,33 @@ Provides a Placement Group resource.
 
 The example below shows how to create a placement group and apply a script when creating a server.
 
-```hcl
+```terraform
 variable "subnet_no" {}
 
 resource "ncloud_placement_group" "group-a" {
   name = "plc-group-a"
 }
 
+data "ncloud_server_image_numbers" "kvm-image" {
+  server_image_name = "rocky-8.10-base"
+  filter {
+    name   = "hypervisor_type"
+    values = ["KVM"]
+  }
+}
+
+data "ncloud_server_specs" "kvm-spec" {
+  filter {
+    name   = "server_spec_code"
+    values = ["s2-g3"]
+  }
+}
+
 resource "ncloud_server" "server" {
-  subnet_no                 = var.subnet_no
-  server_image_product_code = "SW.VSVR.OS.LNX64.CNTOS.0703.B050"
-  placement_group_no        = ncloud_placement_group.group-a.id
+  subnet_no           = var.subnet_no
+  server_image_number = data.ncloud_server_image_numbers.kvm-image.image_number_list.0.server_image_number
+  server_spec_code    = data.ncloud_server_specs.kvm-spec.server_spec_list.0.server_spec_code
+  placement_group_no  = ncloud_placement_group.group-a.id
 }
 ```
 

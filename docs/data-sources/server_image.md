@@ -11,31 +11,19 @@ To create a server instance (VM), you should select a server image. This data so
 
 * Filter by product name
 
-```hcl
+```terraform
 data "ncloud_server_image" "image" {
-  product_code = "SW.VSVR.OS.LNX64.CNTOS.0703.B050"
+  product_code = "SW.VSVR.OS.LNX64.ROCKY.0810.B050"
 }
 
 // Use filter
 data "ncloud_server_image" "image_by_filter" {
   filter {
     name = "product_name"
-    values = ["centos-7.3-64"]
+    values = ["Rocky Linux 8.10"]
   }
 }
 ```
-
-* Filter by product description 
-
-```hcl
-data "ncloud_server_image" "image_by_filter" {
-  filter {
-    name = "product_description"
-    values = ["CentOS 7.8 (64-bit)"]
-  }
-}
-```
-
 
 ## Argument Reference
 

@@ -9,13 +9,8 @@ To create a server instance (VM), you should select a server image. This data so
 
 ## Example Usage
 
-```hcl
+```terraform
 data "ncloud_server_images" "images" {
-  filter {
-    name = "product_name"
-    values = ["CentOS 7.3 (64-bit)"]
-  }
-
   output_file = "image.json" 
 }
 
@@ -30,11 +25,8 @@ output "list_image" {
 Outputs: 
 ```hcl
 list_image = {
-  "SW.VSVR.APP.LNX64.CNTOS.0703.PINPT.173.B050" = "Pinpoint(1.7.3)-centos-7.3-64"
-  "SW.VSVR.OS.LNX64.CNTOS.0703.B050" = "centos-7.3-64"
-  "SW.VSVR.OS.LNX64.CNTOS.0708.B050" = "CentOS 7.8 (64-bit)"
-  "SW.VSVR.OS.LNX64.UBNTU.SVR1604.B050" = "ubuntu-16.04-64-server"
-  "SW.VSVR.OS.WND64.WND.SVR2016EN.B100" = "Windows Server 2016 (64-bit) English Edition"
+  "SW.VSVR.OS.LNX64.ROCKY.0810.B050" = "Rocky Linux 8.10"
+  "SW.VSVR.OS.WND64.WND.SVR2019EN.B100" = "Windows Server 2019 (64-bit) English Edition"
 }
 ```
 

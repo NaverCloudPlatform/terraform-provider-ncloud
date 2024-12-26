@@ -15,14 +15,14 @@ data "ncloud_ses_node_os_images" "all_images" {}
 data "ncloud_ses_node_os_images" "CentOS_7-8" {
   filter {
     name = "name"
-    values = ["CentOS 7.8 (64-bit)"]
+    values = ["Rocky Linux 8.8"]
   }
 }
 
 data "ncloud_ses_node_os_images" "CentOS_7-8" {
   filter {
     name = "id"
-    values = ["SW.VELST.OS.LNX64.CNTOS.0708.B050"]
+    values = ["SW.VELST.OS.LNX64.ROCKY.0808.B050"]
   }
 }
 ```

@@ -15,12 +15,12 @@ The following example shows how to take add-ons of Hadoop.
 
 ```terraform
 data "ncloud_hadoop_add_on" "addon" {
-	image_product_code= "SW.VCHDP.LNX64.CNTOS.0708.HDP.21.B050"
+	image_product_code= "SW.VCHDP.OS.LNX64.ROCKY.0810.HDP.B050"
 	cluster_type_code= "CORE_HADOOP_WITH_SPARK"
 }
 
 data "ncloud_hadoop_add_on" "addon_output_file" {
-  image_product_code= "SW.VCHDP.LNX64.CNTOS.0708.HDP.21.B050"
+  image_product_code= "SW.VCHDP.OS.LNX64.ROCKY.0810.HDP.B050"
   cluster_type_code= "CORE_HADOOP_WITH_SPARK"
   
   output_file = "hadoop_add_on.json"
