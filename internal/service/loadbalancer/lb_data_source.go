@@ -12,7 +12,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 
-	. "github.com/terraform-providers/terraform-provider-ncloud/internal/common"
+	"github.com/terraform-providers/terraform-provider-ncloud/internal/common"
 	"github.com/terraform-providers/terraform-provider-ncloud/internal/conn"
 	"github.com/terraform-providers/terraform-provider-ncloud/internal/verify"
 )
@@ -34,83 +34,57 @@ func (l *loadBalancerDataSource) Metadata(ctx context.Context, req datasource.Me
 	resp.TypeName = req.ProviderTypeName + "_lb"
 }
 
-var lbResourceSchema = schema.Schema{
-	Attributes: map[string]schema.Attribute{
-		"load_balancer_no": schema.StringAttribute{
-			Computed: true,
-		},
-		"id": schema.StringAttribute{
-			Computed: true,
-		},
-		"name": schema.StringAttribute{
-			Optional: true,
-			Computed: true,
-		},
-		"description": schema.StringAttribute{
-			Computed: true,
-		},
-		"domain": schema.StringAttribute{
-			Computed: true,
-		},
-		"network_type": schema.StringAttribute{
-			Computed: true,
-		},
-		"idle_timeout": schema.Int32Attribute{
-			Computed: true,
-		},
-		"type": schema.StringAttribute{
-			Computed: true,
-		},
-		"throughput_type": schema.StringAttribute{
-			Computed: true,
-		},
-		"vpc_no": schema.StringAttribute{
-			Computed: true,
-		},
-		"subnet_no_list": schema.ListAttribute{
-			ElementType: types.StringType,
-			Computed:    true,
-		},
-		"ip_list": schema.ListAttribute{
-			ElementType: types.StringType,
-			Computed:    true,
-		},
-		"listener_no_list": schema.ListAttribute{
-			ElementType: types.StringType,
-			Computed:    true,
-		},
-	},
-}
-
 func (l *loadBalancerDataSource) Schema(ctx context.Context, req datasource.SchemaRequest, resp *datasource.SchemaResponse) {
-	extraFields := map[string]schema.Attribute{
-		"id": schema.StringAttribute{
-			Optional: true,
-			Computed: true,
-		},
-		"description": schema.StringAttribute{
-			Computed: true,
-		},
-		"filter": schema.SetNestedAttribute{
-			Optional: true,
-			NestedObject: schema.NestedAttributeObject{
-				Attributes: map[string]schema.Attribute{
-					"name": schema.StringAttribute{
-						Required: true,
-					},
-					"values": schema.ListAttribute{
-						Required:    true,
-						ElementType: types.StringType,
-					},
-					"regex": schema.BoolAttribute{
-						Optional: true,
-					},
-				},
+	resp.Schema = schema.Schema{
+		Attributes: map[string]schema.Attribute{
+			"load_balancer_no": schema.StringAttribute{
+				Computed: true,
+			},
+			"id": schema.StringAttribute{
+				Computed: true,
+				Optional: true,
+			},
+			"name": schema.StringAttribute{
+				Computed: true,
+			},
+			"description": schema.StringAttribute{
+				Computed: true,
+			},
+			"domain": schema.StringAttribute{
+				Computed: true,
+			},
+			"network_type": schema.StringAttribute{
+				Computed: true,
+			},
+			"idle_timeout": schema.Int32Attribute{
+				Computed: true,
+			},
+			"type": schema.StringAttribute{
+				Computed: true,
+			},
+			"throughput_type": schema.StringAttribute{
+				Computed: true,
+			},
+			"vpc_no": schema.StringAttribute{
+				Computed: true,
+			},
+			"subnet_no_list": schema.ListAttribute{
+				ElementType: types.StringType,
+				Computed:    true,
+			},
+			"ip_list": schema.ListAttribute{
+				ElementType: types.StringType,
+				Computed:    true,
+			},
+			"listener_no_list": schema.ListAttribute{
+				ElementType: types.StringType,
+				Computed:    true,
 			},
 		},
+		Blocks: map[string]schema.Block{
+			"filter": common.DataSourceFiltersBlock(),
+		},
 	}
-
-	resp.Schema = CopyResourceSchemaToDataSourceSchema(lbResourceSchema, extraFields)
 }
 
 func (l *loadBalancerDataSource) Configure(ctx context.Context, req datasource.ConfigureRequest, resp *datasource.ConfigureResponse) {
@@ -156,19 +130,19 @@ func (l *loadBalancerDataSource) Read(ctx context.Context, req datasource.ReadRe
 	}
 
 	tflog.Info(ctx, "GetLoadBalancerInstanceList", map[string]any{
-		"reqParams": MarshalUncheckedString(reqParams),
+		"reqParams": common.MarshalUncheckedString(reqParams),
 	})
 	lbResp, err := l.config.Client.Vloadbalancer.V2Api.GetLoadBalancerInstanceList(reqParams)
 
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"GetLoadBalancerInstanceList",
-			fmt.Sprintf("error: %s, reqParams: %s", err.Error(), MarshalUncheckedString(reqParams)),
+			fmt.Sprintf("error: %s, reqParams: %s", err.Error(), common.MarshalUncheckedString(reqParams)),
 		)
 		return
 	}
 	tflog.Info(ctx, "GetLoadBalancerInstanceList response", map[string]any{
-		"lbResponse": MarshalUncheckedString(lbResp),
+		"lbResponse": common.MarshalUncheckedString(lbResp),
 	})
 
 	lbList, diags := flattenLoadBalancers(ctx, lbResp.LoadBalancerInstanceList)
@@ -177,11 +151,7 @@ func (l *loadBalancerDataSource) Read(ctx context.Context, req datasource.ReadRe
 		return
 	}
 
-	lbPointerList := make([]*loadBalancerDataSourceModel, len(lbList))
-	for i := range lbList {
-		lbPointerList[i] = &lbList[i]
-	}
-	filteredList := FilterModels(ctx, data.Filter, lbPointerList)
+	filteredList := common.FilterModels(ctx, data.Filter, lbList)
 
 	if err := verify.ValidateOneResult(len(filteredList)); err != nil {
 		resp.Diagnostics.AddError(
@@ -197,8 +167,8 @@ func (l *loadBalancerDataSource) Read(ctx context.Context, req datasource.ReadRe
 	resp.Diagnostics.Append(resp.State.Set(ctx, &state)...)
 }
 
-func flattenLoadBalancers(ctx context.Context, list []*vloadbalancer.LoadBalancerInstance) ([]loadBalancerDataSourceModel, diag.Diagnostics) {
-	var lbList []loadBalancerDataSourceModel
+func flattenLoadBalancers(ctx context.Context, list []*vloadbalancer.LoadBalancerInstance) ([]*loadBalancerDataSourceModel, diag.Diagnostics) {
+	var lbList []*loadBalancerDataSourceModel
 	var diags diag.Diagnostics
 
 	for _, lb := range list {
@@ -206,7 +176,7 @@ func flattenLoadBalancers(ctx context.Context, list []*vloadbalancer.LoadBalance
 		ipList, _ := types.ListValueFrom(ctx, types.StringType, ncloud.StringListValue(lb.LoadBalancerIpList))
 		listenerNoList, _ := types.ListValueFrom(ctx, types.StringType, ncloud.StringListValue(lb.LoadBalancerListenerNoList))
 
-		item := loadBalancerDataSourceModel{
+		item := &loadBalancerDataSourceModel{
 			ID:             types.StringValue(ncloud.StringValue(lb.LoadBalancerInstanceNo)),
 			LoadBalancerNo: types.StringValue(ncloud.StringValue(lb.LoadBalancerInstanceNo)),
 			Name:           types.StringValue(ncloud.StringValue(lb.LoadBalancerName)),

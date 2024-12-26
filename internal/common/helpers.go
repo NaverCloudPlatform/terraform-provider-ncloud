@@ -6,29 +6,9 @@ package common
 import (
 	"log"
 
-	datasourceschema "github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/terraform-providers/terraform-provider-ncloud/internal/conn"
 )
-
-func CopyResourceSchemaToDataSourceSchema(resourceSchema datasourceschema.Schema, extraFields map[string]datasourceschema.Attribute) datasourceschema.Schema {
-	dataSourceAttributes := map[string]datasourceschema.Attribute{}
-
-	for name, attr := range resourceSchema.Attributes {
-		if name == "id" {
-			continue
-		}
-		dataSourceAttributes[name] = attr
-	}
-
-	for name, attr := range extraFields {
-		dataSourceAttributes[name] = attr
-	}
-
-	return datasourceschema.Schema{
-		Attributes: dataSourceAttributes,
-	}
-}
 
 // Get the schema for a nested DataSourceSchema generated from the ResourceSchema
 func GetDataSourceItemSchema(resourceSchema *schema.Resource) *schema.Resource {
