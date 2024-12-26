@@ -3,6 +3,7 @@ package conn
 import (
 	"fmt"
 	"os"
+	"sync"
 
 	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/services/vserver"
 
@@ -16,7 +17,7 @@ type Region struct {
 	RegionName *string `json:"regionName,omitempty"`
 }
 
-var regionCacheByCode = make(map[string]Region)
+var regionCacheByCode = sync.Map{}
 
 func ParseRegionNoParameter(d *schema.ResourceData) (*string, error) {
 	if regionCode, regionCodeOk := d.GetOk("region"); regionCodeOk {
@@ -40,8 +41,8 @@ func ParseRegionNoParameter(d *schema.ResourceData) (*string, error) {
 }
 
 func GetRegionNoByCode(code string) *string {
-	if region, ok := regionCacheByCode[code]; ok {
-		return region.RegionNo
+	if region, ok := regionCacheByCode.Load(code); ok {
+		return region.(Region).RegionNo
 	}
 	return nil
 }
@@ -86,7 +87,7 @@ func SetRegionCache(client *NcloudAPIClient, supportVPC bool) error {
 			region.RegionNo = r.RegionNo
 		}
 
-		regionCacheByCode[*region.RegionCode] = region
+		regionCacheByCode.Store(*region.RegionCode, region)
 	}
 
 	return nil
@@ -129,6 +130,6 @@ func getVpcRegionList(client *NcloudAPIClient) ([]*Region, error) {
 }
 
 func IsValidRegionCode(code string) bool {
-	_, ok := regionCacheByCode[code]
+	_, ok := regionCacheByCode.Load(code)
 	return ok
 }

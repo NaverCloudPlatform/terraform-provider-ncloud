@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"reflect"
 
+	"sync"
+
 	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/ncloud"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	. "github.com/terraform-providers/terraform-provider-ncloud/internal/common"
@@ -19,7 +21,7 @@ type Zone struct {
 	RegionCode      *string `json:"regionCode,omitempty"`
 }
 
-var zoneCache = make(map[string]string)
+var zoneCache = sync.Map{}
 
 func ParseZoneNoParameter(config *conn.ProviderConfig, d *schema.ResourceData) (*string, error) {
 	if zoneCode, zoneCodeOk := d.GetOk("zone"); zoneCodeOk {
@@ -34,11 +36,11 @@ func ParseZoneNoParameter(config *conn.ProviderConfig, d *schema.ResourceData) (
 }
 
 func GetZoneNoByCode(config *conn.ProviderConfig, code string) string {
-	if zoneNo := zoneCache[code]; zoneNo != "" {
-		return zoneNo
+	if zoneNo, ok := zoneCache.Load(code); ok {
+		return zoneNo.(string)
 	}
 	if zone, err := GetZoneByCode(config, code); err == nil && zone != nil {
-		zoneCache[code] = *zone.ZoneNo
+		zoneCache.Store(code, *zone.ZoneNo)
 		return *zone.ZoneNo
 	}
 	return ""
