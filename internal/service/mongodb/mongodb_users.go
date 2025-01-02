@@ -447,7 +447,7 @@ func addOrChangeUserList(ctx context.Context, config *conn.ProviderConfig, id *s
 			}
 		}
 
-		if found == false {
+		if !found {
 			reqParams := &vmongodb.AddCloudMongoDbUserListRequest{
 				RegionCode:             &config.RegionCode,
 				CloudMongoDbInstanceNo: id,
@@ -484,7 +484,7 @@ func deleteUserList(ctx context.Context, config *conn.ProviderConfig, id *string
 			}
 		}
 
-		if found == false {
+		if !found {
 			reqParams := &vmongodb.DeleteCloudMongoDbUserListRequest{
 				RegionCode:             &config.RegionCode,
 				CloudMongoDbInstanceNo: id,
