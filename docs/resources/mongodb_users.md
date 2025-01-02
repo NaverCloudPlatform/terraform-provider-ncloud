@@ -4,7 +4,7 @@ subcategory: "MongoDB"
 
 # Resource: ncloud_mongodb_users
 
-Provides a MongoDB User list resources.
+Provides a MongoDB User set resources.
 
 ~> **NOTE:** This resource only supports VPC environment.
 
@@ -35,7 +35,7 @@ resource "ncloud_mongodb" "mongodb" {
 
 resource "ncloud_mongodb_users" "mongodb_users" {
 	id = ncloud_mongodb.mongodb.id
-	mongodb_user_list = [
+	mongodb_user_set = [
 		{
 			name = "testuser1",
 			password = "t123456789!",
@@ -57,7 +57,7 @@ resource "ncloud_mongodb_users" "mongodb_users" {
 The following arguments are supported:
 
 * `id` - (Required) The ID of the associated MongoDB Instance.
-* `mongodb_user_list` - The list of users to add.
+* `mongodb_user_set` - The set of users to add.
   * `name` - (Required) MongoDB User ID. Allows only alphabets, numbers and underbar (_). Must start with an alphabetic character. Min: 4, Max: 16
   * `password` - (Required) MongoDB User Password. At least one English alphabet, number and special character must be included. Certain special characters ( ` & + \ " ' / space ) cannot be used. Min: 8 , Max: 20
   * `database_name` - (Required) MongoDB Database Name to add MongoDB User. Allows only alphabets, numbers and underbar (_). Must start with an alphabetic character. Min: 4 , Max: 30
