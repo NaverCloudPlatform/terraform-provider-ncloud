@@ -35,48 +35,17 @@ func TestAccResourceNcloudPostgresql_vpc_basic(t *testing.T) {
 					testAccCheckPostgresqlExistsWithProvider(resourceName, &postgresqlInstance, GetTestProvider(true)),
 					resource.TestMatchResourceAttr(resourceName, "id", regexp.MustCompile(`^\d+$`)),
 					resource.TestCheckResourceAttr(resourceName, "service_name", testPostgresqlName),
-					resource.TestCheckResourceAttr(resourceName, "server_name_prefix", "testprefix"),
-					resource.TestCheckResourceAttr(resourceName, "user_name", "testusername"),
-					resource.TestCheckResourceAttr(resourceName, "user_password", "t123456789!a"),
-					resource.TestCheckResourceAttr(resourceName, "client_cidr", "0.0.0.0/0"),
-					resource.TestCheckResourceAttr(resourceName, "database_name", "test_db"),
-					resource.TestCheckResourceAttr(resourceName, "is_ha", "true"),
-					resource.TestCheckResourceAttr(resourceName, "is_multi_zone", "false"),
-					resource.TestCheckResourceAttr(resourceName, "is_storage_encryption", "false"),
-					resource.TestCheckResourceAttr(resourceName, "is_backup", "true"),
-					resource.TestCheckResourceAttr(resourceName, "backup_file_retention_period", "1"),
+					resource.TestCheckResourceAttr(resourceName, "ha", "true"),
+					resource.TestCheckResourceAttr(resourceName, "multi_zone", "false"),
+					resource.TestCheckResourceAttr(resourceName, "backup", "true"),
 				),
 			},
 		},
 	})
 }
 
-func TestAccResourceNcloudPostgresql_vpc_isHa(t *testing.T) {
-	var postgresqlInstance vpostgresql.CloudPostgresqlInstance
-	testPostgresqlName := fmt.Sprintf("tf-posrgresql-%s", acctest.RandString(5))
-	resourceName := "ncloud_postgresql.postgresql"
-
-	resource.Test(t, resource.TestCase{
-		PreCheck:                 func() { TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: ProtoV6ProviderFactories,
-		CheckDestroy:             testAccCheckPostgresqlDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccPostgresqlVpcConfigIsHa(testPostgresqlName, true, false, false),
-				Check: resource.ComposeTestCheckFunc(
-					testAccCheckPostgresqlExistsWithProvider(resourceName, &postgresqlInstance, GetTestProvider(true)),
-					resource.TestMatchResourceAttr(resourceName, "id", regexp.MustCompile(`^\d+$`)),
-					resource.TestCheckResourceAttr(resourceName, "is_ha", "true"),
-					resource.TestCheckResourceAttr(resourceName, "is_multi_zone", "false"),
-					resource.TestCheckResourceAttr(resourceName, "is_storage_encryption", "false"),
-					resource.TestCheckResourceAttr(resourceName, "is_backup", "true"),
-				),
-			},
-		},
-	})
-}
-
-func TestAccResourceNcloudPostgresql_vpc_isHa_options(t *testing.T) {
+// Available only `pub` and 'fin' site.
+func TestAccResourceNcloudPostgresql_vpc_multizone(t *testing.T) {
 	var postgresqlInstance vpostgresql.CloudPostgresqlInstance
 	testPostgresqlName := fmt.Sprintf("tf-postgresql-%s", acctest.RandString(5))
 	resourceName := "ncloud_postgresql.postgresql"
@@ -91,17 +60,17 @@ func TestAccResourceNcloudPostgresql_vpc_isHa_options(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckPostgresqlExistsWithProvider(resourceName, &postgresqlInstance, GetTestProvider(true)),
 					resource.TestMatchResourceAttr(resourceName, "id", regexp.MustCompile(`^\d+$`)),
-					resource.TestCheckResourceAttr(resourceName, "is_ha", "true"),
-					resource.TestCheckResourceAttr(resourceName, "is_multi_zone", "true"),
-					resource.TestCheckResourceAttr(resourceName, "is_storage_encryption", "true"),
-					resource.TestCheckResourceAttr(resourceName, "is_backup", "true"),
+					resource.TestCheckResourceAttr(resourceName, "ha", "true"),
+					resource.TestCheckResourceAttr(resourceName, "multi_zone", "true"),
+					resource.TestCheckResourceAttr(resourceName, "storage_encryption", "true"),
+					resource.TestCheckResourceAttr(resourceName, "backup", "true"),
 				),
 			},
 		},
 	})
 }
 
-func TestAccResourceNcloudPostgresql_error_case(t *testing.T) {
+func TestAccResourceNcloudPostgresql_vpc_error(t *testing.T) {
 	testPostgresqlName := fmt.Sprintf("tf-postgresql-%s", acctest.RandString(5))
 
 	resource.Test(t, resource.TestCase{
@@ -110,16 +79,16 @@ func TestAccResourceNcloudPostgresql_error_case(t *testing.T) {
 		CheckDestroy:             testAccCheckPostgresqlDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config:      testAccPostgresqlVpcConfigErrorCaseWhenIsHaSetFalse1(testPostgresqlName),
-				ExpectError: regexp.MustCompile("when `is_ha` is false, `is_multi_zone` parameter is not used"),
+				Config:      testAccPostgresqlVpcConfigErrorCaseBackupFalse(testPostgresqlName),
+				ExpectError: regexp.MustCompile("when `ha` is true, `backup` must be true or not be input"),
 			},
 			{
-				Config:      testAccPostgresqlVpcConfigErrorCaseWhenIsHaSetFalse2(testPostgresqlName),
-				ExpectError: regexp.MustCompile("when `is_ha` is false, `secondary_subnet_no` is not used"),
+				Config:      testAccPostgresqlVpcConfigErrorCaseBackupTimeSet(testPostgresqlName),
+				ExpectError: regexp.MustCompile("when `backup` and `automatic_backup` is true, `backup_time` must not be"),
 			},
 			{
-				Config:      testAccPostgresqlVpcConfigErrorCaseWhenIsHaSetTrue(testPostgresqlName),
-				ExpectError: regexp.MustCompile("when `is_ha` is true, `is_backup` must be true or not be input"),
+				Config:      testAccPostgresqlVpcConfigErrorCaseBackupTimeUnset(testPostgresqlName),
+				ExpectError: regexp.MustCompile("when `backup` is true and `automatic_backup` is false, `backup_time` must be"),
 			},
 		},
 	})
@@ -181,6 +150,7 @@ resource "ncloud_vpc" "test_vpc" {
 	name         = "%[1]s"
 	ipv4_cidr_block = "10.5.0.0/16"
 }
+
 resource "ncloud_subnet" "test_subnet" {
 	vpc_no             = ncloud_vpc.test_vpc.vpc_no
 	name               = "%[1]s"
@@ -189,6 +159,7 @@ resource "ncloud_subnet" "test_subnet" {
 	network_acl_no     = ncloud_vpc.test_vpc.default_network_acl_no
 	subnet_type        = "PUBLIC"
 }
+
 resource "ncloud_postgresql" "postgresql" {
 	vpc_no = ncloud_vpc.test_vpc.vpc_no
 	subnet_no = ncloud_subnet.test_subnet.id
@@ -198,38 +169,16 @@ resource "ncloud_postgresql" "postgresql" {
 	user_password = "t123456789!a"
 	client_cidr = "0.0.0.0/0"
 	database_name = "test_db"
+	data_storage_type = "SSD"
+	backup = true
+	backup_file_retention_period = 2
+	backup_time = "02:00"
+	backup_file_storage_count = 3
+	backup_file_compression = true
+	automatic_backup = false
+	port = 5432
 }
 `, testPostgresqlName)
-}
-
-func testAccPostgresqlVpcConfigIsHa(testPostgresqlName string, isHa bool, isMultiZone bool, isStorageEncryption bool) string {
-	return fmt.Sprintf(`
-resource "ncloud_vpc" "test_vpc" {
-	name               = "%[1]s"
-	ipv4_cidr_block    = "10.5.0.0/16"
-}
-resource "ncloud_subnet" "test_subnet" {
-	vpc_no             = ncloud_vpc.test_vpc.vpc_no
-	name               = "%[1]s"
-	subnet             = "10.5.0.0/24"
-	zone               = "KR-2"
-	network_acl_no     = ncloud_vpc.test_vpc.default_network_acl_no
-	subnet_type        = "PUBLIC"
-}
-resource "ncloud_postgresql" "postgresql" {
-	vpc_no = ncloud_vpc.test_vpc.vpc_no
-	subnet_no = ncloud_subnet.test_subnet.id
-	service_name = "%[1]s"
-	server_name_prefix = "testprefix"
-	user_name = "testusername"
-	user_password = "t123456789!"
-	client_cidr = "0.0.0.0/0"
-	database_name = "test_db"
-	is_ha = %[2]t
-	is_multi_zone = %[3]t
-	is_storage_encryption = %[4]t
-}
-`, testPostgresqlName, isHa, isMultiZone, isStorageEncryption)
 }
 
 func testAccPostgresqlVpcConfigMultiZone(testPostgresqlName string, isHa bool, isMultiZone bool, isStorageEncryption bool) string {
@@ -263,9 +212,9 @@ resource "ncloud_postgresql" "postgresql" {
 	user_password = "t123456789!"
 	client_cidr = "0.0.0.0/0"
 	database_name = "test_db"
-	is_ha = %[2]t
-	is_multi_zone = %[3]t
-	is_storage_encryption = %[4]t
+	ha = %[2]t
+	multi_zone = %[3]t
+	storage_encryption = %[4]t
 	secondary_subnet_no = ncloud_subnet.test_secondary_subnet.id
 }
 `, testPostgresqlName, isHa, isMultiZone, isStorageEncryption)
@@ -288,7 +237,7 @@ resource "ncloud_subnet" "test_subnet" {
 `, name)
 }
 
-func testAccPostgresqlVpcConfigErrorCaseWhenIsHaSetFalse1(name string) string {
+func testAccPostgresqlVpcConfigErrorCaseBackupFalse(name string) string {
 	return testAccPostgresqlVpcConfigBase(name) + fmt.Sprintf(`
 resource "ncloud_postgresql" "postgresql" {
 	vpc_no = ncloud_vpc.test_vpc.vpc_no
@@ -296,16 +245,15 @@ resource "ncloud_postgresql" "postgresql" {
 	service_name = "%[1]s"
 	server_name_prefix = "testprefix"
 	user_name = "testusername"
-	user_password = "t123456789!"
+	user_password = "t123456789!a"
 	client_cidr = "0.0.0.0/0"
 	database_name = "test_db"
-	is_ha = false
-	is_multi_zone = true
+	backup = false
 }
 `, name)
 }
 
-func testAccPostgresqlVpcConfigErrorCaseWhenIsHaSetFalse2(name string) string {
+func testAccPostgresqlVpcConfigErrorCaseBackupTimeSet(name string) string {
 	return testAccPostgresqlVpcConfigBase(name) + fmt.Sprintf(`
 resource "ncloud_postgresql" "postgresql" {
 	vpc_no = ncloud_vpc.test_vpc.vpc_no
@@ -316,13 +264,15 @@ resource "ncloud_postgresql" "postgresql" {
 	user_password = "t123456789!"
 	client_cidr = "0.0.0.0/0"
 	database_name = "test_db"
-	is_ha = false
-	secondary_subnet_no = "12346" 
+	ha = true
+	backup = true
+	automatic_backup = true
+	backup_time = "01:30"
 }
 `, name)
 }
 
-func testAccPostgresqlVpcConfigErrorCaseWhenIsHaSetTrue(name string) string {
+func testAccPostgresqlVpcConfigErrorCaseBackupTimeUnset(name string) string {
 	return testAccPostgresqlVpcConfigBase(name) + fmt.Sprintf(`
 resource "ncloud_postgresql" "postgresql" {
 	vpc_no = ncloud_vpc.test_vpc.vpc_no
@@ -333,8 +283,9 @@ resource "ncloud_postgresql" "postgresql" {
 	user_password = "t123456789!"
 	client_cidr = "0.0.0.0/0"
 	database_name = "test_db"
-	is_ha = true
-	is_backup = false
+	ha = true
+	backup = true 
+	automatic_backup = false
 }
 `, name)
 }

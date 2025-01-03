@@ -1,5 +1,5 @@
 ---
-subcategory: "PostgresSQL"
+subcategory: "PostgreSQL"
 ---
 
 # Data Source: ncloud_postgresql_databases
@@ -40,7 +40,7 @@ database_list = {
 
 The following arguments are required:
 
-* `postgresql_instance_no` - (Required) Postgresql Instance No.
+* `id` - (Required) Postgresql Instance No.
 * `output_file` - (Optional) The name of file that can save data source after running `terraform plan`.
 * `filter` - (Optional) Custom filter block as described below.
   * `name` - (Required) The name of the field to filter by.

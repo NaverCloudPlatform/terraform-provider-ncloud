@@ -4,7 +4,7 @@ import (
 	"context"
 	"fmt"
 	"regexp"
-	"time"
+	"strings"
 
 	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/ncloud"
 	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/services/vpostgresql"
@@ -15,16 +15,15 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/boolplanmodifier"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/listplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
 	"github.com/terraform-providers/terraform-provider-ncloud/internal/common"
 	"github.com/terraform-providers/terraform-provider-ncloud/internal/conn"
-	"github.com/terraform-providers/terraform-provider-ncloud/internal/framework"
 	"github.com/terraform-providers/terraform-provider-ncloud/internal/verify/verifystring"
 )
 
@@ -43,7 +42,33 @@ type postgresqlUsersResource struct {
 }
 
 func (r *postgresqlUsersResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
-	resource.ImportStatePassthroughID(ctx, path.Root("id"), req, resp)
+	var plan postgresqlUsersResourceModel
+	var userList []PostgresqlUser
+	idParts := strings.Split(req.ID, ":")
+
+	if len(idParts) < 2 || idParts[0] == "" || idParts[1] == "" {
+		resp.Diagnostics.AddError(
+			"Unexpected Import Identifier",
+			fmt.Sprintf("Expected import identifier with format: id:name1:name2:... Got: %q", req.ID),
+		)
+		return
+	}
+
+	for idx, v := range idParts {
+		if idx == 0 {
+			plan.ID = types.StringValue(v)
+		} else {
+			postgresqlUser := PostgresqlUser{
+				UserName: types.StringValue(v),
+			}
+			userList = append(userList, postgresqlUser)
+		}
+	}
+
+	postgresqlUsers, _ := types.ListValueFrom(ctx, types.ObjectType{AttrTypes: PostgresqlUser{}.AttrTypes()}, userList)
+	plan.PostgresqlUserList = postgresqlUsers
+
+	resp.Diagnostics.Append(resp.State.Set(ctx, plan)...)
 }
 
 func (r *postgresqlUsersResource) Configure(_ context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
@@ -71,8 +96,7 @@ func (r *postgresqlUsersResource) Metadata(_ context.Context, req resource.Metad
 func (r *postgresqlUsersResource) Schema(_ context.Context, _ resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = schema.Schema{
 		Attributes: map[string]schema.Attribute{
-			"id": framework.IDAttribute(),
-			"postgresql_instance_no": schema.StringAttribute{
+			"id": schema.StringAttribute{
 				Required: true,
 				PlanModifiers: []planmodifier.String{
 					stringplanmodifier.RequiresReplace(),
@@ -80,6 +104,9 @@ func (r *postgresqlUsersResource) Schema(_ context.Context, _ resource.SchemaReq
 			},
 			"postgresql_user_list": schema.ListNestedAttribute{
 				Required: true,
+				PlanModifiers: []planmodifier.List{
+					listplanmodifier.RequiresReplace(),
+				},
 				NestedObject: schema.NestedAttributeObject{
 					Attributes: map[string]schema.Attribute{
 						"name": schema.StringAttribute{
@@ -118,7 +145,7 @@ func (r *postgresqlUsersResource) Schema(_ context.Context, _ resource.SchemaReq
 								),
 							},
 						},
-						"is_replication_role": schema.BoolAttribute{
+						"replication_role": schema.BoolAttribute{
 							Required: true,
 							PlanModifiers: []planmodifier.Bool{
 								boolplanmodifier.UseStateForUnknown(),
@@ -149,11 +176,9 @@ func (r *postgresqlUsersResource) Create(ctx context.Context, req resource.Creat
 
 	reqParams := &vpostgresql.AddCloudPostgresqlUserListRequest{
 		RegionCode:                &r.config.RegionCode,
-		CloudPostgresqlInstanceNo: plan.PostgresqlInstanceNo.ValueStringPointer(),
+		CloudPostgresqlInstanceNo: plan.ID.ValueStringPointer(),
 		CloudPostgresqlUserList:   convertToCloudPostgresqlUserParameter(plan.PostgresqlUserList),
 	}
-
-	plan.ID = plan.PostgresqlInstanceNo
 
 	tflog.Info(ctx, "CreatePostgresqlUserList reqParams="+common.MarshalUncheckedString(reqParams))
 
@@ -166,15 +191,16 @@ func (r *postgresqlUsersResource) Create(ctx context.Context, req resource.Creat
 
 	if response == nil || *response.ReturnCode != "0" {
 		resp.Diagnostics.AddError("CREATING ERROR", "response invalid")
+		return
 	}
 
-	_, err = WaitPostgresqlCreation(ctx, r.config, plan.PostgresqlInstanceNo.ValueString())
+	_, err = WaitPostgresqlCreation(ctx, r.config, plan.ID.ValueString())
 	if err != nil {
 		resp.Diagnostics.AddError("WATING FOR POSTGRESQL CREATION ERROR", err.Error())
 		return
 	}
 
-	output, err := GetPostgresqlUserList(ctx, r.config, plan.PostgresqlInstanceNo.ValueString(), convertToCloudPostgresqlUserStringList(plan.PostgresqlUserList))
+	output, err := GetPostgresqlUserList(ctx, r.config, plan.ID.ValueString(), common.ConvertToStringList(plan.PostgresqlUserList, "name"))
 	if err != nil {
 		resp.Diagnostics.AddError("READING ERROR", err.Error())
 		return
@@ -182,6 +208,7 @@ func (r *postgresqlUsersResource) Create(ctx context.Context, req resource.Creat
 
 	if output == nil {
 		resp.State.RemoveResource(ctx)
+		return
 	}
 
 	if diags := plan.refreshFromOutput(ctx, output, plan); diags.HasError() {
@@ -199,7 +226,7 @@ func (r *postgresqlUsersResource) Read(ctx context.Context, req resource.ReadReq
 		return
 	}
 
-	output, err := GetPostgresqlUserList(ctx, r.config, state.PostgresqlInstanceNo.ValueString(), convertToCloudPostgresqlUserStringList(state.PostgresqlUserList))
+	output, err := GetPostgresqlUserList(ctx, r.config, state.ID.ValueString(), common.ConvertToStringList(state.PostgresqlUserList, "name"))
 	if err != nil {
 		resp.Diagnostics.AddError("READING ERROR", err.Error())
 		return
@@ -215,9 +242,6 @@ func (r *postgresqlUsersResource) Read(ctx context.Context, req resource.ReadReq
 		return
 	}
 	resp.Diagnostics.Append(resp.State.Set(ctx, &state)...)
-	if resp.Diagnostics.HasError() {
-		return
-	}
 }
 
 func (r *postgresqlUsersResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
@@ -247,6 +271,7 @@ func (r *postgresqlUsersResource) Update(ctx context.Context, req resource.Updat
 
 		if response == nil || *response.ReturnCode != "0" {
 			resp.Diagnostics.AddError("UPDATE ERROR", "response invalid")
+			return
 		}
 
 		_, err = WaitPostgresqlCreation(ctx, r.config, state.ID.ValueString())
@@ -255,7 +280,7 @@ func (r *postgresqlUsersResource) Update(ctx context.Context, req resource.Updat
 			return
 		}
 
-		output, err := GetPostgresqlUserList(ctx, r.config, state.ID.ValueString(), convertToCloudPostgresqlUserStringList(plan.PostgresqlUserList))
+		output, err := GetPostgresqlUserList(ctx, r.config, state.ID.ValueString(), common.ConvertToStringList(plan.PostgresqlUserList, "name"))
 		if err != nil {
 			resp.Diagnostics.AddError("READING ERROR", err.Error())
 			return
@@ -266,7 +291,7 @@ func (r *postgresqlUsersResource) Update(ctx context.Context, req resource.Updat
 			return
 		}
 
-		if diags := state.refreshFromOutput(ctx, output, state); diags.HasError() {
+		if diags := state.refreshFromOutput(ctx, output, plan); diags.HasError() {
 			resp.Diagnostics.AddError("READING ERROR", "refreshFromOutput error")
 			return
 		}
@@ -282,7 +307,7 @@ func (r *postgresqlUsersResource) Delete(ctx context.Context, req resource.Delet
 		return
 	}
 
-	_, err := WaitPostgresqlCreation(ctx, r.config, state.PostgresqlInstanceNo.ValueString())
+	_, err := WaitPostgresqlCreation(ctx, r.config, state.ID.ValueString())
 	if err != nil {
 		resp.Diagnostics.AddError("WATING FOR POSTGRESQL CREATION ERROR", err.Error())
 		return
@@ -290,7 +315,7 @@ func (r *postgresqlUsersResource) Delete(ctx context.Context, req resource.Delet
 
 	reqParams := &vpostgresql.DeleteCloudPostgresqlUserListRequest{
 		RegionCode:                &r.config.RegionCode,
-		CloudPostgresqlInstanceNo: state.PostgresqlInstanceNo.ValueStringPointer(),
+		CloudPostgresqlInstanceNo: state.ID.ValueStringPointer(),
 		CloudPostgresqlUserList:   convertToCloudPostgresqlUserKeyParameter(state.PostgresqlUserList),
 	}
 	tflog.Info(ctx, "DeletePostgresqlUserList reqParams="+common.MarshalUncheckedString(reqParams))
@@ -302,41 +327,11 @@ func (r *postgresqlUsersResource) Delete(ctx context.Context, req resource.Delet
 	}
 	tflog.Info(ctx, "DeletePostgresqlUserList response="+common.MarshalUncheckedString(response))
 
-	if err := waitPostgresqlUsersDeletion(ctx, r.config, state.ID.ValueString(), convertToCloudPostgresqlUserStringList(state.PostgresqlUserList)); err != nil {
+	_, err = WaitPostgresqlCreation(ctx, r.config, state.ID.ValueString())
+	if err != nil {
 		resp.Diagnostics.AddError("WAITING FOR DELETE ERROR", err.Error())
+		return
 	}
-}
-
-func waitPostgresqlUsersDeletion(ctx context.Context, config *conn.ProviderConfig, id string, users []string) error {
-	stateConf := &retry.StateChangeConf{
-		Pending: []string{DELETING},
-		Target:  []string{DELETED},
-		Refresh: func() (interface{}, string, error) {
-			userList, err := GetPostgresqlUserList(ctx, config, id, users)
-			if err != nil {
-				return 0, "", err
-			}
-
-			if len(userList) > 0 {
-				return userList, DELETING, nil
-			}
-
-			if userList == nil {
-				return userList, DELETED, nil
-			}
-
-			return 0, "", fmt.Errorf("error occurred while waiting to delete postgresql user")
-		},
-		Timeout:    conn.DefaultTimeout,
-		Delay:      5 * time.Second,
-		MinTimeout: 3 * time.Second,
-	}
-
-	if _, err := stateConf.WaitForStateContext(ctx); err != nil {
-		return fmt.Errorf("error waiting for postgresql user (%s) to become terminating: %s", id, err)
-	}
-
-	return nil
 }
 
 func GetPostgresqlUserList(ctx context.Context, config *conn.ProviderConfig, id string, users []string) ([]*vpostgresql.CloudPostgresqlUser, error) {
@@ -379,40 +374,38 @@ func GetPostgresqlUserList(ctx context.Context, config *conn.ProviderConfig, id 
 }
 
 type postgresqlUsersResourceModel struct {
-	ID                   types.String `tfsdk:"id"`
-	PostgresqlInstanceNo types.String `tfsdk:"postgresql_instance_no"`
-	PostgresqlUserList   types.List   `tfsdk:"postgresql_user_list"`
+	ID                 types.String `tfsdk:"id"`
+	PostgresqlUserList types.List   `tfsdk:"postgresql_user_list"`
 }
 
 type PostgresqlUser struct {
-	UserName          types.String `tfsdk:"name"`
-	UserPassword      types.String `tfsdk:"password"`
-	ClientCidr        types.String `tfsdk:"client_cidr"`
-	IsReplicationRole types.Bool   `tfsdk:"is_replication_role"`
+	UserName        types.String `tfsdk:"name"`
+	UserPassword    types.String `tfsdk:"password"`
+	ClientCidr      types.String `tfsdk:"client_cidr"`
+	ReplicationRole types.Bool   `tfsdk:"replication_role"`
 }
 
 func (r PostgresqlUser) AttrTypes() map[string]attr.Type {
 	return map[string]attr.Type{
-		"name":                types.StringType,
-		"password":            types.StringType,
-		"client_cidr":         types.StringType,
-		"is_replication_role": types.BoolType,
+		"name":             types.StringType,
+		"password":         types.StringType,
+		"client_cidr":      types.StringType,
+		"replication_role": types.BoolType,
 	}
 }
 
 func (r *postgresqlUsersResourceModel) refreshFromOutput(ctx context.Context, output []*vpostgresql.CloudPostgresqlUser, resourceModel postgresqlUsersResourceModel) diag.Diagnostics {
 	r.ID = resourceModel.ID
-	r.PostgresqlInstanceNo = resourceModel.PostgresqlInstanceNo
 
 	var userList []PostgresqlUser
 
 	for idx, user := range output {
 		pswd := resourceModel.PostgresqlUserList.Elements()[idx].(types.Object).Attributes()
 		postgresqlUser := PostgresqlUser{
-			UserName:          types.StringPointerValue(user.UserName),
-			UserPassword:      pswd["password"].(types.String),
-			ClientCidr:        types.StringPointerValue(user.ClientCidr),
-			IsReplicationRole: types.BoolPointerValue(user.IsReplicationRole),
+			UserName:        types.StringPointerValue(user.UserName),
+			UserPassword:    pswd["password"].(types.String),
+			ClientCidr:      types.StringPointerValue(user.ClientCidr),
+			ReplicationRole: types.BoolPointerValue(user.IsReplicationRole),
 		}
 
 		userList = append(userList, postgresqlUser)
@@ -424,7 +417,8 @@ func (r *postgresqlUsersResourceModel) refreshFromOutput(ctx context.Context, ou
 	}
 
 	r.PostgresqlUserList = postgresqlUsers
-	return nil
+
+	return diags
 }
 
 func convertToCloudPostgresqlUserParameter(values basetypes.ListValue) []*vpostgresql.CloudPostgresqlUserParameter {
@@ -432,14 +426,13 @@ func convertToCloudPostgresqlUserParameter(values basetypes.ListValue) []*vpostg
 
 	for _, v := range values.Elements() {
 		obj := v.(types.Object)
-
 		attrs := obj.Attributes()
 
 		param := &vpostgresql.CloudPostgresqlUserParameter{
 			Name:              attrs["name"].(types.String).ValueStringPointer(),
 			Password:          attrs["password"].(types.String).ValueStringPointer(),
 			ClientCidr:        attrs["client_cidr"].(types.String).ValueStringPointer(),
-			IsReplicationRole: attrs["is_replication_role"].(types.Bool).ValueBoolPointer(),
+			IsReplicationRole: attrs["replication_role"].(types.Bool).ValueBoolPointer(),
 		}
 		result = append(result, param)
 	}
@@ -448,31 +441,16 @@ func convertToCloudPostgresqlUserParameter(values basetypes.ListValue) []*vpostg
 }
 
 func convertToCloudPostgresqlUserKeyParameter(values basetypes.ListValue) []*vpostgresql.CloudPostgresqlUserKeyParameter {
-	result := make([]*vpostgresql.CloudPostgresqlUserKeyParameter, 0, len(values.Elements())-1)
+	result := make([]*vpostgresql.CloudPostgresqlUserKeyParameter, 0, len(values.Elements()))
 
 	for _, v := range values.Elements() {
 		obj := v.(types.Object)
-
 		attrs := obj.Attributes()
 
 		param := &vpostgresql.CloudPostgresqlUserKeyParameter{
 			Name: attrs["name"].(types.String).ValueStringPointer(),
 		}
 		result = append(result, param)
-	}
-
-	return result
-}
-
-func convertToCloudPostgresqlUserStringList(values basetypes.ListValue) []string {
-	result := make([]string, 0, len(values.Elements()))
-
-	for _, v := range values.Elements() {
-		obj := v.(types.Object)
-		attrs := obj.Attributes()
-
-		name := attrs["name"].(types.String).ValueString()
-		result = append(result, name)
 	}
 
 	return result
