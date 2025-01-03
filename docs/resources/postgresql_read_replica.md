@@ -6,7 +6,7 @@ subcategory: "PostgreSQL"
 
 Provides a PostgreSQL instance resource.
 
-~> **NOTE:** This resource only supports VPC environment. You can't create and delete more than one resource at the same time.
+~> **NOTE:** This resource only supports VPC environment. Don't create or delete multiple resources at the same time.
 
 ## Example Usage
 
