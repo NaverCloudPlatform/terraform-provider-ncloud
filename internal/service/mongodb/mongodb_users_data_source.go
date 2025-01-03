@@ -114,7 +114,7 @@ func (d *mongodbUsersDataSource) Read(ctx context.Context, req datasource.ReadRe
 	mongodbUserList := flattenMongodbUsers(output)
 	fillteredList := common.FilterModels(ctx, data.Filters, mongodbUserList)
 	if diags := data.refreshFromOutput(ctx, fillteredList, data.ID.ValueString()); diags.HasError() {
-		resp.Diagnostics.AddError("READING EROROR", "refreshFromOutput error")
+		resp.Diagnostics.AddError("READING ERROR", "refreshFromOutput error")
 		return
 	}
 
@@ -153,7 +153,7 @@ func GetMongoDbUserAllList(ctx context.Context, config *conn.ProviderConfig, id 
 		return nil, nil
 	}
 
-	return common.ReverseList(resp.CloudMongoDbUserList), nil
+	return resp.CloudMongoDbUserList, nil
 }
 
 type mongodbUsersDataSourceModel struct {

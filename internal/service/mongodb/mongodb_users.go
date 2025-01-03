@@ -390,57 +390,36 @@ func convertToDeleteParameters(values basetypes.SetValue) []*vmongodb.DeleteClou
 	return result
 }
 
-func convertToSingleAddOrChangeParameter(v MongodbUser) []*vmongodb.AddOrChangeCloudMongoDbUserParameter {
-	param := []*vmongodb.AddOrChangeCloudMongoDbUserParameter{
-		{
-			UserName:     v.UserName.ValueStringPointer(),
-			Password:     v.Password.ValueStringPointer(),
-			DatabaseName: v.DatabaseName.ValueStringPointer(),
-			Authority:    v.Authority.ValueStringPointer(),
-		},
+func convertToSingleAddOrChangeParameter(v MongodbUser) *vmongodb.AddOrChangeCloudMongoDbUserParameter {
+	param := &vmongodb.AddOrChangeCloudMongoDbUserParameter{
+		UserName:     v.UserName.ValueStringPointer(),
+		Password:     v.Password.ValueStringPointer(),
+		DatabaseName: v.DatabaseName.ValueStringPointer(),
+		Authority:    v.Authority.ValueStringPointer(),
 	}
 
 	return param
 }
 
-func convertToSingleDeleteParameter(v MongodbUser) []*vmongodb.DeleteCloudMongoDbUserParameter {
-	param := []*vmongodb.DeleteCloudMongoDbUserParameter{
-		{
-			UserName:     v.UserName.ValueStringPointer(),
-			DatabaseName: v.DatabaseName.ValueStringPointer(),
-		},
+func convertToSingleDeleteParameter(v MongodbUser) *vmongodb.DeleteCloudMongoDbUserParameter {
+	param := &vmongodb.DeleteCloudMongoDbUserParameter{
+		UserName:     v.UserName.ValueStringPointer(),
+		DatabaseName: v.DatabaseName.ValueStringPointer(),
 	}
 
 	return param
 }
 
 func addOrChangeUserList(ctx context.Context, config *conn.ProviderConfig, id *string, planUserList []MongodbUser, stateUserList []MongodbUser) error {
+	changeParameters := make([]*vmongodb.AddOrChangeCloudMongoDbUserParameter, 0)
+	addParameters := make([]*vmongodb.AddOrChangeCloudMongoDbUserParameter, 0)
+
 	for _, pv := range planUserList {
 		found := false
 		for _, sv := range stateUserList {
 			if pv.UserName.Equal(sv.UserName) && pv.DatabaseName.Equal(sv.DatabaseName) {
 				if !pv.Password.Equal(sv.Password) || !pv.Authority.Equal(sv.Authority) {
-					reqParams := &vmongodb.ChangeCloudMongoDbUserListRequest{
-						RegionCode:             &config.RegionCode,
-						CloudMongoDbInstanceNo: id,
-						CloudMongoDbUserList:   convertToSingleAddOrChangeParameter(pv),
-					}
-					tflog.Info(ctx, "ChangeCloudMongoDbUserList reqParams="+common.MarshalUncheckedString(reqParams))
-
-					response, err := config.Client.Vmongodb.V2Api.ChangeCloudMongoDbUserList(reqParams)
-					if err != nil {
-						return err
-					}
-					tflog.Info(ctx, "ChangeCloudMongoDbUserList response="+common.MarshalUncheckedString(response))
-
-					if response == nil || *response.ReturnCode != "0" {
-						return fmt.Errorf("ChangeCloudMongoDbUserList response invalid")
-					}
-
-					_, err = waitMongoDbUpdate(ctx, config, *id)
-					if err != nil {
-						return err
-					}
+					changeParameters = append(changeParameters, convertToSingleAddOrChangeParameter(pv))
 				}
 				found = true
 				break
@@ -448,33 +427,64 @@ func addOrChangeUserList(ctx context.Context, config *conn.ProviderConfig, id *s
 		}
 
 		if !found {
-			reqParams := &vmongodb.AddCloudMongoDbUserListRequest{
-				RegionCode:             &config.RegionCode,
-				CloudMongoDbInstanceNo: id,
-				CloudMongoDbUserList:   convertToSingleAddOrChangeParameter(pv),
-			}
-			tflog.Info(ctx, "AddCloudMongoDbUserList reqParams="+common.MarshalUncheckedString(reqParams))
-
-			response, err := config.Client.Vmongodb.V2Api.AddCloudMongoDbUserList(reqParams)
-			if err != nil {
-				return err
-			}
-			tflog.Info(ctx, "AddCloudMongoDbUserList response="+common.MarshalUncheckedString(response))
-
-			if response == nil || *response.ReturnCode != "0" {
-				return fmt.Errorf("AddCloudMongoDbUserList response invalid")
-			}
-
-			_, err = waitMongoDbUpdate(ctx, config, *id)
-			if err != nil {
-				return err
-			}
+			addParameters = append(addParameters, convertToSingleAddOrChangeParameter(pv))
 		}
 	}
+
+	if len(changeParameters) > 0 {
+		reqParams := &vmongodb.ChangeCloudMongoDbUserListRequest{
+			RegionCode:             &config.RegionCode,
+			CloudMongoDbInstanceNo: id,
+			CloudMongoDbUserList:   changeParameters,
+		}
+		tflog.Info(ctx, "ChangeCloudMongoDbUserList reqParams="+common.MarshalUncheckedString(reqParams))
+
+		response, err := config.Client.Vmongodb.V2Api.ChangeCloudMongoDbUserList(reqParams)
+		if err != nil {
+			return err
+		}
+		tflog.Info(ctx, "ChangeCloudMongoDbUserList response="+common.MarshalUncheckedString(response))
+
+		if response == nil || *response.ReturnCode != "0" {
+			return fmt.Errorf("ChangeCloudMongoDbUserList response invalid")
+		}
+
+		_, err = waitMongoDbUpdate(ctx, config, *id)
+		if err != nil {
+			return err
+		}
+	}
+
+	if len(addParameters) > 0 {
+		reqParams := &vmongodb.AddCloudMongoDbUserListRequest{
+			RegionCode:             &config.RegionCode,
+			CloudMongoDbInstanceNo: id,
+			CloudMongoDbUserList:   addParameters,
+		}
+		tflog.Info(ctx, "AddCloudMongoDbUserList reqParams="+common.MarshalUncheckedString(reqParams))
+
+		response, err := config.Client.Vmongodb.V2Api.AddCloudMongoDbUserList(reqParams)
+		if err != nil {
+			return err
+		}
+		tflog.Info(ctx, "AddCloudMongoDbUserList response="+common.MarshalUncheckedString(response))
+
+		if response == nil || *response.ReturnCode != "0" {
+			return fmt.Errorf("AddCloudMongoDbUserList response invalid")
+		}
+
+		_, err = waitMongoDbUpdate(ctx, config, *id)
+		if err != nil {
+			return err
+		}
+	}
+
 	return nil
 }
 
 func deleteUserList(ctx context.Context, config *conn.ProviderConfig, id *string, planUserList []MongodbUser, stateUserList []MongodbUser) error {
+	deleteParameters := make([]*vmongodb.DeleteCloudMongoDbUserParameter, 0)
+
 	for _, sv := range stateUserList {
 		found := false
 		for _, pv := range planUserList {
@@ -485,23 +495,27 @@ func deleteUserList(ctx context.Context, config *conn.ProviderConfig, id *string
 		}
 
 		if !found {
-			reqParams := &vmongodb.DeleteCloudMongoDbUserListRequest{
-				RegionCode:             &config.RegionCode,
-				CloudMongoDbInstanceNo: id,
-				CloudMongoDbUserList:   convertToSingleDeleteParameter(sv),
-			}
-			tflog.Info(ctx, "DeleteMongodbUserList reqParams="+common.MarshalUncheckedString(reqParams))
+			deleteParameters = append(deleteParameters, convertToSingleDeleteParameter(sv))
+		}
+	}
 
-			response, err := config.Client.Vmongodb.V2Api.DeleteCloudMongoDbUserList(reqParams)
-			if err != nil {
-				return err
-			}
-			tflog.Info(ctx, "DeleteMongodbUserList response="+common.MarshalUncheckedString(response))
+	if len(deleteParameters) > 0 {
+		reqParams := &vmongodb.DeleteCloudMongoDbUserListRequest{
+			RegionCode:             &config.RegionCode,
+			CloudMongoDbInstanceNo: id,
+			CloudMongoDbUserList:   deleteParameters,
+		}
+		tflog.Info(ctx, "DeleteMongodbUserList reqParams="+common.MarshalUncheckedString(reqParams))
 
-			_, err = waitMongoDbUpdate(ctx, config, *id)
-			if err != nil {
-				return err
-			}
+		response, err := config.Client.Vmongodb.V2Api.DeleteCloudMongoDbUserList(reqParams)
+		if err != nil {
+			return err
+		}
+		tflog.Info(ctx, "DeleteMongodbUserList response="+common.MarshalUncheckedString(response))
+
+		_, err = waitMongoDbUpdate(ctx, config, *id)
+		if err != nil {
+			return err
 		}
 	}
 	return nil
