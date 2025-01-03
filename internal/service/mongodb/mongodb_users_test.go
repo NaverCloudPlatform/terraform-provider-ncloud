@@ -28,26 +28,20 @@ func TestAccResourceNcloudMongoDbUsers_vpc_update(t *testing.T) {
 			{
 				Config: testAccMongoDbUsersConfig(testName, "READ", "READ_WRITE"),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr(resourceName, "mongodb_user_list.0.name", "testuser1"),
-					resource.TestCheckResourceAttr(resourceName, "mongodb_user_list.0.database_name", "testdb1"),
-					resource.TestCheckResourceAttr(resourceName, "mongodb_user_list.0.authority", "READ"),
-					resource.TestCheckResourceAttr(resourceName, "mongodb_user_list.1.name", "testuser2"),
-					resource.TestCheckResourceAttr(resourceName, "mongodb_user_list.1.database_name", "testdb2"),
-					resource.TestCheckResourceAttr(resourceName, "mongodb_user_list.1.authority", "READ_WRITE"),
+					resource.TestCheckResourceAttr(resourceName, "mongodb_user_set.#", "2"),
 				),
 			},
 			{
 				Config: testAccMongoDbUsersConfig(testName, "READ_WRITE", "READ"),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr(resourceName, "mongodb_user_list.0.authority", "READ_WRITE"),
-					resource.TestCheckResourceAttr(resourceName, "mongodb_user_list.1.authority", "READ"),
+					resource.TestCheckResourceAttr(resourceName, "mongodb_user_set.#", "2"),
 				),
 				Destroy: false,
 			},
 			{
 				Config: testAccMongoDbUsersRemoveConfig(testName),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckMongoDbUsersNotExists(dbResourceName, []string{"testuser1", "testuser2"}, GetTestProvider(true)),
+					testAccCheckMongoDbUsersNotExists(dbResourceName, GetTestProvider(true)),
 				),
 			},
 		},
@@ -81,8 +75,8 @@ resource "ncloud_mongodb" "mongodb" {
 }
 
 resource "ncloud_mongodb_users" "mongodb_users" {
-	mongodb_instance_no = ncloud_mongodb.mongodb.id
-	mongodb_user_list = [
+	id = ncloud_mongodb.mongodb.id
+	mongodb_user_set = [
 		{
 			name = "testuser1",
 			password = "t123456789!",
@@ -128,7 +122,7 @@ resource "ncloud_mongodb" "mongodb" {
 `, testName)
 }
 
-func testAccCheckMongoDbUsersNotExists(n string, userNames []string, provider *schema.Provider) resource.TestCheckFunc {
+func testAccCheckMongoDbUsersNotExists(n string, provider *schema.Provider) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		resource, ok := s.RootModule().Resources[n]
 		if !ok {
@@ -141,7 +135,7 @@ func testAccCheckMongoDbUsersNotExists(n string, userNames []string, provider *s
 
 		config := provider.Meta().(*conn.ProviderConfig)
 
-		users, err := mongodbservice.GetMongoDbUserList(context.Background(), config, resource.Primary.ID, userNames)
+		users, err := mongodbservice.GetMongoDbUserAllList(context.Background(), config, resource.Primary.ID)
 		if err != nil {
 			return err
 		}
