@@ -373,8 +373,6 @@ func (r *mssqlResource) Create(ctx context.Context, req resource.CreateRequest, 
 		reqParams.BackupTime = plan.BackupTime.ValueStringPointer()
 	}
 
-	tflog.Info(ctx, "CreateMssql reqParams="+common.MarshalUncheckedString(reqParams))
-
 	response, err := r.config.Client.Vmssql.V2Api.CreateCloudMssqlInstance(reqParams)
 	if err != nil {
 		resp.Diagnostics.AddError("CREATING ERROR", err.Error())

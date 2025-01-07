@@ -337,8 +337,6 @@ func createClassicNasVolume(d *schema.ResourceData, config *conn.ProviderConfig)
 		IsReturnProtection:              BoolPtrOrNil(d.GetOk("is_return_protection")),
 	}
 
-	LogCommonRequest("createClassicNasVolume", reqParams)
-
 	resp, err := config.Client.Server.V2Api.CreateNasVolumeInstance(reqParams)
 	if err != nil {
 		LogErrorResponse("createClassicNasVolume", err, reqParams)
@@ -363,8 +361,6 @@ func createVpcNasVolume(d *schema.ResourceData, config *conn.ProviderConfig) (*s
 		IsEncryptedVolume:               BoolPtrOrNil(d.GetOk("is_encrypted_volume")),
 		IsReturnProtection:              BoolPtrOrNil(d.GetOk("is_return_protection")),
 	}
-
-	LogCommonRequest("createVpcNasVolume", reqParams)
 
 	resp, err := config.Client.Vnas.V2Api.CreateNasVolumeInstance(reqParams)
 	if err != nil {

@@ -314,7 +314,7 @@ func resourceNcloudSESClusterCreate(ctx context.Context, d *schema.ResourceData,
 		MasterNodeCount:           masterNodeCount,
 		LoginKeyName:              StringPtrOrNil(d.GetOk("login_key_name")),
 	}
-	LogCommonRequest("resourceNcloudSESClusterCreate", reqParams)
+
 	resp, _, err := config.Client.Vses.V2Api.CreateClusterUsingPOST(ctx, *reqParams)
 	if err != nil {
 		LogErrorResponse("resourceNcloudSESClusterCreate", err, reqParams)

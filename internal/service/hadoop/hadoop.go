@@ -551,8 +551,6 @@ func (r *hadoopResource) Create(ctx context.Context, req resource.CreateRequest,
 		reqParams.UseDataCatalog = plan.UseDataCatalog.ValueBoolPointer()
 	}
 
-	tflog.Info(ctx, "CreateHadoop reqParams="+common.MarshalUncheckedString(reqParams))
-
 	response, err := r.config.Client.Vhadoop.V2Api.CreateCloudHadoopInstance(reqParams)
 	if err != nil {
 		resp.Diagnostics.AddError("CREATING ERROR", err.Error())

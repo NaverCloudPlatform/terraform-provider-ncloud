@@ -567,8 +567,6 @@ func (r *postgresqlResource) Create(ctx context.Context, req resource.CreateRequ
 		}
 	}
 
-	tflog.Info(ctx, "CreatePostgresql reqParams="+common.MarshalUncheckedString(reqParams))
-
 	response, err := r.config.Client.Vpostgresql.V2Api.CreateCloudPostgresqlInstance(reqParams)
 	if err != nil {
 		resp.Diagnostics.AddError("CREATING ERROR", err.Error())

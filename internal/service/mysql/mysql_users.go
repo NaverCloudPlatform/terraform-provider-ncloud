@@ -192,8 +192,6 @@ func (r *mysqlUsersResource) Create(ctx context.Context, req resource.CreateRequ
 		CloudMysqlUserList:   convertToCloudMysqlUserParameter(plan.MysqlUserList),
 	}
 
-	tflog.Info(ctx, "CreateMysqlUserList reqParams="+common.MarshalUncheckedString(reqParams))
-
 	response, err := r.config.Client.Vmysql.V2Api.AddCloudMysqlUserList(reqParams)
 	if err != nil {
 		resp.Diagnostics.AddError("CREATING ERROR", err.Error())
@@ -271,7 +269,6 @@ func (r *mysqlUsersResource) Update(ctx context.Context, req resource.UpdateRequ
 			CloudMysqlInstanceNo: state.ID.ValueStringPointer(),
 			CloudMysqlUserList:   convertToCloudMysqlUserParameter(plan.MysqlUserList),
 		}
-		tflog.Info(ctx, "ChangecloudMysqlUserList reqParams="+common.MarshalUncheckedString(reqParams))
 
 		response, err := r.config.Client.Vmysql.V2Api.ChangeCloudMysqlUserList(reqParams)
 		if err != nil {
