@@ -241,7 +241,6 @@ func resourceNcloudCDSSClusterCreate(ctx context.Context, d *schema.ResourceData
 		ConfigGroupNo:            *GetInt32FromString(d.GetOk("config_group_no")),
 	}
 
-	LogCommonRequest("resourceNcloudCDSSClusterCreate", reqParams)
 	resp, _, err := config.Client.Vcdss.V1Api.ClusterCreateCDSSClusterReturnServiceGroupInstanceNoPost(ctx, reqParams)
 	if err != nil {
 		LogErrorResponse("resourceNcloudCDSSClusterCreate", err, reqParams)

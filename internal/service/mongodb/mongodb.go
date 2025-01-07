@@ -568,8 +568,6 @@ func (m *mongodbResource) Create(ctx context.Context, req resource.CreateRequest
 		reqParams.DataStorageTypeCode = plan.DataStorageType.ValueStringPointer()
 	}
 
-	tflog.Info(ctx, "CreateMongoDb reqParams="+common.MarshalUncheckedString(reqParams))
-
 	response, err := m.config.Client.Vmongodb.V2Api.CreateCloudMongoDbInstance(reqParams)
 	if err != nil {
 		resp.Diagnostics.AddError("CREATING ERROR", err.Error())

@@ -180,8 +180,6 @@ func (r *postgresqlUsersResource) Create(ctx context.Context, req resource.Creat
 		CloudPostgresqlUserList:   convertToCloudPostgresqlUserParameter(plan.PostgresqlUserList),
 	}
 
-	tflog.Info(ctx, "CreatePostgresqlUserList reqParams="+common.MarshalUncheckedString(reqParams))
-
 	response, err := r.config.Client.Vpostgresql.V2Api.AddCloudPostgresqlUserList(reqParams)
 	if err != nil {
 		resp.Diagnostics.AddError("CREATING ERROR", err.Error())
@@ -260,7 +258,6 @@ func (r *postgresqlUsersResource) Update(ctx context.Context, req resource.Updat
 			CloudPostgresqlInstanceNo: state.ID.ValueStringPointer(),
 			CloudPostgresqlUserList:   convertToCloudPostgresqlUserParameter(plan.PostgresqlUserList),
 		}
-		tflog.Info(ctx, "ChangeCloudPostgresqlUserList reqParams="+common.MarshalUncheckedString(reqParams))
 
 		response, err := r.config.Client.Vpostgresql.V2Api.ChangeCloudPostgresqlUserList(reqParams)
 		if err != nil {

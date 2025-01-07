@@ -456,8 +456,6 @@ func (r *redisResource) Create(ctx context.Context, req resource.CreateRequest, 
 		reqParams.CloudRedisUserPassword = plan.UserPassword.ValueStringPointer()
 	}
 
-	tflog.Info(ctx, "CreateCloudRedisInstance reqParams="+common.MarshalUncheckedString(reqParams))
-
 	response, err := r.config.Client.Vredis.V2Api.CreateCloudRedisInstance(reqParams)
 	if err != nil {
 		resp.Diagnostics.AddError("CREATING ERROR", err.Error())

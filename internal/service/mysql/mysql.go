@@ -532,8 +532,6 @@ func (r *mysqlResource) Create(ctx context.Context, req resource.CreateRequest, 
 		}
 	}
 
-	tflog.Info(ctx, "CreateMysql reqParams="+common.MarshalUncheckedString(reqParams))
-
 	response, err := r.config.Client.Vmysql.V2Api.CreateCloudMysqlInstance(reqParams)
 	if err != nil {
 		resp.Diagnostics.AddError("CREATING ERROR", err.Error())
