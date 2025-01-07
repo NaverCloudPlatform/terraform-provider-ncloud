@@ -152,8 +152,6 @@ func (r *mongodbUsersResource) Create(ctx context.Context, req resource.CreateRe
 		CloudMongoDbUserList:   convertToAddOrChangeParameters(plan.MongoDbUserSet),
 	}
 
-	tflog.Info(ctx, "CreateMongodbUserList reqParams="+common.MarshalUncheckedString(reqParams))
-
 	response, err := r.config.Client.Vmongodb.V2Api.AddCloudMongoDbUserList(reqParams)
 	if err != nil {
 		resp.Diagnostics.AddError("CREATING ERROR", err.Error())
@@ -437,7 +435,6 @@ func addOrChangeUserList(ctx context.Context, config *conn.ProviderConfig, id *s
 			CloudMongoDbInstanceNo: id,
 			CloudMongoDbUserList:   changeParameters,
 		}
-		tflog.Info(ctx, "ChangeCloudMongoDbUserList reqParams="+common.MarshalUncheckedString(reqParams))
 
 		response, err := config.Client.Vmongodb.V2Api.ChangeCloudMongoDbUserList(reqParams)
 		if err != nil {
@@ -461,7 +458,6 @@ func addOrChangeUserList(ctx context.Context, config *conn.ProviderConfig, id *s
 			CloudMongoDbInstanceNo: id,
 			CloudMongoDbUserList:   addParameters,
 		}
-		tflog.Info(ctx, "AddCloudMongoDbUserList reqParams="+common.MarshalUncheckedString(reqParams))
 
 		response, err := config.Client.Vmongodb.V2Api.AddCloudMongoDbUserList(reqParams)
 		if err != nil {
