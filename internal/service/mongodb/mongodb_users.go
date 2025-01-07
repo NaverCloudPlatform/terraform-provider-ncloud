@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"regexp"
 
-	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/ncloud"
 	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/services/vmongodb"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/attr"
@@ -21,7 +20,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 	"github.com/terraform-providers/terraform-provider-ncloud/internal/common"
 	"github.com/terraform-providers/terraform-provider-ncloud/internal/conn"
-	"github.com/terraform-providers/terraform-provider-ncloud/internal/framework"
 )
 
 const (
@@ -72,22 +70,18 @@ func (r *mongodbUsersResource) Metadata(_ context.Context, req resource.Metadata
 func (r *mongodbUsersResource) Schema(_ context.Context, _ resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = schema.Schema{
 		Attributes: map[string]schema.Attribute{
-			"id": framework.IDAttribute(),
-			"mongodb_instance_no": schema.StringAttribute{
+			"id": schema.StringAttribute{
 				Required: true,
 				PlanModifiers: []planmodifier.String{
 					stringplanmodifier.RequiresReplace(),
 				},
 			},
-			"mongodb_user_list": schema.ListNestedAttribute{
+			"mongodb_user_set": schema.SetNestedAttribute{
 				Required: true,
 				NestedObject: schema.NestedAttributeObject{
 					Attributes: map[string]schema.Attribute{
 						"name": schema.StringAttribute{
 							Required: true,
-							PlanModifiers: []planmodifier.String{
-								stringplanmodifier.RequiresReplace(),
-							},
 							Validators: []validator.String{
 								stringvalidator.All(
 									stringvalidator.LengthBetween(4, 16),
@@ -96,11 +90,11 @@ func (r *mongodbUsersResource) Schema(_ context.Context, _ resource.SchemaReques
 							},
 						},
 						"password": schema.StringAttribute{
-							Required: true,
+							Required:  true,
+							Sensitive: true,
 							PlanModifiers: []planmodifier.String{
 								stringplanmodifier.UseStateForUnknown(),
 							},
-							Sensitive: true,
 							Validators: []validator.String{
 								stringvalidator.All(
 									stringvalidator.LengthBetween(8, 20),
@@ -113,9 +107,6 @@ func (r *mongodbUsersResource) Schema(_ context.Context, _ resource.SchemaReques
 						},
 						"database_name": schema.StringAttribute{
 							Required: true,
-							PlanModifiers: []planmodifier.String{
-								stringplanmodifier.RequiresReplace(),
-							},
 							Validators: []validator.String{
 								stringvalidator.All(
 									stringvalidator.LengthBetween(4, 30),
@@ -157,13 +148,9 @@ func (r *mongodbUsersResource) Create(ctx context.Context, req resource.CreateRe
 
 	reqParams := &vmongodb.AddCloudMongoDbUserListRequest{
 		RegionCode:             &r.config.RegionCode,
-		CloudMongoDbInstanceNo: plan.MongoDbInstanceNo.ValueStringPointer(),
-		CloudMongoDbUserList:   convertToCloudMongodbUserParameter(plan.MongoDbUserList),
+		CloudMongoDbInstanceNo: plan.ID.ValueStringPointer(),
+		CloudMongoDbUserList:   convertToAddOrChangeParameters(plan.MongoDbUserSet),
 	}
-
-	plan.ID = plan.MongoDbInstanceNo
-
-	tflog.Info(ctx, "CreateMongodbUserList reqParams="+common.MarshalUncheckedString(reqParams))
 
 	response, err := r.config.Client.Vmongodb.V2Api.AddCloudMongoDbUserList(reqParams)
 	if err != nil {
@@ -183,7 +170,7 @@ func (r *mongodbUsersResource) Create(ctx context.Context, req resource.CreateRe
 		return
 	}
 
-	output, err := GetMongoDbUserList(ctx, r.config, plan.ID.ValueString(), common.ConvertToStringList(plan.MongoDbUserList, "name"))
+	output, err := GetMongoDbUserAllList(ctx, r.config, plan.ID.ValueString())
 	if err != nil {
 		resp.Diagnostics.AddError("READING ERROR", err.Error())
 		return
@@ -194,7 +181,7 @@ func (r *mongodbUsersResource) Create(ctx context.Context, req resource.CreateRe
 		return
 	}
 
-	if diags := plan.refreshFromOutput(ctx, output, plan); diags.HasError() {
+	if diags := plan.refreshFromOutput(ctx, output); diags.HasError() {
 		resp.Diagnostics.AddError("READING ERROR", "refreshFromOutput error")
 		return
 	}
@@ -209,7 +196,7 @@ func (r *mongodbUsersResource) Read(ctx context.Context, req resource.ReadReques
 		return
 	}
 
-	output, err := GetMongoDbUserList(ctx, r.config, state.ID.ValueString(), common.ConvertToStringList(state.MongoDbUserList, "name"))
+	output, err := GetMongoDbUserAllList(ctx, r.config, state.ID.ValueString())
 	if err != nil {
 		resp.Diagnostics.AddError("READING ERROR", err.Error())
 		return
@@ -220,14 +207,11 @@ func (r *mongodbUsersResource) Read(ctx context.Context, req resource.ReadReques
 		return
 	}
 
-	if diags := state.refreshFromOutput(ctx, output, state); diags.HasError() {
+	if diags := state.refreshFromOutput(ctx, output); diags.HasError() {
 		resp.Diagnostics.AddError("READING ERROR", "refreshFromOutput error")
 		return
 	}
 	resp.Diagnostics.Append(resp.State.Set(ctx, &state)...)
-	if resp.Diagnostics.HasError() {
-		return
-	}
 }
 
 func (r *mongodbUsersResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
@@ -240,45 +224,39 @@ func (r *mongodbUsersResource) Update(ctx context.Context, req resource.UpdateRe
 		return
 	}
 
-	if !plan.MongoDbUserList.Equal(state.MongoDbUserList) {
-		reqParams := &vmongodb.ChangeCloudMongoDbUserListRequest{
-			RegionCode:             &r.config.RegionCode,
-			CloudMongoDbInstanceNo: state.ID.ValueStringPointer(),
-			CloudMongoDbUserList:   convertToCloudMongodbUserParameter(plan.MongoDbUserList),
+	if !state.MongoDbUserSet.Equal(plan.MongoDbUserSet) {
+		var planUserList, stateUserList []MongodbUser
+		resp.Diagnostics.Append(plan.MongoDbUserSet.ElementsAs(ctx, &planUserList, false)...)
+		resp.Diagnostics.Append(state.MongoDbUserSet.ElementsAs(ctx, &stateUserList, false)...)
+		if resp.Diagnostics.HasError() {
+			return
 		}
-		tflog.Info(ctx, "ChangeCloudMongoDbUserList reqParams="+common.MarshalUncheckedString(reqParams))
 
-		response, err := r.config.Client.Vmongodb.V2Api.ChangeCloudMongoDbUserList(reqParams)
+		err := addOrChangeUserList(ctx, r.config, state.ID.ValueStringPointer(), planUserList, stateUserList)
 		if err != nil {
-			resp.Diagnostics.AddError("UPDATE ERROR", err.Error())
-			return
-		}
-		tflog.Info(ctx, "ChangeCloudMongoDbUserList response="+common.MarshalUncheckedString(response))
-
-		if response == nil || *response.ReturnCode != "0" {
-			resp.Diagnostics.AddError("UPDATE ERROR", "response invalid")
+			resp.Diagnostics.AddError("UPDATING ERROR", err.Error())
 			return
 		}
 
-		_, err = waitMongoDbUpdate(ctx, r.config, state.ID.ValueString())
+		err = deleteUserList(ctx, r.config, state.ID.ValueStringPointer(), planUserList, stateUserList)
 		if err != nil {
-			resp.Diagnostics.AddError("WAITING FOR UPDATE ERROR", err.Error())
+			resp.Diagnostics.AddError("UPDATING ERROR", err.Error())
 			return
 		}
 
-		output, err := GetMongoDbUserList(ctx, r.config, state.ID.ValueString(), common.ConvertToStringList(plan.MongoDbUserList, "name"))
+		output, err := GetMongoDbUserAllList(ctx, r.config, state.ID.ValueString())
 		if err != nil {
 			resp.Diagnostics.AddError("READING ERROR", err.Error())
 			return
 		}
 
-		if diags := state.refreshFromOutput(ctx, output, plan); diags.HasError() {
+		if diags := plan.refreshFromOutput(ctx, output); diags.HasError() {
 			resp.Diagnostics.AddError("READING ERROR", "refreshFromOutput error")
 			return
 		}
 	}
 
-	resp.Diagnostics.Append(resp.State.Set(ctx, state)...)
+	resp.Diagnostics.Append(resp.State.Set(ctx, plan)...)
 }
 
 func (r *mongodbUsersResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
@@ -291,14 +269,14 @@ func (r *mongodbUsersResource) Delete(ctx context.Context, req resource.DeleteRe
 
 	_, err := waitMongoDbCreated(ctx, r.config, state.ID.ValueString())
 	if err != nil {
-		resp.Diagnostics.AddError("WATING FOR MONGODB CREATION ERROR", err.Error())
+		resp.Diagnostics.AddError("Unable to delete. Please try again later", err.Error())
 		return
 	}
 
 	reqParams := &vmongodb.DeleteCloudMongoDbUserListRequest{
 		RegionCode:             &r.config.RegionCode,
-		CloudMongoDbInstanceNo: state.MongoDbInstanceNo.ValueStringPointer(),
-		CloudMongoDbUserList:   convertToCloudMongodbUser(state.MongoDbUserList),
+		CloudMongoDbInstanceNo: state.ID.ValueStringPointer(),
+		CloudMongoDbUserList:   convertToDeleteParameters(state.MongoDbUserSet),
 	}
 	tflog.Info(ctx, "DeleteMongodbUserList reqParams="+common.MarshalUncheckedString(reqParams))
 
@@ -308,59 +286,17 @@ func (r *mongodbUsersResource) Delete(ctx context.Context, req resource.DeleteRe
 		return
 	}
 	tflog.Info(ctx, "DeleteMongodbUserList response="+common.MarshalUncheckedString(response))
-}
 
-func GetMongoDbUserList(ctx context.Context, config *conn.ProviderConfig, id string, users []string) ([]*vmongodb.CloudMongoDbUser, error) {
-	reqParams := &vmongodb.GetCloudMongoDbUserListRequest{
-		RegionCode:             &config.RegionCode,
-		CloudMongoDbInstanceNo: ncloud.String(id),
-	}
-	tflog.Info(ctx, "GetMongodbUserList reqParams="+common.MarshalUncheckedString(reqParams))
-
-	resp, err := config.Client.Vmongodb.V2Api.GetCloudMongoDbUserList(reqParams)
+	_, err = waitMongoDbCreated(ctx, r.config, state.ID.ValueString())
 	if err != nil {
-		return nil, err
+		resp.Diagnostics.AddError("WAITING FOR DELETION ERROR", err.Error())
+		return
 	}
-
-	if resp == nil || len(resp.CloudMongoDbUserList) < 1 {
-		return nil, nil
-	}
-
-	userMap := make(map[string]*vmongodb.CloudMongoDbUser)
-	for _, user := range resp.CloudMongoDbUserList {
-		if user != nil && user.UserName != nil {
-			userMap[*user.UserName] = user
-		}
-	}
-
-	var filteredUsers []*vmongodb.CloudMongoDbUser
-	for _, username := range users {
-		if user, exists := userMap[username]; exists {
-			filteredUsers = append(filteredUsers, user)
-		}
-	}
-
-	if len(filteredUsers) == 0 {
-		return nil, nil
-	}
-
-	for _, user := range resp.CloudMongoDbUserList {
-		if user != nil && user.UserName != nil {
-			if !containsInUsergList(*user.UserName, filteredUsers) {
-				filteredUsers = append(filteredUsers, user)
-			}
-		}
-	}
-
-	tflog.Info(ctx, "GetMongodbUserList response="+common.MarshalUncheckedString(resp))
-
-	return filteredUsers, nil
 }
 
 type mongodbUsersResourceModel struct {
-	ID                types.String `tfsdk:"id"`
-	MongoDbInstanceNo types.String `tfsdk:"mongodb_instance_no"`
-	MongoDbUserList   types.List   `tfsdk:"mongodb_user_list"`
+	ID             types.String `tfsdk:"id"`
+	MongoDbUserSet types.Set    `tfsdk:"mongodb_user_set"`
 }
 
 type MongodbUser struct {
@@ -379,45 +315,44 @@ func (r MongodbUser) AttrTypes() map[string]attr.Type {
 	}
 }
 
-func (r *mongodbUsersResourceModel) refreshFromOutput(ctx context.Context, output []*vmongodb.CloudMongoDbUser, resourceModel mongodbUsersResourceModel) diag.Diagnostics {
-	r.ID = resourceModel.ID
-	r.MongoDbInstanceNo = resourceModel.ID
+func (r *mongodbUsersResourceModel) refreshFromOutput(ctx context.Context, output []*vmongodb.CloudMongoDbUser) diag.Diagnostics {
+	var refreshUserList, resourceUserList []MongodbUser
 
-	var userList []MongodbUser
-
-	for idx, user := range output {
-		var password types.String
-
-		if idx < len(resourceModel.MongoDbUserList.Elements()) {
-			pswd := resourceModel.MongoDbUserList.Elements()[idx].(types.Object).Attributes()
-			if val, ok := pswd["password"].(types.String); ok {
-				password = val
-			}
-		} else {
-			password = types.StringNull()
-		}
-
-		mongodbUser := MongodbUser{
-			UserName:     types.StringPointerValue(user.UserName),
-			DatabaseName: types.StringPointerValue(user.DatabaseName),
-			Authority:    types.StringPointerValue(user.Authority),
-			Password:     password,
-		}
-
-		userList = append(userList, mongodbUser)
-	}
-
-	mongodbUsers, diags := types.ListValueFrom(ctx, types.ObjectType{AttrTypes: MongodbUser{}.AttrTypes()}, userList)
+	diags := r.MongoDbUserSet.ElementsAs(ctx, &resourceUserList, false)
 	if diags.HasError() {
 		return diags
 	}
 
-	r.MongoDbUserList = mongodbUsers
+	for _, o := range output {
+		password := types.StringNull()
 
-	return nil
+		for _, rv := range resourceUserList {
+			if rv.UserName.Equal(types.StringPointerValue(o.UserName)) && rv.DatabaseName.Equal(types.StringPointerValue(o.DatabaseName)) {
+				password = rv.Password
+			}
+		}
+
+		mongodbUser := MongodbUser{
+			UserName:     types.StringPointerValue(o.UserName),
+			DatabaseName: types.StringPointerValue(o.DatabaseName),
+			Authority:    types.StringPointerValue(o.Authority),
+			Password:     password,
+		}
+
+		refreshUserList = append(refreshUserList, mongodbUser)
+	}
+
+	mongodbUsers, diags := types.SetValueFrom(ctx, types.ObjectType{AttrTypes: MongodbUser{}.AttrTypes()}, refreshUserList)
+	if diags.HasError() {
+		return diags
+	}
+
+	r.MongoDbUserSet = mongodbUsers
+
+	return diags
 }
 
-func convertToCloudMongodbUserParameter(values basetypes.ListValue) []*vmongodb.AddOrChangeCloudMongoDbUserParameter {
+func convertToAddOrChangeParameters(values basetypes.SetValue) []*vmongodb.AddOrChangeCloudMongoDbUserParameter {
 	result := make([]*vmongodb.AddOrChangeCloudMongoDbUserParameter, 0, len(values.Elements()))
 
 	for _, v := range values.Elements() {
@@ -436,7 +371,7 @@ func convertToCloudMongodbUserParameter(values basetypes.ListValue) []*vmongodb.
 	return result
 }
 
-func convertToCloudMongodbUser(values basetypes.ListValue) []*vmongodb.DeleteCloudMongoDbUserParameter {
+func convertToDeleteParameters(values basetypes.SetValue) []*vmongodb.DeleteCloudMongoDbUserParameter {
 	result := make([]*vmongodb.DeleteCloudMongoDbUserParameter, 0, len(values.Elements()))
 
 	for _, v := range values.Elements() {
@@ -453,11 +388,131 @@ func convertToCloudMongodbUser(values basetypes.ListValue) []*vmongodb.DeleteClo
 	return result
 }
 
-func containsInUsergList(userName string, users []*vmongodb.CloudMongoDbUser) bool {
-	for _, v := range users {
-		if *v.UserName == userName {
-			return true
+func convertToSingleAddOrChangeParameter(v MongodbUser) *vmongodb.AddOrChangeCloudMongoDbUserParameter {
+	param := &vmongodb.AddOrChangeCloudMongoDbUserParameter{
+		UserName:     v.UserName.ValueStringPointer(),
+		Password:     v.Password.ValueStringPointer(),
+		DatabaseName: v.DatabaseName.ValueStringPointer(),
+		Authority:    v.Authority.ValueStringPointer(),
+	}
+
+	return param
+}
+
+func convertToSingleDeleteParameter(v MongodbUser) *vmongodb.DeleteCloudMongoDbUserParameter {
+	param := &vmongodb.DeleteCloudMongoDbUserParameter{
+		UserName:     v.UserName.ValueStringPointer(),
+		DatabaseName: v.DatabaseName.ValueStringPointer(),
+	}
+
+	return param
+}
+
+func addOrChangeUserList(ctx context.Context, config *conn.ProviderConfig, id *string, planUserList []MongodbUser, stateUserList []MongodbUser) error {
+	changeParameters := make([]*vmongodb.AddOrChangeCloudMongoDbUserParameter, 0)
+	addParameters := make([]*vmongodb.AddOrChangeCloudMongoDbUserParameter, 0)
+
+	for _, pv := range planUserList {
+		found := false
+		for _, sv := range stateUserList {
+			if pv.UserName.Equal(sv.UserName) && pv.DatabaseName.Equal(sv.DatabaseName) {
+				if !pv.Password.Equal(sv.Password) || !pv.Authority.Equal(sv.Authority) {
+					changeParameters = append(changeParameters, convertToSingleAddOrChangeParameter(pv))
+				}
+				found = true
+				break
+			}
+		}
+
+		if !found {
+			addParameters = append(addParameters, convertToSingleAddOrChangeParameter(pv))
 		}
 	}
-	return false
+
+	if len(changeParameters) > 0 {
+		reqParams := &vmongodb.ChangeCloudMongoDbUserListRequest{
+			RegionCode:             &config.RegionCode,
+			CloudMongoDbInstanceNo: id,
+			CloudMongoDbUserList:   changeParameters,
+		}
+
+		response, err := config.Client.Vmongodb.V2Api.ChangeCloudMongoDbUserList(reqParams)
+		if err != nil {
+			return err
+		}
+		tflog.Info(ctx, "ChangeCloudMongoDbUserList response="+common.MarshalUncheckedString(response))
+
+		if response == nil || *response.ReturnCode != "0" {
+			return fmt.Errorf("ChangeCloudMongoDbUserList response invalid")
+		}
+
+		_, err = waitMongoDbUpdate(ctx, config, *id)
+		if err != nil {
+			return err
+		}
+	}
+
+	if len(addParameters) > 0 {
+		reqParams := &vmongodb.AddCloudMongoDbUserListRequest{
+			RegionCode:             &config.RegionCode,
+			CloudMongoDbInstanceNo: id,
+			CloudMongoDbUserList:   addParameters,
+		}
+
+		response, err := config.Client.Vmongodb.V2Api.AddCloudMongoDbUserList(reqParams)
+		if err != nil {
+			return err
+		}
+		tflog.Info(ctx, "AddCloudMongoDbUserList response="+common.MarshalUncheckedString(response))
+
+		if response == nil || *response.ReturnCode != "0" {
+			return fmt.Errorf("AddCloudMongoDbUserList response invalid")
+		}
+
+		_, err = waitMongoDbUpdate(ctx, config, *id)
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+func deleteUserList(ctx context.Context, config *conn.ProviderConfig, id *string, planUserList []MongodbUser, stateUserList []MongodbUser) error {
+	deleteParameters := make([]*vmongodb.DeleteCloudMongoDbUserParameter, 0)
+
+	for _, sv := range stateUserList {
+		found := false
+		for _, pv := range planUserList {
+			if sv.UserName.Equal(pv.UserName) && sv.DatabaseName.Equal(pv.DatabaseName) {
+				found = true
+				break
+			}
+		}
+
+		if !found {
+			deleteParameters = append(deleteParameters, convertToSingleDeleteParameter(sv))
+		}
+	}
+
+	if len(deleteParameters) > 0 {
+		reqParams := &vmongodb.DeleteCloudMongoDbUserListRequest{
+			RegionCode:             &config.RegionCode,
+			CloudMongoDbInstanceNo: id,
+			CloudMongoDbUserList:   deleteParameters,
+		}
+		tflog.Info(ctx, "DeleteMongodbUserList reqParams="+common.MarshalUncheckedString(reqParams))
+
+		response, err := config.Client.Vmongodb.V2Api.DeleteCloudMongoDbUserList(reqParams)
+		if err != nil {
+			return err
+		}
+		tflog.Info(ctx, "DeleteMongodbUserList response="+common.MarshalUncheckedString(response))
+
+		_, err = waitMongoDbUpdate(ctx, config, *id)
+		if err != nil {
+			return err
+		}
+	}
+	return nil
 }
