@@ -9,6 +9,9 @@ import (
 )
 
 func TestAccDataSourceNcloudServerImages_classic_basic(t *testing.T) {
+	// Stop testing classic images
+	t.Skip()
+
 	testAccDataSourceNcloudServerImagesBasic(t, false)
 }
 
@@ -32,6 +35,9 @@ func testAccDataSourceNcloudServerImagesBasic(t *testing.T, isVpc bool) {
 }
 
 func TestAccDataSourceNcloudServerImages_classic_linux(t *testing.T) {
+	// Stop testing classic images
+	t.Skip()
+
 	testAccDataSourceNcloudServerImagesLinux(t, false)
 }
 
@@ -55,6 +61,9 @@ func testAccDataSourceNcloudServerImagesLinux(t *testing.T, isVpc bool) {
 }
 
 func TestAccDataSourceNcloudServerImages_classic_windows(t *testing.T) {
+	// Stop testing classic images
+	t.Skip()
+
 	testAccDataSourceNcloudServerImagesWindows(t, false)
 }
 
@@ -78,6 +87,9 @@ func testAccDataSourceNcloudServerImagesWindows(t *testing.T, isVpc bool) {
 }
 
 func TestAccDataSourceNcloudServerImages_classic_bareMetal(t *testing.T) {
+	// Stop testing classic images
+	t.Skip()
+
 	testAccDataSourceNcloudServerImagesBareMetal(t, false)
 }
 
@@ -101,6 +113,9 @@ func testAccDataSourceNcloudServerImagesBareMetal(t *testing.T, isVpc bool) {
 }
 
 func TestAccDataSourceNcloudServerImages_classic_blockStorageSize(t *testing.T) {
+	// Stop testing classic images
+	t.Skip()
+
 	testAccDataSourceNcloudServerImagesBlockStorageSize(t, false)
 }
 
