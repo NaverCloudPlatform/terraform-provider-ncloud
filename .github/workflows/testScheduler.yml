@@ -65,6 +65,8 @@ jobs:
               export NCLOUD_REGION=${{ secrets.NCLOUD_REGION }}
               export NCLOUD_ACCESS_KEY=${{ secrets.NCLOUD_ACCESS_KEY }}
               export NCLOUD_SECRET_KEY=${{ secrets.NCLOUD_SECRET_KEY }}
+              export AWS_REQUEST_CHECKSUM_CALCULATION=WHEN_REQUIRED
+
               echo $PWD
               echo $ls
               echo "$test"
