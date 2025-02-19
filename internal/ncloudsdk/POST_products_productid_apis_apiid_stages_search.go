@@ -1,4 +1,3 @@
-
 /* =================================================================================
  * NCLOUD SDK LAYER FOR TERRAFORM CODEGEN - DO NOT EDIT
  * =================================================================================
@@ -27,17 +26,15 @@ import (
 )
 
 type PrimitivePOSTProductsProductidApisApiidStagesSearchRequest struct {
-    Productid string `json:"product-id"`
-Apiid string `json:"api-id"`
-UsagePlanId string `json:"usagePlanId"`
-
+	Productid   string `json:"product-id"`
+	Apiid       string `json:"api-id"`
+	UsagePlanId string `json:"usagePlanId"`
 }
 
 type StringifiedPOSTProductsProductidApisApiidStagesSearchRequest struct {
-	Productid string `json:"product-id"`
-Apiid string `json:"api-id"`
-UsagePlanId string `json:"usagePlanId"`
-
+	Productid   string `json:"product-id"`
+	Apiid       string `json:"api-id"`
+	UsagePlanId string `json:"usagePlanId"`
 }
 
 func (n *NClient) POSTProductsProductidApisApiidStagesSearch(ctx context.Context, primitiveReq *PrimitivePOSTProductsProductidApisApiidStagesSearchRequest) (map[string]interface{}, error) {
@@ -49,10 +46,7 @@ func (n *NClient) POSTProductsProductidApisApiidStagesSearch(ctx context.Context
 		return nil, err
 	}
 
- 	
-
 	initBody["usagePlanId"] = r.UsagePlanId
-
 
 	rawBody, err := json.Marshal(initBody)
 	if err != nil {
@@ -61,7 +55,7 @@ func (n *NClient) POSTProductsProductidApisApiidStagesSearch(ctx context.Context
 
 	body := strings.Replace(string(rawBody), `\"`, "", -1)
 
-	url := n.BaseURL +"/"+"products"+"/"+ClearDoubleQuote(r.Productid)+"/"+"apis"+"/"+ClearDoubleQuote(r.Apiid)+"/"+"stages"+"/"+"search"
+	url := n.BaseURL + "/" + "products" + "/" + ClearDoubleQuote(r.Productid) + "/" + "apis" + "/" + ClearDoubleQuote(r.Apiid) + "/" + "stages" + "/" + "search"
 
 	response, err := n.MakeRequestWithContext(ctx, "POST", url, body, query)
 	if err != nil {
@@ -90,7 +84,6 @@ func (n *NClient) POSTProductsProductidApisApiidStagesSearch_TF(ctx context.Cont
 	return res, nil
 }
 
-
 /* =================================================================================
  * NCLOUD SDK LAYER FOR TERRAFORM CODEGEN - DO NOT EDIT
  * =================================================================================
@@ -105,27 +98,21 @@ func (n *NClient) POSTProductsProductidApisApiidStagesSearch_TF(ctx context.Cont
  * ================================================================================= */
 
 type POSTProductsProductidApisApiidStagesSearchResponse struct {
-    Stages         types.List `tfsdk:"stages"`
-
+	Stages types.List `tfsdk:"stages"`
 }
 
 func ConvertToFrameworkTypes_POSTProductsProductidApisApiidStagesSearch(ctx context.Context, data map[string]interface{}) (*POSTProductsProductidApisApiidStagesSearchResponse, error) {
 	var dto POSTProductsProductidApisApiidStagesSearchResponse
 
-    
-				if data["stages"] != nil {
-					tempStages := data["stages"].([]interface{})
-					dto.Stages = diagOff(types.ListValueFrom, ctx, types.ListType{ElemType:
-						
-	types.ObjectType{AttrTypes: map[string]attr.Type{
-		
-		"stage_name": types.StringType,
-"stage_id": types.StringType,
+	if data["stages"] != nil {
+		tempStages := data["stages"].([]interface{})
+		dto.Stages = diagOff(types.ListValueFrom, ctx, types.ListType{ElemType: types.ObjectType{AttrTypes: map[string]attr.Type{
 
-	},
-
-					}}.ElementType(), tempStages)
-				}
+			"stage_name": types.StringType,
+			"stage_id":   types.StringType,
+		},
+		}}.ElementType(), tempStages)
+	}
 
 	return &dto, nil
 }
@@ -134,16 +121,12 @@ func convertToObject_POSTProductsProductidApisApiidStagesSearch(ctx context.Cont
 	attrTypes := make(map[string]attr.Type)
 	attrValues := make(map[string]attr.Value)
 
-    possibleTypes := map[string]attr.Type{
-        
-	}
+	possibleTypes := map[string]attr.Type{}
 
 	for field, fieldType := range possibleTypes {
 		attrTypes[field] = fieldType
 
 		if value, exists := data[field]; exists {
-
-			
 
 			attrValue, err := convertValueToAttr_POSTProductsProductidApisApiidStagesSearch(value)
 			if err != nil {
@@ -151,7 +134,6 @@ func convertToObject_POSTProductsProductidApisApiidStagesSearch(ctx context.Cont
 			}
 			attrValues[field] = attrValue
 		} else {
-            
 
 			switch fieldType {
 			case types.StringType:
@@ -174,21 +156,20 @@ func convertToObject_POSTProductsProductidApisApiidStagesSearch(ctx context.Cont
 }
 
 func convertValueToAttr_POSTProductsProductidApisApiidStagesSearch(value interface{}) (attr.Value, error) {
-     switch v := value.(type) {
-     case string:
-         return types.StringValue(v), nil
-     case int32:
-         return types.Int32Value(v), nil
-     case int64:
-         return types.Int64Value(v), nil
-     case float64:
-         return types.Float64Value(v), nil
-     case bool:
-         return types.BoolValue(v), nil
-     case nil:
-         return types.StringNull(), nil
-     default:
-         return nil, fmt.Errorf("unsupported type: %T", value)
-     }
+	switch v := value.(type) {
+	case string:
+		return types.StringValue(v), nil
+	case int32:
+		return types.Int32Value(v), nil
+	case int64:
+		return types.Int64Value(v), nil
+	case float64:
+		return types.Float64Value(v), nil
+	case bool:
+		return types.BoolValue(v), nil
+	case nil:
+		return types.StringNull(), nil
+	default:
+		return nil, fmt.Errorf("unsupported type: %T", value)
+	}
 }
-

@@ -1,4 +1,3 @@
-
 /* =================================================================================
  * NCLOUD SDK LAYER FOR TERRAFORM CODEGEN - DO NOT EDIT
  * =================================================================================
@@ -27,13 +26,11 @@ import (
 )
 
 type PrimitiveDELETEAuthorizersAuthorizeridRequest struct {
-    Authorizerid string `json:"authorizer-id"`
-
+	Authorizerid string `json:"authorizer-id"`
 }
 
 type StringifiedDELETEAuthorizersAuthorizeridRequest struct {
 	Authorizerid string `json:"authorizer-id"`
-
 }
 
 func (n *NClient) DELETEAuthorizersAuthorizerid(ctx context.Context, primitiveReq *PrimitiveDELETEAuthorizersAuthorizeridRequest) (map[string]interface{}, error) {
@@ -45,10 +42,6 @@ func (n *NClient) DELETEAuthorizersAuthorizerid(ctx context.Context, primitiveRe
 		return nil, err
 	}
 
- 	
-
-	
-
 	rawBody, err := json.Marshal(initBody)
 	if err != nil {
 		return nil, err
@@ -56,7 +49,7 @@ func (n *NClient) DELETEAuthorizersAuthorizerid(ctx context.Context, primitiveRe
 
 	body := strings.Replace(string(rawBody), `\"`, "", -1)
 
-	url := n.BaseURL +"/"+"authorizers"+"/"+ClearDoubleQuote(r.Authorizerid)
+	url := n.BaseURL + "/" + "authorizers" + "/" + ClearDoubleQuote(r.Authorizerid)
 
 	response, err := n.MakeRequestWithContext(ctx, "DELETE", url, body, query)
 	if err != nil {
@@ -85,7 +78,6 @@ func (n *NClient) DELETEAuthorizersAuthorizerid_TF(ctx context.Context, r *Primi
 	return res, nil
 }
 
-
 /* =================================================================================
  * NCLOUD SDK LAYER FOR TERRAFORM CODEGEN - DO NOT EDIT
  * =================================================================================
@@ -100,13 +92,10 @@ func (n *NClient) DELETEAuthorizersAuthorizerid_TF(ctx context.Context, r *Primi
  * ================================================================================= */
 
 type DELETEAuthorizersAuthorizeridResponse struct {
-    
 }
 
 func ConvertToFrameworkTypes_DELETEAuthorizersAuthorizerid(ctx context.Context, data map[string]interface{}) (*DELETEAuthorizersAuthorizeridResponse, error) {
 	var dto DELETEAuthorizersAuthorizeridResponse
-
-    
 
 	return &dto, nil
 }
@@ -115,16 +104,12 @@ func convertToObject_DELETEAuthorizersAuthorizerid(ctx context.Context, data map
 	attrTypes := make(map[string]attr.Type)
 	attrValues := make(map[string]attr.Value)
 
-    possibleTypes := map[string]attr.Type{
-        
-	}
+	possibleTypes := map[string]attr.Type{}
 
 	for field, fieldType := range possibleTypes {
 		attrTypes[field] = fieldType
 
 		if value, exists := data[field]; exists {
-
-			
 
 			attrValue, err := convertValueToAttr_DELETEAuthorizersAuthorizerid(value)
 			if err != nil {
@@ -132,7 +117,6 @@ func convertToObject_DELETEAuthorizersAuthorizerid(ctx context.Context, data map
 			}
 			attrValues[field] = attrValue
 		} else {
-            
 
 			switch fieldType {
 			case types.StringType:
@@ -155,21 +139,20 @@ func convertToObject_DELETEAuthorizersAuthorizerid(ctx context.Context, data map
 }
 
 func convertValueToAttr_DELETEAuthorizersAuthorizerid(value interface{}) (attr.Value, error) {
-     switch v := value.(type) {
-     case string:
-         return types.StringValue(v), nil
-     case int32:
-         return types.Int32Value(v), nil
-     case int64:
-         return types.Int64Value(v), nil
-     case float64:
-         return types.Float64Value(v), nil
-     case bool:
-         return types.BoolValue(v), nil
-     case nil:
-         return types.StringNull(), nil
-     default:
-         return nil, fmt.Errorf("unsupported type: %T", value)
-     }
+	switch v := value.(type) {
+	case string:
+		return types.StringValue(v), nil
+	case int32:
+		return types.Int32Value(v), nil
+	case int64:
+		return types.Int64Value(v), nil
+	case float64:
+		return types.Float64Value(v), nil
+	case bool:
+		return types.BoolValue(v), nil
+	case nil:
+		return types.StringNull(), nil
+	default:
+		return nil, fmt.Errorf("unsupported type: %T", value)
+	}
 }
-

@@ -1,4 +1,3 @@
-
 /* =================================================================================
  * NCLOUD SDK LAYER FOR TERRAFORM CODEGEN - DO NOT EDIT
  * =================================================================================
@@ -27,13 +26,11 @@ import (
 )
 
 type PrimitiveDELETEApikeysApikeyidRequest struct {
-    Apikeyid string `json:"api-key-id"`
-
+	Apikeyid string `json:"api-key-id"`
 }
 
 type StringifiedDELETEApikeysApikeyidRequest struct {
 	Apikeyid string `json:"api-key-id"`
-
 }
 
 func (n *NClient) DELETEApikeysApikeyid(ctx context.Context, primitiveReq *PrimitiveDELETEApikeysApikeyidRequest) (map[string]interface{}, error) {
@@ -45,10 +42,6 @@ func (n *NClient) DELETEApikeysApikeyid(ctx context.Context, primitiveReq *Primi
 		return nil, err
 	}
 
- 	
-
-	
-
 	rawBody, err := json.Marshal(initBody)
 	if err != nil {
 		return nil, err
@@ -56,7 +49,7 @@ func (n *NClient) DELETEApikeysApikeyid(ctx context.Context, primitiveReq *Primi
 
 	body := strings.Replace(string(rawBody), `\"`, "", -1)
 
-	url := n.BaseURL +"/"+"api-keys"+"/"+ClearDoubleQuote(r.Apikeyid)
+	url := n.BaseURL + "/" + "api-keys" + "/" + ClearDoubleQuote(r.Apikeyid)
 
 	response, err := n.MakeRequestWithContext(ctx, "DELETE", url, body, query)
 	if err != nil {
@@ -85,7 +78,6 @@ func (n *NClient) DELETEApikeysApikeyid_TF(ctx context.Context, r *PrimitiveDELE
 	return res, nil
 }
 
-
 /* =================================================================================
  * NCLOUD SDK LAYER FOR TERRAFORM CODEGEN - DO NOT EDIT
  * =================================================================================
@@ -100,13 +92,10 @@ func (n *NClient) DELETEApikeysApikeyid_TF(ctx context.Context, r *PrimitiveDELE
  * ================================================================================= */
 
 type DELETEApikeysApikeyidResponse struct {
-    
 }
 
 func ConvertToFrameworkTypes_DELETEApikeysApikeyid(ctx context.Context, data map[string]interface{}) (*DELETEApikeysApikeyidResponse, error) {
 	var dto DELETEApikeysApikeyidResponse
-
-    
 
 	return &dto, nil
 }
@@ -115,16 +104,12 @@ func convertToObject_DELETEApikeysApikeyid(ctx context.Context, data map[string]
 	attrTypes := make(map[string]attr.Type)
 	attrValues := make(map[string]attr.Value)
 
-    possibleTypes := map[string]attr.Type{
-        
-	}
+	possibleTypes := map[string]attr.Type{}
 
 	for field, fieldType := range possibleTypes {
 		attrTypes[field] = fieldType
 
 		if value, exists := data[field]; exists {
-
-			
 
 			attrValue, err := convertValueToAttr_DELETEApikeysApikeyid(value)
 			if err != nil {
@@ -132,7 +117,6 @@ func convertToObject_DELETEApikeysApikeyid(ctx context.Context, data map[string]
 			}
 			attrValues[field] = attrValue
 		} else {
-            
 
 			switch fieldType {
 			case types.StringType:
@@ -155,21 +139,20 @@ func convertToObject_DELETEApikeysApikeyid(ctx context.Context, data map[string]
 }
 
 func convertValueToAttr_DELETEApikeysApikeyid(value interface{}) (attr.Value, error) {
-     switch v := value.(type) {
-     case string:
-         return types.StringValue(v), nil
-     case int32:
-         return types.Int32Value(v), nil
-     case int64:
-         return types.Int64Value(v), nil
-     case float64:
-         return types.Float64Value(v), nil
-     case bool:
-         return types.BoolValue(v), nil
-     case nil:
-         return types.StringNull(), nil
-     default:
-         return nil, fmt.Errorf("unsupported type: %T", value)
-     }
+	switch v := value.(type) {
+	case string:
+		return types.StringValue(v), nil
+	case int32:
+		return types.Int32Value(v), nil
+	case int64:
+		return types.Int64Value(v), nil
+	case float64:
+		return types.Float64Value(v), nil
+	case bool:
+		return types.BoolValue(v), nil
+	case nil:
+		return types.StringNull(), nil
+	default:
+		return nil, fmt.Errorf("unsupported type: %T", value)
+	}
 }
-

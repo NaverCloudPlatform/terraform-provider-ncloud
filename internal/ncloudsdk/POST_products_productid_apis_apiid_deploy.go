@@ -1,4 +1,3 @@
-
 /* =================================================================================
  * NCLOUD SDK LAYER FOR TERRAFORM CODEGEN - DO NOT EDIT
  * =================================================================================
@@ -27,19 +26,17 @@ import (
 )
 
 type PrimitivePOSTProductsProductidApisApiidDeployRequest struct {
-    Productid string `json:"product-id"`
-Apiid string `json:"api-id"`
-StageId string `json:"stageId"`
-DeploymentDescription string `json:"deploymentDescription"`
-
+	Productid             string `json:"product-id"`
+	Apiid                 string `json:"api-id"`
+	StageId               string `json:"stageId"`
+	DeploymentDescription string `json:"deploymentDescription"`
 }
 
 type StringifiedPOSTProductsProductidApisApiidDeployRequest struct {
-	Productid string `json:"product-id"`
-Apiid string `json:"api-id"`
-StageId string `json:"stageId"`
-DeploymentDescription string `json:"deploymentDescription"`
-
+	Productid             string `json:"product-id"`
+	Apiid                 string `json:"api-id"`
+	StageId               string `json:"stageId"`
+	DeploymentDescription string `json:"deploymentDescription"`
 }
 
 func (n *NClient) POSTProductsProductidApisApiidDeploy(ctx context.Context, primitiveReq *PrimitivePOSTProductsProductidApisApiidDeployRequest) (map[string]interface{}, error) {
@@ -51,14 +48,11 @@ func (n *NClient) POSTProductsProductidApisApiidDeploy(ctx context.Context, prim
 		return nil, err
 	}
 
- 	
-
 	initBody["stageId"] = r.StageId
 
-			if r.DeploymentDescription != "" {
-				initBody["deploymentDescription"] = r.DeploymentDescription
-			}
-
+	if r.DeploymentDescription != "" {
+		initBody["deploymentDescription"] = r.DeploymentDescription
+	}
 
 	rawBody, err := json.Marshal(initBody)
 	if err != nil {
@@ -67,7 +61,7 @@ func (n *NClient) POSTProductsProductidApisApiidDeploy(ctx context.Context, prim
 
 	body := strings.Replace(string(rawBody), `\"`, "", -1)
 
-	url := n.BaseURL +"/"+"products"+"/"+ClearDoubleQuote(r.Productid)+"/"+"apis"+"/"+ClearDoubleQuote(r.Apiid)+"/"+"deploy"
+	url := n.BaseURL + "/" + "products" + "/" + ClearDoubleQuote(r.Productid) + "/" + "apis" + "/" + ClearDoubleQuote(r.Apiid) + "/" + "deploy"
 
 	response, err := n.MakeRequestWithContext(ctx, "POST", url, body, query)
 	if err != nil {
@@ -96,7 +90,6 @@ func (n *NClient) POSTProductsProductidApisApiidDeploy_TF(ctx context.Context, r
 	return res, nil
 }
 
-
 /* =================================================================================
  * NCLOUD SDK LAYER FOR TERRAFORM CODEGEN - DO NOT EDIT
  * =================================================================================
@@ -111,13 +104,10 @@ func (n *NClient) POSTProductsProductidApisApiidDeploy_TF(ctx context.Context, r
  * ================================================================================= */
 
 type POSTProductsProductidApisApiidDeployResponse struct {
-    
 }
 
 func ConvertToFrameworkTypes_POSTProductsProductidApisApiidDeploy(ctx context.Context, data map[string]interface{}) (*POSTProductsProductidApisApiidDeployResponse, error) {
 	var dto POSTProductsProductidApisApiidDeployResponse
-
-    
 
 	return &dto, nil
 }
@@ -126,16 +116,12 @@ func convertToObject_POSTProductsProductidApisApiidDeploy(ctx context.Context, d
 	attrTypes := make(map[string]attr.Type)
 	attrValues := make(map[string]attr.Value)
 
-    possibleTypes := map[string]attr.Type{
-        
-	}
+	possibleTypes := map[string]attr.Type{}
 
 	for field, fieldType := range possibleTypes {
 		attrTypes[field] = fieldType
 
 		if value, exists := data[field]; exists {
-
-			
 
 			attrValue, err := convertValueToAttr_POSTProductsProductidApisApiidDeploy(value)
 			if err != nil {
@@ -143,7 +129,6 @@ func convertToObject_POSTProductsProductidApisApiidDeploy(ctx context.Context, d
 			}
 			attrValues[field] = attrValue
 		} else {
-            
 
 			switch fieldType {
 			case types.StringType:
@@ -166,21 +151,20 @@ func convertToObject_POSTProductsProductidApisApiidDeploy(ctx context.Context, d
 }
 
 func convertValueToAttr_POSTProductsProductidApisApiidDeploy(value interface{}) (attr.Value, error) {
-     switch v := value.(type) {
-     case string:
-         return types.StringValue(v), nil
-     case int32:
-         return types.Int32Value(v), nil
-     case int64:
-         return types.Int64Value(v), nil
-     case float64:
-         return types.Float64Value(v), nil
-     case bool:
-         return types.BoolValue(v), nil
-     case nil:
-         return types.StringNull(), nil
-     default:
-         return nil, fmt.Errorf("unsupported type: %T", value)
-     }
+	switch v := value.(type) {
+	case string:
+		return types.StringValue(v), nil
+	case int32:
+		return types.Int32Value(v), nil
+	case int64:
+		return types.Int64Value(v), nil
+	case float64:
+		return types.Float64Value(v), nil
+	case bool:
+		return types.BoolValue(v), nil
+	case nil:
+		return types.StringNull(), nil
+	default:
+		return nil, fmt.Errorf("unsupported type: %T", value)
+	}
 }
-

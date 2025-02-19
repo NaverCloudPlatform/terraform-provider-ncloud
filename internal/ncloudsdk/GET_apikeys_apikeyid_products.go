@@ -1,4 +1,3 @@
-
 /* =================================================================================
  * NCLOUD SDK LAYER FOR TERRAFORM CODEGEN - DO NOT EDIT
  * =================================================================================
@@ -27,17 +26,15 @@ import (
 )
 
 type PrimitiveGETApikeysApikeyidProductsRequest struct {
-    Apikeyid string `json:"api-key-id"`
-Limit int64 `json:"limit"`
-Offset int64 `json:"offset"`
-
+	Apikeyid string `json:"api-key-id"`
+	Limit    int64  `json:"limit"`
+	Offset   int64  `json:"offset"`
 }
 
 type StringifiedGETApikeysApikeyidProductsRequest struct {
 	Apikeyid string `json:"api-key-id"`
-Limit string `json:"limit"`
-Offset string `json:"offset"`
-
+	Limit    string `json:"limit"`
+	Offset   string `json:"offset"`
 }
 
 func (n *NClient) GETApikeysApikeyidProducts(ctx context.Context, primitiveReq *PrimitiveGETApikeysApikeyidProductsRequest) (map[string]interface{}, error) {
@@ -49,17 +46,13 @@ func (n *NClient) GETApikeysApikeyidProducts(ctx context.Context, primitiveReq *
 		return nil, err
 	}
 
- 	
-				if r.Limit!= "" {
-					query["limit"] = r.Limit
-				}
+	if r.Limit != "" {
+		query["limit"] = r.Limit
+	}
 
-				if r.Offset!= "" {
-					query["offset"] = r.Offset
-				}
-
-
-	
+	if r.Offset != "" {
+		query["offset"] = r.Offset
+	}
 
 	rawBody, err := json.Marshal(initBody)
 	if err != nil {
@@ -68,7 +61,7 @@ func (n *NClient) GETApikeysApikeyidProducts(ctx context.Context, primitiveReq *
 
 	body := strings.Replace(string(rawBody), `\"`, "", -1)
 
-	url := n.BaseURL +"/"+"api-keys"+"/"+ClearDoubleQuote(r.Apikeyid)+"/"+"products"
+	url := n.BaseURL + "/" + "api-keys" + "/" + ClearDoubleQuote(r.Apikeyid) + "/" + "products"
 
 	response, err := n.MakeRequestWithContext(ctx, "GET", url, body, query)
 	if err != nil {
@@ -97,7 +90,6 @@ func (n *NClient) GETApikeysApikeyidProducts_TF(ctx context.Context, r *Primitiv
 	return res, nil
 }
 
-
 /* =================================================================================
  * NCLOUD SDK LAYER FOR TERRAFORM CODEGEN - DO NOT EDIT
  * =================================================================================
@@ -112,37 +104,31 @@ func (n *NClient) GETApikeysApikeyidProducts_TF(ctx context.Context, r *Primitiv
  * ================================================================================= */
 
 type GETApikeysApikeyidProductsResponse struct {
-    Total         types.Int64`tfsdk:"total"`
-ApiKeyRelateProductDtos         types.List `tfsdk:"api_key_relate_product_dtos"`
-
+	Total                   types.Int64 `tfsdk:"total"`
+	ApiKeyRelateProductDtos types.List  `tfsdk:"api_key_relate_product_dtos"`
 }
 
 func ConvertToFrameworkTypes_GETApikeysApikeyidProducts(ctx context.Context, data map[string]interface{}) (*GETApikeysApikeyidProductsResponse, error) {
 	var dto GETApikeysApikeyidProductsResponse
 
-    
-				if data["total"] != nil {
-					dto.Total = types.Int64Value(data["total"].(int64))
-				}
+	if data["total"] != nil {
+		dto.Total = types.Int64Value(data["total"].(int64))
+	}
 
-				if data["api_key_relate_product_dtos"] != nil {
-					tempApiKeyRelateProductDtos := data["api_key_relate_product_dtos"].([]interface{})
-					dto.ApiKeyRelateProductDtos = diagOff(types.ListValueFrom, ctx, types.ListType{ElemType:
-						
-	types.ObjectType{AttrTypes: map[string]attr.Type{
-		
-		"status": types.StringType,
-"reg_time": types.StringType,
-"publisher_id": types.StringType,
-"product_name": types.StringType,
-"product_id": types.StringType,
-"product_description": types.StringType,
-"mod_time": types.StringType,
+	if data["api_key_relate_product_dtos"] != nil {
+		tempApiKeyRelateProductDtos := data["api_key_relate_product_dtos"].([]interface{})
+		dto.ApiKeyRelateProductDtos = diagOff(types.ListValueFrom, ctx, types.ListType{ElemType: types.ObjectType{AttrTypes: map[string]attr.Type{
 
-	},
-
-					}}.ElementType(), tempApiKeyRelateProductDtos)
-				}
+			"status":              types.StringType,
+			"reg_time":            types.StringType,
+			"publisher_id":        types.StringType,
+			"product_name":        types.StringType,
+			"product_id":          types.StringType,
+			"product_description": types.StringType,
+			"mod_time":            types.StringType,
+		},
+		}}.ElementType(), tempApiKeyRelateProductDtos)
+	}
 
 	return &dto, nil
 }
@@ -151,16 +137,12 @@ func convertToObject_GETApikeysApikeyidProducts(ctx context.Context, data map[st
 	attrTypes := make(map[string]attr.Type)
 	attrValues := make(map[string]attr.Value)
 
-    possibleTypes := map[string]attr.Type{
-        
-	}
+	possibleTypes := map[string]attr.Type{}
 
 	for field, fieldType := range possibleTypes {
 		attrTypes[field] = fieldType
 
 		if value, exists := data[field]; exists {
-
-			
 
 			attrValue, err := convertValueToAttr_GETApikeysApikeyidProducts(value)
 			if err != nil {
@@ -168,7 +150,6 @@ func convertToObject_GETApikeysApikeyidProducts(ctx context.Context, data map[st
 			}
 			attrValues[field] = attrValue
 		} else {
-            
 
 			switch fieldType {
 			case types.StringType:
@@ -191,21 +172,20 @@ func convertToObject_GETApikeysApikeyidProducts(ctx context.Context, data map[st
 }
 
 func convertValueToAttr_GETApikeysApikeyidProducts(value interface{}) (attr.Value, error) {
-     switch v := value.(type) {
-     case string:
-         return types.StringValue(v), nil
-     case int32:
-         return types.Int32Value(v), nil
-     case int64:
-         return types.Int64Value(v), nil
-     case float64:
-         return types.Float64Value(v), nil
-     case bool:
-         return types.BoolValue(v), nil
-     case nil:
-         return types.StringNull(), nil
-     default:
-         return nil, fmt.Errorf("unsupported type: %T", value)
-     }
+	switch v := value.(type) {
+	case string:
+		return types.StringValue(v), nil
+	case int32:
+		return types.Int32Value(v), nil
+	case int64:
+		return types.Int64Value(v), nil
+	case float64:
+		return types.Float64Value(v), nil
+	case bool:
+		return types.BoolValue(v), nil
+	case nil:
+		return types.StringNull(), nil
+	default:
+		return nil, fmt.Errorf("unsupported type: %T", value)
+	}
 }
-

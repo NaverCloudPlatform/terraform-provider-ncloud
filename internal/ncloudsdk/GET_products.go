@@ -1,4 +1,3 @@
-
 /* =================================================================================
  * NCLOUD SDK LAYER FOR TERRAFORM CODEGEN - DO NOT EDIT
  * =================================================================================
@@ -27,25 +26,23 @@ import (
 )
 
 type PrimitiveGETProductsRequest struct {
-    HasDeployedStage bool `json:"hasDeployedStage"`
-HasStageNotAssociatedWithUsagePlanId string `json:"hasStageNotAssociatedWithUsagePlanId"`
-IsPublished bool `json:"isPublished"`
-Limit int64 `json:"limit"`
-Offset int64 `json:"offset"`
-ProductName string `json:"productName"`
-SubscriptionCode string `json:"subscriptionCode"`
-
+	HasDeployedStage                     bool   `json:"hasDeployedStage"`
+	HasStageNotAssociatedWithUsagePlanId string `json:"hasStageNotAssociatedWithUsagePlanId"`
+	IsPublished                          bool   `json:"isPublished"`
+	Limit                                int64  `json:"limit"`
+	Offset                               int64  `json:"offset"`
+	ProductName                          string `json:"productName"`
+	SubscriptionCode                     string `json:"subscriptionCode"`
 }
 
 type StringifiedGETProductsRequest struct {
-	HasDeployedStage string `json:"hasDeployedStage"`
-HasStageNotAssociatedWithUsagePlanId string `json:"hasStageNotAssociatedWithUsagePlanId"`
-IsPublished string `json:"isPublished"`
-Limit string `json:"limit"`
-Offset string `json:"offset"`
-ProductName string `json:"productName"`
-SubscriptionCode string `json:"subscriptionCode"`
-
+	HasDeployedStage                     string `json:"hasDeployedStage"`
+	HasStageNotAssociatedWithUsagePlanId string `json:"hasStageNotAssociatedWithUsagePlanId"`
+	IsPublished                          string `json:"isPublished"`
+	Limit                                string `json:"limit"`
+	Offset                               string `json:"offset"`
+	ProductName                          string `json:"productName"`
+	SubscriptionCode                     string `json:"subscriptionCode"`
 }
 
 func (n *NClient) GETProducts(ctx context.Context, primitiveReq *PrimitiveGETProductsRequest) (map[string]interface{}, error) {
@@ -57,37 +54,33 @@ func (n *NClient) GETProducts(ctx context.Context, primitiveReq *PrimitiveGETPro
 		return nil, err
 	}
 
- 	
-				if r.HasDeployedStage!= "" {
-					query["hasDeployedStage"] = r.HasDeployedStage
-				}
+	if r.HasDeployedStage != "" {
+		query["hasDeployedStage"] = r.HasDeployedStage
+	}
 
-				if r.HasStageNotAssociatedWithUsagePlanId!= "" {
-					query["hasStageNotAssociatedWithUsagePlanId"] = r.HasStageNotAssociatedWithUsagePlanId
-				}
+	if r.HasStageNotAssociatedWithUsagePlanId != "" {
+		query["hasStageNotAssociatedWithUsagePlanId"] = r.HasStageNotAssociatedWithUsagePlanId
+	}
 
-				if r.IsPublished!= "" {
-					query["isPublished"] = r.IsPublished
-				}
+	if r.IsPublished != "" {
+		query["isPublished"] = r.IsPublished
+	}
 
-				if r.Limit!= "" {
-					query["limit"] = r.Limit
-				}
+	if r.Limit != "" {
+		query["limit"] = r.Limit
+	}
 
-				if r.Offset!= "" {
-					query["offset"] = r.Offset
-				}
+	if r.Offset != "" {
+		query["offset"] = r.Offset
+	}
 
-				if r.ProductName!= "" {
-					query["productName"] = r.ProductName
-				}
+	if r.ProductName != "" {
+		query["productName"] = r.ProductName
+	}
 
-				if r.SubscriptionCode!= "" {
-					query["subscriptionCode"] = r.SubscriptionCode
-				}
-
-
-	
+	if r.SubscriptionCode != "" {
+		query["subscriptionCode"] = r.SubscriptionCode
+	}
 
 	rawBody, err := json.Marshal(initBody)
 	if err != nil {
@@ -96,7 +89,7 @@ func (n *NClient) GETProducts(ctx context.Context, primitiveReq *PrimitiveGETPro
 
 	body := strings.Replace(string(rawBody), `\"`, "", -1)
 
-	url := n.BaseURL +"/"+"products"
+	url := n.BaseURL + "/" + "products"
 
 	response, err := n.MakeRequestWithContext(ctx, "GET", url, body, query)
 	if err != nil {
@@ -125,7 +118,6 @@ func (n *NClient) GETProducts_TF(ctx context.Context, r *PrimitiveGETProductsReq
 	return res, nil
 }
 
-
 /* =================================================================================
  * NCLOUD SDK LAYER FOR TERRAFORM CODEGEN - DO NOT EDIT
  * =================================================================================
@@ -140,69 +132,61 @@ func (n *NClient) GETProducts_TF(ctx context.Context, r *PrimitiveGETProductsReq
  * ================================================================================= */
 
 type GETProductsResponse struct {
-    ProductPage         types.Object `tfsdk:"product_page"`
-Initialcount         types.Int64`tfsdk:"initial_count"`
-
+	ProductPage  types.Object `tfsdk:"product_page"`
+	Initialcount types.Int64  `tfsdk:"initial_count"`
 }
 
 func ConvertToFrameworkTypes_GETProducts(ctx context.Context, data map[string]interface{}) (*GETProductsResponse, error) {
 	var dto GETProductsResponse
 
-    
-			if data["product_page"] != nil {
-				tempProductPage := data["product_page"].(map[string]interface{})
+	if data["product_page"] != nil {
+		tempProductPage := data["product_page"].(map[string]interface{})
 
-				allFields := []string{
-					"total",
-"content",
+		allFields := []string{
+			"total",
+			"content",
+		}
 
-				}
-
-				convertedMap := make(map[string]interface{})
-				for _, field := range allFields {
-					if val, ok := tempProductPage[field]; ok {
-						convertedMap[field] = val
-					}
-				}
-
-				convertedTempProductPage, err := convertToObject_GETProducts(ctx, convertedMap)
-				if err != nil {
-					return nil, err
-				}
-
-				dto.ProductPage = diagOff(types.ObjectValueFrom, ctx, types.ObjectType{AttrTypes: map[string]attr.Type{
-					"total": types.Int64Type,
-
-			"content": types.ListType{ElemType:
-				
-	types.ObjectType{AttrTypes: map[string]attr.Type{
-		
-		"tenant_id": types.StringType,
-"subscription_code": types.StringType,
-"product_name": types.StringType,
-"product_id": types.StringType,
-"product_description": types.StringType,
-"permission": types.StringType,
-"modifier": types.StringType,
-"mod_time": types.StringType,
-"is_published": types.BoolType,
-"is_deleted": types.BoolType,
-"invoke_id": types.StringType,
-"has_deployed_stage": types.BoolType,
-"domain_code": types.StringType,
-"disabled": types.BoolType,
-"action_name": types.StringType,
-
-	},
-			}},
-
-				}}.AttributeTypes(), convertedTempProductPage)
+		convertedMap := make(map[string]interface{})
+		for _, field := range allFields {
+			if val, ok := tempProductPage[field]; ok {
+				convertedMap[field] = val
 			}
+		}
 
-				if data["initial_count"] != nil {
-					dto.Initialcount = types.Int64Value(data["initial_count"].(int64))
-				}
+		convertedTempProductPage, err := convertToObject_GETProducts(ctx, convertedMap)
+		if err != nil {
+			return nil, err
+		}
 
+		dto.ProductPage = diagOff(types.ObjectValueFrom, ctx, types.ObjectType{AttrTypes: map[string]attr.Type{
+			"total": types.Int64Type,
+
+			"content": types.ListType{ElemType: types.ObjectType{AttrTypes: map[string]attr.Type{
+
+				"tenant_id":           types.StringType,
+				"subscription_code":   types.StringType,
+				"product_name":        types.StringType,
+				"product_id":          types.StringType,
+				"product_description": types.StringType,
+				"permission":          types.StringType,
+				"modifier":            types.StringType,
+				"mod_time":            types.StringType,
+				"is_published":        types.BoolType,
+				"is_deleted":          types.BoolType,
+				"invoke_id":           types.StringType,
+				"has_deployed_stage":  types.BoolType,
+				"domain_code":         types.StringType,
+				"disabled":            types.BoolType,
+				"action_name":         types.StringType,
+			},
+			}},
+		}}.AttributeTypes(), convertedTempProductPage)
+	}
+
+	if data["initial_count"] != nil {
+		dto.Initialcount = types.Int64Value(data["initial_count"].(int64))
+	}
 
 	return &dto, nil
 }
@@ -211,33 +195,28 @@ func convertToObject_GETProducts(ctx context.Context, data map[string]interface{
 	attrTypes := make(map[string]attr.Type)
 	attrValues := make(map[string]attr.Value)
 
-    possibleTypes := map[string]attr.Type{
-        "total": types.Int64Type,
+	possibleTypes := map[string]attr.Type{
+		"total": types.Int64Type,
 
-			"content": types.ListType{ElemType:
-				
-	types.ObjectType{AttrTypes: map[string]attr.Type{
-		
-		"tenant_id": types.StringType,
-"subscription_code": types.StringType,
-"product_name": types.StringType,
-"product_id": types.StringType,
-"product_description": types.StringType,
-"permission": types.StringType,
-"modifier": types.StringType,
-"mod_time": types.StringType,
-"is_published": types.BoolType,
-"is_deleted": types.BoolType,
-"invoke_id": types.StringType,
-"has_deployed_stage": types.BoolType,
-"domain_code": types.StringType,
-"disabled": types.BoolType,
-"action_name": types.StringType,
+		"content": types.ListType{ElemType: types.ObjectType{AttrTypes: map[string]attr.Type{
 
-	},
-			}},
-
-
+			"tenant_id":           types.StringType,
+			"subscription_code":   types.StringType,
+			"product_name":        types.StringType,
+			"product_id":          types.StringType,
+			"product_description": types.StringType,
+			"permission":          types.StringType,
+			"modifier":            types.StringType,
+			"mod_time":            types.StringType,
+			"is_published":        types.BoolType,
+			"is_deleted":          types.BoolType,
+			"invoke_id":           types.StringType,
+			"has_deployed_stage":  types.BoolType,
+			"domain_code":         types.StringType,
+			"disabled":            types.BoolType,
+			"action_name":         types.StringType,
+		},
+		}},
 	}
 
 	for field, fieldType := range possibleTypes {
@@ -245,30 +224,27 @@ func convertToObject_GETProducts(ctx context.Context, data map[string]interface{
 
 		if value, exists := data[field]; exists {
 
-			
 			if field == "content" && len(value.([]interface{})) == 0 {
 				listV := types.ListNull(types.ObjectNull(map[string]attr.Type{
-					"tenant_id": types.StringType,
-"subscription_code": types.StringType,
-"product_name": types.StringType,
-"product_id": types.StringType,
-"product_description": types.StringType,
-"permission": types.StringType,
-"modifier": types.StringType,
-"mod_time": types.StringType,
-"is_published": types.BoolType,
-"is_deleted": types.BoolType,
-"invoke_id": types.StringType,
-"has_deployed_stage": types.BoolType,
-"domain_code": types.StringType,
-"disabled": types.BoolType,
-"action_name": types.StringType,
-
+					"tenant_id":           types.StringType,
+					"subscription_code":   types.StringType,
+					"product_name":        types.StringType,
+					"product_id":          types.StringType,
+					"product_description": types.StringType,
+					"permission":          types.StringType,
+					"modifier":            types.StringType,
+					"mod_time":            types.StringType,
+					"is_published":        types.BoolType,
+					"is_deleted":          types.BoolType,
+					"invoke_id":           types.StringType,
+					"has_deployed_stage":  types.BoolType,
+					"domain_code":         types.StringType,
+					"disabled":            types.BoolType,
+					"action_name":         types.StringType,
 				}).Type(ctx))
 				attrValues[field] = listV
 				continue
 			}
-
 
 			attrValue, err := convertValueToAttr_GETProducts(value)
 			if err != nil {
@@ -276,30 +252,28 @@ func convertToObject_GETProducts(ctx context.Context, data map[string]interface{
 			}
 			attrValues[field] = attrValue
 		} else {
-            
-				if field == "content" {
-					listV := types.ListNull(types.ObjectNull(map[string]attr.Type{
-						"tenant_id": types.StringType,
-"subscription_code": types.StringType,
-"product_name": types.StringType,
-"product_id": types.StringType,
-"product_description": types.StringType,
-"permission": types.StringType,
-"modifier": types.StringType,
-"mod_time": types.StringType,
-"is_published": types.BoolType,
-"is_deleted": types.BoolType,
-"invoke_id": types.StringType,
-"has_deployed_stage": types.BoolType,
-"domain_code": types.StringType,
-"disabled": types.BoolType,
-"action_name": types.StringType,
 
-					}).Type(ctx))
-					attrValues[field] = listV
-					continue
-				}
-
+			if field == "content" {
+				listV := types.ListNull(types.ObjectNull(map[string]attr.Type{
+					"tenant_id":           types.StringType,
+					"subscription_code":   types.StringType,
+					"product_name":        types.StringType,
+					"product_id":          types.StringType,
+					"product_description": types.StringType,
+					"permission":          types.StringType,
+					"modifier":            types.StringType,
+					"mod_time":            types.StringType,
+					"is_published":        types.BoolType,
+					"is_deleted":          types.BoolType,
+					"invoke_id":           types.StringType,
+					"has_deployed_stage":  types.BoolType,
+					"domain_code":         types.StringType,
+					"disabled":            types.BoolType,
+					"action_name":         types.StringType,
+				}).Type(ctx))
+				attrValues[field] = listV
+				continue
+			}
 
 			switch fieldType {
 			case types.StringType:
@@ -322,21 +296,20 @@ func convertToObject_GETProducts(ctx context.Context, data map[string]interface{
 }
 
 func convertValueToAttr_GETProducts(value interface{}) (attr.Value, error) {
-     switch v := value.(type) {
-     case string:
-         return types.StringValue(v), nil
-     case int32:
-         return types.Int32Value(v), nil
-     case int64:
-         return types.Int64Value(v), nil
-     case float64:
-         return types.Float64Value(v), nil
-     case bool:
-         return types.BoolValue(v), nil
-     case nil:
-         return types.StringNull(), nil
-     default:
-         return nil, fmt.Errorf("unsupported type: %T", value)
-     }
+	switch v := value.(type) {
+	case string:
+		return types.StringValue(v), nil
+	case int32:
+		return types.Int32Value(v), nil
+	case int64:
+		return types.Int64Value(v), nil
+	case float64:
+		return types.Float64Value(v), nil
+	case bool:
+		return types.BoolValue(v), nil
+	case nil:
+		return types.StringNull(), nil
+	default:
+		return nil, fmt.Errorf("unsupported type: %T", value)
+	}
 }
-

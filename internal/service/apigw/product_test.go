@@ -2,14 +2,14 @@ package apigw_test
 
 import (
 	"fmt"
-	"os"
-	"testing"
+	"github.com/NaverCloudPlatform/terraform-codegen-poc/internal/ncloudsdk"
+	"github.com/NaverCloudPlatform/terraform-codegen-poc/internal/test"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
-	"github.com/NaverCloudPlatform/terraform-codegen-poc/internal/test"
-	"github.com/NaverCloudPlatform/terraform-codegen-poc/internal/ncloudsdk"
+	"os"
+	"testing"
 )
 
 func TestAccResourceNcloudApigw_product_basic(t *testing.T) {
@@ -27,7 +27,7 @@ func TestAccResourceNcloudApigw_product_basic(t *testing.T) {
 				Check: resource.ComposeAggregateTestCheckFunc(
 					testAccCheckproductExists(resourceName, test.GetTestProvider(true)),
 					resource.TestCheckResourceAttr(resourceName, "product_name", productName),
-                    // check all the other attributes
+					// check all the other attributes
 				),
 			},
 		},
@@ -48,9 +48,8 @@ func testAccCheckproductExists(n string, provider *schema.Provider) resource.Tes
 		c := ncloudsdk.NewClient("https://apigateway.apigw.ntruss.com/api/v1", os.Getenv("NCLOUD_ACCESS_KEY"), os.Getenv("NCLOUD_SECRET_KEY"))
 
 		response, err := c.GETProductsProductid_TF(context.Background(), &ncloudsdk.PrimitiveGETProductsProductidRequest{
-            // change value with "resource.Primary.ID"
-            		Productid: resource.Primary.Attributes["productid"],
-
+			// change value with "resource.Primary.ID"
+			Productid: resource.Primary.Attributes["productid"],
 		})
 		if response == nil {
 			return err
@@ -71,9 +70,8 @@ func testAccCheckProductDestroy(s *terraform.State) error {
 
 		c := ncloudsdk.NewClient("https://apigateway.apigw.ntruss.com/api/v1", os.Getenv("NCLOUD_ACCESS_KEY"), os.Getenv("NCLOUD_SECRET_KEY"))
 		_, err := c.GETProductsProductid_TF(context.Background(), &ncloudsdk.PrimitiveGETProductsProductidRequest{
-            // change value with "rs.Primary.ID"
-            		Productid: rs.Primary.Attributes["productid"],
-
+			// change value with "rs.Primary.ID"
+			Productid: rs.Primary.Attributes["productid"],
 		})
 		if err != nil {
 			return nil

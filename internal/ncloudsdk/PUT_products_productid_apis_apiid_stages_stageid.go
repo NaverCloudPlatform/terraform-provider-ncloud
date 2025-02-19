@@ -1,4 +1,3 @@
-
 /* =================================================================================
  * NCLOUD SDK LAYER FOR TERRAFORM CODEGEN - DO NOT EDIT
  * =================================================================================
@@ -27,37 +26,35 @@ import (
 )
 
 type PrimitivePUTProductsProductidApisApiidStagesStageidRequest struct {
-    Productid string `json:"product-id"`
-Apiid string `json:"api-id"`
-Stageid string `json:"stage-id"`
-Response string `json:"response"`
-StatusCode int32 `json:"statusCode"`
-MinimumCompressionSize int32 `json:"minimumCompressionSize"`
-EnabledContentEncoding bool `json:"enabledContentEncoding"`
-IsMaintenance bool `json:"isMaintenance"`
-IpAclList string `json:"ipAclList"`
-IpAclCode string `json:"ipAclCode"`
-ThrottleRps int32 `json:"throttleRps"`
-CacheTtlSec int32 `json:"cacheTtlSec"`
-EndpointDomain string `json:"endpointDomain"`
-
+	Productid              string `json:"product-id"`
+	Apiid                  string `json:"api-id"`
+	Stageid                string `json:"stage-id"`
+	Response               string `json:"response"`
+	StatusCode             int32  `json:"statusCode"`
+	MinimumCompressionSize int32  `json:"minimumCompressionSize"`
+	EnabledContentEncoding bool   `json:"enabledContentEncoding"`
+	IsMaintenance          bool   `json:"isMaintenance"`
+	IpAclList              string `json:"ipAclList"`
+	IpAclCode              string `json:"ipAclCode"`
+	ThrottleRps            int32  `json:"throttleRps"`
+	CacheTtlSec            int32  `json:"cacheTtlSec"`
+	EndpointDomain         string `json:"endpointDomain"`
 }
 
 type StringifiedPUTProductsProductidApisApiidStagesStageidRequest struct {
-	Productid string `json:"product-id"`
-Apiid string `json:"api-id"`
-Stageid string `json:"stage-id"`
-Response string `json:"response"`
-StatusCode string `json:"statusCode"`
-MinimumCompressionSize string `json:"minimumCompressionSize"`
-EnabledContentEncoding string `json:"enabledContentEncoding"`
-IsMaintenance string `json:"isMaintenance"`
-IpAclList string `json:"ipAclList"`
-IpAclCode string `json:"ipAclCode"`
-ThrottleRps string `json:"throttleRps"`
-CacheTtlSec string `json:"cacheTtlSec"`
-EndpointDomain string `json:"endpointDomain"`
-
+	Productid              string `json:"product-id"`
+	Apiid                  string `json:"api-id"`
+	Stageid                string `json:"stage-id"`
+	Response               string `json:"response"`
+	StatusCode             string `json:"statusCode"`
+	MinimumCompressionSize string `json:"minimumCompressionSize"`
+	EnabledContentEncoding string `json:"enabledContentEncoding"`
+	IsMaintenance          string `json:"isMaintenance"`
+	IpAclList              string `json:"ipAclList"`
+	IpAclCode              string `json:"ipAclCode"`
+	ThrottleRps            string `json:"throttleRps"`
+	CacheTtlSec            string `json:"cacheTtlSec"`
+	EndpointDomain         string `json:"endpointDomain"`
 }
 
 func (n *NClient) PUTProductsProductidApisApiidStagesStageid(ctx context.Context, primitiveReq *PrimitivePUTProductsProductidApisApiidStagesStageidRequest) (map[string]interface{}, error) {
@@ -69,46 +66,42 @@ func (n *NClient) PUTProductsProductidApisApiidStagesStageid(ctx context.Context
 		return nil, err
 	}
 
- 	
+	if r.Response != "" {
+		initBody["response"] = r.Response
+	}
 
-	
-			if r.Response != "" {
-				initBody["response"] = r.Response
-			}
+	if r.StatusCode != "" {
+		initBody["statusCode"] = r.StatusCode
+	}
 
-			if r.StatusCode != "" {
-				initBody["statusCode"] = r.StatusCode
-			}
+	if r.MinimumCompressionSize != "" {
+		initBody["minimumCompressionSize"] = r.MinimumCompressionSize
+	}
 
-			if r.MinimumCompressionSize != "" {
-				initBody["minimumCompressionSize"] = r.MinimumCompressionSize
-			}
+	if r.EnabledContentEncoding != "" {
+		initBody["enabledContentEncoding"] = r.EnabledContentEncoding
+	}
 
-			if r.EnabledContentEncoding != "" {
-				initBody["enabledContentEncoding"] = r.EnabledContentEncoding
-			}
+	if r.IsMaintenance != "" {
+		initBody["isMaintenance"] = r.IsMaintenance
+	}
 
-			if r.IsMaintenance != "" {
-				initBody["isMaintenance"] = r.IsMaintenance
-			}
+	if r.IpAclList != "" {
+		initBody["ipAclList"] = r.IpAclList
+	}
 
-			if r.IpAclList != "" {
-				initBody["ipAclList"] = r.IpAclList
-			}
+	if r.IpAclCode != "" {
+		initBody["ipAclCode"] = r.IpAclCode
+	}
 
-			if r.IpAclCode != "" {
-				initBody["ipAclCode"] = r.IpAclCode
-			}
+	if r.ThrottleRps != "" {
+		initBody["throttleRps"] = r.ThrottleRps
+	}
 
-			if r.ThrottleRps != "" {
-				initBody["throttleRps"] = r.ThrottleRps
-			}
-
-			if r.CacheTtlSec != "" {
-				initBody["cacheTtlSec"] = r.CacheTtlSec
-			}
-initBody["endpointDomain"] = r.EndpointDomain
-
+	if r.CacheTtlSec != "" {
+		initBody["cacheTtlSec"] = r.CacheTtlSec
+	}
+	initBody["endpointDomain"] = r.EndpointDomain
 
 	rawBody, err := json.Marshal(initBody)
 	if err != nil {
@@ -117,7 +110,7 @@ initBody["endpointDomain"] = r.EndpointDomain
 
 	body := strings.Replace(string(rawBody), `\"`, "", -1)
 
-	url := n.BaseURL +"/"+"products"+"/"+ClearDoubleQuote(r.Productid)+"/"+"apis"+"/"+ClearDoubleQuote(r.Apiid)+"/"+"stages"+"/"+ClearDoubleQuote(r.Stageid)
+	url := n.BaseURL + "/" + "products" + "/" + ClearDoubleQuote(r.Productid) + "/" + "apis" + "/" + ClearDoubleQuote(r.Apiid) + "/" + "stages" + "/" + ClearDoubleQuote(r.Stageid)
 
 	response, err := n.MakeRequestWithContext(ctx, "PUT", url, body, query)
 	if err != nil {
@@ -146,7 +139,6 @@ func (n *NClient) PUTProductsProductidApisApiidStagesStageid_TF(ctx context.Cont
 	return res, nil
 }
 
-
 /* =================================================================================
  * NCLOUD SDK LAYER FOR TERRAFORM CODEGEN - DO NOT EDIT
  * =================================================================================
@@ -161,106 +153,98 @@ func (n *NClient) PUTProductsProductidApisApiidStagesStageid_TF(ctx context.Cont
  * ================================================================================= */
 
 type PUTProductsProductidApisApiidStagesStageidResponse struct {
-    Stage         types.Object `tfsdk:"stage"`
-
+	Stage types.Object `tfsdk:"stage"`
 }
 
 func ConvertToFrameworkTypes_PUTProductsProductidApisApiidStagesStageid(ctx context.Context, data map[string]interface{}) (*PUTProductsProductidApisApiidStagesStageidResponse, error) {
 	var dto PUTProductsProductidApisApiidStagesStageidResponse
 
-    
-			if data["stage"] != nil {
-				tempStage := data["stage"].(map[string]interface{})
+	if data["stage"] != nil {
+		tempStage := data["stage"].(map[string]interface{})
 
-				allFields := []string{
-					"minimum_compression_size",
-"enabled_content_encoding",
-"use_distribution_rate",
-"throttle_rps",
-"tenant_id",
-"status_code",
-"stage_name",
-"stage_id",
-"response",
-"reg_time",
-"rate_rps",
-"month_quota_request",
-"modifier",
-"is_maintenance",
-"ip_acl_list",
-"ip_acl_code",
-"endpoint_domain",
-"deployed_stage_deployment_no",
-"day_quota_request",
-"canary_throttle_rps",
-"canary_endpoint_domain",
-"canary_distribution_rate",
-"canary_deployment_no",
-"canary_deployment_description",
-"canary_deployed_time",
-"canary_conditions",
-"canary_cache_ttl_sec",
-"cache_ttl_sec",
-"api_id",
+		allFields := []string{
+			"minimum_compression_size",
+			"enabled_content_encoding",
+			"use_distribution_rate",
+			"throttle_rps",
+			"tenant_id",
+			"status_code",
+			"stage_name",
+			"stage_id",
+			"response",
+			"reg_time",
+			"rate_rps",
+			"month_quota_request",
+			"modifier",
+			"is_maintenance",
+			"ip_acl_list",
+			"ip_acl_code",
+			"endpoint_domain",
+			"deployed_stage_deployment_no",
+			"day_quota_request",
+			"canary_throttle_rps",
+			"canary_endpoint_domain",
+			"canary_distribution_rate",
+			"canary_deployment_no",
+			"canary_deployment_description",
+			"canary_deployed_time",
+			"canary_conditions",
+			"canary_cache_ttl_sec",
+			"cache_ttl_sec",
+			"api_id",
+		}
 
-				}
-
-				convertedMap := make(map[string]interface{})
-				for _, field := range allFields {
-					if val, ok := tempStage[field]; ok {
-						convertedMap[field] = val
-					}
-				}
-
-				convertedTempStage, err := convertToObject_PUTProductsProductidApisApiidStagesStageid(ctx, convertedMap)
-				if err != nil {
-					return nil, err
-				}
-
-				dto.Stage = diagOff(types.ObjectValueFrom, ctx, types.ObjectType{AttrTypes: map[string]attr.Type{
-					"minimum_compression_size": types.Int32Type,
-"enabled_content_encoding": types.BoolType,
-"use_distribution_rate": types.BoolType,
-"throttle_rps": types.Int32Type,
-"tenant_id": types.StringType,
-"status_code": types.Int32Type,
-"stage_name": types.StringType,
-"stage_id": types.StringType,
-"response": types.StringType,
-"reg_time": types.StringType,
-"rate_rps": types.Int32Type,
-"month_quota_request": types.Int64Type,
-"modifier": types.StringType,
-"is_maintenance": types.BoolType,
-"ip_acl_list": types.StringType,
-"ip_acl_code": types.StringType,
-"endpoint_domain": types.StringType,
-"deployed_stage_deployment_no": types.Int64Type,
-"day_quota_request": types.Int64Type,
-"canary_throttle_rps": types.Int32Type,
-"canary_endpoint_domain": types.StringType,
-"canary_distribution_rate": types.Float64Type,
-"canary_deployment_no": types.Int64Type,
-"canary_deployment_description": types.StringType,
-"canary_deployed_time": types.StringType,
-
-			"canary_conditions": types.ListType{ElemType:
-				
-	types.ObjectType{AttrTypes: map[string]attr.Type{
-		
-		"parameter_value": types.StringType,
-"parameter_name": types.StringType,
-"parameter_code": types.StringType,
-
-	},
-			}},
-"canary_cache_ttl_sec": types.Int32Type,
-"cache_ttl_sec": types.Int32Type,
-"api_id": types.StringType,
-
-				}}.AttributeTypes(), convertedTempStage)
+		convertedMap := make(map[string]interface{})
+		for _, field := range allFields {
+			if val, ok := tempStage[field]; ok {
+				convertedMap[field] = val
 			}
+		}
 
+		convertedTempStage, err := convertToObject_PUTProductsProductidApisApiidStagesStageid(ctx, convertedMap)
+		if err != nil {
+			return nil, err
+		}
+
+		dto.Stage = diagOff(types.ObjectValueFrom, ctx, types.ObjectType{AttrTypes: map[string]attr.Type{
+			"minimum_compression_size":      types.Int32Type,
+			"enabled_content_encoding":      types.BoolType,
+			"use_distribution_rate":         types.BoolType,
+			"throttle_rps":                  types.Int32Type,
+			"tenant_id":                     types.StringType,
+			"status_code":                   types.Int32Type,
+			"stage_name":                    types.StringType,
+			"stage_id":                      types.StringType,
+			"response":                      types.StringType,
+			"reg_time":                      types.StringType,
+			"rate_rps":                      types.Int32Type,
+			"month_quota_request":           types.Int64Type,
+			"modifier":                      types.StringType,
+			"is_maintenance":                types.BoolType,
+			"ip_acl_list":                   types.StringType,
+			"ip_acl_code":                   types.StringType,
+			"endpoint_domain":               types.StringType,
+			"deployed_stage_deployment_no":  types.Int64Type,
+			"day_quota_request":             types.Int64Type,
+			"canary_throttle_rps":           types.Int32Type,
+			"canary_endpoint_domain":        types.StringType,
+			"canary_distribution_rate":      types.Float64Type,
+			"canary_deployment_no":          types.Int64Type,
+			"canary_deployment_description": types.StringType,
+			"canary_deployed_time":          types.StringType,
+
+			"canary_conditions": types.ListType{ElemType: types.ObjectType{AttrTypes: map[string]attr.Type{
+
+				"parameter_value": types.StringType,
+				"parameter_name":  types.StringType,
+				"parameter_code":  types.StringType,
+			},
+			}},
+			"canary_cache_ttl_sec": types.Int32Type,
+			"cache_ttl_sec":        types.Int32Type,
+			"api_id":               types.StringType,
+		}}.AttributeTypes(), convertedTempStage)
+	}
 
 	return &dto, nil
 }
@@ -269,48 +253,43 @@ func convertToObject_PUTProductsProductidApisApiidStagesStageid(ctx context.Cont
 	attrTypes := make(map[string]attr.Type)
 	attrValues := make(map[string]attr.Value)
 
-    possibleTypes := map[string]attr.Type{
-        "minimum_compression_size": types.Int32Type,
-"enabled_content_encoding": types.BoolType,
-"use_distribution_rate": types.BoolType,
-"throttle_rps": types.Int32Type,
-"tenant_id": types.StringType,
-"status_code": types.Int32Type,
-"stage_name": types.StringType,
-"stage_id": types.StringType,
-"response": types.StringType,
-"reg_time": types.StringType,
-"rate_rps": types.Int32Type,
-"month_quota_request": types.Int64Type,
-"modifier": types.StringType,
-"is_maintenance": types.BoolType,
-"ip_acl_list": types.StringType,
-"ip_acl_code": types.StringType,
-"endpoint_domain": types.StringType,
-"deployed_stage_deployment_no": types.Int64Type,
-"day_quota_request": types.Int64Type,
-"canary_throttle_rps": types.Int32Type,
-"canary_endpoint_domain": types.StringType,
-"canary_distribution_rate": types.Float64Type,
-"canary_deployment_no": types.Int64Type,
-"canary_deployment_description": types.StringType,
-"canary_deployed_time": types.StringType,
+	possibleTypes := map[string]attr.Type{
+		"minimum_compression_size":      types.Int32Type,
+		"enabled_content_encoding":      types.BoolType,
+		"use_distribution_rate":         types.BoolType,
+		"throttle_rps":                  types.Int32Type,
+		"tenant_id":                     types.StringType,
+		"status_code":                   types.Int32Type,
+		"stage_name":                    types.StringType,
+		"stage_id":                      types.StringType,
+		"response":                      types.StringType,
+		"reg_time":                      types.StringType,
+		"rate_rps":                      types.Int32Type,
+		"month_quota_request":           types.Int64Type,
+		"modifier":                      types.StringType,
+		"is_maintenance":                types.BoolType,
+		"ip_acl_list":                   types.StringType,
+		"ip_acl_code":                   types.StringType,
+		"endpoint_domain":               types.StringType,
+		"deployed_stage_deployment_no":  types.Int64Type,
+		"day_quota_request":             types.Int64Type,
+		"canary_throttle_rps":           types.Int32Type,
+		"canary_endpoint_domain":        types.StringType,
+		"canary_distribution_rate":      types.Float64Type,
+		"canary_deployment_no":          types.Int64Type,
+		"canary_deployment_description": types.StringType,
+		"canary_deployed_time":          types.StringType,
 
-			"canary_conditions": types.ListType{ElemType:
-				
-	types.ObjectType{AttrTypes: map[string]attr.Type{
-		
-		"parameter_value": types.StringType,
-"parameter_name": types.StringType,
-"parameter_code": types.StringType,
+		"canary_conditions": types.ListType{ElemType: types.ObjectType{AttrTypes: map[string]attr.Type{
 
-	},
-			}},
-"canary_cache_ttl_sec": types.Int32Type,
-"cache_ttl_sec": types.Int32Type,
-"api_id": types.StringType,
-
-
+			"parameter_value": types.StringType,
+			"parameter_name":  types.StringType,
+			"parameter_code":  types.StringType,
+		},
+		}},
+		"canary_cache_ttl_sec": types.Int32Type,
+		"cache_ttl_sec":        types.Int32Type,
+		"api_id":               types.StringType,
 	}
 
 	for field, fieldType := range possibleTypes {
@@ -318,18 +297,15 @@ func convertToObject_PUTProductsProductidApisApiidStagesStageid(ctx context.Cont
 
 		if value, exists := data[field]; exists {
 
-			
 			if field == "canary_conditions" && len(value.([]interface{})) == 0 {
 				listV := types.ListNull(types.ObjectNull(map[string]attr.Type{
 					"parameter_value": types.StringType,
-"parameter_name": types.StringType,
-"parameter_code": types.StringType,
-
+					"parameter_name":  types.StringType,
+					"parameter_code":  types.StringType,
 				}).Type(ctx))
 				attrValues[field] = listV
 				continue
 			}
-
 
 			attrValue, err := convertValueToAttr_PUTProductsProductidApisApiidStagesStageid(value)
 			if err != nil {
@@ -337,18 +313,16 @@ func convertToObject_PUTProductsProductidApisApiidStagesStageid(ctx context.Cont
 			}
 			attrValues[field] = attrValue
 		} else {
-            
-				if field == "canary_conditions" {
-					listV := types.ListNull(types.ObjectNull(map[string]attr.Type{
-						"parameter_value": types.StringType,
-"parameter_name": types.StringType,
-"parameter_code": types.StringType,
 
-					}).Type(ctx))
-					attrValues[field] = listV
-					continue
-				}
-
+			if field == "canary_conditions" {
+				listV := types.ListNull(types.ObjectNull(map[string]attr.Type{
+					"parameter_value": types.StringType,
+					"parameter_name":  types.StringType,
+					"parameter_code":  types.StringType,
+				}).Type(ctx))
+				attrValues[field] = listV
+				continue
+			}
 
 			switch fieldType {
 			case types.StringType:
@@ -371,21 +345,20 @@ func convertToObject_PUTProductsProductidApisApiidStagesStageid(ctx context.Cont
 }
 
 func convertValueToAttr_PUTProductsProductidApisApiidStagesStageid(value interface{}) (attr.Value, error) {
-     switch v := value.(type) {
-     case string:
-         return types.StringValue(v), nil
-     case int32:
-         return types.Int32Value(v), nil
-     case int64:
-         return types.Int64Value(v), nil
-     case float64:
-         return types.Float64Value(v), nil
-     case bool:
-         return types.BoolValue(v), nil
-     case nil:
-         return types.StringNull(), nil
-     default:
-         return nil, fmt.Errorf("unsupported type: %T", value)
-     }
+	switch v := value.(type) {
+	case string:
+		return types.StringValue(v), nil
+	case int32:
+		return types.Int32Value(v), nil
+	case int64:
+		return types.Int64Value(v), nil
+	case float64:
+		return types.Float64Value(v), nil
+	case bool:
+		return types.BoolValue(v), nil
+	case nil:
+		return types.StringNull(), nil
+	default:
+		return nil, fmt.Errorf("unsupported type: %T", value)
+	}
 }
-

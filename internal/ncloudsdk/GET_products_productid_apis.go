@@ -1,4 +1,3 @@
-
 /* =================================================================================
  * NCLOUD SDK LAYER FOR TERRAFORM CODEGEN - DO NOT EDIT
  * =================================================================================
@@ -27,25 +26,23 @@ import (
 )
 
 type PrimitiveGETProductsProductidApisRequest struct {
-    Productid string `json:"product-id"`
-ApiName string `json:"apiName"`
-HasStage bool `json:"hasStage"`
-HasStageNotAssociatedWithUsagePlanId string `json:"hasStageNotAssociatedWithUsagePlanId"`
-Limit int64 `json:"limit"`
-Offset int64 `json:"offset"`
-WithStage bool `json:"withStage"`
-
+	Productid                            string `json:"product-id"`
+	ApiName                              string `json:"apiName"`
+	HasStage                             bool   `json:"hasStage"`
+	HasStageNotAssociatedWithUsagePlanId string `json:"hasStageNotAssociatedWithUsagePlanId"`
+	Limit                                int64  `json:"limit"`
+	Offset                               int64  `json:"offset"`
+	WithStage                            bool   `json:"withStage"`
 }
 
 type StringifiedGETProductsProductidApisRequest struct {
-	Productid string `json:"product-id"`
-ApiName string `json:"apiName"`
-HasStage string `json:"hasStage"`
-HasStageNotAssociatedWithUsagePlanId string `json:"hasStageNotAssociatedWithUsagePlanId"`
-Limit string `json:"limit"`
-Offset string `json:"offset"`
-WithStage string `json:"withStage"`
-
+	Productid                            string `json:"product-id"`
+	ApiName                              string `json:"apiName"`
+	HasStage                             string `json:"hasStage"`
+	HasStageNotAssociatedWithUsagePlanId string `json:"hasStageNotAssociatedWithUsagePlanId"`
+	Limit                                string `json:"limit"`
+	Offset                               string `json:"offset"`
+	WithStage                            string `json:"withStage"`
 }
 
 func (n *NClient) GETProductsProductidApis(ctx context.Context, primitiveReq *PrimitiveGETProductsProductidApisRequest) (map[string]interface{}, error) {
@@ -57,33 +54,29 @@ func (n *NClient) GETProductsProductidApis(ctx context.Context, primitiveReq *Pr
 		return nil, err
 	}
 
- 	
-				if r.ApiName!= "" {
-					query["apiName"] = r.ApiName
-				}
+	if r.ApiName != "" {
+		query["apiName"] = r.ApiName
+	}
 
-				if r.HasStage!= "" {
-					query["hasStage"] = r.HasStage
-				}
+	if r.HasStage != "" {
+		query["hasStage"] = r.HasStage
+	}
 
-				if r.HasStageNotAssociatedWithUsagePlanId!= "" {
-					query["hasStageNotAssociatedWithUsagePlanId"] = r.HasStageNotAssociatedWithUsagePlanId
-				}
+	if r.HasStageNotAssociatedWithUsagePlanId != "" {
+		query["hasStageNotAssociatedWithUsagePlanId"] = r.HasStageNotAssociatedWithUsagePlanId
+	}
 
-				if r.Limit!= "" {
-					query["limit"] = r.Limit
-				}
+	if r.Limit != "" {
+		query["limit"] = r.Limit
+	}
 
-				if r.Offset!= "" {
-					query["offset"] = r.Offset
-				}
+	if r.Offset != "" {
+		query["offset"] = r.Offset
+	}
 
-				if r.WithStage!= "" {
-					query["withStage"] = r.WithStage
-				}
-
-
-	
+	if r.WithStage != "" {
+		query["withStage"] = r.WithStage
+	}
 
 	rawBody, err := json.Marshal(initBody)
 	if err != nil {
@@ -92,7 +85,7 @@ func (n *NClient) GETProductsProductidApis(ctx context.Context, primitiveReq *Pr
 
 	body := strings.Replace(string(rawBody), `\"`, "", -1)
 
-	url := n.BaseURL +"/"+"products"+"/"+ClearDoubleQuote(r.Productid)+"/"+"apis"
+	url := n.BaseURL + "/" + "products" + "/" + ClearDoubleQuote(r.Productid) + "/" + "apis"
 
 	response, err := n.MakeRequestWithContext(ctx, "GET", url, body, query)
 	if err != nil {
@@ -121,7 +114,6 @@ func (n *NClient) GETProductsProductidApis_TF(ctx context.Context, r *PrimitiveG
 	return res, nil
 }
 
-
 /* =================================================================================
  * NCLOUD SDK LAYER FOR TERRAFORM CODEGEN - DO NOT EDIT
  * =================================================================================
@@ -136,52 +128,44 @@ func (n *NClient) GETProductsProductidApis_TF(ctx context.Context, r *PrimitiveG
  * ================================================================================= */
 
 type GETProductsProductidApisResponse struct {
-    Total         types.Int64`tfsdk:"total"`
-Apis         types.List `tfsdk:"apis"`
-
+	Total types.Int64 `tfsdk:"total"`
+	Apis  types.List  `tfsdk:"apis"`
 }
 
 func ConvertToFrameworkTypes_GETProductsProductidApis(ctx context.Context, data map[string]interface{}) (*GETProductsProductidApisResponse, error) {
 	var dto GETProductsProductidApisResponse
 
-    
-				if data["total"] != nil {
-					dto.Total = types.Int64Value(data["total"].(int64))
-				}
+	if data["total"] != nil {
+		dto.Total = types.Int64Value(data["total"].(int64))
+	}
 
-				if data["apis"] != nil {
-					tempApis := data["apis"].([]interface{})
-					dto.Apis = diagOff(types.ListValueFrom, ctx, types.ListType{ElemType:
-						
-	types.ObjectType{AttrTypes: map[string]attr.Type{
-		
-		"tenant_id": types.StringType,
+	if data["apis"] != nil {
+		tempApis := data["apis"].([]interface{})
+		dto.Apis = diagOff(types.ListValueFrom, ctx, types.ListType{ElemType: types.ObjectType{AttrTypes: map[string]attr.Type{
 
-				"stages": types.ListType{ElemType:
-					types.ObjectType{AttrTypes: map[string]attr.Type{
-						"stage_name": types.StringType,
-"stage_id": types.StringType,
-"is_published": types.BoolType,
-"api_id": types.StringType,
+			"tenant_id": types.StringType,
 
-					},
-				}},
-"product_id": types.StringType,
-"permission": types.StringType,
-"modifier": types.StringType,
-"mod_time": types.StringType,
-"is_deleted": types.BoolType,
-"domain_code": types.StringType,
-"disabled": types.BoolType,
-"api_name": types.StringType,
-"api_id": types.StringType,
-"api_description": types.StringType,
-"action_name": types.StringType,
-
-	},
-
-					}}.ElementType(), tempApis)
-				}
+			"stages": types.ListType{ElemType: types.ObjectType{AttrTypes: map[string]attr.Type{
+				"stage_name":   types.StringType,
+				"stage_id":     types.StringType,
+				"is_published": types.BoolType,
+				"api_id":       types.StringType,
+			},
+			}},
+			"product_id":      types.StringType,
+			"permission":      types.StringType,
+			"modifier":        types.StringType,
+			"mod_time":        types.StringType,
+			"is_deleted":      types.BoolType,
+			"domain_code":     types.StringType,
+			"disabled":        types.BoolType,
+			"api_name":        types.StringType,
+			"api_id":          types.StringType,
+			"api_description": types.StringType,
+			"action_name":     types.StringType,
+		},
+		}}.ElementType(), tempApis)
+	}
 
 	return &dto, nil
 }
@@ -190,16 +174,12 @@ func convertToObject_GETProductsProductidApis(ctx context.Context, data map[stri
 	attrTypes := make(map[string]attr.Type)
 	attrValues := make(map[string]attr.Value)
 
-    possibleTypes := map[string]attr.Type{
-        
-	}
+	possibleTypes := map[string]attr.Type{}
 
 	for field, fieldType := range possibleTypes {
 		attrTypes[field] = fieldType
 
 		if value, exists := data[field]; exists {
-
-			
 
 			attrValue, err := convertValueToAttr_GETProductsProductidApis(value)
 			if err != nil {
@@ -207,7 +187,6 @@ func convertToObject_GETProductsProductidApis(ctx context.Context, data map[stri
 			}
 			attrValues[field] = attrValue
 		} else {
-            
 
 			switch fieldType {
 			case types.StringType:
@@ -230,21 +209,20 @@ func convertToObject_GETProductsProductidApis(ctx context.Context, data map[stri
 }
 
 func convertValueToAttr_GETProductsProductidApis(value interface{}) (attr.Value, error) {
-     switch v := value.(type) {
-     case string:
-         return types.StringValue(v), nil
-     case int32:
-         return types.Int32Value(v), nil
-     case int64:
-         return types.Int64Value(v), nil
-     case float64:
-         return types.Float64Value(v), nil
-     case bool:
-         return types.BoolValue(v), nil
-     case nil:
-         return types.StringNull(), nil
-     default:
-         return nil, fmt.Errorf("unsupported type: %T", value)
-     }
+	switch v := value.(type) {
+	case string:
+		return types.StringValue(v), nil
+	case int32:
+		return types.Int32Value(v), nil
+	case int64:
+		return types.Int64Value(v), nil
+	case float64:
+		return types.Float64Value(v), nil
+	case bool:
+		return types.BoolValue(v), nil
+	case nil:
+		return types.StringNull(), nil
+	default:
+		return nil, fmt.Errorf("unsupported type: %T", value)
+	}
 }
-

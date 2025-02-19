@@ -1,4 +1,3 @@
-
 /* =================================================================================
  * NCLOUD SDK LAYER FOR TERRAFORM CODEGEN - DO NOT EDIT
  * =================================================================================
@@ -27,17 +26,15 @@ import (
 )
 
 type PrimitiveGETProductsProductidApisApiidResourcesResourceidMethodsRequest struct {
-    Productid string `json:"product-id"`
-Apiid string `json:"api-id"`
-Resourceid string `json:"resource-id"`
-
+	Productid  string `json:"product-id"`
+	Apiid      string `json:"api-id"`
+	Resourceid string `json:"resource-id"`
 }
 
 type StringifiedGETProductsProductidApisApiidResourcesResourceidMethodsRequest struct {
-	Productid string `json:"product-id"`
-Apiid string `json:"api-id"`
-Resourceid string `json:"resource-id"`
-
+	Productid  string `json:"product-id"`
+	Apiid      string `json:"api-id"`
+	Resourceid string `json:"resource-id"`
 }
 
 func (n *NClient) GETProductsProductidApisApiidResourcesResourceidMethods(ctx context.Context, primitiveReq *PrimitiveGETProductsProductidApisApiidResourcesResourceidMethodsRequest) (map[string]interface{}, error) {
@@ -49,10 +46,6 @@ func (n *NClient) GETProductsProductidApisApiidResourcesResourceidMethods(ctx co
 		return nil, err
 	}
 
- 	
-
-	
-
 	rawBody, err := json.Marshal(initBody)
 	if err != nil {
 		return nil, err
@@ -60,7 +53,7 @@ func (n *NClient) GETProductsProductidApisApiidResourcesResourceidMethods(ctx co
 
 	body := strings.Replace(string(rawBody), `\"`, "", -1)
 
-	url := n.BaseURL +"/"+"products"+"/"+ClearDoubleQuote(r.Productid)+"/"+"apis"+"/"+ClearDoubleQuote(r.Apiid)+"/"+"resources"+"/"+ClearDoubleQuote(r.Resourceid)+"/"+"methods"
+	url := n.BaseURL + "/" + "products" + "/" + ClearDoubleQuote(r.Productid) + "/" + "apis" + "/" + ClearDoubleQuote(r.Apiid) + "/" + "resources" + "/" + ClearDoubleQuote(r.Resourceid) + "/" + "methods"
 
 	response, err := n.MakeRequestWithContext(ctx, "GET", url, body, query)
 	if err != nil {
@@ -89,7 +82,6 @@ func (n *NClient) GETProductsProductidApisApiidResourcesResourceidMethods_TF(ctx
 	return res, nil
 }
 
-
 /* =================================================================================
  * NCLOUD SDK LAYER FOR TERRAFORM CODEGEN - DO NOT EDIT
  * =================================================================================
@@ -104,94 +96,79 @@ func (n *NClient) GETProductsProductidApisApiidResourcesResourceidMethods_TF(ctx
  * ================================================================================= */
 
 type GETProductsProductidApisApiidResourcesResourceidMethodsResponse struct {
-    Methods         types.List `tfsdk:"methods"`
-
+	Methods types.List `tfsdk:"methods"`
 }
 
 func ConvertToFrameworkTypes_GETProductsProductidApisApiidResourcesResourceidMethods(ctx context.Context, data map[string]interface{}) (*GETProductsProductidApisApiidResourcesResourceidMethodsResponse, error) {
 	var dto GETProductsProductidApisApiidResourcesResourceidMethodsResponse
 
-    
-				if data["methods"] != nil {
-					tempMethods := data["methods"].([]interface{})
-					dto.Methods = diagOff(types.ListValueFrom, ctx, types.ListType{ElemType:
-						
-	types.ObjectType{AttrTypes: map[string]attr.Type{
-		
-			"validation": types.ObjectType{AttrTypes: map[string]attr.Type{
-				"headers": types.ListType{ElemType: types.StringType},
-"query_strings": types.ListType{ElemType: types.StringType},
-"type": types.StringType,
+	if data["methods"] != nil {
+		tempMethods := data["methods"].([]interface{})
+		dto.Methods = diagOff(types.ListValueFrom, ctx, types.ListType{ElemType: types.ObjectType{AttrTypes: map[string]attr.Type{
 
+			"validation": types.ObjectType{AttrTypes: map[string]attr.Type{
+				"headers":       types.ListType{ElemType: types.StringType},
+				"query_strings": types.ListType{ElemType: types.StringType},
+				"type":          types.StringType,
 			}},
 
 			"required_api_key": types.ObjectType{AttrTypes: map[string]attr.Type{
 				"required": types.BoolType,
-
 			}},
 
 			"ncp_end_point": types.ObjectType{AttrTypes: map[string]attr.Type{
-				"url": types.StringType,
-"method": types.StringType,
-"stream": types.BoolType,
-"action_name": types.StringType,
-"action_id": types.StringType,
-"region": types.StringType,
-"service": types.StringType,
-
+				"url":         types.StringType,
+				"method":      types.StringType,
+				"stream":      types.BoolType,
+				"action_name": types.StringType,
+				"action_id":   types.StringType,
+				"region":      types.StringType,
+				"service":     types.StringType,
 			}},
 
 			"mock_end_point": types.ObjectType{AttrTypes: map[string]attr.Type{
-				
-				"headers": types.ObjectType{AttrTypes: map[string]attr.Type{
-				}},
-"response": types.StringType,
-"http_status": types.Int32Type,
 
+				"headers":     types.ObjectType{AttrTypes: map[string]attr.Type{}},
+				"response":    types.StringType,
+				"http_status": types.Int32Type,
 			}},
 
 			"http_end_point": types.ObjectType{AttrTypes: map[string]attr.Type{
-				"url": types.StringType,
-"method": types.StringType,
-"stream": types.BoolType,
-
+				"url":    types.StringType,
+				"method": types.StringType,
+				"stream": types.BoolType,
 			}},
 
 			"authentication": types.ObjectType{AttrTypes: map[string]attr.Type{
 				"authorizer_id": types.StringType,
-"platform": types.StringType,
-
+				"platform":      types.StringType,
 			}},
 
-		"use_body_when_form_data": types.BoolType,
-"tenant_id": types.StringType,
-"resource_path": types.StringType,
-"resource_id": types.StringType,
-"produces": types.StringType,
-"modifier": types.StringType,
-"method_name": types.StringType,
+			"use_body_when_form_data": types.BoolType,
+			"tenant_id":               types.StringType,
+			"resource_path":           types.StringType,
+			"resource_id":             types.StringType,
+			"produces":                types.StringType,
+			"modifier":                types.StringType,
+			"method_name":             types.StringType,
 
-				"method_filters": types.ListType{ElemType:
-					types.ObjectType{AttrTypes: map[string]attr.Type{
-						"resource_id": types.StringType,
-"method_code": types.StringType,
-"filter_name": types.StringType,
-"config_json": types.StringType,
-"api_id": types.StringType,
-
-					},
-				}},
-"method_description": types.StringType,
-"endpoint_config_json": types.StringType,
-"endpoint_code": types.StringType,
-"endpoint_action_id": types.StringType,
-"consumers": types.StringType,
-"api_id": types.StringType,
-
-	},
-
-					}}.ElementType(), tempMethods)
-				}
+			"method_filters": types.ListType{ElemType: types.ObjectType{AttrTypes: map[string]attr.Type{
+				"resource_id": types.StringType,
+				"method_code": types.StringType,
+				"filter_name": types.StringType,
+				"config_json": types.StringType,
+				"api_id":      types.StringType,
+			},
+			}},
+			"method_description":   types.StringType,
+			"endpoint_config_json": types.StringType,
+			"endpoint_code":        types.StringType,
+			"endpoint_action_id":   types.StringType,
+			"consumers":            types.StringType,
+			"api_id":               types.StringType,
+		},
+		}}.ElementType(), tempMethods)
+	}
 
 	return &dto, nil
 }
@@ -200,16 +177,12 @@ func convertToObject_GETProductsProductidApisApiidResourcesResourceidMethods(ctx
 	attrTypes := make(map[string]attr.Type)
 	attrValues := make(map[string]attr.Value)
 
-    possibleTypes := map[string]attr.Type{
-        
-	}
+	possibleTypes := map[string]attr.Type{}
 
 	for field, fieldType := range possibleTypes {
 		attrTypes[field] = fieldType
 
 		if value, exists := data[field]; exists {
-
-			
 
 			attrValue, err := convertValueToAttr_GETProductsProductidApisApiidResourcesResourceidMethods(value)
 			if err != nil {
@@ -217,7 +190,6 @@ func convertToObject_GETProductsProductidApisApiidResourcesResourceidMethods(ctx
 			}
 			attrValues[field] = attrValue
 		} else {
-            
 
 			switch fieldType {
 			case types.StringType:
@@ -240,21 +212,20 @@ func convertToObject_GETProductsProductidApisApiidResourcesResourceidMethods(ctx
 }
 
 func convertValueToAttr_GETProductsProductidApisApiidResourcesResourceidMethods(value interface{}) (attr.Value, error) {
-     switch v := value.(type) {
-     case string:
-         return types.StringValue(v), nil
-     case int32:
-         return types.Int32Value(v), nil
-     case int64:
-         return types.Int64Value(v), nil
-     case float64:
-         return types.Float64Value(v), nil
-     case bool:
-         return types.BoolValue(v), nil
-     case nil:
-         return types.StringNull(), nil
-     default:
-         return nil, fmt.Errorf("unsupported type: %T", value)
-     }
+	switch v := value.(type) {
+	case string:
+		return types.StringValue(v), nil
+	case int32:
+		return types.Int32Value(v), nil
+	case int64:
+		return types.Int64Value(v), nil
+	case float64:
+		return types.Float64Value(v), nil
+	case bool:
+		return types.BoolValue(v), nil
+	case nil:
+		return types.StringNull(), nil
+	default:
+		return nil, fmt.Errorf("unsupported type: %T", value)
+	}
 }
-

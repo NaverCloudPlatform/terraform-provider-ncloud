@@ -1,4 +1,3 @@
-
 /* =================================================================================
  * NCLOUD SDK LAYER FOR TERRAFORM CODEGEN - DO NOT EDIT
  * =================================================================================
@@ -27,19 +26,17 @@ import (
 )
 
 type PrimitivePOSTProductsProductidApisApiidResponsesResponsetypeRequest struct {
-    Productid string `json:"product-id"`
-Apiid string `json:"api-id"`
-Responsetype string `json:"response-type"`
-StatusCode int32 `json:"statusCode"`
-
+	Productid    string `json:"product-id"`
+	Apiid        string `json:"api-id"`
+	Responsetype string `json:"response-type"`
+	StatusCode   int32  `json:"statusCode"`
 }
 
 type StringifiedPOSTProductsProductidApisApiidResponsesResponsetypeRequest struct {
-	Productid string `json:"product-id"`
-Apiid string `json:"api-id"`
-Responsetype string `json:"response-type"`
-StatusCode string `json:"statusCode"`
-
+	Productid    string `json:"product-id"`
+	Apiid        string `json:"api-id"`
+	Responsetype string `json:"response-type"`
+	StatusCode   string `json:"statusCode"`
 }
 
 func (n *NClient) POSTProductsProductidApisApiidResponsesResponsetype(ctx context.Context, primitiveReq *PrimitivePOSTProductsProductidApisApiidResponsesResponsetypeRequest) (map[string]interface{}, error) {
@@ -51,13 +48,9 @@ func (n *NClient) POSTProductsProductidApisApiidResponsesResponsetype(ctx contex
 		return nil, err
 	}
 
- 	
-
-	
-			if r.StatusCode != "" {
-				initBody["statusCode"] = r.StatusCode
-			}
-
+	if r.StatusCode != "" {
+		initBody["statusCode"] = r.StatusCode
+	}
 
 	rawBody, err := json.Marshal(initBody)
 	if err != nil {
@@ -66,7 +59,7 @@ func (n *NClient) POSTProductsProductidApisApiidResponsesResponsetype(ctx contex
 
 	body := strings.Replace(string(rawBody), `\"`, "", -1)
 
-	url := n.BaseURL +"/"+"products"+"/"+ClearDoubleQuote(r.Productid)+"/"+"apis"+"/"+ClearDoubleQuote(r.Apiid)+"/"+"responses"+"/"+ClearDoubleQuote(r.Responsetype)
+	url := n.BaseURL + "/" + "products" + "/" + ClearDoubleQuote(r.Productid) + "/" + "apis" + "/" + ClearDoubleQuote(r.Apiid) + "/" + "responses" + "/" + ClearDoubleQuote(r.Responsetype)
 
 	response, err := n.MakeRequestWithContext(ctx, "POST", url, body, query)
 	if err != nil {
@@ -95,7 +88,6 @@ func (n *NClient) POSTProductsProductidApisApiidResponsesResponsetype_TF(ctx con
 	return res, nil
 }
 
-
 /* =================================================================================
  * NCLOUD SDK LAYER FOR TERRAFORM CODEGEN - DO NOT EDIT
  * =================================================================================
@@ -110,70 +102,59 @@ func (n *NClient) POSTProductsProductidApisApiidResponsesResponsetype_TF(ctx con
  * ================================================================================= */
 
 type POSTProductsProductidApisApiidResponsesResponsetypeResponse struct {
-    Templates         types.List `tfsdk:"templates"`
-Statuscode         types.Int32`tfsdk:"status_code"`
-Responsetype         types.String `tfsdk:"response_type"`
-Responsename         types.String `tfsdk:"response_name"`
-Isdefault         types.Bool `tfsdk:"is_default"`
-Headers         types.List `tfsdk:"headers"`
-Apiid         types.String `tfsdk:"api_id"`
-
+	Templates    types.List   `tfsdk:"templates"`
+	Statuscode   types.Int32  `tfsdk:"status_code"`
+	Responsetype types.String `tfsdk:"response_type"`
+	Responsename types.String `tfsdk:"response_name"`
+	Isdefault    types.Bool   `tfsdk:"is_default"`
+	Headers      types.List   `tfsdk:"headers"`
+	Apiid        types.String `tfsdk:"api_id"`
 }
 
 func ConvertToFrameworkTypes_POSTProductsProductidApisApiidResponsesResponsetype(ctx context.Context, data map[string]interface{}) (*POSTProductsProductidApisApiidResponsesResponsetypeResponse, error) {
 	var dto POSTProductsProductidApisApiidResponsesResponsetypeResponse
 
-    
-				if data["templates"] != nil {
-					tempTemplates := data["templates"].([]interface{})
-					dto.Templates = diagOff(types.ListValueFrom, ctx, types.ListType{ElemType:
-						
-	types.ObjectType{AttrTypes: map[string]attr.Type{
-		
-		"response_type": types.StringType,
-"mapping_template": types.StringType,
-"content_type": types.StringType,
-"api_id": types.StringType,
+	if data["templates"] != nil {
+		tempTemplates := data["templates"].([]interface{})
+		dto.Templates = diagOff(types.ListValueFrom, ctx, types.ListType{ElemType: types.ObjectType{AttrTypes: map[string]attr.Type{
 
-	},
+			"response_type":    types.StringType,
+			"mapping_template": types.StringType,
+			"content_type":     types.StringType,
+			"api_id":           types.StringType,
+		},
+		}}.ElementType(), tempTemplates)
+	}
+	if data["status_code"] != nil {
+		dto.Statuscode = types.Int32Value(data["status_code"].(int32))
+	}
 
-					}}.ElementType(), tempTemplates)
-				}
-				if data["status_code"] != nil {
-					dto.Statuscode = types.Int32Value(data["status_code"].(int32))
-				}
+	if data["response_type"] != nil {
+		dto.Responsetype = types.StringValue(data["response_type"].(string))
+	}
 
-			if data["response_type"] != nil {
-				dto.Responsetype = types.StringValue(data["response_type"].(string))
-			}
+	if data["response_name"] != nil {
+		dto.Responsename = types.StringValue(data["response_name"].(string))
+	}
 
-			if data["response_name"] != nil {
-				dto.Responsename = types.StringValue(data["response_name"].(string))
-			}
+	if data["is_default"] != nil {
+		dto.Isdefault = types.BoolValue(data["is_default"].(bool))
+	}
 
-			if data["is_default"] != nil {
-				dto.Isdefault = types.BoolValue(data["is_default"].(bool))
-			}
+	if data["headers"] != nil {
+		tempHeaders := data["headers"].([]interface{})
+		dto.Headers = diagOff(types.ListValueFrom, ctx, types.ListType{ElemType: types.ObjectType{AttrTypes: map[string]attr.Type{
 
-				if data["headers"] != nil {
-					tempHeaders := data["headers"].([]interface{})
-					dto.Headers = diagOff(types.ListValueFrom, ctx, types.ListType{ElemType:
-						
-	types.ObjectType{AttrTypes: map[string]attr.Type{
-		
-		"response_type": types.StringType,
-"header_value": types.StringType,
-"header_name": types.StringType,
-"api_id": types.StringType,
-
-	},
-
-					}}.ElementType(), tempHeaders)
-				}
-			if data["api_id"] != nil {
-				dto.Apiid = types.StringValue(data["api_id"].(string))
-			}
-
+			"response_type": types.StringType,
+			"header_value":  types.StringType,
+			"header_name":   types.StringType,
+			"api_id":        types.StringType,
+		},
+		}}.ElementType(), tempHeaders)
+	}
+	if data["api_id"] != nil {
+		dto.Apiid = types.StringValue(data["api_id"].(string))
+	}
 
 	return &dto, nil
 }
@@ -182,16 +163,12 @@ func convertToObject_POSTProductsProductidApisApiidResponsesResponsetype(ctx con
 	attrTypes := make(map[string]attr.Type)
 	attrValues := make(map[string]attr.Value)
 
-    possibleTypes := map[string]attr.Type{
-        
-	}
+	possibleTypes := map[string]attr.Type{}
 
 	for field, fieldType := range possibleTypes {
 		attrTypes[field] = fieldType
 
 		if value, exists := data[field]; exists {
-
-			
 
 			attrValue, err := convertValueToAttr_POSTProductsProductidApisApiidResponsesResponsetype(value)
 			if err != nil {
@@ -199,7 +176,6 @@ func convertToObject_POSTProductsProductidApisApiidResponsesResponsetype(ctx con
 			}
 			attrValues[field] = attrValue
 		} else {
-            
 
 			switch fieldType {
 			case types.StringType:
@@ -222,21 +198,20 @@ func convertToObject_POSTProductsProductidApisApiidResponsesResponsetype(ctx con
 }
 
 func convertValueToAttr_POSTProductsProductidApisApiidResponsesResponsetype(value interface{}) (attr.Value, error) {
-     switch v := value.(type) {
-     case string:
-         return types.StringValue(v), nil
-     case int32:
-         return types.Int32Value(v), nil
-     case int64:
-         return types.Int64Value(v), nil
-     case float64:
-         return types.Float64Value(v), nil
-     case bool:
-         return types.BoolValue(v), nil
-     case nil:
-         return types.StringNull(), nil
-     default:
-         return nil, fmt.Errorf("unsupported type: %T", value)
-     }
+	switch v := value.(type) {
+	case string:
+		return types.StringValue(v), nil
+	case int32:
+		return types.Int32Value(v), nil
+	case int64:
+		return types.Int64Value(v), nil
+	case float64:
+		return types.Float64Value(v), nil
+	case bool:
+		return types.BoolValue(v), nil
+	case nil:
+		return types.StringNull(), nil
+	default:
+		return nil, fmt.Errorf("unsupported type: %T", value)
+	}
 }
-

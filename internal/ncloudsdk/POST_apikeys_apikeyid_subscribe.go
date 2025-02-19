@@ -1,4 +1,3 @@
-
 /* =================================================================================
  * NCLOUD SDK LAYER FOR TERRAFORM CODEGEN - DO NOT EDIT
  * =================================================================================
@@ -27,15 +26,13 @@ import (
 )
 
 type PrimitivePOSTApikeysApikeyidSubscribeRequest struct {
-    Apikeyid string `json:"api-key-id"`
-ProductId string `json:"productId"`
-
+	Apikeyid  string `json:"api-key-id"`
+	ProductId string `json:"productId"`
 }
 
 type StringifiedPOSTApikeysApikeyidSubscribeRequest struct {
-	Apikeyid string `json:"api-key-id"`
-ProductId string `json:"productId"`
-
+	Apikeyid  string `json:"api-key-id"`
+	ProductId string `json:"productId"`
 }
 
 func (n *NClient) POSTApikeysApikeyidSubscribe(ctx context.Context, primitiveReq *PrimitivePOSTApikeysApikeyidSubscribeRequest) (map[string]interface{}, error) {
@@ -47,10 +44,7 @@ func (n *NClient) POSTApikeysApikeyidSubscribe(ctx context.Context, primitiveReq
 		return nil, err
 	}
 
- 	
-
 	initBody["productId"] = r.ProductId
-
 
 	rawBody, err := json.Marshal(initBody)
 	if err != nil {
@@ -59,7 +53,7 @@ func (n *NClient) POSTApikeysApikeyidSubscribe(ctx context.Context, primitiveReq
 
 	body := strings.Replace(string(rawBody), `\"`, "", -1)
 
-	url := n.BaseURL +"/"+"api-keys"+"/"+ClearDoubleQuote(r.Apikeyid)+"/"+"subscribe"
+	url := n.BaseURL + "/" + "api-keys" + "/" + ClearDoubleQuote(r.Apikeyid) + "/" + "subscribe"
 
 	response, err := n.MakeRequestWithContext(ctx, "POST", url, body, query)
 	if err != nil {
@@ -88,7 +82,6 @@ func (n *NClient) POSTApikeysApikeyidSubscribe_TF(ctx context.Context, r *Primit
 	return res, nil
 }
 
-
 /* =================================================================================
  * NCLOUD SDK LAYER FOR TERRAFORM CODEGEN - DO NOT EDIT
  * =================================================================================
@@ -103,13 +96,10 @@ func (n *NClient) POSTApikeysApikeyidSubscribe_TF(ctx context.Context, r *Primit
  * ================================================================================= */
 
 type POSTApikeysApikeyidSubscribeResponse struct {
-    
 }
 
 func ConvertToFrameworkTypes_POSTApikeysApikeyidSubscribe(ctx context.Context, data map[string]interface{}) (*POSTApikeysApikeyidSubscribeResponse, error) {
 	var dto POSTApikeysApikeyidSubscribeResponse
-
-    
 
 	return &dto, nil
 }
@@ -118,16 +108,12 @@ func convertToObject_POSTApikeysApikeyidSubscribe(ctx context.Context, data map[
 	attrTypes := make(map[string]attr.Type)
 	attrValues := make(map[string]attr.Value)
 
-    possibleTypes := map[string]attr.Type{
-        
-	}
+	possibleTypes := map[string]attr.Type{}
 
 	for field, fieldType := range possibleTypes {
 		attrTypes[field] = fieldType
 
 		if value, exists := data[field]; exists {
-
-			
 
 			attrValue, err := convertValueToAttr_POSTApikeysApikeyidSubscribe(value)
 			if err != nil {
@@ -135,7 +121,6 @@ func convertToObject_POSTApikeysApikeyidSubscribe(ctx context.Context, data map[
 			}
 			attrValues[field] = attrValue
 		} else {
-            
 
 			switch fieldType {
 			case types.StringType:
@@ -158,21 +143,20 @@ func convertToObject_POSTApikeysApikeyidSubscribe(ctx context.Context, data map[
 }
 
 func convertValueToAttr_POSTApikeysApikeyidSubscribe(value interface{}) (attr.Value, error) {
-     switch v := value.(type) {
-     case string:
-         return types.StringValue(v), nil
-     case int32:
-         return types.Int32Value(v), nil
-     case int64:
-         return types.Int64Value(v), nil
-     case float64:
-         return types.Float64Value(v), nil
-     case bool:
-         return types.BoolValue(v), nil
-     case nil:
-         return types.StringNull(), nil
-     default:
-         return nil, fmt.Errorf("unsupported type: %T", value)
-     }
+	switch v := value.(type) {
+	case string:
+		return types.StringValue(v), nil
+	case int32:
+		return types.Int32Value(v), nil
+	case int64:
+		return types.Int64Value(v), nil
+	case float64:
+		return types.Float64Value(v), nil
+	case bool:
+		return types.BoolValue(v), nil
+	case nil:
+		return types.StringNull(), nil
+	default:
+		return nil, fmt.Errorf("unsupported type: %T", value)
+	}
 }
-

@@ -1,4 +1,3 @@
-
 /* =================================================================================
  * NCLOUD SDK LAYER FOR TERRAFORM CODEGEN - DO NOT EDIT
  * =================================================================================
@@ -27,19 +26,17 @@ import (
 )
 
 type PrimitiveGETProductsProductidApisApiidStagesStageidDeploymentsDeploymentnoRequest struct {
-    Productid string `json:"product-id"`
-Apiid string `json:"api-id"`
-Stageid string `json:"stage-id"`
-Deploymentno string `json:"deployment-no"`
-
+	Productid    string `json:"product-id"`
+	Apiid        string `json:"api-id"`
+	Stageid      string `json:"stage-id"`
+	Deploymentno string `json:"deployment-no"`
 }
 
 type StringifiedGETProductsProductidApisApiidStagesStageidDeploymentsDeploymentnoRequest struct {
-	Productid string `json:"product-id"`
-Apiid string `json:"api-id"`
-Stageid string `json:"stage-id"`
-Deploymentno string `json:"deployment-no"`
-
+	Productid    string `json:"product-id"`
+	Apiid        string `json:"api-id"`
+	Stageid      string `json:"stage-id"`
+	Deploymentno string `json:"deployment-no"`
 }
 
 func (n *NClient) GETProductsProductidApisApiidStagesStageidDeploymentsDeploymentno(ctx context.Context, primitiveReq *PrimitiveGETProductsProductidApisApiidStagesStageidDeploymentsDeploymentnoRequest) (map[string]interface{}, error) {
@@ -51,10 +48,6 @@ func (n *NClient) GETProductsProductidApisApiidStagesStageidDeploymentsDeploymen
 		return nil, err
 	}
 
- 	
-
-	
-
 	rawBody, err := json.Marshal(initBody)
 	if err != nil {
 		return nil, err
@@ -62,7 +55,7 @@ func (n *NClient) GETProductsProductidApisApiidStagesStageidDeploymentsDeploymen
 
 	body := strings.Replace(string(rawBody), `\"`, "", -1)
 
-	url := n.BaseURL +"/"+"products"+"/"+ClearDoubleQuote(r.Productid)+"/"+"apis"+"/"+ClearDoubleQuote(r.Apiid)+"/"+"stages"+"/"+ClearDoubleQuote(r.Stageid)+"/"+"deployments"+"/"+ClearDoubleQuote(r.Deploymentno)
+	url := n.BaseURL + "/" + "products" + "/" + ClearDoubleQuote(r.Productid) + "/" + "apis" + "/" + ClearDoubleQuote(r.Apiid) + "/" + "stages" + "/" + ClearDoubleQuote(r.Stageid) + "/" + "deployments" + "/" + ClearDoubleQuote(r.Deploymentno)
 
 	response, err := n.MakeRequestWithContext(ctx, "GET", url, body, query)
 	if err != nil {
@@ -91,7 +84,6 @@ func (n *NClient) GETProductsProductidApisApiidStagesStageidDeploymentsDeploymen
 	return res, nil
 }
 
-
 /* =================================================================================
  * NCLOUD SDK LAYER FOR TERRAFORM CODEGEN - DO NOT EDIT
  * =================================================================================
@@ -106,18 +98,15 @@ func (n *NClient) GETProductsProductidApisApiidStagesStageidDeploymentsDeploymen
  * ================================================================================= */
 
 type GETProductsProductidApisApiidStagesStageidDeploymentsDeploymentnoResponse struct {
-    Documentjson         types.String `tfsdk:"document_json"`
-
+	Documentjson types.String `tfsdk:"document_json"`
 }
 
 func ConvertToFrameworkTypes_GETProductsProductidApisApiidStagesStageidDeploymentsDeploymentno(ctx context.Context, data map[string]interface{}) (*GETProductsProductidApisApiidStagesStageidDeploymentsDeploymentnoResponse, error) {
 	var dto GETProductsProductidApisApiidStagesStageidDeploymentsDeploymentnoResponse
 
-    
-			if data["document_json"] != nil {
-				dto.Documentjson = types.StringValue(data["document_json"].(string))
-			}
-
+	if data["document_json"] != nil {
+		dto.Documentjson = types.StringValue(data["document_json"].(string))
+	}
 
 	return &dto, nil
 }
@@ -126,16 +115,12 @@ func convertToObject_GETProductsProductidApisApiidStagesStageidDeploymentsDeploy
 	attrTypes := make(map[string]attr.Type)
 	attrValues := make(map[string]attr.Value)
 
-    possibleTypes := map[string]attr.Type{
-        
-	}
+	possibleTypes := map[string]attr.Type{}
 
 	for field, fieldType := range possibleTypes {
 		attrTypes[field] = fieldType
 
 		if value, exists := data[field]; exists {
-
-			
 
 			attrValue, err := convertValueToAttr_GETProductsProductidApisApiidStagesStageidDeploymentsDeploymentno(value)
 			if err != nil {
@@ -143,7 +128,6 @@ func convertToObject_GETProductsProductidApisApiidStagesStageidDeploymentsDeploy
 			}
 			attrValues[field] = attrValue
 		} else {
-            
 
 			switch fieldType {
 			case types.StringType:
@@ -166,21 +150,20 @@ func convertToObject_GETProductsProductidApisApiidStagesStageidDeploymentsDeploy
 }
 
 func convertValueToAttr_GETProductsProductidApisApiidStagesStageidDeploymentsDeploymentno(value interface{}) (attr.Value, error) {
-     switch v := value.(type) {
-     case string:
-         return types.StringValue(v), nil
-     case int32:
-         return types.Int32Value(v), nil
-     case int64:
-         return types.Int64Value(v), nil
-     case float64:
-         return types.Float64Value(v), nil
-     case bool:
-         return types.BoolValue(v), nil
-     case nil:
-         return types.StringNull(), nil
-     default:
-         return nil, fmt.Errorf("unsupported type: %T", value)
-     }
+	switch v := value.(type) {
+	case string:
+		return types.StringValue(v), nil
+	case int32:
+		return types.Int32Value(v), nil
+	case int64:
+		return types.Int64Value(v), nil
+	case float64:
+		return types.Float64Value(v), nil
+	case bool:
+		return types.BoolValue(v), nil
+	case nil:
+		return types.StringNull(), nil
+	default:
+		return nil, fmt.Errorf("unsupported type: %T", value)
+	}
 }
-

@@ -1,4 +1,3 @@
-
 /* =================================================================================
  * NCLOUD SDK LAYER FOR TERRAFORM CODEGEN - DO NOT EDIT
  * =================================================================================
@@ -27,15 +26,13 @@ import (
 )
 
 type PrimitiveGETProductsProductidApisApiidResponsesRequest struct {
-    Productid string `json:"product-id"`
-Apiid string `json:"api-id"`
-
+	Productid string `json:"product-id"`
+	Apiid     string `json:"api-id"`
 }
 
 type StringifiedGETProductsProductidApisApiidResponsesRequest struct {
 	Productid string `json:"product-id"`
-Apiid string `json:"api-id"`
-
+	Apiid     string `json:"api-id"`
 }
 
 func (n *NClient) GETProductsProductidApisApiidResponses(ctx context.Context, primitiveReq *PrimitiveGETProductsProductidApisApiidResponsesRequest) (map[string]interface{}, error) {
@@ -47,10 +44,6 @@ func (n *NClient) GETProductsProductidApisApiidResponses(ctx context.Context, pr
 		return nil, err
 	}
 
- 	
-
-	
-
 	rawBody, err := json.Marshal(initBody)
 	if err != nil {
 		return nil, err
@@ -58,7 +51,7 @@ func (n *NClient) GETProductsProductidApisApiidResponses(ctx context.Context, pr
 
 	body := strings.Replace(string(rawBody), `\"`, "", -1)
 
-	url := n.BaseURL +"/"+"products"+"/"+ClearDoubleQuote(r.Productid)+"/"+"apis"+"/"+ClearDoubleQuote(r.Apiid)+"/"+"responses"
+	url := n.BaseURL + "/" + "products" + "/" + ClearDoubleQuote(r.Productid) + "/" + "apis" + "/" + ClearDoubleQuote(r.Apiid) + "/" + "responses"
 
 	response, err := n.MakeRequestWithContext(ctx, "GET", url, body, query)
 	if err != nil {
@@ -87,7 +80,6 @@ func (n *NClient) GETProductsProductidApisApiidResponses_TF(ctx context.Context,
 	return res, nil
 }
 
-
 /* =================================================================================
  * NCLOUD SDK LAYER FOR TERRAFORM CODEGEN - DO NOT EDIT
  * =================================================================================
@@ -102,50 +94,39 @@ func (n *NClient) GETProductsProductidApisApiidResponses_TF(ctx context.Context,
  * ================================================================================= */
 
 type GETProductsProductidApisApiidResponsesResponse struct {
-    GatewayResponses         types.List `tfsdk:"gateway_responses"`
-
+	GatewayResponses types.List `tfsdk:"gateway_responses"`
 }
 
 func ConvertToFrameworkTypes_GETProductsProductidApisApiidResponses(ctx context.Context, data map[string]interface{}) (*GETProductsProductidApisApiidResponsesResponse, error) {
 	var dto GETProductsProductidApisApiidResponsesResponse
 
-    
-				if data["gateway_responses"] != nil {
-					tempGatewayResponses := data["gateway_responses"].([]interface{})
-					dto.GatewayResponses = diagOff(types.ListValueFrom, ctx, types.ListType{ElemType:
-						
-	types.ObjectType{AttrTypes: map[string]attr.Type{
-		
-		
-				"templates": types.ListType{ElemType:
-					types.ObjectType{AttrTypes: map[string]attr.Type{
-						"response_type": types.StringType,
-"mapping_template": types.StringType,
-"content_type": types.StringType,
-"api_id": types.StringType,
+	if data["gateway_responses"] != nil {
+		tempGatewayResponses := data["gateway_responses"].([]interface{})
+		dto.GatewayResponses = diagOff(types.ListValueFrom, ctx, types.ListType{ElemType: types.ObjectType{AttrTypes: map[string]attr.Type{
 
-					},
-				}},
-"status_code": types.Int32Type,
-"response_type": types.StringType,
-"response_name": types.StringType,
-"is_default": types.BoolType,
+			"templates": types.ListType{ElemType: types.ObjectType{AttrTypes: map[string]attr.Type{
+				"response_type":    types.StringType,
+				"mapping_template": types.StringType,
+				"content_type":     types.StringType,
+				"api_id":           types.StringType,
+			},
+			}},
+			"status_code":   types.Int32Type,
+			"response_type": types.StringType,
+			"response_name": types.StringType,
+			"is_default":    types.BoolType,
 
-				"headers": types.ListType{ElemType:
-					types.ObjectType{AttrTypes: map[string]attr.Type{
-						"response_type": types.StringType,
-"header_value": types.StringType,
-"header_name": types.StringType,
-"api_id": types.StringType,
-
-					},
-				}},
-"api_id": types.StringType,
-
-	},
-
-					}}.ElementType(), tempGatewayResponses)
-				}
+			"headers": types.ListType{ElemType: types.ObjectType{AttrTypes: map[string]attr.Type{
+				"response_type": types.StringType,
+				"header_value":  types.StringType,
+				"header_name":   types.StringType,
+				"api_id":        types.StringType,
+			},
+			}},
+			"api_id": types.StringType,
+		},
+		}}.ElementType(), tempGatewayResponses)
+	}
 
 	return &dto, nil
 }
@@ -154,16 +135,12 @@ func convertToObject_GETProductsProductidApisApiidResponses(ctx context.Context,
 	attrTypes := make(map[string]attr.Type)
 	attrValues := make(map[string]attr.Value)
 
-    possibleTypes := map[string]attr.Type{
-        
-	}
+	possibleTypes := map[string]attr.Type{}
 
 	for field, fieldType := range possibleTypes {
 		attrTypes[field] = fieldType
 
 		if value, exists := data[field]; exists {
-
-			
 
 			attrValue, err := convertValueToAttr_GETProductsProductidApisApiidResponses(value)
 			if err != nil {
@@ -171,7 +148,6 @@ func convertToObject_GETProductsProductidApisApiidResponses(ctx context.Context,
 			}
 			attrValues[field] = attrValue
 		} else {
-            
 
 			switch fieldType {
 			case types.StringType:
@@ -194,21 +170,20 @@ func convertToObject_GETProductsProductidApisApiidResponses(ctx context.Context,
 }
 
 func convertValueToAttr_GETProductsProductidApisApiidResponses(value interface{}) (attr.Value, error) {
-     switch v := value.(type) {
-     case string:
-         return types.StringValue(v), nil
-     case int32:
-         return types.Int32Value(v), nil
-     case int64:
-         return types.Int64Value(v), nil
-     case float64:
-         return types.Float64Value(v), nil
-     case bool:
-         return types.BoolValue(v), nil
-     case nil:
-         return types.StringNull(), nil
-     default:
-         return nil, fmt.Errorf("unsupported type: %T", value)
-     }
+	switch v := value.(type) {
+	case string:
+		return types.StringValue(v), nil
+	case int32:
+		return types.Int32Value(v), nil
+	case int64:
+		return types.Int64Value(v), nil
+	case float64:
+		return types.Float64Value(v), nil
+	case bool:
+		return types.BoolValue(v), nil
+	case nil:
+		return types.StringNull(), nil
+	default:
+		return nil, fmt.Errorf("unsupported type: %T", value)
+	}
 }
-

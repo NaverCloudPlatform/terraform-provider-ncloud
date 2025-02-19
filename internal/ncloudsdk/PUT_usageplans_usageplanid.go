@@ -1,4 +1,3 @@
-
 /* =================================================================================
  * NCLOUD SDK LAYER FOR TERRAFORM CODEGEN - DO NOT EDIT
  * =================================================================================
@@ -27,25 +26,23 @@ import (
 )
 
 type PrimitivePUTUsageplansUsageplanidRequest struct {
-    Usageplanid string `json:"usage-plan-id"`
-UsagePlanName string `json:"usagePlanName"`
-UsagePlanDescription string `json:"usagePlanDescription"`
-RateRps int32 `json:"rateRps"`
-QuotaCondition string `json:"quotaCondition"`
-MonthQuotaRequest int64 `json:"monthQuotaRequest"`
-DayQuotaRequest int64 `json:"dayQuotaRequest"`
-
+	Usageplanid          string `json:"usage-plan-id"`
+	UsagePlanName        string `json:"usagePlanName"`
+	UsagePlanDescription string `json:"usagePlanDescription"`
+	RateRps              int32  `json:"rateRps"`
+	QuotaCondition       string `json:"quotaCondition"`
+	MonthQuotaRequest    int64  `json:"monthQuotaRequest"`
+	DayQuotaRequest      int64  `json:"dayQuotaRequest"`
 }
 
 type StringifiedPUTUsageplansUsageplanidRequest struct {
-	Usageplanid string `json:"usage-plan-id"`
-UsagePlanName string `json:"usagePlanName"`
-UsagePlanDescription string `json:"usagePlanDescription"`
-RateRps string `json:"rateRps"`
-QuotaCondition string `json:"quotaCondition"`
-MonthQuotaRequest string `json:"monthQuotaRequest"`
-DayQuotaRequest string `json:"dayQuotaRequest"`
-
+	Usageplanid          string `json:"usage-plan-id"`
+	UsagePlanName        string `json:"usagePlanName"`
+	UsagePlanDescription string `json:"usagePlanDescription"`
+	RateRps              string `json:"rateRps"`
+	QuotaCondition       string `json:"quotaCondition"`
+	MonthQuotaRequest    string `json:"monthQuotaRequest"`
+	DayQuotaRequest      string `json:"dayQuotaRequest"`
 }
 
 func (n *NClient) PUTUsageplansUsageplanid(ctx context.Context, primitiveReq *PrimitivePUTUsageplansUsageplanidRequest) (map[string]interface{}, error) {
@@ -57,30 +54,27 @@ func (n *NClient) PUTUsageplansUsageplanid(ctx context.Context, primitiveReq *Pr
 		return nil, err
 	}
 
- 	
-
 	initBody["usagePlanName"] = r.UsagePlanName
 
-			if r.UsagePlanDescription != "" {
-				initBody["usagePlanDescription"] = r.UsagePlanDescription
-			}
+	if r.UsagePlanDescription != "" {
+		initBody["usagePlanDescription"] = r.UsagePlanDescription
+	}
 
-			if r.RateRps != "" {
-				initBody["rateRps"] = r.RateRps
-			}
+	if r.RateRps != "" {
+		initBody["rateRps"] = r.RateRps
+	}
 
-			if r.QuotaCondition != "" {
-				initBody["quotaCondition"] = r.QuotaCondition
-			}
+	if r.QuotaCondition != "" {
+		initBody["quotaCondition"] = r.QuotaCondition
+	}
 
-			if r.MonthQuotaRequest != "" {
-				initBody["monthQuotaRequest"] = r.MonthQuotaRequest
-			}
+	if r.MonthQuotaRequest != "" {
+		initBody["monthQuotaRequest"] = r.MonthQuotaRequest
+	}
 
-			if r.DayQuotaRequest != "" {
-				initBody["dayQuotaRequest"] = r.DayQuotaRequest
-			}
-
+	if r.DayQuotaRequest != "" {
+		initBody["dayQuotaRequest"] = r.DayQuotaRequest
+	}
 
 	rawBody, err := json.Marshal(initBody)
 	if err != nil {
@@ -89,7 +83,7 @@ func (n *NClient) PUTUsageplansUsageplanid(ctx context.Context, primitiveReq *Pr
 
 	body := strings.Replace(string(rawBody), `\"`, "", -1)
 
-	url := n.BaseURL +"/"+"usage-plans"+"/"+ClearDoubleQuote(r.Usageplanid)
+	url := n.BaseURL + "/" + "usage-plans" + "/" + ClearDoubleQuote(r.Usageplanid)
 
 	response, err := n.MakeRequestWithContext(ctx, "PUT", url, body, query)
 	if err != nil {
@@ -118,7 +112,6 @@ func (n *NClient) PUTUsageplansUsageplanid_TF(ctx context.Context, r *PrimitiveP
 	return res, nil
 }
 
-
 /* =================================================================================
  * NCLOUD SDK LAYER FOR TERRAFORM CODEGEN - DO NOT EDIT
  * =================================================================================
@@ -133,66 +126,61 @@ func (n *NClient) PUTUsageplansUsageplanid_TF(ctx context.Context, r *PrimitiveP
  * ================================================================================= */
 
 type PUTUsageplansUsageplanidResponse struct {
-    UsagePlan         types.Object `tfsdk:"usage_plan"`
-
+	UsagePlan types.Object `tfsdk:"usage_plan"`
 }
 
 func ConvertToFrameworkTypes_PUTUsageplansUsageplanid(ctx context.Context, data map[string]interface{}) (*PUTUsageplansUsageplanidResponse, error) {
 	var dto PUTUsageplansUsageplanidResponse
 
-    
-			if data["usage_plan"] != nil {
-				tempUsagePlan := data["usage_plan"].(map[string]interface{})
+	if data["usage_plan"] != nil {
+		tempUsagePlan := data["usage_plan"].(map[string]interface{})
 
-				allFields := []string{
-					"usage_plan_name",
-"usage_plan_id",
-"usage_plan_description",
-"tenant_id",
-"rate_rps",
-"quota_condition",
-"permission",
-"month_quota_request",
-"modifier",
-"domain_code",
-"disabled",
-"day_quota_request",
-"associated_stages_count",
-"action_name",
+		allFields := []string{
+			"usage_plan_name",
+			"usage_plan_id",
+			"usage_plan_description",
+			"tenant_id",
+			"rate_rps",
+			"quota_condition",
+			"permission",
+			"month_quota_request",
+			"modifier",
+			"domain_code",
+			"disabled",
+			"day_quota_request",
+			"associated_stages_count",
+			"action_name",
+		}
 
-				}
-
-				convertedMap := make(map[string]interface{})
-				for _, field := range allFields {
-					if val, ok := tempUsagePlan[field]; ok {
-						convertedMap[field] = val
-					}
-				}
-
-				convertedTempUsagePlan, err := convertToObject_PUTUsageplansUsageplanid(ctx, convertedMap)
-				if err != nil {
-					return nil, err
-				}
-
-				dto.UsagePlan = diagOff(types.ObjectValueFrom, ctx, types.ObjectType{AttrTypes: map[string]attr.Type{
-					"usage_plan_name": types.StringType,
-"usage_plan_id": types.StringType,
-"usage_plan_description": types.StringType,
-"tenant_id": types.StringType,
-"rate_rps": types.Int32Type,
-"quota_condition": types.StringType,
-"permission": types.StringType,
-"month_quota_request": types.Int64Type,
-"modifier": types.StringType,
-"domain_code": types.StringType,
-"disabled": types.BoolType,
-"day_quota_request": types.Int64Type,
-"associated_stages_count": types.Int64Type,
-"action_name": types.StringType,
-
-				}}.AttributeTypes(), convertedTempUsagePlan)
+		convertedMap := make(map[string]interface{})
+		for _, field := range allFields {
+			if val, ok := tempUsagePlan[field]; ok {
+				convertedMap[field] = val
 			}
+		}
 
+		convertedTempUsagePlan, err := convertToObject_PUTUsageplansUsageplanid(ctx, convertedMap)
+		if err != nil {
+			return nil, err
+		}
+
+		dto.UsagePlan = diagOff(types.ObjectValueFrom, ctx, types.ObjectType{AttrTypes: map[string]attr.Type{
+			"usage_plan_name":         types.StringType,
+			"usage_plan_id":           types.StringType,
+			"usage_plan_description":  types.StringType,
+			"tenant_id":               types.StringType,
+			"rate_rps":                types.Int32Type,
+			"quota_condition":         types.StringType,
+			"permission":              types.StringType,
+			"month_quota_request":     types.Int64Type,
+			"modifier":                types.StringType,
+			"domain_code":             types.StringType,
+			"disabled":                types.BoolType,
+			"day_quota_request":       types.Int64Type,
+			"associated_stages_count": types.Int64Type,
+			"action_name":             types.StringType,
+		}}.AttributeTypes(), convertedTempUsagePlan)
+	}
 
 	return &dto, nil
 }
@@ -201,23 +189,21 @@ func convertToObject_PUTUsageplansUsageplanid(ctx context.Context, data map[stri
 	attrTypes := make(map[string]attr.Type)
 	attrValues := make(map[string]attr.Value)
 
-    possibleTypes := map[string]attr.Type{
-        "usage_plan_name": types.StringType,
-"usage_plan_id": types.StringType,
-"usage_plan_description": types.StringType,
-"tenant_id": types.StringType,
-"rate_rps": types.Int32Type,
-"quota_condition": types.StringType,
-"permission": types.StringType,
-"month_quota_request": types.Int64Type,
-"modifier": types.StringType,
-"domain_code": types.StringType,
-"disabled": types.BoolType,
-"day_quota_request": types.Int64Type,
-"associated_stages_count": types.Int64Type,
-"action_name": types.StringType,
-
-
+	possibleTypes := map[string]attr.Type{
+		"usage_plan_name":         types.StringType,
+		"usage_plan_id":           types.StringType,
+		"usage_plan_description":  types.StringType,
+		"tenant_id":               types.StringType,
+		"rate_rps":                types.Int32Type,
+		"quota_condition":         types.StringType,
+		"permission":              types.StringType,
+		"month_quota_request":     types.Int64Type,
+		"modifier":                types.StringType,
+		"domain_code":             types.StringType,
+		"disabled":                types.BoolType,
+		"day_quota_request":       types.Int64Type,
+		"associated_stages_count": types.Int64Type,
+		"action_name":             types.StringType,
 	}
 
 	for field, fieldType := range possibleTypes {
@@ -225,15 +211,12 @@ func convertToObject_PUTUsageplansUsageplanid(ctx context.Context, data map[stri
 
 		if value, exists := data[field]; exists {
 
-			
-
 			attrValue, err := convertValueToAttr_PUTUsageplansUsageplanid(value)
 			if err != nil {
 				return types.Object{}, fmt.Errorf("error converting field %s: %v", field, err)
 			}
 			attrValues[field] = attrValue
 		} else {
-            
 
 			switch fieldType {
 			case types.StringType:
@@ -256,21 +239,20 @@ func convertToObject_PUTUsageplansUsageplanid(ctx context.Context, data map[stri
 }
 
 func convertValueToAttr_PUTUsageplansUsageplanid(value interface{}) (attr.Value, error) {
-     switch v := value.(type) {
-     case string:
-         return types.StringValue(v), nil
-     case int32:
-         return types.Int32Value(v), nil
-     case int64:
-         return types.Int64Value(v), nil
-     case float64:
-         return types.Float64Value(v), nil
-     case bool:
-         return types.BoolValue(v), nil
-     case nil:
-         return types.StringNull(), nil
-     default:
-         return nil, fmt.Errorf("unsupported type: %T", value)
-     }
+	switch v := value.(type) {
+	case string:
+		return types.StringValue(v), nil
+	case int32:
+		return types.Int32Value(v), nil
+	case int64:
+		return types.Int64Value(v), nil
+	case float64:
+		return types.Float64Value(v), nil
+	case bool:
+		return types.BoolValue(v), nil
+	case nil:
+		return types.StringNull(), nil
+	default:
+		return nil, fmt.Errorf("unsupported type: %T", value)
+	}
 }
-

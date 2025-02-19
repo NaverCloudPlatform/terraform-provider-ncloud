@@ -1,4 +1,3 @@
-
 /* =================================================================================
  * NCLOUD SDK LAYER FOR TERRAFORM CODEGEN - DO NOT EDIT
  * =================================================================================
@@ -27,17 +26,15 @@ import (
 )
 
 type PrimitiveGETAuthorizersRequest struct {
-    Limit int64 `json:"limit"`
-Name string `json:"name"`
-Offset int64 `json:"offset"`
-
+	Limit  int64  `json:"limit"`
+	Name   string `json:"name"`
+	Offset int64  `json:"offset"`
 }
 
 type StringifiedGETAuthorizersRequest struct {
-	Limit string `json:"limit"`
-Name string `json:"name"`
-Offset string `json:"offset"`
-
+	Limit  string `json:"limit"`
+	Name   string `json:"name"`
+	Offset string `json:"offset"`
 }
 
 func (n *NClient) GETAuthorizers(ctx context.Context, primitiveReq *PrimitiveGETAuthorizersRequest) (map[string]interface{}, error) {
@@ -49,21 +46,17 @@ func (n *NClient) GETAuthorizers(ctx context.Context, primitiveReq *PrimitiveGET
 		return nil, err
 	}
 
- 	
-				if r.Limit!= "" {
-					query["limit"] = r.Limit
-				}
+	if r.Limit != "" {
+		query["limit"] = r.Limit
+	}
 
-				if r.Name!= "" {
-					query["name"] = r.Name
-				}
+	if r.Name != "" {
+		query["name"] = r.Name
+	}
 
-				if r.Offset!= "" {
-					query["offset"] = r.Offset
-				}
-
-
-	
+	if r.Offset != "" {
+		query["offset"] = r.Offset
+	}
 
 	rawBody, err := json.Marshal(initBody)
 	if err != nil {
@@ -72,7 +65,7 @@ func (n *NClient) GETAuthorizers(ctx context.Context, primitiveReq *PrimitiveGET
 
 	body := strings.Replace(string(rawBody), `\"`, "", -1)
 
-	url := n.BaseURL +"/"+"authorizers"
+	url := n.BaseURL + "/" + "authorizers"
 
 	response, err := n.MakeRequestWithContext(ctx, "GET", url, body, query)
 	if err != nil {
@@ -101,7 +94,6 @@ func (n *NClient) GETAuthorizers_TF(ctx context.Context, r *PrimitiveGETAuthoriz
 	return res, nil
 }
 
-
 /* =================================================================================
  * NCLOUD SDK LAYER FOR TERRAFORM CODEGEN - DO NOT EDIT
  * =================================================================================
@@ -116,41 +108,35 @@ func (n *NClient) GETAuthorizers_TF(ctx context.Context, r *PrimitiveGETAuthoriz
  * ================================================================================= */
 
 type GETAuthorizersResponse struct {
-    Total         types.Int64`tfsdk:"total"`
-Initialcount         types.Int64`tfsdk:"initial_count"`
-Authorizers         types.List `tfsdk:"authorizers"`
-
+	Total        types.Int64 `tfsdk:"total"`
+	Initialcount types.Int64 `tfsdk:"initial_count"`
+	Authorizers  types.List  `tfsdk:"authorizers"`
 }
 
 func ConvertToFrameworkTypes_GETAuthorizers(ctx context.Context, data map[string]interface{}) (*GETAuthorizersResponse, error) {
 	var dto GETAuthorizersResponse
 
-    
-				if data["total"] != nil {
-					dto.Total = types.Int64Value(data["total"].(int64))
-				}
+	if data["total"] != nil {
+		dto.Total = types.Int64Value(data["total"].(int64))
+	}
 
-				if data["initial_count"] != nil {
-					dto.Initialcount = types.Int64Value(data["initial_count"].(int64))
-				}
+	if data["initial_count"] != nil {
+		dto.Initialcount = types.Int64Value(data["initial_count"].(int64))
+	}
 
-				if data["authorizers"] != nil {
-					tempAuthorizers := data["authorizers"].([]interface{})
-					dto.Authorizers = diagOff(types.ListValueFrom, ctx, types.ListType{ElemType:
-						
-	types.ObjectType{AttrTypes: map[string]attr.Type{
-		
-		"permission": types.StringType,
-"disabled": types.BoolType,
-"authorizer_name": types.StringType,
-"authorizer_id": types.StringType,
-"authorizer_description": types.StringType,
-"action_name": types.StringType,
+	if data["authorizers"] != nil {
+		tempAuthorizers := data["authorizers"].([]interface{})
+		dto.Authorizers = diagOff(types.ListValueFrom, ctx, types.ListType{ElemType: types.ObjectType{AttrTypes: map[string]attr.Type{
 
-	},
-
-					}}.ElementType(), tempAuthorizers)
-				}
+			"permission":             types.StringType,
+			"disabled":               types.BoolType,
+			"authorizer_name":        types.StringType,
+			"authorizer_id":          types.StringType,
+			"authorizer_description": types.StringType,
+			"action_name":            types.StringType,
+		},
+		}}.ElementType(), tempAuthorizers)
+	}
 
 	return &dto, nil
 }
@@ -159,16 +145,12 @@ func convertToObject_GETAuthorizers(ctx context.Context, data map[string]interfa
 	attrTypes := make(map[string]attr.Type)
 	attrValues := make(map[string]attr.Value)
 
-    possibleTypes := map[string]attr.Type{
-        
-	}
+	possibleTypes := map[string]attr.Type{}
 
 	for field, fieldType := range possibleTypes {
 		attrTypes[field] = fieldType
 
 		if value, exists := data[field]; exists {
-
-			
 
 			attrValue, err := convertValueToAttr_GETAuthorizers(value)
 			if err != nil {
@@ -176,7 +158,6 @@ func convertToObject_GETAuthorizers(ctx context.Context, data map[string]interfa
 			}
 			attrValues[field] = attrValue
 		} else {
-            
 
 			switch fieldType {
 			case types.StringType:
@@ -199,21 +180,20 @@ func convertToObject_GETAuthorizers(ctx context.Context, data map[string]interfa
 }
 
 func convertValueToAttr_GETAuthorizers(value interface{}) (attr.Value, error) {
-     switch v := value.(type) {
-     case string:
-         return types.StringValue(v), nil
-     case int32:
-         return types.Int32Value(v), nil
-     case int64:
-         return types.Int64Value(v), nil
-     case float64:
-         return types.Float64Value(v), nil
-     case bool:
-         return types.BoolValue(v), nil
-     case nil:
-         return types.StringNull(), nil
-     default:
-         return nil, fmt.Errorf("unsupported type: %T", value)
-     }
+	switch v := value.(type) {
+	case string:
+		return types.StringValue(v), nil
+	case int32:
+		return types.Int32Value(v), nil
+	case int64:
+		return types.Int64Value(v), nil
+	case float64:
+		return types.Float64Value(v), nil
+	case bool:
+		return types.BoolValue(v), nil
+	case nil:
+		return types.StringNull(), nil
+	default:
+		return nil, fmt.Errorf("unsupported type: %T", value)
+	}
 }
-

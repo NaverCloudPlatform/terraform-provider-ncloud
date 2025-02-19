@@ -1,4 +1,3 @@
-
 /* =================================================================================
  * NCLOUD SDK LAYER FOR TERRAFORM CODEGEN - DO NOT EDIT
  * ================================================================================= */
@@ -79,7 +78,7 @@ func (n *NClient) MakeRequestWithContext(ctx context.Context, method, endpoint, 
 	}
 	defer resp.Body.Close()
 
-	// Check if resp NoContent 
+	// Check if resp NoContent
 	if resp.StatusCode == http.StatusNoContent {
 		return map[string]interface{}{}, nil
 	}
@@ -1097,4 +1096,3 @@ func ConvertStructToStringMap(input interface{}) (interface{}, error) {
 
 	return result, nil
 }
-

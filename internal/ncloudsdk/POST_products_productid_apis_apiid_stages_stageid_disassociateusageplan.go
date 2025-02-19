@@ -1,4 +1,3 @@
-
 /* =================================================================================
  * NCLOUD SDK LAYER FOR TERRAFORM CODEGEN - DO NOT EDIT
  * =================================================================================
@@ -27,19 +26,17 @@ import (
 )
 
 type PrimitivePOSTProductsProductidApisApiidStagesStageidDisassociateusageplanRequest struct {
-    Productid string `json:"product-id"`
-Apiid string `json:"api-id"`
-Stageid string `json:"stage-id"`
-UsagePlanId string `json:"usagePlanId"`
-
+	Productid   string `json:"product-id"`
+	Apiid       string `json:"api-id"`
+	Stageid     string `json:"stage-id"`
+	UsagePlanId string `json:"usagePlanId"`
 }
 
 type StringifiedPOSTProductsProductidApisApiidStagesStageidDisassociateusageplanRequest struct {
-	Productid string `json:"product-id"`
-Apiid string `json:"api-id"`
-Stageid string `json:"stage-id"`
-UsagePlanId string `json:"usagePlanId"`
-
+	Productid   string `json:"product-id"`
+	Apiid       string `json:"api-id"`
+	Stageid     string `json:"stage-id"`
+	UsagePlanId string `json:"usagePlanId"`
 }
 
 func (n *NClient) POSTProductsProductidApisApiidStagesStageidDisassociateusageplan(ctx context.Context, primitiveReq *PrimitivePOSTProductsProductidApisApiidStagesStageidDisassociateusageplanRequest) (map[string]interface{}, error) {
@@ -51,10 +48,7 @@ func (n *NClient) POSTProductsProductidApisApiidStagesStageidDisassociateusagepl
 		return nil, err
 	}
 
- 	
-
 	initBody["usagePlanId"] = r.UsagePlanId
-
 
 	rawBody, err := json.Marshal(initBody)
 	if err != nil {
@@ -63,7 +57,7 @@ func (n *NClient) POSTProductsProductidApisApiidStagesStageidDisassociateusagepl
 
 	body := strings.Replace(string(rawBody), `\"`, "", -1)
 
-	url := n.BaseURL +"/"+"products"+"/"+ClearDoubleQuote(r.Productid)+"/"+"apis"+"/"+ClearDoubleQuote(r.Apiid)+"/"+"stages"+"/"+ClearDoubleQuote(r.Stageid)+"/"+"disassociate-usage-plan"
+	url := n.BaseURL + "/" + "products" + "/" + ClearDoubleQuote(r.Productid) + "/" + "apis" + "/" + ClearDoubleQuote(r.Apiid) + "/" + "stages" + "/" + ClearDoubleQuote(r.Stageid) + "/" + "disassociate-usage-plan"
 
 	response, err := n.MakeRequestWithContext(ctx, "POST", url, body, query)
 	if err != nil {
@@ -92,7 +86,6 @@ func (n *NClient) POSTProductsProductidApisApiidStagesStageidDisassociateusagepl
 	return res, nil
 }
 
-
 /* =================================================================================
  * NCLOUD SDK LAYER FOR TERRAFORM CODEGEN - DO NOT EDIT
  * =================================================================================
@@ -107,13 +100,10 @@ func (n *NClient) POSTProductsProductidApisApiidStagesStageidDisassociateusagepl
  * ================================================================================= */
 
 type POSTProductsProductidApisApiidStagesStageidDisassociateusageplanResponse struct {
-    
 }
 
 func ConvertToFrameworkTypes_POSTProductsProductidApisApiidStagesStageidDisassociateusageplan(ctx context.Context, data map[string]interface{}) (*POSTProductsProductidApisApiidStagesStageidDisassociateusageplanResponse, error) {
 	var dto POSTProductsProductidApisApiidStagesStageidDisassociateusageplanResponse
-
-    
 
 	return &dto, nil
 }
@@ -122,16 +112,12 @@ func convertToObject_POSTProductsProductidApisApiidStagesStageidDisassociateusag
 	attrTypes := make(map[string]attr.Type)
 	attrValues := make(map[string]attr.Value)
 
-    possibleTypes := map[string]attr.Type{
-        
-	}
+	possibleTypes := map[string]attr.Type{}
 
 	for field, fieldType := range possibleTypes {
 		attrTypes[field] = fieldType
 
 		if value, exists := data[field]; exists {
-
-			
 
 			attrValue, err := convertValueToAttr_POSTProductsProductidApisApiidStagesStageidDisassociateusageplan(value)
 			if err != nil {
@@ -139,7 +125,6 @@ func convertToObject_POSTProductsProductidApisApiidStagesStageidDisassociateusag
 			}
 			attrValues[field] = attrValue
 		} else {
-            
 
 			switch fieldType {
 			case types.StringType:
@@ -162,21 +147,20 @@ func convertToObject_POSTProductsProductidApisApiidStagesStageidDisassociateusag
 }
 
 func convertValueToAttr_POSTProductsProductidApisApiidStagesStageidDisassociateusageplan(value interface{}) (attr.Value, error) {
-     switch v := value.(type) {
-     case string:
-         return types.StringValue(v), nil
-     case int32:
-         return types.Int32Value(v), nil
-     case int64:
-         return types.Int64Value(v), nil
-     case float64:
-         return types.Float64Value(v), nil
-     case bool:
-         return types.BoolValue(v), nil
-     case nil:
-         return types.StringNull(), nil
-     default:
-         return nil, fmt.Errorf("unsupported type: %T", value)
-     }
+	switch v := value.(type) {
+	case string:
+		return types.StringValue(v), nil
+	case int32:
+		return types.Int32Value(v), nil
+	case int64:
+		return types.Int64Value(v), nil
+	case float64:
+		return types.Float64Value(v), nil
+	case bool:
+		return types.BoolValue(v), nil
+	case nil:
+		return types.StringNull(), nil
+	default:
+		return nil, fmt.Errorf("unsupported type: %T", value)
+	}
 }
-

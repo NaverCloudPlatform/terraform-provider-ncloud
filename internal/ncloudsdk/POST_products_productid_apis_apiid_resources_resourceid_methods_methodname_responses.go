@@ -1,4 +1,3 @@
-
 /* =================================================================================
  * NCLOUD SDK LAYER FOR TERRAFORM CODEGEN - DO NOT EDIT
  * =================================================================================
@@ -27,23 +26,21 @@ import (
 )
 
 type PrimitivePOSTProductsProductidApisApiidResourcesResourceidMethodsMethodnameResponsesRequest struct {
-    Productid string `json:"product-id"`
-Apiid string `json:"api-id"`
-Resourceid string `json:"resource-id"`
-Methodname string `json:"method-name"`
-ResponseDescription string `json:"responseDescription"`
-StatusCode int32 `json:"statusCode"`
-
+	Productid           string `json:"product-id"`
+	Apiid               string `json:"api-id"`
+	Resourceid          string `json:"resource-id"`
+	Methodname          string `json:"method-name"`
+	ResponseDescription string `json:"responseDescription"`
+	StatusCode          int32  `json:"statusCode"`
 }
 
 type StringifiedPOSTProductsProductidApisApiidResourcesResourceidMethodsMethodnameResponsesRequest struct {
-	Productid string `json:"product-id"`
-Apiid string `json:"api-id"`
-Resourceid string `json:"resource-id"`
-Methodname string `json:"method-name"`
-ResponseDescription string `json:"responseDescription"`
-StatusCode string `json:"statusCode"`
-
+	Productid           string `json:"product-id"`
+	Apiid               string `json:"api-id"`
+	Resourceid          string `json:"resource-id"`
+	Methodname          string `json:"method-name"`
+	ResponseDescription string `json:"responseDescription"`
+	StatusCode          string `json:"statusCode"`
 }
 
 func (n *NClient) POSTProductsProductidApisApiidResourcesResourceidMethodsMethodnameResponses(ctx context.Context, primitiveReq *PrimitivePOSTProductsProductidApisApiidResourcesResourceidMethodsMethodnameResponsesRequest) (map[string]interface{}, error) {
@@ -55,14 +52,10 @@ func (n *NClient) POSTProductsProductidApisApiidResourcesResourceidMethodsMethod
 		return nil, err
 	}
 
- 	
-
-	
-			if r.ResponseDescription != "" {
-				initBody["responseDescription"] = r.ResponseDescription
-			}
-initBody["statusCode"] = r.StatusCode
-
+	if r.ResponseDescription != "" {
+		initBody["responseDescription"] = r.ResponseDescription
+	}
+	initBody["statusCode"] = r.StatusCode
 
 	rawBody, err := json.Marshal(initBody)
 	if err != nil {
@@ -71,7 +64,7 @@ initBody["statusCode"] = r.StatusCode
 
 	body := strings.Replace(string(rawBody), `\"`, "", -1)
 
-	url := n.BaseURL +"/"+"products"+"/"+ClearDoubleQuote(r.Productid)+"/"+"apis"+"/"+ClearDoubleQuote(r.Apiid)+"/"+"resources"+"/"+ClearDoubleQuote(r.Resourceid)+"/"+"methods"+"/"+ClearDoubleQuote(r.Methodname)+"/"+"responses"
+	url := n.BaseURL + "/" + "products" + "/" + ClearDoubleQuote(r.Productid) + "/" + "apis" + "/" + ClearDoubleQuote(r.Apiid) + "/" + "resources" + "/" + ClearDoubleQuote(r.Resourceid) + "/" + "methods" + "/" + ClearDoubleQuote(r.Methodname) + "/" + "responses"
 
 	response, err := n.MakeRequestWithContext(ctx, "POST", url, body, query)
 	if err != nil {
@@ -100,7 +93,6 @@ func (n *NClient) POSTProductsProductidApisApiidResourcesResourceidMethodsMethod
 	return res, nil
 }
 
-
 /* =================================================================================
  * NCLOUD SDK LAYER FOR TERRAFORM CODEGEN - DO NOT EDIT
  * =================================================================================
@@ -115,52 +107,47 @@ func (n *NClient) POSTProductsProductidApisApiidResourcesResourceidMethodsMethod
  * ================================================================================= */
 
 type POSTProductsProductidApisApiidResourcesResourceidMethodsMethodnameResponsesResponse struct {
-    MethodResponseDto         types.Object `tfsdk:"method_response_dto"`
-
+	MethodResponseDto types.Object `tfsdk:"method_response_dto"`
 }
 
 func ConvertToFrameworkTypes_POSTProductsProductidApisApiidResourcesResourceidMethodsMethodnameResponses(ctx context.Context, data map[string]interface{}) (*POSTProductsProductidApisApiidResourcesResourceidMethodsMethodnameResponsesResponse, error) {
 	var dto POSTProductsProductidApisApiidResourcesResourceidMethodsMethodnameResponsesResponse
 
-    
-			if data["method_response_dto"] != nil {
-				tempMethodResponseDto := data["method_response_dto"].(map[string]interface{})
+	if data["method_response_dto"] != nil {
+		tempMethodResponseDto := data["method_response_dto"].(map[string]interface{})
 
-				allFields := []string{
-					"tenant_id",
-"status_code",
-"response_description",
-"resource_id",
-"modifier",
-"method_code",
-"api_id",
+		allFields := []string{
+			"tenant_id",
+			"status_code",
+			"response_description",
+			"resource_id",
+			"modifier",
+			"method_code",
+			"api_id",
+		}
 
-				}
-
-				convertedMap := make(map[string]interface{})
-				for _, field := range allFields {
-					if val, ok := tempMethodResponseDto[field]; ok {
-						convertedMap[field] = val
-					}
-				}
-
-				convertedTempMethodResponseDto, err := convertToObject_POSTProductsProductidApisApiidResourcesResourceidMethodsMethodnameResponses(ctx, convertedMap)
-				if err != nil {
-					return nil, err
-				}
-
-				dto.MethodResponseDto = diagOff(types.ObjectValueFrom, ctx, types.ObjectType{AttrTypes: map[string]attr.Type{
-					"tenant_id": types.StringType,
-"status_code": types.Int32Type,
-"response_description": types.StringType,
-"resource_id": types.StringType,
-"modifier": types.StringType,
-"method_code": types.StringType,
-"api_id": types.StringType,
-
-				}}.AttributeTypes(), convertedTempMethodResponseDto)
+		convertedMap := make(map[string]interface{})
+		for _, field := range allFields {
+			if val, ok := tempMethodResponseDto[field]; ok {
+				convertedMap[field] = val
 			}
+		}
 
+		convertedTempMethodResponseDto, err := convertToObject_POSTProductsProductidApisApiidResourcesResourceidMethodsMethodnameResponses(ctx, convertedMap)
+		if err != nil {
+			return nil, err
+		}
+
+		dto.MethodResponseDto = diagOff(types.ObjectValueFrom, ctx, types.ObjectType{AttrTypes: map[string]attr.Type{
+			"tenant_id":            types.StringType,
+			"status_code":          types.Int32Type,
+			"response_description": types.StringType,
+			"resource_id":          types.StringType,
+			"modifier":             types.StringType,
+			"method_code":          types.StringType,
+			"api_id":               types.StringType,
+		}}.AttributeTypes(), convertedTempMethodResponseDto)
+	}
 
 	return &dto, nil
 }
@@ -169,16 +156,14 @@ func convertToObject_POSTProductsProductidApisApiidResourcesResourceidMethodsMet
 	attrTypes := make(map[string]attr.Type)
 	attrValues := make(map[string]attr.Value)
 
-    possibleTypes := map[string]attr.Type{
-        "tenant_id": types.StringType,
-"status_code": types.Int32Type,
-"response_description": types.StringType,
-"resource_id": types.StringType,
-"modifier": types.StringType,
-"method_code": types.StringType,
-"api_id": types.StringType,
-
-
+	possibleTypes := map[string]attr.Type{
+		"tenant_id":            types.StringType,
+		"status_code":          types.Int32Type,
+		"response_description": types.StringType,
+		"resource_id":          types.StringType,
+		"modifier":             types.StringType,
+		"method_code":          types.StringType,
+		"api_id":               types.StringType,
 	}
 
 	for field, fieldType := range possibleTypes {
@@ -186,15 +171,12 @@ func convertToObject_POSTProductsProductidApisApiidResourcesResourceidMethodsMet
 
 		if value, exists := data[field]; exists {
 
-			
-
 			attrValue, err := convertValueToAttr_POSTProductsProductidApisApiidResourcesResourceidMethodsMethodnameResponses(value)
 			if err != nil {
 				return types.Object{}, fmt.Errorf("error converting field %s: %v", field, err)
 			}
 			attrValues[field] = attrValue
 		} else {
-            
 
 			switch fieldType {
 			case types.StringType:
@@ -217,21 +199,20 @@ func convertToObject_POSTProductsProductidApisApiidResourcesResourceidMethodsMet
 }
 
 func convertValueToAttr_POSTProductsProductidApisApiidResourcesResourceidMethodsMethodnameResponses(value interface{}) (attr.Value, error) {
-     switch v := value.(type) {
-     case string:
-         return types.StringValue(v), nil
-     case int32:
-         return types.Int32Value(v), nil
-     case int64:
-         return types.Int64Value(v), nil
-     case float64:
-         return types.Float64Value(v), nil
-     case bool:
-         return types.BoolValue(v), nil
-     case nil:
-         return types.StringNull(), nil
-     default:
-         return nil, fmt.Errorf("unsupported type: %T", value)
-     }
+	switch v := value.(type) {
+	case string:
+		return types.StringValue(v), nil
+	case int32:
+		return types.Int32Value(v), nil
+	case int64:
+		return types.Int64Value(v), nil
+	case float64:
+		return types.Float64Value(v), nil
+	case bool:
+		return types.BoolValue(v), nil
+	case nil:
+		return types.StringNull(), nil
+	default:
+		return nil, fmt.Errorf("unsupported type: %T", value)
+	}
 }
-

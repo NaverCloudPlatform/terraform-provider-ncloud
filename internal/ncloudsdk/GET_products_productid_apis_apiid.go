@@ -1,4 +1,3 @@
-
 /* =================================================================================
  * NCLOUD SDK LAYER FOR TERRAFORM CODEGEN - DO NOT EDIT
  * =================================================================================
@@ -27,15 +26,13 @@ import (
 )
 
 type PrimitiveGETProductsProductidApisApiidRequest struct {
-    Productid string `json:"product-id"`
-Apiid string `json:"api-id"`
-
+	Productid string `json:"product-id"`
+	Apiid     string `json:"api-id"`
 }
 
 type StringifiedGETProductsProductidApisApiidRequest struct {
 	Productid string `json:"product-id"`
-Apiid string `json:"api-id"`
-
+	Apiid     string `json:"api-id"`
 }
 
 func (n *NClient) GETProductsProductidApisApiid(ctx context.Context, primitiveReq *PrimitiveGETProductsProductidApisApiidRequest) (map[string]interface{}, error) {
@@ -47,10 +44,6 @@ func (n *NClient) GETProductsProductidApisApiid(ctx context.Context, primitiveRe
 		return nil, err
 	}
 
- 	
-
-	
-
 	rawBody, err := json.Marshal(initBody)
 	if err != nil {
 		return nil, err
@@ -58,7 +51,7 @@ func (n *NClient) GETProductsProductidApisApiid(ctx context.Context, primitiveRe
 
 	body := strings.Replace(string(rawBody), `\"`, "", -1)
 
-	url := n.BaseURL +"/"+"products"+"/"+ClearDoubleQuote(r.Productid)+"/"+"apis"+"/"+ClearDoubleQuote(r.Apiid)
+	url := n.BaseURL + "/" + "products" + "/" + ClearDoubleQuote(r.Productid) + "/" + "apis" + "/" + ClearDoubleQuote(r.Apiid)
 
 	response, err := n.MakeRequestWithContext(ctx, "GET", url, body, query)
 	if err != nil {
@@ -87,7 +80,6 @@ func (n *NClient) GETProductsProductidApisApiid_TF(ctx context.Context, r *Primi
 	return res, nil
 }
 
-
 /* =================================================================================
  * NCLOUD SDK LAYER FOR TERRAFORM CODEGEN - DO NOT EDIT
  * =================================================================================
@@ -102,75 +94,67 @@ func (n *NClient) GETProductsProductidApisApiid_TF(ctx context.Context, r *Primi
  * ================================================================================= */
 
 type GETProductsProductidApisApiidResponse struct {
-    Api         types.Object `tfsdk:"api"`
-
+	Api types.Object `tfsdk:"api"`
 }
 
 func ConvertToFrameworkTypes_GETProductsProductidApisApiid(ctx context.Context, data map[string]interface{}) (*GETProductsProductidApisApiidResponse, error) {
 	var dto GETProductsProductidApisApiidResponse
 
-    
-			if data["api"] != nil {
-				tempApi := data["api"].(map[string]interface{})
+	if data["api"] != nil {
+		tempApi := data["api"].(map[string]interface{})
 
-				allFields := []string{
-					"tenant_id",
-"stages",
-"product_id",
-"permission",
-"modifier",
-"mod_time",
-"is_deleted",
-"domain_code",
-"disabled",
-"api_name",
-"api_id",
-"api_description",
-"action_name",
+		allFields := []string{
+			"tenant_id",
+			"stages",
+			"product_id",
+			"permission",
+			"modifier",
+			"mod_time",
+			"is_deleted",
+			"domain_code",
+			"disabled",
+			"api_name",
+			"api_id",
+			"api_description",
+			"action_name",
+		}
 
-				}
-
-				convertedMap := make(map[string]interface{})
-				for _, field := range allFields {
-					if val, ok := tempApi[field]; ok {
-						convertedMap[field] = val
-					}
-				}
-
-				convertedTempApi, err := convertToObject_GETProductsProductidApisApiid(ctx, convertedMap)
-				if err != nil {
-					return nil, err
-				}
-
-				dto.Api = diagOff(types.ObjectValueFrom, ctx, types.ObjectType{AttrTypes: map[string]attr.Type{
-					"tenant_id": types.StringType,
-
-			"stages": types.ListType{ElemType:
-				
-	types.ObjectType{AttrTypes: map[string]attr.Type{
-		
-		"stage_name": types.StringType,
-"stage_id": types.StringType,
-"is_published": types.BoolType,
-"api_id": types.StringType,
-
-	},
-			}},
-"product_id": types.StringType,
-"permission": types.StringType,
-"modifier": types.StringType,
-"mod_time": types.StringType,
-"is_deleted": types.BoolType,
-"domain_code": types.StringType,
-"disabled": types.BoolType,
-"api_name": types.StringType,
-"api_id": types.StringType,
-"api_description": types.StringType,
-"action_name": types.StringType,
-
-				}}.AttributeTypes(), convertedTempApi)
+		convertedMap := make(map[string]interface{})
+		for _, field := range allFields {
+			if val, ok := tempApi[field]; ok {
+				convertedMap[field] = val
 			}
+		}
 
+		convertedTempApi, err := convertToObject_GETProductsProductidApisApiid(ctx, convertedMap)
+		if err != nil {
+			return nil, err
+		}
+
+		dto.Api = diagOff(types.ObjectValueFrom, ctx, types.ObjectType{AttrTypes: map[string]attr.Type{
+			"tenant_id": types.StringType,
+
+			"stages": types.ListType{ElemType: types.ObjectType{AttrTypes: map[string]attr.Type{
+
+				"stage_name":   types.StringType,
+				"stage_id":     types.StringType,
+				"is_published": types.BoolType,
+				"api_id":       types.StringType,
+			},
+			}},
+			"product_id":      types.StringType,
+			"permission":      types.StringType,
+			"modifier":        types.StringType,
+			"mod_time":        types.StringType,
+			"is_deleted":      types.BoolType,
+			"domain_code":     types.StringType,
+			"disabled":        types.BoolType,
+			"api_name":        types.StringType,
+			"api_id":          types.StringType,
+			"api_description": types.StringType,
+			"action_name":     types.StringType,
+		}}.AttributeTypes(), convertedTempApi)
+	}
 
 	return &dto, nil
 }
@@ -179,33 +163,28 @@ func convertToObject_GETProductsProductidApisApiid(ctx context.Context, data map
 	attrTypes := make(map[string]attr.Type)
 	attrValues := make(map[string]attr.Value)
 
-    possibleTypes := map[string]attr.Type{
-        "tenant_id": types.StringType,
+	possibleTypes := map[string]attr.Type{
+		"tenant_id": types.StringType,
 
-			"stages": types.ListType{ElemType:
-				
-	types.ObjectType{AttrTypes: map[string]attr.Type{
-		
-		"stage_name": types.StringType,
-"stage_id": types.StringType,
-"is_published": types.BoolType,
-"api_id": types.StringType,
+		"stages": types.ListType{ElemType: types.ObjectType{AttrTypes: map[string]attr.Type{
 
-	},
-			}},
-"product_id": types.StringType,
-"permission": types.StringType,
-"modifier": types.StringType,
-"mod_time": types.StringType,
-"is_deleted": types.BoolType,
-"domain_code": types.StringType,
-"disabled": types.BoolType,
-"api_name": types.StringType,
-"api_id": types.StringType,
-"api_description": types.StringType,
-"action_name": types.StringType,
-
-
+			"stage_name":   types.StringType,
+			"stage_id":     types.StringType,
+			"is_published": types.BoolType,
+			"api_id":       types.StringType,
+		},
+		}},
+		"product_id":      types.StringType,
+		"permission":      types.StringType,
+		"modifier":        types.StringType,
+		"mod_time":        types.StringType,
+		"is_deleted":      types.BoolType,
+		"domain_code":     types.StringType,
+		"disabled":        types.BoolType,
+		"api_name":        types.StringType,
+		"api_id":          types.StringType,
+		"api_description": types.StringType,
+		"action_name":     types.StringType,
 	}
 
 	for field, fieldType := range possibleTypes {
@@ -213,19 +192,16 @@ func convertToObject_GETProductsProductidApisApiid(ctx context.Context, data map
 
 		if value, exists := data[field]; exists {
 
-			
 			if field == "stages" && len(value.([]interface{})) == 0 {
 				listV := types.ListNull(types.ObjectNull(map[string]attr.Type{
-					"stage_name": types.StringType,
-"stage_id": types.StringType,
-"is_published": types.BoolType,
-"api_id": types.StringType,
-
+					"stage_name":   types.StringType,
+					"stage_id":     types.StringType,
+					"is_published": types.BoolType,
+					"api_id":       types.StringType,
 				}).Type(ctx))
 				attrValues[field] = listV
 				continue
 			}
-
 
 			attrValue, err := convertValueToAttr_GETProductsProductidApisApiid(value)
 			if err != nil {
@@ -233,19 +209,17 @@ func convertToObject_GETProductsProductidApisApiid(ctx context.Context, data map
 			}
 			attrValues[field] = attrValue
 		} else {
-            
-				if field == "stages" {
-					listV := types.ListNull(types.ObjectNull(map[string]attr.Type{
-						"stage_name": types.StringType,
-"stage_id": types.StringType,
-"is_published": types.BoolType,
-"api_id": types.StringType,
 
-					}).Type(ctx))
-					attrValues[field] = listV
-					continue
-				}
-
+			if field == "stages" {
+				listV := types.ListNull(types.ObjectNull(map[string]attr.Type{
+					"stage_name":   types.StringType,
+					"stage_id":     types.StringType,
+					"is_published": types.BoolType,
+					"api_id":       types.StringType,
+				}).Type(ctx))
+				attrValues[field] = listV
+				continue
+			}
 
 			switch fieldType {
 			case types.StringType:
@@ -268,21 +242,20 @@ func convertToObject_GETProductsProductidApisApiid(ctx context.Context, data map
 }
 
 func convertValueToAttr_GETProductsProductidApisApiid(value interface{}) (attr.Value, error) {
-     switch v := value.(type) {
-     case string:
-         return types.StringValue(v), nil
-     case int32:
-         return types.Int32Value(v), nil
-     case int64:
-         return types.Int64Value(v), nil
-     case float64:
-         return types.Float64Value(v), nil
-     case bool:
-         return types.BoolValue(v), nil
-     case nil:
-         return types.StringNull(), nil
-     default:
-         return nil, fmt.Errorf("unsupported type: %T", value)
-     }
+	switch v := value.(type) {
+	case string:
+		return types.StringValue(v), nil
+	case int32:
+		return types.Int32Value(v), nil
+	case int64:
+		return types.Int64Value(v), nil
+	case float64:
+		return types.Float64Value(v), nil
+	case bool:
+		return types.BoolValue(v), nil
+	case nil:
+		return types.StringNull(), nil
+	default:
+		return nil, fmt.Errorf("unsupported type: %T", value)
+	}
 }
-

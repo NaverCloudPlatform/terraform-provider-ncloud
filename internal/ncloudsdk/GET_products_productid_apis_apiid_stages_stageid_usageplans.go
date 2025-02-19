@@ -1,4 +1,3 @@
-
 /* =================================================================================
  * NCLOUD SDK LAYER FOR TERRAFORM CODEGEN - DO NOT EDIT
  * =================================================================================
@@ -27,23 +26,21 @@ import (
 )
 
 type PrimitiveGETProductsProductidApisApiidStagesStageidUsageplansRequest struct {
-    Productid string `json:"product-id"`
-Apiid string `json:"api-id"`
-Stageid string `json:"stage-id"`
-Limit int64 `json:"limit"`
-Offset int64 `json:"offset"`
-UsagePlanName string `json:"usagePlanName"`
-
+	Productid     string `json:"product-id"`
+	Apiid         string `json:"api-id"`
+	Stageid       string `json:"stage-id"`
+	Limit         int64  `json:"limit"`
+	Offset        int64  `json:"offset"`
+	UsagePlanName string `json:"usagePlanName"`
 }
 
 type StringifiedGETProductsProductidApisApiidStagesStageidUsageplansRequest struct {
-	Productid string `json:"product-id"`
-Apiid string `json:"api-id"`
-Stageid string `json:"stage-id"`
-Limit string `json:"limit"`
-Offset string `json:"offset"`
-UsagePlanName string `json:"usagePlanName"`
-
+	Productid     string `json:"product-id"`
+	Apiid         string `json:"api-id"`
+	Stageid       string `json:"stage-id"`
+	Limit         string `json:"limit"`
+	Offset        string `json:"offset"`
+	UsagePlanName string `json:"usagePlanName"`
 }
 
 func (n *NClient) GETProductsProductidApisApiidStagesStageidUsageplans(ctx context.Context, primitiveReq *PrimitiveGETProductsProductidApisApiidStagesStageidUsageplansRequest) (map[string]interface{}, error) {
@@ -55,21 +52,17 @@ func (n *NClient) GETProductsProductidApisApiidStagesStageidUsageplans(ctx conte
 		return nil, err
 	}
 
- 	
-				if r.Limit!= "" {
-					query["limit"] = r.Limit
-				}
+	if r.Limit != "" {
+		query["limit"] = r.Limit
+	}
 
-				if r.Offset!= "" {
-					query["offset"] = r.Offset
-				}
+	if r.Offset != "" {
+		query["offset"] = r.Offset
+	}
 
-				if r.UsagePlanName!= "" {
-					query["usagePlanName"] = r.UsagePlanName
-				}
-
-
-	
+	if r.UsagePlanName != "" {
+		query["usagePlanName"] = r.UsagePlanName
+	}
 
 	rawBody, err := json.Marshal(initBody)
 	if err != nil {
@@ -78,7 +71,7 @@ func (n *NClient) GETProductsProductidApisApiidStagesStageidUsageplans(ctx conte
 
 	body := strings.Replace(string(rawBody), `\"`, "", -1)
 
-	url := n.BaseURL +"/"+"products"+"/"+ClearDoubleQuote(r.Productid)+"/"+"apis"+"/"+ClearDoubleQuote(r.Apiid)+"/"+"stages"+"/"+ClearDoubleQuote(r.Stageid)+"/"+"usage-plans"
+	url := n.BaseURL + "/" + "products" + "/" + ClearDoubleQuote(r.Productid) + "/" + "apis" + "/" + ClearDoubleQuote(r.Apiid) + "/" + "stages" + "/" + ClearDoubleQuote(r.Stageid) + "/" + "usage-plans"
 
 	response, err := n.MakeRequestWithContext(ctx, "GET", url, body, query)
 	if err != nil {
@@ -107,7 +100,6 @@ func (n *NClient) GETProductsProductidApisApiidStagesStageidUsageplans_TF(ctx co
 	return res, nil
 }
 
-
 /* =================================================================================
  * NCLOUD SDK LAYER FOR TERRAFORM CODEGEN - DO NOT EDIT
  * =================================================================================
@@ -122,64 +114,58 @@ func (n *NClient) GETProductsProductidApisApiidStagesStageidUsageplans_TF(ctx co
  * ================================================================================= */
 
 type GETProductsProductidApisApiidStagesStageidUsageplansResponse struct {
-    Total         types.Int64`tfsdk:"total"`
-Raterps         types.Int32`tfsdk:"rate_rps"`
-Quotacondition         types.String `tfsdk:"quota_condition"`
-Monthquotarequest         types.Int64`tfsdk:"month_quota_request"`
-Dayquotarequest         types.Int64`tfsdk:"day_quota_request"`
-Content         types.List `tfsdk:"content"`
-
+	Total             types.Int64  `tfsdk:"total"`
+	Raterps           types.Int32  `tfsdk:"rate_rps"`
+	Quotacondition    types.String `tfsdk:"quota_condition"`
+	Monthquotarequest types.Int64  `tfsdk:"month_quota_request"`
+	Dayquotarequest   types.Int64  `tfsdk:"day_quota_request"`
+	Content           types.List   `tfsdk:"content"`
 }
 
 func ConvertToFrameworkTypes_GETProductsProductidApisApiidStagesStageidUsageplans(ctx context.Context, data map[string]interface{}) (*GETProductsProductidApisApiidStagesStageidUsageplansResponse, error) {
 	var dto GETProductsProductidApisApiidStagesStageidUsageplansResponse
 
-    
-				if data["total"] != nil {
-					dto.Total = types.Int64Value(data["total"].(int64))
-				}
+	if data["total"] != nil {
+		dto.Total = types.Int64Value(data["total"].(int64))
+	}
 
-				if data["rate_rps"] != nil {
-					dto.Raterps = types.Int32Value(data["rate_rps"].(int32))
-				}
+	if data["rate_rps"] != nil {
+		dto.Raterps = types.Int32Value(data["rate_rps"].(int32))
+	}
 
-			if data["quota_condition"] != nil {
-				dto.Quotacondition = types.StringValue(data["quota_condition"].(string))
-			}
+	if data["quota_condition"] != nil {
+		dto.Quotacondition = types.StringValue(data["quota_condition"].(string))
+	}
 
-				if data["month_quota_request"] != nil {
-					dto.Monthquotarequest = types.Int64Value(data["month_quota_request"].(int64))
-				}
+	if data["month_quota_request"] != nil {
+		dto.Monthquotarequest = types.Int64Value(data["month_quota_request"].(int64))
+	}
 
-				if data["day_quota_request"] != nil {
-					dto.Dayquotarequest = types.Int64Value(data["day_quota_request"].(int64))
-				}
+	if data["day_quota_request"] != nil {
+		dto.Dayquotarequest = types.Int64Value(data["day_quota_request"].(int64))
+	}
 
-				if data["content"] != nil {
-					tempContent := data["content"].([]interface{})
-					dto.Content = diagOff(types.ListValueFrom, ctx, types.ListType{ElemType:
-						
-	types.ObjectType{AttrTypes: map[string]attr.Type{
-		
-		"usage_plan_name": types.StringType,
-"usage_plan_id": types.StringType,
-"usage_plan_description": types.StringType,
-"tenant_id": types.StringType,
-"rate_rps": types.Int32Type,
-"quota_condition": types.StringType,
-"permission": types.StringType,
-"month_quota_request": types.Int64Type,
-"modifier": types.StringType,
-"domain_code": types.StringType,
-"disabled": types.BoolType,
-"day_quota_request": types.Int64Type,
-"associated_stages_count": types.Int64Type,
-"action_name": types.StringType,
+	if data["content"] != nil {
+		tempContent := data["content"].([]interface{})
+		dto.Content = diagOff(types.ListValueFrom, ctx, types.ListType{ElemType: types.ObjectType{AttrTypes: map[string]attr.Type{
 
-	},
-
-					}}.ElementType(), tempContent)
-				}
+			"usage_plan_name":         types.StringType,
+			"usage_plan_id":           types.StringType,
+			"usage_plan_description":  types.StringType,
+			"tenant_id":               types.StringType,
+			"rate_rps":                types.Int32Type,
+			"quota_condition":         types.StringType,
+			"permission":              types.StringType,
+			"month_quota_request":     types.Int64Type,
+			"modifier":                types.StringType,
+			"domain_code":             types.StringType,
+			"disabled":                types.BoolType,
+			"day_quota_request":       types.Int64Type,
+			"associated_stages_count": types.Int64Type,
+			"action_name":             types.StringType,
+		},
+		}}.ElementType(), tempContent)
+	}
 
 	return &dto, nil
 }
@@ -188,16 +174,12 @@ func convertToObject_GETProductsProductidApisApiidStagesStageidUsageplans(ctx co
 	attrTypes := make(map[string]attr.Type)
 	attrValues := make(map[string]attr.Value)
 
-    possibleTypes := map[string]attr.Type{
-        
-	}
+	possibleTypes := map[string]attr.Type{}
 
 	for field, fieldType := range possibleTypes {
 		attrTypes[field] = fieldType
 
 		if value, exists := data[field]; exists {
-
-			
 
 			attrValue, err := convertValueToAttr_GETProductsProductidApisApiidStagesStageidUsageplans(value)
 			if err != nil {
@@ -205,7 +187,6 @@ func convertToObject_GETProductsProductidApisApiidStagesStageidUsageplans(ctx co
 			}
 			attrValues[field] = attrValue
 		} else {
-            
 
 			switch fieldType {
 			case types.StringType:
@@ -228,21 +209,20 @@ func convertToObject_GETProductsProductidApisApiidStagesStageidUsageplans(ctx co
 }
 
 func convertValueToAttr_GETProductsProductidApisApiidStagesStageidUsageplans(value interface{}) (attr.Value, error) {
-     switch v := value.(type) {
-     case string:
-         return types.StringValue(v), nil
-     case int32:
-         return types.Int32Value(v), nil
-     case int64:
-         return types.Int64Value(v), nil
-     case float64:
-         return types.Float64Value(v), nil
-     case bool:
-         return types.BoolValue(v), nil
-     case nil:
-         return types.StringNull(), nil
-     default:
-         return nil, fmt.Errorf("unsupported type: %T", value)
-     }
+	switch v := value.(type) {
+	case string:
+		return types.StringValue(v), nil
+	case int32:
+		return types.Int32Value(v), nil
+	case int64:
+		return types.Int64Value(v), nil
+	case float64:
+		return types.Float64Value(v), nil
+	case bool:
+		return types.BoolValue(v), nil
+	case nil:
+		return types.StringNull(), nil
+	default:
+		return nil, fmt.Errorf("unsupported type: %T", value)
+	}
 }
-

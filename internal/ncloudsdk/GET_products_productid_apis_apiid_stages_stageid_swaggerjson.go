@@ -1,4 +1,3 @@
-
 /* =================================================================================
  * NCLOUD SDK LAYER FOR TERRAFORM CODEGEN - DO NOT EDIT
  * =================================================================================
@@ -27,17 +26,15 @@ import (
 )
 
 type PrimitiveGETProductsProductidApisApiidStagesStageidSwaggerjsonRequest struct {
-    Productid string `json:"product-id"`
-Apiid string `json:"api-id"`
-Stageid string `json:"stage-id"`
-
+	Productid string `json:"product-id"`
+	Apiid     string `json:"api-id"`
+	Stageid   string `json:"stage-id"`
 }
 
 type StringifiedGETProductsProductidApisApiidStagesStageidSwaggerjsonRequest struct {
 	Productid string `json:"product-id"`
-Apiid string `json:"api-id"`
-Stageid string `json:"stage-id"`
-
+	Apiid     string `json:"api-id"`
+	Stageid   string `json:"stage-id"`
 }
 
 func (n *NClient) GETProductsProductidApisApiidStagesStageidSwaggerjson(ctx context.Context, primitiveReq *PrimitiveGETProductsProductidApisApiidStagesStageidSwaggerjsonRequest) (map[string]interface{}, error) {
@@ -49,10 +46,6 @@ func (n *NClient) GETProductsProductidApisApiidStagesStageidSwaggerjson(ctx cont
 		return nil, err
 	}
 
- 	
-
-	
-
 	rawBody, err := json.Marshal(initBody)
 	if err != nil {
 		return nil, err
@@ -60,7 +53,7 @@ func (n *NClient) GETProductsProductidApisApiidStagesStageidSwaggerjson(ctx cont
 
 	body := strings.Replace(string(rawBody), `\"`, "", -1)
 
-	url := n.BaseURL +"/"+"products"+"/"+ClearDoubleQuote(r.Productid)+"/"+"apis"+"/"+ClearDoubleQuote(r.Apiid)+"/"+"stages"+"/"+ClearDoubleQuote(r.Stageid)+"/"+"swagger-json"
+	url := n.BaseURL + "/" + "products" + "/" + ClearDoubleQuote(r.Productid) + "/" + "apis" + "/" + ClearDoubleQuote(r.Apiid) + "/" + "stages" + "/" + ClearDoubleQuote(r.Stageid) + "/" + "swagger-json"
 
 	response, err := n.MakeRequestWithContext(ctx, "GET", url, body, query)
 	if err != nil {
@@ -89,7 +82,6 @@ func (n *NClient) GETProductsProductidApisApiidStagesStageidSwaggerjson_TF(ctx c
 	return res, nil
 }
 
-
 /* =================================================================================
  * NCLOUD SDK LAYER FOR TERRAFORM CODEGEN - DO NOT EDIT
  * =================================================================================
@@ -104,18 +96,15 @@ func (n *NClient) GETProductsProductidApisApiidStagesStageidSwaggerjson_TF(ctx c
  * ================================================================================= */
 
 type GETProductsProductidApisApiidStagesStageidSwaggerjsonResponse struct {
-    Documentjson         types.String `tfsdk:"document_json"`
-
+	Documentjson types.String `tfsdk:"document_json"`
 }
 
 func ConvertToFrameworkTypes_GETProductsProductidApisApiidStagesStageidSwaggerjson(ctx context.Context, data map[string]interface{}) (*GETProductsProductidApisApiidStagesStageidSwaggerjsonResponse, error) {
 	var dto GETProductsProductidApisApiidStagesStageidSwaggerjsonResponse
 
-    
-			if data["document_json"] != nil {
-				dto.Documentjson = types.StringValue(data["document_json"].(string))
-			}
-
+	if data["document_json"] != nil {
+		dto.Documentjson = types.StringValue(data["document_json"].(string))
+	}
 
 	return &dto, nil
 }
@@ -124,16 +113,12 @@ func convertToObject_GETProductsProductidApisApiidStagesStageidSwaggerjson(ctx c
 	attrTypes := make(map[string]attr.Type)
 	attrValues := make(map[string]attr.Value)
 
-    possibleTypes := map[string]attr.Type{
-        
-	}
+	possibleTypes := map[string]attr.Type{}
 
 	for field, fieldType := range possibleTypes {
 		attrTypes[field] = fieldType
 
 		if value, exists := data[field]; exists {
-
-			
 
 			attrValue, err := convertValueToAttr_GETProductsProductidApisApiidStagesStageidSwaggerjson(value)
 			if err != nil {
@@ -141,7 +126,6 @@ func convertToObject_GETProductsProductidApisApiidStagesStageidSwaggerjson(ctx c
 			}
 			attrValues[field] = attrValue
 		} else {
-            
 
 			switch fieldType {
 			case types.StringType:
@@ -164,21 +148,20 @@ func convertToObject_GETProductsProductidApisApiidStagesStageidSwaggerjson(ctx c
 }
 
 func convertValueToAttr_GETProductsProductidApisApiidStagesStageidSwaggerjson(value interface{}) (attr.Value, error) {
-     switch v := value.(type) {
-     case string:
-         return types.StringValue(v), nil
-     case int32:
-         return types.Int32Value(v), nil
-     case int64:
-         return types.Int64Value(v), nil
-     case float64:
-         return types.Float64Value(v), nil
-     case bool:
-         return types.BoolValue(v), nil
-     case nil:
-         return types.StringNull(), nil
-     default:
-         return nil, fmt.Errorf("unsupported type: %T", value)
-     }
+	switch v := value.(type) {
+	case string:
+		return types.StringValue(v), nil
+	case int32:
+		return types.Int32Value(v), nil
+	case int64:
+		return types.Int64Value(v), nil
+	case float64:
+		return types.Float64Value(v), nil
+	case bool:
+		return types.BoolValue(v), nil
+	case nil:
+		return types.StringNull(), nil
+	default:
+		return nil, fmt.Errorf("unsupported type: %T", value)
+	}
 }
-

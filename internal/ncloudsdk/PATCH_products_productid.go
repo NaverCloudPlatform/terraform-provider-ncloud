@@ -1,4 +1,3 @@
-
 /* =================================================================================
  * NCLOUD SDK LAYER FOR TERRAFORM CODEGEN - DO NOT EDIT
  * =================================================================================
@@ -27,19 +26,17 @@ import (
 )
 
 type PrimitivePATCHProductsProductidRequest struct {
-    Productid string `json:"product-id"`
-SubscriptionCode string `json:"subscriptionCode"`
-Description string `json:"description"`
-ProductName string `json:"productName"`
-
+	Productid        string `json:"product-id"`
+	SubscriptionCode string `json:"subscriptionCode"`
+	Description      string `json:"description"`
+	ProductName      string `json:"productName"`
 }
 
 type StringifiedPATCHProductsProductidRequest struct {
-	Productid string `json:"product-id"`
-SubscriptionCode string `json:"subscriptionCode"`
-Description string `json:"description"`
-ProductName string `json:"productName"`
-
+	Productid        string `json:"product-id"`
+	SubscriptionCode string `json:"subscriptionCode"`
+	Description      string `json:"description"`
+	ProductName      string `json:"productName"`
 }
 
 func (n *NClient) PATCHProductsProductid(ctx context.Context, primitiveReq *PrimitivePATCHProductsProductidRequest) (map[string]interface{}, error) {
@@ -51,15 +48,12 @@ func (n *NClient) PATCHProductsProductid(ctx context.Context, primitiveReq *Prim
 		return nil, err
 	}
 
- 	
-
 	initBody["subscriptionCode"] = r.SubscriptionCode
 
-			if r.Description != "" {
-				initBody["description"] = r.Description
-			}
-initBody["productName"] = r.ProductName
-
+	if r.Description != "" {
+		initBody["description"] = r.Description
+	}
+	initBody["productName"] = r.ProductName
 
 	rawBody, err := json.Marshal(initBody)
 	if err != nil {
@@ -68,7 +62,7 @@ initBody["productName"] = r.ProductName
 
 	body := strings.Replace(string(rawBody), `\"`, "", -1)
 
-	url := n.BaseURL +"/"+"products"+"/"+ClearDoubleQuote(r.Productid)
+	url := n.BaseURL + "/" + "products" + "/" + ClearDoubleQuote(r.Productid)
 
 	response, err := n.MakeRequestWithContext(ctx, "PATCH", url, body, query)
 	if err != nil {
@@ -97,7 +91,6 @@ func (n *NClient) PATCHProductsProductid_TF(ctx context.Context, r *PrimitivePAT
 	return res, nil
 }
 
-
 /* =================================================================================
  * NCLOUD SDK LAYER FOR TERRAFORM CODEGEN - DO NOT EDIT
  * =================================================================================
@@ -112,13 +105,10 @@ func (n *NClient) PATCHProductsProductid_TF(ctx context.Context, r *PrimitivePAT
  * ================================================================================= */
 
 type PATCHProductsProductidResponse struct {
-    
 }
 
 func ConvertToFrameworkTypes_PATCHProductsProductid(ctx context.Context, data map[string]interface{}) (*PATCHProductsProductidResponse, error) {
 	var dto PATCHProductsProductidResponse
-
-    
 
 	return &dto, nil
 }
@@ -127,16 +117,12 @@ func convertToObject_PATCHProductsProductid(ctx context.Context, data map[string
 	attrTypes := make(map[string]attr.Type)
 	attrValues := make(map[string]attr.Value)
 
-    possibleTypes := map[string]attr.Type{
-        
-	}
+	possibleTypes := map[string]attr.Type{}
 
 	for field, fieldType := range possibleTypes {
 		attrTypes[field] = fieldType
 
 		if value, exists := data[field]; exists {
-
-			
 
 			attrValue, err := convertValueToAttr_PATCHProductsProductid(value)
 			if err != nil {
@@ -144,7 +130,6 @@ func convertToObject_PATCHProductsProductid(ctx context.Context, data map[string
 			}
 			attrValues[field] = attrValue
 		} else {
-            
 
 			switch fieldType {
 			case types.StringType:
@@ -167,21 +152,20 @@ func convertToObject_PATCHProductsProductid(ctx context.Context, data map[string
 }
 
 func convertValueToAttr_PATCHProductsProductid(value interface{}) (attr.Value, error) {
-     switch v := value.(type) {
-     case string:
-         return types.StringValue(v), nil
-     case int32:
-         return types.Int32Value(v), nil
-     case int64:
-         return types.Int64Value(v), nil
-     case float64:
-         return types.Float64Value(v), nil
-     case bool:
-         return types.BoolValue(v), nil
-     case nil:
-         return types.StringNull(), nil
-     default:
-         return nil, fmt.Errorf("unsupported type: %T", value)
-     }
+	switch v := value.(type) {
+	case string:
+		return types.StringValue(v), nil
+	case int32:
+		return types.Int32Value(v), nil
+	case int64:
+		return types.Int64Value(v), nil
+	case float64:
+		return types.Float64Value(v), nil
+	case bool:
+		return types.BoolValue(v), nil
+	case nil:
+		return types.StringNull(), nil
+	default:
+		return nil, fmt.Errorf("unsupported type: %T", value)
+	}
 }
-

@@ -1,4 +1,3 @@
-
 /* =================================================================================
  * NCLOUD SDK LAYER FOR TERRAFORM CODEGEN - DO NOT EDIT
  * =================================================================================
@@ -27,19 +26,17 @@ import (
 )
 
 type PrimitiveGETUsageplansRequest struct {
-    Associated bool `json:"associated"`
-Limit int64 `json:"limit"`
-Offset int64 `json:"offset"`
-StageId string `json:"stageId"`
-
+	Associated bool   `json:"associated"`
+	Limit      int64  `json:"limit"`
+	Offset     int64  `json:"offset"`
+	StageId    string `json:"stageId"`
 }
 
 type StringifiedGETUsageplansRequest struct {
 	Associated string `json:"associated"`
-Limit string `json:"limit"`
-Offset string `json:"offset"`
-StageId string `json:"stageId"`
-
+	Limit      string `json:"limit"`
+	Offset     string `json:"offset"`
+	StageId    string `json:"stageId"`
 }
 
 func (n *NClient) GETUsageplans(ctx context.Context, primitiveReq *PrimitiveGETUsageplansRequest) (map[string]interface{}, error) {
@@ -51,23 +48,19 @@ func (n *NClient) GETUsageplans(ctx context.Context, primitiveReq *PrimitiveGETU
 		return nil, err
 	}
 
- 	
-				if r.Associated!= "" {
-					query["associated"] = r.Associated
-				}
+	if r.Associated != "" {
+		query["associated"] = r.Associated
+	}
 
-				if r.Limit!= "" {
-					query["limit"] = r.Limit
-				}
+	if r.Limit != "" {
+		query["limit"] = r.Limit
+	}
 
-				if r.Offset!= "" {
-					query["offset"] = r.Offset
-				}
+	if r.Offset != "" {
+		query["offset"] = r.Offset
+	}
 
-				query["stageId"] = r.StageId
-
-
-	
+	query["stageId"] = r.StageId
 
 	rawBody, err := json.Marshal(initBody)
 	if err != nil {
@@ -76,7 +69,7 @@ func (n *NClient) GETUsageplans(ctx context.Context, primitiveReq *PrimitiveGETU
 
 	body := strings.Replace(string(rawBody), `\"`, "", -1)
 
-	url := n.BaseURL +"/"+"usage-plans"
+	url := n.BaseURL + "/" + "usage-plans"
 
 	response, err := n.MakeRequestWithContext(ctx, "GET", url, body, query)
 	if err != nil {
@@ -105,7 +98,6 @@ func (n *NClient) GETUsageplans_TF(ctx context.Context, r *PrimitiveGETUsageplan
 	return res, nil
 }
 
-
 /* =================================================================================
  * NCLOUD SDK LAYER FOR TERRAFORM CODEGEN - DO NOT EDIT
  * =================================================================================
@@ -120,37 +112,30 @@ func (n *NClient) GETUsageplans_TF(ctx context.Context, r *PrimitiveGETUsageplan
  * ================================================================================= */
 
 type GETUsageplansResponse struct {
-    UsagePlans         types.List `tfsdk:"usage_plans"`
-Total         types.Int64`tfsdk:"total"`
-
+	UsagePlans types.List  `tfsdk:"usage_plans"`
+	Total      types.Int64 `tfsdk:"total"`
 }
 
 func ConvertToFrameworkTypes_GETUsageplans(ctx context.Context, data map[string]interface{}) (*GETUsageplansResponse, error) {
 	var dto GETUsageplansResponse
 
-    
-				if data["usage_plans"] != nil {
-					tempUsagePlans := data["usage_plans"].([]interface{})
-					dto.UsagePlans = diagOff(types.ListValueFrom, ctx, types.ListType{ElemType:
-						
-	types.ObjectType{AttrTypes: map[string]attr.Type{
-		
-		"usage_plan_name": types.StringType,
-"usage_plan_id": types.StringType,
-"permission": types.StringType,
-"domain_code": types.StringType,
-"disabled": types.BoolType,
-"associated_stages_count": types.Int64Type,
-"action_name": types.StringType,
+	if data["usage_plans"] != nil {
+		tempUsagePlans := data["usage_plans"].([]interface{})
+		dto.UsagePlans = diagOff(types.ListValueFrom, ctx, types.ListType{ElemType: types.ObjectType{AttrTypes: map[string]attr.Type{
 
-	},
-
-					}}.ElementType(), tempUsagePlans)
-				}
-				if data["total"] != nil {
-					dto.Total = types.Int64Value(data["total"].(int64))
-				}
-
+			"usage_plan_name":         types.StringType,
+			"usage_plan_id":           types.StringType,
+			"permission":              types.StringType,
+			"domain_code":             types.StringType,
+			"disabled":                types.BoolType,
+			"associated_stages_count": types.Int64Type,
+			"action_name":             types.StringType,
+		},
+		}}.ElementType(), tempUsagePlans)
+	}
+	if data["total"] != nil {
+		dto.Total = types.Int64Value(data["total"].(int64))
+	}
 
 	return &dto, nil
 }
@@ -159,16 +144,12 @@ func convertToObject_GETUsageplans(ctx context.Context, data map[string]interfac
 	attrTypes := make(map[string]attr.Type)
 	attrValues := make(map[string]attr.Value)
 
-    possibleTypes := map[string]attr.Type{
-        
-	}
+	possibleTypes := map[string]attr.Type{}
 
 	for field, fieldType := range possibleTypes {
 		attrTypes[field] = fieldType
 
 		if value, exists := data[field]; exists {
-
-			
 
 			attrValue, err := convertValueToAttr_GETUsageplans(value)
 			if err != nil {
@@ -176,7 +157,6 @@ func convertToObject_GETUsageplans(ctx context.Context, data map[string]interfac
 			}
 			attrValues[field] = attrValue
 		} else {
-            
 
 			switch fieldType {
 			case types.StringType:
@@ -199,21 +179,20 @@ func convertToObject_GETUsageplans(ctx context.Context, data map[string]interfac
 }
 
 func convertValueToAttr_GETUsageplans(value interface{}) (attr.Value, error) {
-     switch v := value.(type) {
-     case string:
-         return types.StringValue(v), nil
-     case int32:
-         return types.Int32Value(v), nil
-     case int64:
-         return types.Int64Value(v), nil
-     case float64:
-         return types.Float64Value(v), nil
-     case bool:
-         return types.BoolValue(v), nil
-     case nil:
-         return types.StringNull(), nil
-     default:
-         return nil, fmt.Errorf("unsupported type: %T", value)
-     }
+	switch v := value.(type) {
+	case string:
+		return types.StringValue(v), nil
+	case int32:
+		return types.Int32Value(v), nil
+	case int64:
+		return types.Int64Value(v), nil
+	case float64:
+		return types.Float64Value(v), nil
+	case bool:
+		return types.BoolValue(v), nil
+	case nil:
+		return types.StringNull(), nil
+	default:
+		return nil, fmt.Errorf("unsupported type: %T", value)
+	}
 }
-

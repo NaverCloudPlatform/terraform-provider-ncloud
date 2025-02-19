@@ -1,4 +1,3 @@
-
 /* =================================================================================
  * NCLOUD SDK LAYER FOR TERRAFORM CODEGEN - DO NOT EDIT
  * =================================================================================
@@ -27,31 +26,29 @@ import (
 )
 
 type PrimitiveGETProductsProductidApisApiidStagesStageidExportRequest struct {
-    Productid string `json:"product-id"`
-Apiid string `json:"api-id"`
-Stageid string `json:"stage-id"`
-ArtifactId string `json:"artifactId"`
-ArtifactVersion string `json:"artifactVersion"`
-GroupId string `json:"groupId"`
-License string `json:"license"`
-PackageName string `json:"packageName"`
-Platform string `json:"platform"`
-Version string `json:"version"`
-
+	Productid       string `json:"product-id"`
+	Apiid           string `json:"api-id"`
+	Stageid         string `json:"stage-id"`
+	ArtifactId      string `json:"artifactId"`
+	ArtifactVersion string `json:"artifactVersion"`
+	GroupId         string `json:"groupId"`
+	License         string `json:"license"`
+	PackageName     string `json:"packageName"`
+	Platform        string `json:"platform"`
+	Version         string `json:"version"`
 }
 
 type StringifiedGETProductsProductidApisApiidStagesStageidExportRequest struct {
-	Productid string `json:"product-id"`
-Apiid string `json:"api-id"`
-Stageid string `json:"stage-id"`
-ArtifactId string `json:"artifactId"`
-ArtifactVersion string `json:"artifactVersion"`
-GroupId string `json:"groupId"`
-License string `json:"license"`
-PackageName string `json:"packageName"`
-Platform string `json:"platform"`
-Version string `json:"version"`
-
+	Productid       string `json:"product-id"`
+	Apiid           string `json:"api-id"`
+	Stageid         string `json:"stage-id"`
+	ArtifactId      string `json:"artifactId"`
+	ArtifactVersion string `json:"artifactVersion"`
+	GroupId         string `json:"groupId"`
+	License         string `json:"license"`
+	PackageName     string `json:"packageName"`
+	Platform        string `json:"platform"`
+	Version         string `json:"version"`
 }
 
 func (n *NClient) GETProductsProductidApisApiidStagesStageidExport(ctx context.Context, primitiveReq *PrimitiveGETProductsProductidApisApiidStagesStageidExportRequest) (map[string]interface{}, error) {
@@ -63,37 +60,33 @@ func (n *NClient) GETProductsProductidApisApiidStagesStageidExport(ctx context.C
 		return nil, err
 	}
 
- 	
-				if r.ArtifactId!= "" {
-					query["artifactId"] = r.ArtifactId
-				}
+	if r.ArtifactId != "" {
+		query["artifactId"] = r.ArtifactId
+	}
 
-				if r.ArtifactVersion!= "" {
-					query["artifactVersion"] = r.ArtifactVersion
-				}
+	if r.ArtifactVersion != "" {
+		query["artifactVersion"] = r.ArtifactVersion
+	}
 
-				if r.GroupId!= "" {
-					query["groupId"] = r.GroupId
-				}
+	if r.GroupId != "" {
+		query["groupId"] = r.GroupId
+	}
 
-				if r.License!= "" {
-					query["license"] = r.License
-				}
+	if r.License != "" {
+		query["license"] = r.License
+	}
 
-				if r.PackageName!= "" {
-					query["packageName"] = r.PackageName
-				}
+	if r.PackageName != "" {
+		query["packageName"] = r.PackageName
+	}
 
-				if r.Platform!= "" {
-					query["platform"] = r.Platform
-				}
+	if r.Platform != "" {
+		query["platform"] = r.Platform
+	}
 
-				if r.Version!= "" {
-					query["version"] = r.Version
-				}
-
-
-	
+	if r.Version != "" {
+		query["version"] = r.Version
+	}
 
 	rawBody, err := json.Marshal(initBody)
 	if err != nil {
@@ -102,7 +95,7 @@ func (n *NClient) GETProductsProductidApisApiidStagesStageidExport(ctx context.C
 
 	body := strings.Replace(string(rawBody), `\"`, "", -1)
 
-	url := n.BaseURL +"/"+"products"+"/"+ClearDoubleQuote(r.Productid)+"/"+"apis"+"/"+ClearDoubleQuote(r.Apiid)+"/"+"stages"+"/"+ClearDoubleQuote(r.Stageid)+"/"+"export"
+	url := n.BaseURL + "/" + "products" + "/" + ClearDoubleQuote(r.Productid) + "/" + "apis" + "/" + ClearDoubleQuote(r.Apiid) + "/" + "stages" + "/" + ClearDoubleQuote(r.Stageid) + "/" + "export"
 
 	response, err := n.MakeRequestWithContext(ctx, "GET", url, body, query)
 	if err != nil {
@@ -131,7 +124,6 @@ func (n *NClient) GETProductsProductidApisApiidStagesStageidExport_TF(ctx contex
 	return res, nil
 }
 
-
 /* =================================================================================
  * NCLOUD SDK LAYER FOR TERRAFORM CODEGEN - DO NOT EDIT
  * =================================================================================
@@ -146,13 +138,10 @@ func (n *NClient) GETProductsProductidApisApiidStagesStageidExport_TF(ctx contex
  * ================================================================================= */
 
 type GETProductsProductidApisApiidStagesStageidExportResponse struct {
-    
 }
 
 func ConvertToFrameworkTypes_GETProductsProductidApisApiidStagesStageidExport(ctx context.Context, data map[string]interface{}) (*GETProductsProductidApisApiidStagesStageidExportResponse, error) {
 	var dto GETProductsProductidApisApiidStagesStageidExportResponse
-
-    
 
 	return &dto, nil
 }
@@ -161,16 +150,12 @@ func convertToObject_GETProductsProductidApisApiidStagesStageidExport(ctx contex
 	attrTypes := make(map[string]attr.Type)
 	attrValues := make(map[string]attr.Value)
 
-    possibleTypes := map[string]attr.Type{
-        
-	}
+	possibleTypes := map[string]attr.Type{}
 
 	for field, fieldType := range possibleTypes {
 		attrTypes[field] = fieldType
 
 		if value, exists := data[field]; exists {
-
-			
 
 			attrValue, err := convertValueToAttr_GETProductsProductidApisApiidStagesStageidExport(value)
 			if err != nil {
@@ -178,7 +163,6 @@ func convertToObject_GETProductsProductidApisApiidStagesStageidExport(ctx contex
 			}
 			attrValues[field] = attrValue
 		} else {
-            
 
 			switch fieldType {
 			case types.StringType:
@@ -201,21 +185,20 @@ func convertToObject_GETProductsProductidApisApiidStagesStageidExport(ctx contex
 }
 
 func convertValueToAttr_GETProductsProductidApisApiidStagesStageidExport(value interface{}) (attr.Value, error) {
-     switch v := value.(type) {
-     case string:
-         return types.StringValue(v), nil
-     case int32:
-         return types.Int32Value(v), nil
-     case int64:
-         return types.Int64Value(v), nil
-     case float64:
-         return types.Float64Value(v), nil
-     case bool:
-         return types.BoolValue(v), nil
-     case nil:
-         return types.StringNull(), nil
-     default:
-         return nil, fmt.Errorf("unsupported type: %T", value)
-     }
+	switch v := value.(type) {
+	case string:
+		return types.StringValue(v), nil
+	case int32:
+		return types.Int32Value(v), nil
+	case int64:
+		return types.Int64Value(v), nil
+	case float64:
+		return types.Float64Value(v), nil
+	case bool:
+		return types.BoolValue(v), nil
+	case nil:
+		return types.StringNull(), nil
+	default:
+		return nil, fmt.Errorf("unsupported type: %T", value)
+	}
 }
-

@@ -1,4 +1,3 @@
-
 /* =================================================================================
  * NCLOUD SDK LAYER FOR TERRAFORM CODEGEN - DO NOT EDIT
  * =================================================================================
@@ -27,19 +26,17 @@ import (
 )
 
 type PrimitiveGETProductsProductidDocumentRequest struct {
-    Productid string `json:"product-id"`
-ApiName string `json:"apiName"`
-Limit int64 `json:"limit"`
-Offset int64 `json:"offset"`
-
+	Productid string `json:"product-id"`
+	ApiName   string `json:"apiName"`
+	Limit     int64  `json:"limit"`
+	Offset    int64  `json:"offset"`
 }
 
 type StringifiedGETProductsProductidDocumentRequest struct {
 	Productid string `json:"product-id"`
-ApiName string `json:"apiName"`
-Limit string `json:"limit"`
-Offset string `json:"offset"`
-
+	ApiName   string `json:"apiName"`
+	Limit     string `json:"limit"`
+	Offset    string `json:"offset"`
 }
 
 func (n *NClient) GETProductsProductidDocument(ctx context.Context, primitiveReq *PrimitiveGETProductsProductidDocumentRequest) (map[string]interface{}, error) {
@@ -51,21 +48,17 @@ func (n *NClient) GETProductsProductidDocument(ctx context.Context, primitiveReq
 		return nil, err
 	}
 
- 	
-				if r.ApiName!= "" {
-					query["apiName"] = r.ApiName
-				}
+	if r.ApiName != "" {
+		query["apiName"] = r.ApiName
+	}
 
-				if r.Limit!= "" {
-					query["limit"] = r.Limit
-				}
+	if r.Limit != "" {
+		query["limit"] = r.Limit
+	}
 
-				if r.Offset!= "" {
-					query["offset"] = r.Offset
-				}
-
-
-	
+	if r.Offset != "" {
+		query["offset"] = r.Offset
+	}
 
 	rawBody, err := json.Marshal(initBody)
 	if err != nil {
@@ -74,7 +67,7 @@ func (n *NClient) GETProductsProductidDocument(ctx context.Context, primitiveReq
 
 	body := strings.Replace(string(rawBody), `\"`, "", -1)
 
-	url := n.BaseURL +"/"+"products"+"/"+ClearDoubleQuote(r.Productid)+"/"+"document"
+	url := n.BaseURL + "/" + "products" + "/" + ClearDoubleQuote(r.Productid) + "/" + "document"
 
 	response, err := n.MakeRequestWithContext(ctx, "GET", url, body, query)
 	if err != nil {
@@ -103,7 +96,6 @@ func (n *NClient) GETProductsProductidDocument_TF(ctx context.Context, r *Primit
 	return res, nil
 }
 
-
 /* =================================================================================
  * NCLOUD SDK LAYER FOR TERRAFORM CODEGEN - DO NOT EDIT
  * =================================================================================
@@ -118,63 +110,52 @@ func (n *NClient) GETProductsProductidDocument_TF(ctx context.Context, r *Primit
  * ================================================================================= */
 
 type GETProductsProductidDocumentResponse struct {
-    ApiPage         types.Object `tfsdk:"api_page"`
-
+	ApiPage types.Object `tfsdk:"api_page"`
 }
 
 func ConvertToFrameworkTypes_GETProductsProductidDocument(ctx context.Context, data map[string]interface{}) (*GETProductsProductidDocumentResponse, error) {
 	var dto GETProductsProductidDocumentResponse
 
-    
-			if data["api_page"] != nil {
-				tempApiPage := data["api_page"].(map[string]interface{})
+	if data["api_page"] != nil {
+		tempApiPage := data["api_page"].(map[string]interface{})
 
-				allFields := []string{
-					"total",
-"content",
+		allFields := []string{
+			"total",
+			"content",
+		}
 
-				}
-
-				convertedMap := make(map[string]interface{})
-				for _, field := range allFields {
-					if val, ok := tempApiPage[field]; ok {
-						convertedMap[field] = val
-					}
-				}
-
-				convertedTempApiPage, err := convertToObject_GETProductsProductidDocument(ctx, convertedMap)
-				if err != nil {
-					return nil, err
-				}
-
-				dto.ApiPage = diagOff(types.ObjectValueFrom, ctx, types.ObjectType{AttrTypes: map[string]attr.Type{
-					"total": types.Int64Type,
-
-			"content": types.ListType{ElemType:
-				
-	types.ObjectType{AttrTypes: map[string]attr.Type{
-		
-		
-				"stages": types.ListType{ElemType:
-					types.ObjectType{AttrTypes: map[string]attr.Type{
-						"stage_name": types.StringType,
-"stage_id": types.StringType,
-"host": types.StringType,
-"deployed_stage_deployment_no": types.Int64Type,
-
-					},
-				}},
-"domain_code": types.StringType,
-"api_name": types.StringType,
-"api_id": types.StringType,
-"api_description": types.StringType,
-
-	},
-			}},
-
-				}}.AttributeTypes(), convertedTempApiPage)
+		convertedMap := make(map[string]interface{})
+		for _, field := range allFields {
+			if val, ok := tempApiPage[field]; ok {
+				convertedMap[field] = val
 			}
+		}
 
+		convertedTempApiPage, err := convertToObject_GETProductsProductidDocument(ctx, convertedMap)
+		if err != nil {
+			return nil, err
+		}
+
+		dto.ApiPage = diagOff(types.ObjectValueFrom, ctx, types.ObjectType{AttrTypes: map[string]attr.Type{
+			"total": types.Int64Type,
+
+			"content": types.ListType{ElemType: types.ObjectType{AttrTypes: map[string]attr.Type{
+
+				"stages": types.ListType{ElemType: types.ObjectType{AttrTypes: map[string]attr.Type{
+					"stage_name":                   types.StringType,
+					"stage_id":                     types.StringType,
+					"host":                         types.StringType,
+					"deployed_stage_deployment_no": types.Int64Type,
+				},
+				}},
+				"domain_code":     types.StringType,
+				"api_name":        types.StringType,
+				"api_id":          types.StringType,
+				"api_description": types.StringType,
+			},
+			}},
+		}}.AttributeTypes(), convertedTempApiPage)
+	}
 
 	return &dto, nil
 }
@@ -183,32 +164,24 @@ func convertToObject_GETProductsProductidDocument(ctx context.Context, data map[
 	attrTypes := make(map[string]attr.Type)
 	attrValues := make(map[string]attr.Value)
 
-    possibleTypes := map[string]attr.Type{
-        "total": types.Int64Type,
+	possibleTypes := map[string]attr.Type{
+		"total": types.Int64Type,
 
-			"content": types.ListType{ElemType:
-				
-	types.ObjectType{AttrTypes: map[string]attr.Type{
-		
-		
-				"stages": types.ListType{ElemType:
-					types.ObjectType{AttrTypes: map[string]attr.Type{
-						"stage_name": types.StringType,
-"stage_id": types.StringType,
-"host": types.StringType,
-"deployed_stage_deployment_no": types.Int64Type,
+		"content": types.ListType{ElemType: types.ObjectType{AttrTypes: map[string]attr.Type{
 
-					},
-				}},
-"domain_code": types.StringType,
-"api_name": types.StringType,
-"api_id": types.StringType,
-"api_description": types.StringType,
-
-	},
+			"stages": types.ListType{ElemType: types.ObjectType{AttrTypes: map[string]attr.Type{
+				"stage_name":                   types.StringType,
+				"stage_id":                     types.StringType,
+				"host":                         types.StringType,
+				"deployed_stage_deployment_no": types.Int64Type,
+			},
 			}},
-
-
+			"domain_code":     types.StringType,
+			"api_name":        types.StringType,
+			"api_id":          types.StringType,
+			"api_description": types.StringType,
+		},
+		}},
 	}
 
 	for field, fieldType := range possibleTypes {
@@ -216,31 +189,25 @@ func convertToObject_GETProductsProductidDocument(ctx context.Context, data map[
 
 		if value, exists := data[field]; exists {
 
-			
 			if field == "content" && len(value.([]interface{})) == 0 {
 				listV := types.ListNull(types.ObjectNull(map[string]attr.Type{
-					
-			"stages": types.ListType{ElemType:
-				
-	types.ObjectType{AttrTypes: map[string]attr.Type{
-		
-		"stage_name": types.StringType,
-"stage_id": types.StringType,
-"host": types.StringType,
-"deployed_stage_deployment_no": types.Int64Type,
 
-	},
-			}},
-"domain_code": types.StringType,
-"api_name": types.StringType,
-"api_id": types.StringType,
-"api_description": types.StringType,
+					"stages": types.ListType{ElemType: types.ObjectType{AttrTypes: map[string]attr.Type{
 
+						"stage_name":                   types.StringType,
+						"stage_id":                     types.StringType,
+						"host":                         types.StringType,
+						"deployed_stage_deployment_no": types.Int64Type,
+					},
+					}},
+					"domain_code":     types.StringType,
+					"api_name":        types.StringType,
+					"api_id":          types.StringType,
+					"api_description": types.StringType,
 				}).Type(ctx))
 				attrValues[field] = listV
 				continue
 			}
-
 
 			attrValue, err := convertValueToAttr_GETProductsProductidDocument(value)
 			if err != nil {
@@ -248,31 +215,26 @@ func convertToObject_GETProductsProductidDocument(ctx context.Context, data map[
 			}
 			attrValues[field] = attrValue
 		} else {
-            
-				if field == "content" {
-					listV := types.ListNull(types.ObjectNull(map[string]attr.Type{
-						
-			"stages": types.ListType{ElemType:
-				
-	types.ObjectType{AttrTypes: map[string]attr.Type{
-		
-		"stage_name": types.StringType,
-"stage_id": types.StringType,
-"host": types.StringType,
-"deployed_stage_deployment_no": types.Int64Type,
 
-	},
-			}},
-"domain_code": types.StringType,
-"api_name": types.StringType,
-"api_id": types.StringType,
-"api_description": types.StringType,
+			if field == "content" {
+				listV := types.ListNull(types.ObjectNull(map[string]attr.Type{
 
-					}).Type(ctx))
-					attrValues[field] = listV
-					continue
-				}
+					"stages": types.ListType{ElemType: types.ObjectType{AttrTypes: map[string]attr.Type{
 
+						"stage_name":                   types.StringType,
+						"stage_id":                     types.StringType,
+						"host":                         types.StringType,
+						"deployed_stage_deployment_no": types.Int64Type,
+					},
+					}},
+					"domain_code":     types.StringType,
+					"api_name":        types.StringType,
+					"api_id":          types.StringType,
+					"api_description": types.StringType,
+				}).Type(ctx))
+				attrValues[field] = listV
+				continue
+			}
 
 			switch fieldType {
 			case types.StringType:
@@ -295,21 +257,20 @@ func convertToObject_GETProductsProductidDocument(ctx context.Context, data map[
 }
 
 func convertValueToAttr_GETProductsProductidDocument(value interface{}) (attr.Value, error) {
-     switch v := value.(type) {
-     case string:
-         return types.StringValue(v), nil
-     case int32:
-         return types.Int32Value(v), nil
-     case int64:
-         return types.Int64Value(v), nil
-     case float64:
-         return types.Float64Value(v), nil
-     case bool:
-         return types.BoolValue(v), nil
-     case nil:
-         return types.StringNull(), nil
-     default:
-         return nil, fmt.Errorf("unsupported type: %T", value)
-     }
+	switch v := value.(type) {
+	case string:
+		return types.StringValue(v), nil
+	case int32:
+		return types.Int32Value(v), nil
+	case int64:
+		return types.Int64Value(v), nil
+	case float64:
+		return types.Float64Value(v), nil
+	case bool:
+		return types.BoolValue(v), nil
+	case nil:
+		return types.StringNull(), nil
+	default:
+		return nil, fmt.Errorf("unsupported type: %T", value)
+	}
 }
-

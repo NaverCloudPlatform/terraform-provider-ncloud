@@ -1,4 +1,3 @@
-
 /* =================================================================================
  * NCLOUD SDK LAYER FOR TERRAFORM CODEGEN - DO NOT EDIT
  * =================================================================================
@@ -27,23 +26,21 @@ import (
 )
 
 type PrimitivePATCHProductsProductidApisApiidResourcesResourceidMethodsMethodnameResponsesStatuscodeRequest struct {
-    Productid string `json:"product-id"`
-Apiid string `json:"api-id"`
-Resourceid string `json:"resource-id"`
-Methodname string `json:"method-name"`
-Statuscode string `json:"status-code"`
-ResponseDescription string `json:"responseDescription"`
-
+	Productid           string `json:"product-id"`
+	Apiid               string `json:"api-id"`
+	Resourceid          string `json:"resource-id"`
+	Methodname          string `json:"method-name"`
+	Statuscode          string `json:"status-code"`
+	ResponseDescription string `json:"responseDescription"`
 }
 
 type StringifiedPATCHProductsProductidApisApiidResourcesResourceidMethodsMethodnameResponsesStatuscodeRequest struct {
-	Productid string `json:"product-id"`
-Apiid string `json:"api-id"`
-Resourceid string `json:"resource-id"`
-Methodname string `json:"method-name"`
-Statuscode string `json:"status-code"`
-ResponseDescription string `json:"responseDescription"`
-
+	Productid           string `json:"product-id"`
+	Apiid               string `json:"api-id"`
+	Resourceid          string `json:"resource-id"`
+	Methodname          string `json:"method-name"`
+	Statuscode          string `json:"status-code"`
+	ResponseDescription string `json:"responseDescription"`
 }
 
 func (n *NClient) PATCHProductsProductidApisApiidResourcesResourceidMethodsMethodnameResponsesStatuscode(ctx context.Context, primitiveReq *PrimitivePATCHProductsProductidApisApiidResourcesResourceidMethodsMethodnameResponsesStatuscodeRequest) (map[string]interface{}, error) {
@@ -55,13 +52,9 @@ func (n *NClient) PATCHProductsProductidApisApiidResourcesResourceidMethodsMetho
 		return nil, err
 	}
 
- 	
-
-	
-			if r.ResponseDescription != "" {
-				initBody["responseDescription"] = r.ResponseDescription
-			}
-
+	if r.ResponseDescription != "" {
+		initBody["responseDescription"] = r.ResponseDescription
+	}
 
 	rawBody, err := json.Marshal(initBody)
 	if err != nil {
@@ -70,7 +63,7 @@ func (n *NClient) PATCHProductsProductidApisApiidResourcesResourceidMethodsMetho
 
 	body := strings.Replace(string(rawBody), `\"`, "", -1)
 
-	url := n.BaseURL +"/"+"products"+"/"+ClearDoubleQuote(r.Productid)+"/"+"apis"+"/"+ClearDoubleQuote(r.Apiid)+"/"+"resources"+"/"+ClearDoubleQuote(r.Resourceid)+"/"+"methods"+"/"+ClearDoubleQuote(r.Methodname)+"/"+"responses"+"/"+ClearDoubleQuote(r.Statuscode)
+	url := n.BaseURL + "/" + "products" + "/" + ClearDoubleQuote(r.Productid) + "/" + "apis" + "/" + ClearDoubleQuote(r.Apiid) + "/" + "resources" + "/" + ClearDoubleQuote(r.Resourceid) + "/" + "methods" + "/" + ClearDoubleQuote(r.Methodname) + "/" + "responses" + "/" + ClearDoubleQuote(r.Statuscode)
 
 	response, err := n.MakeRequestWithContext(ctx, "PATCH", url, body, query)
 	if err != nil {
@@ -99,7 +92,6 @@ func (n *NClient) PATCHProductsProductidApisApiidResourcesResourceidMethodsMetho
 	return res, nil
 }
 
-
 /* =================================================================================
  * NCLOUD SDK LAYER FOR TERRAFORM CODEGEN - DO NOT EDIT
  * =================================================================================
@@ -114,52 +106,47 @@ func (n *NClient) PATCHProductsProductidApisApiidResourcesResourceidMethodsMetho
  * ================================================================================= */
 
 type PATCHProductsProductidApisApiidResourcesResourceidMethodsMethodnameResponsesStatuscodeResponse struct {
-    MethodResponseDto         types.Object `tfsdk:"method_response_dto"`
-
+	MethodResponseDto types.Object `tfsdk:"method_response_dto"`
 }
 
 func ConvertToFrameworkTypes_PATCHProductsProductidApisApiidResourcesResourceidMethodsMethodnameResponsesStatuscode(ctx context.Context, data map[string]interface{}) (*PATCHProductsProductidApisApiidResourcesResourceidMethodsMethodnameResponsesStatuscodeResponse, error) {
 	var dto PATCHProductsProductidApisApiidResourcesResourceidMethodsMethodnameResponsesStatuscodeResponse
 
-    
-			if data["method_response_dto"] != nil {
-				tempMethodResponseDto := data["method_response_dto"].(map[string]interface{})
+	if data["method_response_dto"] != nil {
+		tempMethodResponseDto := data["method_response_dto"].(map[string]interface{})
 
-				allFields := []string{
-					"tenant_id",
-"status_code",
-"response_description",
-"resource_id",
-"modifier",
-"method_code",
-"api_id",
+		allFields := []string{
+			"tenant_id",
+			"status_code",
+			"response_description",
+			"resource_id",
+			"modifier",
+			"method_code",
+			"api_id",
+		}
 
-				}
-
-				convertedMap := make(map[string]interface{})
-				for _, field := range allFields {
-					if val, ok := tempMethodResponseDto[field]; ok {
-						convertedMap[field] = val
-					}
-				}
-
-				convertedTempMethodResponseDto, err := convertToObject_PATCHProductsProductidApisApiidResourcesResourceidMethodsMethodnameResponsesStatuscode(ctx, convertedMap)
-				if err != nil {
-					return nil, err
-				}
-
-				dto.MethodResponseDto = diagOff(types.ObjectValueFrom, ctx, types.ObjectType{AttrTypes: map[string]attr.Type{
-					"tenant_id": types.StringType,
-"status_code": types.Int32Type,
-"response_description": types.StringType,
-"resource_id": types.StringType,
-"modifier": types.StringType,
-"method_code": types.StringType,
-"api_id": types.StringType,
-
-				}}.AttributeTypes(), convertedTempMethodResponseDto)
+		convertedMap := make(map[string]interface{})
+		for _, field := range allFields {
+			if val, ok := tempMethodResponseDto[field]; ok {
+				convertedMap[field] = val
 			}
+		}
 
+		convertedTempMethodResponseDto, err := convertToObject_PATCHProductsProductidApisApiidResourcesResourceidMethodsMethodnameResponsesStatuscode(ctx, convertedMap)
+		if err != nil {
+			return nil, err
+		}
+
+		dto.MethodResponseDto = diagOff(types.ObjectValueFrom, ctx, types.ObjectType{AttrTypes: map[string]attr.Type{
+			"tenant_id":            types.StringType,
+			"status_code":          types.Int32Type,
+			"response_description": types.StringType,
+			"resource_id":          types.StringType,
+			"modifier":             types.StringType,
+			"method_code":          types.StringType,
+			"api_id":               types.StringType,
+		}}.AttributeTypes(), convertedTempMethodResponseDto)
+	}
 
 	return &dto, nil
 }
@@ -168,16 +155,14 @@ func convertToObject_PATCHProductsProductidApisApiidResourcesResourceidMethodsMe
 	attrTypes := make(map[string]attr.Type)
 	attrValues := make(map[string]attr.Value)
 
-    possibleTypes := map[string]attr.Type{
-        "tenant_id": types.StringType,
-"status_code": types.Int32Type,
-"response_description": types.StringType,
-"resource_id": types.StringType,
-"modifier": types.StringType,
-"method_code": types.StringType,
-"api_id": types.StringType,
-
-
+	possibleTypes := map[string]attr.Type{
+		"tenant_id":            types.StringType,
+		"status_code":          types.Int32Type,
+		"response_description": types.StringType,
+		"resource_id":          types.StringType,
+		"modifier":             types.StringType,
+		"method_code":          types.StringType,
+		"api_id":               types.StringType,
 	}
 
 	for field, fieldType := range possibleTypes {
@@ -185,15 +170,12 @@ func convertToObject_PATCHProductsProductidApisApiidResourcesResourceidMethodsMe
 
 		if value, exists := data[field]; exists {
 
-			
-
 			attrValue, err := convertValueToAttr_PATCHProductsProductidApisApiidResourcesResourceidMethodsMethodnameResponsesStatuscode(value)
 			if err != nil {
 				return types.Object{}, fmt.Errorf("error converting field %s: %v", field, err)
 			}
 			attrValues[field] = attrValue
 		} else {
-            
 
 			switch fieldType {
 			case types.StringType:
@@ -216,21 +198,20 @@ func convertToObject_PATCHProductsProductidApisApiidResourcesResourceidMethodsMe
 }
 
 func convertValueToAttr_PATCHProductsProductidApisApiidResourcesResourceidMethodsMethodnameResponsesStatuscode(value interface{}) (attr.Value, error) {
-     switch v := value.(type) {
-     case string:
-         return types.StringValue(v), nil
-     case int32:
-         return types.Int32Value(v), nil
-     case int64:
-         return types.Int64Value(v), nil
-     case float64:
-         return types.Float64Value(v), nil
-     case bool:
-         return types.BoolValue(v), nil
-     case nil:
-         return types.StringNull(), nil
-     default:
-         return nil, fmt.Errorf("unsupported type: %T", value)
-     }
+	switch v := value.(type) {
+	case string:
+		return types.StringValue(v), nil
+	case int32:
+		return types.Int32Value(v), nil
+	case int64:
+		return types.Int64Value(v), nil
+	case float64:
+		return types.Float64Value(v), nil
+	case bool:
+		return types.BoolValue(v), nil
+	case nil:
+		return types.StringNull(), nil
+	default:
+		return nil, fmt.Errorf("unsupported type: %T", value)
+	}
 }
-

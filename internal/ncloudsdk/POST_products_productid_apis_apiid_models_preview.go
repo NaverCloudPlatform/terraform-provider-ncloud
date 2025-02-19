@@ -1,4 +1,3 @@
-
 /* =================================================================================
  * NCLOUD SDK LAYER FOR TERRAFORM CODEGEN - DO NOT EDIT
  * =================================================================================
@@ -27,19 +26,17 @@ import (
 )
 
 type PrimitivePOSTProductsProductidApisApiidModelsPreviewRequest struct {
-    Productid string `json:"product-id"`
-Apiid string `json:"api-id"`
-ModelSchema string `json:"modelSchema"`
-ModelId string `json:"modelId"`
-
+	Productid   string `json:"product-id"`
+	Apiid       string `json:"api-id"`
+	ModelSchema string `json:"modelSchema"`
+	ModelId     string `json:"modelId"`
 }
 
 type StringifiedPOSTProductsProductidApisApiidModelsPreviewRequest struct {
-	Productid string `json:"product-id"`
-Apiid string `json:"api-id"`
-ModelSchema string `json:"modelSchema"`
-ModelId string `json:"modelId"`
-
+	Productid   string `json:"product-id"`
+	Apiid       string `json:"api-id"`
+	ModelSchema string `json:"modelSchema"`
+	ModelId     string `json:"modelId"`
 }
 
 func (n *NClient) POSTProductsProductidApisApiidModelsPreview(ctx context.Context, primitiveReq *PrimitivePOSTProductsProductidApisApiidModelsPreviewRequest) (map[string]interface{}, error) {
@@ -51,14 +48,11 @@ func (n *NClient) POSTProductsProductidApisApiidModelsPreview(ctx context.Contex
 		return nil, err
 	}
 
- 	
-
 	initBody["modelSchema"] = r.ModelSchema
 
-			if r.ModelId != "" {
-				initBody["modelId"] = r.ModelId
-			}
-
+	if r.ModelId != "" {
+		initBody["modelId"] = r.ModelId
+	}
 
 	rawBody, err := json.Marshal(initBody)
 	if err != nil {
@@ -67,7 +61,7 @@ func (n *NClient) POSTProductsProductidApisApiidModelsPreview(ctx context.Contex
 
 	body := strings.Replace(string(rawBody), `\"`, "", -1)
 
-	url := n.BaseURL +"/"+"products"+"/"+ClearDoubleQuote(r.Productid)+"/"+"apis"+"/"+ClearDoubleQuote(r.Apiid)+"/"+"models"+"/"+"preview"
+	url := n.BaseURL + "/" + "products" + "/" + ClearDoubleQuote(r.Productid) + "/" + "apis" + "/" + ClearDoubleQuote(r.Apiid) + "/" + "models" + "/" + "preview"
 
 	response, err := n.MakeRequestWithContext(ctx, "POST", url, body, query)
 	if err != nil {
@@ -96,7 +90,6 @@ func (n *NClient) POSTProductsProductidApisApiidModelsPreview_TF(ctx context.Con
 	return res, nil
 }
 
-
 /* =================================================================================
  * NCLOUD SDK LAYER FOR TERRAFORM CODEGEN - DO NOT EDIT
  * =================================================================================
@@ -111,38 +104,31 @@ func (n *NClient) POSTProductsProductidApisApiidModelsPreview_TF(ctx context.Con
  * ================================================================================= */
 
 type POSTProductsProductidApisApiidModelsPreviewResponse struct {
-    ModelSchema         types.Object `tfsdk:"model_schema"`
-
+	ModelSchema types.Object `tfsdk:"model_schema"`
 }
 
 func ConvertToFrameworkTypes_POSTProductsProductidApisApiidModelsPreview(ctx context.Context, data map[string]interface{}) (*POSTProductsProductidApisApiidModelsPreviewResponse, error) {
 	var dto POSTProductsProductidApisApiidModelsPreviewResponse
 
-    
-			if data["model_schema"] != nil {
-				tempModelSchema := data["model_schema"].(map[string]interface{})
+	if data["model_schema"] != nil {
+		tempModelSchema := data["model_schema"].(map[string]interface{})
 
-				allFields := []string{
-					
-				}
+		allFields := []string{}
 
-				convertedMap := make(map[string]interface{})
-				for _, field := range allFields {
-					if val, ok := tempModelSchema[field]; ok {
-						convertedMap[field] = val
-					}
-				}
-
-				convertedTempModelSchema, err := convertToObject_POSTProductsProductidApisApiidModelsPreview(ctx, convertedMap)
-				if err != nil {
-					return nil, err
-				}
-
-				dto.ModelSchema = diagOff(types.ObjectValueFrom, ctx, types.ObjectType{AttrTypes: map[string]attr.Type{
-					
-				}}.AttributeTypes(), convertedTempModelSchema)
+		convertedMap := make(map[string]interface{})
+		for _, field := range allFields {
+			if val, ok := tempModelSchema[field]; ok {
+				convertedMap[field] = val
 			}
+		}
 
+		convertedTempModelSchema, err := convertToObject_POSTProductsProductidApisApiidModelsPreview(ctx, convertedMap)
+		if err != nil {
+			return nil, err
+		}
+
+		dto.ModelSchema = diagOff(types.ObjectValueFrom, ctx, types.ObjectType{AttrTypes: map[string]attr.Type{}}.AttributeTypes(), convertedTempModelSchema)
+	}
 
 	return &dto, nil
 }
@@ -151,17 +137,12 @@ func convertToObject_POSTProductsProductidApisApiidModelsPreview(ctx context.Con
 	attrTypes := make(map[string]attr.Type)
 	attrValues := make(map[string]attr.Value)
 
-    possibleTypes := map[string]attr.Type{
-        
-
-	}
+	possibleTypes := map[string]attr.Type{}
 
 	for field, fieldType := range possibleTypes {
 		attrTypes[field] = fieldType
 
 		if value, exists := data[field]; exists {
-
-			
 
 			attrValue, err := convertValueToAttr_POSTProductsProductidApisApiidModelsPreview(value)
 			if err != nil {
@@ -169,7 +150,6 @@ func convertToObject_POSTProductsProductidApisApiidModelsPreview(ctx context.Con
 			}
 			attrValues[field] = attrValue
 		} else {
-            
 
 			switch fieldType {
 			case types.StringType:
@@ -192,21 +172,20 @@ func convertToObject_POSTProductsProductidApisApiidModelsPreview(ctx context.Con
 }
 
 func convertValueToAttr_POSTProductsProductidApisApiidModelsPreview(value interface{}) (attr.Value, error) {
-     switch v := value.(type) {
-     case string:
-         return types.StringValue(v), nil
-     case int32:
-         return types.Int32Value(v), nil
-     case int64:
-         return types.Int64Value(v), nil
-     case float64:
-         return types.Float64Value(v), nil
-     case bool:
-         return types.BoolValue(v), nil
-     case nil:
-         return types.StringNull(), nil
-     default:
-         return nil, fmt.Errorf("unsupported type: %T", value)
-     }
+	switch v := value.(type) {
+	case string:
+		return types.StringValue(v), nil
+	case int32:
+		return types.Int32Value(v), nil
+	case int64:
+		return types.Int64Value(v), nil
+	case float64:
+		return types.Float64Value(v), nil
+	case bool:
+		return types.BoolValue(v), nil
+	case nil:
+		return types.StringNull(), nil
+	default:
+		return nil, fmt.Errorf("unsupported type: %T", value)
+	}
 }
-

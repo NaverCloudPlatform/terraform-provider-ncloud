@@ -1,4 +1,3 @@
-
 /* =================================================================================
  * NCLOUD SDK LAYER FOR TERRAFORM CODEGEN - DO NOT EDIT
  * =================================================================================
@@ -27,19 +26,17 @@ import (
 )
 
 type PrimitiveDELETEProductsProductidApisApiidResponsesResponsetypeTemplatesRequest struct {
-    Productid string `json:"product-id"`
-Apiid string `json:"api-id"`
-Responsetype string `json:"response-type"`
-ContentType string `json:"contentType"`
-
+	Productid    string `json:"product-id"`
+	Apiid        string `json:"api-id"`
+	Responsetype string `json:"response-type"`
+	ContentType  string `json:"contentType"`
 }
 
 type StringifiedDELETEProductsProductidApisApiidResponsesResponsetypeTemplatesRequest struct {
-	Productid string `json:"product-id"`
-Apiid string `json:"api-id"`
-Responsetype string `json:"response-type"`
-ContentType string `json:"contentType"`
-
+	Productid    string `json:"product-id"`
+	Apiid        string `json:"api-id"`
+	Responsetype string `json:"response-type"`
+	ContentType  string `json:"contentType"`
 }
 
 func (n *NClient) DELETEProductsProductidApisApiidResponsesResponsetypeTemplates(ctx context.Context, primitiveReq *PrimitiveDELETEProductsProductidApisApiidResponsesResponsetypeTemplatesRequest) (map[string]interface{}, error) {
@@ -51,11 +48,7 @@ func (n *NClient) DELETEProductsProductidApisApiidResponsesResponsetypeTemplates
 		return nil, err
 	}
 
- 	
-				query["contentType"] = r.ContentType
-
-
-	
+	query["contentType"] = r.ContentType
 
 	rawBody, err := json.Marshal(initBody)
 	if err != nil {
@@ -64,7 +57,7 @@ func (n *NClient) DELETEProductsProductidApisApiidResponsesResponsetypeTemplates
 
 	body := strings.Replace(string(rawBody), `\"`, "", -1)
 
-	url := n.BaseURL +"/"+"products"+"/"+ClearDoubleQuote(r.Productid)+"/"+"apis"+"/"+ClearDoubleQuote(r.Apiid)+"/"+"responses"+"/"+ClearDoubleQuote(r.Responsetype)+"/"+"templates"
+	url := n.BaseURL + "/" + "products" + "/" + ClearDoubleQuote(r.Productid) + "/" + "apis" + "/" + ClearDoubleQuote(r.Apiid) + "/" + "responses" + "/" + ClearDoubleQuote(r.Responsetype) + "/" + "templates"
 
 	response, err := n.MakeRequestWithContext(ctx, "DELETE", url, body, query)
 	if err != nil {
@@ -93,7 +86,6 @@ func (n *NClient) DELETEProductsProductidApisApiidResponsesResponsetypeTemplates
 	return res, nil
 }
 
-
 /* =================================================================================
  * NCLOUD SDK LAYER FOR TERRAFORM CODEGEN - DO NOT EDIT
  * =================================================================================
@@ -108,13 +100,10 @@ func (n *NClient) DELETEProductsProductidApisApiidResponsesResponsetypeTemplates
  * ================================================================================= */
 
 type DELETEProductsProductidApisApiidResponsesResponsetypeTemplatesResponse struct {
-    
 }
 
 func ConvertToFrameworkTypes_DELETEProductsProductidApisApiidResponsesResponsetypeTemplates(ctx context.Context, data map[string]interface{}) (*DELETEProductsProductidApisApiidResponsesResponsetypeTemplatesResponse, error) {
 	var dto DELETEProductsProductidApisApiidResponsesResponsetypeTemplatesResponse
-
-    
 
 	return &dto, nil
 }
@@ -123,16 +112,12 @@ func convertToObject_DELETEProductsProductidApisApiidResponsesResponsetypeTempla
 	attrTypes := make(map[string]attr.Type)
 	attrValues := make(map[string]attr.Value)
 
-    possibleTypes := map[string]attr.Type{
-        
-	}
+	possibleTypes := map[string]attr.Type{}
 
 	for field, fieldType := range possibleTypes {
 		attrTypes[field] = fieldType
 
 		if value, exists := data[field]; exists {
-
-			
 
 			attrValue, err := convertValueToAttr_DELETEProductsProductidApisApiidResponsesResponsetypeTemplates(value)
 			if err != nil {
@@ -140,7 +125,6 @@ func convertToObject_DELETEProductsProductidApisApiidResponsesResponsetypeTempla
 			}
 			attrValues[field] = attrValue
 		} else {
-            
 
 			switch fieldType {
 			case types.StringType:
@@ -163,21 +147,20 @@ func convertToObject_DELETEProductsProductidApisApiidResponsesResponsetypeTempla
 }
 
 func convertValueToAttr_DELETEProductsProductidApisApiidResponsesResponsetypeTemplates(value interface{}) (attr.Value, error) {
-     switch v := value.(type) {
-     case string:
-         return types.StringValue(v), nil
-     case int32:
-         return types.Int32Value(v), nil
-     case int64:
-         return types.Int64Value(v), nil
-     case float64:
-         return types.Float64Value(v), nil
-     case bool:
-         return types.BoolValue(v), nil
-     case nil:
-         return types.StringNull(), nil
-     default:
-         return nil, fmt.Errorf("unsupported type: %T", value)
-     }
+	switch v := value.(type) {
+	case string:
+		return types.StringValue(v), nil
+	case int32:
+		return types.Int32Value(v), nil
+	case int64:
+		return types.Int64Value(v), nil
+	case float64:
+		return types.Float64Value(v), nil
+	case bool:
+		return types.BoolValue(v), nil
+	case nil:
+		return types.StringNull(), nil
+	default:
+		return nil, fmt.Errorf("unsupported type: %T", value)
+	}
 }
-

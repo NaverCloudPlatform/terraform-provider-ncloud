@@ -1,4 +1,3 @@
-
 /* =================================================================================
  * NCLOUD SDK LAYER FOR TERRAFORM CODEGEN - DO NOT EDIT
  * =================================================================================
@@ -27,21 +26,19 @@ import (
 )
 
 type PrimitiveGETProductsProductidApisApiidStagesStageidDeploymentsDeploymentnoResourcesResourceidMethodsRequest struct {
-    Productid string `json:"product-id"`
-Apiid string `json:"api-id"`
-Stageid string `json:"stage-id"`
-Deploymentno string `json:"deployment-no"`
-Resourceid string `json:"resource-id"`
-
+	Productid    string `json:"product-id"`
+	Apiid        string `json:"api-id"`
+	Stageid      string `json:"stage-id"`
+	Deploymentno string `json:"deployment-no"`
+	Resourceid   string `json:"resource-id"`
 }
 
 type StringifiedGETProductsProductidApisApiidStagesStageidDeploymentsDeploymentnoResourcesResourceidMethodsRequest struct {
-	Productid string `json:"product-id"`
-Apiid string `json:"api-id"`
-Stageid string `json:"stage-id"`
-Deploymentno string `json:"deployment-no"`
-Resourceid string `json:"resource-id"`
-
+	Productid    string `json:"product-id"`
+	Apiid        string `json:"api-id"`
+	Stageid      string `json:"stage-id"`
+	Deploymentno string `json:"deployment-no"`
+	Resourceid   string `json:"resource-id"`
 }
 
 func (n *NClient) GETProductsProductidApisApiidStagesStageidDeploymentsDeploymentnoResourcesResourceidMethods(ctx context.Context, primitiveReq *PrimitiveGETProductsProductidApisApiidStagesStageidDeploymentsDeploymentnoResourcesResourceidMethodsRequest) (map[string]interface{}, error) {
@@ -53,10 +50,6 @@ func (n *NClient) GETProductsProductidApisApiidStagesStageidDeploymentsDeploymen
 		return nil, err
 	}
 
- 	
-
-	
-
 	rawBody, err := json.Marshal(initBody)
 	if err != nil {
 		return nil, err
@@ -64,7 +57,7 @@ func (n *NClient) GETProductsProductidApisApiidStagesStageidDeploymentsDeploymen
 
 	body := strings.Replace(string(rawBody), `\"`, "", -1)
 
-	url := n.BaseURL +"/"+"products"+"/"+ClearDoubleQuote(r.Productid)+"/"+"apis"+"/"+ClearDoubleQuote(r.Apiid)+"/"+"stages"+"/"+ClearDoubleQuote(r.Stageid)+"/"+"deployments"+"/"+ClearDoubleQuote(r.Deploymentno)+"/"+"resources"+"/"+ClearDoubleQuote(r.Resourceid)+"/"+"methods"
+	url := n.BaseURL + "/" + "products" + "/" + ClearDoubleQuote(r.Productid) + "/" + "apis" + "/" + ClearDoubleQuote(r.Apiid) + "/" + "stages" + "/" + ClearDoubleQuote(r.Stageid) + "/" + "deployments" + "/" + ClearDoubleQuote(r.Deploymentno) + "/" + "resources" + "/" + ClearDoubleQuote(r.Resourceid) + "/" + "methods"
 
 	response, err := n.MakeRequestWithContext(ctx, "GET", url, body, query)
 	if err != nil {
@@ -93,7 +86,6 @@ func (n *NClient) GETProductsProductidApisApiidStagesStageidDeploymentsDeploymen
 	return res, nil
 }
 
-
 /* =================================================================================
  * NCLOUD SDK LAYER FOR TERRAFORM CODEGEN - DO NOT EDIT
  * =================================================================================
@@ -108,39 +100,33 @@ func (n *NClient) GETProductsProductidApisApiidStagesStageidDeploymentsDeploymen
  * ================================================================================= */
 
 type GETProductsProductidApisApiidStagesStageidDeploymentsDeploymentnoResourcesResourceidMethodsResponse struct {
-    StageMethods         types.List `tfsdk:"stage_methods"`
-
+	StageMethods types.List `tfsdk:"stage_methods"`
 }
 
 func ConvertToFrameworkTypes_GETProductsProductidApisApiidStagesStageidDeploymentsDeploymentnoResourcesResourceidMethods(ctx context.Context, data map[string]interface{}) (*GETProductsProductidApisApiidStagesStageidDeploymentsDeploymentnoResourcesResourceidMethodsResponse, error) {
 	var dto GETProductsProductidApisApiidStagesStageidDeploymentsDeploymentnoResourcesResourceidMethodsResponse
 
-    
-				if data["stage_methods"] != nil {
-					tempStageMethods := data["stage_methods"].([]interface{})
-					dto.StageMethods = diagOff(types.ListValueFrom, ctx, types.ListType{ElemType:
-						
-	types.ObjectType{AttrTypes: map[string]attr.Type{
-		
-		"throttle_rps": types.Int32Type,
-"stage_deployment_no": types.Int64Type,
-"rest_url": types.StringType,
-"resource_path": types.StringType,
-"resource_id": types.StringType,
-"method_name": types.StringType,
-"method_code": types.StringType,
-"is_inherit": types.BoolType,
-"invoke_url": types.StringType,
-"endpoint_domain": types.StringType,
-"endpoint_config_json": types.StringType,
-"endpoint_code": types.StringType,
-"endpoint_action_id": types.StringType,
-"cache_ttl_sec": types.Int32Type,
+	if data["stage_methods"] != nil {
+		tempStageMethods := data["stage_methods"].([]interface{})
+		dto.StageMethods = diagOff(types.ListValueFrom, ctx, types.ListType{ElemType: types.ObjectType{AttrTypes: map[string]attr.Type{
 
-	},
-
-					}}.ElementType(), tempStageMethods)
-				}
+			"throttle_rps":         types.Int32Type,
+			"stage_deployment_no":  types.Int64Type,
+			"rest_url":             types.StringType,
+			"resource_path":        types.StringType,
+			"resource_id":          types.StringType,
+			"method_name":          types.StringType,
+			"method_code":          types.StringType,
+			"is_inherit":           types.BoolType,
+			"invoke_url":           types.StringType,
+			"endpoint_domain":      types.StringType,
+			"endpoint_config_json": types.StringType,
+			"endpoint_code":        types.StringType,
+			"endpoint_action_id":   types.StringType,
+			"cache_ttl_sec":        types.Int32Type,
+		},
+		}}.ElementType(), tempStageMethods)
+	}
 
 	return &dto, nil
 }
@@ -149,16 +135,12 @@ func convertToObject_GETProductsProductidApisApiidStagesStageidDeploymentsDeploy
 	attrTypes := make(map[string]attr.Type)
 	attrValues := make(map[string]attr.Value)
 
-    possibleTypes := map[string]attr.Type{
-        
-	}
+	possibleTypes := map[string]attr.Type{}
 
 	for field, fieldType := range possibleTypes {
 		attrTypes[field] = fieldType
 
 		if value, exists := data[field]; exists {
-
-			
 
 			attrValue, err := convertValueToAttr_GETProductsProductidApisApiidStagesStageidDeploymentsDeploymentnoResourcesResourceidMethods(value)
 			if err != nil {
@@ -166,7 +148,6 @@ func convertToObject_GETProductsProductidApisApiidStagesStageidDeploymentsDeploy
 			}
 			attrValues[field] = attrValue
 		} else {
-            
 
 			switch fieldType {
 			case types.StringType:
@@ -189,21 +170,20 @@ func convertToObject_GETProductsProductidApisApiidStagesStageidDeploymentsDeploy
 }
 
 func convertValueToAttr_GETProductsProductidApisApiidStagesStageidDeploymentsDeploymentnoResourcesResourceidMethods(value interface{}) (attr.Value, error) {
-     switch v := value.(type) {
-     case string:
-         return types.StringValue(v), nil
-     case int32:
-         return types.Int32Value(v), nil
-     case int64:
-         return types.Int64Value(v), nil
-     case float64:
-         return types.Float64Value(v), nil
-     case bool:
-         return types.BoolValue(v), nil
-     case nil:
-         return types.StringNull(), nil
-     default:
-         return nil, fmt.Errorf("unsupported type: %T", value)
-     }
+	switch v := value.(type) {
+	case string:
+		return types.StringValue(v), nil
+	case int32:
+		return types.Int32Value(v), nil
+	case int64:
+		return types.Int64Value(v), nil
+	case float64:
+		return types.Float64Value(v), nil
+	case bool:
+		return types.BoolValue(v), nil
+	case nil:
+		return types.StringNull(), nil
+	default:
+		return nil, fmt.Errorf("unsupported type: %T", value)
+	}
 }
-

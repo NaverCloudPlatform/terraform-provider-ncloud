@@ -1,4 +1,3 @@
-
 /* =================================================================================
  * NCLOUD SDK LAYER FOR TERRAFORM CODEGEN - DO NOT EDIT
  * =================================================================================
@@ -27,15 +26,13 @@ import (
 )
 
 type PrimitiveGETProductsProductidApisApiidDocumentsRequest struct {
-    Productid string `json:"product-id"`
-Apiid string `json:"api-id"`
-
+	Productid string `json:"product-id"`
+	Apiid     string `json:"api-id"`
 }
 
 type StringifiedGETProductsProductidApisApiidDocumentsRequest struct {
 	Productid string `json:"product-id"`
-Apiid string `json:"api-id"`
-
+	Apiid     string `json:"api-id"`
 }
 
 func (n *NClient) GETProductsProductidApisApiidDocuments(ctx context.Context, primitiveReq *PrimitiveGETProductsProductidApisApiidDocumentsRequest) (map[string]interface{}, error) {
@@ -47,10 +44,6 @@ func (n *NClient) GETProductsProductidApisApiidDocuments(ctx context.Context, pr
 		return nil, err
 	}
 
- 	
-
-	
-
 	rawBody, err := json.Marshal(initBody)
 	if err != nil {
 		return nil, err
@@ -58,7 +51,7 @@ func (n *NClient) GETProductsProductidApisApiidDocuments(ctx context.Context, pr
 
 	body := strings.Replace(string(rawBody), `\"`, "", -1)
 
-	url := n.BaseURL +"/"+"products"+"/"+ClearDoubleQuote(r.Productid)+"/"+"apis"+"/"+ClearDoubleQuote(r.Apiid)+"/"+"documents"
+	url := n.BaseURL + "/" + "products" + "/" + ClearDoubleQuote(r.Productid) + "/" + "apis" + "/" + ClearDoubleQuote(r.Apiid) + "/" + "documents"
 
 	response, err := n.MakeRequestWithContext(ctx, "GET", url, body, query)
 	if err != nil {
@@ -87,7 +80,6 @@ func (n *NClient) GETProductsProductidApisApiidDocuments_TF(ctx context.Context,
 	return res, nil
 }
 
-
 /* =================================================================================
  * NCLOUD SDK LAYER FOR TERRAFORM CODEGEN - DO NOT EDIT
  * =================================================================================
@@ -102,33 +94,30 @@ func (n *NClient) GETProductsProductidApisApiidDocuments_TF(ctx context.Context,
  * ================================================================================= */
 
 type GETProductsProductidApisApiidDocumentsResponse struct {
-    Tenantid         types.String `tfsdk:"tenant_id"`
-Modifier         types.String `tfsdk:"modifier"`
-Documentmd         types.String `tfsdk:"document_md"`
-Apiid         types.String `tfsdk:"api_id"`
-
+	Tenantid   types.String `tfsdk:"tenant_id"`
+	Modifier   types.String `tfsdk:"modifier"`
+	Documentmd types.String `tfsdk:"document_md"`
+	Apiid      types.String `tfsdk:"api_id"`
 }
 
 func ConvertToFrameworkTypes_GETProductsProductidApisApiidDocuments(ctx context.Context, data map[string]interface{}) (*GETProductsProductidApisApiidDocumentsResponse, error) {
 	var dto GETProductsProductidApisApiidDocumentsResponse
 
-    
-			if data["tenant_id"] != nil {
-				dto.Tenantid = types.StringValue(data["tenant_id"].(string))
-			}
+	if data["tenant_id"] != nil {
+		dto.Tenantid = types.StringValue(data["tenant_id"].(string))
+	}
 
-			if data["modifier"] != nil {
-				dto.Modifier = types.StringValue(data["modifier"].(string))
-			}
+	if data["modifier"] != nil {
+		dto.Modifier = types.StringValue(data["modifier"].(string))
+	}
 
-			if data["document_md"] != nil {
-				dto.Documentmd = types.StringValue(data["document_md"].(string))
-			}
+	if data["document_md"] != nil {
+		dto.Documentmd = types.StringValue(data["document_md"].(string))
+	}
 
-			if data["api_id"] != nil {
-				dto.Apiid = types.StringValue(data["api_id"].(string))
-			}
-
+	if data["api_id"] != nil {
+		dto.Apiid = types.StringValue(data["api_id"].(string))
+	}
 
 	return &dto, nil
 }
@@ -137,16 +126,12 @@ func convertToObject_GETProductsProductidApisApiidDocuments(ctx context.Context,
 	attrTypes := make(map[string]attr.Type)
 	attrValues := make(map[string]attr.Value)
 
-    possibleTypes := map[string]attr.Type{
-        
-	}
+	possibleTypes := map[string]attr.Type{}
 
 	for field, fieldType := range possibleTypes {
 		attrTypes[field] = fieldType
 
 		if value, exists := data[field]; exists {
-
-			
 
 			attrValue, err := convertValueToAttr_GETProductsProductidApisApiidDocuments(value)
 			if err != nil {
@@ -154,7 +139,6 @@ func convertToObject_GETProductsProductidApisApiidDocuments(ctx context.Context,
 			}
 			attrValues[field] = attrValue
 		} else {
-            
 
 			switch fieldType {
 			case types.StringType:
@@ -177,21 +161,20 @@ func convertToObject_GETProductsProductidApisApiidDocuments(ctx context.Context,
 }
 
 func convertValueToAttr_GETProductsProductidApisApiidDocuments(value interface{}) (attr.Value, error) {
-     switch v := value.(type) {
-     case string:
-         return types.StringValue(v), nil
-     case int32:
-         return types.Int32Value(v), nil
-     case int64:
-         return types.Int64Value(v), nil
-     case float64:
-         return types.Float64Value(v), nil
-     case bool:
-         return types.BoolValue(v), nil
-     case nil:
-         return types.StringNull(), nil
-     default:
-         return nil, fmt.Errorf("unsupported type: %T", value)
-     }
+	switch v := value.(type) {
+	case string:
+		return types.StringValue(v), nil
+	case int32:
+		return types.Int32Value(v), nil
+	case int64:
+		return types.Int64Value(v), nil
+	case float64:
+		return types.Float64Value(v), nil
+	case bool:
+		return types.BoolValue(v), nil
+	case nil:
+		return types.StringNull(), nil
+	default:
+		return nil, fmt.Errorf("unsupported type: %T", value)
+	}
 }
-

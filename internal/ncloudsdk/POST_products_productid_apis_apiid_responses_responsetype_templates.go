@@ -1,4 +1,3 @@
-
 /* =================================================================================
  * NCLOUD SDK LAYER FOR TERRAFORM CODEGEN - DO NOT EDIT
  * =================================================================================
@@ -27,21 +26,19 @@ import (
 )
 
 type PrimitivePOSTProductsProductidApisApiidResponsesResponsetypeTemplatesRequest struct {
-    Productid string `json:"product-id"`
-Apiid string `json:"api-id"`
-Responsetype string `json:"response-type"`
-MappingTemplate string `json:"mappingTemplate"`
-ContentType string `json:"contentType"`
-
+	Productid       string `json:"product-id"`
+	Apiid           string `json:"api-id"`
+	Responsetype    string `json:"response-type"`
+	MappingTemplate string `json:"mappingTemplate"`
+	ContentType     string `json:"contentType"`
 }
 
 type StringifiedPOSTProductsProductidApisApiidResponsesResponsetypeTemplatesRequest struct {
-	Productid string `json:"product-id"`
-Apiid string `json:"api-id"`
-Responsetype string `json:"response-type"`
-MappingTemplate string `json:"mappingTemplate"`
-ContentType string `json:"contentType"`
-
+	Productid       string `json:"product-id"`
+	Apiid           string `json:"api-id"`
+	Responsetype    string `json:"response-type"`
+	MappingTemplate string `json:"mappingTemplate"`
+	ContentType     string `json:"contentType"`
 }
 
 func (n *NClient) POSTProductsProductidApisApiidResponsesResponsetypeTemplates(ctx context.Context, primitiveReq *PrimitivePOSTProductsProductidApisApiidResponsesResponsetypeTemplatesRequest) (map[string]interface{}, error) {
@@ -53,11 +50,8 @@ func (n *NClient) POSTProductsProductidApisApiidResponsesResponsetypeTemplates(c
 		return nil, err
 	}
 
- 	
-
 	initBody["mappingTemplate"] = r.MappingTemplate
-initBody["contentType"] = r.ContentType
-
+	initBody["contentType"] = r.ContentType
 
 	rawBody, err := json.Marshal(initBody)
 	if err != nil {
@@ -66,7 +60,7 @@ initBody["contentType"] = r.ContentType
 
 	body := strings.Replace(string(rawBody), `\"`, "", -1)
 
-	url := n.BaseURL +"/"+"products"+"/"+ClearDoubleQuote(r.Productid)+"/"+"apis"+"/"+ClearDoubleQuote(r.Apiid)+"/"+"responses"+"/"+ClearDoubleQuote(r.Responsetype)+"/"+"templates"
+	url := n.BaseURL + "/" + "products" + "/" + ClearDoubleQuote(r.Productid) + "/" + "apis" + "/" + ClearDoubleQuote(r.Apiid) + "/" + "responses" + "/" + ClearDoubleQuote(r.Responsetype) + "/" + "templates"
 
 	response, err := n.MakeRequestWithContext(ctx, "POST", url, body, query)
 	if err != nil {
@@ -95,7 +89,6 @@ func (n *NClient) POSTProductsProductidApisApiidResponsesResponsetypeTemplates_T
 	return res, nil
 }
 
-
 /* =================================================================================
  * NCLOUD SDK LAYER FOR TERRAFORM CODEGEN - DO NOT EDIT
  * =================================================================================
@@ -110,33 +103,30 @@ func (n *NClient) POSTProductsProductidApisApiidResponsesResponsetypeTemplates_T
  * ================================================================================= */
 
 type POSTProductsProductidApisApiidResponsesResponsetypeTemplatesResponse struct {
-    Responsetype         types.String `tfsdk:"response_type"`
-Mappingtemplate         types.String `tfsdk:"mapping_template"`
-Contenttype         types.String `tfsdk:"content_type"`
-Apiid         types.String `tfsdk:"api_id"`
-
+	Responsetype    types.String `tfsdk:"response_type"`
+	Mappingtemplate types.String `tfsdk:"mapping_template"`
+	Contenttype     types.String `tfsdk:"content_type"`
+	Apiid           types.String `tfsdk:"api_id"`
 }
 
 func ConvertToFrameworkTypes_POSTProductsProductidApisApiidResponsesResponsetypeTemplates(ctx context.Context, data map[string]interface{}) (*POSTProductsProductidApisApiidResponsesResponsetypeTemplatesResponse, error) {
 	var dto POSTProductsProductidApisApiidResponsesResponsetypeTemplatesResponse
 
-    
-			if data["response_type"] != nil {
-				dto.Responsetype = types.StringValue(data["response_type"].(string))
-			}
+	if data["response_type"] != nil {
+		dto.Responsetype = types.StringValue(data["response_type"].(string))
+	}
 
-			if data["mapping_template"] != nil {
-				dto.Mappingtemplate = types.StringValue(data["mapping_template"].(string))
-			}
+	if data["mapping_template"] != nil {
+		dto.Mappingtemplate = types.StringValue(data["mapping_template"].(string))
+	}
 
-			if data["content_type"] != nil {
-				dto.Contenttype = types.StringValue(data["content_type"].(string))
-			}
+	if data["content_type"] != nil {
+		dto.Contenttype = types.StringValue(data["content_type"].(string))
+	}
 
-			if data["api_id"] != nil {
-				dto.Apiid = types.StringValue(data["api_id"].(string))
-			}
-
+	if data["api_id"] != nil {
+		dto.Apiid = types.StringValue(data["api_id"].(string))
+	}
 
 	return &dto, nil
 }
@@ -145,16 +135,12 @@ func convertToObject_POSTProductsProductidApisApiidResponsesResponsetypeTemplate
 	attrTypes := make(map[string]attr.Type)
 	attrValues := make(map[string]attr.Value)
 
-    possibleTypes := map[string]attr.Type{
-        
-	}
+	possibleTypes := map[string]attr.Type{}
 
 	for field, fieldType := range possibleTypes {
 		attrTypes[field] = fieldType
 
 		if value, exists := data[field]; exists {
-
-			
 
 			attrValue, err := convertValueToAttr_POSTProductsProductidApisApiidResponsesResponsetypeTemplates(value)
 			if err != nil {
@@ -162,7 +148,6 @@ func convertToObject_POSTProductsProductidApisApiidResponsesResponsetypeTemplate
 			}
 			attrValues[field] = attrValue
 		} else {
-            
 
 			switch fieldType {
 			case types.StringType:
@@ -185,21 +170,20 @@ func convertToObject_POSTProductsProductidApisApiidResponsesResponsetypeTemplate
 }
 
 func convertValueToAttr_POSTProductsProductidApisApiidResponsesResponsetypeTemplates(value interface{}) (attr.Value, error) {
-     switch v := value.(type) {
-     case string:
-         return types.StringValue(v), nil
-     case int32:
-         return types.Int32Value(v), nil
-     case int64:
-         return types.Int64Value(v), nil
-     case float64:
-         return types.Float64Value(v), nil
-     case bool:
-         return types.BoolValue(v), nil
-     case nil:
-         return types.StringNull(), nil
-     default:
-         return nil, fmt.Errorf("unsupported type: %T", value)
-     }
+	switch v := value.(type) {
+	case string:
+		return types.StringValue(v), nil
+	case int32:
+		return types.Int32Value(v), nil
+	case int64:
+		return types.Int64Value(v), nil
+	case float64:
+		return types.Float64Value(v), nil
+	case bool:
+		return types.BoolValue(v), nil
+	case nil:
+		return types.StringNull(), nil
+	default:
+		return nil, fmt.Errorf("unsupported type: %T", value)
+	}
 }
-

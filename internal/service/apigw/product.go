@@ -3,24 +3,22 @@ package apigw
 import (
 	"context"
 	"fmt"
+	"github.com/NaverCloudPlatform/terraform-plugin-codegen-framework/internal/util"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
+	"github.com/hashicorp/terraform-plugin-framework/path"
+	"github.com/hashicorp/terraform-plugin-framework/resource"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
-	"strings"
-	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
-	"os/exec"
-	"time"
-	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
-	"github.com/hashicorp/terraform-plugin-framework/path"
-	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
-	"github.com/NaverCloudPlatform/terraform-plugin-codegen-framework/internal/util"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
-	"github.com/hashicorp/terraform-plugin-framework/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
+	"os/exec"
+	"strings"
+	"time"
 )
 
 func ProductResourceSchema(ctx context.Context) schema.Schema {
@@ -187,20 +185,13 @@ func (a *productResource) Create(ctx context.Context, req resource.CreateRequest
 	c := ncloudsdk.NewClient("https://apigateway.apigw.ntruss.com/api/v1", os.Getenv("NCLOUD_ACCESS_KEY"), os.Getenv("NCLOUD_SECRET_KEY"))
 
 	reqParams := &ncloudsdk.PrimitivePOSTProductsRequest{
-		ProductName: plan.ProductName.ValueString(),
-SubscriptionCode: plan.SubscriptionCode.ValueString(),
-
+		ProductName:      plan.ProductName.ValueString(),
+		SubscriptionCode: plan.SubscriptionCode.ValueString(),
 	}
 
-	
-
-	
-
-	
-					if !plan.Description.IsNull() && !plan.Description.IsUnknown() {
-						reqParams.Description = plan.Description.ValueString()
-					}
-
+	if !plan.Description.IsNull() && !plan.Description.IsUnknown() {
+		reqParams.Description = plan.Description.ValueString()
+	}
 
 	tflog.Info(ctx, "CreateProduct reqParams="+common.MarshalUncheckedString(reqParams))
 
@@ -237,7 +228,6 @@ func (a *productResource) Read(ctx context.Context, req resource.ReadRequest, re
 }
 
 func (a *productResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
-	
 
 	var plan, state PostproductresponseModel
 
@@ -247,22 +237,15 @@ func (a *productResource) Update(ctx context.Context, req resource.UpdateRequest
 		return
 	}
 
- 	reqParams := &ncloudsdk.PrimitivePATCHProductsProductidRequest{
-		Productid: plan.Productid.ValueString(),
-ProductName: plan.ProductName.ValueString(),
-SubscriptionCode: plan.SubscriptionCode.ValueString(),
-
+	reqParams := &ncloudsdk.PrimitivePATCHProductsProductidRequest{
+		Productid:        plan.Productid.ValueString(),
+		ProductName:      plan.ProductName.ValueString(),
+		SubscriptionCode: plan.SubscriptionCode.ValueString(),
 	}
 
-	
-
-	
-
-	
-						if !plan.Description.IsNull() && !plan.Description.IsUnknown() {
-							reqParams.Description = plan.Description.ValueString()
-						}
-
+	if !plan.Description.IsNull() && !plan.Description.IsUnknown() {
+		reqParams.Description = plan.Description.ValueString()
+	}
 
 	tflog.Info(ctx, "UpdatePATCHProductsProductid reqParams="+common.MarshalUncheckedString(reqParams))
 
@@ -273,7 +256,7 @@ SubscriptionCode: plan.SubscriptionCode.ValueString(),
 		resp.Diagnostics.AddError("UPDATING ERROR", err.Error())
 		return
 	}
-		if response == nil {
+	if response == nil {
 		resp.Diagnostics.AddError("UPDATING ERROR", "response invalid")
 		return
 	}
@@ -284,7 +267,6 @@ SubscriptionCode: plan.SubscriptionCode.ValueString(),
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, plan)...)
 
-	
 }
 
 func (a *productResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
@@ -295,9 +277,8 @@ func (a *productResource) Delete(ctx context.Context, req resource.DeleteRequest
 		return
 	}
 
- 	reqParams := &ncloudsdk.PrimitiveDELETEProductsProductidRequest{
+	reqParams := &ncloudsdk.PrimitiveDELETEProductsProductidRequest{
 		Productid: plan.Productid.ValueString(),
-
 	}
 
 	tflog.Info(ctx, "UpdateDELETEProductsProductid reqParams="+common.MarshalUncheckedString(reqParams))
@@ -318,11 +299,10 @@ func (a *productResource) Delete(ctx context.Context, req resource.DeleteRequest
 }
 
 type PostproductresponseModel struct {
-    ID types.String `tfsdk:"id"`
-    Description         types.String `tfsdk:"description"`
-ProductName         types.String `tfsdk:"product_name"`
-SubscriptionCode         types.String `tfsdk:"subscription_code"`
-Product         types.Object `tfsdk:"product"`
-Productid         types.String `tfsdk:"productid"`
-
+	ID               types.String `tfsdk:"id"`
+	Description      types.String `tfsdk:"description"`
+	ProductName      types.String `tfsdk:"product_name"`
+	SubscriptionCode types.String `tfsdk:"subscription_code"`
+	Product          types.Object `tfsdk:"product"`
+	Productid        types.String `tfsdk:"productid"`
 }

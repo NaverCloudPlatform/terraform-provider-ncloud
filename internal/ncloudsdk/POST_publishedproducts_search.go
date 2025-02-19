@@ -1,4 +1,3 @@
-
 /* =================================================================================
  * NCLOUD SDK LAYER FOR TERRAFORM CODEGEN - DO NOT EDIT
  * =================================================================================
@@ -27,23 +26,21 @@ import (
 )
 
 type PrimitivePOSTPublishedproductsSearchRequest struct {
-    ProductType types.List `json:"productType"`
-Subscribed bool `json:"subscribed"`
-PublisherId string `json:"publisherId"`
-ProductName string `json:"productName"`
-Offset int64 `json:"offset"`
-Limit int64 `json:"limit"`
-
+	ProductType types.List `json:"productType"`
+	Subscribed  bool       `json:"subscribed"`
+	PublisherId string     `json:"publisherId"`
+	ProductName string     `json:"productName"`
+	Offset      int64      `json:"offset"`
+	Limit       int64      `json:"limit"`
 }
 
 type StringifiedPOSTPublishedproductsSearchRequest struct {
 	ProductType string `json:"productType"`
-Subscribed string `json:"subscribed"`
-PublisherId string `json:"publisherId"`
-ProductName string `json:"productName"`
-Offset string `json:"offset"`
-Limit string `json:"limit"`
-
+	Subscribed  string `json:"subscribed"`
+	PublisherId string `json:"publisherId"`
+	ProductName string `json:"productName"`
+	Offset      string `json:"offset"`
+	Limit       string `json:"limit"`
 }
 
 func (n *NClient) POSTPublishedproductsSearch(ctx context.Context, primitiveReq *PrimitivePOSTPublishedproductsSearchRequest) (map[string]interface{}, error) {
@@ -55,33 +52,29 @@ func (n *NClient) POSTPublishedproductsSearch(ctx context.Context, primitiveReq 
 		return nil, err
 	}
 
- 	
+	if r.ProductType != "" {
+		initBody["productType"] = r.ProductType
+	}
 
-	
-			if r.ProductType != "" {
-				initBody["productType"] = r.ProductType
-			}
+	if r.Subscribed != "" {
+		initBody["subscribed"] = r.Subscribed
+	}
 
-			if r.Subscribed != "" {
-				initBody["subscribed"] = r.Subscribed
-			}
+	if r.PublisherId != "" {
+		initBody["publisherId"] = r.PublisherId
+	}
 
-			if r.PublisherId != "" {
-				initBody["publisherId"] = r.PublisherId
-			}
+	if r.ProductName != "" {
+		initBody["productName"] = r.ProductName
+	}
 
-			if r.ProductName != "" {
-				initBody["productName"] = r.ProductName
-			}
+	if r.Offset != "" {
+		initBody["offset"] = r.Offset
+	}
 
-			if r.Offset != "" {
-				initBody["offset"] = r.Offset
-			}
-
-			if r.Limit != "" {
-				initBody["limit"] = r.Limit
-			}
-
+	if r.Limit != "" {
+		initBody["limit"] = r.Limit
+	}
 
 	rawBody, err := json.Marshal(initBody)
 	if err != nil {
@@ -90,7 +83,7 @@ func (n *NClient) POSTPublishedproductsSearch(ctx context.Context, primitiveReq 
 
 	body := strings.Replace(string(rawBody), `\"`, "", -1)
 
-	url := n.BaseURL +"/"+"published-products"+"/"+"search"
+	url := n.BaseURL + "/" + "published-products" + "/" + "search"
 
 	response, err := n.MakeRequestWithContext(ctx, "POST", url, body, query)
 	if err != nil {
@@ -119,7 +112,6 @@ func (n *NClient) POSTPublishedproductsSearch_TF(ctx context.Context, r *Primiti
 	return res, nil
 }
 
-
 /* =================================================================================
  * NCLOUD SDK LAYER FOR TERRAFORM CODEGEN - DO NOT EDIT
  * =================================================================================
@@ -134,61 +126,53 @@ func (n *NClient) POSTPublishedproductsSearch_TF(ctx context.Context, r *Primiti
  * ================================================================================= */
 
 type POSTPublishedproductsSearchResponse struct {
-    ProductPage         types.Object `tfsdk:"product_page"`
-Initialcount         types.Int64`tfsdk:"initial_count"`
-
+	ProductPage  types.Object `tfsdk:"product_page"`
+	Initialcount types.Int64  `tfsdk:"initial_count"`
 }
 
 func ConvertToFrameworkTypes_POSTPublishedproductsSearch(ctx context.Context, data map[string]interface{}) (*POSTPublishedproductsSearchResponse, error) {
 	var dto POSTPublishedproductsSearchResponse
 
-    
-			if data["product_page"] != nil {
-				tempProductPage := data["product_page"].(map[string]interface{})
+	if data["product_page"] != nil {
+		tempProductPage := data["product_page"].(map[string]interface{})
 
-				allFields := []string{
-					"total",
-"content",
+		allFields := []string{
+			"total",
+			"content",
+		}
 
-				}
-
-				convertedMap := make(map[string]interface{})
-				for _, field := range allFields {
-					if val, ok := tempProductPage[field]; ok {
-						convertedMap[field] = val
-					}
-				}
-
-				convertedTempProductPage, err := convertToObject_POSTPublishedproductsSearch(ctx, convertedMap)
-				if err != nil {
-					return nil, err
-				}
-
-				dto.ProductPage = diagOff(types.ObjectValueFrom, ctx, types.ObjectType{AttrTypes: map[string]attr.Type{
-					"total": types.Int64Type,
-
-			"content": types.ListType{ElemType:
-				
-	types.ObjectType{AttrTypes: map[string]attr.Type{
-		
-		"tenant_id": types.StringType,
-"subscription_code": types.StringType,
-"subscribed": types.BoolType,
-"product_name": types.StringType,
-"product_id": types.StringType,
-"product_description": types.StringType,
-"domain_code": types.StringType,
-
-	},
-			}},
-
-				}}.AttributeTypes(), convertedTempProductPage)
+		convertedMap := make(map[string]interface{})
+		for _, field := range allFields {
+			if val, ok := tempProductPage[field]; ok {
+				convertedMap[field] = val
 			}
+		}
 
-				if data["initial_count"] != nil {
-					dto.Initialcount = types.Int64Value(data["initial_count"].(int64))
-				}
+		convertedTempProductPage, err := convertToObject_POSTPublishedproductsSearch(ctx, convertedMap)
+		if err != nil {
+			return nil, err
+		}
 
+		dto.ProductPage = diagOff(types.ObjectValueFrom, ctx, types.ObjectType{AttrTypes: map[string]attr.Type{
+			"total": types.Int64Type,
+
+			"content": types.ListType{ElemType: types.ObjectType{AttrTypes: map[string]attr.Type{
+
+				"tenant_id":           types.StringType,
+				"subscription_code":   types.StringType,
+				"subscribed":          types.BoolType,
+				"product_name":        types.StringType,
+				"product_id":          types.StringType,
+				"product_description": types.StringType,
+				"domain_code":         types.StringType,
+			},
+			}},
+		}}.AttributeTypes(), convertedTempProductPage)
+	}
+
+	if data["initial_count"] != nil {
+		dto.Initialcount = types.Int64Value(data["initial_count"].(int64))
+	}
 
 	return &dto, nil
 }
@@ -197,25 +181,20 @@ func convertToObject_POSTPublishedproductsSearch(ctx context.Context, data map[s
 	attrTypes := make(map[string]attr.Type)
 	attrValues := make(map[string]attr.Value)
 
-    possibleTypes := map[string]attr.Type{
-        "total": types.Int64Type,
+	possibleTypes := map[string]attr.Type{
+		"total": types.Int64Type,
 
-			"content": types.ListType{ElemType:
-				
-	types.ObjectType{AttrTypes: map[string]attr.Type{
-		
-		"tenant_id": types.StringType,
-"subscription_code": types.StringType,
-"subscribed": types.BoolType,
-"product_name": types.StringType,
-"product_id": types.StringType,
-"product_description": types.StringType,
-"domain_code": types.StringType,
+		"content": types.ListType{ElemType: types.ObjectType{AttrTypes: map[string]attr.Type{
 
-	},
-			}},
-
-
+			"tenant_id":           types.StringType,
+			"subscription_code":   types.StringType,
+			"subscribed":          types.BoolType,
+			"product_name":        types.StringType,
+			"product_id":          types.StringType,
+			"product_description": types.StringType,
+			"domain_code":         types.StringType,
+		},
+		}},
 	}
 
 	for field, fieldType := range possibleTypes {
@@ -223,22 +202,19 @@ func convertToObject_POSTPublishedproductsSearch(ctx context.Context, data map[s
 
 		if value, exists := data[field]; exists {
 
-			
 			if field == "content" && len(value.([]interface{})) == 0 {
 				listV := types.ListNull(types.ObjectNull(map[string]attr.Type{
-					"tenant_id": types.StringType,
-"subscription_code": types.StringType,
-"subscribed": types.BoolType,
-"product_name": types.StringType,
-"product_id": types.StringType,
-"product_description": types.StringType,
-"domain_code": types.StringType,
-
+					"tenant_id":           types.StringType,
+					"subscription_code":   types.StringType,
+					"subscribed":          types.BoolType,
+					"product_name":        types.StringType,
+					"product_id":          types.StringType,
+					"product_description": types.StringType,
+					"domain_code":         types.StringType,
 				}).Type(ctx))
 				attrValues[field] = listV
 				continue
 			}
-
 
 			attrValue, err := convertValueToAttr_POSTPublishedproductsSearch(value)
 			if err != nil {
@@ -246,22 +222,20 @@ func convertToObject_POSTPublishedproductsSearch(ctx context.Context, data map[s
 			}
 			attrValues[field] = attrValue
 		} else {
-            
-				if field == "content" {
-					listV := types.ListNull(types.ObjectNull(map[string]attr.Type{
-						"tenant_id": types.StringType,
-"subscription_code": types.StringType,
-"subscribed": types.BoolType,
-"product_name": types.StringType,
-"product_id": types.StringType,
-"product_description": types.StringType,
-"domain_code": types.StringType,
 
-					}).Type(ctx))
-					attrValues[field] = listV
-					continue
-				}
-
+			if field == "content" {
+				listV := types.ListNull(types.ObjectNull(map[string]attr.Type{
+					"tenant_id":           types.StringType,
+					"subscription_code":   types.StringType,
+					"subscribed":          types.BoolType,
+					"product_name":        types.StringType,
+					"product_id":          types.StringType,
+					"product_description": types.StringType,
+					"domain_code":         types.StringType,
+				}).Type(ctx))
+				attrValues[field] = listV
+				continue
+			}
 
 			switch fieldType {
 			case types.StringType:
@@ -284,21 +258,20 @@ func convertToObject_POSTPublishedproductsSearch(ctx context.Context, data map[s
 }
 
 func convertValueToAttr_POSTPublishedproductsSearch(value interface{}) (attr.Value, error) {
-     switch v := value.(type) {
-     case string:
-         return types.StringValue(v), nil
-     case int32:
-         return types.Int32Value(v), nil
-     case int64:
-         return types.Int64Value(v), nil
-     case float64:
-         return types.Float64Value(v), nil
-     case bool:
-         return types.BoolValue(v), nil
-     case nil:
-         return types.StringNull(), nil
-     default:
-         return nil, fmt.Errorf("unsupported type: %T", value)
-     }
+	switch v := value.(type) {
+	case string:
+		return types.StringValue(v), nil
+	case int32:
+		return types.Int32Value(v), nil
+	case int64:
+		return types.Int64Value(v), nil
+	case float64:
+		return types.Float64Value(v), nil
+	case bool:
+		return types.BoolValue(v), nil
+	case nil:
+		return types.StringNull(), nil
+	default:
+		return nil, fmt.Errorf("unsupported type: %T", value)
+	}
 }
-

@@ -1,4 +1,3 @@
-
 /* =================================================================================
  * NCLOUD SDK LAYER FOR TERRAFORM CODEGEN - DO NOT EDIT
  * =================================================================================
@@ -27,29 +26,27 @@ import (
 )
 
 type PrimitivePATCHProductsProductidApisApiidResourcesResourceidRequest struct {
-    Productid string `json:"product-id"`
-Apiid string `json:"api-id"`
-Resourceid string `json:"resource-id"`
-CorsExposeHeaders string `json:"corsExposeHeaders"`
-CorsMaxAge string `json:"corsMaxAge"`
-CorsAllowCredentials string `json:"corsAllowCredentials"`
-CorsAllowHeaders string `json:"corsAllowHeaders"`
-CorsAllowMethods string `json:"corsAllowMethods"`
-CorsAllowOrigin string `json:"corsAllowOrigin"`
-
+	Productid            string `json:"product-id"`
+	Apiid                string `json:"api-id"`
+	Resourceid           string `json:"resource-id"`
+	CorsExposeHeaders    string `json:"corsExposeHeaders"`
+	CorsMaxAge           string `json:"corsMaxAge"`
+	CorsAllowCredentials string `json:"corsAllowCredentials"`
+	CorsAllowHeaders     string `json:"corsAllowHeaders"`
+	CorsAllowMethods     string `json:"corsAllowMethods"`
+	CorsAllowOrigin      string `json:"corsAllowOrigin"`
 }
 
 type StringifiedPATCHProductsProductidApisApiidResourcesResourceidRequest struct {
-	Productid string `json:"product-id"`
-Apiid string `json:"api-id"`
-Resourceid string `json:"resource-id"`
-CorsExposeHeaders string `json:"corsExposeHeaders"`
-CorsMaxAge string `json:"corsMaxAge"`
-CorsAllowCredentials string `json:"corsAllowCredentials"`
-CorsAllowHeaders string `json:"corsAllowHeaders"`
-CorsAllowMethods string `json:"corsAllowMethods"`
-CorsAllowOrigin string `json:"corsAllowOrigin"`
-
+	Productid            string `json:"product-id"`
+	Apiid                string `json:"api-id"`
+	Resourceid           string `json:"resource-id"`
+	CorsExposeHeaders    string `json:"corsExposeHeaders"`
+	CorsMaxAge           string `json:"corsMaxAge"`
+	CorsAllowCredentials string `json:"corsAllowCredentials"`
+	CorsAllowHeaders     string `json:"corsAllowHeaders"`
+	CorsAllowMethods     string `json:"corsAllowMethods"`
+	CorsAllowOrigin      string `json:"corsAllowOrigin"`
 }
 
 func (n *NClient) PATCHProductsProductidApisApiidResourcesResourceid(ctx context.Context, primitiveReq *PrimitivePATCHProductsProductidApisApiidResourcesResourceidRequest) (map[string]interface{}, error) {
@@ -61,33 +58,29 @@ func (n *NClient) PATCHProductsProductidApisApiidResourcesResourceid(ctx context
 		return nil, err
 	}
 
- 	
+	if r.CorsExposeHeaders != "" {
+		initBody["corsExposeHeaders"] = r.CorsExposeHeaders
+	}
 
-	
-			if r.CorsExposeHeaders != "" {
-				initBody["corsExposeHeaders"] = r.CorsExposeHeaders
-			}
+	if r.CorsMaxAge != "" {
+		initBody["corsMaxAge"] = r.CorsMaxAge
+	}
 
-			if r.CorsMaxAge != "" {
-				initBody["corsMaxAge"] = r.CorsMaxAge
-			}
+	if r.CorsAllowCredentials != "" {
+		initBody["corsAllowCredentials"] = r.CorsAllowCredentials
+	}
 
-			if r.CorsAllowCredentials != "" {
-				initBody["corsAllowCredentials"] = r.CorsAllowCredentials
-			}
+	if r.CorsAllowHeaders != "" {
+		initBody["corsAllowHeaders"] = r.CorsAllowHeaders
+	}
 
-			if r.CorsAllowHeaders != "" {
-				initBody["corsAllowHeaders"] = r.CorsAllowHeaders
-			}
+	if r.CorsAllowMethods != "" {
+		initBody["corsAllowMethods"] = r.CorsAllowMethods
+	}
 
-			if r.CorsAllowMethods != "" {
-				initBody["corsAllowMethods"] = r.CorsAllowMethods
-			}
-
-			if r.CorsAllowOrigin != "" {
-				initBody["corsAllowOrigin"] = r.CorsAllowOrigin
-			}
-
+	if r.CorsAllowOrigin != "" {
+		initBody["corsAllowOrigin"] = r.CorsAllowOrigin
+	}
 
 	rawBody, err := json.Marshal(initBody)
 	if err != nil {
@@ -96,7 +89,7 @@ func (n *NClient) PATCHProductsProductidApisApiidResourcesResourceid(ctx context
 
 	body := strings.Replace(string(rawBody), `\"`, "", -1)
 
-	url := n.BaseURL +"/"+"products"+"/"+ClearDoubleQuote(r.Productid)+"/"+"apis"+"/"+ClearDoubleQuote(r.Apiid)+"/"+"resources"+"/"+ClearDoubleQuote(r.Resourceid)
+	url := n.BaseURL + "/" + "products" + "/" + ClearDoubleQuote(r.Productid) + "/" + "apis" + "/" + ClearDoubleQuote(r.Apiid) + "/" + "resources" + "/" + ClearDoubleQuote(r.Resourceid)
 
 	response, err := n.MakeRequestWithContext(ctx, "PATCH", url, body, query)
 	if err != nil {
@@ -125,7 +118,6 @@ func (n *NClient) PATCHProductsProductidApisApiidResourcesResourceid_TF(ctx cont
 	return res, nil
 }
 
-
 /* =================================================================================
  * NCLOUD SDK LAYER FOR TERRAFORM CODEGEN - DO NOT EDIT
  * =================================================================================
@@ -140,67 +132,59 @@ func (n *NClient) PATCHProductsProductidApisApiidResourcesResourceid_TF(ctx cont
  * ================================================================================= */
 
 type PATCHProductsProductidApisApiidResourcesResourceidResponse struct {
-    Resource         types.Object `tfsdk:"resource"`
-
+	Resource types.Object `tfsdk:"resource"`
 }
 
 func ConvertToFrameworkTypes_PATCHProductsProductidApisApiidResourcesResourceid(ctx context.Context, data map[string]interface{}) (*PATCHProductsProductidApisApiidResourcesResourceidResponse, error) {
 	var dto PATCHProductsProductidApisApiidResourcesResourceidResponse
 
-    
-			if data["resource"] != nil {
-				tempResource := data["resource"].(map[string]interface{})
+	if data["resource"] != nil {
+		tempResource := data["resource"].(map[string]interface{})
 
-				allFields := []string{
-					"resource_path",
-"resource_id",
-"methods",
-"cors_max_age",
-"cors_expose_headers",
-"cors_allow_origin",
-"cors_allow_methods",
-"cors_allow_headers",
-"cors_allow_credentials",
-"api_id",
+		allFields := []string{
+			"resource_path",
+			"resource_id",
+			"methods",
+			"cors_max_age",
+			"cors_expose_headers",
+			"cors_allow_origin",
+			"cors_allow_methods",
+			"cors_allow_headers",
+			"cors_allow_credentials",
+			"api_id",
+		}
 
-				}
-
-				convertedMap := make(map[string]interface{})
-				for _, field := range allFields {
-					if val, ok := tempResource[field]; ok {
-						convertedMap[field] = val
-					}
-				}
-
-				convertedTempResource, err := convertToObject_PATCHProductsProductidApisApiidResourcesResourceid(ctx, convertedMap)
-				if err != nil {
-					return nil, err
-				}
-
-				dto.Resource = diagOff(types.ObjectValueFrom, ctx, types.ObjectType{AttrTypes: map[string]attr.Type{
-					"resource_path": types.StringType,
-"resource_id": types.StringType,
-
-			"methods": types.ListType{ElemType:
-				
-	types.ObjectType{AttrTypes: map[string]attr.Type{
-		
-		"method_name": types.StringType,
-"method_code": types.StringType,
-
-	},
-			}},
-"cors_max_age": types.StringType,
-"cors_expose_headers": types.StringType,
-"cors_allow_origin": types.StringType,
-"cors_allow_methods": types.StringType,
-"cors_allow_headers": types.StringType,
-"cors_allow_credentials": types.StringType,
-"api_id": types.StringType,
-
-				}}.AttributeTypes(), convertedTempResource)
+		convertedMap := make(map[string]interface{})
+		for _, field := range allFields {
+			if val, ok := tempResource[field]; ok {
+				convertedMap[field] = val
 			}
+		}
 
+		convertedTempResource, err := convertToObject_PATCHProductsProductidApisApiidResourcesResourceid(ctx, convertedMap)
+		if err != nil {
+			return nil, err
+		}
+
+		dto.Resource = diagOff(types.ObjectValueFrom, ctx, types.ObjectType{AttrTypes: map[string]attr.Type{
+			"resource_path": types.StringType,
+			"resource_id":   types.StringType,
+
+			"methods": types.ListType{ElemType: types.ObjectType{AttrTypes: map[string]attr.Type{
+
+				"method_name": types.StringType,
+				"method_code": types.StringType,
+			},
+			}},
+			"cors_max_age":           types.StringType,
+			"cors_expose_headers":    types.StringType,
+			"cors_allow_origin":      types.StringType,
+			"cors_allow_methods":     types.StringType,
+			"cors_allow_headers":     types.StringType,
+			"cors_allow_credentials": types.StringType,
+			"api_id":                 types.StringType,
+		}}.AttributeTypes(), convertedTempResource)
+	}
 
 	return &dto, nil
 }
@@ -209,28 +193,23 @@ func convertToObject_PATCHProductsProductidApisApiidResourcesResourceid(ctx cont
 	attrTypes := make(map[string]attr.Type)
 	attrValues := make(map[string]attr.Value)
 
-    possibleTypes := map[string]attr.Type{
-        "resource_path": types.StringType,
-"resource_id": types.StringType,
+	possibleTypes := map[string]attr.Type{
+		"resource_path": types.StringType,
+		"resource_id":   types.StringType,
 
-			"methods": types.ListType{ElemType:
-				
-	types.ObjectType{AttrTypes: map[string]attr.Type{
-		
-		"method_name": types.StringType,
-"method_code": types.StringType,
+		"methods": types.ListType{ElemType: types.ObjectType{AttrTypes: map[string]attr.Type{
 
-	},
-			}},
-"cors_max_age": types.StringType,
-"cors_expose_headers": types.StringType,
-"cors_allow_origin": types.StringType,
-"cors_allow_methods": types.StringType,
-"cors_allow_headers": types.StringType,
-"cors_allow_credentials": types.StringType,
-"api_id": types.StringType,
-
-
+			"method_name": types.StringType,
+			"method_code": types.StringType,
+		},
+		}},
+		"cors_max_age":           types.StringType,
+		"cors_expose_headers":    types.StringType,
+		"cors_allow_origin":      types.StringType,
+		"cors_allow_methods":     types.StringType,
+		"cors_allow_headers":     types.StringType,
+		"cors_allow_credentials": types.StringType,
+		"api_id":                 types.StringType,
 	}
 
 	for field, fieldType := range possibleTypes {
@@ -238,17 +217,14 @@ func convertToObject_PATCHProductsProductidApisApiidResourcesResourceid(ctx cont
 
 		if value, exists := data[field]; exists {
 
-			
 			if field == "methods" && len(value.([]interface{})) == 0 {
 				listV := types.ListNull(types.ObjectNull(map[string]attr.Type{
 					"method_name": types.StringType,
-"method_code": types.StringType,
-
+					"method_code": types.StringType,
 				}).Type(ctx))
 				attrValues[field] = listV
 				continue
 			}
-
 
 			attrValue, err := convertValueToAttr_PATCHProductsProductidApisApiidResourcesResourceid(value)
 			if err != nil {
@@ -256,17 +232,15 @@ func convertToObject_PATCHProductsProductidApisApiidResourcesResourceid(ctx cont
 			}
 			attrValues[field] = attrValue
 		} else {
-            
-				if field == "methods" {
-					listV := types.ListNull(types.ObjectNull(map[string]attr.Type{
-						"method_name": types.StringType,
-"method_code": types.StringType,
 
-					}).Type(ctx))
-					attrValues[field] = listV
-					continue
-				}
-
+			if field == "methods" {
+				listV := types.ListNull(types.ObjectNull(map[string]attr.Type{
+					"method_name": types.StringType,
+					"method_code": types.StringType,
+				}).Type(ctx))
+				attrValues[field] = listV
+				continue
+			}
 
 			switch fieldType {
 			case types.StringType:
@@ -289,21 +263,20 @@ func convertToObject_PATCHProductsProductidApisApiidResourcesResourceid(ctx cont
 }
 
 func convertValueToAttr_PATCHProductsProductidApisApiidResourcesResourceid(value interface{}) (attr.Value, error) {
-     switch v := value.(type) {
-     case string:
-         return types.StringValue(v), nil
-     case int32:
-         return types.Int32Value(v), nil
-     case int64:
-         return types.Int64Value(v), nil
-     case float64:
-         return types.Float64Value(v), nil
-     case bool:
-         return types.BoolValue(v), nil
-     case nil:
-         return types.StringNull(), nil
-     default:
-         return nil, fmt.Errorf("unsupported type: %T", value)
-     }
+	switch v := value.(type) {
+	case string:
+		return types.StringValue(v), nil
+	case int32:
+		return types.Int32Value(v), nil
+	case int64:
+		return types.Int64Value(v), nil
+	case float64:
+		return types.Float64Value(v), nil
+	case bool:
+		return types.BoolValue(v), nil
+	case nil:
+		return types.StringNull(), nil
+	default:
+		return nil, fmt.Errorf("unsupported type: %T", value)
+	}
 }
-

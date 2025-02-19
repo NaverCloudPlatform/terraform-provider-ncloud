@@ -1,4 +1,3 @@
-
 /* =================================================================================
  * NCLOUD SDK LAYER FOR TERRAFORM CODEGEN - DO NOT EDIT
  * =================================================================================
@@ -27,27 +26,25 @@ import (
 )
 
 type PrimitiveGETDashboardsApikeysApikeyidProductsProductidApiidsRequest struct {
-    Apikeyid string `json:"api-key-id"`
-Productid string `json:"product-id"`
-From string `json:"from"`
-Limit int64 `json:"limit"`
-Offset int64 `json:"offset"`
-Regions types.List `json:"regions"`
-TimeZone string `json:"timeZone"`
-To string `json:"to"`
-
+	Apikeyid  string     `json:"api-key-id"`
+	Productid string     `json:"product-id"`
+	From      string     `json:"from"`
+	Limit     int64      `json:"limit"`
+	Offset    int64      `json:"offset"`
+	Regions   types.List `json:"regions"`
+	TimeZone  string     `json:"timeZone"`
+	To        string     `json:"to"`
 }
 
 type StringifiedGETDashboardsApikeysApikeyidProductsProductidApiidsRequest struct {
-	Apikeyid string `json:"api-key-id"`
-Productid string `json:"product-id"`
-From string `json:"from"`
-Limit string `json:"limit"`
-Offset string `json:"offset"`
-Regions string `json:"regions"`
-TimeZone string `json:"timeZone"`
-To string `json:"to"`
-
+	Apikeyid  string `json:"api-key-id"`
+	Productid string `json:"product-id"`
+	From      string `json:"from"`
+	Limit     string `json:"limit"`
+	Offset    string `json:"offset"`
+	Regions   string `json:"regions"`
+	TimeZone  string `json:"timeZone"`
+	To        string `json:"to"`
 }
 
 func (n *NClient) GETDashboardsApikeysApikeyidProductsProductidApiids(ctx context.Context, primitiveReq *PrimitiveGETDashboardsApikeysApikeyidProductsProductidApiidsRequest) (map[string]interface{}, error) {
@@ -59,27 +56,23 @@ func (n *NClient) GETDashboardsApikeysApikeyidProductsProductidApiids(ctx contex
 		return nil, err
 	}
 
- 	
-				query["from"] = r.From
+	query["from"] = r.From
 
-				if r.Limit!= "" {
-					query["limit"] = r.Limit
-				}
+	if r.Limit != "" {
+		query["limit"] = r.Limit
+	}
 
-				if r.Offset!= "" {
-					query["offset"] = r.Offset
-				}
+	if r.Offset != "" {
+		query["offset"] = r.Offset
+	}
 
-				if r.Regions!= "" {
-					query["regions"] = r.Regions
-				}
+	if r.Regions != "" {
+		query["regions"] = r.Regions
+	}
 
-				query["timeZone"] = r.TimeZone
+	query["timeZone"] = r.TimeZone
 
-				query["to"] = r.To
-
-
-	
+	query["to"] = r.To
 
 	rawBody, err := json.Marshal(initBody)
 	if err != nil {
@@ -88,7 +81,7 @@ func (n *NClient) GETDashboardsApikeysApikeyidProductsProductidApiids(ctx contex
 
 	body := strings.Replace(string(rawBody), `\"`, "", -1)
 
-	url := n.BaseURL +"/"+"dashboards"+"/"+"api-keys"+"/"+ClearDoubleQuote(r.Apikeyid)+"/"+"products"+"/"+ClearDoubleQuote(r.Productid)+"/"+"api-ids"
+	url := n.BaseURL + "/" + "dashboards" + "/" + "api-keys" + "/" + ClearDoubleQuote(r.Apikeyid) + "/" + "products" + "/" + ClearDoubleQuote(r.Productid) + "/" + "api-ids"
 
 	response, err := n.MakeRequestWithContext(ctx, "GET", url, body, query)
 	if err != nil {
@@ -117,7 +110,6 @@ func (n *NClient) GETDashboardsApikeysApikeyidProductsProductidApiids_TF(ctx con
 	return res, nil
 }
 
-
 /* =================================================================================
  * NCLOUD SDK LAYER FOR TERRAFORM CODEGEN - DO NOT EDIT
  * =================================================================================
@@ -132,52 +124,44 @@ func (n *NClient) GETDashboardsApikeysApikeyidProductsProductidApiids_TF(ctx con
  * ================================================================================= */
 
 type GETDashboardsApikeysApikeyidProductsProductidApiidsResponse struct {
-    Apis         types.Object `tfsdk:"apis"`
-
+	Apis types.Object `tfsdk:"apis"`
 }
 
 func ConvertToFrameworkTypes_GETDashboardsApikeysApikeyidProductsProductidApiids(ctx context.Context, data map[string]interface{}) (*GETDashboardsApikeysApikeyidProductsProductidApiidsResponse, error) {
 	var dto GETDashboardsApikeysApikeyidProductsProductidApiidsResponse
 
-    
-			if data["apis"] != nil {
-				tempApis := data["apis"].(map[string]interface{})
+	if data["apis"] != nil {
+		tempApis := data["apis"].(map[string]interface{})
 
-				allFields := []string{
-					"total",
-"content",
+		allFields := []string{
+			"total",
+			"content",
+		}
 
-				}
-
-				convertedMap := make(map[string]interface{})
-				for _, field := range allFields {
-					if val, ok := tempApis[field]; ok {
-						convertedMap[field] = val
-					}
-				}
-
-				convertedTempApis, err := convertToObject_GETDashboardsApikeysApikeyidProductsProductidApiids(ctx, convertedMap)
-				if err != nil {
-					return nil, err
-				}
-
-				dto.Apis = diagOff(types.ObjectValueFrom, ctx, types.ObjectType{AttrTypes: map[string]attr.Type{
-					"total": types.Int64Type,
-
-			"content": types.ListType{ElemType:
-				
-	types.ObjectType{AttrTypes: map[string]attr.Type{
-		
-		"is_deleted": types.BoolType,
-"api_name": types.StringType,
-"api_id": types.StringType,
-
-	},
-			}},
-
-				}}.AttributeTypes(), convertedTempApis)
+		convertedMap := make(map[string]interface{})
+		for _, field := range allFields {
+			if val, ok := tempApis[field]; ok {
+				convertedMap[field] = val
 			}
+		}
 
+		convertedTempApis, err := convertToObject_GETDashboardsApikeysApikeyidProductsProductidApiids(ctx, convertedMap)
+		if err != nil {
+			return nil, err
+		}
+
+		dto.Apis = diagOff(types.ObjectValueFrom, ctx, types.ObjectType{AttrTypes: map[string]attr.Type{
+			"total": types.Int64Type,
+
+			"content": types.ListType{ElemType: types.ObjectType{AttrTypes: map[string]attr.Type{
+
+				"is_deleted": types.BoolType,
+				"api_name":   types.StringType,
+				"api_id":     types.StringType,
+			},
+			}},
+		}}.AttributeTypes(), convertedTempApis)
+	}
 
 	return &dto, nil
 }
@@ -186,21 +170,16 @@ func convertToObject_GETDashboardsApikeysApikeyidProductsProductidApiids(ctx con
 	attrTypes := make(map[string]attr.Type)
 	attrValues := make(map[string]attr.Value)
 
-    possibleTypes := map[string]attr.Type{
-        "total": types.Int64Type,
+	possibleTypes := map[string]attr.Type{
+		"total": types.Int64Type,
 
-			"content": types.ListType{ElemType:
-				
-	types.ObjectType{AttrTypes: map[string]attr.Type{
-		
-		"is_deleted": types.BoolType,
-"api_name": types.StringType,
-"api_id": types.StringType,
+		"content": types.ListType{ElemType: types.ObjectType{AttrTypes: map[string]attr.Type{
 
-	},
-			}},
-
-
+			"is_deleted": types.BoolType,
+			"api_name":   types.StringType,
+			"api_id":     types.StringType,
+		},
+		}},
 	}
 
 	for field, fieldType := range possibleTypes {
@@ -208,18 +187,15 @@ func convertToObject_GETDashboardsApikeysApikeyidProductsProductidApiids(ctx con
 
 		if value, exists := data[field]; exists {
 
-			
 			if field == "content" && len(value.([]interface{})) == 0 {
 				listV := types.ListNull(types.ObjectNull(map[string]attr.Type{
 					"is_deleted": types.BoolType,
-"api_name": types.StringType,
-"api_id": types.StringType,
-
+					"api_name":   types.StringType,
+					"api_id":     types.StringType,
 				}).Type(ctx))
 				attrValues[field] = listV
 				continue
 			}
-
 
 			attrValue, err := convertValueToAttr_GETDashboardsApikeysApikeyidProductsProductidApiids(value)
 			if err != nil {
@@ -227,18 +203,16 @@ func convertToObject_GETDashboardsApikeysApikeyidProductsProductidApiids(ctx con
 			}
 			attrValues[field] = attrValue
 		} else {
-            
-				if field == "content" {
-					listV := types.ListNull(types.ObjectNull(map[string]attr.Type{
-						"is_deleted": types.BoolType,
-"api_name": types.StringType,
-"api_id": types.StringType,
 
-					}).Type(ctx))
-					attrValues[field] = listV
-					continue
-				}
-
+			if field == "content" {
+				listV := types.ListNull(types.ObjectNull(map[string]attr.Type{
+					"is_deleted": types.BoolType,
+					"api_name":   types.StringType,
+					"api_id":     types.StringType,
+				}).Type(ctx))
+				attrValues[field] = listV
+				continue
+			}
 
 			switch fieldType {
 			case types.StringType:
@@ -261,21 +235,20 @@ func convertToObject_GETDashboardsApikeysApikeyidProductsProductidApiids(ctx con
 }
 
 func convertValueToAttr_GETDashboardsApikeysApikeyidProductsProductidApiids(value interface{}) (attr.Value, error) {
-     switch v := value.(type) {
-     case string:
-         return types.StringValue(v), nil
-     case int32:
-         return types.Int32Value(v), nil
-     case int64:
-         return types.Int64Value(v), nil
-     case float64:
-         return types.Float64Value(v), nil
-     case bool:
-         return types.BoolValue(v), nil
-     case nil:
-         return types.StringNull(), nil
-     default:
-         return nil, fmt.Errorf("unsupported type: %T", value)
-     }
+	switch v := value.(type) {
+	case string:
+		return types.StringValue(v), nil
+	case int32:
+		return types.Int32Value(v), nil
+	case int64:
+		return types.Int64Value(v), nil
+	case float64:
+		return types.Float64Value(v), nil
+	case bool:
+		return types.BoolValue(v), nil
+	case nil:
+		return types.StringNull(), nil
+	default:
+		return nil, fmt.Errorf("unsupported type: %T", value)
+	}
 }
-

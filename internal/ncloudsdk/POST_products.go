@@ -1,4 +1,3 @@
-
 /* =================================================================================
  * NCLOUD SDK LAYER FOR TERRAFORM CODEGEN - DO NOT EDIT
  * =================================================================================
@@ -27,17 +26,15 @@ import (
 )
 
 type PrimitivePOSTProductsRequest struct {
-    SubscriptionCode string `json:"subscriptionCode"`
-Description string `json:"description"`
-ProductName string `json:"productName"`
-
+	SubscriptionCode string `json:"subscriptionCode"`
+	Description      string `json:"description"`
+	ProductName      string `json:"productName"`
 }
 
 type StringifiedPOSTProductsRequest struct {
 	SubscriptionCode string `json:"subscriptionCode"`
-Description string `json:"description"`
-ProductName string `json:"productName"`
-
+	Description      string `json:"description"`
+	ProductName      string `json:"productName"`
 }
 
 func (n *NClient) POSTProducts(ctx context.Context, primitiveReq *PrimitivePOSTProductsRequest) (map[string]interface{}, error) {
@@ -49,15 +46,12 @@ func (n *NClient) POSTProducts(ctx context.Context, primitiveReq *PrimitivePOSTP
 		return nil, err
 	}
 
- 	
-
 	initBody["subscriptionCode"] = r.SubscriptionCode
 
-			if r.Description != "" {
-				initBody["description"] = r.Description
-			}
-initBody["productName"] = r.ProductName
-
+	if r.Description != "" {
+		initBody["description"] = r.Description
+	}
+	initBody["productName"] = r.ProductName
 
 	rawBody, err := json.Marshal(initBody)
 	if err != nil {
@@ -66,7 +60,7 @@ initBody["productName"] = r.ProductName
 
 	body := strings.Replace(string(rawBody), `\"`, "", -1)
 
-	url := n.BaseURL +"/"+"products"
+	url := n.BaseURL + "/" + "products"
 
 	response, err := n.MakeRequestWithContext(ctx, "POST", url, body, query)
 	if err != nil {
@@ -95,7 +89,6 @@ func (n *NClient) POSTProducts_TF(ctx context.Context, r *PrimitivePOSTProductsR
 	return res, nil
 }
 
-
 /* =================================================================================
  * NCLOUD SDK LAYER FOR TERRAFORM CODEGEN - DO NOT EDIT
  * =================================================================================
@@ -110,66 +103,61 @@ func (n *NClient) POSTProducts_TF(ctx context.Context, r *PrimitivePOSTProductsR
  * ================================================================================= */
 
 type POSTProductsResponse struct {
-    Product         types.Object `tfsdk:"product"`
-
+	Product types.Object `tfsdk:"product"`
 }
 
 func ConvertToFrameworkTypes_POSTProducts(ctx context.Context, data map[string]interface{}) (*POSTProductsResponse, error) {
 	var dto POSTProductsResponse
 
-    
-			if data["product"] != nil {
-				tempProduct := data["product"].(map[string]interface{})
+	if data["product"] != nil {
+		tempProduct := data["product"].(map[string]interface{})
 
-				allFields := []string{
-					"tenant_id",
-"subscription_code",
-"product_name",
-"product_id",
-"product_description",
-"permission",
-"modifier",
-"mod_time",
-"is_published",
-"is_deleted",
-"invoke_id",
-"domain_code",
-"disabled",
-"action_name",
+		allFields := []string{
+			"tenant_id",
+			"subscription_code",
+			"product_name",
+			"product_id",
+			"product_description",
+			"permission",
+			"modifier",
+			"mod_time",
+			"is_published",
+			"is_deleted",
+			"invoke_id",
+			"domain_code",
+			"disabled",
+			"action_name",
+		}
 
-				}
-
-				convertedMap := make(map[string]interface{})
-				for _, field := range allFields {
-					if val, ok := tempProduct[field]; ok {
-						convertedMap[field] = val
-					}
-				}
-
-				convertedTempProduct, err := convertToObject_POSTProducts(ctx, convertedMap)
-				if err != nil {
-					return nil, err
-				}
-
-				dto.Product = diagOff(types.ObjectValueFrom, ctx, types.ObjectType{AttrTypes: map[string]attr.Type{
-					"tenant_id": types.StringType,
-"subscription_code": types.StringType,
-"product_name": types.StringType,
-"product_id": types.StringType,
-"product_description": types.StringType,
-"permission": types.StringType,
-"modifier": types.StringType,
-"mod_time": types.StringType,
-"is_published": types.BoolType,
-"is_deleted": types.BoolType,
-"invoke_id": types.StringType,
-"domain_code": types.StringType,
-"disabled": types.BoolType,
-"action_name": types.StringType,
-
-				}}.AttributeTypes(), convertedTempProduct)
+		convertedMap := make(map[string]interface{})
+		for _, field := range allFields {
+			if val, ok := tempProduct[field]; ok {
+				convertedMap[field] = val
 			}
+		}
 
+		convertedTempProduct, err := convertToObject_POSTProducts(ctx, convertedMap)
+		if err != nil {
+			return nil, err
+		}
+
+		dto.Product = diagOff(types.ObjectValueFrom, ctx, types.ObjectType{AttrTypes: map[string]attr.Type{
+			"tenant_id":           types.StringType,
+			"subscription_code":   types.StringType,
+			"product_name":        types.StringType,
+			"product_id":          types.StringType,
+			"product_description": types.StringType,
+			"permission":          types.StringType,
+			"modifier":            types.StringType,
+			"mod_time":            types.StringType,
+			"is_published":        types.BoolType,
+			"is_deleted":          types.BoolType,
+			"invoke_id":           types.StringType,
+			"domain_code":         types.StringType,
+			"disabled":            types.BoolType,
+			"action_name":         types.StringType,
+		}}.AttributeTypes(), convertedTempProduct)
+	}
 
 	return &dto, nil
 }
@@ -178,23 +166,21 @@ func convertToObject_POSTProducts(ctx context.Context, data map[string]interface
 	attrTypes := make(map[string]attr.Type)
 	attrValues := make(map[string]attr.Value)
 
-    possibleTypes := map[string]attr.Type{
-        "tenant_id": types.StringType,
-"subscription_code": types.StringType,
-"product_name": types.StringType,
-"product_id": types.StringType,
-"product_description": types.StringType,
-"permission": types.StringType,
-"modifier": types.StringType,
-"mod_time": types.StringType,
-"is_published": types.BoolType,
-"is_deleted": types.BoolType,
-"invoke_id": types.StringType,
-"domain_code": types.StringType,
-"disabled": types.BoolType,
-"action_name": types.StringType,
-
-
+	possibleTypes := map[string]attr.Type{
+		"tenant_id":           types.StringType,
+		"subscription_code":   types.StringType,
+		"product_name":        types.StringType,
+		"product_id":          types.StringType,
+		"product_description": types.StringType,
+		"permission":          types.StringType,
+		"modifier":            types.StringType,
+		"mod_time":            types.StringType,
+		"is_published":        types.BoolType,
+		"is_deleted":          types.BoolType,
+		"invoke_id":           types.StringType,
+		"domain_code":         types.StringType,
+		"disabled":            types.BoolType,
+		"action_name":         types.StringType,
 	}
 
 	for field, fieldType := range possibleTypes {
@@ -202,15 +188,12 @@ func convertToObject_POSTProducts(ctx context.Context, data map[string]interface
 
 		if value, exists := data[field]; exists {
 
-			
-
 			attrValue, err := convertValueToAttr_POSTProducts(value)
 			if err != nil {
 				return types.Object{}, fmt.Errorf("error converting field %s: %v", field, err)
 			}
 			attrValues[field] = attrValue
 		} else {
-            
 
 			switch fieldType {
 			case types.StringType:
@@ -233,21 +216,20 @@ func convertToObject_POSTProducts(ctx context.Context, data map[string]interface
 }
 
 func convertValueToAttr_POSTProducts(value interface{}) (attr.Value, error) {
-     switch v := value.(type) {
-     case string:
-         return types.StringValue(v), nil
-     case int32:
-         return types.Int32Value(v), nil
-     case int64:
-         return types.Int64Value(v), nil
-     case float64:
-         return types.Float64Value(v), nil
-     case bool:
-         return types.BoolValue(v), nil
-     case nil:
-         return types.StringNull(), nil
-     default:
-         return nil, fmt.Errorf("unsupported type: %T", value)
-     }
+	switch v := value.(type) {
+	case string:
+		return types.StringValue(v), nil
+	case int32:
+		return types.Int32Value(v), nil
+	case int64:
+		return types.Int64Value(v), nil
+	case float64:
+		return types.Float64Value(v), nil
+	case bool:
+		return types.BoolValue(v), nil
+	case nil:
+		return types.StringNull(), nil
+	default:
+		return nil, fmt.Errorf("unsupported type: %T", value)
+	}
 }
-

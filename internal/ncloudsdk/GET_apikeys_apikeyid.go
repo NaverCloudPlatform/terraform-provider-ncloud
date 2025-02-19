@@ -1,4 +1,3 @@
-
 /* =================================================================================
  * NCLOUD SDK LAYER FOR TERRAFORM CODEGEN - DO NOT EDIT
  * =================================================================================
@@ -27,13 +26,11 @@ import (
 )
 
 type PrimitiveGETApikeysApikeyidRequest struct {
-    Apikeyid string `json:"api-key-id"`
-
+	Apikeyid string `json:"api-key-id"`
 }
 
 type StringifiedGETApikeysApikeyidRequest struct {
 	Apikeyid string `json:"api-key-id"`
-
 }
 
 func (n *NClient) GETApikeysApikeyid(ctx context.Context, primitiveReq *PrimitiveGETApikeysApikeyidRequest) (map[string]interface{}, error) {
@@ -45,10 +42,6 @@ func (n *NClient) GETApikeysApikeyid(ctx context.Context, primitiveReq *Primitiv
 		return nil, err
 	}
 
- 	
-
-	
-
 	rawBody, err := json.Marshal(initBody)
 	if err != nil {
 		return nil, err
@@ -56,7 +49,7 @@ func (n *NClient) GETApikeysApikeyid(ctx context.Context, primitiveReq *Primitiv
 
 	body := strings.Replace(string(rawBody), `\"`, "", -1)
 
-	url := n.BaseURL +"/"+"api-keys"+"/"+ClearDoubleQuote(r.Apikeyid)
+	url := n.BaseURL + "/" + "api-keys" + "/" + ClearDoubleQuote(r.Apikeyid)
 
 	response, err := n.MakeRequestWithContext(ctx, "GET", url, body, query)
 	if err != nil {
@@ -85,7 +78,6 @@ func (n *NClient) GETApikeysApikeyid_TF(ctx context.Context, r *PrimitiveGETApik
 	return res, nil
 }
 
-
 /* =================================================================================
  * NCLOUD SDK LAYER FOR TERRAFORM CODEGEN - DO NOT EDIT
  * =================================================================================
@@ -100,63 +92,60 @@ func (n *NClient) GETApikeysApikeyid_TF(ctx context.Context, r *PrimitiveGETApik
  * ================================================================================= */
 
 type GETApikeysApikeyidResponse struct {
-    Tenantid         types.String `tfsdk:"tenant_id"`
-Secondarykey         types.String `tfsdk:"secondary_key"`
-Primarykey         types.String `tfsdk:"primary_key"`
-Modifier         types.String `tfsdk:"modifier"`
-Modtime         types.String `tfsdk:"mod_time"`
-Isenabled         types.Bool `tfsdk:"is_enabled"`
-Domaincode         types.String `tfsdk:"domain_code"`
-Apikeyname         types.String `tfsdk:"api_key_name"`
-Apikeyid         types.String `tfsdk:"api_key_id"`
-Apikeydescription         types.String `tfsdk:"api_key_description"`
-
+	Tenantid          types.String `tfsdk:"tenant_id"`
+	Secondarykey      types.String `tfsdk:"secondary_key"`
+	Primarykey        types.String `tfsdk:"primary_key"`
+	Modifier          types.String `tfsdk:"modifier"`
+	Modtime           types.String `tfsdk:"mod_time"`
+	Isenabled         types.Bool   `tfsdk:"is_enabled"`
+	Domaincode        types.String `tfsdk:"domain_code"`
+	Apikeyname        types.String `tfsdk:"api_key_name"`
+	Apikeyid          types.String `tfsdk:"api_key_id"`
+	Apikeydescription types.String `tfsdk:"api_key_description"`
 }
 
 func ConvertToFrameworkTypes_GETApikeysApikeyid(ctx context.Context, data map[string]interface{}) (*GETApikeysApikeyidResponse, error) {
 	var dto GETApikeysApikeyidResponse
 
-    
-			if data["tenant_id"] != nil {
-				dto.Tenantid = types.StringValue(data["tenant_id"].(string))
-			}
+	if data["tenant_id"] != nil {
+		dto.Tenantid = types.StringValue(data["tenant_id"].(string))
+	}
 
-			if data["secondary_key"] != nil {
-				dto.Secondarykey = types.StringValue(data["secondary_key"].(string))
-			}
+	if data["secondary_key"] != nil {
+		dto.Secondarykey = types.StringValue(data["secondary_key"].(string))
+	}
 
-			if data["primary_key"] != nil {
-				dto.Primarykey = types.StringValue(data["primary_key"].(string))
-			}
+	if data["primary_key"] != nil {
+		dto.Primarykey = types.StringValue(data["primary_key"].(string))
+	}
 
-			if data["modifier"] != nil {
-				dto.Modifier = types.StringValue(data["modifier"].(string))
-			}
+	if data["modifier"] != nil {
+		dto.Modifier = types.StringValue(data["modifier"].(string))
+	}
 
-			if data["mod_time"] != nil {
-				dto.Modtime = types.StringValue(data["mod_time"].(string))
-			}
+	if data["mod_time"] != nil {
+		dto.Modtime = types.StringValue(data["mod_time"].(string))
+	}
 
-			if data["is_enabled"] != nil {
-				dto.Isenabled = types.BoolValue(data["is_enabled"].(bool))
-			}
+	if data["is_enabled"] != nil {
+		dto.Isenabled = types.BoolValue(data["is_enabled"].(bool))
+	}
 
-			if data["domain_code"] != nil {
-				dto.Domaincode = types.StringValue(data["domain_code"].(string))
-			}
+	if data["domain_code"] != nil {
+		dto.Domaincode = types.StringValue(data["domain_code"].(string))
+	}
 
-			if data["api_key_name"] != nil {
-				dto.Apikeyname = types.StringValue(data["api_key_name"].(string))
-			}
+	if data["api_key_name"] != nil {
+		dto.Apikeyname = types.StringValue(data["api_key_name"].(string))
+	}
 
-			if data["api_key_id"] != nil {
-				dto.Apikeyid = types.StringValue(data["api_key_id"].(string))
-			}
+	if data["api_key_id"] != nil {
+		dto.Apikeyid = types.StringValue(data["api_key_id"].(string))
+	}
 
-			if data["api_key_description"] != nil {
-				dto.Apikeydescription = types.StringValue(data["api_key_description"].(string))
-			}
-
+	if data["api_key_description"] != nil {
+		dto.Apikeydescription = types.StringValue(data["api_key_description"].(string))
+	}
 
 	return &dto, nil
 }
@@ -165,16 +154,12 @@ func convertToObject_GETApikeysApikeyid(ctx context.Context, data map[string]int
 	attrTypes := make(map[string]attr.Type)
 	attrValues := make(map[string]attr.Value)
 
-    possibleTypes := map[string]attr.Type{
-        
-	}
+	possibleTypes := map[string]attr.Type{}
 
 	for field, fieldType := range possibleTypes {
 		attrTypes[field] = fieldType
 
 		if value, exists := data[field]; exists {
-
-			
 
 			attrValue, err := convertValueToAttr_GETApikeysApikeyid(value)
 			if err != nil {
@@ -182,7 +167,6 @@ func convertToObject_GETApikeysApikeyid(ctx context.Context, data map[string]int
 			}
 			attrValues[field] = attrValue
 		} else {
-            
 
 			switch fieldType {
 			case types.StringType:
@@ -205,21 +189,20 @@ func convertToObject_GETApikeysApikeyid(ctx context.Context, data map[string]int
 }
 
 func convertValueToAttr_GETApikeysApikeyid(value interface{}) (attr.Value, error) {
-     switch v := value.(type) {
-     case string:
-         return types.StringValue(v), nil
-     case int32:
-         return types.Int32Value(v), nil
-     case int64:
-         return types.Int64Value(v), nil
-     case float64:
-         return types.Float64Value(v), nil
-     case bool:
-         return types.BoolValue(v), nil
-     case nil:
-         return types.StringNull(), nil
-     default:
-         return nil, fmt.Errorf("unsupported type: %T", value)
-     }
+	switch v := value.(type) {
+	case string:
+		return types.StringValue(v), nil
+	case int32:
+		return types.Int32Value(v), nil
+	case int64:
+		return types.Int64Value(v), nil
+	case float64:
+		return types.Float64Value(v), nil
+	case bool:
+		return types.BoolValue(v), nil
+	case nil:
+		return types.StringNull(), nil
+	default:
+		return nil, fmt.Errorf("unsupported type: %T", value)
+	}
 }
-

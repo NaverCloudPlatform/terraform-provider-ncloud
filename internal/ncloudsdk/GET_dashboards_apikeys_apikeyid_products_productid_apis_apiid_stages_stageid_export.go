@@ -1,4 +1,3 @@
-
 /* =================================================================================
  * NCLOUD SDK LAYER FOR TERRAFORM CODEGEN - DO NOT EDIT
  * =================================================================================
@@ -27,31 +26,29 @@ import (
 )
 
 type PrimitiveGETDashboardsApikeysApikeyidProductsProductidApisApiidStagesStageidExportRequest struct {
-    Apikeyid string `json:"api-key-id"`
-Productid string `json:"product-id"`
-Apiid string `json:"api-id"`
-Stageid string `json:"stage-id"`
-From string `json:"from"`
-Limit int64 `json:"limit"`
-Offset int64 `json:"offset"`
-Regions types.List `json:"regions"`
-TimeZone string `json:"timeZone"`
-To string `json:"to"`
-
+	Apikeyid  string     `json:"api-key-id"`
+	Productid string     `json:"product-id"`
+	Apiid     string     `json:"api-id"`
+	Stageid   string     `json:"stage-id"`
+	From      string     `json:"from"`
+	Limit     int64      `json:"limit"`
+	Offset    int64      `json:"offset"`
+	Regions   types.List `json:"regions"`
+	TimeZone  string     `json:"timeZone"`
+	To        string     `json:"to"`
 }
 
 type StringifiedGETDashboardsApikeysApikeyidProductsProductidApisApiidStagesStageidExportRequest struct {
-	Apikeyid string `json:"api-key-id"`
-Productid string `json:"product-id"`
-Apiid string `json:"api-id"`
-Stageid string `json:"stage-id"`
-From string `json:"from"`
-Limit string `json:"limit"`
-Offset string `json:"offset"`
-Regions string `json:"regions"`
-TimeZone string `json:"timeZone"`
-To string `json:"to"`
-
+	Apikeyid  string `json:"api-key-id"`
+	Productid string `json:"product-id"`
+	Apiid     string `json:"api-id"`
+	Stageid   string `json:"stage-id"`
+	From      string `json:"from"`
+	Limit     string `json:"limit"`
+	Offset    string `json:"offset"`
+	Regions   string `json:"regions"`
+	TimeZone  string `json:"timeZone"`
+	To        string `json:"to"`
 }
 
 func (n *NClient) GETDashboardsApikeysApikeyidProductsProductidApisApiidStagesStageidExport(ctx context.Context, primitiveReq *PrimitiveGETDashboardsApikeysApikeyidProductsProductidApisApiidStagesStageidExportRequest) (map[string]interface{}, error) {
@@ -63,27 +60,23 @@ func (n *NClient) GETDashboardsApikeysApikeyidProductsProductidApisApiidStagesSt
 		return nil, err
 	}
 
- 	
-				query["from"] = r.From
+	query["from"] = r.From
 
-				if r.Limit!= "" {
-					query["limit"] = r.Limit
-				}
+	if r.Limit != "" {
+		query["limit"] = r.Limit
+	}
 
-				if r.Offset!= "" {
-					query["offset"] = r.Offset
-				}
+	if r.Offset != "" {
+		query["offset"] = r.Offset
+	}
 
-				if r.Regions!= "" {
-					query["regions"] = r.Regions
-				}
+	if r.Regions != "" {
+		query["regions"] = r.Regions
+	}
 
-				query["timeZone"] = r.TimeZone
+	query["timeZone"] = r.TimeZone
 
-				query["to"] = r.To
-
-
-	
+	query["to"] = r.To
 
 	rawBody, err := json.Marshal(initBody)
 	if err != nil {
@@ -92,7 +85,7 @@ func (n *NClient) GETDashboardsApikeysApikeyidProductsProductidApisApiidStagesSt
 
 	body := strings.Replace(string(rawBody), `\"`, "", -1)
 
-	url := n.BaseURL +"/"+"dashboards"+"/"+"api-keys"+"/"+ClearDoubleQuote(r.Apikeyid)+"/"+"products"+"/"+ClearDoubleQuote(r.Productid)+"/"+"apis"+"/"+ClearDoubleQuote(r.Apiid)+"/"+"stages"+"/"+ClearDoubleQuote(r.Stageid)+"/"+"export"
+	url := n.BaseURL + "/" + "dashboards" + "/" + "api-keys" + "/" + ClearDoubleQuote(r.Apikeyid) + "/" + "products" + "/" + ClearDoubleQuote(r.Productid) + "/" + "apis" + "/" + ClearDoubleQuote(r.Apiid) + "/" + "stages" + "/" + ClearDoubleQuote(r.Stageid) + "/" + "export"
 
 	response, err := n.MakeRequestWithContext(ctx, "GET", url, body, query)
 	if err != nil {
@@ -121,7 +114,6 @@ func (n *NClient) GETDashboardsApikeysApikeyidProductsProductidApisApiidStagesSt
 	return res, nil
 }
 
-
 /* =================================================================================
  * NCLOUD SDK LAYER FOR TERRAFORM CODEGEN - DO NOT EDIT
  * =================================================================================
@@ -136,13 +128,10 @@ func (n *NClient) GETDashboardsApikeysApikeyidProductsProductidApisApiidStagesSt
  * ================================================================================= */
 
 type GETDashboardsApikeysApikeyidProductsProductidApisApiidStagesStageidExportResponse struct {
-    
 }
 
 func ConvertToFrameworkTypes_GETDashboardsApikeysApikeyidProductsProductidApisApiidStagesStageidExport(ctx context.Context, data map[string]interface{}) (*GETDashboardsApikeysApikeyidProductsProductidApisApiidStagesStageidExportResponse, error) {
 	var dto GETDashboardsApikeysApikeyidProductsProductidApisApiidStagesStageidExportResponse
-
-    
 
 	return &dto, nil
 }
@@ -151,16 +140,12 @@ func convertToObject_GETDashboardsApikeysApikeyidProductsProductidApisApiidStage
 	attrTypes := make(map[string]attr.Type)
 	attrValues := make(map[string]attr.Value)
 
-    possibleTypes := map[string]attr.Type{
-        
-	}
+	possibleTypes := map[string]attr.Type{}
 
 	for field, fieldType := range possibleTypes {
 		attrTypes[field] = fieldType
 
 		if value, exists := data[field]; exists {
-
-			
 
 			attrValue, err := convertValueToAttr_GETDashboardsApikeysApikeyidProductsProductidApisApiidStagesStageidExport(value)
 			if err != nil {
@@ -168,7 +153,6 @@ func convertToObject_GETDashboardsApikeysApikeyidProductsProductidApisApiidStage
 			}
 			attrValues[field] = attrValue
 		} else {
-            
 
 			switch fieldType {
 			case types.StringType:
@@ -191,21 +175,20 @@ func convertToObject_GETDashboardsApikeysApikeyidProductsProductidApisApiidStage
 }
 
 func convertValueToAttr_GETDashboardsApikeysApikeyidProductsProductidApisApiidStagesStageidExport(value interface{}) (attr.Value, error) {
-     switch v := value.(type) {
-     case string:
-         return types.StringValue(v), nil
-     case int32:
-         return types.Int32Value(v), nil
-     case int64:
-         return types.Int64Value(v), nil
-     case float64:
-         return types.Float64Value(v), nil
-     case bool:
-         return types.BoolValue(v), nil
-     case nil:
-         return types.StringNull(), nil
-     default:
-         return nil, fmt.Errorf("unsupported type: %T", value)
-     }
+	switch v := value.(type) {
+	case string:
+		return types.StringValue(v), nil
+	case int32:
+		return types.Int32Value(v), nil
+	case int64:
+		return types.Int64Value(v), nil
+	case float64:
+		return types.Float64Value(v), nil
+	case bool:
+		return types.BoolValue(v), nil
+	case nil:
+		return types.StringNull(), nil
+	default:
+		return nil, fmt.Errorf("unsupported type: %T", value)
+	}
 }
-

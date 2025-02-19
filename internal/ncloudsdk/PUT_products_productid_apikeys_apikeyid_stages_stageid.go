@@ -1,4 +1,3 @@
-
 /* =================================================================================
  * NCLOUD SDK LAYER FOR TERRAFORM CODEGEN - DO NOT EDIT
  * =================================================================================
@@ -27,19 +26,17 @@ import (
 )
 
 type PrimitivePUTProductsProductidApikeysApikeyidStagesStageidRequest struct {
-    Productid string `json:"product-id"`
-Apikeyid string `json:"api-key-id"`
-Stageid string `json:"stage-id"`
-UsagePlanId string `json:"usagePlanId"`
-
+	Productid   string `json:"product-id"`
+	Apikeyid    string `json:"api-key-id"`
+	Stageid     string `json:"stage-id"`
+	UsagePlanId string `json:"usagePlanId"`
 }
 
 type StringifiedPUTProductsProductidApikeysApikeyidStagesStageidRequest struct {
-	Productid string `json:"product-id"`
-Apikeyid string `json:"api-key-id"`
-Stageid string `json:"stage-id"`
-UsagePlanId string `json:"usagePlanId"`
-
+	Productid   string `json:"product-id"`
+	Apikeyid    string `json:"api-key-id"`
+	Stageid     string `json:"stage-id"`
+	UsagePlanId string `json:"usagePlanId"`
 }
 
 func (n *NClient) PUTProductsProductidApikeysApikeyidStagesStageid(ctx context.Context, primitiveReq *PrimitivePUTProductsProductidApikeysApikeyidStagesStageidRequest) (map[string]interface{}, error) {
@@ -51,13 +48,9 @@ func (n *NClient) PUTProductsProductidApikeysApikeyidStagesStageid(ctx context.C
 		return nil, err
 	}
 
- 	
-
-	
-			if r.UsagePlanId != "" {
-				initBody["usagePlanId"] = r.UsagePlanId
-			}
-
+	if r.UsagePlanId != "" {
+		initBody["usagePlanId"] = r.UsagePlanId
+	}
 
 	rawBody, err := json.Marshal(initBody)
 	if err != nil {
@@ -66,7 +59,7 @@ func (n *NClient) PUTProductsProductidApikeysApikeyidStagesStageid(ctx context.C
 
 	body := strings.Replace(string(rawBody), `\"`, "", -1)
 
-	url := n.BaseURL +"/"+"products"+"/"+ClearDoubleQuote(r.Productid)+"/"+"api-keys"+"/"+ClearDoubleQuote(r.Apikeyid)+"/"+"stages"+"/"+ClearDoubleQuote(r.Stageid)
+	url := n.BaseURL + "/" + "products" + "/" + ClearDoubleQuote(r.Productid) + "/" + "api-keys" + "/" + ClearDoubleQuote(r.Apikeyid) + "/" + "stages" + "/" + ClearDoubleQuote(r.Stageid)
 
 	response, err := n.MakeRequestWithContext(ctx, "PUT", url, body, query)
 	if err != nil {
@@ -95,7 +88,6 @@ func (n *NClient) PUTProductsProductidApikeysApikeyidStagesStageid_TF(ctx contex
 	return res, nil
 }
 
-
 /* =================================================================================
  * NCLOUD SDK LAYER FOR TERRAFORM CODEGEN - DO NOT EDIT
  * =================================================================================
@@ -110,13 +102,10 @@ func (n *NClient) PUTProductsProductidApikeysApikeyidStagesStageid_TF(ctx contex
  * ================================================================================= */
 
 type PUTProductsProductidApikeysApikeyidStagesStageidResponse struct {
-    
 }
 
 func ConvertToFrameworkTypes_PUTProductsProductidApikeysApikeyidStagesStageid(ctx context.Context, data map[string]interface{}) (*PUTProductsProductidApikeysApikeyidStagesStageidResponse, error) {
 	var dto PUTProductsProductidApikeysApikeyidStagesStageidResponse
-
-    
 
 	return &dto, nil
 }
@@ -125,16 +114,12 @@ func convertToObject_PUTProductsProductidApikeysApikeyidStagesStageid(ctx contex
 	attrTypes := make(map[string]attr.Type)
 	attrValues := make(map[string]attr.Value)
 
-    possibleTypes := map[string]attr.Type{
-        
-	}
+	possibleTypes := map[string]attr.Type{}
 
 	for field, fieldType := range possibleTypes {
 		attrTypes[field] = fieldType
 
 		if value, exists := data[field]; exists {
-
-			
 
 			attrValue, err := convertValueToAttr_PUTProductsProductidApikeysApikeyidStagesStageid(value)
 			if err != nil {
@@ -142,7 +127,6 @@ func convertToObject_PUTProductsProductidApikeysApikeyidStagesStageid(ctx contex
 			}
 			attrValues[field] = attrValue
 		} else {
-            
 
 			switch fieldType {
 			case types.StringType:
@@ -165,21 +149,20 @@ func convertToObject_PUTProductsProductidApikeysApikeyidStagesStageid(ctx contex
 }
 
 func convertValueToAttr_PUTProductsProductidApikeysApikeyidStagesStageid(value interface{}) (attr.Value, error) {
-     switch v := value.(type) {
-     case string:
-         return types.StringValue(v), nil
-     case int32:
-         return types.Int32Value(v), nil
-     case int64:
-         return types.Int64Value(v), nil
-     case float64:
-         return types.Float64Value(v), nil
-     case bool:
-         return types.BoolValue(v), nil
-     case nil:
-         return types.StringNull(), nil
-     default:
-         return nil, fmt.Errorf("unsupported type: %T", value)
-     }
+	switch v := value.(type) {
+	case string:
+		return types.StringValue(v), nil
+	case int32:
+		return types.Int32Value(v), nil
+	case int64:
+		return types.Int64Value(v), nil
+	case float64:
+		return types.Float64Value(v), nil
+	case bool:
+		return types.BoolValue(v), nil
+	case nil:
+		return types.StringNull(), nil
+	default:
+		return nil, fmt.Errorf("unsupported type: %T", value)
+	}
 }
-

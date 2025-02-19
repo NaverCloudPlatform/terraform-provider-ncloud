@@ -1,4 +1,3 @@
-
 /* =================================================================================
  * NCLOUD SDK LAYER FOR TERRAFORM CODEGEN - DO NOT EDIT
  * =================================================================================
@@ -27,29 +26,27 @@ import (
 )
 
 type PrimitivePOSTProductsProductidApisApiidResourcesRequest struct {
-    Productid string `json:"product-id"`
-Apiid string `json:"api-id"`
-ResourcePath string `json:"resourcePath"`
-CorsMaxAge string `json:"corsMaxAge"`
-CorsExposeHeaders string `json:"corsExposeHeaders"`
-CorsAllowOrigin string `json:"corsAllowOrigin"`
-CorsAllowMethods string `json:"corsAllowMethods"`
-CorsAllowHeaders string `json:"corsAllowHeaders"`
-CorsAllowCredentials string `json:"corsAllowCredentials"`
-
+	Productid            string `json:"product-id"`
+	Apiid                string `json:"api-id"`
+	ResourcePath         string `json:"resourcePath"`
+	CorsMaxAge           string `json:"corsMaxAge"`
+	CorsExposeHeaders    string `json:"corsExposeHeaders"`
+	CorsAllowOrigin      string `json:"corsAllowOrigin"`
+	CorsAllowMethods     string `json:"corsAllowMethods"`
+	CorsAllowHeaders     string `json:"corsAllowHeaders"`
+	CorsAllowCredentials string `json:"corsAllowCredentials"`
 }
 
 type StringifiedPOSTProductsProductidApisApiidResourcesRequest struct {
-	Productid string `json:"product-id"`
-Apiid string `json:"api-id"`
-ResourcePath string `json:"resourcePath"`
-CorsMaxAge string `json:"corsMaxAge"`
-CorsExposeHeaders string `json:"corsExposeHeaders"`
-CorsAllowOrigin string `json:"corsAllowOrigin"`
-CorsAllowMethods string `json:"corsAllowMethods"`
-CorsAllowHeaders string `json:"corsAllowHeaders"`
-CorsAllowCredentials string `json:"corsAllowCredentials"`
-
+	Productid            string `json:"product-id"`
+	Apiid                string `json:"api-id"`
+	ResourcePath         string `json:"resourcePath"`
+	CorsMaxAge           string `json:"corsMaxAge"`
+	CorsExposeHeaders    string `json:"corsExposeHeaders"`
+	CorsAllowOrigin      string `json:"corsAllowOrigin"`
+	CorsAllowMethods     string `json:"corsAllowMethods"`
+	CorsAllowHeaders     string `json:"corsAllowHeaders"`
+	CorsAllowCredentials string `json:"corsAllowCredentials"`
 }
 
 func (n *NClient) POSTProductsProductidApisApiidResources(ctx context.Context, primitiveReq *PrimitivePOSTProductsProductidApisApiidResourcesRequest) (map[string]interface{}, error) {
@@ -61,34 +58,31 @@ func (n *NClient) POSTProductsProductidApisApiidResources(ctx context.Context, p
 		return nil, err
 	}
 
- 	
-
 	initBody["resourcePath"] = r.ResourcePath
 
-			if r.CorsMaxAge != "" {
-				initBody["corsMaxAge"] = r.CorsMaxAge
-			}
+	if r.CorsMaxAge != "" {
+		initBody["corsMaxAge"] = r.CorsMaxAge
+	}
 
-			if r.CorsExposeHeaders != "" {
-				initBody["corsExposeHeaders"] = r.CorsExposeHeaders
-			}
+	if r.CorsExposeHeaders != "" {
+		initBody["corsExposeHeaders"] = r.CorsExposeHeaders
+	}
 
-			if r.CorsAllowOrigin != "" {
-				initBody["corsAllowOrigin"] = r.CorsAllowOrigin
-			}
+	if r.CorsAllowOrigin != "" {
+		initBody["corsAllowOrigin"] = r.CorsAllowOrigin
+	}
 
-			if r.CorsAllowMethods != "" {
-				initBody["corsAllowMethods"] = r.CorsAllowMethods
-			}
+	if r.CorsAllowMethods != "" {
+		initBody["corsAllowMethods"] = r.CorsAllowMethods
+	}
 
-			if r.CorsAllowHeaders != "" {
-				initBody["corsAllowHeaders"] = r.CorsAllowHeaders
-			}
+	if r.CorsAllowHeaders != "" {
+		initBody["corsAllowHeaders"] = r.CorsAllowHeaders
+	}
 
-			if r.CorsAllowCredentials != "" {
-				initBody["corsAllowCredentials"] = r.CorsAllowCredentials
-			}
-
+	if r.CorsAllowCredentials != "" {
+		initBody["corsAllowCredentials"] = r.CorsAllowCredentials
+	}
 
 	rawBody, err := json.Marshal(initBody)
 	if err != nil {
@@ -97,7 +91,7 @@ func (n *NClient) POSTProductsProductidApisApiidResources(ctx context.Context, p
 
 	body := strings.Replace(string(rawBody), `\"`, "", -1)
 
-	url := n.BaseURL +"/"+"products"+"/"+ClearDoubleQuote(r.Productid)+"/"+"apis"+"/"+ClearDoubleQuote(r.Apiid)+"/"+"resources"
+	url := n.BaseURL + "/" + "products" + "/" + ClearDoubleQuote(r.Productid) + "/" + "apis" + "/" + ClearDoubleQuote(r.Apiid) + "/" + "resources"
 
 	response, err := n.MakeRequestWithContext(ctx, "POST", url, body, query)
 	if err != nil {
@@ -126,7 +120,6 @@ func (n *NClient) POSTProductsProductidApisApiidResources_TF(ctx context.Context
 	return res, nil
 }
 
-
 /* =================================================================================
  * NCLOUD SDK LAYER FOR TERRAFORM CODEGEN - DO NOT EDIT
  * =================================================================================
@@ -141,67 +134,59 @@ func (n *NClient) POSTProductsProductidApisApiidResources_TF(ctx context.Context
  * ================================================================================= */
 
 type POSTProductsProductidApisApiidResourcesResponse struct {
-    Resource         types.Object `tfsdk:"resource"`
-
+	Resource types.Object `tfsdk:"resource"`
 }
 
 func ConvertToFrameworkTypes_POSTProductsProductidApisApiidResources(ctx context.Context, data map[string]interface{}) (*POSTProductsProductidApisApiidResourcesResponse, error) {
 	var dto POSTProductsProductidApisApiidResourcesResponse
 
-    
-			if data["resource"] != nil {
-				tempResource := data["resource"].(map[string]interface{})
+	if data["resource"] != nil {
+		tempResource := data["resource"].(map[string]interface{})
 
-				allFields := []string{
-					"resource_path",
-"resource_id",
-"methods",
-"cors_max_age",
-"cors_expose_headers",
-"cors_allow_origin",
-"cors_allow_methods",
-"cors_allow_headers",
-"cors_allow_credentials",
-"api_id",
+		allFields := []string{
+			"resource_path",
+			"resource_id",
+			"methods",
+			"cors_max_age",
+			"cors_expose_headers",
+			"cors_allow_origin",
+			"cors_allow_methods",
+			"cors_allow_headers",
+			"cors_allow_credentials",
+			"api_id",
+		}
 
-				}
-
-				convertedMap := make(map[string]interface{})
-				for _, field := range allFields {
-					if val, ok := tempResource[field]; ok {
-						convertedMap[field] = val
-					}
-				}
-
-				convertedTempResource, err := convertToObject_POSTProductsProductidApisApiidResources(ctx, convertedMap)
-				if err != nil {
-					return nil, err
-				}
-
-				dto.Resource = diagOff(types.ObjectValueFrom, ctx, types.ObjectType{AttrTypes: map[string]attr.Type{
-					"resource_path": types.StringType,
-"resource_id": types.StringType,
-
-			"methods": types.ListType{ElemType:
-				
-	types.ObjectType{AttrTypes: map[string]attr.Type{
-		
-		"method_name": types.StringType,
-"method_code": types.StringType,
-
-	},
-			}},
-"cors_max_age": types.StringType,
-"cors_expose_headers": types.StringType,
-"cors_allow_origin": types.StringType,
-"cors_allow_methods": types.StringType,
-"cors_allow_headers": types.StringType,
-"cors_allow_credentials": types.StringType,
-"api_id": types.StringType,
-
-				}}.AttributeTypes(), convertedTempResource)
+		convertedMap := make(map[string]interface{})
+		for _, field := range allFields {
+			if val, ok := tempResource[field]; ok {
+				convertedMap[field] = val
 			}
+		}
 
+		convertedTempResource, err := convertToObject_POSTProductsProductidApisApiidResources(ctx, convertedMap)
+		if err != nil {
+			return nil, err
+		}
+
+		dto.Resource = diagOff(types.ObjectValueFrom, ctx, types.ObjectType{AttrTypes: map[string]attr.Type{
+			"resource_path": types.StringType,
+			"resource_id":   types.StringType,
+
+			"methods": types.ListType{ElemType: types.ObjectType{AttrTypes: map[string]attr.Type{
+
+				"method_name": types.StringType,
+				"method_code": types.StringType,
+			},
+			}},
+			"cors_max_age":           types.StringType,
+			"cors_expose_headers":    types.StringType,
+			"cors_allow_origin":      types.StringType,
+			"cors_allow_methods":     types.StringType,
+			"cors_allow_headers":     types.StringType,
+			"cors_allow_credentials": types.StringType,
+			"api_id":                 types.StringType,
+		}}.AttributeTypes(), convertedTempResource)
+	}
 
 	return &dto, nil
 }
@@ -210,28 +195,23 @@ func convertToObject_POSTProductsProductidApisApiidResources(ctx context.Context
 	attrTypes := make(map[string]attr.Type)
 	attrValues := make(map[string]attr.Value)
 
-    possibleTypes := map[string]attr.Type{
-        "resource_path": types.StringType,
-"resource_id": types.StringType,
+	possibleTypes := map[string]attr.Type{
+		"resource_path": types.StringType,
+		"resource_id":   types.StringType,
 
-			"methods": types.ListType{ElemType:
-				
-	types.ObjectType{AttrTypes: map[string]attr.Type{
-		
-		"method_name": types.StringType,
-"method_code": types.StringType,
+		"methods": types.ListType{ElemType: types.ObjectType{AttrTypes: map[string]attr.Type{
 
-	},
-			}},
-"cors_max_age": types.StringType,
-"cors_expose_headers": types.StringType,
-"cors_allow_origin": types.StringType,
-"cors_allow_methods": types.StringType,
-"cors_allow_headers": types.StringType,
-"cors_allow_credentials": types.StringType,
-"api_id": types.StringType,
-
-
+			"method_name": types.StringType,
+			"method_code": types.StringType,
+		},
+		}},
+		"cors_max_age":           types.StringType,
+		"cors_expose_headers":    types.StringType,
+		"cors_allow_origin":      types.StringType,
+		"cors_allow_methods":     types.StringType,
+		"cors_allow_headers":     types.StringType,
+		"cors_allow_credentials": types.StringType,
+		"api_id":                 types.StringType,
 	}
 
 	for field, fieldType := range possibleTypes {
@@ -239,17 +219,14 @@ func convertToObject_POSTProductsProductidApisApiidResources(ctx context.Context
 
 		if value, exists := data[field]; exists {
 
-			
 			if field == "methods" && len(value.([]interface{})) == 0 {
 				listV := types.ListNull(types.ObjectNull(map[string]attr.Type{
 					"method_name": types.StringType,
-"method_code": types.StringType,
-
+					"method_code": types.StringType,
 				}).Type(ctx))
 				attrValues[field] = listV
 				continue
 			}
-
 
 			attrValue, err := convertValueToAttr_POSTProductsProductidApisApiidResources(value)
 			if err != nil {
@@ -257,17 +234,15 @@ func convertToObject_POSTProductsProductidApisApiidResources(ctx context.Context
 			}
 			attrValues[field] = attrValue
 		} else {
-            
-				if field == "methods" {
-					listV := types.ListNull(types.ObjectNull(map[string]attr.Type{
-						"method_name": types.StringType,
-"method_code": types.StringType,
 
-					}).Type(ctx))
-					attrValues[field] = listV
-					continue
-				}
-
+			if field == "methods" {
+				listV := types.ListNull(types.ObjectNull(map[string]attr.Type{
+					"method_name": types.StringType,
+					"method_code": types.StringType,
+				}).Type(ctx))
+				attrValues[field] = listV
+				continue
+			}
 
 			switch fieldType {
 			case types.StringType:
@@ -290,21 +265,20 @@ func convertToObject_POSTProductsProductidApisApiidResources(ctx context.Context
 }
 
 func convertValueToAttr_POSTProductsProductidApisApiidResources(value interface{}) (attr.Value, error) {
-     switch v := value.(type) {
-     case string:
-         return types.StringValue(v), nil
-     case int32:
-         return types.Int32Value(v), nil
-     case int64:
-         return types.Int64Value(v), nil
-     case float64:
-         return types.Float64Value(v), nil
-     case bool:
-         return types.BoolValue(v), nil
-     case nil:
-         return types.StringNull(), nil
-     default:
-         return nil, fmt.Errorf("unsupported type: %T", value)
-     }
+	switch v := value.(type) {
+	case string:
+		return types.StringValue(v), nil
+	case int32:
+		return types.Int32Value(v), nil
+	case int64:
+		return types.Int64Value(v), nil
+	case float64:
+		return types.Float64Value(v), nil
+	case bool:
+		return types.BoolValue(v), nil
+	case nil:
+		return types.StringNull(), nil
+	default:
+		return nil, fmt.Errorf("unsupported type: %T", value)
+	}
 }
-

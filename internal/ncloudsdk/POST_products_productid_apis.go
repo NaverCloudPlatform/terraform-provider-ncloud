@@ -1,4 +1,3 @@
-
 /* =================================================================================
  * NCLOUD SDK LAYER FOR TERRAFORM CODEGEN - DO NOT EDIT
  * =================================================================================
@@ -27,17 +26,15 @@ import (
 )
 
 type PrimitivePOSTProductsProductidApisRequest struct {
-    Productid string `json:"product-id"`
-ApiName string `json:"apiName"`
-ApiDescription string `json:"apiDescription"`
-
+	Productid      string `json:"product-id"`
+	ApiName        string `json:"apiName"`
+	ApiDescription string `json:"apiDescription"`
 }
 
 type StringifiedPOSTProductsProductidApisRequest struct {
-	Productid string `json:"product-id"`
-ApiName string `json:"apiName"`
-ApiDescription string `json:"apiDescription"`
-
+	Productid      string `json:"product-id"`
+	ApiName        string `json:"apiName"`
+	ApiDescription string `json:"apiDescription"`
 }
 
 func (n *NClient) POSTProductsProductidApis(ctx context.Context, primitiveReq *PrimitivePOSTProductsProductidApisRequest) (map[string]interface{}, error) {
@@ -49,14 +46,11 @@ func (n *NClient) POSTProductsProductidApis(ctx context.Context, primitiveReq *P
 		return nil, err
 	}
 
- 	
-
 	initBody["apiName"] = r.ApiName
 
-			if r.ApiDescription != "" {
-				initBody["apiDescription"] = r.ApiDescription
-			}
-
+	if r.ApiDescription != "" {
+		initBody["apiDescription"] = r.ApiDescription
+	}
 
 	rawBody, err := json.Marshal(initBody)
 	if err != nil {
@@ -65,7 +59,7 @@ func (n *NClient) POSTProductsProductidApis(ctx context.Context, primitiveReq *P
 
 	body := strings.Replace(string(rawBody), `\"`, "", -1)
 
-	url := n.BaseURL +"/"+"products"+"/"+ClearDoubleQuote(r.Productid)+"/"+"apis"
+	url := n.BaseURL + "/" + "products" + "/" + ClearDoubleQuote(r.Productid) + "/" + "apis"
 
 	response, err := n.MakeRequestWithContext(ctx, "POST", url, body, query)
 	if err != nil {
@@ -94,7 +88,6 @@ func (n *NClient) POSTProductsProductidApis_TF(ctx context.Context, r *Primitive
 	return res, nil
 }
 
-
 /* =================================================================================
  * NCLOUD SDK LAYER FOR TERRAFORM CODEGEN - DO NOT EDIT
  * =================================================================================
@@ -109,75 +102,67 @@ func (n *NClient) POSTProductsProductidApis_TF(ctx context.Context, r *Primitive
  * ================================================================================= */
 
 type POSTProductsProductidApisResponse struct {
-    Api         types.Object `tfsdk:"api"`
-
+	Api types.Object `tfsdk:"api"`
 }
 
 func ConvertToFrameworkTypes_POSTProductsProductidApis(ctx context.Context, data map[string]interface{}) (*POSTProductsProductidApisResponse, error) {
 	var dto POSTProductsProductidApisResponse
 
-    
-			if data["api"] != nil {
-				tempApi := data["api"].(map[string]interface{})
+	if data["api"] != nil {
+		tempApi := data["api"].(map[string]interface{})
 
-				allFields := []string{
-					"tenant_id",
-"stages",
-"product_id",
-"permission",
-"modifier",
-"mod_time",
-"is_deleted",
-"domain_code",
-"disabled",
-"api_name",
-"api_id",
-"api_description",
-"action_name",
+		allFields := []string{
+			"tenant_id",
+			"stages",
+			"product_id",
+			"permission",
+			"modifier",
+			"mod_time",
+			"is_deleted",
+			"domain_code",
+			"disabled",
+			"api_name",
+			"api_id",
+			"api_description",
+			"action_name",
+		}
 
-				}
-
-				convertedMap := make(map[string]interface{})
-				for _, field := range allFields {
-					if val, ok := tempApi[field]; ok {
-						convertedMap[field] = val
-					}
-				}
-
-				convertedTempApi, err := convertToObject_POSTProductsProductidApis(ctx, convertedMap)
-				if err != nil {
-					return nil, err
-				}
-
-				dto.Api = diagOff(types.ObjectValueFrom, ctx, types.ObjectType{AttrTypes: map[string]attr.Type{
-					"tenant_id": types.StringType,
-
-			"stages": types.ListType{ElemType:
-				
-	types.ObjectType{AttrTypes: map[string]attr.Type{
-		
-		"stage_name": types.StringType,
-"stage_id": types.StringType,
-"is_published": types.BoolType,
-"api_id": types.StringType,
-
-	},
-			}},
-"product_id": types.StringType,
-"permission": types.StringType,
-"modifier": types.StringType,
-"mod_time": types.StringType,
-"is_deleted": types.BoolType,
-"domain_code": types.StringType,
-"disabled": types.BoolType,
-"api_name": types.StringType,
-"api_id": types.StringType,
-"api_description": types.StringType,
-"action_name": types.StringType,
-
-				}}.AttributeTypes(), convertedTempApi)
+		convertedMap := make(map[string]interface{})
+		for _, field := range allFields {
+			if val, ok := tempApi[field]; ok {
+				convertedMap[field] = val
 			}
+		}
 
+		convertedTempApi, err := convertToObject_POSTProductsProductidApis(ctx, convertedMap)
+		if err != nil {
+			return nil, err
+		}
+
+		dto.Api = diagOff(types.ObjectValueFrom, ctx, types.ObjectType{AttrTypes: map[string]attr.Type{
+			"tenant_id": types.StringType,
+
+			"stages": types.ListType{ElemType: types.ObjectType{AttrTypes: map[string]attr.Type{
+
+				"stage_name":   types.StringType,
+				"stage_id":     types.StringType,
+				"is_published": types.BoolType,
+				"api_id":       types.StringType,
+			},
+			}},
+			"product_id":      types.StringType,
+			"permission":      types.StringType,
+			"modifier":        types.StringType,
+			"mod_time":        types.StringType,
+			"is_deleted":      types.BoolType,
+			"domain_code":     types.StringType,
+			"disabled":        types.BoolType,
+			"api_name":        types.StringType,
+			"api_id":          types.StringType,
+			"api_description": types.StringType,
+			"action_name":     types.StringType,
+		}}.AttributeTypes(), convertedTempApi)
+	}
 
 	return &dto, nil
 }
@@ -186,33 +171,28 @@ func convertToObject_POSTProductsProductidApis(ctx context.Context, data map[str
 	attrTypes := make(map[string]attr.Type)
 	attrValues := make(map[string]attr.Value)
 
-    possibleTypes := map[string]attr.Type{
-        "tenant_id": types.StringType,
+	possibleTypes := map[string]attr.Type{
+		"tenant_id": types.StringType,
 
-			"stages": types.ListType{ElemType:
-				
-	types.ObjectType{AttrTypes: map[string]attr.Type{
-		
-		"stage_name": types.StringType,
-"stage_id": types.StringType,
-"is_published": types.BoolType,
-"api_id": types.StringType,
+		"stages": types.ListType{ElemType: types.ObjectType{AttrTypes: map[string]attr.Type{
 
-	},
-			}},
-"product_id": types.StringType,
-"permission": types.StringType,
-"modifier": types.StringType,
-"mod_time": types.StringType,
-"is_deleted": types.BoolType,
-"domain_code": types.StringType,
-"disabled": types.BoolType,
-"api_name": types.StringType,
-"api_id": types.StringType,
-"api_description": types.StringType,
-"action_name": types.StringType,
-
-
+			"stage_name":   types.StringType,
+			"stage_id":     types.StringType,
+			"is_published": types.BoolType,
+			"api_id":       types.StringType,
+		},
+		}},
+		"product_id":      types.StringType,
+		"permission":      types.StringType,
+		"modifier":        types.StringType,
+		"mod_time":        types.StringType,
+		"is_deleted":      types.BoolType,
+		"domain_code":     types.StringType,
+		"disabled":        types.BoolType,
+		"api_name":        types.StringType,
+		"api_id":          types.StringType,
+		"api_description": types.StringType,
+		"action_name":     types.StringType,
 	}
 
 	for field, fieldType := range possibleTypes {
@@ -220,19 +200,16 @@ func convertToObject_POSTProductsProductidApis(ctx context.Context, data map[str
 
 		if value, exists := data[field]; exists {
 
-			
 			if field == "stages" && len(value.([]interface{})) == 0 {
 				listV := types.ListNull(types.ObjectNull(map[string]attr.Type{
-					"stage_name": types.StringType,
-"stage_id": types.StringType,
-"is_published": types.BoolType,
-"api_id": types.StringType,
-
+					"stage_name":   types.StringType,
+					"stage_id":     types.StringType,
+					"is_published": types.BoolType,
+					"api_id":       types.StringType,
 				}).Type(ctx))
 				attrValues[field] = listV
 				continue
 			}
-
 
 			attrValue, err := convertValueToAttr_POSTProductsProductidApis(value)
 			if err != nil {
@@ -240,19 +217,17 @@ func convertToObject_POSTProductsProductidApis(ctx context.Context, data map[str
 			}
 			attrValues[field] = attrValue
 		} else {
-            
-				if field == "stages" {
-					listV := types.ListNull(types.ObjectNull(map[string]attr.Type{
-						"stage_name": types.StringType,
-"stage_id": types.StringType,
-"is_published": types.BoolType,
-"api_id": types.StringType,
 
-					}).Type(ctx))
-					attrValues[field] = listV
-					continue
-				}
-
+			if field == "stages" {
+				listV := types.ListNull(types.ObjectNull(map[string]attr.Type{
+					"stage_name":   types.StringType,
+					"stage_id":     types.StringType,
+					"is_published": types.BoolType,
+					"api_id":       types.StringType,
+				}).Type(ctx))
+				attrValues[field] = listV
+				continue
+			}
 
 			switch fieldType {
 			case types.StringType:
@@ -275,21 +250,20 @@ func convertToObject_POSTProductsProductidApis(ctx context.Context, data map[str
 }
 
 func convertValueToAttr_POSTProductsProductidApis(value interface{}) (attr.Value, error) {
-     switch v := value.(type) {
-     case string:
-         return types.StringValue(v), nil
-     case int32:
-         return types.Int32Value(v), nil
-     case int64:
-         return types.Int64Value(v), nil
-     case float64:
-         return types.Float64Value(v), nil
-     case bool:
-         return types.BoolValue(v), nil
-     case nil:
-         return types.StringNull(), nil
-     default:
-         return nil, fmt.Errorf("unsupported type: %T", value)
-     }
+	switch v := value.(type) {
+	case string:
+		return types.StringValue(v), nil
+	case int32:
+		return types.Int32Value(v), nil
+	case int64:
+		return types.Int64Value(v), nil
+	case float64:
+		return types.Float64Value(v), nil
+	case bool:
+		return types.BoolValue(v), nil
+	case nil:
+		return types.StringNull(), nil
+	default:
+		return nil, fmt.Errorf("unsupported type: %T", value)
+	}
 }
-

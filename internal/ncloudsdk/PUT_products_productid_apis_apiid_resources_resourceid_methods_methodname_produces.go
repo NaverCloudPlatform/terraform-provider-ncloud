@@ -1,4 +1,3 @@
-
 /* =================================================================================
  * NCLOUD SDK LAYER FOR TERRAFORM CODEGEN - DO NOT EDIT
  * =================================================================================
@@ -27,21 +26,19 @@ import (
 )
 
 type PrimitivePUTProductsProductidApisApiidResourcesResourceidMethodsMethodnameProducesRequest struct {
-    Productid string `json:"product-id"`
-Apiid string `json:"api-id"`
-Resourceid string `json:"resource-id"`
-Methodname string `json:"method-name"`
-Produces string `json:"produces"`
-
+	Productid  string `json:"product-id"`
+	Apiid      string `json:"api-id"`
+	Resourceid string `json:"resource-id"`
+	Methodname string `json:"method-name"`
+	Produces   string `json:"produces"`
 }
 
 type StringifiedPUTProductsProductidApisApiidResourcesResourceidMethodsMethodnameProducesRequest struct {
-	Productid string `json:"product-id"`
-Apiid string `json:"api-id"`
-Resourceid string `json:"resource-id"`
-Methodname string `json:"method-name"`
-Produces string `json:"produces"`
-
+	Productid  string `json:"product-id"`
+	Apiid      string `json:"api-id"`
+	Resourceid string `json:"resource-id"`
+	Methodname string `json:"method-name"`
+	Produces   string `json:"produces"`
 }
 
 func (n *NClient) PUTProductsProductidApisApiidResourcesResourceidMethodsMethodnameProduces(ctx context.Context, primitiveReq *PrimitivePUTProductsProductidApisApiidResourcesResourceidMethodsMethodnameProducesRequest) (map[string]interface{}, error) {
@@ -53,13 +50,9 @@ func (n *NClient) PUTProductsProductidApisApiidResourcesResourceidMethodsMethodn
 		return nil, err
 	}
 
- 	
-
-	
-			if r.Produces != "" {
-				initBody["produces"] = r.Produces
-			}
-
+	if r.Produces != "" {
+		initBody["produces"] = r.Produces
+	}
 
 	rawBody, err := json.Marshal(initBody)
 	if err != nil {
@@ -68,7 +61,7 @@ func (n *NClient) PUTProductsProductidApisApiidResourcesResourceidMethodsMethodn
 
 	body := strings.Replace(string(rawBody), `\"`, "", -1)
 
-	url := n.BaseURL +"/"+"products"+"/"+ClearDoubleQuote(r.Productid)+"/"+"apis"+"/"+ClearDoubleQuote(r.Apiid)+"/"+"resources"+"/"+ClearDoubleQuote(r.Resourceid)+"/"+"methods"+"/"+ClearDoubleQuote(r.Methodname)+"/"+"produces"
+	url := n.BaseURL + "/" + "products" + "/" + ClearDoubleQuote(r.Productid) + "/" + "apis" + "/" + ClearDoubleQuote(r.Apiid) + "/" + "resources" + "/" + ClearDoubleQuote(r.Resourceid) + "/" + "methods" + "/" + ClearDoubleQuote(r.Methodname) + "/" + "produces"
 
 	response, err := n.MakeRequestWithContext(ctx, "PUT", url, body, query)
 	if err != nil {
@@ -97,7 +90,6 @@ func (n *NClient) PUTProductsProductidApisApiidResourcesResourceidMethodsMethodn
 	return res, nil
 }
 
-
 /* =================================================================================
  * NCLOUD SDK LAYER FOR TERRAFORM CODEGEN - DO NOT EDIT
  * =================================================================================
@@ -112,18 +104,15 @@ func (n *NClient) PUTProductsProductidApisApiidResourcesResourceidMethodsMethodn
  * ================================================================================= */
 
 type PUTProductsProductidApisApiidResourcesResourceidMethodsMethodnameProducesResponse struct {
-    Produces         types.String `tfsdk:"produces"`
-
+	Produces types.String `tfsdk:"produces"`
 }
 
 func ConvertToFrameworkTypes_PUTProductsProductidApisApiidResourcesResourceidMethodsMethodnameProduces(ctx context.Context, data map[string]interface{}) (*PUTProductsProductidApisApiidResourcesResourceidMethodsMethodnameProducesResponse, error) {
 	var dto PUTProductsProductidApisApiidResourcesResourceidMethodsMethodnameProducesResponse
 
-    
-			if data["produces"] != nil {
-				dto.Produces = types.StringValue(data["produces"].(string))
-			}
-
+	if data["produces"] != nil {
+		dto.Produces = types.StringValue(data["produces"].(string))
+	}
 
 	return &dto, nil
 }
@@ -132,16 +121,12 @@ func convertToObject_PUTProductsProductidApisApiidResourcesResourceidMethodsMeth
 	attrTypes := make(map[string]attr.Type)
 	attrValues := make(map[string]attr.Value)
 
-    possibleTypes := map[string]attr.Type{
-        
-	}
+	possibleTypes := map[string]attr.Type{}
 
 	for field, fieldType := range possibleTypes {
 		attrTypes[field] = fieldType
 
 		if value, exists := data[field]; exists {
-
-			
 
 			attrValue, err := convertValueToAttr_PUTProductsProductidApisApiidResourcesResourceidMethodsMethodnameProduces(value)
 			if err != nil {
@@ -149,7 +134,6 @@ func convertToObject_PUTProductsProductidApisApiidResourcesResourceidMethodsMeth
 			}
 			attrValues[field] = attrValue
 		} else {
-            
 
 			switch fieldType {
 			case types.StringType:
@@ -172,21 +156,20 @@ func convertToObject_PUTProductsProductidApisApiidResourcesResourceidMethodsMeth
 }
 
 func convertValueToAttr_PUTProductsProductidApisApiidResourcesResourceidMethodsMethodnameProduces(value interface{}) (attr.Value, error) {
-     switch v := value.(type) {
-     case string:
-         return types.StringValue(v), nil
-     case int32:
-         return types.Int32Value(v), nil
-     case int64:
-         return types.Int64Value(v), nil
-     case float64:
-         return types.Float64Value(v), nil
-     case bool:
-         return types.BoolValue(v), nil
-     case nil:
-         return types.StringNull(), nil
-     default:
-         return nil, fmt.Errorf("unsupported type: %T", value)
-     }
+	switch v := value.(type) {
+	case string:
+		return types.StringValue(v), nil
+	case int32:
+		return types.Int32Value(v), nil
+	case int64:
+		return types.Int64Value(v), nil
+	case float64:
+		return types.Float64Value(v), nil
+	case bool:
+		return types.BoolValue(v), nil
+	case nil:
+		return types.StringNull(), nil
+	default:
+		return nil, fmt.Errorf("unsupported type: %T", value)
+	}
 }
-

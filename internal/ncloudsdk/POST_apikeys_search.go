@@ -1,4 +1,3 @@
-
 /* =================================================================================
  * NCLOUD SDK LAYER FOR TERRAFORM CODEGEN - DO NOT EDIT
  * =================================================================================
@@ -27,21 +26,19 @@ import (
 )
 
 type PrimitivePOSTApikeysSearchRequest struct {
-    ApiKeyName string `json:"apiKeyName"`
-StatusSet types.List `json:"statusSet"`
-ProductId string `json:"productId"`
-Offset int64 `json:"offset"`
-Limit int64 `json:"limit"`
-
+	ApiKeyName string     `json:"apiKeyName"`
+	StatusSet  types.List `json:"statusSet"`
+	ProductId  string     `json:"productId"`
+	Offset     int64      `json:"offset"`
+	Limit      int64      `json:"limit"`
 }
 
 type StringifiedPOSTApikeysSearchRequest struct {
 	ApiKeyName string `json:"apiKeyName"`
-StatusSet string `json:"statusSet"`
-ProductId string `json:"productId"`
-Offset string `json:"offset"`
-Limit string `json:"limit"`
-
+	StatusSet  string `json:"statusSet"`
+	ProductId  string `json:"productId"`
+	Offset     string `json:"offset"`
+	Limit      string `json:"limit"`
 }
 
 func (n *NClient) POSTApikeysSearch(ctx context.Context, primitiveReq *PrimitivePOSTApikeysSearchRequest) (map[string]interface{}, error) {
@@ -53,26 +50,22 @@ func (n *NClient) POSTApikeysSearch(ctx context.Context, primitiveReq *Primitive
 		return nil, err
 	}
 
- 	
+	if r.ApiKeyName != "" {
+		initBody["apiKeyName"] = r.ApiKeyName
+	}
 
-	
-			if r.ApiKeyName != "" {
-				initBody["apiKeyName"] = r.ApiKeyName
-			}
+	if r.StatusSet != "" {
+		initBody["statusSet"] = r.StatusSet
+	}
+	initBody["productId"] = r.ProductId
 
-			if r.StatusSet != "" {
-				initBody["statusSet"] = r.StatusSet
-			}
-initBody["productId"] = r.ProductId
+	if r.Offset != "" {
+		initBody["offset"] = r.Offset
+	}
 
-			if r.Offset != "" {
-				initBody["offset"] = r.Offset
-			}
-
-			if r.Limit != "" {
-				initBody["limit"] = r.Limit
-			}
-
+	if r.Limit != "" {
+		initBody["limit"] = r.Limit
+	}
 
 	rawBody, err := json.Marshal(initBody)
 	if err != nil {
@@ -81,7 +74,7 @@ initBody["productId"] = r.ProductId
 
 	body := strings.Replace(string(rawBody), `\"`, "", -1)
 
-	url := n.BaseURL +"/"+"api-keys"+"/"+"search"
+	url := n.BaseURL + "/" + "api-keys" + "/" + "search"
 
 	response, err := n.MakeRequestWithContext(ctx, "POST", url, body, query)
 	if err != nil {
@@ -110,7 +103,6 @@ func (n *NClient) POSTApikeysSearch_TF(ctx context.Context, r *PrimitivePOSTApik
 	return res, nil
 }
 
-
 /* =================================================================================
  * NCLOUD SDK LAYER FOR TERRAFORM CODEGEN - DO NOT EDIT
  * =================================================================================
@@ -125,37 +117,31 @@ func (n *NClient) POSTApikeysSearch_TF(ctx context.Context, r *PrimitivePOSTApik
  * ================================================================================= */
 
 type POSTApikeysSearchResponse struct {
-    Total         types.Int64`tfsdk:"total"`
-ApiKeys         types.List `tfsdk:"api_keys"`
-
+	Total   types.Int64 `tfsdk:"total"`
+	ApiKeys types.List  `tfsdk:"api_keys"`
 }
 
 func ConvertToFrameworkTypes_POSTApikeysSearch(ctx context.Context, data map[string]interface{}) (*POSTApikeysSearchResponse, error) {
 	var dto POSTApikeysSearchResponse
 
-    
-				if data["total"] != nil {
-					dto.Total = types.Int64Value(data["total"].(int64))
-				}
+	if data["total"] != nil {
+		dto.Total = types.Int64Value(data["total"].(int64))
+	}
 
-				if data["api_keys"] != nil {
-					tempApiKeys := data["api_keys"].([]interface{})
-					dto.ApiKeys = diagOff(types.ListValueFrom, ctx, types.ListType{ElemType:
-						
-	types.ObjectType{AttrTypes: map[string]attr.Type{
-		
-		"status": types.StringType,
-"permission": types.StringType,
-"disabled": types.BoolType,
-"api_key_name": types.StringType,
-"api_key_id": types.StringType,
-"api_key_description": types.StringType,
-"action_name": types.StringType,
+	if data["api_keys"] != nil {
+		tempApiKeys := data["api_keys"].([]interface{})
+		dto.ApiKeys = diagOff(types.ListValueFrom, ctx, types.ListType{ElemType: types.ObjectType{AttrTypes: map[string]attr.Type{
 
-	},
-
-					}}.ElementType(), tempApiKeys)
-				}
+			"status":              types.StringType,
+			"permission":          types.StringType,
+			"disabled":            types.BoolType,
+			"api_key_name":        types.StringType,
+			"api_key_id":          types.StringType,
+			"api_key_description": types.StringType,
+			"action_name":         types.StringType,
+		},
+		}}.ElementType(), tempApiKeys)
+	}
 
 	return &dto, nil
 }
@@ -164,16 +150,12 @@ func convertToObject_POSTApikeysSearch(ctx context.Context, data map[string]inte
 	attrTypes := make(map[string]attr.Type)
 	attrValues := make(map[string]attr.Value)
 
-    possibleTypes := map[string]attr.Type{
-        
-	}
+	possibleTypes := map[string]attr.Type{}
 
 	for field, fieldType := range possibleTypes {
 		attrTypes[field] = fieldType
 
 		if value, exists := data[field]; exists {
-
-			
 
 			attrValue, err := convertValueToAttr_POSTApikeysSearch(value)
 			if err != nil {
@@ -181,7 +163,6 @@ func convertToObject_POSTApikeysSearch(ctx context.Context, data map[string]inte
 			}
 			attrValues[field] = attrValue
 		} else {
-            
 
 			switch fieldType {
 			case types.StringType:
@@ -204,21 +185,20 @@ func convertToObject_POSTApikeysSearch(ctx context.Context, data map[string]inte
 }
 
 func convertValueToAttr_POSTApikeysSearch(value interface{}) (attr.Value, error) {
-     switch v := value.(type) {
-     case string:
-         return types.StringValue(v), nil
-     case int32:
-         return types.Int32Value(v), nil
-     case int64:
-         return types.Int64Value(v), nil
-     case float64:
-         return types.Float64Value(v), nil
-     case bool:
-         return types.BoolValue(v), nil
-     case nil:
-         return types.StringNull(), nil
-     default:
-         return nil, fmt.Errorf("unsupported type: %T", value)
-     }
+	switch v := value.(type) {
+	case string:
+		return types.StringValue(v), nil
+	case int32:
+		return types.Int32Value(v), nil
+	case int64:
+		return types.Int64Value(v), nil
+	case float64:
+		return types.Float64Value(v), nil
+	case bool:
+		return types.BoolValue(v), nil
+	case nil:
+		return types.StringNull(), nil
+	default:
+		return nil, fmt.Errorf("unsupported type: %T", value)
+	}
 }
-

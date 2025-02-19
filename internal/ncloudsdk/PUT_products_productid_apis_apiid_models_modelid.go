@@ -1,4 +1,3 @@
-
 /* =================================================================================
  * NCLOUD SDK LAYER FOR TERRAFORM CODEGEN - DO NOT EDIT
  * =================================================================================
@@ -27,21 +26,19 @@ import (
 )
 
 type PrimitivePUTProductsProductidApisApiidModelsModelidRequest struct {
-    Productid string `json:"product-id"`
-Apiid string `json:"api-id"`
-Modelid string `json:"model-id"`
-ModelSchema string `json:"modelSchema"`
-ModelDescription string `json:"modelDescription"`
-
+	Productid        string `json:"product-id"`
+	Apiid            string `json:"api-id"`
+	Modelid          string `json:"model-id"`
+	ModelSchema      string `json:"modelSchema"`
+	ModelDescription string `json:"modelDescription"`
 }
 
 type StringifiedPUTProductsProductidApisApiidModelsModelidRequest struct {
-	Productid string `json:"product-id"`
-Apiid string `json:"api-id"`
-Modelid string `json:"model-id"`
-ModelSchema string `json:"modelSchema"`
-ModelDescription string `json:"modelDescription"`
-
+	Productid        string `json:"product-id"`
+	Apiid            string `json:"api-id"`
+	Modelid          string `json:"model-id"`
+	ModelSchema      string `json:"modelSchema"`
+	ModelDescription string `json:"modelDescription"`
 }
 
 func (n *NClient) PUTProductsProductidApisApiidModelsModelid(ctx context.Context, primitiveReq *PrimitivePUTProductsProductidApisApiidModelsModelidRequest) (map[string]interface{}, error) {
@@ -53,14 +50,11 @@ func (n *NClient) PUTProductsProductidApisApiidModelsModelid(ctx context.Context
 		return nil, err
 	}
 
- 	
-
 	initBody["modelSchema"] = r.ModelSchema
 
-			if r.ModelDescription != "" {
-				initBody["modelDescription"] = r.ModelDescription
-			}
-
+	if r.ModelDescription != "" {
+		initBody["modelDescription"] = r.ModelDescription
+	}
 
 	rawBody, err := json.Marshal(initBody)
 	if err != nil {
@@ -69,7 +63,7 @@ func (n *NClient) PUTProductsProductidApisApiidModelsModelid(ctx context.Context
 
 	body := strings.Replace(string(rawBody), `\"`, "", -1)
 
-	url := n.BaseURL +"/"+"products"+"/"+ClearDoubleQuote(r.Productid)+"/"+"apis"+"/"+ClearDoubleQuote(r.Apiid)+"/"+"models"+"/"+ClearDoubleQuote(r.Modelid)
+	url := n.BaseURL + "/" + "products" + "/" + ClearDoubleQuote(r.Productid) + "/" + "apis" + "/" + ClearDoubleQuote(r.Apiid) + "/" + "models" + "/" + ClearDoubleQuote(r.Modelid)
 
 	response, err := n.MakeRequestWithContext(ctx, "PUT", url, body, query)
 	if err != nil {
@@ -98,7 +92,6 @@ func (n *NClient) PUTProductsProductidApisApiidModelsModelid_TF(ctx context.Cont
 	return res, nil
 }
 
-
 /* =================================================================================
  * NCLOUD SDK LAYER FOR TERRAFORM CODEGEN - DO NOT EDIT
  * =================================================================================
@@ -113,38 +106,35 @@ func (n *NClient) PUTProductsProductidApisApiidModelsModelid_TF(ctx context.Cont
  * ================================================================================= */
 
 type PUTProductsProductidApisApiidModelsModelidResponse struct {
-    Modelschema         types.String `tfsdk:"model_schema"`
-Modelname         types.String `tfsdk:"model_name"`
-Modelid         types.String `tfsdk:"model_id"`
-Modeldescription         types.String `tfsdk:"model_description"`
-Apiid         types.String `tfsdk:"api_id"`
-
+	Modelschema      types.String `tfsdk:"model_schema"`
+	Modelname        types.String `tfsdk:"model_name"`
+	Modelid          types.String `tfsdk:"model_id"`
+	Modeldescription types.String `tfsdk:"model_description"`
+	Apiid            types.String `tfsdk:"api_id"`
 }
 
 func ConvertToFrameworkTypes_PUTProductsProductidApisApiidModelsModelid(ctx context.Context, data map[string]interface{}) (*PUTProductsProductidApisApiidModelsModelidResponse, error) {
 	var dto PUTProductsProductidApisApiidModelsModelidResponse
 
-    
-			if data["model_schema"] != nil {
-				dto.Modelschema = types.StringValue(data["model_schema"].(string))
-			}
+	if data["model_schema"] != nil {
+		dto.Modelschema = types.StringValue(data["model_schema"].(string))
+	}
 
-			if data["model_name"] != nil {
-				dto.Modelname = types.StringValue(data["model_name"].(string))
-			}
+	if data["model_name"] != nil {
+		dto.Modelname = types.StringValue(data["model_name"].(string))
+	}
 
-			if data["model_id"] != nil {
-				dto.Modelid = types.StringValue(data["model_id"].(string))
-			}
+	if data["model_id"] != nil {
+		dto.Modelid = types.StringValue(data["model_id"].(string))
+	}
 
-			if data["model_description"] != nil {
-				dto.Modeldescription = types.StringValue(data["model_description"].(string))
-			}
+	if data["model_description"] != nil {
+		dto.Modeldescription = types.StringValue(data["model_description"].(string))
+	}
 
-			if data["api_id"] != nil {
-				dto.Apiid = types.StringValue(data["api_id"].(string))
-			}
-
+	if data["api_id"] != nil {
+		dto.Apiid = types.StringValue(data["api_id"].(string))
+	}
 
 	return &dto, nil
 }
@@ -153,16 +143,12 @@ func convertToObject_PUTProductsProductidApisApiidModelsModelid(ctx context.Cont
 	attrTypes := make(map[string]attr.Type)
 	attrValues := make(map[string]attr.Value)
 
-    possibleTypes := map[string]attr.Type{
-        
-	}
+	possibleTypes := map[string]attr.Type{}
 
 	for field, fieldType := range possibleTypes {
 		attrTypes[field] = fieldType
 
 		if value, exists := data[field]; exists {
-
-			
 
 			attrValue, err := convertValueToAttr_PUTProductsProductidApisApiidModelsModelid(value)
 			if err != nil {
@@ -170,7 +156,6 @@ func convertToObject_PUTProductsProductidApisApiidModelsModelid(ctx context.Cont
 			}
 			attrValues[field] = attrValue
 		} else {
-            
 
 			switch fieldType {
 			case types.StringType:
@@ -193,21 +178,20 @@ func convertToObject_PUTProductsProductidApisApiidModelsModelid(ctx context.Cont
 }
 
 func convertValueToAttr_PUTProductsProductidApisApiidModelsModelid(value interface{}) (attr.Value, error) {
-     switch v := value.(type) {
-     case string:
-         return types.StringValue(v), nil
-     case int32:
-         return types.Int32Value(v), nil
-     case int64:
-         return types.Int64Value(v), nil
-     case float64:
-         return types.Float64Value(v), nil
-     case bool:
-         return types.BoolValue(v), nil
-     case nil:
-         return types.StringNull(), nil
-     default:
-         return nil, fmt.Errorf("unsupported type: %T", value)
-     }
+	switch v := value.(type) {
+	case string:
+		return types.StringValue(v), nil
+	case int32:
+		return types.Int32Value(v), nil
+	case int64:
+		return types.Int64Value(v), nil
+	case float64:
+		return types.Float64Value(v), nil
+	case bool:
+		return types.BoolValue(v), nil
+	case nil:
+		return types.StringNull(), nil
+	default:
+		return nil, fmt.Errorf("unsupported type: %T", value)
+	}
 }
-

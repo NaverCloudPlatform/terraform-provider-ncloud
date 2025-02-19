@@ -1,4 +1,3 @@
-
 /* =================================================================================
  * NCLOUD SDK LAYER FOR TERRAFORM CODEGEN - DO NOT EDIT
  * =================================================================================
@@ -27,21 +26,19 @@ import (
 )
 
 type PrimitiveGETProductsProductidApisApiidModelsRequest struct {
-    Productid string `json:"product-id"`
-Apiid string `json:"api-id"`
-Limit int64 `json:"limit"`
-ModelName string `json:"modelName"`
-Offset int64 `json:"offset"`
-
+	Productid string `json:"product-id"`
+	Apiid     string `json:"api-id"`
+	Limit     int64  `json:"limit"`
+	ModelName string `json:"modelName"`
+	Offset    int64  `json:"offset"`
 }
 
 type StringifiedGETProductsProductidApisApiidModelsRequest struct {
 	Productid string `json:"product-id"`
-Apiid string `json:"api-id"`
-Limit string `json:"limit"`
-ModelName string `json:"modelName"`
-Offset string `json:"offset"`
-
+	Apiid     string `json:"api-id"`
+	Limit     string `json:"limit"`
+	ModelName string `json:"modelName"`
+	Offset    string `json:"offset"`
 }
 
 func (n *NClient) GETProductsProductidApisApiidModels(ctx context.Context, primitiveReq *PrimitiveGETProductsProductidApisApiidModelsRequest) (map[string]interface{}, error) {
@@ -53,21 +50,17 @@ func (n *NClient) GETProductsProductidApisApiidModels(ctx context.Context, primi
 		return nil, err
 	}
 
- 	
-				if r.Limit!= "" {
-					query["limit"] = r.Limit
-				}
+	if r.Limit != "" {
+		query["limit"] = r.Limit
+	}
 
-				if r.ModelName!= "" {
-					query["modelName"] = r.ModelName
-				}
+	if r.ModelName != "" {
+		query["modelName"] = r.ModelName
+	}
 
-				if r.Offset!= "" {
-					query["offset"] = r.Offset
-				}
-
-
-	
+	if r.Offset != "" {
+		query["offset"] = r.Offset
+	}
 
 	rawBody, err := json.Marshal(initBody)
 	if err != nil {
@@ -76,7 +69,7 @@ func (n *NClient) GETProductsProductidApisApiidModels(ctx context.Context, primi
 
 	body := strings.Replace(string(rawBody), `\"`, "", -1)
 
-	url := n.BaseURL +"/"+"products"+"/"+ClearDoubleQuote(r.Productid)+"/"+"apis"+"/"+ClearDoubleQuote(r.Apiid)+"/"+"models"
+	url := n.BaseURL + "/" + "products" + "/" + ClearDoubleQuote(r.Productid) + "/" + "apis" + "/" + ClearDoubleQuote(r.Apiid) + "/" + "models"
 
 	response, err := n.MakeRequestWithContext(ctx, "GET", url, body, query)
 	if err != nil {
@@ -105,7 +98,6 @@ func (n *NClient) GETProductsProductidApisApiidModels_TF(ctx context.Context, r 
 	return res, nil
 }
 
-
 /* =================================================================================
  * NCLOUD SDK LAYER FOR TERRAFORM CODEGEN - DO NOT EDIT
  * =================================================================================
@@ -120,54 +112,46 @@ func (n *NClient) GETProductsProductidApisApiidModels_TF(ctx context.Context, r 
  * ================================================================================= */
 
 type GETProductsProductidApisApiidModelsResponse struct {
-    ProductPage         types.Object `tfsdk:"product_page"`
-
+	ProductPage types.Object `tfsdk:"product_page"`
 }
 
 func ConvertToFrameworkTypes_GETProductsProductidApisApiidModels(ctx context.Context, data map[string]interface{}) (*GETProductsProductidApisApiidModelsResponse, error) {
 	var dto GETProductsProductidApisApiidModelsResponse
 
-    
-			if data["product_page"] != nil {
-				tempProductPage := data["product_page"].(map[string]interface{})
+	if data["product_page"] != nil {
+		tempProductPage := data["product_page"].(map[string]interface{})
 
-				allFields := []string{
-					"total",
-"content",
+		allFields := []string{
+			"total",
+			"content",
+		}
 
-				}
-
-				convertedMap := make(map[string]interface{})
-				for _, field := range allFields {
-					if val, ok := tempProductPage[field]; ok {
-						convertedMap[field] = val
-					}
-				}
-
-				convertedTempProductPage, err := convertToObject_GETProductsProductidApisApiidModels(ctx, convertedMap)
-				if err != nil {
-					return nil, err
-				}
-
-				dto.ProductPage = diagOff(types.ObjectValueFrom, ctx, types.ObjectType{AttrTypes: map[string]attr.Type{
-					"total": types.Int64Type,
-
-			"content": types.ListType{ElemType:
-				
-	types.ObjectType{AttrTypes: map[string]attr.Type{
-		
-		"model_schema": types.StringType,
-"model_name": types.StringType,
-"model_id": types.StringType,
-"model_description": types.StringType,
-"api_id": types.StringType,
-
-	},
-			}},
-
-				}}.AttributeTypes(), convertedTempProductPage)
+		convertedMap := make(map[string]interface{})
+		for _, field := range allFields {
+			if val, ok := tempProductPage[field]; ok {
+				convertedMap[field] = val
 			}
+		}
 
+		convertedTempProductPage, err := convertToObject_GETProductsProductidApisApiidModels(ctx, convertedMap)
+		if err != nil {
+			return nil, err
+		}
+
+		dto.ProductPage = diagOff(types.ObjectValueFrom, ctx, types.ObjectType{AttrTypes: map[string]attr.Type{
+			"total": types.Int64Type,
+
+			"content": types.ListType{ElemType: types.ObjectType{AttrTypes: map[string]attr.Type{
+
+				"model_schema":      types.StringType,
+				"model_name":        types.StringType,
+				"model_id":          types.StringType,
+				"model_description": types.StringType,
+				"api_id":            types.StringType,
+			},
+			}},
+		}}.AttributeTypes(), convertedTempProductPage)
+	}
 
 	return &dto, nil
 }
@@ -176,23 +160,18 @@ func convertToObject_GETProductsProductidApisApiidModels(ctx context.Context, da
 	attrTypes := make(map[string]attr.Type)
 	attrValues := make(map[string]attr.Value)
 
-    possibleTypes := map[string]attr.Type{
-        "total": types.Int64Type,
+	possibleTypes := map[string]attr.Type{
+		"total": types.Int64Type,
 
-			"content": types.ListType{ElemType:
-				
-	types.ObjectType{AttrTypes: map[string]attr.Type{
-		
-		"model_schema": types.StringType,
-"model_name": types.StringType,
-"model_id": types.StringType,
-"model_description": types.StringType,
-"api_id": types.StringType,
+		"content": types.ListType{ElemType: types.ObjectType{AttrTypes: map[string]attr.Type{
 
-	},
-			}},
-
-
+			"model_schema":      types.StringType,
+			"model_name":        types.StringType,
+			"model_id":          types.StringType,
+			"model_description": types.StringType,
+			"api_id":            types.StringType,
+		},
+		}},
 	}
 
 	for field, fieldType := range possibleTypes {
@@ -200,20 +179,17 @@ func convertToObject_GETProductsProductidApisApiidModels(ctx context.Context, da
 
 		if value, exists := data[field]; exists {
 
-			
 			if field == "content" && len(value.([]interface{})) == 0 {
 				listV := types.ListNull(types.ObjectNull(map[string]attr.Type{
-					"model_schema": types.StringType,
-"model_name": types.StringType,
-"model_id": types.StringType,
-"model_description": types.StringType,
-"api_id": types.StringType,
-
+					"model_schema":      types.StringType,
+					"model_name":        types.StringType,
+					"model_id":          types.StringType,
+					"model_description": types.StringType,
+					"api_id":            types.StringType,
 				}).Type(ctx))
 				attrValues[field] = listV
 				continue
 			}
-
 
 			attrValue, err := convertValueToAttr_GETProductsProductidApisApiidModels(value)
 			if err != nil {
@@ -221,20 +197,18 @@ func convertToObject_GETProductsProductidApisApiidModels(ctx context.Context, da
 			}
 			attrValues[field] = attrValue
 		} else {
-            
-				if field == "content" {
-					listV := types.ListNull(types.ObjectNull(map[string]attr.Type{
-						"model_schema": types.StringType,
-"model_name": types.StringType,
-"model_id": types.StringType,
-"model_description": types.StringType,
-"api_id": types.StringType,
 
-					}).Type(ctx))
-					attrValues[field] = listV
-					continue
-				}
-
+			if field == "content" {
+				listV := types.ListNull(types.ObjectNull(map[string]attr.Type{
+					"model_schema":      types.StringType,
+					"model_name":        types.StringType,
+					"model_id":          types.StringType,
+					"model_description": types.StringType,
+					"api_id":            types.StringType,
+				}).Type(ctx))
+				attrValues[field] = listV
+				continue
+			}
 
 			switch fieldType {
 			case types.StringType:
@@ -257,21 +231,20 @@ func convertToObject_GETProductsProductidApisApiidModels(ctx context.Context, da
 }
 
 func convertValueToAttr_GETProductsProductidApisApiidModels(value interface{}) (attr.Value, error) {
-     switch v := value.(type) {
-     case string:
-         return types.StringValue(v), nil
-     case int32:
-         return types.Int32Value(v), nil
-     case int64:
-         return types.Int64Value(v), nil
-     case float64:
-         return types.Float64Value(v), nil
-     case bool:
-         return types.BoolValue(v), nil
-     case nil:
-         return types.StringNull(), nil
-     default:
-         return nil, fmt.Errorf("unsupported type: %T", value)
-     }
+	switch v := value.(type) {
+	case string:
+		return types.StringValue(v), nil
+	case int32:
+		return types.Int32Value(v), nil
+	case int64:
+		return types.Int64Value(v), nil
+	case float64:
+		return types.Float64Value(v), nil
+	case bool:
+		return types.BoolValue(v), nil
+	case nil:
+		return types.StringNull(), nil
+	default:
+		return nil, fmt.Errorf("unsupported type: %T", value)
+	}
 }
-

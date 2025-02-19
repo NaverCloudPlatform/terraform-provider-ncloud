@@ -1,4 +1,3 @@
-
 /* =================================================================================
  * NCLOUD SDK LAYER FOR TERRAFORM CODEGEN - DO NOT EDIT
  * =================================================================================
@@ -27,13 +26,11 @@ import (
 )
 
 type PrimitiveGETProductsProductidApisFilterRequest struct {
-    Productid string `json:"product-id"`
-
+	Productid string `json:"product-id"`
 }
 
 type StringifiedGETProductsProductidApisFilterRequest struct {
 	Productid string `json:"product-id"`
-
 }
 
 func (n *NClient) GETProductsProductidApisFilter(ctx context.Context, primitiveReq *PrimitiveGETProductsProductidApisFilterRequest) (map[string]interface{}, error) {
@@ -45,10 +42,6 @@ func (n *NClient) GETProductsProductidApisFilter(ctx context.Context, primitiveR
 		return nil, err
 	}
 
- 	
-
-	
-
 	rawBody, err := json.Marshal(initBody)
 	if err != nil {
 		return nil, err
@@ -56,7 +49,7 @@ func (n *NClient) GETProductsProductidApisFilter(ctx context.Context, primitiveR
 
 	body := strings.Replace(string(rawBody), `\"`, "", -1)
 
-	url := n.BaseURL +"/"+"products"+"/"+ClearDoubleQuote(r.Productid)+"/"+"apis"+"/"+"filter"
+	url := n.BaseURL + "/" + "products" + "/" + ClearDoubleQuote(r.Productid) + "/" + "apis" + "/" + "filter"
 
 	response, err := n.MakeRequestWithContext(ctx, "GET", url, body, query)
 	if err != nil {
@@ -85,7 +78,6 @@ func (n *NClient) GETProductsProductidApisFilter_TF(ctx context.Context, r *Prim
 	return res, nil
 }
 
-
 /* =================================================================================
  * NCLOUD SDK LAYER FOR TERRAFORM CODEGEN - DO NOT EDIT
  * =================================================================================
@@ -100,52 +92,44 @@ func (n *NClient) GETProductsProductidApisFilter_TF(ctx context.Context, r *Prim
  * ================================================================================= */
 
 type GETProductsProductidApisFilterResponse struct {
-    Total         types.Int64`tfsdk:"total"`
-Apis         types.List `tfsdk:"apis"`
-
+	Total types.Int64 `tfsdk:"total"`
+	Apis  types.List  `tfsdk:"apis"`
 }
 
 func ConvertToFrameworkTypes_GETProductsProductidApisFilter(ctx context.Context, data map[string]interface{}) (*GETProductsProductidApisFilterResponse, error) {
 	var dto GETProductsProductidApisFilterResponse
 
-    
-				if data["total"] != nil {
-					dto.Total = types.Int64Value(data["total"].(int64))
-				}
+	if data["total"] != nil {
+		dto.Total = types.Int64Value(data["total"].(int64))
+	}
 
-				if data["apis"] != nil {
-					tempApis := data["apis"].([]interface{})
-					dto.Apis = diagOff(types.ListValueFrom, ctx, types.ListType{ElemType:
-						
-	types.ObjectType{AttrTypes: map[string]attr.Type{
-		
-		"tenant_id": types.StringType,
+	if data["apis"] != nil {
+		tempApis := data["apis"].([]interface{})
+		dto.Apis = diagOff(types.ListValueFrom, ctx, types.ListType{ElemType: types.ObjectType{AttrTypes: map[string]attr.Type{
 
-				"stages": types.ListType{ElemType:
-					types.ObjectType{AttrTypes: map[string]attr.Type{
-						"stage_name": types.StringType,
-"stage_id": types.StringType,
-"is_published": types.BoolType,
-"api_id": types.StringType,
+			"tenant_id": types.StringType,
 
-					},
-				}},
-"product_id": types.StringType,
-"permission": types.StringType,
-"modifier": types.StringType,
-"mod_time": types.StringType,
-"is_deleted": types.BoolType,
-"domain_code": types.StringType,
-"disabled": types.BoolType,
-"api_name": types.StringType,
-"api_id": types.StringType,
-"api_description": types.StringType,
-"action_name": types.StringType,
-
-	},
-
-					}}.ElementType(), tempApis)
-				}
+			"stages": types.ListType{ElemType: types.ObjectType{AttrTypes: map[string]attr.Type{
+				"stage_name":   types.StringType,
+				"stage_id":     types.StringType,
+				"is_published": types.BoolType,
+				"api_id":       types.StringType,
+			},
+			}},
+			"product_id":      types.StringType,
+			"permission":      types.StringType,
+			"modifier":        types.StringType,
+			"mod_time":        types.StringType,
+			"is_deleted":      types.BoolType,
+			"domain_code":     types.StringType,
+			"disabled":        types.BoolType,
+			"api_name":        types.StringType,
+			"api_id":          types.StringType,
+			"api_description": types.StringType,
+			"action_name":     types.StringType,
+		},
+		}}.ElementType(), tempApis)
+	}
 
 	return &dto, nil
 }
@@ -154,16 +138,12 @@ func convertToObject_GETProductsProductidApisFilter(ctx context.Context, data ma
 	attrTypes := make(map[string]attr.Type)
 	attrValues := make(map[string]attr.Value)
 
-    possibleTypes := map[string]attr.Type{
-        
-	}
+	possibleTypes := map[string]attr.Type{}
 
 	for field, fieldType := range possibleTypes {
 		attrTypes[field] = fieldType
 
 		if value, exists := data[field]; exists {
-
-			
 
 			attrValue, err := convertValueToAttr_GETProductsProductidApisFilter(value)
 			if err != nil {
@@ -171,7 +151,6 @@ func convertToObject_GETProductsProductidApisFilter(ctx context.Context, data ma
 			}
 			attrValues[field] = attrValue
 		} else {
-            
 
 			switch fieldType {
 			case types.StringType:
@@ -194,21 +173,20 @@ func convertToObject_GETProductsProductidApisFilter(ctx context.Context, data ma
 }
 
 func convertValueToAttr_GETProductsProductidApisFilter(value interface{}) (attr.Value, error) {
-     switch v := value.(type) {
-     case string:
-         return types.StringValue(v), nil
-     case int32:
-         return types.Int32Value(v), nil
-     case int64:
-         return types.Int64Value(v), nil
-     case float64:
-         return types.Float64Value(v), nil
-     case bool:
-         return types.BoolValue(v), nil
-     case nil:
-         return types.StringNull(), nil
-     default:
-         return nil, fmt.Errorf("unsupported type: %T", value)
-     }
+	switch v := value.(type) {
+	case string:
+		return types.StringValue(v), nil
+	case int32:
+		return types.Int32Value(v), nil
+	case int64:
+		return types.Int64Value(v), nil
+	case float64:
+		return types.Float64Value(v), nil
+	case bool:
+		return types.BoolValue(v), nil
+	case nil:
+		return types.StringNull(), nil
+	default:
+		return nil, fmt.Errorf("unsupported type: %T", value)
+	}
 }
-

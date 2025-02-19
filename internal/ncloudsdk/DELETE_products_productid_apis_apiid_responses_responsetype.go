@@ -1,4 +1,3 @@
-
 /* =================================================================================
  * NCLOUD SDK LAYER FOR TERRAFORM CODEGEN - DO NOT EDIT
  * =================================================================================
@@ -27,17 +26,15 @@ import (
 )
 
 type PrimitiveDELETEProductsProductidApisApiidResponsesResponsetypeRequest struct {
-    Productid string `json:"product-id"`
-Apiid string `json:"api-id"`
-Responsetype string `json:"response-type"`
-
+	Productid    string `json:"product-id"`
+	Apiid        string `json:"api-id"`
+	Responsetype string `json:"response-type"`
 }
 
 type StringifiedDELETEProductsProductidApisApiidResponsesResponsetypeRequest struct {
-	Productid string `json:"product-id"`
-Apiid string `json:"api-id"`
-Responsetype string `json:"response-type"`
-
+	Productid    string `json:"product-id"`
+	Apiid        string `json:"api-id"`
+	Responsetype string `json:"response-type"`
 }
 
 func (n *NClient) DELETEProductsProductidApisApiidResponsesResponsetype(ctx context.Context, primitiveReq *PrimitiveDELETEProductsProductidApisApiidResponsesResponsetypeRequest) (map[string]interface{}, error) {
@@ -49,10 +46,6 @@ func (n *NClient) DELETEProductsProductidApisApiidResponsesResponsetype(ctx cont
 		return nil, err
 	}
 
- 	
-
-	
-
 	rawBody, err := json.Marshal(initBody)
 	if err != nil {
 		return nil, err
@@ -60,7 +53,7 @@ func (n *NClient) DELETEProductsProductidApisApiidResponsesResponsetype(ctx cont
 
 	body := strings.Replace(string(rawBody), `\"`, "", -1)
 
-	url := n.BaseURL +"/"+"products"+"/"+ClearDoubleQuote(r.Productid)+"/"+"apis"+"/"+ClearDoubleQuote(r.Apiid)+"/"+"responses"+"/"+ClearDoubleQuote(r.Responsetype)
+	url := n.BaseURL + "/" + "products" + "/" + ClearDoubleQuote(r.Productid) + "/" + "apis" + "/" + ClearDoubleQuote(r.Apiid) + "/" + "responses" + "/" + ClearDoubleQuote(r.Responsetype)
 
 	response, err := n.MakeRequestWithContext(ctx, "DELETE", url, body, query)
 	if err != nil {
@@ -89,7 +82,6 @@ func (n *NClient) DELETEProductsProductidApisApiidResponsesResponsetype_TF(ctx c
 	return res, nil
 }
 
-
 /* =================================================================================
  * NCLOUD SDK LAYER FOR TERRAFORM CODEGEN - DO NOT EDIT
  * =================================================================================
@@ -104,13 +96,10 @@ func (n *NClient) DELETEProductsProductidApisApiidResponsesResponsetype_TF(ctx c
  * ================================================================================= */
 
 type DELETEProductsProductidApisApiidResponsesResponsetypeResponse struct {
-    
 }
 
 func ConvertToFrameworkTypes_DELETEProductsProductidApisApiidResponsesResponsetype(ctx context.Context, data map[string]interface{}) (*DELETEProductsProductidApisApiidResponsesResponsetypeResponse, error) {
 	var dto DELETEProductsProductidApisApiidResponsesResponsetypeResponse
-
-    
 
 	return &dto, nil
 }
@@ -119,16 +108,12 @@ func convertToObject_DELETEProductsProductidApisApiidResponsesResponsetype(ctx c
 	attrTypes := make(map[string]attr.Type)
 	attrValues := make(map[string]attr.Value)
 
-    possibleTypes := map[string]attr.Type{
-        
-	}
+	possibleTypes := map[string]attr.Type{}
 
 	for field, fieldType := range possibleTypes {
 		attrTypes[field] = fieldType
 
 		if value, exists := data[field]; exists {
-
-			
 
 			attrValue, err := convertValueToAttr_DELETEProductsProductidApisApiidResponsesResponsetype(value)
 			if err != nil {
@@ -136,7 +121,6 @@ func convertToObject_DELETEProductsProductidApisApiidResponsesResponsetype(ctx c
 			}
 			attrValues[field] = attrValue
 		} else {
-            
 
 			switch fieldType {
 			case types.StringType:
@@ -159,21 +143,20 @@ func convertToObject_DELETEProductsProductidApisApiidResponsesResponsetype(ctx c
 }
 
 func convertValueToAttr_DELETEProductsProductidApisApiidResponsesResponsetype(value interface{}) (attr.Value, error) {
-     switch v := value.(type) {
-     case string:
-         return types.StringValue(v), nil
-     case int32:
-         return types.Int32Value(v), nil
-     case int64:
-         return types.Int64Value(v), nil
-     case float64:
-         return types.Float64Value(v), nil
-     case bool:
-         return types.BoolValue(v), nil
-     case nil:
-         return types.StringNull(), nil
-     default:
-         return nil, fmt.Errorf("unsupported type: %T", value)
-     }
+	switch v := value.(type) {
+	case string:
+		return types.StringValue(v), nil
+	case int32:
+		return types.Int32Value(v), nil
+	case int64:
+		return types.Int64Value(v), nil
+	case float64:
+		return types.Float64Value(v), nil
+	case bool:
+		return types.BoolValue(v), nil
+	case nil:
+		return types.StringNull(), nil
+	default:
+		return nil, fmt.Errorf("unsupported type: %T", value)
+	}
 }
-
