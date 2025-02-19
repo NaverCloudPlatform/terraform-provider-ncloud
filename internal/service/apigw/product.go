@@ -21,100 +21,12 @@ func ProductResourceSchema(ctx context.Context) schema.Schema {
 	return schema.Schema{
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
-				Optional: true,
-				Computed: true,
-			},
-			"description": schema.StringAttribute{
-				Optional:            true,
-				Computed:            true,
-				Description:         "Description<br>Length(Min/Max): 0/300",
-				MarkdownDescription: "Description<br>Length(Min/Max): 0/300",
-			},
-			"product": schema.SingleNestedAttribute{
-				Attributes: map[string]schema.Attribute{
-					"action_name": schema.StringAttribute{
-						Computed:            true,
-						Description:         "Action Name",
-						MarkdownDescription: "Action Name",
-					},
-					"disabled": schema.BoolAttribute{
-						Computed:            true,
-						Description:         "Disabled",
-						MarkdownDescription: "Disabled",
-					},
-					"domain_code": schema.StringAttribute{
-						Computed:            true,
-						Description:         "Domain Code",
-						MarkdownDescription: "Domain Code",
-					},
-					"invoke_id": schema.StringAttribute{
-						Computed:            true,
-						Description:         "Invoke Id",
-						MarkdownDescription: "Invoke Id",
-					},
-					"is_deleted": schema.BoolAttribute{
-						Computed:            true,
-						Description:         "Is Deleted",
-						MarkdownDescription: "Is Deleted",
-					},
-					"is_published": schema.BoolAttribute{
-						Computed:            true,
-						Description:         "Is Published",
-						MarkdownDescription: "Is Published",
-					},
-					"mod_time": schema.StringAttribute{
-						Computed:            true,
-						Description:         "Mod Time",
-						MarkdownDescription: "Mod Time",
-					},
-					"modifier": schema.StringAttribute{
-						Computed:            true,
-						Description:         "Modifier",
-						MarkdownDescription: "Modifier",
-					},
-					"permission": schema.StringAttribute{
-						Computed:            true,
-						Description:         "Permission",
-						MarkdownDescription: "Permission",
-					},
-					"product_description": schema.StringAttribute{
-						Computed:            true,
-						Description:         "Product Description",
-						MarkdownDescription: "Product Description",
-					},
-					"product_id": schema.StringAttribute{
-						Computed:            true,
-						Description:         "Product Id",
-						MarkdownDescription: "Product Id",
-					},
-					"product_name": schema.StringAttribute{
-						Computed:            true,
-						Description:         "Product Name",
-						MarkdownDescription: "Product Name",
-					},
-					"subscription_code": schema.StringAttribute{
-						Computed:            true,
-						Description:         "Subscription Code<br>Allowable values: PROTECTED, PUBLIC",
-						MarkdownDescription: "Subscription Code<br>Allowable values: PROTECTED, PUBLIC",
-					},
-					"tenant_id": schema.StringAttribute{
-						Computed:            true,
-						Description:         "Tenant Id",
-						MarkdownDescription: "Tenant Id",
-					},
-				},
 				Computed: true,
 			},
 			"product_name": schema.StringAttribute{
 				Required:            true,
 				Description:         "Product Name<br>Length(Min/Max): 0/100",
 				MarkdownDescription: "Product Name<br>Length(Min/Max): 0/100",
-			},
-			"productid": schema.StringAttribute{
-				Optional:            true,
-				Computed:            true,
-				Description:         "product-id",
-				MarkdownDescription: "product-id",
 			},
 			"subscription_code": schema.StringAttribute{
 				Required:            true,
@@ -126,6 +38,52 @@ func ProductResourceSchema(ctx context.Context) schema.Schema {
 						"PUBLIC",
 					),
 				},
+			},
+			"description": schema.StringAttribute{
+				Optional:            true,
+				Computed:            true,
+				Description:         "Description<br>Length(Min/Max): 0/300",
+				MarkdownDescription: "Description<br>Length(Min/Max): 0/300",
+			},
+			"invoke_id": schema.StringAttribute{
+				Computed:            true,
+				Description:         "Invoke Id",
+				MarkdownDescription: "Invoke Id",
+			},
+			"tenant_id": schema.StringAttribute{
+				Computed:            true,
+				Description:         "Tenant Id",
+				MarkdownDescription: "Tenant Id",
+			},
+			"published": schema.BoolAttribute{
+				Computed:            true,
+				Description:         "Is Published",
+				MarkdownDescription: "Is Published",
+			},
+			"modifier": schema.StringAttribute{
+				Computed:            true,
+				Description:         "Modifier",
+				MarkdownDescription: "Modifier",
+			},
+			"domain_code": schema.StringAttribute{
+				Computed:            true,
+				Description:         "Domain Code",
+				MarkdownDescription: "Domain Code",
+			},
+			"deleted": schema.BoolAttribute{
+				Computed:            true,
+				Description:         "Is Deleted",
+				MarkdownDescription: "Is Deleted",
+			},
+			"mod_time": schema.StringAttribute{
+				Computed:            true,
+				Description:         "Mod Time",
+				MarkdownDescription: "Mod Time",
+			},
+			"zone_code": schema.StringAttribute{
+				Computed:            true,
+				Description:         "Zone Code",
+				MarkdownDescription: "Zone Code",
 			},
 		},
 	}
@@ -296,9 +254,15 @@ func (a *productResource) Delete(ctx context.Context, req resource.DeleteRequest
 
 type PostproductresponseModel struct {
 	ID               types.String `tfsdk:"id"`
-	Description      types.String `tfsdk:"description"`
 	ProductName      types.String `tfsdk:"product_name"`
 	SubscriptionCode types.String `tfsdk:"subscription_code"`
-	Product          types.Object `tfsdk:"product"`
-	Productid        types.String `tfsdk:"productid"`
+	Description      types.String `tfsdk:"description"`
+	InvodkeId        types.String `tfsdk:"invoke_id"`
+	TenantId         types.String `tfsdk:"tenant_id"`
+	Published        types.Bool   `tfsdk:"published"`
+	Modifier         types.String `tfsdk:"modifier"`
+	DomainCode       types.String `tfsdk:"domain_code"`
+	Deleted          types.Bool   `tfsdk:"deleted"`
+	ModTime          types.String `tfsdk:"mod_time"`
+	ZoneCode         types.String `tfsdk:"zone_code"`
 }
