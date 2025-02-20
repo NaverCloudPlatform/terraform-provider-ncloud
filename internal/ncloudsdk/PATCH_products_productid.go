@@ -31,24 +31,15 @@ type PATCHProductsProductidRequestQuery struct {
 }
 
 type PATCHProductsProductidRequestBody struct {
-	SubscriptionCode *string `json:"subscriptionCode,,omitempty"`
-	Description      *string `json:"description,,omitempty"`
-	ProductName      *string `json:"productName,,omitempty"`
+	SubscriptionCode *string `json:"subscriptionCode,omitempty"`
+	Description      *string `json:"description,omitempty"`
+	ProductName      *string `json:"productName,omitempty"`
 }
 
 func (n *NClient) PATCHProductsProductid(ctx context.Context, q *PATCHProductsProductidRequestQuery, b *PATCHProductsProductidRequestBody) (map[string]interface{}, error) {
-
 	query := map[string]string{}
-	initBody := map[string]string{}
 
-	initBody["subscriptionCode"] = *b.SubscriptionCode
-
-	if b.Description != nil {
-		initBody["description"] = *b.Description
-	}
-	initBody["productName"] = *b.ProductName
-
-	rawBody, err := json.Marshal(initBody)
+	rawBody, err := json.Marshal(b)
 	if err != nil {
 		return nil, err
 	}
