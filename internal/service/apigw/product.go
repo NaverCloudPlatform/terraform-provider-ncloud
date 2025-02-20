@@ -6,6 +6,7 @@ import (
 	"os"
 
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
+	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
@@ -125,7 +126,6 @@ func (a *productResource) Schema(ctx context.Context, req resource.SchemaRequest
 
 func (a *productResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
 	resource.ImportStatePassthroughID(ctx, path.Root("id"), req, resp)
-
 }
 
 func (a *productResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
@@ -138,31 +138,36 @@ func (a *productResource) Create(ctx context.Context, req resource.CreateRequest
 
 	c := ncloudsdk.NewClient("https://apigateway.apigw.ntruss.com/api/v1", os.Getenv("NCLOUD_ACCESS_KEY"), os.Getenv("NCLOUD_SECRET_KEY"))
 
-	reqParams := &ncloudsdk.PrimitivePOSTProductsRequest{
-		ProductName:      plan.ProductName.ValueString(),
-		SubscriptionCode: plan.SubscriptionCode.ValueString(),
+	reqParams := &ncloudsdk.POSTProductsRequestBody{
+		ProductName:      plan.ProductName.ValueStringPointer(),
+		SubscriptionCode: plan.SubscriptionCode.ValueStringPointer(),
 	}
 
 	if !plan.Description.IsNull() && !plan.Description.IsUnknown() {
-		reqParams.Description = plan.Description.ValueString()
+		reqParams.Description = plan.Description.ValueStringPointer()
 	}
 
 	tflog.Info(ctx, "CreateProduct reqParams="+common.MarshalUncheckedString(reqParams))
 
 	response, err := c.POSTProducts(ctx, reqParams)
 	if err != nil {
-		resp.Diagnostics.AddError("Error with POSTProducts_TF", err.Error())
+		resp.Diagnostics.AddError("CREATING ERROR", err.Error())
+		return
+	}
+
+	if response == nil {
+		resp.Diagnostics.AddError("CREATING ERROR", "response invalid")
 		return
 	}
 
 	tflog.Info(ctx, "CreateProduct response="+common.MarshalUncheckedString(response))
 
-	plan.refreshFromOutput_createOp(ctx, &resp.Diagnostics, response)
-
-	resp.Diagnostics.Append(resp.State.Set(ctx, plan)...)
+	plan.refreshFromOutput_createOp(response)
 	if resp.Diagnostics.HasError() {
 		return
 	}
+
+	resp.Diagnostics.Append(resp.State.Set(ctx, plan)...)
 }
 
 func (a *productResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
@@ -174,15 +179,14 @@ func (a *productResource) Read(ctx context.Context, req resource.ReadRequest, re
 	}
 
 	plan.refreshFromOutput(ctx, &resp.Diagnostics, plan.ID.ValueString())
-
-	resp.Diagnostics.Append(resp.State.Set(ctx, plan)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
+
+	resp.Diagnostics.Append(resp.State.Set(ctx, plan)...)
 }
 
 func (a *productResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
-
 	var plan, state PostproductresponseModel
 
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &plan)...)
@@ -191,21 +195,26 @@ func (a *productResource) Update(ctx context.Context, req resource.UpdateRequest
 		return
 	}
 
-	reqParams := &ncloudsdk.PrimitivePATCHProductsProductidRequest{
-		Productid:        plan.Productid.ValueString(),
-		ProductName:      plan.ProductName.ValueString(),
-		SubscriptionCode: plan.SubscriptionCode.ValueString(),
+	reqQueryParams := &ncloudsdk.PATCHProductsProductidRequestQuery{
+		Productid: state.ID.ValueStringPointer(),
+	}
+
+	tflog.Info(ctx, "UpdateProducts reqQueryParams="+common.MarshalUncheckedString(reqQueryParams))
+
+	reqBodyParams := &ncloudsdk.PATCHProductsProductidRequestBody{
+		ProductName:      plan.ProductName.ValueStringPointer(),
+		SubscriptionCode: plan.SubscriptionCode.ValueStringPointer(),
 	}
 
 	if !plan.Description.IsNull() && !plan.Description.IsUnknown() {
-		reqParams.Description = plan.Description.ValueString()
+		reqBodyParams.Description = plan.Description.ValueStringPointer()
 	}
 
-	tflog.Info(ctx, "UpdatePATCHProductsProductid reqParams="+common.MarshalUncheckedString(reqParams))
+	tflog.Info(ctx, "UpdateProducts reqBodyParams="+common.MarshalUncheckedString(reqBodyParams))
 
 	c := ncloudsdk.NewClient("https://apigateway.apigw.ntruss.com/api/v1", os.Getenv("NCLOUD_ACCESS_KEY"), os.Getenv("NCLOUD_SECRET_KEY"))
 
-	response, err := c.PATCHProductsProductid_TF(ctx, reqParams)
+	response, err := c.PATCHProductsProductid(ctx, reqQueryParams, reqBodyParams)
 	if err != nil {
 		resp.Diagnostics.AddError("UPDATING ERROR", err.Error())
 		return
@@ -215,12 +224,14 @@ func (a *productResource) Update(ctx context.Context, req resource.UpdateRequest
 		return
 	}
 
-	tflog.Info(ctx, "UpdatePATCHProductsProductid response="+common.MarshalUncheckedString(response))
+	tflog.Info(ctx, "UpdateProducts response="+common.MarshalUncheckedString(response))
 
 	plan.refreshFromOutput(ctx, &resp.Diagnostics, state.ID.ValueString())
+	if resp.Diagnostics.HasError() {
+		return
+	}
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, plan)...)
-
 }
 
 func (a *productResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
@@ -231,21 +242,15 @@ func (a *productResource) Delete(ctx context.Context, req resource.DeleteRequest
 		return
 	}
 
-	reqParams := &ncloudsdk.PrimitiveDELETEProductsProductidRequest{
-		Productid: plan.Productid.ValueString(),
+	reqParams := &ncloudsdk.DELETEProductsProductidRequestQuery{
+		Productid: state.ID.ValueStringPointer(),
 	}
 
-	tflog.Info(ctx, "UpdateDELETEProductsProductid reqParams="+common.MarshalUncheckedString(reqParams))
+	tflog.Info(ctx, "DELETEProducts reqParams="+common.MarshalUncheckedString(reqParams))
 
 	c := ncloudsdk.NewClient("https://apigateway.apigw.ntruss.com/api/v1", os.Getenv("NCLOUD_ACCESS_KEY"), os.Getenv("NCLOUD_SECRET_KEY"))
 
-	_, err := c.DELETEProductsProductid_TF(ctx, reqParams)
-	if err != nil {
-		resp.Diagnostics.AddError("DELETING ERROR", err.Error())
-		return
-	}
-
-	err = state.waitResourceDeleted(ctx, state.ID.ValueString())
+	_, err := c.DELETEProductsProductid(ctx, reqParams)
 	if err != nil {
 		resp.Diagnostics.AddError("DELETING ERROR", err.Error())
 		return
@@ -265,4 +270,46 @@ type PostproductresponseModel struct {
 	Deleted          types.Bool   `tfsdk:"deleted"`
 	ModTime          types.String `tfsdk:"mod_time"`
 	ZoneCode         types.String `tfsdk:"zone_code"`
+}
+
+func (plan *PostproductresponseModel) refreshFromOutput_createOp(resp map[string]interface{}) {
+	// Allocate resource id from create response
+	plan.ID = types.StringValue(resp["product"].(map[string]interface{})["product_id"].(string))
+	plan.ProductName = types.StringValue(resp["product"].(map[string]interface{})["product_name"].(string))
+	plan.SubscriptionCode = types.StringValue(resp["product"].(map[string]interface{})["subscription_code"].(string))
+	plan.Description = types.StringValue(resp["product"].(map[string]interface{})["product_description"].(string))
+	plan.InvodkeId = types.StringValue(resp["product"].(map[string]interface{})["invoke_id"].(string))
+	plan.TenantId = types.StringValue(resp["product"].(map[string]interface{})["tenant_id"].(string))
+	plan.Published = types.BoolValue(resp["product"].(map[string]interface{})["is_published"].(bool))
+	plan.Modifier = types.StringValue(resp["product"].(map[string]interface{})["modifier"].(string))
+	plan.DomainCode = types.StringValue(resp["product"].(map[string]interface{})["domain_code"].(string))
+	plan.Deleted = types.BoolValue(resp["product"].(map[string]interface{})["is_deleted"].(bool))
+	plan.ModTime = types.StringValue(resp["product"].(map[string]interface{})["mod_time"].(string))
+	plan.ZoneCode = types.StringValue(resp["product"].(map[string]interface{})["zone_code"].(string))
+}
+
+func (plan *PostproductresponseModel) refreshFromOutput(ctx context.Context, diagnostics *diag.Diagnostics, id string) {
+	c := ncloudsdk.NewClient("https://apigateway.apigw.ntruss.com/api/v1", os.Getenv("NCLOUD_ACCESS_KEY"), os.Getenv("NCLOUD_SECRET_KEY"))
+	resp, err := c.GETProductsProductid(ctx, &ncloudsdk.GETProductsProductidRequestQuery{
+		Productid: &id,
+	})
+	tflog.Info(ctx, "GetProduct response="+common.MarshalUncheckedString(resp))
+
+	if err != nil {
+		diagnostics.AddError("READING ERROR", err.Error())
+		return
+	}
+
+	plan.ID = types.StringValue(resp["product"].(map[string]interface{})["product_id"].(string))
+	plan.ProductName = types.StringValue(resp["product"].(map[string]interface{})["product_name"].(string))
+	plan.SubscriptionCode = types.StringValue(resp["product"].(map[string]interface{})["subscription_code"].(string))
+	plan.Description = types.StringValue(resp["product"].(map[string]interface{})["product_description"].(string))
+	plan.InvodkeId = types.StringValue(resp["product"].(map[string]interface{})["invoke_id"].(string))
+	plan.TenantId = types.StringValue(resp["product"].(map[string]interface{})["tenant_id"].(string))
+	plan.Published = types.BoolValue(resp["product"].(map[string]interface{})["is_published"].(bool))
+	plan.Modifier = types.StringValue(resp["product"].(map[string]interface{})["modifier"].(string))
+	plan.DomainCode = types.StringValue(resp["product"].(map[string]interface{})["domain_code"].(string))
+	plan.Deleted = types.BoolValue(resp["product"].(map[string]interface{})["is_deleted"].(bool))
+	plan.ModTime = types.StringValue(resp["product"].(map[string]interface{})["mod_time"].(string))
+	plan.ZoneCode = types.StringValue(resp["product"].(map[string]interface{})["zone_code"].(string))
 }
