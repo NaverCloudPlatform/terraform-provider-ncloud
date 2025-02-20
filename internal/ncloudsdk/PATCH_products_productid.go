@@ -4,13 +4,14 @@
  * Refresh Template
  * Required data are as follows
  *
- *		MethodName         string
- *		PrimitiveRequest   string
- *		StringifiedRequest string
- *		Query              string
- *		Body               string
- *		Path               string
- *		Method             string
+ *		MethodName             string
+ *		RequestQueryParameters string
+ *		RequestBodyParameters  string
+ *		FunctionName           string
+ *		Query                  string
+ *		Body                   string
+ *		Path                   string
+ *		Method                 string
  * ================================================================================= */
 
 package ncloudsdk
@@ -25,35 +26,27 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types"
 )
 
-type PrimitivePATCHProductsProductidRequest struct {
-	Productid        string `json:"product-id"`
-	SubscriptionCode string `json:"subscriptionCode"`
-	Description      string `json:"description"`
-	ProductName      string `json:"productName"`
+type PATCHProductsProductidRequestQuery struct {
+	Productid *string `json:"product-id,omitempty"`
 }
 
-type StringifiedPATCHProductsProductidRequest struct {
-	Productid        string `json:"product-id"`
-	SubscriptionCode string `json:"subscriptionCode"`
-	Description      string `json:"description"`
-	ProductName      string `json:"productName"`
+type PATCHProductsProductidRequestBody struct {
+	SubscriptionCode *string `json:"subscriptionCode,,omitempty"`
+	Description      *string `json:"description,,omitempty"`
+	ProductName      *string `json:"productName,,omitempty"`
 }
 
-func (n *NClient) PATCHProductsProductid(ctx context.Context, primitiveReq *PrimitivePATCHProductsProductidRequest) (map[string]interface{}, error) {
+func (n *NClient) PATCHProductsProductid(ctx context.Context, q *PATCHProductsProductidRequestQuery, b *PATCHProductsProductidRequestBody) (map[string]interface{}, error) {
+
 	query := map[string]string{}
 	initBody := map[string]string{}
 
-	convertedReq, err := ConvertStructToStringMap(*primitiveReq)
-	if err != nil {
-		return nil, err
-	}
+	initBody["subscriptionCode"] = *b.SubscriptionCode
 
-	initBody["subscriptionCode"] = r.SubscriptionCode
-
-	if r.Description != "" {
-		initBody["description"] = r.Description
+	if b.Description != nil {
+		initBody["description"] = *b.Description
 	}
-	initBody["productName"] = r.ProductName
+	initBody["productName"] = *b.ProductName
 
 	rawBody, err := json.Marshal(initBody)
 	if err != nil {
@@ -62,7 +55,7 @@ func (n *NClient) PATCHProductsProductid(ctx context.Context, primitiveReq *Prim
 
 	body := strings.Replace(string(rawBody), `\"`, "", -1)
 
-	url := n.BaseURL + "/" + "products" + "/" + ClearDoubleQuote(r.Productid)
+	url := n.BaseURL + "/" + "products" + "/" + ClearDoubleQuote(*q.Productid)
 
 	response, err := n.MakeRequestWithContext(ctx, "PATCH", url, body, query)
 	if err != nil {
@@ -75,20 +68,6 @@ func (n *NClient) PATCHProductsProductid(ctx context.Context, primitiveReq *Prim
 	snake_case_response := convertKeys(response).(map[string]interface{})
 
 	return snake_case_response, nil
-}
-
-func (n *NClient) PATCHProductsProductid_TF(ctx context.Context, r *PrimitivePATCHProductsProductidRequest) (*PATCHProductsProductidResponse, error) {
-	t, err := n.PATCHProductsProductid(ctx, r)
-	if err != nil {
-		return nil, err
-	}
-
-	res, err := ConvertToFrameworkTypes_PATCHProductsProductid(context.TODO(), t)
-	if err != nil {
-		return nil, err
-	}
-
-	return res, nil
 }
 
 /* =================================================================================

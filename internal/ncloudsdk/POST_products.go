@@ -4,13 +4,14 @@
  * Refresh Template
  * Required data are as follows
  *
- *		MethodName         string
- *		PrimitiveRequest   string
- *		StringifiedRequest string
- *		Query              string
- *		Body               string
- *		Path               string
- *		Method             string
+ *		MethodName             string
+ *		RequestQueryParameters string
+ *		RequestBodyParameters  string
+ *		FunctionName           string
+ *		Query                  string
+ *		Body                   string
+ *		Path                   string
+ *		Method                 string
  * ================================================================================= */
 
 package ncloudsdk
@@ -25,33 +26,23 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types"
 )
 
-type PrimitivePOSTProductsRequest struct {
-	SubscriptionCode string `json:"subscriptionCode"`
-	Description      string `json:"description"`
-	ProductName      string `json:"productName"`
+type POSTProductsRequestBody struct {
+	SubscriptionCode *string `json:"subscriptionCode,,omitempty"`
+	Description      *string `json:"description,,omitempty"`
+	ProductName      *string `json:"productName,,omitempty"`
 }
 
-type StringifiedPOSTProductsRequest struct {
-	SubscriptionCode string `json:"subscriptionCode"`
-	Description      string `json:"description"`
-	ProductName      string `json:"productName"`
-}
+func (n *NClient) POSTProducts(ctx context.Context, b *POSTProductsRequestBody) (map[string]interface{}, error) {
 
-func (n *NClient) POSTProducts(ctx context.Context, primitiveReq *PrimitivePOSTProductsRequest) (map[string]interface{}, error) {
 	query := map[string]string{}
 	initBody := map[string]string{}
 
-	convertedReq, err := ConvertStructToStringMap(*primitiveReq)
-	if err != nil {
-		return nil, err
-	}
+	initBody["subscriptionCode"] = *b.SubscriptionCode
 
-	initBody["subscriptionCode"] = r.SubscriptionCode
-
-	if r.Description != "" {
-		initBody["description"] = r.Description
+	if b.Description != nil {
+		initBody["description"] = *b.Description
 	}
-	initBody["productName"] = r.ProductName
+	initBody["productName"] = *b.ProductName
 
 	rawBody, err := json.Marshal(initBody)
 	if err != nil {
@@ -73,20 +64,6 @@ func (n *NClient) POSTProducts(ctx context.Context, primitiveReq *PrimitivePOSTP
 	snake_case_response := convertKeys(response).(map[string]interface{})
 
 	return snake_case_response, nil
-}
-
-func (n *NClient) POSTProducts_TF(ctx context.Context, r *PrimitivePOSTProductsRequest) (*POSTProductsResponse, error) {
-	t, err := n.POSTProducts(ctx, r)
-	if err != nil {
-		return nil, err
-	}
-
-	res, err := ConvertToFrameworkTypes_POSTProducts(context.TODO(), t)
-	if err != nil {
-		return nil, err
-	}
-
-	return res, nil
 }
 
 /* =================================================================================

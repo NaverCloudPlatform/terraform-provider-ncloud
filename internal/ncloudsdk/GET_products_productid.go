@@ -4,13 +4,14 @@
  * Refresh Template
  * Required data are as follows
  *
- *		MethodName         string
- *		PrimitiveRequest   string
- *		StringifiedRequest string
- *		Query              string
- *		Body               string
- *		Path               string
- *		Method             string
+ *		MethodName             string
+ *		RequestQueryParameters string
+ *		RequestBodyParameters  string
+ *		FunctionName           string
+ *		Query                  string
+ *		Body                   string
+ *		Path                   string
+ *		Method                 string
  * ================================================================================= */
 
 package ncloudsdk
@@ -25,22 +26,14 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types"
 )
 
-type PrimitiveGETProductsProductidRequest struct {
-	Productid string `json:"product-id"`
+type GETProductsProductidRequestQuery struct {
+	Productid *string `json:"product-id,omitempty"`
 }
 
-type StringifiedGETProductsProductidRequest struct {
-	Productid string `json:"product-id"`
-}
+func (n *NClient) GETProductsProductid(ctx context.Context, q *GETProductsProductidRequestQuery) (map[string]interface{}, error) {
 
-func (n *NClient) GETProductsProductid(ctx context.Context, primitiveReq *PrimitiveGETProductsProductidRequest) (map[string]interface{}, error) {
 	query := map[string]string{}
 	initBody := map[string]string{}
-
-	convertedReq, err := ConvertStructToStringMap(*primitiveReq)
-	if err != nil {
-		return nil, err
-	}
 
 	rawBody, err := json.Marshal(initBody)
 	if err != nil {
@@ -49,7 +42,7 @@ func (n *NClient) GETProductsProductid(ctx context.Context, primitiveReq *Primit
 
 	body := strings.Replace(string(rawBody), `\"`, "", -1)
 
-	url := n.BaseURL + "/" + "products" + "/" + ClearDoubleQuote(r.Productid)
+	url := n.BaseURL + "/" + "products" + "/" + ClearDoubleQuote(*q.Productid)
 
 	response, err := n.MakeRequestWithContext(ctx, "GET", url, body, query)
 	if err != nil {
@@ -62,20 +55,6 @@ func (n *NClient) GETProductsProductid(ctx context.Context, primitiveReq *Primit
 	snake_case_response := convertKeys(response).(map[string]interface{})
 
 	return snake_case_response, nil
-}
-
-func (n *NClient) GETProductsProductid_TF(ctx context.Context, r *PrimitiveGETProductsProductidRequest) (*GETProductsProductidResponse, error) {
-	t, err := n.GETProductsProductid(ctx, r)
-	if err != nil {
-		return nil, err
-	}
-
-	res, err := ConvertToFrameworkTypes_GETProductsProductid(context.TODO(), t)
-	if err != nil {
-		return nil, err
-	}
-
-	return res, nil
 }
 
 /* =================================================================================
