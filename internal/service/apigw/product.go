@@ -3,7 +3,6 @@ package apigw
 import (
 	"context"
 	"fmt"
-	"os"
 
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
@@ -136,7 +135,7 @@ func (a *productResource) Create(ctx context.Context, req resource.CreateRequest
 		return
 	}
 
-	c := ncloudsdk.NewClient("https://apigateway.apigw.ntruss.com/api/v1", os.Getenv("NCLOUD_ACCESS_KEY"), os.Getenv("NCLOUD_SECRET_KEY"))
+	//c := ncloudsdk.NewClient("https://apigateway.apigw.ntruss.com/api/v1", os.Getenv("NCLOUD_ACCESS_KEY"), os.Getenv("NCLOUD_SECRET_KEY"))
 
 	reqParams := &ncloudsdk.POSTProductsRequestBody{
 		ProductName:      plan.ProductName.ValueStringPointer(),
@@ -149,7 +148,7 @@ func (a *productResource) Create(ctx context.Context, req resource.CreateRequest
 
 	tflog.Info(ctx, "CreateProduct reqParams="+common.MarshalUncheckedString(reqParams))
 
-	response, err := c.POSTProducts(ctx, reqParams)
+	response, err := a.config.Client.Apigw.POSTProducts(ctx, reqParams)
 	if err != nil {
 		resp.Diagnostics.AddError("CREATING ERROR", err.Error())
 		return
@@ -178,7 +177,7 @@ func (a *productResource) Read(ctx context.Context, req resource.ReadRequest, re
 		return
 	}
 
-	plan.refreshFromOutput(ctx, &resp.Diagnostics, plan.ID.ValueString())
+	plan.refreshFromOutput(ctx, &resp.Diagnostics, plan.ID.ValueString(), a)
 	if resp.Diagnostics.HasError() {
 		return
 	}
@@ -212,9 +211,9 @@ func (a *productResource) Update(ctx context.Context, req resource.UpdateRequest
 
 	tflog.Info(ctx, "UpdateProducts reqBodyParams="+common.MarshalUncheckedString(reqBodyParams))
 
-	c := ncloudsdk.NewClient("https://apigateway.apigw.ntruss.com/api/v1", os.Getenv("NCLOUD_ACCESS_KEY"), os.Getenv("NCLOUD_SECRET_KEY"))
+	//c := ncloudsdk.NewClient("https://apigateway.apigw.ntruss.com/api/v1", os.Getenv("NCLOUD_ACCESS_KEY"), os.Getenv("NCLOUD_SECRET_KEY"))
 
-	response, err := c.PATCHProductsProductid(ctx, reqQueryParams, reqBodyParams)
+	response, err := a.config.Client.Apigw.PATCHProductsProductid(ctx, reqQueryParams, reqBodyParams)
 	if err != nil {
 		resp.Diagnostics.AddError("UPDATING ERROR", err.Error())
 		return
@@ -226,7 +225,7 @@ func (a *productResource) Update(ctx context.Context, req resource.UpdateRequest
 
 	tflog.Info(ctx, "UpdateProducts response="+common.MarshalUncheckedString(response))
 
-	plan.refreshFromOutput(ctx, &resp.Diagnostics, state.ID.ValueString())
+	plan.refreshFromOutput(ctx, &resp.Diagnostics, state.ID.ValueString(), a)
 	if resp.Diagnostics.HasError() {
 		return
 	}
@@ -248,9 +247,9 @@ func (a *productResource) Delete(ctx context.Context, req resource.DeleteRequest
 
 	tflog.Info(ctx, "DELETEProducts reqParams="+common.MarshalUncheckedString(reqParams))
 
-	c := ncloudsdk.NewClient("https://apigateway.apigw.ntruss.com/api/v1", os.Getenv("NCLOUD_ACCESS_KEY"), os.Getenv("NCLOUD_SECRET_KEY"))
+	//c := ncloudsdk.NewClient("https://apigateway.apigw.ntruss.com/api/v1", os.Getenv("NCLOUD_ACCESS_KEY"), os.Getenv("NCLOUD_SECRET_KEY"))
 
-	_, err := c.DELETEProductsProductid(ctx, reqParams)
+	_, err := a.config.Client.Apigw.DELETEProductsProductid(ctx, reqParams)
 	if err != nil {
 		resp.Diagnostics.AddError("DELETING ERROR", err.Error())
 		return
@@ -288,9 +287,9 @@ func (plan *PostproductresponseModel) refreshFromOutput_createOp(resp map[string
 	plan.ZoneCode = types.StringValue(resp["product"].(map[string]interface{})["zone_code"].(string))
 }
 
-func (plan *PostproductresponseModel) refreshFromOutput(ctx context.Context, diagnostics *diag.Diagnostics, id string) {
-	c := ncloudsdk.NewClient("https://apigateway.apigw.ntruss.com/api/v1", os.Getenv("NCLOUD_ACCESS_KEY"), os.Getenv("NCLOUD_SECRET_KEY"))
-	resp, err := c.GETProductsProductid(ctx, &ncloudsdk.GETProductsProductidRequestQuery{
+func (plan *PostproductresponseModel) refreshFromOutput(ctx context.Context, diagnostics *diag.Diagnostics, id string, a *productResource) {
+	//c := ncloudsdk.NewClient("https://apigateway.apigw.ntruss.com/api/v1", os.Getenv("NCLOUD_ACCESS_KEY"), os.Getenv("NCLOUD_SECRET_KEY"))
+	resp, err := a.config.Client.Apigw.GETProductsProductid(ctx, &ncloudsdk.GETProductsProductidRequestQuery{
 		Productid: &id,
 	})
 	tflog.Info(ctx, "GetProduct response="+common.MarshalUncheckedString(resp))
