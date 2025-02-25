@@ -135,8 +135,6 @@ func (a *productResource) Create(ctx context.Context, req resource.CreateRequest
 		return
 	}
 
-	//c := ncloudsdk.NewClient("https://apigateway.apigw.ntruss.com/api/v1", os.Getenv("NCLOUD_ACCESS_KEY"), os.Getenv("NCLOUD_SECRET_KEY"))
-
 	reqParams := &ncloudsdk.POSTProductsRequestBody{
 		ProductName:      plan.ProductName.ValueStringPointer(),
 		SubscriptionCode: plan.SubscriptionCode.ValueStringPointer(),
@@ -211,8 +209,6 @@ func (a *productResource) Update(ctx context.Context, req resource.UpdateRequest
 
 	tflog.Info(ctx, "UpdateProducts reqBodyParams="+common.MarshalUncheckedString(reqBodyParams))
 
-	//c := ncloudsdk.NewClient("https://apigateway.apigw.ntruss.com/api/v1", os.Getenv("NCLOUD_ACCESS_KEY"), os.Getenv("NCLOUD_SECRET_KEY"))
-
 	response, err := a.config.Client.Apigw.PATCHProductsProductid(ctx, reqQueryParams, reqBodyParams)
 	if err != nil {
 		resp.Diagnostics.AddError("UPDATING ERROR", err.Error())
@@ -246,8 +242,6 @@ func (a *productResource) Delete(ctx context.Context, req resource.DeleteRequest
 	}
 
 	tflog.Info(ctx, "DELETEProducts reqParams="+common.MarshalUncheckedString(reqParams))
-
-	//c := ncloudsdk.NewClient("https://apigateway.apigw.ntruss.com/api/v1", os.Getenv("NCLOUD_ACCESS_KEY"), os.Getenv("NCLOUD_SECRET_KEY"))
 
 	_, err := a.config.Client.Apigw.DELETEProductsProductid(ctx, reqParams)
 	if err != nil {
@@ -288,7 +282,6 @@ func (plan *PostproductresponseModel) refreshFromOutput_createOp(resp map[string
 }
 
 func (plan *PostproductresponseModel) refreshFromOutput(ctx context.Context, diagnostics *diag.Diagnostics, id string, a *productResource) {
-	//c := ncloudsdk.NewClient("https://apigateway.apigw.ntruss.com/api/v1", os.Getenv("NCLOUD_ACCESS_KEY"), os.Getenv("NCLOUD_SECRET_KEY"))
 	resp, err := a.config.Client.Apigw.GETProductsProductid(ctx, &ncloudsdk.GETProductsProductidRequestQuery{
 		Productid: &id,
 	})
