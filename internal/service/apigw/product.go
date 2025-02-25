@@ -45,11 +45,6 @@ func ProductResourceSchema(ctx context.Context) schema.Schema {
 				Description:         "Description<br>Length(Min/Max): 0/300",
 				MarkdownDescription: "Description<br>Length(Min/Max): 0/300",
 			},
-			"invoke_id": schema.StringAttribute{
-				Computed:            true,
-				Description:         "Invoke Id",
-				MarkdownDescription: "Invoke Id",
-			},
 			"tenant_id": schema.StringAttribute{
 				Computed:            true,
 				Description:         "Tenant Id",
@@ -255,7 +250,6 @@ type PostproductresponseModel struct {
 	ProductName      types.String `tfsdk:"product_name"`
 	SubscriptionCode types.String `tfsdk:"subscription_code"`
 	Description      types.String `tfsdk:"description"`
-	InvodkeId        types.String `tfsdk:"invoke_id"`
 	TenantId         types.String `tfsdk:"tenant_id"`
 	Published        types.Bool   `tfsdk:"published"`
 	Modifier         types.String `tfsdk:"modifier"`
@@ -271,7 +265,6 @@ func (plan *PostproductresponseModel) refreshFromOutput_createOp(resp map[string
 	plan.ProductName = types.StringValue(resp["product"].(map[string]interface{})["product_name"].(string))
 	plan.SubscriptionCode = types.StringValue(resp["product"].(map[string]interface{})["subscription_code"].(string))
 	plan.Description = types.StringValue(resp["product"].(map[string]interface{})["product_description"].(string))
-	plan.InvodkeId = types.StringValue(resp["product"].(map[string]interface{})["invoke_id"].(string))
 	plan.TenantId = types.StringValue(resp["product"].(map[string]interface{})["tenant_id"].(string))
 	plan.Published = types.BoolValue(resp["product"].(map[string]interface{})["is_published"].(bool))
 	plan.Modifier = types.StringValue(resp["product"].(map[string]interface{})["modifier"].(string))
@@ -296,7 +289,6 @@ func (plan *PostproductresponseModel) refreshFromOutput(ctx context.Context, dia
 	plan.ProductName = types.StringValue(resp["product"].(map[string]interface{})["product_name"].(string))
 	plan.SubscriptionCode = types.StringValue(resp["product"].(map[string]interface{})["subscription_code"].(string))
 	plan.Description = types.StringValue(resp["product"].(map[string]interface{})["product_description"].(string))
-	plan.InvodkeId = types.StringValue(resp["product"].(map[string]interface{})["invoke_id"].(string))
 	plan.TenantId = types.StringValue(resp["product"].(map[string]interface{})["tenant_id"].(string))
 	plan.Published = types.BoolValue(resp["product"].(map[string]interface{})["is_published"].(bool))
 	plan.Modifier = types.StringValue(resp["product"].(map[string]interface{})["modifier"].(string))
