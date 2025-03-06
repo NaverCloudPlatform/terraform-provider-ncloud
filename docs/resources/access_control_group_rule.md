@@ -75,4 +75,25 @@ Both `inbound` and `outbound` support  following attributes:
 
 ## Attributes Reference
 
-* `id` - The ID of ACG(Access Control Group) rule
+* `id` - The ID of ACG(Access Control Group).
+
+## Import
+
+### `terraform import` command
+
+* Access Control Group Rule can be imported using the `id`. For example:
+
+```console
+$ terraform import ncloud_access_control_group_rule.rsc_name 12345
+```
+
+### `import` block
+
+* In Terraform v1.5.0 and later, use an [`import` block](https://developer.hashicorp.com/terraform/language/import) to import Access Control Group Rule using the `id`. For example:
+
+```terraform
+import {
+  to = ncloud_access_control_group_rule.rsc_name
+  id = "12345"
+}
+```
