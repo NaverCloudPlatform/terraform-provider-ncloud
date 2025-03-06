@@ -24,6 +24,9 @@ func ResourceNcloudAccessControlGroupRule() *schema.Resource {
 		Read:   resourceNcloudAccessControlGroupRuleRead,
 		Update: resourceNcloudAccessControlGroupRuleUpdate,
 		Delete: resourceNcloudAccessControlGroupRuleDelete,
+		Importer: &schema.ResourceImporter{
+			State: schema.ImportStatePassthrough,
+		},
 		Schema: map[string]*schema.Schema{
 			"access_control_group_no": {
 				Type:     schema.TypeString,
