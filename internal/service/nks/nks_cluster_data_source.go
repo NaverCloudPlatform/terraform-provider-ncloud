@@ -158,12 +158,10 @@ func DataSourceNcloudNKSCluster() *schema.Resource {
 			},
 			"return_protection": {
 				Type:     schema.TypeBool,
-				Optional: true,
 				Computed: true,
 			},
 			"kms_key_tag": {
 				Type:     schema.TypeString,
-				Optional: true,
 				Computed: true,
 			},
 		},
