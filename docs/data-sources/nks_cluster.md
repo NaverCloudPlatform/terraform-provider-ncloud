@@ -63,3 +63,5 @@ In addition to all arguments above, the following attributes are exported:
   * `action` - `allow`, `deny`
   * `address` - CIDR
   * `comment` - Comment
+* `return_protection` - Return Protection.
+* `kms_key_tag` - KMS Key Tag for Cluster Secret Encryption.

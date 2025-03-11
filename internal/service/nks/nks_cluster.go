@@ -219,6 +219,16 @@ func ResourceNcloudNKSCluster() *schema.Resource {
 					},
 				},
 			},
+			"return_protection": {
+				Type:     schema.TypeBool,
+				Optional: true,
+				Computed: true,
+			},
+			"kms_key_tag": {
+				Type:     schema.TypeString,
+				Optional: true,
+				ForceNew: true,
+			},
 		},
 	}
 }
@@ -242,6 +252,7 @@ func resourceNcloudNKSClusterCreate(ctx context.Context, d *schema.ResourceData,
 		SubnetLbNo:        GetInt32FromString(d.GetOk("lb_private_subnet_no")),
 		LbPublicSubnetNo:  GetInt32FromString(d.GetOk("lb_public_subnet_no")),
 		KubeNetworkPlugin: StringPtrOrNil(d.GetOk("kube_network_plugin")),
+		KmsKeyTag:         StringPtrOrNil(d.GetOk("kms_key_tag")),
 	}
 
 	if publicNetwork, ok := d.GetOk("public_network"); ok {
@@ -271,6 +282,12 @@ func resourceNcloudNKSClusterCreate(ctx context.Context, d *schema.ResourceData,
 		}
 	}
 
+	var returnProtectionReq *vnks.ReturnProtectionDto
+	if returnProtection, ok := d.GetOk("return_protection"); ok {
+		returnProtectionReq = &vnks.ReturnProtectionDto{
+			ReturnProtection: ncloud.Bool(returnProtection.(bool)),
+		}
+	}
 	LogCommonRequest("resourceNcloudNKSClusterCreate", reqParams)
 	resp, err := config.Client.Vnks.V2Api.ClustersPost(ctx, reqParams)
 	if err != nil {
@@ -302,6 +319,14 @@ func resourceNcloudNKSClusterCreate(ctx context.Context, d *schema.ResourceData,
 		_, err = config.Client.Vnks.V2Api.ClustersUuidIpAclPatch(ctx, ipAclReq, resp.Uuid)
 		if err != nil {
 			LogErrorResponse("resourceNcloudNKSClusterCreate:ipAcl", err, ipAclReq)
+			return diag.FromErr(err)
+		}
+	}
+
+	if returnProtectionReq != nil && *returnProtectionReq.ReturnProtection {
+		_, err = config.Client.Vnks.V2Api.ClustersUuidReturnProtectionPatch(ctx, returnProtectionReq, resp.Uuid)
+		if err != nil {
+			LogErrorResponse("resourceNcloudNKSClusterCreate:returnProtection", err, returnProtectionReq)
 			return diag.FromErr(err)
 		}
 	}
@@ -348,6 +373,8 @@ func resourceNcloudNKSClusterRead(ctx context.Context, d *schema.ResourceData, m
 	d.Set("lb_private_subnet_no", strconv.Itoa(int(ncloud.Int32Value(cluster.SubnetLbNo))))
 	d.Set("kube_network_plugin", cluster.KubeNetworkPlugin)
 	d.Set("acg_no", strconv.Itoa(int(ncloud.Int32Value(cluster.AcgNo))))
+	d.Set("return_protection", cluster.ReturnProtection)
+	d.Set("kms_key_tag", cluster.KmsKeyTag)
 
 	if cluster.LbPublicSubnetNo != nil {
 		d.Set("lb_public_subnet_no", strconv.Itoa(int(ncloud.Int32Value(cluster.LbPublicSubnetNo))))
@@ -500,6 +527,22 @@ func resourceNcloudNKSClusterUpdate(ctx context.Context, d *schema.ResourceData,
 			return diag.FromErr(err)
 		}
 
+	}
+
+	if d.HasChanges("return_protection") {
+
+		returnProtectionReq := &vnks.ReturnProtectionDto{}
+		if returnProtection, ok := d.GetOk("return_protection"); ok {
+			returnProtectionReq.ReturnProtection = ncloud.Bool(returnProtection.(bool))
+		} else {
+			returnProtectionReq.ReturnProtection = ncloud.Bool(false)
+		}
+
+		_, err = config.Client.Vnks.V2Api.ClustersUuidReturnProtectionPatch(ctx, returnProtectionReq, cluster.Uuid)
+		if err != nil {
+			LogErrorResponse("resourceNcloudNKSClusterReturnProtectionPatch", err, returnProtectionReq)
+			return diag.FromErr(err)
+		}
 	}
 
 	return resourceNcloudNKSClusterRead(ctx, d, config)
