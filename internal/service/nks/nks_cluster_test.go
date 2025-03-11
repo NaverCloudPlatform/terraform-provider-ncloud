@@ -432,8 +432,8 @@ func getNKSTestInfo(hypervisor string) (*NKSTestInfo, error) {
 
 	nksInfo := &NKSTestInfo{
 		Region:            os.Getenv("NCLOUD_REGION"),
-		K8sVersion:        "1.28.10",
-		UpgradeK8sVersion: "1.29.9",
+		K8sVersion:        "1.29.9",
+		UpgradeK8sVersion: "1.30.8",
 		HypervisorCode:    hypervisor,
 	}
 	zoneCode := ncloud.String(fmt.Sprintf("%s-1", nksInfo.Region))

@@ -156,6 +156,16 @@ func DataSourceNcloudNKSCluster() *schema.Resource {
 					},
 				},
 			},
+			"return_protection": {
+				Type:     schema.TypeBool,
+				Optional: true,
+				Computed: true,
+			},
+			"kms_key_tag": {
+				Type:     schema.TypeString,
+				Optional: true,
+				Computed: true,
+			},
 		},
 	}
 }
@@ -200,6 +210,8 @@ func dataSourceNcloudNKSClusterRead(ctx context.Context, d *schema.ResourceData,
 	d.Set("lb_private_subnet_no", strconv.Itoa(int(ncloud.Int32Value(cluster.SubnetLbNo))))
 	d.Set("kube_network_plugin", cluster.KubeNetworkPlugin)
 	d.Set("acg_no", strconv.Itoa(int(ncloud.Int32Value(cluster.AcgNo))))
+	d.Set("return_protection", cluster.ReturnProtection)
+	d.Set("kms_key_tag", cluster.KmsKeyTag)
 
 	if cluster.LbPublicSubnetNo != nil {
 		d.Set("lb_public_subnet_no", strconv.Itoa(int(ncloud.Int32Value(cluster.LbPublicSubnetNo))))

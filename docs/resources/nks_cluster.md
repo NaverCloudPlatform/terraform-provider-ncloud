@@ -71,6 +71,7 @@ resource "ncloud_nks_cluster" "cluster" {
   vpc_no                 = ncloud_vpc.vpc.id
   public_network         = false
   zone                   = "KR-1"
+  return_protection      = false
   log {
     audit = true
   }
@@ -113,6 +114,8 @@ The following arguments are supported:
   * `action` - (Required) `allow`, `deny`
   * `address` - (Required) CIDR
   * `comment` - (Optional) Comment
+* `return_protection` - (Optional) Return Protection.
+* `kms_key_tag` - (Optional) KMS Key Tag for Cluster Secret Encryption.
 
 ## Attributes Reference
 
