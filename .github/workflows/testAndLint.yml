@@ -3,7 +3,7 @@ name: Go Lint & Test in CI
 on:
   push:
     branches:
-      - '**'
+      - main
   pull_request:
     branches:
       - '**'
