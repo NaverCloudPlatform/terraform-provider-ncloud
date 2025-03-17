@@ -11,7 +11,7 @@ jobs:
     if: ${{ github.repository == 'NaverCloudPlatform/terraform-provider-ncloud' }}
     strategy:
       matrix:
-        go-version: ["1.21"]
+        go-version: ["1.23"]
         # TODO: enable cloud db resources and nks
         agent:
           [
