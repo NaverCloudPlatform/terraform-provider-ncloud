@@ -10,6 +10,7 @@ jobs:
     runs-on: ubuntu-latest
     if: ${{ github.repository == 'NaverCloudPlatform/terraform-provider-ncloud' }}
     strategy:
+      fail-fast: false
       matrix:
         go-version: ["1.23"]
         # TODO: enable cloud db resources and nks
