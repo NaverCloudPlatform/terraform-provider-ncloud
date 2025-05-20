@@ -485,6 +485,7 @@ func createVpcServerInstance(d *schema.ResourceData, config *conn.ProviderConfig
 		SubnetNo:                          subnet.SubnetNo,
 		PlacementGroupNo:                  StringPtrOrNil(d.GetOk("placement_group_no")),
 		IsEncryptedBaseBlockStorageVolume: BoolPtrOrNil(d.GetOk("is_encrypted_base_block_storage_volume")),
+		RaidTypeName:                      StringPtrOrNil(d.GetOk("raid_type_name")),
 	}
 
 	if networkInterfaceList, ok := d.GetOk("network_interface"); !ok {

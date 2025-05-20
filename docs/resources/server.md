@@ -146,12 +146,12 @@ The following arguments are supported:
 * `is_protect_server_termination` - (Optional) You can set whether or not to protect return when creating. default :false
 * `fee_system_type_code` - (Optional) A rate system identification code. There are time plan(MTRAT) and flat rate (FXSUM). Default : Time plan(MTRAT)
 * `zone` - (Optional) Zone code. You can determine the ZONE where the server will be created. Default : Assigned by NAVER Cloud Platform. Get available values using the data source `ncloud_zones`.
+* `raid_type_name` - (Optional) Raid Type Name. raidTypeName is required to create BareMetal servers. You must request an increase in BareMetal server creation limits through customer support center. Accepted value example : `1` |  `5`
 
 ~> **NOTE:** Below arguments only support Classic environment.
 
 * `access_control_group_configuration_no_list` - (Optional) You can set the ACG created when creating the server. ACG setting number can be obtained through the getAccessControlGroupList action. Default : Default ACG number
 * `user_data` - (Optional) The server will execute the user data script set by the user at first boot. To view the column, it is returned only when viewing the server instance.
-* `raid_type_name` - (Optional) Raid Type Name.
 * `tag_list` - (Optional) Server instance tag list.
   * `tag_key` - (Required) Instance tag key
   * `tag_value` - (Required) Instance tag value
