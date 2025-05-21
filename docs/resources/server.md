@@ -169,6 +169,9 @@ The following arguments are supported:
   * `network_interface_no` - (Required) If you want to add a network interface that you created yourself, set the network interface ID.
   * `order` - (Required) Sets the order of network interfaces to be assigned to the server to create. The unit name (eth0, eth1, etc.) is determined in that order. There must be one primary network interface. If you set `0`, network interface is set by default. You can assign up to three network interfaces.
 * `is_encrypted_base_block_storage_volume` - (Optional) you can set whether to encrypt basic block storage if server image is RHV. Default `false`.
+* `block_device_partition_list` - (Optional) List of block device partitions for the BareMetal server. Partitions may not be supported, depending on the server specifications.
+  * `mount_point` - (Required) Mount point. It starts with the "/" (root) path. The first mount must be a "/" (root) partition. Only lowercase English letters and numbers are allowed for names under "/" (root), and must start with a lowercase English letter. Depending on the OS type, certain keywords such as /root, /bin, and /dev may not be available.
+  * `partition_size` - (Required) Partition size. It determines partition size of the mount point. The sum of the partition sizes can't exceed the total capacity of the server specifications. The last partition's size is automatically allocated as the capacity remaining. Min: 50 GiB.
 
 ## Attributes Reference
 
