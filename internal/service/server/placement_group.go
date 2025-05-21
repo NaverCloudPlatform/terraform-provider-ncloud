@@ -2,12 +2,14 @@ package server
 
 import (
 	"log"
+	"time"
 
 	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/ncloud"
 	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/services/vserver"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	. "github.com/terraform-providers/terraform-provider-ncloud/internal/common"
 	"github.com/terraform-providers/terraform-provider-ncloud/internal/conn"
 	"github.com/terraform-providers/terraform-provider-ncloud/internal/verify"
@@ -118,7 +120,36 @@ func resourceNcloudPlacementGroupDelete(d *schema.ResourceData, meta interface{}
 
 	LogResponse("DeletePlacementGroup", resp)
 
+	if err := waitForPlacementGroupDeletion(config, d.Id()); err != nil {
+		return err
+	}
+
 	return nil
+}
+
+func waitForPlacementGroupDeletion(config *conn.ProviderConfig, id string) error {
+	stateConf := &resource.StateChangeConf{
+		Pending: []string{"deleting"},
+		Target:  []string{"deleted"},
+		Refresh: func() (interface{}, string, error) {
+			instance, err := GetPlacementGroupInstance(config, id)
+			if err != nil {
+				return nil, "", err
+			}
+
+			if instance == nil {
+				return nil, "deleted", nil
+			}
+
+			return instance, "deleting", nil
+		},
+		Timeout:    10 * time.Minute,
+		Delay:      2 * time.Second,
+		MinTimeout: 3 * time.Second,
+	}
+
+	_, err := stateConf.WaitForState()
+	return err
 }
 
 func GetPlacementGroupInstance(config *conn.ProviderConfig, id string) (*vserver.PlacementGroup, error) {
@@ -136,8 +167,20 @@ func GetPlacementGroupInstance(config *conn.ProviderConfig, id string) (*vserver
 	LogResponse("GetPlacementGroupDetail", resp)
 
 	if len(resp.PlacementGroupList) > 0 {
-		return resp.PlacementGroupList[0], nil
+		res := resp.PlacementGroupList[0]
+		if !validPlacementGroupResponse(res) {
+			return nil, nil
+		}
+		return res, nil
 	}
 
 	return nil, nil
+}
+
+func validPlacementGroupResponse(placementGroup *vserver.PlacementGroup) bool {
+	if placementGroup.PlacementGroupNo == nil || placementGroup.PlacementGroupName == nil ||
+		placementGroup.PlacementGroupType == nil || placementGroup.PlacementGroupType.Code == nil {
+		return false
+	}
+	return true
 }
