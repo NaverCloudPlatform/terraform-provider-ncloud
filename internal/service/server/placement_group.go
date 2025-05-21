@@ -136,8 +136,20 @@ func GetPlacementGroupInstance(config *conn.ProviderConfig, id string) (*vserver
 	LogResponse("GetPlacementGroupDetail", resp)
 
 	if len(resp.PlacementGroupList) > 0 {
-		return resp.PlacementGroupList[0], nil
+		res := resp.PlacementGroupList[0]
+		if !validPlacementGroupResponse(res) {
+			return nil, nil
+		}
+		return res, nil
 	}
 
 	return nil, nil
+}
+
+func validPlacementGroupResponse(placementGroup *vserver.PlacementGroup) bool {
+	if placementGroup.PlacementGroupNo == nil || placementGroup.PlacementGroupName == nil ||
+		placementGroup.PlacementGroupType == nil || placementGroup.PlacementGroupType.Code == nil {
+		return false
+	}
+	return true
 }
