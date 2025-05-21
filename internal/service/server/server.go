@@ -132,6 +132,25 @@ func ResourceNcloudServer() *schema.Resource {
 				Optional: true,
 				ForceNew: true,
 			},
+			"block_device_partition_list": {
+				Type:     schema.TypeList,
+				Optional: true,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"mount_point": {
+							Type:             schema.TypeString,
+							Required:         true,
+							ForceNew:         true,
+							ValidateDiagFunc: validation.ToDiagFunc(validation.StringMatch(regexp.MustCompile(`^/(?:[a-z][a-z0-9]*)?$`), "Must start with an / character. Only lowercase English letters and numbers are allowed for names under /, and must start with a lowercase English letter.")),
+						},
+						"partition_size": {
+							Type:     schema.TypeString,
+							Required: true,
+							ForceNew: true,
+						},
+					},
+				},
+			},
 			"tag_list": {
 				Type:     schema.TypeList,
 				Optional: true,
@@ -485,6 +504,7 @@ func createVpcServerInstance(d *schema.ResourceData, config *conn.ProviderConfig
 		SubnetNo:                          subnet.SubnetNo,
 		PlacementGroupNo:                  StringPtrOrNil(d.GetOk("placement_group_no")),
 		IsEncryptedBaseBlockStorageVolume: BoolPtrOrNil(d.GetOk("is_encrypted_base_block_storage_volume")),
+		RaidTypeName:                      StringPtrOrNil(d.GetOk("raid_type_name")),
 	}
 
 	if networkInterfaceList, ok := d.GetOk("network_interface"); !ok {
@@ -522,6 +542,10 @@ func createVpcServerInstance(d *schema.ResourceData, config *conn.ProviderConfig
 
 			reqParams.NetworkInterfaceList = append(reqParams.NetworkInterfaceList, niParam)
 		}
+	}
+
+	if blockDevicePartitionList, err := expandBlockDevicePartitionListParams(d.Get("block_device_partition_list").([]interface{})); err == nil {
+		reqParams.BlockDevicePartitionList = blockDevicePartitionList
 	}
 
 	LogCommonRequest("createVpcServerInstance", reqParams)
@@ -931,6 +955,7 @@ func convertVcpServerInstance(r *vserver.ServerInstance) *ServerInstance {
 		InitScriptNo:                   r.InitScriptNo,
 		PlacementGroupNo:               r.PlacementGroupNo,
 		HypervisorType:                 common.GetCodePtrByCommonCode(r.HypervisorType),
+		BlockDevicePartitionList:       r.BlockDevicePartitionList,
 	}
 
 	for _, networkInterfaceNo := range r.NetworkInterfaceNoList {
@@ -1455,14 +1480,15 @@ type ServerInstance struct {
 	BaseBlockStorageDiskDetailType *string               `json:"base_block_storage_disk_detail_type,omitempty"`
 	InstanceTagList                []*server.InstanceTag `json:"tag_list,omitempty"`
 	// VPC
-	ServerImageNo        *string                           `json:"server_image_number,omitempty"`
-	ServerSpecCode       *string                           `json:"server_spec_code,omitempty"`
-	HypervisorType       *string                           `json:"hypervisor_type,omitempty"`
-	VpcNo                *string                           `json:"vpc_no,omitempty"`
-	SubnetNo             *string                           `json:"subnet_no,omitempty"`
-	InitScriptNo         *string                           `json:"init_script_no,omitempty"`
-	PlacementGroupNo     *string                           `json:"placement_group_no,omitempty"`
-	NetworkInterfaceList []*ServerInstanceNetworkInterface `json:"network_interface"`
+	ServerImageNo            *string                           `json:"server_image_number,omitempty"`
+	ServerSpecCode           *string                           `json:"server_spec_code,omitempty"`
+	HypervisorType           *string                           `json:"hypervisor_type,omitempty"`
+	VpcNo                    *string                           `json:"vpc_no,omitempty"`
+	SubnetNo                 *string                           `json:"subnet_no,omitempty"`
+	InitScriptNo             *string                           `json:"init_script_no,omitempty"`
+	PlacementGroupNo         *string                           `json:"placement_group_no,omitempty"`
+	NetworkInterfaceList     []*ServerInstanceNetworkInterface `json:"network_interface"`
+	BlockDevicePartitionList []*vserver.BlockDevicePartition   `json:"block_device_partition_list,omitempty"`
 }
 
 // ServerInstanceNetworkInterface network interface model in server instance
