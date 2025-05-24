@@ -116,7 +116,7 @@ resource "ncloud_lb_target_group" "test" {
   protocol = "HTTP"
   target_type = "VSVR"
   port        = 8080
-  name        = "terraform-testacc-tg"
+  name        = "%s-tg"
   description = "for test"
 
   health_check {
@@ -142,5 +142,5 @@ resource "ncloud_lb" "test" {
     throughput_type = "SMALL"
     subnet_no_list = [ ncloud_subnet.test.subnet_no ]
 }
-`, name)
+`, name, name)
 }
