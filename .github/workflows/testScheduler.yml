@@ -68,10 +68,9 @@ jobs:
               export NCLOUD_SECRET_KEY=${{ secrets.NCLOUD_SECRET_KEY }}
               export AWS_REQUEST_CHECKSUM_CALCULATION=WHEN_REQUIRED
 
-              echo $PWD
-              echo $ls
-              echo "$test"
-              go test -timeout 4h -v -json ./internal/service/"$test" | go-ctrf-json-reporter -output "$test"-report.json
+              go test -timeout 4h -v -json ./internal/service/"$test" > "$test"-test-output.json || true
+              cat "$test"-test-output.json
+              cat "$test"-test-output.json | go-ctrf-json-reporter -output "$test"-report.json
               cat "$test"-report.json
 
               aws --endpoint-url=https://kr.object.ncloudstorage.com s3 cp "$test"-report.json s3://${{ secrets.NCLOUD_BUCKET_NAME }}/data/"$DATE"/"$test"-report.json
