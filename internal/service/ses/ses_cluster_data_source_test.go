@@ -5,6 +5,7 @@ import (
 	"os"
 	"testing"
 
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 
 	. "github.com/terraform-providers/terraform-provider-ncloud/internal/acctest"
@@ -16,13 +17,14 @@ func TestAccDataSourceNcloudSESCluster(t *testing.T) {
 	testClusterName := GetTestClusterName()
 	searchEngineVersionCode := "133"
 	region := os.Getenv("NCLOUD_REGION")
+	loginKeyName := fmt.Sprintf("%s-%s", TF_TEST_SES_LOGIN_KEY, acctest.RandString(5))
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: ProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccDataSourceSESClusterConfig(testClusterName, TF_TEST_SES_LOGIN_KEY, searchEngineVersionCode, region),
+				Config: testAccDataSourceSESClusterConfig(testClusterName, loginKeyName, searchEngineVersionCode, region),
 				Check: resource.ComposeTestCheckFunc(
 					TestAccCheckDataSourceID(dataName),
 					resource.TestCheckResourceAttrPair(dataName, "service_group_instance_no", resourceName, "service_group_instance_no"),
@@ -35,7 +37,7 @@ func TestAccDataSourceNcloudSESCluster(t *testing.T) {
 	})
 }
 
-func testAccDataSourceSESClusterConfig(testClusterName string, loginKey string, version string, region string) string {
+func testAccDataSourceSESClusterConfig(testClusterName string, loginKeyName string, version string, region string) string {
 	return fmt.Sprintf(`
 resource "ncloud_vpc" "vpc" {
 	name               = "%[1]s"
@@ -100,5 +102,5 @@ data "ncloud_ses_cluster" "cluster" {
 }
 
 
-`, testClusterName, loginKey, version, region)
+`, testClusterName, loginKeyName, version, region)
 }
