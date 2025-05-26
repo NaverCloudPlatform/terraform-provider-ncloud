@@ -7,6 +7,7 @@ import (
 	"testing"
 
 	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/services/vses2"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 
@@ -23,6 +24,7 @@ func TestAccResourceNcloudSESCluster_basic(t *testing.T) {
 	testClusterName := GetTestClusterName()
 	searchEngineVersionCode := "133"
 	region := os.Getenv("NCLOUD_REGION")
+	loginKeyName := fmt.Sprintf("%s-%s", TF_TEST_SES_LOGIN_KEY, acctest.RandString(5))
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { TestAccPreCheck(t) },
@@ -30,7 +32,7 @@ func TestAccResourceNcloudSESCluster_basic(t *testing.T) {
 		CheckDestroy:             testAccCheckSESClusterDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccResourceSESClusterConfig(testClusterName, TF_TEST_SES_LOGIN_KEY, searchEngineVersionCode, region),
+				Config: testAccResourceSESClusterConfig(testClusterName, loginKeyName, searchEngineVersionCode, region),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckSESClusterExists(resourceName, &cluster),
 					resource.TestCheckResourceAttr(resourceName, "cluster_name", testClusterName),
