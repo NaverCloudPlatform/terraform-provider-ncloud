@@ -1,5 +1,5 @@
 ---
-subcategory: "Redis"
+subcategory: "Cloud DB for Cache"
 ---
 
 
