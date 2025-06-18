@@ -57,7 +57,7 @@ func (p *fwprovider) Schema(ctx context.Context, req provider.SchemaRequest, res
 				Description: "Site of ncloud (public / gov / fin)",
 			},
 			"support_vpc": schema.BoolAttribute{
-				Optional:    true,
+				Required:    true,
 				Description: "Support VPC platform",
 			},
 		},

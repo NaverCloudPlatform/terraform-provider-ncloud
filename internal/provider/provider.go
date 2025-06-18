@@ -172,7 +172,7 @@ func SchemaMap() map[string]*schema.Schema {
 		},
 		"support_vpc": {
 			Type:        schema.TypeBool,
-			Optional:    true,
+			Required:    true,
 			Description: "Support VPC platform",
 		},
 	}
@@ -183,8 +183,10 @@ func ProviderConfigure(ctx context.Context, d *schema.ResourceData) (interface{}
 		SupportVPC: true,
 	}
 
-	if _, ok := getOrFromEnv(d, "support_vpc", "NCLOUD_SUPPORT_VPC"); !ok {
-		providerConfig.SupportVPC = false
+	// Set SupportVPC. Classic Deprecated.
+	vpc, ok := getOrFromEnv(d, "support_vpc", "NCLOUD_SUPPORT_VPC")
+	if !ok || !vpc.(bool) {
+		return nil, diag.Errorf("Classic environment is no longer supported. Please use v3.3.2 or lower.")
 	}
 
 	// Set site
@@ -197,11 +199,6 @@ func ProviderConfigure(ctx context.Context, d *schema.ResourceData) (interface{}
 		case "fin":
 			os.Setenv("NCLOUD_API_GW", "https://fin-ncloud.apigw.fin-ntruss.com")
 		}
-	}
-
-	// Fin only supports VPC
-	if providerConfig.Site == "fin" {
-		providerConfig.SupportVPC = true
 	}
 
 	accessKey, ok := getOrFromEnv(d, "access_key", "NCLOUD_ACCESS_KEY")

@@ -27,7 +27,7 @@ provider "ncloud" {
   secret_key  = var.secret_key
   region      = var.region
   site        = var.site
-  support_vpc = var.support_vpc
+  support_vpc = true
 }
 
 // Create a new server instance
@@ -67,7 +67,7 @@ provider "ncloud" {
   secret_key  = var.secret_key
   region      = var.region
   site        = var.site
-  support_vpc = var.support_vpc
+  support_vpc = true
 }
 ```
 
@@ -126,8 +126,7 @@ The following arguments are supported:
 ~> **Note** If the `access_key` and `secret_key` are externally exposed, then others may use them to access users' accounts.
 Therefore, please carefully manage `access_key` and `secret_key`. Take special care to keep `access_key` and `secret_key` from being uploaded to the public version control system
 
-
-* `support_vpc` - (Optional) Whether to use VPC. By default, the value is `false`. If you want to use VPC environment. Please set this value `true`.  
+* `support_vpc` - (Required) Whether to use VPC. Must be set to `true` as we only support VPC environment. This argument may be deleted later.
 
 
 ## Testing
