@@ -1,1 +1,0 @@
-Remove-Partition -DriveLetter D -Confirm:$false
