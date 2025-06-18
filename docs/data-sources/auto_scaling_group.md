@@ -42,13 +42,6 @@ In addition to all arguments above, the following attributes are exported:
 * `wait_for_capacity_timeout` - The maximum amount of time Terraform should wait for an ASG instance to become healthy.
 * `health_check_grace_period` - time to hold health check after the server instance is put into the service with the health check hold period.
 * `server_instance_no_list` - List of server instances belonging to Auto Scaling Group.
-
-~> **NOTE:** Below attributes only support Classic environment.
-
-* `zone_no_list` - the list of zone numbers where server instances belonging to this group will exist.
-
-~> **NOTE:** Below attributes only support VPC environment.
-
 * `subnet_no` - The ID of the associated Subnet.
 * `vpc_no` - The ID of the associated VPC.
 * `access_control_group_no_list` - The ID of the ACG.

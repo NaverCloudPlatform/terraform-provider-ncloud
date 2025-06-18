@@ -38,11 +38,4 @@ In addition to all arguments above, the following attributes are exported:
 * `member_server_image_no` - The ID of Member server image.
 * `login_key_name` - The login key name to encrypt with the public key.
 * `init_script_no` - Set init script ID, The server can run a user-set initialization script at first boot.
-
-~> **NOTE:** Below attributes only support Classic environment.
-
-* `user_data` - defined actionable scripts.
-
-~> **NOTE:** Below attributes only support VPC environment.
-
 * `is_encrypted_volume` - Whether to encrypt basic block storage if server image is RHV.

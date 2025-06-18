@@ -42,13 +42,6 @@ The following arguments are supported:
 * `status` - Block Storage instance status code.
 * `disk_type` - Disk type code.
 * `zone` - Available zone where the Block Storage placed.
-
-~> **NOTE:** Arguments below only support Classic environment.
-
-* `snapshot_no` - The ID of Block Storage Snapshot.
-
-~> **NOTE:** Arguments below only support VPC environment.
-
 * `max_iops` - Maximum IOPS.
 * `encrypted_volume` - Volume encryption status. (`true` or `false`)
 * `return_protection` - Enable return protection. (`true` or `false`)
