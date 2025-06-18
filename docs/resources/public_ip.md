@@ -22,10 +22,6 @@ The following arguments are supported:
 * `server_instance_no` - (Optional) Server instance number to assign after creating a public IP. You can get one by calling getPublicIpTargetServerInstanceList.
 * `description` - (Optional) Public IP description.
 
-~> **NOTE:** Below arguments only support Classic environment.
-
-* `zone` - (Optional) Zone code. You can decide a zone where servers are created. You can decide in which zone the product list will be requested. default : Select the first Zone in the specific region
-    Get available values using the data source `ncloud_zones`.
 
 ## Attributes Reference
 

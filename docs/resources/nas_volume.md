@@ -32,13 +32,6 @@ The following arguments are supported:
 * `description` - (Optional) NAS volume description. 1-1000 characters.
 * `zone` - (Optional) Zone code. Zone in which you want to create a NAS volume. Default: The first zone of the region.  Get available values using the data      source `ncloud_zones`.
 * `return_protection` - (Optional) Termination protection status. Default `false`
-
-~> **NOTE:** Below arguments only support Classic environment.
-
-* `custom_ip_list` - (Optional) To add a server of another account to the NAS volume, enter a private IP address of the server.
-
-~> **NOTE:** Below arguments only support VPC environment.
-
 * `is_encrypted_volume` - (Optional) Volume encryption. Default `false`.
 
 

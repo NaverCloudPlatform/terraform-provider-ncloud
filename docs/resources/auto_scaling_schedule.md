@@ -8,34 +8,7 @@ subcategory: "Auto Scaling"
 Provides a ncloud auto scaling schedule resource.
 
 ## Example Usage
-### Classic environment
-```hcl
-resource "ncloud_launch_configuration" "lc" {
-  name = "my-lc"
-  member_server_image_no = "12345"
-}
-
-resource "ncloud_auto_scaling_group" "asg" {
-  name = "my-auto"
-  launch_configuration_no = ncloud_launch_configuration.lc.launch_configuration_no
-  min_size = 1
-  max_size = 1
-  zone_no_list = ["2"]
-  wait_for_capacity_timeout = "0"
-}
-
-resource "ncloud_auto_scaling_schedule" "schedule" {
-  name = "my-schedule"
-  min_size = 1
-  max_size = 1
-  desired_capacity = 1
-  start_time = "" # 2021-02-02T15:00:00+0900
-  end_time = "" # 2021-02-02T17:00:00+0900
-  auto_scaling_group_no = ncloud_auto_scaling_group.asg.auto_scaling_group_no
-}
-```
-### VPC environment
-```hcl
+```terraform
 resource "ncloud_launch_configuration" "lc" {
   name = "my-lc"
   server_image_product_code = "SW.VSVR.OS.LNX64.ROCKY.0810.B050"
@@ -87,9 +60,6 @@ The following arguments are supported:
 It must be a time later than the current time and a time later than the startTime. Format : `yyyy-MM-ddTHH:mm:ssZ` format in UTC/KST only (for example, 2021-02-02T18:00:00+0900).
 * `recurrence` - (Optional) Repeat Settings. You can specify a recurring schedule in crontab format.
 * `auto_scaling_group_no` - (Required) The number of the auto scaling group.
-
-~> **NOTE:** Below arguments only support VPC environment.
-
 * `time_zone` - (Optional) the time band for the repeat settings. Valid values are `KST` and `UTC`. Default : `KST`.
 
 ## Attributes Reference

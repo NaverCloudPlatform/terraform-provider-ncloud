@@ -32,16 +32,6 @@ The following arguments are supported:
 * `instance_status` - Block Storage Snapshot Instance Status code
 * `instance_status_name` - Block Storage Snapshot Instance Status Name
 * `instance_operation` - Block Storage Snapshot Instance Operation code
-
-~> **NOTE:** Below arguments only support Classic environment.
-
-* `original_block_storage_instance_no` - Original Block Storage Instance Number
-* `original_block_storage_name` - Original Block Storage Name
-* `server_image_product_code` - Server Image Product Code
-* `os_information` - OS Information
-
-~> **NOTE:** Below arguments only support VPC environment.
-
 * `hypervisor_type` - Hypervisor type. (`XEN` or `KVM`)
 
 
