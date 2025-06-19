@@ -1439,14 +1439,6 @@ func waitForAttachedBlockStorage(config *conn.ProviderConfig, no string) error {
 	return nil
 }
 
-func getServerZoneNo(config *conn.ProviderConfig, serverInstanceNo string) (string, error) {
-	instance, err := GetServerInstance(config, serverInstanceNo)
-	if err != nil || instance == nil || instance.ZoneNo == nil {
-		return "", err
-	}
-	return *instance.ZoneNo, nil
-}
-
 // ServerInstance server instance model
 type ServerInstance struct {
 	// Request
