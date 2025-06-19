@@ -8,27 +8,7 @@ subcategory: "Server"
 Provides a Server instance resource.
 
 ## Example Usage
-
-#### Basic (Classic)
-
-```terraform
-resource "ncloud_server" "server" {
-  name = "tf-test-vm1"
-  member_server_image_no = "12345"
-
-  tag_list {
-    tag_key = "samplekey1"
-    tag_value = "samplevalue1"
-  }
-  
-  tag_list {
-    tag_key = "samplekey2"
-    tag_value = "samplevalue2"
-  }
-}
-```
-
-#### Basic (VPC)
+#### Basic
 
 ```terraform
 resource "ncloud_login_key" "loginkey" {
@@ -147,17 +127,6 @@ The following arguments are supported:
 * `fee_system_type_code` - (Optional) A rate system identification code. There are time plan(MTRAT) and flat rate (FXSUM). Default : Time plan(MTRAT)
 * `zone` - (Optional) Zone code. You can determine the ZONE where the server will be created. Default : Assigned by NAVER Cloud Platform. Get available values using the data source `ncloud_zones`.
 * `raid_type_name` - (Optional) Raid Type Name. raidTypeName is required to create BareMetal servers. You must request an increase in BareMetal server creation limits through customer support center. Accepted value example : `1` |  `5`
-
-~> **NOTE:** Below arguments only support Classic environment.
-
-* `access_control_group_configuration_no_list` - (Optional) You can set the ACG created when creating the server. ACG setting number can be obtained through the getAccessControlGroupList action. Default : Default ACG number
-* `user_data` - (Optional) The server will execute the user data script set by the user at first boot. To view the column, it is returned only when viewing the server instance.
-* `tag_list` - (Optional) Server instance tag list.
-  * `tag_key` - (Required) Instance tag key
-  * `tag_value` - (Required) Instance tag value
-
-~> **NOTE:** Below arguments only support VPC environment. Please set `support_vpc` of provider to `true`
-
 * `subnet_no` - (Required) The ID of the associated Subnet.
 * `server_image_number` - (Optional, Required if `server_image_product_code` or `member_server_image_no` is not provided) Required to create a KVM hypervisor type 3rd generation server. Server image number to determine which server image to create. It can be obtained through `data.ncloud_server_image_numbers`.
   - [`ncloud_server_image_numbers` data source](../data-sources/server_image_numbers.md)
@@ -189,9 +158,6 @@ The following arguments are supported:
 * `port_forwarding_internal_port` - Port forwarding internal port.
 * `base_block_storage_disk_type` - Base block storage disk type code.
 * `base_block_storage_disk_detail_type` - Base block storage disk detail type code.
-
-~> **NOTE:** Below attributes only provide VPC environment.
-
 * `vpc_no` - The ID of the VPC where you want to place the Server Instance.
 * `hypervisor_type` - Hypervisor type. (`XEN` or `KVM`)
 * `network_interface` - List of Network Interface.

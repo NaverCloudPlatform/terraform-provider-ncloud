@@ -65,18 +65,6 @@ The following arguments are supported:
 * `login_key_name` - The login key name to encrypt with the public key.
 * `is_protect_server_termination` - Whether is protect return when creating.
 * `zone` - Available zone where the Server instance placed.
-
-~> **NOTE:** Below arguments only provide Classic environment.
-
-* `private_ip` - Private IP
-* `server_image_name` - Server image name
-* `base_block_storage_size` - The size of base block storage in bytes
-* `port_forwarding_public_ip` - Port forwarding public ip
-* `port_forwarding_external_port` - Port forwarding external port
-* `port_forwarding_internal_port` - Port forwarding internal port
-
-~> **NOTE:** Below attributes only provide VPC environment.
-
 * `vpc_no` - The ID of the associated VPC. 
 * `subnet_no` - The ID of the associated Subnet.
 * `network_interface` - List of Network Interface.

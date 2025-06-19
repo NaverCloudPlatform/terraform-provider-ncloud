@@ -42,7 +42,4 @@ In addition to all arguments above, the following attributes are exported:
 * `end_time` - the date and time when the schedule end.
 * `recurrence` - Repeat Settings.
 * `auto_scaling_group_no` - The number of the auto scaling group.
-
-~> **NOTE:** Below attributes only support VPC environment.
-
 * `time_zone` - the time band for the repeat settings.

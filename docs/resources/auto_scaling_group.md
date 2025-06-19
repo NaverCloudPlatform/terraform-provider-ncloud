@@ -55,13 +55,6 @@ This value must be more than the minimum capacity and less than the maximum capa
 
 ~> **NOTE:** If the `health_check_type_code` is `LOADB`, `health_check_grace_period` is required.
 
-
-~> **NOTE:** Below arguments only support Classic environment.
-
-* `zone_no_list` - (Required) the list of zone numbers where server instances belonging to this group will exist.
-
-~> **NOTE:** Below arguments only support VPC environment.
-
 * `subnet_no` - (Required) The ID of the associated Subnet.
 * `access_control_group_no_list` - (Required) The ID of the ACG.
 * `target_group_list` - (Optional) - Target Group number list of Load Balancer.
@@ -77,9 +70,6 @@ In addition to all arguments above, the following attributes are exported:
 * `id` - The ID of Auto Scaling Group.
 * `auto_scaling_group_no` - The ID of Auto Scaling Group (It is the same result as id)
 * `server_instance_no_list` - List of server instances belonging to Auto Scaling Group.
-
-~> **NOTE:** Below attributes only support VPC environment.
-
 * `vpc_no` - The ID of the associated VPC.
 
 ## Import

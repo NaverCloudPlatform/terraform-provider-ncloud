@@ -9,7 +9,7 @@ Provides a Block Storage resource.
 
 ## Example Usage
 
-#### Basic (Classic and VPC)
+#### Basic
 
 ```terraform
 resource "ncloud_block_storage" "storage" {
@@ -53,11 +53,7 @@ The following arguments are supported:
 * `name` - (Optional) The name to create. If omitted, Terraform will assign a random, unique name. Min: 3, Max: 30. Only English letters, numbers, and the special character "-" can be used. It must start with an English letter. It must end with an English letter or number.
 * `description` - (Optional) description to create. Min: 0, Max: 1000 Bytes.
 * `disk_detail_type` - (Optional) Type of block storage disk detail to create. Valid for XEN type only. Conflicts with `volume_type`. Default `SSD`. Accepted values: `SSD` | `HDD` 
-* `stop_instance_before_detaching` - (Optional, Boolean) Set this to true to ensure that the target instance is stopped before trying to detach the block storage. It stops the instance, if it is not already stopped.
-	> If `stop_instance_before_detaching` is `true`, server will be stopped and **will not start automatically**. User must start server instance manually via NCLOUD console or API.
-
-~> **NOTE:** Below arguments only support VPC environment.
-
+* `stop_instance_before_detaching` - (Optional, Boolean) Set this to true to ensure that the target instance is stopped before trying to detach the block storage. It stops the instance, if it is not already stopped. If `stop_instance_before_detaching` is `true`, server will be stopped and **will not start automatically**. User must start server instance manually via NCLOUD console or API.
 * `zone` - (Optional, Required if to select KVM type) The availability zone in which the block storage instance will be created. It must be the same zone code as the server..
 * `snapshot_no` - (Optional) Create the block storage from the snapshots you take.
 * `hypervisor_type` - (Optional) Hypervisor type. Required with `volume_type`. (`XEN` or `KVM`)

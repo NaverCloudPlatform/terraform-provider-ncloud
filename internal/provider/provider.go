@@ -12,7 +12,6 @@ import (
 	"github.com/terraform-providers/terraform-provider-ncloud/internal/region"
 	"github.com/terraform-providers/terraform-provider-ncloud/internal/service/autoscaling"
 	"github.com/terraform-providers/terraform-provider-ncloud/internal/service/cdss"
-	"github.com/terraform-providers/terraform-provider-ncloud/internal/service/classicloadbalancer"
 	"github.com/terraform-providers/terraform-provider-ncloud/internal/service/devtools"
 	"github.com/terraform-providers/terraform-provider-ncloud/internal/service/loadbalancer"
 	"github.com/terraform-providers/terraform-provider-ncloud/internal/service/nasvolume"
@@ -63,8 +62,6 @@ func New(ctx context.Context) *schema.Provider {
 		"ncloud_nks_server_products":                     nks.DataSourceNcloudNKSServerProducts(),
 		"ncloud_nks_versions":                            nks.DataSourceNcloudNKSVersions(),
 		"ncloud_placement_group":                         server.DataSourceNcloudPlacementGroup(),
-		"ncloud_port_forwarding_rule":                    server.DataSourceNcloudPortForwardingRule(),
-		"ncloud_port_forwarding_rules":                   server.DataSourceNcloudPortForwardingRules(),
 		"ncloud_public_ip":                               server.DataSourceNcloudPublicIp(),
 		"ncloud_regions":                                 region.DataSourceNcloudRegions(),
 		"ncloud_root_password":                           server.DataSourceNcloudRootPassword(),
@@ -115,8 +112,6 @@ func New(ctx context.Context) *schema.Provider {
 		"ncloud_lb_listener":                         loadbalancer.ResourceNcloudLbListener(),
 		"ncloud_lb_target_group_attachment":          loadbalancer.ResourceNcloudLbTargetGroupAttachment(),
 		"ncloud_lb_target_group":                     loadbalancer.ResourceNcloudLbTargetGroup(),
-		"ncloud_load_balancer_ssl_certificate":       classicloadbalancer.ResourceNcloudLoadBalancerSSLCertificate(),
-		"ncloud_load_balancer":                       classicloadbalancer.ResourceNcloudLoadBalancer(),
 		"ncloud_nas_volume":                          nasvolume.ResourceNcloudNasVolume(),
 		"ncloud_network_acl":                         vpc.ResourceNcloudNetworkACL(),
 		"ncloud_network_acl_deny_allow_group":        vpc.ResourceNcloudNetworkACLDenyAllowGroup(),
@@ -125,7 +120,6 @@ func New(ctx context.Context) *schema.Provider {
 		"ncloud_nks_cluster":                         nks.ResourceNcloudNKSCluster(),
 		"ncloud_nks_node_pool":                       nks.ResourceNcloudNKSNodePool(),
 		"ncloud_placement_group":                     server.ResourceNcloudPlacementGroup(),
-		"ncloud_port_forwarding_rule":                server.ResourceNcloudPortForwadingRule(),
 		"ncloud_public_ip":                           server.ResourceNcloudPublicIpInstance(),
 		"ncloud_route":                               vpc.ResourceNcloudRoute(),
 		"ncloud_route_table":                         vpc.ResourceNcloudRouteTable(),
@@ -172,7 +166,7 @@ func SchemaMap() map[string]*schema.Schema {
 		},
 		"support_vpc": {
 			Type:        schema.TypeBool,
-			Optional:    true,
+			Required:    true,
 			Description: "Support VPC platform",
 		},
 	}
@@ -183,8 +177,10 @@ func ProviderConfigure(ctx context.Context, d *schema.ResourceData) (interface{}
 		SupportVPC: true,
 	}
 
-	if _, ok := getOrFromEnv(d, "support_vpc", "NCLOUD_SUPPORT_VPC"); !ok {
-		providerConfig.SupportVPC = false
+	// Set SupportVPC. Classic Deprecated.
+	vpc, ok := d.GetOk("support_vpc")
+	if !ok || !vpc.(bool) {
+		return nil, diag.Errorf("Classic environment is no longer supported. Please use v3.3.2 or lower.")
 	}
 
 	// Set site
@@ -197,11 +193,6 @@ func ProviderConfigure(ctx context.Context, d *schema.ResourceData) (interface{}
 		case "fin":
 			os.Setenv("NCLOUD_API_GW", "https://fin-ncloud.apigw.fin-ntruss.com")
 		}
-	}
-
-	// Fin only supports VPC
-	if providerConfig.Site == "fin" {
-		providerConfig.SupportVPC = true
 	}
 
 	accessKey, ok := getOrFromEnv(d, "access_key", "NCLOUD_ACCESS_KEY")

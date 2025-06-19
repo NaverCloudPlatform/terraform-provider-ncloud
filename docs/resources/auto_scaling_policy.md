@@ -8,31 +8,7 @@ subcategory: "Auto Scaling"
 Provides a ncloud auto scaling policy resource.
 
 ## Example Usage
-### Classic environment
-```hcl
-resource "ncloud_launch_configuration" "lc" {
-  name = "my-lc"
-  member_server_image_no = "12345"
-}
-
-resource "ncloud_auto_scaling_group" "asg" {
-  name = "my-auto"
-  launch_configuration_no = ncloud_launch_configuration.lc.launch_configuration_no
-  min_size = 1
-  max_size = 1
-  zone_no_list = ["2"]
-  wait_for_capacity_timeout = "0"
-}
-
-resource "ncloud_auto_scaling_policy" "policy" {
-  name = "my-policy"
-  adjustment_type_code = "CHANG"
-  scaling_adjustment = 2
-  auto_scaling_group_no = ncloud_auto_scaling_group.asg.auto_scaling_group_no
-}
-```
-### VPC environment
-```hcl
+```terrraform
 resource "ncloud_launch_configuration" "lc" {
   name = "my-lc"
   server_image_product_code = "SW.VSVR.OS.LNX64.ROCKY.0810.B050"
