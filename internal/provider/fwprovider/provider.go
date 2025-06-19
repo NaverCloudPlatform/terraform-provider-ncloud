@@ -3,6 +3,7 @@ package fwprovider
 import (
 	"context"
 
+	"github.com/terraform-providers/terraform-provider-ncloud/internal/service/apigw"
 	"github.com/terraform-providers/terraform-provider-ncloud/internal/service/hadoop"
 	"github.com/terraform-providers/terraform-provider-ncloud/internal/service/loadbalancer"
 	"github.com/terraform-providers/terraform-provider-ncloud/internal/service/objectstorage"
@@ -155,6 +156,7 @@ func (p *fwprovider) Resources(ctx context.Context) []func() resource.Resource {
 	resources = append(resources, objectstorage.NewObjectACLResource)
 	resources = append(resources, objectstorage.NewBucketACLResource)
 	resources = append(resources, objectstorage.NewObjectCopyResource)
+	resources = append(resources, apigw.NewProductResource)
 
 	if err := errs.ErrorOrNil(); err != nil {
 		tflog.Warn(ctx, "registering resources", map[string]interface{}{
