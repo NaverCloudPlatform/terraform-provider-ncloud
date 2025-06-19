@@ -178,7 +178,7 @@ func ProviderConfigure(ctx context.Context, d *schema.ResourceData) (interface{}
 	}
 
 	// Set SupportVPC. Classic Deprecated.
-	vpc, ok := getOrFromEnv(d, "support_vpc", "NCLOUD_SUPPORT_VPC")
+	vpc, ok := d.GetOk("support_vpc")
 	if !ok || !vpc.(bool) {
 		return nil, diag.Errorf("Classic environment is no longer supported. Please use v3.3.2 or lower.")
 	}
