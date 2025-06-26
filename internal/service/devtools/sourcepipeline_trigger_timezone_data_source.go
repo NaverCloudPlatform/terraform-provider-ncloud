@@ -55,21 +55,6 @@ func dataSourceNcloudSourcePipelineTimeZoneRead(ctx context.Context, d *schema.R
 }
 
 func getSourcePipelineTimeZone(ctx context.Context, config *conn.ProviderConfig) ([]*string, error) {
-	if config.SupportVPC {
-		return getVpcSourcePipelineTimeZone(ctx, config)
-	}
-	return getClassicSourcePipelineTimeZone(ctx, config)
-}
-
-func getClassicSourcePipelineTimeZone(ctx context.Context, config *conn.ProviderConfig) ([]*string, error) {
-	resp, err := config.Client.Sourcepipeline.V1Api.GetTimeZone(ctx)
-	if err != nil {
-		return nil, err
-	}
-	return resp.TimeZone, nil
-}
-
-func getVpcSourcePipelineTimeZone(ctx context.Context, config *conn.ProviderConfig) ([]*string, error) {
 	resp, err := config.Client.Vsourcepipeline.V1Api.GetTimeZone(ctx)
 	if err != nil {
 		return nil, err

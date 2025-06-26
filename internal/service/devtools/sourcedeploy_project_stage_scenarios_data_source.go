@@ -47,11 +47,6 @@ func DataSourceNcloudSourceDeployscenariosContext() *schema.Resource {
 
 func dataSourceNcloudSourceDeployScenariosReadContext(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	config := meta.(*conn.ProviderConfig)
-
-	if !config.SupportVPC {
-		return diag.FromErr(NotSupportClassic("dataSource `ncloud_sourcedeploy_project_stage_scenarios`"))
-	}
-
 	projectId := ncloud.IntString(d.Get("project_id").(int))
 	stageId := ncloud.IntString(d.Get("stage_id").(int))
 	resp, err := GetScenarios(ctx, config, projectId, stageId)

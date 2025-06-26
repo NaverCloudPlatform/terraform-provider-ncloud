@@ -8,7 +8,6 @@ import (
 
 	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/ncloud"
 	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/services/sourcebuild"
-	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/services/sourcepipeline"
 	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/services/vsourcedeploy"
 	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/services/vsourcepipeline"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
@@ -280,36 +279,6 @@ func resourceNcloudSourcePipelineDelete(ctx context.Context, d *schema.ResourceD
 }
 
 func createPipelineProject(d *schema.ResourceData, config *conn.ProviderConfig) (*int32, diag.Diagnostics) {
-	if config.SupportVPC {
-		return createVpcPipelineProject(d, config)
-	}
-	return createClassicPipelineProject(d, config)
-}
-
-func createClassicPipelineProject(d *schema.ResourceData, config *conn.ProviderConfig) (*int32, diag.Diagnostics) {
-	tasksParams, paramErr := makeClassicPipelineTaskParams(d)
-	if paramErr != nil {
-		return nil, paramErr
-	}
-	reqParams := &sourcepipeline.CreateProject{
-		Name:        ncloud.String(d.Get("name").(string)),
-		Description: StringPtrOrNil(d.GetOk("description")),
-		Tasks:       tasksParams,
-		Trigger:     makeClassicPipelineTriggerParams(d),
-	}
-
-	LogCommonRequest("createSourcePipelineProject", reqParams)
-	resp, err := config.Client.Sourcepipeline.V1Api.CreateProject(context.Background(), reqParams)
-	if err != nil {
-		LogErrorResponse("createSourcePipelineProject", err, reqParams)
-		return nil, diag.FromErr(err)
-	}
-	LogResponse("createSourcePipelineProject", resp)
-
-	return resp.ProjectId, nil
-}
-
-func createVpcPipelineProject(d *schema.ResourceData, config *conn.ProviderConfig) (*int32, diag.Diagnostics) {
 	tasksParams, paramErr := makeVpcPipelineTaskParams(d)
 	if paramErr != nil {
 		return nil, paramErr
@@ -333,29 +302,10 @@ func createVpcPipelineProject(d *schema.ResourceData, config *conn.ProviderConfi
 }
 
 func GetPipelineProject(ctx context.Context, config *conn.ProviderConfig, id string) (*PipelineProject, error) {
-	if config.SupportVPC {
-		return getVpcPipelineProject(ctx, config, id)
-	}
-	return getClassicPipelineProject(ctx, config, id)
-}
-
-func getClassicPipelineProject(ctx context.Context, config *conn.ProviderConfig, projectId string) (*PipelineProject, error) {
-	LogCommonRequest("getSourcePipelineProject", projectId)
-	resp, err := config.Client.Sourcepipeline.V1Api.GetProject(ctx, &projectId)
+	LogCommonRequest("getSourcePipelineProject", id)
+	resp, err := config.Client.Vsourcepipeline.V1Api.GetProject(ctx, &id)
 	if err != nil {
-		LogErrorResponse("getSourcePipelineProject", err, projectId)
-		return nil, err
-	}
-	LogResponse("getSourcePipelineProject", resp)
-
-	return convertClassicPipelineProject(resp), nil
-}
-
-func getVpcPipelineProject(ctx context.Context, config *conn.ProviderConfig, projectId string) (*PipelineProject, error) {
-	LogCommonRequest("getSourcePipelineProject", projectId)
-	resp, err := config.Client.Vsourcepipeline.V1Api.GetProject(ctx, &projectId)
-	if err != nil {
-		LogErrorResponse("getSourcePipelineProject", err, projectId)
+		LogErrorResponse("getSourcePipelineProject", err, id)
 		return nil, err
 	}
 	LogResponse("getSourcePipelineProject", resp)
@@ -364,39 +314,6 @@ func getVpcPipelineProject(ctx context.Context, config *conn.ProviderConfig, pro
 }
 
 func updatePipelineProject(ctx context.Context, d *schema.ResourceData, config *conn.ProviderConfig, id string) diag.Diagnostics {
-	if config.SupportVPC {
-		return updateVpcPipelineProject(ctx, d, config, id)
-	}
-	return updateClassicPipelineProject(ctx, d, config, id)
-}
-
-func updateClassicPipelineProject(ctx context.Context, d *schema.ResourceData, config *conn.ProviderConfig, projectId string) diag.Diagnostics {
-	description, ok := d.GetOk("description")
-	if !ok {
-		description = ""
-	}
-	tasksParams, paramErr := makeClassicPipelineTaskParams(d)
-	if paramErr != nil {
-		return paramErr
-	}
-	reqParams := &sourcepipeline.ChangeProject{
-		Description: ncloud.String(description.(string)),
-		Tasks:       tasksParams,
-		Trigger:     makeClassicPipelineTriggerParams(d),
-	}
-
-	LogCommonRequest("setSourcePipelineProject", reqParams)
-	resp, err := config.Client.Sourcepipeline.V1Api.ChangeProject(ctx, reqParams, &projectId)
-	if err != nil {
-		LogErrorResponse("setSourcePipelineProject", err, projectId)
-		return diag.FromErr(err)
-	}
-	LogResponse("setSourcePipelineProject", resp)
-
-	return nil
-}
-
-func updateVpcPipelineProject(ctx context.Context, d *schema.ResourceData, config *conn.ProviderConfig, projectId string) diag.Diagnostics {
 	description, ok := d.GetOk("description")
 	if !ok {
 		description = ""
@@ -412,9 +329,9 @@ func updateVpcPipelineProject(ctx context.Context, d *schema.ResourceData, confi
 	}
 
 	LogCommonRequest("setSourcePipelineProject", reqParams)
-	resp, err := config.Client.Vsourcepipeline.V1Api.ChangeProject(ctx, reqParams, &projectId)
+	resp, err := config.Client.Vsourcepipeline.V1Api.ChangeProject(ctx, reqParams, &id)
 	if err != nil {
-		LogErrorResponse("setSourcePipelineProject", err, projectId)
+		LogErrorResponse("setSourcePipelineProject", err, id)
 		return diag.FromErr(err)
 	}
 	LogResponse("setSourcePipelineProject", resp)
@@ -423,72 +340,13 @@ func updateVpcPipelineProject(ctx context.Context, d *schema.ResourceData, confi
 }
 
 func deletePipelineProject(ctx context.Context, config *conn.ProviderConfig, id string) error {
-	if config.SupportVPC {
-		return deleteVpcPipelineProject(ctx, config, id)
-	}
-	return deleteClassicPipelineProject(ctx, config, id)
-}
-
-func deleteClassicPipelineProject(ctx context.Context, config *conn.ProviderConfig, projectId string) error {
-	resp, err := config.Client.Sourcepipeline.V1Api.DeleteProject(ctx, &projectId)
+	resp, err := config.Client.Vsourcepipeline.V1Api.DeleteProject(ctx, &id)
 	if err != nil {
-		LogErrorResponse("deleteSourcePipelineProject", err, projectId)
+		LogErrorResponse("deleteSourcePipelineProject", err, id)
 		return err
 	}
 	LogResponse("deleteSourcePipelineProject", resp)
 	return nil
-}
-
-func deleteVpcPipelineProject(ctx context.Context, config *conn.ProviderConfig, projectId string) error {
-	resp, err := config.Client.Vsourcepipeline.V1Api.DeleteProject(ctx, &projectId)
-	if err != nil {
-		LogErrorResponse("deleteSourcePipelineProject", err, projectId)
-		return err
-	}
-	LogResponse("deleteSourcePipelineProject", resp)
-	return nil
-}
-
-func makeClassicPipelineTaskParams(d *schema.ResourceData) ([]*sourcepipeline.CreateProjectTasks, diag.Diagnostics) {
-	var pipelineTaskParams []*sourcepipeline.CreateProjectTasks
-	taskCount := d.Get("task.#").(int)
-
-	for i := 0; i < taskCount; i++ {
-		var config *sourcepipeline.CreateProjectConfig
-		prefix := fmt.Sprintf("task.%d.", i)
-
-		if d.Get(prefix+"type").(string) == "SourceBuild" {
-			if targetBranch, ok := d.GetOk(prefix + "config.0.target.0.repository_branch"); ok {
-				config = &sourcepipeline.CreateProjectConfig{
-					ProjectId: Int32PtrOrNil(d.GetOk(prefix + "config.0.project_id")),
-					Target: &sourcepipeline.CreateProjectConfigTarget{
-						Info: &sourcepipeline.CreateProjectConfigTargetInfo{
-							Branch: ncloud.String(targetBranch.(string)),
-						},
-					},
-				}
-			} else {
-				config = &sourcepipeline.CreateProjectConfig{
-					ProjectId: Int32PtrOrNil(d.GetOk(prefix + "config.0.project_id")),
-				}
-			}
-		} else {
-			return nil, diag.FromErr(NotSupportClassic("Invalid argument: \"SourceDeploy\" task "))
-		}
-
-		err := ValidateEmptyStringElement(d.Get(prefix + "linked_tasks").([]interface{}))
-		if err != nil {
-			return nil, diag.Errorf("task.linkd_tasks cannot contain an empty string element")
-		}
-		pipelineTaskParams = append(pipelineTaskParams, &sourcepipeline.CreateProjectTasks{
-			Name:        ncloud.String(d.Get(prefix + "name").(string)),
-			Type_:       ncloud.String(d.Get(prefix + "type").(string)),
-			Config:      config,
-			LinkedTasks: ncloud.StringInterfaceList(d.Get(prefix + "linked_tasks").([]interface{})),
-		})
-	}
-
-	return pipelineTaskParams, nil
 }
 
 func makeVpcPipelineTaskParams(d *schema.ResourceData) ([]*vsourcepipeline.CreateProjectTasks, diag.Diagnostics) {
@@ -535,47 +393,6 @@ func makeVpcPipelineTaskParams(d *schema.ResourceData) ([]*vsourcepipeline.Creat
 	}
 
 	return pipelineTaskParams, nil
-}
-
-func makeClassicPipelineTriggerParams(d *schema.ResourceData) *sourcepipeline.CreateProjectTrigger {
-	var repositoryTrigger []*sourcepipeline.GetRepositoryTrigger
-	var scheduleTrigger []*sourcepipeline.GetScheduleTrigger
-	var sourcepipelineTrigger []*sourcepipeline.GetPipelineTrigger
-	pipelineTrigger := &sourcepipeline.CreateProjectTrigger{}
-
-	if _, ok := d.GetOk("triggers.0.repository"); ok {
-		for _, ti := range d.Get("triggers.0.repository").(*schema.Set).List() {
-			triggerInput := ti.(map[string]interface{})
-			repositoryTrigger = append(repositoryTrigger, &sourcepipeline.GetRepositoryTrigger{
-				Type_:  ncloud.String(triggerInput["type"].(string)),
-				Name:   ncloud.String(triggerInput["name"].(string)),
-				Branch: ncloud.String(triggerInput["branch"].(string)),
-			})
-		}
-		pipelineTrigger.Repository = repositoryTrigger
-	}
-	if _, ok := d.GetOk("triggers.0.schedule"); ok {
-		for _, ti := range d.Get("triggers.0.schedule").(*schema.Set).List() {
-			triggerInput := ti.(map[string]interface{})
-			scheduleTrigger = append(scheduleTrigger, &sourcepipeline.GetScheduleTrigger{
-				Day:                    ncloud.StringInterfaceList(triggerInput["day"].([]interface{})),
-				Time:                   ncloud.String(triggerInput["time"].(string)),
-				TimeZone:               ncloud.String(triggerInput["timezone"].(string)),
-				ScheduleOnlyWithChange: ncloud.Bool(triggerInput["execute_only_with_change"].(bool)),
-			})
-		}
-		pipelineTrigger.Schedule = scheduleTrigger
-	}
-	if _, ok := d.GetOk("triggers.0.sourcepipeline"); ok {
-		for _, ti := range d.Get("triggers.0.sourcepipeline").(*schema.Set).List() {
-			triggerInput := ti.(map[string]interface{})
-			sourcepipelineTrigger = append(sourcepipelineTrigger, &sourcepipeline.GetPipelineTrigger{
-				Id: ncloud.Int32(int32(triggerInput["id"].(int))),
-			})
-		}
-		pipelineTrigger.SourcePipeline = sourcepipelineTrigger
-	}
-	return pipelineTrigger
 }
 
 func makeVpcPipelineTriggerParams(d *schema.ResourceData) *vsourcepipeline.CreateProjectTrigger {
@@ -644,9 +461,6 @@ func makeTaskData(config *conn.ProviderConfig, tasks []*PipelineTask) ([]map[str
 					diags = appendDiag(&diags, checkBuildTaskConfig(task.Config, buildProject.Source))
 				}
 			} else {
-				if !config.SupportVPC {
-					return nil, diag.FromErr(NotSupportClassic("Invalid argument: \"SourceDeploy\" task "))
-				}
 				taskConfig, err := makeDeployTaskConfig(task.Config)
 				if err != nil {
 					return nil, diag.FromErr(err)
@@ -827,91 +641,6 @@ func appendDiag(diags *diag.Diagnostics, diag diag.Diagnostic) diag.Diagnostics 
 	}
 	*diags = append(*diags, diag)
 	return *diags
-}
-
-func convertClassicPipelineProject(r *sourcepipeline.GetProjectDetailResponse) *PipelineProject {
-	if r == nil {
-		return nil
-	}
-
-	project := &PipelineProject{
-		Id:          r.Id,
-		Name:        r.Name,
-		Description: r.Description,
-	}
-
-	for _, task := range r.Tasks {
-		bitBucketWorkspace := &BitbucketWorkspace{}
-		if task.Config.Target.Info.Workspace != nil {
-			bitBucketWorkspace.Id = task.Config.Target.Info.Workspace.Id
-			bitBucketWorkspace.Name = task.Config.Target.Info.Workspace.Name
-		}
-
-		taskTargetInfo := &PipelineTaskTargetInfo{
-			RepositoryName: task.Config.Target.Info.Repository,
-			Branch:         task.Config.Target.Info.Branch,
-			ProjectName:    task.Config.Target.Info.ProjectName,
-			File:           task.Config.Target.Info.File,
-			Manifest:       task.Config.Target.Info.Manifest,
-			Workspace:      bitBucketWorkspace,
-		}
-
-		taskTarget := &PipelineTaskTarget{
-			Type_: task.Config.Target.Type_,
-			Info:  taskTargetInfo,
-		}
-
-		config := &PipelineTaskConfig{
-			ProjectId:  task.Config.ProjectId,
-			StageId:    task.Config.StageId,
-			ScenarioId: task.Config.ScenarioId,
-			Target:     taskTarget,
-		}
-
-		ti := &PipelineTask{
-			Id:          task.Id,
-			Name:        task.Name,
-			Type_:       task.Type_,
-			Config:      config,
-			LinkedTasks: task.LinkedTasks,
-		}
-
-		project.Task = append(project.Task, ti)
-	}
-
-	if r.Trigger != nil {
-		trigger := &PipelineTrigger{}
-		for _, repositoryInfo := range r.Trigger.Repository {
-			ri := &PipelineTriggerRepository{
-				Type_:  repositoryInfo.Type_,
-				Name:   repositoryInfo.Name,
-				Branch: repositoryInfo.Branch,
-			}
-			trigger.Repository = append(trigger.Repository, ri)
-		}
-		for _, scheduleInfo := range r.Trigger.Schedule {
-			ri := &PipelineTriggerSchedule{
-				Day:                   scheduleInfo.Day,
-				Time:                  scheduleInfo.Time,
-				TimeZone:              scheduleInfo.TimeZone,
-				ExecuteOnlyWithChange: scheduleInfo.ScheduleOnlyWithChange,
-			}
-			trigger.Schedule = append(trigger.Schedule, ri)
-		}
-		for _, pipelineInfo := range r.Trigger.SourcePipeline {
-			ri := &PipelineTriggerSourcePipeline{
-				Id:   pipelineInfo.Id,
-				Name: pipelineInfo.Name,
-			}
-			trigger.SourcePipeline = append(trigger.SourcePipeline, ri)
-		}
-
-		if len(r.Trigger.Repository) != 0 || len(r.Trigger.Schedule) != 0 || len(r.Trigger.SourcePipeline) != 0 {
-			project.Triggers = trigger
-		}
-	}
-
-	return project
 }
 
 func convertVpcPipelineProject(r *vsourcepipeline.GetProjectDetailResponse) *PipelineProject {
