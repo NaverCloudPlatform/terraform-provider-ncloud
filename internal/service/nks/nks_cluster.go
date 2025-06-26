@@ -235,9 +235,6 @@ func ResourceNcloudNKSCluster() *schema.Resource {
 
 func resourceNcloudNKSClusterCreate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	config := meta.(*conn.ProviderConfig)
-	if !config.SupportVPC {
-		return diag.FromErr(NotSupportClassic("resource `ncloud_nks_cluster`"))
-	}
 
 	reqParams := &vnks.ClusterInputBody{
 		RegionCode: &config.RegionCode,
@@ -336,9 +333,6 @@ func resourceNcloudNKSClusterCreate(ctx context.Context, d *schema.ResourceData,
 
 func resourceNcloudNKSClusterRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	config := meta.(*conn.ProviderConfig)
-	if !config.SupportVPC {
-		return diag.FromErr(NotSupportClassic("resource `ncloud_nks_cluster`"))
-	}
 
 	cluster, err := GetNKSCluster(ctx, config, d.Id())
 	if err != nil {
@@ -412,9 +406,6 @@ func resourceNcloudNKSClusterRead(ctx context.Context, d *schema.ResourceData, m
 
 func resourceNcloudNKSClusterUpdate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	config := meta.(*conn.ProviderConfig)
-	if !config.SupportVPC {
-		return diag.FromErr(NotSupportClassic("resource `ncloud_nks_cluster`"))
-	}
 
 	cluster, err := GetNKSCluster(ctx, config, d.Id())
 	if err != nil {
@@ -550,9 +541,6 @@ func resourceNcloudNKSClusterUpdate(ctx context.Context, d *schema.ResourceData,
 
 func resourceNcloudNKSClusterDelete(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	config := meta.(*conn.ProviderConfig)
-	if !config.SupportVPC {
-		return diag.FromErr(NotSupportClassic("resource `ncloud_nks_cluster`"))
-	}
 
 	if err := waitForNKSClusterActive(ctx, d, config, d.Id()); err != nil {
 		return diag.FromErr(err)

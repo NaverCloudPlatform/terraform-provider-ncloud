@@ -243,9 +243,6 @@ func ResourceNcloudNKSNodePool() *schema.Resource {
 
 func resourceNcloudNKSNodePoolCreate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	config := meta.(*conn.ProviderConfig)
-	if !config.SupportVPC {
-		return diag.FromErr(NotSupportClassic("resource `ncloud_nks_node_pool`"))
-	}
 
 	clusterUuid := d.Get("cluster_uuid").(string)
 	nodePoolName := d.Get("node_pool_name").(string)
@@ -344,9 +341,6 @@ func resourceNcloudNKSNodePoolCreate(ctx context.Context, d *schema.ResourceData
 
 func resourceNcloudNKSNodePoolRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	config := meta.(*conn.ProviderConfig)
-	if !config.SupportVPC {
-		return diag.FromErr(NotSupportClassic("resource `ncloud_nks_node_pool`"))
-	}
 
 	clusterUuid, nodePoolName, err := NodePoolParseResourceID(d.Id())
 	if err != nil {
@@ -407,9 +401,6 @@ func resourceNcloudNKSNodePoolRead(ctx context.Context, d *schema.ResourceData, 
 
 func resourceNcloudNKSNodePoolUpdate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	config := meta.(*conn.ProviderConfig)
-	if !config.SupportVPC {
-		return diag.FromErr(NotSupportClassic("resource `ncloud_nks_node_pool`"))
-	}
 
 	clusterUuid, nodePoolName, err := NodePoolParseResourceID(d.Id())
 	if err != nil {
@@ -513,9 +504,6 @@ func resourceNcloudNKSNodePoolUpdate(ctx context.Context, d *schema.ResourceData
 
 func resourceNcloudNKSNodePoolDelete(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	config := meta.(*conn.ProviderConfig)
-	if !config.SupportVPC {
-		return diag.FromErr(NotSupportClassic("resource `ncloud_nks_node_pool`"))
-	}
 
 	clusterUuid, nodePoolName, err := NodePoolParseResourceID(d.Id())
 	if err != nil {

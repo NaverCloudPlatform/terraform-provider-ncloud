@@ -45,9 +45,6 @@ func DataSourceNcloudNKSServerImages() *schema.Resource {
 
 func dataSourceNcloudNKSServerImagesRead(d *schema.ResourceData, meta interface{}) error {
 	config := meta.(*conn.ProviderConfig)
-	if !config.SupportVPC {
-		return NotSupportClassic("datasource `ncloud_nks_node_pool_server_images`")
-	}
 
 	resources, err := getNKSServerImages(config, d)
 	if err != nil {
