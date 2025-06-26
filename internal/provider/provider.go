@@ -26,8 +26,6 @@ func New(ctx context.Context) *schema.Provider {
 	dataSourceMap := map[string]*schema.Resource{
 		"ncloud_access_control_group":                    server.DataSourceNcloudAccessControlGroup(),
 		"ncloud_access_control_groups":                   server.DataSourceNcloudAccessControlGroups(),
-		"ncloud_access_control_rule":                     server.DataSourceNcloudAccessControlRule(),
-		"ncloud_access_control_rules":                    server.DataSourceNcloudAccessControlRules(),
 		"ncloud_auto_scaling_group":                      autoscaling.DataSourceNcloudAutoScalingGroup(),
 		"ncloud_auto_scaling_policy":                     autoscaling.DataSourceNcloudAutoScalingPolicy(),
 		"ncloud_auto_scaling_schedule":                   autoscaling.DataSourceNcloudAutoScalingSchedule(),
