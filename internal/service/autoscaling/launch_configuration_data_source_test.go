@@ -8,35 +8,6 @@ import (
 	. "github.com/terraform-providers/terraform-provider-ncloud/internal/acctest"
 )
 
-func TestAccDataSourceNcloudLaunchConfiguration_classic_basic(t *testing.T) {
-	// Images are all deprecated in Classic
-	t.Skip()
-
-	dataName := "data.ncloud_launch_configuration.lc"
-	resourceName := "ncloud_launch_configuration.lc"
-
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:                 func() { TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: ClassicProtoV6ProviderFactories,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccDataSourceNcloudLaunchConfigurationClassicConfig(),
-				Check: resource.ComposeTestCheckFunc(
-					TestAccCheckDataSourceID(dataName),
-					resource.TestCheckResourceAttrPair(dataName, "launch_configuration_no", resourceName, "launch_configuration_no"),
-					resource.TestCheckResourceAttrPair(dataName, "name", resourceName, "name"),
-					resource.TestCheckResourceAttrPair(dataName, "server_image_product_code", resourceName, "server_image_product_code"),
-					resource.TestCheckResourceAttrPair(dataName, "server_product_code", resourceName, "server_product_code"),
-					resource.TestCheckResourceAttrPair(dataName, "member_server_image_no", resourceName, "member_server_image_no"),
-					resource.TestCheckResourceAttrPair(dataName, "login_key_name", resourceName, "login_key_name"),
-					resource.TestCheckResourceAttrPair(dataName, "user_data", resourceName, "user_data"),
-					resource.TestCheckResourceAttrPair(dataName, "access_control_group_configuration_no_list", resourceName, "access_control_group_configuration_no_list"),
-				),
-			},
-		},
-	})
-}
-
 func TestAccDataSourceNcloudLaunchConfiguration_vpc_basic(t *testing.T) {
 	dataName := "data.ncloud_launch_configuration.lc"
 	resourceName := "ncloud_launch_configuration.lc"
@@ -55,26 +26,12 @@ func TestAccDataSourceNcloudLaunchConfiguration_vpc_basic(t *testing.T) {
 					resource.TestCheckResourceAttrPair(dataName, "server_product_code", resourceName, "server_product_code"),
 					resource.TestCheckResourceAttrPair(dataName, "member_server_image_no", resourceName, "member_server_image_no"),
 					resource.TestCheckResourceAttrPair(dataName, "login_key_name", resourceName, "login_key_name"),
-					resource.TestCheckResourceAttrPair(dataName, "user_data", resourceName, "user_data"),
-					resource.TestCheckResourceAttrPair(dataName, "access_control_group_configuration_no_list", resourceName, "access_control_group_configuration_no_list"),
 					resource.TestCheckResourceAttrPair(dataName, "is_encrypted_volume", resourceName, "is_encrypted_volume"),
 					resource.TestCheckResourceAttrPair(dataName, "init_script_no", resourceName, "init_script_no"),
 				),
 			},
 		},
 	})
-}
-
-func testAccDataSourceNcloudLaunchConfigurationClassicConfig() string {
-	return `
-resource "ncloud_launch_configuration" "lc" {
-	server_image_product_code = "SPSW0LINUX000046"
-}
-
-data "ncloud_launch_configuration" "lc" {
-	id = ncloud_launch_configuration.lc.launch_configuration_no
-}
-`
 }
 
 func testAccDataSourceNcloudLaunchConfigurationVpcConfig() string {

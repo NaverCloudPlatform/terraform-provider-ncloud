@@ -14,36 +14,6 @@ import (
 	"github.com/terraform-providers/terraform-provider-ncloud/internal/service/autoscaling"
 )
 
-func TestAccResourceNcloudLaunchConfiguration_classic_basic(t *testing.T) {
-	// Images are all deprecated in Classic
-	t.Skip()
-
-	var launchConfiguration autoscaling.LaunchConfiguration
-	resourceName := "ncloud_launch_configuration.lc"
-	serverImageProductCode := "SPSW0LINUX000046"
-	serverProductCode := "SPSVRSSD00000003"
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:                 func() { TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: ClassicProtoV6ProviderFactories,
-		CheckDestroy: func(state *terraform.State) error {
-			return testAccCheckLaunchConfigurationDestroy(state, GetTestProvider(false))
-		},
-		Steps: []resource.TestStep{
-			{
-				Config: testAccLaunchConfigurationConfig(serverImageProductCode, serverProductCode),
-				Check: resource.ComposeTestCheckFunc(
-					testAccCheckLaunchConfigurationExists(resourceName, &launchConfiguration, GetTestProvider(false)),
-				),
-			},
-			{
-				ResourceName:      resourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
-		},
-	})
-}
-
 func TestAccResourceNcloudLaunchConfiguration_vpc_basic(t *testing.T) {
 	var launchConfiguration autoscaling.LaunchConfiguration
 	resourceName := "ncloud_launch_configuration.lc"
@@ -66,33 +36,6 @@ func TestAccResourceNcloudLaunchConfiguration_vpc_basic(t *testing.T) {
 				ResourceName:      resourceName,
 				ImportState:       true,
 				ImportStateVerify: true,
-			},
-		},
-	})
-}
-
-func TestAccResourceNcloudLaunchConfiguration_classic_disappears(t *testing.T) {
-	// Images are all deprecated in Classic
-	t.Skip()
-
-	var launchConfiguration autoscaling.LaunchConfiguration
-	resourceName := "ncloud_launch_configuration.lc"
-	serverImageProductCode := "SPSW0LINUX000046"
-	serverProductCode := "SPSVRSSD00000003"
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:                 func() { TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: ClassicProtoV6ProviderFactories,
-		CheckDestroy: func(state *terraform.State) error {
-			return testAccCheckLaunchConfigurationDestroy(state, GetTestProvider(false))
-		},
-		Steps: []resource.TestStep{
-			{
-				Config: testAccLaunchConfigurationConfig(serverImageProductCode, serverProductCode),
-				Check: resource.ComposeTestCheckFunc(
-					testAccCheckLaunchConfigurationExists(resourceName, &launchConfiguration, GetTestProvider(false)),
-					TestAccCheckResourceDisappears(GetTestProvider(false), autoscaling.ResourceNcloudLaunchConfiguration(), resourceName),
-				),
-				ExpectNonEmptyPlan: true,
 			},
 		},
 	})
@@ -153,7 +96,7 @@ func testAccCheckLaunchConfigurationDestroy(s *terraform.State, provider *schema
 		if rs.Type != "ncloud_launch_configuration" {
 			continue
 		}
-		launchConfiguration, err := autoscaling.GetClassicLaunchConfiguration(config, rs.Primary.ID)
+		launchConfiguration, err := autoscaling.GetLaunchConfiguration(config, rs.Primary.ID)
 		if err != nil {
 			return err
 		}

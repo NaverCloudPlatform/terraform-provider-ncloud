@@ -60,12 +60,7 @@ func getAutoScalingAdjustmentListFiltered(d *schema.ResourceData, config *conn.P
 	var resources []map[string]interface{}
 	var err error
 
-	if config.SupportVPC {
-		resources, err = getVpcAutoScalingAdjustmentTypeList(config)
-	} else {
-		resources, err = getClassicAutoScalingAdjustmentTypeList(config)
-	}
-
+	resources, err = getVpcAutoScalingAdjustmentTypeList(config)
 	if err != nil {
 		return nil, err
 	}
@@ -77,37 +72,6 @@ func getAutoScalingAdjustmentListFiltered(d *schema.ResourceData, config *conn.P
 }
 
 func getVpcAutoScalingAdjustmentTypeList(config *conn.ProviderConfig) ([]map[string]interface{}, error) {
-	client := config.Client
-	regionCode := config.RegionCode
-
-	reqParams := &vautoscaling.GetAdjustmentTypeListRequest{
-		RegionCode: &regionCode,
-	}
-
-	LogCommonRequest("GetAdjustmentTypeListRequest", reqParams)
-
-	resp, err := client.Vautoscaling.V2Api.GetAdjustmentTypeList(reqParams)
-	if err != nil {
-		LogErrorResponse("GetAdjustmentTypeListRequest", err, reqParams)
-		return nil, err
-	}
-
-	LogResponse("GetAdjustmentTypeListRequest", resp)
-
-	var resources []map[string]interface{}
-
-	for _, r := range resp.AdjustmentTypeList {
-		instance := map[string]interface{}{
-			"code":      *r.Code,
-			"code_name": *r.CodeName,
-		}
-
-		resources = append(resources, instance)
-	}
-	return resources, nil
-}
-
-func getClassicAutoScalingAdjustmentTypeList(config *conn.ProviderConfig) ([]map[string]interface{}, error) {
 	client := config.Client
 	regionCode := config.RegionCode
 
