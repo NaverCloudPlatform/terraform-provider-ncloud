@@ -43,9 +43,6 @@ func DataSourceNcloudSESClusters() *schema.Resource {
 
 func dataSourceNcloudSESClustersRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	config := meta.(*conn.ProviderConfig)
-	if !config.SupportVPC {
-		return diag.FromErr(NotSupportClassic("dataSource `ncloud_ses_clusters`"))
-	}
 
 	clusters, err := getSESClusters(ctx, config)
 	if err != nil {

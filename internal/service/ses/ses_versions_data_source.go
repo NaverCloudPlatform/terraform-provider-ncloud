@@ -50,9 +50,6 @@ func DataSourceNcloudSESVersions() *schema.Resource {
 
 func dataSourceNcloudSESVersionsRead(d *schema.ResourceData, meta interface{}) error {
 	config := meta.(*conn.ProviderConfig)
-	if !config.SupportVPC {
-		return NotSupportClassic("datasource `ncloud_ses_versions`")
-	}
 
 	resources, err := getSESVersion(config)
 	if err != nil {
