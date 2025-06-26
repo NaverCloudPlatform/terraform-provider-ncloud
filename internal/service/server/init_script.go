@@ -3,6 +3,7 @@ package server
 import (
 	"context"
 	"fmt"
+
 	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/ncloud"
 	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/services/vserver"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
@@ -113,14 +114,6 @@ func (i *initScriptResource) Create(ctx context.Context, req resource.CreateRequ
 		return
 	}
 
-	if !i.config.SupportVPC {
-		resp.Diagnostics.AddError(
-			"Not support classic",
-			fmt.Sprintf("resource %s does not support classic", req.Config.Schema.Type().String()),
-		)
-		return
-	}
-
 	reqParams := &vserver.CreateInitScriptRequest{
 		RegionCode:        &i.config.RegionCode,
 		InitScriptContent: plan.Content.ValueStringPointer(),
@@ -166,13 +159,6 @@ func (i *initScriptResource) Read(ctx context.Context, req resource.ReadRequest,
 		return
 	}
 
-	if !i.config.SupportVPC {
-		resp.Diagnostics.AddError(
-			"Not support classic",
-			fmt.Sprintf("resource %s does not support classic", req.ProviderMeta.Schema.Type().String()),
-		)
-		return
-	}
 	output, err := GetInitScript(ctx, i.config, state.ID.ValueString())
 	if err != nil {
 		resp.Diagnostics.AddError("GetInitScript", err.Error())
@@ -201,14 +187,6 @@ func (i *initScriptResource) Delete(ctx context.Context, req resource.DeleteRequ
 	diags := req.State.Get(ctx, &state)
 	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
-		return
-	}
-
-	if !i.config.SupportVPC {
-		resp.Diagnostics.AddError(
-			"Not support classic",
-			fmt.Sprintf("resource %s does not support classic", req.ProviderMeta.Schema.Type().String()),
-		)
 		return
 	}
 

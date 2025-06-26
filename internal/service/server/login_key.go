@@ -7,7 +7,6 @@ import (
 	"time"
 
 	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/ncloud"
-	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/services/server"
 	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/services/vserver"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
@@ -111,13 +110,7 @@ func (l *loginKeyResource) Create(ctx context.Context, req resource.CreateReques
 
 	keyName := plan.KeyName.ValueStringPointer()
 
-	if l.config.SupportVPC {
-		privatekey, err = createVpcLoginKey(ctx, l.config, keyName)
-	} else {
-
-		privatekey, err = createClassicLoginKey(ctx, l.config, keyName)
-	}
-
+	privatekey, err = createVpcLoginKey(ctx, l.config, keyName)
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error Creating LoginKey",
@@ -147,7 +140,6 @@ func (l *loginKeyResource) Read(ctx context.Context, req resource.ReadRequest, r
 	}
 
 	output, err := GetLoginKey(l.config, state.KeyName.ValueString())
-
 	if err != nil {
 		resp.Diagnostics.AddError("GetLoginKey", err.Error())
 		return
@@ -186,12 +178,7 @@ func (l *loginKeyResource) Delete(ctx context.Context, req resource.DeleteReques
 		"KeyName": common.MarshalUncheckedString(keyName),
 	})
 
-	if l.config.SupportVPC {
-		err = deleteVpcLoginKey(ctx, l.config, keyName)
-	} else {
-		err = deleteClassicLoginKey(ctx, l.config, keyName)
-	}
-
+	err = deleteVpcLoginKey(ctx, l.config, keyName)
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error Deleting LoginKey",
@@ -246,34 +233,12 @@ func waitForNcloudLoginKeyCreation(config *conn.ProviderConfig, keyName string) 
 	return loginkey, nil
 }
 
-func createClassicLoginKey(ctx context.Context, config *conn.ProviderConfig, keyName *string) (*string, error) {
-	reqParams := &server.CreateLoginKeyRequest{KeyName: keyName}
-	tflog.Info(ctx, "DeleteClassicLoginKey", map[string]any{
-		"reqParams": common.MarshalUncheckedString(reqParams),
-	})
-
-	resp, err := config.Client.Server.V2Api.CreateLoginKey(reqParams)
-	tflog.Info(ctx, "CreateClassicLoginKey response", map[string]any{
-		"createClassicLoginKeyResponse": common.MarshalUncheckedString(resp),
-	})
-
-	return resp.PrivateKey, err
-}
-
 type LoginKey struct {
 	KeyName     *string `json:"key_name,omitempty"`
 	Fingerprint *string `json:"fingerprint,omitempty"`
 }
 
 func GetLoginKey(config *conn.ProviderConfig, keyName string) (*LoginKey, error) {
-	if config.SupportVPC {
-		return getVpcLoginKey(config, keyName)
-	} else {
-		return getClassicLoginKey(config, keyName)
-	}
-}
-
-func getVpcLoginKey(config *conn.ProviderConfig, keyName string) (*LoginKey, error) {
 	resp, err := config.Client.Vserver.V2Api.GetLoginKeyList(&vserver.GetLoginKeyListRequest{
 		KeyName: ncloud.String(keyName),
 	})
@@ -291,70 +256,6 @@ func getVpcLoginKey(config *conn.ProviderConfig, keyName string) (*LoginKey, err
 		KeyName:     l.KeyName,
 		Fingerprint: l.Fingerprint,
 	}, nil
-}
-
-func getClassicLoginKey(config *conn.ProviderConfig, keyName string) (*LoginKey, error) {
-	resp, err := config.Client.Server.V2Api.GetLoginKeyList(&server.GetLoginKeyListRequest{
-		KeyName: ncloud.String(keyName),
-	})
-
-	if err != nil {
-		return nil, err
-	}
-
-	if len(resp.LoginKeyList) < 1 {
-		return nil, nil
-	}
-
-	l := resp.LoginKeyList[0]
-	return &LoginKey{
-		KeyName:     l.KeyName,
-		Fingerprint: l.Fingerprint,
-	}, nil
-}
-
-func deleteClassicLoginKey(ctx context.Context, config *conn.ProviderConfig, keyName string) error {
-	reqParams := &server.DeleteLoginKeyRequest{KeyName: ncloud.String(keyName)}
-	tflog.Info(ctx, "DeletClassicLoginKey", map[string]any{
-		"reqParams": common.MarshalUncheckedString(reqParams),
-	})
-
-	resp, err := config.Client.Server.V2Api.DeleteLoginKey(reqParams)
-	if err != nil {
-		common.LogErrorResponse("deleteClassicLoginKey", err, keyName)
-		return err
-	}
-
-	tflog.Info(ctx, "DeleteClassicLoginKey response", map[string]any{
-		"deleteClassicLoginKeyResponse": common.MarshalUncheckedString(resp),
-	})
-
-	stateConf := &sdkresource.StateChangeConf{
-		Pending: []string{""},
-		Target:  []string{"OK"},
-		Refresh: func() (interface{}, string, error) {
-			resp, err := getClassicLoginKey(config, keyName)
-			if err != nil {
-				return 0, "", err
-			}
-
-			if resp == nil {
-				return 0, "OK", err
-			}
-
-			return resp, "", nil
-		},
-		Timeout:    conn.DefaultTimeout,
-		Delay:      2 * time.Second,
-		MinTimeout: 3 * time.Second,
-	}
-
-	_, err = stateConf.WaitForState()
-	if err != nil {
-		return fmt.Errorf("error waiting to delete LoginKey: %v", err)
-	}
-
-	return nil
 }
 
 func deleteVpcLoginKey(ctx context.Context, config *conn.ProviderConfig, keyName string) error {
@@ -376,7 +277,7 @@ func deleteVpcLoginKey(ctx context.Context, config *conn.ProviderConfig, keyName
 		Pending: []string{""},
 		Target:  []string{"OK"},
 		Refresh: func() (interface{}, string, error) {
-			resp, err := getVpcLoginKey(config, keyName)
+			resp, err := GetLoginKey(config, keyName)
 			if err != nil {
 				return 0, "", err
 			}

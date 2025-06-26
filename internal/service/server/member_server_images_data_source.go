@@ -62,12 +62,7 @@ func dataSourceNcloudMemberServerImagesRead(d *schema.ResourceData, meta interfa
 	var resources []map[string]interface{}
 	var err error
 
-	if config.SupportVPC {
-		resources, err = getVpcMemberServerImage(d, config)
-	} else {
-		resources, err = getClassicMemberServerImage(d, config)
-	}
-
+	resources, err = getVpcMemberServerImage(d, config)
 	if err != nil {
 		return err
 	}

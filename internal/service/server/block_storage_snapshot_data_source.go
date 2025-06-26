@@ -4,7 +4,6 @@ import (
 	"fmt"
 
 	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/ncloud"
-	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/services/server"
 	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/services/vserver"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 
@@ -76,62 +75,6 @@ func dataSourceNcloudBlockStorageSnapshotRead(d *schema.ResourceData, meta inter
 }
 
 func GetBlockStorageSnapshot(d *schema.ResourceData, config *conn.ProviderConfig) ([]*BlockStorageSnapshot, error) {
-	if config.SupportVPC {
-		return getVpcBlockStorageSnapshot(d, config)
-	}
-
-	return getClassicBlockStorageSnapshot(d, config)
-}
-
-func getClassicBlockStorageSnapshot(d *schema.ResourceData, config *conn.ProviderConfig) ([]*BlockStorageSnapshot, error) {
-	regionNo, err := conn.ParseRegionNoParameter(d)
-	if err != nil {
-		return nil, err
-	}
-
-	reqParams := &server.GetBlockStorageSnapshotInstanceListRequest{
-		RegionNo: regionNo,
-	}
-
-	if v, ok := d.GetOk("block_storage_no"); ok {
-		reqParams.OriginalBlockStorageInstanceNoList = []*string{ncloud.String(v.(string))}
-	}
-
-	if v, ok := d.GetOk("id"); ok {
-		reqParams.BlockStorageSnapshotInstanceNoList = []*string{ncloud.String(v.(string))}
-	}
-
-	LogCommonRequest("getClassicBlockStorageSnapshot", reqParams)
-	resp, err := config.Client.Server.V2Api.GetBlockStorageSnapshotInstanceList(reqParams)
-	if err != nil {
-		LogErrorResponse("getClassicBlockStorageSnapshot", err, reqParams)
-		return nil, err
-	}
-	LogResponse("getClassicBlockStorageSnapshot", resp)
-
-	var list []*BlockStorageSnapshot
-	for _, r := range resp.BlockStorageSnapshotInstanceList {
-		list = append(list, convertClassicSnapshotInstance(r))
-	}
-
-	return list, nil
-}
-
-func convertClassicSnapshotInstance(r *server.BlockStorageSnapshotInstance) *BlockStorageSnapshot {
-	if r == nil {
-		return nil
-	}
-
-	return &BlockStorageSnapshot{
-		SnapshotNo:                     r.BlockStorageSnapshotInstanceNo,
-		BlockStorageSnapshotName:       r.BlockStorageSnapshotName,
-		BlockStorageSnapshotVolumeSize: r.BlockStorageSnapshotVolumeSize,
-		BlockStorageNo:                 r.OriginalBlockStorageInstanceNo,
-		Description:                    r.BlockStorageSnapshotInstanceDescription,
-	}
-}
-
-func getVpcBlockStorageSnapshot(d *schema.ResourceData, config *conn.ProviderConfig) ([]*BlockStorageSnapshot, error) {
 	reqParams := &vserver.GetBlockStorageSnapshotInstanceListRequest{
 		RegionCode: &config.RegionCode,
 	}

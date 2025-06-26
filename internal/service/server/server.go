@@ -11,7 +11,6 @@ import (
 
 	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/ncloud"
 	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/services/server"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
@@ -21,7 +20,6 @@ import (
 	"github.com/terraform-providers/terraform-provider-ncloud/internal/conn"
 	"github.com/terraform-providers/terraform-provider-ncloud/internal/service/vpc"
 	. "github.com/terraform-providers/terraform-provider-ncloud/internal/verify"
-	"github.com/terraform-providers/terraform-provider-ncloud/internal/zone"
 )
 
 func ResourceNcloudServer() *schema.Resource {
@@ -95,15 +93,6 @@ func ResourceNcloudServer() *schema.Resource {
 				Optional: true,
 				Computed: true,
 			},
-			// Deprecated
-			"internet_line_type": {
-				Type:             schema.TypeString,
-				Optional:         true,
-				Computed:         true,
-				ForceNew:         true,
-				ValidateDiagFunc: validation.ToDiagFunc(validation.StringInSlice([]string{"PUBLC", "GLBL"}, false)),
-				Deprecated:       "This parameter is no longer used.",
-			},
 			"fee_system_type_code": {
 				Type:     schema.TypeString,
 				Optional: true,
@@ -113,18 +102,6 @@ func ResourceNcloudServer() *schema.Resource {
 				Type:     schema.TypeString,
 				Optional: true,
 				Computed: true,
-				ForceNew: true,
-			},
-			"access_control_group_configuration_no_list": {
-				Type:     schema.TypeList,
-				Optional: true,
-				Elem:     &schema.Schema{Type: schema.TypeString},
-				ForceNew: true,
-				MinItems: 1,
-			},
-			"user_data": {
-				Type:     schema.TypeString,
-				Optional: true,
 				ForceNew: true,
 			},
 			"raid_type_name": {
@@ -151,24 +128,6 @@ func ResourceNcloudServer() *schema.Resource {
 					},
 				},
 			},
-			"tag_list": {
-				Type:     schema.TypeList,
-				Optional: true,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
-						"tag_key": {
-							Type:     schema.TypeString,
-							Optional: true,
-							ForceNew: true,
-						},
-						"tag_value": {
-							Type:     schema.TypeString,
-							Optional: true,
-							ForceNew: true,
-						},
-					},
-				},
-			},
 			"subnet_no": {
 				Type:     schema.TypeString,
 				Optional: true,
@@ -187,10 +146,9 @@ func ResourceNcloudServer() *schema.Resource {
 				Computed: true,
 			},
 			"network_interface": {
-				Type:          schema.TypeList,
-				ConflictsWith: []string{"access_control_group_configuration_no_list"},
-				Optional:      true,
-				Computed:      true,
+				Type:     schema.TypeList,
+				Optional: true,
+				Computed: true,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"network_interface_no": {
@@ -322,10 +280,7 @@ func resourceNcloudServerRead(d *schema.ResourceData, meta interface{}) error {
 		return nil
 	}
 
-	if config.SupportVPC {
-		_ = buildNetworkInterfaceList(config, r)
-	}
-
+	_ = buildNetworkInterfaceList(config, r)
 	instance := ConvertToMap(r)
 
 	SetSingularResourceDataFromMapSchema(ResourceNcloudServer(), d, instance)
@@ -399,83 +354,8 @@ func resourceNcloudServerUpdate(d *schema.ResourceData, meta interface{}) error 
 }
 
 func createServerInstance(d *schema.ResourceData, config *conn.ProviderConfig) (*string, error) {
-	if config.SupportVPC {
-		return createVpcServerInstance(d, config)
-	}
-
-	return createClassicServerInstance(d, config)
-}
-
-func createClassicServerInstance(d *schema.ResourceData, config *conn.ProviderConfig) (*string, error) {
-	zoneNo, err := zone.ParseZoneNoParameter(config, d)
-	if err != nil {
-		return nil, err
-	}
-
-	reqParams := &server.CreateServerInstancesRequest{
-		ZoneNo:                     zoneNo,
-		ServerImageProductCode:     StringPtrOrNil(d.GetOk("server_image_product_code")),
-		ServerProductCode:          StringPtrOrNil(d.GetOk("server_product_code")),
-		MemberServerImageNo:        StringPtrOrNil(d.GetOk("member_server_image_no")),
-		ServerName:                 StringPtrOrNil(d.GetOk("name")),
-		ServerDescription:          StringPtrOrNil(d.GetOk("description")),
-		LoginKeyName:               StringPtrOrNil(d.GetOk("login_key_name")),
-		IsProtectServerTermination: BoolPtrOrNil(d.GetOk("is_protect_server_termination")),
-		FeeSystemTypeCode:          StringPtrOrNil(d.GetOk("fee_system_type_code")),
-		UserData:                   StringPtrOrNil(d.GetOk("user_data")),
-		RaidTypeName:               StringPtrOrNil(d.GetOk("raid_type_name")),
-	}
-
-	if instanceTagList, err := expandTagListParams(d.Get("tag_list").([]interface{})); err == nil {
-		reqParams.InstanceTagList = instanceTagList
-	}
-
-	if param, ok := d.GetOk("access_control_group_configuration_no_list"); ok {
-		reqParams.AccessControlGroupConfigurationNoList = ExpandStringInterfaceList(param.([]interface{}))
-	}
-
-	var resp *server.CreateServerInstancesResponse
-	err = resource.Retry(10*time.Minute, func() *resource.RetryError {
-		var err error
-		LogCommonRequest("createClassicServerInstance", reqParams)
-		resp, err = config.Client.Server.V2Api.CreateServerInstances(reqParams)
-		if err != nil {
-			errBody, _ := GetCommonErrorBody(err)
-			if ContainsInStringList(errBody.ReturnCode, []string{ApiErrorUnknown, ApiErrorAuthorityParameter, ApiErrorServerObjectInOperation, ApiErrorPreviousServersHaveNotBeenEntirelyTerminated}) {
-				return resource.RetryableError(err)
-			}
-			return resource.NonRetryableError(err)
-		}
-		LogResponse("createClassicServerInstance", resp)
-		return nil
-	})
-
-	if err != nil {
-		LogErrorResponse("createClassicServerInstance", err, reqParams)
-		return nil, err
-	}
-	LogResponse("createClassicServerInstance", resp)
-
-	serverInstance := resp.ServerInstanceList[0]
-
-	if err := waitStateNcloudServerForCreation(config, *serverInstance.ServerInstanceNo); err != nil {
-		return nil, err
-	}
-
-	return serverInstance.ServerInstanceNo, nil
-}
-
-func createVpcServerInstance(d *schema.ResourceData, config *conn.ProviderConfig) (*string, error) {
 	if _, ok := d.GetOk("subnet_no"); !ok {
 		return nil, ErrorRequiredArgOnVpc("subnet_no")
-	}
-
-	if _, ok := d.GetOk("access_control_group_configuration_no_list"); ok {
-		return nil, NotSupportVpc("`access_control_group_configuration_no_list` of ncloud_server")
-	}
-
-	if _, ok := d.GetOk("user_data"); ok {
-		return nil, NotSupportVpc("`user_data` of ncloud_server")
 	}
 
 	subnet, err := vpc.GetSubnetInstance(config, d.Get("subnet_no").(string))
@@ -636,13 +516,7 @@ func updateServerInstanceSpec(d *schema.ResourceData, config *conn.ProviderConfi
 }
 
 func changeServerInstanceSpec(d *schema.ResourceData, config *conn.ProviderConfig) error {
-	var err error
-	if config.SupportVPC {
-		err = changeVpcServerInstanceSpec(d, config)
-	} else {
-		err = changeClassicServerInstanceSpec(d, config)
-	}
-
+	err := changeVpcServerInstanceSpec(d, config)
 	if err != nil {
 		return err
 	}
@@ -676,23 +550,6 @@ func changeServerInstanceSpec(d *schema.ResourceData, config *conn.ProviderConfi
 	return nil
 }
 
-func changeClassicServerInstanceSpec(d *schema.ResourceData, config *conn.ProviderConfig) error {
-	reqParams := &server.ChangeServerInstanceSpecRequest{
-		ServerInstanceNo:  ncloud.String(d.Get("instance_no").(string)),
-		ServerProductCode: ncloud.String(d.Get("server_product_code").(string)),
-	}
-
-	LogCommonRequest("changeClassicServerInstanceSpec", reqParams)
-	resp, err := config.Client.Server.V2Api.ChangeServerInstanceSpec(reqParams)
-	if err != nil {
-		LogErrorResponse("changeClassicServerInstanceSpec", err, reqParams)
-		return err
-	}
-	LogCommonResponse("changeClassicServerInstanceSpec", GetCommonResponse(resp))
-
-	return nil
-}
-
 func changeVpcServerInstanceSpec(d *schema.ResourceData, config *conn.ProviderConfig) error {
 	reqParams := &vserver.ChangeServerInstanceSpecRequest{
 		RegionCode:       &config.RegionCode,
@@ -718,14 +575,6 @@ func changeVpcServerInstanceSpec(d *schema.ResourceData, config *conn.ProviderCo
 }
 
 func updateServerProtectionTermination(d *schema.ResourceData, config *conn.ProviderConfig) error {
-	if config.SupportVPC {
-		return updateVpcServerProtectionTermination(d, config)
-	}
-
-	return updateClassicServerProtectionTermination(d, config)
-}
-
-func updateVpcServerProtectionTermination(d *schema.ResourceData, config *conn.ProviderConfig) error {
 	reqParams := &vserver.SetProtectServerTerminationRequest{
 		RegionCode:                 &config.RegionCode,
 		ServerInstanceNo:           ncloud.String(d.Id()),
@@ -743,31 +592,9 @@ func updateVpcServerProtectionTermination(d *schema.ResourceData, config *conn.P
 	return nil
 }
 
-func updateClassicServerProtectionTermination(d *schema.ResourceData, config *conn.ProviderConfig) error {
-	reqParams := &server.SetProtectServerTerminationRequest{
-		ServerInstanceNo:           ncloud.String(d.Id()),
-		IsProtectServerTermination: ncloud.Bool(d.Get("is_protect_server_termination").(bool)),
-	}
-
-	LogCommonRequest("SetProtectServerTermination", reqParams)
-	resp, err := config.Client.Server.V2Api.SetProtectServerTermination(reqParams)
-	if err != nil {
-		LogErrorResponse("SetProtectServerTermination", err, reqParams)
-		return err
-	}
-	LogResponse("SetProtectServerTermination", resp)
-
-	return nil
-}
-
 func startThenWaitServerInstance(config *conn.ProviderConfig, id string) error {
 	var err error
-	if config.SupportVPC {
-		err = startVpcServerInstance(config, id)
-	} else {
-		err = startClassicServerInstance(config, id)
-	}
-
+	err = startVpcServerInstance(config, id)
 	if err != nil {
 		return err
 	}
@@ -800,21 +627,6 @@ func startThenWaitServerInstance(config *conn.ProviderConfig, id string) error {
 	return nil
 }
 
-func startClassicServerInstance(config *conn.ProviderConfig, id string) error {
-	reqParams := &server.StartServerInstancesRequest{
-		ServerInstanceNoList: []*string{ncloud.String(id)},
-	}
-	LogCommonRequest("startClassicServerInstance", reqParams)
-	resp, err := config.Client.Server.V2Api.StartServerInstances(reqParams)
-	if err != nil {
-		LogErrorResponse("startClassicServerInstance", err, reqParams)
-		return err
-	}
-	LogResponse("startClassicServerInstance", resp)
-
-	return nil
-}
-
 func startVpcServerInstance(config *conn.ProviderConfig, id string) error {
 	reqParams := &vserver.StartServerInstancesRequest{
 		RegionCode:           &config.RegionCode,
@@ -832,74 +644,6 @@ func startVpcServerInstance(config *conn.ProviderConfig, id string) error {
 }
 
 func GetServerInstance(config *conn.ProviderConfig, id string) (*ServerInstance, error) {
-	if config.SupportVPC {
-		return getVpcServerInstance(config, id)
-	}
-
-	return getClassicServerInstance(config, id)
-}
-
-func getClassicServerInstance(config *conn.ProviderConfig, id string) (*ServerInstance, error) {
-	reqParams := &server.GetServerInstanceListRequest{
-		ServerInstanceNoList: []*string{ncloud.String(id)},
-	}
-
-	LogCommonRequest("getClassicServerInstance", reqParams)
-	resp, err := config.Client.Server.V2Api.GetServerInstanceList(reqParams)
-
-	if err != nil {
-		LogErrorResponse("getClassicServerInstance", err, reqParams)
-		return nil, err
-	}
-
-	LogResponse("getClassicServerInstance", resp)
-
-	if len(resp.ServerInstanceList) == 0 {
-		return nil, nil
-	}
-
-	if err := ValidateOneResult(len(resp.ServerInstanceList)); err != nil {
-		return nil, err
-	}
-
-	return convertClassicServerInstance(resp.ServerInstanceList[0]), nil
-}
-
-func convertClassicServerInstance(r *server.ServerInstance) *ServerInstance {
-	if r == nil {
-		return nil
-	}
-
-	return &ServerInstance{
-		ZoneNo:                         r.Zone.ZoneNo,
-		ServerImageProductCode:         r.ServerImageProductCode,
-		ServerProductCode:              r.ServerProductCode,
-		ServerName:                     r.ServerName,
-		ServerDescription:              r.ServerDescription,
-		LoginKeyName:                   r.LoginKeyName,
-		IsProtectServerTermination:     r.IsProtectServerTermination,
-		ServerInstanceNo:               r.ServerInstanceNo,
-		ServerImageName:                r.ServerImageName,
-		CpuCount:                       r.CpuCount,
-		MemorySize:                     r.MemorySize,
-		BaseBlockStorageSize:           r.BaseBlockStorageSize,
-		IsFeeChargingMonitoring:        r.IsFeeChargingMonitoring,
-		PublicIp:                       r.PublicIp,
-		PrivateIp:                      r.PrivateIp,
-		PortForwardingPublicIp:         r.PortForwardingPublicIp,
-		PortForwardingExternalPort:     r.PortForwardingExternalPort,
-		PortForwardingInternalPort:     r.PortForwardingInternalPort,
-		ServerInstanceStatus:           common.GetCodePtrByCommonCode(r.ServerInstanceStatus),
-		PlatformType:                   common.GetCodePtrByCommonCode(r.PlatformType),
-		ServerInstanceOperation:        common.GetCodePtrByCommonCode(r.ServerInstanceOperation),
-		Zone:                           r.Zone.ZoneCode,
-		BaseBlockStorageDiskType:       common.GetCodePtrByCommonCode(r.BaseBlockStorageDiskType),
-		BaseBlockStorageDiskDetailType: flattenMapByKey(r.BaseBlockStorageDiskDetailType, "code"),
-		InstanceTagList:                r.InstanceTagList,
-	}
-}
-
-func getVpcServerInstance(config *conn.ProviderConfig, id string) (*ServerInstance, error) {
 	reqParams := &vserver.GetServerInstanceDetailRequest{
 		RegionCode:       &config.RegionCode,
 		ServerInstanceNo: ncloud.String(id),
@@ -1025,12 +769,7 @@ func stopThenWaitServerInstance(config *conn.ProviderConfig, id string) error {
 		return fmt.Errorf("error waiting for ServerInstance operation to be \"NULL\": %s", err)
 	}
 
-	if config.SupportVPC {
-		err = stopVpcServerInstance(config, id)
-	} else {
-		err = stopClassicServerInstance(config, id)
-	}
-
+	err = stopVpcServerInstance(config, id)
 	if err != nil {
 		return err
 	}
@@ -1099,21 +838,6 @@ func detachThenWaitServerInstance(config *conn.ProviderConfig, id string) error 
 	return nil
 }
 
-func stopClassicServerInstance(config *conn.ProviderConfig, id string) error {
-	reqParams := &server.StopServerInstancesRequest{
-		ServerInstanceNoList: []*string{ncloud.String(id)},
-	}
-	LogCommonRequest("stopClassicServerInstance", reqParams)
-	resp, err := config.Client.Server.V2Api.StopServerInstances(reqParams)
-	if err != nil {
-		LogErrorResponse("stopClassicServerInstance", err, reqParams)
-		return err
-	}
-	LogResponse("stopClassicServerInstance", resp)
-
-	return nil
-}
-
 func stopVpcServerInstance(config *conn.ProviderConfig, id string) error {
 	reqParams := &vserver.StopServerInstancesRequest{
 		RegionCode:           &config.RegionCode,
@@ -1132,12 +856,7 @@ func stopVpcServerInstance(config *conn.ProviderConfig, id string) error {
 
 func terminateThenWaitServerInstance(config *conn.ProviderConfig, id string) error {
 	var err error
-	if config.SupportVPC {
-		err = terminateVpcServerInstance(config, id)
-	} else {
-		err = terminateClassicServerInstance(config, id)
-	}
-
+	err = terminateVpcServerInstance(config, id)
 	if err != nil {
 		return err
 	}
@@ -1169,36 +888,6 @@ func terminateThenWaitServerInstance(config *conn.ProviderConfig, id string) err
 	return nil
 }
 
-func terminateClassicServerInstance(config *conn.ProviderConfig, id string) error {
-	reqParams := &server.TerminateServerInstancesRequest{
-		ServerInstanceNoList: []*string{ncloud.String(id)},
-	}
-
-	var resp *server.TerminateServerInstancesResponse
-	err := resource.Retry(1*time.Minute, func() *resource.RetryError {
-		var err error
-		LogCommonRequest("terminateClassicServerInstance", reqParams)
-		resp, err = config.Client.Server.V2Api.TerminateServerInstances(reqParams)
-		if err != nil {
-			errBody, _ := GetCommonErrorBody(err)
-			if ContainsInStringList(errBody.ReturnCode, []string{ApiErrorUnknown, ApiErrorServerObjectInOperation2}) {
-				LogErrorResponse("retry terminateClassicServerInstance", err, reqParams)
-				return resource.RetryableError(err)
-			}
-			return resource.NonRetryableError(err)
-		}
-		LogResponse("terminateClassicServerInstance", resp)
-		return nil
-	})
-
-	if err != nil {
-		LogErrorResponse("terminateClassicServerInstance", err, reqParams)
-		return err
-	}
-
-	return nil
-}
-
 func terminateVpcServerInstance(config *conn.ProviderConfig, id string) error {
 	reqParams := &vserver.TerminateServerInstancesRequest{
 		RegionCode:           &config.RegionCode,
@@ -1218,14 +907,6 @@ func terminateVpcServerInstance(config *conn.ProviderConfig, id string) error {
 }
 
 func getAdditionalBlockStorageList(config *conn.ProviderConfig, id string) ([]*BlockStorage, error) {
-	if config.SupportVPC {
-		return getVpcAdditionalBlockStorageList(config, id)
-	} else {
-		return getClassicAdditionalBlockStorageList(config, id)
-	}
-}
-
-func getVpcAdditionalBlockStorageList(config *conn.ProviderConfig, id string) ([]*BlockStorage, error) {
 	resp, err := config.Client.Vserver.V2Api.GetBlockStorageInstanceList(&vserver.GetBlockStorageInstanceListRequest{
 		RegionCode:               &config.RegionCode,
 		ServerInstanceNo:         ncloud.String(id),
@@ -1274,31 +955,6 @@ func getVpcBasicBlockStorageList(config *conn.ProviderConfig, id string) ([]*Blo
 	return blockStorageList, nil
 }
 
-func getClassicAdditionalBlockStorageList(config *conn.ProviderConfig, id string) ([]*BlockStorage, error) {
-	resp, err := config.Client.Server.V2Api.GetBlockStorageInstanceList(&server.GetBlockStorageInstanceListRequest{
-		RegionNo:                 &config.RegionCode,
-		ServerInstanceNo:         ncloud.String(id),
-		BlockStorageTypeCodeList: []*string{ncloud.String("SVRBS")},
-	})
-
-	if err != nil {
-		return nil, err
-	}
-
-	LogResponse("getClassicAdditionalBlockStorageList", resp)
-
-	if len(resp.BlockStorageInstanceList) < 1 {
-		return nil, nil
-	}
-
-	blockStorageList := make([]*BlockStorage, 0)
-	for _, blockStorage := range resp.BlockStorageInstanceList {
-		blockStorageList = append(blockStorageList, convertClassicBlockStorage(blockStorage))
-	}
-
-	return blockStorageList, nil
-}
-
 func convertVpcBlockStorage(storage *vserver.BlockStorageInstance) *BlockStorage {
 	return &BlockStorage{
 		BlockStorageInstanceNo:  storage.BlockStorageInstanceNo,
@@ -1317,48 +973,9 @@ func convertVpcBlockStorage(storage *vserver.BlockStorageInstance) *BlockStorage
 	}
 }
 
-func convertClassicBlockStorage(storage *server.BlockStorageInstance) *BlockStorage {
-	return &BlockStorage{
-		BlockStorageInstanceNo:  storage.BlockStorageInstanceNo,
-		ServerInstanceNo:        storage.ServerInstanceNo,
-		ServerName:              storage.ServerName,
-		BlockStorageType:        common.GetCodePtrByCommonCode(storage.BlockStorageType),
-		BlockStorageName:        storage.BlockStorageName,
-		BlockStorageSize:        storage.BlockStorageSize,
-		DeviceName:              storage.DeviceName,
-		BlockStorageProductCode: storage.BlockStorageProductCode,
-		Status:                  common.GetCodePtrByCommonCode(storage.BlockStorageInstanceStatus),
-		Operation:               common.GetCodePtrByCommonCode(storage.BlockStorageInstanceOperation),
-		Description:             storage.BlockStorageInstanceDescription,
-		DiskType:                common.GetCodePtrByCommonCode(storage.DiskType),
-		DiskDetailType:          common.GetCodePtrByCommonCode(storage.DiskDetailType),
-		ZoneCode:                storage.Zone.ZoneCode,
-	}
-}
-
 func disconnectBlockStorage(config *conn.ProviderConfig, storage *BlockStorage) error {
-	if config.SupportVPC {
-		return disconnectVpcBlockStorage(config, storage)
-	} else {
-		return disconnectClassicBlockStorage(config, storage)
-	}
-}
-
-func disconnectVpcBlockStorage(config *conn.ProviderConfig, storage *BlockStorage) error {
 	_, err := config.Client.Vserver.V2Api.DetachBlockStorageInstances(&vserver.DetachBlockStorageInstancesRequest{
 		RegionCode:                 &config.RegionCode,
-		BlockStorageInstanceNoList: []*string{storage.BlockStorageInstanceNo},
-	})
-
-	if err != nil {
-		return err
-	}
-
-	return nil
-}
-
-func disconnectClassicBlockStorage(config *conn.ProviderConfig, storage *BlockStorage) error {
-	_, err := config.Client.Server.V2Api.DetachBlockStorageInstances(&server.DetachBlockStorageInstancesRequest{
 		BlockStorageInstanceNoList: []*string{storage.BlockStorageInstanceNo},
 	})
 
@@ -1442,35 +1059,33 @@ func waitForAttachedBlockStorage(config *conn.ProviderConfig, no string) error {
 // ServerInstance server instance model
 type ServerInstance struct {
 	// Request
-	ZoneNo                         *string               `json:"zone_no,omitempty"`
-	ServerImageProductCode         *string               `json:"server_image_product_code,omitempty"`
-	ServerProductCode              *string               `json:"server_product_code,omitempty"`
-	MemberServerImageNo            *string               `json:"member_server_image_no,omitempty"`
-	ServerName                     *string               `json:"name,omitempty"`
-	ServerDescription              *string               `json:"description,omitempty"`
-	LoginKeyName                   *string               `json:"login_key_name,omitempty"`
-	IsProtectServerTermination     *bool                 `json:"is_protect_server_termination,omitempty"`
-	FeeSystemTypeCode              *string               `json:"fee_system_type_code,omitempty"`
-	UserData                       *string               `json:"user_data,omitempty"`
-	RaidTypeName                   *string               `json:"raid_type_name,omitempty"`
-	ServerInstanceNo               *string               `json:"instance_no,omitempty"`
-	ServerImageName                *string               `json:"server_image_name,omitempty"`
-	CpuCount                       *int32                `json:"cpu_count,omitempty"`
-	MemorySize                     *int64                `json:"memory_size,omitempty"`
-	BaseBlockStorageSize           *int64                `json:"base_block_storage_size,omitempty"`
-	IsFeeChargingMonitoring        *bool                 `json:"is_fee_charging_monitoring,omitempty"`
-	PublicIp                       *string               `json:"public_ip,omitempty"`
-	PrivateIp                      *string               `json:"private_ip,omitempty"`
-	PortForwardingPublicIp         *string               `json:"port_forwarding_public_ip,omitempty"`
-	PortForwardingExternalPort     *int32                `json:"port_forwarding_external_port,omitempty"`
-	PortForwardingInternalPort     *int32                `json:"port_forwarding_internal_port,omitempty"`
-	ServerInstanceStatus           *string               `json:"status,omitempty"`
-	PlatformType                   *string               `json:"platform_type,omitempty"`
-	ServerInstanceOperation        *string               `json:"operation,omitempty"`
-	Zone                           *string               `json:"zone,omitempty"`
-	BaseBlockStorageDiskType       *string               `json:"base_block_storage_disk_type,omitempty"`
-	BaseBlockStorageDiskDetailType *string               `json:"base_block_storage_disk_detail_type,omitempty"`
-	InstanceTagList                []*server.InstanceTag `json:"tag_list,omitempty"`
+	ZoneNo                         *string `json:"zone_no,omitempty"`
+	ServerImageProductCode         *string `json:"server_image_product_code,omitempty"`
+	ServerProductCode              *string `json:"server_product_code,omitempty"`
+	MemberServerImageNo            *string `json:"member_server_image_no,omitempty"`
+	ServerName                     *string `json:"name,omitempty"`
+	ServerDescription              *string `json:"description,omitempty"`
+	LoginKeyName                   *string `json:"login_key_name,omitempty"`
+	IsProtectServerTermination     *bool   `json:"is_protect_server_termination,omitempty"`
+	FeeSystemTypeCode              *string `json:"fee_system_type_code,omitempty"`
+	RaidTypeName                   *string `json:"raid_type_name,omitempty"`
+	ServerInstanceNo               *string `json:"instance_no,omitempty"`
+	ServerImageName                *string `json:"server_image_name,omitempty"`
+	CpuCount                       *int32  `json:"cpu_count,omitempty"`
+	MemorySize                     *int64  `json:"memory_size,omitempty"`
+	BaseBlockStorageSize           *int64  `json:"base_block_storage_size,omitempty"`
+	IsFeeChargingMonitoring        *bool   `json:"is_fee_charging_monitoring,omitempty"`
+	PublicIp                       *string `json:"public_ip,omitempty"`
+	PrivateIp                      *string `json:"private_ip,omitempty"`
+	PortForwardingPublicIp         *string `json:"port_forwarding_public_ip,omitempty"`
+	PortForwardingExternalPort     *int32  `json:"port_forwarding_external_port,omitempty"`
+	PortForwardingInternalPort     *int32  `json:"port_forwarding_internal_port,omitempty"`
+	ServerInstanceStatus           *string `json:"status,omitempty"`
+	PlatformType                   *string `json:"platform_type,omitempty"`
+	ServerInstanceOperation        *string `json:"operation,omitempty"`
+	Zone                           *string `json:"zone,omitempty"`
+	BaseBlockStorageDiskType       *string `json:"base_block_storage_disk_type,omitempty"`
+	BaseBlockStorageDiskDetailType *string `json:"base_block_storage_disk_detail_type,omitempty"`
 	// VPC
 	ServerImageNo            *string                           `json:"server_image_number,omitempty"`
 	ServerSpecCode           *string                           `json:"server_spec_code,omitempty"`

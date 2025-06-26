@@ -39,12 +39,7 @@ func DataSourceNcloudPlacementGroup() *schema.Resource {
 func dataSourceNcloudPlacementGroupRead(d *schema.ResourceData, meta interface{}) error {
 	config := meta.(*conn.ProviderConfig)
 
-	if !config.SupportVPC {
-		return NotSupportClassic("data source `ncloud_placement_group`")
-	}
-
 	resources, err := getPlacementGroupListFiltered(d, config)
-
 	if err != nil {
 		return err
 	}

@@ -1,7 +1,6 @@
 package server
 
 import (
-	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/services/server"
 	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/services/vserver"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
@@ -117,12 +116,7 @@ func dataSourceNcloudMemberServerImageRead(d *schema.ResourceData, meta interfac
 	var resources []map[string]interface{}
 	var err error
 
-	if config.SupportVPC {
-		resources, err = getVpcMemberServerImage(d, config)
-	} else {
-		resources, err = getClassicMemberServerImage(d, config)
-	}
-
+	resources, err = getVpcMemberServerImage(d, config)
 	if err != nil {
 		return err
 	}
@@ -138,63 +132,6 @@ func dataSourceNcloudMemberServerImageRead(d *schema.ResourceData, meta interfac
 	SetSingularResourceDataFromMap(d, resources[0])
 
 	return nil
-}
-
-func getClassicMemberServerImage(d *schema.ResourceData, config *conn.ProviderConfig) ([]map[string]interface{}, error) {
-	client := config.Client
-	regionNo := config.RegionNo
-
-	reqParams := &server.GetMemberServerImageListRequest{
-		RegionNo: &regionNo,
-	}
-
-	if noList, ok := d.GetOk("no_list"); ok {
-		reqParams.MemberServerImageNoList = ExpandStringInterfaceList(noList.([]interface{}))
-	}
-
-	if platformTypeCodeList, ok := d.GetOk("platform_type_code_list"); ok {
-		reqParams.PlatformTypeCodeList = ExpandStringInterfaceList(platformTypeCodeList.([]interface{}))
-	}
-
-	LogCommonRequest("getClassicMemberServerImage", reqParams)
-
-	resp, err := client.Server.V2Api.GetMemberServerImageList(reqParams)
-	if err != nil {
-		LogErrorResponse("getClassicMemberServerImage", err, reqParams)
-		return nil, err
-	}
-	LogCommonResponse("getClassicMemberServerImage", GetCommonResponse(resp))
-
-	resources := []map[string]interface{}{}
-
-	for _, r := range resp.MemberServerImageList {
-		instance := map[string]interface{}{
-			"id":                                    *r.MemberServerImageNo,
-			"no":                                    *r.MemberServerImageNo,
-			"name":                                  *r.MemberServerImageName,
-			"description":                           *r.MemberServerImageDescription,
-			"original_server_instance_no":           *r.OriginalServerInstanceNo,
-			"original_server_product_code":          *r.OriginalServerProductCode,
-			"original_server_name":                  *r.OriginalServerName,
-			"original_base_block_storage_disk_type": *r.OriginalBaseBlockStorageDiskType.Code,
-			"original_server_image_product_code":    *r.OriginalServerImageProductCode,
-			"original_os_information":               *r.OriginalOsInformation,
-			"original_server_image_name":            *r.OriginalServerImageName,
-			"platform_type":                         *r.MemberServerImagePlatformType.Code,
-		}
-
-		if r.MemberServerImageBlockStorageTotalRows != nil {
-			instance["block_storage_total_rows"] = *r.MemberServerImageBlockStorageTotalRows
-		}
-
-		if r.MemberServerImageBlockStorageTotalSize != nil {
-			instance["block_storage_total_size"] = *r.MemberServerImageBlockStorageTotalSize
-		}
-
-		resources = append(resources, instance)
-	}
-
-	return resources, nil
 }
 
 func getVpcMemberServerImage(d *schema.ResourceData, config *conn.ProviderConfig) ([]map[string]interface{}, error) {

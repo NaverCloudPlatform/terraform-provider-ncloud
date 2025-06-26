@@ -52,44 +52,6 @@ func TestAccDataSourceNcloudServer_vpc_basic(t *testing.T) {
 	})
 }
 
-func TestAccDataSourceNcloudServer_classic_basic(t *testing.T) {
-	// Images are all deprecated in Classic
-	t.Skip()
-
-	dataName := "data.ncloud_server.by_id"
-	resourceName := "ncloud_server.server"
-	testServerName := GetTestServerName()
-
-	resource.Test(t, resource.TestCase{
-		PreCheck:                 func() { TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: ClassicProtoV6ProviderFactories,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccDataSourceServerClassicConfig(testServerName),
-				Check: resource.ComposeTestCheckFunc(
-					TestAccCheckDataSourceID(dataName),
-					resource.TestMatchResourceAttr(dataName, "id", regexp.MustCompile(`^\d+$`)),
-					resource.TestCheckResourceAttrPair(dataName, "id", resourceName, "id"),
-					resource.TestCheckResourceAttrPair(dataName, "server_image_product_code", resourceName, "server_image_product_code"),
-					resource.TestCheckResourceAttrPair(dataName, "server_product_code", resourceName, "server_product_code"),
-					resource.TestCheckResourceAttrPair(dataName, "name", resourceName, "name"),
-					resource.TestCheckResourceAttrPair(dataName, "description", resourceName, "description"),
-					resource.TestCheckResourceAttrPair(dataName, "zone", resourceName, "zone"),
-					resource.TestCheckResourceAttrPair(dataName, "base_block_storage_disk_type", resourceName, "base_block_storage_disk_type"),
-					resource.TestCheckResourceAttrPair(dataName, "cpu_count", resourceName, "cpu_count"),
-					resource.TestCheckResourceAttrPair(dataName, "memory_size", resourceName, "memory_size"),
-					resource.TestCheckResourceAttrPair(dataName, "instance_no", resourceName, "instance_no"),
-					resource.TestCheckResourceAttrPair(dataName, "platform_type", resourceName, "platform_type"),
-					resource.TestCheckResourceAttrPair(dataName, "is_protect_server_termination", resourceName, "is_protect_server_termination"),
-					resource.TestCheckResourceAttrPair(dataName, "instance_no", resourceName, "instance_no"),
-					resource.TestCheckResourceAttrPair(dataName, "public_ip", resourceName, "public_ip"),
-					TestAccCheckDataSourceID("data.ncloud_server.by_filter"),
-				),
-			},
-		},
-	})
-}
-
 func testAccDataSourceServerVpcConfig(testServerName string, specCode string) string {
 	return fmt.Sprintf(`
 resource "ncloud_login_key" "loginkey" {
@@ -137,30 +99,4 @@ data "ncloud_server" "by_filter" {
 	}
 }
 `, testServerName, specCode)
-}
-
-func testAccDataSourceServerClassicConfig(testServerName string) string {
-	return fmt.Sprintf(`
-resource "ncloud_login_key" "loginkey" {
-	key_name = "%[1]s-key"
-}
-
-resource "ncloud_server" "server" {
-	name = "%[1]s"
-	server_image_product_code = "SPSW0LINUX000046"
-	server_product_code = "SPSVRSTAND000004"
-	login_key_name = "${ncloud_login_key.loginkey.key_name}"
-}
-
-data "ncloud_server" "by_id" {
-	id = ncloud_server.server.id
-}
-
-data "ncloud_server" "by_filter" {
-	filter {
-		name = "instance_no"
-		values = [ncloud_server.server.id]
-	}
-}
-`, testServerName)
 }

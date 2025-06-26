@@ -10,28 +10,6 @@ import (
 	. "github.com/terraform-providers/terraform-provider-ncloud/internal/acctest"
 )
 
-func TestAccDataSourceNcloudRootPassword_classic_basic(t *testing.T) {
-	// Images are all deprecated in Classic
-	t.Skip()
-
-	resourceName := "data.ncloud_root_password.default"
-	name := fmt.Sprintf("tf-passwd-basic-%s", acctest.RandString(5))
-
-	resource.Test(t, resource.TestCase{
-		PreCheck:                 func() { TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: ClassicProtoV6ProviderFactories,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccDataSourceRootPasswordClassicConfig(name),
-				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttrSet(resourceName, "server_instance_no"),
-					resource.TestCheckResourceAttrSet(resourceName, "private_key"),
-				),
-			},
-		},
-	})
-}
-
 func TestAccDataSourceNcloudRootPassword_vpc_basic(t *testing.T) {
 	resourceName := "data.ncloud_root_password.default"
 	name := fmt.Sprintf("tf-passwd-basic-%s", acctest.RandString(5))
@@ -49,26 +27,6 @@ func TestAccDataSourceNcloudRootPassword_vpc_basic(t *testing.T) {
 			},
 		},
 	})
-}
-
-func testAccDataSourceRootPasswordClassicConfig(name string) string {
-	return fmt.Sprintf(`
-resource "ncloud_login_key" "key" {
-  key_name = "%[1]s-key"
-}
-
-resource "ncloud_server" "server" {
-  name = "%[1]s"
-  server_image_product_code = "SPSW0LINUX000046"
-  server_product_code = "SPSVRSTAND000004"
-  login_key_name = "${ncloud_login_key.key.key_name}"
-}
-
-data "ncloud_root_password" "default" {
-  server_instance_no = ncloud_server.server.id
-  private_key = ncloud_login_key.key.private_key
-}
-`, name)
 }
 
 func testAccDataSourceRootPasswordVpcConfig(testServerName string) string {
