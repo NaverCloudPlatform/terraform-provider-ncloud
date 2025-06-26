@@ -133,14 +133,6 @@ func (r *mongodbUsersResource) Schema(_ context.Context, _ resource.SchemaReques
 func (r *mongodbUsersResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
 	var plan mongodbUsersResourceModel
 
-	if !r.config.SupportVPC {
-		resp.Diagnostics.AddError(
-			"NOT SUPPORT CLASSIC",
-			"resource does not support CLASSIC. only VPC.",
-		)
-		return
-	}
-
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &plan)...)
 	if resp.Diagnostics.HasError() {
 		return
