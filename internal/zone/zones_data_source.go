@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/services/server"
 	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/services/vserver"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 
@@ -42,12 +41,7 @@ func dataSourceNcloudZonesRead(d *schema.ResourceData, meta interface{}) error {
 	var zones []*Zone
 	var err error
 
-	if meta.(*conn.ProviderConfig).SupportVPC {
-		zones, err = getVpcZones(meta.(*conn.ProviderConfig))
-	} else {
-		zones, err = getClassicZones(meta.(*conn.ProviderConfig))
-	}
-
+	zones, err = getVpcZones(meta.(*conn.ProviderConfig))
 	if err != nil {
 		return err
 	}
@@ -68,28 +62,6 @@ func dataSourceNcloudZonesRead(d *schema.ResourceData, meta interface{}) error {
 	}
 
 	return nil
-}
-
-func getClassicZones(config *conn.ProviderConfig) ([]*Zone, error) {
-	client := config.Client
-	regionNo := config.RegionNo
-
-	resp, err := client.Server.V2Api.GetZoneList(&server.GetZoneListRequest{RegionNo: &regionNo})
-	if err != nil {
-		return nil, err
-	}
-
-	if resp == nil {
-		return nil, fmt.Errorf("no matching zones found")
-	}
-
-	var zones []*Zone
-
-	for _, zone := range resp.ZoneList {
-		zones = append(zones, GetZone(zone))
-	}
-
-	return zones, nil
 }
 
 func getVpcZones(config *conn.ProviderConfig) ([]*Zone, error) {
