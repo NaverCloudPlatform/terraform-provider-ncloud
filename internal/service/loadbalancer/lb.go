@@ -179,14 +179,6 @@ func (r *lbResource) Configure(_ context.Context, req resource.ConfigureRequest,
 func (r *lbResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
 	var plan lbResourceModel
 
-	if !r.config.SupportVPC {
-		resp.Diagnostics.AddError(
-			"NOT SUPPORT CLASSIC",
-			"The `ncloud_lb` resource is not supported in Classic environment",
-		)
-		return
-	}
-
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &plan)...)
 	if resp.Diagnostics.HasError() {
 		return
@@ -346,16 +338,7 @@ func (r *lbResource) Read(ctx context.Context, req resource.ReadRequest, resp *r
 }
 
 func (r *lbResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
-
 	var plan, state lbResourceModel
-
-	if !r.config.SupportVPC {
-		resp.Diagnostics.AddError(
-			"NOT SUPPORT CLASSIC",
-			"The `ncloud_lb` resource is not supported in Classic environment",
-		)
-		return
-	}
 
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &plan)...)
 	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)

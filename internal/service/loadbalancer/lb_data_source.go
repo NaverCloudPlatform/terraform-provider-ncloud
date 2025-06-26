@@ -108,14 +108,6 @@ func (l *loadBalancerDataSource) Configure(ctx context.Context, req datasource.C
 func (l *loadBalancerDataSource) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
 	var data loadBalancerDataSourceModel
 
-	if !l.config.SupportVPC {
-		resp.Diagnostics.AddError(
-			"Not Supported Classic",
-			"load balancer data source does not support classic",
-		)
-		return
-	}
-
 	resp.Diagnostics.Append(req.Config.Get(ctx, &data)...)
 	if resp.Diagnostics.HasError() {
 		return

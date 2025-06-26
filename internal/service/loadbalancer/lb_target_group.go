@@ -147,9 +147,7 @@ func ResourceNcloudLbTargetGroup() *schema.Resource {
 
 func resourceNcloudTargetGroupCreate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	config := meta.(*conn.ProviderConfig)
-	if !config.SupportVPC {
-		return diag.FromErr(NotSupportClassic("resource `ncloud_lb_target_group`"))
-	}
+
 	reqParams := &vloadbalancer.CreateTargetGroupRequest{
 		RegionCode: &config.RegionCode,
 		// Optional
@@ -207,9 +205,6 @@ func resourceNcloudTargetGroupCreate(ctx context.Context, d *schema.ResourceData
 
 func resourceNcloudTargetGroupRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	config := meta.(*conn.ProviderConfig)
-	if !config.SupportVPC {
-		return diag.FromErr(NotSupportClassic("resource `ncloud_lb_target_group`"))
-	}
 
 	tg, err := GetVpcLoadBalancerTargetGroup(config, d.Id())
 	if err != nil {
@@ -228,9 +223,7 @@ func resourceNcloudTargetGroupRead(ctx context.Context, d *schema.ResourceData, 
 
 func resourceNcloudTargetGroupUpdate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	config := meta.(*conn.ProviderConfig)
-	if !config.SupportVPC {
-		return diag.FromErr(NotSupportClassic("resource `ncloud_lb_target_group`"))
-	}
+
 	if d.HasChange("health_check") {
 		reqParams := &vloadbalancer.ChangeTargetGroupHealthCheckConfigurationRequest{
 			RegionCode:    &config.RegionCode,
@@ -290,9 +283,7 @@ func resourceNcloudTargetGroupUpdate(ctx context.Context, d *schema.ResourceData
 
 func resourceNcloudTargetGroupDelete(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	config := meta.(*conn.ProviderConfig)
-	if !config.SupportVPC {
-		return diag.FromErr(NotSupportClassic("resource `ncloud_lb_target_group`"))
-	}
+
 	reqParams := &vloadbalancer.DeleteTargetGroupsRequest{
 		RegionCode:        &config.RegionCode,
 		TargetGroupNoList: []*string{ncloud.String(d.Id())},
