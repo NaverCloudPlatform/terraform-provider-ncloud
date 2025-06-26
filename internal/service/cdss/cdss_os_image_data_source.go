@@ -30,9 +30,6 @@ func DataSourceNcloudCDSSOsImage() *schema.Resource {
 
 func dataSourceNcloudCDSSOsProductRead(d *schema.ResourceData, meta interface{}) error {
 	config := meta.(*conn.ProviderConfig)
-	if !config.SupportVPC {
-		return NotSupportClassic("datasource `ncloud_cdss_node_os_image`")
-	}
 
 	resources, err := getCDSSOsProducts(config)
 	if err != nil {

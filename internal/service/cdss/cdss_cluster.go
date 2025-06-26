@@ -212,9 +212,6 @@ func ResourceNcloudCDSSCluster() *schema.Resource {
 
 func resourceNcloudCDSSClusterCreate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	config := meta.(*conn.ProviderConfig)
-	if !config.SupportVPC {
-		return diag.FromErr(NotSupportClassic("resource `ncloud_cdss_cluster`"))
-	}
 
 	c := d.Get("cmak").([]interface{})
 	cMap := c[0].(map[string]interface{})
@@ -258,9 +255,6 @@ func resourceNcloudCDSSClusterCreate(ctx context.Context, d *schema.ResourceData
 
 func resourceNcloudCDSSClusterRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	config := meta.(*conn.ProviderConfig)
-	if !config.SupportVPC {
-		return diag.FromErr(NotSupportClassic("resource `ncloud_cdss_cluster`"))
-	}
 
 	cluster, err := getCDSSCluster(ctx, config, d.Id())
 	if err != nil {
@@ -350,9 +344,6 @@ func resourceNcloudCDSSClusterRead(ctx context.Context, d *schema.ResourceData, 
 
 func resourceNcloudCDSSClusterUpdate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	config := meta.(*conn.ProviderConfig)
-	if !config.SupportVPC {
-		return diag.FromErr(NotSupportClassic("resource `ncloud_cdss_cluster`"))
-	}
 
 	checkConfigGroupNoChanged(ctx, d, config)
 	checkCmakPasswordChanged(ctx, d, config)
@@ -499,9 +490,6 @@ func getChangedCDSSNodeProductCode(nodeType string, d *schema.ResourceData) *str
 
 func resourceNcloudCDSSClusterDelete(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	config := meta.(*conn.ProviderConfig)
-	if !config.SupportVPC {
-		return diag.FromErr(NotSupportClassic("resource `ncloud_nks_cluster`"))
-	}
 
 	if err := waitForCDSSClusterActive(ctx, d, config, d.Id()); err != nil {
 		return diag.FromErr(err)

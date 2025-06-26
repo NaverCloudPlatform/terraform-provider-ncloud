@@ -62,9 +62,6 @@ func ResourceNcloudCDSSConfigGroup() *schema.Resource {
 
 func resourceNcloudCDSSConfigGroupCreate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	config := meta.(*conn.ProviderConfig)
-	if !config.SupportVPC {
-		return diag.FromErr(NotSupportClassic("resource `ncloud_cdss_config_group`"))
-	}
 
 	reqParams := vcdss.CreateConfigGroup{
 		ConfigGroupName:  *StringPtrOrNil(d.GetOk("name")),
@@ -91,9 +88,6 @@ func resourceNcloudCDSSConfigGroupCreate(ctx context.Context, d *schema.Resource
 
 func resourceNcloudCDSSConfigGroupRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	config := meta.(*conn.ProviderConfig)
-	if !config.SupportVPC {
-		return diag.FromErr(NotSupportClassic("resource `ncloud_cdss_config_group`"))
-	}
 
 	configGroup, err := getCDSSConfigGroup(ctx, config, d.Get("kafka_version_code").(string), d.Id())
 	if err != nil {
@@ -114,9 +108,6 @@ func resourceNcloudCDSSConfigGroupRead(ctx context.Context, d *schema.ResourceDa
 
 func resourceNcloudCDSSConfigGroupUpdate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	config := meta.(*conn.ProviderConfig)
-	if !config.SupportVPC {
-		return diag.FromErr(NotSupportClassic("resource `ncloud_cdss_cluster`"))
-	}
 
 	if d.HasChanges("description") {
 		_, n := d.GetChange("description")
@@ -139,9 +130,6 @@ func resourceNcloudCDSSConfigGroupUpdate(ctx context.Context, d *schema.Resource
 
 func resourceNcloudCDSSConfigGroupDelete(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	config := meta.(*conn.ProviderConfig)
-	if !config.SupportVPC {
-		return diag.FromErr(NotSupportClassic("resource `ncloud_cdss_config_group`"))
-	}
 
 	LogCommonRequest("resourceNcloudCDSSConfigGroupDelete", d.Id())
 	if _, _, err := config.Client.Vcdss.V1Api.ConfigGroupDeleteConfigGroupConfigGroupNoDelete(ctx, d.Id()); err != nil {

@@ -163,9 +163,6 @@ func DataSourceNcloudCDSSCluster() *schema.Resource {
 
 func dataSourceNcloudCDSSClusterRead(d *schema.ResourceData, meta interface{}) error {
 	config := meta.(*conn.ProviderConfig)
-	if !config.SupportVPC {
-		return NotSupportClassic("dataSource `ncloud_vcdss_cluster`")
-	}
 
 	resources, err := getCDSSClusterList(config)
 	if err != nil {
