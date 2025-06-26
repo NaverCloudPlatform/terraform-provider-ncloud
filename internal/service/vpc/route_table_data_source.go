@@ -41,12 +41,7 @@ func DataSourceNcloudRouteTable() *schema.Resource {
 func dataSourceNcloudRouteTableRead(d *schema.ResourceData, meta interface{}) error {
 	config := meta.(*conn.ProviderConfig)
 
-	if !config.SupportVPC {
-		return NotSupportClassic("data source `ncloud_route_table`")
-	}
-
 	resources, err := getRouteTableListFiltered(d, config)
-
 	if err != nil {
 		return err
 	}

@@ -3,10 +3,11 @@ package vpc
 import (
 	"context"
 	"fmt"
+	"time"
+
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
-	"time"
 
 	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/ncloud"
 	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/services/vpc"
@@ -136,14 +137,6 @@ func (s *subnetResource) Create(ctx context.Context, req resource.CreateRequest,
 	diags := req.Plan.Get(ctx, &plan)
 	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
-		return
-	}
-
-	if !s.config.SupportVPC {
-		resp.Diagnostics.AddError(
-			"Not support classic",
-			fmt.Sprintf("resource %s does not support classic", req.Config.Schema.Type().String()),
-		)
 		return
 	}
 

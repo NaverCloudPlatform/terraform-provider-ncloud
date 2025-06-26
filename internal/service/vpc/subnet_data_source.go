@@ -3,6 +3,7 @@ package vpc
 import (
 	"context"
 	"fmt"
+
 	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/services/vpc"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
@@ -105,14 +106,6 @@ func (s *subnetDataSource) Configure(_ context.Context, req datasource.Configure
 
 // Read refreshes the Terraform state with the latest data.
 func (s *subnetDataSource) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
-	if !s.config.SupportVPC {
-		resp.Diagnostics.AddError(
-			"Not Supported Classic",
-			"subnet data source does not supported in classic",
-		)
-		return
-	}
-
 	var data subnetDataSourceModel
 	resp.Diagnostics.Append(req.Config.Get(ctx, &data)...)
 	if resp.Diagnostics.HasError() {

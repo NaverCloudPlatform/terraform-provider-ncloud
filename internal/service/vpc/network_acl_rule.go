@@ -124,12 +124,6 @@ func ResourceNcloudNetworkACLRule() *schema.Resource {
 }
 
 func resourceNcloudNetworkACLRuleCreate(d *schema.ResourceData, meta interface{}) error {
-	config := meta.(*conn.ProviderConfig)
-
-	if !config.SupportVPC {
-		return NotSupportClassic("resource `ncloud_network_acl_rule`")
-	}
-
 	d.SetId(d.Get("network_acl_no").(string))
 	log.Printf("[INFO] Network ACL ID: %s", d.Id())
 

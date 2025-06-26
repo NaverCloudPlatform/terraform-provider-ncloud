@@ -142,14 +142,6 @@ func (s *subnetsDataSource) Configure(_ context.Context, req datasource.Configur
 
 // Read refreshes the Terraform state with the latest data.
 func (s *subnetsDataSource) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
-	if !s.config.SupportVPC {
-		resp.Diagnostics.AddError(
-			"Not Supported Classic",
-			"subnets data source does not supported in classic",
-		)
-		return
-	}
-
 	var data subnetsDataSourceModel
 	resp.Diagnostics.Append(req.Config.Get(ctx, &data)...)
 	if resp.Diagnostics.HasError() {

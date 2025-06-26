@@ -47,10 +47,6 @@ func DataSourceNcloudNetworkAcls() *schema.Resource {
 func dataSourceNcloudNetworkAclsRead(d *schema.ResourceData, meta interface{}) error {
 	config := meta.(*conn.ProviderConfig)
 
-	if !config.SupportVPC {
-		return NotSupportClassic("data source `ncloud_network_acls`")
-	}
-
 	reqParams := &vpc.GetNetworkAclListRequest{
 		RegionCode: &config.RegionCode,
 	}

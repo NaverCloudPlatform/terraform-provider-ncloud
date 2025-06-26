@@ -43,10 +43,6 @@ func DataSourceNcloudNetworkACLDenyAllowGroups() *schema.Resource {
 func dataSourceNcloudNetworkACLDenyAllowGroupsRead(d *schema.ResourceData, meta interface{}) error {
 	config := meta.(*conn.ProviderConfig)
 
-	if !config.SupportVPC {
-		return NotSupportClassic("data source `ncloud_network_acl_deny_allow_groups`")
-	}
-
 	reqParams := &vpc.GetNetworkAclDenyAllowGroupListRequest{
 		RegionCode: &config.RegionCode,
 	}
