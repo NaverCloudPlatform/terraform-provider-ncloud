@@ -181,14 +181,6 @@ func (m *mongodbDataSource) Read(ctx context.Context, req datasource.ReadRequest
 	var data mongodbDataSourceModel
 	var mongodbId string
 
-	if !m.config.SupportVPC {
-		resp.Diagnostics.AddError(
-			"NOT SUPPORT CLASSIC",
-			"does not support CLASSIC. only VPC.",
-		)
-		return
-	}
-
 	resp.Diagnostics.Append(req.Config.Get(ctx, &data)...)
 	if resp.Diagnostics.HasError() {
 		return
