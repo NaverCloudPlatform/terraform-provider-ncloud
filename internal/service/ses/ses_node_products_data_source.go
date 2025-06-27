@@ -57,9 +57,6 @@ func DataSourceNcloudSESNodeProduct() *schema.Resource {
 
 func dataSourceNcloudSESNodeProductRead(d *schema.ResourceData, meta interface{}) error {
 	config := meta.(*conn.ProviderConfig)
-	if !config.SupportVPC {
-		return NotSupportClassic("datasource `ncloud_ses_node_products`")
-	}
 
 	resources, err := getSESNodeProduct(config, d)
 	if err != nil {

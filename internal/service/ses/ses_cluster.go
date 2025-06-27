@@ -271,9 +271,6 @@ func ResourceNcloudSESCluster() *schema.Resource {
 
 func resourceNcloudSESClusterCreate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	config := meta.(*conn.ProviderConfig)
-	if !config.SupportVPC {
-		return diag.FromErr(NotSupportClassic("resource `ncloud_ses_cluster`"))
-	}
 
 	searchEngineParamsMap := d.Get("search_engine").([]interface{})[0].(map[string]interface{})
 	dataNodeParamsMap := d.Get("data_node").([]interface{})[0].(map[string]interface{})
@@ -332,9 +329,6 @@ func resourceNcloudSESClusterCreate(ctx context.Context, d *schema.ResourceData,
 
 func resourceNcloudSESClusterRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	config := meta.(*conn.ProviderConfig)
-	if !config.SupportVPC {
-		return diag.FromErr(NotSupportClassic("resource `ncloud_ses_cluster`"))
-	}
 
 	cluster, err := GetSESCluster(ctx, config, d.Id())
 	if err != nil {
@@ -437,9 +431,6 @@ func resourceNcloudSESClusterRead(ctx context.Context, d *schema.ResourceData, m
 
 func resourceNcloudSESClusterUpdate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	config := meta.(*conn.ProviderConfig)
-	if !config.SupportVPC {
-		return diag.FromErr(NotSupportClassic("resource `ncloud_ses_cluster`"))
-	}
 
 	if err := checkSearchEngineChanged(ctx, d, config); err != nil {
 		return diag.FromErr(err)
@@ -561,9 +552,6 @@ func getChangedNodeProductCode(nodeType string, d *schema.ResourceData) *string 
 
 func resourceNcloudSESClusterDelete(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	config := meta.(*conn.ProviderConfig)
-	if !config.SupportVPC {
-		return diag.FromErr(NotSupportClassic("resource `ncloud_ses_cluster`"))
-	}
 
 	if err := waitForSESClusterActive(ctx, d, config, d.Id()); err != nil {
 		return diag.FromErr(err)

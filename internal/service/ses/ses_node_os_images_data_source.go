@@ -41,9 +41,6 @@ func DataSourceNcloudSESNodeOsImage() *schema.Resource {
 
 func dataSourceNcloudSESNodeOsImageRead(d *schema.ResourceData, meta interface{}) error {
 	config := meta.(*conn.ProviderConfig)
-	if !config.SupportVPC {
-		return NotSupportClassic("datasource `ncloud_ses_node_os_image`")
-	}
 
 	resources, err := getSESNodeOsImage(config)
 	if err != nil {
