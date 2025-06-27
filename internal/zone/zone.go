@@ -66,12 +66,7 @@ func GetZones(config *conn.ProviderConfig) ([]*Zone, error) {
 	var zones []*Zone
 	var err error
 
-	if config.SupportVPC {
-		zones, err = getVpcZones(config)
-	} else {
-		zones, err = getClassicZones(config)
-	}
-
+	zones, err = getVpcZones(config)
 	if err != nil {
 		return nil, err
 	}
