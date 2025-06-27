@@ -96,14 +96,6 @@ func (m *mysqlImageProductsDataSource) Configure(_ context.Context, req datasour
 func (m *mysqlImageProductsDataSource) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
 	var data mysqlImageProductsDataSourceModel
 
-	if !m.config.SupportVPC {
-		resp.Diagnostics.AddError(
-			"NOT SUPPORT CLASSIC",
-			"does not support CLASSIC. only VPC.",
-		)
-		return
-	}
-
 	resp.Diagnostics.Append(req.Config.Get(ctx, &data)...)
 	if resp.Diagnostics.HasError() {
 		return

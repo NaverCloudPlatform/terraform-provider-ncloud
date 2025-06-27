@@ -378,14 +378,6 @@ func (r *mysqlResource) Configure(_ context.Context, req resource.ConfigureReque
 func (r *mysqlResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
 	var plan mysqlResourceModel
 
-	if !r.config.SupportVPC {
-		resp.Diagnostics.AddError(
-			"NOT SUPPORT CLASSIC",
-			"resource does not support CLASSIC. only VPC.",
-		)
-		return
-	}
-
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &plan)...)
 	if resp.Diagnostics.HasError() {
 		return
