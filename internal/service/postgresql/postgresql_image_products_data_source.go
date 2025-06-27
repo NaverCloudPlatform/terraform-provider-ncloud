@@ -97,14 +97,6 @@ func (d *postgresqlImageProductsDataSource) Configure(_ context.Context, req dat
 func (d *postgresqlImageProductsDataSource) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
 	var data postgresqlImageProductsDataSourceModel
 
-	if !d.config.SupportVPC {
-		resp.Diagnostics.AddError(
-			"NOT SUPPORT CLASSIC",
-			"does not support CLASSIC. only VPC.",
-		)
-		return
-	}
-
 	resp.Diagnostics.Append(req.Config.Get(ctx, &data)...)
 	if resp.Diagnostics.HasError() {
 		return
