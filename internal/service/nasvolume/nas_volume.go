@@ -8,14 +8,12 @@ import (
 	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/services/vnas"
 
 	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/ncloud"
-	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/services/server"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 
 	. "github.com/terraform-providers/terraform-provider-ncloud/internal/common"
 	"github.com/terraform-providers/terraform-provider-ncloud/internal/conn"
-	"github.com/terraform-providers/terraform-provider-ncloud/internal/zone"
 )
 
 func ResourceNcloudNasVolume() *schema.Resource {
@@ -50,15 +48,6 @@ func ResourceNcloudNasVolume() *schema.Resource {
 				ValidateDiagFunc: validation.ToDiagFunc(validation.StringLenBetween(1, 5)),
 			},
 			"server_instance_no_list": {
-				Type:     schema.TypeList,
-				Optional: true,
-				Computed: true,
-				Elem: &schema.Schema{
-					Type:             schema.TypeString,
-					ValidateDiagFunc: validation.ToDiagFunc(validation.StringIsNotEmpty),
-				},
-			},
-			"custom_ip_list": {
 				Type:     schema.TypeList,
 				Optional: true,
 				Computed: true,
@@ -185,7 +174,7 @@ func resourceNcloudNasVolumeUpdate(d *schema.ResourceData, meta interface{}) err
 		}
 	}
 
-	if d.HasChange("server_instance_no_list") || d.HasChange("custom_ip_list") {
+	if d.HasChange("server_instance_no_list") {
 		if err := setNasVolumeAccessControl(d, config); err != nil {
 			return err
 		}
@@ -195,59 +184,6 @@ func resourceNcloudNasVolumeUpdate(d *schema.ResourceData, meta interface{}) err
 }
 
 func GetNasVolume(config *conn.ProviderConfig, id string) (*NasVolume, error) {
-	if config.SupportVPC {
-		return getVpcNasVolume(config, id)
-	} else {
-		return getClassicNasVolume(config, id)
-	}
-}
-
-func getClassicNasVolume(config *conn.ProviderConfig, id string) (*NasVolume, error) {
-	reqParams := &server.GetNasVolumeInstanceListRequest{
-		NasVolumeInstanceNoList: []*string{ncloud.String(id)},
-	}
-
-	LogCommonRequest("getClassicNasVolume", reqParams)
-
-	resp, err := config.Client.Server.V2Api.GetNasVolumeInstanceList(reqParams)
-	if err != nil {
-		LogErrorResponse("getClassicNasVolume", err, reqParams)
-		return nil, err
-	}
-	LogResponse("getClassicNasVolume", resp)
-
-	if len(resp.NasVolumeInstanceList) > 0 {
-		return convertClassicNasVolume(resp.NasVolumeInstanceList[0]), nil
-	}
-
-	return nil, nil
-}
-
-func convertClassicNasVolume(inst *server.NasVolumeInstance) *NasVolume {
-	if inst == nil {
-		return nil
-	}
-
-	return &NasVolume{
-		NasVolumeInstanceNo:           inst.NasVolumeInstanceNo,
-		Status:                        inst.NasVolumeInstanceStatus.Code,
-		NasVolumeInstanceDescription:  inst.NasVolumeInstanceDescription,
-		VolumeAllotmentProtocolType:   inst.VolumeAllotmentProtocolType.Code,
-		VolumeName:                    inst.VolumeName,
-		VolumeTotalSize:               ncloud.Int64(*inst.VolumeTotalSize / GIGABYTE),
-		VolumeSize:                    ncloud.Int64(*inst.VolumeSize / GIGABYTE),
-		SnapshotVolumeSize:            ncloud.Int64(*inst.SnapshotVolumeSize / GIGABYTE),
-		IsSnapshotConfiguration:       inst.IsSnapshotConfiguration,
-		IsEventConfiguration:          inst.IsEventConfiguration,
-		Zone:                          inst.Zone.ZoneCode,
-		NasVolumeInstanceCustomIpList: FlattenArrayStructByKey(inst.NasVolumeInstanceCustomIpList, "customIp"),
-		ServerInstanceNoList:          FlattenArrayStructByKey(inst.NasVolumeServerInstanceList, "serverInstanceNo"),
-		MountInformation:              inst.MountInformation,
-		IsReturnProtection:            inst.IsReturnProtection,
-	}
-}
-
-func getVpcNasVolume(config *conn.ProviderConfig, id string) (*NasVolume, error) {
 	reqParams := &vnas.GetNasVolumeInstanceDetailRequest{
 		RegionCode:          &config.RegionCode,
 		NasVolumeInstanceNo: ncloud.String(id),
@@ -274,22 +210,21 @@ func convertVpcNasVolume(inst *vnas.NasVolumeInstance) *NasVolume {
 	}
 
 	return &NasVolume{
-		NasVolumeInstanceNo:           inst.NasVolumeInstanceNo,
-		Status:                        inst.NasVolumeInstanceStatus.Code,
-		NasVolumeInstanceDescription:  inst.NasVolumeDescription,
-		VolumeAllotmentProtocolType:   inst.VolumeAllotmentProtocolType.Code,
-		VolumeName:                    inst.VolumeName,
-		VolumeTotalSize:               ncloud.Int64(*inst.VolumeTotalSize / GIGABYTE),
-		VolumeSize:                    ncloud.Int64(*inst.VolumeSize / GIGABYTE),
-		SnapshotVolumeSize:            ncloud.Int64(*inst.SnapshotVolumeSize / GIGABYTE),
-		IsSnapshotConfiguration:       inst.IsSnapshotConfiguration,
-		IsEventConfiguration:          inst.IsEventConfiguration,
-		Zone:                          inst.ZoneCode,
-		IsEncryptedVolume:             inst.IsEncryptedVolume,
-		ServerInstanceNoList:          inst.NasVolumeServerInstanceNoList,
-		NasVolumeInstanceCustomIpList: []*string{},
-		MountInformation:              inst.MountInformation,
-		IsReturnProtection:            inst.IsReturnProtection,
+		NasVolumeInstanceNo:          inst.NasVolumeInstanceNo,
+		Status:                       inst.NasVolumeInstanceStatus.Code,
+		NasVolumeInstanceDescription: inst.NasVolumeDescription,
+		VolumeAllotmentProtocolType:  inst.VolumeAllotmentProtocolType.Code,
+		VolumeName:                   inst.VolumeName,
+		VolumeTotalSize:              ncloud.Int64(*inst.VolumeTotalSize / GIGABYTE),
+		VolumeSize:                   ncloud.Int64(*inst.VolumeSize / GIGABYTE),
+		SnapshotVolumeSize:           ncloud.Int64(*inst.SnapshotVolumeSize / GIGABYTE),
+		IsSnapshotConfiguration:      inst.IsSnapshotConfiguration,
+		IsEventConfiguration:         inst.IsEventConfiguration,
+		Zone:                         inst.ZoneCode,
+		IsEncryptedVolume:            inst.IsEncryptedVolume,
+		ServerInstanceNoList:         inst.NasVolumeServerInstanceNoList,
+		MountInformation:             inst.MountInformation,
+		IsReturnProtection:           inst.IsReturnProtection,
 	}
 }
 
@@ -297,12 +232,7 @@ func createNasVolume(d *schema.ResourceData, config *conn.ProviderConfig) (*stri
 	var id *string
 	var err error
 
-	if config.SupportVPC {
-		id, err = createVpcNasVolume(d, config)
-	} else {
-		id, err = createClassicNasVolume(d, config)
-	}
-
+	id, err = createVpcNasVolume(d, config)
 	if err != nil {
 		return nil, err
 	}
@@ -312,39 +242,6 @@ func createNasVolume(d *schema.ResourceData, config *conn.ProviderConfig) (*stri
 	}
 
 	return id, nil
-}
-
-func createClassicNasVolume(d *schema.ResourceData, config *conn.ProviderConfig) (*string, error) {
-	regionNo, err := conn.ParseRegionNoParameter(d)
-	if err != nil {
-		return nil, err
-	}
-	zoneNo, err := zone.ParseZoneNoParameter(config, d)
-	if err != nil {
-		return nil, err
-	}
-
-	reqParams := &server.CreateNasVolumeInstanceRequest{
-		RegionNo:                        regionNo,
-		ZoneNo:                          zoneNo,
-		AccessControlRuleList:           makeClassicNasAclParams(d),
-		VolumeName:                      ncloud.String(d.Get("volume_name_postfix").(string)),
-		VolumeSize:                      ncloud.Int32(int32(d.Get("volume_size").(int))),
-		VolumeAllotmentProtocolTypeCode: ncloud.String(d.Get("volume_allotment_protocol_type").(string)),
-		CifsUserName:                    StringPtrOrNil(d.GetOk("cifs_user_name")),
-		CifsUserPassword:                StringPtrOrNil(d.GetOk("cifs_user_password")),
-		NasVolumeDescription:            StringPtrOrNil(d.GetOk("description")),
-		IsReturnProtection:              BoolPtrOrNil(d.GetOk("is_return_protection")),
-	}
-
-	resp, err := config.Client.Server.V2Api.CreateNasVolumeInstance(reqParams)
-	if err != nil {
-		LogErrorResponse("createClassicNasVolume", err, reqParams)
-		return nil, err
-	}
-	LogResponse("createClassicNasVolume", resp)
-
-	return resp.NasVolumeInstanceList[0].NasVolumeInstanceNo, nil
 }
 
 func createVpcNasVolume(d *schema.ResourceData, config *conn.ProviderConfig) (*string, error) {
@@ -403,14 +300,7 @@ func waitForNasVolumeCreation(d *schema.ResourceData, config *conn.ProviderConfi
 }
 
 func deleteNasVolume(d *schema.ResourceData, config *conn.ProviderConfig, id string) error {
-	var err error
-
-	if config.SupportVPC {
-		err = deleteVpcNasVolume(config, id)
-	} else {
-		err = deleteClassicNasVolume(config, id)
-	}
-
+	err := deleteVpcNasVolume(config, id)
 	if err != nil {
 		return err
 	}
@@ -418,20 +308,6 @@ func deleteNasVolume(d *schema.ResourceData, config *conn.ProviderConfig, id str
 	if err := waitForNasVolumeDeletion(d, config, id); err != nil {
 		return err
 	}
-
-	return nil
-}
-
-func deleteClassicNasVolume(config *conn.ProviderConfig, id string) error {
-	reqParams := &server.DeleteNasVolumeInstanceRequest{NasVolumeInstanceNo: ncloud.String(id)}
-	LogCommonRequest("deleteClassicNasVolume", reqParams)
-
-	resp, err := config.Client.Server.V2Api.DeleteNasVolumeInstance(reqParams)
-	if err != nil {
-		LogErrorResponse("deleteClassicNasVolume", err, id)
-		return err
-	}
-	LogResponse("deleteClassicNasVolume", resp)
 
 	return nil
 }
@@ -484,31 +360,6 @@ func waitForNasVolumeDeletion(d *schema.ResourceData, config *conn.ProviderConfi
 }
 
 func changeNasVolumeSize(d *schema.ResourceData, config *conn.ProviderConfig) error {
-	if config.SupportVPC {
-		return changeVpcNasVolumeSize(d, config)
-	} else {
-		return changeClassicNasVolumeSize(d, config)
-	}
-}
-
-func changeClassicNasVolumeSize(d *schema.ResourceData, config *conn.ProviderConfig) error {
-	reqParams := &server.ChangeNasVolumeSizeRequest{
-		NasVolumeInstanceNo: ncloud.String(d.Id()),
-		VolumeSize:          Int32PtrOrNil(d.GetOk("volume_size")),
-	}
-	LogCommonRequest("changeClassicNasVolumeSize", reqParams)
-
-	resp, err := config.Client.Server.V2Api.ChangeNasVolumeSize(reqParams)
-	if err != nil {
-		LogErrorResponse("changeClassicNasVolumeSize", err, reqParams)
-		return err
-	}
-	LogResponse("changeClassicNasVolumeSize", resp)
-
-	return nil
-}
-
-func changeVpcNasVolumeSize(d *schema.ResourceData, config *conn.ProviderConfig) error {
 	reqParams := &vnas.ChangeNasVolumeSizeRequest{
 		RegionCode:          &config.RegionCode,
 		NasVolumeInstanceNo: ncloud.String(d.Id()),
@@ -527,35 +378,6 @@ func changeVpcNasVolumeSize(d *schema.ResourceData, config *conn.ProviderConfig)
 }
 
 func setNasVolumeAccessControl(d *schema.ResourceData, config *conn.ProviderConfig) error {
-	if config.SupportVPC {
-		if d.HasChange("server_instance_no_list") {
-			return setVpcNasVolumeAccessControl(d, config)
-		}
-		return nil
-	} else {
-		return setClassicNasVolumeAccessControl(d, config)
-	}
-}
-
-func setClassicNasVolumeAccessControl(d *schema.ResourceData, config *conn.ProviderConfig) error {
-	reqParams := &server.SetNasVolumeAccessControlRequest{
-		NasVolumeInstanceNo:   ncloud.String(d.Id()),
-		AccessControlRuleList: makeClassicNasAclParams(d),
-	}
-
-	LogCommonRequest("setClassicNasVolumeAccessControl", reqParams)
-
-	resp, err := config.Client.Server.V2Api.SetNasVolumeAccessControl(reqParams)
-	if err != nil {
-		LogErrorResponse("setClassicNasVolumeAccessControl", err, reqParams)
-		return err
-	}
-	LogResponse("setClassicNasVolumeAccessControl", resp)
-
-	return nil
-}
-
-func setVpcNasVolumeAccessControl(d *schema.ResourceData, config *conn.ProviderConfig) error {
 	reqParams := &vnas.SetNasVolumeAccessControlRequest{
 		RegionCode:            &config.RegionCode,
 		NasVolumeInstanceNo:   ncloud.String(d.Id()),
@@ -572,35 +394,6 @@ func setVpcNasVolumeAccessControl(d *schema.ResourceData, config *conn.ProviderC
 	LogResponse("setVpcNasVolumeAccessControl", resp)
 
 	return nil
-}
-
-func makeClassicNasAclParams(d *schema.ResourceData) []*server.AccessControlRuleParameter {
-	var aclParams []*server.AccessControlRuleParameter
-	var serverList []*string
-	var customIpList []*string
-
-	if serverInstanceNoList, ok := d.GetOk("server_instance_no_list"); ok {
-		serverList = ExpandStringInterfaceList(serverInstanceNoList.([]interface{}))
-
-		for _, v := range serverList {
-			aclParams = append(aclParams, &server.AccessControlRuleParameter{
-				ServerInstanceNo: v,
-			})
-		}
-		return aclParams
-	}
-
-	if customIPList, ok := d.GetOk("custom_ip_list"); ok {
-		customIpList = ExpandStringInterfaceList(customIPList.([]interface{}))
-
-		for _, v := range customIpList {
-			aclParams = append(aclParams, &server.AccessControlRuleParameter{
-				CustomIp: v,
-			})
-		}
-	}
-
-	return aclParams
 }
 
 func makeVpcNasAclParams(d *schema.ResourceData) []*vnas.AccessControlRuleParameter {
@@ -622,20 +415,19 @@ func makeVpcNasAclParams(d *schema.ResourceData) []*vnas.AccessControlRuleParame
 
 // NasVolume Dto for NAS
 type NasVolume struct {
-	NasVolumeInstanceNo           *string   `json:"nas_volume_no,omitempty"`
-	NasVolumeInstanceDescription  *string   `json:"description,omitempty"`
-	VolumeAllotmentProtocolType   *string   `json:"volume_allotment_protocol_type,omitempty"`
-	VolumeName                    *string   `json:"name,omitempty"`
-	VolumeTotalSize               *int64    `json:"volume_total_size,omitempty"`
-	VolumeSize                    *int64    `json:"volume_size,omitempty"`
-	SnapshotVolumeSize            *int64    `json:"snapshot_volume_size,omitempty"`
-	IsSnapshotConfiguration       *bool     `json:"is_snapshot_configuration,omitempty"`
-	IsEventConfiguration          *bool     `json:"is_event_configuration,omitempty"`
-	Zone                          *string   `json:"zone,omitempty"`
-	NasVolumeInstanceCustomIpList []*string `json:"custom_ip_list"`
-	ServerInstanceNoList          []*string `json:"server_instance_no_list"`
-	IsEncryptedVolume             *bool     `json:"is_encrypted_volume,omitempty"`
-	Status                        *string   `json:"-"`
-	MountInformation              *string   `json:"mount_information,omitempty"`
-	IsReturnProtection            *bool     `json:"is_return_protection,omitempty"`
+	NasVolumeInstanceNo          *string   `json:"nas_volume_no,omitempty"`
+	NasVolumeInstanceDescription *string   `json:"description,omitempty"`
+	VolumeAllotmentProtocolType  *string   `json:"volume_allotment_protocol_type,omitempty"`
+	VolumeName                   *string   `json:"name,omitempty"`
+	VolumeTotalSize              *int64    `json:"volume_total_size,omitempty"`
+	VolumeSize                   *int64    `json:"volume_size,omitempty"`
+	SnapshotVolumeSize           *int64    `json:"snapshot_volume_size,omitempty"`
+	IsSnapshotConfiguration      *bool     `json:"is_snapshot_configuration,omitempty"`
+	IsEventConfiguration         *bool     `json:"is_event_configuration,omitempty"`
+	Zone                         *string   `json:"zone,omitempty"`
+	ServerInstanceNoList         []*string `json:"server_instance_no_list"`
+	IsEncryptedVolume            *bool     `json:"is_encrypted_volume,omitempty"`
+	Status                       *string   `json:"-"`
+	MountInformation             *string   `json:"mount_information,omitempty"`
+	IsReturnProtection           *bool     `json:"is_return_protection,omitempty"`
 }
