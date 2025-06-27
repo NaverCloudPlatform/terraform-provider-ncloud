@@ -43,9 +43,6 @@ func DataSourceNcloudCDSSConfigGroup() *schema.Resource {
 
 func dataSourceNcloudCDSSConfigGroupRead(d *schema.ResourceData, meta interface{}) error {
 	config := meta.(*conn.ProviderConfig)
-	if !config.SupportVPC {
-		return NotSupportClassic("dataSource `ncloud_cdss_config_group`")
-	}
 
 	resources, err := getCDSSConfigGroups(config, *StringPtrOrNil(d.GetOk("kafka_version_code")))
 	if err != nil {

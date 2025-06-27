@@ -48,9 +48,6 @@ func DataSourceNcloudCDSSNodeProduct() *schema.Resource {
 
 func dataSourceNcloudCDSSNodeProductRead(d *schema.ResourceData, meta interface{}) error {
 	config := meta.(*conn.ProviderConfig)
-	if !config.SupportVPC {
-		return NotSupportClassic("datasource `ncloud_cdss_node_product`")
-	}
 
 	reqParams := vcdss.NodeProduct{
 		SoftwareProductCode: *StringPtrOrNil(d.GetOk("os_image")),

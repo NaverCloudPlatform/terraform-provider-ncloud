@@ -30,9 +30,6 @@ func DataSourceNcloudCDSSKafkaVersion() *schema.Resource {
 
 func dataSourceNcloudCDSSKafkaVersionRead(d *schema.ResourceData, meta interface{}) error {
 	config := meta.(*conn.ProviderConfig)
-	if !config.SupportVPC {
-		return NotSupportClassic("datasource `ncloud_cdss_kafka_version`")
-	}
 
 	resources, err := getCDSSKafkaVersions(config)
 	if err != nil {
