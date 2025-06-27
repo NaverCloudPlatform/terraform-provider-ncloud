@@ -96,14 +96,6 @@ func (h *hadoopImageProductsDataSource) Configure(_ context.Context, req datasou
 func (h *hadoopImageProductsDataSource) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
 	var data hadoopImageProductsDataSourceModel
 
-	if !h.config.SupportVPC {
-		resp.Diagnostics.AddError(
-			"NOT SUPPORT CLASSIC",
-			"does not support CLASSIC. only VPC.",
-		)
-		return
-	}
-
 	resp.Diagnostics.Append(req.Config.Get(ctx, &data)...)
 	if resp.Diagnostics.HasError() {
 		return
