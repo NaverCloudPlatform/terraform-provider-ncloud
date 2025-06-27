@@ -57,12 +57,7 @@ func dataSourceNcloudAccessControlGroupsRead(d *schema.ResourceData, meta interf
 	var resources []map[string]interface{}
 	var err error
 
-	if config.SupportVPC {
-		resources, err = getVpcAccessControlGroupList(d, config)
-	} else {
-		resources, err = getClassicAccessControlGroupList(d, config)
-	}
-
+	resources, err = getVpcAccessControlGroupList(d, config)
 	if err != nil {
 		return err
 	}

@@ -107,14 +107,6 @@ func resourceNcloudAccessControlGroupDelete(d *schema.ResourceData, meta interfa
 }
 
 func GetAccessControlGroup(config *conn.ProviderConfig, id string) (*vserver.AccessControlGroup, error) {
-	if config.SupportVPC {
-		return getVpcAccessControlGroup(config, id)
-	}
-
-	return nil, NotSupportClassic("resource `ncloud_access_control_group`")
-}
-
-func getVpcAccessControlGroup(config *conn.ProviderConfig, id string) (*vserver.AccessControlGroup, error) {
 	reqParams := &vserver.GetAccessControlGroupDetailRequest{
 		RegionCode:           &config.RegionCode,
 		AccessControlGroupNo: ncloud.String(id),
@@ -136,14 +128,6 @@ func getVpcAccessControlGroup(config *conn.ProviderConfig, id string) (*vserver.
 }
 
 func createAccessControlGroup(d *schema.ResourceData, config *conn.ProviderConfig) (*vserver.AccessControlGroup, error) {
-	if config.SupportVPC {
-		return createVpcAccessControlGroup(d, config)
-	}
-
-	return nil, NotSupportClassic("resource `ncloud_access_control_group`")
-}
-
-func createVpcAccessControlGroup(d *schema.ResourceData, config *conn.ProviderConfig) (*vserver.AccessControlGroup, error) {
 	reqParams := &vserver.CreateAccessControlGroupRequest{
 		RegionCode:                    &config.RegionCode,
 		VpcNo:                         ncloud.String(d.Get("vpc_no").(string)),
@@ -163,14 +147,6 @@ func createVpcAccessControlGroup(d *schema.ResourceData, config *conn.ProviderCo
 }
 
 func DeleteAccessControlGroup(config *conn.ProviderConfig, id string) error {
-	if config.SupportVPC {
-		return deleteVpcAccessControlGroup(config, id)
-	}
-
-	return NotSupportClassic("resource `ncloud_access_control_group`")
-}
-
-func deleteVpcAccessControlGroup(config *conn.ProviderConfig, id string) error {
 	accessControlGroup, err := GetAccessControlGroup(config, id)
 	if err != nil {
 		return err

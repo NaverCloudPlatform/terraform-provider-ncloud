@@ -9,35 +9,6 @@ import (
 	. "github.com/terraform-providers/terraform-provider-ncloud/internal/acctest"
 )
 
-func TestAccDataSourceNcloudServerProduct_classic_basic(t *testing.T) {
-	// Images are all deprecated in Classic
-	t.Skip()
-
-	dataName := "data.ncloud_server_product.test1"
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:                 func() { TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: ClassicProtoV6ProviderFactories,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccDataSourceNcloudServerProductConfig("SPSW0LINUX000045", "SPSVRSTAND000004"),
-				Check: resource.ComposeTestCheckFunc(
-					TestAccCheckDataSourceID(dataName),
-					resource.TestCheckResourceAttr(dataName, "server_image_product_code", "SPSW0LINUX000045"),
-					resource.TestCheckResourceAttr(dataName, "product_code", "SPSVRSTAND000004"),
-					resource.TestCheckResourceAttr(dataName, "product_name", "vCPU 2EA, Memory 4GB, Disk 50GB"),
-					resource.TestCheckResourceAttr(dataName, "product_description", "vCPU 2개, 메모리 4GB, 디스크 50GB"),
-					resource.TestCheckResourceAttr(dataName, "infra_resource_type", "SVR"),
-					resource.TestCheckResourceAttr(dataName, "cpu_count", "2"),
-					resource.TestCheckResourceAttr(dataName, "memory_size", "4GB"),
-					resource.TestCheckResourceAttr(dataName, "disk_type", "NET"),
-					resource.TestCheckResourceAttr(dataName, "generation_code", "G1"),
-					resource.TestCheckResourceAttr(dataName, "base_block_storage_size", "50GB"),
-				),
-			},
-		},
-	})
-}
-
 func TestAccDataSourceNcloudServerProduct_vpc_basic(t *testing.T) {
 	dataName := "data.ncloud_server_product.test1"
 
@@ -65,24 +36,6 @@ func TestAccDataSourceNcloudServerProduct_vpc_basic(t *testing.T) {
 	})
 }
 
-func TestAccDataSourceNcloudServerProduct_classic_FilterByProductCode(t *testing.T) {
-	// Images are all deprecated in Classic
-	t.Skip()
-
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:                 func() { TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: ClassicProtoV6ProviderFactories,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccDataSourceNcloudServerProductFilterByProductCodeConfig("SPSW0LINUX000045", "SPSVRSTAND000056"),
-				Check: resource.ComposeTestCheckFunc(
-					TestAccCheckDataSourceID("data.ncloud_server_product.test2"),
-				),
-			},
-		},
-	})
-}
-
 func TestAccDataSourceNcloudServerProduct_vpc_FilterByProductCode(t *testing.T) {
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { TestAccPreCheck(t) },
@@ -92,24 +45,6 @@ func TestAccDataSourceNcloudServerProduct_vpc_FilterByProductCode(t *testing.T) 
 				Config: testAccDataSourceNcloudServerProductFilterByProductCodeConfig("SW.VSVR.OS.LNX64.ROCKY.0810.B050", "SVR.VSVR.STAND.C002.M008.NET.HDD.B050.G002"),
 				Check: resource.ComposeTestCheckFunc(
 					TestAccCheckDataSourceID("data.ncloud_server_product.test2"),
-				),
-			},
-		},
-	})
-}
-
-func TestAccDataSourceNcloudServerProduct_classic_FilterByProductNameProductType(t *testing.T) {
-	// Images are all deprecated in Classic
-	t.Skip()
-
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:                 func() { TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: ClassicProtoV6ProviderFactories,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccDataSourceNcloudServerProductFilterByProductNameProductTypeConfig("SPSW0LINUX000045", "G1"),
-				Check: resource.ComposeTestCheckFunc(
-					TestAccCheckDataSourceID("data.ncloud_server_product.test3"),
 				),
 			},
 		},

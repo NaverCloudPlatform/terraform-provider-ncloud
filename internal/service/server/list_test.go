@@ -2,133 +2,95 @@ package server
 
 import (
 	"testing"
-
-	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/ncloud"
-	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/services/server"
-	"github.com/terraform-providers/terraform-provider-ncloud/internal/zone"
 )
 
-func TestFlattenAccessControlRules(t *testing.T) {
-	expected := []*server.AccessControlRule{
-		{
-			AccessControlRuleConfigurationNo: ncloud.String("25363"),
-			ProtocolType: &server.CommonCode{
-				Code:     ncloud.String("TCP"),
-				CodeName: ncloud.String("tcp"),
-			},
-			SourceIp:                               ncloud.String("0.0.0.0/0"),
-			SourceAccessControlRuleConfigurationNo: ncloud.String("4964"),
-			SourceAccessControlRuleName:            ncloud.String("ncloud-default-acg"),
-			DestinationPort:                        ncloud.String("1-65535"),
-			AccessControlRuleDescription:           ncloud.String("for test"),
-		},
-	}
-
-	result := flattenAccessControlRules(expected)
-
-	if result == nil {
-		t.Fatal("result was nil")
-	}
-
-	if len(result) != 1 {
-		t.Fatalf("expected result had %d elements, but got %d", 1, len(result))
-	}
-
-	if result[0] != "25363" {
-		t.Fatalf("expected configuration_no to be 25363, but was %s", result[0])
-	}
-}
-
-func TestFlattenZone(t *testing.T) {
-
-	expanded := &server.Zone{
-		ZoneNo:          ncloud.String("3"),
-		ZoneName:        ncloud.String("KR-2"),
-		ZoneCode:        ncloud.String("KR-2"),
-		ZoneDescription: ncloud.String("평촌 zone"),
-		RegionNo:        ncloud.String("1"),
-	}
-
-	result := zone.FlattenZone(expanded)
-
-	if result == nil {
-		t.Fatal("result was nil")
-	}
-
-	if result["zone_no"] != "3" {
-		t.Fatalf("expected result zone_no to be 3, but was %s", result["zone_no"])
-	}
-
-	if result["zone_code"] != "KR-2" {
-		t.Fatalf("expected result zone_code to be KR-2, but was %s", result["zone_code"])
-	}
-
-	if result["zone_name"] != "KR-2" {
-		t.Fatalf("expected result zone_name to be KR-2, but was %s", result["zone_name"])
-	}
-
-	if result["zone_description"] != "평촌 zone" {
-		t.Fatalf("expected result zone_description to be 평촌 zone, but was %s", result["zone_description"])
-	}
-
-	if result["region_no"] != "1" {
-		t.Fatalf("expected result region_no to be 1, but was %s", result["region_no"])
-	}
-}
-
-func TestExpandTagListParams(t *testing.T) {
-	lbrulelist := []interface{}{
+func TestExpandBlockDevicePartitionListParams(t *testing.T) {
+	blockDevicePartitions := []interface{}{
 		map[string]interface{}{
-			"tag_key":   "dev",
-			"tag_value": "web",
+			"mount_point":    "/data",
+			"partition_size": "100",
 		},
 		map[string]interface{}{
-			"tag_key":   "prod",
-			"tag_value": "auth",
+			"mount_point":    "/backup",
+			"partition_size": "200",
 		},
 	}
 
-	result, _ := expandTagListParams(lbrulelist)
+	result, err := expandBlockDevicePartitionListParams(blockDevicePartitions)
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
 
 	if result == nil {
 		t.Fatal("result was nil")
 	}
 
 	if len(result) != 2 {
-		t.Fatalf("expected result had %d elements, but got %d", 2, len(result))
+		t.Fatalf("expected result to have %d elements, but got %d", 2, len(result))
 	}
 
-	tag := result[0]
-	if *tag.TagKey != "dev" {
-		t.Fatalf("expected result ProtocolTypeCode to be dev, but was %s", *tag.TagKey)
+	partition := result[0]
+	if *partition.MountPoint != "/data" {
+		t.Fatalf("expected MountPoint to be /data, but got %s", *partition.MountPoint)
 	}
 
-	if *tag.TagValue != "web" {
-		t.Fatalf("expected result ProtocolTypeCode to be web, but was %s", *tag.TagValue)
+	if *partition.PartitionSize != "100" {
+		t.Fatalf("expected PartitionSize to be 100, but got %s", *partition.PartitionSize)
 	}
 
-	tag = result[1]
-	if *tag.TagKey != "prod" {
-		t.Fatalf("expected result ProtocolTypeCode to be prod, but was %s", *tag.TagKey)
+	partition = result[1]
+	if *partition.MountPoint != "/backup" {
+		t.Fatalf("expected MountPoint to be /backup, but got %s", *partition.MountPoint)
 	}
 
-	if *tag.TagValue != "auth" {
-		t.Fatalf("expected result ProtocolTypeCode to be auth, but was %s", *tag.TagValue)
+	if *partition.PartitionSize != "200" {
+		t.Fatalf("expected PartitionSize to be 200, but got %s", *partition.PartitionSize)
 	}
 }
 
-func TestFlattenMapByKey(t *testing.T) {
-	expanded := &server.CommonCode{
-		Code: ncloud.String("test"),
-	}
+func TestExpandBlockDevicePartitionListParams_EmptyInput(t *testing.T) {
+	blockDevicePartitions := []interface{}{}
 
-	result := flattenMapByKey(expanded, "code")
+	result, err := expandBlockDevicePartitionListParams(blockDevicePartitions)
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
 
 	if result == nil {
 		t.Fatal("result was nil")
 	}
 
-	if *result != "test" {
-		t.Fatalf("result expected 'test' but was %s", *result)
+	if len(result) != 0 {
+		t.Fatalf("expected result to have %d elements, but got %d", 0, len(result))
+	}
+}
+
+func TestExpandBlockDevicePartitionListParams_InvalidInput(t *testing.T) {
+	blockDevicePartitions := []interface{}{
+		map[string]interface{}{
+			"invalid_key": "value",
+		},
+	}
+
+	result, err := expandBlockDevicePartitionListParams(blockDevicePartitions)
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+
+	if result == nil {
+		t.Fatal("result was nil")
+	}
+
+	if len(result) != 1 {
+		t.Fatalf("expected result to have %d elements, but got %d", 1, len(result))
+	}
+
+	partition := result[0]
+	if partition.MountPoint != nil {
+		t.Fatalf("expected MountPoint to be nil, but got %s", *partition.MountPoint)
+	}
+
+	if partition.PartitionSize != nil {
+		t.Fatalf("expected PartitionSize to be nil, but got %s", *partition.PartitionSize)
 	}
 }

@@ -125,10 +125,6 @@ func ResourceNcloudAccessControlGroupRule() *schema.Resource {
 func resourceNcloudAccessControlGroupRuleCreate(d *schema.ResourceData, meta interface{}) error {
 	config := meta.(*conn.ProviderConfig)
 
-	if !config.SupportVPC {
-		return NotSupportClassic("resource `ncloud_access_control_group_rule`")
-	}
-
 	d.SetId(d.Get("access_control_group_no").(string))
 	log.Printf("[INFO] ACG ID: %s", d.Id())
 

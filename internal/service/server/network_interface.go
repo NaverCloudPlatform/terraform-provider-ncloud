@@ -269,14 +269,6 @@ func resourceNcloudNetworkInterfaceDelete(d *schema.ResourceData, meta interface
 }
 
 func GetNetworkInterface(config *conn.ProviderConfig, id string) (*vserver.NetworkInterface, error) {
-	if config.SupportVPC {
-		return getVpcNetworkInterface(config, id)
-	}
-
-	return nil, NotSupportClassic("resource `ncloud_network_interface`")
-}
-
-func getVpcNetworkInterface(config *conn.ProviderConfig, id string) (*vserver.NetworkInterface, error) {
 	reqParams := &vserver.GetNetworkInterfaceDetailRequest{
 		RegionCode:         &config.RegionCode,
 		NetworkInterfaceNo: ncloud.String(id),
@@ -298,14 +290,6 @@ func getVpcNetworkInterface(config *conn.ProviderConfig, id string) (*vserver.Ne
 }
 
 func createNetworkInterface(d *schema.ResourceData, config *conn.ProviderConfig) (*vserver.NetworkInterface, error) {
-	if config.SupportVPC {
-		return createVpcNetworkInterface(d, config)
-	} else {
-		return nil, NotSupportClassic("resource `ncloud_network_interface`")
-	}
-}
-
-func createVpcNetworkInterface(d *schema.ResourceData, config *conn.ProviderConfig) (*vserver.NetworkInterface, error) {
 	subnet, err := vpc.GetSubnetInstance(config, d.Get("subnet_no").(string))
 	if err != nil {
 		return nil, err
@@ -338,14 +322,6 @@ func createVpcNetworkInterface(d *schema.ResourceData, config *conn.ProviderConf
 }
 
 func DeleteNetworkInterface(config *conn.ProviderConfig, id string) error {
-	if config.SupportVPC {
-		return deleteVpcNetworkInterface(config, id)
-	}
-
-	return NotSupportClassic("resource `ncloud_network_interface`")
-}
-
-func deleteVpcNetworkInterface(config *conn.ProviderConfig, id string) error {
 	reqParams := &vserver.DeleteNetworkInterfaceRequest{
 		RegionCode:         &config.RegionCode,
 		NetworkInterfaceNo: ncloud.String(id),
@@ -367,14 +343,7 @@ func deleteVpcNetworkInterface(config *conn.ProviderConfig, id string) error {
 }
 
 func attachNetworkInterface(d *schema.ResourceData, config *conn.ProviderConfig) error {
-	var err error
-
-	if config.SupportVPC {
-		err = attachVpcNetworkInterface(d, config)
-	} else {
-		err = NotSupportClassic("resource `ncloud_network_interface`")
-	}
-
+	err := attachVpcNetworkInterface(d, config)
 	if err != nil {
 		return err
 	}
@@ -433,14 +402,7 @@ func waitForPublicIpDisassociate(d *schema.ResourceData, config *conn.ProviderCo
 }
 
 func detachNetworkInterface(d *schema.ResourceData, config *conn.ProviderConfig, serverInstanceNo string) error {
-	var err error
-
-	if config.SupportVPC {
-		err = detachVpcNetworkInterface(d, config, serverInstanceNo)
-	} else {
-		err = NotSupportClassic("resource `ncloud_network_interface`")
-	}
-
+	err := detachVpcNetworkInterface(d, config, serverInstanceNo)
 	if err != nil {
 		return err
 	}
@@ -473,14 +435,7 @@ func detachVpcNetworkInterface(d *schema.ResourceData, config *conn.ProviderConf
 }
 
 func waitForNetworkInterfaceAttachment(config *conn.ProviderConfig, id string) error {
-	var err error
-
-	if config.SupportVPC {
-		err = waitForVpcNetworkInterfaceState(config, id, []string{NetworkInterfaceStateSet}, []string{NetworkInterfaceStateUsed})
-	} else {
-		err = NotSupportClassic("resource `ncloud_network_interface`")
-	}
-
+	err := waitForVpcNetworkInterfaceState(config, id, []string{NetworkInterfaceStateSet}, []string{NetworkInterfaceStateUsed})
 	if err != nil {
 		return err
 	}

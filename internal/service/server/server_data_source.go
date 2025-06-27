@@ -4,7 +4,6 @@ import (
 	"fmt"
 
 	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/ncloud"
-	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/services/server"
 	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/services/vserver"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 
@@ -53,46 +52,6 @@ func dataSourceNcloudServerRead(d *schema.ResourceData, meta interface{}) error 
 }
 
 func getServerList(d *schema.ResourceData, config *conn.ProviderConfig) ([]*ServerInstance, error) {
-	if config.SupportVPC {
-		return getVpcServerList(d, config)
-	} else {
-		return getClassicServerList(d, config)
-	}
-}
-
-func getClassicServerList(d *schema.ResourceData, config *conn.ProviderConfig) ([]*ServerInstance, error) {
-	regionNo, err := conn.ParseRegionNoParameter(d)
-	if err != nil {
-		return nil, err
-	}
-
-	reqParams := &server.GetServerInstanceListRequest{
-		RegionNo: regionNo,
-	}
-
-	if v, ok := d.GetOk("id"); ok {
-		reqParams.ServerInstanceNoList = []*string{ncloud.String(v.(string))}
-	}
-
-	LogCommonRequest("getClassicServerList", reqParams)
-	resp, err := config.Client.Server.V2Api.GetServerInstanceList(reqParams)
-
-	if err != nil {
-		LogErrorResponse("getClassicServerList", err, reqParams)
-		return nil, err
-	}
-
-	LogResponse("getClassicServerList", resp)
-
-	var list []*ServerInstance
-	for _, r := range resp.ServerInstanceList {
-		list = append(list, convertClassicServerInstance(r))
-	}
-
-	return list, nil
-}
-
-func getVpcServerList(d *schema.ResourceData, config *conn.ProviderConfig) ([]*ServerInstance, error) {
 	client := config.Client
 
 	reqParams := &vserver.GetServerInstanceListRequest{

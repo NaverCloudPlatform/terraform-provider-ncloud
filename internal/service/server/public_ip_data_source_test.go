@@ -12,37 +12,6 @@ import (
 	. "github.com/terraform-providers/terraform-provider-ncloud/internal/acctest"
 )
 
-func TestAccDataSourceNcloudPublicIp_classic_basic(t *testing.T) {
-	// Images are all deprecated in Classic
-	t.Skip()
-
-	resourceName := "ncloud_public_ip.public_ip"
-	dataName := "data.ncloud_public_ip.test"
-	name := fmt.Sprintf("tf-public-ip-basic-%s", acctest.RandString(5))
-
-	resource.Test(t, resource.TestCase{
-		PreCheck:                 func() { TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: ClassicProtoV6ProviderFactories,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccDataSourceNcloudPublicIpClassicConfig(name),
-				Check: resource.ComposeTestCheckFunc(
-					TestAccCheckDataSourceID(dataName),
-					resource.TestCheckResourceAttrPair(dataName, "id", resourceName, "id"),
-					resource.TestCheckResourceAttrPair(dataName, "description", resourceName, "description"),
-					resource.TestCheckResourceAttrPair(dataName, "public_ip", resourceName, "public_ip"),
-					resource.TestCheckResourceAttrPair(dataName, "server_instance_no", resourceName, "server_instance_no"),
-					resource.TestCheckResourceAttrPair(dataName, "server_name", resourceName, "server_name"),
-
-					// Classic only
-					resource.TestCheckResourceAttrPair(dataName, "zone", resourceName, "zone"),
-					resource.TestCheckResourceAttrPair(dataName, "kind_type", resourceName, "kind_type"),
-				),
-			},
-		},
-	})
-}
-
 func TestAccDataSourceNcloudPublicIp_vpc_basic(t *testing.T) {
 	/*
 		TODO - it's	for atomicity of regression testing. remove when error has solved.
@@ -112,30 +81,6 @@ func TestAccDataSourceNcloudPublicIpSearch(t *testing.T) {
 			},
 		},
 	})
-}
-
-func testAccDataSourceNcloudPublicIpClassicConfig(name string) string {
-	return fmt.Sprintf(`
-resource "ncloud_login_key" "loginkey" {
-	key_name = "%[1]s-key"
-}
-
-resource "ncloud_server" "server" {
-	name = "%[1]s"
-	server_image_product_code = "SPSW0LINUX000045"
-	server_product_code = "SPSVRSTAND000004"
-	login_key_name = "${ncloud_login_key.loginkey.key_name}"
-}
-
-resource "ncloud_public_ip" "public_ip" {
-	description = "%[1]s"
-	depends_on = [ncloud_server.server]
-}
-
-data "ncloud_public_ip" "test" {
-	id = ncloud_public_ip.public_ip.id
-}
-`, name)
 }
 
 func testAccDataSourceNcloudPublicIpVpcConfig(name string) string {

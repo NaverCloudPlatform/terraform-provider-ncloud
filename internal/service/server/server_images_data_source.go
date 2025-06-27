@@ -4,7 +4,6 @@ import (
 	"fmt"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 
 	. "github.com/terraform-providers/terraform-provider-ncloud/internal/common"
 	"github.com/terraform-providers/terraform-provider-ncloud/internal/conn"
@@ -45,30 +44,6 @@ func DataSourceNcloudServerImages() *schema.Resource {
 				Type:     schema.TypeList,
 				Computed: true,
 				Elem:     &schema.Schema{Type: schema.TypeString},
-			},
-			// Deprecated
-			"product_name_regex": {
-				Type:             schema.TypeString,
-				Optional:         true,
-				ForceNew:         true,
-				ValidateDiagFunc: validation.ToDiagFunc(validation.StringIsValidRegExp),
-				Deprecated:       "use `filter` instead",
-			},
-			"exclusion_product_code": {
-				Type:       schema.TypeString,
-				Optional:   true,
-				Deprecated: "This field no longer support",
-			},
-			"block_storage_size": {
-				Type:             schema.TypeInt,
-				Optional:         true,
-				ValidateDiagFunc: validation.ToDiagFunc(validation.IntInSlice([]int{50, 100})),
-				Deprecated:       "use `filter` instead",
-			},
-			"region": {
-				Type:       schema.TypeString,
-				Optional:   true,
-				Deprecated: "use provider config instead",
 			},
 		},
 	}

@@ -3,6 +3,7 @@ package server
 import (
 	"context"
 	"fmt"
+
 	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/services/vserver"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
@@ -86,14 +87,6 @@ func (i *initScriptDataSource) Configure(_ context.Context, req datasource.Confi
 
 // Read refreshes the Terraform state with the latest data.
 func (i *initScriptDataSource) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
-	if !i.config.SupportVPC {
-		resp.Diagnostics.AddError(
-			"Not Supported Classic",
-			"init script data source does not supported in classic",
-		)
-		return
-	}
-
 	var data initScriptDataSourceModel
 	resp.Diagnostics.Append(req.Config.Get(ctx, &data)...)
 	if resp.Diagnostics.HasError() {

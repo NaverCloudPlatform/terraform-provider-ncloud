@@ -38,12 +38,7 @@ func dataSourceNcloudNetworkInterfaceRead(d *schema.ResourceData, meta interface
 	var resources []map[string]interface{}
 	var err error
 
-	if config.SupportVPC {
-		resources, err = getVpcNetworkInterfaceListFiltered(d, config)
-	} else {
-		return NotSupportClassic("data source `ncloud_network_interface`")
-	}
-
+	resources, err = getVpcNetworkInterfaceListFiltered(d, config)
 	if err != nil {
 		return err
 	}

@@ -4,7 +4,6 @@ import (
 	"fmt"
 
 	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/ncloud"
-	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/services/server"
 	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/services/vserver"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 
@@ -60,61 +59,6 @@ func dataSourceNcloudBlockStorageRead(d *schema.ResourceData, meta interface{}) 
 }
 
 func getBlockStorageList(d *schema.ResourceData, config *conn.ProviderConfig) ([]*BlockStorage, error) {
-	if config.SupportVPC {
-		return getVpcBlockStorageList(d, config)
-	}
-
-	return getClassicBlockStorageList(d, config)
-}
-
-func getClassicBlockStorageList(d *schema.ResourceData, config *conn.ProviderConfig) ([]*BlockStorage, error) {
-	regionNo, err := conn.ParseRegionNoParameter(d)
-	if err != nil {
-		return nil, err
-	}
-
-	reqParams := &server.GetBlockStorageInstanceListRequest{
-		RegionNo:         regionNo,
-		ServerInstanceNo: StringPtrOrNil(d.GetOk("server_instance_no")),
-	}
-
-	if v, ok := d.GetOk("id"); ok {
-		reqParams.BlockStorageInstanceNoList = []*string{ncloud.String(v.(string))}
-	}
-
-	LogCommonRequest("getClassicBlockStorageList", reqParams)
-
-	resp, err := config.Client.Server.V2Api.GetBlockStorageInstanceList(reqParams)
-	if err != nil {
-		LogErrorResponse("getClassicBlockStorageList", err, reqParams)
-		return nil, err
-	}
-	LogResponse("getClassicBlockStorageList", resp)
-
-	var list []*BlockStorage
-	for _, r := range resp.BlockStorageInstanceList {
-		instance := &BlockStorage{
-			BlockStorageInstanceNo:  r.BlockStorageInstanceNo,
-			ServerInstanceNo:        r.ServerInstanceNo,
-			ServerName:              r.ServerName,
-			BlockStorageType:        common.GetCodePtrByCommonCode(r.BlockStorageType),
-			BlockStorageName:        r.BlockStorageName,
-			BlockStorageSize:        ncloud.Int64(*r.BlockStorageSize / GIGABYTE),
-			DeviceName:              r.DeviceName,
-			BlockStorageProductCode: r.BlockStorageProductCode,
-			Status:                  common.GetCodePtrByCommonCode(r.BlockStorageInstanceStatus),
-			Description:             r.BlockStorageInstanceDescription,
-			DiskType:                common.GetCodePtrByCommonCode(r.DiskType),
-			DiskDetailType:          common.GetCodePtrByCommonCode(r.DiskDetailType),
-		}
-
-		list = append(list, instance)
-	}
-
-	return list, nil
-}
-
-func getVpcBlockStorageList(d *schema.ResourceData, config *conn.ProviderConfig) ([]*BlockStorage, error) {
 	reqParams := &vserver.GetBlockStorageInstanceListRequest{
 		RegionCode:       &config.RegionCode,
 		ServerInstanceNo: StringPtrOrNil(d.GetOk("server_instance_no")),

@@ -4,10 +4,8 @@ import (
 	"fmt"
 
 	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/ncloud"
-	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/services/server"
 	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/services/vserver"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 
 	. "github.com/terraform-providers/terraform-provider-ncloud/internal/common"
 	"github.com/terraform-providers/terraform-provider-ncloud/internal/conn"
@@ -60,24 +58,6 @@ func DataSourceNcloudServerImage() *schema.Resource {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
-			// Deprecated
-			"product_name_regex": {
-				Type:             schema.TypeString,
-				Optional:         true,
-				ValidateDiagFunc: validation.ToDiagFunc(validation.StringIsValidRegExp),
-				Deprecated:       "use `filter` instead",
-			},
-			"exclusion_product_code": {
-				Type:       schema.TypeString,
-				Optional:   true,
-				Deprecated: "This field no longer support",
-			},
-			"platform_type_code_list": {
-				Type:       schema.TypeList,
-				Optional:   true,
-				Elem:       &schema.Schema{Type: schema.TypeString},
-				Deprecated: "use `filter` or `platform_type` instead",
-			},
 		},
 	}
 }
@@ -102,65 +82,13 @@ func getServerImageProductListFiltered(d *schema.ResourceData, config *conn.Prov
 	var resources []map[string]interface{}
 	var err error
 
-	if config.SupportVPC {
-		resources, err = getVpcServerImageProductList(d, config)
-	} else {
-		resources, err = getClassicServerImageProductList(d, config)
-	}
-
+	resources, err = getVpcServerImageProductList(d, config)
 	if err != nil {
 		return nil, err
 	}
 
 	if f, ok := d.GetOk("filter"); ok {
 		resources = ApplyFilters(f.(*schema.Set), resources, DataSourceNcloudServerImage().Schema)
-	}
-
-	return resources, nil
-}
-
-func getClassicServerImageProductList(d *schema.ResourceData, config *conn.ProviderConfig) ([]map[string]interface{}, error) {
-	client := config.Client
-	regionNo := config.RegionNo
-
-	reqParams := &server.GetServerImageProductListRequest{
-		ProductCode:                 StringPtrOrNil(d.GetOk("product_code")),
-		RegionNo:                    &regionNo,
-		InfraResourceDetailTypeCode: StringPtrOrNil(d.GetOk("infra_resource_detail_type_code")),
-	}
-
-	if v, ok := d.GetOk("platform_type"); ok {
-		reqParams.PlatformTypeCodeList = []*string{ncloud.String(v.(string))}
-	}
-
-	LogCommonRequest("GetServerImageProductList", reqParams)
-	resp, err := client.Server.V2Api.GetServerImageProductList(reqParams)
-	if err != nil {
-		LogErrorResponse("GetServerImageProductList", err, reqParams)
-		return nil, err
-	}
-	LogResponse("GetServerImageProductList", resp)
-
-	var resources []map[string]interface{}
-
-	for _, r := range resp.ProductList {
-		instance := map[string]interface{}{
-			"id":                      *r.ProductCode,
-			"product_code":            *r.ProductCode,
-			"product_name":            *r.ProductName,
-			"product_type":            *r.ProductType.Code,
-			"product_description":     *r.ProductDescription,
-			"infra_resource_type":     *r.InfraResourceType.Code,
-			"base_block_storage_size": fmt.Sprintf("%dGB", *r.BaseBlockStorageSize/GIGABYTE),
-			"platform_type":           *r.PlatformType.Code,
-			"os_information":          *r.OsInformation,
-		}
-
-		if r.InfraResourceDetailType != nil {
-			instance["infra_resource_detail_type_code"] = *r.InfraResourceDetailType.Code
-		}
-
-		resources = append(resources, instance)
 	}
 
 	return resources, nil

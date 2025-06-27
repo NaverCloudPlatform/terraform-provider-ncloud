@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"fmt"
 
-	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/services/server"
 	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/services/vserver"
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
@@ -195,38 +194,7 @@ func (d *loginKeyModel) refreshFromOutput(output *loginKeyStruct) {
 }
 
 func GetLoginKeyList(config *conn.ProviderConfig) ([]*loginKeyStruct, error) {
-	if config.SupportVPC {
-		return getVpcLoginKeyList(config)
-	} else {
-		return getClassicLoginKeyList(config)
-	}
-}
-
-func getVpcLoginKeyList(config *conn.ProviderConfig) ([]*loginKeyStruct, error) {
 	resp, err := config.Client.Vserver.V2Api.GetLoginKeyList(&vserver.GetLoginKeyListRequest{})
-
-	if err != nil {
-		return nil, err
-	}
-
-	if len(resp.LoginKeyList) < 1 {
-		return nil, nil
-	}
-
-	var loginKeys []*loginKeyStruct
-	for _, l := range resp.LoginKeyList {
-		loginKeys = append(loginKeys, &loginKeyStruct{
-			KeyName:     l.KeyName,
-			Fingerprint: l.Fingerprint,
-			CreateDate:  l.CreateDate,
-		})
-	}
-
-	return loginKeys, nil
-}
-
-func getClassicLoginKeyList(config *conn.ProviderConfig) ([]*loginKeyStruct, error) {
-	resp, err := config.Client.Server.V2Api.GetLoginKeyList(&server.GetLoginKeyListRequest{})
 
 	if err != nil {
 		return nil, err

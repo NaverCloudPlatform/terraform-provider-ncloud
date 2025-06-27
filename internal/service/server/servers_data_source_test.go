@@ -39,32 +39,6 @@ func TestAccDataSourceNcloudServers_vpc_basic(t *testing.T) {
 	})
 }
 
-func TestAccDataSourceNcloudServers_classic_basic(t *testing.T) {
-	// Images are all deprecated in Classic
-	t.Skip()
-
-	testServerName := GetTestServerName()
-	testServerName2 := GetTestServerName()
-
-	resource.Test(t, resource.TestCase{
-		PreCheck:                 func() { TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: ClassicProtoV6ProviderFactories,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccDataSourceServersClassicConfig(testServerName, testServerName2),
-				Check: resource.ComposeTestCheckFunc(
-					TestAccCheckDataSourceID(dataName),
-					resource.TestMatchResourceAttr(dataName, "id", regexp.MustCompile(`^\d+$`)),
-					resource.TestCheckResourceAttr(dataName, "ids.#", "2"),
-					TestAccCheckDataSourceID(dataName2),
-					resource.TestCheckResourceAttr(dataName2, "ids.#", "1"),
-					resource.TestCheckResourceAttrPair(dataName2, "ids.0", serverName, "id"),
-				),
-			},
-		},
-	})
-}
-
 func testAccDataSourceServersVpcConfig(testServerName, testServerName2 string) string {
 	return fmt.Sprintf(`
 resource "ncloud_login_key" "loginkey" {
@@ -107,39 +81,6 @@ resource "ncloud_server" "test2" {
 	server_image_number = data.ncloud_server_image_numbers.server_images.image_number_list.0.server_image_number
 	server_spec_code = "s2-g3"
 	login_key_name = ncloud_login_key.loginkey.key_name
-}
-
-data "ncloud_servers" "by_id" {
-	ids = [ncloud_server.test.id, ncloud_server.test2.id]
-}
-
-data "ncloud_servers" "by_filter" {
-	filter {
-		name = "instance_no"
-		values = [ncloud_server.test.id]
-	}
-}
-`, testServerName, testServerName2)
-}
-
-func testAccDataSourceServersClassicConfig(testServerName, testServerName2 string) string {
-	return fmt.Sprintf(`
-resource "ncloud_login_key" "loginkey" {
-	key_name = "%[1]s-key"
-}
-
-resource "ncloud_server" "test" {
-	name = "%[1]s"
-	server_image_product_code = "SPSW0LINUX000139"
-	server_product_code = "SPSVRSSD00000003"
-	login_key_name = "${ncloud_login_key.loginkey.key_name}"
-}
-
-resource "ncloud_server" "test2" {
-	name = "%[2]s"
-	server_image_product_code = "SPSW0LINUX000139"
-	server_product_code = "SPSVRSSD00000003"
-	login_key_name = "${ncloud_login_key.loginkey.key_name}"
 }
 
 data "ncloud_servers" "by_id" {
