@@ -104,14 +104,6 @@ func (r *redisProductsDataSource) Configure(_ context.Context, req datasource.Co
 func (r *redisProductsDataSource) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
 	var data redisProductList
 
-	if !r.config.SupportVPC {
-		resp.Diagnostics.AddError(
-			"NOT SUPPORT CLASSIC",
-			"does not support CLASSIC. only VPC.",
-		)
-		return
-	}
-
 	resp.Diagnostics.Append(req.Config.Get(ctx, &data)...)
 	if resp.Diagnostics.HasError() {
 		return
