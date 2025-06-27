@@ -34,12 +34,10 @@ const (
 // ProtoV6ProviderFactories is a static map containing only the main provider instance
 // for testing
 var (
-	ProtoV6ProviderFactories        map[string]func() (tfprotov6.ProviderServer, error) = protoV6ProviderFactoriesInit(context.Background(), true, ProviderName)
-	ClassicProtoV6ProviderFactories map[string]func() (tfprotov6.ProviderServer, error) = protoV6ProviderFactoriesInit(context.Background(), false, ProviderName)
+	ProtoV6ProviderFactories map[string]func() (tfprotov6.ProviderServer, error) = protoV6ProviderFactoriesInit(context.Background(), ProviderName)
 )
 
-var testAccProvider *schema.Provider
-var testAccClassicProvider *schema.Provider
+var TestAccProvider *schema.Provider
 
 // testAccProviderConfigure ensures Provider is only configured once
 var testAccProviderConfigure sync.Once
@@ -52,30 +50,14 @@ var credsEnvVars = []string{
 var regionEnvVar = "NCLOUD_REGION"
 
 func init() {
-	testAccProvider = getTestAccProvider(true)
-	testAccClassicProvider = getTestAccProvider(false)
+	TestAccProvider = getTestAccProvider()
 }
 
-func GetTestProviderFactories(isVpc bool) map[string]func() (tfprotov6.ProviderServer, error) {
-	if isVpc {
-		return ProtoV6ProviderFactories
-	}
-	return ClassicProtoV6ProviderFactories
-}
-
-func GetTestProvider(isVpc bool) *schema.Provider {
-	if isVpc {
-		return testAccProvider
-	}
-
-	return testAccClassicProvider
-}
-
-func getTestAccProvider(isVpc bool) *schema.Provider {
+func getTestAccProvider() *schema.Provider {
 	p := provider.New(context.Background())
 	p.ConfigureContextFunc = func(ctx context.Context, d *schema.ResourceData) (interface{}, diag.Diagnostics) {
 		d.Set("region", testAccGetRegion())
-		d.Set("support_vpc", isVpc)
+		d.Set("support_vpc", true)
 		return provider.ProviderConfigure(ctx, d)
 	}
 	return p
@@ -90,13 +72,9 @@ func TestAccPreCheck(t *testing.T) {
 		region := testAccGetRegion()
 		log.Printf("[INFO] Test: Using %s as test region", region)
 
-		diags := testAccProvider.Configure(context.Background(), terraform.NewResourceConfigRaw(nil))
+		diags := TestAccProvider.Configure(context.Background(), terraform.NewResourceConfigRaw(nil))
 		if diags.HasError() {
 			t.Fatalf("configuring provider: %v", diags)
-		}
-		diags2 := testAccClassicProvider.Configure(context.Background(), terraform.NewResourceConfigRaw(nil))
-		if diags2.HasError() {
-			t.Fatalf("configuring provider: %v", diags2)
 		}
 	})
 }
@@ -181,12 +159,12 @@ func GetTestClusterName() string {
 	return testClusterName
 }
 
-func protoV6ProviderFactoriesInit(ctx context.Context, isVpc bool, providerNames ...string) map[string]func() (tfprotov6.ProviderServer, error) {
+func protoV6ProviderFactoriesInit(ctx context.Context, providerNames ...string) map[string]func() (tfprotov6.ProviderServer, error) {
 	factories := make(map[string]func() (tfprotov6.ProviderServer, error), len(providerNames))
 
 	for _, name := range providerNames {
 		factories[name] = func() (tfprotov6.ProviderServer, error) {
-			providerServerFactory, _, err := protoV6TestProviderServerFactory(ctx, isVpc)
+			providerServerFactory, _, err := protoV6TestProviderServerFactory(ctx)
 
 			if err != nil {
 				return nil, err
@@ -199,11 +177,11 @@ func protoV6ProviderFactoriesInit(ctx context.Context, isVpc bool, providerNames
 	return factories
 }
 
-func protoV6TestProviderServerFactory(ctx context.Context, isVpc bool) (func() tfprotov6.ProviderServer, *schema.Provider, error) {
+func protoV6TestProviderServerFactory(ctx context.Context) (func() tfprotov6.ProviderServer, *schema.Provider, error) {
 	primary := provider.New(ctx)
 	primary.ConfigureContextFunc = func(ctx context.Context, d *schema.ResourceData) (interface{}, diag.Diagnostics) {
 		d.Set("region", testAccGetRegion())
-		d.Set("support_vpc", isVpc)
+		d.Set("support_vpc", true)
 		return provider.ProviderConfigure(ctx, d)
 	}
 

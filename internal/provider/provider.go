@@ -223,16 +223,13 @@ func ProviderConfigure(ctx context.Context, d *schema.ResourceData) (interface{}
 	}
 
 	// Set region
-	if err := conn.SetRegionCache(providerConfig.Client, providerConfig.SupportVPC); err != nil {
+	if err := conn.SetRegionCache(providerConfig.Client); err != nil {
 		return nil, diag.FromErr(err)
 	}
 
 	if conn.IsValidRegionCode(region.(string)) {
 		os.Setenv("NCLOUD_REGION", region.(string))
 		providerConfig.RegionCode = region.(string)
-		if !providerConfig.SupportVPC {
-			providerConfig.RegionNo = *conn.GetRegionNoByCode(region.(string))
-		}
 	} else {
 		return nil, []diag.Diagnostic{
 			{
