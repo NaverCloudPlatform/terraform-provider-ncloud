@@ -95,9 +95,6 @@ func ResourceNcloudLbListener() *schema.Resource {
 
 func resourceNcloudLbListenerCreate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	config := meta.(*conn.ProviderConfig)
-	if !config.SupportVPC {
-		return diag.FromErr(NotSupportClassic("resource `ncloud_lb_listener`"))
-	}
 
 	reqParams := &vloadbalancer.CreateLoadBalancerListenerRequest{
 		RegionCode: &config.RegionCode,
@@ -137,9 +134,6 @@ func resourceNcloudLbListenerCreate(ctx context.Context, d *schema.ResourceData,
 
 func resourceNcloudLbListenerRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	config := meta.(*conn.ProviderConfig)
-	if !config.SupportVPC {
-		return diag.FromErr(NotSupportClassic("resource `ncloud_lb_listener`"))
-	}
 
 	listener, err := GetVpcLoadBalancerListener(config, d.Id(), d.Get("load_balancer_no").(string))
 	if err != nil {
@@ -158,9 +152,6 @@ func resourceNcloudLbListenerRead(ctx context.Context, d *schema.ResourceData, m
 
 func resourceNcloudLbListenerUpdate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	config := meta.(*conn.ProviderConfig)
-	if !config.SupportVPC {
-		return diag.FromErr(NotSupportClassic("resource `ncloud_lb_listener`"))
-	}
 
 	if d.HasChanges("port", "protocol", "ssl_certificate_no", "use_http2", "tls_min_version_type") {
 		reqParams := &vloadbalancer.ChangeLoadBalancerListenerConfigurationRequest{
@@ -198,9 +189,7 @@ func resourceNcloudLbListenerUpdate(ctx context.Context, d *schema.ResourceData,
 
 func resourceNcloudLbListenerDelete(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	config := meta.(*conn.ProviderConfig)
-	if !config.SupportVPC {
-		return diag.FromErr(NotSupportClassic("resource `ncloud_lb_listener`"))
-	}
+
 	reqParams := &vloadbalancer.DeleteLoadBalancerListenersRequest{
 		RegionCode:                 &config.RegionCode,
 		LoadBalancerListenerNoList: []*string{ncloud.String(d.Id())},

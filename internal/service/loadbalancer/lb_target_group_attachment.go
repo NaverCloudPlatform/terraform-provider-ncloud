@@ -50,9 +50,7 @@ func ResourceNcloudLbTargetGroupAttachment() *schema.Resource {
 
 func resourceNcloudLbTargetGroupAttachmentCreate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	config := meta.(*conn.ProviderConfig)
-	if !config.SupportVPC {
-		return diag.FromErr(NotSupportClassic("resource `ncloud_lb_target_group_attachment`"))
-	}
+
 	reqParams := &vloadbalancer.AddTargetRequest{
 		RegionCode:    &config.RegionCode,
 		TargetGroupNo: ncloud.String(d.Get("target_group_no").(string)),
@@ -71,9 +69,6 @@ func resourceNcloudLbTargetGroupAttachmentCreate(ctx context.Context, d *schema.
 
 func resourceNcloudLbTargetGroupAttachmentRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	config := meta.(*conn.ProviderConfig)
-	if !config.SupportVPC {
-		return diag.FromErr(NotSupportClassic("resource `ncloud_lb_target_group`"))
-	}
 
 	targetNoList, err := GetVpcLoadBalancerTargetGroupAttachment(config, d.Get("target_group_no").(string), ncloud.StringListValue(ncloud.StringInterfaceList(d.Get("target_no_list").([]interface{}))))
 	if err != nil {
@@ -97,9 +92,7 @@ func resourceNcloudLbTargetGroupAttachmentRead(ctx context.Context, d *schema.Re
 
 func resourceNcloudLbTargetGroupAttachmentUpdate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	config := meta.(*conn.ProviderConfig)
-	if !config.SupportVPC {
-		return diag.FromErr(NotSupportClassic("resource `ncloud_lb_target_group`"))
-	}
+
 	if d.HasChange("target_no_list") {
 		o, n := d.GetChange("target_no_list")
 		oldTargetNoList := ncloud.StringInterfaceList(o.([]interface{}))
@@ -164,9 +157,7 @@ func resourceNcloudLbTargetGroupAttachmentUpdate(ctx context.Context, d *schema.
 
 func resourceNcloudLbTargetGroupAttachmentDelete(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	config := meta.(*conn.ProviderConfig)
-	if !config.SupportVPC {
-		return diag.FromErr(NotSupportClassic("resource `ncloud_lb_target_group_attachment`"))
-	}
+
 	reqParams := &vloadbalancer.RemoveTargetRequest{
 		RegionCode:    &config.RegionCode,
 		TargetGroupNo: ncloud.String(d.Get("target_group_no").(string)),

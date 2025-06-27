@@ -39,9 +39,6 @@ func DataSourceNcloudLbListener() *schema.Resource {
 
 func dataSourceNcloudLbListenerRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	config := meta.(*conn.ProviderConfig)
-	if !config.SupportVPC {
-		return diag.FromErr(NotSupportClassic("datasource `ncloud_lb_listener`"))
-	}
 
 	if v, ok := d.GetOk("id"); ok {
 		d.SetId(v.(string))
