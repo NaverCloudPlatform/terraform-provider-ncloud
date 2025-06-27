@@ -110,14 +110,6 @@ func (r *vpcResource) Create(ctx context.Context, req resource.CreateRequest, re
 		return
 	}
 
-	if !r.config.SupportVPC {
-		resp.Diagnostics.AddError(
-			"Not support classic",
-			fmt.Sprintf("resource %s does not support classic", req.Config.Schema.Type().String()),
-		)
-		return
-	}
-
 	reqParams := &vpc.CreateVpcRequest{
 		RegionCode:    &r.config.RegionCode,
 		Ipv4CidrBlock: plan.Ipv4CidrBlock.ValueStringPointer(),

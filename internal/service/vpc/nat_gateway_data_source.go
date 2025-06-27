@@ -102,14 +102,6 @@ func (n *natGatewayDataSource) Configure(_ context.Context, req datasource.Confi
 func (n *natGatewayDataSource) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
 	var data natGatewayDataSourceModel
 
-	if !n.config.SupportVPC {
-		resp.Diagnostics.AddError(
-			"NOT SUPPORT CLASSIC",
-			"nat gateway data source does not supported in classic",
-		)
-		return
-	}
-
 	resp.Diagnostics.Append(req.Config.Get(ctx, &data)...)
 	if resp.Diagnostics.HasError() {
 		return

@@ -108,14 +108,6 @@ func (v *vpcsDataSource) Configure(_ context.Context, req datasource.ConfigureRe
 
 // Read refreshes the Terraform state with the latest data.
 func (v *vpcsDataSource) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
-	if !v.config.SupportVPC {
-		resp.Diagnostics.AddError(
-			"Not Supported Classic",
-			"vpcs data source does not supported in classic",
-		)
-		return
-	}
-
 	var data vpcsDataSourceModel
 	resp.Diagnostics.Append(req.Config.Get(ctx, &data)...)
 	if resp.Diagnostics.HasError() {

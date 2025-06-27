@@ -51,10 +51,6 @@ func ResourceNcloudRouteTableAssociation() *schema.Resource {
 func resourceNcloudRouteTableAssociationCreate(d *schema.ResourceData, meta interface{}) error {
 	config := meta.(*conn.ProviderConfig)
 
-	if !config.SupportVPC {
-		return NotSupportClassic("resource `ncloud_route_table_association`")
-	}
-
 	routeTable, err := GetRouteTableInstance(config, d.Get("route_table_no").(string))
 	if err != nil {
 		return err

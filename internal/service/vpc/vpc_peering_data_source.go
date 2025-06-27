@@ -101,14 +101,6 @@ func (v *vpcPeeringDataSource) Schema(ctx context.Context, req datasource.Schema
 }
 
 func (v *vpcPeeringDataSource) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
-	if !v.config.SupportVPC {
-		resp.Diagnostics.AddError(
-			"Not Supported Classic",
-			"vpc peering data source does not supported in classic",
-		)
-		return
-	}
-
 	var data vpcPeeringDataSourceModel
 	resp.Diagnostics.Append(req.Config.Get(ctx, &data)...)
 	if resp.Diagnostics.HasError() {

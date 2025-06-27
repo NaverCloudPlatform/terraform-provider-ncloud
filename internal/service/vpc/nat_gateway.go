@@ -140,14 +140,6 @@ func (n *natGatewayResource) Configure(_ context.Context, req resource.Configure
 func (n *natGatewayResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
 	var plan natGatewayResourceModel
 
-	if !n.config.SupportVPC {
-		resp.Diagnostics.AddError(
-			"NOT SUPPORT CLASSIC",
-			"resource does not support CLASSIC. only VPC.",
-		)
-		return
-	}
-
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &plan)...)
 	if resp.Diagnostics.HasError() {
 		return

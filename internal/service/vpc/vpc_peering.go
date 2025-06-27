@@ -146,14 +146,6 @@ func (v *vpcPeeringResource) Create(ctx context.Context, req resource.CreateRequ
 		return
 	}
 
-	if !v.config.SupportVPC {
-		resp.Diagnostics.AddError(
-			"not support classic",
-			fmt.Sprintf("resource %s does not support classic", req.Config.Schema.Type().String()),
-		)
-		return
-	}
-
 	reqParams := &vpc.CreateVpcPeeringInstanceRequest{
 		RegionCode:  &v.config.RegionCode,
 		SourceVpcNo: plan.SourceVpcNo.ValueStringPointer(),

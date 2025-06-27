@@ -59,10 +59,6 @@ func ResourceNcloudNetworkACL() *schema.Resource {
 func resourceNcloudNetworkACLCreate(d *schema.ResourceData, meta interface{}) error {
 	config := meta.(*conn.ProviderConfig)
 
-	if !config.SupportVPC {
-		return NotSupportClassic("resource `ncloud_network_acl`")
-	}
-
 	reqParams := &vpc.CreateNetworkAclRequest{
 		RegionCode: &config.RegionCode,
 		VpcNo:      ncloud.String(d.Get("vpc_no").(string)),

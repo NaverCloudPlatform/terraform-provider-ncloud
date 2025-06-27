@@ -63,10 +63,6 @@ func ResourceNcloudNetworkACLDenyAllowGroup() *schema.Resource {
 func resourceNcloudNetworkACLDenyAllowGroupCreate(d *schema.ResourceData, meta interface{}) error {
 	config := meta.(*conn.ProviderConfig)
 
-	if !config.SupportVPC {
-		return NotSupportClassic("resource `ncloud_network_acl_deny_allow_group`")
-	}
-
 	reqParams := &vpc.CreateNetworkAclDenyAllowGroupRequest{
 		RegionCode: &config.RegionCode,
 		VpcNo:      ncloud.String(d.Get("vpc_no").(string))}
