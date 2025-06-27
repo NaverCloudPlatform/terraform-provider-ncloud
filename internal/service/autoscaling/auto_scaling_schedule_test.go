@@ -16,33 +16,6 @@ import (
 	"github.com/terraform-providers/terraform-provider-ncloud/internal/service/autoscaling"
 )
 
-func TestAccResourceNcloudAutoScalingSchedule_classic_basic(t *testing.T) {
-	// Images are all deprecated in Classic
-	t.Skip()
-
-	var schedule autoscaling.AutoScalingSchedule
-	name := fmt.Sprintf("terraform-testacc-asp-%s", acctest.RandString(5))
-	resourceName := "ncloud_auto_scaling_schedule.test-schedule"
-	start := testAccNcloudAutoscalingScheduleValidStart(t)
-	end := testAccNcloudAutoscalingScheduleValidEnd(t)
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:                 func() { TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: ClassicProtoV6ProviderFactories,
-		CheckDestroy: func(state *terraform.State) error {
-			return testAccCheckNcloudAutoScalingScheduleDestroy(state, GetTestProvider(false))
-		},
-		Steps: []resource.TestStep{
-			{
-				Config: testAccNcloudAutoScalingScheduleClassicConfig(name, start, end),
-				Check: resource.ComposeTestCheckFunc(
-					testAccCheckNcloudAutoScalingScheduleExists(resourceName, &schedule, GetTestProvider(false)),
-					resource.TestCheckResourceAttr(resourceName, "desired_capacity", "1"),
-				),
-			},
-		},
-	})
-}
-
 func TestAccResourceNcloudAutoScalingSchedule_vpc_basic(t *testing.T) {
 	var schedule autoscaling.AutoScalingSchedule
 	name := fmt.Sprintf("terraform-testacc-asp-%s", acctest.RandString(5))
@@ -61,35 +34,6 @@ func TestAccResourceNcloudAutoScalingSchedule_vpc_basic(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckNcloudAutoScalingScheduleExists(resourceName, &schedule, GetTestProvider(true)),
 				),
-			},
-		},
-	})
-}
-
-func TestAccResourceNcloudAutoScalingSchedule_classic_disappears(t *testing.T) {
-	// Images are all deprecated in Classic
-	t.Skip()
-
-	var schedule autoscaling.AutoScalingSchedule
-	name := fmt.Sprintf("terraform-testacc-asp-%s", acctest.RandString(5))
-	resourceName := "ncloud_auto_scaling_schedule.test-schedule"
-	start := testAccNcloudAutoscalingScheduleValidStart(t)
-	end := testAccNcloudAutoscalingScheduleValidEnd(t)
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:                 func() { TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: ClassicProtoV6ProviderFactories,
-		CheckDestroy: func(state *terraform.State) error {
-			return testAccCheckNcloudAutoScalingScheduleDestroy(state, GetTestProvider(false))
-		},
-		Steps: []resource.TestStep{
-			{
-				Config: testAccNcloudAutoScalingScheduleClassicConfig(name, start, end),
-				Check: resource.ComposeTestCheckFunc(
-					testAccCheckNcloudAutoScalingScheduleExists(resourceName, &schedule, GetTestProvider(false)),
-					TestAccCheckResourceDisappears(GetTestProvider(false), autoscaling.ResourceNcloudAutoScalingSchedule(), resourceName),
-					resource.TestCheckResourceAttr(resourceName, "desired_capacity", "1"),
-				),
-				ExpectNonEmptyPlan: true,
 			},
 		},
 	})
@@ -183,37 +127,6 @@ func testAccCheckNcloudAutoScalingScheduleExists(n string, schedule *autoscaling
 		*schedule = *autoScalingSchedule
 		return nil
 	}
-}
-
-func testAccNcloudAutoScalingScheduleClassicConfigBase(name string) string {
-	return fmt.Sprintf(`
-resource "ncloud_launch_configuration" "test" {
-    name = "%[1]s"
-    server_image_product_code = "SPSW0LINUX000046"
-    server_product_code = "SPSVRSSD00000003"
-}
-
-resource "ncloud_auto_scaling_group" "test" {
-	name = "%[1]s"
-	launch_configuration_no = ncloud_launch_configuration.test.launch_configuration_no
-	min_size = 1
-	max_size = 1
-	zone_no_list = ["2"]
-}
-`, name)
-}
-
-func testAccNcloudAutoScalingScheduleClassicConfig(name string, start string, end string) string {
-	return testAccNcloudAutoScalingScheduleClassicConfigBase(name) + fmt.Sprintf(`
-resource "ncloud_auto_scaling_schedule" "test-schedule" {
-	name = "%[1]s"
-	min_size = 1
-	max_size = 1
-	desired_capacity = 1
-	start_time = "%[2]s"
-	end_time = "%[3]s"
-	auto_scaling_group_no = ncloud_auto_scaling_group.test.auto_scaling_group_no
-}`, name, start, end)
 }
 
 func testAccNcloudAutoScalingScheduleVpcConfigBase(name string) string {

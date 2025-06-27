@@ -2,7 +2,6 @@ package autoscaling
 
 import (
 	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/ncloud"
-	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/services/autoscaling"
 	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/services/vautoscaling"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 
@@ -55,14 +54,6 @@ func dataSourceNcloudAutoScalingPolicyRead(d *schema.ResourceData, meta interfac
 }
 
 func getAutoScalingPolicyList(d *schema.ResourceData, config *conn.ProviderConfig) ([]*AutoScalingPolicy, error) {
-	if config.SupportVPC {
-		return getVpcAutoScalingPolicyList(d, config)
-	} else {
-		return getClassicAutoScalingPolicyList(d, config)
-	}
-}
-
-func getVpcAutoScalingPolicyList(d *schema.ResourceData, config *conn.ProviderConfig) ([]*AutoScalingPolicy, error) {
 	reqParams := &vautoscaling.GetAutoScalingPolicyListRequest{
 		RegionCode:         &config.RegionCode,
 		AutoScalingGroupNo: ncloud.String(d.Get("auto_scaling_group_no").(string)),
@@ -93,41 +84,5 @@ func getVpcAutoScalingPolicyList(d *schema.ResourceData, config *conn.ProviderCo
 	if d.Id() != "" {
 		return nil, nil
 	}
-	return list, nil
-}
-
-func getClassicAutoScalingPolicyList(d *schema.ResourceData, config *conn.ProviderConfig) ([]*AutoScalingPolicy, error) {
-	reqParams := &autoscaling.GetAutoScalingPolicyListRequest{}
-
-	if d.Id() != "" {
-		reqParams.PolicyNameList = []*string{ncloud.String(d.Id())}
-	}
-
-	resp, err := config.Client.Autoscaling.V2Api.GetAutoScalingPolicyList(reqParams)
-	if err != nil {
-		return nil, err
-	}
-
-	list := make([]*AutoScalingPolicy, 0)
-	for _, p := range resp.ScalingPolicyList {
-		asg, err := getClassicAutoScalingGroupByName(config, *p.AutoScalingGroupName)
-		if err != nil {
-			return nil, err
-		}
-		policy := &AutoScalingPolicy{
-			AutoScalingPolicyName: p.PolicyName,
-			AdjustmentTypeCode:    p.AdjustmentType.Code,
-			ScalingAdjustment:     p.ScalingAdjustment,
-			Cooldown:              p.Cooldown,
-			MinAdjustmentStep:     p.MinAdjustmentStep,
-			AutoScalingGroupNo:    asg.AutoScalingGroupNo,
-		}
-		list = append(list, policy)
-	}
-
-	if len(list) < 1 {
-		return nil, nil
-	}
-
 	return list, nil
 }

@@ -6,7 +6,6 @@ import (
 	"strings"
 
 	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/ncloud"
-	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/services/autoscaling"
 	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/services/vautoscaling"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
@@ -87,14 +86,6 @@ func resourceNcloudAutoScalingPolicyCreate(d *schema.ResourceData, meta interfac
 }
 
 func createAutoScalingPolicy(d *schema.ResourceData, config *conn.ProviderConfig) (*string, *string, error) {
-	if config.SupportVPC {
-		return createVpcAutoScalingPolicy(d, config)
-	} else {
-		return createClassicAutoScalingPolicy(d, config)
-	}
-}
-
-func createVpcAutoScalingPolicy(d *schema.ResourceData, config *conn.ProviderConfig) (*string, *string, error) {
 	reqParams := &vautoscaling.PutScalingPolicyRequest{
 		RegionCode: &config.RegionCode,
 		// Required
@@ -118,34 +109,6 @@ func createVpcAutoScalingPolicy(d *schema.ResourceData, config *conn.ProviderCon
 	return policy.AutoScalingGroupNo, policy.PolicyNo, nil
 }
 
-func createClassicAutoScalingPolicy(d *schema.ResourceData, config *conn.ProviderConfig) (*string, *string, error) {
-	no := d.Get("auto_scaling_group_no").(string)
-	name := ncloud.String(d.Get("name").(string))
-	asg, err := getClassicAutoScalingGroup(config, no)
-	if err != nil {
-		return nil, nil, err
-	}
-	reqParams := &autoscaling.PutScalingPolicyRequest{
-		// Required
-		AdjustmentTypeCode:   ncloud.String(d.Get("adjustment_type_code").(string)),
-		ScalingAdjustment:    ncloud.Int32(int32(d.Get("scaling_adjustment").(int))),
-		AutoScalingGroupName: asg.AutoScalingGroupName,
-		PolicyName:           name,
-		// Optional
-		MinAdjustmentStep: Int32PtrOrNil(d.GetOk("min_adjustment_step")),
-		Cooldown:          ncloud.Int32(int32(d.Get("cooldown").(int))),
-	}
-	LogCommonRequest("createClassicAutoScalingPolicy", reqParams)
-
-	resp, err := config.Client.Autoscaling.V2Api.PutScalingPolicy(reqParams)
-	if err != nil {
-		return nil, nil, err
-	}
-	LogResponse("createClassicAutoScalingPolicy", resp)
-
-	return ncloud.String(no), name, nil
-}
-
 func resourceNcloudAutoScalingPolicyRead(d *schema.ResourceData, meta interface{}) error {
 	config := meta.(*conn.ProviderConfig)
 	policy, err := GetAutoScalingPolicy(config, d.Id(), d.Get("auto_scaling_group_no").(string))
@@ -164,14 +127,6 @@ func resourceNcloudAutoScalingPolicyRead(d *schema.ResourceData, meta interface{
 }
 
 func GetAutoScalingPolicy(config *conn.ProviderConfig, id string, autoScalingGroupNo string) (*AutoScalingPolicy, error) {
-	if config.SupportVPC {
-		return getVpcAutoScalingPolicy(config, id, autoScalingGroupNo)
-	} else {
-		return getClassicAutoScalingPolicy(config, id, autoScalingGroupNo)
-	}
-}
-
-func getVpcAutoScalingPolicy(config *conn.ProviderConfig, id string, autoScalingGroupNo string) (*AutoScalingPolicy, error) {
 	reqParams := &vautoscaling.GetAutoScalingPolicyListRequest{
 		RegionCode:         &config.RegionCode,
 		AutoScalingGroupNo: ncloud.String(autoScalingGroupNo),
@@ -202,42 +157,6 @@ func getVpcAutoScalingPolicy(config *conn.ProviderConfig, id string, autoScaling
 
 }
 
-func getClassicAutoScalingPolicy(config *conn.ProviderConfig, id string, autoScalingGroupNo string) (*AutoScalingPolicy, error) {
-	asg, err := getClassicAutoScalingGroup(config, autoScalingGroupNo)
-	if err != nil {
-		return nil, err
-	}
-	if asg == nil {
-		return nil, nil
-	}
-
-	reqParams := &autoscaling.GetAutoScalingPolicyListRequest{
-		PolicyNameList:       []*string{ncloud.String(id)},
-		AutoScalingGroupName: asg.AutoScalingGroupName,
-	}
-	LogCommonRequest("getClassicAutoScalingPolicy", reqParams)
-
-	resp, err := config.Client.Autoscaling.V2Api.GetAutoScalingPolicyList(reqParams)
-	if err != nil {
-		return nil, err
-	}
-	LogResponse("getClassicAutoScalingPolicy", resp)
-
-	if len(resp.ScalingPolicyList) < 1 {
-		return nil, nil
-	}
-
-	p := resp.ScalingPolicyList[0]
-	return &AutoScalingPolicy{
-		AutoScalingPolicyName: p.PolicyName,
-		AdjustmentTypeCode:    p.AdjustmentType.Code,
-		ScalingAdjustment:     p.ScalingAdjustment,
-		Cooldown:              p.Cooldown,
-		MinAdjustmentStep:     p.MinAdjustmentStep,
-		AutoScalingGroupNo:    asg.AutoScalingGroupNo,
-	}, nil
-}
-
 func resourceNcloudAutoScalingPolicyUpdate(d *schema.ResourceData, meta interface{}) error {
 	config := meta.(*conn.ProviderConfig)
 	_, _, err := createAutoScalingPolicy(d, config)
@@ -256,15 +175,7 @@ func resourceNcloudAutoScalingPolicyDelete(d *schema.ResourceData, meta interfac
 }
 
 func deleteAutoScalingPolicy(config *conn.ProviderConfig, id string, autoScalingGroupNo string) error {
-	if config.SupportVPC {
-		return deleteVpcAutoScalingPolicy(config, id, autoScalingGroupNo)
-	} else {
-		return deleteClassicAutoScalingPolicy(config, id, autoScalingGroupNo)
-	}
-}
-
-func deleteVpcAutoScalingPolicy(config *conn.ProviderConfig, id string, autoScalingGroupNo string) error {
-	p, err := getVpcAutoScalingPolicy(config, id, autoScalingGroupNo)
+	p, err := GetAutoScalingPolicy(config, id, autoScalingGroupNo)
 	if err != nil {
 		return err
 	}
@@ -280,26 +191,6 @@ func deleteVpcAutoScalingPolicy(config *conn.ProviderConfig, id string, autoScal
 		return err
 	}
 	LogResponse("deleteVpcAutoScalingPolicy", resp)
-
-	return nil
-}
-
-func deleteClassicAutoScalingPolicy(config *conn.ProviderConfig, id string, autoScalingGroupNo string) error {
-	asg, err := getClassicAutoScalingGroup(config, autoScalingGroupNo)
-	if err != nil {
-		return err
-	}
-	reqParams := &autoscaling.DeletePolicyRequest{
-		AutoScalingGroupName: asg.AutoScalingGroupName,
-		PolicyName:           ncloud.String(id),
-	}
-	LogCommonRequest("deleteClassicAutoScalingPolicy", reqParams)
-
-	resp, err := config.Client.Autoscaling.V2Api.DeletePolicy(reqParams)
-	if err != nil {
-		return err
-	}
-	LogResponse("deleteClassicAutoScalingPolicy", resp)
 
 	return nil
 }

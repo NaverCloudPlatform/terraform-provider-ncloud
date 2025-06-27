@@ -2,7 +2,6 @@ package autoscaling
 
 import (
 	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/ncloud"
-	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/services/autoscaling"
 	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/services/vautoscaling"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 
@@ -55,14 +54,6 @@ func dataSourceNcloudAutoScalingScheduleRead(d *schema.ResourceData, meta interf
 }
 
 func getAutoScalingScheduleList(d *schema.ResourceData, config *conn.ProviderConfig) ([]*AutoScalingSchedule, error) {
-	if config.SupportVPC {
-		return getVpcAutoScalingScheduleList(d, config)
-	} else {
-		return getClassicAutoScalingScheduleList(d, config)
-	}
-}
-
-func getVpcAutoScalingScheduleList(d *schema.ResourceData, config *conn.ProviderConfig) ([]*AutoScalingSchedule, error) {
 	reqParams := &vautoscaling.GetScheduledActionListRequest{
 		RegionCode:         &config.RegionCode,
 		AutoScalingGroupNo: ncloud.String(d.Get("auto_scaling_group_no").(string)),
@@ -92,44 +83,6 @@ func getVpcAutoScalingScheduleList(d *schema.ResourceData, config *conn.Provider
 		}
 		list = append(list, schedule)
 	}
-	if len(list) < 1 {
-		return nil, nil
-	}
-
-	return list, nil
-}
-
-func getClassicAutoScalingScheduleList(d *schema.ResourceData, config *conn.ProviderConfig) ([]*AutoScalingSchedule, error) {
-	reqParams := &autoscaling.GetScheduledActionListRequest{}
-
-	if d.Id() != "" {
-		reqParams.ScheduledActionNameList = []*string{ncloud.String(d.Id())}
-	}
-
-	resp, err := config.Client.Autoscaling.V2Api.GetScheduledActionList(reqParams)
-	if err != nil {
-		return nil, err
-	}
-
-	list := make([]*AutoScalingSchedule, 0)
-	for _, s := range resp.ScheduledUpdateGroupActionList {
-		asg, err := getClassicAutoScalingGroupByName(config, *s.AutoScalingGroupName)
-		if err != nil {
-			return nil, err
-		}
-		schedule := &AutoScalingSchedule{
-			ScheduledActionName: s.ScheduledActionName,
-			AutoScalingGroupNo:  asg.AutoScalingGroupNo,
-			DesiredCapacity:     s.DesiredCapacity,
-			MinSize:             s.MinSize,
-			MaxSize:             s.MaxSize,
-			StartTime:           s.StartTime,
-			EndTime:             s.EndTime,
-			RecurrenceInKST:     s.RecurrenceInKST,
-		}
-		list = append(list, schedule)
-	}
-
 	if len(list) < 1 {
 		return nil, nil
 	}

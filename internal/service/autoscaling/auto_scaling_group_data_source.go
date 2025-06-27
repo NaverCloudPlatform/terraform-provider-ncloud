@@ -2,7 +2,6 @@ package autoscaling
 
 import (
 	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/ncloud"
-	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/services/autoscaling"
 	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/services/vautoscaling"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 
@@ -51,15 +50,6 @@ func dataSourceNcloudAutoScalingGroupRead(d *schema.ResourceData, meta interface
 }
 
 func getAutoScalingGroupList(config *conn.ProviderConfig, id string) ([]*AutoScalingGroup, error) {
-	if config.SupportVPC {
-		return getVpcAutoScalingGroupList(config, id)
-	} else {
-		return getClassicAutoScalingGroupList(config, id)
-	}
-
-}
-
-func getVpcAutoScalingGroupList(config *conn.ProviderConfig, id string) ([]*AutoScalingGroup, error) {
 	reqParams := &vautoscaling.GetAutoScalingGroupListRequest{
 		RegionCode: &config.RegionCode,
 	}
@@ -97,47 +87,6 @@ func getVpcAutoScalingGroupList(config *conn.ProviderConfig, id string) ([]*Auto
 			TargetGroupNoList:                    a.TargetGroupNoList,
 			AccessControlGroupNoList:             a.AccessControlGroupNoList,
 		})
-	}
-
-	return list, nil
-}
-
-func getClassicAutoScalingGroupList(config *conn.ProviderConfig, id string) ([]*AutoScalingGroup, error) {
-	no := ncloud.String(id)
-	reqParams := &autoscaling.GetAutoScalingGroupListRequest{
-		RegionNo: &config.RegionNo,
-	}
-
-	resp, err := config.Client.Autoscaling.V2Api.GetAutoScalingGroupList(reqParams)
-	if err != nil {
-		return nil, err
-	}
-
-	list := make([]*AutoScalingGroup, 0)
-	for _, a := range resp.AutoScalingGroupList {
-		autoScalingGroup := &AutoScalingGroup{
-			AutoScalingGroupNo:                   a.AutoScalingGroupNo,
-			AutoScalingGroupName:                 a.AutoScalingGroupName,
-			LaunchConfigurationNo:                a.LaunchConfigurationNo,
-			DesiredCapacity:                      a.DesiredCapacity,
-			MinSize:                              a.MinSize,
-			MaxSize:                              a.MaxSize,
-			DefaultCooldown:                      a.DefaultCooldown,
-			LoadBalancerInstanceSummaryList:      flattenLoadBalancerInstanceSummaryList(a.LoadBalancerInstanceSummaryList),
-			HealthCheckGracePeriod:               a.HealthCheckGracePeriod,
-			HealthCheckTypeCode:                  a.HealthCheckType.Code,
-			InAutoScalingGroupServerInstanceList: flattenClassicAutoScalingGroupServerInstanceList(a.InAutoScalingGroupServerInstanceList),
-			SuspendedProcessList:                 flattenClassicSuspendedProcessList(a.SuspendedProcessList),
-			ZoneList:                             flattenZoneList(a.ZoneList),
-		}
-		if *a.AutoScalingGroupNo == *no {
-			return []*AutoScalingGroup{autoScalingGroup}, nil
-		}
-		list = append(list, autoScalingGroup)
-	}
-
-	if *no != "" {
-		return nil, nil
 	}
 
 	return list, nil

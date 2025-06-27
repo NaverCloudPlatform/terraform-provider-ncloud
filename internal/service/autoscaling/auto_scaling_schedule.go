@@ -6,7 +6,6 @@ import (
 	"strings"
 
 	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/ncloud"
-	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/services/autoscaling"
 	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/services/vautoscaling"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
@@ -107,14 +106,6 @@ func resourceNcloudAutoScalingScheduleCreate(d *schema.ResourceData, meta interf
 }
 
 func createAutoScalingSchedule(d *schema.ResourceData, config *conn.ProviderConfig) (*string, error) {
-	if config.SupportVPC {
-		return createVpcAutoScalingSchedule(d, config)
-	} else {
-		return createClassicAutoScalingSchedule(d, config)
-	}
-}
-
-func createVpcAutoScalingSchedule(d *schema.ResourceData, config *conn.ProviderConfig) (*string, error) {
 	reqParams := &vautoscaling.PutScheduledUpdateGroupActionRequest{
 		RegionCode: &config.RegionCode,
 		// Required
@@ -140,35 +131,6 @@ func createVpcAutoScalingSchedule(d *schema.ResourceData, config *conn.ProviderC
 	return resp.ScheduledUpdateGroupActionList[0].ScheduledActionNo, nil
 }
 
-func createClassicAutoScalingSchedule(d *schema.ResourceData, config *conn.ProviderConfig) (*string, error) {
-	asgNo := d.Get("auto_scaling_group_no").(string)
-	asg, err := getClassicAutoScalingGroup(config, asgNo)
-	if err != nil {
-		return nil, err
-	}
-	reqParams := &autoscaling.PutScheduledUpdateGroupActionRequest{
-		// Required
-		AutoScalingGroupName: asg.AutoScalingGroupName,
-		MaxSize:              ncloud.Int32(int32(d.Get("max_size").(int))),
-		MinSize:              ncloud.Int32(int32(d.Get("min_size").(int))),
-		ScheduledActionName:  ncloud.String(d.Get("name").(string)),
-		//Optional
-		DesiredCapacity: Int32PtrOrNil(d.GetOk("desired_capacity")),
-		StartTime:       StringPtrOrNil(d.GetOk("start_time")),
-		EndTime:         StringPtrOrNil(d.GetOk("end_time")),
-		RecurrenceInKST: StringPtrOrNil(d.GetOk("recurrence")),
-	}
-	LogCommonRequest("createClassicAutoScalingSchedule", reqParams)
-
-	resp, err := config.Client.Autoscaling.V2Api.PutScheduledUpdateGroupAction(reqParams)
-	if err != nil {
-		return nil, err
-	}
-	LogResponse("createClassicAutoScalingSchedule", resp)
-
-	return resp.ScheduledUpdateGroupActionList[0].ScheduledActionName, nil
-}
-
 func resourceNcloudAutoScalingScheduleRead(d *schema.ResourceData, meta interface{}) error {
 	config := meta.(*conn.ProviderConfig)
 	schedule, err := GetAutoScalingSchedule(config, d.Id(), d.Get("auto_scaling_group_no").(string))
@@ -187,14 +149,6 @@ func resourceNcloudAutoScalingScheduleRead(d *schema.ResourceData, meta interfac
 }
 
 func GetAutoScalingSchedule(config *conn.ProviderConfig, id string, asgNo string) (*AutoScalingSchedule, error) {
-	if config.SupportVPC {
-		return getVpcAutoScalingSchedule(config, id, asgNo)
-	} else {
-		return getClassicAutoScalingSchedule(config, id, asgNo)
-	}
-}
-
-func getVpcAutoScalingSchedule(config *conn.ProviderConfig, id string, asgNo string) (*AutoScalingSchedule, error) {
 	reqParams := &vautoscaling.GetScheduledActionListRequest{
 		RegionCode:            &config.RegionCode,
 		AutoScalingGroupNo:    ncloud.String(asgNo),
@@ -227,44 +181,6 @@ func getVpcAutoScalingSchedule(config *conn.ProviderConfig, id string, asgNo str
 	}, nil
 }
 
-func getClassicAutoScalingSchedule(config *conn.ProviderConfig, id string, asgNo string) (*AutoScalingSchedule, error) {
-	asg, err := getClassicAutoScalingGroup(config, asgNo)
-	if err != nil {
-		return nil, err
-	}
-	if asg == nil {
-		return nil, nil
-	}
-
-	reqParams := &autoscaling.GetScheduledActionListRequest{
-		AutoScalingGroupName:    asg.AutoScalingGroupName,
-		ScheduledActionNameList: []*string{ncloud.String(id)},
-	}
-	LogCommonRequest("getClassicAutoScalingSchedule", reqParams)
-
-	resp, err := config.Client.Autoscaling.V2Api.GetScheduledActionList(reqParams)
-	if err != nil {
-		return nil, err
-	}
-	LogResponse("getClassicAutoScalingSchedule", resp)
-
-	if len(resp.ScheduledUpdateGroupActionList) < 1 {
-		return nil, nil
-	}
-
-	s := resp.ScheduledUpdateGroupActionList[0]
-	return &AutoScalingSchedule{
-		AutoScalingGroupNo:  asg.AutoScalingGroupNo,
-		ScheduledActionName: s.ScheduledActionName,
-		DesiredCapacity:     s.DesiredCapacity,
-		MinSize:             s.MinSize,
-		MaxSize:             s.MaxSize,
-		StartTime:           s.StartTime,
-		EndTime:             s.EndTime,
-		RecurrenceInKST:     s.RecurrenceInKST,
-	}, nil
-}
-
 func resourceNcloudAutoScalingScheduleUpdate(d *schema.ResourceData, meta interface{}) error {
 	config := meta.(*conn.ProviderConfig)
 	if _, err := createAutoScalingSchedule(d, config); err != nil {
@@ -282,15 +198,7 @@ func resourceNcloudAutoScalingScheduleDelete(d *schema.ResourceData, meta interf
 }
 
 func deleteAutoScalingSchedule(config *conn.ProviderConfig, id string, asgNo string) error {
-	if config.SupportVPC {
-		return deleteVpcAutoScalingSchedule(config, id, asgNo)
-	} else {
-		return deleteClassicAutoScalingSchedule(config, id, asgNo)
-	}
-}
-
-func deleteVpcAutoScalingSchedule(config *conn.ProviderConfig, id string, asgNo string) error {
-	schedule, err := getVpcAutoScalingSchedule(config, id, asgNo)
+	schedule, err := GetAutoScalingSchedule(config, id, asgNo)
 	if err != nil {
 		return err
 	}
@@ -306,26 +214,6 @@ func deleteVpcAutoScalingSchedule(config *conn.ProviderConfig, id string, asgNo 
 		return err
 	}
 	LogResponse("deleteVpcAutoScalingSchedule", resp)
-
-	return nil
-}
-
-func deleteClassicAutoScalingSchedule(config *conn.ProviderConfig, id string, asgNo string) error {
-	asg, err := getClassicAutoScalingGroup(config, asgNo)
-	if err != nil {
-		return err
-	}
-	reqParams := &autoscaling.DeleteScheduledActionRequest{
-		AutoScalingGroupName: asg.AutoScalingGroupName,
-		ScheduledActionName:  ncloud.String(id),
-	}
-	LogCommonRequest("deleteClassicAutoScalingSchedule", reqParams)
-
-	resp, err := config.Client.Autoscaling.V2Api.DeleteScheduledAction(reqParams)
-	if err != nil {
-		return err
-	}
-	LogResponse("deleteClassicAutoScalingSchedule", resp)
 
 	return nil
 }

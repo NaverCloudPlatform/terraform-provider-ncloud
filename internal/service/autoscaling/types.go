@@ -1,7 +1,6 @@
 package autoscaling
 
 import (
-	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/services/autoscaling"
 	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/services/vautoscaling"
 )
 
@@ -110,22 +109,6 @@ type LoadBalancerListener struct {
 	TargetGroupNo          *string   `json:"target_group_no,omitempty"`
 }
 
-func flattenZoneList(zoneList []*autoscaling.Zone) []*string {
-	noList := make([]*string, 0)
-	for _, z := range zoneList {
-		noList = append(noList, z.ZoneNo)
-	}
-	return noList
-}
-
-func flattenClassicSuspendedProcessList(suspendedProcessList []*autoscaling.SuspendedProcess) []*string {
-	codeList := make([]*string, 0)
-	for _, p := range suspendedProcessList {
-		codeList = append(codeList, p.Process.Code)
-	}
-	return codeList
-}
-
 func flattenVpcSuspendedProcessList(suspendedProcessList []*vautoscaling.SuspendedProcess) []*string {
 	codeList := make([]*string, 0)
 	for _, p := range suspendedProcessList {
@@ -134,26 +117,10 @@ func flattenVpcSuspendedProcessList(suspendedProcessList []*vautoscaling.Suspend
 	return codeList
 }
 
-func flattenClassicAutoScalingGroupServerInstanceList(sl []*autoscaling.InAutoScalingGroupServerInstance) []*string {
-	l := make([]*string, 0)
-	for _, s := range sl {
-		l = append(l, s.ServerInstanceNo)
-	}
-	return l
-}
-
 func flattenVpcAutoScalingGroupServerInstanceList(sl []*vautoscaling.InAutoScalingGroupServerInstance) []*string {
 	l := make([]*string, 0)
 	for _, s := range sl {
 		l = append(l, s.ServerInstanceNo)
 	}
 	return l
-}
-
-func flattenLoadBalancerInstanceSummaryList(lbs []*autoscaling.LoadBalancerInstanceSummary) []*string {
-	noList := make([]*string, 0)
-	for _, lb := range lbs {
-		noList = append(noList, lb.LoadBalancerInstanceNo)
-	}
-	return noList
 }

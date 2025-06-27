@@ -2,7 +2,6 @@ package autoscaling
 
 import (
 	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/ncloud"
-	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/services/autoscaling"
 	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/services/vautoscaling"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 
@@ -54,14 +53,6 @@ func dataSourceNcloudLaunchConfigurationRead(d *schema.ResourceData, meta interf
 }
 
 func getLaunchConfigurationList(config *conn.ProviderConfig, id string) ([]*LaunchConfiguration, error) {
-	if config.SupportVPC {
-		return getVpcLaunchConfigurationList(config, id)
-	} else {
-		return getClassicLaunchConfigurationList(config, id)
-	}
-}
-
-func getVpcLaunchConfigurationList(config *conn.ProviderConfig, id string) ([]*LaunchConfiguration, error) {
 	reqParams := &vautoscaling.GetLaunchConfigurationListRequest{
 		RegionCode: &config.RegionCode,
 	}
@@ -94,46 +85,6 @@ func getVpcLaunchConfigurationList(config *conn.ProviderConfig, id string) ([]*L
 			IsEncryptedVolume:           l.IsEncryptedVolume,
 			LaunchConfigurationNo:       l.LaunchConfigurationNo,
 		})
-	}
-
-	return list, nil
-}
-
-func getClassicLaunchConfigurationList(config *conn.ProviderConfig, id string) ([]*LaunchConfiguration, error) {
-	no := ncloud.String(id)
-	reqParams := &autoscaling.GetLaunchConfigurationListRequest{
-		RegionNo: &config.RegionNo,
-	}
-	LogCommonRequest("getClassicLaunchConfigurationList", reqParams)
-	resp, err := config.Client.Autoscaling.V2Api.GetLaunchConfigurationList(reqParams)
-	if err != nil {
-		LogErrorResponse("getClassicLaunchConfigurationList", err, reqParams)
-		return nil, err
-	}
-	LogResponse("getClassicLaunchConfigurationList", resp)
-
-	list := make([]*LaunchConfiguration, 0)
-	for _, l := range resp.LaunchConfigurationList {
-		launchConfiguration := &LaunchConfiguration{
-			LaunchConfigurationNo:       l.LaunchConfigurationNo,
-			LaunchConfigurationName:     l.LaunchConfigurationName,
-			ServerImageProductCode:      l.ServerImageProductCode,
-			MemberServerImageInstanceNo: l.MemberServerImageNo,
-			ServerProductCode:           l.ServerProductCode,
-			LoginKeyName:                l.LoginKeyName,
-			UserData:                    l.UserData,
-			AccessControlGroupNoList:    flattenAccessControlGroupList(l.AccessControlGroupList),
-		}
-
-		if *l.LaunchConfigurationNo == *no {
-			return []*LaunchConfiguration{launchConfiguration}, nil
-		}
-
-		list = append(list, launchConfiguration)
-	}
-
-	if *no != "" {
-		return nil, nil
 	}
 
 	return list, nil

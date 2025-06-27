@@ -14,40 +14,6 @@ import (
 	"github.com/terraform-providers/terraform-provider-ncloud/internal/service/autoscaling"
 )
 
-func TestAccResourceNcloudAutoScalingGroup_classic_basic(t *testing.T) {
-	// Images are all deprecated in Classic
-	t.Skip()
-
-	var autoScalingGroup autoscaling.AutoScalingGroup
-	resourceName := "ncloud_auto_scaling_group.auto"
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:                 func() { TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: ClassicProtoV6ProviderFactories,
-		CheckDestroy: func(state *terraform.State) error {
-			return testAccCheckAutoScalingGroupDestroy(state, GetTestProvider(false))
-		},
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAutoScalingGroupClassicConfig(),
-				Check: resource.ComposeTestCheckFunc(
-					testAccCheckAutoScalingGroupExists(resourceName, &autoScalingGroup, GetTestProvider(false)),
-					resource.TestCheckResourceAttr(resourceName, "default_cooldown", "300"),
-					resource.TestCheckResourceAttr(resourceName, "health_check_grace_period", "300"),
-				),
-			},
-			{
-				ResourceName:      resourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-				ImportStateVerifyIgnore: []string{
-					"wait_for_capacity_timeout",
-					"zone_no_list",
-				},
-			},
-		},
-	})
-}
-
 func TestAccResourceNcloudAutoScalingGroup_vpc_basic(t *testing.T) {
 	var autoScalingGroup autoscaling.AutoScalingGroup
 	resourceName := "ncloud_auto_scaling_group.auto"
@@ -80,41 +46,6 @@ func TestAccResourceNcloudAutoScalingGroup_vpc_basic(t *testing.T) {
 	})
 }
 
-func TestAccResourceNcloudAutoScalingGroup_classic_zero_value(t *testing.T) {
-	// Images are all deprecated in Classic
-	t.Skip()
-
-	var autoScalingGroup autoscaling.AutoScalingGroup
-	resourceName := "ncloud_auto_scaling_group.auto"
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:                 func() { TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: ClassicProtoV6ProviderFactories,
-		CheckDestroy: func(state *terraform.State) error {
-			return testAccCheckAutoScalingGroupDestroy(state, GetTestProvider(false))
-		},
-		Steps: []resource.TestStep{
-			{
-				//default
-				Config: testAccAutoScalingGroupClassicConfig(),
-				Check: resource.ComposeTestCheckFunc(
-					testAccCheckAutoScalingGroupExists(resourceName, &autoScalingGroup, GetTestProvider(false)),
-					resource.TestCheckResourceAttr(resourceName, "default_cooldown", "300"),
-					resource.TestCheckResourceAttr(resourceName, "health_check_grace_period", "300"),
-				),
-			},
-			{
-				//zero-value
-				Config: testAccAutoScalingGroupClassicConfigWhenSetZero(),
-				Check: resource.ComposeTestCheckFunc(
-					testAccCheckAutoScalingGroupExists(resourceName, &autoScalingGroup, GetTestProvider(false)),
-					resource.TestCheckResourceAttr(resourceName, "default_cooldown", "0"),
-					resource.TestCheckResourceAttr(resourceName, "health_check_grace_period", "0"),
-				),
-			},
-		},
-	})
-}
-
 func TestAccResourceNcloudAutoScalingGroup_vpc_zero_value(t *testing.T) {
 	var autoScalingGroup autoscaling.AutoScalingGroup
 	resourceName := "ncloud_auto_scaling_group.auto"
@@ -142,31 +73,6 @@ func TestAccResourceNcloudAutoScalingGroup_vpc_zero_value(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "default_cooldown", "0"),
 					resource.TestCheckResourceAttr(resourceName, "health_check_grace_period", "0"),
 				),
-			},
-		},
-	})
-}
-
-func TestAccResourceNcloudAutoScalingGroup_classic_disappears(t *testing.T) {
-	// Images are all deprecated in Classic
-	t.Skip()
-
-	var autoScalingGroup autoscaling.AutoScalingGroup
-	resourceName := "ncloud_auto_scaling_group.auto"
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:                 func() { TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: ClassicProtoV6ProviderFactories,
-		CheckDestroy: func(state *terraform.State) error {
-			return testAccCheckAutoScalingGroupDestroy(state, GetTestProvider(false))
-		},
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAutoScalingGroupClassicConfig(),
-				Check: resource.ComposeTestCheckFunc(
-					testAccCheckAutoScalingGroupExists(resourceName, &autoScalingGroup, GetTestProvider(false)),
-					TestAccCheckResourceDisappears(GetTestProvider(false), autoscaling.ResourceNcloudAutoScalingGroup(), resourceName),
-				),
-				ExpectNonEmptyPlan: true,
 			},
 		},
 	})
@@ -237,22 +143,6 @@ func testAccCheckAutoScalingGroupExists(n string, a *autoscaling.AutoScalingGrou
 	}
 }
 
-func testAccAutoScalingGroupClassicConfig() string {
-	return `
-resource "ncloud_launch_configuration" "lc" {
-    server_image_product_code = "SPSW0LINUX000046"
-    server_product_code = "SPSVRSSD00000003"
-}
-
-resource "ncloud_auto_scaling_group" "auto" {
-	launch_configuration_no = ncloud_launch_configuration.lc.launch_configuration_no
-	min_size = 2
-	max_size = 2
-	zone_no_list = ["2"]
-}
-`
-}
-
 func testAccAutoScalingGroupVpcConfig() string {
 	return `
 resource "ncloud_vpc" "test" {
@@ -279,24 +169,6 @@ resource "ncloud_auto_scaling_group" "auto" {
 	launch_configuration_no = ncloud_launch_configuration.lc.launch_configuration_no
 	min_size = 1
 	max_size = 1
-}
-`
-}
-
-func testAccAutoScalingGroupClassicConfigWhenSetZero() string {
-	return `
-resource "ncloud_launch_configuration" "lc" {
-    server_image_product_code = "SPSW0LINUX000046"
-    server_product_code = "SPSVRSSD00000003"
-}
-
-resource "ncloud_auto_scaling_group" "auto" {
-	launch_configuration_no = ncloud_launch_configuration.lc.launch_configuration_no
-	min_size = 2
-	max_size = 2
-	zone_no_list = ["2"]
-	default_cooldown = 0
-	health_check_grace_period = 0
 }
 `
 }
