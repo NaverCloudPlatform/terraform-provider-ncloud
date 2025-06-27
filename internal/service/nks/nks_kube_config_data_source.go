@@ -9,7 +9,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"gopkg.in/yaml.v3"
 
-	. "github.com/terraform-providers/terraform-provider-ncloud/internal/common"
 	"github.com/terraform-providers/terraform-provider-ncloud/internal/conn"
 )
 
@@ -43,9 +42,6 @@ func DataSourceNcloudNKSKubeConfig() *schema.Resource {
 
 func dataSourceNcloudNKSKubeConfigRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	config := meta.(*conn.ProviderConfig)
-	if !config.SupportVPC {
-		return diag.FromErr(NotSupportClassic("dataSource `ncloud_nks_kube_config`"))
-	}
 	clusterUuid := d.Get("cluster_uuid").(string)
 
 	kubeConfig, err := getNKSKubeConfig(ctx, config, clusterUuid)

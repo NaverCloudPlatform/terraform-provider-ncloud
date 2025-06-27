@@ -45,9 +45,6 @@ func DataSourceNcloudNKSVersions() *schema.Resource {
 
 func dataSourceNcloudVersionsRead(d *schema.ResourceData, meta interface{}) error {
 	config := meta.(*conn.ProviderConfig)
-	if !config.SupportVPC {
-		return NotSupportClassic("datasource `ncloud_nks_versions`")
-	}
 
 	resources, err := getNKSVersion(config, d)
 	if err != nil {

@@ -9,7 +9,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 
-	. "github.com/terraform-providers/terraform-provider-ncloud/internal/common"
 	"github.com/terraform-providers/terraform-provider-ncloud/internal/conn"
 )
 
@@ -171,10 +170,6 @@ func DataSourceNcloudNKSNodePool() *schema.Resource {
 
 func dataSourceNcloudNKSNodePoolRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	config := meta.(*conn.ProviderConfig)
-	if !config.SupportVPC {
-		return diag.FromErr(NotSupportClassic("dataSource `ncloud_nks_node_pool`"))
-	}
-
 	clusterUuid := d.Get("cluster_uuid").(string)
 	nodePoolName := d.Get("node_pool_name").(string)
 	id := NodePoolCreateResourceID(clusterUuid, nodePoolName)

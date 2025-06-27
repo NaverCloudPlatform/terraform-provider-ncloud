@@ -131,9 +131,6 @@ func DataSourceNcloudNKSServerProducts() *schema.Resource {
 
 func dataSourceNcloudNKSServerProductsRead(d *schema.ResourceData, meta interface{}) error {
 	config := meta.(*conn.ProviderConfig)
-	if !config.SupportVPC {
-		return NotSupportClassic("datasource `ncloud_nks_server_products`")
-	}
 
 	resources, err := getNKSServerProducts(config, d)
 	if err != nil {

@@ -6,7 +6,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 
-	. "github.com/terraform-providers/terraform-provider-ncloud/internal/common"
 	"github.com/terraform-providers/terraform-provider-ncloud/internal/conn"
 )
 
@@ -25,9 +24,6 @@ func DataSourceNcloudNKSClusters() *schema.Resource {
 
 func dataSourceNcloudNKSClustersRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	config := meta.(*conn.ProviderConfig)
-	if !config.SupportVPC {
-		return diag.FromErr(NotSupportClassic("dataSource `ncloud_nks_clusters`"))
-	}
 
 	clusters, err := GetNKSClusters(ctx, config)
 	if err != nil {
