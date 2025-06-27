@@ -413,10 +413,6 @@ func ResourceNcloudSourceDeployScenario() *schema.Resource {
 
 func resourceNcloudSourceDeployScenarioCreate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	config := meta.(*conn.ProviderConfig)
-
-	if !config.SupportVPC {
-		return diag.FromErr(NotSupportClassic("resource `ncloud_sourcedeploy_project_stage_scenario`"))
-	}
 	projectId := ncloud.IntString(d.Get("project_id").(int))
 	stageId := ncloud.IntString(d.Get("stage_id").(int))
 
@@ -445,10 +441,6 @@ func resourceNcloudSourceDeployScenarioCreate(ctx context.Context, d *schema.Res
 
 func resourceNcloudSourceDeployScenarioRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	config := meta.(*conn.ProviderConfig)
-
-	if !config.SupportVPC {
-		return diag.FromErr(NotSupportClassic("resource `ncloud_sourcedeploy_project_stage_scenario`"))
-	}
 	projectId := ncloud.IntString(d.Get("project_id").(int))
 	stageId := ncloud.IntString(d.Get("stage_id").(int))
 	scenario, err := GetSourceDeployScenarioById(ctx, config, projectId, stageId, ncloud.String(d.Id()))
@@ -840,9 +832,6 @@ func GetSourceDeployScenarioById(ctx context.Context, config *conn.ProviderConfi
 
 func resourceNcloudSourceDeployScenarioDelete(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	config := meta.(*conn.ProviderConfig)
-	if !config.SupportVPC {
-		return diag.FromErr(NotSupportClassic("resource `ncloud_sourcedeploy_project_stage_scenario`"))
-	}
 
 	projectId := ncloud.IntString(d.Get("project_id").(int))
 	stageId := ncloud.IntString(d.Get("stage_id").(int))

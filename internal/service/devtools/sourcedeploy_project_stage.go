@@ -117,10 +117,6 @@ func ResourceNcloudSourceDeployStage() *schema.Resource {
 func resourceNcloudSourceDeployStageCreate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	config := meta.(*conn.ProviderConfig)
 
-	if !config.SupportVPC {
-		return diag.FromErr(NotSupportClassic("resource `ncloud_sourcedeploy_project_stage`"))
-	}
-
 	reqParams, paramsErr := getStage(d)
 	if paramsErr != nil {
 		return diag.FromErr(paramsErr)
@@ -142,10 +138,6 @@ func resourceNcloudSourceDeployStageCreate(ctx context.Context, d *schema.Resour
 
 func resourceNcloudSourceDeployStageRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	config := meta.(*conn.ProviderConfig)
-
-	if !config.SupportVPC {
-		return diag.FromErr(NotSupportClassic("resource `ncloud_sourcedeploy_project_stage`"))
-	}
 	projectId := ncloud.IntString(d.Get("project_id").(int))
 	stage, err := GetSourceDeployStageById(ctx, config, projectId, ncloud.String(d.Id()))
 
@@ -179,10 +171,6 @@ func resourceNcloudSourceDeployStageUpdate(ctx context.Context, d *schema.Resour
 
 func resourceNcloudSourceDeployStageDelete(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	config := meta.(*conn.ProviderConfig)
-	if !config.SupportVPC {
-		return diag.FromErr(NotSupportClassic("resource `ncloud_sourcedeploy_project_stage`"))
-	}
-
 	projectId := ncloud.IntString(d.Get("project_id").(int))
 	LogCommonRequest("deleteSourceDeployStage", d.Id())
 	resp, err := config.Client.Vsourcedeploy.V1Api.DeleteStage(ctx, projectId, ncloud.String(d.Id()))

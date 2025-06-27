@@ -9,27 +9,6 @@ import (
 	. "github.com/terraform-providers/terraform-provider-ncloud/internal/acctest"
 )
 
-func TestAccDataSourceNcloudSourcePipelineProject_classic_basic(t *testing.T) {
-	dataName := "data.ncloud_sourcepipeline_project.foo"
-	resourceName := "ncloud_sourcepipeline_project.test-project"
-
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:                 func() { TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: ClassicProtoV6ProviderFactories,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccDataSourceNcloudSourcePipelineProjectConfig("test-project", "description test"),
-				Check: resource.ComposeTestCheckFunc(
-					TestAccCheckDataSourceID(dataName),
-					resource.TestCheckResourceAttrPair(dataName, "id", resourceName, "id"),
-					resource.TestCheckResourceAttrPair(dataName, "name", resourceName, "name"),
-					resource.TestCheckResourceAttrPair(dataName, "description", resourceName, "description"),
-				),
-			},
-		},
-	})
-}
-
 func TestAccDataSourceNcloudSourcePipelineProject_vpc_basic(t *testing.T) {
 	dataName := "data.ncloud_sourcepipeline_project.foo"
 	resourceName := "ncloud_sourcepipeline_project.test-project"

@@ -48,10 +48,6 @@ func ResourceNcloudSourceDeployProject() *schema.Resource {
 func resourceNcloudSourceDeployProjectCreate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	config := meta.(*conn.ProviderConfig)
 
-	if !config.SupportVPC {
-		return diag.FromErr(NotSupportClassic("resource `ncloud_sourcedeploy_project`"))
-	}
-
 	reqParams := &vsourcedeploy.CreateProject{
 		Name: StringPtrOrNil(d.GetOk("name")),
 	}
@@ -71,9 +67,6 @@ func resourceNcloudSourceDeployProjectCreate(ctx context.Context, d *schema.Reso
 func resourceNcloudSourceDeployProjectRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	config := meta.(*conn.ProviderConfig)
 
-	if !config.SupportVPC {
-		return diag.FromErr(NotSupportClassic("resource `ncloud_sourcedeploy_project`"))
-	}
 	project, err := GetSourceDeployProjectByName(ctx, config, d.Get("name").(string))
 	if err != nil {
 		return diag.FromErr(err)
@@ -92,9 +85,6 @@ func resourceNcloudSourceDeployProjectRead(ctx context.Context, d *schema.Resour
 
 func resourceNcloudSourceDeployProjectDelete(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	config := meta.(*conn.ProviderConfig)
-	if !config.SupportVPC {
-		return diag.FromErr(NotSupportClassic("resource `ncloud_sourcedeploy_project`"))
-	}
 
 	LogCommonRequest("DeleteSourceDeployProject", d.Id())
 	resp, err := config.Client.Vsourcedeploy.V1Api.DeleteProject(ctx, ncloud.String(d.Id()))

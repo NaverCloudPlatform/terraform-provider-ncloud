@@ -40,10 +40,6 @@ func dataSourceNcloudSourceDeployProjectsReadContext(ctx context.Context, d *sch
 	config := meta.(*conn.ProviderConfig)
 	reqParams := make(map[string]interface{})
 
-	if !config.SupportVPC {
-		return diag.FromErr(NotSupportClassic("dataSource `ncloud_sourcedeploy_projects_context`"))
-	}
-
 	reqParams["projectName"] = ncloud.StringValue(StringPtrOrNil(d.GetOk("name")))
 	resp, err := config.Client.Vsourcedeploy.V1Api.GetProjects(ctx, reqParams)
 
