@@ -23,13 +23,13 @@ func TestAccResourceNcloudLb_vpc_basic(t *testing.T) {
 		PreCheck:                 func() { TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: ProtoV6ProviderFactories,
 		CheckDestroy: func(state *terraform.State) error {
-			return testAccCheckLbDestroy(state, GetTestProvider(true))
+			return testAccCheckLbDestroy(state, TestAccProvider)
 		},
 		Steps: []resource.TestStep{
 			{
 				Config: testAccResourceNcloudLbConfig(lbName),
 				Check: resource.ComposeAggregateTestCheckFunc(
-					testAccCheckLbExists(resourceName, &lb, GetTestProvider(true)),
+					testAccCheckLbExists(resourceName, &lb, TestAccProvider),
 					resource.TestCheckResourceAttr(resourceName, "name", lbName),
 					resource.TestCheckResourceAttr(resourceName, "description", "tf test description"),
 					resource.TestCheckResourceAttr(resourceName, "network_type", "PRIVATE"),

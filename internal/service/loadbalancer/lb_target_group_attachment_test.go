@@ -24,13 +24,13 @@ func TestAccResourceNcloudLbTargetGroupAttachment_basic(t *testing.T) {
 		PreCheck:                 func() { TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: ProtoV6ProviderFactories,
 		CheckDestroy: func(state *terraform.State) error {
-			return testAccCheckLbTargetGroupAttachmentDestroy(state, GetTestProvider(true))
+			return testAccCheckLbTargetGroupAttachmentDestroy(state, TestAccProvider)
 		},
 		Steps: []resource.TestStep{
 			{
 				Config: testAccResourceNcloudLbTargetGroupAttachmentConfig(targetGroupName, testServerName),
 				Check: resource.ComposeAggregateTestCheckFunc(
-					testAccCheckLbTargetGroupAttachmentExists(resourceName, &target, GetTestProvider(true)),
+					testAccCheckLbTargetGroupAttachmentExists(resourceName, &target, TestAccProvider),
 					resource.TestCheckResourceAttrSet(resourceName, "target_group_no"),
 					resource.TestCheckResourceAttr(resourceName, "target_no_list.#", "1"),
 				),
