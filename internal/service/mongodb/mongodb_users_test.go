@@ -41,7 +41,7 @@ func TestAccResourceNcloudMongoDbUsers_vpc_update(t *testing.T) {
 			{
 				Config: testAccMongoDbUsersRemoveConfig(testName),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckMongoDbUsersNotExists(dbResourceName, GetTestProvider(true)),
+					testAccCheckMongoDbUsersNotExists(dbResourceName, TestAccProvider),
 				),
 			},
 		},
