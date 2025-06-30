@@ -68,7 +68,7 @@ func testAccCheckSourceCommitRepositoryExists(n string, repository *sourcecommit
 			return fmt.Errorf("No Repository Id is set")
 		}
 
-		config := GetTestProvider(true).Meta().(*conn.ProviderConfig)
+		config := TestAccProvider.Meta().(*conn.ProviderConfig)
 
 		resp, err := devtools.GetRepositoryById(context.Background(), config, rs.Primary.ID)
 		if err != nil {
@@ -81,7 +81,7 @@ func testAccCheckSourceCommitRepositoryExists(n string, repository *sourcecommit
 }
 
 func testAccCheckSourceCommitRepositoryDestroy(s *terraform.State) error {
-	config := GetTestProvider(true).Meta().(*conn.ProviderConfig)
+	config := TestAccProvider.Meta().(*conn.ProviderConfig)
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "ncloud_sourcecommit_repository" {
