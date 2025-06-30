@@ -5,11 +5,12 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"testing"
+
 	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/ncloud"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 	"github.com/terraform-providers/terraform-provider-ncloud/internal/conn"
 	"github.com/terraform-providers/terraform-provider-ncloud/internal/service/nks"
-	"testing"
 
 	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/services/vnks"
 
@@ -557,7 +558,7 @@ func testAccCheckNKSNodePoolExists(n string, nodePool *vnks.NodePool) resource.T
 			return fmt.Errorf("Id(%s) is not [ClusterName:NodePoolName] ", rs.Primary.ID)
 		}
 
-		config := GetTestProvider(true).Meta().(*conn.ProviderConfig)
+		config := TestAccProvider.Meta().(*conn.ProviderConfig)
 		if err != nil {
 			return err
 		}
@@ -574,7 +575,7 @@ func testAccCheckNKSNodePoolExists(n string, nodePool *vnks.NodePool) resource.T
 }
 
 func testAccCheckNKSNodePoolDestroy(s *terraform.State) error {
-	config := GetTestProvider(true).Meta().(*conn.ProviderConfig)
+	config := TestAccProvider.Meta().(*conn.ProviderConfig)
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "ncloud_nks_node_pool" {
@@ -610,7 +611,7 @@ func testAccCheckNKSNodePoolDestroy(s *terraform.State) error {
 }
 
 func testAccCheckNKSClusterDestroy(s *terraform.State) error {
-	config := GetTestProvider(true).Meta().(*conn.ProviderConfig)
+	config := TestAccProvider.Meta().(*conn.ProviderConfig)
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "ncloud_nks_cluster" {
