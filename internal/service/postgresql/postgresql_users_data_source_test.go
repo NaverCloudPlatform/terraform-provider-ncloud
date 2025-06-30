@@ -29,7 +29,7 @@ func TestAccDataSourceNcloudPostgresqlUsers_vpc_basic(t *testing.T) {
 			{
 				Config: testAccPostgresqlUsersRemoveConfig(testPostgresqlName),
 				Check: resource.ComposeTestCheckFunc(
-					tesetAccPostgresqlUsersNotExists(dbResourceName, []string{"test1", "test2"}, GetTestProvider(true)),
+					tesetAccPostgresqlUsersNotExists(dbResourceName, []string{"test1", "test2"}, TestAccProvider),
 				),
 			},
 		},

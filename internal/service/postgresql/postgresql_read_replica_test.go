@@ -30,7 +30,7 @@ func TestAccResourceNcloudPostgresqlReadReplica_vpc_basic(t *testing.T) {
 			{
 				Config: testAccPostgresqlReadReplicaConfig(testName),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckPostgresqlReadReplicaExists(resourceName, &postgresqlServerInstance, GetTestProvider(true)),
+					testAccCheckPostgresqlReadReplicaExists(resourceName, &postgresqlServerInstance, TestAccProvider),
 					resource.TestCheckResourceAttrSet(resourceName, "postgresql_instance_no"),
 				),
 			},
@@ -98,7 +98,7 @@ func testAccCheckPostgresqlReadReplicaExists(n string, readreplica *vpostgresql.
 }
 
 func testAccCheckPostgresqlReadReplicaDestroy(s *terraform.State) error {
-	config := GetTestProvider(true).Meta().(*conn.ProviderConfig)
+	config := TestAccProvider.Meta().(*conn.ProviderConfig)
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "ncloud_postgresql_read_replica" {
