@@ -27,7 +27,7 @@ func TestAccResourceNcloudObjectStorage_bucket_basic(t *testing.T) {
 			{
 				Config: testAccBucketConfig(bucketName),
 				Check: resource.ComposeAggregateTestCheckFunc(
-					testAccCheckBucketExists(resourceName, GetTestProvider(true)),
+					testAccCheckBucketExists(resourceName, TestAccProvider),
 					resource.TestCheckResourceAttr(resourceName, "bucket_name", bucketName),
 				),
 			},
@@ -75,7 +75,7 @@ func testAccCheckBucketDestroy(s *terraform.State) error {
 			continue
 		}
 
-		config := GetTestProvider(true).Meta().(*conn.ProviderConfig)
+		config := TestAccProvider.Meta().(*conn.ProviderConfig)
 		resp, err := config.Client.ObjectStorage.ListBuckets(context.Background(), &s3.ListBucketsInput{})
 		if err != nil {
 			return err

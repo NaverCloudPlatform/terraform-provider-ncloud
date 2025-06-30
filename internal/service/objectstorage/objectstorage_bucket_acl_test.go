@@ -34,7 +34,7 @@ func TestAccResourceNcloudObjectStorage_bucket_acl_basic(t *testing.T) {
 			{
 				Config: testAccBucketACLConfig(bucketName, acl),
 				Check: resource.ComposeAggregateTestCheckFunc(
-					testAccCheckBucketACLExists(resourceName, &aclOutput, GetTestProvider(true)),
+					testAccCheckBucketACLExists(resourceName, &aclOutput, TestAccProvider),
 					resource.TestCheckResourceAttr(resourceName, "rule", acl),
 				),
 			},
@@ -63,14 +63,14 @@ func TestAccResourceNcloudObjectStorage_bucket_acl_update(t *testing.T) {
 			{
 				Config: testAccBucketACLConfig(bucketName, acl),
 				Check: resource.ComposeAggregateTestCheckFunc(
-					testAccCheckBucketACLExists(resourceName, &aclOutput, GetTestProvider(true)),
+					testAccCheckBucketACLExists(resourceName, &aclOutput, TestAccProvider),
 					resource.TestCheckResourceAttr(resourceName, "rule", acl),
 				),
 			},
 			{
 				Config: testAccBucketACLConfig(bucketName, newACL),
 				Check: resource.ComposeAggregateTestCheckFunc(
-					testAccCheckBucketACLExists(resourceName, &aclOutput, GetTestProvider(true)),
+					testAccCheckBucketACLExists(resourceName, &aclOutput, TestAccProvider),
 					resource.TestCheckResourceAttr(resourceName, "rule", newACL),
 				),
 			},
