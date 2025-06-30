@@ -180,7 +180,7 @@ func testAccCheckNetworkACLDenyAllowGroupExists(n string, networkACL *vpc.Networ
 			return fmt.Errorf("No NetworkAclDenyAllowGroup id is set: %s", n)
 		}
 
-		config := GetTestProvider(true).Meta().(*conn.ProviderConfig)
+		config := TestAccProvider.Meta().(*conn.ProviderConfig)
 		instance, err := vpcservice.GetNetworkAclDenyAllowGroupDetail(config, rs.Primary.ID)
 		if err != nil {
 			return err
@@ -193,7 +193,7 @@ func testAccCheckNetworkACLDenyAllowGroupExists(n string, networkACL *vpc.Networ
 }
 
 func testAccCheckNetworkACLDenyAllowGroupDestroy(s *terraform.State) error {
-	config := GetTestProvider(true).Meta().(*conn.ProviderConfig)
+	config := TestAccProvider.Meta().(*conn.ProviderConfig)
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "ncloud_network_acl" {
@@ -216,7 +216,7 @@ func testAccCheckNetworkACLDenyAllowGroupDestroy(s *terraform.State) error {
 
 func testAccCheckNetworkACLDenyAllowGroupDisappears(instance *vpc.NetworkAclDenyAllowGroup) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
-		config := GetTestProvider(true).Meta().(*conn.ProviderConfig)
+		config := TestAccProvider.Meta().(*conn.ProviderConfig)
 
 		reqParams := &vpc.DeleteNetworkAclDenyAllowGroupRequest{
 			RegionCode:                 &config.RegionCode,

@@ -113,7 +113,7 @@ func testAccCheckRouteTableAssociationExists(n string, subnet *vpc.Subnet, route
 		}
 
 		*routeTableNo = rs.Primary.Attributes["route_table_no"]
-		config := GetTestProvider(true).Meta().(*conn.ProviderConfig)
+		config := TestAccProvider.Meta().(*conn.ProviderConfig)
 
 		reqParams := &vpc.GetRouteTableSubnetListRequest{
 			RegionCode:   &config.RegionCode,
@@ -155,7 +155,7 @@ func testAccNcloudRouteTableAssociationImportStateIDFunc(resourceName string) re
 }
 
 func testAccCheckRouteTableAssociationDestroy(s *terraform.State) error {
-	config := GetTestProvider(true).Meta().(*conn.ProviderConfig)
+	config := TestAccProvider.Meta().(*conn.ProviderConfig)
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "ncloud_route_table_association" {
@@ -188,7 +188,7 @@ func testAccCheckRouteTableAssociationDestroy(s *terraform.State) error {
 
 func testAccCheckRouteTableAssociationDisappears(instance *vpc.Subnet, routeTableNo *string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
-		config := GetTestProvider(true).Meta().(*conn.ProviderConfig)
+		config := TestAccProvider.Meta().(*conn.ProviderConfig)
 
 		routeTable, err := vpcservice.GetRouteTableInstance(config, *routeTableNo)
 		if err != nil {

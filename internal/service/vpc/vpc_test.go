@@ -112,7 +112,7 @@ func testAccCheckVpcExists(n string, vpc *vpc.Vpc) resource.TestCheckFunc {
 			return fmt.Errorf("No VPC ID is set")
 		}
 
-		config := acctest.GetTestProvider(true).Meta().(*conn.ProviderConfig)
+		config := acctest.TestAccProvider.Meta().(*conn.ProviderConfig)
 		vpcInstance, err := vpcservice.GetVpcInstance(config, rs.Primary.ID)
 		if err != nil {
 			return err
@@ -125,7 +125,7 @@ func testAccCheckVpcExists(n string, vpc *vpc.Vpc) resource.TestCheckFunc {
 }
 
 func testAccCheckVpcDestroy(s *terraform.State) error {
-	config := acctest.GetTestProvider(true).Meta().(*conn.ProviderConfig)
+	config := acctest.TestAccProvider.Meta().(*conn.ProviderConfig)
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "ncloud_vpc" {
@@ -148,7 +148,7 @@ func testAccCheckVpcDestroy(s *terraform.State) error {
 
 func testAccCheckVpcDisappears(instance *vpc.Vpc) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
-		config := acctest.GetTestProvider(true).Meta().(*conn.ProviderConfig)
+		config := acctest.TestAccProvider.Meta().(*conn.ProviderConfig)
 
 		reqParams := &vpc.DeleteVpcRequest{
 			RegionCode: &config.RegionCode,

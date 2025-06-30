@@ -115,7 +115,7 @@ func testAccCheckRouteExists(n string, route *vpc.Route) resource.TestCheckFunc 
 			return fmt.Errorf("No network ACL Rule id is set: %s", n)
 		}
 
-		config := GetTestProvider(true).Meta().(*conn.ProviderConfig)
+		config := TestAccProvider.Meta().(*conn.ProviderConfig)
 
 		reqParams := &vpc.GetRouteListRequest{
 			VpcNo:        ncloud.String(rs.Primary.Attributes["vpc_no"]),
@@ -157,7 +157,7 @@ func testAccNcloudRouteImportStateIDFunc(resourceName string) resource.ImportSta
 }
 
 func testAccCheckRouteDestroy(s *terraform.State) error {
-	config := GetTestProvider(true).Meta().(*conn.ProviderConfig)
+	config := TestAccProvider.Meta().(*conn.ProviderConfig)
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "ncloud_route" {
@@ -200,7 +200,7 @@ func testAccCheckRouteDestroy(s *terraform.State) error {
 
 func testAccCheckRouteDisappears(instance *vpc.Route) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
-		config := GetTestProvider(true).Meta().(*conn.ProviderConfig)
+		config := TestAccProvider.Meta().(*conn.ProviderConfig)
 
 		routeTable, err := vpcservice.GetRouteTableInstance(config, *instance.RouteTableNo)
 		if err != nil {
