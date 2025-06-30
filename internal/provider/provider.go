@@ -164,7 +164,7 @@ func SchemaMap() map[string]*schema.Schema {
 		},
 		"support_vpc": {
 			Type:        schema.TypeBool,
-			Required:    true,
+			Optional:    true,
 			Description: "Support VPC platform",
 		},
 	}
