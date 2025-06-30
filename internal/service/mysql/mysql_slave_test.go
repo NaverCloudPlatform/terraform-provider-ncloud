@@ -29,7 +29,7 @@ func TestAccResourceNcloudMysqlSlave_vpc_basic(t *testing.T) {
 			{
 				Config: testAccMysqlSlaveConfig(testName),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckMysqlSlaveExists(resourceName, &mysqlServerInstance, GetTestProvider(true)),
+					testAccCheckMysqlSlaveExists(resourceName, &mysqlServerInstance, TestAccProvider),
 					resource.TestCheckResourceAttrSet(resourceName, "mysql_instance_no"),
 				),
 			},
@@ -102,7 +102,7 @@ func testAccCheckMysqlSlaveExists(n string, slave *vmysql.CloudMysqlServerInstan
 }
 
 func testAccCheckMysqlSlaveDestroy(s *terraform.State) error {
-	config := GetTestProvider(true).Meta().(*conn.ProviderConfig)
+	config := TestAccProvider.Meta().(*conn.ProviderConfig)
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "ncloud_mysql_slave" {

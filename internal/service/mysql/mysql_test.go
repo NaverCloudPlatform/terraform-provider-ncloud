@@ -30,7 +30,7 @@ func TestAccResourceNcloudMysql_vpc_basic(t *testing.T) {
 			{
 				Config: testAccMysqlVpcConfig(testMysqlName),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckMysqlExistsWithProvider(resourceName, &mysqlInstance, GetTestProvider(true)),
+					testAccCheckMysqlExistsWithProvider(resourceName, &mysqlInstance, TestAccProvider),
 					resource.TestMatchResourceAttr(resourceName, "id", regexp.MustCompile(`^\d+$`)),
 					resource.TestCheckResourceAttr(resourceName, "service_name", testMysqlName),
 					resource.TestCheckResourceAttr(resourceName, "server_name_prefix", "testprefix"),
@@ -62,7 +62,7 @@ func TestAccResourceNcloudMysql_vpc_isHa(t *testing.T) {
 			{
 				Config: testAccMysqlVpcConfigIsHa(testMysqlName, true, false, false),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckMysqlExistsWithProvider(resourceName, &mysqlInstance, GetTestProvider(true)),
+					testAccCheckMysqlExistsWithProvider(resourceName, &mysqlInstance, TestAccProvider),
 					resource.TestMatchResourceAttr(resourceName, "id", regexp.MustCompile(`^\d+$`)),
 					resource.TestCheckResourceAttr(resourceName, "is_ha", "true"),
 					resource.TestCheckResourceAttr(resourceName, "is_multi_zone", "false"),
@@ -87,7 +87,7 @@ func TestAccResourceNcloudMysql_vpc_isHa_options(t *testing.T) {
 			{
 				Config: testAccMysqlVpcConfigMultiZone(testMysqlName, true, true, true),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckMysqlExistsWithProvider(resourceName, &mysqlInstance, GetTestProvider(true)),
+					testAccCheckMysqlExistsWithProvider(resourceName, &mysqlInstance, TestAccProvider),
 					resource.TestMatchResourceAttr(resourceName, "id", regexp.MustCompile(`^\d+$`)),
 					resource.TestCheckResourceAttr(resourceName, "is_ha", "true"),
 					resource.TestCheckResourceAttr(resourceName, "is_multi_zone", "true"),
@@ -112,7 +112,7 @@ func TestAccResourceNcloudMysql_vpc_auto_backup(t *testing.T) {
 			{
 				Config: testAccMysqlVpcConfigBackupWhenAuto(testMysqlName, false, true, 3, true),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckMysqlExistsWithProvider(resourceName, &mysqlInstance, GetTestProvider(true)),
+					testAccCheckMysqlExistsWithProvider(resourceName, &mysqlInstance, TestAccProvider),
 					resource.TestMatchResourceAttr(resourceName, "id", regexp.MustCompile(`^\d+$`)),
 					resource.TestCheckResourceAttr(resourceName, "is_ha", "false"),
 					resource.TestCheckResourceAttr(resourceName, "is_backup", "true"),
@@ -136,7 +136,7 @@ func TestAccResourceNcloudMysql_vpc_not_auto_backup(t *testing.T) {
 			{
 				Config: testAccMysqlVpcConfigBackupWhenNotAuto(testMysqlName, false, true, 3, false, "11:15"),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckMysqlExistsWithProvider(resourceName, &mysqlInstance, GetTestProvider(true)),
+					testAccCheckMysqlExistsWithProvider(resourceName, &mysqlInstance, TestAccProvider),
 					resource.TestMatchResourceAttr(resourceName, "id", regexp.MustCompile(`^\d+$`)),
 					resource.TestCheckResourceAttr(resourceName, "is_ha", "false"),
 					resource.TestCheckResourceAttr(resourceName, "is_backup", "true"),
@@ -211,7 +211,7 @@ func testAccCheckMysqlExistsWithProvider(n string, mysql *vmysql.CloudMysqlInsta
 }
 
 func testAccCheckMysqlDestroy(s *terraform.State) error {
-	config := GetTestProvider(true).Meta().(*conn.ProviderConfig)
+	config := TestAccProvider.Meta().(*conn.ProviderConfig)
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "ncloud_mysql" {
