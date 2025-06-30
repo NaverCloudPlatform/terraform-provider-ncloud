@@ -26,26 +26,26 @@ func TestAccResourceNcloudAutoScalingPolicy_vpc_zero_value(t *testing.T) {
 		PreCheck:                 func() { TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: ProtoV6ProviderFactories,
 		CheckDestroy: func(state *terraform.State) error {
-			return testAccCheckNcloudAutoScalingPolicyDestroy(state, GetTestProvider(true))
+			return testAccCheckNcloudAutoScalingPolicyDestroy(state, TestAccProvider)
 		},
 		Steps: []resource.TestStep{
 			{
 				//default
 				Config: testAccNcloudAutoScalingPolicyVpcConfig(name),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckNcloudAutoScalingPolicyExists(resourceCHANG, &policy, GetTestProvider(true)),
+					testAccCheckNcloudAutoScalingPolicyExists(resourceCHANG, &policy, TestAccProvider),
 					resource.TestCheckResourceAttr(resourceCHANG, "adjustment_type_code", "CHANG"),
 					resource.TestCheckResourceAttr(resourceCHANG, "scaling_adjustment", "2"),
 					resource.TestCheckResourceAttr(resourceCHANG, "name", name+"-chang"),
 					resource.TestCheckResourceAttr(resourceCHANG, "cooldown", "300"),
 
-					testAccCheckNcloudAutoScalingPolicyExists(resourceEXACT, &policy, GetTestProvider(true)),
+					testAccCheckNcloudAutoScalingPolicyExists(resourceEXACT, &policy, TestAccProvider),
 					resource.TestCheckResourceAttr(resourceEXACT, "adjustment_type_code", "EXACT"),
 					resource.TestCheckResourceAttr(resourceEXACT, "scaling_adjustment", "2"),
 					resource.TestCheckResourceAttr(resourceEXACT, "name", name+"-exact"),
 					resource.TestCheckResourceAttr(resourceEXACT, "cooldown", "300"),
 
-					testAccCheckNcloudAutoScalingPolicyExists(resourcePRCNT, &policy, GetTestProvider(true)),
+					testAccCheckNcloudAutoScalingPolicyExists(resourcePRCNT, &policy, TestAccProvider),
 					resource.TestCheckResourceAttr(resourcePRCNT, "adjustment_type_code", "PRCNT"),
 					resource.TestCheckResourceAttr(resourcePRCNT, "scaling_adjustment", "2"),
 					resource.TestCheckResourceAttr(resourcePRCNT, "name", name+"-prcnt"),
@@ -56,19 +56,19 @@ func TestAccResourceNcloudAutoScalingPolicy_vpc_zero_value(t *testing.T) {
 				//zero-value
 				Config: testAccNcloudAutoScalingPolicyVpcConfigWhenSetZero(name),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckNcloudAutoScalingPolicyExists(resourceCHANG, &policy, GetTestProvider(true)),
+					testAccCheckNcloudAutoScalingPolicyExists(resourceCHANG, &policy, TestAccProvider),
 					resource.TestCheckResourceAttr(resourceCHANG, "adjustment_type_code", "CHANG"),
 					resource.TestCheckResourceAttr(resourceCHANG, "scaling_adjustment", "2"),
 					resource.TestCheckResourceAttr(resourceCHANG, "name", name+"-chang"),
 					resource.TestCheckResourceAttr(resourceCHANG, "cooldown", "0"),
 
-					testAccCheckNcloudAutoScalingPolicyExists(resourceEXACT, &policy, GetTestProvider(true)),
+					testAccCheckNcloudAutoScalingPolicyExists(resourceEXACT, &policy, TestAccProvider),
 					resource.TestCheckResourceAttr(resourceEXACT, "adjustment_type_code", "EXACT"),
 					resource.TestCheckResourceAttr(resourceEXACT, "scaling_adjustment", "2"),
 					resource.TestCheckResourceAttr(resourceEXACT, "name", name+"-exact"),
 					resource.TestCheckResourceAttr(resourceEXACT, "cooldown", "0"),
 
-					testAccCheckNcloudAutoScalingPolicyExists(resourcePRCNT, &policy, GetTestProvider(true)),
+					testAccCheckNcloudAutoScalingPolicyExists(resourcePRCNT, &policy, TestAccProvider),
 					resource.TestCheckResourceAttr(resourcePRCNT, "adjustment_type_code", "PRCNT"),
 					resource.TestCheckResourceAttr(resourcePRCNT, "scaling_adjustment", "2"),
 					resource.TestCheckResourceAttr(resourcePRCNT, "name", name+"-prcnt"),
@@ -89,19 +89,19 @@ func TestAccResourceNcloudAutoScalingPolicy_vpc_disappears(t *testing.T) {
 		PreCheck:                 func() { TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: ProtoV6ProviderFactories,
 		CheckDestroy: func(state *terraform.State) error {
-			return testAccCheckNcloudAutoScalingPolicyDestroy(state, GetTestProvider(true))
+			return testAccCheckNcloudAutoScalingPolicyDestroy(state, TestAccProvider)
 		},
 		Steps: []resource.TestStep{
 			{
 				Config: testAccNcloudAutoScalingPolicyVpcConfig(name),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckNcloudAutoScalingPolicyExists(resourceCHANG, &policy, GetTestProvider(true)),
-					testAccCheckNcloudAutoScalingPolicyExists(resourceEXACT, &policy, GetTestProvider(true)),
-					testAccCheckNcloudAutoScalingPolicyExists(resourcePRCNT, &policy, GetTestProvider(true)),
+					testAccCheckNcloudAutoScalingPolicyExists(resourceCHANG, &policy, TestAccProvider),
+					testAccCheckNcloudAutoScalingPolicyExists(resourceEXACT, &policy, TestAccProvider),
+					testAccCheckNcloudAutoScalingPolicyExists(resourcePRCNT, &policy, TestAccProvider),
 
-					TestAccCheckResourceDisappears(GetTestProvider(true), autoscaling.ResourceNcloudAutoScalingPolicy(), resourceCHANG),
-					TestAccCheckResourceDisappears(GetTestProvider(true), autoscaling.ResourceNcloudAutoScalingPolicy(), resourceEXACT),
-					TestAccCheckResourceDisappears(GetTestProvider(true), autoscaling.ResourceNcloudAutoScalingPolicy(), resourcePRCNT),
+					TestAccCheckResourceDisappears(TestAccProvider, autoscaling.ResourceNcloudAutoScalingPolicy(), resourceCHANG),
+					TestAccCheckResourceDisappears(TestAccProvider, autoscaling.ResourceNcloudAutoScalingPolicy(), resourceEXACT),
+					TestAccCheckResourceDisappears(TestAccProvider, autoscaling.ResourceNcloudAutoScalingPolicy(), resourcePRCNT),
 				),
 				ExpectNonEmptyPlan: true,
 			},

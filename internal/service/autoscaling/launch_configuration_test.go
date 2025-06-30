@@ -23,13 +23,13 @@ func TestAccResourceNcloudLaunchConfiguration_vpc_basic(t *testing.T) {
 		PreCheck:                 func() { TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: ProtoV6ProviderFactories,
 		CheckDestroy: func(state *terraform.State) error {
-			return testAccCheckLaunchConfigurationDestroy(state, GetTestProvider(true))
+			return testAccCheckLaunchConfigurationDestroy(state, TestAccProvider)
 		},
 		Steps: []resource.TestStep{
 			{
 				Config: testAccLaunchConfigurationConfig(serverImageProductCode, serverProductCode),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckLaunchConfigurationExists(resourceName, &launchConfiguration, GetTestProvider(true)),
+					testAccCheckLaunchConfigurationExists(resourceName, &launchConfiguration, TestAccProvider),
 				),
 			},
 			{
@@ -50,14 +50,14 @@ func TestAccResourceNcloudLaunchConfiguration_vpc_disappears(t *testing.T) {
 		PreCheck:                 func() { TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: ProtoV6ProviderFactories,
 		CheckDestroy: func(state *terraform.State) error {
-			return testAccCheckLaunchConfigurationDestroy(state, GetTestProvider(true))
+			return testAccCheckLaunchConfigurationDestroy(state, TestAccProvider)
 		},
 		Steps: []resource.TestStep{
 			{
 				Config: testAccLaunchConfigurationConfig(serverImageProductCode, serverProductCode),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckLaunchConfigurationExists(resourceName, &launchConfiguration, GetTestProvider(true)),
-					TestAccCheckResourceDisappears(GetTestProvider(true), autoscaling.ResourceNcloudLaunchConfiguration(), resourceName),
+					testAccCheckLaunchConfigurationExists(resourceName, &launchConfiguration, TestAccProvider),
+					TestAccCheckResourceDisappears(TestAccProvider, autoscaling.ResourceNcloudLaunchConfiguration(), resourceName),
 				),
 				ExpectNonEmptyPlan: true,
 			},
