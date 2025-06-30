@@ -45,7 +45,7 @@ func TestAccResourceNcloudHadoop_vpc_update(t *testing.T) {
 			{
 				Config: testAccHadoopConfigUpdate(testHadoopName, workerCountBefore, productCodeBefore, bucketName),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckHadoopExistsWithProvider(resourceName, &hadoopInstance, GetTestProvider(true)),
+					testAccCheckHadoopExistsWithProvider(resourceName, &hadoopInstance, TestAccProvider),
 					resource.TestCheckResourceAttr(resourceName, "worker_node_count", strconv.FormatInt(int64(workerCountBefore), 10)),
 					resource.TestCheckResourceAttr(resourceName, "master_node_product_code", productCodeBefore),
 					resource.TestCheckResourceAttr(resourceName, "worker_node_product_code", productCodeBefore),
@@ -54,7 +54,7 @@ func TestAccResourceNcloudHadoop_vpc_update(t *testing.T) {
 			{
 				Config: testAccHadoopConfigUpdate(testHadoopName, workerCountAfter, productCodeAfter, bucketName),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckHadoopExistsWithProvider(resourceName, &hadoopInstance, GetTestProvider(true)),
+					testAccCheckHadoopExistsWithProvider(resourceName, &hadoopInstance, TestAccProvider),
 					resource.TestCheckResourceAttr(resourceName, "worker_node_count", strconv.FormatInt(int64(workerCountAfter), 10)),
 					resource.TestCheckResourceAttr(resourceName, "master_node_product_code", productCodeAfter),
 					resource.TestCheckResourceAttr(resourceName, "worker_node_product_code", productCodeAfter),
@@ -91,7 +91,7 @@ func testAccCheckHadoopExistsWithProvider(n string, hadoop *vhadoop.CloudHadoopI
 }
 
 func testAccCheckHadoopDestroy(s *terraform.State) error {
-	config := GetTestProvider(true).Meta().(*conn.ProviderConfig)
+	config := TestAccProvider.Meta().(*conn.ProviderConfig)
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "ncloud_hadoop" {
