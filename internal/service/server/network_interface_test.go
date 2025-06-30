@@ -179,7 +179,7 @@ func testAccCheckNetworkInterfaceExists(n string, NetworkInterface *vserver.Netw
 			return fmt.Errorf("no Network Interface id is set")
 		}
 
-		config := GetTestProvider(true).Meta().(*conn.ProviderConfig)
+		config := TestAccProvider.Meta().(*conn.ProviderConfig)
 		instance, err := server.GetNetworkInterface(config, rs.Primary.ID)
 		if err != nil {
 			return err
@@ -192,7 +192,7 @@ func testAccCheckNetworkInterfaceExists(n string, NetworkInterface *vserver.Netw
 }
 
 func testAccCheckNetworkInterfaceDestroy(s *terraform.State) error {
-	config := GetTestProvider(true).Meta().(*conn.ProviderConfig)
+	config := TestAccProvider.Meta().(*conn.ProviderConfig)
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "ncloud_network_interface" {
@@ -215,7 +215,7 @@ func testAccCheckNetworkInterfaceDestroy(s *terraform.State) error {
 
 func testAccCheckNetworkInterfaceDisappears(instance *vserver.NetworkInterface) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
-		config := GetTestProvider(true).Meta().(*conn.ProviderConfig)
+		config := TestAccProvider.Meta().(*conn.ProviderConfig)
 		return server.DeleteNetworkInterface(config, *instance.NetworkInterfaceNo)
 	}
 }

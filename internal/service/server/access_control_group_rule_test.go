@@ -175,7 +175,7 @@ func testAccCheckAccessControlGroupRuleExists(n string, AccessControlGroupRule *
 			return fmt.Errorf("no Access Control Group id is set")
 		}
 
-		config := GetTestProvider(true).Meta().(*conn.ProviderConfig)
+		config := TestAccProvider.Meta().(*conn.ProviderConfig)
 
 		rules, err := server.GetAccessControlGroupRuleList(config, rs.Primary.ID)
 		if err != nil {
@@ -193,7 +193,7 @@ func testAccCheckAccessControlGroupRuleExists(n string, AccessControlGroupRule *
 }
 
 func testAccCheckAccessControlGroupRuleDestroy(s *terraform.State) error {
-	config := GetTestProvider(true).Meta().(*conn.ProviderConfig)
+	config := TestAccProvider.Meta().(*conn.ProviderConfig)
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "ncloud_access_control_group_rule" {
@@ -216,7 +216,7 @@ func testAccCheckAccessControlGroupRuleDestroy(s *terraform.State) error {
 
 func testAccCheckAccessControlGroupRuleDisappears(instance *[]*vserver.AccessControlGroupRule) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
-		config := GetTestProvider(true).Meta().(*conn.ProviderConfig)
+		config := TestAccProvider.Meta().(*conn.ProviderConfig)
 
 		if len(*instance) == 0 {
 			return nil

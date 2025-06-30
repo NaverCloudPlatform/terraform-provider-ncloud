@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-go/tfprotov6"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
@@ -14,15 +13,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-ncloud/internal/service/server"
 )
 
-func TestAccResourceNcloudLoginKey_classic_basic(t *testing.T) {
-	testAccResourceNcloudLoginKeyBasic(t, false)
-}
-
 func TestAccResourceNcloudLoginKey_vpc_basic(t *testing.T) {
-	testAccResourceNcloudLoginKeyBasic(t, true)
-}
-
-func testAccResourceNcloudLoginKeyBasic(t *testing.T, isVpc bool) {
 	var loginKey *server.LoginKey
 	prefix := GetTestPrefix()
 	testKeyName := prefix + "-key"
@@ -35,19 +26,18 @@ func testAccResourceNcloudLoginKeyBasic(t *testing.T, isVpc bool) {
 			return nil
 		}
 	}
-	provider := GetTestProvider(isVpc)
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: getProvidersBasedOnVpc(isVpc),
+		ProtoV6ProviderFactories: ProtoV6ProviderFactories,
 		CheckDestroy: func(state *terraform.State) error {
-			return testAccCheckLoginKeyDestroyWithProvider(state, provider)
+			return testAccCheckLoginKeyDestroyWithProvider(state, TestAccProvider)
 		},
 		Steps: []resource.TestStep{
 			{
 				Config: testAccLoginKeyConfig(testKeyName),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckLoginKeyExistsWithProvider("ncloud_login_key.loginkey", loginKey, provider),
+					testAccCheckLoginKeyExistsWithProvider("ncloud_login_key.loginkey", loginKey, TestAccProvider),
 					testCheck(),
 					resource.TestCheckResourceAttr(
 						"ncloud_login_key.loginkey",
@@ -63,14 +53,6 @@ func testAccResourceNcloudLoginKeyBasic(t *testing.T, isVpc bool) {
 			},
 		},
 	})
-}
-
-func getProvidersBasedOnVpc(isVpc bool) map[string]func() (tfprotov6.ProviderServer, error) {
-	if isVpc {
-		return ProtoV6ProviderFactories
-	} else {
-		return ClassicProtoV6ProviderFactories
-	}
 }
 
 func testAccCheckLoginKeyExistsWithProvider(n string, l *server.LoginKey, provider *schema.Provider) resource.TestCheckFunc {

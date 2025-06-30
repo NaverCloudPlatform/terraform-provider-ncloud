@@ -16,67 +16,6 @@ import (
 	serverservice "github.com/terraform-providers/terraform-provider-ncloud/internal/service/server"
 )
 
-func TestAccResourceNcloudServer_classic_basic(t *testing.T) {
-	// Images are all deprecated in Classic
-	t.Skip()
-
-	var serverInstance serverservice.ServerInstance
-	testServerName := GetTestServerName()
-	resourceName := "ncloud_server.server"
-	productCode := "SPSVRSTAND000004" // vCPU 2EA, Memory 4GB, Disk 50GB
-
-	testCheck := func() func(*terraform.State) error {
-		return func(*terraform.State) error {
-			if *serverInstance.ServerName != testServerName {
-				return fmt.Errorf("not found: %s", testServerName)
-			}
-			return nil
-		}
-	}
-
-	resource.Test(t, resource.TestCase{
-		PreCheck:                 func() { TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: ClassicProtoV6ProviderFactories,
-		CheckDestroy: func(state *terraform.State) error {
-			return testAccCheckInstanceDestroyWithProvider(state, GetTestProvider(false))
-		},
-		Steps: []resource.TestStep{
-			{
-				Config: testAccServerClassicConfig(testServerName, productCode),
-				Check: resource.ComposeTestCheckFunc(
-					testAccCheckServerExistsWithProvider(resourceName, &serverInstance, GetTestProvider(false)),
-					testCheck(),
-					resource.TestMatchResourceAttr(resourceName, "id", regexp.MustCompile(`^\d+$`)),
-					resource.TestCheckResourceAttr(resourceName, "server_image_product_code", "SPSW0LINUX000046"),
-					resource.TestCheckResourceAttr(resourceName, "server_product_code", productCode),
-					resource.TestCheckResourceAttr(resourceName, "name", testServerName),
-					resource.TestCheckResourceAttr(resourceName, "description", ""),
-					resource.TestMatchResourceAttr(resourceName, "zone", regexp.MustCompile(`^\w+.*$`)),
-					resource.TestCheckResourceAttr(resourceName, "base_block_storage_disk_type", "NET"),
-					resource.TestCheckResourceAttr(resourceName, "base_block_storage_size", "53687091200"),
-					resource.TestCheckResourceAttr(resourceName, "cpu_count", "2"),
-					resource.TestCheckResourceAttr(resourceName, "memory_size", "4294967296"),
-					resource.TestMatchResourceAttr(resourceName, "instance_no", regexp.MustCompile(`^\d+$`)),
-					resource.TestCheckResourceAttr(resourceName, "platform_type", "LNX64"),
-					resource.TestCheckResourceAttr(resourceName, "is_protect_server_termination", "false"),
-					resource.TestCheckResourceAttr(resourceName, "server_image_name", "centos-7.3-64"),
-					resource.TestCheckResourceAttr(resourceName, "login_key_name", fmt.Sprintf("%s-key", testServerName)),
-					resource.TestMatchResourceAttr(resourceName, "instance_no", regexp.MustCompile(`^\d+$`)),
-					resource.TestMatchResourceAttr(resourceName, "port_forwarding_public_ip", regexp.MustCompile(`^(?:[0-9]{1,3}\.){3}[0-9]{1,3}$`)),
-					resource.TestMatchResourceAttr(resourceName, "private_ip", regexp.MustCompile(`^(?:[0-9]{1,3}\.){3}[0-9]{1,3}$`)),
-					resource.TestCheckResourceAttr(resourceName, "public_ip", ""),
-				),
-			},
-			{
-				ResourceName:            resourceName,
-				ImportState:             true,
-				ImportStateVerify:       true,
-				ImportStateVerifyIgnore: []string{"login_key_name", "server_product_code"},
-			},
-		},
-	})
-}
-
 func TestAccResourceNcloudServer_vpc_basic(t *testing.T) {
 	var serverInstance serverservice.ServerInstance
 	testServerName := GetTestServerName()
@@ -90,7 +29,7 @@ func TestAccResourceNcloudServer_vpc_basic(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				Config: testAccServerVpcConfig(testServerName, productCode),
-				Check: resource.ComposeTestCheckFunc(testAccCheckServerExistsWithProvider("ncloud_server.server", &serverInstance, GetTestProvider(true)),
+				Check: resource.ComposeTestCheckFunc(testAccCheckServerExistsWithProvider("ncloud_server.server", &serverInstance, TestAccProvider),
 					resource.TestMatchResourceAttr(resourceName, "id", regexp.MustCompile(`^\d+$`)),
 					resource.TestCheckResourceAttr(resourceName, "server_image_product_code", "SW.VSVR.OS.LNX64.ROCKY.0810.B050"),
 					resource.TestCheckResourceAttr(resourceName, "server_product_code", productCode),
@@ -138,7 +77,7 @@ func TestAccResourceNcloudServer_vpc_kvm(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				Config: testAccServerImageNumberVpcConfig(testServerName, specCode),
-				Check: resource.ComposeTestCheckFunc(testAccCheckServerExistsWithProvider("ncloud_server.server", &serverInstance, GetTestProvider(true)),
+				Check: resource.ComposeTestCheckFunc(testAccCheckServerExistsWithProvider("ncloud_server.server", &serverInstance, TestAccProvider),
 					resource.TestMatchResourceAttr(resourceName, "id", regexp.MustCompile(`^\d+$`)),
 					resource.TestCheckResourceAttr(resourceName, "server_spec_code", specCode),
 					resource.TestCheckResourceAttr(resourceName, "name", testServerName),
@@ -179,7 +118,7 @@ func TestAccResourceNcloudServer_vpc_networkInterface(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				Config: testAccServerVpcConfigNetworkInterface(testServerName, productCode),
-				Check: resource.ComposeTestCheckFunc(testAccCheckServerExistsWithProvider("ncloud_server.server", &serverInstance, GetTestProvider(true)),
+				Check: resource.ComposeTestCheckFunc(testAccCheckServerExistsWithProvider("ncloud_server.server", &serverInstance, TestAccProvider),
 					resource.TestMatchResourceAttr(resourceName, "id", regexp.MustCompile(`^\d+$`)),
 					resource.TestCheckResourceAttr(resourceName, "server_image_product_code", "SW.VSVR.OS.LNX64.ROCKY.0810.B050"),
 					resource.TestCheckResourceAttr(resourceName, "server_product_code", productCode),
@@ -214,48 +153,6 @@ func TestAccResourceNcloudServer_vpc_networkInterface(t *testing.T) {
 	})
 }
 
-func TestAccResourceNcloudServer_classic_changeSpec(t *testing.T) {
-	// Images are all deprecated in Classic
-	t.Skip()
-
-	var before serverservice.ServerInstance
-	var after serverservice.ServerInstance
-	testServerName := GetTestServerName()
-	resourceName := "ncloud_server.server"
-	productCode := "SPSVRSTAND000004"       // vCPU 2EA, Memory 4GB, Disk 50GB
-	targetProductCode := "SPSVRSTAND000005" // vCPU 4EA, Memory 8GB, Disk 50GB
-
-	resource.Test(t, resource.TestCase{
-		PreCheck:                 func() { TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: ClassicProtoV6ProviderFactories,
-		CheckDestroy: func(state *terraform.State) error {
-			return testAccCheckInstanceDestroyWithProvider(state, GetTestProvider(false))
-		},
-		Steps: []resource.TestStep{
-			{
-				Config: testAccServerClassicConfig(testServerName, productCode),
-				Check: resource.ComposeTestCheckFunc(testAccCheckServerExistsWithProvider(resourceName, &before, GetTestProvider(false)),
-					resource.TestCheckResourceAttr(resourceName, "cpu_count", "2"),
-					resource.TestCheckResourceAttr(resourceName, "memory_size", "4294967296"),
-				),
-			},
-			{
-				Config: testAccServerClassicConfig(testServerName, targetProductCode),
-				Check: resource.ComposeTestCheckFunc(testAccCheckServerExistsWithProvider(resourceName, &after, GetTestProvider(false)),
-					resource.TestCheckResourceAttr(resourceName, "cpu_count", "4"),
-					resource.TestCheckResourceAttr(resourceName, "memory_size", "8589934592"),
-					testAccCheckInstanceNotRecreated(t, &before, &after),
-				),
-			},
-			{
-				ResourceName:      "ncloud_server.server",
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
-		},
-	})
-}
-
 func TestAccResourceNcloudServer_vpc_changeSpec(t *testing.T) {
 	var before serverservice.ServerInstance
 	var after serverservice.ServerInstance
@@ -271,14 +168,14 @@ func TestAccResourceNcloudServer_vpc_changeSpec(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				Config: testAccServerVpcConfig(testServerName, productCode),
-				Check: resource.ComposeTestCheckFunc(testAccCheckServerExistsWithProvider(resourceName, &before, GetTestProvider(true)),
+				Check: resource.ComposeTestCheckFunc(testAccCheckServerExistsWithProvider(resourceName, &before, TestAccProvider),
 					resource.TestCheckResourceAttr(resourceName, "cpu_count", "2"),
 					resource.TestCheckResourceAttr(resourceName, "memory_size", "8589934592"),
 				),
 			},
 			{
 				Config: testAccServerVpcConfig(testServerName, targetProductCode),
-				Check: resource.ComposeTestCheckFunc(testAccCheckServerExistsWithProvider(resourceName, &after, GetTestProvider(true)),
+				Check: resource.ComposeTestCheckFunc(testAccCheckServerExistsWithProvider(resourceName, &after, TestAccProvider),
 					resource.TestCheckResourceAttr(resourceName, "cpu_count", "4"),
 					resource.TestCheckResourceAttr(resourceName, "memory_size", "17179869184"),
 					testAccCheckInstanceNotRecreated(t, &before, &after),
@@ -385,7 +282,7 @@ func testAccCheckInstanceNotRecreated(t *testing.T, before, after *serverservice
 }
 
 func testAccCheckServerDestroy(s *terraform.State) error {
-	return testAccCheckInstanceDestroyWithProvider(s, GetTestProvider(true))
+	return testAccCheckInstanceDestroyWithProvider(s, TestAccProvider)
 }
 
 func testAccCheckInstanceDestroyWithProvider(s *terraform.State, provider *schema.Provider) error {
@@ -536,21 +433,6 @@ resource "ncloud_server" "server" {
 		order = 1
 		network_interface_no = ncloud_network_interface.eth1.id
 	}
-}
-`, testServerName, productCode)
-}
-
-func testAccServerClassicConfig(testServerName, productCode string) string {
-	return fmt.Sprintf(`
-resource "ncloud_login_key" "loginkey" {
-	key_name = "%[1]s-key"
-}
-
-resource "ncloud_server" "server" {
-	name = "%[1]s"
-	server_image_product_code = "SPSW0LINUX000046"
-	server_product_code = "%[2]s"
-	login_key_name = "${ncloud_login_key.loginkey.key_name}"
 }
 `, testServerName, productCode)
 }

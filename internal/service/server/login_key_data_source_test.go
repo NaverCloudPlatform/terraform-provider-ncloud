@@ -8,21 +8,13 @@ import (
 	. "github.com/terraform-providers/terraform-provider-ncloud/internal/acctest"
 )
 
-func TestAccDataSourceNcloudLoginKey_classic_basic(t *testing.T) {
-	testAccDataSourceNcloudLoginKeyBasic(t, false)
-}
-
 func TestAccDataSourceNcloudLoginKey_vpc_basic(t *testing.T) {
-	testAccDataSourceNcloudLoginKeyBasic(t, true)
-}
-
-func testAccDataSourceNcloudLoginKeyBasic(t *testing.T, isVpc bool) {
 	dataName := "data.ncloud_login_key.all"
 	testKeyName := "test-key"
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: getProvidersBasedOnVpc(isVpc),
+		ProtoV6ProviderFactories: ProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccDataSourceLoginKeyConfig(testKeyName),

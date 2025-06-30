@@ -96,7 +96,7 @@ func testAccCheckAccessControlGroupExists(n string, AccessControlGroup *vserver.
 			return fmt.Errorf("no Access Control Group id is set")
 		}
 
-		config := GetTestProvider(true).Meta().(*conn.ProviderConfig)
+		config := TestAccProvider.Meta().(*conn.ProviderConfig)
 		instance, err := server.GetAccessControlGroup(config, rs.Primary.ID)
 		if err != nil {
 			return err
@@ -109,7 +109,7 @@ func testAccCheckAccessControlGroupExists(n string, AccessControlGroup *vserver.
 }
 
 func testAccCheckAccessControlGroupDestroy(s *terraform.State) error {
-	config := GetTestProvider(true).Meta().(*conn.ProviderConfig)
+	config := TestAccProvider.Meta().(*conn.ProviderConfig)
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "ncloud_access_control_group" {
@@ -132,7 +132,7 @@ func testAccCheckAccessControlGroupDestroy(s *terraform.State) error {
 
 func testAccCheckAccessControlGroupDisappears(instance *vserver.AccessControlGroup) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
-		config := GetTestProvider(true).Meta().(*conn.ProviderConfig)
+		config := TestAccProvider.Meta().(*conn.ProviderConfig)
 		return server.DeleteAccessControlGroup(config, *instance.AccessControlGroupNo)
 	}
 }

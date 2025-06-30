@@ -110,7 +110,7 @@ func testAccCheckPlacementGroupExists(n string, PlacementGroup *vserver.Placemen
 			return fmt.Errorf("No Placement group id is set: %s", n)
 		}
 
-		config := GetTestProvider(true).Meta().(*conn.ProviderConfig)
+		config := TestAccProvider.Meta().(*conn.ProviderConfig)
 		instance, err := server.GetPlacementGroupInstance(config, rs.Primary.ID)
 		if err != nil {
 			return err
@@ -123,7 +123,7 @@ func testAccCheckPlacementGroupExists(n string, PlacementGroup *vserver.Placemen
 }
 
 func testAccCheckPlacementGroupDestroy(s *terraform.State) error {
-	config := GetTestProvider(true).Meta().(*conn.ProviderConfig)
+	config := TestAccProvider.Meta().(*conn.ProviderConfig)
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "ncloud_placement_group" {
@@ -146,7 +146,7 @@ func testAccCheckPlacementGroupDestroy(s *terraform.State) error {
 
 func testAccCheckPlacementGroupDisappears(instance *vserver.PlacementGroup) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
-		config := GetTestProvider(true).Meta().(*conn.ProviderConfig)
+		config := TestAccProvider.Meta().(*conn.ProviderConfig)
 
 		reqParams := &vserver.DeletePlacementGroupRequest{
 			RegionCode:       &config.RegionCode,
