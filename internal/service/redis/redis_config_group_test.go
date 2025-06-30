@@ -44,7 +44,7 @@ func TestAccResourceNcloudRedisConfigGroup_vpc_basic(t *testing.T) {
 }
 
 func testAccCheckRedisConfigGroupDestroy(s *terraform.State) error {
-	config := GetTestProvider(true).Meta().(*conn.ProviderConfig)
+	config := TestAccProvider.Meta().(*conn.ProviderConfig)
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "ncloud_redis_config_group" {
