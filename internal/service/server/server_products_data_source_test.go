@@ -9,26 +9,6 @@ import (
 	. "github.com/terraform-providers/terraform-provider-ncloud/internal/acctest"
 )
 
-func TestAccDataSourceNcloudServerProducts_classic_basic(t *testing.T) {
-	// Images are all deprecated in Classic
-	t.Skip()
-
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:                 func() { TestAccPreCheck(t) },
-		IsUnitTest:               false,
-		ProtoV6ProviderFactories: ClassicProtoV6ProviderFactories,
-
-		Steps: []resource.TestStep{
-			{
-				Config: testAccDataSourceNcloudServerProductsConfig("SPSW0LINUX000045"),
-				Check: resource.ComposeTestCheckFunc(
-					TestAccCheckDataSourceID("data.ncloud_server_products.all"),
-				),
-			},
-		},
-	})
-}
-
 func TestAccDataSourceNcloudServerProducts_vpc_basic(t *testing.T) {
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { TestAccPreCheck(t) },

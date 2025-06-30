@@ -2,7 +2,6 @@ package server_test
 
 import (
 	"fmt"
-	"regexp"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
@@ -43,28 +42,6 @@ func TestAccDataSourceNcloudVpcAccessControlGroupBasic(t *testing.T) {
 	})
 }
 
-func TestAccDataSourceNcloudClassicAccessControlGroup_basic(t *testing.T) {
-	dataName := "data.ncloud_access_control_group.by_name"
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:                 func() { TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: ClassicProtoV6ProviderFactories,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccDataSourceNcloudClassicAccessControlConfig,
-				Check: resource.ComposeTestCheckFunc(
-					TestAccCheckDataSourceID(dataName),
-					resource.TestCheckResourceAttr(dataName, "name", "ncloud-default-acg"),
-					resource.TestMatchResourceAttr(dataName, "id", regexp.MustCompile(`^\d+$`)),
-					resource.TestMatchResourceAttr(dataName, "access_control_group_no", regexp.MustCompile(`^\d+$`)),
-					resource.TestMatchResourceAttr(dataName, "configuration_no", regexp.MustCompile(`^\d+$`)),
-					resource.TestCheckResourceAttr(dataName, "description", "Default AccessControlGroup"),
-					TestAccCheckDataSourceID("data.ncloud_access_control_group.by_filter"),
-				),
-			},
-		},
-	})
-}
-
 func testAccDataSourceNcloudVpcAccessControlGroupConfig(name string) string {
 	return fmt.Sprintf(`
 resource "ncloud_vpc" "test" {
@@ -90,16 +67,3 @@ data "ncloud_access_control_group" "by_filter" {
 }
 `, name)
 }
-
-var testAccDataSourceNcloudClassicAccessControlConfig = `
-data "ncloud_access_control_group" "by_name" {
-	name = "ncloud-default-acg"
-}
-
-data "ncloud_access_control_group" "by_filter" {
-	filter {
-		name   = "name"
-		values = ["ncloud-default-acg"]
-	}
-}
-`

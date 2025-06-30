@@ -47,10 +47,6 @@ func ResourceNcloudPlacementGroup() *schema.Resource {
 func resourceNcloudPlacementGroupCreate(d *schema.ResourceData, meta interface{}) error {
 	config := meta.(*conn.ProviderConfig)
 
-	if !config.SupportVPC {
-		return NotSupportClassic("resource `ncloud_placement_group`")
-	}
-
 	reqParams := &vserver.CreatePlacementGroupRequest{
 		RegionCode: &config.RegionCode,
 	}

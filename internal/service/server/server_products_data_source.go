@@ -4,7 +4,6 @@ import (
 	"fmt"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 
 	. "github.com/terraform-providers/terraform-provider-ncloud/internal/common"
 	"github.com/terraform-providers/terraform-provider-ncloud/internal/conn"
@@ -28,13 +27,6 @@ func DataSourceNcloudServerProducts() *schema.Resource {
 				Type:     schema.TypeString,
 				Optional: true,
 			},
-			// Deprecated
-			"internet_line_type_code": {
-				Type:             schema.TypeString,
-				Optional:         true,
-				ValidateDiagFunc: validation.ToDiagFunc(validation.StringInSlice([]string{"PUBLC", "GLBL"}, false)),
-				Deprecated:       "This parameter is no longer used.",
-			},
 			"server_products": {
 				Type:     schema.TypeList,
 				Computed: true,
@@ -51,13 +43,6 @@ func DataSourceNcloudServerProducts() *schema.Resource {
 				Optional: true,
 			},
 			// Deprecated
-			"product_name_regex": {
-				Type:             schema.TypeString,
-				Optional:         true,
-				ForceNew:         true,
-				ValidateDiagFunc: validation.ToDiagFunc(validation.StringIsValidRegExp),
-				Deprecated:       "use filter instead",
-			},
 			"exclusion_product_code": {
 				Type:       schema.TypeString,
 				Optional:   true,
@@ -71,12 +56,7 @@ func dataSourceNcloudServerProductsRead(d *schema.ResourceData, meta interface{}
 	var resources []map[string]interface{}
 	var err error
 
-	if meta.(*conn.ProviderConfig).SupportVPC {
-		resources, err = getVpcServerProductList(d, meta.(*conn.ProviderConfig))
-	} else {
-		resources, err = getClassicServerProductList(d, meta.(*conn.ProviderConfig))
-	}
-
+	resources, err = getVpcServerProductList(d, meta.(*conn.ProviderConfig))
 	if err != nil {
 		return err
 	}

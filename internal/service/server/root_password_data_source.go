@@ -2,7 +2,6 @@ package server
 
 import (
 	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/ncloud"
-	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/services/server"
 	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/services/vserver"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 
@@ -48,31 +47,6 @@ func dataSourceNcloudRootPasswordRead(d *schema.ResourceData, meta interface{}) 
 }
 
 func getRootPassword(d *schema.ResourceData, config *conn.ProviderConfig) (*string, error) {
-	if config.SupportVPC {
-		return getVpcRootPassword(d, config)
-	} else {
-		return getClassicRootPassword(d, config)
-	}
-}
-
-func getClassicRootPassword(d *schema.ResourceData, config *conn.ProviderConfig) (*string, error) {
-	reqParams := &server.GetRootPasswordRequest{
-		ServerInstanceNo: ncloud.String(d.Get("server_instance_no").(string)),
-		PrivateKey:       ncloud.String(d.Get("private_key").(string)),
-	}
-
-	LogCommonRequest("getClassicRootPassword", reqParams)
-	resp, err := config.Client.Server.V2Api.GetRootPassword(reqParams)
-	if err != nil {
-		LogErrorResponse("getClassicRootPassword", err, reqParams)
-		return nil, err
-	}
-	LogCommonResponse("getClassicRootPassword", GetCommonResponse(resp))
-
-	return resp.RootPassword, nil
-}
-
-func getVpcRootPassword(d *schema.ResourceData, config *conn.ProviderConfig) (*string, error) {
 	reqParams := &vserver.GetRootPasswordRequest{
 		RegionCode:       &config.RegionCode,
 		ServerInstanceNo: ncloud.String(d.Get("server_instance_no").(string)),
