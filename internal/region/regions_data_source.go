@@ -5,7 +5,6 @@ import (
 	"time"
 
 	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/ncloud"
-	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/services/server"
 	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/services/vserver"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 
@@ -42,12 +41,7 @@ func dataSourceNcloudRegionsRead(d *schema.ResourceData, meta interface{}) error
 	var regions []*conn.Region
 	var err error
 
-	if meta.(*conn.ProviderConfig).SupportVPC {
-		regions, err = getVpcRegions(d, meta.(*conn.ProviderConfig))
-	} else {
-		regions, err = getClassicRegions(d, meta.(*conn.ProviderConfig))
-	}
-
+	regions, err = getVpcRegions(d, meta.(*conn.ProviderConfig))
 	if err != nil {
 		return err
 	}
@@ -81,26 +75,6 @@ func dataSourceNcloudRegionsRead(d *schema.ResourceData, meta interface{}) error
 	}
 
 	return nil
-}
-
-func getClassicRegions(d *schema.ResourceData, config *conn.ProviderConfig) ([]*conn.Region, error) {
-	client := config.Client
-	resp, err := client.Server.V2Api.GetRegionList(&server.GetRegionListRequest{})
-	if err != nil {
-		return nil, err
-	}
-
-	if resp == nil {
-		return nil, fmt.Errorf("no matching regions found")
-	}
-
-	var regions []*conn.Region
-
-	for _, r := range resp.RegionList {
-		regions = append(regions, GetRegion(r))
-	}
-
-	return regions, nil
 }
 
 func getVpcRegions(d *schema.ResourceData, config *conn.ProviderConfig) ([]*conn.Region, error) {
