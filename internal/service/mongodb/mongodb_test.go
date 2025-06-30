@@ -32,7 +32,7 @@ func TestAccResourceNcloudMongoDb_vpc_basic(t *testing.T) {
 			{
 				Config: testAccMongoDbVpcConfig(name, clusterTypeCode),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckMongoDbExists(resourceName, &mongodbInstance, GetTestProvider(true)),
+					testAccCheckMongoDbExists(resourceName, &mongodbInstance, TestAccProvider),
 					resource.TestMatchResourceAttr(resourceName, "id", regexp.MustCompile(`^\d+$`)),
 					resource.TestCheckResourceAttr(resourceName, "service_name", name),
 					resource.TestCheckResourceAttr(resourceName, "user_name", "testuser"),
@@ -59,7 +59,7 @@ func TestAccResourceNcloudMongoDb_vpc_sharding(t *testing.T) {
 			{
 				Config: testAccMongoDbVpcConfigShard(name, 2, 3, 0, 2, 3),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckMongoDbExists(resourceName, &mongodbInstance, GetTestProvider(true)),
+					testAccCheckMongoDbExists(resourceName, &mongodbInstance, TestAccProvider),
 					resource.TestMatchResourceAttr(resourceName, "id", regexp.MustCompile(`^\d+$`)),
 					resource.TestCheckResourceAttr(resourceName, "shard_count", "2"),
 					resource.TestCheckResourceAttr(resourceName, "member_server_count", "3"),
@@ -100,7 +100,7 @@ func testAccCheckMongoDbExists(n string, mongodb *vmongodb.CloudMongoDbInstance,
 }
 
 func testAccCheckMongoDbDestroy(s *terraform.State) error {
-	config := GetTestProvider(true).Meta().(*conn.ProviderConfig)
+	config := TestAccProvider.Meta().(*conn.ProviderConfig)
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "ncloud_mongodb" {
