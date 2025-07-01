@@ -9,20 +9,12 @@ import (
 	. "github.com/terraform-providers/terraform-provider-ncloud/internal/acctest"
 )
 
-func TestAccDataSourceNcloudNasVolumes_classic_basic(t *testing.T) {
-	testAccDataSourceNcloudNasVolumesBasic(t, false)
-}
-
 func TestAccDataSourceNcloudNasVolumes_vpc_basic(t *testing.T) {
-	testAccDataSourceNcloudNasVolumesBasic(t, true)
-}
-
-func testAccDataSourceNcloudNasVolumesBasic(t *testing.T, isVpc bool) {
 	postfix := GetTestPrefix()
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: GetTestProviderFactories(isVpc),
+		ProtoV6ProviderFactories: ProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccDataSourceNcloudNasVolumesConfig(postfix),

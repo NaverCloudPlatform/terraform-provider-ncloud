@@ -7,7 +7,6 @@ import (
 
 	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/services/vserver"
 
-	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/services/server"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
@@ -47,33 +46,11 @@ func GetRegionNoByCode(code string) *string {
 	return nil
 }
 
-func GetRegionByCode(client *NcloudAPIClient, code string) (*server.Region, error) {
-	resp, err := client.Server.V2Api.GetRegionList(&server.GetRegionListRequest{})
-	if err != nil {
-		return nil, err
-	}
-	regionList := resp.RegionList
-
-	var filteredRegion *server.Region
-	for _, region := range regionList {
-		if code == *region.RegionCode {
-			filteredRegion = region
-			break
-		}
-	}
-
-	return filteredRegion, nil
-}
-
-func SetRegionCache(client *NcloudAPIClient, supportVPC bool) error {
+func SetRegionCache(client *NcloudAPIClient) error {
 	var regionList []*Region
 	var err error
-	if supportVPC {
-		regionList, err = getVpcRegionList(client)
-	} else {
-		regionList, err = getClassicRegionList(client)
-	}
 
+	regionList, err = getVpcRegionList(client)
 	if err != nil {
 		return err
 	}
@@ -83,33 +60,11 @@ func SetRegionCache(client *NcloudAPIClient, supportVPC bool) error {
 			RegionCode: r.RegionCode,
 			RegionName: r.RegionName,
 		}
-		if !supportVPC {
-			region.RegionNo = r.RegionNo
-		}
 
 		regionCacheByCode.Store(*region.RegionCode, region)
 	}
 
 	return nil
-}
-
-func getClassicRegionList(client *NcloudAPIClient) ([]*Region, error) {
-	resp, err := client.Server.V2Api.GetRegionList(&server.GetRegionListRequest{})
-	if err != nil {
-		return nil, err
-	}
-
-	var regionList []*Region
-	for _, r := range resp.RegionList {
-		region := &Region{
-			RegionNo:   r.RegionNo,
-			RegionCode: r.RegionCode,
-			RegionName: r.RegionName,
-		}
-		regionList = append(regionList, region)
-	}
-
-	return regionList, nil
 }
 
 func getVpcRegionList(client *NcloudAPIClient) ([]*Region, error) {

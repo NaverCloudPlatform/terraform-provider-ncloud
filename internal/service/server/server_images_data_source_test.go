@@ -8,21 +8,10 @@ import (
 	. "github.com/terraform-providers/terraform-provider-ncloud/internal/acctest"
 )
 
-func TestAccDataSourceNcloudServerImages_classic_basic(t *testing.T) {
-	// Stop testing classic images
-	t.Skip()
-
-	testAccDataSourceNcloudServerImagesBasic(t, false)
-}
-
 func TestAccDataSourceNcloudServerImages_vpc_basic(t *testing.T) {
-	testAccDataSourceNcloudServerImagesBasic(t, false)
-}
-
-func testAccDataSourceNcloudServerImagesBasic(t *testing.T, isVpc bool) {
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: GetTestProviderFactories(isVpc),
+		ProtoV6ProviderFactories: ProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccDataSourceNcloudServerImagesConfig,
@@ -34,21 +23,10 @@ func testAccDataSourceNcloudServerImagesBasic(t *testing.T, isVpc bool) {
 	})
 }
 
-func TestAccDataSourceNcloudServerImages_classic_linux(t *testing.T) {
-	// Stop testing classic images
-	t.Skip()
-
-	testAccDataSourceNcloudServerImagesLinux(t, false)
-}
-
 func TestAccDataSourceNcloudServerImages_vpc_linux(t *testing.T) {
-	testAccDataSourceNcloudServerImagesLinux(t, false)
-}
-
-func testAccDataSourceNcloudServerImagesLinux(t *testing.T, isVpc bool) {
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: GetTestProviderFactories(isVpc),
+		ProtoV6ProviderFactories: ProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccDataSourceNcloudServerImagesLinuxConfig,
@@ -60,21 +38,10 @@ func testAccDataSourceNcloudServerImagesLinux(t *testing.T, isVpc bool) {
 	})
 }
 
-func TestAccDataSourceNcloudServerImages_classic_windows(t *testing.T) {
-	// Stop testing classic images
-	t.Skip()
-
-	testAccDataSourceNcloudServerImagesWindows(t, false)
-}
-
 func TestAccDataSourceNcloudServerImages_vpc_windows(t *testing.T) {
-	testAccDataSourceNcloudServerImagesWindows(t, false)
-}
-
-func testAccDataSourceNcloudServerImagesWindows(t *testing.T, isVpc bool) {
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: GetTestProviderFactories(isVpc),
+		ProtoV6ProviderFactories: ProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccDataSourceNcloudServerImagesWindowsConfig,
@@ -86,21 +53,10 @@ func testAccDataSourceNcloudServerImagesWindows(t *testing.T, isVpc bool) {
 	})
 }
 
-func TestAccDataSourceNcloudServerImages_classic_bareMetal(t *testing.T) {
-	// Stop testing classic images
-	t.Skip()
-
-	testAccDataSourceNcloudServerImagesBareMetal(t, false)
-}
-
 func TestAccDataSourceNcloudServerImages_vpc_bareMetal(t *testing.T) {
-	testAccDataSourceNcloudServerImagesBareMetal(t, false)
-}
-
-func testAccDataSourceNcloudServerImagesBareMetal(t *testing.T, isVpc bool) {
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: GetTestProviderFactories(isVpc),
+		ProtoV6ProviderFactories: ProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccDataSourceNcloudServerImagesBareMetalConfig,
@@ -112,21 +68,10 @@ func testAccDataSourceNcloudServerImagesBareMetal(t *testing.T, isVpc bool) {
 	})
 }
 
-func TestAccDataSourceNcloudServerImages_classic_blockStorageSize(t *testing.T) {
-	// Stop testing classic images
-	t.Skip()
-
-	testAccDataSourceNcloudServerImagesBlockStorageSize(t, false)
-}
-
 func TestAccDataSourceNcloudServerImages_vpc_blockStorageSize(t *testing.T) {
-	testAccDataSourceNcloudServerImagesBlockStorageSize(t, false)
-}
-
-func testAccDataSourceNcloudServerImagesBlockStorageSize(t *testing.T, isVpc bool) {
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: GetTestProviderFactories(isVpc),
+		ProtoV6ProviderFactories: ProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccDataSourceNcloudServerImagesBlockStorageSizeConfig,

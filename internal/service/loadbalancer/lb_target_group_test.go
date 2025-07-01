@@ -23,13 +23,13 @@ func TestAccResourceNcloudLbTargetGroup_basic(t *testing.T) {
 		PreCheck:                 func() { TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: ProtoV6ProviderFactories,
 		CheckDestroy: func(state *terraform.State) error {
-			return testAccCheckLbTargetGroupDestroy(state, GetTestProvider(true))
+			return testAccCheckLbTargetGroupDestroy(state, TestAccProvider)
 		},
 		Steps: []resource.TestStep{
 			{
 				Config: testAccResourceNcloudLbTargetGroupConfig(name),
 				Check: resource.ComposeAggregateTestCheckFunc(
-					testAccCheckLbTargetGroupExists(resourceName, &tg, GetTestProvider(true)),
+					testAccCheckLbTargetGroupExists(resourceName, &tg, TestAccProvider),
 					resource.TestCheckResourceAttr(resourceName, "port", "8080"),
 					resource.TestCheckResourceAttr(resourceName, "protocol", "HTTP"),
 					resource.TestCheckResourceAttr(resourceName, "target_type", "VSVR"),
@@ -59,13 +59,13 @@ func TestAccResourceNcloudLbTargetGroup_emptyTargetGroupName(t *testing.T) {
 		PreCheck:                 func() { TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: ProtoV6ProviderFactories,
 		CheckDestroy: func(state *terraform.State) error {
-			return testAccCheckLbTargetGroupDestroy(state, GetTestProvider(true))
+			return testAccCheckLbTargetGroupDestroy(state, TestAccProvider)
 		},
 		Steps: []resource.TestStep{
 			{
 				Config: testAccResourceNcloudLbTargetGroupEmptyTargetGroupNameConfig(),
 				Check: resource.ComposeAggregateTestCheckFunc(
-					testAccCheckLbTargetGroupExists(resourceName, &tg, GetTestProvider(true)),
+					testAccCheckLbTargetGroupExists(resourceName, &tg, TestAccProvider),
 					resource.TestCheckResourceAttr(resourceName, "port", "8080"),
 					resource.TestCheckResourceAttr(resourceName, "protocol", "HTTP"),
 					resource.TestCheckResourceAttr(resourceName, "target_type", "VSVR"),

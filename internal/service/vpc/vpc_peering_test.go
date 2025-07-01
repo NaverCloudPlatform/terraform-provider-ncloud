@@ -189,7 +189,7 @@ func testAccCheckVpcPeeringExists(n string, vpcPeering *vpc.VpcPeeringInstance) 
 			return fmt.Errorf("No VPC peering id is set: %s", n)
 		}
 
-		config := acctest.GetTestProvider(true).Meta().(*conn.ProviderConfig)
+		config := acctest.TestAccProvider.Meta().(*conn.ProviderConfig)
 		instance, err := vpcservice.GetVpcPeeringInstance(context.Background(), config, rs.Primary.ID)
 		if err != nil {
 			return err
@@ -202,7 +202,7 @@ func testAccCheckVpcPeeringExists(n string, vpcPeering *vpc.VpcPeeringInstance) 
 }
 
 func testAccCheckVpcPeeringDestroy(s *terraform.State) error {
-	config := acctest.GetTestProvider(true).Meta().(*conn.ProviderConfig)
+	config := acctest.TestAccProvider.Meta().(*conn.ProviderConfig)
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "ncloud_vpc_peering" {
@@ -225,7 +225,7 @@ func testAccCheckVpcPeeringDestroy(s *terraform.State) error {
 
 func testAccCheckVpcPeeringDisappears(instance *vpc.VpcPeeringInstance) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
-		config := acctest.GetTestProvider(true).Meta().(*conn.ProviderConfig)
+		config := acctest.TestAccProvider.Meta().(*conn.ProviderConfig)
 
 		reqParams := &vpc.DeleteVpcPeeringInstanceRequest{
 			RegionCode:           &config.RegionCode,

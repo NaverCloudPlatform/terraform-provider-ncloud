@@ -8,18 +8,10 @@ import (
 	. "github.com/terraform-providers/terraform-provider-ncloud/internal/acctest"
 )
 
-func TestAccDataSourceNcloudRegions_classic_basic(t *testing.T) {
-	testAccDataSourceNcloudRegionsBasic(t, false)
-}
-
 func TestAccDataSourceNcloudRegions_vpc_basic(t *testing.T) {
-	testAccDataSourceNcloudRegionsBasic(t, true)
-}
-
-func testAccDataSourceNcloudRegionsBasic(t *testing.T, isVpc bool) {
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: GetTestProviderFactories(isVpc),
+		ProtoV6ProviderFactories: ProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccDataSourceNcloudRegionsConfig,

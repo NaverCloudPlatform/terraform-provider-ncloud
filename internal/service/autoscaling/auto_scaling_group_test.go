@@ -21,13 +21,13 @@ func TestAccResourceNcloudAutoScalingGroup_vpc_basic(t *testing.T) {
 		PreCheck:                 func() { TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: ProtoV6ProviderFactories,
 		CheckDestroy: func(state *terraform.State) error {
-			return testAccCheckAutoScalingGroupDestroy(state, GetTestProvider(true))
+			return testAccCheckAutoScalingGroupDestroy(state, TestAccProvider)
 		},
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAutoScalingGroupVpcConfig(),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckAutoScalingGroupExists(resourceName, &autoScalingGroup, GetTestProvider(true)),
+					testAccCheckAutoScalingGroupExists(resourceName, &autoScalingGroup, TestAccProvider),
 					resource.TestCheckResourceAttr(resourceName, "default_cooldown", "300"),
 					resource.TestCheckResourceAttr(resourceName, "health_check_grace_period", "300"),
 				),
@@ -53,14 +53,14 @@ func TestAccResourceNcloudAutoScalingGroup_vpc_zero_value(t *testing.T) {
 		PreCheck:                 func() { TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: ProtoV6ProviderFactories,
 		CheckDestroy: func(state *terraform.State) error {
-			return testAccCheckAutoScalingGroupDestroy(state, GetTestProvider(true))
+			return testAccCheckAutoScalingGroupDestroy(state, TestAccProvider)
 		},
 		Steps: []resource.TestStep{
 			{
 				//default
 				Config: testAccAutoScalingGroupVpcConfig(),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckAutoScalingGroupExists(resourceName, &autoScalingGroup, GetTestProvider(true)),
+					testAccCheckAutoScalingGroupExists(resourceName, &autoScalingGroup, TestAccProvider),
 					resource.TestCheckResourceAttr(resourceName, "default_cooldown", "300"),
 					resource.TestCheckResourceAttr(resourceName, "health_check_grace_period", "300"),
 				),
@@ -69,7 +69,7 @@ func TestAccResourceNcloudAutoScalingGroup_vpc_zero_value(t *testing.T) {
 				//zero-value
 				Config: testAccAutoScalingGroupVpcConfigWhenSetZero(),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckAutoScalingGroupExists(resourceName, &autoScalingGroup, GetTestProvider(true)),
+					testAccCheckAutoScalingGroupExists(resourceName, &autoScalingGroup, TestAccProvider),
 					resource.TestCheckResourceAttr(resourceName, "default_cooldown", "0"),
 					resource.TestCheckResourceAttr(resourceName, "health_check_grace_period", "0"),
 				),
@@ -85,14 +85,14 @@ func TestAccResourceNcloudAutoScalingGroup_vpc_disappears(t *testing.T) {
 		PreCheck:                 func() { TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: ProtoV6ProviderFactories,
 		CheckDestroy: func(state *terraform.State) error {
-			return testAccCheckAutoScalingGroupDestroy(state, GetTestProvider(true))
+			return testAccCheckAutoScalingGroupDestroy(state, TestAccProvider)
 		},
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAutoScalingGroupVpcConfig(),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckAutoScalingGroupExists(resourceName, &autoScalingGroup, GetTestProvider(true)),
-					TestAccCheckResourceDisappears(GetTestProvider(true), autoscaling.ResourceNcloudAutoScalingGroup(), resourceName),
+					testAccCheckAutoScalingGroupExists(resourceName, &autoScalingGroup, TestAccProvider),
+					TestAccCheckResourceDisappears(TestAccProvider, autoscaling.ResourceNcloudAutoScalingGroup(), resourceName),
 				),
 				ExpectNonEmptyPlan: true,
 			},

@@ -52,7 +52,7 @@ resource "ncloud_sourcedeploy_project" "test-project" {
 
 func testAccCheckSourceDeployProjectExists(n string, project *vsourcedeploy.GetIdNameResponse) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
-		config := GetTestProvider(true).Meta().(*conn.ProviderConfig)
+		config := TestAccProvider.Meta().(*conn.ProviderConfig)
 		rs, ok := s.RootModule().Resources[n]
 		if !ok {
 			return fmt.Errorf("Not found: %s", n)
@@ -71,7 +71,7 @@ func testAccCheckSourceDeployProjectExists(n string, project *vsourcedeploy.GetI
 }
 
 func testAccCheckSourceDeployProjectDestroy(s *terraform.State) error {
-	config := GetTestProvider(true).Meta().(*conn.ProviderConfig)
+	config := TestAccProvider.Meta().(*conn.ProviderConfig)
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "ncloud_sourcedeploy_project" {

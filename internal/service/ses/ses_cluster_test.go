@@ -110,7 +110,7 @@ func testAccCheckSESClusterExists(n string, cluster *vses2.OpenApiGetClusterInfo
 			return fmt.Errorf("No cluster service_group_instance_no is set")
 		}
 
-		config := GetTestProvider(true).Meta().(*conn.ProviderConfig)
+		config := TestAccProvider.Meta().(*conn.ProviderConfig)
 		resp, err := ses.GetSESCluster(context.Background(), config, rs.Primary.ID)
 		if err != nil {
 			return err
@@ -123,7 +123,7 @@ func testAccCheckSESClusterExists(n string, cluster *vses2.OpenApiGetClusterInfo
 }
 
 func testAccCheckSESClusterDestroy(s *terraform.State) error {
-	config := GetTestProvider(true).Meta().(*conn.ProviderConfig)
+	config := TestAccProvider.Meta().(*conn.ProviderConfig)
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "ncloud_ses_cluster" {

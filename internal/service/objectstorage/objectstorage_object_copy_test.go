@@ -37,7 +37,7 @@ func TestAccResourceNcloudObjectStorage_object_copy_basic(t *testing.T) {
 			{
 				Config: testAccObjectCopyConfig(bucketName, key, source),
 				Check: resource.ComposeAggregateTestCheckFunc(
-					testAccCheckObjectCopyExists(resourceName, GetTestProvider(true)),
+					testAccCheckObjectCopyExists(resourceName, TestAccProvider),
 					resource.TestMatchResourceAttr(resourceName, "id", regexp.MustCompile(`^[a-z0-9-_.-]+(\/[a-z0-9-_.-]+)+$`)),
 					resource.TestCheckResourceAttr(resourceName, "bucket", bucketName+"-to"),
 					resource.TestCheckResourceAttr(resourceName, "key", key),
@@ -75,7 +75,7 @@ func TestAccResourceNcloudObjectStorage_object_copy_update_source(t *testing.T) 
 			{
 				Config: testAccObjectCopySourcePreUpdateConfig(bucketName, preObjectkey, source, postObjectKey),
 				Check: resource.ComposeAggregateTestCheckFunc(
-					testAccCheckObjectCopyExists(resourceName, GetTestProvider(true)),
+					testAccCheckObjectCopyExists(resourceName, TestAccProvider),
 					resource.TestMatchResourceAttr(resourceName, "id", regexp.MustCompile(`^[a-z0-9-_.-]+(\/[a-z0-9-_.-]+)+$`)),
 					resource.TestCheckResourceAttr(resourceName, "bucket", bucketName+"-to"),
 					resource.TestCheckResourceAttr(resourceName, "key", preObjectkey),
@@ -85,7 +85,7 @@ func TestAccResourceNcloudObjectStorage_object_copy_update_source(t *testing.T) 
 			{
 				Config: testAccObjectCopySourcePostUpdateConfig(bucketName, preObjectkey, source, postObjectKey),
 				Check: resource.ComposeAggregateTestCheckFunc(
-					testAccCheckObjectCopyExists(resourceName, GetTestProvider(true)),
+					testAccCheckObjectCopyExists(resourceName, TestAccProvider),
 					resource.TestMatchResourceAttr(resourceName, "id", regexp.MustCompile(`^[a-z0-9-_.-]+(\/[a-z0-9-_.-]+)+$`)),
 					resource.TestCheckResourceAttr(resourceName, "bucket", bucketName+"-to"),
 					resource.TestCheckResourceAttr(resourceName, "key", postObjectKey),
@@ -122,7 +122,7 @@ func TestAccResourceNcloudObjectStorage_object_copy_update_content_type(t *testi
 			{
 				Config: testAccObjectCopyConfig(bucketName, key, source),
 				Check: resource.ComposeAggregateTestCheckFunc(
-					testAccCheckObjectExists(resourceName, GetTestProvider(true)),
+					testAccCheckObjectExists(resourceName, TestAccProvider),
 					resource.TestMatchResourceAttr(resourceName, "id", regexp.MustCompile(`^[a-z0-9-_.-]+(\/[a-z0-9-_.-]+)+$`)),
 					resource.TestCheckResourceAttr(resourceName, "bucket", bucketName+"-to"),
 					resource.TestCheckResourceAttr(resourceName, "key", key),
@@ -131,7 +131,7 @@ func TestAccResourceNcloudObjectStorage_object_copy_update_content_type(t *testi
 			{
 				Config: testAccObjectCopyContentTypeConfig(bucketName, key, source, newContentType),
 				Check: resource.ComposeAggregateTestCheckFunc(
-					testAccCheckObjectExists(resourceName, GetTestProvider(true)),
+					testAccCheckObjectExists(resourceName, TestAccProvider),
 					resource.TestMatchResourceAttr(resourceName, "id", regexp.MustCompile(`^[a-z0-9-_.-]+(\/[a-z0-9-_.-]+)+$`)),
 					resource.TestCheckResourceAttr(resourceName, "bucket", bucketName+"-to"),
 					resource.TestCheckResourceAttr(resourceName, "key", key),
@@ -177,7 +177,7 @@ func testAccCheckObjectCopyExists(n string, provider *schema.Provider) resource.
 }
 
 func testAccCheckObjectCopyDestroy(s *terraform.State) error {
-	config := GetTestProvider(true).Meta().(*conn.ProviderConfig)
+	config := TestAccProvider.Meta().(*conn.ProviderConfig)
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "ncloud_objectstorage_object_copy" {

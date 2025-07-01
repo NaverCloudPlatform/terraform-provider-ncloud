@@ -8,26 +8,10 @@ import (
 	. "github.com/terraform-providers/terraform-provider-ncloud/internal/acctest"
 )
 
-func TestAccDataSourceNcloudAccessControlGroups_classic_basic(t *testing.T) {
-	testAccDataSourceNcloudAccessControlGroupsBasic(t, false)
-}
-
 func TestAccDataSourceNcloudAccessControlGroups_vpc_basic(t *testing.T) {
-	testAccDataSourceNcloudAccessControlGroupsBasic(t, true)
-}
-
-func TestAccDataSourceNcloudAccessControlGroups_classic_default(t *testing.T) {
-	testAccDataSourceNcloudAccessControlGroupsDefault(t, false)
-}
-
-func TestAccDataSourceNcloudAccessControlGroups_vpc_default(t *testing.T) {
-	testAccDataSourceNcloudAccessControlGroupsDefault(t, true)
-}
-
-func testAccDataSourceNcloudAccessControlGroupsBasic(t *testing.T, isVpc bool) {
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: GetTestProviderFactories(isVpc),
+		ProtoV6ProviderFactories: ProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccDataSourceNcloudAccessControlGroupsConfig,
@@ -39,10 +23,10 @@ func testAccDataSourceNcloudAccessControlGroupsBasic(t *testing.T, isVpc bool) {
 	})
 }
 
-func testAccDataSourceNcloudAccessControlGroupsDefault(t *testing.T, isVpc bool) {
+func TestAccDataSourceNcloudAccessControlGroups_vpc_default(t *testing.T) {
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: GetTestProviderFactories(isVpc),
+		ProtoV6ProviderFactories: ProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccDataSourceNcloudAccessControlGroupsDefaultConfig,

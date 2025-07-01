@@ -32,7 +32,7 @@ func TestAccResourceNcloudMysqlRecovery_vpc_basic(t *testing.T) {
 			{
 				Config: testAccMysqlRecoveryConfig(testName, testDate),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckMysqlRecoveryExists(resourceName, &mysqlServerInstance, GetTestProvider(true)),
+					testAccCheckMysqlRecoveryExists(resourceName, &mysqlServerInstance, TestAccProvider),
 					resource.TestCheckResourceAttrSet(resourceName, "mysql_instance_no"),
 				),
 			},
@@ -107,7 +107,7 @@ func testAccCheckMysqlRecoveryExists(n string, recovery *vmysql.CloudMysqlServer
 }
 
 func testAccCheckMysqlRecoveryDestroy(s *terraform.State) error {
-	config := GetTestProvider(true).Meta().(*conn.ProviderConfig)
+	config := TestAccProvider.Meta().(*conn.ProviderConfig)
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "ncloud_mysql_recovery" {

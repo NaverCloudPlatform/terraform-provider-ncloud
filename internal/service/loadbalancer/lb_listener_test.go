@@ -22,13 +22,13 @@ func TestAccResourceNcloudLbListener_vpc_basic(t *testing.T) {
 		PreCheck:                 func() { TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: ProtoV6ProviderFactories,
 		CheckDestroy: func(state *terraform.State) error {
-			return testAccCheckLbListenerDestroy(state, GetTestProvider(true))
+			return testAccCheckLbListenerDestroy(state, TestAccProvider)
 		},
 		Steps: []resource.TestStep{
 			{
 				Config: testAccResourceNcloudLbListenerConfig(lbName),
 				Check: resource.ComposeAggregateTestCheckFunc(
-					testAccCheckLbListenerExists(resourceName, &listener, GetTestProvider(true)),
+					testAccCheckLbListenerExists(resourceName, &listener, TestAccProvider),
 					resource.TestCheckResourceAttr(resourceName, "port", "8080"),
 					resource.TestCheckResourceAttr(resourceName, "protocol", "HTTP"),
 					resource.TestCheckResourceAttr(resourceName, "rule_no_list.#", "1"),

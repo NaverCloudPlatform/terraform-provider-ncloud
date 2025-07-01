@@ -95,7 +95,7 @@ resource "ncloud_mysql_users" "mysql_users" {
 }
 
 func testAccCheckMysqlUsersDestroy(s *terraform.State) error {
-	config := GetTestProvider(true).Meta().(*conn.ProviderConfig)
+	config := TestAccProvider.Meta().(*conn.ProviderConfig)
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "ncloud_mysql_users" {

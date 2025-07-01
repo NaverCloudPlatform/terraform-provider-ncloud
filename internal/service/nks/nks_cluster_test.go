@@ -4,15 +4,16 @@ import (
 	"bytes"
 	"context"
 	"fmt"
+	"os"
+	"regexp"
+	"strings"
+	"testing"
+
 	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/ncloud"
 	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/services/vpc"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 	"github.com/terraform-providers/terraform-provider-ncloud/internal/conn"
 	"github.com/terraform-providers/terraform-provider-ncloud/internal/service/nks"
-	"os"
-	"regexp"
-	"strings"
-	"testing"
 
 	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/services/vnks"
 
@@ -416,7 +417,7 @@ func testAccCheckNKSClusterExists(n string, cluster *vnks.Cluster) resource.Test
 			return fmt.Errorf("No cluster uuid is set")
 		}
 
-		config := GetTestProvider(true).Meta().(*conn.ProviderConfig)
+		config := TestAccProvider.Meta().(*conn.ProviderConfig)
 		resp, err := nks.GetNKSCluster(context.Background(), config, rs.Primary.ID)
 		if err != nil {
 			return err

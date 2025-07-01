@@ -31,7 +31,7 @@ func TestAccResourceNcloudRedis_vpc_basic(t *testing.T) {
 			{
 				Config: testAccResourceRedisConfig(testRedisName),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckRedisExistsWithProvider(resourceName, &redisInstance, GetTestProvider(true)),
+					testAccCheckRedisExistsWithProvider(resourceName, &redisInstance, TestAccProvider),
 					resource.TestMatchResourceAttr(resourceName, "id", regexp.MustCompile(`^\d+$`)),
 					resource.TestCheckResourceAttr(resourceName, "service_name", testRedisName),
 					resource.TestCheckResourceAttr(resourceName, "server_name_prefix", "ex-svr"),
@@ -74,7 +74,7 @@ func testAccCheckRedisExistsWithProvider(n string, redis *vredis.CloudRedisInsta
 }
 
 func testAccCheckRedisDestroy(s *terraform.State) error {
-	config := GetTestProvider(true).Meta().(*conn.ProviderConfig)
+	config := TestAccProvider.Meta().(*conn.ProviderConfig)
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "ncloud_redis" {

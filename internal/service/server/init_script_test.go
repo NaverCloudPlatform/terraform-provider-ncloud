@@ -84,7 +84,7 @@ func testAccCheckInitScriptExists(n string, InitScript *vserver.InitScript) reso
 			return fmt.Errorf("no Init script id is set")
 		}
 
-		config := acctest.GetTestProvider(true).Meta().(*conn.ProviderConfig)
+		config := acctest.TestAccProvider.Meta().(*conn.ProviderConfig)
 		instance, err := server.GetInitScript(context.Background(), config, rs.Primary.ID)
 		if err != nil {
 			return err
@@ -97,7 +97,7 @@ func testAccCheckInitScriptExists(n string, InitScript *vserver.InitScript) reso
 }
 
 func testAccCheckInitScriptDestroy(s *terraform.State) error {
-	config := acctest.GetTestProvider(true).Meta().(*conn.ProviderConfig)
+	config := acctest.TestAccProvider.Meta().(*conn.ProviderConfig)
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "ncloud_init_script" {
@@ -120,7 +120,7 @@ func testAccCheckInitScriptDestroy(s *terraform.State) error {
 
 func testAccCheckInitScriptDisappears(instance *vserver.InitScript) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
-		config := acctest.GetTestProvider(true).Meta().(*conn.ProviderConfig)
+		config := acctest.TestAccProvider.Meta().(*conn.ProviderConfig)
 		return server.DeleteInitScript(context.Background(), config, *instance.InitScriptNo)
 	}
 }

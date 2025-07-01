@@ -26,13 +26,13 @@ func TestAccResourceNcloudAutoScalingSchedule_vpc_basic(t *testing.T) {
 		PreCheck:                 func() { TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: ProtoV6ProviderFactories,
 		CheckDestroy: func(state *terraform.State) error {
-			return testAccCheckNcloudAutoScalingScheduleDestroy(state, GetTestProvider(true))
+			return testAccCheckNcloudAutoScalingScheduleDestroy(state, TestAccProvider)
 		},
 		Steps: []resource.TestStep{
 			{
 				Config: testAccNcloudAutoScalingScheduleVpcConfig(name, start, end),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckNcloudAutoScalingScheduleExists(resourceName, &schedule, GetTestProvider(true)),
+					testAccCheckNcloudAutoScalingScheduleExists(resourceName, &schedule, TestAccProvider),
 				),
 			},
 		},
@@ -49,14 +49,14 @@ func TestAccResourceNcloudAutoScalingSchedule_vpc_disappears(t *testing.T) {
 		PreCheck:                 func() { TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: ProtoV6ProviderFactories,
 		CheckDestroy: func(state *terraform.State) error {
-			return testAccCheckNcloudAutoScalingScheduleDestroy(state, GetTestProvider(true))
+			return testAccCheckNcloudAutoScalingScheduleDestroy(state, TestAccProvider)
 		},
 		Steps: []resource.TestStep{
 			{
 				Config: testAccNcloudAutoScalingScheduleVpcConfig(name, start, end),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckNcloudAutoScalingScheduleExists(resourceName, &schedule, GetTestProvider(true)),
-					TestAccCheckResourceDisappears(GetTestProvider(true), autoscaling.ResourceNcloudAutoScalingSchedule(), resourceName),
+					testAccCheckNcloudAutoScalingScheduleExists(resourceName, &schedule, TestAccProvider),
+					TestAccCheckResourceDisappears(TestAccProvider, autoscaling.ResourceNcloudAutoScalingSchedule(), resourceName),
 				),
 				ExpectNonEmptyPlan: true,
 			},

@@ -197,7 +197,7 @@ func testAccCheckRouteTableExists(n string, routeTable *vpc.RouteTable) resource
 			return fmt.Errorf("No Route Table id is set: %s", n)
 		}
 
-		config := GetTestProvider(true).Meta().(*conn.ProviderConfig)
+		config := TestAccProvider.Meta().(*conn.ProviderConfig)
 		instance, err := vpcservice.GetRouteTableInstance(config, rs.Primary.ID)
 		if err != nil {
 			return err
@@ -210,7 +210,7 @@ func testAccCheckRouteTableExists(n string, routeTable *vpc.RouteTable) resource
 }
 
 func testAccCheckRouteTableDestroy(s *terraform.State) error {
-	config := GetTestProvider(true).Meta().(*conn.ProviderConfig)
+	config := TestAccProvider.Meta().(*conn.ProviderConfig)
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "ncloud_route_table" {
@@ -233,7 +233,7 @@ func testAccCheckRouteTableDestroy(s *terraform.State) error {
 
 func testAccCheckRouteTableDisappears(instance *vpc.RouteTable) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
-		config := GetTestProvider(true).Meta().(*conn.ProviderConfig)
+		config := TestAccProvider.Meta().(*conn.ProviderConfig)
 
 		reqParams := &vpc.DeleteRouteTableRequest{
 			RegionCode:   &config.RegionCode,

@@ -26,13 +26,13 @@ func TestAccResourceNcloudSourcePipelineProject_vpc_basic(t *testing.T) {
 		PreCheck:                 func() { TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: ProtoV6ProviderFactories,
 		CheckDestroy: func(state *terraform.State) error {
-			return testAccCheckSourcePipelineProjectDestroy(state, GetTestProvider(true))
+			return testAccCheckSourcePipelineProjectDestroy(state, TestAccProvider)
 		},
 		Steps: []resource.TestStep{
 			{
 				Config: testAccResourceNcloudSourcePipelineProjectVpcConfig(name),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckSourcePipelineProjectExists(resourceName, &project, GetTestProvider(true)),
+					testAccCheckSourcePipelineProjectExists(resourceName, &project, TestAccProvider),
 					resource.TestCheckResourceAttr(resourceName, "name", name),
 				),
 			},
@@ -54,21 +54,21 @@ func TestAccResourceNcloudSourcePipelineProject_vpc_updateTaskName(t *testing.T)
 		PreCheck:                 func() { TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: ProtoV6ProviderFactories,
 		CheckDestroy: func(state *terraform.State) error {
-			return testAccCheckSourcePipelineProjectDestroy(state, GetTestProvider(true))
+			return testAccCheckSourcePipelineProjectDestroy(state, TestAccProvider)
 		},
 		Steps: []resource.TestStep{
 			{
 				Config: testAccResourceNcloudSourcePipelineProjectVpcConfig(name),
 
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckSourcePipelineProjectExists(resourceName, &project, GetTestProvider(true)),
+					testAccCheckSourcePipelineProjectExists(resourceName, &project, TestAccProvider),
 				),
 			},
 			{
 				Config: testAccResourceNcloudSourcePipelineProjectVpcConfigUpdateTaskName(name, "updated_task_name"),
 
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckSourcePipelineProjectExists(resourceName, &project, GetTestProvider(true)),
+					testAccCheckSourcePipelineProjectExists(resourceName, &project, TestAccProvider),
 					resource.TestCheckResourceAttr(resourceName, "name", name),
 					resource.TestCheckResourceAttr(resourceName, "task.0.name", "updated_task_name"),
 				),
@@ -91,21 +91,21 @@ func TestAccResourceNcloudSourcePipelineProject_vpc_updateDescription(t *testing
 		PreCheck:                 func() { TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: ProtoV6ProviderFactories,
 		CheckDestroy: func(state *terraform.State) error {
-			return testAccCheckSourcePipelineProjectDestroy(state, GetTestProvider(true))
+			return testAccCheckSourcePipelineProjectDestroy(state, TestAccProvider)
 		},
 		Steps: []resource.TestStep{
 			{
 				Config: testAccResourceNcloudSourcePipelineProjectVpcConfig(name),
 
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckSourcePipelineProjectExists(resourceName, &project, GetTestProvider(true)),
+					testAccCheckSourcePipelineProjectExists(resourceName, &project, TestAccProvider),
 				),
 			},
 			{
 				Config: testAccResourceNcloudSourcePipelineProjectVpcConfigUpdateDescription(name, "updatedDescription"),
 
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckSourcePipelineProjectExists(resourceName, &project, GetTestProvider(true)),
+					testAccCheckSourcePipelineProjectExists(resourceName, &project, TestAccProvider),
 					resource.TestCheckResourceAttr(resourceName, "name", name),
 					resource.TestCheckResourceAttr(resourceName, "description", "updatedDescription"),
 				),

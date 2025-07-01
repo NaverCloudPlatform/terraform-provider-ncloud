@@ -32,7 +32,7 @@ func TestAccResourceNcloudPostgresql_vpc_basic(t *testing.T) {
 			{
 				Config: testAccPostgresqlConfig(testPostgresqlName),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckPostgresqlExistsWithProvider(resourceName, &postgresqlInstance, GetTestProvider(true)),
+					testAccCheckPostgresqlExistsWithProvider(resourceName, &postgresqlInstance, TestAccProvider),
 					resource.TestMatchResourceAttr(resourceName, "id", regexp.MustCompile(`^\d+$`)),
 					resource.TestCheckResourceAttr(resourceName, "service_name", testPostgresqlName),
 					resource.TestCheckResourceAttr(resourceName, "ha", "true"),
@@ -58,7 +58,7 @@ func TestAccResourceNcloudPostgresql_vpc_multizone(t *testing.T) {
 			{
 				Config: testAccPostgresqlVpcConfigMultiZone(testPostgresqlName, true, true, true),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckPostgresqlExistsWithProvider(resourceName, &postgresqlInstance, GetTestProvider(true)),
+					testAccCheckPostgresqlExistsWithProvider(resourceName, &postgresqlInstance, TestAccProvider),
 					resource.TestMatchResourceAttr(resourceName, "id", regexp.MustCompile(`^\d+$`)),
 					resource.TestCheckResourceAttr(resourceName, "ha", "true"),
 					resource.TestCheckResourceAttr(resourceName, "multi_zone", "true"),
@@ -121,7 +121,7 @@ func testAccCheckPostgresqlExistsWithProvider(n string, postgresql *vpostgresql.
 }
 
 func testAccCheckPostgresqlDestroy(s *terraform.State) error {
-	config := GetTestProvider(true).Meta().(*conn.ProviderConfig)
+	config := TestAccProvider.Meta().(*conn.ProviderConfig)
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "ncloud_postgresql" {

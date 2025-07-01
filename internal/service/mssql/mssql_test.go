@@ -26,13 +26,13 @@ func TestAccResourceNcloudMssql_vpc_basic(t *testing.T) {
 		PreCheck:                 func() { TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: ProtoV6ProviderFactories,
 		CheckDestroy: func(state *terraform.State) error {
-			return testAccCheckCloudMssqlDestroy(state, GetTestProvider(true))
+			return testAccCheckCloudMssqlDestroy(state, TestAccProvider)
 		},
 		Steps: []resource.TestStep{
 			{
 				Config: testAccCloudMssqlVpcConfig(testMssqlName),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckCloudMssqlExists(resourceName, &mssqlInstance, GetTestProvider(true)),
+					testAccCheckCloudMssqlExists(resourceName, &mssqlInstance, TestAccProvider),
 					resource.TestCheckResourceAttr(resourceName, "service_name", testMssqlName),
 					resource.TestCheckResourceAttr(resourceName, "is_ha", "true"),
 					resource.TestCheckResourceAttr(resourceName, "backup_file_retention_period", "1"),

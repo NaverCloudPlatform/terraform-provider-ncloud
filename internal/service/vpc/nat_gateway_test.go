@@ -241,7 +241,7 @@ func testAccCheckNatGatewayExists(n string, natGateway *vpc.NatGatewayInstance) 
 			return fmt.Errorf("No NAT Gateway id is set")
 		}
 
-		config := GetTestProvider(true).Meta().(*conn.ProviderConfig)
+		config := TestAccProvider.Meta().(*conn.ProviderConfig)
 		instance, err := vpcservice.GetNatGatewayInstance(context.Background(), config, rs.Primary.ID)
 		if err != nil {
 			return err
@@ -254,7 +254,7 @@ func testAccCheckNatGatewayExists(n string, natGateway *vpc.NatGatewayInstance) 
 }
 
 func testAccCheckNatGatewayDestroy(s *terraform.State) error {
-	config := GetTestProvider(true).Meta().(*conn.ProviderConfig)
+	config := TestAccProvider.Meta().(*conn.ProviderConfig)
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "ncloud_nat_gateway" {
@@ -277,7 +277,7 @@ func testAccCheckNatGatewayDestroy(s *terraform.State) error {
 
 func testAccCheckNatGatewayDisappears(instance *vpc.NatGatewayInstance) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
-		config := GetTestProvider(true).Meta().(*conn.ProviderConfig)
+		config := TestAccProvider.Meta().(*conn.ProviderConfig)
 
 		reqParams := &vpc.DeleteNatGatewayInstanceRequest{
 			RegionCode:           &config.RegionCode,

@@ -477,7 +477,7 @@ resource "ncloud_sourcedeploy_project_stage_scenario" "test-scenario-obj-normal"
 
 func testAccCheckSourceDeployScenarioExists(n string, scenario *vsourcedeploy.GetScenarioDetailResponse) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
-		config := GetTestProvider(true).Meta().(*conn.ProviderConfig)
+		config := TestAccProvider.Meta().(*conn.ProviderConfig)
 		rs, ok := s.RootModule().Resources[n]
 		if !ok {
 			return fmt.Errorf("Not found: %s", n)
@@ -513,7 +513,7 @@ func testAccNcloudSourceDeployScenarioImportStateIDFunc(resourceName string) res
 }
 
 func testAccCheckSourceDeployScenarioDestroy(s *terraform.State) error {
-	config := GetTestProvider(true).Meta().(*conn.ProviderConfig)
+	config := TestAccProvider.Meta().(*conn.ProviderConfig)
 
 	for _, rs := range s.RootModule().Resources {
 		log.Printf(rs.Type)

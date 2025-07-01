@@ -38,7 +38,7 @@ func TestAccResourceNcloudPostgresqlDatabases_vpc_basic(t *testing.T) {
 			{
 				Config: testAccPostgresqlDatabasesRemoveConfig(testName),
 				Check: resource.ComposeTestCheckFunc(
-					testAccPostgresqlDatabasesNotExist(dbResourceName, []string{"testdb1", "testdb2"}, GetTestProvider(true)),
+					testAccPostgresqlDatabasesNotExist(dbResourceName, []string{"testdb1", "testdb2"}, TestAccProvider),
 				),
 			},
 		},

@@ -194,7 +194,7 @@ resource "ncloud_sourcebuild_project" "test-project" {
 
 func testAccCheckSourcebuildProjectExists(n string, project *sourcebuild.GetProjectDetailResponse) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
-		config := GetTestProvider(true).Meta().(*conn.ProviderConfig)
+		config := TestAccProvider.Meta().(*conn.ProviderConfig)
 		rs, ok := s.RootModule().Resources[n]
 		if !ok {
 			return fmt.Errorf("Not found: %s", n)
@@ -216,7 +216,7 @@ func testAccCheckSourcebuildProjectExists(n string, project *sourcebuild.GetProj
 }
 
 func testAccCheckSourcebuildProjectDestroy(s *terraform.State) error {
-	config := GetTestProvider(true).Meta().(*conn.ProviderConfig)
+	config := TestAccProvider.Meta().(*conn.ProviderConfig)
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "ncloud_sourcebuild_project" {

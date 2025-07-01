@@ -37,7 +37,7 @@ func TestAccResourceNcloudObjectStorage_object_basic(t *testing.T) {
 			{
 				Config: testAccObjectConfig(bucketName, key, source),
 				Check: resource.ComposeAggregateTestCheckFunc(
-					testAccCheckObjectExists(resourceName, GetTestProvider(true)),
+					testAccCheckObjectExists(resourceName, TestAccProvider),
 					resource.TestMatchResourceAttr(resourceName, "id", regexp.MustCompile(`^[a-z0-9-_.-]+(\/[a-z0-9-_.-]+)+$`)),
 					resource.TestCheckResourceAttr(resourceName, "bucket", bucketName),
 					resource.TestCheckResourceAttr(resourceName, "key", key),
@@ -79,7 +79,7 @@ func TestAccResourceNcloudObjectStorage_object_update_source(t *testing.T) {
 			{
 				Config: testAccObjectConfig(bucketName, key, source),
 				Check: resource.ComposeAggregateTestCheckFunc(
-					testAccCheckObjectExists(resourceName, GetTestProvider(true)),
+					testAccCheckObjectExists(resourceName, TestAccProvider),
 					resource.TestMatchResourceAttr(resourceName, "id", regexp.MustCompile(`^[a-z0-9-_.-]+(\/[a-z0-9-_.-]+)+$`)),
 					resource.TestCheckResourceAttr(resourceName, "bucket", bucketName),
 					resource.TestCheckResourceAttr(resourceName, "key", key),
@@ -89,7 +89,7 @@ func TestAccResourceNcloudObjectStorage_object_update_source(t *testing.T) {
 			{
 				Config: testAccObjectConfig(bucketName, key, newSource),
 				Check: resource.ComposeAggregateTestCheckFunc(
-					testAccCheckObjectExists(resourceName, GetTestProvider(true)),
+					testAccCheckObjectExists(resourceName, TestAccProvider),
 					resource.TestMatchResourceAttr(resourceName, "id", regexp.MustCompile(`^[a-z0-9-_.-]+(\/[a-z0-9-_.-]+)+$`)),
 					resource.TestCheckResourceAttr(resourceName, "bucket", bucketName),
 					resource.TestCheckResourceAttr(resourceName, "key", key),
@@ -126,7 +126,7 @@ func TestAccResourceNcloudObjectStorage_object_update_content_type(t *testing.T)
 			{
 				Config: testAccObjectConfig(bucketName, key, source),
 				Check: resource.ComposeAggregateTestCheckFunc(
-					testAccCheckObjectExists(resourceName, GetTestProvider(true)),
+					testAccCheckObjectExists(resourceName, TestAccProvider),
 					resource.TestMatchResourceAttr(resourceName, "id", regexp.MustCompile(`^[a-z0-9-_.-]+(\/[a-z0-9-_.-]+)+$`)),
 					resource.TestCheckResourceAttr(resourceName, "bucket", bucketName),
 					resource.TestCheckResourceAttr(resourceName, "key", key),
@@ -136,7 +136,7 @@ func TestAccResourceNcloudObjectStorage_object_update_content_type(t *testing.T)
 			{
 				Config: testAccObjectContentType(bucketName, key, source, newContentType),
 				Check: resource.ComposeAggregateTestCheckFunc(
-					testAccCheckObjectExists(resourceName, GetTestProvider(true)),
+					testAccCheckObjectExists(resourceName, TestAccProvider),
 					resource.TestMatchResourceAttr(resourceName, "id", regexp.MustCompile(`^[a-z0-9-_.-]+(\/[a-z0-9-_.-]+)+$`)),
 					resource.TestCheckResourceAttr(resourceName, "bucket", bucketName),
 					resource.TestCheckResourceAttr(resourceName, "key", key),
@@ -183,7 +183,7 @@ func testAccCheckObjectExists(n string, provider *schema.Provider) resource.Test
 }
 
 func testAccCheckObjectDestroy(s *terraform.State) error {
-	config := GetTestProvider(true).Meta().(*conn.ProviderConfig)
+	config := TestAccProvider.Meta().(*conn.ProviderConfig)
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "ncloud_objectstorage_object" {

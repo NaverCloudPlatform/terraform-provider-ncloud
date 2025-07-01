@@ -14,31 +14,22 @@ import (
 	"github.com/terraform-providers/terraform-provider-ncloud/internal/service/nasvolume"
 )
 
-func TestAccResourceNcloudNasVolume_classic_basic(t *testing.T) {
-	testAccResourceNcloudNasVolumeBasic(t, false)
-}
-
 func TestAccResourceNcloudNasVolume_vpc_basic(t *testing.T) {
-	testAccResourceNcloudNasVolumeBasic(t, true)
-}
-
-func testAccResourceNcloudNasVolumeBasic(t *testing.T, isVpc bool) {
 	var volumeInstance nasvolume.NasVolume
 	postfix := GetTestPrefix()
 	resourceName := "ncloud_nas_volume.test"
-	provider := GetTestProvider(isVpc)
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: GetTestProviderFactories(isVpc),
+		ProtoV6ProviderFactories: ProtoV6ProviderFactories,
 		CheckDestroy: func(state *terraform.State) error {
-			return testAccCheckNasVolumeDestroy(state, provider)
+			return testAccCheckNasVolumeDestroy(state, TestAccProvider)
 		},
 		Steps: []resource.TestStep{
 			{
 				Config: testAccNasVolumeConfig(postfix),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckNasVolumeExists(resourceName, &volumeInstance, provider),
+					testAccCheckNasVolumeExists(resourceName, &volumeInstance, TestAccProvider),
 					resource.TestCheckResourceAttr(resourceName, "volume_name_postfix", postfix),
 					resource.TestMatchResourceAttr(resourceName, "name", regexp.MustCompile(fmt.Sprintf(`^n\d+_%s$`, postfix))),
 					resource.TestCheckResourceAttr(resourceName, "volume_size", "500"),
@@ -59,82 +50,34 @@ func testAccResourceNcloudNasVolumeBasic(t *testing.T, isVpc bool) {
 	})
 }
 
-func TestAccResourceNcloudNasVolume_classic_resize(t *testing.T) {
-	testAccResourceNcloudNasVolumeResize(t, false)
-}
-
 func TestAccResourceNcloudNasVolume_vpc_resize(t *testing.T) {
-	testAccResourceNcloudNasVolumeResize(t, true)
-}
-
-func testAccResourceNcloudNasVolumeResize(t *testing.T, isVpc bool) {
 	var before nasvolume.NasVolume
 	var after nasvolume.NasVolume
 	postfix := GetTestPrefix()
 	resourceName := "ncloud_nas_volume.test"
-	provider := GetTestProvider(isVpc)
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: GetTestProviderFactories(isVpc),
+		ProtoV6ProviderFactories: ProtoV6ProviderFactories,
 		CheckDestroy: func(state *terraform.State) error {
-			return testAccCheckNasVolumeDestroy(state, provider)
+			return testAccCheckNasVolumeDestroy(state, TestAccProvider)
 		},
 		Steps: []resource.TestStep{
 			{
 				Config: testAccNasVolumeConfig(postfix),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckNasVolumeExists(resourceName, &before, provider),
+					testAccCheckNasVolumeExists(resourceName, &before, TestAccProvider),
 				),
 			},
 			{
 				Config: testAccNasVolumeResizeConfig(postfix),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckNasVolumeExists(resourceName, &after, provider),
+					testAccCheckNasVolumeExists(resourceName, &after, TestAccProvider),
 					testAccCheckNasVolumeNotRecreated(t, &before, &after),
 				),
 			},
 			{
 				ResourceName:            "ncloud_nas_volume.test",
-				ImportState:             true,
-				ImportStateVerify:       true,
-				ImportStateVerifyIgnore: []string{"volume_name_postfix"},
-			},
-		},
-	})
-}
-
-func TestAccResourceNcloudNasVolume_classic_changeAccessControl(t *testing.T) {
-	// Images are all deprecated in Classic
-	t.Skip()
-
-	var before nasvolume.NasVolume
-	var after nasvolume.NasVolume
-	postfix := GetTestPrefix()
-	resourceName := "ncloud_nas_volume.test"
-
-	resource.Test(t, resource.TestCase{
-		PreCheck:                 func() { TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: ClassicProtoV6ProviderFactories,
-		CheckDestroy: func(state *terraform.State) error {
-			return testAccCheckNasVolumeDestroy(state, GetTestProvider(false))
-		},
-		Steps: []resource.TestStep{
-			{
-				Config: testAccNasVolumeConfig(postfix),
-				Check: resource.ComposeTestCheckFunc(
-					testAccCheckNasVolumeExists(resourceName, &before, GetTestProvider(false)),
-				),
-			},
-			{
-				Config: testAccNasVolumeChangeAccessControlClassic(postfix),
-				Check: resource.ComposeTestCheckFunc(
-					testAccCheckNasVolumeExists(resourceName, &after, GetTestProvider(false)),
-					testAccCheckNasVolumeNotRecreated(t, &before, &after),
-				),
-			},
-			{
-				ResourceName:            resourceName,
 				ImportState:             true,
 				ImportStateVerify:       true,
 				ImportStateVerifyIgnore: []string{"volume_name_postfix"},
@@ -153,19 +96,19 @@ func TestAccResourceNcloudNasVolume_vpc_changeAccessControl(t *testing.T) {
 		PreCheck:                 func() { TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: ProtoV6ProviderFactories,
 		CheckDestroy: func(state *terraform.State) error {
-			return testAccCheckNasVolumeDestroy(state, GetTestProvider(true))
+			return testAccCheckNasVolumeDestroy(state, TestAccProvider)
 		},
 		Steps: []resource.TestStep{
 			{
 				Config: testAccNasVolumeConfig(postfix),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckNasVolumeExists(resourceName, &before, GetTestProvider(true)),
+					testAccCheckNasVolumeExists(resourceName, &before, TestAccProvider),
 				),
 			},
 			{
 				Config: testAccNasVolumeChangeAccessControlVpc(postfix),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckNasVolumeExists(resourceName, &after, GetTestProvider(true)),
+					testAccCheckNasVolumeExists(resourceName, &after, TestAccProvider),
 					testAccCheckNasVolumeNotRecreated(t, &before, &after),
 				),
 			},
@@ -252,34 +195,6 @@ resource "ncloud_nas_volume" "test" {
 	volume_name_postfix = "%s"
 	volume_size = "600"
 	volume_allotment_protocol_type = "NFS"
-}`, volumeNamePostfix)
-}
-
-func testAccNasVolumeChangeAccessControlClassic(volumeNamePostfix string) string {
-	return fmt.Sprintf(`
-resource "ncloud_login_key" "loginkey" {
-	key_name = "%[1]s-key"
-}
-
-resource "ncloud_server" "server-foo" {
-	name = "%[1]s-foo"
-	server_image_product_code = "SPSW0LINUX000046"
-	server_product_code = "SPSVRSTAND000004"
-	login_key_name = "${ncloud_login_key.loginkey.key_name}"
-}
-resource "ncloud_server" "server-bar" {
-	name = "%[1]s-bar"
-	server_image_product_code = "SPSW0LINUX000046"
-	server_product_code = "SPSVRSTAND000004"
-	login_key_name = "${ncloud_login_key.loginkey.key_name}"
-}
-
-resource "ncloud_nas_volume" "test" {
-	volume_name_postfix = "%[1]s"
-	volume_size = "600"
-	volume_allotment_protocol_type = "NFS"
-	custom_ip_list = [ncloud_server.server-bar.private_ip]
-	server_instance_no_list = [ncloud_server.server-foo.id]
 }`, volumeNamePostfix)
 }
 
