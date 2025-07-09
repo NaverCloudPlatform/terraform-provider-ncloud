@@ -252,7 +252,7 @@ func (m *mongodbResource) Schema(_ context.Context, _ resource.SchemaRequest, re
 					stringplanmodifier.RequiresReplace(),
 				},
 				Validators: []validator.String{
-					stringvalidator.OneOf([]string{"SSD", "HDD", "CB1"}...),
+					stringvalidator.OneOf([]string{"SSD", "HDD", "CB1", "CB2"}...),
 				},
 			},
 			"member_port": schema.Int64Attribute{
