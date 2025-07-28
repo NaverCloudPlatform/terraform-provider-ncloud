@@ -1,10 +1,24 @@
 package nks
 
 import (
+	"strings"
+
 	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/ncloud"
 	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/services/vnks"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	. "github.com/terraform-providers/terraform-provider-ncloud/internal/common"
 )
+
+// Helper function to convert []*string to []interface{}
+func stringSliceToInterfaceSlice(strs []*string) []interface{} {
+	result := make([]interface{}, len(strs))
+	for i, str := range strs {
+		if str != nil {
+			result[i] = *str
+		}
+	}
+	return result
+}
 
 func flattenInt32ListToStringList(list []*int32) []*string {
 	res := make([]*string, 0)
@@ -256,6 +270,41 @@ func expandNKSNodePoolAutoScale(as []interface{}) *vnks.AutoscalerUpdate {
 	}
 }
 
+func flattenFabricClusterPool(fabricCluster *vnks.FabricClusterPool) map[string]interface{} {
+	if fabricCluster == nil {
+		return nil
+	}
+	return map[string]interface{}{
+		"pool_name": ncloud.StringValue(fabricCluster.PoolName),
+		"pool_no":   ncloud.Int32Value(fabricCluster.PoolNo),
+	}
+}
+
+func expandNKSNodePoolFabricCluster(fabricCluster []interface{}) *vnks.FabricClusterPool {
+	if len(fabricCluster) == 0 {
+		return nil
+	}
+	fc := fabricCluster[0].(map[string]interface{})
+	return &vnks.FabricClusterPool{
+		PoolName: ncloud.String(fc["pool_name"].(string)),
+		PoolNo:   ncloud.Int32(int32(fc["pool_no"].(int))),
+	}
+}
+
+func flattenNKSFabricClusterList(fabricClusterList []*vnks.FabricClusterPool) []map[string]interface{} {
+	res := make([]map[string]interface{}, 0)
+	if fabricClusterList == nil {
+		return res
+	}
+
+	for _, fabricCluster := range fabricClusterList {
+		if m := flattenFabricClusterPool(fabricCluster); m != nil {
+			res = append(res, m)
+		}
+	}
+	return res
+}
+
 func flattenNKSWorkerNodes(wns []*vnks.WorkerNode) []map[string]interface{} {
 	res := make([]map[string]interface{}, 0)
 	if wns == nil {
@@ -273,6 +322,106 @@ func flattenNKSWorkerNodes(wns []*vnks.WorkerNode) []map[string]interface{} {
 			"kernel_version":    ncloud.StringValue(wn.KernelVersion),
 		}
 		res = append(res, m)
+	}
+
+	return res
+}
+
+func flattenNKSClusterAccessEntries(accessEntries []*vnks.AccessEntryRes) *schema.Set {
+	accessEntryList := schema.NewSet(schema.HashResource(ResourceNcloudNKSCluster().Schema["access_entries"].Elem.(*schema.Resource)), []interface{}{})
+
+	for _, entry := range accessEntries {
+		m := map[string]interface{}{
+			"entry": ncloud.StringValue(entry.Entry),
+		}
+
+		if entry.Groups != nil {
+			m["groups"] = stringSliceToInterfaceSlice(entry.Groups)
+		}
+
+		if entry.Policies != nil {
+			policies := make([]interface{}, len(entry.Policies))
+			for i, policy := range entry.Policies {
+				policyMap := map[string]interface{}{
+					"type":  ncloud.StringValue(policy.Type_),
+					"scope": ncloud.StringValue(policy.Scope),
+				}
+				if policy.Namespaces != nil {
+					policyMap["namespaces"] = stringSliceToInterfaceSlice(policy.Namespaces)
+				}
+				policies[i] = policyMap
+			}
+			m["policies"] = policies
+		}
+
+		accessEntryList.Add(m)
+	}
+
+	return accessEntryList
+}
+
+func expandNKSClusterAccessEntries(accessEntries interface{}) []*vnks.CreateAccessEntryDto {
+	if accessEntries == nil {
+		return []*vnks.CreateAccessEntryDto{}
+	}
+
+	set := accessEntries.(*schema.Set)
+	res := make([]*vnks.CreateAccessEntryDto, 0)
+	for _, raw := range set.List() {
+		entry := raw.(map[string]interface{})
+
+		entryValue := entry["entry"].(string)
+
+		// Derive type from entry value
+		var entryType string
+		if strings.Contains(entryValue, ":SubAccount/") {
+			entryType = "USER"
+		} else if strings.Contains(entryValue, ":Role/") {
+			entryType = "ROLE"
+		} else {
+			// Fallback to original logic
+			if strings.Contains(strings.ToLower(entryValue), "user") {
+				entryType = "USER"
+			} else {
+				entryType = "ROLE"
+			}
+		}
+
+		dto := &vnks.CreateAccessEntryDto{
+			Type_: ncloud.String(entryType),
+			Entry: ncloud.String(entryValue),
+		}
+
+		if groups, ok := entry["groups"].([]interface{}); ok && len(groups) > 0 {
+			dto.Groups = ExpandStringInterfaceList(groups)
+		}
+
+		if policies, ok := entry["policies"].([]interface{}); ok && len(policies) > 0 {
+			dto.Policies = expandNKSAccessEntryPolicies(policies)
+		}
+
+		res = append(res, dto)
+	}
+
+	return res
+}
+
+func expandNKSAccessEntryPolicies(policies []interface{}) []*vnks.CreateAccessEntryPolicyDto {
+	res := make([]*vnks.CreateAccessEntryPolicyDto, 0)
+
+	for _, raw := range policies {
+		policy := raw.(map[string]interface{})
+
+		dto := &vnks.CreateAccessEntryPolicyDto{
+			Type_: ncloud.String(policy["type"].(string)),
+			Scope: ncloud.String(policy["scope"].(string)),
+		}
+
+		if namespaces, ok := policy["namespaces"].([]interface{}); ok && len(namespaces) > 0 {
+			dto.Namespaces = ExpandStringInterfaceList(namespaces)
+		}
+
+		res = append(res, dto)
 	}
 
 	return res

@@ -3,7 +3,7 @@ module github.com/terraform-providers/terraform-provider-ncloud
 go 1.23.0
 
 require (
-	github.com/NaverCloudPlatform/ncloud-sdk-go-v2 v1.6.23
+	github.com/NaverCloudPlatform/ncloud-sdk-go-v2 v1.6.24
 	github.com/aws/aws-sdk-go-v2/config v1.27.27
 	github.com/aws/aws-sdk-go-v2/credentials v1.17.27
 	github.com/aws/aws-sdk-go-v2/service/s3 v1.58.3

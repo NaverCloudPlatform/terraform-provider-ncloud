@@ -63,6 +63,26 @@ func DataSourceNcloudNKSServerProducts() *schema.Resource {
 							Type:     schema.TypeString,
 							Computed: true,
 						},
+						"fabric_cluster_list": {
+							Type:     schema.TypeList,
+							Computed: true,
+							Elem: &schema.Resource{
+								Schema: map[string]*schema.Schema{
+									"pool_name": {
+										Type:     schema.TypeString,
+										Computed: true,
+									},
+									"pool_no": {
+										Type:     schema.TypeInt,
+										Computed: true,
+									},
+								},
+							},
+						},
+						"is_fabric_cluster_type": {
+							Type:     schema.TypeBool,
+							Computed: true,
+						},
 						"detail": {
 							Type:       schema.TypeList,
 							MaxItems:   1,
@@ -170,17 +190,20 @@ func getNKSServerProducts(config *conn.ProviderConfig, d *schema.ResourceData) (
 	resources := []map[string]interface{}{}
 
 	for _, r := range *resp {
+		fabricClusterList := flattenNKSFabricClusterList(r.Detail.FabricClusterPoolList)
 		instance := map[string]interface{}{
-			"label":                ncloud.StringValue(r.Label),
-			"value":                ncloud.StringValue(r.Value),
-			"product_type":         ncloud.StringValue(r.Detail.ProductType2Code),
-			"product_code":         ncloud.StringValue(r.Detail.ProductCode),
-			"product_korean_desc":  ncloud.StringValue(r.Detail.ProductKoreanDesc),
-			"product_english_desc": ncloud.StringValue(r.Detail.ProductEnglishDesc),
-			"cpu_count":            strconv.Itoa(int(ncloud.Int32Value(r.Detail.CpuCount))),
-			"memory_size":          strconv.Itoa(int(ncloud.Int32Value(r.Detail.MemorySizeGb))) + "GB",
-			"gpu_count":            strconv.Itoa(int(ncloud.Int32Value(r.Detail.GpuCount))),
-			"gpu_memory_size":      strconv.Itoa(int(ncloud.Int32Value(r.Detail.GpuMemorySizeGb))) + "GB",
+			"label":                  ncloud.StringValue(r.Label),
+			"value":                  ncloud.StringValue(r.Value),
+			"product_type":           ncloud.StringValue(r.Detail.ProductType2Code),
+			"product_code":           ncloud.StringValue(r.Detail.ProductCode),
+			"product_korean_desc":    ncloud.StringValue(r.Detail.ProductKoreanDesc),
+			"product_english_desc":   ncloud.StringValue(r.Detail.ProductEnglishDesc),
+			"cpu_count":              strconv.Itoa(int(ncloud.Int32Value(r.Detail.CpuCount))),
+			"memory_size":            strconv.Itoa(int(ncloud.Int32Value(r.Detail.MemorySizeGb))) + "GB",
+			"gpu_count":              strconv.Itoa(int(ncloud.Int32Value(r.Detail.GpuCount))),
+			"gpu_memory_size":        strconv.Itoa(int(ncloud.Int32Value(r.Detail.GpuMemorySizeGb))) + "GB",
+			"fabric_cluster_list":    fabricClusterList,
+			"is_fabric_cluster_type": ncloud.BoolValue(r.Detail.IsFabricClusterType),
 			"detail": []map[string]interface{}{
 				{
 					"product_type":         ncloud.StringValue(r.Detail.ProductType2Code),

@@ -116,7 +116,6 @@ resource "ncloud_nks_node_pool" "node_pool" {
     max = 2
   }
 }
-```
 
 ## Argument Reference
 
@@ -144,6 +143,9 @@ The following arguments are supported:
   * `key` - (Required) Taint key.
   * `value` - (Required) Taint value.
   * `effect` - (Required) Taint effect.
+* `fabric_cluster` - (Optional) Fabric cluster configuration. Only available in environments that support fabric cluster.
+  * `pool_name` - (Required) Name of the fabric cluster pool.
+  * `pool_no` - (Required) Number of the fabric cluster pool.
 ## Attributes Reference
 
 In addition to all arguments above, the following attributes are exported:

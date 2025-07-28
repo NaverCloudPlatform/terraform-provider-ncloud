@@ -137,6 +137,29 @@ func ResourceNcloudNKSNodePool() *schema.Resource {
 				Optional: true,
 				ForceNew: true,
 			},
+			"fabric_cluster": {
+				Type:        schema.TypeList,
+				Optional:    true,
+				ForceNew:    true,
+				MaxItems:    1,
+				Description: "Fabric cluster pool configuration",
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"pool_name": {
+							Type:        schema.TypeString,
+							Required:    true,
+							ForceNew:    true,
+							Description: "Name of the fabric cluster pool",
+						},
+						"pool_no": {
+							Type:        schema.TypeInt,
+							Required:    true,
+							ForceNew:    true,
+							Description: "Number of the fabric cluster pool",
+						},
+					},
+				},
+			},
 			"autoscale": {
 				Type:     schema.TypeList,
 				Optional: true,
@@ -258,6 +281,10 @@ func resourceNcloudNKSNodePoolCreate(ctx context.Context, d *schema.ResourceData
 		ServerRoleId:   StringPtrOrNil(d.GetOk("server_role_id")),
 	}
 
+	if fabricCluster, ok := d.GetOk("fabric_cluster"); ok {
+		reqParams.FabricCluster = expandNKSNodePoolFabricCluster(fabricCluster.([]interface{}))
+	}
+
 	if list, ok := d.GetOk("subnet_no_list"); ok {
 		reqParams.SubnetNoList = ExpandStringInterfaceListToInt32List(list.([]interface{}))
 	}
@@ -366,6 +393,16 @@ func resourceNcloudNKSNodePoolRead(ctx context.Context, d *schema.ResourceData, 
 	d.Set("server_spec_code", nodePool.ServerSpecCode)
 	d.Set("storage_size", nodePool.StorageSize)
 	d.Set("server_role_id", nodePool.ServerRoleId)
+
+	var fabricCluster []map[string]interface{}
+	if nodePool.FabricCluster != nil {
+		if m := flattenFabricClusterPool(nodePool.FabricCluster); m != nil {
+			fabricCluster = append(fabricCluster, m)
+		}
+	}
+	if err := d.Set("fabric_cluster", fabricCluster); err != nil {
+		log.Printf("[WARN] Error setting fabric_cluster set for (%s): %s", d.Id(), err)
+	}
 
 	if err := d.Set("autoscale", flattenNKSNodePoolAutoScale(nodePool.Autoscale)); err != nil {
 		log.Printf("[WARN] Error setting Autoscale set for (%s): %s", d.Id(), err)

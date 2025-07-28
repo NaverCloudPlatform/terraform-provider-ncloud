@@ -17,7 +17,7 @@ func TestAccDataSourceNcloudNKSCluster(t *testing.T) {
 	dataName := "data.ncloud_nks_cluster.cluster"
 	resourceName := "ncloud_nks_cluster.cluster"
 	name := GetTestClusterName()
-	nksInfo, err := getNKSTestInfo("XEN")
+	nksInfo, err := getNKSTestInfo("KVM")
 	if err != nil {
 		t.Error(err)
 	}
@@ -30,22 +30,22 @@ func TestAccDataSourceNcloudNKSCluster(t *testing.T) {
 				Config: testAccDataSourceNKSClusterConfig(name, TF_TEST_NKS_LOGIN_KEY, true, nksInfo),
 				Check: resource.ComposeTestCheckFunc(
 					TestAccCheckDataSourceID(dataName),
-					resource.TestCheckResourceAttrPair(dataName, "id", resourceName, "id"),
-					resource.TestCheckResourceAttrPair(dataName, "uuid", resourceName, "uuid"),
 					resource.TestCheckResourceAttrPair(dataName, "name", resourceName, "name"),
 					resource.TestCheckResourceAttrPair(dataName, "cluster_type", resourceName, "cluster_type"),
-					resource.TestCheckResourceAttrPair(dataName, "endpoint", resourceName, "endpoint"),
-					resource.TestCheckResourceAttrPair(dataName, "login_key_name", resourceName, "login_key_name"),
 					resource.TestCheckResourceAttrPair(dataName, "k8s_version", resourceName, "k8s_version"),
+					resource.TestCheckResourceAttrPair(dataName, "login_key_name", resourceName, "login_key_name"),
 					resource.TestCheckResourceAttrPair(dataName, "zone", resourceName, "zone"),
 					resource.TestCheckResourceAttrPair(dataName, "vpc_no", resourceName, "vpc_no"),
+					resource.TestCheckResourceAttrPair(dataName, "subnet_no_list", resourceName, "subnet_no_list"),
+					resource.TestCheckResourceAttrPair(dataName, "public_network", resourceName, "public_network"),
 					resource.TestCheckResourceAttrPair(dataName, "lb_private_subnet_no", resourceName, "lb_private_subnet_no"),
 					resource.TestCheckResourceAttrPair(dataName, "lb_public_subnet_no", resourceName, "lb_public_subnet_no"),
-					resource.TestCheckResourceAttrPair(dataName, "kube_network_plugin", resourceName, "kube_network_plugin"),
-					resource.TestCheckResourceAttrPair(dataName, "public_network", resourceName, "public_network"),
-					resource.TestCheckResourceAttrPair(dataName, "subnet_no_list.#", resourceName, "subnet_no_list.#"),
-					resource.TestCheckResourceAttrPair(dataName, "subnet_no_list.0", resourceName, "subnet_no_list.0"),
-					resource.TestCheckResourceAttrPair(dataName, "acg_no", resourceName, "acg_no"),
+					resource.TestCheckResourceAttrPair(dataName, "log", resourceName, "log"),
+					resource.TestCheckResourceAttrPair(dataName, "oidc", resourceName, "oidc"),
+					resource.TestCheckResourceAttrPair(dataName, "uuid", resourceName, "uuid"),
+					resource.TestCheckResourceAttrPair(dataName, "endpoint", resourceName, "endpoint"),
+					resource.TestCheckResourceAttrPair(dataName, "auth_type", resourceName, "auth_type"),
+					resource.TestCheckResourceAttrPair(dataName, "access_entries", resourceName, "access_entries"),
 				),
 			},
 		},
