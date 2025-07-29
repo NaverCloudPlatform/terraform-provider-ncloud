@@ -453,7 +453,7 @@ data "ncloud_nks_server_products" "product"{
 resource "ncloud_nks_node_pool" "node_pool" {
   cluster_uuid   = ncloud_nks_cluster.cluster.uuid
   node_pool_name = "%[2]s"
-  node_count     = %[3]d
+
   k8s_version    = "%[4]s"
   subnet_no_list = [ %[5]s, %[6]s ]
   autoscale {
@@ -537,7 +537,6 @@ func testAccResourceNcloudNKSNodePoolUpdateAllCheck(resourceName string, name st
 	return resource.ComposeTestCheckFunc(
 		testAccCheckNKSNodePoolExists(resourceName, &nodePool),
 		resource.TestCheckResourceAttr(resourceName, "node_pool_name", name),
-		resource.TestCheckResourceAttr(resourceName, "node_count", "2"),
 		resource.TestCheckResourceAttr(resourceName, "autoscale.0.enabled", "true"),
 		resource.TestCheckResourceAttr(resourceName, "autoscale.0.min", "1"),
 		resource.TestCheckResourceAttr(resourceName, "autoscale.0.max", "2"),
