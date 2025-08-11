@@ -343,7 +343,7 @@ func flattenNKSClusterAccessEntries(accessEntries []*vnks.AccessEntryRes) *schem
 			policies := make([]interface{}, len(entry.Policies))
 			for i, policy := range entry.Policies {
 				policyMap := map[string]interface{}{
-					"type":  ncloud.StringValue(policy.Type_),
+					"type":  ncloud.StringValue(policy.Type),
 					"scope": ncloud.StringValue(policy.Scope),
 				}
 				if policy.Namespaces != nil {
@@ -388,7 +388,7 @@ func expandNKSClusterAccessEntries(accessEntries interface{}) []*vnks.CreateAcce
 		}
 
 		dto := &vnks.CreateAccessEntryDto{
-			Type_: ncloud.String(entryType),
+			Type:  ncloud.String(entryType),
 			Entry: ncloud.String(entryValue),
 		}
 
@@ -413,7 +413,7 @@ func expandNKSAccessEntryPolicies(policies []interface{}) []*vnks.CreateAccessEn
 		policy := raw.(map[string]interface{})
 
 		dto := &vnks.CreateAccessEntryPolicyDto{
-			Type_: ncloud.String(policy["type"].(string)),
+			Type:  ncloud.String(policy["type"].(string)),
 			Scope: ncloud.String(policy["scope"].(string)),
 		}
 
