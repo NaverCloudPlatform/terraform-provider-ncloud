@@ -116,6 +116,7 @@ resource "ncloud_nks_node_pool" "node_pool" {
     max = 2
   }
 }
+```
 
 ## Argument Reference
 
