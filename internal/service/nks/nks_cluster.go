@@ -243,10 +243,11 @@ func ResourceNcloudNKSCluster() *schema.Resource {
 				ForceNew: true,
 			},
 			"auth_type": {
-				Type:        schema.TypeString,
-				Optional:    true,
-				Computed:    true,
-				Description: "Authentication type for the cluster",
+				Type:             schema.TypeString,
+				Optional:         true,
+				Computed:         true,
+				Description:      "Authentication type for the cluster",
+				ValidateDiagFunc: validation.ToDiagFunc(validation.StringInSlice([]string{"CONFIG_MAP", "API"}, false)),
 			},
 			"access_entries": {
 				Type:        schema.TypeSet,
@@ -272,14 +273,16 @@ func ResourceNcloudNKSCluster() *schema.Resource {
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
 									"type": {
-										Type:        schema.TypeString,
-										Required:    true,
-										Description: "Type of policy",
+										Type:             schema.TypeString,
+										Required:         true,
+										Description:      "Type of policy",
+										ValidateDiagFunc: validation.ToDiagFunc(validation.StringInSlice([]string{"NKSClusterAdminPolicy", "NKSAdminPolicy", "NKSEditPolicy", "NKSViewPolicy"}, false)),
 									},
 									"scope": {
-										Type:        schema.TypeString,
-										Required:    true,
-										Description: "Scope of the policy",
+										Type:             schema.TypeString,
+										Required:         true,
+										Description:      "Scope of the policy",
+										ValidateDiagFunc: validation.ToDiagFunc(validation.StringInSlice([]string{"cluster", "namespace"}, false)),
 									},
 									"namespaces": {
 										Type:        schema.TypeList,
