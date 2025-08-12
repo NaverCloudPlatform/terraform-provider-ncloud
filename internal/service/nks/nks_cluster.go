@@ -48,6 +48,19 @@ func ResourceNcloudNKSCluster() *schema.Resource {
 				_, removed, _ := getSubnetDiff(old, new)
 				return len(removed) > 0
 			}),
+			customdiff.ValidateChange("auth_type", func(ctx context.Context, old, new, meta interface{}) error {
+				oldValue := old.(string)
+				newValue := new.(string)
+
+				// Allow change from CONFIG_MAP to API, but force new for other changes
+				if oldValue != "" && oldValue != newValue {
+					if oldValue == "CONFIG_MAP" && newValue == "API" {
+						return nil
+					}
+					return fmt.Errorf("auth_type can only be changed from 'CONFIG_MAP' to 'API'. Other changes require resource recreation")
+				}
+				return nil
+			}),
 			customdiff.ValidateValue("ip_acl_default_action", func(ctx context.Context, value, meta interface{}) error {
 				config := meta.(*conn.ProviderConfig)
 				if value != "" && checkFinSite(config) {
@@ -229,6 +242,62 @@ func ResourceNcloudNKSCluster() *schema.Resource {
 				Optional: true,
 				ForceNew: true,
 			},
+			"auth_type": {
+				Type:             schema.TypeString,
+				Optional:         true,
+				Computed:         true,
+				Description:      "Authentication type for the cluster",
+				ValidateDiagFunc: validation.ToDiagFunc(validation.StringInSlice([]string{"CONFIG_MAP", "API"}, false)),
+			},
+			"access_entries": {
+				Type:        schema.TypeSet,
+				Optional:    true,
+				Description: "AccessEntry configuration for the cluster. Only available when auth_type is 'API'",
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"entry": {
+							Type:        schema.TypeString,
+							Required:    true,
+							Description: "Access entry value",
+						},
+						"groups": {
+							Type:        schema.TypeList,
+							Optional:    true,
+							Description: "List of groups assigned to the access entry",
+							Elem:        &schema.Schema{Type: schema.TypeString},
+						},
+						"policies": {
+							Type:        schema.TypeList,
+							Optional:    true,
+							Description: "List of policies assigned to the access entry",
+							Elem: &schema.Resource{
+								Schema: map[string]*schema.Schema{
+									"type": {
+										Type:             schema.TypeString,
+										Required:         true,
+										Description:      "Type of policy",
+										ValidateDiagFunc: validation.ToDiagFunc(validation.StringInSlice([]string{"NKSClusterAdminPolicy", "NKSAdminPolicy", "NKSEditPolicy", "NKSViewPolicy"}, false)),
+									},
+									"scope": {
+										Type:             schema.TypeString,
+										Required:         true,
+										Description:      "Scope of the policy",
+										ValidateDiagFunc: validation.ToDiagFunc(validation.StringInSlice([]string{"Cluster", "Namespace"}, false)),
+									},
+									"namespaces": {
+										Type:        schema.TypeList,
+										Optional:    true,
+										Description: "List of namespaces when scope is 'namespace'",
+										Elem: &schema.Schema{
+											Type: schema.TypeString,
+										},
+									},
+								},
+							},
+						},
+					},
+				},
+			},
 		},
 	}
 }
@@ -236,20 +305,30 @@ func ResourceNcloudNKSCluster() *schema.Resource {
 func resourceNcloudNKSClusterCreate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	config := meta.(*conn.ProviderConfig)
 
+	// Validate access_entries can only be used when auth_type is API
+	authType := d.Get("auth_type").(string)
+	accessEntries := d.Get("access_entries").(*schema.Set)
+
+	if accessEntries.Len() > 0 && authType != "API" {
+		return diag.FromErr(fmt.Errorf("access_entries can only be specified when auth_type is 'API'"))
+	}
+
 	reqParams := &vnks.ClusterInputBody{
 		RegionCode: &config.RegionCode,
 		//Required
-		Name:              StringPtrOrNil(d.GetOk("name")),
-		ClusterType:       StringPtrOrNil(d.GetOk("cluster_type")),
-		HypervisorCode:    StringPtrOrNil(d.GetOk("hypervisor_code")),
-		LoginKeyName:      StringPtrOrNil(d.GetOk("login_key_name")),
-		K8sVersion:        StringPtrOrNil(d.GetOk("k8s_version")),
-		ZoneCode:          StringPtrOrNil(d.GetOk("zone")),
-		VpcNo:             GetInt32FromString(d.GetOk("vpc_no")),
-		SubnetLbNo:        GetInt32FromString(d.GetOk("lb_private_subnet_no")),
-		LbPublicSubnetNo:  GetInt32FromString(d.GetOk("lb_public_subnet_no")),
-		KubeNetworkPlugin: StringPtrOrNil(d.GetOk("kube_network_plugin")),
-		KmsKeyTag:         StringPtrOrNil(d.GetOk("kms_key_tag")),
+		Name:                 StringPtrOrNil(d.GetOk("name")),
+		ClusterType:          StringPtrOrNil(d.GetOk("cluster_type")),
+		HypervisorCode:       StringPtrOrNil(d.GetOk("hypervisor_code")),
+		LoginKeyName:         StringPtrOrNil(d.GetOk("login_key_name")),
+		K8sVersion:           StringPtrOrNil(d.GetOk("k8s_version")),
+		ZoneCode:             StringPtrOrNil(d.GetOk("zone")),
+		VpcNo:                GetInt32FromString(d.GetOk("vpc_no")),
+		SubnetLbNo:           GetInt32FromString(d.GetOk("lb_private_subnet_no")),
+		LbPublicSubnetNo:     GetInt32FromString(d.GetOk("lb_public_subnet_no")),
+		KubeNetworkPlugin:    StringPtrOrNil(d.GetOk("kube_network_plugin")),
+		KmsKeyTag:            StringPtrOrNil(d.GetOk("kms_key_tag")),
+		AuthType:             StringPtrOrNil(d.GetOk("auth_type")),
+		BootstrapAccessEntry: ncloud.Bool(false),
 	}
 
 	if publicNetwork, ok := d.GetOk("public_network"); ok {
@@ -328,6 +407,23 @@ func resourceNcloudNKSClusterCreate(ctx context.Context, d *schema.ResourceData,
 		}
 	}
 
+	// Create access entries if defined
+	if accessEntries, ok := d.GetOk("access_entries"); ok {
+		newAccessEntries := expandNKSClusterAccessEntries(accessEntries)
+
+		for _, entry := range newAccessEntries {
+			_, err = config.Client.Vnks.V2Api.ClustersUuidAccessEntriesPost(ctx, entry, resp.Uuid)
+			if err != nil {
+				LogErrorResponse("resourceNcloudNKSClusterCreate:accessEntry", err, entry)
+				return diag.FromErr(err)
+			}
+		}
+
+		if err := waitForNKSClusterActive(ctx, d, config, uuid); err != nil {
+			return diag.FromErr(err)
+		}
+	}
+
 	return resourceNcloudNKSClusterRead(ctx, d, meta)
 }
 
@@ -345,6 +441,11 @@ func resourceNcloudNKSClusterRead(ctx context.Context, d *schema.ResourceData, m
 	}
 
 	ipAcl, err := getIPAcl(ctx, config, d.Id())
+	if err != nil {
+		return diag.FromErr(err)
+	}
+
+	accessEntries, err := getAccessEntries(ctx, config, d.Id())
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -369,6 +470,7 @@ func resourceNcloudNKSClusterRead(ctx context.Context, d *schema.ResourceData, m
 	d.Set("acg_no", strconv.Itoa(int(ncloud.Int32Value(cluster.AcgNo))))
 	d.Set("return_protection", cluster.ReturnProtection)
 	d.Set("kms_key_tag", cluster.KmsKeyTag)
+	d.Set("auth_type", cluster.AuthType)
 
 	if cluster.LbPublicSubnetNo != nil {
 		d.Set("lb_public_subnet_no", strconv.Itoa(int(ncloud.Int32Value(cluster.LbPublicSubnetNo))))
@@ -399,6 +501,12 @@ func resourceNcloudNKSClusterRead(ctx context.Context, d *schema.ResourceData, m
 			log.Printf("[WARN] Error setting ip_acl list set for (%s): %s", d.Id(), err)
 		}
 
+	}
+
+	if accessEntries != nil {
+		if err := d.Set("access_entries", flattenNKSClusterAccessEntries(accessEntries).List()); err != nil {
+			log.Printf("[WARN] Error setting access_entries list set for (%s): %s", d.Id(), err)
+		}
 	}
 
 	return nil
@@ -456,6 +564,55 @@ func resourceNcloudNKSClusterUpdate(ctx context.Context, d *schema.ResourceData,
 		_, err = config.Client.Vnks.V2Api.ClustersUuidIpAclPatch(ctx, ipAclReq, cluster.Uuid)
 		if err != nil {
 			LogErrorResponse("resourceNcloudNKSClusterIPAclPatch", err, ipAclReq)
+			return diag.FromErr(err)
+		}
+	}
+
+	if d.HasChanges("access_entries") {
+		// Get current access entries
+		currentEntries, err := getAccessEntries(ctx, config, d.Id())
+		if err != nil {
+			return diag.FromErr(err)
+		}
+
+		// Get new access entries from configuration
+		newAccessEntries := expandNKSClusterAccessEntries(d.Get("access_entries").(*schema.Set))
+
+		// Create a map of current entries for comparison (using entry value as key)
+		currentEntriesMap := make(map[string]*vnks.AccessEntryRes)
+		for _, entry := range currentEntries {
+			currentEntriesMap[ncloud.StringValue(entry.Entry)] = entry
+		}
+
+		// Create a map of new entries
+		newEntriesMap := make(map[string]*vnks.CreateAccessEntryDto)
+		for _, entry := range newAccessEntries {
+			newEntriesMap[ncloud.StringValue(entry.Entry)] = entry
+		}
+
+		// Delete removed entries
+		for entryValue, currentEntry := range currentEntriesMap {
+			if _, exists := newEntriesMap[entryValue]; !exists {
+				_, err = config.Client.Vnks.V2Api.ClustersUuidAccessEntriesEntryUuidDelete(ctx, ncloud.String(d.Id()), currentEntry.Uuid)
+				if err != nil {
+					LogErrorResponse("resourceNcloudNKSClusterUpdate:deleteAccessEntry", err, currentEntry)
+					return diag.FromErr(err)
+				}
+			}
+		}
+
+		// Add new entries
+		for entryValue, newEntry := range newEntriesMap {
+			if _, exists := currentEntriesMap[entryValue]; !exists {
+				_, err = config.Client.Vnks.V2Api.ClustersUuidAccessEntriesPost(ctx, newEntry, ncloud.String(d.Id()))
+				if err != nil {
+					LogErrorResponse("resourceNcloudNKSClusterUpdate:createAccessEntry", err, newEntry)
+					return diag.FromErr(err)
+				}
+			}
+		}
+
+		if err := waitForNKSClusterActive(ctx, d, config, d.Id()); err != nil {
 			return diag.FromErr(err)
 		}
 	}
@@ -532,6 +689,31 @@ func resourceNcloudNKSClusterUpdate(ctx context.Context, d *schema.ResourceData,
 		_, err = config.Client.Vnks.V2Api.ClustersUuidReturnProtectionPatch(ctx, returnProtectionReq, cluster.Uuid)
 		if err != nil {
 			LogErrorResponse("resourceNcloudNKSClusterReturnProtectionPatch", err, returnProtectionReq)
+			return diag.FromErr(err)
+		}
+	}
+
+	if d.HasChanges("auth_type") {
+		// Validate access_entries compatibility with new auth_type
+		newAuthType := d.Get("auth_type").(string)
+		accessEntries := d.Get("access_entries").(*schema.Set)
+
+		if accessEntries.Len() > 0 && newAuthType != "API" {
+			return diag.FromErr(fmt.Errorf("access_entries can only be specified when auth_type is 'API'"))
+		}
+
+		authTypeReq := &vnks.UpdateAuthTypeDto{
+			AuthType: ncloud.String(newAuthType),
+		}
+
+		_, err = config.Client.Vnks.V2Api.ClustersUuidAuthTypePatch(ctx, authTypeReq, cluster.Uuid)
+		if err != nil {
+			LogErrorResponse("resourceNcloudNKSClusterAuthTypePatch", err, authTypeReq)
+			return diag.FromErr(err)
+		}
+
+		LogResponse("resourceNcloudNKSClusterAuthTypePatch", authTypeReq)
+		if err := waitForNKSClusterActive(ctx, d, config, *cluster.Uuid); err != nil {
 			return diag.FromErr(err)
 		}
 	}
@@ -637,6 +819,14 @@ func getIPAcl(ctx context.Context, config *conn.ProviderConfig, uuid string) (*v
 		return nil, err
 	}
 	return resp, nil
+}
+
+func getAccessEntries(ctx context.Context, config *conn.ProviderConfig, uuid string) ([]*vnks.AccessEntryRes, error) {
+	resp, err := config.Client.Vnks.V2Api.ClustersUuidAccessEntriesGet(ctx, ncloud.String(uuid))
+	if err != nil {
+		return nil, err
+	}
+	return resp.AccessEntries, nil
 }
 
 func getNKSClusterFromList(ctx context.Context, config *conn.ProviderConfig, uuid string) (*vnks.Cluster, error) {

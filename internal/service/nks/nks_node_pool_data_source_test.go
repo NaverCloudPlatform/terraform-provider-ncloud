@@ -16,7 +16,7 @@ func TestAccDataSourceNcloudNKSNodePool(t *testing.T) {
 	dataName := "data.ncloud_nks_node_pool.node_pool"
 	resourceName := "ncloud_nks_node_pool.node_pool"
 	clusterName := GetTestClusterName()
-	nksInfo, err := getNKSTestInfo("XEN")
+	nksInfo, err := getNKSTestInfo("KVM")
 	if err != nil {
 		t.Error(err)
 	}
@@ -46,6 +46,7 @@ func TestAccDataSourceNcloudNKSNodePool(t *testing.T) {
 					resource.TestCheckResourceAttrPair(dataName, "nodes.0.node_status", resourceName, "nodes.0.node_status"),
 					resource.TestCheckResourceAttrPair(dataName, "nodes.0.container_version", resourceName, "nodes.0.container_version"),
 					resource.TestCheckResourceAttrPair(dataName, "nodes.0.kernel_version", resourceName, "nodes.0.kernel_version"),
+					resource.TestCheckResourceAttrPair(dataName, "fabric_cluster", resourceName, "fabric_cluster"),
 				),
 			},
 		},
@@ -85,7 +86,7 @@ data "ncloud_nks_server_images" "image"{
   hypervisor_code = ncloud_nks_cluster.cluster.hypervisor_code
     filter {
     name = "label"
-    values = ["ubuntu-22.04"]
+    values = ["ubuntu-24.04"]
     regex = true
   }
 }
@@ -138,7 +139,7 @@ resource "ncloud_nks_node_pool" "node_pool" {
   }
 
   software_code = data.ncloud_nks_server_images.image.images.0.value
-`, nksInfo.Region, name, nodeCount, nksInfo.K8sVersion, *nksInfo.PrivateSubnetList[0].SubnetNo))
+`, nksInfo.Region, name, nodeCount, nksInfo.K8sVersion, *nksInfo.PrivateSubnetList[0].SubnetNo, nksInfo.UbuntuImageVersion))
 	if nksInfo.HypervisorCode == "KVM" {
 		b.WriteString(`
   server_spec_code = data.ncloud_nks_server_products.product.products.0.value

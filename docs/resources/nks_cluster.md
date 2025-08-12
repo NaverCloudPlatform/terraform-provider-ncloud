@@ -72,6 +72,18 @@ resource "ncloud_nks_cluster" "cluster" {
   public_network         = false
   zone                   = "KR-1"
   return_protection      = false
+  auth_type              = "API"
+  
+  access_entries {
+    type = "USER"
+    entry = "nrn:ncp:iam::123456789012:user/UUID"
+  
+    policies {
+      type = "NKSClusterAdminPolicy" 
+      scope = "Cluster"
+    }
+  }
+  
   log {
     audit = true
   }
@@ -116,6 +128,14 @@ The following arguments are supported:
   * `comment` - (Optional) Comment
 * `return_protection` - (Optional) Return Protection.
 * `kms_key_tag` - (Optional) KMS Key Tag for Cluster Secret Encryption.
+* `auth_type` - (Optional) Authentication type for cluster. Valid values are `API` or `CONFIG_MAP`. Changes from `CONFIG_MAP` to `API` are allowed, but other changes require resource recreation.
+* `access_entries` - (Optional) Access entries for cluster access management. Only available when `auth_type` is `API`.
+  * `entry` - (Required) NRN (Ncloud Resource Names) of the user or role.
+  * `groups` - (Optional) List of groups assigned to the access entry.
+  * `policies` - (Optional) List of policies for the access entry.
+    * `type` - (Required) Policy type. Valid values are `NKSClusterAdminPolicy`, `NKSAdminPolicy`, `NKSEditPolicy`, or `NKSViewPolicy`.
+    * `scope` - (Required) Policy scope. Valid values are `Cluster` or `Namespace`.
+    * `namespaces` - (Optional) List of namespaces when scope is `Namespace`.
 
 ## Attributes Reference
 

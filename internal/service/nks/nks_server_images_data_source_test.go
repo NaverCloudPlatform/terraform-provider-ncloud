@@ -1,6 +1,7 @@
 package nks_test
 
 import (
+	"regexp"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
@@ -36,7 +37,7 @@ func TestAccDataSourceNcloudNKSServerImagesFilter(t *testing.T) {
 				Config: testAccDataSourceNcloudNKSServerImagestWithFilterConfig(),
 				Check: resource.ComposeTestCheckFunc(
 					TestAccCheckDataSourceID(dataName),
-					resource.TestCheckResourceAttr(dataName, "images.0.value", "SW.VSVR.OS.LNX64.UBNTU.SVR2004.WRKND.B050"),
+					resource.TestMatchResourceAttr(dataName, "images.0.value", regexp.MustCompile("SW.VSVR.OS.LNX64.UBNTU.SVR24.WRKND.G003")),
 				),
 			},
 		},
@@ -50,9 +51,11 @@ data "ncloud_nks_server_images" "images" {}
 func testAccDataSourceNcloudNKSServerImagestWithFilterConfig() string {
 	return `
 data "ncloud_nks_server_images" "filter"{
+  hypervisor_code = "KVM"
   filter {
     name = "label"
-    values = ["ubuntu-22.04"]
+    values = ["ubuntu-24.04"]
+    regex = true
   }
 }
 `

@@ -23,21 +23,6 @@ func TestAccDataSourceNcloudVersions(t *testing.T) {
 	})
 }
 
-func TestAccDataSourceNcloudVersions_XEN(t *testing.T) {
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:                 func() { TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: ProtoV6ProviderFactories,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccDataSourceNcloudVersionConfig_XEN,
-				Check: resource.ComposeTestCheckFunc(
-					TestAccCheckDataSourceID("data.ncloud_nks_versions.versions"),
-				),
-			},
-		},
-	})
-}
-
 func TestAccDataSourceNcloudVersions_KVM(t *testing.T) {
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { TestAccPreCheck(t) },
@@ -55,12 +40,6 @@ func TestAccDataSourceNcloudVersions_KVM(t *testing.T) {
 
 var testAccDataSourceNcloudVersionConfig = `
 data "ncloud_nks_versions" "versions" {}
-`
-
-var testAccDataSourceNcloudVersionConfig_XEN = `
-data "ncloud_nks_versions" "versions" {
-hypervisor_code = "XEN"
-}
 `
 
 var testAccDataSourceNcloudVersionConfig_KVM = `

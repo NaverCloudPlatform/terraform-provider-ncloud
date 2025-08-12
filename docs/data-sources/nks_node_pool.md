@@ -64,3 +64,6 @@ In addition to all arguments above, the following attributes are exported:
   * `key` - Taint key.
   * `value` - Taint value.
   * `effect` - Taint effect.
+* `fabric_cluster` - Fabric cluster configuration.
+  * `pool_name` - Name of the fabric cluster pool.
+  * `pool_no` - Number of the fabric cluster pool.

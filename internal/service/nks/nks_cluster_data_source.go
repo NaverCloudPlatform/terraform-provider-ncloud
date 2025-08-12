@@ -163,6 +163,48 @@ func DataSourceNcloudNKSCluster() *schema.Resource {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
+			"auth_type": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+			"access_entries": {
+				Type:     schema.TypeSet,
+				Computed: true,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"entry": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+						"groups": {
+							Type:     schema.TypeList,
+							Computed: true,
+							Elem:     &schema.Schema{Type: schema.TypeString},
+						},
+						"policies": {
+							Type:     schema.TypeList,
+							Computed: true,
+							Elem: &schema.Resource{
+								Schema: map[string]*schema.Schema{
+									"type": {
+										Type:     schema.TypeString,
+										Computed: true,
+									},
+									"scope": {
+										Type:     schema.TypeString,
+										Computed: true,
+									},
+									"namespaces": {
+										Type:     schema.TypeList,
+										Computed: true,
+										Elem:     &schema.Schema{Type: schema.TypeString},
+									},
+								},
+							},
+						},
+					},
+				},
+			},
 		},
 	}
 }
@@ -182,6 +224,11 @@ func dataSourceNcloudNKSClusterRead(ctx context.Context, d *schema.ResourceData,
 	}
 
 	ipAcl, err := getIPAcl(ctx, config, uuid)
+	if err != nil {
+		return diag.FromErr(err)
+	}
+
+	accessEntries, err := getAccessEntries(ctx, config, uuid)
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -206,6 +253,7 @@ func dataSourceNcloudNKSClusterRead(ctx context.Context, d *schema.ResourceData,
 	d.Set("acg_no", strconv.Itoa(int(ncloud.Int32Value(cluster.AcgNo))))
 	d.Set("return_protection", cluster.ReturnProtection)
 	d.Set("kms_key_tag", cluster.KmsKeyTag)
+	d.Set("auth_type", cluster.AuthType)
 
 	if cluster.LbPublicSubnetNo != nil {
 		d.Set("lb_public_subnet_no", strconv.Itoa(int(ncloud.Int32Value(cluster.LbPublicSubnetNo))))
@@ -235,6 +283,12 @@ func dataSourceNcloudNKSClusterRead(ctx context.Context, d *schema.ResourceData,
 			log.Printf("[WARN] Error setting ip_acl list set for (%s): %s", d.Id(), err)
 		}
 
+	}
+
+	if accessEntries != nil {
+		if err := d.Set("access_entries", flattenNKSClusterAccessEntries(accessEntries).List()); err != nil {
+			log.Printf("[WARN] Error setting access_entries list set for (%s): %s", d.Id(), err)
+		}
 	}
 
 	return nil
