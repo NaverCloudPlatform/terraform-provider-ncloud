@@ -71,5 +71,5 @@ In addition to all arguments above, the following attributes are exported:
   * `groups` - List of groups assigned to the access entry.
   * `policies` - List of policies for the access entry.
     * `type` - Policy type. Valid values are `NKSClusterAdminPolicy`, `NKSAdminPolicy`, `NKSEditPolicy`, or `NKSViewPolicy`.
-    * `scope` - Policy scope. Valid values are `Cluster` or `Namespace`.
+    * `scope` - Policy scope. Valid values are `cluster` or `namespace`.
     * `namespaces` - List of namespaces.

@@ -282,7 +282,7 @@ func ResourceNcloudNKSCluster() *schema.Resource {
 										Type:             schema.TypeString,
 										Required:         true,
 										Description:      "Scope of the policy",
-										ValidateDiagFunc: validation.ToDiagFunc(validation.StringInSlice([]string{"Cluster", "Namespace"}, false)),
+										ValidateDiagFunc: validation.ToDiagFunc(validation.StringInSlice([]string{"cluster", "namespace"}, false)),
 									},
 									"namespaces": {
 										Type:        schema.TypeList,

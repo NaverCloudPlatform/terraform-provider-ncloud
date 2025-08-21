@@ -75,7 +75,7 @@ resource "ncloud_nks_cluster" "cluster" {
     
     policies {
       type = "NKSClusterAdminPolicy"
-      scope = "Cluster"
+      scope = "cluster"
     }
   }
 }
