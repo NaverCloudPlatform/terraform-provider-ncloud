@@ -489,7 +489,7 @@ func TestFlattenNKSClusterAccessEntries(t *testing.T) {
 			Policies: []*vnks.AccessEntryPolicyRes{
 				{
 					Type:  ncloud.String("NKSClusterAdminPolicy"),
-					Scope: ncloud.String("Cluster"),
+					Scope: ncloud.String("cluster"),
 				},
 			},
 		},
@@ -527,7 +527,7 @@ func TestFlattenNKSClusterAccessEntries(t *testing.T) {
 		t.Fatalf("expected policy type to be 'NKSClusterAdminPolicy', but was %v", policy["type"])
 	}
 
-	if policy["scope"].(string) != "Cluster" {
+	if policy["scope"].(string) != "cluster" {
 		t.Fatalf("expected policy scope to be 'cluster', but was %v", policy["scope"])
 	}
 }
@@ -541,7 +541,7 @@ func TestExpandNKSClusterAccessEntries(t *testing.T) {
 		"policies": []interface{}{
 			map[string]interface{}{
 				"type":  "NKSClusterAdminPolicy",
-				"scope": "Cluster",
+				"scope": "cluster",
 			},
 		},
 	}
@@ -578,7 +578,7 @@ func TestExpandNKSClusterAccessEntries(t *testing.T) {
 		t.Fatalf("expected policy type to be 'NKSClusterAdminPolicy', but was %v", ncloud.StringValue(entry.Policies[0].Type))
 	}
 
-	if ncloud.StringValue(entry.Policies[0].Scope) != "Cluster" {
+	if ncloud.StringValue(entry.Policies[0].Scope) != "cluster" {
 		t.Fatalf("expected policy scope to be 'cluster', but was %v", ncloud.StringValue(entry.Policies[0].Scope))
 	}
 }

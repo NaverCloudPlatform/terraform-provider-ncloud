@@ -80,7 +80,7 @@ resource "ncloud_nks_cluster" "cluster" {
   
     policies {
       type = "NKSClusterAdminPolicy" 
-      scope = "Cluster"
+      scope = "cluster"
     }
   }
   
@@ -134,8 +134,8 @@ The following arguments are supported:
   * `groups` - (Optional) List of groups assigned to the access entry.
   * `policies` - (Optional) List of policies for the access entry.
     * `type` - (Required) Policy type. Valid values are `NKSClusterAdminPolicy`, `NKSAdminPolicy`, `NKSEditPolicy`, or `NKSViewPolicy`.
-    * `scope` - (Required) Policy scope. Valid values are `Cluster` or `Namespace`.
-    * `namespaces` - (Optional) List of namespaces when scope is `Namespace`.
+    * `scope` - (Required) Policy scope. Valid values are `cluster` or `namespace`.
+    * `namespaces` - (Optional) List of namespaces when scope is `namespace`.
 
 ## Attributes Reference
 
