@@ -341,7 +341,7 @@ func waitMysqlRecoveryDeletion(ctx context.Context, config *conn.ProviderConfig,
 			return 0, "", fmt.Errorf("error occurred while waiting to delete mysql recovery")
 		},
 		Timeout:    conn.DefaultTimeout,
-		Delay:      1 * time.Minute,
+		Delay:      5 * time.Second,
 		MinTimeout: 3 * time.Second,
 	}
 
