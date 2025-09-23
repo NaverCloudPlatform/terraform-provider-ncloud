@@ -671,7 +671,7 @@ func waitMysqlCreation(ctx context.Context, config *conn.ProviderConfig, id stri
 			return 0, "", fmt.Errorf("error occurred while waiting to create mysql")
 		},
 		Timeout:    6 * conn.DefaultTimeout,
-		Delay:      3 * time.Minute,
+		Delay:      5 * time.Second,
 		MinTimeout: 3 * time.Second,
 	}
 	_, err := stateConf.WaitForState()
@@ -706,7 +706,7 @@ func waitMysqlDeletion(ctx context.Context, config *conn.ProviderConfig, id stri
 			return 0, "", fmt.Errorf("error occurred while waiting to delete mysql")
 		},
 		Timeout:    conn.DefaultTimeout,
-		Delay:      1 * time.Minute,
+		Delay:      5 * time.Second,
 		MinTimeout: 3 * time.Second,
 	}
 

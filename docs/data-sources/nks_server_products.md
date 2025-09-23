@@ -80,3 +80,7 @@ The following arguments are supported:
   * `product_english_desc` - ServerProduct spec english description
   * `product_korean_desc` - ServerProduct spec korean description
   * `product_type` - ServerProduct Type
+  * `fabric_cluster_list` - List of fabric cluster pools available for this server product.
+    * `pool_name` - Name of the fabric cluster pool.
+    * `pool_no` - Number of the fabric cluster pool.
+  * `is_fabric_cluster_type` - Whether this server product supports fabric cluster.

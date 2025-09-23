@@ -65,3 +65,11 @@ In addition to all arguments above, the following attributes are exported:
   * `comment` - Comment
 * `return_protection` - Return Protection.
 * `kms_key_tag` - KMS Key Tag for Cluster Secret Encryption.
+* `auth_type` - Authentication type for cluster. Valid values are `API` or `CONFIG_MAP`.
+* `access_entries` - Access entries for cluster access management. Only available when `auth_type` is `API`.
+  * `entry` - NRN (Ncloud Resource Names) of the user or role.
+  * `groups` - List of groups assigned to the access entry.
+  * `policies` - List of policies for the access entry.
+    * `type` - Policy type. Valid values are `NKSClusterAdminPolicy`, `NKSAdminPolicy`, `NKSEditPolicy`, or `NKSViewPolicy`.
+    * `scope` - Policy scope. Valid values are `cluster` or `namespace`.
+    * `namespaces` - List of namespaces.

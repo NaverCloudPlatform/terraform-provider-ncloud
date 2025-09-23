@@ -478,3 +478,196 @@ func TestExpandNKSNodePoolAutoScale(t *testing.T) {
 		t.Fatalf("expected result 2, but got %d", ncloud.Int32Value(result.Max))
 	}
 }
+
+func TestFlattenNKSClusterAccessEntries(t *testing.T) {
+	accessEntries := []*vnks.AccessEntryRes{
+		{
+			Entry: ncloud.String("nrn:ncp:iam::123456789012:user/test-user"),
+			Groups: []*string{
+				ncloud.String("admin"),
+			},
+			Policies: []*vnks.AccessEntryPolicyRes{
+				{
+					Type:  ncloud.String("NKSClusterAdminPolicy"),
+					Scope: ncloud.String("cluster"),
+				},
+			},
+		},
+	}
+
+	result := flattenNKSClusterAccessEntries(accessEntries)
+	resultList := result.List()
+
+	if len(resultList) != 1 {
+		t.Fatalf("expected 1 access entry, but was %v", len(resultList))
+	}
+
+	entry := resultList[0].(map[string]interface{})
+
+	if entry["entry"].(string) != "nrn:ncp:iam::123456789012:user/test-user" {
+		t.Fatalf("expected entry to be 'nrn:ncp:iam::123456789012:user/test-user', but was %v", entry["entry"])
+	}
+
+	groups := entry["groups"].([]interface{})
+	if len(groups) != 1 {
+		t.Fatalf("expected 1 group, but was %v", len(groups))
+	}
+
+	if groups[0].(string) != "admin" {
+		t.Fatalf("expected group to be 'admin', but was %v", groups[0])
+	}
+
+	policies := entry["policies"].([]interface{})
+	if len(policies) != 1 {
+		t.Fatalf("expected 1 policy, but was %v", len(policies))
+	}
+
+	policy := policies[0].(map[string]interface{})
+	if policy["type"].(string) != "NKSClusterAdminPolicy" {
+		t.Fatalf("expected policy type to be 'NKSClusterAdminPolicy', but was %v", policy["type"])
+	}
+
+	if policy["scope"].(string) != "cluster" {
+		t.Fatalf("expected policy scope to be 'cluster', but was %v", policy["scope"])
+	}
+}
+
+func TestExpandNKSClusterAccessEntries(t *testing.T) {
+	accessEntries := map[string]interface{}{
+		"entry": "nrn:ncp:iam::123456789012:user/test-user",
+		"groups": []interface{}{
+			"admin",
+		},
+		"policies": []interface{}{
+			map[string]interface{}{
+				"type":  "NKSClusterAdminPolicy",
+				"scope": "cluster",
+			},
+		},
+	}
+
+	set := schema.NewSet(schema.HashResource(ResourceNcloudNKSCluster().Schema["access_entries"].Elem.(*schema.Resource)), []interface{}{accessEntries})
+	result := expandNKSClusterAccessEntries(set)
+
+	if len(result) != 1 {
+		t.Fatalf("expected 1 access entry, but was %v", len(result))
+	}
+
+	entry := result[0]
+	if ncloud.StringValue(entry.Type) != "USER" {
+		t.Fatalf("expected type to be 'USER', but was %v", ncloud.StringValue(entry.Type))
+	}
+
+	if ncloud.StringValue(entry.Entry) != "nrn:ncp:iam::123456789012:user/test-user" {
+		t.Fatalf("expected entry to be 'nrn:ncp:iam::123456789012:user/test-user', but was %v", ncloud.StringValue(entry.Entry))
+	}
+
+	if len(entry.Groups) != 1 {
+		t.Fatalf("expected 1 group, but was %v", len(entry.Groups))
+	}
+
+	if ncloud.StringValue(entry.Groups[0]) != "admin" {
+		t.Fatalf("expected group to be 'admin', but was %v", ncloud.StringValue(entry.Groups[0]))
+	}
+
+	if len(entry.Policies) != 1 {
+		t.Fatalf("expected 1 policy, but was %v", len(entry.Policies))
+	}
+
+	if ncloud.StringValue(entry.Policies[0].Type) != "NKSClusterAdminPolicy" {
+		t.Fatalf("expected policy type to be 'NKSClusterAdminPolicy', but was %v", ncloud.StringValue(entry.Policies[0].Type))
+	}
+
+	if ncloud.StringValue(entry.Policies[0].Scope) != "cluster" {
+		t.Fatalf("expected policy scope to be 'cluster', but was %v", ncloud.StringValue(entry.Policies[0].Scope))
+	}
+}
+
+func TestFlattenFabricClusterPool(t *testing.T) {
+	// Test with valid fabricCluster
+	fabricCluster := &vnks.FabricClusterPool{
+		PoolName: ncloud.String("test-pool"),
+		PoolNo:   ncloud.Int32(12345),
+	}
+
+	result := flattenFabricClusterPool(fabricCluster)
+
+	if result == nil {
+		t.Fatal("result was nil")
+	}
+
+	if result["pool_name"].(string) != "test-pool" {
+		t.Fatalf("expected pool_name to be 'test-pool', but was %v", result["pool_name"])
+	}
+
+	if result["pool_no"].(int32) != 12345 {
+		t.Fatalf("expected pool_no to be 12345, but was %v", result["pool_no"])
+	}
+
+	// Test with nil fabricCluster
+	nilResult := flattenFabricClusterPool(nil)
+	if nilResult != nil {
+		t.Fatalf("expected nil result for nil input, but got %v", nilResult)
+	}
+}
+
+func TestExpandNKSNodePoolFabricCluster(t *testing.T) {
+	fabricCluster := []interface{}{
+		map[string]interface{}{
+			"pool_name": "test-pool",
+			"pool_no":   12345,
+		},
+	}
+
+	result := expandNKSNodePoolFabricCluster(fabricCluster)
+
+	if result == nil {
+		t.Fatal("result was nil")
+	}
+
+	expected := &vnks.FabricClusterPool{
+		PoolName: ncloud.String("test-pool"),
+		PoolNo:   ncloud.Int32(12345),
+	}
+
+	if !reflect.DeepEqual(result, expected) {
+		t.Fatalf("expected %v, but got %v", expected, result)
+	}
+}
+
+func TestFlattenNKSFabricClusterList(t *testing.T) {
+	fabricClusterList := []*vnks.FabricClusterPool{
+		{
+			PoolName: ncloud.String("test-pool-1"),
+			PoolNo:   ncloud.Int32(12345),
+		},
+		{
+			PoolName: ncloud.String("test-pool-2"),
+			PoolNo:   ncloud.Int32(67890),
+		},
+	}
+
+	result := flattenNKSFabricClusterList(fabricClusterList)
+
+	if len(result) != 2 {
+		t.Fatalf("expected 2 results, but got %d", len(result))
+	}
+
+	r1 := result[0]
+	if r1["pool_name"].(string) != "test-pool-1" {
+		t.Fatalf("expected pool_name to be 'test-pool-1', but was %v", r1["pool_name"])
+	}
+
+	if r1["pool_no"].(int32) != 12345 {
+		t.Fatalf("expected pool_no to be 12345, but was %v", r1["pool_no"])
+	}
+
+	r2 := result[1]
+	if r2["pool_name"].(string) != "test-pool-2" {
+		t.Fatalf("expected pool_name to be 'test-pool-2', but was %v", r2["pool_name"])
+	}
+
+	if r2["pool_no"].(int32) != 67890 {
+		t.Fatalf("expected pool_no to be 67890, but was %v", r2["pool_no"])
+	}
+}

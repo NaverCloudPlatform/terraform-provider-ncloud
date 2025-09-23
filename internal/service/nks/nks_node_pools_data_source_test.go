@@ -14,7 +14,7 @@ func TestAccDataSourceNcloudNKSNodePools(t *testing.T) {
 	validateAcctestEnvironment(t)
 
 	clusterName := GetTestClusterName()
-	nksInfo, err := getNKSTestInfo("XEN")
+	nksInfo, err := getNKSTestInfo("KVM")
 	if err != nil {
 		t.Error(err)
 	}
@@ -66,7 +66,7 @@ data "ncloud_nks_server_images" "image"{
   hypervisor_code = ncloud_nks_cluster.cluster.hypervisor_code
     filter {
     name = "label"
-    values = ["ubuntu-22.04"]
+    values = ["ubuntu-24.04"]
     regex = true
   }
 }

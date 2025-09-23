@@ -292,7 +292,7 @@ func waitMysqlServerCreation(ctx context.Context, config *conn.ProviderConfig, i
 			return 0, "", fmt.Errorf("error occurred while waiting to create mysql slave")
 		},
 		Timeout:    6 * conn.DefaultTimeout,
-		Delay:      3 * time.Minute,
+		Delay:      5 * time.Second,
 		MinTimeout: 3 * time.Second,
 	}
 
@@ -327,7 +327,7 @@ func waitMysqlSlaveDeletion(ctx context.Context, config *conn.ProviderConfig, in
 			return 0, "", fmt.Errorf("error occurred while waiting to delete mysql slave")
 		},
 		Timeout:    conn.DefaultTimeout,
-		Delay:      1 * time.Minute,
+		Delay:      5 * time.Second,
 		MinTimeout: 3 * time.Second,
 	}
 

@@ -4,18 +4,17 @@ import (
 	"bytes"
 	"context"
 	"fmt"
-	"os"
-	"regexp"
-	"strings"
-	"testing"
-
 	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/ncloud"
+	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/services/vnks"
 	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/services/vpc"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 	"github.com/terraform-providers/terraform-provider-ncloud/internal/conn"
 	"github.com/terraform-providers/terraform-provider-ncloud/internal/service/nks"
-
-	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/services/vnks"
+	"os"
+	"regexp"
+	"strings"
+	"testing"
+	"time"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	. "github.com/terraform-providers/terraform-provider-ncloud/internal/acctest"
@@ -40,6 +39,7 @@ type NKSTestInfo struct {
 	IsFin               bool
 	IsCaaS              bool
 	needPublicLb        bool
+	UbuntuImageVersion  string
 }
 
 func validateAcctestEnvironment(t *testing.T) {
@@ -208,6 +208,9 @@ func TestAccResourceNcloudNKSCluster_Update_KVM(t *testing.T) {
 				Destroy: false,
 			},
 			{
+				PreConfig: func() {
+					time.Sleep(30 * time.Minute)
+				},
 				Config:  testAccResourceNcloudNKSClusterUpdateConfig(name, TF_TEST_NKS_LOGIN_KEY, false, nksInfo),
 				Check:   testAccResourceNcloudNKSClusterUpdateConfigCheck(resourceName, nksInfo),
 				Destroy: false,
@@ -232,6 +235,7 @@ resource "ncloud_nks_cluster" "cluster" {
   ]
   vpc_no                      = %[8]s
   zone                        = "%[9]s-1"
+  auth_type                   = "CONFIG_MAP"
   log {
     audit                     = %[10]t
   }
@@ -267,6 +271,54 @@ resource "ncloud_nks_cluster" "cluster" {
 	b.WriteString(`
 }
 `)
+
+	if nksInfo.HypervisorCode == "KVM" {
+		b.WriteString(fmt.Sprintf(`
+data "ncloud_nks_server_images" "image"{
+  hypervisor_code = ncloud_nks_cluster.cluster.hypervisor_code
+    filter {
+    name = "label"
+    values = ["%[5]s"]
+    regex = true
+  }
+
+}
+
+data "ncloud_nks_server_products" "product"{
+  software_code = data.ncloud_nks_server_images.image.images[0].value
+  zone = "%[1]s-1"
+  filter {
+    name = "product_type"
+    values = [ "STAND"]
+  }
+  
+  filter {
+    name = "cpu_count"
+    values = [ "2"]
+  }
+  
+  filter {
+    name = "memory_size"
+    values = [ "8GB" ]
+  }
+}
+
+resource "ncloud_nks_node_pool" "node_pool" {
+  cluster_uuid   = ncloud_nks_cluster.cluster.uuid
+  node_pool_name = "%[2]s"
+  node_count     = 1
+  k8s_version    = "%[3]s"
+  subnet_no_list = [ %[4]s ]
+
+  software_code = data.ncloud_nks_server_images.image.images.0.value
+  server_spec_code = data.ncloud_nks_server_products.product.products.0.value
+  storage_size = 100
+  lifecycle {
+    ignore_changes = [software_code,server_spec_code ]
+  }
+}
+`, nksInfo.Region, name, nksInfo.K8sVersion, *nksInfo.PrivateSubnetList[0].SubnetNo, nksInfo.UbuntuImageVersion))
+	}
 	return b.String()
 }
 
@@ -287,6 +339,7 @@ resource "ncloud_nks_cluster" "cluster" {
   ]
   vpc_no                      = %[9]s
   zone                        = "%[10]s-1"
+  auth_type                   = "API"
   log {
     audit                     = %[11]t
   }
@@ -311,6 +364,53 @@ resource "ncloud_nks_cluster" "cluster" {
 	b.WriteString(`
 }
 `)
+	if nksInfo.HypervisorCode == "KVM" {
+		b.WriteString(fmt.Sprintf(`
+data "ncloud_nks_server_images" "image"{
+  hypervisor_code = ncloud_nks_cluster.cluster.hypervisor_code
+    filter {
+    name = "label"
+    values = ["%[5]s"]
+    regex = true
+  }
+
+}
+
+data "ncloud_nks_server_products" "product"{
+  software_code = data.ncloud_nks_server_images.image.images[0].value
+  zone = "%[1]s-1"
+  filter {
+    name = "product_type"
+    values = [ "STAND"]
+  }
+  
+  filter {
+    name = "cpu_count"
+    values = [ "2"]
+  }
+  
+  filter {
+    name = "memory_size"
+    values = [ "8GB" ]
+  }
+}
+
+resource "ncloud_nks_node_pool" "node_pool" {
+  cluster_uuid   = ncloud_nks_cluster.cluster.uuid
+  node_pool_name = "%[2]s"
+  node_count     = 1
+  k8s_version    = "%[3]s"
+  subnet_no_list = [ %[4]s ]
+
+  software_code = data.ncloud_nks_server_images.image.images.0.value
+  server_spec_code = data.ncloud_nks_server_products.product.products.0.value
+  storage_size = 100
+  lifecycle {
+    ignore_changes = [software_code,server_spec_code ]
+  }
+}
+`, nksInfo.Region, name, nksInfo.K8sVersion, *nksInfo.PrivateSubnetList[0].SubnetNo, nksInfo.UbuntuImageVersion))
+	}
 	return b.String()
 }
 
@@ -326,6 +426,7 @@ resource "ncloud_nks_cluster" "cluster" {
   lb_private_subnet_no        = %[6]s
   kube_network_plugin         = "cilium"
   public_network              = "true"
+  auth_type                   = "CONFIG_MAP"
   subnet_no_list              = [
   %[7]s
   ]
@@ -363,6 +464,7 @@ func testAccResourceNcloudNKSClusterDefaultConfigCheck(resourceName string, name
 		resource.TestCheckResourceAttr(resourceName, "oidc.0.groups_claim", "groups"),
 		resource.TestCheckResourceAttr(resourceName, "oidc.0.groups_prefix", "oidc:"),
 		resource.TestCheckResourceAttr(resourceName, "oidc.0.required_claim", "iss=https://keycloak.url/realms/nks"),
+		resource.TestCheckResourceAttr(resourceName, "auth_type", "CONFIG_MAP"),
 	)
 	if !nksInfo.IsFin {
 
@@ -387,6 +489,7 @@ func testAccResourceNcloudNKSClusterUpdateConfigCheck(resourceName string, nksIn
 		resource.TestCheckResourceAttr(resourceName, "oidc.0.client_id", "update-client"),
 		resource.TestCheckResourceAttr(resourceName, "ip_acl_default_action", "allow"),
 		resource.TestCheckResourceAttr(resourceName, "ip_acl.#", "0"),
+		resource.TestCheckResourceAttr(resourceName, "auth_type", "API"),
 	)
 }
 
@@ -403,6 +506,7 @@ func testAccResourceNcloudNKSClusterPublicNetworkConfigCheck(name string, resour
 		resource.TestMatchResourceAttr(resourceName, "vpc_no", regexp.MustCompile(`^\d+$`)),
 		resource.TestCheckResourceAttr(resourceName, "ip_acl_default_action", "allow"),
 		resource.TestCheckResourceAttr(resourceName, "ip_acl.#", "0"),
+		resource.TestCheckResourceAttr(resourceName, "auth_type", "CONFIG_MAP"),
 	)
 }
 
@@ -433,8 +537,8 @@ func getNKSTestInfo(hypervisor string) (*NKSTestInfo, error) {
 
 	nksInfo := &NKSTestInfo{
 		Region:            os.Getenv("NCLOUD_REGION"),
-		K8sVersion:        "1.29.9",
-		UpgradeK8sVersion: "1.30.8",
+		K8sVersion:        "1.31.7",
+		UpgradeK8sVersion: "1.32.6",
 		HypervisorCode:    hypervisor,
 	}
 	zoneCode := ncloud.String(fmt.Sprintf("%s-1", nksInfo.Region))
@@ -456,6 +560,7 @@ func getNKSTestInfo(hypervisor string) (*NKSTestInfo, error) {
 		}
 		nksInfo.K8sVersion = fmt.Sprintf("%s-nks.2", nksInfo.K8sVersion)
 		nksInfo.UpgradeK8sVersion = fmt.Sprintf("%s-nks.2", nksInfo.UpgradeK8sVersion)
+		nksInfo.UbuntuImageVersion = "ubuntu-24.04"
 	} else {
 		switch nksInfo.Region {
 		case "FKR":
@@ -465,6 +570,7 @@ func getNKSTestInfo(hypervisor string) (*NKSTestInfo, error) {
 		}
 		nksInfo.K8sVersion = fmt.Sprintf("%s-nks.1", nksInfo.K8sVersion)
 		nksInfo.UpgradeK8sVersion = fmt.Sprintf("%s-nks.1", nksInfo.UpgradeK8sVersion)
+		nksInfo.UbuntuImageVersion = "ubuntu-20.04"
 	}
 
 	vpcName := ncloud.String("tf-test-vpc")

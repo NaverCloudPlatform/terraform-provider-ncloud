@@ -16,7 +16,7 @@ func TestAccDataSourceNcloudNKSKubeConfig(t *testing.T) {
 	dataName := "data.ncloud_nks_kube_config.kube_config"
 	resourceName := "ncloud_nks_cluster.cluster"
 	name := GetTestClusterName()
-	nksInfo, err := getNKSTestInfo("XEN")
+	nksInfo, err := getNKSTestInfo("KVM")
 	if err != nil {
 		t.Error(err)
 	}

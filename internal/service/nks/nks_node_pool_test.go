@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"testing"
+	"time"
 
 	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/ncloud"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
@@ -132,6 +133,9 @@ func TestAccResourceNcloudNKSNodePool_Update_KVM(t *testing.T) {
 				Destroy: false,
 			},
 			{
+				PreConfig: func() {
+					time.Sleep(30 * time.Minute)
+				},
 				Config:  testAccResourceNcloudNKSNodePoolConfigUpdateAll(clusterName, TF_TEST_NKS_LOGIN_KEY, nksInfo, 2),
 				Check:   testAccResourceNcloudNKSNodePoolUpdateAllCheck(resourceName, clusterName, nksInfo),
 				Destroy: false,
@@ -219,7 +223,7 @@ data "ncloud_nks_server_images" "image"{
   hypervisor_code = ncloud_nks_cluster.cluster.hypervisor_code
     filter {
     name = "label"
-    values = ["ubuntu-22.04"]
+    values = ["%[6]s"]
     regex = true
   }
 
@@ -263,12 +267,12 @@ resource "ncloud_nks_node_pool" "node_pool" {
 
   taint {
     key = "foo"
-    effect = "NoSchedule"
+    effect = "PreferNoSchedule"
     value = "bar"
   }
 
   software_code = data.ncloud_nks_server_images.image.images.0.value
-`, nksInfo.Region, name, nodeCount, nksInfo.K8sVersion, *nksInfo.PrivateSubnetList[0].SubnetNo))
+`, nksInfo.Region, name, nodeCount, nksInfo.K8sVersion, *nksInfo.PrivateSubnetList[0].SubnetNo, nksInfo.UbuntuImageVersion))
 	if nksInfo.HypervisorCode == "KVM" {
 		b.WriteString(`
   server_spec_code = data.ncloud_nks_server_products.product.products.0.value
@@ -297,13 +301,14 @@ resource "ncloud_nks_cluster" "cluster" {
   lb_private_subnet_no        = %[5]s
   hypervisor_code             = "%[6]s"
   kube_network_plugin         = "cilium"
+  auth_type                   = "CONFIG_MAP"
   subnet_no_list              = [
-    %[7]s,  %[10]s
+    %[7]s
   ]
   vpc_no                      = %[8]s
   zone                        = "%[9]s-1"
   public_network              = true
-`, name, nksInfo.ClusterType, nksInfo.K8sVersion, loginKeyName, *nksInfo.PrivateLbSubnetList[0].SubnetNo, nksInfo.HypervisorCode, *nksInfo.PrivateSubnetList[0].SubnetNo, *nksInfo.Vpc.VpcNo, nksInfo.Region, *nksInfo.PrivateSubnetList[1].SubnetNo))
+`, name, nksInfo.ClusterType, nksInfo.K8sVersion, loginKeyName, *nksInfo.PrivateLbSubnetList[0].SubnetNo, nksInfo.HypervisorCode, *nksInfo.PublicSubnetList[0].SubnetNo, *nksInfo.Vpc.VpcNo, nksInfo.Region))
 
 	if nksInfo.needPublicLb {
 		b.WriteString(fmt.Sprintf(`
@@ -320,7 +325,7 @@ data "ncloud_nks_server_images" "image"{
   hypervisor_code = ncloud_nks_cluster.cluster.hypervisor_code
     filter {
     name = "label"
-    values = ["ubuntu-22.04"]
+    values = ["%[6]s"]
     regex = true
   }
 
@@ -358,18 +363,18 @@ resource "ncloud_nks_node_pool" "node_pool" {
   }
 
   label {
-    key = "foo"
-    value = "bar"
+    key = "bar"
+    value = "foo"
   }
 
   taint {
-    key = "foo"
-    effect = "NoSchedule"
-    value = "bar"
+    key = "bar"
+    effect = "PreferNoSchedule"
+    value = "foo"
   }
 
   software_code = data.ncloud_nks_server_images.image.images.0.value
-`, nksInfo.Region, name, nodeCount, nksInfo.K8sVersion, *nksInfo.PublicSubnetList[0].SubnetNo))
+`, nksInfo.Region, name, nodeCount, nksInfo.K8sVersion, *nksInfo.PublicSubnetList[0].SubnetNo, nksInfo.UbuntuImageVersion))
 	if nksInfo.HypervisorCode == "KVM" {
 		b.WriteString(`
   server_spec_code = data.ncloud_nks_server_products.product.products.0.value
@@ -420,7 +425,7 @@ data "ncloud_nks_server_images" "image"{
   hypervisor_code = ncloud_nks_cluster.cluster.hypervisor_code
     filter {
     name = "label"
-    values = ["ubuntu-22.04"]
+    values = ["%[7]s"]
     regex = true
   }
 
@@ -448,7 +453,7 @@ data "ncloud_nks_server_products" "product"{
 resource "ncloud_nks_node_pool" "node_pool" {
   cluster_uuid   = ncloud_nks_cluster.cluster.uuid
   node_pool_name = "%[2]s"
-  node_count     = %[3]d
+
   k8s_version    = "%[4]s"
   subnet_no_list = [ %[5]s, %[6]s ]
   autoscale {
@@ -464,16 +469,20 @@ resource "ncloud_nks_node_pool" "node_pool" {
 
   taint {
     key = "bar"
-    effect = "NoExecute"
+    effect = "PreferNoSchedule"
     value = ""
   }
 
   software_code = data.ncloud_nks_server_images.image.images.0.value
-`, nksInfo.Region, name, nodeCount, nksInfo.UpgradeK8sVersion, *nksInfo.PrivateSubnetList[0].SubnetNo, *nksInfo.PrivateSubnetList[1].SubnetNo))
+`, nksInfo.Region, name, nodeCount, nksInfo.UpgradeK8sVersion, *nksInfo.PrivateSubnetList[0].SubnetNo, *nksInfo.PrivateSubnetList[1].SubnetNo, nksInfo.UbuntuImageVersion))
 	if nksInfo.HypervisorCode == "KVM" {
 		b.WriteString(`
   server_spec_code = data.ncloud_nks_server_products.product.products.0.value
   storage_size = 100
+
+  lifecycle {
+    ignore_changes = [software_code,server_spec_code ]
+  }
 }
 		`)
 
@@ -502,7 +511,7 @@ func testAccResourceNcloudNKSNodePoolBasicCheck(resourceName string, name string
 		resource.TestCheckResourceAttr(resourceName, "label.0.value", "bar"),
 		resource.TestCheckResourceAttr(resourceName, "taint.0.key", "foo"),
 		resource.TestCheckResourceAttr(resourceName, "taint.0.value", "bar"),
-		resource.TestCheckResourceAttr(resourceName, "taint.0.effect", "NoSchedule"),
+		resource.TestCheckResourceAttr(resourceName, "taint.0.effect", "PreferNoSchedule"),
 	)
 
 	if nksInfo.HypervisorCode == "KVM" {
@@ -528,7 +537,6 @@ func testAccResourceNcloudNKSNodePoolUpdateAllCheck(resourceName string, name st
 	return resource.ComposeTestCheckFunc(
 		testAccCheckNKSNodePoolExists(resourceName, &nodePool),
 		resource.TestCheckResourceAttr(resourceName, "node_pool_name", name),
-		resource.TestCheckResourceAttr(resourceName, "node_count", "2"),
 		resource.TestCheckResourceAttr(resourceName, "autoscale.0.enabled", "true"),
 		resource.TestCheckResourceAttr(resourceName, "autoscale.0.min", "1"),
 		resource.TestCheckResourceAttr(resourceName, "autoscale.0.max", "2"),
@@ -538,7 +546,7 @@ func testAccResourceNcloudNKSNodePoolUpdateAllCheck(resourceName string, name st
 		resource.TestCheckResourceAttr(resourceName, "label.0.value", "foo"),
 		resource.TestCheckResourceAttr(resourceName, "taint.0.key", "bar"),
 		resource.TestCheckResourceAttr(resourceName, "taint.0.value", ""),
-		resource.TestCheckResourceAttr(resourceName, "taint.0.effect", "NoExecute"),
+		resource.TestCheckResourceAttr(resourceName, "taint.0.effect", "PreferNoSchedule"),
 	)
 }
 

@@ -69,7 +69,15 @@ resource "ncloud_nks_cluster" "cluster" {
   vpc_no                 = ncloud_vpc.vpc.id
   public_network         = false
   zone                   = "KR-1"
-
+  auth_type              = "API"
+  access_entries {
+    entry = "nrn:PUB:IAM::123456789012:SubAccount/UUID"
+    
+    policies {
+      type = "NKSClusterAdminPolicy"
+      scope = "cluster"
+    }
+  }
 }
 
 data "ncloud_nks_server_images" "image"{

@@ -66,6 +66,22 @@ func DataSourceNcloudNKSNodePool() *schema.Resource {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
+			"fabric_cluster": {
+				Type:     schema.TypeList,
+				Computed: true,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"pool_name": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+						"pool_no": {
+							Type:     schema.TypeInt,
+							Computed: true,
+						},
+					},
+				},
+			},
 			"autoscale": {
 				Type:     schema.TypeList,
 				Computed: true,
@@ -196,6 +212,16 @@ func dataSourceNcloudNKSNodePoolRead(ctx context.Context, d *schema.ResourceData
 	d.Set("server_spec_code", nodePool.ServerSpecCode)
 	d.Set("storage_size", strconv.Itoa(int(ncloud.Int32Value(nodePool.StorageSize))))
 	d.Set("server_role_id", nodePool.ServerRoleId)
+
+	var fabricCluster []map[string]interface{}
+	if nodePool.FabricCluster != nil {
+		if m := flattenFabricClusterPool(nodePool.FabricCluster); m != nil {
+			fabricCluster = append(fabricCluster, m)
+		}
+	}
+	if err := d.Set("fabric_cluster", fabricCluster); err != nil {
+		log.Printf("[WARN] Error setting fabric_cluster set for (%s): %s", d.Id(), err)
+	}
 
 	if len(nodePool.SubnetNoList) > 0 {
 		if err := d.Set("subnet_no_list", flattenInt32ListToStringList(nodePool.SubnetNoList)); err != nil {
