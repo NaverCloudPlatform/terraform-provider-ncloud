@@ -110,7 +110,7 @@ This data source exports the following attributes in addition to the arguments a
     * `block_storage_snapshot_name` - Block storage snapshot name.
     * `block_storage_size` - Block storage size (byte).
     * `block_storage_name` - Block storage name.
-    * `block_storage_volume_type` - Block storage volume type. (`SSD` or `HDD` or `CB1` or `FB1`).
+    * `block_storage_volume_type` - Block storage volume type. (`SSD`|`HDD`|`CB1`|`FB1`|`CB2`|`FB2`).
     * `iops` - IOPS.
     * `throughput` - Load balancing performance.
     * `is_encrypted_volume` - Volume encryption status. (`true` or `false`)

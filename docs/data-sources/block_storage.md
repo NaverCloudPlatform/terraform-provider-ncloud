@@ -46,4 +46,4 @@ The following arguments are supported:
 * `encrypted_volume` - Volume encryption status. (`true` or `false`)
 * `return_protection` - Enable return protection. (`true` or `false`)
 * `hypervisor_type` - Hypervisor type. (`XEN` or `KVM`)
-* `volume_type` - Volume type of the block storage. `XEN` type(` SSD` | `HDD`), `KVM`type(`FB1` | `CB1`)
+* `volume_type` - Volume type of the block storage. `XEN` type(` SSD`|`HDD`), `KVM`type(`FB1`|`CB1`|`FB2`|`CB2`)
