@@ -169,7 +169,7 @@ func (m *mysqlResource) Schema(_ context.Context, _ resource.SchemaRequest, resp
 					stringplanmodifier.RequiresReplace(),
 				},
 				Validators: []validator.String{
-					stringvalidator.OneOf([]string{"SSD", "HDD", "CB1"}...),
+					stringvalidator.OneOf([]string{"SSD", "HDD", "CB1", "CB2"}...),
 				},
 				Description: "default: SSD",
 			},
