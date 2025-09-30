@@ -63,7 +63,7 @@ The following arguments are supported:
 * `config_server_count` - (Optional, Changeable) The number of MongoDB Config servers. If sharding is used, the config server's logarithm can be selected. Only 3 are allowed for the initial configuration. Default: 3, Min: 3, Max: 7 
 * `backup_file_retention_period` - (Optional) Backups are performed daily and backup files are stored in separate backup storage. Fees are charged based on the space used. Default: 1(1 day), Min: 1, Max: 30
 * `backup_time` - (Optional) You can set the time when backup is performed. Default: 02:00. HHMM format. You must enter in 15-minute increments.
-* `data_storage_type` - (Optional) Data storage type. If `generationCode` is `G2`, You can select `SSD|HDD`, else if `generationCode` is `G3`, you can select CB1. Default : SSD in G2, CB1 in G3
+* `data_storage_type` - (Optional) Data storage type. If `generationCode` is `G2`, `SSD|HDD` can be set. If `generationCode` is `G3`, `CB2` can be set. Default : SSD in G2, CB2 in G3
 * `member_port` - (Optional) TCP port number for access to the MongoDB Member Server. Default: 17017, Min: 10000, Max: 65535
 * `mongos_port` - (Optional) TCP port number for access to the MongoDB Mongos Server.  Default: 17017, Min: 10000, Max: 65535
 * `config_port` - (Optional) TCP port number for access to the MongoDB Config Server.  Default: 17017, Min: 10000, Max: 65535
