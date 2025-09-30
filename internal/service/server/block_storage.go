@@ -33,6 +33,8 @@ const (
 	BlockStorageVolumeTypeSsd        = "SSD"
 	BlockStorageVolumeTypeFb1        = "FB1"
 	BlockStorageVolumeTypeCb1        = "CB1"
+	BlockStorageVolumeTypeFb2        = "FB2"
+	BlockStorageVolumeTypeCb2        = "CB2"
 	BlockStorageHypervisorTypeXen    = "XEN"
 	BlockStorageHypervisorTypeKvm    = "KVM"
 )
@@ -101,7 +103,7 @@ func ResourceNcloudBlockStorage() *schema.Resource {
 				ForceNew:         true,
 				ConflictsWith:    []string{"disk_detail_type"},
 				RequiredWith:     []string{"hypervisor_type"},
-				ValidateDiagFunc: validation.ToDiagFunc(validation.StringInSlice([]string{BlockStorageVolumeTypeHdd, BlockStorageVolumeTypeSsd, BlockStorageVolumeTypeFb1, BlockStorageVolumeTypeCb1}, false)),
+				ValidateDiagFunc: validation.ToDiagFunc(validation.StringInSlice([]string{BlockStorageVolumeTypeHdd, BlockStorageVolumeTypeSsd, BlockStorageVolumeTypeFb1, BlockStorageVolumeTypeCb1, BlockStorageVolumeTypeFb2, BlockStorageVolumeTypeCb2}, false)),
 			},
 			"zone": {
 				Type:     schema.TypeString,
@@ -321,14 +323,14 @@ func createBlockStorage(d *schema.ResourceData, config *conn.ProviderConfig) (*s
 		reqParams.ServerInstanceNo = ncloud.String(d.Get("server_instance_no").(string))
 	}
 
-	if (hypervisorType == BlockStorageHypervisorTypeXen) && ((volumeType == BlockStorageVolumeTypeFb1) || (volumeType == BlockStorageVolumeTypeCb1)) {
+	if (hypervisorType == BlockStorageHypervisorTypeXen) && ((volumeType != BlockStorageVolumeTypeHdd) && (volumeType != BlockStorageVolumeTypeSsd)) {
 		err := fmt.Errorf("Only `%s` and `%s` can be entered as `%s` hypervisor type", BlockStorageVolumeTypeSsd, BlockStorageVolumeTypeHdd, BlockStorageHypervisorTypeXen)
 		LogErrorResponse("createVpcBlockStorage", err, reqParams)
 		return nil, err
 	}
 
 	if (hypervisorType == BlockStorageHypervisorTypeKvm) && ((volumeType == BlockStorageVolumeTypeHdd) || (volumeType == BlockStorageVolumeTypeSsd)) {
-		err := fmt.Errorf("Only `%s` and `%s` can be entered as `%s` hypervisor type", BlockStorageVolumeTypeCb1, BlockStorageVolumeTypeFb1, BlockStorageHypervisorTypeKvm)
+		err := fmt.Errorf("Only `%s`, `%s`, `%s`, `%s` can be entered as `%s` hypervisor type", BlockStorageVolumeTypeCb1, BlockStorageVolumeTypeFb1, BlockStorageVolumeTypeCb2, BlockStorageVolumeTypeFb2, BlockStorageHypervisorTypeKvm)
 		LogErrorResponse("createVpcBlockStorage", err, reqParams)
 		return nil, err
 	}

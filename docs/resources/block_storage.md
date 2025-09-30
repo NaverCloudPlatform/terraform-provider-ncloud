@@ -57,7 +57,7 @@ The following arguments are supported:
 * `zone` - (Optional, Required if to select KVM type) The availability zone in which the block storage instance will be created. It must be the same zone code as the server..
 * `snapshot_no` - (Optional) Create the block storage from the snapshots you take.
 * `hypervisor_type` - (Optional) Hypervisor type. Required with `volume_type`. (`XEN` or `KVM`)
-* `volume_type` - (Optional) Decides the volume type of the block storage to be created. Required for KVM block storage. Conflicts with `disk_detail_type`. Required with `hypervisor_type`. Options : `XEN` type(` SSD` | `HDD`), `KVM`type(`FB1` | `CB1`)
+* `volume_type` - (Optional) Decides the volume type of the block storage to be created. Required for KVM block storage. Conflicts with `disk_detail_type`. Required with `hypervisor_type`. Options : `XEN` type(`SSD`|`HDD`), `KVM`type(`FB1`|`CB1`|`FB2`|`CB2`)
 * `return_protection` - (Optional) Enable return protection. Default: `false`. Options: `true`| `false`
 
 ## Attributes Reference
