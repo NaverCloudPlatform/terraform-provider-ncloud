@@ -207,7 +207,7 @@ func (r *postgresqlResource) Schema(_ context.Context, _ resource.SchemaRequest,
 					stringplanmodifier.UseStateForUnknown(),
 				},
 				Validators: []validator.String{
-					stringvalidator.OneOf([]string{"SSD", "HDD"}...),
+					stringvalidator.OneOf([]string{"SSD", "HDD", "CB2"}...),
 				},
 				Description: "default: SSD",
 			},
