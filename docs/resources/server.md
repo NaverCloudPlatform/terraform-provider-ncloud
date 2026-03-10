@@ -107,9 +107,8 @@ resource "ncloud_server" "xen-server" {
 ## Argument Reference
 
 ~> **NOTE:** When creating a server with a new server image, the available fields differ depending on the hypervisor type of the server to be created:
-<br> - **KVM**: Use `server_image_number` and `server_spec_code`
-<br> - **XEN**: Use `server_image_number` and `server_spec_code` OR `server_image_product_code` and `server_product_code`
-<br> - **RHV**: Use `server_image_number` and `server_spec_code` OR `server_image_product_code` and `server_product_code`
+<br> - `server_image_number` and `server_spec_code`: Available for all types. **KVM**, **XEN**, **RHV**
+<br> - `server_image_product_code` and `server_product_code`: Available for **XEN**, **RHV**
 
 The following arguments are supported:
 
