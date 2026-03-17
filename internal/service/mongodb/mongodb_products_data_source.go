@@ -245,11 +245,19 @@ func (m mongodbProductModel) attrTypes() map[string]attr.Type {
 func (m *mongodbProductModel) refreshFromOutput(ctx context.Context, output *vmongodb.Product) {
 	m.ProductCode = types.StringPointerValue(output.ProductCode)
 	m.ProductName = types.StringPointerValue(output.ProductName)
-	m.ProductType = types.StringPointerValue(output.ProductType.Code)
+	if output.ProductType != nil {
+		m.ProductType = types.StringPointerValue(output.ProductType.Code)
+	}
 	m.ProductDescription = types.StringPointerValue(output.ProductDescription)
-	m.InfraResourceType = types.StringPointerValue(output.InfraResourceType.Code)
-	m.InfraResourceDetailType = types.StringPointerValue(output.InfraResourceDetailType.Code)
+	if output.InfraResourceType != nil {
+		m.InfraResourceType = types.StringPointerValue(output.InfraResourceType.Code)
+	}
+	if output.InfraResourceDetailType != nil {
+		m.InfraResourceDetailType = types.StringPointerValue(output.InfraResourceDetailType.Code)
+	}
 	m.CpuCount = common.Int64ValueFromInt32(output.CpuCount)
 	m.MemorySize = types.Int64PointerValue(output.MemorySize)
-	m.DiskType = types.StringPointerValue(output.DiskType.Code)
+	if output.DiskType != nil {
+		m.DiskType = types.StringPointerValue(output.DiskType.Code)
+	}
 }

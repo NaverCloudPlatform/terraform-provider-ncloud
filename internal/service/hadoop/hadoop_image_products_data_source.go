@@ -185,8 +185,12 @@ func (h *hadoopImageProduct) refreshFromOutput(output *vhadoop.Product) {
 	h.ProductCode = types.StringPointerValue(output.ProductCode)
 	h.GenerationCode = types.StringPointerValue(output.GenerationCode)
 	h.ProductName = types.StringPointerValue(output.ProductName)
-	h.ProductType = types.StringPointerValue(output.ProductType.Code)
-	h.PlatformType = types.StringPointerValue(output.PlatformType.Code)
+	if output.ProductType != nil {
+		h.ProductType = types.StringPointerValue(output.ProductType.Code)
+	}
+	if output.PlatformType != nil {
+		h.PlatformType = types.StringPointerValue(output.PlatformType.Code)
+	}
 	h.OsInformation = types.StringPointerValue(output.OsInformation)
 	h.EngineVersionCode = types.StringPointerValue(output.EngineVersionCode)
 }

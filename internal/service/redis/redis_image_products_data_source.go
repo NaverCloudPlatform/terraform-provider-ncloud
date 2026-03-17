@@ -185,8 +185,12 @@ func (r *redisImageProduct) refreshFromOutput(output *vredis.Product) {
 	r.ProductCode = types.StringPointerValue(output.ProductCode)
 	r.GenerationCode = types.StringPointerValue(output.GenerationCode)
 	r.ProductName = types.StringPointerValue(output.ProductName)
-	r.ProductType = types.StringPointerValue(output.ProductType.Code)
-	r.PlatformType = types.StringPointerValue(output.PlatformType.Code)
+	if output.ProductType != nil {
+		r.ProductType = types.StringPointerValue(output.ProductType.Code)
+	}
+	if output.PlatformType != nil {
+		r.PlatformType = types.StringPointerValue(output.PlatformType.Code)
+	}
 	r.OsInformation = types.StringPointerValue(output.OsInformation)
 	r.EngineVersionCode = types.StringPointerValue(output.EngineVersionCode)
 }

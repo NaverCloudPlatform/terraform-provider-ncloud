@@ -239,11 +239,19 @@ func (_ hadoopProductModel) attrTypes() map[string]attr.Type {
 func (h *hadoopProductModel) refreshFromOutput(output *vhadoop.Product) {
 	h.ProductName = types.StringPointerValue(output.ProductName)
 	h.ProductCode = types.StringPointerValue(output.ProductCode)
-	h.ProductType = types.StringPointerValue(output.ProductType.Code)
+	if output.ProductType != nil {
+		h.ProductType = types.StringPointerValue(output.ProductType.Code)
+	}
 	h.ProductDescription = types.StringPointerValue(output.ProductDescription)
-	h.InfraResourceType = types.StringPointerValue(output.InfraResourceType.Code)
-	h.InfraResourceDetailType = types.StringPointerValue(output.InfraResourceDetailType.Code)
+	if output.InfraResourceType != nil {
+		h.InfraResourceType = types.StringPointerValue(output.InfraResourceType.Code)
+	}
+	if output.InfraResourceDetailType != nil {
+		h.InfraResourceDetailType = types.StringPointerValue(output.InfraResourceDetailType.Code)
+	}
 	h.CpuCount = common.Int64ValueFromInt32(output.CpuCount)
 	h.MemorySize = types.Int64PointerValue(output.MemorySize)
-	h.DiskType = types.StringPointerValue(output.DiskType.Code)
+	if output.DiskType != nil {
+		h.DiskType = types.StringPointerValue(output.DiskType.Code)
+	}
 }

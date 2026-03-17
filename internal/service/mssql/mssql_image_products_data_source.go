@@ -207,7 +207,11 @@ func (m *mssqlImageProduct) refreshFromOutput(output *vmssql.Product) {
 	m.ProductCode = types.StringPointerValue(output.ProductCode)
 	m.GenerationCode = types.StringPointerValue(output.GenerationCode)
 	m.ProductName = types.StringPointerValue(output.ProductName)
-	m.ProductType = types.StringPointerValue(output.ProductType.Code)
-	m.PlatformType = types.StringPointerValue(output.PlatformType.Code)
+	if output.ProductType != nil {
+		m.ProductType = types.StringPointerValue(output.ProductType.Code)
+	}
+	if output.PlatformType != nil {
+		m.PlatformType = types.StringPointerValue(output.PlatformType.Code)
+	}
 	m.OsInformation = types.StringPointerValue(output.OsInformation)
 }

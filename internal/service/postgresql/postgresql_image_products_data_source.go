@@ -194,8 +194,12 @@ func (d postgresqlImageProduct) attrTypes() map[string]attr.Type {
 func (d *postgresqlImageProduct) refreshFromOutput(output *vpostgresql.Product) {
 	d.ProductCode = types.StringPointerValue(output.ProductCode)
 	d.ProductName = types.StringPointerValue(output.ProductName)
-	d.ProductType = types.StringPointerValue(output.ProductType.Code)
-	d.PlatformType = types.StringPointerValue(output.PlatformType.Code)
+	if output.ProductType != nil {
+		d.ProductType = types.StringPointerValue(output.ProductType.Code)
+	}
+	if output.PlatformType != nil {
+		d.PlatformType = types.StringPointerValue(output.PlatformType.Code)
+	}
 	d.OsInformation = types.StringPointerValue(output.OsInformation)
 	d.GenerationCode = types.StringPointerValue(output.GenerationCode)
 	d.EngineVersionCode = types.StringPointerValue(output.EngineVersionCode)

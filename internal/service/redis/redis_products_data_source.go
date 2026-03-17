@@ -225,10 +225,16 @@ func (r redisProductModel) attrTypes() map[string]attr.Type {
 func (r *redisProductModel) refreshFromOutput(output *vredis.Product) {
 	r.ProductCode = types.StringPointerValue(output.ProductCode)
 	r.ProductName = types.StringPointerValue(output.ProductName)
-	r.ProductType = types.StringPointerValue(output.ProductType.Code)
+	if output.ProductType != nil {
+		r.ProductType = types.StringPointerValue(output.ProductType.Code)
+	}
 	r.ProductDescription = types.StringPointerValue(output.ProductDescription)
-	r.InfraResourceType = types.StringPointerValue(output.InfraResourceType.Code)
+	if output.InfraResourceType != nil {
+		r.InfraResourceType = types.StringPointerValue(output.InfraResourceType.Code)
+	}
 	r.CpuCount = common.Int64ValueFromInt32(output.CpuCount)
 	r.MemorySize = types.Int64PointerValue(output.MemorySize)
-	r.DiskType = types.StringPointerValue(output.DiskType.Code)
+	if output.DiskType != nil {
+		r.DiskType = types.StringPointerValue(output.DiskType.Code)
+	}
 }

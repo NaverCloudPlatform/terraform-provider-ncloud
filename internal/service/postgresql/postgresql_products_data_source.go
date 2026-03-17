@@ -234,10 +234,16 @@ func (d postgresqlProductModel) attrTypes() map[string]attr.Type {
 func (d *postgresqlProductModel) refreshFromOutput(output *vpostgresql.Product) {
 	d.ProductCode = types.StringPointerValue(output.ProductCode)
 	d.ProductName = types.StringPointerValue(output.ProductName)
-	d.ProductType = types.StringPointerValue(output.ProductType.Code)
+	if output.ProductType != nil {
+		d.ProductType = types.StringPointerValue(output.ProductType.Code)
+	}
 	d.ProductDescription = types.StringPointerValue(output.ProductDescription)
-	d.InfraResourceType = types.StringPointerValue(output.InfraResourceType.Code)
+	if output.InfraResourceType != nil {
+		d.InfraResourceType = types.StringPointerValue(output.InfraResourceType.Code)
+	}
 	d.CpuCount = common.Int64ValueFromInt32(output.CpuCount)
 	d.MemorySize = types.Int64PointerValue(output.MemorySize)
-	d.DiskType = types.StringPointerValue(output.DiskType.Code)
+	if output.DiskType != nil {
+		d.DiskType = types.StringPointerValue(output.DiskType.Code)
+	}
 }
