@@ -4,12 +4,14 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"net/http"
 	"strings"
 
 	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/ncloud"
 	"github.com/aws/aws-sdk-go-v2/config"
 	"github.com/aws/aws-sdk-go-v2/credentials"
 	"github.com/aws/aws-sdk-go-v2/service/s3"
+	"github.com/terraform-providers/terraform-provider-ncloud/internal/ncloudsdk"
 )
 
 func NewS3Client(region string, api *ncloud.APIKey, site, endpointFromEnv string) *s3.Client {
@@ -54,4 +56,24 @@ func genEndpointWithCode(region, site string) string {
 	}
 
 	return s3Endpoint
+}
+
+func NewApigwClient(site string, api *ncloud.APIKey) *ncloudsdk.NClient {
+	var baseURL string
+
+	switch site {
+	case "gov":
+		baseURL = "https://apigateway.apigw.gov-ntruss.com/api/v1"
+	case "fin":
+		baseURL = "https://apigateway.apigw.fin-ntruss.com/api/v1"
+	default:
+		baseURL = "https://apigateway.apigw.ntruss.com/api/v1"
+	}
+
+	return &ncloudsdk.NClient{
+		BaseURL:    baseURL,
+		HTTPClient: &http.Client{},
+		AccessKey:  api.AccessKey,
+		SecretKey:  api.SecretKey,
+	}
 }
