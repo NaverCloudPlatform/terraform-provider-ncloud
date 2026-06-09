@@ -202,7 +202,7 @@ func ResourceNcloudServer() *schema.Resource {
 				Optional: true,
 				Computed: true,
 				ValidateDiagFunc: validation.ToDiagFunc(
-					// Minimum is enforced after the image OS lookup increateServerInstance.
+					// Minimum is enforced after the image OS lookup in createServerInstance.
 					validation.IntAtLeast(BaseBlockStorageMinSizeLinuxGB),
 				),
 			},
