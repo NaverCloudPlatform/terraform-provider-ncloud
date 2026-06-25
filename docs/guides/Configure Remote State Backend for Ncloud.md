@@ -66,7 +66,7 @@ provider "ncloud" {
 
 ### Providing Credentials
 
-Backend blocks [cannot refer to named values](https://developer.hashicorp.com/terraform/language/settings/backends/configuration#credentials-and-sensitive-data), so `access_key` and `secret_key` must be provided outside of the configuration.
+Backend blocks [cannot refer to named values](https://developer.hashicorp.com/terraform/language/backend/configuration#credentials-and-sensitive-data), so `access_key` and `secret_key` must be provided outside of the configuration.
 
 ```shell
 # Using environment variables
