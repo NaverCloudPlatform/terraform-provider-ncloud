@@ -4,7 +4,7 @@ import (
 	"context"
 	"fmt"
 	"log"
-	"time"
+	"strings"
 
 	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/ncloud"
 	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/services/vloadbalancer"
@@ -20,6 +20,9 @@ const (
 	TargetGroupAttachmentBusyStateErrorCode            = "1200004"
 	TargetGroupAttachmentPleaseTryAgainErrorCode       = "1250000"
 	TargetGroupAttachmentInvalidTargetGroupNoErrorCode = "1205009"
+	targetGroupAttachmentIDSeparator                   = ":"
+	targetGroupAttachmentTargetNoSeparator             = ","
+	targetGroupAttachmentImportIDFormat                = "TARGET_GROUP_NO:TARGET_NO[,TARGET_NO...]"
 )
 
 func ResourceNcloudLbTargetGroupAttachment() *schema.Resource {
@@ -31,6 +34,9 @@ func ResourceNcloudLbTargetGroupAttachment() *schema.Resource {
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(conn.DefaultCreateTimeout),
 			Delete: schema.DefaultTimeout(conn.DefaultTimeout),
+		},
+		Importer: &schema.ResourceImporter{
+			StateContext: resourceNcloudLbTargetGroupAttachmentImport,
 		},
 		Schema: map[string]*schema.Schema{
 			"target_group_no": {
@@ -63,8 +69,25 @@ func resourceNcloudLbTargetGroupAttachmentCreate(ctx context.Context, d *schema.
 		return diag.FromErr(err)
 	}
 
-	d.SetId(time.Now().UTC().String())
-	return nil
+	d.SetId(lbTargetGroupAttachmentID(d.Get("target_group_no").(string), ncloud.StringListValue(reqParams.TargetNoList)))
+	return resourceNcloudLbTargetGroupAttachmentRead(ctx, d, meta)
+}
+
+func resourceNcloudLbTargetGroupAttachmentImport(_ context.Context, d *schema.ResourceData, _ interface{}) ([]*schema.ResourceData, error) {
+	targetGroupNo, targetNoList, err := parseLbTargetGroupAttachmentID(d.Id())
+	if err != nil {
+		return nil, err
+	}
+
+	if err := d.Set("target_group_no", targetGroupNo); err != nil {
+		return nil, err
+	}
+	if err := d.Set("target_no_list", targetNoList); err != nil {
+		return nil, err
+	}
+	d.SetId(lbTargetGroupAttachmentID(targetGroupNo, targetNoList))
+
+	return []*schema.ResourceData{d}, nil
 }
 
 func resourceNcloudLbTargetGroupAttachmentRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
@@ -84,9 +107,13 @@ func resourceNcloudLbTargetGroupAttachmentRead(ctx context.Context, d *schema.Re
 	if targetNoList == nil {
 		log.Printf("[WARN] Target dose not exist, removing target attachment %s", d.Id())
 		d.SetId("")
+		return nil
 	}
 
-	d.Set("target_no_list", targetNoList)
+	if err := d.Set("target_no_list", targetNoList); err != nil {
+		return diag.FromErr(err)
+	}
+	d.SetId(lbTargetGroupAttachmentID(d.Get("target_group_no").(string), targetNoList))
 	return nil
 }
 
@@ -188,6 +215,34 @@ func GetVpcLoadBalancerTargetGroupAttachment(config *conn.ProviderConfig, target
 	}
 
 	return matchTargetNoList, nil
+}
+
+func lbTargetGroupAttachmentID(targetGroupNo string, targetNoList []string) string {
+	return fmt.Sprintf("%s%s%s", targetGroupNo, targetGroupAttachmentIDSeparator, strings.Join(targetNoList, targetGroupAttachmentTargetNoSeparator))
+}
+
+func parseLbTargetGroupAttachmentID(id string) (string, []string, error) {
+	idParts := strings.Split(id, targetGroupAttachmentIDSeparator)
+	if len(idParts) != 2 {
+		return "", nil, fmt.Errorf("unexpected format of ID (%q), expected %s", id, targetGroupAttachmentImportIDFormat)
+	}
+
+	targetGroupNo := strings.TrimSpace(idParts[0])
+	if targetGroupNo == "" || idParts[1] == "" {
+		return "", nil, fmt.Errorf("unexpected format of ID (%q), expected %s", id, targetGroupAttachmentImportIDFormat)
+	}
+
+	targetNoParts := strings.Split(idParts[1], targetGroupAttachmentTargetNoSeparator)
+	targetNoList := make([]string, 0, len(targetNoParts))
+	for _, targetNo := range targetNoParts {
+		trimmedTargetNo := strings.TrimSpace(targetNo)
+		if trimmedTargetNo == "" {
+			return "", nil, fmt.Errorf("unexpected format of ID (%q), target numbers must not be empty", id)
+		}
+		targetNoList = append(targetNoList, trimmedTargetNo)
+	}
+
+	return targetGroupNo, targetNoList, nil
 }
 
 func getMatchTargetNoListFromResponse(respTargetList []*vloadbalancer.Target, targetNoList []string) []string {
