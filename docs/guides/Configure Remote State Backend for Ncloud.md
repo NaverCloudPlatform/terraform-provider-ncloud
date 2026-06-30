@@ -38,8 +38,6 @@ terraform {
     key    = "remote-state/terraform.tfstate"
     # Set the region according to your location
     region = "KR"
-    access_key = var.access_key
-    secret_key = var.secret_key
 
     # To skip AWS authentication logic
     skip_region_validation      = true
@@ -65,6 +63,32 @@ provider "ncloud" {
   support_vpc = true
 }
 ```
+
+### Providing Credentials
+
+Backend blocks [cannot refer to named values](https://developer.hashicorp.com/terraform/language/backend/configuration#credentials-and-sensitive-data), so `access_key` and `secret_key` must be provided outside of the configuration.
+
+```shell
+# Using environment variables
+export AWS_ACCESS_KEY_ID="your-ncloud-access-key"
+export AWS_SECRET_ACCESS_KEY="your-ncloud-secret-key"
+terraform init
+```
+
+```shell
+# Using -backend-config flags
+terraform init -backend-config="access_key=your-ncloud-access-key" -backend-config="secret_key=your-ncloud-secret-key"
+```
+
+```shell
+# Using a backend config file
+# backend.hcl:
+#   access_key = "your-ncloud-access-key"
+#   secret_key = "your-ncloud-secret-key"
+terraform init -backend-config=backend.hcl
+```
+
+~> **NOTE** Do not commit credential files to version control.
 
 This configuration is similar to the [AWS backend state configuration with Amazon S3](https://developer.hashicorp.com/terraform/language/backend/s3), but you need to add the following options to skip AWS authentication logic:
 

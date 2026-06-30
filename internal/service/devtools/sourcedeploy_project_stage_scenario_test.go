@@ -516,7 +516,7 @@ func testAccCheckSourceDeployScenarioDestroy(s *terraform.State) error {
 	config := TestAccProvider.Meta().(*conn.ProviderConfig)
 
 	for _, rs := range s.RootModule().Resources {
-		log.Printf(rs.Type)
+		log.Printf("%s", rs.Type)
 		if rs.Type != "ncloud_sourcedeploy_project_stage_scenario" {
 			continue
 		}

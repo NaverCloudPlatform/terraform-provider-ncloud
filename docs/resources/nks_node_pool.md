@@ -131,7 +131,7 @@ The following arguments are supported:
 * `software_code` - (Optional) Server image code.
 * `server_role_id` - (Optional) SubAccount Server Role ID.
 * `autoscale`- (Optional) 
-  * `enable` - (Required) Auto scaling availability.
+  * `enabled` - (Required) Auto scaling availability.
   * `max` - (Required) Maximum number of nodes available for auto scaling.
   * `min` - (Required) Minimum number of nodes available for auto scaling.
 * `subnet_no` - (Deprecated) Subnet No.
