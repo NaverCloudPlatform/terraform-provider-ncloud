@@ -37,11 +37,6 @@ const (
 	BlockStorageVolumeTypeCb2        = "CB2"
 	BlockStorageHypervisorTypeXen    = "XEN"
 	BlockStorageHypervisorTypeKvm    = "KVM"
-
-	// Base (root) volume minimums in GB on KVM g3. Linux/Unix floor 50GB,
-	// Windows floor 100GB. Unit is gigabytes to match CreateServer
-	BaseBlockStorageMinSizeLinuxGB   = 50
-	BaseBlockStorageMinSizeWindowsGB = 100
 )
 
 func ResourceNcloudBlockStorage() *schema.Resource {
