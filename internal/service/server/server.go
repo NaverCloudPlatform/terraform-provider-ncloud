@@ -24,6 +24,14 @@ import (
 	. "github.com/terraform-providers/terraform-provider-ncloud/internal/verify"
 )
 
+// base_block_storage_size floors by OS (GB). These are the NCloud minimums per
+// OS category; the exact per-image minimum can be larger and is enforced by the
+// API on create.
+const (
+	BaseBlockStorageMinSizeLinuxGB   = 10
+	BaseBlockStorageMinSizeWindowsGB = 30
+)
+
 func ResourceNcloudServer() *schema.Resource {
 	return &schema.Resource{
 		Create: resourceNcloudServerCreate,
@@ -198,13 +206,11 @@ func ResourceNcloudServer() *schema.Resource {
 				Computed: true,
 			},
 			"base_block_storage_size": {
-				Type:     schema.TypeInt,
-				Optional: true,
-				Computed: true,
-				ValidateDiagFunc: validation.ToDiagFunc(
-					// Minimum is enforced after the image OS lookup in createServerInstance.
-					validation.IntAtLeast(BaseBlockStorageMinSizeLinuxGB),
-				),
+				// Universal floor at plan; OS-specific (Windows) floor and exact per-image range checked in CustomizeDiff / on create.
+				Type:             schema.TypeInt,
+				Optional:         true,
+				Computed:         true,
+				ValidateDiagFunc: validation.ToDiagFunc(validation.IntAtLeast(BaseBlockStorageMinSizeLinuxGB)),
 			},
 			"platform_type": {
 				Type:     schema.TypeString,
@@ -405,24 +411,11 @@ func createServerInstance(d *schema.ResourceData, config *conn.ProviderConfig) (
 	}
 
 	if v, ok := d.GetOk("base_block_storage_size"); ok {
-		// verify the dynamic constraints that depend on the image: KVM-only, and minimum for Windows.
-		sizeGB := v.(int)
-		if imgNo, ok := d.GetOk("server_image_number"); ok {
-			meta, err := lookupServerImageMeta(config, imgNo.(string))
-			if err != nil {
-				return nil, err
-			}
-			if meta.Hypervisor != "KVM" {
-				return nil, fmt.Errorf("base_block_storage_size requires KVM hypervisor (image %s is %s)", imgNo, meta.Hypervisor)
-			}
-			if strings.EqualFold(meta.OsCategory, "WINDOWS") && sizeGB < BaseBlockStorageMinSizeWindowsGB {
-				return nil, fmt.Errorf("base_block_storage_size must be at least %dGB for Windows images (got %dGB)", BaseBlockStorageMinSizeWindowsGB, sizeGB)
-			}
-		}
-
+		// KVM-only and OS/size floors are validated at plan (validateBaseBlockStorageSizeDiff);
+		// the exact per-image minimum is enforced by NCloud on create.
 		reqParams.BlockStorageMappingList = []*vserver.BlockStorageMappingParameter{{
 			Order:            ncloud.Int32(0),
-			BlockStorageSize: ncloud.String(strconv.Itoa(sizeGB)),
+			BlockStorageSize: ncloud.String(strconv.Itoa(v.(int))),
 		}}
 	}
 
@@ -631,19 +624,11 @@ func updateServerProtectionTermination(d *schema.ResourceData, config *conn.Prov
 	return nil
 }
 
-// validateBaseBlockStorageSizeDiff rejects the statically-known incompatible
-// configurations at plan time. NCloud's BlockStorageMappingList for the base
-// volume is KVM-only; server_image_product_code is XEN/RHV, and
-// member_server_image_no is documented as XEN/RHV only. The deeper case —
-// server_image_number pointing at a XEN image — needs an SDK lookup and is
-// handled in createServerInstance. Also enforces NCloud's expand-only rule.
-//
-// Uses GetRawConfig (not GetOk) to read product_code / member_image_no so the
-// check only fires when the user explicitly set those fields. NCloud's API
-// echoes server_image_product_code back into state even for KVM servers
-// created via server_image_number, so GetOk would yield false positives on
-// re-plan after a successful KVM create.
-func validateBaseBlockStorageSizeDiff(_ context.Context, d *schema.ResourceDiff, _ interface{}) error {
+// validateBaseBlockStorageSizeDiff validates base_block_storage_size at plan time: XEN/RHV image
+// fields are rejected, the server_image_number image must be KVM, Windows images require >=30GB,
+// and the value is expand-only. The exact per-image minimum is enforced by NCloud on create.
+// Raw config is used for the product/member checks so they only fire on user-set fields.
+func validateBaseBlockStorageSizeDiff(_ context.Context, d *schema.ResourceDiff, meta interface{}) error {
 	rawNew, hasNew := d.GetOk("base_block_storage_size")
 	if !hasNew {
 		return nil
@@ -654,6 +639,20 @@ func validateBaseBlockStorageSizeDiff(_ context.Context, d *schema.ResourceDiff,
 	}
 	if userSetString(d, "member_server_image_no") {
 		return fmt.Errorf("base_block_storage_size requires KVM hypervisor (member server images are XEN/RHV)")
+	}
+
+	// Image-aware checks (KVM-only, Windows floor). Only fires when server_image_number is known.
+	if imgNo, ok := d.GetOk("server_image_number"); ok && meta != nil {
+		img, err := lookupServerImageMeta(meta.(*conn.ProviderConfig), imgNo.(string))
+		if err != nil {
+			return err
+		}
+		if img.Hypervisor != "KVM" {
+			return fmt.Errorf("base_block_storage_size requires KVM hypervisor (image %s is %s)", imgNo, img.Hypervisor)
+		}
+		if strings.EqualFold(img.OsCategory, "WINDOWS") && rawNew.(int) < BaseBlockStorageMinSizeWindowsGB {
+			return fmt.Errorf("base_block_storage_size must be at least %dGB for Windows images (got %dGB)", BaseBlockStorageMinSizeWindowsGB, rawNew.(int))
+		}
 	}
 
 	if d.Id() != "" && d.HasChange("base_block_storage_size") {
@@ -667,10 +666,7 @@ func validateBaseBlockStorageSizeDiff(_ context.Context, d *schema.ResourceDiff,
 	return nil
 }
 
-// userSetString reports whether the user explicitly set a non-empty value for
-// the named attribute in their .tf config — as opposed to the value being
-// populated by Computed/Read. Returns false when the attribute is missing,
-// null, unknown, or empty string.
+// userSetString reports whether the user explicitly set a non-empty value for name in config (not via Computed/Read).
 func userSetString(d *schema.ResourceDiff, name string) bool {
 	cfg := d.GetRawConfig()
 	if cfg.IsNull() || !cfg.IsKnown() {
@@ -684,12 +680,13 @@ func userSetString(d *schema.ResourceDiff, name string) bool {
 	return v.AsString() != ""
 }
 
+// selectBaseBlockStorage returns the base (root) volume; volume order is not guaranteed.
 func selectBaseBlockStorage(list []*BlockStorage) *BlockStorage {
 	for _, bs := range list {
 		if bs == nil || bs.BlockStorageType == nil {
 			continue
 		}
-		if *bs.BlockStorageType == "SVRBS" {
+		if *bs.BlockStorageType != "BASIC" {
 			continue
 		}
 		return bs
@@ -697,10 +694,7 @@ func selectBaseBlockStorage(list []*BlockStorage) *BlockStorage {
 	return nil
 }
 
-// updateBaseBlockStorageSize resizes the root volume of an existing KVM server
-// via ChangeBlockStorageInstance using a stop → mutate → start flow,
-// with shrink validation enforced at plan time
-// and live hypervisor checks ensuring safe standalone updates.
+// updateBaseBlockStorageSize resizes a KVM server's root volume via a stop → resize → start flow (shrink blocked at plan time).
 func updateBaseBlockStorageSize(d *schema.ResourceData, config *conn.ProviderConfig) error {
 	instance, err := GetServerInstance(config, d.Id())
 	if err != nil {
@@ -752,12 +746,7 @@ func updateBaseBlockStorageSize(d *schema.ResourceData, config *conn.ProviderCon
 	return startThenWaitServerInstance(config, d.Id())
 }
 
-// buildBaseBlockStorageInfo populates the actual base volume size from NCloud
-// (vserver.ServerInstance omits it). The block storage list may contain
-// multiple attached volumes with no guaranteed ordering, so the base volume
-// is selected explicitly via selectBaseBlockStorage. The SDK returns size in
-// bytes; we convert to GB to match the schema's unit. Called conditionally
-// from Read so users not using this feature pay no cost.
+// buildBaseBlockStorageInfo populates base volume size (bytes→GB) from the block storage list, which ServerInstance omits.
 func buildBaseBlockStorageInfo(config *conn.ProviderConfig, r *ServerInstance) error {
 	bsList, err := getVpcBasicBlockStorageList(config, *r.ServerInstanceNo)
 	if err != nil {
@@ -778,8 +767,7 @@ type serverImageMeta struct {
 	OsCategory string // "LINUX" | "WINDOWS"
 }
 
-// lookupServerImageMeta fetches hypervisor and OS category for a single image
-// number. The SDK call is ID-filtered, so the response is 0 or 1 entries.
+// lookupServerImageMeta returns the hypervisor and OS category for a single image (ID-filtered, 0 or 1 entries).
 func lookupServerImageMeta(config *conn.ProviderConfig, imageNo string) (serverImageMeta, error) {
 	resp, err := config.Client.Vserver.V2Api.GetServerImageList(&vserver.GetServerImageListRequest{
 		RegionCode:        &config.RegionCode,
