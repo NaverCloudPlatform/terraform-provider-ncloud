@@ -29,7 +29,10 @@ func ResourceNcloudSourceDeployStage() *schema.Resource {
 				if len(idParts) != 2 || idParts[0] == "" || idParts[1] == "" {
 					return nil, fmt.Errorf("unexpected format of ID (%q), expected PROJECT_ID:STAGE_ID", d.Id())
 				}
-				projectId, _ := strconv.ParseInt(idParts[0], 10, 32)
+				projectId, err := strconv.ParseInt(idParts[0], 10, 32)
+				if err != nil {
+					return nil, fmt.Errorf("invalid project ID %q: %w", idParts[0], err)
+				}
 				stageId := idParts[1]
 
 				d.Set("project_id", projectId)
