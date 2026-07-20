@@ -40,6 +40,7 @@ In addition to all arguments above, the following attributes are exported:
 * `server_spec_code` - Server spec code.
 * `storage_size` - Default storage size. 
 * `server_role_id` - SubAccount ServerRole ID.
+* `zone` - zone Code of the node pool.
 * `autoscale`
   * `enable` - Auto scaling availability.
   * `max` - Maximum number of nodes available for auto scaling.

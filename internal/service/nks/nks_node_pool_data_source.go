@@ -66,6 +66,10 @@ func DataSourceNcloudNKSNodePool() *schema.Resource {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
+			"zone": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
 			"fabric_cluster": {
 				Type:     schema.TypeList,
 				Computed: true,
@@ -212,6 +216,7 @@ func dataSourceNcloudNKSNodePoolRead(ctx context.Context, d *schema.ResourceData
 	d.Set("server_spec_code", nodePool.ServerSpecCode)
 	d.Set("storage_size", strconv.Itoa(int(ncloud.Int32Value(nodePool.StorageSize))))
 	d.Set("server_role_id", nodePool.ServerRoleId)
+	d.Set("zone", nodePool.ZoneCode)
 
 	var fabricCluster []map[string]interface{}
 	if nodePool.FabricCluster != nil {

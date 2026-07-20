@@ -640,3 +640,127 @@ func testAccCheckNKSClusterDestroy(s *terraform.State) error {
 
 	return nil
 }
+
+// TestAccResourceNcloudNKSNodePool_zone_KVM verifies that a node pool can be
+// created with an explicit zone. Per-node-pool zone selection is only supported
+// on the public site.
+func TestAccResourceNcloudNKSNodePool_zone_KVM(t *testing.T) {
+	validateAcctestEnvironment(t)
+
+	clusterName := GetTestClusterName()
+	resourceName := "ncloud_nks_node_pool.node_pool"
+
+	nksInfo, err := getNKSTestInfo("KVM")
+	if err != nil {
+		t.Error(err)
+	}
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:                 func() { TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: ProtoV6ProviderFactories,
+		CheckDestroy:             testAccCheckNKSClusterDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccResourceNcloudNKSNodePoolConfigZone(clusterName, TF_TEST_NKS_LOGIN_KEY, nksInfo, 1),
+				Check: resource.ComposeTestCheckFunc(
+					testAccResourceNcloudNKSNodePoolBasicCheck(resourceName, clusterName, nksInfo),
+					resource.TestCheckResourceAttr(resourceName, "zone", fmt.Sprintf("%s-1", nksInfo.Region)),
+				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+		},
+	})
+}
+
+func testAccResourceNcloudNKSNodePoolConfigZone(name string, loginKeyName string, nksInfo *NKSTestInfo, nodeCount int32) string {
+	var b bytes.Buffer
+	b.WriteString(fmt.Sprintf(`
+resource "ncloud_nks_cluster" "cluster" {
+  name                        = "%[1]s"
+  cluster_type                = "%[2]s"
+  k8s_version                 = "%[3]s"
+  login_key_name              = "%[4]s"
+  lb_private_subnet_no        = %[5]s
+  hypervisor_code             = "%[6]s"
+  kube_network_plugin         = "cilium"
+  subnet_no_list              = [
+    %[7]s,  %[10]s
+  ]
+  vpc_no                      = %[8]s
+  zone                        = "%[9]s-1"
+`, name, nksInfo.ClusterType, nksInfo.K8sVersion, loginKeyName, *nksInfo.PrivateLbSubnetList[0].SubnetNo, nksInfo.HypervisorCode, *nksInfo.PrivateSubnetList[0].SubnetNo, *nksInfo.Vpc.VpcNo, nksInfo.Region, *nksInfo.PrivateSubnetList[1].SubnetNo))
+
+	if nksInfo.needPublicLb {
+		b.WriteString(fmt.Sprintf(`
+  lb_public_subnet_no = %[1]s
+`, *nksInfo.PublicLbSubnetList[0].SubnetNo))
+	}
+
+	b.WriteString(`
+}
+`)
+
+	b.WriteString(fmt.Sprintf(`
+data "ncloud_nks_server_images" "image"{
+  hypervisor_code = ncloud_nks_cluster.cluster.hypervisor_code
+    filter {
+    name = "label"
+    values = ["%[6]s"]
+    regex = true
+  }
+
+}
+
+data "ncloud_nks_server_products" "product"{
+  software_code = data.ncloud_nks_server_images.image.images[0].value
+  zone = "%[1]s-1"
+  filter {
+    name = "product_type"
+    values = [ "STAND"]
+  }
+
+  filter {
+    name = "cpu_count"
+    values = [ "2"]
+  }
+
+  filter {
+    name = "memory_size"
+    values = [ "8GB" ]
+  }
+}
+
+resource "ncloud_nks_node_pool" "node_pool" {
+  cluster_uuid   = ncloud_nks_cluster.cluster.uuid
+  node_pool_name = "%[2]s"
+  node_count     = %[3]d
+  k8s_version    = "%[4]s"
+  subnet_no_list = [ %[5]s ]
+  zone           = "%[1]s-1"
+  autoscale {
+    enabled = false
+	min = 0
+    max = 0
+  }
+
+  software_code = data.ncloud_nks_server_images.image.images.0.value
+`, nksInfo.Region, name, nodeCount, nksInfo.K8sVersion, *nksInfo.PrivateSubnetList[0].SubnetNo, nksInfo.UbuntuImageVersion))
+	if nksInfo.HypervisorCode == "KVM" {
+		b.WriteString(`
+  server_spec_code = data.ncloud_nks_server_products.product.products.0.value
+  storage_size = 100
+}
+		`)
+
+	} else {
+		b.WriteString(`
+  product_code = data.ncloud_nks_server_products.product.products.0.value
+}
+		`)
+	}
+	return b.String()
+}
