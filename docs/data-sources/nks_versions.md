@@ -25,9 +25,12 @@ data "ncloud_nks_versions" "v1_22" {
 
 ## Argument Reference
 
+~> **Note** The `regional_support` argument (multi-zone / Regional clusters) is only supported on the `public` site. It is not supported on the `fin` and `gov` sites.
+
 The following arguments are supported:
 
 * `hypervisor_code` - (Optional) Hypervisor code. (Default `XEN`)
+* `regional_support` - (Optional) Whether to filter versions by multi-zone (Regional) cluster support. Set `true` to return only versions that support Regional clusters, or `false` to return only versions that do not. When omitted, all versions are returned. Multi-zone (Regional) clusters are only supported on the `public` site, and are not supported on the `fin` and `gov` sites.
 * `filter` - (Optional) Custom filter block as described below.
   * `name` - (Required) The name of the field to filter by.
   * `values` - (Required) Set of values that are accepted for the given field.
