@@ -155,9 +155,9 @@ func (d *serverImageNumbersDataSource) Read(ctx context.Context, req datasource.
 	}
 
 	reqParams := &vserver.GetServerImageListRequest{
-		RegionCode:         &d.config.RegionCode,
-		ServerImageName:    data.ServerImageName.ValueStringPointer(),
-		HypervisorCodeList: []*string{data.HypervisorType.ValueStringPointer()},
+		RegionCode:             &d.config.RegionCode,
+		ServerImageName:        data.ServerImageName.ValueStringPointer(),
+		HypervisorTypeCodeList: []*string{data.HypervisorType.ValueStringPointer()},
 	}
 	tflog.Info(ctx, "GetServerImageListRequest reqParams="+common.MarshalUncheckedString(reqParams))
 
