@@ -44,6 +44,7 @@ In addition to all arguments above, the following attributes are exported:
   * `KVM`
     * 250 ea : `SVR.VNKS.STAND.C004.M016.G003`
 * `login_key_name` - Login key name.
+* `regional` - Whether the cluster is a multi-zone (Regional) cluster.
 * `zone` - zone Code.
 * `vpc_no` - VPC No.
 * `log` 

@@ -728,3 +728,129 @@ func getNKSTestInfo(hypervisor string) (*NKSTestInfo, error) {
 	return nksInfo, nil
 
 }
+
+// TestAccResourceNcloudNKSCluster_regional_KVM verifies creation of a multi-zone
+// (Regional) cluster: regional = true with no zone on the cluster, using a
+// regional-supported Kubernetes version, plus a node pool pinned to a zone.
+// Regional clusters are only supported on the public site.
+func TestAccResourceNcloudNKSCluster_regional_KVM(t *testing.T) {
+	validateAcctestEnvironment(t)
+
+	name := GetTestClusterName()
+	resourceName := "ncloud_nks_cluster.cluster"
+
+	nksInfo, err := getNKSTestInfo("KVM")
+	if err != nil {
+		t.Error(err)
+	}
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:                 func() { TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: ProtoV6ProviderFactories,
+		CheckDestroy:             testAccCheckNKSClusterDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccResourceNcloudNKSClusterRegionalConfig(name, nksInfo),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckNKSClusterExists(resourceName, &vnks.Cluster{}),
+					resource.TestCheckResourceAttr(resourceName, "name", name),
+					resource.TestCheckResourceAttr(resourceName, "regional", "true"),
+					resource.TestMatchResourceAttr(resourceName, "k8s_version", regexp.MustCompile(`.+`)),
+					resource.TestCheckResourceAttr("ncloud_nks_node_pool.node_pool", "zone", fmt.Sprintf("%s-1", nksInfo.Region)),
+				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+		},
+	})
+}
+
+func testAccResourceNcloudNKSClusterRegionalConfig(name string, nksInfo *NKSTestInfo) string {
+	// A Regional cluster requires worker subnets spanning multiple zones, so
+	// create private subnets in zone-1 and zone-2 within the existing VPC.
+	return fmt.Sprintf(`
+resource "ncloud_login_key" "loginkey" {
+  key_name = "%[1]s-key"
+}
+
+resource "ncloud_subnet" "worker_a" {
+  vpc_no         = %[3]s
+  subnet         = "10.0.30.0/24"
+  zone           = "%[8]s-1"
+  network_acl_no = %[4]s
+  subnet_type    = "PRIVATE"
+  usage_type     = "GEN"
+}
+
+resource "ncloud_subnet" "worker_b" {
+  vpc_no         = %[3]s
+  subnet         = "10.0.31.0/24"
+  zone           = "%[8]s-2"
+  network_acl_no = %[4]s
+  subnet_type    = "PRIVATE"
+  usage_type     = "GEN"
+}
+
+data "ncloud_nks_versions" "regional" {
+  hypervisor_code  = "%[6]s"
+  regional_support = true
+}
+
+resource "ncloud_nks_cluster" "cluster" {
+  name                 = "%[1]s"
+  cluster_type         = "%[2]s"
+  k8s_version          = data.ncloud_nks_versions.regional.versions.0.value
+  login_key_name       = ncloud_login_key.loginkey.key_name
+  lb_private_subnet_no = %[5]s
+  hypervisor_code      = "%[6]s"
+  kube_network_plugin  = "cilium"
+  subnet_no_list       = [ ncloud_subnet.worker_a.id, ncloud_subnet.worker_b.id ]
+  vpc_no               = %[3]s
+  regional             = true
+}
+
+data "ncloud_nks_server_images" "image" {
+  hypervisor_code = ncloud_nks_cluster.cluster.hypervisor_code
+  filter {
+    name   = "label"
+    values = ["%[7]s"]
+    regex  = true
+  }
+}
+
+data "ncloud_nks_server_products" "product" {
+  software_code = data.ncloud_nks_server_images.image.images[0].value
+  zone          = "%[8]s-1"
+  filter {
+    name   = "product_type"
+    values = ["STAND"]
+  }
+  filter {
+    name   = "cpu_count"
+    values = ["2"]
+  }
+  filter {
+    name   = "memory_size"
+    values = ["8GB"]
+  }
+}
+
+resource "ncloud_nks_node_pool" "node_pool" {
+  cluster_uuid   = ncloud_nks_cluster.cluster.uuid
+  node_pool_name = "%[1]s"
+  node_count     = 1
+  subnet_no_list = [ ncloud_subnet.worker_a.id ]
+  zone           = "%[8]s-1"
+
+  software_code    = data.ncloud_nks_server_images.image.images.0.value
+  server_spec_code = data.ncloud_nks_server_products.product.products.0.value
+  storage_size     = 100
+  lifecycle {
+    ignore_changes = [software_code, server_spec_code]
+  }
+}
+`, name, nksInfo.ClusterType, *nksInfo.Vpc.VpcNo, *nksInfo.DefaultAcl.NetworkAclNo, *nksInfo.PrivateLbSubnetList[0].SubnetNo, nksInfo.HypervisorCode, nksInfo.UbuntuImageVersion, nksInfo.Region)
+}
