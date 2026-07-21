@@ -21,9 +21,7 @@ type CreateSubAccountRequest struct {
 	Email                string           `json:"email,omitempty"`
 	IsMfaMandatory       bool             `json:"isMfaMandatory,omitempty"`
 	Memo                 string           `json:"memo,omitempty"`
-	UseConsolePermitIp   bool             `json:"useConsolePermitIp,omitempty"`
 	ConsolePermitIps     []string         `json:"consolePermitIps,omitempty"`
-	UseApiAllowSource    bool             `json:"useApiAllowSource,omitempty"`
 	ApiAllowSources      []ApiAllowSource `json:"apiAllowSources,omitempty"`
 }
 
@@ -33,20 +31,20 @@ type CreateSubAccountResponse struct {
 	GeneratedPassword string `json:"generatedPassword"`
 }
 
-// UpdateSubAccountRequest intentionally sends every mutable field on each PUT:
-// the Edit Sub Account API treats the request as a full replacement, so
-// omitting a field the user removed from configuration would leave the old
-// value behind and show up as permanent drift.
+// UpdateSubAccountRequest fields are all sent on each PUT: the Edit Sub
+// Account API treats the request as a full replacement, so omitting a field
+// would leave the old server-side value behind as invisible drift.
+// The useConsolePermitIp/useApiAllowSource wire flags are derived from the
+// slices by the client and are not part of this struct.
 type UpdateSubAccountRequest struct {
 	Name                string           `json:"name"`
 	Email               string           `json:"email"`
 	Memo                string           `json:"memo"`
-	IsMfaMandatory      *bool            `json:"isMfaMandatory,omitempty"`
+	Active              bool             `json:"active"`
+	IsMfaMandatory      bool             `json:"isMfaMandatory"`
 	CanConsoleAccess    bool             `json:"canConsoleAccess"`
 	CanAPIGatewayAccess bool             `json:"canAPIGatewayAccess"`
-	UseConsolePermitIp  bool             `json:"useConsolePermitIp"`
 	ConsolePermitIps    []string         `json:"consolePermitIps"`
-	UseApiAllowSource   bool             `json:"useApiAllowSource"`
 	ApiAllowSources     []ApiAllowSource `json:"apiAllowSources"`
 }
 
@@ -68,9 +66,30 @@ type SubAccountDetail struct {
 	Nrn                 string           `json:"nrn"`
 }
 
+// createSubAccountPayload adds the wire flags the API pairs with the
+// allowlist slices; they are derived here so the flag/list invariant
+// (flag true iff list non-empty) holds for every caller.
+type createSubAccountPayload struct {
+	*CreateSubAccountRequest
+	UseConsolePermitIp bool `json:"useConsolePermitIp,omitempty"`
+	UseApiAllowSource  bool `json:"useApiAllowSource,omitempty"`
+}
+
+type updateSubAccountPayload struct {
+	*UpdateSubAccountRequest
+	UseConsolePermitIp bool `json:"useConsolePermitIp"`
+	UseApiAllowSource  bool `json:"useApiAllowSource"`
+}
+
 func (c *APIClient) CreateSubAccount(ctx context.Context, req *CreateSubAccountRequest) (*CreateSubAccountResponse, error) {
+	payload := &createSubAccountPayload{
+		CreateSubAccountRequest: req,
+		UseConsolePermitIp:      len(req.ConsolePermitIps) > 0,
+		UseApiAllowSource:       len(req.ApiAllowSources) > 0,
+	}
+
 	var resp CreateSubAccountResponse
-	if err := c.do(ctx, http.MethodPost, "/api/v1/sub-accounts", req, &resp); err != nil {
+	if err := c.do(ctx, http.MethodPost, "/api/v1/sub-accounts", payload, &resp); err != nil {
 		return nil, err
 	}
 	return &resp, nil
@@ -85,7 +104,23 @@ func (c *APIClient) GetSubAccount(ctx context.Context, subAccountId string) (*Su
 }
 
 func (c *APIClient) UpdateSubAccount(ctx context.Context, subAccountId string, req *UpdateSubAccountRequest) error {
-	return c.do(ctx, http.MethodPut, "/api/v1/sub-accounts/"+url.PathEscape(subAccountId), req, nil)
+	// The PUT is a full replacement: nil slices must become [] so removed
+	// allowlists are cleared server-side instead of marshaling to null.
+	normalized := *req
+	if normalized.ConsolePermitIps == nil {
+		normalized.ConsolePermitIps = []string{}
+	}
+	if normalized.ApiAllowSources == nil {
+		normalized.ApiAllowSources = []ApiAllowSource{}
+	}
+
+	payload := &updateSubAccountPayload{
+		UpdateSubAccountRequest: &normalized,
+		UseConsolePermitIp:      len(normalized.ConsolePermitIps) > 0,
+		UseApiAllowSource:       len(normalized.ApiAllowSources) > 0,
+	}
+
+	return c.do(ctx, http.MethodPut, "/api/v1/sub-accounts/"+url.PathEscape(subAccountId), payload, nil)
 }
 
 func (c *APIClient) DeleteSubAccount(ctx context.Context, subAccountId string) error {

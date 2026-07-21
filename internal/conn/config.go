@@ -115,7 +115,7 @@ func (c *Config) Client(site, endpoint string) (*NcloudAPIClient, error) {
 		Vhadoop:         vhadoop.NewAPIClient(vhadoop.NewConfiguration(apiKey)),
 		Vredis:          vredis.NewAPIClient(vredis.NewConfiguration(apiKey)),
 		ObjectStorage:   NewS3Client(c.Region, apiKey, site, endpoint),
-		SubAccount:      subaccountsdk.NewAPIClient(apiKey, site),
+		SubAccount:      subaccountsdk.NewAPIClient(apiKey, genSubAccountEndpoint(site)),
 	}, nil
 }
 

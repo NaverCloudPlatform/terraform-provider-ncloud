@@ -3,13 +3,17 @@ package subaccount
 import (
 	"context"
 	"fmt"
+	"time"
 
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/types"
+	"github.com/hashicorp/terraform-plugin-log/tflog"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
 
+	"github.com/terraform-providers/terraform-provider-ncloud/internal/common"
 	"github.com/terraform-providers/terraform-provider-ncloud/internal/conn"
 	"github.com/terraform-providers/terraform-provider-ncloud/internal/framework"
 	subaccountsdk "github.com/terraform-providers/terraform-provider-ncloud/internal/sdk/subaccount"
@@ -68,7 +72,10 @@ func (r *subAccountAccessKeyResource) Schema(_ context.Context, _ resource.Schem
 				Description: "Secret key. Returned by the API only at creation time and stored in state.",
 			},
 			"create_time": schema.StringAttribute{
-				Computed:    true,
+				Computed: true,
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.UseStateForUnknown(),
+				},
 				Description: "Creation time of the access key.",
 			},
 		},
@@ -99,8 +106,15 @@ func (r *subAccountAccessKeyResource) Create(ctx context.Context, req resource.C
 		return
 	}
 
-	key, err := r.config.Client.SubAccount.CreateAccessKey(ctx, plan.SubAccountId.ValueString())
+	subAccountId := plan.SubAccountId.ValueString()
+
+	tflog.Info(ctx, "CreateSubAccountAccessKey", map[string]any{
+		"subAccountId": subAccountId,
+	})
+
+	key, err := r.config.Client.SubAccount.CreateAccessKey(ctx, subAccountId)
 	if err != nil {
+		common.LogErrorResponse("CreateSubAccountAccessKey", err, subAccountId)
 		resp.Diagnostics.AddError("Error Creating SubAccount Access Key", err.Error())
 		return
 	}
@@ -110,7 +124,17 @@ func (r *subAccountAccessKeyResource) Create(ctx context.Context, req resource.C
 	plan.SecretKey = types.StringValue(key.KeySecret)
 	plan.CreateTime = types.StringValue(key.CreateTime)
 
+	// Persist state before the visibility wait: the key already exists and
+	// its secret can never be retrieved again, so a transient failure below
+	// must not lose it.
 	resp.Diagnostics.Append(resp.State.Set(ctx, plan)...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
+	if err := waitForAccessKey(ctx, r.config, subAccountId, key.AccessKey); err != nil {
+		resp.Diagnostics.AddError("Error Creating SubAccount Access Key", err.Error())
+	}
 }
 
 func (r *subAccountAccessKeyResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
@@ -126,6 +150,7 @@ func (r *subAccountAccessKeyResource) Read(ctx context.Context, req resource.Rea
 			resp.State.RemoveResource(ctx)
 			return
 		}
+		common.LogErrorResponse("ListSubAccountAccessKeys", err, state.SubAccountId.ValueString())
 		resp.Diagnostics.AddError("Error Reading SubAccount Access Key", err.Error())
 		return
 	}
@@ -154,8 +179,59 @@ func (r *subAccountAccessKeyResource) Delete(ctx context.Context, req resource.D
 		return
 	}
 
+	tflog.Info(ctx, "DeleteSubAccountAccessKey", map[string]any{
+		"subAccountId": state.SubAccountId.ValueString(),
+		"accessKey":    state.ID.ValueString(),
+	})
+
 	err := r.config.Client.SubAccount.DeleteAccessKey(ctx, state.SubAccountId.ValueString(), state.ID.ValueString())
 	if err != nil && !subaccountsdk.IsNotFound(err) {
+		common.LogErrorResponse("DeleteSubAccountAccessKey", err, state.ID.ValueString())
 		resp.Diagnostics.AddError("Error Deleting SubAccount Access Key", err.Error())
 	}
+}
+
+func waitForAccessKey(ctx context.Context, config *conn.ProviderConfig, subAccountId, accessKey string) error {
+	listContains := func() (bool, error) {
+		keys, err := config.Client.SubAccount.ListAccessKeys(ctx, subAccountId)
+		if err != nil {
+			return false, err
+		}
+		for _, key := range keys {
+			if key.AccessKey == accessKey {
+				return true, nil
+			}
+		}
+		return false, nil
+	}
+
+	// Issuance is normally synchronous; poll only when the first read
+	// misses the key (eventual consistency).
+	if found, err := listContains(); err != nil || found {
+		return err
+	}
+
+	stateConf := &retry.StateChangeConf{
+		Pending: []string{""},
+		Target:  []string{"OK"},
+		Refresh: func() (any, string, error) {
+			found, err := listContains()
+			if err != nil {
+				return 0, "", err
+			}
+			if found {
+				return 0, "OK", nil
+			}
+			return 0, "", nil
+		},
+		Timeout:    conn.DefaultTimeout,
+		Delay:      2 * time.Second,
+		MinTimeout: 3 * time.Second,
+	}
+
+	if _, err := stateConf.WaitForStateContext(ctx); err != nil {
+		return fmt.Errorf("error waiting for SubAccount access key (%s) to become available: %w", accessKey, err)
+	}
+
+	return nil
 }

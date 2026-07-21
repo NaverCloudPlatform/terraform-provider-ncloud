@@ -59,12 +59,12 @@ func TestAccResourceNcloudSubAccountAccessKey_basic(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: ProtoV6ProviderFactories,
-		CheckDestroy:             testAccCheckSubAccountDestroy,
+		CheckDestroy:             testAccCheckSubAccountAccessKeyDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccSubAccountAccessKeyConfig(loginId),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttrSet(resourceName, "access_key"),
+					testAccCheckSubAccountAccessKeyExists(resourceName),
 					resource.TestCheckResourceAttrSet(resourceName, "secret_key"),
 					resource.TestCheckResourceAttrSet(resourceName, "create_time"),
 					resource.TestCheckResourceAttrPair(resourceName, "sub_account_id", "ncloud_subaccount.test", "id"),
@@ -91,6 +91,33 @@ func testAccCheckSubAccountExists(n string) resource.TestCheckFunc {
 	}
 }
 
+func testAccCheckSubAccountAccessKeyExists(n string) resource.TestCheckFunc {
+	return func(s *terraform.State) error {
+		rs, ok := s.RootModule().Resources[n]
+		if !ok {
+			return fmt.Errorf("not found: %s", n)
+		}
+
+		if rs.Primary.ID == "" {
+			return fmt.Errorf("no ID is set")
+		}
+
+		config := TestAccProvider.Meta().(*conn.ProviderConfig)
+		keys, err := config.Client.SubAccount.ListAccessKeys(context.Background(), rs.Primary.Attributes["sub_account_id"])
+		if err != nil {
+			return err
+		}
+
+		for _, key := range keys {
+			if key.AccessKey == rs.Primary.ID {
+				return nil
+			}
+		}
+
+		return fmt.Errorf("SubAccount access key (%s) not found via API", rs.Primary.ID)
+	}
+}
+
 func testAccCheckSubAccountDestroy(s *terraform.State) error {
 	config := TestAccProvider.Meta().(*conn.ProviderConfig)
 
@@ -109,6 +136,33 @@ func testAccCheckSubAccountDestroy(s *terraform.State) error {
 	}
 
 	return nil
+}
+
+func testAccCheckSubAccountAccessKeyDestroy(s *terraform.State) error {
+	config := TestAccProvider.Meta().(*conn.ProviderConfig)
+
+	for _, rs := range s.RootModule().Resources {
+		if rs.Type != "ncloud_subaccount_access_key" {
+			continue
+		}
+
+		keys, err := config.Client.SubAccount.ListAccessKeys(context.Background(), rs.Primary.Attributes["sub_account_id"])
+		if err != nil {
+			// The parent sub account being gone implies the key is gone too.
+			if subaccountsdk.IsNotFound(err) {
+				continue
+			}
+			return err
+		}
+
+		for _, key := range keys {
+			if key.AccessKey == rs.Primary.ID {
+				return fmt.Errorf("SubAccount access key (%s) still exists", rs.Primary.ID)
+			}
+		}
+	}
+
+	return testAccCheckSubAccountDestroy(s)
 }
 
 func testAccSubAccountConfig(loginId, name string) string {

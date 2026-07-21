@@ -33,7 +33,7 @@ resource "ncloud_subaccount" "ci" {
 
 The following arguments are supported:
 
-* `login_id` - (Required) Login ID of the sub account. Changing this creates a new sub account.
+* `login_id` - (Required) Login ID of the sub account. 3-60 characters; must start with a letter and may contain letters, digits, `.`, `@`, `-` and `_`. Changing this creates a new sub account.
 * `name` - (Required) Name of the sub account.
 * `email` - (Optional) Email address of the sub account.
 * `memo` - (Optional) Memo for the sub account.
@@ -43,7 +43,8 @@ The following arguments are supported:
   a password — reset it from the console instead.
 * `can_api_gateway_access` - (Optional) Whether the sub account can access APIs through API Gateway.
   Required to issue access keys. Default: `true`.
-* `is_mfa_mandatory` - (Optional) Whether two-factor authentication is mandatory for console login.
+* `is_mfa_mandatory` - (Optional) Whether two-factor authentication is mandatory for console login. Default: `false`.
+  This value cannot be read back from the API; after importing a sub account, set it explicitly to match the actual configuration.
 * `console_permit_ips` - (Optional) List of IP addresses allowed to access the console. Omit to allow all.
 * `api_allow_sources` - (Optional) Sources allowed to call APIs with this sub account's access keys. Omit to allow all.
   * `type` - (Required) Type of the source. Valid values: `IP`, `VPC`, `VPC_SERVER`.

@@ -3,6 +3,7 @@ package subaccount
 import (
 	"context"
 	"fmt"
+	"regexp"
 	"time"
 
 	"github.com/hashicorp/terraform-plugin-framework-validators/listvalidator"
@@ -17,8 +18,10 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
+	"github.com/hashicorp/terraform-plugin-log/tflog"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
 
+	"github.com/terraform-providers/terraform-provider-ncloud/internal/common"
 	"github.com/terraform-providers/terraform-provider-ncloud/internal/conn"
 	"github.com/terraform-providers/terraform-provider-ncloud/internal/framework"
 	subaccountsdk "github.com/terraform-providers/terraform-provider-ncloud/internal/sdk/subaccount"
@@ -79,6 +82,13 @@ func (r *subAccountResource) Schema(_ context.Context, _ resource.SchemaRequest,
 				PlanModifiers: []planmodifier.String{
 					stringplanmodifier.RequiresReplace(),
 				},
+				Validators: []validator.String{
+					stringvalidator.LengthBetween(3, 60),
+					stringvalidator.RegexMatches(
+						regexp.MustCompile(`^[A-Za-z][A-Za-z0-9.@_-]*$`),
+						"must start with a letter and contain only letters, digits, '.', '@', '-' and '_'",
+					),
+				},
 				Description: "Login ID of the sub account. Changing this creates a new sub account.",
 			},
 			"name": schema.StringAttribute{
@@ -86,11 +96,19 @@ func (r *subAccountResource) Schema(_ context.Context, _ resource.SchemaRequest,
 				Description: "Name of the sub account.",
 			},
 			"email": schema.StringAttribute{
-				Optional:    true,
+				Optional: true,
+				Computed: true,
+				Validators: []validator.String{
+					stringvalidator.LengthAtLeast(1),
+				},
 				Description: "Email address of the sub account.",
 			},
 			"memo": schema.StringAttribute{
-				Optional:    true,
+				Optional: true,
+				Computed: true,
+				Validators: []validator.String{
+					stringvalidator.LengthAtLeast(1),
+				},
 				Description: "Memo for the sub account.",
 			},
 			"can_console_access": schema.BoolAttribute{
@@ -108,6 +126,8 @@ func (r *subAccountResource) Schema(_ context.Context, _ resource.SchemaRequest,
 			},
 			"is_mfa_mandatory": schema.BoolAttribute{
 				Optional:    true,
+				Computed:    true,
+				Default:     booldefault.StaticBool(false),
 				Description: "Whether two-factor authentication is mandatory for console login.",
 			},
 			"console_permit_ips": schema.ListAttribute{
@@ -121,6 +141,9 @@ func (r *subAccountResource) Schema(_ context.Context, _ resource.SchemaRequest,
 			"generated_password": schema.StringAttribute{
 				Computed:  true,
 				Sensitive: true,
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.UseStateForUnknown(),
+				},
 				Description: "Initial console password generated when `can_console_access` is enabled at creation. " +
 					"Available only at creation time.",
 			},
@@ -129,7 +152,10 @@ func (r *subAccountResource) Schema(_ context.Context, _ resource.SchemaRequest,
 				Description: "Number of the sub account.",
 			},
 			"nrn": schema.StringAttribute{
-				Computed:    true,
+				Computed: true,
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.UseStateForUnknown(),
+				},
 				Description: "NCP Resource Name of the sub account.",
 			},
 			"active": schema.BoolAttribute{
@@ -137,7 +163,10 @@ func (r *subAccountResource) Schema(_ context.Context, _ resource.SchemaRequest,
 				Description: "Whether the sub account is active.",
 			},
 			"create_time": schema.StringAttribute{
-				Computed:    true,
+				Computed: true,
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.UseStateForUnknown(),
+				},
 				Description: "Creation time of the sub account.",
 			},
 			"api_allow_sources": schema.ListNestedAttribute{
@@ -208,9 +237,7 @@ func (r *subAccountResource) Create(ctx context.Context, req resource.CreateRequ
 		CanConsoleAccess:    plan.CanConsoleAccess.ValueBool(),
 		CanAPIGatewayAccess: plan.CanAPIGatewayAccess.ValueBool(),
 		IsMfaMandatory:      plan.IsMfaMandatory.ValueBool(),
-		UseConsolePermitIp:  len(consolePermitIps) > 0,
 		ConsolePermitIps:    consolePermitIps,
-		UseApiAllowSource:   len(apiAllowSources) > 0,
 		ApiAllowSources:     apiAllowSources,
 	}
 
@@ -222,15 +249,52 @@ func (r *subAccountResource) Create(ctx context.Context, req resource.CreateRequ
 		createReq.NeedPasswordReset = true
 	}
 
+	tflog.Info(ctx, "CreateSubAccount", map[string]any{
+		"reqParams": common.MarshalUncheckedString(createReq),
+	})
+
 	createResp, err := r.config.Client.SubAccount.CreateSubAccount(ctx, createReq)
 	if err != nil {
+		common.LogErrorResponse("CreateSubAccount", err, createReq.LoginId)
 		resp.Diagnostics.AddError("Error Creating SubAccount", err.Error())
 		return
 	}
+	if createResp.Id == "" {
+		resp.Diagnostics.AddError(
+			"Error Creating SubAccount",
+			fmt.Sprintf("API reported success but returned no sub account id: %s", common.MarshalUncheckedString(createResp)),
+		)
+		return
+	}
 
+	tflog.Info(ctx, "CreateSubAccount response", map[string]any{
+		"subAccountId": createResp.Id,
+	})
+
+	plan.ID = types.StringValue(createResp.Id)
 	plan.GeneratedPassword = types.StringNull()
 	if createResp.GeneratedPassword != "" {
 		plan.GeneratedPassword = types.StringValue(createResp.GeneratedPassword)
+	}
+
+	// Persist minimal state now: the account already exists remotely, so a
+	// failure below must not leave it orphaned outside of state (the
+	// generated password can never be recovered). Unknown computed values
+	// are nulled here and filled in on the successful path.
+	if plan.Email.IsUnknown() {
+		plan.Email = types.StringNull()
+	}
+	if plan.Memo.IsUnknown() {
+		plan.Memo = types.StringNull()
+	}
+	plan.SubAccountNo = types.Int64Null()
+	plan.Nrn = types.StringNull()
+	plan.Active = types.BoolNull()
+	plan.CreateTime = types.StringNull()
+
+	resp.Diagnostics.Append(resp.State.Set(ctx, plan)...)
+	if resp.Diagnostics.HasError() {
+		return
 	}
 
 	detail, err := waitForSubAccount(ctx, r.config, createResp.Id)
@@ -239,10 +303,7 @@ func (r *subAccountResource) Create(ctx context.Context, req resource.CreateRequ
 		return
 	}
 
-	resp.Diagnostics.Append(plan.refreshFromOutput(ctx, detail)...)
-	if resp.Diagnostics.HasError() {
-		return
-	}
+	plan.refreshComputedFromOutput(detail)
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, plan)...)
 }
@@ -260,6 +321,7 @@ func (r *subAccountResource) Read(ctx context.Context, req resource.ReadRequest,
 			resp.State.RemoveResource(ctx)
 			return
 		}
+		common.LogErrorResponse("GetSubAccount", err, state.ID.ValueString())
 		resp.Diagnostics.AddError("Error Reading SubAccount", err.Error())
 		return
 	}
@@ -287,44 +349,41 @@ func (r *subAccountResource) Update(ctx context.Context, req resource.UpdateRequ
 	}
 
 	updateReq := &subaccountsdk.UpdateSubAccountRequest{
-		Name:                plan.Name.ValueString(),
-		Email:               plan.Email.ValueString(),
-		Memo:                plan.Memo.ValueString(),
+		Name:  plan.Name.ValueString(),
+		Email: plan.Email.ValueString(),
+		Memo:  plan.Memo.ValueString(),
+		// active is not user-configurable; echo the last known server value
+		// so the full-replacement PUT does not re-enable an account that an
+		// administrator suspended out of band.
+		Active:              state.Active.ValueBool(),
+		IsMfaMandatory:      plan.IsMfaMandatory.ValueBool(),
 		CanConsoleAccess:    plan.CanConsoleAccess.ValueBool(),
 		CanAPIGatewayAccess: plan.CanAPIGatewayAccess.ValueBool(),
-		UseConsolePermitIp:  len(consolePermitIps) > 0,
 		ConsolePermitIps:    consolePermitIps,
-		UseApiAllowSource:   len(apiAllowSources) > 0,
 		ApiAllowSources:     apiAllowSources,
-	}
-	if !plan.IsMfaMandatory.IsNull() {
-		updateReq.IsMfaMandatory = plan.IsMfaMandatory.ValueBoolPointer()
-	}
-	if updateReq.ConsolePermitIps == nil {
-		updateReq.ConsolePermitIps = []string{}
-	}
-	if updateReq.ApiAllowSources == nil {
-		updateReq.ApiAllowSources = []subaccountsdk.ApiAllowSource{}
 	}
 
 	id := state.ID.ValueString()
+
+	tflog.Info(ctx, "UpdateSubAccount", map[string]any{
+		"subAccountId": id,
+		"reqParams":    common.MarshalUncheckedString(updateReq),
+	})
+
 	if err := r.config.Client.SubAccount.UpdateSubAccount(ctx, id, updateReq); err != nil {
+		common.LogErrorResponse("UpdateSubAccount", err, id)
 		resp.Diagnostics.AddError("Error Updating SubAccount", err.Error())
 		return
 	}
 
 	detail, err := r.config.Client.SubAccount.GetSubAccount(ctx, id)
 	if err != nil {
+		common.LogErrorResponse("GetSubAccount", err, id)
 		resp.Diagnostics.AddError("Error Updating SubAccount", err.Error())
 		return
 	}
 
-	plan.GeneratedPassword = state.GeneratedPassword
-
-	resp.Diagnostics.Append(plan.refreshFromOutput(ctx, detail)...)
-	if resp.Diagnostics.HasError() {
-		return
-	}
+	plan.refreshComputedFromOutput(detail)
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, plan)...)
 }
@@ -336,7 +395,22 @@ func (r *subAccountResource) Delete(ctx context.Context, req resource.DeleteRequ
 		return
 	}
 
-	if err := r.config.Client.SubAccount.DeleteSubAccount(ctx, state.ID.ValueString()); err != nil && !subaccountsdk.IsNotFound(err) {
+	id := state.ID.ValueString()
+
+	tflog.Info(ctx, "DeleteSubAccount", map[string]any{
+		"subAccountId": id,
+	})
+
+	if err := r.config.Client.SubAccount.DeleteSubAccount(ctx, id); err != nil {
+		if subaccountsdk.IsNotFound(err) {
+			return
+		}
+		common.LogErrorResponse("DeleteSubAccount", err, id)
+		resp.Diagnostics.AddError("Error Deleting SubAccount", err.Error())
+		return
+	}
+
+	if err := waitForSubAccountDeletion(ctx, r.config, id); err != nil {
 		resp.Diagnostics.AddError("Error Deleting SubAccount", err.Error())
 	}
 }
@@ -365,7 +439,15 @@ func expandAccessSources(ctx context.Context, plan subAccountResourceModel) ([]s
 }
 
 func waitForSubAccount(ctx context.Context, config *conn.ProviderConfig, id string) (*subaccountsdk.SubAccountDetail, error) {
-	var detail *subaccountsdk.SubAccountDetail
+	// Creation is normally synchronous; poll only when the first read
+	// misses the account (eventual consistency).
+	detail, err := config.Client.SubAccount.GetSubAccount(ctx, id)
+	if err == nil {
+		return detail, nil
+	}
+	if !subaccountsdk.IsNotFound(err) {
+		return nil, fmt.Errorf("error reading created SubAccount (%s): %w", id, err)
+	}
 
 	stateConf := &retry.StateChangeConf{
 		Pending: []string{""},
@@ -388,10 +470,55 @@ func waitForSubAccount(ctx context.Context, config *conn.ProviderConfig, id stri
 	}
 
 	if _, err := stateConf.WaitForStateContext(ctx); err != nil {
-		return nil, fmt.Errorf("error waiting for SubAccount (%s) to become available: %s", id, err)
+		return nil, fmt.Errorf("error waiting for SubAccount (%s) to become available: %w", id, err)
 	}
 
 	return detail, nil
+}
+
+func waitForSubAccountDeletion(ctx context.Context, config *conn.ProviderConfig, id string) error {
+	if _, err := config.Client.SubAccount.GetSubAccount(ctx, id); subaccountsdk.IsNotFound(err) {
+		return nil
+	}
+
+	stateConf := &retry.StateChangeConf{
+		Pending: []string{""},
+		Target:  []string{"OK"},
+		Refresh: func() (any, string, error) {
+			resp, err := config.Client.SubAccount.GetSubAccount(ctx, id)
+			if err != nil {
+				if subaccountsdk.IsNotFound(err) {
+					return 0, "OK", nil
+				}
+				return 0, "", err
+			}
+
+			return resp, "", nil
+		},
+		Timeout:    conn.DefaultTimeout,
+		Delay:      2 * time.Second,
+		MinTimeout: 3 * time.Second,
+	}
+
+	if _, err := stateConf.WaitForStateContext(ctx); err != nil {
+		return fmt.Errorf("error waiting for SubAccount (%s) to be deleted: %w", id, err)
+	}
+
+	return nil
+}
+
+// refreshComputedFromOutput fills only the purely computed attributes after
+// Create/Update. Config-driven attributes deliberately keep their planned
+// values: Terraform requires the applied state of a configured attribute to
+// exactly equal the plan, so echoing server-normalized values back (case,
+// ordering) would fail the apply. Read uses refreshFromOutput instead for
+// full drift detection.
+func (m *subAccountResourceModel) refreshComputedFromOutput(detail *subaccountsdk.SubAccountDetail) {
+	m.ID = types.StringValue(detail.SubAccountId)
+	m.SubAccountNo = types.Int64Value(detail.SubAccountNo)
+	m.Nrn = types.StringValue(detail.Nrn)
+	m.Active = types.BoolValue(detail.Active)
+	m.CreateTime = types.StringValue(detail.CreateTime)
 }
 
 // refreshFromOutput does not touch is_mfa_mandatory and generated_password:
@@ -400,25 +527,14 @@ func waitForSubAccount(ctx context.Context, config *conn.ProviderConfig, id stri
 func (m *subAccountResourceModel) refreshFromOutput(ctx context.Context, detail *subaccountsdk.SubAccountDetail) diag.Diagnostics {
 	var diags diag.Diagnostics
 
-	m.ID = types.StringValue(detail.SubAccountId)
+	m.refreshComputedFromOutput(detail)
+
 	m.LoginId = types.StringValue(detail.LoginId)
 	m.Name = types.StringValue(detail.Name)
 	m.CanConsoleAccess = types.BoolValue(detail.CanConsoleAccess)
 	m.CanAPIGatewayAccess = types.BoolValue(detail.CanAPIGatewayAccess)
-	m.SubAccountNo = types.Int64Value(detail.SubAccountNo)
-	m.Nrn = types.StringValue(detail.Nrn)
-	m.Active = types.BoolValue(detail.Active)
-	m.CreateTime = types.StringValue(detail.CreateTime)
-
-	m.Email = types.StringNull()
-	if detail.Email != "" {
-		m.Email = types.StringValue(detail.Email)
-	}
-
-	m.Memo = types.StringNull()
-	if detail.Memo != "" {
-		m.Memo = types.StringValue(detail.Memo)
-	}
+	m.Email = framework.EmptyStringToNull(types.StringValue(detail.Email))
+	m.Memo = framework.EmptyStringToNull(types.StringValue(detail.Memo))
 
 	m.ConsolePermitIps = types.ListNull(types.StringType)
 	if detail.UseConsolePermitIp && len(detail.ConsolePermitIps) > 0 {

@@ -27,26 +27,7 @@ type APIClient struct {
 	httpClient *http.Client
 }
 
-func NewAPIClient(apiKey *ncloud.APIKey, site string) *APIClient {
-	var endpoint string
-	switch site {
-	case "gov":
-		endpoint = "https://subaccount.apigw.gov-ntruss.com"
-	case "fin":
-		endpoint = "https://subaccount.apigw.fin-ntruss.com"
-	default:
-		endpoint = "https://subaccount.apigw.ntruss.com"
-	}
-
-	return &APIClient{
-		endpoint:   endpoint,
-		apiKey:     apiKey,
-		httpClient: &http.Client{Timeout: 30 * time.Second},
-	}
-}
-
-// NewAPIClientWithEndpoint is used by tests to point the client at a mock server.
-func NewAPIClientWithEndpoint(apiKey *ncloud.APIKey, endpoint string) *APIClient {
+func NewAPIClient(apiKey *ncloud.APIKey, endpoint string) *APIClient {
 	return &APIClient{
 		endpoint:   endpoint,
 		apiKey:     apiKey,
@@ -56,16 +37,46 @@ func NewAPIClientWithEndpoint(apiKey *ncloud.APIKey, endpoint string) *APIClient
 
 type APIError struct {
 	StatusCode int
-	Body       string
+	// ErrorCode is the service error code parsed from the response body
+	// (e.g. "30" for a nonexistent subAccountId), empty when absent.
+	ErrorCode string
+	Body      string
 }
 
 func (e *APIError) Error() string {
 	return fmt.Sprintf("Sub Account API returned status %d: %s", e.StatusCode, e.Body)
 }
 
+// notFoundErrorCode is how the Sub Account API signals a nonexistent
+// subAccountId; it arrives with HTTP 400 or 401, never 404. A bare 404 is
+// an API Gateway routing failure and must NOT be treated as deletion, or a
+// misrouted request would silently wipe resources from state.
+const notFoundErrorCode = "30"
+
 func IsNotFound(err error) bool {
 	var apiErr *APIError
-	return errors.As(err, &apiErr) && apiErr.StatusCode == http.StatusNotFound
+	return errors.As(err, &apiErr) && apiErr.ErrorCode == notFoundErrorCode
+}
+
+func newAPIError(statusCode int, body []byte) *APIError {
+	var parsed struct {
+		ErrorCode json.Number `json:"errorCode"`
+		Code      json.Number `json:"code"`
+		Error     *struct {
+			ErrorCode json.Number `json:"errorCode"`
+		} `json:"error"`
+	}
+	_ = json.Unmarshal(body, &parsed)
+
+	errorCode := parsed.ErrorCode.String()
+	if errorCode == "" {
+		errorCode = parsed.Code.String()
+	}
+	if errorCode == "" && parsed.Error != nil {
+		errorCode = parsed.Error.ErrorCode.String()
+	}
+
+	return &APIError{StatusCode: statusCode, ErrorCode: errorCode, Body: string(body)}
 }
 
 func (c *APIClient) do(ctx context.Context, method, path string, reqBody, respBody any) error {
@@ -107,7 +118,18 @@ func (c *APIClient) do(ctx context.Context, method, path string, reqBody, respBo
 	}
 
 	if resp.StatusCode < 200 || resp.StatusCode >= 300 {
-		return &APIError{StatusCode: resp.StatusCode, Body: string(respBytes)}
+		return newAPIError(resp.StatusCode, respBytes)
+	}
+
+	// The API reports some failures (e.g. exceeding a quota) with HTTP 200
+	// and {"success": false} in the body.
+	if len(respBytes) > 0 {
+		var envelope struct {
+			Success *bool `json:"success"`
+		}
+		if err := json.Unmarshal(respBytes, &envelope); err == nil && envelope.Success != nil && !*envelope.Success {
+			return newAPIError(resp.StatusCode, respBytes)
+		}
 	}
 
 	if respBody != nil && len(respBytes) > 0 {

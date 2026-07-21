@@ -31,6 +31,13 @@ func (c *APIClient) ListAccessKeys(ctx context.Context, subAccountId string) ([]
 	return resp, nil
 }
 
+// DeleteAccessKey deletes an access key. The API takes the key in the request
+// body, not the path: DELETE /api/v1/sub-accounts/{id}/access-keys with
+// {"accessKey": ...} (https://api.ncloud-docs.com/docs/management-subaccount-deletekey).
 func (c *APIClient) DeleteAccessKey(ctx context.Context, subAccountId, accessKeyId string) error {
-	return c.do(ctx, http.MethodDelete, "/api/v1/sub-accounts/"+url.PathEscape(subAccountId)+"/access-keys/"+url.PathEscape(accessKeyId), nil, nil)
+	reqBody := struct {
+		AccessKey string `json:"accessKey"`
+	}{AccessKey: accessKeyId}
+
+	return c.do(ctx, http.MethodDelete, "/api/v1/sub-accounts/"+url.PathEscape(subAccountId)+"/access-keys", reqBody, nil)
 }

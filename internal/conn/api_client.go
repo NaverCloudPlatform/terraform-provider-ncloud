@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"os"
 	"strings"
 
 	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/ncloud"
@@ -38,6 +39,22 @@ func NewS3Client(region string, api *ncloud.APIKey, site, endpointFromEnv string
 	})
 
 	return newClient
+}
+
+// Sub Account API docs: https://api.ncloud-docs.com/docs/en/management-subaccount
+func genSubAccountEndpoint(site string) string {
+	if endpoint := os.Getenv("NCLOUD_SUBACCOUNT_ENDPOINT"); endpoint != "" {
+		return endpoint
+	}
+
+	switch site {
+	case "gov":
+		return "https://subaccount.apigw.gov-ntruss.com"
+	case "fin":
+		return "https://subaccount.apigw.fin-ntruss.com"
+	default:
+		return "https://subaccount.apigw.ntruss.com"
+	}
 }
 
 // API docs: https://api.ncloud-docs.com/docs/platform-region-getregionlist
