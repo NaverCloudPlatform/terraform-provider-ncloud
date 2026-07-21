@@ -242,12 +242,13 @@ func (r *subAccountResource) Create(ctx context.Context, req resource.CreateRequ
 	}
 
 	// Password flows are intentionally kept out of Terraform configuration.
-	// For console-enabled accounts the API generates the initial password,
-	// which is surfaced once through the generated_password attribute.
-	if createReq.CanConsoleAccess {
-		createReq.NeedPasswordGenerate = true
-		createReq.NeedPasswordReset = true
-	}
+	// The API validates a password even for console-disabled accounts (an
+	// omitted password fails with error 9015), so a server-generated one is
+	// always requested. For console-enabled accounts it is surfaced once
+	// through the generated_password attribute and must be reset at first
+	// login; otherwise it is unusable and discarded.
+	createReq.NeedPasswordGenerate = true
+	createReq.NeedPasswordReset = createReq.CanConsoleAccess
 
 	tflog.Info(ctx, "CreateSubAccount", map[string]any{
 		"reqParams": common.MarshalUncheckedString(createReq),
@@ -273,7 +274,7 @@ func (r *subAccountResource) Create(ctx context.Context, req resource.CreateRequ
 
 	plan.ID = types.StringValue(createResp.Id)
 	plan.GeneratedPassword = types.StringNull()
-	if createResp.GeneratedPassword != "" {
+	if createReq.CanConsoleAccess && createResp.GeneratedPassword != "" {
 		plan.GeneratedPassword = types.StringValue(createResp.GeneratedPassword)
 	}
 
@@ -384,6 +385,19 @@ func (r *subAccountResource) Update(ctx context.Context, req resource.UpdateRequ
 	}
 
 	plan.refreshComputedFromOutput(detail)
+
+	// Optional+Computed attributes that are null in both config and state
+	// arrive as unknown in the plan (UseStateForUnknown does not apply to
+	// null state) and must be resolved before saving.
+	if plan.Email.IsUnknown() {
+		plan.Email = framework.EmptyStringToNull(types.StringValue(detail.Email))
+	}
+	if plan.Memo.IsUnknown() {
+		plan.Memo = framework.EmptyStringToNull(types.StringValue(detail.Memo))
+	}
+	if plan.GeneratedPassword.IsUnknown() {
+		plan.GeneratedPassword = state.GeneratedPassword
+	}
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, plan)...)
 }

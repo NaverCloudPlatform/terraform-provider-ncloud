@@ -43,10 +43,13 @@ func TestAccResourceNcloudSubAccount_basic(t *testing.T) {
 				),
 			},
 			{
-				ResourceName:            resourceName,
-				ImportState:             true,
-				ImportStateVerify:       true,
-				ImportStateVerifyIgnore: []string{"generated_password"},
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+				// generated_password is only available at creation time and
+				// is_mfa_mandatory is never returned by the Get API, so
+				// neither can survive an import.
+				ImportStateVerifyIgnore: []string{"generated_password", "is_mfa_mandatory"},
 			},
 		},
 	})
