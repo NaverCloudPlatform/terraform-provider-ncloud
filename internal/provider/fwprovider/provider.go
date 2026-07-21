@@ -20,6 +20,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-ncloud/internal/service/mysql"
 	"github.com/terraform-providers/terraform-provider-ncloud/internal/service/redis"
 	"github.com/terraform-providers/terraform-provider-ncloud/internal/service/server"
+	"github.com/terraform-providers/terraform-provider-ncloud/internal/service/subaccount"
 	"github.com/terraform-providers/terraform-provider-ncloud/internal/service/vpc"
 )
 
@@ -155,6 +156,8 @@ func (p *fwprovider) Resources(ctx context.Context) []func() resource.Resource {
 	resources = append(resources, objectstorage.NewObjectACLResource)
 	resources = append(resources, objectstorage.NewBucketACLResource)
 	resources = append(resources, objectstorage.NewObjectCopyResource)
+	resources = append(resources, subaccount.NewSubAccountResource)
+	resources = append(resources, subaccount.NewSubAccountAccessKeyResource)
 
 	if err := errs.ErrorOrNil(); err != nil {
 		tflog.Warn(ctx, "registering resources", map[string]interface{}{
