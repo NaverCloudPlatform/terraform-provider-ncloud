@@ -352,9 +352,8 @@ func resourceNcloudNKSClusterCreate(ctx context.Context, d *schema.ResourceData,
 	}
 
 	// regional/zone mutual exclusion and requirement are validated at plan time
-	// in CustomizeDiff.
-	regional := d.Get("regional").(bool)
-
+	// in CustomizeDiff. IsRegional is sent only when true so gov/fin (and
+	// non-regional public) requests omit the field entirely.
 	reqParams := &vnks.ClusterInputBody{
 		RegionCode: &config.RegionCode,
 		//Required
@@ -363,7 +362,7 @@ func resourceNcloudNKSClusterCreate(ctx context.Context, d *schema.ResourceData,
 		HypervisorCode:       StringPtrOrNil(d.GetOk("hypervisor_code")),
 		LoginKeyName:         StringPtrOrNil(d.GetOk("login_key_name")),
 		K8sVersion:           StringPtrOrNil(d.GetOk("k8s_version")),
-		IsRegional:           ncloud.Bool(regional),
+		IsRegional:           BoolPtrOrNil(d.GetOk("regional")),
 		ZoneCode:             StringPtrOrNil(d.GetOk("zone")),
 		VpcNo:                GetInt32FromString(d.GetOk("vpc_no")),
 		SubnetLbNo:           GetInt32FromString(d.GetOk("lb_private_subnet_no")),
