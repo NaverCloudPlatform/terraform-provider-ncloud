@@ -130,6 +130,7 @@ The following arguments are supported:
 * `storage_size` - (Optional) Default storage size for `KVM` nodepool. (Default `100GB`)
 * `software_code` - (Optional) Server image code.
 * `server_role_id` - (Optional) SubAccount Server Role ID.
+* `zone` - (Optional) zone Code for the node pool. Used to place the node pool in a specific zone of a multi-zone (Regional) cluster. Required when the cluster is a multi-zone (Regional) cluster. Only supported on the `public` site; not supported on the `gov` and `fin` sites.
 * `autoscale`- (Optional) 
   * `enabled` - (Required) Auto scaling availability.
   * `max` - (Required) Maximum number of nodes available for auto scaling.

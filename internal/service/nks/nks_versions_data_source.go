@@ -23,6 +23,10 @@ func DataSourceNcloudNKSVersions() *schema.Resource {
 				Type:     schema.TypeString,
 				Optional: true,
 			},
+			"regional_support": {
+				Type:     schema.TypeBool,
+				Optional: true,
+			},
 			"versions": {
 				Type:     schema.TypeList,
 				Computed: true,
@@ -72,6 +76,20 @@ func getNKSVersion(config *conn.ProviderConfig, d *schema.ResourceData) ([]map[s
 	opt := make(map[string]interface{})
 	if hypervisorCode != nil {
 		opt["hypervisorCode"] = hypervisorCode
+	}
+
+	// Inspect the raw config so an explicit `regional_support` value (true or
+	// false) is distinguished from an unset one, allowing both to be used as
+	// filters. A bool Default cannot express this tri-state.
+	if rawConfig := d.GetRawConfig(); !rawConfig.IsNull() {
+		if v := rawConfig.GetAttr("regional_support"); !v.IsNull() {
+			// Multi-zone (Regional) clusters exist only on the public site; the
+			// default (empty) site is public, so only gov/fin are rejected.
+			if config.Site == "gov" || config.Site == "fin" || checkFinSite(config) {
+				return nil, fmt.Errorf(`"regional_support" is not supported on the gov and fin sites`)
+			}
+			opt["isRegionalSupport"] = ncloud.Bool(d.Get("regional_support").(bool))
+		}
 	}
 
 	resp, err := config.Client.Vnks.V2Api.OptionVersionGet(context.Background(), opt)

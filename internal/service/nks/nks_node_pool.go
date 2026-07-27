@@ -65,6 +65,19 @@ func ResourceNcloudNKSNodePool() *schema.Resource {
 				_, removed, autoSelect := getSubnetDiff(old, new)
 				return len(removed) > 0 || autoSelect
 			}),
+			func(ctx context.Context, d *schema.ResourceDiff, meta interface{}) error {
+				// Per-node-pool zone selection is only supported on the public site;
+				// the default (empty) site is public, so only gov/fin are rejected.
+				config := meta.(*conn.ProviderConfig)
+				rawConfig := d.GetRawConfig()
+				if rawConfig.IsNull() {
+					return nil
+				}
+				if !rawConfig.GetAttr("zone").IsNull() && (config.Site == "gov" || config.Site == "fin" || checkFinSite(config)) {
+					return fmt.Errorf(`"zone" is not supported on the gov and fin sites`)
+				}
+				return nil
+			},
 		),
 
 		Schema: map[string]*schema.Schema{
@@ -135,6 +148,12 @@ func ResourceNcloudNKSNodePool() *schema.Resource {
 			"server_role_id": {
 				Type:     schema.TypeString,
 				Optional: true,
+				ForceNew: true,
+			},
+			"zone": {
+				Type:     schema.TypeString,
+				Optional: true,
+				Computed: true,
 				ForceNew: true,
 			},
 			"fabric_cluster": {
@@ -279,6 +298,7 @@ func resourceNcloudNKSNodePoolCreate(ctx context.Context, d *schema.ResourceData
 		ServerSpecCode: StringPtrOrNil(d.GetOk("server_spec_code")),
 		StorageSize:    Int32PtrOrNil(d.GetOk("storage_size")),
 		ServerRoleId:   StringPtrOrNil(d.GetOk("server_role_id")),
+		ZoneCode:       StringPtrOrNil(d.GetOk("zone")),
 	}
 
 	if fabricCluster, ok := d.GetOk("fabric_cluster"); ok {
@@ -393,6 +413,7 @@ func resourceNcloudNKSNodePoolRead(ctx context.Context, d *schema.ResourceData, 
 	d.Set("server_spec_code", nodePool.ServerSpecCode)
 	d.Set("storage_size", nodePool.StorageSize)
 	d.Set("server_role_id", nodePool.ServerRoleId)
+	d.Set("zone", nodePool.ZoneCode)
 
 	var fabricCluster []map[string]interface{}
 	if nodePool.FabricCluster != nil {

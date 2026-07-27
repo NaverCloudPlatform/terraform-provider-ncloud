@@ -76,6 +76,37 @@ func ResourceNcloudNKSCluster() *schema.Resource {
 				}
 				return nil
 			}),
+			func(ctx context.Context, d *schema.ResourceDiff, meta interface{}) error {
+				// regional and zone are mutually exclusive: a Regional (multi-zone)
+				// cluster has no single zone, while a zonal cluster requires one.
+				// This is a value-conditional rule, so it cannot be expressed with
+				// the schema-level ConflictsWith attribute.
+				rawConfig := d.GetRawConfig()
+				if rawConfig.IsNull() {
+					return nil
+				}
+				// If regional is unknown at plan time (e.g. set from a computed
+				// value), d.Get would read its false zero-value and could raise a
+				// false "zone is required" error. Defer validation to apply time.
+				if regionalAttr := rawConfig.GetAttr("regional"); !regionalAttr.IsKnown() {
+					return nil
+				}
+				regional := d.Get("regional").(bool)
+				// Multi-zone (Regional) clusters exist only on the public site;
+				// the default (empty) site is public, so only gov/fin are rejected.
+				config := meta.(*conn.ProviderConfig)
+				if regional && (config.Site == "gov" || config.Site == "fin" || checkFinSite(config)) {
+					return fmt.Errorf(`"regional" is not supported on the gov and fin sites`)
+				}
+				zoneCode := !rawConfig.GetAttr("zone").IsNull()
+				if regional && zoneCode {
+					return fmt.Errorf(`"zone" must not be set when "regional" is true`)
+				}
+				if !regional && !zoneCode {
+					return fmt.Errorf(`"zone" is required when "regional" is false`)
+				}
+				return nil
+			},
 		),
 		Schema: map[string]*schema.Schema{
 			"uuid": {
@@ -113,9 +144,16 @@ func ResourceNcloudNKSCluster() *schema.Resource {
 				Optional: true,
 				Computed: true,
 			},
+			"regional": {
+				Type:     schema.TypeBool,
+				Optional: true,
+				Default:  false,
+				ForceNew: true,
+			},
 			"zone": {
 				Type:     schema.TypeString,
-				Required: true,
+				Optional: true,
+				Computed: true,
 				ForceNew: true,
 			},
 			"vpc_no": {
@@ -313,6 +351,9 @@ func resourceNcloudNKSClusterCreate(ctx context.Context, d *schema.ResourceData,
 		return diag.FromErr(fmt.Errorf("access_entries can only be specified when auth_type is 'API'"))
 	}
 
+	// regional/zone mutual exclusion and requirement are validated at plan time
+	// in CustomizeDiff. IsRegional is sent only when true so gov/fin (and
+	// non-regional public) requests omit the field entirely.
 	reqParams := &vnks.ClusterInputBody{
 		RegionCode: &config.RegionCode,
 		//Required
@@ -321,6 +362,7 @@ func resourceNcloudNKSClusterCreate(ctx context.Context, d *schema.ResourceData,
 		HypervisorCode:       StringPtrOrNil(d.GetOk("hypervisor_code")),
 		LoginKeyName:         StringPtrOrNil(d.GetOk("login_key_name")),
 		K8sVersion:           StringPtrOrNil(d.GetOk("k8s_version")),
+		IsRegional:           BoolPtrOrNil(d.GetOk("regional")),
 		ZoneCode:             StringPtrOrNil(d.GetOk("zone")),
 		VpcNo:                GetInt32FromString(d.GetOk("vpc_no")),
 		SubnetLbNo:           GetInt32FromString(d.GetOk("lb_private_subnet_no")),
@@ -463,6 +505,9 @@ func resourceNcloudNKSClusterRead(ctx context.Context, d *schema.ResourceData, m
 	d.Set("endpoint", cluster.Endpoint)
 	d.Set("login_key_name", cluster.LoginKeyName)
 	d.Set("k8s_version", cluster.K8sVersion)
+	if cluster.IsRegional != nil {
+		d.Set("regional", cluster.IsRegional)
+	}
 	d.Set("zone", cluster.ZoneCode)
 	d.Set("vpc_no", strconv.Itoa(int(ncloud.Int32Value(cluster.VpcNo))))
 	d.Set("lb_private_subnet_no", strconv.Itoa(int(ncloud.Int32Value(cluster.SubnetLbNo))))

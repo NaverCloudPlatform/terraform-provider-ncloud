@@ -45,6 +45,10 @@ func DataSourceNcloudNKSCluster() *schema.Resource {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
+			"regional": {
+				Type:     schema.TypeBool,
+				Computed: true,
+			},
 			"zone": {
 				Type:     schema.TypeString,
 				Computed: true,
@@ -246,6 +250,9 @@ func dataSourceNcloudNKSClusterRead(ctx context.Context, d *schema.ResourceData,
 	d.Set("endpoint", cluster.Endpoint)
 	d.Set("login_key_name", cluster.LoginKeyName)
 	d.Set("k8s_version", cluster.K8sVersion)
+	if cluster.IsRegional != nil {
+		d.Set("regional", cluster.IsRegional)
+	}
 	d.Set("zone", cluster.ZoneCode)
 	d.Set("vpc_no", strconv.Itoa(int(ncloud.Int32Value(cluster.VpcNo))))
 	d.Set("lb_private_subnet_no", strconv.Itoa(int(ncloud.Int32Value(cluster.SubnetLbNo))))

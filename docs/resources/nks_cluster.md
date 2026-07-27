@@ -103,7 +103,8 @@ The following arguments are supported:
   * `KVM`
     * 250 ea : `SVR.VNKS.STAND.C004.M016.G003`
 * `login_key_name` - (Required) Login key name.
-* `zone` - (Required) zone Code.
+* `regional` - (Optional) Whether to create a multi-zone (Regional) cluster. `true` | `false`(Default). When `true`, `zone` is not required. A Regional cluster can only use Kubernetes versions that support Regional clusters; use the `regional_support` argument of the `ncloud_nks_versions` data source to list them. Multi-zone (Regional) clusters are only supported on the `public` site.
+* `zone` - (Optional) zone Code. Required when `regional` is `false`.
 * `vpc_no` - (Required) VPC No.
 * `subnet_no_list` - (Required) Subnet No. list.
 * `public_network` - (Optional) Public Subnet Network (`boolean`)
