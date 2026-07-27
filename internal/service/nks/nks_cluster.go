@@ -85,6 +85,12 @@ func ResourceNcloudNKSCluster() *schema.Resource {
 				if rawConfig.IsNull() {
 					return nil
 				}
+				// If regional is unknown at plan time (e.g. set from a computed
+				// value), d.Get would read its false zero-value and could raise a
+				// false "zone is required" error. Defer validation to apply time.
+				if regionalAttr := rawConfig.GetAttr("regional"); !regionalAttr.IsKnown() {
+					return nil
+				}
 				regional := d.Get("regional").(bool)
 				// Multi-zone (Regional) clusters exist only on the public site;
 				// the default (empty) site is public, so only gov/fin are rejected.
