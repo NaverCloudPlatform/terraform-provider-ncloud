@@ -212,6 +212,12 @@ func ResourceNcloudServer() *schema.Resource {
 				Computed:         true,
 				ValidateDiagFunc: validation.ToDiagFunc(validation.IntAtLeast(BaseBlockStorageMinSizeLinuxGB)),
 			},
+			"base_block_storage_volume_type": {
+				Type:     schema.TypeString,
+				Optional: true,
+				Computed: true,
+				ForceNew: true,
+			},
 			"platform_type": {
 				Type:     schema.TypeString,
 				Computed: true,
@@ -413,13 +419,20 @@ func createServerInstance(d *schema.ResourceData, config *conn.ProviderConfig) (
 		RaidTypeName:                      StringPtrOrNil(d.GetOk("raid_type_name")),
 	}
 
-	if v, ok := d.GetOk("base_block_storage_size"); ok {
-		// KVM-only and OS/size floors are validated at plan (validateBaseBlockStorageSizeDiff);
-		// the exact per-image minimum is enforced by NCloud on create.
-		reqParams.BlockStorageMappingList = []*vserver.BlockStorageMappingParameter{{
-			Order:            ncloud.Int32(0),
-			BlockStorageSize: ncloud.String(strconv.Itoa(v.(int))),
-		}}
+	// The base (root) volume is customized via BlockStorageMappingList[0]. KVM-only
+	// constraints are validated at plan (validateBaseBlockStorageSizeDiff); the exact
+	// per-image minimum is enforced by NCloud on create.
+	size, hasSize := d.GetOk("base_block_storage_size")
+	volumeType, hasVolumeType := d.GetOk("base_block_storage_volume_type")
+	if hasSize || hasVolumeType {
+		mapping := &vserver.BlockStorageMappingParameter{Order: ncloud.Int32(0)}
+		if hasSize {
+			mapping.BlockStorageSize = ncloud.String(strconv.Itoa(size.(int)))
+		}
+		if hasVolumeType {
+			mapping.BlockStorageVolumeTypeCode = ncloud.String(volumeType.(string))
+		}
+		reqParams.BlockStorageMappingList = []*vserver.BlockStorageMappingParameter{mapping}
 	}
 
 	if networkInterfaceList, ok := d.GetOk("network_interface"); !ok {
@@ -632,16 +645,23 @@ func updateServerProtectionTermination(d *schema.ResourceData, config *conn.Prov
 // and the value is expand-only. The exact per-image minimum is enforced by NCloud on create.
 // Raw config is used for the product/member checks so they only fire on user-set fields.
 func validateBaseBlockStorageSizeDiff(_ context.Context, d *schema.ResourceDiff, meta interface{}) error {
-	rawNew, hasNew := d.GetOk("base_block_storage_size")
-	if !hasNew {
+	rawSize, hasSize := d.GetOk("base_block_storage_size")
+	_, hasVolumeType := d.GetOk("base_block_storage_volume_type")
+	if !hasSize && !hasVolumeType {
 		return nil
 	}
 
+	// Both base_block_storage_size and base_block_storage_volume_type customize the
+	// base volume via BlockStorageMappingList, which is KVM-only.
+	feature := "base_block_storage_size"
+	if !hasSize {
+		feature = "base_block_storage_volume_type"
+	}
 	if userSetString(d, "server_image_product_code") {
-		return fmt.Errorf("base_block_storage_size requires KVM hypervisor (cannot combine with server_image_product_code)")
+		return fmt.Errorf("%s requires KVM hypervisor (cannot combine with server_image_product_code)", feature)
 	}
 	if userSetString(d, "member_server_image_no") {
-		return fmt.Errorf("base_block_storage_size requires KVM hypervisor (member server images are XEN/RHV)")
+		return fmt.Errorf("%s requires KVM hypervisor (member server images are XEN/RHV)", feature)
 	}
 
 	// Image-aware checks at create only (KVM-only, Windows floor). On existing servers the
@@ -654,19 +674,19 @@ func validateBaseBlockStorageSizeDiff(_ context.Context, d *schema.ResourceDiff,
 				return err
 			}
 			if img.Hypervisor != "KVM" {
-				return fmt.Errorf("base_block_storage_size requires KVM hypervisor (image %s is %s)", imgNo, img.Hypervisor)
+				return fmt.Errorf("%s requires KVM hypervisor (image %s is %s)", feature, imgNo, img.Hypervisor)
 			}
-			if strings.EqualFold(img.OsCategory, "WINDOWS") && rawNew.(int) < BaseBlockStorageMinSizeWindowsGB {
-				return fmt.Errorf("base_block_storage_size must be at least %dGB for Windows images (got %dGB)", BaseBlockStorageMinSizeWindowsGB, rawNew.(int))
+			if hasSize && strings.EqualFold(img.OsCategory, "WINDOWS") && rawSize.(int) < BaseBlockStorageMinSizeWindowsGB {
+				return fmt.Errorf("base_block_storage_size must be at least %dGB for Windows images (got %dGB)", BaseBlockStorageMinSizeWindowsGB, rawSize.(int))
 			}
 		}
 	}
 
-	if d.Id() != "" && d.HasChange("base_block_storage_size") {
+	if hasSize && d.Id() != "" && d.HasChange("base_block_storage_size") {
 		oldRaw, _ := d.GetChange("base_block_storage_size")
-		if rawNew.(int) <= oldRaw.(int) {
+		if rawSize.(int) <= oldRaw.(int) {
 			return fmt.Errorf("base_block_storage_size is only expandable, not shrinkable (old=%d new=%d)",
-				oldRaw.(int), rawNew.(int))
+				oldRaw.(int), rawSize.(int))
 		}
 	}
 
@@ -760,11 +780,16 @@ func buildBaseBlockStorageInfo(config *conn.ProviderConfig, r *ServerInstance) e
 		return err
 	}
 	base := selectBaseBlockStorage(bsList)
-	if base == nil || base.BlockStorageSize == nil {
+	if base == nil {
 		return nil
 	}
-	sizeGB := *base.BlockStorageSize / int64(common.GIGABYTE)
-	r.BaseBlockStorageSize = &sizeGB
+	if base.BlockStorageSize != nil {
+		sizeGB := *base.BlockStorageSize / int64(common.GIGABYTE)
+		r.BaseBlockStorageSize = &sizeGB
+	}
+	if base.VolumeType != nil {
+		r.BaseBlockStorageVolumeType = base.VolumeType
+	}
 	return nil
 }
 
@@ -1177,6 +1202,7 @@ func convertVpcBlockStorage(storage *vserver.BlockStorageInstance) *BlockStorage
 		Description:             storage.BlockStorageDescription,
 		DiskType:                common.GetCodePtrByCommonCode(storage.BlockStorageDiskType),
 		DiskDetailType:          common.GetCodePtrByCommonCode(storage.BlockStorageDiskDetailType),
+		VolumeType:              common.GetCodePtrByCommonCode(storage.BlockStorageVolumeType),
 		ZoneCode:                storage.ZoneCode,
 	}
 }
@@ -1282,6 +1308,7 @@ type ServerInstance struct {
 	CpuCount                       *int32  `json:"cpu_count,omitempty"`
 	MemorySize                     *int64  `json:"memory_size,omitempty"`
 	BaseBlockStorageSize           *int64  `json:"base_block_storage_size,omitempty"`
+	BaseBlockStorageVolumeType     *string `json:"base_block_storage_volume_type,omitempty"`
 	IsFeeChargingMonitoring        *bool   `json:"is_fee_charging_monitoring,omitempty"`
 	PublicIp                       *string `json:"public_ip,omitempty"`
 	PrivateIp                      *string `json:"private_ip,omitempty"`

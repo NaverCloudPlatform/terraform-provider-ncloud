@@ -169,24 +169,49 @@ func TestAccResourceNcloudServer_vpc_baseBlockStorageSize(t *testing.T) {
 		CheckDestroy:             testAccCheckServerDestroy,
 		Steps: []resource.TestStep{
 			{ // below the 10GB absolute floor: rejected at plan (schema)
-				Config:      testAccServerKvmBaseVolumeConfig(name, specCode, 5),
+				Config:      testAccServerKvmBaseVolumeConfig(name, specCode, 5, ""),
 				PlanOnly:    true,
 				ExpectError: regexp.MustCompile(`base_block_storage_size.*at least`),
 			},
 			{ // create with explicit 50GB via BlockStorageMappingList
-				Config: testAccServerKvmBaseVolumeConfig(name, specCode, 50),
+				Config: testAccServerKvmBaseVolumeConfig(name, specCode, 50, ""),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr(resourceName, "hypervisor_type", "KVM"),
 					resource.TestCheckResourceAttr(resourceName, "base_block_storage_size", "50"),
 				),
 			},
 			{ // in-place expand
-				Config: testAccServerKvmBaseVolumeConfig(name, specCode, 100),
+				Config: testAccServerKvmBaseVolumeConfig(name, specCode, 100, ""),
 				Check:  resource.TestCheckResourceAttr(resourceName, "base_block_storage_size", "100"),
 			},
 			{ // shrink rejected at plan
-				Config:      testAccServerKvmBaseVolumeConfig(name, specCode, 50),
+				Config:      testAccServerKvmBaseVolumeConfig(name, specCode, 50, ""),
 				ExpectError: regexp.MustCompile("only expandable"),
+			},
+		},
+	})
+}
+
+// TestAccResourceNcloudServer_vpc_baseBlockStorageVolumeType verifies that
+// base_block_storage_volume_type is applied at create and reflected in state.
+// CB2 requires a minimum size of 100GB, so the base volume is created at 100GB.
+func TestAccResourceNcloudServer_vpc_baseBlockStorageVolumeType(t *testing.T) {
+	name := GetTestServerName()
+	resourceName := "ncloud_server.server"
+	specCode := "s2-g3"
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: ProtoV6ProviderFactories,
+		CheckDestroy:             testAccCheckServerDestroy,
+		Steps: []resource.TestStep{
+			{ // create with volume type CB2 (min 100GB) via BlockStorageMappingList
+				Config: testAccServerKvmBaseVolumeConfig(name, specCode, 100, "CB2"),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr(resourceName, "hypervisor_type", "KVM"),
+					resource.TestCheckResourceAttr(resourceName, "base_block_storage_size", "100"),
+					resource.TestCheckResourceAttr(resourceName, "base_block_storage_volume_type", "CB2"),
+				),
 			},
 		},
 	})
@@ -424,7 +449,11 @@ resource "ncloud_server" "server" {
 `, testServerName, specCode)
 }
 
-func testAccServerKvmBaseVolumeConfig(testServerName, specCode string, baseSizeGB int) string {
+func testAccServerKvmBaseVolumeConfig(testServerName, specCode string, baseSizeGB int, volumeType string) string {
+	volumeTypeLine := ""
+	if volumeType != "" {
+		volumeTypeLine = fmt.Sprintf("base_block_storage_volume_type = %q", volumeType)
+	}
 	return fmt.Sprintf(`
 resource "ncloud_login_key" "loginkey" {
 	key_name = "%[1]s-key"
@@ -457,14 +486,15 @@ data "ncloud_server_image_numbers" "kvm_images" {
 }
 
 resource "ncloud_server" "server" {
-	subnet_no               = ncloud_subnet.test.id
-	name                    = "%[1]s"
-	server_image_number     = data.ncloud_server_image_numbers.kvm_images.image_number_list.0.server_image_number
-	server_spec_code        = "%[2]s"
-	login_key_name          = ncloud_login_key.loginkey.key_name
-	base_block_storage_size = %[3]d
+	subnet_no                      = ncloud_subnet.test.id
+	name                           = "%[1]s"
+	server_image_number            = data.ncloud_server_image_numbers.kvm_images.image_number_list.0.server_image_number
+	server_spec_code               = "%[2]s"
+	login_key_name                 = ncloud_login_key.loginkey.key_name
+	base_block_storage_size        = %[3]d
+	%[4]s
 }
-`, testServerName, specCode, baseSizeGB)
+`, testServerName, specCode, baseSizeGB, volumeTypeLine)
 }
 
 func testAccServerWindowsKvmBaseVolumeConfig(testServerName, specCode string, baseSizeGB int) string {
