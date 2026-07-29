@@ -95,9 +95,12 @@ func (r *subAccountResource) Schema(_ context.Context, _ resource.SchemaRequest,
 				Required:    true,
 				Description: "Name of the sub account.",
 			},
+			// email and memo are Optional but deliberately not Computed: the
+			// Edit Sub Account API is a full replacement, so an Optional+Computed
+			// attribute would keep resending the prior state value once removed
+			// from configuration and could never be cleared.
 			"email": schema.StringAttribute{
 				Optional: true,
-				Computed: true,
 				Validators: []validator.String{
 					stringvalidator.LengthAtLeast(1),
 				},
@@ -105,7 +108,6 @@ func (r *subAccountResource) Schema(_ context.Context, _ resource.SchemaRequest,
 			},
 			"memo": schema.StringAttribute{
 				Optional: true,
-				Computed: true,
 				Validators: []validator.String{
 					stringvalidator.LengthAtLeast(1),
 				},
@@ -282,12 +284,6 @@ func (r *subAccountResource) Create(ctx context.Context, req resource.CreateRequ
 	// failure below must not leave it orphaned outside of state (the
 	// generated password can never be recovered). Unknown computed values
 	// are nulled here and filled in on the successful path.
-	if plan.Email.IsUnknown() {
-		plan.Email = types.StringNull()
-	}
-	if plan.Memo.IsUnknown() {
-		plan.Memo = types.StringNull()
-	}
 	plan.SubAccountNo = types.Int64Null()
 	plan.Nrn = types.StringNull()
 	plan.Active = types.BoolNull()
@@ -386,15 +382,9 @@ func (r *subAccountResource) Update(ctx context.Context, req resource.UpdateRequ
 
 	plan.refreshComputedFromOutput(detail)
 
-	// Optional+Computed attributes that are null in both config and state
-	// arrive as unknown in the plan (UseStateForUnknown does not apply to
-	// null state) and must be resolved before saving.
-	if plan.Email.IsUnknown() {
-		plan.Email = framework.EmptyStringToNull(types.StringValue(detail.Email))
-	}
-	if plan.Memo.IsUnknown() {
-		plan.Memo = framework.EmptyStringToNull(types.StringValue(detail.Memo))
-	}
+	// generated_password is Computed and null in state whenever console access
+	// was never enabled; UseStateForUnknown does not apply to a null state, so
+	// the plan value arrives unknown and must be resolved before saving.
 	if plan.GeneratedPassword.IsUnknown() {
 		plan.GeneratedPassword = state.GeneratedPassword
 	}
