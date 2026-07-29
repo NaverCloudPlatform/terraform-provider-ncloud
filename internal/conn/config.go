@@ -33,6 +33,8 @@ import (
 	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/services/vpostgresql"
 	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/services/vsourcedeploy"
 	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/services/vsourcepipeline"
+
+	subaccountsdk "github.com/terraform-providers/terraform-provider-ncloud/internal/sdk/subaccount"
 )
 
 // DefaultWaitForInterval is Interval for checking status in WaitForXXX method
@@ -78,6 +80,7 @@ type NcloudAPIClient struct {
 	Vhadoop         *vhadoop.APIClient
 	Vredis          *vredis.APIClient
 	ObjectStorage   *s3.Client
+	SubAccount      *subaccountsdk.APIClient
 }
 
 func (c *Config) Client(site, endpoint string) (*NcloudAPIClient, error) {
@@ -112,6 +115,7 @@ func (c *Config) Client(site, endpoint string) (*NcloudAPIClient, error) {
 		Vhadoop:         vhadoop.NewAPIClient(vhadoop.NewConfiguration(apiKey)),
 		Vredis:          vredis.NewAPIClient(vredis.NewConfiguration(apiKey)),
 		ObjectStorage:   NewS3Client(c.Region, apiKey, site, endpoint),
+		SubAccount:      subaccountsdk.NewAPIClient(apiKey, genSubAccountEndpoint(site)),
 	}, nil
 }
 
