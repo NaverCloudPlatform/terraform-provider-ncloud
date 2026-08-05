@@ -305,25 +305,36 @@ func FilterModels[M any](ctx context.Context, filterSet types.Set, datas []*M) [
 		return datas
 	}
 
-	var outputs []*M
+	filters := filterSet.Elements()
+	if len(filters) == 0 {
+		return datas
+	}
+
+	outputs := make([]*M, 0)
 
 	for _, dataModel := range datas {
-		for _, v := range filterSet.Elements() {
+		matchesAll := true
+		for _, v := range filters {
 			var data customFilterData
 
 			if tfsdk.ValueAs(ctx, v, &data).HasError() {
-				continue
+				matchesAll = false
+				break
 			}
 
 			if data.Name.IsNull() || data.Name.IsUnknown() {
-				continue
+				matchesAll = false
+				break
 			}
 
-			if applyFilter(dataModel, data) {
-				outputs = append(outputs, dataModel)
+			if !applyFilter(dataModel, data) {
+				matchesAll = false
+				break
 			}
 		}
-
+		if matchesAll {
+			outputs = append(outputs, dataModel)
+		}
 	}
 
 	return outputs
@@ -337,10 +348,6 @@ func applyFilter[M any](dataModel *M, filterData customFilterData) bool {
 
 	// create a string equality check strategy based on this filters "regex" flag
 	stringsEqual := func(propertyVal string, filterVal string) bool {
-		// value in filter set enclosed with quote
-		if len(filterVal) > 2 && filterVal[0] == '"' && filterVal[len(filterVal)-1] == '"' {
-			filterVal = filterVal[1 : len(filterVal)-1]
-		}
 		if useRegex {
 			re, err := regexp.Compile(filterVal)
 			if err != nil {
@@ -373,9 +380,18 @@ func applyFilter[M any](dataModel *M, filterData customFilterData) bool {
 		value := reflect.ValueOf(*dataModel).Field(i).FieldByName("value")
 
 		for _, fValue := range filterData.Values.Elements() {
+			// Values is a types.Set with ElementType: types.StringType, so each element is types.String.
+			// types.String.String() returns a quoted representation (e.g. "\"KVM\""), so use ValueString()
+			// to get the raw unquoted string for correct parsing.
+			fStr, ok := fValue.(types.String)
+			if !ok {
+				continue
+			}
+			rawValue := fStr.ValueString()
+
 			switch value.Kind() {
 			case reflect.Bool:
-				fBool, err := strconv.ParseBool(fValue.String())
+				fBool, err := strconv.ParseBool(rawValue)
 				if err != nil {
 					log.Println("[WARN] Filtering against Type Bool field with un-parsable string boolean form")
 					continue
@@ -386,7 +402,7 @@ func applyFilter[M any](dataModel *M, filterData customFilterData) bool {
 			case reflect.Int, reflect.Int32, reflect.Int64:
 				// the target field is of type int, but the filter values list element type is string, users can supply string
 				// or int like `values = [300, "3600"]` but terraform will converts to string, so use ParseInt
-				fInt, err := strconv.ParseInt(fValue.String(), 10, 64)
+				fInt, err := strconv.ParseInt(rawValue, 10, 64)
 				if err != nil {
 					log.Println("[WARN] Filtering against Type Int field with non-int filter value")
 					continue
@@ -395,7 +411,7 @@ func applyFilter[M any](dataModel *M, filterData customFilterData) bool {
 					return true
 				}
 			case reflect.Float64:
-				fFloat, err := strconv.ParseFloat(fValue.String(), 64)
+				fFloat, err := strconv.ParseFloat(rawValue, 64)
 				if err != nil {
 					log.Println("[WARN] Filtering against Type Float field with non-float filter value")
 					continue
@@ -407,13 +423,13 @@ func applyFilter[M any](dataModel *M, filterData customFilterData) bool {
 				if value.Elem().Kind() == reflect.String {
 					arrLen := value.Len()
 					for i := 0; i < arrLen; i++ {
-						if stringsEqual(value.String(), fValue.String()) {
+						if stringsEqual(value.Index(i).String(), rawValue) {
 							return true
 						}
 					}
 				}
 			case reflect.String:
-				if stringsEqual(value.String(), fValue.String()) {
+				if stringsEqual(value.String(), rawValue) {
 					return true
 				}
 			}
