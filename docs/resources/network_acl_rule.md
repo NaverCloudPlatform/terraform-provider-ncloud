@@ -114,3 +114,28 @@ Both `inbound` and `outbound` support  following attributes:
 ~> **NOTE:** If the value of protocol is `ICMP`, the `port_range` values will be ignored and the rule will apply to all ports.
 
 * `description` - (Optional) description to create.
+
+## Attributes Reference
+
+* `id` - The ID of Network ACL Rule. It is the same as `network_acl_no`.
+
+## Import
+
+### `terraform import` command
+
+* Network ACL Rule can be imported using the `network_acl_no`. For example:
+
+```console
+$ terraform import ncloud_network_acl_rule.rsc_name 12345
+```
+
+### `import` block
+
+* In Terraform v1.5.0 and later, use an [`import` block](https://developer.hashicorp.com/terraform/language/import) to import Network ACL Rule using the `network_acl_no`. For example:
+
+```terraform
+import {
+  to = ncloud_network_acl_rule.rsc_name
+  id = "12345"
+}
+```

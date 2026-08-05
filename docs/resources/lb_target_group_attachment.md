@@ -36,4 +36,25 @@ The following arguments are supported:
 
 In addition to all arguments above, the following attributes are exported:
 
-* `id` - The ID of target.
+* `id` - The ID of target group attachment. Format: `target_group_no:target_no[,target_no...]`
+
+## Import
+
+### `terraform import` command
+
+* Load Balancer Target Group Attachment can be imported using the target group number and one or more target numbers separated by commas. For example:
+
+```console
+$ terraform import ncloud_lb_target_group_attachment.rsc_name 12345:23456,34567
+```
+
+### `import` block
+
+* In Terraform v1.5.0 and later, use an [`import` block](https://developer.hashicorp.com/terraform/language/import) to import Load Balancer Target Group Attachment using the target group number and one or more target numbers separated by commas. For example:
+
+```terraform
+import {
+  to = ncloud_lb_target_group_attachment.rsc_name
+  id = "12345:23456,34567"
+}
+```

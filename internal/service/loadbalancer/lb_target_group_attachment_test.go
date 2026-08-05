@@ -35,8 +35,25 @@ func TestAccResourceNcloudLbTargetGroupAttachment_basic(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "target_no_list.#", "1"),
 				),
 			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateIdFunc: testAccNcloudLbTargetGroupAttachmentImportStateIDFunc(resourceName),
+				ImportStateVerify: true,
+			},
 		},
 	})
+}
+
+func testAccNcloudLbTargetGroupAttachmentImportStateIDFunc(resourceName string) resource.ImportStateIdFunc {
+	return func(s *terraform.State) (string, error) {
+		rs, ok := s.RootModule().Resources[resourceName]
+		if !ok {
+			return "", fmt.Errorf("Not found: %s", resourceName)
+		}
+
+		return fmt.Sprintf("%s:%s", rs.Primary.Attributes["target_group_no"], rs.Primary.Attributes["target_no_list.0"]), nil
+	}
 }
 
 func testAccCheckLbTargetGroupAttachmentExists(n string, t *string, provider *schema.Provider) resource.TestCheckFunc {

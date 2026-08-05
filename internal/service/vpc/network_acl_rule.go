@@ -23,6 +23,9 @@ func ResourceNcloudNetworkACLRule() *schema.Resource {
 		Read:   resourceNcloudNetworkACLRuleRead,
 		Update: resourceNcloudNetworkACLRuleUpdate,
 		Delete: resourceNcloudNetworkACLRuleDelete,
+		Importer: &schema.ResourceImporter{
+			State: schema.ImportStatePassthrough,
+		},
 		Schema: map[string]*schema.Schema{
 			"network_acl_no": {
 				Type:     schema.TypeString,
