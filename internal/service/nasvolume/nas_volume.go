@@ -62,9 +62,10 @@ func ResourceNcloudNasVolume() *schema.Resource {
 				ForceNew: true,
 			},
 			"cifs_user_password": {
-				Type:     schema.TypeString,
-				Optional: true,
-				ForceNew: true,
+				Type:      schema.TypeString,
+				Optional:  true,
+				ForceNew:  true,
+				Sensitive: true,
 			},
 			"description": {
 				Type:             schema.TypeString,

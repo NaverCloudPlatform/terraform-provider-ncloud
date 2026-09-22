@@ -58,8 +58,9 @@ func DataSourceNcloudCDSSCluster() *schema.Resource {
 							Optional: true,
 						},
 						"user_password": {
-							Type:     schema.TypeString,
-							Optional: true,
+							Type:      schema.TypeString,
+							Optional:  true,
+							Sensitive: true,
 						},
 					},
 				},
