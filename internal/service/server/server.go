@@ -344,7 +344,7 @@ func resourceNcloudServerDelete(d *schema.ResourceData, meta interface{}) error 
 				return err
 			}
 
-			if err := waitForDisconnectBlockStorage(config, *blockStorage.BlockStorageInstanceNo); err != nil {
+			if err := waitForBlockStorageDetachment(config, *blockStorage.BlockStorageInstanceNo); err != nil {
 				return err
 			}
 		}
@@ -1215,40 +1215,6 @@ func disconnectBlockStorage(config *conn.ProviderConfig, storage *BlockStorage) 
 
 	if err != nil {
 		return err
-	}
-
-	return nil
-}
-
-func waitForDisconnectBlockStorage(config *conn.ProviderConfig, no string) error {
-	stateConf := &retry.StateChangeConf{
-		Pending: []string{BlockStorageStatusNameAttach},
-		Target:  []string{BlockStorageStatusNameDetach},
-		Refresh: func() (interface{}, string, error) {
-			resp, err := GetBlockStorage(config, no)
-			if err != nil {
-				return 0, "", err
-			}
-
-			if resp == nil {
-				return 0, "", fmt.Errorf("fail to get BlockStorage instance, %s doesn't exist", no)
-			}
-
-			if *resp.StatusName == BlockStorageStatusNameAttach {
-				return resp, BlockStorageStatusNameAttach, nil
-			} else if *resp.StatusName == BlockStorageStatusNameDetach {
-				return resp, BlockStorageStatusNameDetach, nil
-			}
-
-			return 0, "", fmt.Errorf("error occurred while waiting to detached")
-		},
-		Timeout:    6 * conn.DefaultTimeout,
-		Delay:      2 * time.Second,
-		MinTimeout: 3 * time.Second,
-	}
-
-	if _, err := stateConf.WaitForState(); err != nil {
-		return fmt.Errorf("Error waiting for BlockStorage (%s) to become available: %s", no, err)
 	}
 
 	return nil
