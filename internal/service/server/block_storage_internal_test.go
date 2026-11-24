@@ -25,3 +25,22 @@ func TestNeedsServerStopBeforeDetaching(t *testing.T) {
 		})
 	}
 }
+
+func TestIsBlockStorageStatusAttached(t *testing.T) {
+	cases := []struct {
+		name   string
+		status string
+		want   bool
+	}{
+		{"attached", BlockStorageStatusCodeAttach, true},
+		{"detached", BlockStorageStatusCodeCreate, false},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			if got := isBlockStorageStatusAttached(&BlockStorage{Status: ncloud.String(tc.status)}); got != tc.want {
+				t.Errorf("isBlockStorageStatusAttached() = %v, want %v", got, tc.want)
+			}
+		})
+	}
+}

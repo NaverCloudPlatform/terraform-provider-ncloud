@@ -233,18 +233,29 @@ func resourceNcloudBlockStorageUpdate(d *schema.ResourceData, meta interface{}) 
 
 		// If server instance attached block storage, detach first
 		if len(o.(string)) > 0 {
-			if d.Get("stop_instance_before_detaching").(bool) {
-				if err := stopServerInstanceBeforeDetaching(config, o.(string)); err != nil {
+			// The block storage may already be detached, e.g. when the server it was attached to
+			// has been terminated earlier in the same apply (server delete detaches additional block storage).
+			attached, err := isBlockStorageAttached(config, d.Id())
+			if err != nil {
+				return err
+			}
+
+			if attached {
+				if d.Get("stop_instance_before_detaching").(bool) {
+					if err := stopServerInstanceBeforeDetaching(config, o.(string)); err != nil {
+						return err
+					}
+				}
+
+				if err := detachBlockStorage(config, d.Id()); err != nil {
 					return err
 				}
-			}
 
-			if err := detachBlockStorage(config, d.Id()); err != nil {
-				return err
-			}
-
-			if err := detachThenWaitServerInstance(config, o.(string)); err != nil {
-				return err
+				if err := detachThenWaitServerInstance(config, o.(string)); err != nil {
+					return err
+				}
+			} else {
+				log.Printf("[INFO] Block storage %s is already detached, skip detaching", d.Id())
 			}
 		}
 
@@ -508,6 +519,25 @@ func stopServerInstanceBeforeDetaching(config *conn.ProviderConfig, serverInstan
 
 	log.Printf("[INFO] Stopping server instance %s before detaching block storage", serverInstanceNo)
 	return stopThenWaitServerInstance(config, serverInstanceNo)
+}
+
+func isBlockStorageAttached(config *conn.ProviderConfig, id string) (bool, error) {
+	instance, err := GetBlockStorage(config, id)
+	if err != nil {
+		return false, err
+	}
+
+	if instance == nil {
+		return false, fmt.Errorf("fail to get BlockStorage instance, %s doesn't exist", id)
+	}
+
+	return isBlockStorageStatusAttached(instance), nil
+}
+
+// isBlockStorageStatusAttached reports whether the block storage is attached or still detaching.
+// A detaching block storage keeps the ATTAC status code (operation DETAC) until it becomes CREAT.
+func isBlockStorageStatusAttached(instance *BlockStorage) bool {
+	return ncloud.StringValue(instance.Status) != BlockStorageStatusCodeCreate
 }
 
 func needsServerStopBeforeDetaching(instance *ServerInstance) bool {
