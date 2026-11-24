@@ -212,8 +212,7 @@ func resourceNcloudBlockStorageDelete(d *schema.ResourceData, meta interface{}) 
 	config := meta.(*conn.ProviderConfig)
 
 	if d.Get("stop_instance_before_detaching").(bool) {
-		log.Printf("[INFO] Stopping Instance %s for destroying block storage", d.Get("server_instance_no").(string))
-		if err := stopThenWaitServerInstance(config, d.Get("server_instance_no").(string)); err != nil {
+		if err := stopServerInstanceBeforeDetaching(config, d.Get("server_instance_no").(string)); err != nil {
 			return err
 		}
 	}
@@ -235,8 +234,7 @@ func resourceNcloudBlockStorageUpdate(d *schema.ResourceData, meta interface{}) 
 		// If server instance attached block storage, detach first
 		if len(o.(string)) > 0 {
 			if d.Get("stop_instance_before_detaching").(bool) {
-				log.Printf("[INFO] Start Instance %s after detaching block storage", o.(string))
-				if err := stopThenWaitServerInstance(config, o.(string)); err != nil {
+				if err := stopServerInstanceBeforeDetaching(config, o.(string)); err != nil {
 					return err
 				}
 			}
@@ -267,8 +265,7 @@ func resourceNcloudBlockStorageUpdate(d *schema.ResourceData, meta interface{}) 
 		// If server instance attached block storage, detach first
 		if len(d.Get("server_instance_no").(string)) > 0 {
 			if d.Get("stop_instance_before_detaching").(bool) {
-				log.Printf("[INFO] Start Instance %s after detaching block storage", d.Get("server_instance_no").(string))
-				if err := stopThenWaitServerInstance(config, d.Get("server_instance_no").(string)); err != nil {
+				if err := stopServerInstanceBeforeDetaching(config, d.Get("server_instance_no").(string)); err != nil {
 					return err
 				}
 			}
@@ -486,6 +483,35 @@ func deleteVpcBlockStorage(d *schema.ResourceData, config *conn.ProviderConfig, 
 	LogResponse("deleteVpcBlockStorage", resp)
 
 	return nil
+}
+
+// stopServerInstanceBeforeDetaching stops the server the block storage is attached to,
+// for stop_instance_before_detaching. It skips the stop API when there is nothing to stop:
+// the block storage is not attached (empty server instance number), the server no longer
+// exists, or the server is already stopped. Calling the stop API in those cases fails with
+// "Required field is not specified. location : serverInstanceNo." or 3001008.
+func stopServerInstanceBeforeDetaching(config *conn.ProviderConfig, serverInstanceNo string) error {
+	if serverInstanceNo == "" {
+		log.Printf("[INFO] Block storage is not attached to a server, skip stopping server")
+		return nil
+	}
+
+	instance, err := GetServerInstance(config, serverInstanceNo)
+	if err != nil {
+		return err
+	}
+
+	if !needsServerStopBeforeDetaching(instance) {
+		log.Printf("[INFO] Server instance %s does not exist or is already stopped, skip stopping server", serverInstanceNo)
+		return nil
+	}
+
+	log.Printf("[INFO] Stopping server instance %s before detaching block storage", serverInstanceNo)
+	return stopThenWaitServerInstance(config, serverInstanceNo)
+}
+
+func needsServerStopBeforeDetaching(instance *ServerInstance) bool {
+	return instance != nil && ncloud.StringValue(instance.ServerInstanceStatus) != "NSTOP"
 }
 
 func detachBlockStorage(config *conn.ProviderConfig, id string) error {
